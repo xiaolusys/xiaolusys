@@ -624,14 +624,16 @@ def cash_Out_Verify(request, id, xlmm):
 #     day_from = today-datetime.timedelta(days=30)
 #     day_to = today
 
-    cashout_status_is_pending = CashOut.objects.get(id=id)
+    cashout = CashOut.objects.get(pk=id)
+    mama_id = cashout.xlmm
 
-    # for cashout_status_is_pending in cashouts_status_is_pending:
-    # xlmm = cashout_status_is_pending.xlmm
-    value = cashout_status_is_pending.value / 100.0
-    status = cashout_status_is_pending.status
-    xiaolumama = XiaoluMama.objects.get(pk=xlmm)
-    
+    fortune = MamaFortune.objects.get(mama_id=mama_id)
+    pre_cash = fortune.cash_num_display()
+    xiaolumama = XiaoluMama.objects.get(id=mama_id)  # object.get(id=mama_id)
+
+    value  = cashout.value
+    status = cashout.status
+
     clickcounts = ClickCount.objects.filter(linkid=xlmm)
     click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
 
@@ -640,23 +642,29 @@ def cash_Out_Verify(request, id, xlmm):
     shoppings_count = shoppings.count()
 
     mobile = xiaolumama.mobile
-    cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
+    cash_outable = True
         
-    cash, payment, could_cash_out = get_xlmm_cash_iters(xiaolumama, cash_outable=cash_outable)
+    # cash, payment, could_cash_out = get_xlmm_cash_iters(xiaolumama, cash_outable=cash_outable)
+    cash = pre_cash
+    could_cash_out = 0
+    if xiaolumama.is_cashoutable() and pre_cash * 100 >= cashout.value and cashout.status == 'pending':
+        could_cash_out = pre_cash
 
     # 提现审核界面加上总收入总支出两项数据
-    carrylogs_in = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
-    sum_carry_in = carrylogs_in.aggregate(total_carry_in=Sum('value')).get('total_carry_in') or 0
-    sum_carry_in = sum_carry_in / 100.0
-
+    # carrylogs_in = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
+    # sum_carry_in = carrylogs_in.aggregate(total_carry_in=Sum('value')).get('total_carry_in') or 0
+    # sum_carry_in = sum_carry_in / 100.0
+    #
     # 总支出
-    carrylogs_out = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
-    sum_carry_out = carrylogs_out.aggregate(total_carry_out=Sum('value')).get('total_carry_out') or 0
-    sum_carry_out = sum_carry_out / 100.0
+    # carrylogs_out = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
+    # sum_carry_out = carrylogs_out.aggregate(total_carry_out=Sum('value')).get('total_carry_out') or 0
+    # sum_carry_out = sum_carry_out / 100.0
+
+    sum_carry_in  = fortune.carry_confirmed + fortune.history_confirmed
+    sum_carry_out = fortune.carry_cashout
 
     # 差值
     carry_in_minus_out = sum_carry_in - sum_carry_out
-
 
     data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,
                   'shoppings_count':shoppings_count,'click_nums':click_nums,'could_cash_out':could_cash_out,
@@ -699,7 +707,6 @@ def cash_modify(request, data):
                                          carry_type=CarryLog.CARRY_OUT,
                                          status=CarryLog.CONFIRMED)
 
-            xiaolumama = XiaoluMama.objects.get(id=mama_id)
             wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID,unionid=xiaolumama.openid)
             
             mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
