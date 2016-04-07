@@ -147,6 +147,8 @@ class RedEnvelope(CacheModel):
     def is_card_open(self):
         return self.status == 1 and self.type == 1
 
+    def value_display(self):
+        return float("%.2f" % (self.value * 0.01))
     
 def envelope_create_budgetlog(sender,instance,created,*args,**kwargs):
     if not created:
