@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from .managers import ReadPacketManager
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.pay.models import Customer
+from django.db.models.signals import post_save
 
 class XLFreeSample(CacheModel):
     """ 试用商品 """
@@ -70,13 +71,14 @@ class XLSampleApply(CacheModel):
     outer_id = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'商品编码')
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
     event_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name=u'活动ID')
-    from_customer = models.BigIntegerField(null=True, blank=True, verbose_name=u'分享人用户ID')
+    from_customer = models.BigIntegerField(null=True, blank=True, db_index=True, verbose_name=u'分享人用户ID')
     ufrom    = models.CharField(max_length=8,choices=FROM_CHOICES,blank=True,verbose_name=u'来自平台')
     user_openid  = models.CharField(max_length=28,db_index=True,blank=True,null=True,verbose_name=u'用户openid')
     mobile   = models.CharField(max_length=11,null=False,db_index=True,blank=False,verbose_name=u'试用手机')
     vipcode  = models.CharField(max_length=16,db_index=True,blank=True,null=True,verbose_name=u'试用邀请码')
     status   = models.IntegerField(default=INACTIVE,choices=STATUS_CHOICES,db_index=True, verbose_name=u"状态")
 
+    customer_id = models.IntegerField(null=True,blank=True,verbose_name=u"申请者ID")
     headimgurl = models.CharField(max_length=256,null=False,blank=True,verbose_name=u'头图')
     nick = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'昵称')
     class Meta:
@@ -87,6 +89,17 @@ class XLSampleApply(CacheModel):
 
     def is_activated(self):
         return self.status == self.ACTIVED
+
+
+def generate_red_envelope(sender,instance,created,*args,**kwargs):
+    if not instance.is_activated():
+        return
+    
+    from tasks_activity import task_generate_red_envelope
+    task_generate_red_envelope.delay(instance)
+
+post_save.connect(generate_red_envelope, sender=XLSampleApply)
+
 
 
 def get_choice_name(choices, val):
@@ -114,8 +127,8 @@ class RedEnvelope(CacheModel):
     
     friend_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'朋友头像')
     friend_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'朋友昵称')
-    type = models.IntegerField(default=0, choices=TYPE_CHOICES, verbose_name=u'类型')
-    status = models.IntegerField(default=0, choices=STATUS, verbose_name=u'打开状态')
+    type = models.IntegerField(default=0, choices=TYPE_CHOICES, db_index=True, verbose_name=u'类型')
+    status = models.IntegerField(default=0, choices=STATUS, db_index=True, verbose_name=u'打开状态')
     
     class Meta:
         db_table = 'flashsale_promotion_red_envelope'
@@ -129,18 +142,37 @@ class RedEnvelope(CacheModel):
         return get_choice_name(self.TYPE_CHOICES, self.type)
 
     def is_cashable(self):
-        return self.status == 0
+        return self.status == 1 and self.type == 0
+
+    def is_card_open(self):
+        return self.status == 1 and self.type == 1
 
     
-from django.db.models.signals import post_save
+def envelope_create_budgetlog(sender,instance,created,*args,**kwargs):
+    if not created:
+        return
+    from tasks_activity import task_envelope_create_budgetlog
+    task_envelope_create_budgetlog.delay(instance)
+
+post_save.connect(envelope_create_budgetlog, sender=RedEnvelope)
+
 
 def open_envelope_update_budgetlog(sender,instance,created,*args,**kwargs):
     if not instance.is_cashable():
         return
     from tasks_activity import task_update_budgetlog
-    task_update_budgetlog.delay(instance)
+    task_envelope_update_budgetlog.delay(instance)
 
 post_save.connect(open_envelope_update_budgetlog, sender=RedEnvelope)
+
+
+def open_envelope_decide_awardwinner(sender,instance,created,*args,**kwargs):
+    if not instance.is_card_open():
+        return
+    from tasks_activity import task_decide_award_winner
+    task_decide_award_winner.delay(instance)
+
+post_save.connect(open_envelope_decide_awardwinner, sender=RedEnvelope)
 
 
     
