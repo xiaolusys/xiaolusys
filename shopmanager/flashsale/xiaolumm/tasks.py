@@ -621,11 +621,11 @@ def task_Push_WXOrder_Finished(pre_days=10):
 @task
 def task_Update_Sale_And_Weixin_Order_Status(pre_days=10):
     
-    task_Push_WXOrder_Finished.s(pre_days=pre_days)()
+    task_Push_WXOrder_Finished.delay(pre_days=pre_days)
     
     from flashsale.pay.tasks import task_Push_SaleTrade_Finished
     
-    task_Push_SaleTrade_Finished.s(pre_days=pre_days)()
+    task_Push_SaleTrade_Finished.delay(pre_days=pre_days)
 
 
 from .tasks_manager_summary import task_make_Manager_Summary_Cvs

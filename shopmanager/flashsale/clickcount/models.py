@@ -47,7 +47,7 @@ def update_unique_visitor(sender, instance, created, **kwargs):
         openid = instance.openid
         app_key = instance.app_key
         click_time = instance.click_time
-        task_update_unique_visitor.s(mama_id, openid, app_key, click_time)()
+        task_update_unique_visitor.delay(mama_id, openid, app_key, click_time)
 
 
 post_save.connect(update_unique_visitor,

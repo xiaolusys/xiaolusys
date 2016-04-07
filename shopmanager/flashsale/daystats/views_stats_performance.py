@@ -24,7 +24,7 @@ class StatsPerformanceView(generics.ListCreateAPIView):
         start_date = content.get("df", datetime.date.today().strftime("%Y-%m-%d"))
         end_date = content.get("dt", datetime.date.today().strftime("%Y-%m-%d"))
         all_category = SaleCategory.objects.filter(is_parent=True)
-        start_task = task_calc_performance_by_user.s(start_date, end_date, category)()
+        start_task = task_calc_performance_by_user.delay(start_date, end_date, category)
         return Response({"task_id": start_task, "category": int(category), "start_date": start_date, "end_date": end_date,
                          "all_category": all_category})
 
@@ -43,7 +43,7 @@ class StatsSupplierView(generics.ListCreateAPIView):
         start_date = content.get("df", datetime.date.today().strftime("%Y-%m-%d"))
         end_date = content.get("dt", datetime.date.today().strftime("%Y-%m-%d"))
         all_category = SaleCategory.objects.filter(is_parent=True)
-        start_task = task_calc_performance_by_supplier.s(start_date, end_date, category)()
+        start_task = task_calc_performance_by_supplier.delay(start_date, end_date, category)
         return Response({"task_id": start_task, "category": int(category), "start_date": start_date, "end_date": end_date,
                          "all_category": all_category})
 
@@ -63,6 +63,6 @@ class StatsSaleProdcutView(generics.ListCreateAPIView):
         content = request.GET
         start_date = content.get("df", datetime.date.today().strftime("%Y-%m-%d"))
         end_date = content.get("dt", datetime.date.today().strftime("%Y-%m-%d"))
-        start_task = task_calc_sale_product.s(start_date, end_date)()
+        start_task = task_calc_sale_product.delay(start_date, end_date)
         return Response(
             {"task_id": start_task, "start_date": start_date, "end_date": end_date})

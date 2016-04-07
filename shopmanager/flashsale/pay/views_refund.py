@@ -111,7 +111,7 @@ class RefundApply(APIView):
         if settings.DEBUG:
             tasks.pushTradeRefundTask(sale_refund.id)
         else:
-            tasks.pushTradeRefundTask.s(sale_refund.id)()
+            tasks.pushTradeRefundTask.delay(sale_refund.id)
 
         return Response(model_to_dict(sale_refund))
 

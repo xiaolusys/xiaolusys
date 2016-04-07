@@ -46,9 +46,9 @@ class StatsRepeatView(View):
         start_month = start_date.month
         end_month = end_date.month
         month_range = range(start_month + 1, end_month + 1)
-        task_id = task_calc_new_user_repeat.s(start_date, end_date)()  # 计算重复购买
-        send_tasks = task_calc_xlmm.s(start_time_str, end_time_str)()  # 计算小鹿妈妈购买
-        task_id_sale = task_calc_package.s(start_date, end_date)()  # 计算包裹数量
+        task_id = task_calc_new_user_repeat.delay(start_date, end_date)  # 计算重复购买
+        send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)  # 计算小鹿妈妈购买
+        task_id_sale = task_calc_package.delay(start_date, end_date)  # 计算包裹数量
         return render_to_response(
             "xiaolumm/data2repeatshop.html",
             {
@@ -90,7 +90,7 @@ class StatsSaleView(View):
         start_month = start_date.month
         end_month = end_date.month
         month_range = range(start_month, end_month + 1)
-        task_id = task_calc_package.s(start_date, end_date, False)()
+        task_id = task_calc_package.delay(start_date, end_date, False)
         return render_to_response(
             "xiaolumm/data2sale.html",
             {
@@ -109,7 +109,7 @@ class StatsSalePeopleView(View):
         content = request.REQUEST
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
-        send_tasks = task_calc_xlmm.s(start_time_str, end_time_str)()
+        send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)
         return render_to_response("xiaolumm/data2salepeople.html",
                                   {"task_id": send_tasks},
                                   context_instance=RequestContext(request))

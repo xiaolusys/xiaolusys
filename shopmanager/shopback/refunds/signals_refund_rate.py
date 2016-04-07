@@ -5,7 +5,7 @@ from flashsale.pay.models import SaleRefund
 
 def triger_refund_record(sender, obj, **kwargs):
     from tasks import taskRefundRecord
-    taskRefundRecord.s(obj)()
+    taskRefundRecord.delay(obj)
 
 
 signal_saletrade_refund_post.connect(triger_refund_record, sender=SaleRefund)

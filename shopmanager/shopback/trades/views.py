@@ -511,8 +511,8 @@ class StatisticMergeOrderAsyncView(APIView):
         shopers = serializers.UserSerializer(
             User.objects.filter(status=User.NORMAL),
             many=True).data
-        task_id = task_Gen_Product_Statistic.s(
-            shop_id, sc_by, wait_send, p_outer_id, start_dt, end_dt, is_sale)()
+        task_id = task_Gen_Product_Statistic.delay(
+            shop_id, sc_by, wait_send, p_outer_id, start_dt, end_dt, is_sale)
         return Response({"task_id": task_id,
                          'df': format_datetime(start_dt),
                          'dt': format_datetime(end_dt),
@@ -2222,7 +2222,7 @@ class PackageScanWeightView(APIView):
             time_delta = mt.weight_time - entry.pay_time
             total_days = sku_num * (time_delta.total_seconds() / 86400.0)
 
-            task_stats_paytopack.s(pay_date, sku_num, total_days)()
+            task_stats_paytopack.delay(pay_date, sku_num, total_days)
 
         if mt.type == pcfg.SALE_TYPE:
             package = mt.get_package()

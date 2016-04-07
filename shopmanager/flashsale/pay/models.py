@@ -422,7 +422,7 @@ signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 def release_mamalink_coupon(sender, obj, **kwargs):
     from flashsale.pay.tasks import task_ReleaseMamaLinkCoupon
 
-    task_ReleaseMamaLinkCoupon.s(obj)()
+    task_ReleaseMamaLinkCoupon.delay(obj)
 
 
 signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)

@@ -198,9 +198,9 @@ class DailyDingHuoView2(View):
             time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
         dinghuo_begin = self.parseEndDt(dinghuo_begin_str)
-        task_id = task_ding_huo.s(shelve_from, time_to, groupname, search_text,
+        task_id = task_ding_huo.delay(shelve_from, time_to, groupname, search_text,
                                   target_date, dinghuo_begin, query_time,
-                                  dhstatus)()
+                                  dhstatus)
         return render_to_response("dinghuo/daily_work.html",
                                   {"task_id": task_id,
                                    "shelve_from": target_date,

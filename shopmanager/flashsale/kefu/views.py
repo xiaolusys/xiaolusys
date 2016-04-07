@@ -25,7 +25,7 @@ class KefuRecordView(generics.ListCreateAPIView):
         start_date = content.get("df", datetime.date.today().strftime("%Y-%m-%d"))
         end_date = content.get("dt", datetime.date.today().strftime("%Y-%m-%d"))
         all_type = KefuPerformance.OPERATE_TYPE
-        start_task = task_record_kefu_performance.s(start_date, end_date, record_type)()
+        start_task = task_record_kefu_performance.delay(start_date, end_date, record_type)
         return Response(
             {"task_id": start_task, "record_type": record_type, "start_date": start_date, "end_date": end_date,
              "all_type": all_type})
@@ -78,7 +78,7 @@ class SendMessageView(generics.ListCreateAPIView):
             if not content and not mobile or len(mobile) != 11:
                 return Response({"send_result": "error"})
             log_action(request.user.id, m_trade, CHANGE, u'{0}缺货短信{1}'.format(m_order.id, mobile))
-            task_send_message.s(content, mobile)()
+            task_send_message.delay(content, mobile)
         except:
             return Response({"send_result": "error"})
         return Response({"send_result": "OK"})

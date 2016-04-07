@@ -43,7 +43,7 @@ class StatisRefundSupView(APIView):
         content = request.REQUEST
         date_from = (content.get('date_from', datetime.datetime.today() - datetime.timedelta(days=7)))
         date_to = (content.get('date_to', datetime.datetime.today()))
-        task_id = calcu_refund_info_by_pro_v2.s(date_from, date_to)()
+        task_id = calcu_refund_info_by_pro_v2.delay(date_from, date_to)
         return Response({"task_id": task_id, "date_from": date_from, "date_to": date_to})
 
     def post(self, request, format=None):

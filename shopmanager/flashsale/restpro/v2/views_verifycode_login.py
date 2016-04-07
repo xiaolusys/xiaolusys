@@ -180,7 +180,7 @@ class SendCodeView(views.APIView):
         reg.verify_code = reg.genValidCode()
         reg.code_time = datetime.datetime.now()
         reg.save()
-        task_register_code.s(mobile, "3")()
+        task_register_code.delay(mobile, "3")
         return Response({"rcode": 0, "msg": u"验证码已发送！"})
     
 

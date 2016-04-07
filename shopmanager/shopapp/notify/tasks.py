@@ -471,7 +471,7 @@ def process_trade_increment_notify_task():
     users = User.objects.all()
     for user in users:
 
-        process_trade_interval_notify_task.s(user.visitor_id)()
+        process_trade_interval_notify_task.delay(user.visitor_id)
         
         
 ############################ 增量商品主动消息处理  ###############################
@@ -481,7 +481,7 @@ def process_item_increment_notify_task():
     users = User.objects.all()
     for user in users:
 
-        process_item_interval_notify_task.s(user.visitor_id)()
+        process_item_interval_notify_task.delay(user.visitor_id)
 
 ############################ 增量退款主动消息处理  ###############################
 @task
@@ -490,7 +490,7 @@ def process_refund_increment_notify_task():
     users = User.objects.all()
     for user in users:
 
-        process_refund_interval_notify_task.s(user.visitor_id)()
+        process_refund_interval_notify_task.delay(user.visitor_id)
 
 ############################ 丢失主动消息处理  ###############################
 @task
@@ -515,13 +515,13 @@ def process_discard_notify_task(begin,end,user_id=None):
             end = datetime.datetime(start.year,start.month,start.day,23,59,59)
             
         if info['type'] == 'trade':
-            process_trade_interval_notify_task.s(user_id,update_from=start,update_to=end)()
+            process_trade_interval_notify_task.delay(user_id,update_from=start,update_to=end)
             
         elif info['type'] == 'item':
-            process_item_interval_notify_task.s(user_id,update_from=start,update_to=end)()
+            process_item_interval_notify_task.delay(user_id,update_from=start,update_to=end)
             
         elif info['type'] == 'refund':
-            process_refund_interval_notify_task.s(user_id,update_from=start,update_to=end)()
+            process_refund_interval_notify_task.delay(user_id,update_from=start,update_to=end)
 
 
 @task()

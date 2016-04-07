@@ -24,7 +24,7 @@ class StatsDataView(generics.ListCreateAPIView):
         start_date = content.get("df", datetime.date.today().strftime("%Y-%m-%d"))
         end_date = content.get("dt", datetime.date.today().strftime("%Y-%m-%d"))
         all_category = SaleCategory.objects.filter(is_parent=True)
-        start_task = task_calc_operate_data.s(start_date, end_date, category)()
+        start_task = task_calc_operate_data.delay(start_date, end_date, category)
         return Response(
             {"task_id": start_task, "category": int(category), "start_date": start_date, "end_date": end_date,
              "all_category": all_category})

@@ -871,7 +871,7 @@ def mama_Verify_Action(request):
     referal_mobile = request.GET.get('tuijianren', '').strip()
     weikefu = request.GET.get('weikefu')
     user_id = request.user.id
-    res = task_mama_Verify_Action.s(user_id, mama_id, referal_mobile, weikefu)()
+    res = task_mama_Verify_Action.delay(user_id, mama_id, referal_mobile, weikefu)
     return HttpResponse(res)
 
 from .models_fans import XlmmFans

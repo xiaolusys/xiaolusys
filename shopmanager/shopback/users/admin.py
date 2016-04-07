@@ -78,17 +78,17 @@ class UserAdmin(admin.ModelAdmin):
             try:
                 if user.type in (User.SHOP_TYPE_B,User.SHOP_TYPE_C):
                     #更新等待发货商城订单
-                    saveUserDuringOrdersTask.s(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)()
+                    saveUserDuringOrdersTask.delay(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
                     
                     #更新待发货分销订单
-                    saveUserPurchaseOrderTask.s(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)()
+                    saveUserPurchaseOrderTask.delay(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
                 elif user.type == User.SHOP_TYPE_JD:
                     
-                    pullJDOrderByVenderIdTask.s(user.visitor_id)()
+                    pullJDOrderByVenderIdTask.delay(user.visitor_id)
                     
                 elif user.type == User.SHOP_TYPE_WX:
                     
-                    pullWaitPostWXOrderTask.s(None,None,full_update=True)()
+                    pullWaitPostWXOrderTask.delay(None,None,full_update=True)
                     
             except Exception,exc:
                 pull_dict['success']=False
@@ -116,17 +116,17 @@ class UserAdmin(admin.ModelAdmin):
                     #更新等待发货商城订单
                     #下载更新用户商品分销商品
                     from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
-                    updateUserItemSkuFenxiaoProductTask.s(user.visitor_id)()
+                    updateUserItemSkuFenxiaoProductTask.delay(user.visitor_id)
                 
                 elif user.type == User.SHOP_TYPE_JD:
                     
                     from shopapp.jingdong.tasks import pullJDProductByVenderidTask
-                    pullJDProductByVenderidTask.s(user.visitor_id)()
+                    pullJDProductByVenderidTask.delay(user.visitor_id)
                     
                 elif user.type == User.SHOP_TYPE_WX:
                     
                     from shopapp.weixin.tasks import pullWXProductTask
-                    pullWXProductTask.s()()
+                    pullWXProductTask.delay()
                     
             except Exception,exc:
                 pull_dict['success']=False

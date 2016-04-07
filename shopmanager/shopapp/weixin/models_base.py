@@ -33,10 +33,10 @@ def fetch_weixin_userinfo(sender, appid, resp_data, *args, **kwargs):
         return 
     
     if resp_data.has_key('access_token'):
-        task_Update_Weixin_Userinfo.s(openid,
-                                      accessToken=resp_data.get('access_token'))()
+        task_Update_Weixin_Userinfo.delay(openid,
+                                      accessToken=resp_data.get('access_token'))
     else:
-        task_Update_Weixin_Userinfo.s(openid,userinfo=resp_data)()
+        task_Update_Weixin_Userinfo.delay(openid,userinfo=resp_data)
 
     
 signals.signal_weixin_snsauth_response.connect(fetch_weixin_userinfo)

@@ -788,7 +788,7 @@ def push_Pending_Carry_To_Cash(obj,*args,**kwargs):
     
     from flashsale.xiaolumm import tasks 
     #更新提成金额
-    tasks.task_Push_Pending_Carry_Cash.s(xlmm_id=obj)()
+    tasks.task_Push_Pending_Carry_Cash.delay(xlmm_id=obj)
     
 signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash,sender=XiaoluMama)
 

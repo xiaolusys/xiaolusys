@@ -93,7 +93,7 @@ class Command():
                     return 
                 self.save_message(msg)
             elif code == 203:
-                process_discard_notify_task.s(msg['begin'],msg['end'])()
+                process_discard_notify_task.delay(msg['begin'],msg['end'])
             elif code in (101,102,103):
                 self.fail_wait_time = msg or 10
             elif code == 105:

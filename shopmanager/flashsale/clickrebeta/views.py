@@ -51,6 +51,6 @@ class StatisticTongJi(View):
 
 from flashsale.clickrebeta import tasks
 def ShengChengAll(req):
-    tasks.task_Tongji_All_Order.s()()
+    tasks.task_Tongji_All_Order.delay()
     return HttpResponse("OK")
 

@@ -135,7 +135,7 @@ class ChangeDetailView(View):
             outer_ids = [p['outer_id']
                          for p in Product.objects.filter(
                              id__in=distinct_pids).values('outer_id')]
-            releaseProductTradesTask.s(outer_ids)()
+            releaseProductTradesTask.delay(outer_ids)
         except Exception, exc:
             logger = logging.getLogger('django.request')
             logger.error(exc.message, exc_info=True)

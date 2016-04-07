@@ -86,7 +86,7 @@ def weixin_auth_and_redirect(request):
         redirect_url = options.gen_weixin_redirect_url(params)
         return HttpResponseRedirect(redirect_url)
     else :
-        task_Merge_Sale_Customer.s(user,code)()
+        task_Merge_Sale_Customer.delay(user,code)
         return HttpResponseRedirect(next_url)
 
 

@@ -140,7 +140,7 @@ class PINGPPChargeView(View):
                                         carry_type=CarryLog.CARRY_OUT)
                 
                 #确认付款后保存
-                confirmTradeChargeTask.s(strade.id)()
+                confirmTradeChargeTask.delay(strade.id)
                 
                 response_charge = {'channel':channel,'success':True}
                 
@@ -220,7 +220,7 @@ class PINGPPCallbackView(View):
                 if settings.DEBUG:
                     tasks.notifyTradePayTask(notify)
                 else:
-                    tasks.notifyTradePayTask.s(notify)()
+                    tasks.notifyTradePayTask.delay(notify)
                 
                 response = 'success'
             elif notify['object'] == 'refund':
@@ -228,7 +228,7 @@ class PINGPPCallbackView(View):
                 if settings.DEBUG:
                     tasks.notifyTradeRefundTask(notify)
                 else:
-                    tasks.notifyTradeRefundTask.s(notify)()
+                    tasks.notifyTradeRefundTask.delay(notify)
                 
                 response = 'success'
             else:

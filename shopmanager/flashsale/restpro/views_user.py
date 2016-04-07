@@ -130,7 +130,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.code_time = current_time
                 temp_reg.save()
                 log_action(SYSTEMOA_USER.id, temp_reg, CHANGE, u'修改，注册手机验证码')
-                task_register_code.s(mobile, "1")()
+                task_register_code.delay(mobile, "1")
                 return Response({"result": "OK","code":0,"info":"OK"})
         else:
             try:
@@ -142,7 +142,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             except IntegrityError:
                 return Response({"result": "0","code":0,"info":"请勿重复点击"})
             log_action(SYSTEMOA_USER.id, new_reg, ADDITION, u'新建，注册手机验证码')
-            task_register_code.s(mobile, "1")()
+            task_register_code.delay(mobile, "1")
             return Response({"result": "OK","code":0,"info":"OK"})
 
     def list(self, request, *args, **kwargs):
@@ -206,7 +206,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             new_reg.code_time = current_time
             new_reg.save()
             log_action(SYSTEMOA_USER.id, new_reg, ADDITION, u'新建，忘记密码验证码')
-            task_register_code.s(mobile, "2")()
+            task_register_code.delay(mobile, "2")
             return Response({"result": "0"})
         else:
             reg_temp = reg[0]
@@ -218,7 +218,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             reg_temp.code_time = current_time
             reg_temp.save()
             log_action(SYSTEMOA_USER.id, reg_temp, CHANGE, u'修改，忘记密码验证码')
-            task_register_code.s(mobile, "2")()
+            task_register_code.delay(mobile, "2")
         return Response({"result": "0"})
     
     def is_login(self,request):
@@ -419,7 +419,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         new_reg.verify_count = 1
         new_reg.code_time = current_time
         new_reg.save()
-        task_register_code.s(mobile, "1")()
+        task_register_code.delay(mobile, "1")
         return Response({"code": 0,"info":"验证码已发送"})
     
     @list_route(methods=['post'])
@@ -565,7 +565,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             new_reg.code_time = current_time
             new_reg.save()
             log_action(request.user.id, new_reg, ADDITION, u'新建，绑定手机验证码')
-            task_register_code.s(mobile, "3")()
+            task_register_code.delay(mobile, "3")
             return Response({"code":0,"result": "0","info":"发送成功"})
         else:
             reg_temp = reg[0]
@@ -577,7 +577,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             reg_temp.code_time = current_time
             reg_temp.save()
             log_action(request.user.id, reg_temp, CHANGE, u'绑定手机获取验证码')
-            task_register_code.s(mobile, "3")()
+            task_register_code.delay(mobile, "3")
         return Response({"code":0,"result": "0","info":"发送成功"})
 
     @list_route(methods=['post'])
@@ -722,7 +722,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             new_reg.code_time = current_time
             new_reg.save()
             log_action(request.user.id, new_reg, ADDITION, u'登录后，新建，修改密码')
-            task_register_code.s(customer.mobile, "2")()
+            task_register_code.delay(customer.mobile, "2")
             return Response({"code":0, "result": "0", "info":"success"})
         else:
             reg_temp = reg[0]
@@ -734,7 +734,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             reg_temp.code_time = current_time
             reg_temp.save()
             log_action(request.user.id, reg_temp, ADDITION, u'登录后，修改密码')
-            task_register_code.s(customer.mobile, "2")()
+            task_register_code.delay(customer.mobile, "2")
         return Response({"code":0, "result": "0", "info":"success"})
 
     @list_route(methods=['post'])
@@ -897,7 +897,7 @@ class UserBugetBangView(WeixinAuthMixin, APIView):
             customer.openid  = openid
             customer.save()
     
-            task_Refresh_Sale_Customer.s(user_infos,app_key=self._wxpubid)()
+            task_Refresh_Sale_Customer.delay(user_infos,app_key=self._wxpubid)
             response = Response({'code':0,'info':'恭喜，您成功绑定小鹿美美提众号！','user_infos':user_infos})
         
         self.set_cookie_openid_and_unionid(response,openid,unionid)

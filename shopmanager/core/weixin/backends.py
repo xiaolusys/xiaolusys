@@ -49,7 +49,7 @@ class WeixinPubBackend(object):
             profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
             if unionid :
-                task_Refresh_Sale_Customer.s(userinfo, app_key=settings.WXPAY_APPID)()
+                task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WXPAY_APPID)
 
             if profile.user:
                 if not profile.user.is_active:
@@ -67,7 +67,7 @@ class WeixinPubBackend(object):
 
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
-            task_Refresh_Sale_Customer.s(userinfo, app_key=settings.WXPAY_APPID)()
+            task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WXPAY_APPID)
 
         return user
 

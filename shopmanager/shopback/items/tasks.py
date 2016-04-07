@@ -370,7 +370,7 @@ def gradCalcProductSaleTask():
         if settings.DEBUG:
             gradSaleTask(yest_date = delta_days)
         else:
-            gradSaleTask.s(yest_date = delta_days)()
+            gradSaleTask.delay(yest_date = delta_days)
         
     yest_date = dt - datetime.timedelta(days=1)
     #更新昨日的账单

@@ -269,7 +269,7 @@ def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
         #初始化系统数据
         from shopback.users.tasks import initSystemDataFromAuthTask
         
-        initSystemDataFromAuthTask.s(profile.visitor_id)()
+        initSystemDataFromAuthTask.delay(profile.visitor_id)
     
     
 user_logged_in.connect(add_taobao_user,

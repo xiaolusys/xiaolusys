@@ -129,7 +129,7 @@ class StatsSupplierView(View):
                 end_date = today
         else:
             end_date = today
-        work_task = task_supplier_stat.s(start_date, end_date, group_name)()
+        work_task = task_supplier_stat.delay(start_date, end_date, group_name)
         return render_to_response("dinghuo/data_of_supplier.html", {"task_id": work_task, "start_date": start_date,
                                                                     "end_date": end_date, "group_name": group_name},
                                   context_instance=RequestContext(request))

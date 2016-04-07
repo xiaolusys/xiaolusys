@@ -25,11 +25,11 @@ class TopDataView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def getClickTopTaskid(self, time_from, time_to):
-        taskid = xlmmClickTop.s(time_from, time_to)()
+        taskid = xlmmClickTop.delay(time_from, time_to)
         return taskid
 
     def getOrderTopTaskid(self, time_from, time_to):
-        taskid = xlmmOrderTop.s(time_from, time_to)()
+        taskid = xlmmOrderTop.delay(time_from, time_to)
         return taskid
 
     def get(self, request, format=None):

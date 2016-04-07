@@ -48,7 +48,7 @@ class ItemNotify(models.Model):
             item_notify.save()
             
             from shopapp.notify.tasks import process_item_notify_task
-            process_item_notify_task.s(item_notify.id)()
+            process_item_notify_task.delay(item_notify.id)
     
     
 class TradeNotify(models.Model):
@@ -95,7 +95,7 @@ class TradeNotify(models.Model):
             trade_notify.save()  
              
             from shopapp.notify.tasks import process_trade_notify_task
-            process_trade_notify_task.s(trade_notify.id)()
+            process_trade_notify_task.delay(trade_notify.id)
             
     
 class RefundNotify(models.Model):
@@ -138,5 +138,5 @@ class RefundNotify(models.Model):
             refund_notify.save()
             
             from shopapp.notify.tasks import process_refund_notify_task
-            process_refund_notify_task.s(refund_notify.id)()
+            process_refund_notify_task.delay(refund_notify.id)
     

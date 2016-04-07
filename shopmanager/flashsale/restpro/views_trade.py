@@ -658,7 +658,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                 log_type=CarryLog.ORDER_BUY,
                                 carry_type=CarryLog.CARRY_OUT)
         #确认付款后保存
-        confirmTradeChargeTask.s(strade_id)()
+        confirmTradeChargeTask.delay(strade_id)
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
     @rest_exception(errmsg='')
@@ -683,7 +683,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                 budget_type=BudgetLog.BUDGET_OUT,
                                 status=BudgetLog.CONFIRMED)
         #确认付款后保存
-        confirmTradeChargeTask.s(strade_id)()
+        confirmTradeChargeTask.delay(strade_id)
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
     @rest_exception(errmsg=u'订单支付异常')
