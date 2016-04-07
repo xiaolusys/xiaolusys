@@ -9,6 +9,7 @@ logger = logging.getLogger('celery.handler')
 
 from flashsale.pay.models_user import Customer, BudgetLog, UserBudget
 from flashsale.promotion.models_freesample import RedEnvelope, XLSampleApply, AwardWinner
+
 import sys, random
 
 

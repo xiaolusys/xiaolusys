@@ -176,7 +176,6 @@ def open_envelope_decide_awardwinner(sender,instance,created,*args,**kwargs):
 
 post_save.connect(open_envelope_decide_awardwinner, sender=RedEnvelope)
 
-
     
 class AwardWinner(CacheModel):
     STATUS = ((0, '未领取'),(1, '已领取'))
@@ -255,6 +254,7 @@ class ReadPacket(CacheModel):
         app_label = 'promotion'
         verbose_name = u'推广/discard'
         verbose_name_plural = u'推广/discard'
+
 
 
 class AppDownloadRecord(BaseModel):
