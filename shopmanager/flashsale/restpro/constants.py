@@ -27,4 +27,4 @@ PYQ_TITLES = [
 ]
 
 #妈妈邀请新代理的url地址
-MAMA_INVITE_AGENTCY_URL = '{site_url}static/wap/pages/agency-invitation-res.html'
+MAMA_INVITE_AGENTCY_URL = '{site_url}/pages/agency-invitation-res.html'
