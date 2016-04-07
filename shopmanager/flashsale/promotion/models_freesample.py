@@ -162,7 +162,7 @@ post_save.connect(envelope_create_budgetlog, sender=RedEnvelope)
 def open_envelope_update_budgetlog(sender,instance,created,*args,**kwargs):
     if not instance.is_cashable():
         return
-    from tasks_activity import task_update_budgetlog
+    from tasks_activity import task_envelope_update_budgetlog
     task_envelope_update_budgetlog.delay(instance)
 
 post_save.connect(open_envelope_update_budgetlog, sender=RedEnvelope)
