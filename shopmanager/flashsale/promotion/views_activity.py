@@ -20,11 +20,12 @@ from flashsale.pay.models_custom import ActivityEntry
 
 from shopback.items.models import Product
 
-from .models_freesample import XLSampleApply, XLSampleOrder
-
+from .models_freesample import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
+from serializers import RedEnvelopeSerializer, AwardWinnerSerializer
 
 import logging
 logger = logging.getLogger('django.request')
+
 
 class ActivityView(WeixinAuthMixin, APIView):
     
@@ -60,7 +61,7 @@ class JoinView(WeixinAuthMixin, APIView):
         content = request.REQUEST
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
-        
+
         if self.is_from_weixin(request) or ufrom == "wxapp" or ufrom == "pyq":
             response = redirect(reverse('weixin_baseauth_join_activity', args=(event_id,)))
         elif ufrom == "app":
@@ -88,7 +89,7 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
         if not self.valid_openid(openid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
             wxprofile = self.get_auth_userinfo(request)
-            unionid = wxprofile.get("unionid")
+            openid = wxprofile.get("openid")
 
             if not self.valid_openid(openid):
                 # 4. if we still dont have openid, we have to do oauth
@@ -284,7 +285,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
             params.update({"user_openid":openid})
         if mobile:
             params.update({"mobile":mobile})
-        print "debug ====", params
         
         if application_count <= 0:
             application = XLSampleApply(event_id=event_id, **params)
@@ -301,3 +301,86 @@ class ApplicationView(WeixinAuthMixin, APIView):
         response["Access-Control-Allow-Origin"] = "*"
         return response
 
+
+
+
+def get_customer(request):
+    user = request.user
+    if not user or user.is_anonymous():
+        return None
+    try:
+        customer = Customer.objects.get(user_id=request.user.id)
+    except Customer.DoesNotExist:
+        customer = None
+    return customer
+
+
+class ActivateView(APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        # 1. check whether event_id is valid
+        activity_entrys = ActivityEntry.objects.filter(id=event_id)
+        if activity_entrys.count() <= 0:
+            return Response({"error": "wrong event id"})    
+        activity_entry = activity_entrys[0]
+
+        # 2. activate application
+        customer = get_customer(request)
+        task_activate_application.delay(event_id, customer)
+
+        # 3. redirect to mainpage
+        key = 'mainpage'
+        html = activity_entry.get_html(key)
+        response = redirect(html)
+
+    
+class MainView(APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        customer = get_customer(request)
+        customer_id = customer.id
+        customer_id = 1 # debug
+        envelopes = RedEnvelope.objects.filter(event_id=event_id,customer_id=customer_id)
+
+        winner_count = AwardWinner.objects.filter(event_id=event_id).count()
+        award_left = 2000 - winner_count
+        latest_five = AwardWinner.objects.filter(event_id=event_id).order_by('-created')[:5]
+        
+        envelope_serializer = RedEnvelopeSerializer(envelopes, many=True)
+        winner_serializer = AwardWinnerSerializer(latest_five, many=True)
+        
+        cards = {"1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0}
+        for item in envelope_serializer.data:
+            if item['type'] == 'card':
+                key = item['value']
+                cards[key] = 1
+        
+        data = {"cards":cards, "envelopes":envelope_serializer.data, "num_of_envelope": len(envelope_serializer.data),
+                "award_list": winner_serializer.data, "award_left": award_left}
+        
+        response = Response(data)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+
+
+class OpenEnvelopeView(APIView):
+    def get(self, request, envelope_id, *args, **kwargs):
+        # 1. we have to check login
+        content = request.REQUEST
+
+        if envelope_id <= 0:
+            return Response({"rcode": 1, "msg": "envelope id wrong"})
+        envelopes = RedEnvelope.objects.filter(id=envelope_id)
+        if envelopes.count() <= 0:
+            return Response({"msg":"open failed, no envelope found"})
+
+        envelope = envelopes[0]
+        if envelope.status == 0:
+            envelope.status = 1 # otherwise, return envelope.status is 0.
+            envelopes.update(status=1)
+            
+        serializer = RedEnvelopeSerializer(envelope)
+
+        response = Response(serializer.data)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+        
+        

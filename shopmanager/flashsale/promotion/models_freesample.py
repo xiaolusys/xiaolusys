@@ -82,6 +82,67 @@ class XLSampleApply(CacheModel):
         verbose_name = u'推广/试用申请'
         verbose_name_plural = u'推广/试用申请列表'
 
+    def is_activated(self):
+        return self.status == self.ACTIVED
+
+
+def get_choice_name(choices, val):
+    """
+    iterate over choices and find the name for this val
+    """
+    name = ""
+    for entry in choices:
+        if entry[0] == val:
+            name = entry[1]
+    return name
+
+
+class RedEnvelope(CacheModel):
+    STATUS = ((0, 'new'), (1, 'open'))
+    TYPE_CHOICES = ((0, 'cash'),(1, 'card'))
+
+    customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u"用户ID")
+    event_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name=u'活动ID')
+    value = models.IntegerField(default=0, verbose_name=u'金额')
+    description = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'文字内容')
+
+    # uni_key: event_id + friend's customer_id
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    
+    friend_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'朋友头像')
+    friend_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'朋友昵称')
+    type = models.IntegerField(default=0, choices=TYPE_CHOICES, verbose_name=u'类型')
+    status = models.IntegerField(default=0, choices=STATUS, verbose_name=u'打开状态')
+    
+    class Meta:
+        db_table = 'flashsale_promotion_red_envelope'
+        verbose_name = u'活动/红包'
+        verbose_name_plural = u'活动/红包列表'
+    
+    def status_display(self):
+        return get_choice_name(self.STATUS, self.status)
+
+    def type_display(self):
+        return get_choice_name(self.TYPE_CHOICES, self.type)
+
+    
+class AwardWinner(CacheModel):
+    STATUS = ((0, '未领取'),(1, '已领取'))
+    customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u"用户ID")
+    customer_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'头像')
+    customer_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'昵称')
+    event_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name=u'活动ID')
+    invite_num = models.IntegerField(default=0, verbose_name=u'中奖时邀请数')
+
+    # uni_key: event_id + customer_id
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    status = models.IntegerField(default=0, choices=STATUS, verbose_name=u'领取状态')
+
+    class Meta:
+        db_table = 'flashsale_promotion_award_winner'
+        verbose_name = u'活动/中奖'
+        verbose_name_plural = u'活动/中奖列表'
+    
 
 class XLSampleOrder(CacheModel):
     """ 正式试用订单 """
@@ -118,21 +179,29 @@ class XLSampleOrder(CacheModel):
 
 class ReadPacket(CacheModel):
     """ 红包记录 """
-
+    
+    
     EXCHANGE = 1
     NOT_EXCHANGE = 0
-    EXCHANGE_STATUS = ((EXCHANGE, u'已兑换'), (NOT_EXCHANGE, u'未兑换'))
+    EXCHANGE_STATUS = ((EXCHANGE, u'已打开'), (NOT_EXCHANGE, u'未打开'))
+
+    TYPE_CHOICES = ((0, 'cash'),(1, 'card'))
 
     customer = models.CharField(max_length=64, db_index=True, verbose_name=u"用户ID")
     value = models.FloatField(default=0, verbose_name=u'金额')
     status = models.IntegerField(default=0, choices=EXCHANGE_STATUS, verbose_name=u'是否兑换')
     content = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'文字内容')
+    type = models.IntegerField(default=0, choices=TYPE_CHOICES, verbose_name=u'金额')
+    friend_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'朋友头像')
+    friend_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'朋友昵称')
+    
     objects = ReadPacketManager()
 
     class Meta:
         db_table = 'flashsale_promotion_red_packet'
-        verbose_name = u'推广/活动红包表'
-        verbose_name_plural = u'推广/活动红包列表'
+        verbose_name = u'推广/discard'
+        verbose_name_plural = u'推广/discard'
+
 
 
 class AppDownloadRecord(BaseModel):
