@@ -892,7 +892,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
             #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
             if cart_qs.count() != len(cart_ids):
-                logger.warn('debug cart v1:header=%s,params=%s,cart_qs=%s' % (request.META.get('header'),request.REQUEST, cart_qs.count()))
+                logger.warn('debug cart v1:content_type=%s,params=%s,cart_qs=%s' % (request.META.get('CONTENT_TYPE', ''),request.REQUEST, cart_qs.count()))
                 raise exceptions.ParseError(u'购物车已结算待支付')
             xlmm            = self.get_xlmm(request)
             total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
