@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 import hashlib
-import os, settings, urlparse
+import os, urlparse
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 

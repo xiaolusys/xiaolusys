@@ -1,10 +1,11 @@
 # -*- coding:utf-8 -*-
-import os, settings, urlparse
+import os, urlparse
 import datetime
 import re
 import json
 import random
 
+from django.conf import settings
 from django.views.generic import View
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
@@ -529,9 +530,6 @@ class XlSampleOrderView(View):
         
         
 from shopapp.weixin.models import WeiXinUser, get_Unionid
-
-from settings import WEIXIN_APPID
-
 
 class CusApplyOrdersView(APIView):
     """

@@ -1,5 +1,5 @@
 # coding=utf-8
-import settings, time, re
+import time, re
 from flashsale.restpro import options
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework import renderers
 from rest_framework import exceptions
+
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.shortcuts import HttpResponseRedirect
 from core.weixin.options import gen_weixin_redirect_url

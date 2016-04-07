@@ -27,7 +27,7 @@ urlpatterns = patterns('',
 
     url(r'^register/deposite/$',
         weixin_xlmm_auth(redirecto=constants.MALL_LOGIN_URL)(views_register.PayDepositeView.as_view()),name="mama_deposite"),
-    url(r'^register/deposite/pay.htm$',cache_page(TemplateView.as_view(template_name="apply/pay.htm"),24*60*60)),
+    url(r'^register/deposite/pay.htm$',cache_page(24*60*60)(TemplateView.as_view(template_name="apply/pay.htm"))),
 
     url(r'^register/success/$',views_register.MamaSuccessView.as_view(),name="mama_registerok"),
     url(r'^register/res/$',views_register.MamaInvitationRes.as_view(),name="mama_invitation_res"),

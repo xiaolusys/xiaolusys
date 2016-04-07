@@ -47,7 +47,7 @@ class SaleFaqs(BaseModel):
 
     class Meta:
         db_table = 'flashsale_sale_faqs'
-        app_label = 'flashsale'
+        app_label = 'pay'
         verbose_name = u'特卖/常见问题表'
         verbose_name_plural = u'特卖/常见问题表'
 

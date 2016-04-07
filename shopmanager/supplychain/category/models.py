@@ -22,7 +22,7 @@ class ProductCategory(models.Model):
 
     class Meta:
         db_table = 'product_category'
-        app_label = 'supplychain'
+        app_label = 'category'
         verbose_name = u'特卖/产品类目'
         verbose_name_plural = u'特卖/产品类目列表'
 
@@ -44,7 +44,7 @@ class FirstCategory(models.Model):
 
     class Meta:
         db_table = 'supplychain_product_1st'
-        app_label = 'supplychain'
+        app_label = 'category'
         verbose_name = u'1级品类'
         verbose_name_plural = u'1级品类列表'
 
@@ -64,7 +64,7 @@ class SecondCategory(models.Model):
 
     class Meta:
         db_table = 'supplychain_product_2nd'
-        app_label = 'supplychain'
+        app_label = 'category'
         verbose_name = u'2级品类'
         verbose_name_plural = u'2级品类列表'
 
@@ -84,7 +84,7 @@ class ThirdCategory(models.Model):
 
     class Meta:
         db_table = 'supplychain_product_3rd'
-        app_label = 'supplychain'
+        app_label = 'category'
         verbose_name = u'3级 产品具体名称'
         verbose_name_plural = u'3级 产品具体名称'
 
@@ -104,7 +104,7 @@ class FourthCategory(models.Model):
 
     class Meta:
         db_table = 'supplychain_product_4th'
-        app_label = 'supplychain'
+        app_label = 'category'
         verbose_name = u'4级 品牌名称'
         verbose_name_plural = u'4级 品牌名称'
 
@@ -124,7 +124,7 @@ class FifthCategory(models.Model):
 
     class Meta:
         db_table = 'supplychain_product_5th'
-        app_label = 'supplychain'
+        app_label = 'category'
         verbose_name = u'5级 款式描述'
         verbose_name_plural = u'5级 款式描述'
 
@@ -140,7 +140,7 @@ class SixthCategory(models.Model):
 
     class Meta:
         db_table = 'supplychain_product_6th'
-        app_label = 'supplychain'
+        app_label = 'category'
         verbose_name = u'6级 尺寸'
         verbose_name_plural = u'6级 尺寸'
 

@@ -11,7 +11,6 @@ from django.forms import TextInput, Textarea ,Select
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.contrib.admin.views.main import ORDER_VAR
 from bitfield import BitField

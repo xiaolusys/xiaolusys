@@ -7,7 +7,11 @@ from core.managers import BaseManager
 class NormalSaleTradeManager(BaseManager):
     
     def get_query_set(self):
-        queryset = super(NormalSaleTradeManager,self).get_query_set()
+        _super = super(NormalSaleTradeManager,self)
+        if hasattr(_super,'get_query_set'):
+            queryset =  _super.get_query_set()
+        else:
+            queryset = _super.get_queryset()
         return queryset.filter(
                 status__in=self.model.NORMAL_TRADE_STATUS
             ).order_by('-created')
@@ -22,13 +26,11 @@ class NormalUserAddressManager(BaseManager):
         return queryset.filter(status=self.model.NORMAL).order_by('-created')
         
     get_queryset = get_query_set
-import constants
+
+from . import constants
 
 
-class ShopProductCategoryManager(models.Manager):
-    def get_query_set(self):
-        queryset = super(ShopProductCategoryManager, self).get_query_set()
-        return queryset
+class ShopProductCategoryManager(BaseManager):
 
     def child_query(self):
         """ 童装产品 """

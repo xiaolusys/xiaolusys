@@ -95,7 +95,7 @@ class Purchase(models.Model):
     
     class Meta:
         db_table = 'supply_purchase'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'采购单'
         verbose_name_plural = u'采购单列表'
         permissions = [
@@ -179,7 +179,7 @@ class PurchaseItem(models.Model):
     class Meta:
         db_table = 'supply_purchase_item'
         unique_together = ("purchase","product_id", "sku_id")
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'采购项目'
         verbose_name_plural = u'采购项目列表'
         permissions = [
@@ -224,7 +224,7 @@ class PurchasePayment(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_payment'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name=u'采购付款单'
         verbose_name_plural = u'采购付款单列表'
         permissions = [

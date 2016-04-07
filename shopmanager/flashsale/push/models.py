@@ -2,7 +2,6 @@
 
 from django.db import models
 
-from flashsale.pay import models_user
 from core.fields import BigIntegerAutoField
 
 class PushTopic(models.Model):
@@ -18,7 +17,7 @@ class PushTopic(models.Model):
         verbose_name_plural = u'小米推送标签'
 
     id = BigIntegerAutoField(primary_key=True, verbose_name = u'主键')
-    customer = models.ForeignKey(models_user.Customer, null=True, blank=True, verbose_name=u'用户')
+    customer = models.ForeignKey('pay.Customer', null=True, blank=True, verbose_name=u'用户')
     cat = models.PositiveIntegerField(blank=True, default=0, verbose_name=u'分类')
     platform = models.CharField(max_length=16, verbose_name=u'平台')
     regid = models.CharField(max_length=512, verbose_name=u'小米regid')

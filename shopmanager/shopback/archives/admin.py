@@ -1,9 +1,7 @@
 #-*- coding:utf8 -*-
 from django.contrib import admin
 from django.http import HttpResponse,HttpResponseRedirect
-from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
-from django.utils.html import escape, escapejs
 
 from django.db import models
 from django.forms import TextInput, Textarea

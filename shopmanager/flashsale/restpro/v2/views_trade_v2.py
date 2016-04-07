@@ -256,7 +256,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         update_model_fields(sale_trade,update_fields=['charge'])
         return charge
     
-    @transaction.commit_on_success
+    @transaction.atomic
     def create_Saletrade(self,form,address,customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')

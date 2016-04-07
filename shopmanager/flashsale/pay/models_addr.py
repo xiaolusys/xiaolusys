@@ -27,7 +27,7 @@ class District(PayBaseModel):
     
     class Meta:
         db_table = 'flashsale_district'
-        app_label = 'flashsale'
+        app_label = 'pay'
         verbose_name = u'省市/区划'
         verbose_name_plural = u'省市/区划列表'
         
@@ -79,7 +79,7 @@ class UserAddress(BaseModel):
     class Meta:
         #db_table = 'flashsale_address'
         db_table = 'flashsale_address'
-        app_label = 'flashsale'
+        app_label = 'pay'
         verbose_name = u'特卖用户/地址'
         verbose_name_plural = u'特卖用户/地址列表'
         

@@ -21,7 +21,7 @@ class Integral(PayBaseModel):
 
     class Meta:
         db_table = "sale_user_integral"
-        app_label = 'flashsale'
+        app_label = 'pay'
         verbose_name = u"特卖用户/积分"
         verbose_name_plural = u"特卖用户/积分列表"
 
@@ -57,7 +57,7 @@ class IntegralLog(PayBaseModel):
     class Meta:
         unique_together = ('integral_user', 'order_id')
         db_table = "sale_user_integral_log"
-        app_label = 'flashsale'
+        app_label = 'pay'
         verbose_name = u"特卖用户/积分记录表"
         verbose_name_plural = u"特卖用户/积分记录列表"
 
@@ -91,7 +91,7 @@ class Coupon(PayBaseModel):
     class Meta:
         unique_together = ('coupon_user', 'coupon_no')
         db_table = "sale_user_coupon_table"
-        app_label = 'flashsale'
+        app_label = 'pay'
         verbose_name = u"特卖用户/优惠券"
         verbose_name_plural = u"特卖用户/优惠券列表"
 
@@ -187,7 +187,7 @@ class CouponPool(PayBaseModel):
 
     class Meta:
         db_table = "sale_user_coupon_pool"
-        app_label = 'flashsale'
+        app_label = 'pay'
         verbose_name = u"优惠券/模板"
         verbose_name_plural = u"优惠券/模板"
 

@@ -12,7 +12,7 @@ class PickGroup(models.Model):
     
     class Meta:
         db_table = 'supplychain_pick_group'
-        app_label = 'supplychain'
+        app_label = 'wavepick'
         verbose_name = u'批号/组'
         verbose_name_plural = u'批号/组列表'
         
@@ -55,7 +55,7 @@ class WavePick(models.Model):
     class Meta:
         db_table = 'supplychain_pick_wave'
         unique_together = ('wave_no','out_sid')
-        app_label = 'supplychain'
+        app_label = 'wavepick'
         verbose_name = u'批号/物流单号'
         verbose_name_plural = u'批号/物流单号'
         
@@ -79,7 +79,7 @@ class PickItem(models.Model):
     class Meta:
         db_table = 'supplychain_pick_item'
         unique_together = ('out_sid','outer_id','outer_sku_id')
-        app_label = 'supplychain'
+        app_label = 'wavepick'
         verbose_name = u'捡货明细'
         verbose_name_plural = u'捡货明细列表'
         
@@ -95,7 +95,7 @@ class PickPublish(models.Model):
     
     class Meta:
         db_table = 'supplychain_pick_publish'
-        app_label = 'supplychain'
+        app_label = 'wavepick'
         verbose_name = u'捡货LED值'
         verbose_name_plural = u'捡货LED值列表'
         

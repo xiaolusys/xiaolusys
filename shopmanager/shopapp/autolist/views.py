@@ -1,12 +1,12 @@
 #-*- coding:utf8 -*-
 import json
-import settings
 import datetime
 from django.db.models import signals
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
+from django.conf import settings
 #from djangorestframework.utils import as_tuple
 #from djangorestframework import status
 #from djangorestframework.response import Response

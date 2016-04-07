@@ -1,16 +1,17 @@
 # coding=utf-8
-import json, os, settings
-from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver
+import json, os
 import datetime
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+
 from rest_framework import viewsets, permissions, authentication, renderers
 from rest_framework.response import Response
-from . import serializers
-from flashsale.pay.models import Customer
-from django.shortcuts import get_object_or_404
-from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import exceptions
 
-from django.forms import model_to_dict
+from . import serializers
+from flashsale.pay.models import Customer
+from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver
+from flashsale.xiaolumm.models import XiaoluMama
 
 
 class XlmmAdvertisViewSet(viewsets.ModelViewSet):

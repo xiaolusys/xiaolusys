@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import os
 import sys
 import time
 import datetime
@@ -6,9 +7,8 @@ import json
 import urllib
 import pycurl
 
-from django.core.management import setup_environ
-import settings
-setup_environ(settings)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.settings")
+
 
 from shopback.users.models import User
 from shopapp.notify.models import ItemNotify,TradeNotify,RefundNotify

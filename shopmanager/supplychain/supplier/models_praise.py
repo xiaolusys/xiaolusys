@@ -17,7 +17,7 @@ class SalePraise(models.Model):
 
     class Meta:
         db_table = 'supplier_sale_product_praise'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'特卖/选品投票表'
         verbose_name_plural = u'特卖/选品投票列表'
         unique_together = ("sale_id", "cus_id", 'pro_from')

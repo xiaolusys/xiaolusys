@@ -17,7 +17,7 @@ class Joiner(models.Model):
     
     class Meta:
         db_table = 'game_joiner'
-        app_label = 'awards'
+        app_label = 'luckyawards'
         verbose_name = u'活动抽奖'
         verbose_name_plural = u'活动抽奖人员列表'
 

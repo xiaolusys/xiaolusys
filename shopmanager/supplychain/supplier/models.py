@@ -37,7 +37,7 @@ class SaleCategory(models.Model):
 
     class Meta:
         db_table = 'supplychain_sale_category'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'特卖/选品类目'
         verbose_name_plural = u'特卖/选品类目列表'
 
@@ -208,7 +208,7 @@ class SaleSupplier(models.Model):
 
     class Meta:
         db_table = 'supplychain_supply_supplier'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'特卖/供应商'
         verbose_name_plural = u'特卖/供应商列表'
         permissions = [
@@ -245,7 +245,7 @@ class SupplierCharge(models.Model):
     class Meta:
         db_table = 'supplychain_supply_charge'
         unique_together = ( "supplier_id", "employee")
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'特卖/接管商家'
         verbose_name_plural = u'特卖/接管商家列表'
 
@@ -259,7 +259,7 @@ class SupplierZone(models.Model):
 
     class Meta:
         db_table = 'supplychain_supply_supplier_zone'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'特卖供应商区域表'
         verbose_name_plural = u'特卖供应商区域列表'
 
@@ -344,7 +344,7 @@ class SaleProduct(models.Model):
     class Meta:
         db_table = 'supplychain_supply_product'
         unique_together = ("outer_id", "platform")
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'特卖/选品'
         verbose_name_plural = u'特卖/选品列表'
         permissions = [
@@ -407,7 +407,7 @@ class SaleProductManage(models.Model):
 
     class Meta:
         db_table = 'supplychain_supply_schedule_manage'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'排期管理'
         verbose_name_plural = u'排期管理列表'
 
@@ -469,7 +469,7 @@ class SaleProductManageDetail(models.Model):
 
     class Meta:
         db_table = 'supplychain_supply_schedule_manage_detail'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'排期管理明细'
         verbose_name_plural = u'排期管理明细列表'
         permissions = [
@@ -524,7 +524,7 @@ class SaleProductSku(models.Model):
     class Meta:
         db_table = 'supplychain_supply_productsku'
         unique_together = ("outer_id", "sale_product")
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'特卖/选品规格'
         verbose_name_plural = u'特卖/选品规格列表'
 
@@ -543,6 +543,6 @@ class SaleProductPicRatingMemo(models.Model):
 
     class Meta:
         db_table = 'supplychain_supply_schedule_pic_rating_memo'
-        app_label = 'supplychain'
+        app_label = 'supplier'
         verbose_name = u'排期作图评分'
         verbose_name_plural = u'排期作图评分'

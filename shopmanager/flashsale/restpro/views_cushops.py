@@ -1,5 +1,5 @@
 # coding=utf-8
-import os, settings, urlparse, random, urllib
+import os, urlparse, random, urllib
 import datetime
 from rest_framework import viewsets, permissions, authentication, renderers, views
 from rest_framework.response import Response

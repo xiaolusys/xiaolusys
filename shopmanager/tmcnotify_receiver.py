@@ -6,9 +6,8 @@ import json
 import urllib
 import pycurl
 
-from django.core.management import setup_environ
-import settings
-setup_environ(settings)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.settings")
+
 from celery import group
 
 from shopapp.tmcnotify.models import TmcMessage,TmcUser,DEFAULT_GROUP_NAME

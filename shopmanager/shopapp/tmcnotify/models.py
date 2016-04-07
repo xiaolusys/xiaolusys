@@ -30,7 +30,7 @@ class TmcMessage(models.Model):
     is_exec   = models.BooleanField(default=False,verbose_name=u'执行') 
     class Meta:
         db_table = 'shop_tmcnotify_message'
-        app_label = 'notify'
+        app_label = 'tmcnotify'
         verbose_name=u'服务消息'
         verbose_name_plural = u'服务消息列表'
 
@@ -59,7 +59,7 @@ class TmcUser(models.Model):
     
     class Meta:
         db_table = 'shop_tmcnotify_user'
-        app_label = 'notify'
+        app_label = 'tmcnotify'
         verbose_name=u'消息服务用户'
         verbose_name_plural = u'消息服务用户列表'
 

@@ -28,7 +28,7 @@ class CustomShare(PayBaseModel):
     
     class Meta:
         db_table = 'flashsale_customshare'
-        app_label = 'flashsale'
+        app_label = 'pay'
         verbose_name=u'特卖/用户分享设置'
         verbose_name_plural = u'特卖/用户分享设置'
 
