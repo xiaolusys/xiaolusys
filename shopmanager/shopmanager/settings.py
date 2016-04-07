@@ -279,27 +279,29 @@ if os.environ.get('TARGET') == 'django18':
     DEBUG = False
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
-            'USER': 'xiaoludev',                      # Not used with sqlite3.
-            'PASSWORD': 'xiaolu_test123',                  # Not used with sqlite3.
-            'HOST': 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com',                      # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
-            'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-            'OPTIONS':  {'init_command': 'SET storage_engine=Innodb;',
-                         'charset': 'utf8'}, #storage_engine need mysql>5.4,and table_type need mysql<5.4
+            'ENGINE': 'django.db.backends.mysql',
+        # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+            'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
+            'USER': 'qiyue',  # Not used with sqlite3.
+            'PASSWORD': 'youni_2014qy',  # Not used with sqlite3.
+            'HOST': 'jconnfymhz868.mysql.rds.aliyuncs.com',
+        # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
+            'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
+            'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
+                        'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
         }
     }
     CACHES = {
         'default': {
             'BACKEND': 'redis_cache.RedisCache',
             'LOCATION': '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379',
-            'OPTIONS':{
-                'DB': 9,
+            'OPTIONS': {
+                'DB': 1,
                 'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
             }
         }
     }
-    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
+    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/2'
 
 
 if os.environ.get('TARGET') == 'production':
