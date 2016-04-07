@@ -335,8 +335,8 @@ class ActivateView(APIView):
     
 class MainView(APIView):
     def get(self, request, event_id, *args, **kwargs):
-        customer = get_customer(request)
-        customer_id = customer.id
+        #customer = get_customer(request)
+        #customer_id = customer.id
         customer_id = 1 # debug
         envelopes = RedEnvelope.objects.filter(event_id=event_id,customer_id=customer_id)
 
@@ -375,7 +375,7 @@ class OpenEnvelopeView(APIView):
         envelope = envelopes[0]
         if envelope.status == 0:
             envelope.status = 1 # otherwise, return envelope.status is 0.
-            envelopes.update(status=1)
+            envelope.save()
             
         serializer = RedEnvelopeSerializer(envelope)
 

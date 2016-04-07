@@ -128,6 +128,21 @@ class RedEnvelope(CacheModel):
     def type_display(self):
         return get_choice_name(self.TYPE_CHOICES, self.type)
 
+    def is_cashable(self):
+        return self.status == 0
+
+    
+from django.db.models.signals import post_save
+
+def open_envelope_update_budgetlog(sender,instance,created,*args,**kwargs):
+    if not instance.is_cashable():
+        return
+    from tasks_activity import task_update_budgetlog
+    task_update_budgetlog.delay(instance)
+
+post_save.connect(open_envelope_update_budgetlog, sender=RedEnvelope)
+
+
     
 class AwardWinner(CacheModel):
     STATUS = ((0, '未领取'),(1, '已领取'))
