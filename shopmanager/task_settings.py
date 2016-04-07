@@ -11,7 +11,8 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_carryrecord',
     'flashsale.xiaolumm.tasks_mama_clickcarry',
     'flashsale.xiaolumm.tasks_mama_dailystats',
-    'flashsale.dinghuo.tasks'
+    'flashsale.dinghuo.tasks',
+    'flashsale.promotion.tasks_activity',
 )
 #CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -154,6 +155,34 @@ MAMA_RELATIONSHIP_ROUTES = {
         'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_update_group_relationship': {
             'queue': 'relationship',
             'routing_key': 'relationship.task_update_group_relationship',
+        },
+        'flashsale.promotion.tasks_activity.task_activate_application': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_activate_application',
+        },
+        'flashsale.promotion.tasks_activity.task_generate_red_envelope': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_generate_red_envelope',
+        },
+        'flashsale.promotion.tasks_activity.task_envelope_create_budgetlog': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_envelope_create_budgetlog',
+        },
+        'flashsale.promotion.tasks_activity.task_envelope_update_budgetlog': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_envelope_update_budgetlog',
+        },
+        'flashsale.promotion.tasks_activity.task_userinfo_update_application': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_userinfo_update_application',
+        },
+        'flashsale.promotion.tasks_activity.task_userinfo_update_customer': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_userinfo_update_customer',
+        },
+        'flashsale.promotion.tasks_activity.task_decide_award_winner': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_decide_award_winner',
         },
 }
 
