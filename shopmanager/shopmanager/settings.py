@@ -530,7 +530,6 @@ if not DEBUG:
         'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
     }
 
-if os.environ.get('TARGET') == 'django18':
     RAVEN_CONFIG = {
         'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
     }
