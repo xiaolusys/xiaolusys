@@ -182,4 +182,4 @@ def task_decide_award_winner(envelope):
                          customer_nick=customer.nick,event_id=event_id,
                          uni_key=uni_key,invite_num=invite_num)
     winner.save()
-    
+

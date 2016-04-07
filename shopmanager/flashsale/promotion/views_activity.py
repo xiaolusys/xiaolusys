@@ -341,9 +341,9 @@ class ActivateView(APIView):
     
 class MainView(APIView):
     def get(self, request, event_id, *args, **kwargs):
-        customer = get_customer(request)
-        customer_id = customer.id
-        #customer_id = 1 # debug
+        #customer = get_customer(request)
+        #customer_id = customer.id
+        customer_id = 1 # debug
         envelopes = RedEnvelope.objects.filter(event_id=event_id,customer_id=customer_id)
 
         winner_count = AwardWinner.objects.filter(event_id=event_id).count()

@@ -158,7 +158,7 @@ def envelope_create_budgetlog(sender,instance,created,*args,**kwargs):
 
 post_save.connect(envelope_create_budgetlog, sender=RedEnvelope)
 
-
+    
 def open_envelope_update_budgetlog(sender,instance,created,*args,**kwargs):
     if not instance.is_cashable():
         return
