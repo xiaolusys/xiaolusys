@@ -13,7 +13,7 @@ function calcSalePrice(cost){
             salePrice = 39.9;
         // (99.9, 109.9]区间内的销售价统一改成109.9
         if(salePrice > 99.9 && salePrice <= 109.9)
-            salePrice = 109.9;
+            salePrice = 99.9;
     }
     return salePrice;
 }

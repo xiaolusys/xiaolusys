@@ -54,7 +54,7 @@
                     </button>
                     <p id="id-msg-{{ record.id }}"></p>
                 </div>
-                <script src="{{ STATIC_URL }}js/supplier_price.js"></script>
+                <script src="{{ STATIC_URL }}js/supplier_price.js?v=1.0"></script>
                 <script>
                  $(function(){
                      var is_exists = {{is_exists}};
@@ -115,7 +115,7 @@
                         <button type="submit" class="btn btn-primary" style="margin-top:20px">创建商品</button>
                     </div>
                 </form>
-                <script src="{{ STATIC_URL }}js/supplier_price.js"></script>
+                <script src="{{ STATIC_URL }}js/supplier_price.js?v=1.0"></script>
                 <script>
                  $(function(){
                      $('#fetch-form').ajaxForm(function (res) {
