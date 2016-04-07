@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger('celery.handler')
 
 from flashsale.pay.models_user import Customer, BudgetLog, UserBudget
-from flashsale.promotion.models_freesample import RedEnvelope, XLSampleApply
+from flashsale.promotion.models_freesample import RedEnvelope, XLSampleApply, AwardWinner
 import sys, random
 
 
@@ -96,10 +96,15 @@ def task_activate_application(event_id, customer):
 
 @task()
 def task_envelope_create_budgetlog(envelope):
+    budget_logs = BudgetLog.objects.filter(customer_id=envelope.customer_id, referal_id=envelope.uni_key)
+    if budget_logs.count() > 0:
+        return
+
     budget_type = BudgetLog.BUDGET_IN
     budget_log_type = BudgetLog.BG_ENVELOPE
     status = BudgetLog.CANCELED # initially we put the status as "canceled"
     budget_date = datetime.datetime.now().date()
+
     budget_log = BudgetLog(customer_id=envelope.customer_id, flow_amount=envelope.value, budget_type=budget_type,
                            budget_log_type=budget_log_type, budget_date=budget_date,referal_id=envelope.uni_key,
                            status=status)
@@ -142,7 +147,7 @@ def task_userinfo_update_customer(userinfo):
     nickname = userinfo.get("nickname")
     headimgurl = userinfo.get("headimgurl")
     unionid = userinfo.get("unionid")
-    customers Customer.objects.filter(unionid=unionid)
+    customers = Customer.objects.filter(unionid=unionid)
     if customers.count() > 0:
         customer = customers[0]
         update = False
