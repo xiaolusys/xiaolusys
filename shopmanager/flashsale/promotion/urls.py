@@ -31,4 +31,6 @@ urlpatterns = patterns('',
     url(r'^app_join/(?P<event_id>\d+)/$', views_activity.AppJoinView.as_view(), name="app_join_activity"),
     url(r'^web_join/(?P<event_id>\d+)/$', views_activity.WebJoinView.as_view(), name="web_join_activity"),
     url(r'^apply/(?P<event_id>\d+)/$', views_activity.ApplicationView.as_view(), name="application"),
+    url(r'^main/(?P<event_id>\d+)/$', views_activity.MainView.as_view(), name="main_page"),
+    url(r'^open_envelope/(?P<envelope_id>\d+)/$', views_activity.OpenEnvelopeView.as_view(), name="open_envelope"),
 )
