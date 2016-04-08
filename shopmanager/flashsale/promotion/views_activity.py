@@ -31,7 +31,7 @@ logger = logging.getLogger('django.request')
 class ActivityView(WeixinAuthMixin, APIView):
     
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = ()
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.TemplateHTMLRenderer,renderers.JSONRenderer)
     template_name = "promotion/discount_activity.html"
         
@@ -55,7 +55,7 @@ class ActivityView(WeixinAuthMixin, APIView):
 
 class JoinView(WeixinAuthMixin, APIView):
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = ()
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
@@ -77,6 +77,10 @@ class JoinView(WeixinAuthMixin, APIView):
 
 
 class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+    
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
         activity_entrys = ActivityEntry.objects.filter(id=event_id)
@@ -116,6 +120,10 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
 
 class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
         activity_entrys = ActivityEntry.objects.filter(id=event_id)
@@ -158,6 +166,10 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
 
 
 class AppJoinView(WeixinAuthMixin, APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid 
         activity_entrys = ActivityEntry.objects.filter(id=event_id)
@@ -189,6 +201,10 @@ class AppJoinView(WeixinAuthMixin, APIView):
         
 
 class WebJoinView(APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
     def get(self, request, event_id, *args, **kwargs):
          # 1. check whether event_id is valid 
         activity_entrys = ActivityEntry.objects.filter(id=event_id)
@@ -210,6 +226,10 @@ class WebJoinView(APIView):
 
 
 class ApplicationView(WeixinAuthMixin, APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
     def get(self, request, event_id,  *args, **kwargs):
         content = request.GET
         from_customer = request.COOKIES.get("from_customer","")
@@ -321,6 +341,10 @@ def get_customer(request):
 
 
 class ActivateView(APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
         activity_entrys = ActivityEntry.objects.filter(id=event_id)
@@ -340,6 +364,10 @@ class ActivateView(APIView):
 
     
 class MainView(APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
     def get(self, request, event_id, *args, **kwargs):
         #customer = get_customer(request)
         #customer_id = customer.id
@@ -373,6 +401,10 @@ class MainView(APIView):
 
 
 class OpenEnvelopeView(APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
     def get(self, request, envelope_id, *args, **kwargs):
         # 1. we have to check login
         content = request.GET
@@ -396,6 +428,10 @@ class OpenEnvelopeView(APIView):
 
     
 class StatsView(APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+    
     def get(self, request, event_id, *args, **kwargs):
         #customer = Customer.objects.get(user=request.user)
         #customer_id = customer.id

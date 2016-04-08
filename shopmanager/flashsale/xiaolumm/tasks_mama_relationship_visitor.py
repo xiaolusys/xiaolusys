@@ -134,7 +134,7 @@ def task_login_update_fans(user):
     from_customer_id = record.from_customer
     from_customer = Customer.objects.get(id=from_customer_id)
     from_mama = from_customer.getXiaolumm()
-    mama_id = from_mama.xlmm
+    mama_id = from_mama.id
     if not from_mama:
         # if my parent is not xiaolumama, then find out indirect xiaolumama
         from_fans = XlmmFans.objects.filter(fans_cusid=from_customer_id)
