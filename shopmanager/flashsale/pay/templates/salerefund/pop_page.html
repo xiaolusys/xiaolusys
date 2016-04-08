@@ -18,13 +18,20 @@
         <h5>订单信息：</h5>
         <span class="label label-info" style="padding: 1px">交易编号：</span>{{ refund.tid }}
         <a href="/admin/trades/mergetrade/?q={{ refund.tid }}" target="_blank">
-        <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
+            <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
         </a><br>
         <span class="label label-info" style="padding: 1px">名称：</span>&nbsp&nbsp{{ refund.title }}<br>
         <span class="label label-info" style="padding: 1px">买家：</span>&nbsp&nbsp{{ refund.buyer_nick }}<br>
         <span class="label label-info" style="padding: 1px">规格：</span>&nbsp&nbsp{{ refund.sku_name }}<br>
-        <span class="label label-warning" style="padding: 1px">实付：</span>&nbsp&nbsp{{ refund.payment }}<br>
-        <span class="label label-info" style="padding: 1px">支付方式：</span>&nbsp&nbsp{{ refund.channel }}<br>
+        <span class="label label-warning" style="padding: 1px">实付：</span>&nbsp&nbsp{{ refund.payment }}<br><br/>
+        <span class="label label-danger" style="padding: 1px">支付方式：</span>&nbsp&nbsp
+        {% ifequal refund.channel|slice:"3" '支付宝' %}
+            <span style="background: red">{{ refund.channel }} </span>
+        {% else %}
+            <span>{{ refund.channel }} </span>
+        {% endifequal %}
+
+        <br><br/>
         <span class="label label-info" style="padding: 1px">付款时间：</span>&nbsp&nbsp{{ refund.pay_time }}<br>
         <span class="label label-info" style="padding: 1px">订单状态：</span>&nbsp&nbsp{{ refund.order_status }}<br>
 
@@ -112,7 +119,7 @@
     </div>
     <div class="col-xs-6 btn_refund_action">
         <h5>退款操作：</h5>
-    <!-- 只有SaleOrder订单在已经发货，签收，交易成功　状态才会显示　同意退货按钮　-->
+        <!-- 只有SaleOrder订单在已经发货，签收，交易成功　状态才会显示　同意退货按钮　-->
         {% if refund.order_s == 3 or refund.order_s == 4 or refund.order_s == 5 %}
             <button type="button" class="btn btn-info save_info_btn btn_agree_product btn-lg" cid="{{ refund.id }}"
                     style="margin-right: 30px">同意退货
