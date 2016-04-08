@@ -120,7 +120,9 @@ function getMamaInvitationRes() {
       return invitation;
     });
 
-    $('.js-invite').after(template('invitation-res-template', { users: users }));
+    if (users.length > 0) {
+      $('.js-invite').after(template('invitation-res-template', { users: users }));
+    }
   }
 }
 
