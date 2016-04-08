@@ -43,6 +43,34 @@ class XLSampleSku(CacheModel):
         return '-'.join([str(self.sample_product), self.sku_name])
 
 
+class AppDownloadRecord(BaseModel):
+    WAP = 0
+    WX = 1
+    QQ = 2
+
+    UFROM = ((WAP, u'WAP'), (WX, u'微信'), (QQ, u'QQ'))
+    UNUSE = 0
+    USED = 1
+
+    USE_STATUS = ((UNUSE, u'未注册'), (USED, u'已注册'))
+
+    from_customer = models.IntegerField(default=0, db_index=True, verbose_name=u'来自用户')
+    openid = models.CharField(max_length=128, db_index=True,blank=True, null=True, verbose_name=u'微信授权openid')
+    status = models.BooleanField(default=UNUSE, choices=USE_STATUS, db_index=True, verbose_name=u'是否注册APP')
+    mobile = models.CharField(max_length=11, blank=True, null=True, verbose_name=u'手机号')
+    ufrom = models.IntegerField(default=0, choices=UFROM, verbose_name=u'来自平台')
+
+    class Meta:
+        db_table = 'flashsale_promotion_download_record'
+        app_label = 'promotion'
+        verbose_name = u'推广/下载记录表'
+        verbose_name_plural = u'推广/下载记录表'
+
+    def __unicode__(self):
+        return str(self.from_customer)
+
+
+
 class XLSampleApply(CacheModel):
     """ 试用申请 """
     INACTIVE = 0
@@ -98,7 +126,18 @@ def generate_red_envelope(sender,instance,created,*args,**kwargs):
     from tasks_activity import task_generate_red_envelope
     task_generate_red_envelope.delay(instance)
 
-post_save.connect(generate_red_envelope, sender=XLSampleApply)
+post_save.connect(generate_red_envelope, sender=XLSampleApply, dispatch_uid="sampleapply_generate_red_envelope")
+
+
+def update_appdownloadrecord(sender,instance,created,*args,**kwargs):
+    if not created:
+        return
+
+    record = AppDownloadRecord(from_customer=instance.from_customer,openid=instance.user_openid,mobile=instance.mobile,ufrom=instance.ufrom)
+    record.save()
+
+post_save.connect(generate_red_envelope, sender=XLSampleApply, dispatch_uid="sampleapply_update_appdownloadrecord")
+
 
 
 
@@ -257,30 +296,4 @@ class ReadPacket(CacheModel):
         verbose_name_plural = u'推广/discard'
 
 
-
-class AppDownloadRecord(BaseModel):
-    WAP = 0
-    WX = 1
-    QQ = 2
-
-    UFROM = ((WAP, u'WAP'), (WX, u'微信'), (QQ, u'QQ'))
-    UNUSE = 0
-    USED = 1
-
-    USE_STATUS = ((UNUSE, u'未注册'), (USED, u'已注册'))
-
-    from_customer = models.IntegerField(default=0, db_index=True, verbose_name=u'来自用户')
-    openid = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'微信授权openid')
-    status = models.BooleanField(default=UNUSE, choices=USE_STATUS, verbose_name=u'是否注册APP')
-    mobile = models.CharField(max_length=11, blank=True, null=True, verbose_name=u'手机号')
-    ufrom = models.IntegerField(default=0, choices=UFROM, verbose_name=u'来自平台')
-
-    class Meta:
-        db_table = 'flashsale_promotion_download_record'
-        app_label = 'promotion'
-        verbose_name = u'推广/下载记录表'
-        verbose_name_plural = u'推广/下载记录表'
-
-    def __unicode__(self):
-        return str(self.from_customer)
 
