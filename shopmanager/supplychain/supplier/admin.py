@@ -27,7 +27,7 @@ from django.contrib.auth.models import User
 
 class SaleSupplierChangeList(ChangeList):
 
-    def get_query_set(self,request):
+    def get_queryset(self,request):
         qs = self.root_query_set
 
         search_q = request.GET.get('q', '').strip()
@@ -46,7 +46,7 @@ class SaleSupplierChangeList(ChangeList):
             sc = set([s.supplier_id for s in scharge])
             suppliers = qs.filter(id__in=sc)
             return suppliers
-        return super(SaleSupplierChangeList, self).get_query_set(request)
+        return super(SaleSupplierChangeList, self).get_queryset(request)
 
 
 class SaleSupplierAdmin(ApproxAdmin):

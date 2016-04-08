@@ -134,11 +134,11 @@ class WeixinProductManager(BaseManager):
     
     @property
     def UPSHELF(self):
-        return self.get_query_set().filter(status=self.model.UP_SHELF)
+        return self.get_queryset().filter(status=self.model.UP_SHELF)
     
     @property
     def DOWNSHELF(self):
-        return self.get_query_set().filter(status=self.model.DOWN_SHELF)
+        return self.get_queryset().filter(status=self.model.DOWN_SHELF)
 
 
 class WeixinUserManager(BaseManager):   

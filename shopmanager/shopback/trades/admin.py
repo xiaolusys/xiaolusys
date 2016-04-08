@@ -89,7 +89,7 @@ class MergeTradeChangeList(ChangeList):
         return ordering
 
 
-    def get_query_set(self,request):
+    def get_queryset(self,request):
 
         qs = self.root_query_set
         #如果查询条件中含有邀请码
@@ -132,7 +132,7 @@ class MergeTradeChangeList(ChangeList):
             trades = qs.filter(models.Q(tid__in=tid_list)|models.Q(out_sid=search_q))
             return trades
 
-        return super(MergeTradeChangeList,self).get_query_set(request)
+        return super(MergeTradeChangeList,self).get_queryset(request)
 
 
 class MergeTradeAdmin(ApproxAdmin):
@@ -994,7 +994,7 @@ admin.site.register(MergeTrade,MergeTradeAdmin)
 
 class MergeOrderChangeList(ChangeList):
 
-    def get_query_set(self,request):
+    def get_queryset(self,request):
 
         from django.core.exceptions import SuspiciousOperation, ImproperlyConfigured
         from django.contrib.admin.options import IncorrectLookupParameters
@@ -1047,7 +1047,7 @@ class MergeOrderChangeList(ChangeList):
         if search_q:
             return MergeOrder.objects.none()
 
-        return super(MergeOrderChangeList,self).get_query_set(request)
+        return super(MergeOrderChangeList,self).get_queryset(request)
 
 class MergeOrderAdmin(ApproxAdmin):
 

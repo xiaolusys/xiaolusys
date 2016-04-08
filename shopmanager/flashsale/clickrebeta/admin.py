@@ -51,7 +51,7 @@ from shopback.trades.models import MergeTrade
 
 class StatisticsShoppingChangeList(ChangeList):
     
-    def get_query_set(self,request):
+    def get_queryset(self,request):
         
         search_q = request.GET.get('q','').strip()
         if search_q :
@@ -78,11 +78,8 @@ class StatisticsShoppingChangeList(ChangeList):
             return qs
         
         super_ = super(StatisticsShoppingChangeList,self)
-        if hasattr(super_, 'get_query_set'):
-            return super_.get_query_set(request)
         return super_.get_queryset(request) 
-    
-    get_queryset = get_query_set
+
 
 class StatisticsShoppingAdmin(ApproxAdmin):
     

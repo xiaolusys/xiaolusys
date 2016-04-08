@@ -445,7 +445,7 @@ class ProductAdmin(ApproxAdmin):
         Returns a QuerySet of all model instances that can be edited by the
         admin site. This is used by changelist_view.
         """
-        qs = self.model._default_manager.get_query_set()
+        qs = self.model._default_manager.get_queryset()
         # TODO: this should be handled by some parameter to the ChangeList.
         if not request.user.is_superuser:
             qs = qs.exclude(status=pcfg.DELETE)
@@ -1056,7 +1056,7 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
         Returns a QuerySet of all model instances that can be edited by the
         admin site. This is used by changelist_view.
         """
-        qs = self.model._default_manager.get_query_set()
+        qs = self.model._default_manager.get_queryset()
         # TODO: this should be handled by some parameter to the ChangeList.
         if not request.user.is_superuser:
             qs = qs.exclude(status=ProductScanStorage.DELETE)
