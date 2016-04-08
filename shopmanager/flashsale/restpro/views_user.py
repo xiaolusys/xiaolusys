@@ -814,7 +814,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def get_budget_detail(self, request):
         """ 特卖用户钱包明细记录"""
         customer = get_object_or_404(Customer, user=request.user)
-        budget_logs = BudgetLog.objects.filter(customer_id=customer.id).order_by('-created')
+        budget_logs = BudgetLog.objects.filter(
+            customer_id=customer.id).exclude(
+            status=BudgetLog.CANCELED).order_by('-created')
         page = self.paginate_queryset(budget_logs)
         if page is not None:
             serializer = serializers.BudgetLogSerialize(page,
