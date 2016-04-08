@@ -184,6 +184,10 @@ MAMA_RELATIONSHIP_ROUTES = {
             'queue': 'relationship',
             'routing_key': 'relationship.task_decide_award_winner',
         },
+        'flashsale.promotion.tasks_activity.task_sampleapply_update_appdownloadapp': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_sampleapply_update_appdownloadapp',
+        },
 }
 
 MAMA_CARRY_ROUTES = {

@@ -132,7 +132,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         return customer.openid, customer.unionid
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         customer = get_customer(request)
         mobile = customer.mobile if customer else None
 
@@ -190,7 +190,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         return response
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         vmobile = content.get("mobile", None)  # 参与活动的手机号
         vipcode = content.get("vipcode", None)  # 活动邀请码
 
@@ -264,7 +264,7 @@ class APPDownloadView(WeixinAuthMixin, View):
     QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         from_customer = content.get('from_customer', None)  # 分享人的用户id
         mobile = content.get('mobile', None)
         if from_customer:  # 创建下载记录
@@ -494,7 +494,7 @@ class XlSampleOrderView(View):
                                   context_instance=RequestContext(request))
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         customer = get_customer(request)
         outer_id = content.get('outer_id', None)
         sku_code = content.get('sku_code', 0)

@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger('celery.handler')
 
 from flashsale.pay.models_user import Customer, BudgetLog, UserBudget
-from flashsale.promotion.models_freesample import RedEnvelope, XLSampleApply, AwardWinner
+from flashsale.promotion.models_freesample import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord
 
 import sys, random
 
@@ -183,3 +183,13 @@ def task_decide_award_winner(envelope):
                          customer_nick=customer.nick,event_id=event_id,
                          uni_key=uni_key,invite_num=invite_num)
     winner.save()
+
+
+
+
+@task()
+def task_sampleapply_update_appdownloadrecord(application):
+    record = AppDownloadRecord(from_customer=application.from_customer,openid=application.user_openid,
+                               mobile=application.mobile,ufrom=application.ufrom)
+    record.save()
+    

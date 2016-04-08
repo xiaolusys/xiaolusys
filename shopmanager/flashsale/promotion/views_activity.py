@@ -59,7 +59,7 @@ class JoinView(WeixinAuthMixin, APIView):
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
 
@@ -211,7 +211,7 @@ class WebJoinView(APIView):
 
 class ApplicationView(WeixinAuthMixin, APIView):
     def get(self, request, event_id,  *args, **kwargs):
-        content = request.REQUEST
+        content = request.GET
         from_customer = request.COOKIES.get("from_customer","")
         mobile = request.COOKIES.get("mobile")
         openid,unionid = self.get_cookie_openid_and_unoinid(request)
@@ -253,7 +253,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
     
 
     def post(self, request, event_id, *args, **kwargs):
-        content = request.REQUEST
+        content = request.POST
         ufrom = request.COOKIES.get("ufrom", None)
         mobile = content.get("mobile", None)
         from_customer = request.COOKIES.get("from_customer",None)
@@ -375,7 +375,7 @@ class MainView(APIView):
 class OpenEnvelopeView(APIView):
     def get(self, request, envelope_id, *args, **kwargs):
         # 1. we have to check login
-        content = request.REQUEST
+        content = request.GET
 
         if envelope_id <= 0:
             return Response({"rcode": 1, "msg": "envelope id wrong"})
