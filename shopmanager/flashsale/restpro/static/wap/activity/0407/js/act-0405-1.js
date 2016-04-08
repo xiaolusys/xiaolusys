@@ -1,6 +1,7 @@
 $(document).ready(function() {
 	var $addImg = $('.act-0405-add img');
 	var $addBkg = $('.act-0405-add');
+	var baseurl = 'http://staging.xiaolumeimei.com';
 	//倒计时
 	var timer = function(intDiff) {
 			window.setInterval(function() {
@@ -38,9 +39,8 @@ $(document).ready(function() {
 					'mobile': celNum
 				},
 				type: 'post',
-				url: 'http://m.xiaolumeimei.com/sale/promotion/apply/3/',
+				url: baseurl + '/sale/promotion/apply/3/',
 				success: function(res) {
-					console.log(res);
 					if (res.rcode == 0) {
 						if (res.next == 'download') {
 							window.location.href = '../html/act-0405-2.html';
@@ -64,14 +64,12 @@ $(document).ready(function() {
 		var end_time, current_time, rest_time;
 		$.ajax({
 			type: 'GET',
-			url: 'http://m.xiaolumeimei.com/sale/promotion/apply/3/',
+			url: baseurl + '/sale/promotion/apply/3/',
 			success: function(res) {
 				//set rest time of activity
 				end_time = (new Date(res.end_time)).getTime();
 				current_time = (new Date()).getTime();
 				rest_time = parseInt((end_time - current_time) / 1000);
-				console.log('end_time:' + end_time);
-				console.log('current_time:' + current_time);
 				timer(rest_time);
 				//cellNumber input
 				var $cellNum = $('.act-0405-celNumber');
@@ -86,12 +84,11 @@ $(document).ready(function() {
 				}
 			},
 			error: function(res) {
-				console.log(res);
 				$('input')[0]['placeholder'] = '请重新输入';
 			}
 		});
 	};
 	requestData();
-	$addImg.bind('click', add);
-	$addBkg.bind('click', add);
+	$(document).on('click', '.act-0405-add img', add);
+	$(document).on('click', '.act-0405-add', add);
 });
