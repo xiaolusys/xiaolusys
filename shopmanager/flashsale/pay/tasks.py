@@ -453,7 +453,6 @@ def task_Record_Mama_Fans(instance, created):
 from flashsale.pay.models_user import BudgetLog, UserBudget
 from django.db.models import Sum
 
-
 @task()
 def task_budgetlog_update_userbudget(budget_log):
     customer_id = budget_log.customer_id
