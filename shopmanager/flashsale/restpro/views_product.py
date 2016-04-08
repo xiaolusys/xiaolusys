@@ -175,9 +175,13 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, constants.SHARE_LINK)
         return link.format(**params)
-    
-    def get_qrcode_page_link(self):
-        return urlparse.urljoin(settings.M_SITE_URL,reverse('qrcode_view'))
+
+    def get_qrcode_page_link(self, *args, **kwargs):
+        qrcode_link = reverse('qrcode_view')
+        if kwargs.has_key('mama_id'):
+            rev_url = qrcode_link + '?mama_id={mama_id}'  # 添加mama_id
+            qrcode_link = rev_url.format(**kwargs)
+        return urlparse.urljoin(settings.M_SITE_URL, qrcode_link)
     
     @detail_route(methods=['get'])
     def get_share_params(self, request, *args, **kwargs):
@@ -189,10 +193,13 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
             if request.user and request.user.is_authenticated():
                 customer = get_object_or_404(Customer, user=request.user.id)
                 params.update({'customer': customer})
-        
+                mama = customer.getXiaolumm()
+                if mama:
+                    params.update({'mama_id': mama.id})
+                else:
+                    params.update({'mama_id': 1})
         share_params = active_obj.get_shareparams(**params)
-        share_params.update(qrcode_link=self.get_qrcode_page_link())
-        
+        share_params.update(qrcode_link=self.get_qrcode_page_link(**params))
         return Response(share_params)
     
     @list_route(methods=['get'])
