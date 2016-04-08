@@ -125,7 +125,7 @@ def new_order(request):
         remarks = post['remarks']
         amount = functions.cal_amount(username, costofems)
         orderlist = OrderList()
-        orderlist.buyer_name = username
+        orderlist.buyer_name = buyer_name
         orderlist.costofems = costofems * 100
         orderlist.receiver = receiver
         orderlist.express_company = express_company

@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db.models import Max, Sum
 
-from flashsale.dinghuo import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
@@ -52,10 +52,11 @@ class Command(BaseCommand):
         supplier_id = supplier['id']
 
         def _new(supplier, old_orderlist=None):
-            orderlist = OrderList(supplier_id=supplier_id,
-                                  created_by=OrderList.CREATED_BY_MACHINE,
+            orderlist = OrderList(created_by=OrderList.CREATED_BY_MACHINE,
                                   status=OrderList.SUBMITTING,
                                   note=u'-->%s:自动生成订货单' % now.strftime('%m月%d %H:%M'))
+            if supplier_id:
+                orderlist.supplier_id = supplier_id
 
             last_pay_time = supplier.get('last_pay_time')
             ware_by = supplier.get('ware_by')
@@ -255,7 +256,7 @@ class Command(BaseCommand):
             new_skus = []
             for sku in [skus[k] for k in sorted(skus.keys())]:
                 effect_quantity = sku['quantity'] + sku[
-                    'buy_quantity'] - sku['arrival_quantity'] - sku[
+                    'buy_quantity'] - min(sku['arrival_quantity'], sku['buy_quantity']) - sku[
                         'sale_quantity']
                 if effect_quantity >= 0:
                     continue
