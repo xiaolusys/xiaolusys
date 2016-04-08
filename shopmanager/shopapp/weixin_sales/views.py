@@ -148,8 +148,8 @@ class AwardShareView(View):
             for user in referal_users:
                 referal_images.append(user.headimgurl)
             
-            if users[0].vipcodes.count() > 0:
-                vipcode = users[0].vipcodes.all()[0].code
+            if users[0].vipcodes:
+                vipcode = users[0].vipcodes.code
             else:
                 vipcode = VipCode.objects.genVipCodeByWXUser(users[0])
             
