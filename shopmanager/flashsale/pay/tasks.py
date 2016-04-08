@@ -1,4 +1,4 @@
-#-*- encoding:utf8 -*-
+#-*- encoding:utf-8 -*-
 import time
 import datetime
 import calendar
@@ -449,3 +449,24 @@ def task_Record_Mama_Fans(instance, created):
             download.status = True
             download.save()
 
+
+from flashsale.pay.models_user import BudgetLog, UserBudget
+
+@task()
+def task_budgetlog_update_userbudget(budget_log):
+    customer_id = budget_log.customer_id
+    records = BudgetLog.objects.filter(customer_id=customer_id, status=BudgetLog.CONFIRMED).values('budget_type').annotate(total=Sum('flow_amount'))
+    
+    in_amount,out_amount=0,0
+    for entry in records:
+        if entry["budget_type"] == BudgetLog.IN:
+            in_amount = entry["total"]
+        if entry["budget_type"] == BudgetLog.OUT:
+            out_amount = entry["total"]
+
+    user_budget = UserBudget.objects.get(user=customer_id)
+
+    cash = in_amount - out_amount
+    if user_budget.amount !=  cash:
+        user_budget.amount = cash
+        user_budget.save()

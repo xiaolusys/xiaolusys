@@ -70,6 +70,7 @@ class XLReferalRelationship(BaseModel):
         verbose_name = u'推广/用户邀请关系'
         verbose_name_plural = u'推广/用户邀请关系'
 
+
 from django.db.models.signals import post_save
 def sampleorder_create_and_update_count(sender,instance,created,*args,**kwargs):
     """ 试用订单更新邀请数 """
@@ -81,6 +82,7 @@ def sampleorder_create_and_update_count(sender,instance,created,*args,**kwargs):
     inv_count.save()
      
 post_save.connect(sampleorder_create_and_update_count, sender=XLSampleOrder)
+
 
 
 from django.db.models.signals import post_save

@@ -30,5 +30,10 @@ urlpatterns = patterns('',
     url(r'^weixin_snsauth_join/(?P<event_id>\d+)/$', views_activity.WeixinSNSAuthJoinView.as_view(), name="weixin_snsauth_join_activity"),
     url(r'^app_join/(?P<event_id>\d+)/$', views_activity.AppJoinView.as_view(), name="app_join_activity"),
     url(r'^web_join/(?P<event_id>\d+)/$', views_activity.WebJoinView.as_view(), name="web_join_activity"),
-    url(r'^apply/(?P<event_id>\d+)/$', views_activity.ApplicationView.as_view(), name="application"),
+    url(r'^apply/(?P<event_id>\d+)/$', views_activity.ApplicationView.as_view(), name="application_activity"),
+    url(r'^activate/(?P<event_id>\d+)/$', views_activity.ActivateView.as_view(), name="activate_activity"),
+    url(r'^main/(?P<event_id>\d+)/$', views_activity.MainView.as_view(), name="mainpage_activity"),
+    url(r'^open_envelope/(?P<envelope_id>\d+)/$', views_activity.OpenEnvelopeView.as_view(), name="open_envelope_activity"),
+    url(r'^stats/(?P<event_id>\d+)/$', views_activity.StatsView.as_view(), name="stats_activity"),
+
 )

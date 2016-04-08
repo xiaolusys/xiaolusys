@@ -7,6 +7,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
+from django.db.models import Sum
 
 from rest_framework.views import APIView
 from rest_framework import authentication
@@ -20,11 +21,12 @@ from flashsale.pay.models_custom import ActivityEntry
 
 from shopback.items.models import Product
 
-from .models_freesample import XLSampleApply, XLSampleOrder
-
+from .models_freesample import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
+from serializers import RedEnvelopeSerializer, AwardWinnerSerializer
 
 import logging
 logger = logging.getLogger('django.request')
+
 
 class ActivityView(WeixinAuthMixin, APIView):
     
@@ -60,7 +62,7 @@ class JoinView(WeixinAuthMixin, APIView):
         content = request.REQUEST
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
-        
+
         if self.is_from_weixin(request) or ufrom == "wxapp" or ufrom == "pyq":
             response = redirect(reverse('weixin_baseauth_join_activity', args=(event_id,)))
         elif ufrom == "app":
@@ -87,14 +89,14 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
         if not self.valid_openid(openid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
-            wxprofile = self.get_auth_userinfo(request)
-            unionid = wxprofile.get("unionid")
+            userinfo = self.get_auth_userinfo(request)
+            openid = userinfo.get("openid")
 
             if not self.valid_openid(openid):
                 # 4. if we still dont have openid, we have to do oauth
                 redirect_url = self.get_wxauth_redirct_url(request)
                 return redirect(redirect_url)
-            logger.warn("wxprofile: %s" % wxprofile)
+            logger.warn("baseauth: %s" % userinfo)
             
         # now we already have openid, we check whether application exists.
         application_count = XLSampleApply.objects.filter(user_openid=openid).count()
@@ -124,17 +126,23 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         # 2. get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
-        if not self.valid_openid(openid):
+        if not self.valid_openid(unionid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
-            wxprofile = self.get_auth_userinfo(request)
-            unionid = wxprofile.get("unionid")
-            openid = wxprofile.get("openid")
+            userinfo = self.get_auth_userinfo(request)
+            unionid = userinfo.get("unionid")
+            openid = userinfo.get("openid")
             
             if not self.valid_openid(unionid):
                 # 4. if we still dont have openid, we have to do oauth
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
 
+            # now we have userinfo
+            logger.warn("snsauth: %s" % userinfo)
+            from tasks_activity import task_userinfo_update_application, task_userinfo_update_customer
+            task_userinfo_update_application.delay(userinfo)
+            task_userinfo_update_customer.delay(userinfo)
+            
         # now we already have openid, we check whether application exists.
         application_count = XLSampleApply.objects.filter(user_openid=openid).count()
         if application_count <= 0:
@@ -208,8 +216,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
         mobile = request.COOKIES.get("mobile")
         openid,unionid = self.get_cookie_openid_and_unoinid(request)
         
-        print "cookie ---- ", mobile, openid, event_id, from_customer
-
         # 1. check whether event_id is valid 
         activity_entrys = ActivityEntry.objects.filter(id=event_id)
         if activity_entrys.count() <= 0:
@@ -284,7 +290,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
             params.update({"user_openid":openid})
         if mobile:
             params.update({"mobile":mobile})
-        print "debug ====", params
         
         if application_count <= 0:
             application = XLSampleApply(event_id=event_id, **params)
@@ -301,3 +306,108 @@ class ApplicationView(WeixinAuthMixin, APIView):
         response["Access-Control-Allow-Origin"] = "*"
         return response
 
+
+
+
+def get_customer(request):
+    user = request.user
+    if not user or user.is_anonymous():
+        return None
+    try:
+        customer = Customer.objects.get(user_id=request.user.id)
+    except Customer.DoesNotExist:
+        customer = None
+    return customer
+
+
+class ActivateView(APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        # 1. check whether event_id is valid
+        activity_entrys = ActivityEntry.objects.filter(id=event_id)
+        if activity_entrys.count() <= 0:
+            return Response({"error": "wrong event id"})    
+        activity_entry = activity_entrys[0]
+
+        # 2. activate application
+        customer = get_customer(request)
+        from tasks_activity import task_activate_application
+        task_activate_application.delay(event_id, customer)
+        
+        # 3. redirect to mainpage
+        key = 'mainpage'
+        html = activity_entry.get_html(key)
+        response = redirect(html)
+
+    
+class MainView(APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        #customer = get_customer(request)
+        #customer_id = customer.id
+        customer_id = 1 # debug
+        envelopes = RedEnvelope.objects.filter(event_id=event_id,customer_id=customer_id)
+
+        winner_count = AwardWinner.objects.filter(event_id=event_id).count()
+        award_left = 2000 - winner_count
+        latest_five = AwardWinner.objects.filter(event_id=event_id).order_by('-created')[:5]
+        
+        envelope_serializer = RedEnvelopeSerializer(envelopes, many=True)
+        winner_serializer = AwardWinnerSerializer(latest_five, many=True)
+        
+        cards = {"1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0}
+        for item in envelope_serializer.data:
+            if item['type'] == 'card':
+                key = str(item['value'])
+                cards[key] = 1
+
+        inactive_applications = XLSampleApply.objects.filter(event_id=event_id,from_customer=customer_id,status=XLSampleApply.INACTIVE).order_by('-created')
+        inactives = []
+        for item in inactive_applications:
+            inactives.append({"headimgurl":item.headimgurl, "nick":item.nick})
+            
+        data = {"cards":cards, "envelopes":envelope_serializer.data, "num_of_envelope": len(envelope_serializer.data),
+                "award_list": winner_serializer.data, "award_left": award_left, "inactives":inactives}
+        
+        response = Response(data)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+
+
+class OpenEnvelopeView(APIView):
+    def get(self, request, envelope_id, *args, **kwargs):
+        # 1. we have to check login
+        content = request.REQUEST
+
+        if envelope_id <= 0:
+            return Response({"rcode": 1, "msg": "envelope id wrong"})
+        envelopes = RedEnvelope.objects.filter(id=envelope_id)
+        if envelopes.count() <= 0:
+            return Response({"msg":"open failed, no envelope found"})
+
+        envelope = envelopes[0]
+        if envelope.status == 0:
+            envelope.status = 1 # otherwise, return envelope.status is 0.
+            envelope.save()
+            
+        serializer = RedEnvelopeSerializer(envelope)
+
+        response = Response(serializer.data)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+
+    
+class StatsView(APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        #customer = Customer.objects.get(user=request.user)
+        #customer_id = customer.id
+        customer_id = 1 #debug
+        envelopes = RedEnvelope.objects.filter(customer_id=customer_id, event_id=event_id)
+        invite_num = envelopes.count()
+        
+        res = envelopes.filter(type=0).values('type').annotate(total=Sum('value'))
+        total = 0
+        if res:
+            total = float("%.2f" % (res[0]["total"] * 0.01))
+        
+        return Response({"invite_num":invite_num, "total":total})
+
+        
