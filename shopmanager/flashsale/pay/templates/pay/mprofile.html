@@ -77,17 +77,17 @@
 <div class="row " role="navigation" >
 <ul class="nav nav-pills nav-top">
   <li role="presentation" class="col-xs-4 padding-lf5" >
-  	<a href="{% url user_orderlist  %}?status=1" target="_self">
+  	<a href="{% url 'user_orderlist'  %}?status=1" target="_self">
   		<span class="glyphicon glyphicon-credit-card"></span><p>待支付</p>
   	</a>
   </li>
   <li role="presentation" class="col-xs-4 padding-lf5">
-	<a href="{% url user_orderlist  %}?status=2" target="_self">
+	<a href="{% url 'user_orderlist'  %}?status=2" target="_self">
 		<span class="glyphicon glyphicon-plane"></span><p>待收货</p>
 	</a>
   </li>
   <li role="presentation" class="col-xs-4 padding-lf5">
-  	<a href="{% url user_orderlist  %}" target="_self">
+  	<a href="{% url 'user_orderlist'  %}" target="_self">
   	<span class="glyphicon glyphicon-list-alt"></span><p>全部订单</p>
   	</a>
   </li>
@@ -97,7 +97,7 @@
 <div class="row" role="navigation">
 <ul class="nav nav-pills prop-list">
   <li role="presentation" class="col-xs-12 padding-lf5">
-  	<a href="{% url address_list %}">
+  	<a href="{% url 'address_list' %}">
   	<div class="row nav-item"><div class="col-xs-10" >地址管理</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div>
   	</a>
   </li>
@@ -123,9 +123,9 @@
 <nav id="main-nav" class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">
 	  <ul class="nav nav-pills nav-justified">
-		  <li role="presentation" ><a href="{% url sale_home %}?history=yes&time_line=2" class="col-xs-4 " target="_self">历史特卖</a></li>
-		  <li role="presentation" ><a href="{% url sale_home %}" class="col-xs-4 " target="_self">今日上新</a></li>
-		  <li role="presentation" ><a href="{% url user_profile %}" class="col-xs-4 " target="_self">个人中心</a></li>
+		  <li role="presentation" ><a href="{% url 'sale_home' %}?history=yes&time_line=2" class="col-xs-4 " target="_self">历史特卖</a></li>
+		  <li role="presentation" ><a href="{% url 'sale_home' %}" class="col-xs-4 " target="_self">今日上新</a></li>
+		  <li role="presentation" ><a href="{% url 'user_profile' %}" class="col-xs-4 " target="_self">个人中心</a></li>
 	  </ul>
   </div>
 </nav>

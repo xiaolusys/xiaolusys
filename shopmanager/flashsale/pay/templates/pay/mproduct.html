@@ -208,7 +208,7 @@ function hideLoader()
 					that.addClass('add');
 				};
 				
-				$.post('{% url skuquantity_lock %}',
+				$.post('{% url 'skuquantity_lock' %}',
 						{ "product_id":product_id, "sku_id":sku_id,"num":n,"csrfmiddlewaretoken":csrf_token},
 						callback,
 						'json');

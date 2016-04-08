@@ -87,7 +87,7 @@
 	  <span class="h3">订单详情</span>
 	</div>
 	<div class="col-xs-2" >
-	  <a id="address_plus_link" href="{% url sale_home %}" class="glyphicon glyphicon-home" ></a>
+	  <a id="address_plus_link" href="{% url 'sale_home' %}" class="glyphicon glyphicon-home" ></a>
 	</div>
 </nav>
 
@@ -97,7 +97,7 @@
   <div class="panel-body">
 	{% for order in sale_orders %}
 	<div class="row list-row list-row-border">
-	<a href="{% url product_detail pk=order.item_id %}" target="_self">
+	<a href="{% url 'product_detail' pk=order.item_id %}" target="_self">
     <div class="col-xs-2 thumbnail">
     <img src="{{ order.pic_path }}" data-original="{{ order.pic_path }}" data-onerror="" width="50" height="60" class="pro" >
     </div>
@@ -113,7 +113,7 @@
        <div class="col-xs-6 padding-lf5 font8 font-tp">尺码：<span >{{ order.sku_name }}</span></div>
        <div class="col-xs-6 refund padding-lf0">
        {% if order.refund %}
-       <a href="{% url refund_confirm pk=order.refund.id %}" class="btn btn-xs btn-default font10 font-tp" target="_self">
+       <a href="{% url 'refund_confirm' pk=order.refund.id %}" class="btn btn-xs btn-default font10 font-tp" target="_self">
        	 {% if order.refund.status == 1 %}
        	 <span class="glyphicon glyphicon-ban-circle">退款关闭</span>
        	 {% elif order.refund.status == 2 %}
@@ -127,7 +127,7 @@
        	 {% endif %}
        </a>
        {% elif order.refundable %}
-       	<a href="{% url refund_apply %}?trade_id={{ id }}&order_id={{ order.id }}" class="btn btn-xs btn-default font10 font-tp" target="_self">申请售后</a>
+       	<a href="{% url 'refund_apply' %}?trade_id={{ id }}&order_id={{ order.id }}" class="btn btn-xs btn-default font10 font-tp" target="_self">申请售后</a>
        {% endif %}
        </div>
     </div>
@@ -141,7 +141,7 @@
 	</div>
 	{% if status == 3 or status == 4 or status == 5 %}
 	<div class="row list-row">
-		<a class="btn btn-default btn-rowfull" href="{% url order_logistic pk=id %}">查看物流</a>
+		<a class="btn btn-default btn-rowfull" href="{% url 'order_logistic' pk=id %}">查看物流</a>
 	</div>
 	{% endif %}
 

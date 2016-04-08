@@ -30,10 +30,10 @@
   <!-- 导航 -->
   <div id="tab_nav">
     <div class="block row" style="width:100%;">
-      <a id="for_all" target="_self" href="{% url sale_home %}" class="col-xs-3 {% if not category %}active{% endif %}">首页</a>
-      <a id="for_boy" target="_self" href="{% url sale_home %}?category=5,12,13,14,15,16,17{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '5,12,13,14,15,16,17' %}active{% endif %}">童装</a>
-      <a id="for_wom" target="_self" href="{% url sale_home %}?category=8,10,18,19,20,21,22{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '8,10,18,19,20,21,22' %}active{% endif %}">女装</a>
-      <a id="for_fam" target="_self" href="{% url sale_home %}?category=11&history=none" class="col-xs-3 {% if category == '11' %}active{% endif %}">X秒杀</a>
+      <a id="for_all" target="_self" href="{% url 'sale_home' %}" class="col-xs-3 {% if not category %}active{% endif %}">首页</a>
+      <a id="for_boy" target="_self" href="{% url 'sale_home' %}?category=5,12,13,14,15,16,17{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '5,12,13,14,15,16,17' %}active{% endif %}">童装</a>
+      <a id="for_wom" target="_self" href="{% url 'sale_home' %}?category=8,10,18,19,20,21,22{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '8,10,18,19,20,21,22' %}active{% endif %}">女装</a>
+      <a id="for_fam" target="_self" href="{% url 'sale_home' %}?category=11&history=none" class="col-xs-3 {% if category == '11' %}active{% endif %}">X秒杀</a>
     </div>
   </div>
 
@@ -57,9 +57,9 @@
   <nav id="main-nav" class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">
 	  <ul class="nav nav-pills nav-justified">
-		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}&{% endif %}history=yes&time_line=2" class="col-xs-4 " target="_self">历史特卖</a></li>
-		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}{% endif %}" class="col-xs-4 " target="_self">今日上新</a></li>
-		  <li role="presentation" ><a href="{% url user_profile %}" class="col-xs-4 " target="_self">个人中心</a></li>
+		  <li role="presentation" ><a href="{% url 'sale_home' %}?{% if category %}category={{ category }}&{% endif %}history=yes&time_line=2" class="col-xs-4 " target="_self">历史特卖</a></li>
+		  <li role="presentation" ><a href="{% url 'sale_home' %}?{% if category %}category={{ category }}{% endif %}" class="col-xs-4 " target="_self">今日上新</a></li>
+		  <li role="presentation" ><a href="{% url 'user_profile' %}" class="col-xs-4 " target="_self">个人中心</a></li>
 	  </ul>
   </div>
   </nav>

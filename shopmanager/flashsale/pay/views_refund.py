@@ -256,7 +256,7 @@ class RefundPopPageView(APIView):
                                                          referal_id=obj.order_id, # 以子订单为准
                                                          budget_log_type=BudgetLog.BG_REFUND)
                         if blogs.exists():
-                            total_refund = blogs[0].value + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
+                            total_refund = blogs[0].flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
                             if total_refund > int(sorder.payment * 100):
                                 # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
                                 raise Exception(u'超过订单实际支付金额!')

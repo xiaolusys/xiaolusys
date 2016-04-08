@@ -88,7 +88,7 @@ body{
 	  <span class="h3">订单列表</span>
 	</div>
 	<div class="col-xs-2" >
-	  <a id="address_plus_link" href="{% url sale_home %}" class="glyphicon glyphicon-home" target="_self"></a>
+	  <a id="address_plus_link" href="{% url 'sale_home' %}" class="glyphicon glyphicon-home" target="_self"></a>
 	</div>
 </nav>
 
@@ -100,7 +100,7 @@ body{
   	<div class="col-xs-6 ">下单时间：<span class="c-grey ">{{ trade.created }}</span></div>
   </div>
   <div class="order-item-detail row ">
-    <a href="{% url user_orderdetail pk=trade.id %}" class="ablock orderRlink" target="_self">
+    <a href="{% url 'user_orderdetail' pk=trade.id %}" class="ablock orderRlink" target="_self">
     <div class="col-xs-2 thumbnail">
     	<img src="{{ trade.order_pic }}" data-original="{{ trade.order_pic }}" >
     </div>

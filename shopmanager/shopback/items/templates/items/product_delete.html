@@ -21,7 +21,7 @@
 
 
 <div class="jumbotron">
-  <form action="{% url invalid_product %}" method="POST">
+  <form action="{% url 'invalid_product' %}" method="POST">
   {% csrf_token %}
   <input type="hidden" name="product_ids" value="{{ product_ids }}" />
   <input type="hidden" name="origin_url" value="{{ origin_url }}" />

@@ -39,7 +39,7 @@
 	  <div class="well well-lg">
 	  	<div class="bg-warning">亲，您所浏览的商品信息已过期，<span id="seconds">5</span>秒后跳转到新商品页，你也可以手动点击下方按钮，谢谢！</div>
 		
-		<a href="{% url product_detail pk=produt_id %}" class="btn btn-default btn-rowfull">查看最新商品详情</a>
+		<a href="{% url 'product_detail' pk=produt_id %}" class="btn btn-default btn-rowfull">查看最新商品详情</a>
 	  </div>
 	</div>
   </div>
