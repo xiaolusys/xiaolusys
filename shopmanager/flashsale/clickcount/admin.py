@@ -11,7 +11,7 @@ from .models import Clicks, UserClicks, ClickCount, WeekCount
 
 class ClicksChangeList(ChangeList):
     
-    def get_query_set(self,request):
+    def get_queryset(self,request):
         
         search_q = request.GET.get('q','').strip()
         if search_q :
@@ -33,11 +33,7 @@ class ClicksChangeList(ChangeList):
             return qs
         
         super_ = super(ClicksChangeList,self)
-        if hasattr(super_, 'get_query_set'):
-            return super_.get_query_set(request)
-        return super_.get_queryset(request) 
-
-    get_queryset = get_query_set
+        return super_.get_queryset(request)
     
 class ClicksAdmin(ApproxAdmin):
     list_display = ('linkid','openid','isvalid','click_time')

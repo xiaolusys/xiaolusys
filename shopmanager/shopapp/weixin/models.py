@@ -304,17 +304,17 @@ class WXUserCharge(models.Model):
 
 class ResponseManager(models.Manager):
     
-    def get_query_set(self):
-        return (super(ResponseManager, self).get_query_set().extra(
+    def get_queryset(self):
+        return (super(ResponseManager, self).get_queryset().extra(
                     select={'length':'Length(message)'}).order_by('-length'))
     
     @property
     def FuzzyMatch(self):
-        return self.get_query_set().filter(fuzzy_match=True)
+        return self.get_queryset().filter(fuzzy_match=True)
     
     @property
     def FullMatch(self):
-        return self.get_query_set().filter(fuzzy_match=False)
+        return self.get_queryset().filter(fuzzy_match=False)
 
 
 class WeiXinAutoResponse(models.Model):

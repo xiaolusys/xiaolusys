@@ -10,8 +10,8 @@ logger = logging.getLogger('django.request')
 DEFAULT_GROUP_NAME ='default'
 
 class ValidUserManager(models.Manager):
-    def get_query_set(self):
-        return super(ValidUserManager, self).get_query_set().filter(is_valid=True)
+    def get_queryset(self):
+        return super(ValidUserManager, self).get_queryset().filter(is_valid=True)
 
 
 class TmcMessage(models.Model):

@@ -58,7 +58,7 @@ admin.site.register(WeixinUnionID, WeixinUnionIDAdmin)
 
 class UserChangeList(ChangeList):
     
-    def get_query_set(self,request):
+    def get_queryset(self,request):
         
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
@@ -77,7 +77,7 @@ class UserChangeList(ChangeList):
         if search_q:
             return WeiXinUser.objects.none()
         
-        return super(UserChangeList,self).get_query_set(request)
+        return super(UserChangeList,self).get_queryset(request)
 
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
@@ -414,7 +414,7 @@ admin.site.register(FreeSample, FreeSampleAdmin)
 
 class SampleOrderChangeList(ChangeList):
     
-    def get_query_set(self,request):
+    def get_queryset(self,request):
         
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
@@ -432,7 +432,7 @@ class SampleOrderChangeList(ChangeList):
         if search_q:
             return SampleOrder.objects.none()
         
-        return super(SampleOrderChangeList,self).get_query_set(request)
+        return super(SampleOrderChangeList,self).get_queryset(request)
 
 class SampleOrderAdmin(ApproxAdmin):
 
@@ -472,7 +472,7 @@ admin.site.register(SampleOrder, SampleOrderAdmin)
 
 class VipCodeChangeList(ChangeList):
     
-    def get_query_set(self,request):
+    def get_queryset(self,request):
         
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
@@ -492,7 +492,7 @@ class VipCodeChangeList(ChangeList):
         if search_q:
             return VipCode.objects.none()
         
-        return super(VipCodeChangeList,self).get_query_set(request)
+        return super(VipCodeChangeList,self).get_queryset(request)
     
     
 class VipCodeAdmin(ApproxAdmin):

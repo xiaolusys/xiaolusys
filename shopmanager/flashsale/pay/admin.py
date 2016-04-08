@@ -184,7 +184,7 @@ admin.site.register(UserAddress, UserAddressAdmin)
 
 
 class SaleRefundChangeList(ChangeList):
-    def get_query_set(self, request):
+    def get_queryset(self, request):
         search_q = request.GET.get('q', '').strip()
         if search_q:
             refunds = SaleRefund.objects.none()
@@ -203,10 +203,10 @@ class SaleRefundChangeList(ChangeList):
                                                     models.Q(mobile=search_q) |
                                                     models.Q(trade_id=search_q))
             else:
-                return super(SaleRefundChangeList, self).get_query_set(request)
+                return super(SaleRefundChangeList, self).get_queryset(request)
             return refunds
 
-        return super(SaleRefundChangeList, self).get_query_set(request)
+        return super(SaleRefundChangeList, self).get_queryset(request)
 
 
 import pingpp
@@ -654,7 +654,7 @@ from django.contrib import messages
 
 
 class UserCouponChangeList(ChangeList):
-    def get_query_set(self, request):
+    def get_queryset(self, request):
         search_q = request.GET.get('q', '').strip()
         # add_RMB118?customer=123
         if search_q:
@@ -664,8 +664,8 @@ class UserCouponChangeList(ChangeList):
                 mess = add_coupon_for_user(action_user=request.user.id, coup_type=coup_type, customer=customer)
                 messages.info(request, mess)
             except IndexError:
-                return super(UserCouponChangeList, self).get_query_set(request)
-        return super(UserCouponChangeList, self).get_query_set(request)
+                return super(UserCouponChangeList, self).get_queryset(request)
+        return super(UserCouponChangeList, self).get_queryset(request)
 
 
 class UserCouponAdmin(admin.ModelAdmin):

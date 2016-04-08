@@ -17,8 +17,6 @@ NUMBER_STR = '0123456789'
 class VipCodeManager(BaseManager):
     def get_queryset(self):
         super_tm = super(VipCodeManager, self)
-        if hasattr(super_tm, 'get_query_set'):
-            return super_tm.get_query_set()
         return super_tm.get_queryset()
 
     def genCode(self):
@@ -81,8 +79,6 @@ class ReadPacketManager(CacheManager):
 
     def get_queryset(self):
         super_pac = super(ReadPacketManager, self)
-        if hasattr(super_pac, 'get_query_set'):
-            return super_pac.get_query_set()
         return super_pac.get_queryset()
 
     def push_message_to_app(self, customer_id):
