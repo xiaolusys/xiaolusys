@@ -44,9 +44,10 @@ $(document).ready(function() {
   var a = window.screen.height;
   var b = window.screen.width;
   $(".js-invite").click(function() {
+    var data = { 'share_to': '', 'active_id': '4' };
     if (detector.isIOS()) {
       setupWebViewJavascriptBridge(function(bridge) {
-        bridge.callHandler('callNativeShareFunc', { 'share_to': '', 'active_id': '1' }, null);
+        bridge.callHandler('callNativeShareFunc', data, null);
       });
     } else if (detector.isAndroid() && window.AndroidBridge) {
       window.AndroidBridge.callNativeShareFunc(data.share_to, data.active_id);
