@@ -345,8 +345,7 @@ if not DEBUG:
 
     ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','.xiaolumeimei.com','.xiaolumm.com','121.199.168.159']
     RAVEN_CONFIG = {
-        'dsn': 'http://53382bea24ca4a1f851f1e627a8dc0a1:0c2de1f22e884835a32d1fa396487101@sentry.huyi.so:8089/10',
-        'register_signals': True,
+        'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
     }
     
     #WEB DNS
@@ -531,9 +530,6 @@ if not DEBUG:
         'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
     }
 
-    RAVEN_CONFIG = {
-        'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
-    }
 
 try:
     from local_settings import *
