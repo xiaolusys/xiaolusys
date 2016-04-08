@@ -28,7 +28,7 @@ from django.contrib.auth.models import User
 class SaleSupplierChangeList(ChangeList):
 
     def get_queryset(self,request):
-        qs = self.root_query_set
+        qs = self.root_queryset
 
         search_q = request.GET.get('q', '').strip()
         if re.compile('^[\w]+[\.][\w]+$').match(search_q):

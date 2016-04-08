@@ -91,7 +91,7 @@ class MergeTradeChangeList(ChangeList):
 
     def get_queryset(self,request):
 
-        qs = self.root_query_set
+        qs = self.root_queryset
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
         if search_q:
@@ -1008,7 +1008,7 @@ class MergeOrderChangeList(ChangeList):
              use_distinct) = self.get_filters(request)
 
             # Then, we let every list filter modify the queryset to its liking.
-            qs = self.root_query_set
+            qs = self.root_queryset
             for filter_spec in self.filter_specs:
                 new_qs = filter_spec.queryset(request, qs)
                 if new_qs is not None:
