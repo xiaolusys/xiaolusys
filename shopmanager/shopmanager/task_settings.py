@@ -156,6 +156,10 @@ MAMA_RELATIONSHIP_ROUTES = {
             'queue': 'relationship',
             'routing_key': 'relationship.task_update_group_relationship',
         },
+        'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_login_update_fans': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_login_update_fans',
+        },
         'flashsale.promotion.tasks_activity.task_activate_application': {
             'queue': 'relationship',
             'routing_key': 'relationship.task_activate_application',
