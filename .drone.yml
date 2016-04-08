@@ -9,7 +9,7 @@ publish:
     file: Dockerfile
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
     when:
-      branch: admin
+      branch: staging
   docker:
     username: $$DOCKER_USERNAME
     password: $$DOCKER_PASSWORD
