@@ -120,7 +120,7 @@ function Action_release(ele) {
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
     var session = document.getElementsByName("sessionid");
     var sessionid = session.length>0?session[0].value:'';
-    var data = {'template_id': $(ele).attr('template_id'),"csrfmiddlewaretoken": csrf_token,"sessionid":sessionid};
+    var data = {'template_id': $(ele).attr('template_id'),"csrfmiddlewaretoken": csrf_token};//"sessionid":sessionid
     $.ajax({
         "url": url,
         "data": data,
