@@ -33,3 +33,5 @@ nosetests.xml
 local_settings.py
 .idea/
 ve/
+.DS_Store
+env/

@@ -1,62 +1,59 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>邀请结果</title>
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="format-detection" content="address=no">
-    <meta name="format-detection" content="email=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../css/agency-invitation-res.css">
-    <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
-    <script src="../js/common.js"></script>
-    <script src="../js/agency-invitation-res.js"></script>
-</head>
-<body>
 
-<div class="col-xs-12 invitation-bg">
-    <p class="col-xs-10 invitation-count">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>邀请结果</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="format-detection" content="address=no">
+  <meta name="format-detection" content="email=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/agency-invitation-res.css">
+  <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/template.js"></script>
+  <script src="../js/agency-invitation-res.js"></script>
+</head>
+
+<body>
+  <div>
+    <div class="invitation-bg">
+      <p class="col-xs-10 invitation-count">
         <span class="col-xs-3" id="invitation-num-1">1</span>
         <span class="col-xs-3" id="invitation-num-2">2</span>
         <span class="col-xs-3" id="invitation-num-3">3</span>
         <span class="col-xs-3">位</span>
-    </p>
-
-    <div class="col-xs-10 invitation-class-gold"></div>
-    <div class="col-xs-10 invitation-class-diamond"></div>
-    <div class="col-xs-10 invitation-class-crown"></div>
-    <div class="col-xs-10 invitation-class-gold-crown"></div>
-
-    <img class="js-invite col-xs-12 invite-btn" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invite-btn.png" alt="">
+      </p>
+      <div class="col-xs-3 invitation-class-gold"></div>
+      <div class="col-xs-3 invitation-class-diamond"></div>
+      <div class="col-xs-3 invitation-class-crown"></div>
+      <div class="col-xs-3 invitation-class-gold-crown"></div>
+      <img class="js-invite col-xs-12 invite-btn" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invite-btn.png" alt="">
+    </div>
+  </div>
+  <script type="text/html" id="invitation-res-template">
     <img class="col-xs-12 invited-friends-head" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invited-friends-head.png">
-
     <div class="col-xs-12 invited-friends-list" style="margin-top: 1px">
-
-    </div>
-</div>
-
-
-
-
-<script type="text/html" id="invitation-res-template">
-    <div class="friends-info-icon">
+      {{each users as user index }}
+      <div class="friends-info-icon">
         <div class="detail-info ">
-            <div class="friend-head">
-                <img class="carousel-inner img-responsive img-circle" src="{{ referal_to_mama_img }}"/>
-
-            </div>
-            <div class="friend-desc ">
-                <span>{{ created }}</span><br/>
-                <em>{{ referal_to_mama_nick }}</em><span class="join-mama"> 通过邀请加入小鹿</span>
-            </div>
-            <div class="red-packet"></div>
+          <div class="friend-head">
+            <img class="carousel-inner img-responsive img-circle" src="{{ user.referal_to_mama_img }}" />
+          </div>
+          <div class="friend-desc ">
+            <span>{{ user.created }}</span>
+            <br/>
+            <em>{{ user.referal_to_mama_nick }}</em><span class="join-mama"> 通过邀请加入小鹿</span>
+          </div>
+          <div class="red-packet"></div>
         </div>
+      </div>
+      {{/each}}
     </div>
-</script>
-
+  </script>
 </body>
+
 </html>
