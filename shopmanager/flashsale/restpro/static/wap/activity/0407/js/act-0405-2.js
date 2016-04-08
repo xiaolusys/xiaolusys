@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	var baseurl = 'http://m.xiaolumeimei.com';
+	var baseurl = 'http://staging.xiaolumeimei.com';
 	var $top = $('.act-0405-2-top')[0];
 	var screenWidth = document.body.clientWidth;
 	$top.style.height = screenWidth * 1.28 + 'px';
