@@ -147,6 +147,7 @@ from flashsale.pay.models_user import UserBudget,BudgetLog
 from django.db import models
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback import paramconfig as pcfg
+from tasks import task_send_msg_for_refund
 
 
 class RefundPopPageView(APIView):
@@ -335,6 +336,7 @@ class RefundPopPageView(APIView):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
                 return Response({"res": "sys_error"})
+        task_send_msg_for_refund.s(obj).delay()
         return Response({"res": True})
 
 

@@ -225,6 +225,13 @@ class Customer(BaseModel):
                                                                                SaleRefund.REFUND_SUCCESS,
                                                                                SaleRefund.NO_REFUND)).count()
 
+    def has_user_password(self):
+        """ 是否有密码 """
+        if self.user.password:
+            return True
+        else:
+            return False
+
 
 def triger_record_xlmm_fans(sender, instance, created, **kwargs):
     """ 记录粉丝妈妈粉丝信息 """
