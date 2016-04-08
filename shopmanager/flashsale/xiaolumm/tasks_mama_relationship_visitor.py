@@ -120,7 +120,11 @@ def task_login_update_fans(user):
     If AppDownloadRecord has multiple record for the same openid, we use the latest one.
     """
     
-    customer = Customer.objects.filter(user=user)
+    customers = Customer.objects.filter(user=user)
+    if customers.count() <= 0:
+        return
+    
+    customer = customers[0]
     openid = customer.openid
     records = AppDownloadRecord.objects.filter(openid=openid,status=AppDownloadRecord.UNUSE).order_by('-created')
     if records.count() <= 0:
