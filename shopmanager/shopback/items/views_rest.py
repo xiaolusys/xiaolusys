@@ -45,6 +45,6 @@ class ProductInvalidConfirmView(APIView):
             
             log_action(request.user.id,p,CHANGE,u'商品作废')
         
-        messages.add_message(request, messages.INFO, u"已成功作废%s个商品!"%(len(product_ids)))
+        messages.add_message(request._request, messages.INFO, u"已成功作废%s个商品!"%(len(product_ids)))
         
         return redirect(origin_url)  
