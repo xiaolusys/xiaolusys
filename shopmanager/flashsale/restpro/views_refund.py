@@ -26,7 +26,7 @@ def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None,
     sale_refund.phone = order.sale_trade.receiver_phone
     sale_refund.total_fee = order.total_fee
     sale_refund.payment = order.payment
-    sale_refund.chanel = channel
+    sale_refund.channel = channel
     sale_refund.refund_fee = order.refund_fee
     sale_refund.reason = REFUND_REASON[reason][1]  # 填写原因
     sale_refund.desc = desc

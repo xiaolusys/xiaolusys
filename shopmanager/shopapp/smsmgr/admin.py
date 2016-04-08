@@ -34,7 +34,7 @@ admin.site.register(SMSRecord,SMSRecordAdmin)
 
 
 class SMSActivityAdmin(admin.ModelAdmin):
-    list_display = ('sms_type','text_tmpl','status')
+    list_display = ('id', 'sms_type','text_tmpl','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('sms_type','status',)

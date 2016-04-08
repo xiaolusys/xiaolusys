@@ -12,7 +12,7 @@ from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 logger = logging.getLogger(__name__)
 
 
-def send_message(mobile, message):
+def send_message(mobile, message, taskName):
     try:
         platform = SMSPlatform.objects.get(is_default=True)
     except:
@@ -24,7 +24,7 @@ def send_message(mobile, message):
                   'account': platform.account,
                   'password': platform.password,
                   'mobile': mobile,
-                  'taskName': "续费服务提醒",
+                  'taskName': taskName,
                   'mobilenumber': 1,
                   'countnumber': 1,
                   'telephonenumber': 0,
@@ -52,7 +52,7 @@ def send_message(mobile, message):
             sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
         sms_record.save()
     except Exception, exc:
-        logger.error(exc.message or '服务续费短信发送出错', exc_info=True)
+        logger.error(exc.message or '%s发送出错' % taskName, exc_info=True)
 
 
 @task()
@@ -76,5 +76,5 @@ def trace_renew_remind_send_msm():
             continue
     message = ''.join(sms_txt)
     for mobile in phone_num:
-        send_message(mobile, message)
+        send_message(mobile, message, taskName='续费服务提醒')
 

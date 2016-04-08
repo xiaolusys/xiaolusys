@@ -27,6 +27,10 @@ TARGET_TYPE_VIP_0DAY= 11
 # 退款退货列表
 TARGET_TYPE_REFUNDS = 12
 
+# 退款退货列表
+TARGET_TYPE_REFUNDS = 12
+
+
 TARGET_PATHS = {
     TARGET_TYPE_HOME_TAB_1: 'app/v1/products/promote_today',
     TARGET_TYPE_HOME_TAB_2: 'app/v1/products/promote_previous',

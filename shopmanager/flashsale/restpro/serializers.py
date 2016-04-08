@@ -50,6 +50,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     xiaolumm = XiaoluMamaSerializer(source='getXiaolumm', read_only=True)
     user_budget = UserBudgetSerialize(source='getBudget', read_only=True)
     has_usable_password = serializers.BooleanField(source='user.has_usable_password', read_only=True)
+    has_password = serializers.BooleanField(source='has_user_password', read_only=True)
     is_attention_public = serializers.IntegerField(source='is_attention_wx_public', read_only=True)
 
     coupon_num = serializers.IntegerField(source='get_coupon_num', read_only=True)
@@ -60,7 +61,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone',
-                  'thumbnail','status', 'created', 'modified', 'xiaolumm', 'has_usable_password',
+                  'thumbnail','status', 'created', 'modified', 'xiaolumm', 'has_usable_password', 'has_password',
                   'user_budget', 'is_attention_public', 'coupon_num', 'waitpay_num', 'waitgoods_num', 'refunds_num')
 
 

@@ -200,7 +200,7 @@ class VerifyCodeView(views.APIView):
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
         verify_code = content.get("verify_code", "")
-        
+
         if not validate_mobile(mobile):
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
 

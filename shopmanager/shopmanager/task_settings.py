@@ -745,7 +745,15 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="15", hour="10"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    }
+    },
+
+    u'定时关闭特卖退款单':{
+        'task': 'flashsale.pay.tasks.task_close_refund',
+        'schedule': crontab(minute="30", hour="4"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
 
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
