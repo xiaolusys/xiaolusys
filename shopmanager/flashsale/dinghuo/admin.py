@@ -226,7 +226,7 @@ class ordelistAdmin(admin.ModelAdmin):
 class OrderListChangeList(ChangeList):
 
     def get_queryset(self, request):
-        qs = self.root_query_set
+        qs = self.root_queryset
         search_q = request.GET.get('q', '').strip()
         if search_q.isdigit():
             trades = qs.filter(id=search_q)

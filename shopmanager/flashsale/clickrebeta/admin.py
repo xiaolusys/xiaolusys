@@ -58,7 +58,7 @@ class StatisticsShoppingChangeList(ChangeList):
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
             
-            qs = self.root_query_set
+            qs = self.root_queryset
             for filter_spec in self.filter_specs:
                 new_qs = filter_spec.queryset(request, qs)
                 if new_qs is not None:
