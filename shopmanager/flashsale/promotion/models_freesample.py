@@ -133,8 +133,8 @@ def update_appdownloadrecord(sender,instance,created,*args,**kwargs):
     if not created:
         return
 
-    record = AppDownloadRecord(from_customer=instance.from_customer,openid=instance.user_openid,mobile=instance.mobile,ufrom=instance.ufrom)
-    record.save()
+    from tasks_activity import task_sampleapply_update_appdownloadrecord
+    task_sampleapply_update_appdownloadrecord.delay(instance)
 
 post_save.connect(generate_red_envelope, sender=XLSampleApply, dispatch_uid="sampleapply_update_appdownloadrecord")
 
