@@ -158,7 +158,7 @@ def envelope_create_budgetlog(sender,instance,created,*args,**kwargs):
 
 post_save.connect(envelope_create_budgetlog, sender=RedEnvelope)
 
-    
+
 def open_envelope_update_budgetlog(sender,instance,created,*args,**kwargs):
     if not instance.is_cashable():
         return
@@ -252,6 +252,7 @@ class ReadPacket(CacheModel):
     class Meta:
         db_table = 'flashsale_promotion_red_packet'
         app_label = 'promotion'
+
         verbose_name = u'推广/discard'
         verbose_name_plural = u'推广/discard'
 

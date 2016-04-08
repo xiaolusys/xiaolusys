@@ -355,7 +355,6 @@ class MainView(APIView):
         
         cards = {"1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0}
         for item in envelope_serializer.data:
-            print item
             if item['type'] == 'card':
                 key = str(item['value'])
                 cards[key] = 1
