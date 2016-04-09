@@ -221,12 +221,11 @@ LOGIN_REDIRECT_URL = '/home/'
 LOGIN_URL = '/admin/'
 LOGOUT_URL = '/accounts/logout/'
 
-
-TAOBAO_PAGE_SIZE = 50              #the page_size of  per request
-  
-from task_settings import *
-
 ############################# EXTENSION CONFIG ##############################
+
+TAOBAO_PAGE_SIZE = 50              # the page_size of  per request
+
+from task_settings import *      # celery config
 
 REST_FRAMEWORK = {
 #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
@@ -304,7 +303,7 @@ if os.environ.get('TARGET') == 'django18':
             }
         }
     }
-BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
+    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
 
 
 if os.environ.get('TARGET') == 'production':
