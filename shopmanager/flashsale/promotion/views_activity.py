@@ -73,7 +73,6 @@ class ActivityView(WeixinAuthMixin, APIView):
 
 class JoinView(WeixinAuthMixin, APIView):
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
@@ -81,7 +80,7 @@ class JoinView(WeixinAuthMixin, APIView):
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
 
-        if self.is_from_weixin(request) or ufrom == "wxapp" or ufrom == "pyq":
+        if self.is_from_weixin(request):
             response = redirect(reverse('weixin_baseauth_join_activity', args=(event_id,)))
         elif ufrom == "app":
             response = redirect(reverse('app_join_activity', args=(event_id,)))
