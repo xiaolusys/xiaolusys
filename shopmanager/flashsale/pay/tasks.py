@@ -560,8 +560,8 @@ def close_refund(refund):
     refund.save()  # 注意这里会触发model中的post_save信号
     msg = old_status + '修改为退款关闭状态(定时任务)'
     from core.options import log_action
-    # log_action(863902, refund, CHANGE, msg)
-    log_action(56, refund, CHANGE, msg)  # 本地
+    log_action(863902, refund, CHANGE, msg)
+    # log_action(56, refund, CHANGE, msg)  # 本地
     return True
 
 
