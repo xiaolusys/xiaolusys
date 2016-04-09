@@ -800,3 +800,5 @@ def xlmmOrderTop(time_from, time_to):
                              "conver_rate": conver_rate, "adm": adm}}
         data.append(atm_dic)
     return data
+
+from flashsale.xiaolumm.tasks_mama_push import task_push_ninpic_remind

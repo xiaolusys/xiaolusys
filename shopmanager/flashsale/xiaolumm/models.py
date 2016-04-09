@@ -449,6 +449,14 @@ class XiaoluMama(models.Model):
         
         return qrcode_url
 
+    def get_mama_customer(self):
+        """ 获取妈妈的特卖用户对象 """
+        from flashsale.pay.models import Customer
+
+        customers = Customer.objects.filter(unionid=self.openid, status=Customer.NORMAL)
+        if customers.exists():
+            return customers[0]
+        return None
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
