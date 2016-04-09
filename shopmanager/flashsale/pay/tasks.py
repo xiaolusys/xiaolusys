@@ -550,17 +550,17 @@ def close_refund(refund):
     fifth_time = now - datetime.timedelta(days=30)  # days天前的时间
 
     order = SaleOrder.objects.get(id=refund.order_id)
-    if order.status != SaleOrder.TRADE_BUYER_SIGNED:  # 判断是否是确认签收的订单否则　return
-        return
+    if order.status not in [SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]:
+        return  # 判断订单状态是否在　确认签收　和　交易成功　状态　否则　不去做关闭退款单操作
     if refund.created >= fifth_time:  # 30天前的记录才关闭
         return False
     old_status = refund.get_status_display()
     refund.status = SaleRefund.REFUND_CLOSED
-    refund.save()
+    refund.save()  # 注意这里会触发model中的post_save信号
     msg = old_status + '修改为退款关闭状态(定时任务)'
     from core.options import log_action
     log_action(863902, refund, CHANGE, msg)
-    # log_action(56, refund, CHANGE, msg) 本地
+    # log_action(56, refund, CHANGE, msg)  # 本地
     return True
 
 
@@ -572,8 +572,10 @@ def task_close_refund(days=None):
     if days is None:
         days = 30
     time_point = datetime.datetime.now() - datetime.timedelta(days=days)
-    aggree_refunds = SaleRefund.objects.filter(status=SaleRefund.REFUND_WAIT_RETURN_GOODS,
+    aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                                           SaleRefund.REFUND_CLOSED],
                                                created__lte=time_point,
                                                good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
     res = map(close_refund, aggree_refunds)
+
 
