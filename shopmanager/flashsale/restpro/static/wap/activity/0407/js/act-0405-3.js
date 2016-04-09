@@ -64,7 +64,7 @@ $(document).ready(function() {
 
 				//add envelopes
 				h = [];
-				h.push('<div class="act-0405-3-envelopes"><p>3</p></div>');
+				h.push('<div class="act-0405-3-envelopes"><p>' + resp.envlops.length + '</p></div>');
 				h.push('<div class="act-evelops-container">');
 				resp.envelopes.forEach(function(envelope) {
 					h.push('<div class="col-xs-2 no-padding text-center act-evelops">');
