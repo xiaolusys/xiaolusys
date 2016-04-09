@@ -410,7 +410,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
     def advance(self, request):
         form = forms.AdvanceDingHuoForm(request.GET)
         if not form.is_valid():
-            return Response({'error': '参数错误'}, template_name='dinghuo/advance_dinghuo.html')
+            return Response({'error': ''}, template_name='dinghuo/advance_dinghuo.html')
 
         result = {
             'start_date': form.cleaned_attrs.start_date.strftime('%Y-%m-%d'),
