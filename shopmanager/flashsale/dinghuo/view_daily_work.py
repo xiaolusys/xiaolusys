@@ -432,9 +432,12 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
 
         buyers_dict = {}
         suppliers_dict = {}
-        saleproduct_to_supplier_dict = {}
+        saleproducts_dict = {}
         for s in SaleProduct.objects.select_related('sale_supplier').filter(id__in=list(sale_product_ids)):
-            saleproduct_to_supplier_dict[s.id] = s.sale_supplier.id
+            saleproducts_dict[s.id] = {
+                'supplier_id': s.sale_supplier.id,
+                'product_link': s.product_link
+            }
             if s.sale_supplier.id not in suppliers_dict:
                 supplier_dict = {
                     'id': s.sale_supplier.id,
@@ -467,9 +470,11 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 'name': p.name,
                 'outer_id': p.outer_id,
                 'pic_path': '%s?imageMogr2/thumbnail/200x200/crop/200x200/format/jpg' % p.pic_path.strip(),
+                'product_link': saleproducts_dict[p.sale_product]['product_link'],
                 'skus': {}
             }
-            suppliers_dict[saleproduct_to_supplier_dict[p.sale_product]].setdefault('products', []).append(product_dict)
+            supplier_id = saleproducts_dict[p.sale_product]['supplier_id']
+            suppliers_dict[supplier_id].setdefault('products', []).append(product_dict)
             products_dict[p.id] = product_dict
 
         for s in ProductSku.objects.filter(product_id__in=products_dict.keys(), status='normal'):

@@ -119,8 +119,8 @@
                         </div>
                     </th>
                     <th>商品名</th>
-                    <th>编码</th>
                     <th>图片</th>
+                    <th>编码</th>
                     <th>尺寸</th>
                     <th>库存</th>
                 </tr>
@@ -136,13 +136,15 @@
                             </label>
                         </div>
                     </td>
-                    <td rowspan="{{ product.skus|length }}">{{ product.name }}</td>
-                    <td rowspan="{{ product.skus|length }}">{{ product.outer_id }}</td>
+                    <td rowspan="{{ product.skus|length }}" style="width:200px">{{ product.name }}</td>
                     <td rowspan="{{ product.skus|length }}" style="width:200px">
                         <div class="portfolio-box">
-                            <img src="{{ product.pic_path }}" class="img-circle">
+                            <a href="{{ product.product_link }}" target="_blank">
+                                <img src="{{ product.pic_path }}" class="img-circle">
+                            </a>
                         </div>
                     </td>
+                    <td rowspan="{{ product.skus|length }}">{{ product.outer_id }}</td>
                     {% endif %}
                     <td>{{ sku.properties_name }}</td>
                     <td>{{ sku.quantity }}</td>
