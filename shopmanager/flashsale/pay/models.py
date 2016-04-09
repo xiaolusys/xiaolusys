@@ -394,6 +394,14 @@ def trade_payment_used_coupon(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
 
 
+def push_msg_mama(sender, obj, **kwargs):
+    from flashsale.xiaolumm.tasks_mama_push import task_push_mama_order_msg
+    """专属链接有人下单后则推送消息给代理"""
+    task_push_mama_order_msg.s(obj).delay()
+
+
+signal_saletrade_pay_confirm.connect(push_msg_mama, sender=SaleTrade)
+
 from shopback.categorys.models import CategorySaleStat
 
 def category_trade_stat(sender, obj, **kwargs):
@@ -824,3 +832,13 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
 
 
 post_save.connect(check_SaleRefund_Status, sender=SaleRefund)
+
+
+def push_envelop_get_msg(sender, instance, created, **kwargs):
+    """ 发送红包待领取状态的时候　给妈妈及时领取推送消息　"""
+    from flashsale.xiaolumm.tasks_mama_push import task_push_mama_cashout_msg
+    if instance.send_status is not Envelop.SENT:
+        return
+    task_push_mama_cashout_msg.s(instance).delay()
+post_save.connect(push_envelop_get_msg, sender=Envelop)
+
