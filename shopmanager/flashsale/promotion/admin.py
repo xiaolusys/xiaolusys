@@ -15,10 +15,10 @@ admin.site.register(XLFreeSample, XLFreeSampleAdmin)
 
 
 class XLSampleApplyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'from_customer', 'outer_id', 'sku_code', 'ufrom', 'mobile', 'vipcode', 'status')
-    list_filter = ('status', 'ufrom')
+    list_display = ('id', 'event_id', 'from_customer', 'user_openid', 'customer_id', 'mobile', 'ufrom', 'status')
+    list_filter = ('event_id', 'status', 'ufrom')
     list_display_links = ('id', 'outer_id', )
-    search_fields = ['=id', '=outer_id', '=mobile', '=user_openid', '=vipcode', '=from_customer']
+    search_fields = ['=id', '=from_customer', '=customer_id', '=mobile', '=user_openid']
     list_per_page = 40
 
 
