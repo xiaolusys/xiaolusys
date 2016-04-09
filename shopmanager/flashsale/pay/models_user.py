@@ -223,6 +223,7 @@ class Customer(BaseModel):
         from flashsale.pay.models import SaleRefund
         return SaleRefund.objects.filter(buyer_id=self.pk).exclude(status__in=(SaleRefund.REFUND_CLOSED,
                                                                                SaleRefund.REFUND_SUCCESS,
+                                                                               SaleRefund.REFUND_REFUSE_BUYER,
                                                                                SaleRefund.NO_REFUND)).count()
 
     def has_user_password(self):
