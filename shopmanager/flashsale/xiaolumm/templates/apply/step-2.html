@@ -34,7 +34,7 @@
 
     <div class="row text-center">
         <div class="checkbox">
-            <label><input type="checkbox" id="aggree-items"> 同意<a href="#">小鹿美美代理服务条款</a></label>
+            <label><input type="checkbox" id="aggree-items"> 同意<a href="{{ STATIC_URL }}tiaokuan.html">小鹿美美代理服务条款</a></label>
         </div>
     </div>
 
@@ -104,6 +104,7 @@
     function Confirm_charge() {
         var aggree_item = $('#aggree-items');
         if (aggree_item.prop('checked') == false) {
+            alert('请勾选同意条款');
             return false
         }
         var CHARGE_URL = window.location.href;
