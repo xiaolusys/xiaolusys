@@ -163,9 +163,8 @@ body {
   height: 75%;
   margin-left: 3%;
   position: absolute;
-  top: 60%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 27%;
+  left: 22%;
 }
 
 .friends-info-icon .detail-info .friend-desc .join-mama {
@@ -180,13 +179,12 @@ body {
 .friends-info-icon .detail-info .red-packet {
   position: absolute;
   float: right;
-  top: 47%;
-  transform: translate(-50%, -50%);
+  top: 29%;
   display: inline-block;
   width: 35px;
   height: 35px;
   bottom: 0;
-  left: 90%;
+  left: 85%;
   background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/red-packer-30.png") no-repeat;
   background-size: 100% 100%;
 }
