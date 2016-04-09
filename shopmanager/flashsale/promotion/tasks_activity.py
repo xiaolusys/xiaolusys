@@ -189,6 +189,15 @@ def task_decide_award_winner(envelope):
 
 @task()
 def task_sampleapply_update_appdownloadrecord(application):
+    if application.user_openid:
+        cnt = AppDownloadRecord.objects.filter(openid=application.user_openid).count()
+        if cnt > 0:
+            return
+    if application.mobile:
+        cnt = AppDownloadRecord.objects.filter(mobile=application.mobile).count()
+        if cnt > 0:
+            return
+        
     record = AppDownloadRecord(from_customer=application.from_customer,openid=application.user_openid,
                                mobile=application.mobile,ufrom=application.ufrom)
     record.save()
