@@ -194,7 +194,7 @@ def task_sampleapply_update_appdownloadrecord(application):
         if cnt > 0:
             return
     if application.mobile:
-        cnt = AppDownloadRecord.objects.filter(openid=application.mobile).count()
+        cnt = AppDownloadRecord.objects.filter(mobile=application.mobile).count()
         if cnt > 0:
             return
         
