@@ -347,8 +347,13 @@ if not DEBUG:
     M_STATIC_URL = '/'
 
     ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','.xiaolumeimei.com','.xiaolumm.com','121.199.168.159']
+
+    import raven
     RAVEN_CONFIG = {
         'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
+        # If you are using git, you can also automatically configure the
+        # release based on the git info.
+        'release': raven.fetch_git_sha( os.path.dirname(PROJECT_ROOT)),
     }
     
     #WEB DNS
