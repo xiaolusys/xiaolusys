@@ -106,18 +106,22 @@ body {
 	display: -webkit-box;
 }
 .act-0405-3-sleepbags p {
-	margin-left: 44%;
-	margin-top: 19%;
-	font-size: 20px;
+	width: 30%;
+    margin-left: 35%;
+    font-size: 20px;
+    text-align: center;
 }
 .act-0405-3-envelopes p {
-	margin-left: 50%;
-	font-size: 20px;
+	width: 20%;
+    margin-left: 40%;
+    font-size: 20px;
+    text-align: center;
 }
 .act-0405-3-sleepbags {
 	width: 88%;
 	height: 100px;
 	margin-left: 6%;
+	line-height: 84px;
 	background-image: URL(../img/act-0405-23.png);
 	background-position: center;
 	background-repeat: no-repeat;
