@@ -167,6 +167,8 @@ class PayInfoMethodMixin(object):
                 'receiver_mobile':address.receiver_mobile,
             })
         if state:
+            from shopapp.weixin.options import get_openid_by_unionid
+            openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -176,7 +178,7 @@ class PayInfoMethodMixin(object):
                 'discount_fee':float(form.get('discount_fee')),
                 'charge':'',
                 'status':SaleTrade.WAIT_BUYER_PAY,
-                'openid':customer.openid,
+                'openid': openid,
                 'extras_info':{'mm_linkid':form.get('mm_linkid','0'),'ufrom':form.get('ufrom','')}
                 })
         for k,v in params.iteritems():

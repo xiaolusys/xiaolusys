@@ -38,7 +38,7 @@ function Create_btn(status) {
          */
     }
 
-    if (status == "买家已经申请退款" || status == "卖家已经同意退款" || status == "买家已经退货") {
+    if (status == "申请退款" || status == "同意申请" || status == "退货途中") {
         return hereDoc(Btn_Dom1);
     }
     else if (status == "确认退款，等待返款") {
