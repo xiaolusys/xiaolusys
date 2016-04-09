@@ -20,6 +20,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
 
 
+
 class RegisterSerializer(serializers.HyperlinkedModelSerializer):
 
 
@@ -125,6 +126,7 @@ class ActivityEntrySerializer(serializers.ModelSerializer):
                    'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras', 
                    'total_member_num', 'friend_member_num', 'is_active')
 
+
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
@@ -142,6 +144,16 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
                   'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 'memo',
                   'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id", 'watermark_op')
 
+
+class ProductSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        extra_kwargs = {'in_customer_shop':{}, 'shop_product_num':{}, 'rebet_amount': {},
+                        'rebet_amount_des': {},'sale_num_des':{}}
+        fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num', 'sale_num',
+                  'in_customer_shop', 'shop_product_num', 'rebet_amount', 'sale_num_des', 'rebet_amount_des')
+
+        
 class SimpleProductSerializer(serializers.ModelSerializer):
 
     category = ProductCategorySerializer(read_only=True)
