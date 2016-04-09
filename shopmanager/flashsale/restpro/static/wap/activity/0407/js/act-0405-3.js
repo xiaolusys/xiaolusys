@@ -34,7 +34,7 @@ $(document).ready(function() {
 		var end_time, current_time, rest_time;
 		$.ajax({
 			type: 'GET',
-			url: 'http://m.xiaolumeimei.com/sale/promotion/apply/3/',
+			url: baseurl + '/sale/promotion/apply/3/',
 			success: function(res) {
 				//set rest time of activity
 				end_time = (new Date(res.end_time)).getTime();
