@@ -55,7 +55,7 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
             create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune | mama_id: %s, cash: %s" % (mama_id, cash))
-            raise create_mamafortune_with_integrity.retry(exc=exc)
+            raise task_xiaolumama_update_mamafortune.retry(exc=exc)
         
 
 CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016,3,30,23,59,59)
@@ -84,7 +84,7 @@ def task_cashout_update_mamafortune(mama_id):
             create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune cashout | mama_id: %s" % (mama_id))
-            raise create_mamafortune_with_integrity.retry(exc=exc)
+            raise task_cashout_update_mamafortune.retry(exc=exc)
     
 
 @task(max_retry=2, default_retry_delay=6)
@@ -112,7 +112,7 @@ def task_carryrecord_update_mamafortune(mama_id):
             create_mamafortune_with_integrity(mama_id,carry_pending=carry_pending,carry_confirmed=carry_confirmed)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune carryrecord | mama_id: %s" % (mama_id))
-            raise create_mamafortune_with_integrity.retry(exc=exc)
+            raise task_carryrecord_update_mamafortune.retry(exc=exc)
 
 
 @task(max_retry=2, default_retry_delay=6)
@@ -139,7 +139,7 @@ def task_activevalue_update_mamafortune(mama_id):
             create_mamafortune_with_integrity(mama_id,active_value_num=value_num)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune activevalue | mama_id: %s" % (mama_id))
-            raise create_mamafortune_with_integrity.retry(exc=exc)
+            raise task_activevalue_update_mamafortune.retry(exc=exc)
 
             
 @task(max_retry=2, default_retry_delay=6)
@@ -161,7 +161,7 @@ def task_update_mamafortune_invite_num(mama_id):
             create_mamafortune_with_integrity(mama_id,invite_num=invite_num)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune invitenum | mama_id: %s" % (mama_id))
-            raise create_mamafortune_with_integrity.retry(exc=exc)
+            raise task_update_mamafortune_invite_num.retry(exc=exc)
             
 
 @task(max_retry=2, default_retry_delay=6)
@@ -198,7 +198,7 @@ def task_update_mamafortune_mama_level(mama_id):
             create_mamafortune_with_integrity(mama_id,mama_level=level)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune mamalevel | mama_id: %s" % (mama_id))
-            raise create_mamafortune_with_integrity.retry(exc=exc)
+            raise task_update_mamafortune_mama_level.retry(exc=exc)
                     
             
 @task(max_retry=2, default_retry_delay=6)
@@ -216,7 +216,7 @@ def task_update_mamafortune_fans_num(mama_id):
             create_mamafortune_with_integrity(mama_id,fans_num=fans_num)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune fansnum | mama_id: %s" % (mama_id))
-            raise create_mamafortune_with_integrity.retry(exc=exc)
+            raise task_update_mamafortune_fans_num.retry(exc=exc)
     
         
 @task(max_retry=2, default_retry_delay=6)
@@ -233,5 +233,5 @@ def task_update_mamafortune_order_num(mama_id):
             create_mamafortune_with_integrity(mama_id,order_num=order_num)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune ordernum | mama_id: %s" % (mama_id))
-            raise create_mamafortune_with_integrity.retry(exc=exc)
+            raise task_update_mamafortune_order_num.retry(exc=exc)
                        
