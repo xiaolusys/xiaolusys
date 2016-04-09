@@ -28,8 +28,26 @@ import logging
 logger = logging.getLogger('django.request')
 
 
+
+def get_customer(request):
+    user = request.user
+    if not user or user.is_anonymous():
+        return None
+    try:
+        customer = Customer.objects.get(user_id=request.user.id)
+    except Customer.DoesNotExist:
+        customer = None
+    return customer
+
+
+def get_activity_entry(event_id):
+    activity_entrys = ActivityEntry.objects.filter(id=event_id)
+    if activity_entrys.count() > 0:
+        return activity_entrys[0]
+    return None
+
+        
 class ActivityView(WeixinAuthMixin, APIView):
-    
     authentication_classes = (authentication.SessionAuthentication, )
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.TemplateHTMLRenderer,renderers.JSONRenderer)
@@ -78,15 +96,13 @@ class JoinView(WeixinAuthMixin, APIView):
 
 class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
     
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
-        activity_entrys = ActivityEntry.objects.filter(id=event_id)
-        if activity_entrys.count() <= 0:
+        activity_entry = get_activity_entry(event_id)
+        if not activity_entry:
             return Response({"error": "wrong event id"})    
-        activity_entry = activity_entrys[0]
         
         # 2. get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
@@ -121,15 +137,13 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
 class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
-        activity_entrys = ActivityEntry.objects.filter(id=event_id)
-        if activity_entrys.count() <= 0:
+        activity_entry = get_activity_entry(event_id)
+        if not activity_entry:
             return Response({"error": "wrong event id"})    
-        activity_entry = activity_entrys[0]
         
         # 2. get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
@@ -172,18 +186,12 @@ class AppJoinView(WeixinAuthMixin, APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid 
-        activity_entrys = ActivityEntry.objects.filter(id=event_id)
-        if activity_entrys.count() <= 0:
+        activity_entry = get_activity_entry(event_id)
+        if not activity_entry:
             return Response({"error": "wrong event id"})
-        activity_entry = activity_entrys[0]
 
-        # 2. check whether user is login
-        if not request.user or request.user.is_anonymous():
-            return Response({"login": False})
-
-        # 3. check whether user has mobile binded
-        customer = Customer.objects.get(user=request.user)
-        if not customer.mobile:
+        customer = get_customer(request)
+        if not customer or not customer.mobile:
             return Response({"bind": False})
         
         unionid, openid = customer.openid, customer.unionid
@@ -202,15 +210,13 @@ class AppJoinView(WeixinAuthMixin, APIView):
 
 class WebJoinView(APIView):
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
          # 1. check whether event_id is valid 
-        activity_entrys = ActivityEntry.objects.filter(id=event_id)
-        if activity_entrys.count() <= 0:
+        activity_entry = get_activity_entry(event_id)
+        if not activity_entry:
             return Response({"error": "wrong event id"})    
-        activity_entry = activity_entrys[0]
         
         # 2. get mobile from cookie
         mobile = request.COOKIES.get("mobile", "")
@@ -227,7 +233,7 @@ class WebJoinView(APIView):
 
 class ApplicationView(WeixinAuthMixin, APIView):
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = (permissions.IsAuthenticated,)
+    #permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id,  *args, **kwargs):
@@ -235,13 +241,17 @@ class ApplicationView(WeixinAuthMixin, APIView):
         from_customer = request.COOKIES.get("from_customer","")
         mobile = request.COOKIES.get("mobile")
         openid,unionid = self.get_cookie_openid_and_unoinid(request)
-        
-        # 1. check whether event_id is valid 
-        activity_entrys = ActivityEntry.objects.filter(id=event_id)
-        if activity_entrys.count() <= 0:
-            return Response({"rcode": 1, "msg": "wrong event id"})    
-        activity_entry = activity_entrys[0]
 
+        # 1. check whether event_id is valid 
+        activity_entry = get_activity_entry(event_id)
+        if not activity_entry:
+            return Response({"rcode": 1, "msg": "wrong event id"})    
+
+        customer = get_customer(request):
+        if customer:
+            openid = customer.openid
+            mobile = customer.mobile
+        
         applied = False
         application_count = 0
         if openid:
@@ -268,7 +278,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
         
         res_data = {"applied": applied, "img":img, "nick":nick, "end_time": end_time, "mobile_required": mobile_required}
         response = Response(res_data)
-        response["Access-Control-Allow-Origin"] = "*"
         return response
     
 
@@ -325,19 +334,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
         response.set_cookie("mobile", mobile)
         response["Access-Control-Allow-Origin"] = "*"
         return response
-
-
-
-
-def get_customer(request):
-    user = request.user
-    if not user or user.is_anonymous():
-        return None
-    try:
-        customer = Customer.objects.get(user_id=request.user.id)
-    except Customer.DoesNotExist:
-        customer = None
-    return customer
 
 
 class ActivateView(APIView):
