@@ -49,7 +49,7 @@ def get_activity_entry(event_id):
         
 class ActivityView(WeixinAuthMixin, APIView):
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = (permissions.IsAuthenticated,)
+    #permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.TemplateHTMLRenderer,renderers.JSONRenderer)
     template_name = "promotion/discount_activity.html"
         
@@ -80,12 +80,19 @@ class JoinView(WeixinAuthMixin, APIView):
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
 
-        if self.is_from_weixin(request):
-            response = redirect(reverse('weixin_baseauth_join_activity', args=(event_id,)))
-        elif ufrom == "app":
+        # the following is for debug
+        if ufrom == 'app':
             response = redirect(reverse('app_join_activity', args=(event_id,)))
         else:
             response = redirect(reverse('web_join_activity', args=(event_id,)))
+
+        # this is for production
+        #if self.is_from_weixin(request):
+        #    response = redirect(reverse('weixin_baseauth_join_activity', args=(event_id,)))
+        #elif ufrom == "app":
+        #    response = redirect(reverse('app_join_activity', args=(event_id,)))
+        #else:
+        #    response = redirect(reverse('web_join_activity', args=(event_id,)))
 
         response.set_cookie("event_id", event_id)
         response.set_cookie("from_customer", from_customer)
@@ -279,6 +286,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         
         res_data = {"applied": applied, "img":img, "nick":nick, "end_time": end_time, "mobile_required": mobile_required}
         response = Response(res_data)
+        response["Access-Control-Allow-Origin"] = "*"
         return response
     
 
@@ -426,7 +434,7 @@ class OpenEnvelopeView(APIView):
     
 class StatsView(APIView):
     authentication_classes = (authentication.SessionAuthentication, )
-    permission_classes = (permissions.IsAuthenticated,)
+    #permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
     
     def get(self, request, event_id, *args, **kwargs):
@@ -441,6 +449,7 @@ class StatsView(APIView):
         if res:
             total = float("%.2f" % (res[0]["total"] * 0.01))
         
-        return Response({"invite_num":invite_num, "total":total})
-
+        response = Response({"invite_num":invite_num, "total":total})
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
         
