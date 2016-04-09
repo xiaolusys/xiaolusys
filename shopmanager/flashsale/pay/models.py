@@ -837,7 +837,8 @@ post_save.connect(check_SaleRefund_Status, sender=SaleRefund)
 def push_envelop_get_msg(sender, instance, created, **kwargs):
     """ 发送红包待领取状态的时候　给妈妈及时领取推送消息　"""
     from flashsale.xiaolumm.tasks_mama_push import task_push_mama_cashout_msg
-    if instance.send_status is not Envelop.SENT:
+    sent_status = instance.send_status
+    if sent_status != Envelop.SENT:
         return
     task_push_mama_cashout_msg.s(instance).delay()
 post_save.connect(push_envelop_get_msg, sender=Envelop)
