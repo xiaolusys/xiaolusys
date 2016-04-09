@@ -583,8 +583,6 @@ class EnvelopConfirmSendView(View):
             
         return redirect(origin_url)
     
-#     get = post   
-import views_refud_status_check
 
 from qiniu import Auth
 
