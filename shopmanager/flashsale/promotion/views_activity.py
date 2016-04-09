@@ -206,7 +206,7 @@ class AppJoinView(WeixinAuthMixin, APIView):
         if application_count <= 0:
             key = 'apply'
         else:
-            key = 'mainpage'
+            key = 'activate'
 
         logger.warn("AppJoinView: customer=%s, event_id=%s, key=%s, openid=%s" % (customer.nick, event_id, key, openid))
         
@@ -342,7 +342,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if ufrom == 'wxapp' or ufrom == 'pyq':
             next_page = "snsauth"
         if ufrom == "app":
-            next_page = "mainpage"
+            next_page = "activate"
         
         response =  Response({"rcode": 0, "msg": "application submitted", "next": next_page})
         response.set_cookie("mobile", mobile)

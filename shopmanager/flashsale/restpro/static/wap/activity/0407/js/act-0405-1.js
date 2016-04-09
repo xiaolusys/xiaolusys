@@ -48,6 +48,8 @@ $(document).ready(function() {
 							window.location.href = '../html/act-0405-3.html';
 						} else if (res.next == 'snsauth') {
 							window.location.href = '/sale/promotion/weixin_snsauth_join/3/';
+						} else if (res.next == 'activate') {
+							window.location.href = '/sale/promotion/activate/3/';
 						}
 
 					} else {
