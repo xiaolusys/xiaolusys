@@ -22,19 +22,24 @@ body {
 }
 .act-0405-beInvited {
 	display: -webkit-box;
-    -webkit-box-orient: horizontal;
-    width: 70%;
-    margin-left: 15%;
-    padding: 3% 1%;
+	-webkit-box-orient: horizontal;
+	width: 70%;
+	margin-left: 15%;
+	padding: 3% 1%;
 }
 .act-0405-beInvited img {
-	width: 60%;
+	width: 40px;
+	height: 40px;
+	border-radius: 80px;
+	border: 1px solid gray;
 }
 .act-0405-beInvited div {
 	font-size: 12px;
+	line-height: 20px;
 	color: #EC5BA8;
 	-webkit-box-flex: 1;
 	text-align: left;
+	margin-left: 10px;
 }
 #day_show, #hour_show, #minute_show, #second_show {
 	color: #fff;

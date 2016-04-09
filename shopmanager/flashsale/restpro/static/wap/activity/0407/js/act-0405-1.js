@@ -82,7 +82,7 @@ $(document).ready(function() {
 				h.push('<div class="act-0405-beInvited－text">');
 				h.push('有福同享！我在集拼图换浴巾，送你一片拼图，快来一起加入吧～');
 				h.push('</div>');
-				$('.act-0405-beInvited').after(h.join(''));
+				$('.act-0405-beInvited').append(h.join(''));
 			},
 			error: function(res) {
 				$('input')[0]['placeholder'] = '请重新输入';
