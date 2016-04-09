@@ -136,7 +136,7 @@ def update_appdownloadrecord(sender,instance,created,*args,**kwargs):
     from tasks_activity import task_sampleapply_update_appdownloadrecord
     task_sampleapply_update_appdownloadrecord.delay(instance)
 
-post_save.connect(generate_red_envelope, sender=XLSampleApply, dispatch_uid="sampleapply_update_appdownloadrecord")
+post_save.connect(update_appdownloadrecord, sender=XLSampleApply, dispatch_uid="sampleapply_update_appdownloadrecord")
 
 
 

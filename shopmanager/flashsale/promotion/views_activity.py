@@ -2,6 +2,7 @@
 
 
 import json
+import time
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404, render_to_response
@@ -126,7 +127,7 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
             logger.warn("baseauth: %s" % userinfo)
             
         # now we already have openid, we check whether application exists.
-        application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+        application_count = XLSampleApply.objects.filter(user_openid=openid,event_id=event_id).count()
         if application_count <= 0:
             key = 'apply'
         else:
@@ -173,7 +174,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
             task_userinfo_update_customer.delay(userinfo)
             
         # now we already have openid, we check whether application exists.
-        application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+        application_count = XLSampleApply.objects.filter(user_openid=openid,event_id=event_id).count()
         if application_count <= 0:
             key = 'apply'
         else:
@@ -232,7 +233,7 @@ class WebJoinView(APIView):
         
         key = 'apply'
         if mobile:
-            application_count = XLSampleApply.objects.filter(mobile=mobile).count()
+            application_count = XLSampleApply.objects.filter(mobile=mobile,event_id=event_id).count()
             if application_count > 0:
                 key = 'download'
 
@@ -266,9 +267,9 @@ class ApplicationView(WeixinAuthMixin, APIView):
         applied = False
         application_count = 0
         if openid:
-            application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+            application_count = XLSampleApply.objects.filter(user_openid=openid,event_id=event_id).count()
         elif mobile:
-            applicaiton_count = XLSampleApply.objects.filter(mobile=mobile).count()
+            applicaiton_count = XLSampleApply.objects.filter(mobile=mobile,event_id=event_id).count()
         if application_count > 0:
             applied = True
 
@@ -287,7 +288,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
             except Customer.DoesNotExist:
                 pass
 
-        end_time = str(activity_entry.end_time).replace('T','')
+        end_time = int(time.mktime(activity_entry.end_time.timetuple())*1000)
         
         res_data = {"applied": applied, "img":img, "nick":nick, "end_time": end_time, "mobile_required": mobile_required}
         response = Response(res_data)
@@ -315,14 +316,14 @@ class ApplicationView(WeixinAuthMixin, APIView):
         applied = False
         application_count = 0
         if openid:
-            application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+            application_count = XLSampleApply.objects.filter(user_openid=openid,event_id=event_id).count()
         elif mobile:
             from flashsale.restpro.v2.views_verifycode_login import validate_mobile
             if not validate_mobile(mobile):
                 response = Response({"rcode": 2, "msg": "mobile number wrong"})
                 response["Access-Control-Allow-Origin"] = "*"
                 return response
-            applicaiton_count = XLSampleApply.objects.filter(mobile=mobile).count()
+            applicaiton_count = XLSampleApply.objects.filter(mobile=mobile,event_id=event_id).count()
 
         params = {}
         if from_customer:
@@ -335,6 +336,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
             params.update({"mobile":mobile})
         
         if application_count <= 0:
+            logger.warn("ApplicationView post: application_count=%s, create sampleapply record" % application_count)
             application = XLSampleApply(event_id=event_id, **params)
             application.save()
 
@@ -357,11 +359,10 @@ class ActivateView(APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
-        activity_entrys = ActivityEntry.objects.filter(id=event_id)
-        if activity_entrys.count() <= 0:
+        activity_entry = get_activity_entry(event_id)
+        if not activity_entry:
             return Response({"error": "wrong event id"})    
-        activity_entry = activity_entrys[0]
-
+        
         # 2. activate application
         customer = get_customer(request)
         from tasks_activity import task_activate_application
