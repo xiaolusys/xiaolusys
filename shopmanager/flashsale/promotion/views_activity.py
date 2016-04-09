@@ -247,7 +247,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if not activity_entry:
             return Response({"rcode": 1, "msg": "wrong event id"})    
 
-        customer = get_customer(request):
+        customer = get_customer(request)
         if customer:
             openid = customer.openid
             mobile = customer.mobile
