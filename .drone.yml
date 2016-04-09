@@ -28,8 +28,7 @@ deploy:
     when:
       branch: admin
     commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-      
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest      
       - docker rm -f gunicorn 
       - docker run --name=gunicorn -e TARGET=production -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
       - docker rm -f celery 
