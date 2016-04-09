@@ -371,6 +371,8 @@ class ActivateView(APIView):
         key = 'mainpage'
         html = activity_entry.get_html(key)
         response = redirect(html)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
 
     
 class MainView(APIView):
