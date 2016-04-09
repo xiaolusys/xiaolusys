@@ -265,7 +265,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if mobile or openid:
             mobile_required = False
         
-        img, nick = "", ""
+        img, nick = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png", u"小鹿妈妈"
         if from_customer:
             try:
                 customer = Customer.objects.get(id=from_customer)
