@@ -80,6 +80,7 @@ class JoinView(WeixinAuthMixin, APIView):
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
 
+        logger.warn("JoinView: ufrom=%s, from_customer=%s, event_id=%s" % (ufrom, from_customer, event_id))
         # the following is for debug
         if ufrom == 'app':
             response = redirect(reverse('app_join_activity', args=(event_id,)))
@@ -199,7 +200,7 @@ class AppJoinView(WeixinAuthMixin, APIView):
         customer = get_customer(request)
         if not customer or not customer.mobile:
             return Response({"bind": False})
-        
+
         unionid, openid = customer.openid, customer.unionid
         application_count = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id).count()
         if application_count <= 0:
@@ -207,6 +208,8 @@ class AppJoinView(WeixinAuthMixin, APIView):
         else:
             key = 'mainpage'
 
+        logger.warn("AppJoinView: customer=%s, event_id=%s, key=%s, openid=%s" % (customer.nick, event_id, key, openid))
+        
         html = activity_entry.get_html(key)
         response = redirect(html)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
@@ -233,6 +236,8 @@ class WebJoinView(APIView):
             if application_count > 0:
                 key = 'download'
 
+        logger.warn("WebJoinView: event_id=%s, key=%s" % (event_id, key))
+        
         html = activity_entry.get_html(key)
         return redirect(html)
 
@@ -376,7 +381,7 @@ class MainView(APIView):
     def get(self, request, event_id, *args, **kwargs):
         #customer = get_customer(request)
         #customer_id = customer.id
-        customer_id = 1 # debug
+        #customer_id = 1 # debug
         envelopes = RedEnvelope.objects.filter(event_id=event_id,customer_id=customer_id)
 
         winner_count = AwardWinner.objects.filter(event_id=event_id).count()
