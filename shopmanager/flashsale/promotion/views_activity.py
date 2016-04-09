@@ -379,8 +379,8 @@ class MainView(APIView):
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
-        #customer = get_customer(request)
-        #customer_id = customer.id
+        customer = get_customer(request)
+        customer_id = customer.id
         #customer_id = 1 # debug
         envelopes = RedEnvelope.objects.filter(event_id=event_id,customer_id=customer_id)
 
