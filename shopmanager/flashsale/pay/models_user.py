@@ -232,13 +232,13 @@ class Customer(BaseModel):
         else:
             return False
 
-
-def triger_record_xlmm_fans(sender, instance, created, **kwargs):
-    """ 记录粉丝妈妈粉丝信息 """
-    from flashsale.pay.tasks import task_Record_Mama_Fans
-    task_Record_Mama_Fans.delay(instance, created)
-
-post_save.connect(triger_record_xlmm_fans, dispatch_uid='triger_record_xlmm_fans', sender=Customer)
+# 2016-4-9 有登陆检查后注释不执行
+# def triger_record_xlmm_fans(sender, instance, created, **kwargs):
+#     """ 记录粉丝妈妈粉丝信息 """
+#     from flashsale.pay.tasks import task_Record_Mama_Fans
+#     task_Record_Mama_Fans.delay(instance, created)
+#
+# post_save.connect(triger_record_xlmm_fans, dispatch_uid='triger_record_xlmm_fans', sender=Customer)
 
 
 class UserBudget(PayBaseModel):
