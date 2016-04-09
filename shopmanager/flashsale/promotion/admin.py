@@ -15,7 +15,7 @@ admin.site.register(XLFreeSample, XLFreeSampleAdmin)
 
 
 class XLSampleApplyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'event_id', 'from_customer', 'user_openid', 'customer_id', 'mobile', 'ufrom', 'outer_id', 'status')
+    list_display = ('id', 'event_id', 'from_customer', 'user_openid', 'customer_id', 'mobile', 'ufrom', 'outer_id', 'status', 'created')
     list_filter = ('event_id', 'status', 'ufrom')
     list_display_links = ('id', 'event_id')
     search_fields = ['=id', '=from_customer', '=customer_id', '=mobile', '=user_openid']

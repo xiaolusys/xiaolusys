@@ -187,7 +187,7 @@ class AppJoinView(WeixinAuthMixin, APIView):
             return Response({"bind": False})
         
         unionid, openid = customer.openid, customer.unionid
-        application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+        application_count = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id).count()
         if application_count <= 0:
             key = 'apply'
         else:
