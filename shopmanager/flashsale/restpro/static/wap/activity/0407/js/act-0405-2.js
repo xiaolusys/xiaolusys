@@ -38,7 +38,7 @@ $(document).ready(function() {
 			url: baseurl + '/sale/promotion/apply/3/',
 			success: function(res) {
 				//set rest time of activity
-				end_time = (new Date(res.end_time)).getTime();
+				end_time = res.end_time;
 				current_time = (new Date()).getTime();
 				rest_time = parseInt((end_time - current_time) / 1000);
 				console.log('end_time:' + end_time);
