@@ -42,7 +42,6 @@ deploy:
       branch: staging
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-      - docker run --rm --volumes-from=static -e TARGET=staging registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py collectstatic --noinput
       - docker rm -f gunicorn-staging
       - docker run --name=gunicorn-staging -e TARGET=staging -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
   ssh:
@@ -62,7 +61,6 @@ deploy:
       branch: master
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-      - docker run --rm --volumes-from=static -e TARGET=production registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py collectstatic --noinput
   ssh:
     host:
       - sale.xiaolumm.com

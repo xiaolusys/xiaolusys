@@ -5,6 +5,12 @@ echo "DOCKER_OPTS=\"--registry-mirror=https://n5fb0zgg.mirror.aliyuncs.com\"" | 
 service docker restart
 docker login --username=己美网络 registry.aliyuncs.com
 
+# docker run --rm --volumes-from=static -e TARGET=production registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py collectstatic --noinput
+#.drone.sec 设置
+#environment:
+#  DOCKER_USERNAME: 己美网络
+#  DOCKER_PASSWORD: ***
+#  DOCKER_EMAIL: ***@xiaolu.so
 # 添加数据访问白名单
 # 添加xiaolusys对应的drone Public Key 到本地ssh authorizen_keys
 # 修改.drone.yml 添加当前主机host
