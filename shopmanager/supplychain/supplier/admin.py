@@ -435,7 +435,7 @@ class SaleProductAdmin(ApproxAdmin):
 
     def supplier_link(self, obj):
         base_link = u'<div style="width:90px;font-size:20px;"><a href="/admin/supplier/saleproduct/?sale_supplier={0}"><label>{1} &gt;&gt;</label></a>'.format(
-            obj.sale_supplier.id,obj.sale_supplier and obj.sale_supplier.supplier_name or '')
+            obj.sale_supplier and obj.sale_supplier.id or '',obj.sale_supplier and obj.sale_supplier.supplier_name or '')
         if obj.status in (SaleProduct.SELECTED, SaleProduct.PURCHASE, SaleProduct.WAIT, SaleProduct.PASSED,
                           SaleProduct.SCHEDULE) and obj.sale_supplier:
             base_link += u'<br><br><a href="/supplychain/supplier/product/?status={0}&sale_supplier={1}"  target="_blank" >{2}</a></div>'
