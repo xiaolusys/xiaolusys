@@ -22,9 +22,9 @@ $(document).ready(function() {
 				if (minute <= 9) minute = '0' + minute;
 				if (second <= 9) second = '0' + second;
 				$('#day_show').html(day);
-				$('#hour_show').html('<s id="h"></s>' + hour);
-				$('#minute_show').html('<s></s>' + minute);
-				$('#second_show').html('<s></s>' + second);
+				$('#hour_show').html(hour);
+				$('#minute_show').html(minute);
+				$('#second_show').html(second);
 				intDiff--;
 			}, 1000);
 		}
