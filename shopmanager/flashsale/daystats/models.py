@@ -125,7 +125,7 @@ class DaystatCalcResult(BaseModel):
     
     calc_key = models.CharField(max_length=128,db_index=True, verbose_name=u"计算结果ID")
     
-    calc_result = JSONCharMyField(max_length=102400,default={},blank=False,verbose_name=u"计算结果ID")
+    calc_result = JSONCharMyField(max_length=102400,default=lambda:{},blank=False,verbose_name=u"计算结果ID")
     
     class Meta:
         db_table = 'flashsale_daystat_result_cache'

@@ -227,6 +227,8 @@ TAOBAO_PAGE_SIZE = 50              #the page_size of  per request
   
 from task_settings import *
 
+############################# EXTENSION CONFIG ##############################
+
 REST_FRAMEWORK = {
 #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
@@ -249,6 +251,7 @@ REST_FRAMEWORK_EXTENSIONS = {
     'DEFAULT_CACHE_KEY_FUNC':'rest_framework_extensions.utils.default_cache_key_func'
 }
 
+JSONFIELD_ENCODER_CLASS = 'django.core.serializers.json.DjangoJSONEncoder'
 
 if os.environ.get('TARGET') == 'staging':
     DEBUG = False
@@ -283,9 +286,9 @@ if os.environ.get('TARGET') == 'django18':
             'ENGINE': 'django.db.backends.mysql',
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
             'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
-            'USER': 'qiyue',  # Not used with sqlite3.
-            'PASSWORD': 'youni_2014qy',  # Not used with sqlite3.
-            'HOST': 'jconnfymhz868.mysql.rds.aliyuncs.com',
+            'USER': 'xiaoludev',  # Not used with sqlite3.
+            'PASSWORD': 'xiaolu_test123',  # Not used with sqlite3.
+            'HOST': 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com',
         # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
             'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
             'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
@@ -297,12 +300,12 @@ if os.environ.get('TARGET') == 'django18':
             'BACKEND': 'redis_cache.RedisCache',
             'LOCATION': '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379',
             'OPTIONS': {
-                'DB': 1,
+                'DB': 9,
                 'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
             }
         }
     }
-    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/2'
+BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
 
 
 if os.environ.get('TARGET') == 'production':
