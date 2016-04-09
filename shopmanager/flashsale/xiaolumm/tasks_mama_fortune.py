@@ -199,7 +199,7 @@ def task_update_mamafortune_mama_level(mama_id):
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune mamalevel | mama_id: %s" % (mama_id))
             raise task_update_mamafortune_mama_level.retry(exc=exc)
-                    
+
             
 @task(max_retry=2, default_retry_delay=6)
 def task_update_mamafortune_fans_num(mama_id):
