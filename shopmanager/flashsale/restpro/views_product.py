@@ -640,7 +640,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         extra_str = 'remain_num - lock_num > 0'
         queryset = queryset.extra(where={extra_str})  # 没有卖光的 不是秒杀产品的
         
-        queryset = self.paginate_queryset(queryset)
+        #queryset = self.paginate_queryset(queryset)
         
         pros = self.choice_query_2_dict(queryset, customer, agencylevel)
         
