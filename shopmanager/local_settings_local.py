@@ -49,8 +49,8 @@ M_STATIC_URL = '/static/wap/'
 
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
+    'core.middleware.middleware.SecureRequiredMiddleware',
+    'core.middleware.middleware.DisableDRFCSRFCheck',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -60,8 +60,8 @@ MIDDLEWARE_CLASSES = (
 )
 
 if DEBUG:
-    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
+    MIDDLEWARE_CLASSES = ('core.middleware.middleware.ProfileMiddleware',
+                          'core.middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 
 
 CACHES = {
@@ -87,8 +87,8 @@ M_SITE_URL = 'http://192.168.1.56:8000/'
 
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
+    'core.middleware.middleware.SecureRequiredMiddleware',
+    'core.middleware.middleware.DisableDRFCSRFCheck',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

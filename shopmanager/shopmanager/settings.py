@@ -78,13 +78,13 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
-    'middleware.middleware.AttachContentTypeMiddleware',
+    'core.middleware.middleware.AttachContentTypeMiddleware',
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
+    'core.middleware.middleware.SecureRequiredMiddleware',
+    'core.middleware.middleware.DisableDRFCSRFCheck',
     'django.middleware.common.CommonMiddleware',
     #'django.contrib.sessions.middleware.SessionMiddleware',
-    'middleware.middleware.XSessionMiddleware', 
+    'core.middleware.middleware.XSessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -95,9 +95,11 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'shopmanager.urls'
 
-TEMPLATE_DIRS = (
+TEMPLATES_ROOT = os.path.join(PROJECT_ROOT, "site_media", "templates")
+TEMPLATE_DIRS  = (
        os.path.join(PROJECT_ROOT, "templates"),
 )
+
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.debug',
@@ -107,7 +109,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.tz',
 #    'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
-    'middleware.context_processors.session',
+    'core.middleware.context_processors.session',
 )
 
 INSTALLED_APPS = (
@@ -126,14 +128,11 @@ INSTALLED_APPS = (
     'rest_framework',
     'djcelery',
     'djkombu',
-    'deamon',
     'httpproxy',
-    'deamon.celery_sentry',
     'django_statsd',
     'shopmanager.statsd',
     'core.ormcache',
     'core',
-    'mathfilters',
     
     'common',
     'shopback.amounts',

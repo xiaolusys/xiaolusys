@@ -20,7 +20,6 @@ ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
 AGENCY_RECRUIT_DAYS = 1
 
-
 @task()
 def task_Push_Pending_Carry_Cash(xlmm_id=None):
     """
