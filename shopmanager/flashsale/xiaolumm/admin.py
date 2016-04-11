@@ -328,10 +328,23 @@ admin.site.register(XlmmAdvertis, XlmmAdvertisAdmin)
 
 class NinePicAdverAdmin(admin.ModelAdmin):
 
-    list_display = ('id', 'title', 'auther', 'turns_num', 'start_time')
+    list_display = ('id', 'title', 'auther', 'turns_num', 'start_time', 'is_pushed')
     search_fields = ['title', 'id']
     list_filter = ('start_time', 'cate_gory')
 
+    def push_to_mama(self, request, queryset):
+        """推送九张图更新消息给代理"""
+        from tasks_mama_push import task_push_ninpic_remind
+
+        if queryset.count() == 1:
+            ninepic = queryset[0]
+            task_push_ninpic_remind.s(ninepic).delay()
+            return self.message_user(request, u'推送成功')
+        else:
+            return self.message_user(request, u'勾选一个推送项')
+
+    push_to_mama.short_description = u'推送给代理'
+    actions = ['push_to_mama', ]
 
 admin.site.register(NinePicAdver, NinePicAdverAdmin)
 

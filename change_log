@@ -1,3 +1,5 @@
+######## 2016-04-11 ##########
+alter table flashsale_xlmm_nine_pic add column `is_pushed` bool NOT NULL;
 ######## 2016-04-06 #########
 alter table flashsale_cushops_detail add column model int(11) default 0;
 alter table suplychain_flashsale_orderlist add column is_postpay smallint default 0;

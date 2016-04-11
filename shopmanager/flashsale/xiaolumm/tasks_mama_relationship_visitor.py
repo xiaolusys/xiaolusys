@@ -123,7 +123,7 @@ def task_login_update_fans(user):
     """
     
     customers = Customer.objects.filter(user=user)
-    if customers.count() <= 0:
+    if not customers.exists():
         return
     
     customer = customers[0]
@@ -136,8 +136,8 @@ def task_login_update_fans(user):
     from_customer = record.from_customer
     referal_customer_id = from_customer
     
-    from_customer = Customer.objects.get(id=from_customer)
-    from_mama = from_customer.getXiaolumm()
+    customer1 = Customer.objects.get(id=from_customer)
+    from_mama = customer1.getXiaolumm()
 
     mama_id, mama_customer_id = None,None
     if from_mama:
