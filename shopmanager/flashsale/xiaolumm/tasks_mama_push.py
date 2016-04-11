@@ -7,9 +7,10 @@ from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.push.mipush import mipush_of_ios, mipush_of_android
 from flashsale.protocol import get_target_url
 from flashsale.protocol import constants
-from flashsale.xiaolumm.util_emoji import match_emoji
+from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 from shopmanager import settings
 from shopapp.weixin.models import WeixinUnionID
+
 
 def push_msg_to_mama(message):
     """ 发送九张图更新app推送 """
@@ -38,7 +39,8 @@ def task_push_ninpic_remind(ninpic):
     因为考虑到一天有很多的九张图推送，暂定一天值推送第一次九张图
     """
     description = ninpic.description
-    message = match_emoji(description)
+    emoji_message = gen_emoji(description)
+    message = match_emoji(emoji_message)
     turns_num = int(ninpic.turns_num)
     if turns_num != 1:  # 不是第一轮创建则不推送(每天仅仅推送一轮)
         return
