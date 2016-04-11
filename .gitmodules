@@ -1,3 +1,0 @@
-[submodule "shopmanager/site-media"]
-	path = shopmanager/site-media
-	url = ssh://git@dev.huyi.so:10022/xiaolumm/xiaolusys-ui.git
