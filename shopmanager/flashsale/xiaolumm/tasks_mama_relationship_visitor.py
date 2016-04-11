@@ -117,6 +117,8 @@ from flashsale.xiaolumm.models import XiaoluMama
 @task()
 def task_login_update_fans(user):
     """
+    All fans logic/relationship starts from here. Any other fans logic should be canceled.
+    
     If AppDownloadRecord has multiple record for the same openid, we use the latest one.
     """
     
@@ -132,10 +134,15 @@ def task_login_update_fans(user):
 
     record = records[0]
     from_customer_id = record.from_customer
+    referal_customer_id = from_customer_id
+    
     from_customer = Customer.objects.get(id=from_customer_id)
     from_mama = from_customer.getXiaolumm()
-    mama_id = from_mama.id
-    if not from_mama:
+
+    mama_id = 0
+    if from_mama:
+        mama_id = from_mama.id
+    else:
         # if my parent is not xiaolumama, then find out indirect xiaolumama
         from_fans = XlmmFans.objects.filter(fans_cusid=from_customer_id)
         if from_fans.count() <= 0:
@@ -148,8 +155,11 @@ def task_login_update_fans(user):
     if fans.count() > 0:
         return
 
+    if from_customer_id == customer.id:
+        # self canot be self's fan
+        return
     
-    fan = XlmmFans(xlmm=mama_id, xlmm_cusid=from_customer_id, refreal_cusid=customer.id, fans_cusid=customer.id,
+    fan = XlmmFans(xlmm=mama_id, xlmm_cusid=from_customer_id, refreal_cusid=referal_customer_id, fans_cusid=customer.id,
                    fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
     fan.save()
     records.update(status=AppDownloadRecord.USED)
