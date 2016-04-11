@@ -30,7 +30,7 @@ def productsku_quantity_view(request):
     
 class ProductDetailView(APIView):
     
-    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
+    renderer_classes = (TemplateHTMLRenderer,)
     template_name = "product/product_detail_img.html"
     #permission_classes = (permissions.IsAuthenticated,)
 

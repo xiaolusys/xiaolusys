@@ -36,7 +36,7 @@ urlpatterns = (
         name="sale_home"),
     url(r'^p/(?P<pk>[0-9]+)/$', views.ProductDetail.as_view(),name="product_detail"),
     url(r'^locknum/$', sale_buyer_required(productsku_quantity_view),name="skuquantity_lock"),
-    url(r'^pdetail/(?P<pk>[0-9]+)/$', ProductDetailView.as_view(),name="pdetail_for_android"),
+    url(r'^pdetail/(?P<pk>[0-9]+)/$', ProductDetailView.as_view(),name="pdetail_for_phone"),
     
     ##############order urls################
     url(r'^orderbuy/$',sale_buyer_required(views.OrderBuyReview.as_view())),
