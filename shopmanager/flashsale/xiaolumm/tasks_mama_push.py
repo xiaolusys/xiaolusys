@@ -7,11 +7,12 @@ from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.push.mipush import mipush_of_ios, mipush_of_android
 from flashsale.protocol import get_target_url
 from flashsale.protocol import constants
-from flashsale.xiaolumm.util_emoji import match_emoji
+from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 from shopmanager import settings
 from shopapp.weixin.models import WeixinUnionID
 
-def push_ninepic_update_msg_to_mama(message):
+
+def push_msg_to_mama(message):
     """ 发送九张图更新app推送 """
 
     def _wrapper(mama):
@@ -37,15 +38,14 @@ def task_push_ninpic_remind(ninpic):
     当有九张图更新的时候推送
     因为考虑到一天有很多的九张图推送，暂定一天值推送第一次九张图
     """
-    if settings.DEBUG:  # 如果是测试环境则不执行
-        return
     description = ninpic.description
-    message = match_emoji(description)
+    emoji_message = gen_emoji(description)
+    message = match_emoji(emoji_message)
     turns_num = int(ninpic.turns_num)
     if turns_num != 1:  # 不是第一轮创建则不推送(每天仅仅推送一轮)
         return
     mamas = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED)
-    map(push_ninepic_update_msg_to_mama(message), mamas)
+    map(push_msg_to_mama(message), mamas)
 
 
 @task
@@ -58,7 +58,7 @@ def task_push_mama_order_msg(saletrade):
         return
     message = '又有顾客在您的专属链接下单啦~ 赶快看看提成吧~'
     mamas = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, id=mm_linkid)
-    map(push_ninepic_update_msg_to_mama(message), mamas)
+    map(push_msg_to_mama(message), mamas)
 
 
 @task
@@ -70,4 +70,4 @@ def task_push_mama_cashout_msg(envelop):
         unionid = weixin_records[0].unionid
         mamas = XiaoluMama.objects.filter(openid=unionid)
         message = '提现红包已经发送啦 抓紧领取哦~'
-        map(push_ninepic_update_msg_to_mama(message), mamas)
+        map(push_msg_to_mama(message), mamas)

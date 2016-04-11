@@ -5,19 +5,48 @@ from rest_framework import renderers
 from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework import exceptions
-from flashsale.pay.models_faqs import SaleFaqs
-from collections import OrderedDict
+from flashsale.pay.models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
 
 
-class SaleFaqsViewSet(viewsets.ModelViewSet):
-    queryset = SaleFaqs.objects.all()
-    serializer_class = serializers.SaleFaqsSerializer
+class SaleCategoryViewSet(viewsets.ModelViewSet):
+    queryset = FaqMainCategory.objects.all()
+    serializer_class = serializers.SaleFaqCategorySerializer
     authentication_classes = ()
     permission_classes = ()
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        queryset = self.queryset
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def get_detail_category(self, request):
+        """ 获取类型 (特别注意：在model中定义好的)"""
+        content = request.REQUEST
+        main_category = content.get("main_category", None)
+        details_category = FaqsDetailCategory.objects.filter(main_category_id=main_category)
+        serializer = serializers.SaleFaqDetailCategorySerializer(details_category, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def get_question(self, request):
+        content = request.REQUEST
+        main_category = content.get("main_category", None)
+        detail_category = content.get("detail_category", None)
+        questions = SaleFaq.objects.none()
+        if main_category:
+            questions = SaleFaq.objects.filter(main_category_id=main_category).only('question', 'answer')
+        if main_category and detail_category:
+            questions = SaleFaq.objects.filter(main_category_id=main_category,
+                                               detail_category_id=detail_category).only('question', 'answer')
+        page = self.paginate_queryset(questions)
+
+        if page is not None:
+            serializer = serializers.SaleFaqerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.SaleFaqerializer(questions, many=True)
+        return Response({'code': 0, 'msg': 'ok', 'questions': serializer.data})
 
     def update(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -30,37 +59,3 @@ class SaleFaqsViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         raise exceptions.APIException('METHOD NOT ALLOWED')
-
-    def get_question_type(self):
-        """ 获取类型 (特别注意：在model中定义好的)"""
-        types = self.queryset.values('question_type', 'detail_type').annotate().order_by('question_type')  # 需要排序
-        question_types = OrderedDict()  # 注意这里使用了有序的字典
-        # 先排序下类型元组
-        QUESTION_TYPE = sorted(SaleFaqs.QUESTION_TYPE, key=lambda x: x[0])
-        DETAIL_TYPE = sorted(SaleFaqs.DETAIL_TYPE, key=lambda x: x[0])
-        for tu in types:
-            if question_types.has_key(QUESTION_TYPE[tu['question_type']][1]):
-                question_types[QUESTION_TYPE[tu['question_type']][1]].append(
-                    {DETAIL_TYPE[tu['detail_type']][0]: DETAIL_TYPE[tu['detail_type']][1]})
-            else:
-                question_types[QUESTION_TYPE[tu['question_type']][1]] = [
-                    {DETAIL_TYPE[tu['detail_type']][0]: DETAIL_TYPE[tu['detail_type']][1]}]
-        return question_types
-
-    @list_route(methods=['get'])
-    def get_types(self, request):
-        get_question_type = self.get_question_type()
-        return Response(get_question_type)
-
-    @list_route(methods=['get'])
-    def get_question(self, request):
-        content = request.REQUEST
-        question_type = content.get("question_type")
-        detail_type = content.get("detail_type")
-        if question_type and detail_type:
-            questions = self.queryset.filter(question_type=question_type,
-                                             detail_type=detail_type).only('question', 'answer')
-            serializer = self.get_serializer(questions, many=True)
-            return Response({'code': 0, 'msg': 'ok', 'questions': serializer.data})
-        else:
-            return Response({'code': 1, 'msg': '类型出错', 'questions': ''})

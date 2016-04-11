@@ -56,7 +56,7 @@ router.register(r'hotproduct', views_praise.HotProductViewSet)
 router.register(r'prorefrcd', views_pro_ref.ProRefRcdViewSet)
 router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 router.register(r'download', views.AppDownloadLinkViewSet)
-router.register(r'faqs', views_faqs.SaleFaqsViewSet)
+router.register(r'faqs', views_faqs.SaleCategoryViewSet)
 
 
 #  推广接口注册

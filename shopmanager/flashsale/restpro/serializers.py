@@ -115,15 +115,15 @@ class ModelProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModelProduct
         fields = ( 'id','name','head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
-        
-        
+
+
 class ActivityEntrySerializer(serializers.ModelSerializer):
     extras = JSONParseField(read_only=True,required=False)
 
     class Meta:
         model = ActivityEntry
-        fields = ( 'id','title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link', 
-                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras', 
+        fields = ( 'id','title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link',
+                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras',
                    'total_member_num', 'friend_member_num', 'is_active')
 
 
@@ -153,7 +153,7 @@ class ProductSimpleSerializer(serializers.ModelSerializer):
         fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num', 'sale_num',
                   'in_customer_shop', 'shop_product_num', 'rebet_amount', 'sale_num_des', 'rebet_amount_des')
 
-        
+
 class SimpleProductSerializer(serializers.ModelSerializer):
 
     category = ProductCategorySerializer(read_only=True)
@@ -163,7 +163,7 @@ class SimpleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'outer_id', 'category', 'pic_path','head_img',
-                  'std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 
+                  'std_sale_price', 'agent_price', 'sale_time', 'offshelf_time',
                   'lowest_price', 'product_lowest_price', 'product_model')
 
 
@@ -177,7 +177,7 @@ class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
     is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
     sale_charger = serializers.CharField(source="get_supplier_contactor", read_only=True)
     watermark_op = serializers.CharField(read_only=True)
-    
+
     class Meta:
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
@@ -190,7 +190,7 @@ class PosterSerializer(serializers.HyperlinkedModelSerializer):
     wem_posters = JSONParseField(read_only=True,required=False)
     chd_posters = JSONParseField(read_only=True,required=False)
     activity    = ActivityEntrySerializer(source='get_activity',read_only=True)
-    
+
     class Meta:
         model = GoodShelf
         fields = ('id','url','wem_posters','chd_posters','active_time','activity')
@@ -554,10 +554,26 @@ class AppReleaseSerialize(serializers.ModelSerializer):
     class Meta:
         model = AppRelease
 
-from flashsale.pay.models_faqs import SaleFaqs
+
+from flashsale.pay.models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
 
 
-class SaleFaqsSerializer(serializers.ModelSerializer):
+class SaleFaqDetailCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = SaleFaqs
-        fields = ('question', 'answer')
+        model = FaqsDetailCategory
+        fields = ('id', 'main_category', 'icon_url', 'category_name', 'description')
+
+
+class SaleFaqCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FaqMainCategory
+        fields = ('id', 'icon_url', 'category_name', 'description')
+
+
+class SaleFaqerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SaleFaq
+        fields = ('id', 'main_category', 'detail_category', 'question', 'answer')
+

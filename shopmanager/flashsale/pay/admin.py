@@ -815,14 +815,36 @@ class BudgetLogAdmin(admin.ModelAdmin):
 
 admin.site.register(BudgetLog, BudgetLogAdmin)
 
-from .models_faqs import SaleFaqs
+from .models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
 
 
-class SaleFaqsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'question_type', "detail_type", 'question')
-    list_display_links = ('question', 'id')
+class FaqMainCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'category_name')
+    list_display_links = ('id', 'category_name')
 
-    list_filter = ('question_type', 'detail_type')
+    list_filter = ('created', )
     search_fields = ['=id', ]
 
-admin.site.register(SaleFaqs, SaleFaqsAdmin)
+
+admin.site.register(FaqMainCategory, FaqMainCategoryAdmin)
+
+
+class FaqsDetailCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'category_name')
+    list_display_links = ('id', 'category_name')
+
+    list_filter = ('created', )
+    search_fields = ['=id', ]
+
+
+admin.site.register(FaqsDetailCategory, FaqsDetailCategoryAdmin)
+
+
+class SaleFaqAdmin(admin.ModelAdmin):
+    list_display = ('id', 'question', 'main_category')
+    list_display_links = ('id', 'question', 'main_category')
+
+    list_filter = ('created', )
+    search_fields = ['=id', ]
+
+admin.site.register(SaleFaq, SaleFaqAdmin)
