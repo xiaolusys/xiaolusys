@@ -173,7 +173,7 @@ class ordelistAdmin(admin.ModelAdmin):
                 self.message_user(request, u'已成功审核!')
         return HttpResponseRedirect(request.get_full_path())
 
-    verify_order_action.short_description = u'审核(后付款)'
+    verify_order_action.short_description = u'审核(待支付)'
 
 
     # 批量验货完成
@@ -225,13 +225,13 @@ class ordelistAdmin(admin.ModelAdmin):
 
 class OrderListChangeList(ChangeList):
 
-    def get_query_set(self, request):
-        qs = self.root_query_set
+    def get_queryset(self, request):
+        qs = self.root_queryset
         search_q = request.GET.get('q', '').strip()
         if search_q.isdigit():
-            trades = qs.filter(models.Q(id=search_q))
+            trades = qs.filter(id=search_q)
             return trades
-        return super(OrderListChangeList, self).get_query_set(request)
+        return super(OrderListChangeList, self).get_queryset(request)
 
 
 class orderdetailAdmin(admin.ModelAdmin):

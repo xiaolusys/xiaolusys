@@ -16,7 +16,7 @@ develop-eggs
 lib
 lib64
 __pycache__
-site_media
+#site_media
 # Installer logs
 pip-log.txt
 # Unit test / coverage reports
@@ -33,3 +33,5 @@ nosetests.xml
 local_settings.py
 .idea/
 ve/
+.DS_Store
+env/

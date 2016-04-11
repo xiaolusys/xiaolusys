@@ -258,7 +258,22 @@ class CashOutAdmin(ApproxAdmin):
     get_cash_out_xlmm_manager.allow_tags = True
     get_cash_out_xlmm_manager.short_description = u'所属管理员'
 
-    
+    def reject_cashout_bat(self, request, queryset):
+        """ 批量处理拒绝提现记录 """
+        from core.options import log_action, CHANGE
+        pendings = queryset.filter(status=CashOut.PENDING)
+        count = 0
+        for pending in pendings:
+            pending.status = CashOut.REJECTED
+            pending.save()
+            count += 1
+            log_action(request.user, pending, CHANGE, u'批量处理待审核状态到拒绝提现状态')
+        return self.message_user(request, '共拒绝%s条记录' % count)
+
+    reject_cashout_bat.short_description = '批量拒绝用户提现'
+
+    actions = ['reject_cashout_bat']
+
 admin.site.register(CashOut, CashOutAdmin) 
 
 
@@ -367,6 +382,7 @@ class CarryRecordAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num_display', 'date_field', 'carry_description', 'carry_type', 'status', 'modified', 'created')
     search_fields = ['mama_id', 'carry_description']
     list_filter = ('status', 'carry_type', )
+
 admin.site.register(CarryRecord, CarryRecordAdmin)
 
 

@@ -1,6 +1,7 @@
 $(document).ready(function() {
 	var $addImg = $('.act-0405-add img');
 	var $addBkg = $('.act-0405-add');
+	var baseurl = 'http://staging.xiaolumeimei.com';
 	//倒计时
 	var timer = function(intDiff) {
 			window.setInterval(function() {
@@ -21,9 +22,9 @@ $(document).ready(function() {
 				if (minute <= 9) minute = '0' + minute;
 				if (second <= 9) second = '0' + second;
 				$('#day_show').html(day);
-				$('#hour_show').html('<s id="h"></s>' + hour);
-				$('#minute_show').html('<s></s>' + minute);
-				$('#second_show').html('<s></s>' + second);
+				$('#hour_show').html(hour);
+				$('#minute_show').html(minute);
+				$('#second_show').html(second);
 				intDiff--;
 			}, 1000);
 		}
@@ -38,9 +39,8 @@ $(document).ready(function() {
 					'mobile': celNum
 				},
 				type: 'post',
-				url: 'http://m.xiaolumeimei.com/sale/promotion/apply/3/',
+				url: baseurl + '/sale/promotion/apply/3/',
 				success: function(res) {
-					console.log(res);
 					if (res.rcode == 0) {
 						if (res.next == 'download') {
 							window.location.href = '../html/act-0405-2.html';
@@ -48,6 +48,8 @@ $(document).ready(function() {
 							window.location.href = '../html/act-0405-3.html';
 						} else if (res.next == 'snsauth') {
 							window.location.href = '/sale/promotion/weixin_snsauth_join/3/';
+						} else if (res.next == 'activate') {
+							window.location.href = '/sale/promotion/activate/3/';
 						}
 
 					} else {
@@ -64,14 +66,12 @@ $(document).ready(function() {
 		var end_time, current_time, rest_time;
 		$.ajax({
 			type: 'GET',
-			url: 'http://m.xiaolumeimei.com/sale/promotion/apply/3/',
+			url: baseurl + '/sale/promotion/apply/3/',
 			success: function(res) {
 				//set rest time of activity
-				end_time = (new Date(res.end_time)).getTime();
+				end_time = res.end_time;
 				current_time = (new Date()).getTime();
 				rest_time = parseInt((end_time - current_time) / 1000);
-				console.log('end_time:' + end_time);
-				console.log('current_time:' + current_time);
 				timer(rest_time);
 				//cellNumber input
 				var $cellNum = $('.act-0405-celNumber');
@@ -79,19 +79,19 @@ $(document).ready(function() {
 					$cellNum.removeClass('act-0405-hide');
 				}
 				//show customer img
-				if (res.img == '') {
-					$('.act-0405-beInvited').addClass('act-0405-hide');
-				} else {
-					$('.act-0405-beInvited img')[0].src = res.img;
-				}
+				var h = [];
+				h.push('<img src="' + res.img + '">');
+				h.push('<div class="act-0405-beInvited－text">');
+				h.push('有福同享！我在集拼图换浴巾，送你一片拼图，快来一起加入吧～');
+				h.push('</div>');
+				$('.act-0405-beInvited').append(h.join(''));
 			},
 			error: function(res) {
-				console.log(res);
 				$('input')[0]['placeholder'] = '请重新输入';
 			}
 		});
 	};
 	requestData();
-	$addImg.bind('click', add);
-	$addBkg.bind('click', add);
+	$(document).on('click', '.act-0405-add img', add);
+	$(document).on('click', '.act-0405-add', add);
 });

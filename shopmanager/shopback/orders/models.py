@@ -218,8 +218,8 @@ class Order(models.Model):
     sku_properties_name = models.TextField(max_length=256,blank=True)
     refund_id = models.BigIntegerField(null=True)
 
-    is_oversold = models.BooleanField()
-    is_service_order = models.BooleanField()
+    is_oversold = models.BooleanField(default=False)
+    is_service_order = models.BooleanField(default=False)
 
     item_meal_name = models.CharField(max_length=88,blank=True)
     pic_path = models.CharField(max_length=128,blank=True)

@@ -1,4 +1,4 @@
-#-*- encoding:utf8 -*-
+#-*- encoding:utf-8 -*-
 import time
 import datetime
 import calendar
@@ -448,4 +448,134 @@ def task_Record_Mama_Fans(instance, created):
             XlmmFans.objects.createFansRecord(str(from_customer.id), str(instance.id))
             download.status = True
             download.save()
+
+
+from flashsale.pay.models_user import BudgetLog, UserBudget
+from django.db.models import Sum
+
+@task()
+def task_budgetlog_update_userbudget(budget_log):
+    customer_id = budget_log.customer_id
+    records = BudgetLog.objects.filter(customer_id=customer_id, status=BudgetLog.CONFIRMED).values('budget_type').annotate(total=Sum('flow_amount'))
+    
+    in_amount,out_amount=0,0
+    for entry in records:
+        if entry["budget_type"] == BudgetLog.IN:
+            in_amount = entry["total"]
+        if entry["budget_type"] == BudgetLog.OUT:
+            out_amount = entry["total"]
+
+    user_budget = UserBudget.objects.get(user=customer_id)
+
+    cash = in_amount - out_amount
+    if user_budget.amount !=  cash:
+        user_budget.amount = cash
+        user_budget.save()
+
+from extrafunc.renewremind.tasks import send_message
+from flashsale.push.mipush import mipush_of_ios, mipush_of_android
+from flashsale.protocol import get_target_url
+from flashsale.protocol import constants
+from shopapp.smsmgr.models import SMSActivity
+from django.contrib.admin.models import CHANGE
+
+
+def make_refund_message(refund):
+    """ 根据短信模板生成要发送或者推送的文本信息 """
+    desc = None
+    if refund.status == SaleRefund.REFUND_WAIT_RETURN_GOODS:  # 同意申请退货
+        desc = '请登陆APP查看退货地址信息，补充退货单物流信息'
+    if refund.status == SaleRefund.REFUND_REFUSE_BUYER:  # 拒绝申请退款
+        desc = '需要您参与协商退款事宜.'
+    if refund.status == SaleRefund.REFUND_APPROVE:  # 等待返款
+        desc = '请留意您的钱款去向.'
+    if refund.status == SaleRefund.REFUND_SUCCESS:  # 退款成功
+        desc = '祝您购物愉快.'
+
+    sms_activitys = SMSActivity.objects.filter(id=5, status=True)
+    if sms_activitys.exists() and desc:
+        sms_activity = sms_activitys[0]
+        message = sms_activity.text_tmpl.format(refund.title,  # 标题
+                                                refund.refund_fee,  # 退款费用
+                                                refund.get_status_display(),
+                                                desc)  # 退款状态
+        return message
+    else:
+        return None
+
+
+def send_refund_msg(refund):
+    """ 发送同意退款信息 """
+    customer = refund.get_refund_customer()
+    # 优先使用购买用户的手机号
+    if customer.mobile:
+        mobile = customer.mobile
+    else:
+        mobile = refund.mobile
+    message = make_refund_message(refund)
+    if message:
+        send_message(mobile=mobile, message=message, taskName=refund.get_status_display())
+
+
+def push_refund_app_msg(refend):
+    """ 发送同意app推送 """
+    customer_id = refend.buyer_id
+    if customer_id:
+        target_url = get_target_url(constants.TARGET_TYPE_REFUNDS)
+        message = make_refund_message(refend)
+        if message:
+            mipush_of_android.push_to_account(customer_id,
+                                              {'target_url': target_url},
+                                              description=message)
+            mipush_of_ios.push_to_account(customer_id,
+                                          {'target_url': target_url},
+                                          description=message)
+
+
+@task
+def task_send_msg_for_refund(refund):
+    """
+    退款单状态变化的时候
+    发送推送以及短信消息给用户
+    """
+    if not isinstance(refund, SaleRefund):
+        return
+    send_refund_msg(refund)
+    push_refund_app_msg(refund)
+
+
+def close_refund(refund):
+    """ 关闭退款单 """
+    now = datetime.datetime.now()
+    fifth_time = now - datetime.timedelta(days=30)  # days天前的时间
+
+    order = SaleOrder.objects.get(id=refund.order_id)
+    if order.status not in [SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]:
+        return  # 判断订单状态是否在　确认签收　和　交易成功　状态　否则　不去做关闭退款单操作
+    if refund.created >= fifth_time:  # 30天前的记录才关闭
+        return False
+    old_status = refund.get_status_display()
+    refund.status = SaleRefund.REFUND_CLOSED
+    refund.save()  # 注意这里会触发model中的post_save信号
+    msg = old_status + '修改为退款关闭状态(定时任务)'
+    from core.options import log_action
+    log_action(863902, refund, CHANGE, msg)
+    # log_action(56, refund, CHANGE, msg)  # 本地
+    return True
+
+
+@task
+def task_close_refund(days=None):
+    """
+    指定时间之前的退款单 状态切换为关闭状态
+    """
+    if days is None:
+        days = 30
+    time_point = datetime.datetime.now() - datetime.timedelta(days=days)
+    aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                                           SaleRefund.REFUND_CLOSED],
+                                               created__lte=time_point,
+                                               good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
+    res = map(close_refund, aggree_refunds)
+
 

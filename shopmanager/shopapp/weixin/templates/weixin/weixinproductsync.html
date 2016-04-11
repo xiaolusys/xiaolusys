@@ -115,7 +115,7 @@ function showImg( url ) {
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-12">
       <button type="submit"  class="btn btn-lg btn-info">下载并更新商品信息</button>
-      <a href="javascript:void(0);" src="{% url weixin_product_verify %}" class="btn btn-lg btn-success verify-confirm">确认核对商品信息</a>
+      <a href="javascript:void(0);" src="{% url 'weixin_product_verify' %}" class="btn btn-lg btn-success verify-confirm">确认核对商品信息</a>
       <a href="{{ next }}" class="btn btn-lg btn-warning">返回商品列表</a>
     </div>
   </div>

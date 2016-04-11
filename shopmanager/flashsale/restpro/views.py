@@ -175,8 +175,13 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address = content.get('receiver_address', '').strip()
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
+        default = content.get('default', None)
+        if default is not None:
+            try:
+                default = bool(int(default))
+            except:
+                default = None
         try:
-            UserAddress.objects.filter(pk=pk).update(status=UserAddress.DELETE)
             new_address, state = UserAddress.objects.get_or_create(
                 cus_uid=customer.id,
                 receiver_name=receiver_name,
@@ -188,6 +193,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             )
             if state:
                 new_address.default = UserAddress.objects.get(pk=pk).default
+                UserAddress.objects.filter(pk=pk).update(status=UserAddress.DELETE)
+            if default is not None:
+                new_address.default = default
             return Response({'ret':True,'code':0, 'info':'更新成功'})
         except:
             return Response({'ret':False,'code':1, 'info':'更新失败'})
@@ -201,7 +209,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             return Response({'ret': True})
         except:
             return Response({'ret': False})
-
+    '''
     @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
         id_default = pk
@@ -210,6 +218,23 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             customer = get_object_or_404(Customer, user=request.user)
             addr = UserAddress.normal_objects.get(cus_uid=customer.id, id=id_default)
             res = addr.set_default_address()  # 设置默认地址
+            result['ret'] = res
+        except:
+            result['ret'] = False
+        return Response(result)
+    '''
+    @detail_route(methods=['post'])
+    def change_default(self, request, pk=None):
+        id_default = pk
+        result = {}
+        try:
+            customer = get_object_or_404(Customer, user=request.user)
+            addr = UserAddress.normal_objects.get(cus_uid=customer.id, id=id_default)
+            if addr.status == UserAddress.DELETE:
+                addr = UserAddress.objects.order_by('-modified')[0]
+                res = addr.set_default_address()
+            else:
+                res = addr.set_default_address()  # 设置默认地址
             result['ret'] = res
         except:
             result['ret'] = False

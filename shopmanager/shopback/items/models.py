@@ -508,6 +508,31 @@ class Product(models.Model):
             return 0
         except:
             return 0
+
+    def shop_product_num(self):
+        """
+        bypass ProductSimpleSerializer check
+        """
+        return None
+    def rebet_amount(self):
+        """
+        bypass ProductSimpleSerializer check
+        """
+        return None
+    def sale_num_des(self):
+        """
+        bypass ProductSimpleSerializer check
+        """
+        return None
+    def rebet_amount_des(self):
+        """
+        bypass ProductSimpleSerializer check
+        """
+        return None
+
+    
+    
+    
 from flashsale.pay.models_shops import CuShopPros, CustomerShops
 
 

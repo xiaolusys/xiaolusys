@@ -394,6 +394,14 @@ def trade_payment_used_coupon(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
 
 
+def push_msg_mama(sender, obj, **kwargs):
+    from flashsale.xiaolumm.tasks_mama_push import task_push_mama_order_msg
+    """专属链接有人下单后则推送消息给代理"""
+    task_push_mama_order_msg.s(obj).delay()
+
+
+signal_saletrade_pay_confirm.connect(push_msg_mama, sender=SaleTrade)
+
 from shopback.categorys.models import CategorySaleStat
 
 def category_trade_stat(sender, obj, **kwargs):
@@ -767,3 +775,71 @@ signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
 from models_coupon_new import CouponTemplate, CouponsPool, UserCoupon
 from models_shops import CustomerShops, CuShopPros
+
+
+def check_SaleRefund_Status(sender, instance, created, **kwargs):
+    # created 表示实例是否创建 （修改）
+    # 允许抛出异常
+    order = SaleOrder.objects.get(id=instance.order_id)
+    trade = SaleTrade.objects.get(id=instance.trade_id)
+    # 退款成功  如果是退款关闭要不要考虑？？？
+    if instance.status == SaleRefund.REFUND_SUCCESS:
+        # 如果是退款成功状态
+        # 找到订单
+        refund_num = instance.refund_num  # 退款数量
+        order_num = order.num  # 订单数量
+        if refund_num == order_num:  # 退款数量等于订单数量
+            # 关闭这个订单
+            order.status = SaleOrder.TRADE_CLOSED  # 退款关闭
+            order.save()
+        """ 判断交易状态 """
+        orders = trade.sale_orders.all()
+        flag_re = 0
+        for orde in orders:
+            if orde.status == SaleOrder.TRADE_CLOSED:
+                flag_re += 1
+
+        if flag_re == orders.count():  # 所有订单都退款成功
+            # 这笔交易 退款 关闭
+            trade.status = SaleTrade.TRADE_CLOSED
+            trade.save()
+        # 退款成功之后发送推送　和短信
+        from tasks import task_send_msg_for_refund
+        task_send_msg_for_refund.s(instance).delay()
+
+    if instance.status == SaleRefund.REFUND_CLOSED:  # 退款关闭即没有退款成功 切换订单到交易成功状态
+        # 如果是退款成功状态 找到订单
+        refund_num = instance.refund_num  # 退款数量
+        order_num = order.num  # 订单数量
+        if refund_num == order_num:  # 退款数量等于订单数量
+            order.status = SaleOrder.TRADE_FINISHED  # 交易成功
+            order.save()
+        """ 判断交易状态 """
+        orders = trade.sale_orders.all()
+        flag_re = 0
+        for orde in orders:
+            if orde.status == SaleOrder.TRADE_FINISHED:
+                flag_re += 1
+
+        if flag_re == orders.count():  # 所有订单都退款关闭
+            # 这笔交易　交易成功
+            trade.status = SaleTrade.TRADE_FINISHED
+            trade.save()
+
+    """ 同步退款状态到订单，这里至更新 退款的状态到订单的 退款状态字段 """
+    order.refund_status = instance.status
+    order.save()  # 保存同步的状态
+
+
+post_save.connect(check_SaleRefund_Status, sender=SaleRefund)
+
+
+def push_envelop_get_msg(sender, instance, created, **kwargs):
+    """ 发送红包待领取状态的时候　给妈妈及时领取推送消息　"""
+    from flashsale.xiaolumm.tasks_mama_push import task_push_mama_cashout_msg
+    sent_status = instance.send_status
+    if sent_status != Envelop.SENT:
+        return
+    task_push_mama_cashout_msg.s(instance).delay()
+post_save.connect(push_envelop_get_msg, sender=Envelop)
+

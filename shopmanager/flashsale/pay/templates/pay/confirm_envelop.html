@@ -21,7 +21,7 @@
 
 
 <div class="jumbotron">
-  <form action="{% url envelop_confirm %}" method="POST">
+  <form action="{% url 'envelop_confirm' %}" method="POST">
   {% csrf_token %}
   <input type="hidden" name="envelop_ids" value="{{ envelop_ids }}" />
   <input type="hidden" name="origin_url" value="{{ origin_url }}" />

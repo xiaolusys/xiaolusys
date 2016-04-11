@@ -20,7 +20,6 @@ ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
 AGENCY_RECRUIT_DAYS = 1
 
-
 @task()
 def task_Push_Pending_Carry_Cash(xlmm_id=None):
     """
@@ -801,3 +800,5 @@ def xlmmOrderTop(time_from, time_to):
                              "conver_rate": conver_rate, "adm": adm}}
         data.append(atm_dic)
     return data
+
+from flashsale.xiaolumm.tasks_mama_push import task_push_ninpic_remind

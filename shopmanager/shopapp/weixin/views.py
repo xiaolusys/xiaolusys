@@ -538,9 +538,9 @@ class ReferalView(View):
         vipcode = ""
         users = WeiXinUser.objects.filter(openid=user_openid)
         if users.count() > 0:
-            vipcodes = users[0].vipcodes.all()
-            if vipcodes.count() > 0:
-                vipcode = vipcodes[0].code
+            vipcodes = users[0].vipcodes
+            if vipcodes:
+                vipcode = vipcodes.code
         
         referal_orders = SampleOrder.objects.filter(vipcode=vipcode) 
         referal_count = referal_orders.count()
@@ -778,8 +778,9 @@ class FreeSampleView(View):
         
         self_vipcode = None
         if wx_user.referal_from_openid:
-            if wx_user.vipcodes.count() > 0:
-                self_vipcode = wx_user.vipcodes.all()[0].code
+            vipcodes = wx_user.vipcodes
+            if vipcodes:
+                self_vipcode = wx_user.vipcodes.code
         
         today = datetime.datetime.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
@@ -961,8 +962,9 @@ class SampleAdsView(View):
         identical = False
         vipcode = 0
         if users.count() > 0:
-            if users[0].vipcodes.count() > 0:
-                vipcode = users[0].vipcodes.all()[0].code
+            vipcodes = users[0].vipcodes
+            if vipcodes:
+                vipcode = vipcodes.code
             else:
                 vipcode = VipCode.objects.genVipCodeByWXUser(users[0])
             if users[0].openid == openid:
@@ -1091,7 +1093,7 @@ class FinalListView(View):
     def getListItem(self,user):
         
         mobile = ''.join([user.mobile[0:3], "****", user.mobile[7:11]])
-        vipcode = user.vipcodes.all()[0]
+        vipcode = user.vipcodes
         
         link_clicks = WeixinLinkClicks.objects.filter(user_openid=user.openid)
         clicker_num = 0
@@ -1460,9 +1462,9 @@ class ScoreMenuView(View):
         
 
         vipcode = None
-        vipcodes = wx_user.vipcodes.all()
-        if vipcodes.count() > 0:
-            vipcode = vipcodes[0].code
+        vipcodes = wx_user.vipcodes
+        if vipcodes:
+            vipcode = vipcodes.code
         
         sample_start = False
         start_dt = datetime.datetime(2014,8,1)

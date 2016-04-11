@@ -20,6 +20,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
 
 
+
 class RegisterSerializer(serializers.HyperlinkedModelSerializer):
 
 
@@ -50,6 +51,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     xiaolumm = XiaoluMamaSerializer(source='getXiaolumm', read_only=True)
     user_budget = UserBudgetSerialize(source='getBudget', read_only=True)
     has_usable_password = serializers.BooleanField(source='user.has_usable_password', read_only=True)
+    has_password = serializers.BooleanField(source='has_user_password', read_only=True)
     is_attention_public = serializers.IntegerField(source='is_attention_wx_public', read_only=True)
 
     coupon_num = serializers.IntegerField(source='get_coupon_num', read_only=True)
@@ -60,7 +62,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone',
-                  'thumbnail','status', 'created', 'modified', 'xiaolumm', 'has_usable_password',
+                  'thumbnail','status', 'created', 'modified', 'xiaolumm', 'has_usable_password', 'has_password',
                   'user_budget', 'is_attention_public', 'coupon_num', 'waitpay_num', 'waitgoods_num', 'refunds_num')
 
 
@@ -124,6 +126,7 @@ class ActivityEntrySerializer(serializers.ModelSerializer):
                    'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras', 
                    'total_member_num', 'friend_member_num', 'is_active')
 
+
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
@@ -141,6 +144,16 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
                   'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 'memo',
                   'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id", 'watermark_op')
 
+
+class ProductSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        extra_kwargs = {'in_customer_shop':{}, 'shop_product_num':{}, 'rebet_amount': {},
+                        'rebet_amount_des': {},'sale_num_des':{}}
+        fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num', 'sale_num',
+                  'in_customer_shop', 'shop_product_num', 'rebet_amount', 'sale_num_des', 'rebet_amount_des')
+
+        
 class SimpleProductSerializer(serializers.ModelSerializer):
 
     category = ProductCategorySerializer(read_only=True)

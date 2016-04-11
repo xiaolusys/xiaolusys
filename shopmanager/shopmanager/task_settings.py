@@ -11,7 +11,8 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_carryrecord',
     'flashsale.xiaolumm.tasks_mama_clickcarry',
     'flashsale.xiaolumm.tasks_mama_dailystats',
-    'flashsale.dinghuo.tasks'
+    'flashsale.dinghuo.tasks',
+    'flashsale.promotion.tasks_activity',
 )
 #CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -154,6 +155,42 @@ MAMA_RELATIONSHIP_ROUTES = {
         'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_update_group_relationship': {
             'queue': 'relationship',
             'routing_key': 'relationship.task_update_group_relationship',
+        },
+        'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_login_update_fans': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_login_update_fans',
+        },
+        'flashsale.promotion.tasks_activity.task_activate_application': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_activate_application',
+        },
+        'flashsale.promotion.tasks_activity.task_generate_red_envelope': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_generate_red_envelope',
+        },
+        'flashsale.promotion.tasks_activity.task_envelope_create_budgetlog': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_envelope_create_budgetlog',
+        },
+        'flashsale.promotion.tasks_activity.task_envelope_update_budgetlog': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_envelope_update_budgetlog',
+        },
+        'flashsale.promotion.tasks_activity.task_userinfo_update_application': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_userinfo_update_application',
+        },
+        'flashsale.promotion.tasks_activity.task_userinfo_update_customer': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_userinfo_update_customer',
+        },
+        'flashsale.promotion.tasks_activity.task_decide_award_winner': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_decide_award_winner',
+        },
+        'flashsale.promotion.tasks_activity.task_sampleapply_update_appdownloadapp': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_sampleapply_update_appdownloadapp',
         },
 }
 
@@ -708,7 +745,15 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="15", hour="10"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    }
+    },
+
+    u'定时关闭特卖退款单':{
+        'task': 'flashsale.pay.tasks.task_close_refund',
+        'schedule': crontab(minute="30", hour="4"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
 
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',

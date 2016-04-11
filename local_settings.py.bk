@@ -63,9 +63,12 @@ BROKER_URL = 'redis://192.168.1.102:6379/2'
 
 ORMCACHE_ENABLE = True
 
+import raven
 RAVEN_CONFIG = {
-    'dsn': 'http://ada7dc70824c43fd8ba430db3827cd62:283aaec97585411ca9e66bb8bb1a9c63@sentry.huyi.so:8089/3',
-    'register_signals': True,
+    'dsn': 'http://4efada3907e24b3892e7344aae7c4aab:ccd82ec60936430a913059c752bb6a87@sentry.xiaolumm.com/1',
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': raven.fetch_git_sha(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
 }
 
 #################### change this site to yourself test domain #######################

@@ -27,21 +27,21 @@ def get_cur_info():
 
 
 def create_mamafortune_with_integrity(mama_id, **kwargs):
-    try:
+    #try:
         #fortune = MamaFortune(mama_id=mama_id, **kwargs)
         fortune = MamaFortune(mama_id=mama_id)
         for k,v in kwargs.iteritems():
             if hasattr(fortune, k):
                 setattr(fortune, k, v)
         fortune.save()
-    except IntegrityError as e:
-        logger.warn("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
+    #except IntegrityError as e:
+        #logger.warn("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
         # The following will very likely cause deadlock, since another
         # thread is creating this record. we decide to just fail it.
         #MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
         
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_xiaolumama_update_mamafortune(mama_id, cash):
     logger.warn("%s - mama_id: %s, params: %s" % (get_cur_info(), mama_id, cash))    
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
@@ -51,12 +51,16 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
         #fortune.history_confirmed = cash
         #fortune.save()
     else:
-        create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
+        try:
+            create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune | mama_id: %s, cash: %s" % (mama_id, cash))
+            raise task_xiaolumama_update_mamafortune.retry(exc=exc)
         
 
 CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016,3,30,23,59,59)
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_cashout_update_mamafortune(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -76,10 +80,14 @@ def task_cashout_update_mamafortune(mama_id):
             #fortune.carry_cashout = cashout_confirmed
             #fortune.save()
     else:
-        create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
+        try:
+            create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune cashout | mama_id: %s" % (mama_id))
+            raise task_cashout_update_mamafortune.retry(exc=exc)
     
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_carryrecord_update_mamafortune(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     
@@ -100,10 +108,14 @@ def task_carryrecord_update_mamafortune(mama_id):
             #fortune.carry_confirmed = carry_confirmed
             #fortune.save()
     else:
-        create_mamafortune_with_integrity(mama_id,carry_pending=carry_pending,carry_confirmed=carry_confirmed)
+        try:
+            create_mamafortune_with_integrity(mama_id,carry_pending=carry_pending,carry_confirmed=carry_confirmed)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune carryrecord | mama_id: %s" % (mama_id))
+            raise task_carryrecord_update_mamafortune.retry(exc=exc)
 
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_activevalue_update_mamafortune(mama_id):
     """
     更新妈妈activevalue
@@ -123,10 +135,14 @@ def task_activevalue_update_mamafortune(mama_id):
     if mama_fortunes.count() > 0:
         mama_fortunes.update(active_value_num=value_num)
     else:
-        create_mamafortune_with_integrity(mama_id,active_value_num=value_num)
+        try:
+            create_mamafortune_with_integrity(mama_id,active_value_num=value_num)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune activevalue | mama_id: %s" % (mama_id))
+            raise task_activevalue_update_mamafortune.retry(exc=exc)
 
             
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_update_mamafortune_invite_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)    
 
@@ -141,10 +157,14 @@ def task_update_mamafortune_invite_num(mama_id):
             #mama.invite_num=invite_num
             #mama.save()
     else:
-        create_mamafortune_with_integrity(mama_id,invite_num=invite_num)
+        try:
+            create_mamafortune_with_integrity(mama_id,invite_num=invite_num)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune invitenum | mama_id: %s" % (mama_id))
+            raise task_update_mamafortune_invite_num.retry(exc=exc)
             
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_update_mamafortune_mama_level(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)    
 
@@ -174,10 +194,14 @@ def task_update_mamafortune_mama_level(mama_id):
             #mama.mama_level = level
             #mama.save()
     else:
-        create_mamafortune_with_integrity(mama_id,mama_level=level)
-                    
+        try:
+            create_mamafortune_with_integrity(mama_id,mama_level=level)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune mamalevel | mama_id: %s" % (mama_id))
+            raise task_update_mamafortune_mama_level.retry(exc=exc)
+
             
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_update_mamafortune_fans_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)    
 
@@ -188,10 +212,14 @@ def task_update_mamafortune_fans_num(mama_id):
     if mamas.count() > 0:
         mamas.update(fans_num=fans_num)
     else:
-        create_mamafortune_with_integrity(mama_id,fans_num=fans_num)
+        try:
+            create_mamafortune_with_integrity(mama_id,fans_num=fans_num)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune fansnum | mama_id: %s" % (mama_id))
+            raise task_update_mamafortune_fans_num.retry(exc=exc)
     
         
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_update_mamafortune_order_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)    
     records = OrderCarry.objects.filter(mama_id=mama_id).exclude(status=3).values('contributor_id')
@@ -201,5 +229,9 @@ def task_update_mamafortune_order_num(mama_id):
     if mamas.count() > 0:
         mamas.update(order_num=order_num)
     else:
-        create_mamafortune_with_integrity(mama_id,order_num=order_num)
+        try:
+            create_mamafortune_with_integrity(mama_id,order_num=order_num)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune ordernum | mama_id: %s" % (mama_id))
+            raise task_update_mamafortune_order_num.retry(exc=exc)
                        

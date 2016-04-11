@@ -54,7 +54,7 @@
         <div class="container" style="margin-top:30px;width:100%;padding:0 25px 0">
             <div class="row panel panel-success">
                 <div class="panel-body">
-                    <form id="schedule-form" action="{% url product_schedule %}" method="get">
+                    <form id="schedule-form" action="{% url 'product_schedule' %}" method="get">
                         <div id="dt-panel">
                             <ul class="nav nav-tabs">
                                 <li role="presentation"{% if not form.onshelf_date %} class="active"{% endif %}>

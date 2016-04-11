@@ -116,6 +116,9 @@ class WeixinPubBackend(object):
 
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
+            # if not normal user ,no login allowed
+            if profile.status != Customer.NORMAL :
+                return AnonymousUser()
             task_Refresh_Sale_Customer.delay(userinfo, app_key=settings.WXPAY_APPID)
 
         return user
@@ -174,7 +177,10 @@ class WeixinAppBackend(object):
                 profile.nick = params.get('nickname')
                 profile.thumbnail = params.get('headimgurl')
                 profile.save()
-        
+            # if not normal user ,no login allowed
+            if profile.status != Customer.NORMAL:
+                return AnonymousUser()
+
         task_Refresh_Sale_Customer.delay(params,app_key=settings.WXAPP_ID)
         return user
     
@@ -218,6 +224,10 @@ class SMSLoginBackend(object):
             if not user.is_active:
                 user.is_active = True
                 user.save()
+            #if not normal user ,no login allowed
+            customer = Customer.objects.get(user=user)
+            if customer.status != Customer.NORMAL:
+                return AnonymousUser()
 
         except Register.DoesNotExist:
             return AnonymousUser()

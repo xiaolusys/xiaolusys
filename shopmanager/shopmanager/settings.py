@@ -7,7 +7,7 @@ sys.setdefaultencoding('utf-8')
 import os.path
 import posixpath
 
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -78,12 +78,13 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'core.middleware.middleware.AttachContentTypeMiddleware',
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
+    'core.middleware.middleware.SecureRequiredMiddleware',
+    'core.middleware.middleware.DisableDRFCSRFCheck',
     'django.middleware.common.CommonMiddleware',
     #'django.contrib.sessions.middleware.SessionMiddleware',
-    'middleware.middleware.XSessionMiddleware', 
+    'core.middleware.middleware.XSessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -94,9 +95,11 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'shopmanager.urls'
 
-TEMPLATE_DIRS = (
+TEMPLATES_ROOT = os.path.join(PROJECT_ROOT, "site_media", "templates")
+TEMPLATE_DIRS  = (
        os.path.join(PROJECT_ROOT, "templates"),
 )
+
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.debug',
@@ -106,7 +109,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.tz',
 #    'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
-    'middleware.context_processors.session',
+    'core.middleware.context_processors.session',
 )
 
 INSTALLED_APPS = (
@@ -125,14 +128,11 @@ INSTALLED_APPS = (
     'rest_framework',
     'djcelery',
     'djkombu',
-    'deamon',
     'httpproxy',
-    'deamon.celery_sentry',
     'django_statsd',
     'shopmanager.statsd',
     'core.ormcache',
     'core',
-    'mathfilters',
     
     'common',
     'shopback.amounts',
@@ -221,10 +221,11 @@ LOGIN_REDIRECT_URL = '/home/'
 LOGIN_URL = '/admin/'
 LOGOUT_URL = '/accounts/logout/'
 
+############################# EXTENSION CONFIG ##############################
 
-TAOBAO_PAGE_SIZE = 50              #the page_size of  per request
-  
-from task_settings import *
+TAOBAO_PAGE_SIZE = 50              # the page_size of  per request
+
+from task_settings import *      # celery config
 
 REST_FRAMEWORK = {
 #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
@@ -248,6 +249,7 @@ REST_FRAMEWORK_EXTENSIONS = {
     'DEFAULT_CACHE_KEY_FUNC':'rest_framework_extensions.utils.default_cache_key_func'
 }
 
+JSONFIELD_ENCODER_CLASS = 'django.core.serializers.json.DjangoJSONEncoder'
 
 if os.environ.get('TARGET') == 'staging':
     DEBUG = False
@@ -282,9 +284,9 @@ if os.environ.get('TARGET') == 'django18':
             'ENGINE': 'django.db.backends.mysql',
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
             'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
-            'USER': 'qiyue',  # Not used with sqlite3.
-            'PASSWORD': 'youni_2014qy',  # Not used with sqlite3.
-            'HOST': 'jconnfymhz868.mysql.rds.aliyuncs.com',
+            'USER': 'xiaoludev',  # Not used with sqlite3.
+            'PASSWORD': 'xiaolu_test123',  # Not used with sqlite3.
+            'HOST': 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com',
         # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
             'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
             'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
@@ -296,12 +298,12 @@ if os.environ.get('TARGET') == 'django18':
             'BACKEND': 'redis_cache.RedisCache',
             'LOCATION': '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379',
             'OPTIONS': {
-                'DB': 1,
+                'DB': 9,
                 'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
             }
         }
     }
-    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/2'
+    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
 
 
 if os.environ.get('TARGET') == 'production':
@@ -335,8 +337,7 @@ if not DEBUG:
     ORMCACHE_ENABLE = False
     SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
     SESSION_COOKIE_AGE = 24*15*60*60             
-    
-    PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+
     STATICFILES_DIRS = (
        os.path.join(PROJECT_ROOT,"site_media","static"),
     )
@@ -344,9 +345,13 @@ if not DEBUG:
     M_STATIC_URL = '/'
 
     ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','.xiaolumeimei.com','.xiaolumm.com','121.199.168.159']
+
+    import raven
     RAVEN_CONFIG = {
-        'dsn': 'http://53382bea24ca4a1f851f1e627a8dc0a1:0c2de1f22e884835a32d1fa396487101@sentry.huyi.so:8089/10',
-        'register_signals': True,
+        'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
+        # If you are using git, you can also automatically configure the
+        # release based on the git info.
+        'release': raven.fetch_git_sha( os.path.dirname(PROJECT_ROOT)),
     }
     
     #WEB DNS
@@ -531,10 +536,6 @@ if not DEBUG:
         'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
     }
 
-if os.environ.get('TARGET') == 'django18':
-    RAVEN_CONFIG = {
-        'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
-    }
 
 try:
     from local_settings import *

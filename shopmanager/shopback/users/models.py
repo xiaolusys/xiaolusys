@@ -17,42 +17,42 @@ SYSTEMOA_NAME = 'systemoa'
 
 class EffectUserManager(models.Manager):
     
-    def get_query_set(self):
+    def get_queryset(self):
         return (super(EffectUserManager, self).
-                get_query_set().filter(status=self.model.NORMAL))
+                get_queryset().filter(status=self.model.NORMAL))
     
     @property
     def TAOBAO(self):
-        return self.get_query_set().filter(type__in=(self.model.SHOP_TYPE_B,
+        return self.get_queryset().filter(type__in=(self.model.SHOP_TYPE_B,
                                                      self.model.SHOP_TYPE_C))
         
     @property
     def JINGDONG(self):
-        return self.get_query_set().filter(type=self.model.SHOP_TYPE_JD)
+        return self.get_queryset().filter(type=self.model.SHOP_TYPE_JD)
         
     @property
     def YIHAODIAN(self):
-        return self.get_query_set().filter(type=self.model.SHOP_TYPE_YHD)
+        return self.get_queryset().filter(type=self.model.SHOP_TYPE_YHD)
         
     @property
     def DANGDANG(self):
-        return self.get_query_set().filter(type=self.model.SHOP_TYPE_DD)
+        return self.get_queryset().filter(type=self.model.SHOP_TYPE_DD)
         
     @property
     def WEIXIN(self):
-        return self.get_query_set().filter(type=self.model.SHOP_TYPE_WX)
+        return self.get_queryset().filter(type=self.model.SHOP_TYPE_WX)
     
     @property
     def SUNING(self):
-        return self.get_query_set().filter(type=self.model.SHOP_TYPE_SN)
+        return self.get_queryset().filter(type=self.model.SHOP_TYPE_SN)
         
     @property
     def AMAZON(self):
-        return self.get_query_set().filter(type=self.model.SHOP_TYPE_AMZ)
+        return self.get_queryset().filter(type=self.model.SHOP_TYPE_AMZ)
     
     @property
     def OTHER(self):
-        return self.get_query_set().filter(type=self.model.SHOP_TYPE_OTHER)
+        return self.get_queryset().filter(type=self.model.SHOP_TYPE_OTHER)
         
 
 class User(models.Model):

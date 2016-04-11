@@ -109,7 +109,48 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
         pass
         # visitor already visited a mama's link, ignoring.
 
+
+from flashsale.promotion.models_freesample import AppDownloadRecord
+from flashsale.xiaolumm.models_fans import XlmmFans
+from flashsale.xiaolumm.models import XiaoluMama
+
+@task()
+def task_login_update_fans(user):
+    """
+    If AppDownloadRecord has multiple record for the same openid, we use the latest one.
+    """
     
-        
+    customers = Customer.objects.filter(user=user)
+    if customers.count() <= 0:
+        return
     
-                       
+    customer = customers[0]
+    openid = customer.openid
+    records = AppDownloadRecord.objects.filter(openid=openid,status=AppDownloadRecord.UNUSE).order_by('-created')
+    if records.count() <= 0:
+        return
+
+    record = records[0]
+    from_customer_id = record.from_customer
+    from_customer = Customer.objects.get(id=from_customer_id)
+    from_mama = from_customer.getXiaolumm()
+    mama_id = from_mama.id
+    if not from_mama:
+        # if my parent is not xiaolumama, then find out indirect xiaolumama
+        from_fans = XlmmFans.objects.filter(fans_cusid=from_customer_id)
+        if from_fans.count() <= 0:
+            return
+        from_fan = from_fans[0]
+        mama_id = from_fan.xlmm
+        from_customer_id = from_fan.xlmm_cusid
+    
+    fans = XlmmFans.objects.filter(fans_cusid=customer.id)
+    if fans.count() > 0:
+        return
+
+    
+    fan = XlmmFans(xlmm=mama_id, xlmm_cusid=from_customer_id, refreal_cusid=customer.id, fans_cusid=customer.id,
+                   fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
+    fan.save()
+    records.update(status=AppDownloadRecord.USED)
+                      

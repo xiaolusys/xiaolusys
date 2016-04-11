@@ -29,14 +29,14 @@ class SaleRefund(PayBaseModel):
     REFUND_SUCCESS = 7
     
     REFUND_STATUS = (
-        (NO_REFUND,'没有退款'),
-        (REFUND_WAIT_SELLER_AGREE,'买家已经申请退款'),
-        (REFUND_WAIT_RETURN_GOODS,'卖家已经同意退款'),
-        (REFUND_CONFIRM_GOODS,'买家已经退货'),
-        (REFUND_REFUSE_BUYER,'卖家拒绝退款'),
-        (REFUND_APPROVE,'确认退款，等待返款'),
-        (REFUND_CLOSED,'退款关闭'),
-        (REFUND_SUCCESS,'退款成功'),
+        (NO_REFUND, '没有退款'),
+        (REFUND_WAIT_SELLER_AGREE, '申请退款'),
+        (REFUND_WAIT_RETURN_GOODS, '同意申请'),
+        (REFUND_CONFIRM_GOODS, '退货途中'),
+        (REFUND_REFUSE_BUYER, '拒绝退款'),
+        (REFUND_APPROVE, '等待返款'),
+        (REFUND_CLOSED, '退款关闭'),
+        (REFUND_SUCCESS, '退款成功'),
     )
     
     REFUNDABLE_STATUS = (REFUND_WAIT_SELLER_AGREE,
@@ -217,6 +217,13 @@ class SaleRefund(PayBaseModel):
         except WareHouse.DoesNotExist:
             pass 
         return '退货地址请咨询小鹿美美客服哦'
+
+    def get_refund_customer(self):
+        """ 退款用户 """
+        from flashsale.pay.models_user import Customer
+        customer = Customer.objects.get(id=self.buyer_id)
+        return customer
+
 
 def buyeridPatch():
     

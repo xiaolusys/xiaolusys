@@ -1265,7 +1265,7 @@ class PackageOrder(models.Model):
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name=u'提醒日期')
     reason_code = models.CharField(max_length=100,blank=True,verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
     redo_sign = models.BooleanField(default=False,verbose_name=u'重做标志') #重做标志，表示该单要进行了一次废弃的打单验货
-    merge_trade_id = models.BigIntegerField(null=True,blank=True,verbose_name='对应的merge_trade')
+    merge_trade_id = models.BigIntegerField(null=True,blank=True,verbose_name=u'对应的MergeTrade')
     class Meta:
         db_table = 'flashsale_package'
         app_label = 'trades'

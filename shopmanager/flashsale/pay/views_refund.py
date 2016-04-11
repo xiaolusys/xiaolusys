@@ -147,6 +147,7 @@ from flashsale.pay.models_user import UserBudget,BudgetLog
 from django.db import models
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback import paramconfig as pcfg
+from tasks import task_send_msg_for_refund
 
 
 class RefundPopPageView(APIView):
@@ -256,7 +257,7 @@ class RefundPopPageView(APIView):
                                                          referal_id=obj.order_id, # 以子订单为准
                                                          budget_log_type=BudgetLog.BG_REFUND)
                         if blogs.exists():
-                            total_refund = blogs[0].value + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
+                            total_refund = blogs[0].flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
                             if total_refund > int(sorder.payment * 100):
                                 # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
                                 raise Exception(u'超过订单实际支付金额!')
@@ -335,6 +336,7 @@ class RefundPopPageView(APIView):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
                 return Response({"res": "sys_error"})
+        task_send_msg_for_refund.s(obj).delay()
         return Response({"res": True})
 
 

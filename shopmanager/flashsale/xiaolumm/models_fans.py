@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from django.db import models
+from django.db.models.signals import post_save
 from core.models import BaseModel
 from .managers import XlmmFansManager
 from flashsale.pay.models_user import Customer
@@ -44,8 +45,6 @@ class XlmmFans(BaseModel):
         return self.fans_nick
 
 
-from django.db.models.signals import post_save
-
 
 def update_activevalue(sender, instance, created, **kwargs):
     """
@@ -60,9 +59,9 @@ def update_activevalue(sender, instance, created, **kwargs):
     date_field = instance.created.date()
     tasks_mama_activevalue.task_fans_update_activevalue.delay(mama_id, fans_customer_id, date_field)
 
+post_save.connect(update_activevalue, sender=XlmmFans, dispatch_uid='post_save_update_activevalue')
 
-post_save.connect(update_activevalue,
-                  sender=XlmmFans, dispatch_uid='post_save_update_activevalue')
+
 
 def update_mamafortune_fans_num(sender, instance, created, **kwargs):
     if not created:
@@ -89,4 +88,22 @@ class FansNumberRecord(BaseModel):
 
     def __unicode__(self):
         return "<%s,%s>" % (self.xlmm, self.fans_num)
+
+
+from django.contrib.auth.signals import user_logged_in
+def login_update_fans(sender, request, user, *args, **kwargs):
+    """
+    Only check whether this user has download-relationship, if he/she has
+    and that download-relationship record is not used yet, we confirm he/she is 
+    a fan of the related user.
+
+    Note: In the near future, we must add a field is_app_actived to Customer, after
+    we confirm the user is actived via app, we dont do this check upon future 
+    login from the user.
+    """
+    
+    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_update_fans
+    task_login_update_fans.delay(user)    
+
+user_logged_in.connect(login_update_fans, dispatch_uid='user_login_update_direct_fans')
 

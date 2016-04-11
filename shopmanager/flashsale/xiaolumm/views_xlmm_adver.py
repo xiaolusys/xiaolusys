@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from .models_advertis import NinePicAdver
 import datetime
 from core.options import log_action, ADDITION
+from tasks_mama_push import task_push_ninpic_remind
 
 
 class NinepicView(APIView):
@@ -50,4 +51,5 @@ class NinepicView(APIView):
                                               turns_num=turns_num, cate_gory=cate_gory, description=description,
                                               auther=auther)
         log_action(request.user.id, ninepic, ADDITION, "添加" + cate_gory + "张图")
+        task_push_ninpic_remind.s(ninepic).delay()
         return Response({"code": 1})

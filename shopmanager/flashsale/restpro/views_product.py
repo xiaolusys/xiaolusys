@@ -175,9 +175,13 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, constants.SHARE_LINK)
         return link.format(**params)
-    
-    def get_qrcode_page_link(self):
-        return urlparse.urljoin(settings.M_SITE_URL,reverse('qrcode_view'))
+
+    def get_qrcode_page_link(self, *args, **kwargs):
+        qrcode_link = reverse('qrcode_view')
+        if kwargs.has_key('mama_id'):
+            rev_url = qrcode_link + '?mama_id={mama_id}'  # 添加mama_id
+            qrcode_link = rev_url.format(**kwargs)
+        return urlparse.urljoin(settings.M_SITE_URL, qrcode_link)
     
     @detail_route(methods=['get'])
     def get_share_params(self, request, *args, **kwargs):
@@ -189,10 +193,13 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
             if request.user and request.user.is_authenticated():
                 customer = get_object_or_404(Customer, user=request.user.id)
                 params.update({'customer': customer})
-        
+                mama = customer.getXiaolumm()
+                if mama:
+                    params.update({'mama_id': mama.id})
+                else:
+                    params.update({'mama_id': 1})
         share_params = active_obj.get_shareparams(**params)
-        share_params.update(qrcode_link=self.get_qrcode_page_link())
-        
+        share_params.update(qrcode_link=self.get_qrcode_page_link(**params))
         return Response(share_params)
     
     @list_route(methods=['get'])
@@ -633,15 +640,17 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         extra_str = 'remain_num - lock_num > 0'
         queryset = queryset.extra(where={extra_str})  # 没有卖光的 不是秒杀产品的
         
-        queryset = self.paginate_queryset(queryset)
+        #queryset = self.paginate_queryset(queryset)
         
-        pros = self.choice_query_2_dict(queryset, customer, agencylevel)
-        
+        queryset = self.choice_query_2_dict(queryset, customer, agencylevel)
 
         if sort_field in ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']:
-            pros = sorted(pros, key=lambda k: k[sort_field], reverse=True)
+            queryset = sorted(queryset, key=lambda k: getattr(k,sort_field), reverse=True)
 
-        return self.get_paginated_response(pros)
+        queryset = self.paginate_queryset(queryset)
+        serializer = serializers.ProductSimpleSerializer(queryset, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
     
     def choice_query_2_dict(self, queryset, customer, agencylevel):
@@ -662,27 +671,27 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         from flashsale.xiaolumm.models_rebeta import calculate_price_carry
         products = []
+
         for pro in queryset:
             rebet_amount = calculate_price_carry(agencylevel, pro.agent_price, carry_policy)
-            prodic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
             
             # 预留数 * 97(质数)+(97内的随机数) = (模拟)销量　
-            sale_num = prodic['remain_num'] * 19 + random.choice(xrange(19))
-            prodic['sale_num'] = sale_num
-
-            prodic['in_customer_shop'] = 0
+            sale_num = pro.remain_num * 19 + random.choice(xrange(19))
+            pro.sale_num = sale_num
+        
+            pro.in_customer_shop = 0
             if pro.id in product_ids:
-                prodic['in_customer_shop'] = 1
-            prodic['shop_product_num'] = shop_product_num
+                pro.in_customer_shop = 1
+
+            pro.shop_product_num = shop_product_num
             
-            prodic['rebet_amount'] = rebet_amount
-            prodic['sale_num_des'] = '{0}人在卖'.format(sale_num)
-            prodic['rebet_amount_des'] = '佣 ￥{0}.00'.format(rebet_amount)
+            pro.rebet_amount = rebet_amount
+            pro.sale_num_des = '{0}人在卖'.format(sale_num)
+            pro.rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
+        
+        return queryset
 
-            products.append(prodic)
-
-        return products
-
+    
     @list_route(methods=['get'])
     def get_mama_shop(self, request):
         """

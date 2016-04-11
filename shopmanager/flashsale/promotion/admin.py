@@ -1,6 +1,6 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 from django.contrib import admin
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord
+from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord, RedEnvelope, AwardWinner
 from .models import XLInviteCode, XLReferalRelationship, XLInviteCount
 
 
@@ -15,10 +15,10 @@ admin.site.register(XLFreeSample, XLFreeSampleAdmin)
 
 
 class XLSampleApplyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'from_customer', 'outer_id', 'sku_code', 'ufrom', 'mobile', 'vipcode', 'status')
-    list_filter = ('status', 'ufrom')
-    list_display_links = ('id', 'outer_id', )
-    search_fields = ['=id', '=outer_id', '=mobile', '=user_openid', '=vipcode', '=from_customer']
+    list_display = ('id', 'event_id', 'from_customer', 'user_openid', 'customer_id', 'mobile', 'ufrom', 'outer_id', 'status', 'created')
+    list_filter = ('event_id', 'status', 'ufrom')
+    list_display_links = ('id', 'event_id')
+    search_fields = ['=id', '=from_customer', '=customer_id', '=mobile', '=user_openid']
     list_per_page = 40
 
 
@@ -103,3 +103,19 @@ class AppDownloadRecordAdmin(admin.ModelAdmin):
 
 
 admin.site.register(AppDownloadRecord, AppDownloadRecordAdmin)
+
+
+class RedEnvelopeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer_id', 'value', 'description', 'friend_img', 'friend_nick', 'type', 'status')
+    list_filter = ('type', 'status')
+    search_fields = ('customer_id', 'friend_nick')
+    
+admin.site.register(RedEnvelope, RedEnvelopeAdmin)
+
+
+class AwardWinnerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer_id', 'customer_nick', 'event_id', 'invite_num', 'status')
+    list_filter = ('status',)
+    search_fields = ('customer_id', 'customer_nick')
+    
+admin.site.register(AwardWinner, AwardWinnerAdmin)

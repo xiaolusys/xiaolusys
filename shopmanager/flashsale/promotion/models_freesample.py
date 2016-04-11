@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from .managers import ReadPacketManager
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.pay.models import Customer
+from django.db.models.signals import post_save
 
 class XLFreeSample(CacheModel):
     """ 试用商品 """
@@ -42,6 +43,34 @@ class XLSampleSku(CacheModel):
         return '-'.join([str(self.sample_product), self.sku_name])
 
 
+class AppDownloadRecord(BaseModel):
+    WAP = 0
+    WX = 1
+    QQ = 2
+
+    UFROM = ((WAP, u'WAP'), (WX, u'微信'), (QQ, u'QQ'))
+    UNUSE = 0
+    USED = 1
+
+    USE_STATUS = ((UNUSE, u'未注册'), (USED, u'已注册'))
+
+    from_customer = models.IntegerField(default=0, db_index=True, verbose_name=u'来自用户')
+    openid = models.CharField(max_length=128, db_index=True,blank=True, null=True, verbose_name=u'微信授权openid')
+    status = models.BooleanField(default=UNUSE, choices=USE_STATUS, db_index=True, verbose_name=u'是否注册APP')
+    mobile = models.CharField(max_length=11, blank=True, null=True, verbose_name=u'手机号')
+    ufrom = models.IntegerField(default=0, choices=UFROM, verbose_name=u'来自平台')
+
+    class Meta:
+        db_table = 'flashsale_promotion_download_record'
+        app_label = 'promotion'
+        verbose_name = u'推广/下载记录表'
+        verbose_name_plural = u'推广/下载记录表'
+
+    def __unicode__(self):
+        return str(self.from_customer)
+
+
+
 class XLSampleApply(CacheModel):
     """ 试用申请 """
     INACTIVE = 0
@@ -70,13 +99,14 @@ class XLSampleApply(CacheModel):
     outer_id = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'商品编码')
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
     event_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name=u'活动ID')
-    from_customer = models.BigIntegerField(null=True, blank=True, verbose_name=u'分享人用户ID')
+    from_customer = models.BigIntegerField(null=True, blank=True, db_index=True, verbose_name=u'分享人用户ID')
     ufrom    = models.CharField(max_length=8,choices=FROM_CHOICES,blank=True,verbose_name=u'来自平台')
     user_openid  = models.CharField(max_length=28,db_index=True,blank=True,null=True,verbose_name=u'用户openid')
     mobile   = models.CharField(max_length=11,null=False,db_index=True,blank=False,verbose_name=u'试用手机')
     vipcode  = models.CharField(max_length=16,db_index=True,blank=True,null=True,verbose_name=u'试用邀请码')
     status   = models.IntegerField(default=INACTIVE,choices=STATUS_CHOICES,db_index=True, verbose_name=u"状态")
 
+    customer_id = models.IntegerField(null=True,blank=True,verbose_name=u"申请者ID")
     headimgurl = models.CharField(max_length=256,null=False,blank=True,verbose_name=u'头图')
     nick = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'昵称')
     class Meta:
@@ -85,6 +115,124 @@ class XLSampleApply(CacheModel):
         verbose_name = u'推广/试用申请'
         verbose_name_plural = u'推广/试用申请列表'
 
+    def is_activated(self):
+        return self.status == self.ACTIVED
+
+
+def generate_red_envelope(sender,instance,created,*args,**kwargs):
+    if not instance.is_activated():
+        return
+    
+    from tasks_activity import task_generate_red_envelope
+    task_generate_red_envelope.delay(instance)
+
+post_save.connect(generate_red_envelope, sender=XLSampleApply, dispatch_uid="sampleapply_generate_red_envelope")
+
+
+def update_appdownloadrecord(sender,instance,created,*args,**kwargs):
+    if not created:
+        return
+
+    from tasks_activity import task_sampleapply_update_appdownloadrecord
+    task_sampleapply_update_appdownloadrecord.delay(instance)
+
+post_save.connect(update_appdownloadrecord, sender=XLSampleApply, dispatch_uid="sampleapply_update_appdownloadrecord")
+
+
+
+
+def get_choice_name(choices, val):
+    """
+    iterate over choices and find the name for this val
+    """
+    name = ""
+    for entry in choices:
+        if entry[0] == val:
+            name = entry[1]
+    return name
+
+
+class RedEnvelope(CacheModel):
+    STATUS = ((0, 'new'), (1, 'open'))
+    TYPE_CHOICES = ((0, 'cash'),(1, 'card'))
+
+    customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u"用户ID")
+    event_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name=u'活动ID')
+    value = models.IntegerField(default=0, verbose_name=u'金额')
+    description = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'文字内容')
+
+    # uni_key: event_id + friend's customer_id
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    
+    friend_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'朋友头像')
+    friend_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'朋友昵称')
+    type = models.IntegerField(default=0, choices=TYPE_CHOICES, db_index=True, verbose_name=u'类型')
+    status = models.IntegerField(default=0, choices=STATUS, db_index=True, verbose_name=u'打开状态')
+    
+    class Meta:
+        db_table = 'flashsale_promotion_red_envelope'
+        verbose_name = u'活动/红包'
+        verbose_name_plural = u'活动/红包列表'
+    
+    def status_display(self):
+        return get_choice_name(self.STATUS, self.status)
+
+    def type_display(self):
+        return get_choice_name(self.TYPE_CHOICES, self.type)
+
+    def is_cashable(self):
+        return self.status == 1 and self.type == 0
+
+    def is_card_open(self):
+        return self.status == 1 and self.type == 1
+
+    def value_display(self):
+        return float("%.2f" % (self.value * 0.01))
+    
+def envelope_create_budgetlog(sender,instance,created,*args,**kwargs):
+    if not created:
+        return
+    from tasks_activity import task_envelope_create_budgetlog
+    task_envelope_create_budgetlog.delay(instance)
+
+post_save.connect(envelope_create_budgetlog, sender=RedEnvelope)
+
+
+def open_envelope_update_budgetlog(sender,instance,created,*args,**kwargs):
+    if not instance.is_cashable():
+        return
+    from tasks_activity import task_envelope_update_budgetlog
+    task_envelope_update_budgetlog.delay(instance)
+
+post_save.connect(open_envelope_update_budgetlog, sender=RedEnvelope)
+
+
+def open_envelope_decide_awardwinner(sender,instance,created,*args,**kwargs):
+    if not instance.is_card_open():
+        return
+    from tasks_activity import task_decide_award_winner
+    task_decide_award_winner.delay(instance)
+
+post_save.connect(open_envelope_decide_awardwinner, sender=RedEnvelope)
+
+    
+class AwardWinner(CacheModel):
+    STATUS = ((0, '未领取'),(1, '已领取'))
+    customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u"用户ID")
+    customer_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'头像')
+    customer_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'昵称')
+    event_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name=u'活动ID')
+    invite_num = models.IntegerField(default=0, verbose_name=u'中奖时邀请数')
+
+    # uni_key: event_id + customer_id
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    status = models.IntegerField(default=0, choices=STATUS, verbose_name=u'领取状态')
+
+    class Meta:
+        db_table = 'flashsale_promotion_award_winner'
+        verbose_name = u'活动/中奖'
+        verbose_name_plural = u'活动/中奖列表'
+    
 
 class XLSampleOrder(CacheModel):
     """ 正式试用订单 """
@@ -122,47 +270,30 @@ class XLSampleOrder(CacheModel):
 
 class ReadPacket(CacheModel):
     """ 红包记录 """
-
+    
+    
     EXCHANGE = 1
     NOT_EXCHANGE = 0
-    EXCHANGE_STATUS = ((EXCHANGE, u'已兑换'), (NOT_EXCHANGE, u'未兑换'))
+    EXCHANGE_STATUS = ((EXCHANGE, u'已打开'), (NOT_EXCHANGE, u'未打开'))
+
+    TYPE_CHOICES = ((0, 'cash'),(1, 'card'))
 
     customer = models.CharField(max_length=64, db_index=True, verbose_name=u"用户ID")
     value = models.FloatField(default=0, verbose_name=u'金额')
     status = models.IntegerField(default=0, choices=EXCHANGE_STATUS, verbose_name=u'是否兑换')
     content = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'文字内容')
+    type = models.IntegerField(default=0, choices=TYPE_CHOICES, verbose_name=u'金额')
+    friend_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'朋友头像')
+    friend_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'朋友昵称')
+    
     objects = ReadPacketManager()
 
     class Meta:
         db_table = 'flashsale_promotion_red_packet'
         app_label = 'promotion'
-        verbose_name = u'推广/活动红包表'
-        verbose_name_plural = u'推广/活动红包列表'
+
+        verbose_name = u'推广/discard'
+        verbose_name_plural = u'推广/discard'
 
 
-class AppDownloadRecord(BaseModel):
-    WAP = 0
-    WX = 1
-    QQ = 2
-
-    UFROM = ((WAP, u'WAP'), (WX, u'微信'), (QQ, u'QQ'))
-    UNUSE = 0
-    USED = 1
-
-    USE_STATUS = ((UNUSE, u'未注册'), (USED, u'已注册'))
-
-    from_customer = models.IntegerField(default=0, db_index=True, verbose_name=u'来自用户')
-    openid = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'微信授权openid')
-    status = models.BooleanField(default=UNUSE, choices=USE_STATUS, verbose_name=u'是否注册APP')
-    mobile = models.CharField(max_length=11, blank=True, null=True, verbose_name=u'手机号')
-    ufrom = models.IntegerField(default=0, choices=UFROM, verbose_name=u'来自平台')
-
-    class Meta:
-        db_table = 'flashsale_promotion_download_record'
-        app_label = 'promotion'
-        verbose_name = u'推广/下载记录表'
-        verbose_name_plural = u'推广/下载记录表'
-
-    def __unicode__(self):
-        return str(self.from_customer)
 

@@ -8,13 +8,14 @@ import re
 
 from django.contrib.auth.models import User
 from django.db import connection
-from django.db.models import Max, Sum
+from django.db.models import Max, Sum, Q
 from django.forms.models import model_to_dict
 from django.shortcuts import render_to_response, HttpResponse
 from django.template import RequestContext
 from django.views.generic import View
 
 from rest_framework import permissions, viewsets
+from rest_framework.decorators import list_route
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 
@@ -23,8 +24,9 @@ from flashsale.dinghuo.tasks import task_ding_huo_optimize, task_ding_huo
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
-from supplychain.supplier.models import SaleProduct
+from supplychain.supplier.models import SaleProduct, SaleProductManage, SaleProductManageDetail
 
+from . import forms
 
 class DailyDingHuoView(View):
 
@@ -403,6 +405,100 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
     template_name = 'dinghuo/instant_dinghuo.html'
+
+    @list_route(methods=['get'])
+    def advance(self, request):
+        form = forms.AdvanceDingHuoForm(request.GET)
+        if not form.is_valid():
+            return Response({'error': ''}, template_name='dinghuo/advance_dinghuo.html')
+
+        result = {
+            'start_date': form.cleaned_attrs.start_date.strftime('%Y-%m-%d'),
+            'end_date': form.cleaned_attrs.end_date.strftime('%Y-%m-%d')
+        }
+        if form.cleaned_attrs.start_date > form.cleaned_attrs.end_date:
+            result['error'] = '参数错误'
+            return Response(result, template_name='dinghuo/advance_dinghuo.html')
+
+        start_date = form.cleaned_attrs.start_date
+        end_date = form.cleaned_attrs.end_date
+        schedule_ids = set()
+        for m in SaleProductManage.objects.filter(sale_time__gte=start_date, sale_time__lte=end_date):
+            schedule_ids.add(m.id)
+
+        sale_product_ids = set()
+        for d in SaleProductManageDetail.objects.filter(schedule_manage_id__in=list(schedule_ids), today_use_status='normal'):
+            sale_product_ids.add(d.sale_product_id)
+
+        buyers_dict = {}
+        suppliers_dict = {}
+        saleproducts_dict = {}
+        for s in SaleProduct.objects.select_related('sale_supplier').filter(id__in=list(sale_product_ids)):
+            saleproducts_dict[s.id] = {
+                'supplier_id': s.sale_supplier.id,
+                'product_link': s.product_link
+            }
+            if s.sale_supplier.id not in suppliers_dict:
+                supplier_dict = {
+                    'id': s.sale_supplier.id,
+                    'name': s.sale_supplier.supplier_name,
+                    'buyer_id': 0,
+                    'buyer_name': ''
+                }
+                orderlists = OrderList.objects.filter(
+                    supplier_id = s.sale_supplier.id
+                ).exclude(Q(status=OrderList.ZUOFEI)|Q(buyer__isnull=True)).order_by('-created')[:1]
+                if orderlists:
+                    orderlist = orderlists[0]
+                    if orderlist.buyer_id:
+                        buyer_id = orderlist.buyer_id
+                        buyer_name = '%s%s' % (orderlist.buyer.last_name, orderlist.buyer.first_name)
+                        buyer_name = buyer_name or orderlist.buyer.username
+                        supplier_dict.update({
+                            'buyer_id': buyer_id,
+                            'buyer_name': buyer_name
+                        })
+
+                        if buyer_id not in buyers_dict:
+                            buyers_dict[buyer_id] = buyer_name
+                suppliers_dict[s.sale_supplier.id] = supplier_dict
+
+        products_dict = {}
+        for p in Product.objects.filter(sale_product__in=list(sale_product_ids), status='normal'):
+            product_dict = {
+                'id': p.id,
+                'name': p.name,
+                'outer_id': p.outer_id,
+                'pic_path': '%s?imageMogr2/thumbnail/200x200/crop/200x200/format/jpg' % p.pic_path.strip(),
+                'product_link': saleproducts_dict[p.sale_product]['product_link'],
+                'skus': {}
+            }
+            supplier_id = saleproducts_dict[p.sale_product]['supplier_id']
+            suppliers_dict[supplier_id].setdefault('products', []).append(product_dict)
+            products_dict[p.id] = product_dict
+
+        for s in ProductSku.objects.filter(product_id__in=products_dict.keys(), status='normal'):
+            product_dict = products_dict[s.product_id]
+            product_dict['skus'][s.id] = {
+                'id': s.id,
+                'properties_name': s.properties_name or s.properties_alias or '',
+                'quantity': s.quantity
+            }
+
+        new_suppliers = []
+        for supplier_id in sorted(suppliers_dict.keys()):
+            supplier_dict = suppliers_dict[supplier_id]
+            products = supplier_dict.get('products')
+            if not products:
+                continue
+            for product in products:
+                skus_dict = product['skus']
+                product['skus'] = [skus_dict[k] for k in sorted(skus_dict.keys())]
+            new_suppliers.append(supplier_dict)
+
+        result['suppliers'] = new_suppliers
+        result['buyers'] = [{'id': k, 'name': buyers_dict[k]} for k in sorted(buyers_dict.keys())]
+        return Response(result, template_name='dinghuo/advance_dinghuo.html')
 
     def list(self, request):
         show_ab = int(request.GET.get('show_ab') or 0)
