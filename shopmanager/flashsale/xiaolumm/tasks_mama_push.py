@@ -53,7 +53,7 @@ def task_push_mama_order_msg(saletrade):
     """
     当代理有订单成功付款后则推送消息
     """
-    mm_linkid = int(saletrade.extras_info.get('mm_linkid'))
+    mm_linkid = saletrade.extras_info.get('mm_linkid')
     if not mm_linkid:
         return
     message = '又有顾客在您的专属链接下单啦~ 赶快看看提成吧~'

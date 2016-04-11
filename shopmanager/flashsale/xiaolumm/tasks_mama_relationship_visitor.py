@@ -123,7 +123,7 @@ def task_login_update_fans(user):
     """
     
     customers = Customer.objects.filter(user=user)
-    if customers.count() <= 0:
+    if not customers.exists():
         return
     
     customer = customers[0]
@@ -142,7 +142,7 @@ def task_login_update_fans(user):
     mama_id, mama_customer_id = None,None
     if from_mama:
         mama_id = from_mama.id
-        mama_customer_id = from_customer
+        mama_customer_id = from_customer.id
     else:
         # if my parent is not xiaolumama, then find out indirect xiaolumama
         fan_records = XlmmFans.objects.filter(fans_cusid=from_customer)
