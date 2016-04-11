@@ -83,18 +83,18 @@ class JoinView(WeixinAuthMixin, APIView):
 
         logger.warn("JoinView: ufrom=%s, from_customer=%s, event_id=%s" % (ufrom, from_customer, event_id))
         # the following is for debug
-        if ufrom == 'app':
-            response = redirect(reverse('app_join_activity', args=(event_id,)))
-        else:
-            response = redirect(reverse('web_join_activity', args=(event_id,)))
-
-        # this is for production
-        #if self.is_from_weixin(request):
-        #    response = redirect(reverse('weixin_baseauth_join_activity', args=(event_id,)))
-        #elif ufrom == "app":
+        #if ufrom == 'app':
         #    response = redirect(reverse('app_join_activity', args=(event_id,)))
         #else:
         #    response = redirect(reverse('web_join_activity', args=(event_id,)))
+
+        # this is for production
+        if self.is_from_weixin(request):
+            response = redirect(reverse('weixin_baseauth_join_activity', args=(event_id,)))
+        elif ufrom == "app":
+            response = redirect(reverse('app_join_activity', args=(event_id,)))
+        else:
+            response = redirect(reverse('web_join_activity', args=(event_id,)))
 
         response.set_cookie("event_id", event_id)
         response.set_cookie("from_customer", from_customer)
