@@ -276,6 +276,13 @@ if os.environ.get('TARGET') == 'staging':
         }
     }    
     BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
+    import raven
+    RAVEN_CONFIG = {
+        'dsn': 'http://e419f1ed03004d03bad7b4b563f74241:12fbfa94d636472d92ae964757627367@sentry.xiaolumm.com/3',
+        # If you are using git, you can also automatically configure the
+        # release based on the git info.
+        'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
+    }
 
 if os.environ.get('TARGET') == 'django18':
     DEBUG = False
@@ -304,7 +311,13 @@ if os.environ.get('TARGET') == 'django18':
         }
     }
     BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
-
+    import raven
+    RAVEN_CONFIG = {
+        'dsn': 'http://e419f1ed03004d03bad7b4b563f74241:12fbfa94d636472d92ae964757627367@sentry.xiaolumm.com/3',
+        # If you are using git, you can also automatically configure the
+        # release based on the git info.
+        'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
+    }
 
 if os.environ.get('TARGET') == 'production':
     DEBUG = False
@@ -331,7 +344,15 @@ if os.environ.get('TARGET') == 'production':
         }
     }    
     BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/2'
-    
+
+    import raven
+    RAVEN_CONFIG = {
+        'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
+        # If you are using git, you can also automatically configure the
+        # release based on the git info.
+        'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
+    }
+
 if not DEBUG:
     TEMPLATE_DEBUG = DEBUG
     ORMCACHE_ENABLE = False
@@ -346,14 +367,6 @@ if not DEBUG:
 
     ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','.xiaolumeimei.com','.xiaolumm.com','121.199.168.159']
 
-    import raven
-    RAVEN_CONFIG = {
-        'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
-        # If you are using git, you can also automatically configure the
-        # release based on the git info.
-        'release': raven.fetch_git_sha( os.path.dirname(PROJECT_ROOT)),
-    }
-    
     #WEB DNS
     SITE_URL = 'http://youni.huyi.so/' 
     #WAP DNS

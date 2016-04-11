@@ -546,8 +546,8 @@ class ClickViewSet(viewsets.ModelViewSet):
         today = datetime.date.today()  # 今天日期
         target_date = today - datetime.timedelta(days=days)
         target_date_end = target_date + datetime.timedelta(days=1)
-        today_clicks = queryset.filter(click_time__gte=target_date, click_time__lt=target_date_end).order_by(
-            '-click_time')
+        today_clicks = queryset.filter(click_time__gte=target_date,
+                                       click_time__lt=target_date_end).order_by('-click_time')
         data = []
         for click in today_clicks:
             dic = model_to_dict(click, fields=['isvalid', 'click_time'])
