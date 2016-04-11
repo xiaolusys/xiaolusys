@@ -75,6 +75,7 @@ class NinePicAdver(models.Model):
     pic_arry = JSONCharMyField(max_length=2048, default=lambda:{}, blank=True, null=True, verbose_name=u'图片链接')
     start_time = models.DateTimeField(null=True, blank=True, verbose_name=u'开始时间')
     turns_num = models.IntegerField(verbose_name=u'轮数(第几轮)')
+    is_pushed = models.BooleanField(default=False, verbose_name=u'是否已经推送')
 
     class Meta:
         db_table = 'flashsale_xlmm_nine_pic'

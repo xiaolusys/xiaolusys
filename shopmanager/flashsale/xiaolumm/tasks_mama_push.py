@@ -38,12 +38,9 @@ def task_push_ninpic_remind(ninpic):
     当有九张图更新的时候推送
     因为考虑到一天有很多的九张图推送，暂定一天值推送第一次九张图
     """
-    description = ninpic.description
-    emoji_message = gen_emoji(description)
+    title = ninpic.title
+    emoji_message = gen_emoji(title)
     message = match_emoji(emoji_message)
-    turns_num = int(ninpic.turns_num)
-    if turns_num != 1:  # 不是第一轮创建则不推送(每天仅仅推送一轮)
-        return
     mamas = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED)
     map(push_msg_to_mama(message), mamas)
 
