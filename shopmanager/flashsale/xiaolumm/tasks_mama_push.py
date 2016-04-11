@@ -37,8 +37,6 @@ def task_push_ninpic_remind(ninpic):
     当有九张图更新的时候推送
     因为考虑到一天有很多的九张图推送，暂定一天值推送第一次九张图
     """
-    if settings.DEBUG:  # 如果是测试环境则不执行
-        return
     description = ninpic.description
     message = match_emoji(description)
     turns_num = int(ninpic.turns_num)
