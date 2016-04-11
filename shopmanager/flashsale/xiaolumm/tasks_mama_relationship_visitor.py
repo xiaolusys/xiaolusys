@@ -133,33 +133,34 @@ def task_login_update_fans(user):
         return
 
     record = records[0]
-    from_customer_id = record.from_customer
-    referal_customer_id = from_customer_id
+    from_customer = record.from_customer
+    referal_customer_id = from_customer
     
-    from_customer = Customer.objects.get(id=from_customer_id)
+    from_customer = Customer.objects.get(id=from_customer)
     from_mama = from_customer.getXiaolumm()
 
-    mama_id = 0
+    mama_id, mama_customer_id = None,None
     if from_mama:
         mama_id = from_mama.id
+        mama_customer_id = from_customer
     else:
         # if my parent is not xiaolumama, then find out indirect xiaolumama
-        from_fans = XlmmFans.objects.filter(fans_cusid=from_customer_id)
-        if from_fans.count() <= 0:
+        fan_records = XlmmFans.objects.filter(fans_cusid=from_customer)
+        if fan_records.count() <= 0:
             return
-        from_fan = from_fans[0]
-        mama_id = from_fan.xlmm
-        from_customer_id = from_fan.xlmm_cusid
+        fan_record = fan_records[0]
+        mama_id = fan_record.xlmm
+        mama_customer_id = fan_record.xlmm_cusid
     
     fans = XlmmFans.objects.filter(fans_cusid=customer.id)
     if fans.count() > 0:
         return
 
-    if from_customer_id == customer.id:
+    if mama_customer_id == customer.id:
         # self canot be self's fan
         return
     
-    fan = XlmmFans(xlmm=mama_id, xlmm_cusid=from_customer_id, refreal_cusid=referal_customer_id, fans_cusid=customer.id,
+    fan = XlmmFans(xlmm=mama_id, xlmm_cusid=mama_customer_id, refreal_cusid=referal_customer_id, fans_cusid=customer.id,
                    fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
     fan.save()
     records.update(status=AppDownloadRecord.USED)
