@@ -460,9 +460,9 @@ def task_budgetlog_update_userbudget(budget_log):
     
     in_amount,out_amount=0,0
     for entry in records:
-        if entry["budget_type"] == BudgetLog.IN:
+        if entry["budget_type"] == BudgetLog.BUDGET_IN:
             in_amount = entry["total"]
-        if entry["budget_type"] == BudgetLog.OUT:
+        if entry["budget_type"] == BudgetLog.BUDGET_OUT:
             out_amount = entry["total"]
 
     user_budget = UserBudget.objects.get(user=customer_id)
