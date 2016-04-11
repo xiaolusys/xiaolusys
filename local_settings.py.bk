@@ -8,7 +8,7 @@ TEMPLATE_DEBUG = DEBUG
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
 SESSION_COOKIE_AGE = 12 * 60 * 60             
 
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 DATABASES = {
     'default': {
@@ -36,8 +36,10 @@ M_STATIC_URL = '/static/wap/'
 
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
+    'core.middleware.middleware.ProfileMiddleware',
+    'core.middleware.middleware.QueryCountDebugMiddleware',
+    'core.middleware.middleware.SecureRequiredMiddleware',
+    'core.middleware.middleware.DisableDRFCSRFCheck',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -45,10 +47,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
-
-if DEBUG:
-    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 
 CACHES = {
     'default': {
@@ -68,7 +66,7 @@ RAVEN_CONFIG = {
     'dsn': 'http://4efada3907e24b3892e7344aae7c4aab:ccd82ec60936430a913059c752bb6a87@sentry.xiaolumm.com/1',
     # If you are using git, you can also automatically configure the
     # release based on the git info.
-    'release': raven.fetch_git_sha(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+    'release': raven.fetch_git_sha( os.path.dirname(PROJECT_ROOT)),
 }
 
 #################### change this site to yourself test domain #######################
@@ -76,18 +74,6 @@ SITE_URL = 'http://192.168.1.11:9000/'
 M_SITE_URL = 'http://192.168.1.11:9000/' 
 
 
-MIDDLEWARE_CLASSES = (
-    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.RemoteUserMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
 ########################### ONEAPM Statsd ##############################
 #STATSD_PORT = 8251
 STATSD_CLIENT = 'shopmanager.statsd.oneapm'
