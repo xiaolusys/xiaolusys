@@ -68,10 +68,11 @@ def task_generate_red_envelope(application):
     # or, simply an easy policy: every envelope has 50% percent chance bing a card.
 
     # whoever invites my get a red envelope upon activating my application
-    type,value = gen_envelope_type_value_pair(from_customer_id, event_id)
-    envelope1 = RedEnvelope(customer_id=from_customer_id,event_id=event_id,uni_key=uni_key1,type=type,
-                            value=value,friend_img=application.headimgurl,friend_nick=application.nick)
-    envelope1.save()
+    if from_customer_id:
+        type,value = gen_envelope_type_value_pair(from_customer_id, event_id)
+        envelope1 = RedEnvelope(customer_id=from_customer_id,event_id=event_id,uni_key=uni_key1,type=type,
+                                value=value,friend_img=application.headimgurl,friend_nick=application.nick)
+        envelope1.save()
 
     # when activating my application, i get one red envelope (with type 'card')
     type = 1 #card
