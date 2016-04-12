@@ -24,7 +24,7 @@ def get_cur_info():
 
 
 def get_application(event_id, unionid=None, mobile=None):
-    if openid:
+    if unionid:
         xls = XLSampleApply.objects.filter(event_id=event_id,user_unionid=unionid).order_by('-created')
         if xls.exists():
             return xls[0]
