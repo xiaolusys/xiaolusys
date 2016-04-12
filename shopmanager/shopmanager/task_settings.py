@@ -11,6 +11,7 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_carryrecord',
     'flashsale.xiaolumm.tasks_mama_clickcarry',
     'flashsale.xiaolumm.tasks_mama_dailystats',
+    'flashsale.xiaolumm.tasks_mama_push',
     'flashsale.dinghuo.tasks',
     'flashsale.promotion.tasks_activity',
 )
@@ -270,6 +271,18 @@ CELERY_ROUTES = {
             'queue': 'notify',
             'routing_key': 'notify.confirm_trade_charge',
         },#小鹿订单确认支付
+        'flashsale.xiaolumm.tasks_mama_push.task_push_ninpic_remind': {
+            'queue': 'notify',
+            'routing_key': 'notify.task_push_ninpic_remind',
+        },  # 九张图更新推送代理
+        'flashsale.xiaolumm.tasks_mama_push.task_push_mama_order_msg': {
+            'queue': 'notify',
+            'routing_key': 'notify.task_push_mama_order_msg',
+        },  # 代理有订单后推送消息提醒
+        'flashsale.xiaolumm.tasks_mama_push.task_push_mama_cashout_msg': {
+            'queue': 'notify',
+            'routing_key': 'notify.task_push_mama_cashout_msg',
+        },  # 代理有提现成功推送消息提醒
          #######################################################
         'flashsale.clickcount.tasks.task_Create_Click_Record': {
             'queue': 'frency',
@@ -348,6 +361,7 @@ CELERY_ROUTES = {
             'queue': 'async',
             'routing_key': 'async.task_ReleaseMamaLinkCoupon',
         },  # 代理专属有订单则发送优惠券(对应类型)
+
 }
 CELERY_ROUTES.update(DAILY_STATS_ROUTES)
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)

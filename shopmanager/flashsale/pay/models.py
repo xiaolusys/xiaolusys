@@ -804,8 +804,10 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
             trade.status = SaleTrade.TRADE_CLOSED
             trade.save()
         # 退款成功之后发送推送　和短信
-        from tasks import task_send_msg_for_refund
-        task_send_msg_for_refund.s(instance).delay()
+        point_time = datetime.datetime(2016, 4, 10)
+        if instance.created > point_time:  # 4.10　之后才推送消息
+            from tasks import task_send_msg_for_refund
+            task_send_msg_for_refund.s(instance).delay()
 
     if instance.status == SaleRefund.REFUND_CLOSED:  # 退款关闭即没有退款成功 切换订单到交易成功状态
         # 如果是退款成功状态 找到订单
