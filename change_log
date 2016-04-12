@@ -1,3 +1,11 @@
+######## 2016-04-12 ##########
+ALTER TABLE flashsale_promotion_download_record ADD unionid VARCHAR(128) null after openid;
+create index unionid_index on flashsale_promotion_download_record(unionid);
+create index mobile_index on flashsale_promotion_download_record(mobile);
+create index status_index on flashsale_promotion_download_record(status);
+ALTER TABLE flashsale_promotion_sampleapply ADD user_unionid VARCHAR(64) null after user_openid;
+create index user_openid_index on flashsale_promotion_sampleapply(user_openid);
+
 ######## 2016-04-11 ##########
 alter table flashsale_xlmm_nine_pic add column `is_pushed` bool NOT NULL;
 ######## 2016-04-06 #########

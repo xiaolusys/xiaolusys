@@ -103,7 +103,7 @@ class XLSampleApply(CacheModel):
     from_customer = models.BigIntegerField(null=True, blank=True, db_index=True, verbose_name=u'分享人用户ID')
     ufrom    = models.CharField(max_length=8,choices=FROM_CHOICES,blank=True,verbose_name=u'来自平台')
     user_openid  = models.CharField(max_length=28,db_index=True,blank=True,null=True,verbose_name=u'用户openid')
-    user_unionid  = models.CharField(max_length=28,db_index=True,blank=True,null=True,verbose_name=u'用户unionid')
+    user_unionid  = models.CharField(max_length=64,db_index=True,blank=True,null=True,verbose_name=u'用户unionid')
     mobile   = models.CharField(max_length=11,null=False,db_index=True,blank=False,verbose_name=u'试用手机')
     vipcode  = models.CharField(max_length=16,db_index=True,blank=True,null=True,verbose_name=u'试用邀请码')
     status   = models.IntegerField(default=INACTIVE,choices=STATUS_CHOICES,db_index=True, verbose_name=u"状态")

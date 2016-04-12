@@ -1,6 +1,8 @@
 #-*- coding:utf-8 -*-
 from django.db import models
 from django.conf import settings
+from django.db.models.signals import post_save
+
 from core.models import CacheModel, BaseModel
 
 class WeixinUnionID(CacheModel):
@@ -70,5 +72,5 @@ def weixin_userinfo_update_customer(sender,instance,created,*args,**kwargs):
     from .tasks import task_userinfo_update_customer
     task_userinfo_update_customer.delay(instance)
 
-post_save.connect(weixin_userinfo_update_customer, sender=WeiXinUserInfo, dispatch_uid="weixin_userinfo_update_customer")
+post_save.connect(weixin_userinfo_update_customer, sender=WeixinUserInfo, dispatch_uid="weixin_userinfo_update_customer")
 
