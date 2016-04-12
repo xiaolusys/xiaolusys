@@ -23,9 +23,9 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-def get_application(event_id, openid=None, mobile=None):
+def get_application(event_id, unionid=None, mobile=None):
     if openid:
-        xls = XLSampleApply.objects.filter(event_id=event_id,user_openid=openid).order_by('-created')
+        xls = XLSampleApply.objects.filter(event_id=event_id,user_unionid=unionid).order_by('-created')
         if xls.exists():
             return xls[0]
     if mobile:
@@ -57,6 +57,14 @@ def gen_envelope_type_value_pair(customer_id, event_id):
 
 @task()
 def task_generate_red_envelope(application):
+    """
+    We generate redenvelope only if the application is activated, that means we
+    already know who owns this application, we know the applicant's customer id.
+    """
+
+    if not application.is_activated():
+        return
+
     event_id = application.event_id
     customer_id = application.customer_id
     from_customer_id = application.from_customer
@@ -69,25 +77,28 @@ def task_generate_red_envelope(application):
 
     # whoever invites my get a red envelope upon activating my application
     if from_customer_id:
-        type,value = gen_envelope_type_value_pair(from_customer_id, event_id)
-        envelope1 = RedEnvelope(customer_id=from_customer_id,event_id=event_id,uni_key=uni_key1,type=type,
-                                value=value,friend_img=application.headimgurl,friend_nick=application.nick)
-        envelope1.save()
+        count = RedEnvelope.objects.filter(uni_key=uni_key1).count()
+        if count <= 0:
+            type,value = gen_envelope_type_value_pair(from_customer_id, event_id)
+            envelope1 = RedEnvelope(customer_id=from_customer_id,event_id=event_id,uni_key=uni_key1,type=type,
+                                    value=value,friend_img=application.headimgurl,friend_nick=application.nick)
+            envelope1.save()
 
     # when activating my application, i get one red envelope (with type 'card')
     type = 1 #card
     uni_key2 = 'self-'+uni_key1
-    value = random.choices([1,2,3,4,5,6,7,8,9])
-    envelope2 = RedEnvelope(customer_id=customer_id,event_id=event_id,uni_key=uni_key2,type=type,
-                            vale=value, friend_img=application.headimgurl,friend_nick=application.nick)
-    envelope2.save()
+    count = RedEnvelope.objects.filter(uni_key=uni_key2).count()
+    if count <= 0:
+        value = random.choices([1,2,3,4,5,6,7,8,9])
+        envelope2 = RedEnvelope(customer_id=customer_id,event_id=event_id,uni_key=uni_key2,type=type,
+                                vale=value, friend_img=application.headimgurl,friend_nick=application.nick)
+        envelope2.save()
 
 
 @task()
 def task_activate_application(event_id, customer):
-    openid, mobile = customer.openid, customer.mobile
-    application = get_application(event_id, openid, mobile)
-    from_customer_id = application.from_customer
+    unionid, mobile = customer.unionid, customer.mobile
+    application = get_application(event_id, unionid, mobile)
     
     if application and not application.is_activated():
         application.status = XLSampleApply.ACTIVED
@@ -130,10 +141,15 @@ def task_userinfo_update_application(userinfo):
     nickname = userinfo.get("nickname")
     headimgurl = userinfo.get("headimgurl")
     openid = userinfo.get("openid")
+    unionid = userinfo.get("unionid")
+    
     applications = XLSampleApply.objects.filter(user_openid=openid)
     if applications.count() > 0:
         application = applications[0]
         update = False
+        if unionid and application.user_openid != unionid:
+            if application.user_openid = unionid
+            update = True
         if headimgurl and application.headimgurl != headimgurl:
             application.headimgurl = headimgurl
             update = True
@@ -144,26 +160,6 @@ def task_userinfo_update_application(userinfo):
             application.save()
 
         
-@task()
-def task_userinfo_update_customer(userinfo):
-    nickname = userinfo.get("nickname")
-    headimgurl = userinfo.get("headimgurl")
-    unionid = userinfo.get("unionid")
-    customers = Customer.objects.filter(unionid=unionid)
-
-    if customers.count() > 0:
-        customer = customers[0]
-        update = False
-        if headimgurl and customer.thumbnail != headimgurl:
-            customer.thumbnail = headimgurl
-            update = True
-        if nickname and customer.nick != nickname:
-            customer.nick = nickname
-            update = True
-        if update:
-            customer.save()
-
-
 @task()
 def task_decide_award_winner(envelope):
     card_num = RedEnvelope.objects.filter(customer_id=envelope.customer_id,type=1,status=1).count()
@@ -188,18 +184,37 @@ def task_decide_award_winner(envelope):
 
 
 
+def get_appdownloadrecord(unionid, mobile):
+    if unionid:
+        records = AppDownloadRecord.objects.filter(unionid=unionid)
+        if records.count() > 0:
+            return records[0]
+    if mobile:
+        records = AppDownloadRecord.objects.filter(mobile=mobile)
+        if records.count() > 0:
+            return records[0]
+    return None
+
+    
 @task()
 def task_sampleapply_update_appdownloadrecord(application):
-    if application.user_openid:
-        cnt = AppDownloadRecord.objects.filter(openid=application.user_openid).count()
-        if cnt > 0:
-            return
-    if application.mobile:
-        cnt = AppDownloadRecord.objects.filter(mobile=application.mobile).count()
-        if cnt > 0:
-            return
-        
-    record = AppDownloadRecord(from_customer=application.from_customer,openid=application.user_openid,
-                               mobile=application.mobile,ufrom=application.ufrom)
-    record.save()
+    """
+    We make sure the appdownloadrecord will be created only if we have unionid or mobile.
     
+    Note: This creates difficulty for h5's appdownload link working (user should either 
+    logged in or input his/her mobile number ... to win coupon)
+    """
+    if not (application.user_unionid or application.mobile):
+        # We dont create downloadrecord if both unionid and mobile are missing.
+        return
+    
+    record = get_appdownloadrecord(application.user_unionid, application.mobile)
+    if not record:
+        record = AppDownloadRecord(from_customer=application.from_customer,openid=application.user_openid,
+                                   unionid=application.user_unionid,mobile=application.mobile,ufrom=application.ufrom)
+        record.save()
+    else:
+        if not record.unionid and application.user_unionid:
+            # if the appdownloadrecord only have mobile, it's the chance to update it's unionid.
+            record.unionid = application.user_unionid
+            record.save()
