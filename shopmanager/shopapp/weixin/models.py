@@ -9,7 +9,7 @@ from core.fields import BigIntegerAutoField,JSONCharMyField
 from .managers import VipCodeManager,WeixinUserManager
 
 from shopback.trades.models import MergeTrade
-from .models_base import WeixinUnionID
+from .models_base import WeixinUnionID,WeixinUserInfo
 from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 
 
