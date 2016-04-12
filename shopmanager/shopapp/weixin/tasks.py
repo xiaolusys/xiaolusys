@@ -329,7 +329,8 @@ def task_userinfo_update_customer(instance):
     nick = instance.nick
     thumbnail = instance.thumbnail
     unionid = instance.unionid
-    customers = Customer.objects.filter(unionid=unionid)
+    from flashsale.pay.models_user import Customer
+    customers = Customer.objects.filter(unionid=unionid,status=Customer.NORMAL)
 
     params = {}
     if customers.count() > 0:
