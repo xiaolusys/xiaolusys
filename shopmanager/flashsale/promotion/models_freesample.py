@@ -283,10 +283,7 @@ class ReadPacket(CacheModel):
     value = models.FloatField(default=0, verbose_name=u'金额')
     status = models.IntegerField(default=0, choices=EXCHANGE_STATUS, verbose_name=u'是否兑换')
     content = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'文字内容')
-    type = models.IntegerField(default=0, choices=TYPE_CHOICES, verbose_name=u'金额')
-    friend_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'朋友头像')
-    friend_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'朋友昵称')
-    
+
     objects = ReadPacketManager()
 
     class Meta:
