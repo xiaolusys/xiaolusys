@@ -287,8 +287,8 @@ post_save.connect(ordercarry_update_carryrecord,
 
 def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
     if instance.is_direct_or_fans_carry():
-        # find out parent mama_id
-        referal_relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id)
+        # find out parent mama_id, and this relationship must be established before the order creation date.
+        referal_relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id,created__lt=instance.date_field)
         if referal_relationships.count() > 0:
             from flashsale.xiaolumm import tasks_mama
             referal_relationship = referal_relationships[0]
