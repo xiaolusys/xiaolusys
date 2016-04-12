@@ -910,7 +910,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
 
     def district_link(self, obj):
         return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' % (
-            obj.id, obj.districts or u'--')
+            obj.id, obj.get_districts_code() or u'--')
 
     district_link.allow_tags = True
     district_link.short_description = "库位"
