@@ -6,7 +6,7 @@
         <title>小鹿美美 - 入库后台</title>
         <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
-        <link href="{{ STATIC_URL }}xiaolu-uploader/uploader.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
         <style>
          body > div.container {
@@ -304,7 +304,7 @@
         <script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
         <script src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
         <script src="{{ STATIC_URL }}script/qiniu.js"></script>
-        <script src="{{ STATIC_URL }}xiaolu-uploader/uploader.js"></script>
+        <script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js"></script>
         <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
         <script>
          var SENT_FROM_SUPPLIER = 1;
@@ -387,8 +387,9 @@
 
          $(function(){
              $('#images').uploader({
-                 fileButton: 'pickFiles',
+                 fileButton: 'pickfiles',
                  domain: 'http://image.xiaolu.so/',
+                 imageOp: 'imageMogr2/thumbnail/220/crop/220x220/format/jpg',
                  maxLength: 100,
                  width: 100,
                  height: 100
