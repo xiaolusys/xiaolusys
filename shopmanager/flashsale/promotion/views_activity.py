@@ -171,7 +171,6 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
             logger.warn("snsauth: %s" % userinfo)
             from tasks_activity import task_userinfo_update_application, task_userinfo_update_customer
             task_userinfo_update_application.delay(userinfo)
-            task_userinfo_update_customer.delay(userinfo)
             
         # now we already have openid, we check whether application exists.
         application_count = XLSampleApply.objects.filter(user_openid=openid,event_id=event_id).count()
@@ -316,7 +315,9 @@ class ApplicationView(WeixinAuthMixin, APIView):
         
         applied = False
         application_count = 0
-        if openid:
+        if unionid:
+            application_count = XLSampleApply.objects.filter(user_unionid=unionid,event_id=event_id).count()
+        elif openid:
             application_count = XLSampleApply.objects.filter(user_openid=openid,event_id=event_id).count()
         elif mobile:
             from flashsale.restpro.v2.views_verifycode_login import validate_mobile
@@ -331,6 +332,8 @@ class ApplicationView(WeixinAuthMixin, APIView):
             params.update({"from_customer":from_customer})
         if ufrom:
             params.update({"ufrom":ufrom})
+        if unionid:
+            params.update({"user_unionid":unionid, "status":XLSampleApply.ACTIVED})
         if openid:
             params.update({"user_openid":openid})
         if mobile:

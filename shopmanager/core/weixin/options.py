@@ -96,7 +96,11 @@ def get_auth_userinfo(code, appid='', secret='', request=None):
         rs = get_weixin_snsuserinfo(openid, r.get('access_token'))
         if rs.has_key("errcode"):
             return r
-#         signals.signal_weixin_snsauth_response.send(sender="access_token",appid=appid,resp_data=r)
+        
+        # Here we should trigger a task to save userinfo.
+        from shopapp.weixin.tasks import task_snsauth_update_weixin_userinfo
+        task_snsauth_update_weixin_userinfo.delay(rs):
+        
         return rs
     
     return r
