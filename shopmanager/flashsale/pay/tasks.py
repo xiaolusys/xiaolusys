@@ -482,23 +482,17 @@ from django.contrib.admin.models import CHANGE
 
 def make_refund_message(refund):
     """ 根据短信模板生成要发送或者推送的文本信息 """
-    desc = None
-    if refund.status == SaleRefund.REFUND_WAIT_RETURN_GOODS:  # 同意申请退货
-        desc = '请登陆APP查看退货地址信息，补充退货单物流信息'
-    if refund.status == SaleRefund.REFUND_REFUSE_BUYER:  # 拒绝申请退款
-        desc = '需要您参与协商退款事宜.'
-    if refund.status == SaleRefund.REFUND_APPROVE:  # 等待返款
-        desc = '请留意您的钱款去向.'
-    if refund.status == SaleRefund.REFUND_SUCCESS:  # 退款成功
-        desc = '祝您购物愉快.'
-
+    if refund.status not in [SaleRefund.REFUND_WAIT_RETURN_GOODS,  # 同意申请退货
+                             SaleRefund.REFUND_REFUSE_BUYER,  # 拒绝申请退款
+                             SaleRefund.REFUND_APPROVE,  # 等待返款
+                             SaleRefund.REFUND_SUCCESS]:  # 退款成功
+        return None
     sms_activitys = SMSActivity.objects.filter(id=5, status=True)
-    if sms_activitys.exists() and desc:
+    if sms_activitys.exists():
         sms_activity = sms_activitys[0]
         message = sms_activity.text_tmpl.format(refund.title,  # 标题
                                                 refund.refund_fee,  # 退款费用
-                                                refund.get_status_display(),
-                                                desc)  # 退款状态
+                                                refund.get_status_display())  # 退款状态
         return message
     else:
         return None
