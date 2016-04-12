@@ -147,8 +147,8 @@ def task_userinfo_update_application(userinfo):
     if applications.count() > 0:
         application = applications[0]
         update = False
-        if unionid and application.user_openid != unionid:
-            if application.user_openid = unionid
+        if unionid and application.user_unionid != unionid:
+            application.user_unionid = unionid
             update = True
         if headimgurl and application.headimgurl != headimgurl:
             application.headimgurl = headimgurl

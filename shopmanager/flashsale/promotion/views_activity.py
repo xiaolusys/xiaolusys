@@ -169,7 +169,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
 
             # now we have userinfo
             logger.warn("snsauth: %s" % userinfo)
-            from tasks_activity import task_userinfo_update_application, task_userinfo_update_customer
+            from .tasks_activity import task_userinfo_update_application
             task_userinfo_update_application.delay(userinfo)
             
         # now we already have openid, we check whether application exists.
