@@ -127,10 +127,16 @@ def task_login_update_fans(user):
         return
     
     customer = customers[0]
-    openid = customer.openid
-    records = AppDownloadRecord.objects.filter(openid=openid,status=AppDownloadRecord.UNUSE).order_by('-created')
-    if records.count() <= 0:
+    unionid = customer.unionid
+    mobile = customer.mobile
+    if not (unionid or mobile):
         return
+    
+    records = AppDownloadRecord.objects.filter(unionid=unionid,status=AppDownloadRecord.UNUSE).order_by('-created')
+    if records.count() <= 0:
+        records = AppDownloadRecord.objects.filter(mobile=mobile,status=AppDownloadRecord.UNUSE).order_by('-created')
+        if records.count() <= 0:
+            return
 
     record = records[0]
     from_customer = record.from_customer

@@ -181,10 +181,6 @@ MAMA_RELATIONSHIP_ROUTES = {
             'queue': 'relationship',
             'routing_key': 'relationship.task_userinfo_update_application',
         },
-        'flashsale.promotion.tasks_activity.task_userinfo_update_customer': {
-            'queue': 'relationship',
-            'routing_key': 'relationship.task_userinfo_update_customer',
-        },
         'flashsale.promotion.tasks_activity.task_decide_award_winner': {
             'queue': 'relationship',
             'routing_key': 'relationship.task_decide_award_winner',

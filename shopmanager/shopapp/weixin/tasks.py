@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 import time
 import datetime
 import json
@@ -319,3 +319,59 @@ def syncWXProductNumTask():
         
         syncStockByWxShopTask(wx_product)
 
+
+@task
+def task_userinfo_update_customer(instance):
+    """
+    WeixinUserInfo update corresponding customer, if the customer exists.
+    --- Zifei 2016-04-12
+    """
+    nick = instance.nick
+    thumbnail = instance.thumbnail
+    unionid = instance.unionid
+    customers = Customer.objects.filter(unionid=unionid)
+
+    params = {}
+    if customers.count() > 0:
+        customer = customers[0]
+        if thumbnail and customer.thumbnail != thumbnail:
+            params.update(thumbnail=thumbnail)
+        if nick and customer.nick != nick:
+            params.update(nick=nick)
+        if params:
+            customers.update(**params)
+        
+
+@task
+def task_snsauth_update_weixin_userinfo(userinfo):
+    """
+    Every time we have snsauth userfinfo, we update WeixinUserInfo.
+    -- Zifei 2016-04-12
+    """
+    
+    nick = userinfo.get("nickname")
+    thumbnail = userinfo.get("headimgurl")
+    unionid = userinfo.get("unionid")
+
+    if not unionid:
+        return
+    
+    from shopapp.weixin.models_base import WeixinUserInfo
+    records = WeixinUserInfo.objects.filter(unionid=unionid)
+    if records.count() <= 0:
+        info = WeixinUserInfo(unionid=unionid,nick=nick,thumbnail=thumbnail)
+        info.save()
+    else:
+        info = records[0]
+        update = False
+        if nick and nick != info.nick:
+            info.nick = nick
+            update = True
+        if thumbnail and thumbnail != info.thumbnail:
+            info.thumbnail = thumbnail
+            update = True
+        if update:
+            # We must use save() so that it will trigger updating customer.
+            info.save()
+            
+        
