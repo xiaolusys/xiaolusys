@@ -20,25 +20,17 @@ ADMIN_ID = 1
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option('-t', '--test', dest='is_test', action='store_true', default=False),
-        make_option('-d', '--delete', dest='is_del', action='store_true', default=False)
+        make_option('-d', '--delete', dest='is_del', action='store_true', default=False),
     )
-
-    @classmethod
-    def create_test_orderlist(cls):
-        pass
 
     @classmethod
     def delete_orderlist(cls):
         OrderList.objects.filter(created_by=OrderList.CREATED_BY_MACHINE).delete()
 
     def handle(self, *args, **kwargs):
-        is_test = kwargs['is_test']
         is_del = kwargs['is_del']
 
-        if is_test:
-            self.create_test_orderlist()
-        elif is_del:
+        if is_del:
             self.delete_orderlist()
         else:
             suppliers = self.get_suppliers()

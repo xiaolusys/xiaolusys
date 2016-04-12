@@ -292,7 +292,6 @@ class ChangeDetailExportView(View):
         for product in Product.objects.filter(
                 pk__in=[order_detail.product_id for order_detail in
                         order_details]):
-            print repr(product.pic_path)
             products[product.id] = {
                 'sale_product_id': product.sale_product,
                 'pic_path':

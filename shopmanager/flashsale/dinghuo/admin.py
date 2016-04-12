@@ -45,6 +45,8 @@ class ordelistAdmin(admin.ModelAdmin):
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note']
     date_hierarchy = 'created'
 
+    list_per_page = 25
+
     def queryset(self, request):
         qs = super(ordelistAdmin, self).queryset(request)
         if request.user.is_superuser:
@@ -513,3 +515,54 @@ class SaleInventoryStatAdmin(admin.ModelAdmin):
     list_filter = ('category', )
 
 admin.site.register(SaleInventoryStat, SaleInventoryStatAdmin)
+
+from .models import InBound, InBoundDetail, OrderDetailInBoundDetail
+
+class InBoundAdmin(admin.ModelAdmin):
+    list_display = ('show_id', 'supplier', 'express_no', 'sent_from',
+                    'show_images', 'memo', 'created', 'modified', 'status')
+
+    list_filter = ('status', 'created')
+
+    def show_id(self, obj):
+        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.id}
+    show_id.allow_tags = True
+    show_id.short_description = u'ID'
+
+    def show_images(self, obj):
+        tpl = """
+        <a href="%(url)s" target="_blank">
+        <img src="%(url)s?imageMogr2/thumbnail/160/crop/160x160/format/jpg" style="width:100px;height:100px">
+        </a>
+        """
+        images = []
+        for url in obj.images:
+            images.append(tpl % {'url': url})
+        return ''.join(images)
+    show_images.allow_tags = True
+    show_images.short_description = u'图片'
+
+class InBoundDetailAdmin(admin.ModelAdmin):
+    list_display = ('show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'created', 'modified', 'status')
+
+    def show_inbound(self, obj):
+        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.inbound_id}
+    show_inbound.allow_tags = True
+    show_inbound.short_description = u'入仓单ID'
+
+class OrderDetailInBoundDetailAdmin(admin.ModelAdmin):
+    list_display = ('show_orderdetail', 'show_inbounddetail', 'arrival_quantity', 'inferior_quantity', 'created', 'status')
+
+    def show_orderdetail(self, obj):
+        return '<a href="/admin/dinghuo/orderdetail/?id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.orderdetail_id}
+    show_orderdetail.allow_tags = True
+    show_orderdetail.short_description = u'订货明细ID'
+
+    def show_inbounddetail(self, obj):
+        return '<a href="/admin/dinghuo/inbounddetail/?id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.inbounddetail_id}
+    show_inbounddetail.allow_tags = True
+    show_inbounddetail.short_description = u'入仓明细ID'
+
+admin.site.register(InBound, InBoundAdmin)
+admin.site.register(InBoundDetail, InBoundDetailAdmin)
+admin.site.register(OrderDetailInBoundDetail, OrderDetailInBoundDetailAdmin)
