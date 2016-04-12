@@ -211,7 +211,7 @@ def task_sampleapply_update_appdownloadrecord(application):
     record = get_appdownloadrecord(application.user_unionid, application.mobile)
     if not record:
         record = AppDownloadRecord(from_customer=application.from_customer,openid=application.user_openid,
-                                   unionid=application.user_unionid,mobile=application.mobile,ufrom=application.ufrom)
+                                   unionid=application.user_unionid,mobile=application.mobile)
         record.save()
     else:
         if not record.unionid and application.user_unionid:
