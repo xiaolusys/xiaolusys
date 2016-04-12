@@ -50,11 +50,11 @@ class SaleOrderInline(admin.TabularInline):
 
 class SaleOrderAdmin(admin.ModelAdmin):
     list_display = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment',
-                    'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'item_id')
+                    'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
     list_display_links = ('oid',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('sign_time', DateFieldListFilter))
     search_fields = ['=oid', '=sale_trade__tid', '=outer_id']
 
 
