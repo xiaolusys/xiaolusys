@@ -339,6 +339,7 @@ class NinePicAdverAdmin(admin.ModelAdmin):
         if queryset.count() == 1:
             ninepic = queryset[0]
             task_push_ninpic_remind.s(ninepic).delay()
+            queryset.update(is_pushed=True)
             return self.message_user(request, u'推送成功')
         else:
             return self.message_user(request, u'勾选一个推送项')
