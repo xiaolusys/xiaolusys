@@ -55,7 +55,7 @@ class WeixinUserInfo(BaseModel):
     
     class Meta:
         db_table = 'shop_weixin_userinfo'
-        app_label = 'weixin_userinfo'
+        app_label = 'weixin'
         verbose_name=u'微信用户基本信息'
         verbose_name_plural = u'微信用户基本信息列表'
     
