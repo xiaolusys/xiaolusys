@@ -36,10 +36,17 @@ def push_msg_to_topic_mama(message):
     """ 发送更新app推送(批量) """
     target_url = get_target_url(protocal_constants.TARGET_TYPE_HOME_TAB_1)
     if message:
-        mipush_of_android.push_to_topic(push_constants.TOPIC_XLMM,
+        mipush_of_android.push_to_topic(push_constants.TOPIC_XLMM_A,
                                         {'target_url': target_url},
                                         description=message)
-        mipush_of_ios.push_to_account(push_constants.TOPIC_XLMM,
+        mipush_of_ios.push_to_account(push_constants.TOPIC_XLMM_A,
+                                      {'target_url': target_url},
+                                      description=message)
+
+        mipush_of_android.push_to_topic(push_constants.TOPIC_XLMM_VIP,
+                                        {'target_url': target_url},
+                                        description=message)
+        mipush_of_ios.push_to_account(push_constants.TOPIC_XLMM_VIP,
                                       {'target_url': target_url},
                                       description=message)
 
