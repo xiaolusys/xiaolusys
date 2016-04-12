@@ -76,29 +76,35 @@ class MamaFortune(BaseModel):
         return get_choice_name(self.MAMA_LEVELS, self.mama_level)
 
     def carry_num_display(self):
-        """
-        累计收益数
-        """
+        """ 累计收益数 """
         total = self.carry_pending + self.carry_confirmed + self.history_pending + self.history_confirmed
         return float('%.2f' % (total * 0.01))
 
+    carry_num_display.short_description = u"累计收益"
+
     def cash_num_display(self):
-        """
-        余额
-        """
+        """ 余额 """
         total = self.carry_confirmed + self.history_confirmed - self.carry_cashout
         return float('%.2f' % (total * 0.01))
+
+    cash_num_display.short_description = u"账户金额"
 
     def carry_pending_display(self):
         total = self.carry_pending + self.history_pending
         return float('%.2f' % (total * 0.01))
 
+    carry_pending_display.short_description = u"待确认收益"
+
     def carry_confirmed_display(self):
         total = self.carry_confirmed + self.history_confirmed
         return float('%.2f' % (total * 0.01))
 
+    carry_confirmed_display.short_description = u"已确定收益"
+
     def carry_cashout_display(self):
         return float('%.2f' % (self.carry_cashout * 0.01))
+
+    carry_cashout_display.short_description = u"已提现金额"
 
     def mama_event_link(self):
         """ 活动页面链接 """

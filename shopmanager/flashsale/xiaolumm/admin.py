@@ -376,18 +376,17 @@ class FansNumberRecordAdmin(admin.ModelAdmin):
 admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
 
 
-
 from models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
     ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, \
     UniqueVisitor, DailyStats
-    
 
 
 class MamaFortuneAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'mama_name', 'mama_level', 'fans_num', 'invite_num', 
-                    'order_num', 'carry_pending', 'carry_confirmed', 'cash_num_display', 
-                    'carry_num_display', 'modified', 'created')
+    list_display = ('mama_id', 'mama_name', 'mama_level', 'cash_num_display','carry_num_display',
+                    'carry_pending_display', 'carry_confirmed_display', 'order_num',
+                     'fans_num', 'invite_num', 'modified', 'created')
     search_fields = ['mama_id', 'mama_name']
+
 
 admin.site.register(MamaFortune, MamaFortuneAdmin)
 

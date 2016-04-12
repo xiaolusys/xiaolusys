@@ -209,7 +209,7 @@ def notifyTradeRefundTask(notify):
         if not notify['succeed']:
             srefund.feedback += notify.get('failure_msg','') or ''
             srefund.save()
-            logger.error('refund error:%s'%notify)
+            logger.warn('refund fail:%s'%notify)
             return 
         
         srefund.refund_Confirm()

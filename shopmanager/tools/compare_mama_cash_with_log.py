@@ -35,5 +35,5 @@ if __name__ == '__main__':
     print 'unmatch count:',len(unmatch)
     print '===unmatch list====:'
     for l in unmatch:
-        print l
+        print ','.join(l)
     
