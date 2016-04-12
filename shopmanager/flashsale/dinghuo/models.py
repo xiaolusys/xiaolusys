@@ -4,6 +4,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from core.fields import BigIntegerAutoField
 
+
+from core.fields import JSONCharMyField
+from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier
@@ -309,7 +312,7 @@ class SaleInventoryStat(models.Model):
 
 
 class InBound(models.Model):
-    DRAFT = 0
+    INVALID = 0
     NORMAL = 1
     PENDING = 2
 
@@ -317,13 +320,13 @@ class InBound(models.Model):
     REFUND = 2
 
     STATUS_CHOICES = (
+        (INVALID, u'作废'),
         (NORMAL, u'正常'),
         (PENDING, u'待处理')
     )
     supplier = models.ForeignKey(SaleSupplier, null=True, blank=True,
                                  related_name='inbounds', verbose_name=u'供应商')
     express_no = models.CharField(max_length=32, blank=True, verbose_name=u'快递单号')
-    orderlists = models.ManyToManyField(OrderList, through='OrderListInBound', verbose_name=u'关联订货单集合')
     sent_from = models.SmallIntegerField(default=SUPPLIER,
                                          choices=((SUPPLIER, u'供应商'), (REFUND, u'退货')), verbose_name=u'包裹类型')
     refund = models.ForeignKey(Refund, null=True, blank=True,
@@ -333,23 +336,16 @@ class InBound(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     status = models.SmallIntegerField(default=NORMAL, choices=STATUS_CHOICES, verbose_name=u'状态')
+    images = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'图片')
+
+    def __unicode__(self):
+        return str(self.id)
 
     class Meta:
         db_table = 'flashsale_dinghuo_inbound'
         app_label = 'dinghuo'
         verbose_name = u'入仓单'
         verbose_name_plural = u'入仓单列表'
-
-class InBoundImage(models.Model):
-    inbound = models.ForeignKey(InBound, related_name=u'images', verbose_name=u'入库照片')
-    pic_path = models.CharField(max_length=256, verbose_name=u'图片地址')
-    memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
-
-    class Meta:
-        db_table = 'flashsale_dinghuo_inboundimage'
-        app_label = 'dinghuo'
-        verbose_name = u'入仓单图片'
-        verbose_name_plural = u'入仓单图片列表'
 
 
 class InBoundDetail(models.Model):
@@ -373,21 +369,15 @@ class InBoundDetail(models.Model):
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
     status = models.SmallIntegerField(default=NORMAL, choices=((NORMAL, u'正常'), (PROBLEM, u'疑难')), verbose_name=u'状态')
 
+    def __unicode__(self):
+        return str(self.id)
+
     class Meta:
         db_table = 'flashsale_dinghuo_inbounddetail'
         app_label = 'dinghuo'
         verbose_name = u'入仓单明细'
         verbose_name_plural = u'入仓单明细列表'
 
-
-class OrderListInBound(models.Model):
-    orderlist = models.ForeignKey(OrderList, related_name='records', verbose_name=u'订货单')
-    inbound = models.ForeignKey(InBound, related_name='records', verbose_name=u'入仓单')
-    express_no = models.CharField(max_length=32, blank=True, verbose_name=u'快递单号')
-
-    class Meta:
-        db_table = 'flashsale_dinghuo_orderlistinbound'
-        app_label = 'dinghuo'
 
 
 class OrderDetailInBoundDetail(models.Model):
@@ -405,3 +395,5 @@ class OrderDetailInBoundDetail(models.Model):
     class Meta:
         db_table = 'dinghuo_orderdetailinbounddetail'
         app_label = 'dinghuo'
+        verbose_name = u'入仓订货明细对照'
+        verbose_name_plural = u'入仓订货明细对照列表'

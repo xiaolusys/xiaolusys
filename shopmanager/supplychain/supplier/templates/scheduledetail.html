@@ -2,6 +2,7 @@
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
+        <title>上架前确认</title>
         <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/Select-1.1.2/css/select.bootstrap.min.css"/>
@@ -27,9 +28,9 @@
          #collect-nums td:first-child {width: 300px;}
          #collect-nums td:nth-child(2){width: 150px;}
          #collect-nums td:nth-child(3){width: 300px;}
-         #remain-nums td:first-child {width: 300px;}
-         #remain-nums td:nth-child(2){width: 150px;}
-         #remain-nums td:nth-child(3){width: 300px;}
+         #remain-nums td:first-child {width: 150px;}
+         #remain-nums td:nth-child(2){width: 100px;}
+         #remain-nums td:nth-child(3){width: 100px;}
          .panel-message {
              width: 100%;
              z-index: 1;
@@ -315,6 +316,10 @@
                      {data: 'name', title: '款式名'},
                      {data: 'color', title: '颜色'},
                      {data: 'properties_name', title: '尺码'},
+                     {data: 'sale_num', title: '待发数'},
+                     {data: 'buy_num', title: '在途数'},
+                     {data: 'num', title: '库存数'},
+                     {data: 'left_num', title: '可用数'},
                      {data: 'remain_num', title: '预留数', className: 'editable'}
                  ],
                  buttons: []

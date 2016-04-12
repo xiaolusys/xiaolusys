@@ -22,11 +22,14 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from flashsale.dinghuo.models import OrderDetail, OrderList
 from flashsale.pay.models_custom import ModelProduct, Productdetail
 from core.options import log_action, ADDITION, CHANGE
 
+from shopback import paramconfig as pcfg
 from shopback.categorys.models import ProductCategory
 from shopback.items.models import Product, ProductSku
+from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 
 from . import constants, forms
 from .models import SaleSupplier, SaleCategory, SaleProduct, SaleProductManage, SaleProductManageDetail
@@ -685,9 +688,14 @@ class ScheduleDetailAPIView(APIView):
                 'model_id': 0,
                 'preview_url': ''
             }
+
+        product_outer_ids = []
+        skus_dict = {}
+        skus_dict2 = {}
         for product in Product.objects.filter(
                 sale_product__in=sale_products.keys(),
                 status=u'normal').only('pic_path', 'outer_id'):
+            product_outer_ids.append(product.outer_id)
             sale_product = sale_products.get(product.sale_product)
             if product.outer_id and product.outer_id[-1] == '1':
                 sale_product['model_id'] = product.model_id
@@ -711,25 +719,61 @@ class ScheduleDetailAPIView(APIView):
                 product_detail.save()
 
             collect_num = 0
-            is_sync_stock = True
             remain_nums = []
             for sku in product.prod_skus.filter(status='normal'):
                 collect_num += sku.quantity
                 remain_nums.append(sku.remain_num or 0)
-                if is_sync_stock and sku.quantity != sku.remain_num:
-                    is_sync_stock = False
+                sku_dict = {
+                    'id': sku.id,
+                    'num': sku.quantity,
+                    'remain_num': sku.remain_num,
+                    'sale_num': 0,
+                    'buy_num': 0
+                }
+                skus_dict['%s-%s' % (product.outer_id, sku.outer_id)] = sku_dict
+                skus_dict2['%d-%d' % (product.id, sku.id)] = sku_dict
+                sale_product.setdefault('sku_keys', []).append('%d-%d' % (product.id, sku.id))
             sale_product.setdefault('collect_nums', []).append(collect_num)
-            sale_product.setdefault('sync_stocks', []).append(is_sync_stock)
             sale_product.setdefault('remain_nums', []).extend(remain_nums)
+
+        sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
+            merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
+                                   pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
+            merge_trade__sys_status__in=
+            [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
+             pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
+             pcfg.REGULAR_REMAIN_STATUS],
+            sys_status=pcfg.IN_EFFECT, outer_id__in=product_outer_ids).values(
+                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+        for s in sale_stats:
+            skus_dict['%s-%s' % (s['outer_id'], s['outer_sku_id'])]['sale_num'] = s['sale_num']
+
+        dinghuo_stats = OrderDetail.objects \
+          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+          .filter(chichu_id__in=map(lambda x: str(x['id']), skus_dict.values())) \
+          .values('product_id', 'chichu_id') \
+          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                        inferior_quantity=Sum('inferior_quantity'))
+        for s in dinghuo_stats:
+            skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
+              min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+
+
         items = []
         for k in sorted(sale_products.keys(), reverse=True):
             item = sale_products[k]
             item['remain_num'] = min(item.get('remain_nums') or [0])
             item['collect_num'] = sum(item.get('collect_nums') or [])
-            item['is_sync_stock'] = bool(item.get('sync_stocks') and all(
-                item.get('sync_stocks') or []))
+            is_sync_stock = bool(item.get('sku_keys'))
+            for sku_key in item.get('sku_keys') or []:
+                sku_dict = skus_dict2[sku_key]
+                left_num = sku_dict['num'] + sku_dict['buy_num'] - sku_dict['sale_num']
+                if left_num != sku_dict['remain_num']:
+                    is_sync_stock = False
+                    break
+            item['is_sync_stock'] = is_sync_stock
             item.pop('collect_nums', False)
-            item.pop('sync_stocks', False)
+            item.pop('sku_keys', False)
             item.pop('remain_nums', False)
             items.append(item)
         return Response({'data': items})
@@ -873,9 +917,14 @@ class ScheduleDetailAPIView(APIView):
         collect_num = 0
         is_sync_stock = True
         remain_nums = []
+
+        product_outer_ids = []
+        skus_dict = {}
+        skus_dict2 = {}
         for product in Product.objects.filter(sale_product=_id,
                                               status='normal').only('pic_path',
                                                                     'outer_id'):
+            product_outer_ids.append(product.outer_id)
             if product.outer_id and product.outer_id[-1] == '1':
                 item['model_id'] = product.model_id
                 if product.model_id:
@@ -883,7 +932,7 @@ class ScheduleDetailAPIView(APIView):
                         model_product = ModelProduct.objects.get(
                             pk=product.model_id)
                         item['name'] = model_product.name
-                        sale_product['preview_url'] = '/static/wap/tongkuan-preview.html?id=%d' % model_product.id
+                        item['preview_url'] = '/static/wap/tongkuan-preview.html?id=%d' % model_product.id
                     except:
                         pass
                 item['has_product'] = 1
@@ -897,11 +946,47 @@ class ScheduleDetailAPIView(APIView):
             for sku in product.prod_skus.filter(status='normal'):
                 collect_num += (sku.quantity or 0)
                 remain_nums.append(sku.remain_num or 0)
-                if is_sync_stock and sku.quantity != sku.remain_num:
-                    is_sync_stock = False
+                sku_dict = {
+                    'id': sku.id,
+                    'num': sku.quantity,
+                    'remain_num': sku.remain_num,
+                    'sale_num': 0,
+                    'buy_num': 0
+                }
+                skus_dict['%s-%s' % (product.outer_id, sku.outer_id)] = sku_dict
+                skus_dict2['%d-%d' % (product.id, sku.id)] = sku_dict
+
+        sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
+            merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
+                                   pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
+            merge_trade__sys_status__in=
+            [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
+             pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
+             pcfg.REGULAR_REMAIN_STATUS],
+            sys_status=pcfg.IN_EFFECT, outer_id__in=product_outer_ids).values(
+                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+        for s in sale_stats:
+            skus_dict['%s-%s' % (s['outer_id'], s['outer_sku_id'])]['sale_num'] = s['sale_num']
+
+        dinghuo_stats = OrderDetail.objects \
+          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+          .filter(chichu_id__in=map(lambda x: str(x['id']), skus_dict.values())) \
+          .values('product_id', 'chichu_id') \
+          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                        inferior_quantity=Sum('inferior_quantity'))
+        for s in dinghuo_stats:
+            skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
+              min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+
+        is_sync_stock = bool(skus_dict.values())
+        for sku_dict in skus_dict.values():
+            left_num = sku_dict['num'] + sku_dict['buy_num'] - sku_dict['sale_num']
+            if left_num != sku_dict['remain_num']:
+                is_sync_stock = False
+                break
+        item['is_sync_stock'] = is_sync_stock
         item['remain_num'] = min(remain_nums or [0])
         item['collect_num'] = collect_num
-        item['is_sync_stock'] = is_sync_stock
         return Response({'data': [item]})
 
 
@@ -953,7 +1038,7 @@ class RemainNumAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         sale_product_id = int(request.GET.get('sale_product_id') or 0)
-        products = {}
+        products_dict = {}
         for product in Product.objects.filter(sale_product=sale_product_id,
                                               status='normal'):
             parts = product.name.rsplit('/', 1)
@@ -963,28 +1048,60 @@ class RemainNumAPIView(APIView):
                 name, color = parts[0], u'未知'
             else:
                 name, color = (u'未知',) * 2
-            products[product.id] = {
+            products_dict[product.id] = {
                 'product_id': product.id,
                 'name': name,
-                'color': color
+                'color': color,
+                'outer_id': product.outer_id
             }
 
-        for sku in ProductSku.objects.filter(product_id__in=products.keys(),
+        skus_dict = {}
+        skus_dict2 = {}
+        for sku in ProductSku.objects.filter(product_id__in=products_dict.keys(),
                                              status='normal'):
-            product = products[sku.product_id]
-            skus = product.setdefault('skus', [])
-            skus.append({
+            product = products_dict[sku.product_id]
+            sku_dict = {
                 'sku_id': sku.id,
                 'properties_name': sku.properties_name,
-                'remain_num': sku.remain_num
-            })
+                'remain_num': sku.remain_num,
+                'sale_num': 0,
+                'buy_num': 0,
+                'num': sku.quantity
+            }
+            skus_dict['%s-%s' % (product['outer_id'], sku.outer_id)] = sku_dict
+            skus_dict2['%d-%d' % (product['product_id'], sku.id)] = sku_dict
+            product.setdefault('skus', []).append(sku_dict)
+
+        sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
+            merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
+                                   pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
+            merge_trade__sys_status__in=
+            [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
+             pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
+             pcfg.REGULAR_REMAIN_STATUS],
+            sys_status=pcfg.IN_EFFECT, outer_id__in=map(lambda x: x['outer_id'], products_dict.values())).values(
+                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+        for s in sale_stats:
+            skus_dict['%s-%s' % (s['outer_id'], s['outer_sku_id'])]['sale_num'] = s['sale_num']
+
+        dinghuo_stats = OrderDetail.objects \
+          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+          .filter(chichu_id__in=map(lambda x: str(x['sku_id']), skus_dict.values())) \
+          .values('product_id', 'chichu_id') \
+          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                        inferior_quantity=Sum('inferior_quantity'))
+        for s in dinghuo_stats:
+            skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
+              min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+
         items = []
-        for k in sorted(products.keys(), reverse=True):
-            product = products[k]
+        for k in sorted(products_dict.keys(), reverse=True):
+            product = products_dict[k]
             for sku in product.get('skus', []):
                 item = copy.copy(product)
                 item.pop('skus', False)
                 item.update(sku)
+                item['left_num'] = item['num'] + item['buy_num'] - item['sale_num']
                 items.append(item)
         return Response({'data': items})
 
@@ -1024,13 +1141,44 @@ class RemainNumAPIView(APIView):
         else:
             name, color = (u'未知',) * 2
 
+        sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
+            merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
+                                   pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
+            merge_trade__sys_status__in=
+            [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
+             pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
+             pcfg.REGULAR_REMAIN_STATUS],
+            sys_status=pcfg.IN_EFFECT, outer_id=sku.product.outer_id, outer_sku_id=sku.outer_id).values(
+                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))[:1]
+        if not sale_stats:
+            sale_num = 0
+        else:
+            sale_num = sale_stats[0].get('sale_num') or 0
+
+        dinghuo_stats = OrderDetail.objects \
+          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+          .filter(chichu_id=str(sku.id)) \
+          .values('product_id', 'chichu_id') \
+          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                        inferior_quantity=Sum('inferior_quantity'))[:1]
+        if not dinghuo_stats:
+            buy_num = 0
+        else:
+            tmp = dinghuo_stats[0]
+            buy_num = tmp['buy_quantity'] - min(tmp['buy_quantity'], tmp['arrival_quantity']) - tmp['inferior_quantity']
+
+        left_num = sku.quantity + buy_num - sale_num
         item = {
             'product_id': sku.product.id,
             'sku_id': sku.id,
             'name': name,
             'color': color,
             'properties_name': sku.properties_name,
-            'remain_num': typed_value
+            'remain_num': typed_value,
+            'num': sku.quantity,
+            'buy_num': buy_num,
+            'sale_num': sale_num,
+            'left_num': left_num
         }
         return Response({'data': [item]})
 
@@ -1041,13 +1189,56 @@ class SyncStockAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         sale_product_id = int(request.POST.get('sale_product_id') or 0)
+
+        skus_dict = {}
+        skus_dict2 = {}
+        product_outer_ids = []
+        product_ids = []
+        for product in Product.objects.filter(sale_product=sale_product_id, status='normal'):
+            product_ids.append(product.id)
+            product_outer_ids.append(product.outer_id)
+            for sku in product.prod_skus.filter(status='normal'):
+                sku_dict = {
+                    'id': sku.id,
+                    'num': sku.quantity,
+                    'remain_num': sku.remain_num,
+                    'sale_num': 0,
+                    'buy_num': 0
+                }
+                skus_dict['%s-%s' % (product.outer_id, sku.outer_id)] = sku_dict
+                skus_dict2['%d-%d' % (product.id, sku.id)] = sku_dict
+
+        sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
+            merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
+                                   pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
+            merge_trade__sys_status__in=
+            [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
+             pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
+             pcfg.REGULAR_REMAIN_STATUS],
+            sys_status=pcfg.IN_EFFECT, outer_id__in=product_outer_ids).values(
+                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+        for s in sale_stats:
+            skus_dict['%s-%s' % (s['outer_id'], s['outer_sku_id'])]['sale_num'] = s['sale_num']
+
+        dinghuo_stats = OrderDetail.objects \
+          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+          .filter(product_id__in=map(str, product_ids)) \
+          .values('product_id', 'chichu_id') \
+          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                        inferior_quantity=Sum('inferior_quantity'))
+        for s in dinghuo_stats:
+            skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
+              min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+
+
         for product in Product.objects.filter(sale_product=sale_product_id,
                                               status='normal'):
             collect_num = 0
             for sku in product.prod_skus.filter(status='normal'):
-                if sku.quantity:
-                    collect_num += sku.quantity
-                sku.remain_num = sku.quantity
+                sku_dict = skus_dict2['%d-%d' % (product.id, sku.id)]
+                left_num = sku.quantity + sku_dict['buy_num'] - sku_dict['sale_num']
+                collect_num += left_num
+                sku.remain_num = left_num
                 sku.save()
             product.collect_num = collect_num
             product.remain_num = collect_num

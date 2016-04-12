@@ -6,6 +6,8 @@
         <title>小鹿美美 - 入库后台</title>
         <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}xiaolu-uploader/uploader.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
         <style>
          body > div.container {
              width: 98%;
@@ -80,7 +82,7 @@
          }
 
          label.control-label {
-             font-size: 24px;
+             font-size: 20px;
          }
 
          #form-1 .btn {
@@ -128,11 +130,29 @@
              padding: 20px 0 35px !important;
          }
 
+         #memo-panel {
+	     position: fixed;
+	     bottom: 100px;
+             width: 80px;
+             top: 36%;
+             left: 50px;
+	     text-align: center;
+	     z-index: 1;
+         }
+         #memo-panel a {
+             font-size: 20px;
+             width: 75px;
+             display: inline-block;
+         }
+
+         #cancel-btn {
+             display: none;
+             margin-top: 10px;
+         }
         </style>
     </head>
     <body>
         <div class="container">
-
             <form id="form-1">
                 <div class="row">
                     <div class="col-md-6 form-group">
@@ -165,13 +185,17 @@
                 <div class="row">
                     <div class="panel panel-default">
                         <div class="panel-body">
-                            <h2 style="text-align:center;margin-bottom:30px">
+                            <h2 style="text-align:center">
                                 {% if sent_from == 1 %}
                                 供应商入库
                                 {% else %}
                                 退货入仓
                                 {% endif %}
                             </h2>
+                            {% if sent_from == 1 %}
+                            <h2 style="text-align:center;margin-top:0"><small>{{supplier_name}}</small></h2>
+                            {% endif %}
+                            <p style="margin-bottom:30px"></p>
                             <table class="table table-striped" style="width:70%;margin:0 auto">
                                 <tr>
                                     <th>商品名</th>
@@ -189,11 +213,21 @@
                                 <tr class="sku" data-product-id="{{ product.id }}" data-sku-id="{{ sku.id }}">
                                     {% if forloop.first %}
                                     <td rowspan="{{ product.skus|length }}">{{ product.name }}</td>
-                                    <td rowspan="{{ product.skus|length }}">{{ product.id }}</td>
-                                    <td rowspan="{{ product.skus|length }}">{{ product.outer_id }}</td>
+                                    <td rowspan="{{ product.skus|length }}">
+                                        <a href="/admin/items/product/?id={{ product.id }}" target="_blank">
+                                            {{ product.id }}
+                                        </a>
+                                    </td>
+                                    <td rowspan="{{ product.skus|length }}">
+                                        <a href="/admin/items/product/?outer_id={{ product.outer_id }}" target="_blank">
+                                            {{ product.outer_id }}
+                                        </a>
+                                    </td>
                                     <td rowspan="{{ product.skus|length }}">
                                         <div class="portfolio-box">
-                                            <img src="{{ product.pic_path }}" class="img-circle">
+                                            <a href="{{ product.product_link }}" target="_blank">
+                                                <img src="{{ product.pic_path }}" class="img-circle">
+                                            </a>
                                         </div>
                                     </td>
                                     {% endif %}
@@ -205,11 +239,11 @@
                                     </td>
                                     <td>
                                         <input type="number" class="arrival-quantity"
-                                               style="width:100px" min="0" max="{{ sku.plan_quantity }}">
+                                               style="width:100px" min="0" max="{{ sku.plan_quantity }}" value="{{ sku.arrival_quantity|default:'' }}">
                                     </td>
                                     <td>
                                         <input type="number" class="inferior-quantity"
-                                               style="width:100px" min="0" max="{{ sku.plan_quantity }}">
+                                               style="width:100px" min="0" max="{{ sku.plan_quantity }}" value="{{ sku.inferior_quantity|default:'' }}">
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -229,12 +263,49 @@
             </form>
             {% endif %}
         </div>
+        <div class="modal fade" id="memo-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body" id="plupload-container">
+                        <button type="button" class="close" data-dismiss="modal" arial-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <form>
+                            <div class="form-group">
+                                <label class="control-label">备注:</label><br>
+                                <textarea id="memo" rows="5" cols="40">{{ memo|default:'' }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">拍照:</label>
+                                <input type="hidden" id="pickfiles">
+                                <ul id="images" class="uploader"></ul>
+                            </div>
+                        </form>
+                        <div style="clear:both"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" style="width:80px">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="memo-panel">
+            <a href="javascript:;" class="btn btn-warning btn-block" id="memo-btn">备注</a>
+            <br>
+            <a href="javascript:;" class="btn btn-danger btn-block" id="cancel-btn">作废</a>
+        </div>
         <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
         <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
         <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
         <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
         <script src="{{ STATIC_URL }}list.js"></script>
         <script src="{{ STATIC_URL }}typeahead.bundle.min.js"></script>
+        <script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+        <script src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+        <script src="{{ STATIC_URL }}script/qiniu.js"></script>
+        <script src="{{ STATIC_URL }}xiaolu-uploader/uploader.js"></script>
+        <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
         <script>
          var SENT_FROM_SUPPLIER = 1;
          var SENT_FROM_REFUND = 2;
@@ -247,6 +318,7 @@
 
          var suppliers = {{ suppliers|jsonify }};
          var expressNos = {{ express_nos|jsonify }};
+         var images = {{ images|jsonify }};
 
          $.noty.defaults = $.extend($.noty.defaults, {
              animation: {
@@ -283,18 +355,20 @@
 
              formData.skus = JSON.stringify(skus);
              formData.inbound_id = $('#inbound-id').val() - 0 || 0;
+             formData.memo = $('#memo').val();
+             formData.images = JSON.stringify($('#images').uploader('getData'));
              return formData;
          }
 
          function getRequestUrl(formData){
              var requestUrl;
-             if(formData.sent_from==SENT_FROM_SUPPLIER){
+             if(formData.sent_from == SENT_FROM_SUPPLIER){
                  if(formData.inbound_id)
                      requestUrl = EDIT_SUPPLIER_INBOUND_URL;
                  else
                      requestUrl = CREATE_SUPPLIER_INBOUND_URL;
              }
-             else if(formData.sent_from==SENT_FROM_REFUND){
+             else if(formData.sent_from == SENT_FROM_REFUND){
                  if(formData.inbound_id)
                      requestUrl = EDIT_REFUND_INBOUND_URL;
                  else
@@ -305,12 +379,23 @@
 
          function initUI(formData){
              if(formData.inbound_id){
+                 $('#cancel-btn').show();
                  $('#form-2 .reset').hide();
                  $('#form-2 .submit').html('修改');
              }
          }
 
          $(function(){
+             $('#images').uploader({
+                 fileButton: 'pickFiles',
+                 domain: 'http://image.xiaolu.so/',
+                 maxLength: 100,
+                 width: 100,
+                 height: 100
+             });
+             if(images)
+                 $('#images').uploader('setData', images);
+
              var formData = getFormData();
              initUI(formData);
 
@@ -415,6 +500,7 @@
                          }
                          else{
                              if(result.inbound_id && (result.inbound_id - 0)){
+                                 $('#cancel-btn').show();
                                  $('#inbound-id').val(result.inbound_id);
                                  $('#form-2 .reset').hide();
                                  $('#form-2 .submit').html('修改');
@@ -436,6 +522,46 @@
              });
              $('#form-1 .reset, #form-2 .reset').click(function(){
                  $(this).closest('form').find('input').val('');
+             });
+             $('#form-1').submit(function(){
+                 $('#inbound-id').val('');
+                 return true;
+             });
+
+             $('#memo-btn').click(function(){
+                 $('#memo-modal').modal('toggle');
+             });
+
+             $('#cancel-btn').click(function(){
+                 swal({
+                     title: '警告',
+                     text: '作废后无法恢复',
+                     type: 'warning',
+                     showCancelButton: true,
+                     confirmButtonText: '确认',
+                     cancelButtonText: '取消'
+                 }, function(){
+                     var inbound_id = $('#inbound-id').val() - 0;
+                     if(!inbound_id)
+                         return;
+                     $.ajax({
+                         url: '/sale/dinghuo/dinghuo_orderlist/' + inbound_id + '/cancel',
+                         type: 'post',
+                         dataType: 'json',
+                         success: function(result){
+                             if(result.msg){
+                                 $('#tips').noty({
+                                     text: result.msg,
+                                     type: 'information',
+                                     theme: 'bootstrapTheme',
+                                     closeWith: ['button', 'click'],
+                                     maxVisible: 20,
+                                     modal: false
+                                 });
+                             }
+                         }
+                     });
+                 });
              });
          });
         </script>
