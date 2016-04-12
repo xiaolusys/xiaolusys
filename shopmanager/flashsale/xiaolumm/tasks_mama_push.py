@@ -39,16 +39,16 @@ def push_msg_to_topic_mama(message):
         mipush_of_android.push_to_topic(push_constants.TOPIC_XLMM_A,
                                         {'target_url': target_url},
                                         description=message)
-        mipush_of_ios.push_to_account(push_constants.TOPIC_XLMM_A,
-                                      {'target_url': target_url},
-                                      description=message)
+        mipush_of_ios.push_to_topic(push_constants.TOPIC_XLMM_A,
+                                    {'target_url': target_url},
+                                    description=message)
 
         mipush_of_android.push_to_topic(push_constants.TOPIC_XLMM_VIP,
                                         {'target_url': target_url},
                                         description=message)
-        mipush_of_ios.push_to_account(push_constants.TOPIC_XLMM_VIP,
-                                      {'target_url': target_url},
-                                      description=message)
+        mipush_of_ios.push_to_topic(push_constants.TOPIC_XLMM_VIP,
+                                    {'target_url': target_url},
+                                    description=message)
 
 
 @task
