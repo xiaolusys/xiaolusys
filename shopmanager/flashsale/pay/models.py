@@ -633,14 +633,6 @@ class SaleOrder(PayBaseModel):
         return self.outer_id.startswith('RMB')
 
 
-def refresh_sale_trade_status(sender, instance, *args, **kwargs):
-    """ 更新订单状态 """
-    # TODO
-
-
-post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
-
-
 def order_trigger(sender, instance, created, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
@@ -659,14 +651,17 @@ def refresh_package_sku_item(sale_order):
     """ 更新订单状态 """
     if sale_order.status not in [SaleOrder.TRADE_NO_CREATE_PAY, SaleOrder.WAIT_BUYER_PAY]:
         from shopback.trades.models import PackageSkuItem
-        package_sku_item, state = PackageSkuItem.objects.get_or_create(
-            sale_order_id=sale_order.pk
-        )
+        try:
+            package_sku_item = PackageSkuItem.objects.get(
+                sale_order_id=sale_order.pk
+            )
+        except:
+            package_sku_item = PackageSkuItem(sale_order_id=sale_order.pk)
         package_sku_item.status = sale_order.status
         # package_sku_item.sys_status = sale_order.sys_status
         package_sku_item.refund_status = sale_order.refund_status
         attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
-                 'payment', 'discount_fee']  # 'cid',, 'adjust_fee', 'sku_properties_name']
+                 'payment', 'discount_fee']
         attrs.append('assign_status')
         # package_sku_item.sku_properties_name = sale_order.properties_values
         for attr in attrs:

@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from flashsale.pay.models import SaleOrder, SaleTrade
+from flashsale.pay.models import SaleOrder, SaleTrade, refresh_package_sku_item
 from shopback.trades.models import MergeTrade, PackageOrder, PackageSkuItem
 
 # ADD COLUMN `pid` bigint(20) auto_increment NOT NULL PRIMARY KEY,
@@ -36,8 +36,10 @@ def set_package_attr(package, sale_trade, merge_trade):
     return
 
 def set_package_sku_item():
-    for sale_order in SaleOrder.objects.exclude(status__in=[SaleOrder.TRADE_NO_CREATE_PAY, SaleOrder.WAIT_BUYER_PAY])[0:5]:
-        sale_order.save()
+    for sale_order in SaleOrder.objects.exclude(status__in=[SaleOrder.TRADE_NO_CREATE_PAY,
+        SaleOrder.WAIT_BUYER_PAY, SaleOrder.TRADE_FINISHED, SaleOrder.TRADE_CLOSED,
+        SaleOrder.TRADE_CLOSED_BY_SYS]):
+        refresh_package_sku_item(sale_order)
 
 # sku_order = SaleOrder.objects.filter(package_order_id=package.id)[0]
 # sale_trade = SaleTrade.objects.get(id=sku_order.sale_trade_id)
