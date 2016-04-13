@@ -588,3 +588,39 @@ def task_close_refund(days=None):
                                                created__lte=time_point)  # 这里不考虑退货状态
                                                # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
     res = map(close_refund, aggree_refunds)
+
+
+@task
+def task_saleorder_update_package_sku_item(sale_order):
+    from shopback.trades.models import PackageSkuItem    
+    items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
+    if items.count() <= 0:
+        if not sale_order.is_pending():
+            # we create PackageSkuItem only if sale_order is 'pending'.
+            return
+        sku_item = PackageSkuItem(sale_order_id=sale_order.id)
+    else:
+        sku_item = items[0]
+        if sku_item.is_finished():
+            # if it's finished, that means the package is sent out,
+            # then we dont do further updates, simply return.
+            return
+
+    # Now the package has not been sent out yet.
+    
+    if sale_order.is_canceled() or sale_order.is_confirmed():
+        # If saleorder is canceled or confirmed before we send out package, we
+        # then dont want to send out the package, simply cancel. Note: if the
+        # order is confirmed, we assume the customer does not want the package
+        # to be sent to him (most likely because it's not necessary, maybe she/he
+        # bought a virtual product).
+        sku_item.assign_status = PackageSkuItem.CANCELED
+    
+    attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
+             'payment', 'discount_fee', 'refund_status', 'status']
+    for attr in attrs:
+        if hasattr(sale_order, attr):
+            val = getattr(sale_order, attr)
+            setattr(sku_item, attr, val)
+    
+    sku_item.save()
