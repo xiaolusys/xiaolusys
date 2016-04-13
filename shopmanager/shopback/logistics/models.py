@@ -12,6 +12,9 @@ from shopback.monitor.models import TradeExtraInfo
 from common.utils import parse_datetime
 from auth import apis
 import logging
+from shopback import paramconfig as pcfg
+
+POST_STATE = (u'甘肃', u'青海', u'陕西', u'广西', u'宁夏', u'贵州', u'内蒙', u'西藏', u'新疆', u'云南')
 
 logger = logging.getLogger('django.request')
 
@@ -250,3 +253,41 @@ class Logistics(models.Model):
             trade_extra_info.is_update_logistic = True
             trade_extra_info.save()
         return logistic
+
+
+class LogisticsCompanyProcessor(object):
+    @staticmethod
+    def getYundaLGC():
+        return LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
+
+    @staticmethod
+    def getGZLogisticCompany(state, city, district, shipping_type, receiver_address):
+        if not state or not city or not district:
+            raise Exception(u"地址不全(请精确到省市区（县）)")
+        if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
+            # 定制订单快递分配
+            if (receiver_address.find(u'镇') >= 0 and receiver_address.find(u'村') >= 0):
+                if state.startswith(POST_STATE):
+                    return LogisticsCompany.objects.get_or_create(code='POSTB')[0]
+            return LogisticsCompanyProcessor.getYundaLGC()
+        elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
+                               pcfg.EMS_SHIPPING_TYPE.upper()):
+            return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]
+
+    @staticmethod
+    def getSHLogisticCompany(state, city, district, shipping_type, receiver_address):
+        if not state or not city or not district:
+            raise Exception(u"地址不全(请精确到省市区（县）)")
+
+        if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
+            # 定制订单快递分配
+            if (receiver_address.find(u'镇') >= 0
+                and receiver_address.find(u'村') >= 0):
+                if state.startswith(POST_STATE):
+                    return LogisticsCompany.objects.get_or_create(code='POSTB')[0]
+                return LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
+
+            return LogisticsCompany.get_recommend_express(state, city, district)
+        elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
+                               pcfg.EMS_SHIPPING_TYPE.upper()):
+            return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]

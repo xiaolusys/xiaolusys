@@ -150,8 +150,6 @@ def confirmTradeChargeTask(sale_trade_id, charge_time=None):
     strade.charge_confirm(charge_time=charge_time)
     saleservice = FlashSaleService(strade)
     saleservice.payTrade()
-    for sale_order in strade.sale_orders.all():
-        ProductSku.objects.get(id=sale_order.sku_id).assign_packages()
 
 
 @task(max_retry=3, default_retry_delay=60)

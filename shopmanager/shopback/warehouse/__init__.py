@@ -1,0 +1,2 @@
+WARE_SH = 1
+WARE_GZ = 2

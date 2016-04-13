@@ -1,3 +1,46 @@
+######## 2016-04-13 ########
+ALTER TABLE `flashsale_package`
+ADD COLUMN `pid` bigint(20) auto_increment NOT NULL PRIMARY KEY,
+ADD COLUMN `is_picking_print`  tinyint(1) NOT NULL DEFAULT 0 AFTER `is_charged`,
+ADD COLUMN `is_express_print`  tinyint(1) NOT NULL DEFAULT 0 AFTER `is_picking_print`,
+ADD COLUMN `is_send_sms`  tinyint(1) NOT NULL DEFAULT 0 AFTER `is_express_print`,
+ADD COLUMN `has_refund`  tinyint(1) NOT NULL DEFAULT 0 AFTER `is_send_sms`,
+ADD COLUMN `seller_id`  bigint NULL DEFAULT 12 AFTER `sys_status`,
+ADD COLUMN `buyer_nick`  varchar(64) NULL AFTER `buyer_id`,
+ADD COLUMN `type`  varchar(32) NOT NULL  DEFAULT 'sale' AFTER `ware_by`;
+ADD COLUMN `gift_type`  int(11) NOT NULL DEFAULT 0 AFTER `lg_aging_type`,
+ADD COLUMN `consign_time`  datetime NULL AFTER `remind_time`,
+ADD COLUMN `buyer_message`  text NULL AFTER `post_cost`,
+ADD COLUMN `seller_memo`  text NULL AFTER `buyer_message`,
+ADD COLUMN `sys_memo`  text NULL AFTER `seller_memo`,
+ADD COLUMN `seller_flag`  int NULL AFTER `sys_memo`;
+
+alter table flashsale_order buyer_id index;
+
+CREATE TABLE `flashsale_package_sku_item` (
+    `id` bigint(20) auto_increment NOT NULL PRIMARY KEY,
+    `sale_order_id` bigint NOT NULL,
+    `package_order_id` varchar(100),
+    `gift_type` integer NOT NULL,
+    `assign_status` integer NOT NULL,
+    `status` varchar(32) NOT NULL,
+    `sys_status` varchar(32) NOT NULL,
+    `ware_by` integer NOT NULL,
+    `refund_status` integer NOT NULL,
+    `cid` bigint,
+    `title` varchar(128) NOT NULL,
+    `price` double precision NOT NULL,
+    `sku_id` varchar(20) NOT NULL,
+    `num` integer,
+    `outer_id` varchar(20) NOT NULL,
+    `outer_sku_id` varchar(20) NOT NULL,
+    `total_fee` double precision NOT NULL,
+    `payment` double precision NOT NULL,
+    `discount_fee` double precision NOT NULL,
+    `adjust_fee` double precision NOT NULL,
+    `sku_properties_name` varchar(256) NOT NULL
+);
+
 ######## 2016-04-13 ##########
 alter table flashsale_dinghuo_inbound add column orderlist_ids longtext;
 alter table flashsale_promotion_download_record drop column ufrom;
