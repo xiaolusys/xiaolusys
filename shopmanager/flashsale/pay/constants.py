@@ -16,6 +16,9 @@ CHANNEL_CHOICES = (
     (UPMP_WAP, u'银联'),
 )
 
+ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS = 14
+ORDER_SIGNED_TO_FINISHED_DAYS = 2
+
 MALL_LOGIN_URL = '/pages/denglu.html'
 MAIL_PAY_SUCCESS_URL = '/pages/zhifucg.html'
 MAIL_PAY_CANCEL_URL = '/pages/zhifucg.html'

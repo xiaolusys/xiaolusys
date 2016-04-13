@@ -633,6 +633,7 @@ class StatsByProductIdView(View):
         pro_bean = Product.objects.filter(id=product_id, status=Product.NORMAL)
         dinghuo_begin_str = request.GET.get("showt_begin")
         dinghuo_begin = ""
+        order_details = OrderDetail.objects.none()
         if pro_bean.count() > 0:
             if not dinghuo_begin_str:
                 dinghuo_begin = pro_bean[0].sale_time
