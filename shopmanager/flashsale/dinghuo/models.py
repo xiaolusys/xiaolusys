@@ -339,6 +339,7 @@ class InBound(models.Model):
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     status = models.SmallIntegerField(default=NORMAL, choices=STATUS_CHOICES, verbose_name=u'状态')
     images = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'图片')
+    orderlist_ids = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'订货单ID')
 
     def __unicode__(self):
         return str(self.id)

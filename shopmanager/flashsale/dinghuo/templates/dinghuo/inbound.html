@@ -8,6 +8,7 @@
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}chosen_v1.5.1/chosen.min.css" rel="stylesheet">
         <style>
          body > div.container {
              width: 98%;
@@ -115,9 +116,12 @@
              font-size: 20px;
          }
 
-         #form-2 input {
+         #form-2 input[type="number"] {
              text-align: center;
              height: 40px;
+         }
+         #form-2 input{
+             font-size: 18px;
          }
 
         #tips {
@@ -148,6 +152,14 @@
          #cancel-btn {
              display: none;
              margin-top: 10px;
+         }
+         .chosen-container span, .chosen-results li {
+             font-size: 16px;
+             font-weight: normal;
+         }
+         i.warning {
+             color: red;
+             display: none;
          }
         </style>
     </head>
@@ -198,7 +210,16 @@
                             <p style="margin-bottom:30px"></p>
                             <table class="table table-striped" style="width:70%;margin:0 auto">
                                 <tr>
-                                    <th>商品名</th>
+                                    <th>
+                                        商品名
+                                        <p>
+                                            <select class="chosen-select form-control" id="select-product-names" multiple data-placeholder="搜索商品名">
+                                                {% for product in data %}
+                                                <option value="{{ product.id }}">{{ product.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </p>
+                                    </th>
                                     <th>商品ID</th>
                                     <th>编码</th>
                                     <th width="120px">图片</th>
@@ -234,16 +255,18 @@
                                     <td>{{ sku.id }}</td>
                                     <td>{{ sku.properties_name }}</td>
                                     <td class="plan-quantity">
-                                        <p class="n">{{ sku.plan_quantity }}</p>
-                                        <p><small class="error"></small></p>
+                                        <p class="n">
+                                            <i class="glyphicon glyphicon-info-sign warning" data-plan-quantity="{{ sku.plan_quantity }}"></i>
+                                            {{ sku.plan_quantity }}
+                                        </p>
                                     </td>
                                     <td>
-                                        <input type="number" class="arrival-quantity"
-                                               style="width:100px" min="0" max="{{ sku.plan_quantity }}" value="{{ sku.arrival_quantity|default:'' }}">
+                                        <input type="number" class="arrival-quantity form-control"
+                                               style="width:100px" min="0" value="{{ sku.arrival_quantity|default:'' }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="inferior-quantity"
-                                               style="width:100px" min="0" max="{{ sku.plan_quantity }}" value="{{ sku.inferior_quantity|default:'' }}">
+                                        <input type="number" class="inferior-quantity form-control"
+                                               style="width:100px" min="0" value="{{ sku.inferior_quantity|default:'' }}">
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -306,10 +329,12 @@
         <script src="{{ STATIC_URL }}script/qiniu.js"></script>
         <script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js"></script>
         <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
+        <script src="{{ STATIC_URL }}chosen_v1.5.1/chosen.jquery.js"></script>
         <script>
          var SENT_FROM_SUPPLIER = 1;
          var SENT_FROM_REFUND = 2;
          var SKU_TR_TPL = _.template('tr[data-sku-id="<%= sku_id %>"]');
+         var PRODUCT_TR_TPL = _.template('tr[data-product-id="<%= product_id %>"]');
          var CREATE_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/create_supplier_inbound';
          var EDIT_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/edit_supplier_inbound';
 
@@ -328,6 +353,31 @@
                  speed: 500
              }
          });
+
+         function onSelectChange(e, params){
+             var productIds = $('#select-product-names').val();
+             if(productIds && productIds.length){
+                 var propArray = _.map(productIds, function(el){
+                     return PRODUCT_TR_TPL({product_id: el});
+                 });
+
+                 $('tr[data-product-id]').each(function(index){
+                     var $this = $(this);
+                     if($this.is(propArray.join(','))){
+                         if($this.is(':visible'))
+                             return;
+                         $this.slideDown();
+                     }
+                     else{
+                         if($this.is(':visible'))
+                             $this.slideUp();
+                     }
+                 });
+             }
+             else{
+                 $('tr[data-product-id]').slideDown();
+             }
+         }
 
          function getFormData(){
              var skus, sku_id;
@@ -382,6 +432,20 @@
                  $('#cancel-btn').show();
                  $('#form-2 .reset').hide();
                  $('#form-2 .submit').html('修改');
+             }
+         }
+
+         function onInputChange(){
+             var $tr = $(this).closest('tr');
+             var arrival_quantity = parseInt($tr.find('input.arrival-quantity').val()) || 0;
+             var inferior_quantity = parseInt($tr.find('input.inferior-quantity').val()) || 0;
+             if(arrival_quantity || inferior_quantity){
+                 var $i = $tr.find('i.warning');
+                 var plan_quantity = parseInt($i.attr('data-plan-quantity'));
+                 if(arrival_quantity + inferior_quantity > plan_quantity)
+                     $i.slideDown();
+                 else
+                     $i.slideUp();
              }
          }
 
@@ -490,14 +554,6 @@
                                  maxVisible: 20,
                                  modal: false
                              });
-
-                             if(result.error_skus){
-                                 _.each(result.error_skus, function(v, k){
-                                     var el = $(SKU_TR_TPL({sku_id: k}));
-                                     el.find('.plan-quantity p.n').html(v.plan_quantity);
-                                     el.find('.plan-quantity small.error').html(v.error);
-                                 });
-                             }
                          }
                          else{
                              if(result.inbound_id && (result.inbound_id - 0)){
@@ -564,6 +620,17 @@
                      });
                  });
              });
+             $('.chosen-select').chosen({
+                 no_results_text: '无此记录'
+             }).on('change', onSelectChange);
+
+             $('i.warning').popover({
+                 html: true,
+                 trigger: 'hover',
+                 content: '输入大于待入库数'
+             });
+
+             $('input.arrival-quantity,input.inferior-quantity').each(onInputChange).change(onInputChange);
          });
         </script>
     </body>
