@@ -9,15 +9,15 @@ ETS_COUPON = '2'
 ETS_BUDGET = '3'
 
 DISCOUNT = 0
-BUDGET   = 1
-REALPAY  = 2
+BUDGET = 1
+REALPAY = 2
 
 PAY_EXTRAS = {
-    ETS_APPCUT:{'pid':1,'type':DISCOUNT,'value':2,'name':'APP支付减2元'},
-    ETS_COUPON:{'pid':2,'type':DISCOUNT,'use_coupon_allowed':1,'value':2,'name':'优惠券'}, #1,能使用优惠券,0,不能使用,value:2兼容v1版本接口
-    ETS_BUDGET:{'pid':3,'type':BUDGET,'value':0,'name':'余额支付'},
-} 
-
+    ETS_APPCUT: {'pid': 1, 'type': DISCOUNT, 'value': 2, 'name': 'APP支付减2元'},
+    ETS_COUPON: {'pid': 2, 'type': DISCOUNT, 'use_coupon_allowed': 1, 'value': 2, 'name': '优惠券'},
+    # 1,能使用优惠券,0,不能使用,value:2兼容v1版本接口
+    ETS_BUDGET: {'pid': 3, 'type': BUDGET, 'value': 0, 'name': '余额支付'},
+}
 
 SHARE_LINK = ""
 PYQ_TITLES = [
@@ -26,5 +26,5 @@ PYQ_TITLES = [
     '哈哈，只有1%的人知道，原来这两个我都想要～'
 ]
 
-#妈妈邀请新代理的url地址
+# 妈妈邀请新代理的url地址
 MAMA_INVITE_AGENTCY_URL = '{site_url}/pages/agency-invitation-res.html'

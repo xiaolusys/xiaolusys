@@ -126,7 +126,7 @@ def province_raw_handler(pay_raw=None, weixin_raw=None):
     for s in pro_s:  # 寻找存在的KEY求和
         x = pay_raw_dic[s] if s in pay_raw_dic else 0
         y = weixin_raw_dic[s] if s in weixin_raw_dic else 0
-        sum_num =x + y
+        sum_num = x + y
         sum_lit.append((s, sum_num))
 
     sum_lit = sorted(sum_lit, key=lambda s: s[1])

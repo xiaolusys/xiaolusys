@@ -16,7 +16,7 @@ class UserIntegralViewSet(viewsets.ModelViewSet):
     queryset = Integral.objects.all()
     serializer_class = serializers.UserIntegralSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
@@ -38,7 +38,7 @@ class UserIntegralLogViewSet(viewsets.ModelViewSet):
     queryset = IntegralLog.objects.all()
     serializer_class = serializers.UserIntegralLogSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):

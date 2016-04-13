@@ -5,6 +5,8 @@ from django.db.models import signals
 # from djangorestframework import status
 from rest_framework import status
 from django.http import HttpResponse, Http404
+
+
 class PaginatorMixin(object):
     """
     Adds pagination support to GET requests
@@ -58,7 +60,7 @@ class PaginatorMixin(object):
             'total': page.paginator.count,
         }
 
-    def custom_result(self,obj):
+    def custom_result(self, obj):
         """we can override this to custom reponse result"""
         return obj
 
@@ -79,7 +81,7 @@ class PaginatorMixin(object):
 
         obj = self.custom_result(obj)
 
-        if not isinstance(obj,QuerySet):
+        if not isinstance(obj, QuerySet):
             return self._resource.filter_response(obj)
 
         paginator = Paginator(obj, self.get_limit())
@@ -90,16 +92,16 @@ class PaginatorMixin(object):
             page_num = 1
 
         if page_num not in paginator.page_range:
-            raise      Http404({'detail': 'That page contains no results'})                               # ErrorResponse(status.HTTP_404_NOT_FOUND, {'detail': 'That page contains no results'})
+            raise Http404({
+                              'detail': 'That page contains no results'})  # ErrorResponse(status.HTTP_404_NOT_FOUND, {'detail': 'That page contains no results'})
 
         page = paginator.page(page_num)
-
 
         serialized_object_list = self._resource.filter_response(page.object_list)
         serialized_page_info = self.serialize_page_info(page)
 
         serialized_page_info['results'] = serialized_object_list
-        
+
         return serialized_page_info
 
 
@@ -126,6 +128,7 @@ class CounterMixin(object):
 class BatchGetMixin(object):
     """docstring for ClassName"""
     pk_field = 'pk'
+
     def get_queryset(self):
         """docstring for get_queryset"""
         queryset = self.queryset if self.queryset else self.resource.model.objects
@@ -133,13 +136,14 @@ class BatchGetMixin(object):
 
         ids = self.request.GET.get('ids', None)
         if ids:
-            return queryset.filter(**{'%s__in' % self.pk_field:ids.split(',')})
+            return queryset.filter(**{'%s__in' % self.pk_field: ids.split(',')})
 
         return queryset
 
 
 class DeleteModelMixin(object):
     """docstring for ClassName"""
+
     def delete(self, request, *args, **kwargs):
         model = self.resource.model
 
@@ -151,14 +155,15 @@ class DeleteModelMixin(object):
                 # Otherwise assume the kwargs uniquely identify the model
                 instance = model.objects.get(**kwargs)
         except model.DoesNotExist:
-            raise  Http404                       # ErrorResponse(status.HTTP_404_NOT_FOUND, None, {})
+            raise Http404  # ErrorResponse(status.HTTP_404_NOT_FOUND, None, {})
 
-        instance.status=False
+        instance.status = False
         instance.save()
 
         signals.post_delete.send(sender=model, obj=instance, request=self.request)
 
         return
+
 
 def as_tuple(obj):
     """
@@ -177,4 +182,3 @@ def as_tuple(obj):
     elif isinstance(obj, tuple):
         return obj
     return (obj,)
-

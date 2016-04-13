@@ -5,59 +5,54 @@ import calendar
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from common.utils import format_time,format_datetime,format_year_month,parse_datetime
+from common.utils import format_time, format_datetime, format_year_month, parse_datetime
 from shopback.refunds.models import Refund
 from shopback.users.models import User
 from auth import apis
 import logging
+
 __author__ = 'meixqhi'
 
 logger = logging.getLogger('django.request')
 
 
-
 @task(max_retry=3)
-def saveUserRefundOrderTask(user_id,update_from=None,update_to=None):
-
+def saveUserRefundOrderTask(user_id, update_from=None, update_to=None):
     update_from = format_datetime(update_from)
-    update_to   = format_datetime(update_to)
+    update_to = format_datetime(update_to)
 
     has_next = True
     cur_page = 1
 
     while has_next:
-        
-        response_list = apis.taobao_refunds_receive_get(tb_user_id=user_id,page_no=cur_page,
-             page_size=settings.TAOBAO_PAGE_SIZE,start_modified=update_from,end_modified=update_to)
+
+        response_list = apis.taobao_refunds_receive_get(tb_user_id=user_id, page_no=cur_page,
+                                                        page_size=settings.TAOBAO_PAGE_SIZE, start_modified=update_from,
+                                                        end_modified=update_to)
 
         refund_list = response_list['refunds_receive_get_response']
-        if refund_list['total_results']>0:
+        if refund_list['total_results'] > 0:
             for r in refund_list['refunds']['refund']:
-
-                refund,state = Refund.objects.get_or_create(refund_id=r['refund_id'])
-                refund.save_refund_through_dict(user_id,r)
+                refund, state = Refund.objects.get_or_create(refund_id=r['refund_id'])
+                refund.save_refund_through_dict(user_id, r)
 
         total_nums = refund_list['total_results']
-        cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
-        has_next = cur_nums<total_nums
+        cur_nums = cur_page * settings.TAOBAO_PAGE_SIZE
+        has_next = cur_nums < total_nums
         cur_page += 1
-        
-
-
 
 
 @task()
-def updateAllUserRefundOrderTask(days=0,update_from=None,update_to=None):
-
-    hander_update  = update_from and update_to
+def updateAllUserRefundOrderTask(days=0, update_from=None, update_to=None):
+    hander_update = update_from and update_to
     if not hander_update:
-        dt  = datetime.datetime.now()
-        update_from = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(days,0,0)
-        update_to   = dt
+        dt = datetime.datetime.now()
+        update_from = datetime.datetime(dt.year, dt.month, dt.day, 0, 0, 0) - datetime.timedelta(days, 0, 0)
+        update_to = dt
 
-    users = User.effect_users.filter(type__in=('B','C'))
+    users = User.effect_users.filter(type__in=('B', 'C'))
     for user in users:
-        saveUserRefundOrderTask(user.visitor_id,update_from=update_from,update_to=update_to)
+        saveUserRefundOrderTask(user.visitor_id, update_from=update_from, update_to=update_to)
 
 
 from flashsale.pay.models import SaleOrder, SaleRefund
@@ -135,8 +130,8 @@ def taskRefundRecord(obj):
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
                 refund_record.ref_sed_num = F('ref_sed_num') + 1
-            write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
-        if order.status in (SaleOrder.WAIT_SELLER_SEND_GOODS, ):
+            write_dinghuo_return_pro(obj)  # 计算到订货表中的退货数量
+        if order.status in (SaleOrder.WAIT_SELLER_SEND_GOODS,):
             # 如果　未发货　　则　算入　24小时外未发货退款数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_num_out = 1
@@ -149,7 +144,7 @@ def taskRefundRecord(obj):
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
                 refund_record.ref_sed_num = F('ref_sed_num') + 1
-            write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
+            write_dinghuo_return_pro(obj)  # 计算到订货表中的退货数量
         else:  # 否则　算入　24小时内　　　退款数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_num_in = 1
@@ -169,8 +164,8 @@ def record_supplier(obj):
         Raises: None
     """
     try:
-        item_id = obj.item_id   # 商品id
-        pro = Product.objects.get(id=item_id)   # 找到商品
+        item_id = obj.item_id  # 商品id
+        pro = Product.objects.get(id=item_id)  # 找到商品
         sal_p, supplier = pro.pro_sale_supplier()
         if supplier is not None:
             supplier.total_refund_num = F('total_refund_num') + obj.refund_num
@@ -308,4 +303,3 @@ def handler_Refund_Send_Num():
         rcd.ref_sed_num = ref_num - ref_num_out - ref_num_in  # 发货后等于总的减去２４外和内
         print "{0}记录,总退款 {1},发货后退款 {2}".format(rcd.date_cal, ref_num, rcd.ref_sed_num)
         rcd.save()
-

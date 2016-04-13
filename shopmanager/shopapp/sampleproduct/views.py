@@ -5,89 +5,88 @@ from django.shortcuts import render, render_to_response
 
 from django.views.decorators.csrf import csrf_exempt
 
-
 from .models import SampleScan, SampleProductSku, SampleProduct, ScanLinShi
 
 
 # 扫描入库
 @csrf_exempt
 def scan_ruku(request):
-
     return render(request, 'scan_ruku.html')
+
 
 from django.db.models import F
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.views import APIView
 
 from rest_framework import serializers
 
+
 class ScanLinShiSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = ScanLinShi
-        fields = ('id','pid','sku_id','title','sku_name','bar_code',
-                  'scan_num','scan_type','status')
-        
+        fields = ('id', 'pid', 'sku_id', 'title', 'sku_name', 'bar_code',
+                  'scan_num', 'scan_type', 'status')
+
 
 class SampleScanView(APIView):
-
-#     authentication_classes = (authentication.TokenAuthentication,)
+    #     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     serializer_class = ScanLinShiSerializer
     template_name = "scan_ruku.html"
-    
+
     def get(self, request, format=None):
-        
+
         lshi = ScanLinShi.objects.all()
         ls_serializers = []
         for ls in lshi:
             ls_serializers.append(ScanLinShiSerializer(ls).data)
-        
+
         return Response({'lshi': ls_serializers})
-    
-    def get_Sample_By_Barcode(self,barcode):
-        
+
+    def get_Sample_By_Barcode(self, barcode):
+
         bar_len = len(barcode)
-        len_list = range(1,bar_len)
+        len_list = range(1, bar_len)
         len_list.reverse()
         for l in len_list:
             outer_id = barcode[0:l]
             sku_code = barcode[l:]
-            sp_skus = SampleProductSku.objects.filter(product__outer_id=outer_id,outer_id=sku_code)
-            if sp_skus.count() > 0 :
+            sp_skus = SampleProductSku.objects.filter(product__outer_id=outer_id, outer_id=sku_code)
+            if sp_skus.count() > 0:
                 return sp_skus[0]
         return None
-    
+
     def post(self, request, format=None):
-        
+
         content = request.REQUEST
-        user    = request.user
-        
+        user = request.user
+
         scan_type = content.get('t')
-        tiaoma = content.get('tiaoma','')
+        tiaoma = content.get('tiaoma', '')
         p_sku = self.get_Sample_By_Barcode(tiaoma)
         if not p_sku:
-            return Response({'code':1,'err':u'未找到商品'})
+            return Response({'code': 1, 'err': u'未找到商品'})
 
         # 保存到临时表
-        ls,state = ScanLinShi.objects.get_or_create(pid=p_sku.product.id,sku_id=p_sku.id,scan_type=scan_type)
+        ls, state = ScanLinShi.objects.get_or_create(pid=p_sku.product.id, sku_id=p_sku.id, scan_type=scan_type)
         if state:
             ls.title = p_sku.product.title
             ls.sku_name = p_sku.sku_name
             ls.bar_code = tiaoma
-        
+
         ls.scan_num = ls.scan_num + 1
         ls.save()
-#         
+        #
         sls_serialize = ScanLinShiSerializer(ls)
-        
+
         return Response([sls_serialize.data])
-    
-#     get = post
+
+
+# get = post
 
 # 查询条码
 @csrf_exempt
@@ -100,10 +99,10 @@ def scan_select(request):
         lshi = ScanLinShi.objects.all()
 
         return render_to_response('scan_ruku.html', {'lshi': lshi})
-    #获取条码的长度
+    # 获取条码的长度
     l = len(tiaoma)
     # 商品编码
-    sp_id = tiaoma[0:int(l)-1]
+    sp_id = tiaoma[0:int(l) - 1]
     # 规格编码
     gg_id = tiaoma[-1:]
 
@@ -113,7 +112,7 @@ def scan_select(request):
         # 查询临时表所有数据
         lshi = ScanLinShi.objects.all()
 
-        return render_to_response('scan_ruku.html', {'l': "条码不存在！！",'lshi': lshi})
+        return render_to_response('scan_ruku.html', {'l': "条码不存在！！", 'lshi': lshi})
     else:
         p = SampleProduct.objects.get(outer_id=sp_id)
         # 商品ID
@@ -154,14 +153,12 @@ def scan_select(request):
             return render_to_response('scan_ruku.html', {'lshi': lshi})
 
 
-
 # 显示出入表数据集合
 @csrf_exempt
 def scan_list(request):
     list = SampleScan.objects.all().order_by('-id')
 
     return render_to_response('scan_list.html', {'list': list})
-
 
 
 # 保存到出入库表
@@ -223,4 +220,3 @@ def scan_save(request):
     ls.delete()
 
     return HttpResponseRedirect("../scan_new/")
-

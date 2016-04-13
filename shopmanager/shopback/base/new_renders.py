@@ -1,5 +1,4 @@
-__author__="kaineng.fang"
-
+__author__ = "kaineng.fang"
 
 import json
 import django
@@ -18,10 +17,11 @@ from rest_framework.request import is_form_media_type, override_method
 from rest_framework.utils import encoders
 from rest_framework.utils.breadcrumbs import get_breadcrumbs
 from rest_framework.utils.field_mapping import ClassLookupDict
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
-from chartit import Chart,PivotChart
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
+from chartit import Chart, PivotChart
 
 from django.core.serializers.json import DjangoJSONEncoder
+
 
 class new_BaseJSONRenderer(JSONRenderer):
     """
@@ -33,7 +33,7 @@ class new_BaseJSONRenderer(JSONRenderer):
     encoder_class = encoders.JSONEncoder
     ensure_ascii = not api_settings.UNICODE_JSON
     compact = api_settings.COMPACT_JSON
-    
+
     # We don't set a charset because JSON is a binary encoding,
     # that can be encoded as utf-8, utf-16 or utf-32.
     # See: http://www.ietf.org/rfc/rfc4627.txt
@@ -59,15 +59,15 @@ class new_BaseJSONRenderer(JSONRenderer):
         """
         Render `data` into JSON, returning a bytestring.
         """
-        if isinstance(data,(list,tuple,)):
-            data = {"code":0,"response_content":data}
-        elif isinstance(data,dict) and (data.has_key('code') or data.has_key('field-errors')
-                                       or data.has_key('errors') or data.has_key('errcode')):
+        if isinstance(data, (list, tuple,)):
+            data = {"code": 0, "response_content": data}
+        elif isinstance(data, dict) and (data.has_key('code') or data.has_key('field-errors')
+                                         or data.has_key('errors') or data.has_key('errcode')):
             pass
-        elif isinstance(data,dict):
-            data = {"code":0,"response_content":data}
+        elif isinstance(data, dict):
+            data = {"code": 0, "response_content": data}
         else:
-            data = {"code":1,"response_error":data}
+            data = {"code": 1, "response_error": data}
 
         renderer_context = renderer_context or {}
         indent = self.get_indent(accepted_media_type, renderer_context)
@@ -95,15 +95,10 @@ class new_BaseJSONRenderer(JSONRenderer):
             ret = ret.replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')
             return bytes(ret.encode('utf-8'))
         return ret
-  
-    
-    
+
+
 def zero_as_none(value):
     return None if value == 0 else value
-
-
-
-
 
 
 ##
@@ -117,7 +112,7 @@ class new_ChartJSONRenderer(JSONRenderer):
     encoder_class = encoders.JSONEncoder
     ensure_ascii = not api_settings.UNICODE_JSON
     compact = api_settings.COMPACT_JSON
-    
+
     # We don't set a charset because JSON is a binary encoding,
     # that can be encoded as utf-8, utf-16 or utf-32.
     # See: http://www.ietf.org/rfc/rfc4627.txt
@@ -144,14 +139,14 @@ class new_ChartJSONRenderer(JSONRenderer):
         Render `data` into JSON, returning a bytestring.
         """
         if type(data) is dict:
-            data = {"code":0,"response_content":data}
+            data = {"code": 0, "response_content": data}
         else:
-            data = {"code":1,"response_error":data}
+            data = {"code": 1, "response_error": data}
 
         class ChartEncoder(json.JSONEncoder):
             def default(self, data):
-                if isinstance(data, (Chart,PivotChart)):
-                    return data.hcoptions #Serializer().serialize
+                if isinstance(data, (Chart, PivotChart)):
+                    return data.hcoptions  # Serializer().serialize
                 return DjangoJSONEncoder.default(self, data)
 
         renderer_context = renderer_context or {}
@@ -182,14 +177,11 @@ class new_ChartJSONRenderer(JSONRenderer):
         return ret
 
 
-
 ####
 class new_ChartTemplateRenderer(TemplateHTMLRenderer):
-
-
     media_type = 'text/html'
     format = 'chart'
-    template_name ="chart_render_template.html"
+    template_name = "chart_render_template.html"
     exception_template_names = [
         '%(status_code)s.html',
         'api_exception.html'
@@ -208,7 +200,7 @@ class new_ChartTemplateRenderer(TemplateHTMLRenderer):
         """
         if type(data) is not dict:
             return data
-    
+
         renderer_context = renderer_context or {}
         view = renderer_context['view']
         request = renderer_context['request']
@@ -256,7 +248,4 @@ class new_ChartTemplateRenderer(TemplateHTMLRenderer):
             return Template('%d %s' % (response.status_code,
                                        response.status_text.title()))
 
-
 # Note, subclass TemplateHTMLRenderer simply for the exception behavior
-
-  

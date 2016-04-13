@@ -10,6 +10,8 @@ from core.options import log_action, CHANGE
 from flashsale.dinghuo.models import OrderList, OrderDetail
 from shopback.items.models import Product, ProductSku
 from django.db import transaction
+
+
 class SetRemainNumView(generics.ListCreateAPIView):
     """
         根据订货单来生成预留数
@@ -30,7 +32,8 @@ class SetRemainNumView(generics.ListCreateAPIView):
             all_dinghuo = OrderDetail.objects.filter(product_id=product.id).exclude(
                 orderlist__status=OrderList.ZUOFEI)
             for one_sku in all_skus:
-                one_sku_dinghuo = all_dinghuo.filter(chichu_id=one_sku.id).aggregate(total_num=Sum('buy_quantity')).get('total_num') or 0
+                one_sku_dinghuo = all_dinghuo.filter(chichu_id=one_sku.id).aggregate(total_num=Sum('buy_quantity')).get(
+                    'total_num') or 0
                 normal_skus.append(
                     {"sku_id": one_sku.id, "one_sku_dinghuo": one_sku_dinghuo, "sku_name": one_sku.properties_alias})
             return Response({"product_outer_id": product_outer_id, "product": product,

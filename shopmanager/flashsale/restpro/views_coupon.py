@@ -48,7 +48,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     queryset = UserCoupon.objects.all()
     serializer_class = serializers.UsersCouponSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
@@ -101,13 +101,13 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                     uc = UserCoupon()
                     cus = {"buyer_id": customer.id, "template_id": template_id}
                     release_res = uc.release_by_template(**cus)
-                return Response({"code":0, "res": release_res})
+                return Response({"code": 0, "res": release_res})
         except Customer.DoesNotExist:
-            return Response({"code":2, "res": "需登陆后领取"})
+            return Response({"code": 2, "res": "需登陆后领取"})
         except TypeError:
-            return Response({"code":1, "res": "优惠券不存在"})
+            return Response({"code": 1, "res": "优惠券不存在"})
         else:
-            return Response({"code":1, "res": "优惠券不存在"})
+            return Response({"code": 1, "res": "优惠券不存在"})
 
     def check_by_coupon(self, coupon, product_ids=None, use_fee=None):
         coupon_message = ''
@@ -160,7 +160,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 class CouponTemplateViewSet(viewsets.ModelViewSet):
     queryset = CouponTemplate.objects.all()
     serializer_class = serializers.CouponTemplateSerializer
-    authentication_classes = (authentication.SessionAuthentication, )
+    authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)  # 这里使用只读的权限
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
@@ -184,5 +184,3 @@ class CouponTemplateViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         return Response()
-
-

@@ -13,6 +13,7 @@ from common.modelutils import update_model_fields
 import datetime
 from core.options import log_action, CHANGE
 
+
 class RefundCouponView(APIView):
     queryset = SaleTrade.objects.all()
     usercoupons = UserCoupon.objects.all()
@@ -210,4 +211,3 @@ def release_coupon_34(time_from=None, time_to=None):
             count += 1
     print "发放优惠券张数：", count
     return
-

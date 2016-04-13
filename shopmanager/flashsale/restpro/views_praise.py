@@ -174,4 +174,3 @@ class HotProductViewSet(viewsets.ModelViewSet):
         result['hot_val'] = hot_pro.hot_value
         result['today_count'] = today_count
         return Response(result)
-

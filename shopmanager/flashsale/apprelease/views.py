@@ -53,9 +53,3 @@ class addNewReleaseView(APIView):
         AppRelease.objects.create(download_link=download_link, qrcode_link=qrcode_link,
                                   version=version, release_time=release_time, memo=memo)
         return redirect(constants.RELESE_SUCCESS_PAGE)
-
-
-
-
-
-

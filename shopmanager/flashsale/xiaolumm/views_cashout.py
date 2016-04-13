@@ -66,4 +66,3 @@ class CashoutBatView(APIView):
             arg = allow.approve_cashout()
             if arg: log_action(request.user.id, allow, CHANGE, u"提现批量审核通过")  # 如果返回真则记录操作日志
         return Response({"code": 0})
-

@@ -76,8 +76,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         qst = self.queryset.filter(referal_from=xlmm.mobile)
         serializer = self.get_serializer(qst, many=True)
         return Response(serializer.data)
-    
-    
+
     @list_route(methods=['get'])
     def agency_info(self, request):
         """ wap 版本页面数据整理显示　"""
@@ -97,7 +96,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         nmc_in = carry_logs.filter(carry_type=CarryLog.CARRY_IN, status__in=(CarryLog.CONFIRMED, CarryLog.PENDING),
                                    carry_date=today)
         nmc_clk = carry_logs.filter(status__in=(CarryLog.CONFIRMED, CarryLog.PENDING), log_type=CarryLog.CLICK_REBETA)
-        
+
         mci = (cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定收入
         mco = (cfm_out.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定支出
         ymci = (yst_cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 昨日确定收入
@@ -117,12 +116,12 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
                                                                                   StatisticsShopping.WAIT_SEND))
         all_shop_num = all_shops.count()
         shop_num = all_shops.filter(shoptime__gte=t_from, shoptime__lte=t_to).count()  # 今日订单数量
-        
+
         # 计算今日点击金额
         clk_money = xlmm.get_Mama_Click_Price(shop_num) * clk_num
 
-        mama_link = os.path.join(settings.M_SITE_URL,"m/{}/".format(xlmm.id))  # 专属链接
-        #share_mmcode = xlmm.get_share_qrcode_path()  20160406 wulei 此字段转换为存储妈妈邀请新代理的h5页面url
+        mama_link = os.path.join(settings.M_SITE_URL, "m/{}/".format(xlmm.id))  # 专属链接
+        # share_mmcode = xlmm.get_share_qrcode_path()  20160406 wulei 此字段转换为存储妈妈邀请新代理的h5页面url
         from flashsale.restpro import constants
         share_mmcode = constants.MAMA_INVITE_AGENTCY_URL.format(**{'site_url': settings.M_SITE_URL})
 
@@ -131,12 +130,12 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         fans = FansNumberRecord.objects.filter(xlmm_cusid=customer.id)
         fans_num = fans[0].fans_num if fans.exists() else 0
 
-        data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, 
-                "recommend_num": recommend_num, "cash": cash, 
-                "mmclog": mmclog, "clk_num": clk_num, 
-                "mama_link": mama_link, "shop_num": shop_num, 
-                "all_shop_num": all_shop_num, 
-                "share_mmcode": share_mmcode, 'share_qrcode':share_qrcode,
+        data = {"xlmm": xlmm.id, "mobile": xlmm.mobile,
+                "recommend_num": recommend_num, "cash": cash,
+                "mmclog": mmclog, "clk_num": clk_num,
+                "mama_link": mama_link, "shop_num": shop_num,
+                "all_shop_num": all_shop_num,
+                "share_mmcode": share_mmcode, 'share_qrcode': share_qrcode,
                 "clk_money": clk_money, "fans_num": fans_num}
         return Response(data)
 
@@ -151,7 +150,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
             customers = Customer.objects.filter(id__in=fans_cusids)
             data = customers.values('id', 'nick', 'thumbnail')
             return self.get_paginated_response(data)
-        
+
         fans_cusids = [cus[0] for cus in xlmm_fans.values('fans_cusid')]
         customers = Customer.objects.filter(id__in=fans_cusids)
         data = customers.values('id', 'nick', 'thumbnail')
@@ -470,10 +469,10 @@ class CashOutViewSet(viewsets.ModelViewSet):
         if cash_type is None:  # 参数错误
             return Response({"code": 1})
         value = self.cashout_type.get(cash_type)
-        
+
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
-        
+
         from flashsale.xiaolumm.models_fortune import MamaFortune
         could_cash_out = 0
         try:
@@ -481,8 +480,8 @@ class CashOutViewSet(viewsets.ModelViewSet):
             could_cash_out = fortune.cash_num_display()
         except Exception, exc:
             raise APIException(u'{0}'.format(exc.message))
-        
-        if self.queryset.filter(status=CashOut.PENDING,xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
+
+        if self.queryset.filter(status=CashOut.PENDING, xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
             return Response({"code": 3})
         if could_cash_out < value * 0.01:  # 如果可以提现金额不足
             return Response({"code": 2})
@@ -546,8 +545,8 @@ class ClickViewSet(viewsets.ModelViewSet):
         today = datetime.date.today()  # 今天日期
         target_date = today - datetime.timedelta(days=days)
         target_date_end = target_date + datetime.timedelta(days=1)
-        today_clicks = queryset.filter(click_time__gte=target_date, click_time__lt=target_date_end).order_by(
-            '-click_time')
+        today_clicks = queryset.filter(click_time__gte=target_date,
+                                       click_time__lt=target_date_end).order_by('-click_time')
         data = []
         for click in today_clicks:
             dic = model_to_dict(click, fields=['isvalid', 'click_time'])
@@ -577,4 +576,3 @@ class ClickViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException("method not allowed")
-

@@ -311,7 +311,7 @@ class PreviewSkuDetail(generics.ListCreateAPIView):
                              "searchtext": searchtext})
         else:
             return Response({"result": "NOTFOUND",
-                                 "searchtext": searchtext})
+                             "searchtext": searchtext})
 
 
 def custom_sort(a, b):
@@ -325,8 +325,6 @@ def custom_sort(a, b):
         return False
 
     return len(a[0]) - len(b[0]) or a[0] > b[0]
-
-
 
 
 class BatchSetTime(generics.ListCreateAPIView):
@@ -356,7 +354,7 @@ class BatchSetTime(generics.ListCreateAPIView):
             model_id_strip = ''
         else:
             model_id_strip = model_id.strip()
-            models = [model_id_strip,]
+            models = [model_id_strip, ]
         # 添加类目
         cates = []
         for cate in categorys:
@@ -477,7 +475,7 @@ class ProductScheduleView(generics.ListCreateAPIView):
     template_name = 'items/product_schedule.html'
 
     warehouses = [{'id': Product.WARE_NONE, 'name': u'未选仓'}, {'id': Product.WARE_SH, 'name': u'上海仓'},
-                      {'id': Product.WARE_GZ, 'name': u'广州仓'}]
+                  {'id': Product.WARE_GZ, 'name': u'广州仓'}]
     warehouse_mapping = {row['id']: row['name'] for row in warehouses}
     categories = local_cache.product_category_cache.categories
     category_mapping = {row['id']: row['name'] for row in local_cache.product_category_cache.categories}
@@ -500,9 +498,9 @@ class ProductScheduleView(generics.ListCreateAPIView):
         row.schedule_id = row.id
         row.id = row.product.id
         row.category_name = cls.category_mapping.get(
-        row.product.category_id) or ''
+            row.product.category_id) or ''
         row.warehouse_name = cls.warehouse_mapping.get(int(
-        row.product.ware_by)) or ''
+            row.product.ware_by)) or ''
         row.cost = row.product.cost
         row.agent_price = row.product.agent_price
         row.name = row.product.name
@@ -512,7 +510,6 @@ class ProductScheduleView(generics.ListCreateAPIView):
         row.is_watermark = row.product.is_watermark
         row.sale_name = cls.sale_type_mapping.get(row.sale_type) or ''
         return row
-
 
     def get(self, request, p=1, **kwargs):
         p = int(p)
@@ -559,7 +556,7 @@ class ProductScheduleView(generics.ListCreateAPIView):
                 page = paginator.page(p)
                 rows = Product.objects.select_related('category').filter(
                     **query).order_by('-id')[
-                        page.object_list[0]:page.object_list[-1] + 1]
+                       page.object_list[0]:page.object_list[-1] + 1]
 
                 for row in rows:
                     row = self.product_to_item(row)
@@ -581,7 +578,7 @@ class ProductScheduleView(generics.ListCreateAPIView):
                 page = paginator.page(p)
                 rows = ProductSchedule.objects.select_related(depth=1).filter(
                     **query).order_by('-product__id', '-id')[page.object_list[0]:
-                                             page.object_list[-1] + 1]
+                       page.object_list[-1] + 1]
                 for row in rows:
                     row = self.schedule_to_item(row)
                 items = rows
@@ -627,7 +624,8 @@ class ProductScheduleView(generics.ListCreateAPIView):
 
         if product_ids:
             product_ids = map(int, product_ids)
-            reload_url = '%s?%s' % (reverse('product_schedule'), urllib.urlencode({'product_ids': json.dumps(product_ids)}))
+            reload_url = '%s?%s' % (
+            reverse('product_schedule'), urllib.urlencode({'product_ids': json.dumps(product_ids)}))
             Product.objects.filter(id__in=product_ids).update(
                 **form.get_product_update_kwargs())
             rows = Product.objects.filter(id__in=product_ids).order_by('-id')
@@ -659,9 +657,9 @@ class ProductScheduleView(generics.ListCreateAPIView):
                     row.save()
 
                 if form.cleaned_attrs.onshelf_datetime_start and \
-                  form.cleaned_attrs.offshelf_datetime_start:
+                        form.cleaned_attrs.offshelf_datetime_start:
 
-                    #　生成排期数据
+                    # 　生成排期数据
                     # 查询是否存在重叠的排期数据
                     status = 0 if ProductSchedule.objects.filter(
                         onshelf_datetime__lte=
@@ -692,7 +690,8 @@ class ProductScheduleView(generics.ListCreateAPIView):
 
         else:
             schedule_ids = map(int, schedule_ids)
-            reload_url = '%s?%s' % (reverse('product_schedule'), urllib.urlencode({'schedule_ids': json.dumps(schedule_ids)}))
+            reload_url = '%s?%s' % (
+            reverse('product_schedule'), urllib.urlencode({'schedule_ids': json.dumps(schedule_ids)}))
             schedule_update_kwargs = form.get_schedule_update_kwargs()
 
             if schedule_update_kwargs:
@@ -707,7 +706,7 @@ class ProductScheduleView(generics.ListCreateAPIView):
                     **product_update_kwargs)
 
             if form.cleaned_attrs.is_seckill or form.cleaned_attrs.is_not_seckill or form.cleaned_attrs.price or \
-              form.cleaned_attrs.rebeta_schema_id:
+                    form.cleaned_attrs.rebeta_schema_id:
                 for row in Product.objects.filter(pk__in=product_ids):
                     is_dirty = False
                     if form.cleaned_attrs.is_seckill:
@@ -748,6 +747,7 @@ class ProductScheduleView(generics.ListCreateAPIView):
         })
         return Response(data)
 
+
 class ProductScheduleAPIView(generics.ListCreateAPIView):
     def post(self, request, **kwargs):
         form = forms.ProductScheduleAPIForm(request.POST)
@@ -774,12 +774,12 @@ class ProductScheduleAPIView(generics.ListCreateAPIView):
                 return Response({'success': False})
             row = rows[0]
             if form.cleaned_attrs.flag:
-                #row.is_seckill = True
+                # row.is_seckill = True
                 if not row.name.startswith('秒杀'):
                     row.name = '秒杀' + row.name
                     row.memo += u'秒杀商品，一经售出，概不退换'
             else:
-                #row.is_seckill = False
+                # row.is_seckill = False
                 if row.name.startswith('秒杀'):
                     row.name = row.name.replace('秒杀', '').lstrip()
                     row.memo = row.memo.replace(u'秒杀商品，一经售出，概不退换', u'')

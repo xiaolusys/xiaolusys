@@ -13,9 +13,10 @@ from shopback.trades.models import (
 from rest_framework.views import APIView
 from rest_framework import permissions
 from rest_framework import authentication
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from shopback import paramconfig as pcfg
+
 
 def check_order(request, trade_id):
     info = MergeTrade.objects.get(id=trade_id)
@@ -131,7 +132,7 @@ def split_merge_trade(merger_order_id, modify_user):
     parent_trade.sys_memo += u"拆单到{0}".format(new_trade.id)
     parent_trade.is_part_consign = True
     parent_trade.save()
-    
+
     trade_handler.proccess(parent_trade, **{"update_logistic": True})
     trade_handler.proccess(new_trade, **{"update_logistic": True})
     log_action(modify_user.id, parent_trade, CHANGE, u'拆到订单{0}'.format(new_trade.id))

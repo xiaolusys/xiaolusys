@@ -10,4 +10,4 @@
 #     model = WXProduct
 #     fields = ('id','product_list','product_ids','next','code','response')
 #     exclude = ('url',)
-#     
+#

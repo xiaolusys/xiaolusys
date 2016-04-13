@@ -10,8 +10,7 @@ from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate
 
 from django.db.models import F
 from common.modelutils import update_model_fields
-from core.options import log_action, CHANGE ,SYSTEMOA_USER
-
+from core.options import log_action, CHANGE, SYSTEMOA_USER
 
 """
 当创建订单的时候创建积分待确认记录

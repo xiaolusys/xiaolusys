@@ -3,7 +3,7 @@
 from django.db import models
 from .base import PayBaseModel
 import random
-from . managers import ShopProductCategoryManager
+from .managers import ShopProductCategoryManager
 
 
 class CustomerShops(PayBaseModel):

@@ -5,6 +5,7 @@ from .models import XiaoluMama, CashOut
 from shopapp.weixin.models import UserGroup
 from django.db import connection
 
+
 ########################################################################
 class UserNameFilter(SimpleListFilter):
     """"""
@@ -21,7 +22,7 @@ class UserNameFilter(SimpleListFilter):
             except User.DoesNotExist:
                 pass
             else:
-                manager_list.append((str(duser.id),duser.username))
+                manager_list.append((str(duser.id), duser.username))
         return tuple(manager_list)
 
     def queryset(self, request, queryset):
@@ -29,8 +30,9 @@ class UserNameFilter(SimpleListFilter):
         if not mgr_id:
             return queryset
         else:
-            cash_rawqs = CashOut.objects.raw("select xc.id from xiaolumm_cashout xc LEFT JOIN xiaolumm_xiaolumama xx on xc.xlmm = xx.id where xc.status = '{0}' and xx.manager = '{1}' ".format(CashOut.PENDING,mgr_id))
+            cash_rawqs = CashOut.objects.raw(
+                "select xc.id from xiaolumm_cashout xc LEFT JOIN xiaolumm_xiaolumama xx on xc.xlmm = xx.id where xc.status = '{0}' and xx.manager = '{1}' ".format(
+                    CashOut.PENDING, mgr_id))
             cash_ids = [cs.id for cs in cash_rawqs]
-            #return CashOut.objects.filter(id__in=cash_ids)
+            # return CashOut.objects.filter(id__in=cash_ids)
             return queryset.filter(id__in=cash_ids)
-        

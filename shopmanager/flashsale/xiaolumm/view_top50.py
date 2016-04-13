@@ -37,8 +37,8 @@ def xlmm_Click_Top_By_Day(request):
           "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3)) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
           "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
           "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
-          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(time_from, time_to)
-
+          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(
+        time_from, time_to)
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -66,15 +66,15 @@ def xlmm_Order_Top_By_Day(request):
 
     time_from = datetime.date(target_date.year, target_date.month, target_date.day)
 
-
-    sql ="SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
-         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
-         "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
-                 "FROM flashsale_tongji_shopping_day WHERE tongjidate ='{0}' AND" \
-          " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3))" \
-          "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
-          " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
-                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE date = '{0}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(time_from)
+    sql = "SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
+          "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
+          "FROM " + "(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
+                    "FROM flashsale_tongji_shopping_day WHERE tongjidate ='{0}' AND" \
+                    " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3))" \
+                    "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
+                    " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
+                    "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE date = '{0}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(
+        time_from)
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -131,7 +131,6 @@ def xlmm_Click_Top_By_Week(request):
     prev_week = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_week = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-
     sql = "SELECT C.xlmm_total_valid_num,C.linkid,C.weikefu,C.xlmm_total_buyercount,C.xlmm_total_ordernumcount,C.baifenbi,D.username FROM (SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
           "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) AS baifenbi, AA.manager FROM" \
           "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu,B.manager FROM " \
@@ -139,8 +138,8 @@ def xlmm_Click_Top_By_Week(request):
           "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3)) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
           "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
           "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
-          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(date_from, date_to)
-
+          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(
+        date_from, date_to)
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -172,16 +171,15 @@ def xlmm_Order_Top_By_Week(request):
     prev_week = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_week = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-
-    sql ="SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
-         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
-         "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
-                 "FROM flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND '{1}' AND" \
-          " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3))" \
-          "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
-          " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
-                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE  write_time BETWEEN '{0}' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(date_from,date_to)
-
+    sql = "SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
+          "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
+          "FROM " + "(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
+                    "FROM flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND '{1}' AND" \
+                    " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3))" \
+                    "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
+                    " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
+                    "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE  write_time BETWEEN '{0}' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(
+        date_from, date_to)
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -211,9 +209,8 @@ def xlmm_Click_Top_By_Month(request):
           "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3)) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
           "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
           "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
-          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(date_from, date_to)
-
-
+          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(
+        date_from, date_to)
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -250,16 +247,15 @@ def xlmm_Order_Top_By_Month(request):
     date_from = datetime.date(date_from.year, date_from.month, date_from.day)
     date_to = datetime.date(date_to.year, date_to.month, date_to.day)
 
-
-    sql ="SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
-         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
-         "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
-                 "FROM flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND '{1}' AND" \
-          " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3))" \
-          "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
-          " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
-                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE  write_time BETWEEN '{0}' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(date_from,date_to)
-
+    sql = "SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
+          "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
+          "FROM " + "(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
+                    "FROM flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND '{1}' AND" \
+                    " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel IN (2,3))" \
+                    "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
+                    " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
+                    "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE  write_time BETWEEN '{0}' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(
+        date_from, date_to)
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -324,23 +320,23 @@ def xlmm_TOP50_Manager_Month(request):
     date_from = datetime.date(date_from.year, date_from.month, date_from.day)
     date_to = datetime.date(date_to.year, date_to.month, date_to.day)
     sql = "SELECT " \
-                " linkid, " \
-                " linkname, " \
-                " SUM(buyercount) AS xlmm_total_buyercount, " \
-                " SUM(ordernumcount) AS xlmm_total_ordernumcount " \
-            " FROM " \
-                " flashsale_tongji_shopping_day " \
-            " WHERE " \
-                " tongjidate BETWEEN '{0}' AND '{1}' " \
-                    " AND linkid IN (SELECT " \
-                       "  id " \
-                   "  FROM " \
-                     "    xiaolumm_xiaolumama " \
-                    " WHERE " \
-                    "     agencylevel IN (2,3) AND manager = {2}) " \
-            " GROUP BY linkid  " \
-            " ORDER BY xlmm_total_ordernumcount DESC " \
-            " LIMIT 50".format(date_from, date_to, manager)
+          " linkid, " \
+          " linkname, " \
+          " SUM(buyercount) AS xlmm_total_buyercount, " \
+          " SUM(ordernumcount) AS xlmm_total_ordernumcount " \
+          " FROM " \
+          " flashsale_tongji_shopping_day " \
+          " WHERE " \
+          " tongjidate BETWEEN '{0}' AND '{1}' " \
+          " AND linkid IN (SELECT " \
+          "  id " \
+          "  FROM " \
+          "    xiaolumm_xiaolumama " \
+          " WHERE " \
+          "     agencylevel IN (2,3) AND manager = {2}) " \
+          " GROUP BY linkid  " \
+          " ORDER BY xlmm_total_ordernumcount DESC " \
+          " LIMIT 50".format(date_from, date_to, manager)
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()

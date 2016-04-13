@@ -86,4 +86,3 @@ class PostGoodShelf(View):
         except ValueError:
             data = {'code': 4}  # ValueError
             return HttpResponse(json.dumps(data))
-

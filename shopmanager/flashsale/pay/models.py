@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 import uuid
 import datetime
 from django.db import models
@@ -6,19 +6,19 @@ from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save
 from django.db import transaction
 
-from core.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
-from .models_user import Register,Customer,UserBudget,BudgetLog
-from .models_addr import District,UserAddress
-from .models_custom import Productdetail,GoodShelf,ModelProduct,ActivityEntry
+from .models_user import Register, Customer, UserBudget, BudgetLog
+from .models_addr import District, UserAddress
+from .models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry
 from .models_refund import SaleRefund
 from .models_envelope import Envelop
-from .models_coupon import Integral,IntegralLog
+from .models_coupon import Integral, IntegralLog
 from .models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
 from .models_share import CustomShare
-from .models_faqs import SaleFaqs
+from .models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
 from . import managers
 
 from .signals import signal_saletrade_pay_confirm
@@ -29,7 +29,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-FLASH_SELLER_ID  = 'flashsale'
+FLASH_SELLER_ID = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
 TIME_FOR_PAYMENT = 25 * 60
 
@@ -37,48 +37,49 @@ TIME_FOR_PAYMENT = 25 * 60
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
 
+
 def genTradeUniqueid():
-    return uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.date.today().strftime('%y%m%d')))
+    return uniqid('%s%s' % (SaleTrade.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
+
 
 class SaleTrade(BaseModel):
     """ payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额) """
-    PREFIX_NO  = 'xd'
-    WX         = 'wx'
-    ALIPAY     = 'alipay'
-    WX_PUB     = 'wx_pub'
+    PREFIX_NO = 'xd'
+    WX = 'wx'
+    ALIPAY = 'alipay'
+    WX_PUB = 'wx_pub'
     ALIPAY_WAP = 'alipay_wap'
-    UPMP_WAP   = 'upmp_wap'
-    WALLET     = 'wallet'
-    BUDGET     = 'budget'
-    APPLE      = 'applepay_upacp'
+    UPMP_WAP = 'upmp_wap'
+    WALLET = 'wallet'
+    BUDGET = 'budget'
+    APPLE = 'applepay_upacp'
     CHANNEL_CHOICES = (
-        (BUDGET,u'小鹿钱包'),
-        (WALLET,u'妈妈钱包'),
-        (WX,u'微信APP'),
-        (ALIPAY,u'支付宝APP'),
-        (WX_PUB,u'微支付'),
-        (ALIPAY_WAP,u'支付宝'),
-        (UPMP_WAP,u'银联'),
-        (APPLE,u'ApplePay'),
+        (BUDGET, u'小鹿钱包'),
+        (WALLET, u'妈妈钱包'),
+        (WX, u'微信APP'),
+        (ALIPAY, u'支付宝APP'),
+        (WX_PUB, u'微支付'),
+        (ALIPAY_WAP, u'支付宝'),
+        (UPMP_WAP, u'银联'),
+        (APPLE, u'ApplePay'),
     )
-    
-    PREPAY  = 0
+
+    PREPAY = 0
     POSTPAY = 1
     TRADE_TYPE_CHOICES = (
-        (PREPAY,u"在线支付"),
-        (POSTPAY,"货到付款"),
+        (PREPAY, u"在线支付"),
+        (POSTPAY, "货到付款"),
     )
-    
-    SALE_ORDER     = 0
-    RESERVE_ORDER  = 1
+
+    SALE_ORDER = 0
+    RESERVE_ORDER = 1
     DEPOSITE_ORDER = 2
     ORDER_TYPE_CHOICES = (
-        (SALE_ORDER,u"特卖订单"),
-        (RESERVE_ORDER,"预订制"),
-        (DEPOSITE_ORDER,"押金订单"),
+        (SALE_ORDER, u"特卖订单"),
+        (RESERVE_ORDER, "预订制"),
+        (DEPOSITE_ORDER, "押金订单"),
     )
-    
-    
+
     TRADE_NO_CREATE_PAY = 0
     WAIT_BUYER_PAY = 1
     WAIT_SELLER_SEND_GOODS = 2
@@ -94,99 +95,100 @@ class SaleTrade(BaseModel):
                            TRADE_FINISHED,
                            TRADE_CLOSED,
                            TRADE_CLOSED_BY_SYS)
-    
+
     REFUNDABLE_STATUS = (WAIT_SELLER_SEND_GOODS,
                          WAIT_BUYER_CONFIRM_GOODS)
-    
+
     INGOOD_STATUS = (WAIT_SELLER_SEND_GOODS,
                      WAIT_BUYER_CONFIRM_GOODS,
                      TRADE_BUYER_SIGNED,
                      TRADE_FINISHED)
-    
+
     TRADE_STATUS = (
-        (TRADE_NO_CREATE_PAY,u'订单创建'),
-        (WAIT_BUYER_PAY,u'待付款'),
-        (WAIT_SELLER_SEND_GOODS,u'已付款'),
-        (WAIT_BUYER_CONFIRM_GOODS,u'已发货'),
-        (TRADE_BUYER_SIGNED,u'确认签收'),
-        (TRADE_FINISHED,u'交易成功'),
-        (TRADE_CLOSED,u'退款关闭'),
-        (TRADE_CLOSED_BY_SYS,u'交易关闭'),
+        (TRADE_NO_CREATE_PAY, u'订单创建'),
+        (WAIT_BUYER_PAY, u'待付款'),
+        (WAIT_SELLER_SEND_GOODS, u'已付款'),
+        (WAIT_BUYER_CONFIRM_GOODS, u'已发货'),
+        (TRADE_BUYER_SIGNED, u'确认签收'),
+        (TRADE_FINISHED, u'交易成功'),
+        (TRADE_CLOSED, u'退款关闭'),
+        (TRADE_CLOSED_BY_SYS, u'交易关闭'),
     )
 
-    id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
-    
-    tid   = models.CharField(max_length=40,unique=True,
-                             default=genTradeUniqueid,
-                             verbose_name=u'原单ID')
-    buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
-    buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
-    
-    channel     = models.CharField(max_length=16,db_index=True,
-                                   choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
-    
-    payment    =   models.FloatField(default=0.0,verbose_name=u'付款金额')
-    pay_cash   =   models.FloatField(default=0.0,verbose_name=u'实付现金')
-    post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
-    discount_fee  =   models.FloatField(default=0.0,verbose_name=u'优惠折扣')
-    total_fee  =   models.FloatField(default=0.0,verbose_name=u'总费用')
-    has_budget_paid =   models.BooleanField(default=False,verbose_name=u'使用余额')
-    
-    buyer_message = models.TextField(max_length=1000,blank=True,verbose_name=u'买家留言')
-    seller_memo   = models.TextField(max_length=1000,blank=True,verbose_name=u'卖家备注')
-    
-    pay_time     = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
-    consign_time = models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
-    
-    trade_type = models.IntegerField(choices=TRADE_TYPE_CHOICES,default=PREPAY,verbose_name=u'交易类型')
-    order_type = models.IntegerField(choices=ORDER_TYPE_CHOICES,default=SALE_ORDER,verbose_name=u'订单类型')
-    
-    out_sid         = models.CharField(max_length=64,blank=True,verbose_name=u'物流编号')
-    logistics_company  = models.ForeignKey(LogisticsCompany,null=True,
-                                           blank=True,verbose_name=u'物流公司')
-    receiver_name    =  models.CharField(max_length=25,
-                                         blank=True,verbose_name=u'收货人姓名')
-    receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name=u'省')
-    receiver_city    =  models.CharField(max_length=16,blank=True,verbose_name=u'市')
-    receiver_district  =  models.CharField(max_length=16,blank=True,verbose_name=u'区')
-    
-    receiver_address   =  models.CharField(max_length=128,blank=True,verbose_name=u'详细地址')
-    receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name=u'邮编')
-    receiver_mobile    =  models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u'手机')
-    receiver_phone     =  models.CharField(max_length=20,blank=True,verbose_name=u'电话')
+    id = BigIntegerAutoField(primary_key=True, verbose_name=u'订单ID')
+
+    tid = models.CharField(max_length=40, unique=True,
+                           default=genTradeUniqueid,
+                           verbose_name=u'原单ID')
+    buyer_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'买家ID')
+    buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
+
+    channel = models.CharField(max_length=16, db_index=True,
+                               choices=CHANNEL_CHOICES, blank=True, verbose_name=u'付款方式')
+
+    payment = models.FloatField(default=0.0, verbose_name=u'付款金额')
+    pay_cash = models.FloatField(default=0.0, verbose_name=u'实付现金')
+    post_fee = models.FloatField(default=0.0, verbose_name=u'物流费用')
+    discount_fee = models.FloatField(default=0.0, verbose_name=u'优惠折扣')
+    total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
+    has_budget_paid = models.BooleanField(default=False, verbose_name=u'使用余额')
+
+    buyer_message = models.TextField(max_length=1000, blank=True, verbose_name=u'买家留言')
+    seller_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'卖家备注')
+
+    pay_time = models.DateTimeField(db_index=True, null=True, blank=True, verbose_name=u'付款日期')
+    consign_time = models.DateTimeField(null=True, blank=True, verbose_name=u'发货日期')
+
+    trade_type = models.IntegerField(choices=TRADE_TYPE_CHOICES, default=PREPAY, verbose_name=u'交易类型')
+    order_type = models.IntegerField(choices=ORDER_TYPE_CHOICES, default=SALE_ORDER, verbose_name=u'订单类型')
+
+    out_sid = models.CharField(max_length=64, blank=True, verbose_name=u'物流编号')
+    logistics_company = models.ForeignKey(LogisticsCompany, null=True,
+                                          blank=True, verbose_name=u'物流公司')
+    receiver_name = models.CharField(max_length=25,
+                                     blank=True, verbose_name=u'收货人姓名')
+    receiver_state = models.CharField(max_length=16, blank=True, verbose_name=u'省')
+    receiver_city = models.CharField(max_length=16, blank=True, verbose_name=u'市')
+    receiver_district = models.CharField(max_length=16, blank=True, verbose_name=u'区')
+
+    receiver_address = models.CharField(max_length=128, blank=True, verbose_name=u'详细地址')
+    receiver_zip = models.CharField(max_length=10, blank=True, verbose_name=u'邮编')
+    receiver_mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'手机')
+    receiver_phone = models.CharField(max_length=20, blank=True, verbose_name=u'电话')
     user_address_id = models.BigIntegerField(blank=True, null=True, verbose_name=u'地址id')
 
-    openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信OpenID')
-    charge  = models.CharField(max_length=28,verbose_name=u'支付编号')
-    
-    extras_info  = JSONCharMyField(max_length=256, blank=True, default=lambda:{}, verbose_name=u'附加信息')
-    
-    status  = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
-                              db_index=True,blank=True,verbose_name=u'交易状态')
-    
-#     is_part_consign  = models.BooleanField(db_index=True,default=False,verbose_name=u'分单发货')
-#     consign_parmas   = JSONCharMyField(max_length=512, blank=True, default='[]', verbose_name=u'发货信息')
+    openid = models.CharField(max_length=40, blank=True, verbose_name=u'微信OpenID')
+    charge = models.CharField(max_length=28, verbose_name=u'支付编号')
+
+    extras_info = JSONCharMyField(max_length=256, blank=True, default=lambda: {}, verbose_name=u'附加信息')
+
+    status = models.IntegerField(choices=TRADE_STATUS, default=TRADE_NO_CREATE_PAY,
+                                 db_index=True, blank=True, verbose_name=u'交易状态')
+
+    #     is_part_consign  = models.BooleanField(db_index=True,default=False,verbose_name=u'分单发货')
+    #     consign_parmas   = JSONCharMyField(max_length=512, blank=True, default='[]', verbose_name=u'发货信息')
     objects = models.Manager()
     normal_objects = managers.NormalSaleTradeManager()
+
     class Meta:
         db_table = 'flashsale_trade'
         app_label = 'pay'
-        verbose_name=u'特卖/订单'
+        verbose_name = u'特卖/订单'
         verbose_name_plural = u'特卖/订单列表'
 
     def __unicode__(self):
-        return '<%s,%s>'%(str(self.id),self.buyer_nick)
-    
+        return '<%s,%s>' % (str(self.id), self.buyer_nick)
+
     @property
     def normal_orders(self):
         return self.sale_orders.filter(status__in=SaleOrder.NORMAL_ORDER_STATUS)
-    
+
     @property
     def order_title(self):
         if self.sale_orders.count() > 0:
             return self.sale_orders.all()[0].title
         return ''
-    
+
     @property
     def order_num(self):
         onum = 0
@@ -194,53 +196,53 @@ class SaleTrade(BaseModel):
         for order in order_values:
             onum += order[0]
         return onum
-    
+
     @property
     def order_pic(self):
         if self.sale_orders.count() > 0:
             return self.sale_orders.all()[0].pic_path
         return ''
-    
+
     @property
     def budget_payment(self):
         """ 余额支付（分） """
         if self.has_budget_paid:
             return round((self.payment - self.pay_cash) * 100)
         return 0
-    
+
     @property
     def status_name(self):
         return self.get_status_display()
-    
+
     @property
     def body_describe(self):
         subc = ''
         for order in self.sale_orders.all():
             subc += order.title
         return subc
-    
+
     @property
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
-    
+
     def get_cash_payment(self):
         """ 实际需支付金额 """
         if not self.has_budget_paid:
             return self.payment
-        
+
         if self.pay_cash > 0:
             return self.pay_cash
-        
+
         return self.payment
-    
+
     def get_buyer_openid(self):
         """ 获取订单用户openid """
         if self.openid:
             return self.openid
         return self.order_buyer.openid
-    
+
     @classmethod
-    def mapTradeStatus(cls,index):
+    def mapTradeStatus(cls, index):
         from shopback.trades.models import MergeTrade
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
         return status_list[index][0]
@@ -250,24 +252,24 @@ class SaleTrade(BaseModel):
         Roughly check whether order is paid via app, should be revised later.
         """
         return self.channel == SaleTrade.WX or self.channel == SaleTrade.ALIPAY
-    
+
     def is_payable(self):
         now = datetime.datetime.now()
         return self.status == self.WAIT_BUYER_PAY and (now - self.created).seconds < TIME_FOR_PAYMENT
-    
+
     def is_closed(self):
         return self.status == self.TRADE_CLOSED_BY_SYS
-    
+
     def is_refunded(self):
         return self.status == self.TRADE_CLOSED
-    
+
     def is_Deposite_Order(self):
-    
+
         for order in self.sale_orders.all():
             if order.outer_id.startswith(AGENCY_DIPOSITE_CODE):
                 return True
         return False
-    
+
     def is_wallet_paid(self):
         return self.channel == self.WALLET
 
@@ -276,72 +278,72 @@ class SaleTrade(BaseModel):
             for order in self.normal_orders:
                 product_sku = ProductSku.objects.get(id=order.sku_id)
                 Product.objects.releaseLockQuantity(product_sku, order.num)
-        except Exception,exc:
-            logger.error(exc.message,exc_info=True)
-    
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+
     def increase_lock_skunum(self):
         try:
             for order in self.normal_orders:
                 product_sku = ProductSku.objects.get(id=order.sku_id)
                 Product.objects.lockQuantity(product_sku, order.num)
-        except Exception,exc:
-            logger.error(exc.message,exc_info=True)
-    
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+
     def confirm_payment(self):
         from django_statsd.clients import statsd
         statsd.incr('xiaolumm.postpay_count')
-        statsd.incr('xiaolumm.postpay_amount',self.payment)
-        signal_saletrade_pay_confirm.send(sender=SaleTrade,obj=self)
-            
-    def charge_confirm(self,charge_time=None):
+        statsd.incr('xiaolumm.postpay_amount', self.payment)
+        signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=self)
+
+    def charge_confirm(self, charge_time=None):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
         trade_close = self.is_closed()
         self.status = self.WAIT_SELLER_SEND_GOODS
         self.pay_time = charge_time or datetime.datetime.now()
-        update_model_fields(self,update_fields=['status','pay_time'])
-        
+        update_model_fields(self, update_fields=['status', 'pay_time'])
+
         for order in self.sale_orders.all():
-            order.status   = order.WAIT_SELLER_SEND_GOODS
+            order.status = order.WAIT_SELLER_SEND_GOODS
             order.pay_time = self.pay_time
             order.save()
-        #付款后订单被关闭，则加上锁定数
+        # 付款后订单被关闭，则加上锁定数
         if trade_close:
-            self.increase_lock_skunum() 
+            self.increase_lock_skunum()
         self.confirm_payment()
-    
+
     @transaction.atomic
     def close_trade(self):
         """ 关闭待付款订单 """
         try:
-            SaleTrade.objects.get(id=self.id,status=SaleTrade.WAIT_BUYER_PAY)
+            SaleTrade.objects.get(id=self.id, status=SaleTrade.WAIT_BUYER_PAY)
         except SaleTrade.DoesNotExist:
             return
         self.status = SaleTrade.TRADE_CLOSED_BY_SYS
         self.save()
-        
+
         for order in self.normal_orders:
             order.close_order()
-            
+
         if self.has_budget_paid:
             ubudget = UserBudget.objects.get(user=self.buyer_id)
             ubudget.charge_cancel(self.id)
-        #释放被当前订单使用的优惠券
+        # 释放被当前订单使用的优惠券
         self.release_coupon()
-        
+
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
         UserCoupon.objects.filter(
-            sale_trade=self.id, 
+            sale_trade=self.id,
             status=UserCoupon.USED
         ).update(status=UserCoupon.UNUSED)
-    
+
     @property
     def unsign_orders(self):
         """ 允许签收的订单 （已经付款、已发货、货到付款签收）"""
         return self.sale_orders.filter(status__in=
                                        (SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                       SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
-                                       SaleOrder.TRADE_BUYER_SIGNED))
+                                        SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                                        SaleOrder.TRADE_BUYER_SIGNED))
 
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """
@@ -368,8 +370,9 @@ def record_supplier_args(sender, obj, **kwargs):
                 supplier.total_sale_num = F('total_sale_num') + order.num
                 supplier.total_sale_amount = F("total_sale_amount") + order.payment
                 update_model_fields(supplier, update_fields=['total_sale_num', 'total_sale_amount'])
-    except Exception,exc:
-        logger.error('record_supplier_args error:%s'%exc.message, exc_info=True)
+    except Exception, exc:
+        logger.error('record_supplier_args error:%s' % exc.message, exc_info=True)
+
 
 signal_saletrade_pay_confirm.connect(record_supplier_args, sender=SaleTrade)
 
@@ -379,16 +382,16 @@ def trade_payment_used_coupon(sender, obj, **kwargs):
     try:
         coupon_id = obj.extras_info.get('coupon')
         if coupon_id:
-            coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(obj.buyer_id))
+            coupon = UserCoupon.objects.get(id=coupon_id, customer=str(obj.buyer_id))
             if coupon.status == UserCoupon.UNUSED:
                 coupon.sale_trade = obj.id
                 coupon.status = UserCoupon.USED
                 coupon.save()
                 logger.warn('trade_payment_used_coupon invoke:saletrade=%s,coupon=%s' % (obj, coupon))
             else:
-                logger.warn('trade_payment_used_coupon repeat:saletrade=%s,coupon=%s'%(obj,coupon))
-    except Exception,exc:
-        logger.error('trade_payment_used_coupon error:%s'%exc.message, exc_info=True)
+                logger.warn('trade_payment_used_coupon repeat:saletrade=%s,coupon=%s' % (obj, coupon))
+    except Exception, exc:
+        logger.error('trade_payment_used_coupon error:%s' % exc.message, exc_info=True)
 
 
 signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
@@ -404,6 +407,7 @@ signal_saletrade_pay_confirm.connect(push_msg_mama, sender=SaleTrade)
 
 from shopback.categorys.models import CategorySaleStat
 
+
 def category_trade_stat(sender, obj, **kwargs):
     """
         记录不同类别产品的销售数量和销售金额
@@ -412,7 +416,7 @@ def category_trade_stat(sender, obj, **kwargs):
     for order in orders:
         try:
             pro = Product.objects.get(id=order.item_id)
-            cgysta, state = CategorySaleStat.objects.get_or_create(stat_date=pro.sale_time, 
+            cgysta, state = CategorySaleStat.objects.get_or_create(stat_date=pro.sale_time,
                                                                    category=pro.category.cid)
             if state:  # 如果是新建
                 cgysta.sale_amount = order.payment  # 销售金额
@@ -421,8 +425,9 @@ def category_trade_stat(sender, obj, **kwargs):
                 cgysta.sale_amount = F("sale_amount") + order.payment
                 cgysta.sale_num = F("sale_num") + order.num
             update_model_fields(cgysta, update_fields=["sale_amount", "sale_num"])
-        except Exception,exc:
-            logger.error(exc.message,exc_info=True)
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+
 
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 
@@ -438,13 +443,14 @@ signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
+
     class Meta:
         db_table = 'flashsale_order'
         app_label = 'pay'
-        verbose_name=u'特卖/订单明细'
+        verbose_name = u'特卖/订单明细'
         verbose_name_plural = u'特卖/订单明细列表'
-    
-    PREFIX_NO  = 'xo'
+
+    PREFIX_NO = 'xo'
     TRADE_NO_CREATE_PAY = 0
     WAIT_BUYER_PAY = 1
     WAIT_SELLER_SEND_GOODS = 2
@@ -454,61 +460,62 @@ class SaleOrder(PayBaseModel):
     TRADE_CLOSED = 6
     TRADE_CLOSED_BY_SYS = 7
     ORDER_STATUS = (
-        (TRADE_NO_CREATE_PAY,u'订单创建'),
-        (WAIT_BUYER_PAY,u'待付款'),
-        (WAIT_SELLER_SEND_GOODS,u'已付款'),
-        (WAIT_BUYER_CONFIRM_GOODS,u'已发货'),
-        (TRADE_BUYER_SIGNED,u'确认签收'),
-        (TRADE_FINISHED,u'交易成功'),
-        (TRADE_CLOSED,u'退款关闭'),
-        (TRADE_CLOSED_BY_SYS,u'交易关闭'),
+        (TRADE_NO_CREATE_PAY, u'订单创建'),
+        (WAIT_BUYER_PAY, u'待付款'),
+        (WAIT_SELLER_SEND_GOODS, u'已付款'),
+        (WAIT_BUYER_CONFIRM_GOODS, u'已发货'),
+        (TRADE_BUYER_SIGNED, u'确认签收'),
+        (TRADE_FINISHED, u'交易成功'),
+        (TRADE_CLOSED, u'退款关闭'),
+        (TRADE_CLOSED_BY_SYS, u'交易关闭'),
     )
-    
+
     NORMAL_ORDER_STATUS = (WAIT_BUYER_PAY,
                            WAIT_SELLER_SEND_GOODS,
                            WAIT_BUYER_CONFIRM_GOODS,
                            TRADE_BUYER_SIGNED,
                            TRADE_FINISHED,)
-    
-    id    = BigIntegerAutoField(primary_key=True)
-    oid   = models.CharField(max_length=40,unique=True,
-                             default=lambda:uniqid('%s%s'%(SaleOrder.PREFIX_NO,datetime.date.today().strftime('%y%m%d'))),
-                             verbose_name=u'原单ID')
-    sale_trade = BigIntegerForeignKey(SaleTrade,related_name='sale_orders',
-                                       verbose_name=u'所属订单')
-    
-    item_id  = models.CharField(max_length=64,blank=True,verbose_name=u'商品ID')
-    title  =  models.CharField(max_length=128,blank=True,verbose_name=u'商品标题')
-    price  = models.FloatField(default=0.0,verbose_name=u'商品单价')
 
-    sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'属性编码')
-    num = models.IntegerField(null=True,default=0,verbose_name=u'商品数量')
-    
-    outer_id = models.CharField(max_length=64,blank=True,verbose_name=u'商品外部编码')
-    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格外部编码')
-    
-    total_fee    = models.FloatField(default=0.0,verbose_name=u'总费用')
-    payment      = models.FloatField(default=0.0,verbose_name=u'实付款')
-    discount_fee = models.FloatField(default=0.0,verbose_name=u'优惠金额')
-    
-    sku_name = models.CharField(max_length=256,blank=True,
-                                           verbose_name=u'购买规格')
-    pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
-    
-    pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
-    consign_time  =  models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
-    sign_time     =  models.DateTimeField(null=True,blank=True,verbose_name=u'签收日期')
-    
-    refund_id     = models.BigIntegerField(null=True,verbose_name=u'退款ID')
-    refund_fee    = models.FloatField(default=0.0,verbose_name=u'退款费用')
+    id = BigIntegerAutoField(primary_key=True)
+    oid = models.CharField(max_length=40, unique=True,
+                           default=lambda: uniqid(
+                               '%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d'))),
+                           verbose_name=u'原单ID')
+    sale_trade = BigIntegerForeignKey(SaleTrade, related_name='sale_orders',
+                                      verbose_name=u'所属订单')
+
+    item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
+    title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
+    price = models.FloatField(default=0.0, verbose_name=u'商品单价')
+
+    sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'属性编码')
+    num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
+
+    outer_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品外部编码')
+    outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格外部编码')
+
+    total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
+    payment = models.FloatField(default=0.0, verbose_name=u'实付款')
+    discount_fee = models.FloatField(default=0.0, verbose_name=u'优惠金额')
+
+    sku_name = models.CharField(max_length=256, blank=True,
+                                verbose_name=u'购买规格')
+    pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
+
+    pay_time = models.DateTimeField(db_index=True, null=True, blank=True, verbose_name=u'付款日期')
+    consign_time = models.DateTimeField(null=True, blank=True, verbose_name=u'发货日期')
+    sign_time = models.DateTimeField(null=True, blank=True, verbose_name=u'签收日期')
+
+    refund_id = models.BigIntegerField(null=True, verbose_name=u'退款ID')
+    refund_fee = models.FloatField(default=0.0, verbose_name=u'退款费用')
     refund_status = models.IntegerField(choices=SaleRefund.REFUND_STATUS,
-                                       default=SaleRefund.NO_REFUND,
-                                       blank=True,verbose_name='退款状态')
-    
+                                        default=SaleRefund.NO_REFUND,
+                                        blank=True, verbose_name='退款状态')
+
     status = models.IntegerField(choices=ORDER_STATUS, default=TRADE_NO_CREATE_PAY,
-                              db_index=True,blank=True, verbose_name=u'订单状态')
-    
-    package_order_id = models.CharField(max_length=100, verbose_name=u'所属包裹订单',null=True)
+                                 db_index=True, blank=True, verbose_name=u'订单状态')
+
+    package_order_id = models.CharField(max_length=100, verbose_name=u'所属包裹订单', null=True)
     NOT_ASSIGNED = 0
     ASSIGNED = 1
     FINISHED = 2
@@ -521,12 +528,12 @@ class SaleOrder(PayBaseModel):
     assign_status = models.IntegerField(default=NOT_ASSIGNED, choices=ASSIGN_STATUS, verbose_name=u'库存分派状态')
 
     def __unicode__(self):
-        return '<%s>'%(self.id)
+        return '<%s>' % (self.id)
 
     @property
     def refund(self):
         try:
-            refund = SaleRefund.objects.get(trade_id=self.sale_trade.id,order_id=self.id)
+            refund = SaleRefund.objects.get(trade_id=self.sale_trade.id, order_id=self.id)
             return refund
         except:
             return None
@@ -540,11 +547,11 @@ class SaleOrder(PayBaseModel):
             return PackageOrder.objects.get(id=self.package_order_id)
         except:
             return None
-        
+
     @property
     def refundable(self):
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
-    
+
     def is_finishable(self):
         """
         1，订单发货后超过15天未确认签收,系统自动变成已完成状态；
@@ -555,38 +562,38 @@ class SaleOrder(PayBaseModel):
         sign_time = self.sign_time
         if self.refund_status in SaleRefund.REFUNDABLE_STATUS:
             return False
-        if (self.status == self.WAIT_BUYER_CONFIRM_GOODS 
+        if (self.status == self.WAIT_BUYER_CONFIRM_GOODS
             and (not consign_time or (now_time - consign_time).days > 15)):
             return True
-        elif (self.status == self.TRADE_BUYER_SIGNED 
-            and (not sign_time or (now_time - sign_time).days > 7)):
+        elif (self.status == self.TRADE_BUYER_SIGNED
+              and (not sign_time or (now_time - sign_time).days > 7)):
             return True
         return False
-            
+
     def close_order(self):
         """ 待付款关闭订单 """
         try:
-            SaleOrder.objects.get(id=self.id,status=SaleOrder.WAIT_BUYER_PAY)
-        except SaleOrder.DoesNotExist,exc:
+            SaleOrder.objects.get(id=self.id, status=SaleOrder.WAIT_BUYER_PAY)
+        except SaleOrder.DoesNotExist, exc:
             return
-    
+
         self.status = self.TRADE_CLOSED_BY_SYS
         self.save()
         sku = get_object_or_404(ProductSku, pk=self.sku_id)
-        Product.objects.releaseLockQuantity(sku,self.num)
+        Product.objects.releaseLockQuantity(sku, self.num)
 
     def confirm_sign_order(self):
         """确认签收 修改该订单状态到 确认签收状态"""
         self.status = self.TRADE_BUYER_SIGNED
         self.sign_time = datetime.datetime.now()
         self.save()
-        
-        sale_trade    = self.sale_trade
+
+        sale_trade = self.sale_trade
         normal_orders = sale_trade.normal_orders
-        sign_orders   = sale_trade.sale_orders.filter(status=SaleOrder.TRADE_BUYER_SIGNED)
+        sign_orders = sale_trade.sale_orders.filter(status=SaleOrder.TRADE_BUYER_SIGNED)
         if sign_orders.count() == normal_orders.count():
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
-            update_model_fields(sale_trade,update_fields=['status'])
+            update_model_fields(sale_trade, update_fields=['status'])
 
     def cancel_assign(self):
         if self.assign_status == SaleOrder.ASSIGNED:
@@ -606,25 +613,26 @@ class SaleOrder(PayBaseModel):
 
     def is_pending(self):
         return self.status < SaleOrder.TRADE_FINISHED and \
-            self.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and \
-            self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
-    
+               self.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and \
+               self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
+
     def is_confirmed(self):
         return self.status == SaleOrder.TRADE_FINISHED and \
-            self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
-    
+               self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
+
     def is_canceled(self):
         return self.status > SaleOrder.TRADE_FINISHED or \
-            self.refund_status > SaleRefund.REFUND_REFUSE_BUYER
-    
+               self.refund_status > SaleRefund.REFUND_REFUSE_BUYER
+
     def is_deposit(self):
         return self.outer_id.startswith('RMB')
 
 
-def refresh_sale_trade_status(sender,instance,*args,**kwargs):
+def refresh_sale_trade_status(sender, instance, *args, **kwargs):
     """ 更新订单状态 """
-    #TODO
-    
+    # TODO
+
+
 post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
 
 
@@ -640,124 +648,125 @@ def order_trigger(sender, instance, created, **kwargs):
     else:
         from flashsale.xiaolumm import tasks_mama
         tasks_mama.task_order_trigger.delay(instance)
-    
+
+
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 
 
 class TradeCharge(PayBaseModel):
-    
-    order_no    = models.CharField(max_length=40,verbose_name=u'订单ID')
-    charge      = models.CharField(max_length=28,verbose_name=u'支付编号')
-    
-    paid        = models.BooleanField(db_index=True,default=False,verbose_name=u'付款')
-    refunded    = models.BooleanField(db_index=True,default=False,verbose_name=u'退款')
-    
-    channel     = models.CharField(max_length=16,blank=True,verbose_name=u'支付方式')
-    amount      = models.CharField(max_length=10,blank=True,verbose_name=u'付款金额')
-    currency    = models.CharField(max_length=8,blank=True,verbose_name=u'币种')
-    
-    transaction_no  = models.CharField(max_length=28,blank=True,verbose_name=u'事务NO')
-    amount_refunded = models.CharField(max_length=16,blank=True,verbose_name=u'退款金额')
-    
-    failure_code    = models.CharField(max_length=16,blank=True,verbose_name=u'错误编码')
-    failure_msg     = models.CharField(max_length=16,blank=True,verbose_name=u'错误信息')
-    
-#     out_trade_no    = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'外部交易ID')
-    
-    time_paid       = models.DateTimeField(null=True,blank=True,db_index=True,verbose_name=u'付款时间')
-    time_expire     = models.DateTimeField(null=True,blank=True,db_index=True,verbose_name=u'失效时间')
-    
+    order_no = models.CharField(max_length=40, verbose_name=u'订单ID')
+    charge = models.CharField(max_length=28, verbose_name=u'支付编号')
+
+    paid = models.BooleanField(db_index=True, default=False, verbose_name=u'付款')
+    refunded = models.BooleanField(db_index=True, default=False, verbose_name=u'退款')
+
+    channel = models.CharField(max_length=16, blank=True, verbose_name=u'支付方式')
+    amount = models.CharField(max_length=10, blank=True, verbose_name=u'付款金额')
+    currency = models.CharField(max_length=8, blank=True, verbose_name=u'币种')
+
+    transaction_no = models.CharField(max_length=28, blank=True, verbose_name=u'事务NO')
+    amount_refunded = models.CharField(max_length=16, blank=True, verbose_name=u'退款金额')
+
+    failure_code = models.CharField(max_length=16, blank=True, verbose_name=u'错误编码')
+    failure_msg = models.CharField(max_length=16, blank=True, verbose_name=u'错误信息')
+
+    #     out_trade_no    = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'外部交易ID')
+
+    time_paid = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'付款时间')
+    time_expire = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'失效时间')
+
     class Meta:
         db_table = 'flashsale_trade_charge'
-        unique_together = ("order_no","charge")
+        unique_together = ("order_no", "charge")
         app_label = 'pay'
-        verbose_name=u'特卖支付/交易'
+        verbose_name = u'特卖支付/交易'
         verbose_name_plural = u'特卖交易/支付列表'
-        
+
     def __unicode__(self):
-        return '<%s>'%(self.id)
-    
-from shopback.items.models import Product,ProductSku
+        return '<%s>' % (self.id)
+
+
+from shopback.items.models import Product, ProductSku
+
 
 class ShoppingCart(BaseModel):
     """ 购物车 """
-    
+
     NORMAL = 0
     CANCEL = 1
-    
-    STATUS_CHOICE = ((NORMAL,u'正常'),
-                     (CANCEL,u'关闭'))
-    
-    id    = BigIntegerAutoField(primary_key=True)
-    buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
-    buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
-    
-    item_id  = models.CharField(max_length=64,blank=True,verbose_name=u'商品ID')
-    title  =  models.CharField(max_length=128,blank=True,verbose_name=u'商品标题')
-    price  = models.FloatField(default=0.0,verbose_name=u'单价')
 
-    sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格ID')
-    num = models.IntegerField(null=True,default=0,verbose_name=u'商品数量')
-    
-    total_fee    = models.FloatField(default=0.0,verbose_name=u'总费用')
+    STATUS_CHOICE = ((NORMAL, u'正常'),
+                     (CANCEL, u'关闭'))
 
-    sku_name = models.CharField(max_length=256,blank=True, verbose_name=u'规格名称')
-    
-    pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
-    remain_time   =  models.DateTimeField(null=True, blank=True, verbose_name=u'保留时间')
+    id = BigIntegerAutoField(primary_key=True)
+    buyer_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'买家ID')
+    buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
 
-    status = models.IntegerField(choices=STATUS_CHOICE,default=NORMAL,
-                              db_index=True,blank=True,verbose_name=u'订单状态') 
-    
+    item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
+    title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
+    price = models.FloatField(default=0.0, verbose_name=u'单价')
+
+    sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
+    num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
+
+    total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
+
+    sku_name = models.CharField(max_length=256, blank=True, verbose_name=u'规格名称')
+
+    pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
+    remain_time = models.DateTimeField(null=True, blank=True, verbose_name=u'保留时间')
+
+    status = models.IntegerField(choices=STATUS_CHOICE, default=NORMAL,
+                                 db_index=True, blank=True, verbose_name=u'订单状态')
+
     class Meta:
         db_table = 'flashsale_shoppingcart'
         app_label = 'pay'
-        verbose_name=u'特卖/购物车'
+        verbose_name = u'特卖/购物车'
         verbose_name_plural = u'特卖/购物车'
-        
+
     def __unicode__(self):
-        return '%s'%(self.id)
-    
+        return '%s' % (self.id)
+
     @transaction.atomic
-    def close_cart(self,release_locknum=True):
+    def close_cart(self, release_locknum=True):
         """ 关闭购物车 """
         try:
             ShoppingCart.objects.get(id=self.id, status=ShoppingCart.NORMAL)
         except ShoppingCart.DoesNotExist:
             return
-    
+
         self.status = self.CANCEL
         self.save()
         if release_locknum:
             sku = get_object_or_404(ProductSku, pk=self.sku_id)
-            Product.objects.releaseLockQuantity(sku,self.num)
-    
+            Product.objects.releaseLockQuantity(sku, self.num)
+
     def std_sale_price(self):
         sku = ProductSku.objects.get(id=self.sku_id)
         return sku.std_sale_price
-    
+
     def is_deposite(self):
         product = Product.objects.get(id=self.item_id)
         return product.outer_id.startswith('RMB')
-    
+
     def is_good_enough(self):
         product_sku = ProductSku.objects.get(id=self.sku_id)
-        return (product_sku.product.shelf_status == Product.UP_SHELF 
+        return (product_sku.product.shelf_status == Product.UP_SHELF
                 and product_sku.real_remainnum >= self.num)
-        
-    def calc_discount_fee(self,xlmm=None):
+
+    def calc_discount_fee(self, xlmm=None):
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return product_sku.calc_discount_fee(xlmm)
-    
-    
+
+
 from signals_coupon import *
 from shopback import signals
 from django.contrib.auth.models import User as DjangoUser
 
 
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
-    
-    from core.options import log_action,CHANGE,SYSTEMOA_USER
+    from core.options import log_action, CHANGE, SYSTEMOA_USER
     for pro_bean in product_list:
         all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL)
         for cart in all_cart:
@@ -770,6 +779,7 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
                 log_action(SYSTEMOA_USER.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
+
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
@@ -803,9 +813,6 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
             # 这笔交易 退款 关闭
             trade.status = SaleTrade.TRADE_CLOSED
             trade.save()
-        # 退款成功之后发送推送　和短信
-        from tasks import task_send_msg_for_refund
-        task_send_msg_for_refund.s(instance).delay()
 
     if instance.status == SaleRefund.REFUND_CLOSED:  # 退款关闭即没有退款成功 切换订单到交易成功状态
         # 如果是退款成功状态 找到订单
@@ -841,5 +848,6 @@ def push_envelop_get_msg(sender, instance, created, **kwargs):
     if sent_status != Envelop.SENT:
         return
     task_push_mama_cashout_msg.s(instance).delay()
-post_save.connect(push_envelop_get_msg, sender=Envelop)
 
+
+post_save.connect(push_envelop_get_msg, sender=Envelop)

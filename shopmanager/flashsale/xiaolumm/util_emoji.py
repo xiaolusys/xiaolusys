@@ -1,4 +1,3 @@
-
 def get_all_emoji():
     a = {
         # flower
@@ -71,7 +70,7 @@ def get_all_emoji():
         "U+1F366": u"\U0001F366", "U+1F367": u"\U0001F367", "U+1F382": u"\U0001F382", "U+1F370": u"\U0001F370",
         "U+1F34E": u"\U0001F34E", "U+1F34A": u"\U0001F34A", "U+1F349": u"\U0001F349",
         "U+1F353": u"\U0001F353", "U+1F346": u"\U0001F346", "U+1F345": u"\U0001F345"
-        }
+    }
     return a
 
 
@@ -97,9 +96,9 @@ def gen_emoji(desc):
     for key in res_list:
         if not key in d:
             d[key] = gen_random_emoji()
-    
-    for k,v in d.iteritems():
-        desc = desc.replace(k,v)
+
+    for k, v in d.iteritems():
+        desc = desc.replace(k, v)
     return desc
 
 
@@ -111,9 +110,9 @@ def gen_emoji(desc):
     for key in res_list:
         if not key in d:
             d[key] = gen_random_emoji()
-    
-    for k,v in d.iteritems():
-        desc = desc.replace(k,v)
+
+    for k, v in d.iteritems():
+        desc = desc.replace(k, v)
     return desc
 
 
@@ -126,10 +125,8 @@ def match_emoji(desc):
     for key in res_list:
         if not key in m:
             m[key] = get_emoji(key)
-    
-    for k,v in m.iteritems():
-        desc = desc.replace(k,v)
+
+    for k, v in m.iteritems():
+        desc = desc.replace(k, v)
 
     return desc
-
-

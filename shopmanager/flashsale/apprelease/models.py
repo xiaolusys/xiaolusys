@@ -7,7 +7,7 @@ class AppRelease(BaseModel):
     """
     存储release过的客户端地址，方便下载页面调用，和后台及时更换
     """
-    
+
     class Meta:
         app_label = 'apprelease'
         db_table = 'flashsale_app_release'
@@ -23,7 +23,3 @@ class AppRelease(BaseModel):
     status = models.IntegerField(default=0, verbose_name=u'投放状态', db_index=True, choices=RELEASE_STATUS)
     release_time = models.DateTimeField(blank=True, null=True, verbose_name=u'投放时间')
     memo = models.TextField(max_length=1024, blank=True, null=True, verbose_name=u'备注')
-
-
-
-

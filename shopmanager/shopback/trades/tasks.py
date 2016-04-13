@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 import time
 import datetime
 import calendar
@@ -6,55 +6,55 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from django.db.models import Q,Sum
+from django.db.models import Q, Sum
 from shopback import paramconfig as pcfg
-from shopback.orders.models import Trade,Order
+from shopback.orders.models import Trade, Order
 from shopback.trades.service import TradeService
-from shopback.items.models import Product,ProductSku
+from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeTrade,
                                     MergeBuyerTrade,
                                     ReplayPostTrade,
                                     MergeTradeDelivery)
-from core.options import log_action,User as DjangoUser, ADDITION, CHANGE
+from core.options import log_action, User as DjangoUser, ADDITION, CHANGE
 from common.utils import update_model_fields
-from shopback.users.models import User,Customer
+from shopback.users.models import User, Customer
 from auth import apis
 import logging
 
-
 logger = logging.getLogger('celery.handler')
 LOGISTIC_DIR = 'logistic'
-ORDER_DIR    = 'order'
-REPORT_DIR   = 'report'
-FINANCE_DIR  = 'finance'
+ORDER_DIR = 'order'
+REPORT_DIR = 'report'
+FINANCE_DIR = 'finance'
+
 
 class SubTradePostException(Exception):
-
-    def __init__(self,msg=''):
-        self.message  = msg
+    def __init__(self, msg=''):
+        self.message = msg
 
     def __str__(self):
         return self.message
-     
+
+
 def get_trade_pickle_list_data(post_trades):
     """生成配货单数据列表"""
-    
+
     trade_items = {}
     for trade in post_trades:
-        used_orders = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT)\
+        used_orders = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT) \
             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
         for order in used_orders:
             outer_id = order.outer_id or str(order.num_iid)
             outer_sku_id = order.outer_sku_id or str(order.sku_id)
-            
+
             prod = None
             prod_sku = None
             try:
                 prod = Product.objects.get(outer_id=outer_id)
-                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
+                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id, product=prod)
             except:
                 pass
-            
+
             location = prod_sku and prod_sku.get_districts_code() or (prod and prod.get_districts_code() or '')
             if trade_items.has_key(outer_id):
                 trade_items[outer_id]['num'] += order.num
@@ -63,42 +63,42 @@ def get_trade_pickle_list_data(post_trades):
                     skus[outer_sku_id]['num'] += order.num
                 else:
                     prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
-                    skus[outer_sku_id] = {'sku_name':prod_sku_name,
-                                          'num':order.num,
-                                          'location':location}
+                    skus[outer_sku_id] = {'sku_name': prod_sku_name,
+                                          'num': order.num,
+                                          'location': location}
             else:
                 prod_sku_name = prod_sku.properties_name if prod_sku else order.sku_properties_name
-                    
-                trade_items[outer_id]={
-                   'num':order.num,
-                   'title': prod.name if prod else order.title,
-                   'location':prod and prod.get_districts_code() or '',
-                   'skus':{outer_sku_id:{
-                        'sku_name':prod_sku_name,
-                        'num':order.num,
-                        'location':location}}
+
+                trade_items[outer_id] = {
+                    'num': order.num,
+                    'title': prod.name if prod else order.title,
+                    'location': prod and prod.get_districts_code() or '',
+                    'skus': {outer_sku_id: {
+                        'sku_name': prod_sku_name,
+                        'num': order.num,
+                        'location': location}}
                 }
 
-    trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+    trade_list = sorted(trade_items.items(), key=lambda d: d[1]['num'], reverse=True)
     for trade in trade_list:
         skus = trade[1]['skus']
-        trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
-    
+        trade[1]['skus'] = sorted(skus.items(), key=lambda d: d[1]['num'], reverse=True)
+
     return trade_list
-     
+
+
 def get_replay_results(replay_trade):
-    
-    reponse_result = replay_trade.post_data 
+    reponse_result = replay_trade.post_data
     if not reponse_result:
 
         trade_ids = replay_trade.trade_ids.split(',')
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
 
         post_trades = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
-                                                     pcfg.WAIT_SCAN_WEIGHT_STATUS,
-                                                     pcfg.FINISHED_STATUS))
+                                                      pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                                      pcfg.FINISHED_STATUS))
         trade_list = get_trade_pickle_list_data(post_trades)
-        
+
         trades = []
         for trade in queryset:
             trade_dict = {}
@@ -106,81 +106,81 @@ def get_replay_results(replay_trade):
             trade_dict['tid'] = trade.tid
             trade_dict['seller_nick'] = trade.user.nick
             trade_dict['buyer_nick'] = trade.buyer_nick
-            trade_dict['company_name'] = (trade.logistics_company and 
+            trade_dict['company_name'] = (trade.logistics_company and
                                           trade.logistics_company.name or '--')
-            trade_dict['out_sid']    = trade.out_sid
+            trade_dict['out_sid'] = trade.out_sid
             trade_dict['is_success'] = trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                                             pcfg.WAIT_SCAN_WEIGHT_STATUS,
                                                             pcfg.FINISHED_STATUS)
             trade_dict['sys_status'] = trade.sys_status
             trades.append(trade_dict)
-        
-        reponse_result = {'trades':trades,'trade_items':trade_list,'post_no':replay_trade.id}
-        
-        replay_trade.succ_ids  = ','.join([str(t.id) for t in post_trades])
-        replay_trade.succ_num  = post_trades.count()
+
+        reponse_result = {'trades': trades, 'trade_items': trade_list, 'post_no': replay_trade.id}
+
+        replay_trade.succ_ids = ','.join([str(t.id) for t in post_trades])
+        replay_trade.succ_num = post_trades.count()
         replay_trade.post_data = json.dumps(reponse_result)
-        replay_trade.status    = pcfg.RP_WAIT_ACCEPT_STATUS
-        replay_trade.finished  = datetime.datetime.now()
+        replay_trade.status = pcfg.RP_WAIT_ACCEPT_STATUS
+        replay_trade.finished = datetime.datetime.now()
         replay_trade.save()
     else:
         reponse_result = json.loads(reponse_result)
     return reponse_result
 
-@task()  
-def sendTradeCallBack(trade_ids,*args,**kwargs):
-    try: 
+
+@task()
+def sendTradeCallBack(trade_ids, *args, **kwargs):
+    try:
         replay_trade = ReplayPostTrade.objects.get(id=args[0])
     except:
         return None
     else:
         try:
             get_replay_results(replay_trade)
-        except Exception,exc:
-            logger.error('trade post callback error:%s'%exc.message,exc_info=True)
+        except Exception, exc:
+            logger.error('trade post callback error:%s' % exc.message, exc_info=True)
         return None
-        
-        
+
+
 @task(ignore_result=False)
-def sendTaobaoTradeTask(operator_id,trade_id):
+def sendTaobaoTradeTask(operator_id, trade_id):
     """ 淘宝发货任务 """
 
     trade = MergeTrade.objects.get(id=trade_id)
-    if  (not trade.is_picking_print or 
-        not trade.is_express_print or not trade.out_sid 
+    if (not trade.is_picking_print or
+            not trade.is_express_print or not trade.out_sid
         or trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS):
         return trade_id
-    
+
     if trade.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
         trade.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
         trade.consign_time = datetime.datetime.now()
         trade.save()
         return trade_id
-    
-    if trade.status != pcfg.WAIT_SELLER_SEND_GOODS or trade.reason_code  :
+
+    if trade.status != pcfg.WAIT_SELLER_SEND_GOODS or trade.reason_code:
         trade.sys_status = pcfg.WAIT_AUDIT_STATUS
-        trade.is_picking_print=False
-        trade.is_express_print=False
+        trade.is_picking_print = False
+        trade.is_express_print = False
         trade.save()
-        log_action(operator_id,trade,CHANGE,u'订单不满足发货条件')
+        log_action(operator_id, trade, CHANGE, u'订单不满足发货条件')
         return trade_id
-    
-    if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE,pcfg.REISSUE_TYPE):
-        trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
-        trade.status=pcfg.WAIT_BUYER_CONFIRM_GOODS
-        trade.consign_time=datetime.datetime.now()
+
+    if trade.type in (pcfg.DIRECT_TYPE, pcfg.EXCHANGE_TYPE, pcfg.REISSUE_TYPE):
+        trade.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
+        trade.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
+        trade.consign_time = datetime.datetime.now()
         trade.save()
         return trade_id
 
     merge_buyer_trades = []
-    #判断是否有合单子订单
+    # 判断是否有合单子订单
     if trade.has_merge:
         merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.id)
-    
+
     for sub_buyer_trade in merge_buyer_trades:
-        
         sub_trade = MergeTrade.objects.get(id=sub_buyer_trade.sub_tid)
-        
+
         mtd, state = MergeTradeDelivery.objects.get_or_create(seller=sub_trade.user,
                                                               trade_id=sub_trade.id)
         mtd.trade_no = sub_trade.tid
@@ -190,47 +190,46 @@ def sendTaobaoTradeTask(operator_id,trade_id):
         mtd.parent_tid = trade.id
         mtd.status = MergeTradeDelivery.WAIT_DELIVERY
         mtd.save()
-        
-        sub_trade.out_sid           = trade.out_sid
+
+        sub_trade.out_sid = trade.out_sid
         sub_trade.logistics_company = trade.logistics_company
-        update_model_fields(sub_trade,update_fields=['out_sid','logistics_company'])
-    
+        update_model_fields(sub_trade, update_fields=['out_sid', 'logistics_company'])
+
     mtd, state = MergeTradeDelivery.objects.get_or_create(seller=trade.user,
                                                           trade_id=trade.id)
-    
-    mtd.trade_no   = trade.tid
+
+    mtd.trade_no = trade.tid
     mtd.buyer_nick = trade.buyer_nick
-    mtd.is_parent  = trade.has_merge
-    mtd.is_sub     = False
+    mtd.is_parent = trade.has_merge
+    mtd.is_sub = False
     mtd.parent_tid = 0
-    mtd.status     = MergeTradeDelivery.WAIT_DELIVERY
+    mtd.status = MergeTradeDelivery.WAIT_DELIVERY
     mtd.save()
 
-    trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
+    trade.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
     trade.save()
-    log_action(operator_id,trade,CHANGE,u'订单打印')
-    
+    log_action(operator_id, trade, CHANGE, u'订单打印')
+
     return trade_id
-       
+
 
 @task(ignore_result=False)
-def deliveryTradeCallBack(*args,**kwargs):
-
+def deliveryTradeCallBack(*args, **kwargs):
     return (None)
 
-@task(max_retries=3,default_retry_delay=30,ignore_result=False)
-def uploadTradeLogisticsTask(trade_id,operator_id):
-    
+
+@task(max_retries=3, default_retry_delay=30, ignore_result=False)
+def uploadTradeLogisticsTask(trade_id, operator_id):
     try:
         merge_trade = MergeTrade.objects.get(id=trade_id)
         delivery_trade = MergeTradeDelivery.objects.get(trade_id=trade_id)
-        
+
         if not delivery_trade.is_sub and merge_trade.sys_status != pcfg.FINISHED_STATUS:
             delivery_trade.message = u'订单未称重'
             delivery_trade.status = MergeTradeDelivery.FAIL_DELIVERY
             delivery_trade.save()
             return
-        
+
         if delivery_trade.is_sub and merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             main_trade = MergeTrade.objects.get(id=delivery_trade.parent_tid)
             if main_trade.sys_status != pcfg.FINISHED_STATUS:
@@ -242,222 +241,226 @@ def uploadTradeLogisticsTask(trade_id,operator_id):
             merge_trade.logistics_company = main_trade.logistics_company
             merge_trade.out_sid = main_trade.out_sid
             merge_trade.save()
-            
-        if (delivery_trade.is_sub 
+
+        if (delivery_trade.is_sub
             and merge_trade.sys_status in [pcfg.WAIT_AUDIT_STATUS,
                                            pcfg.WAIT_PREPARE_SEND_STATUS,
                                            pcfg.INVALID_STATUS,
                                            pcfg.REGULAR_REMAIN_STATUS]):
             delivery_trade.delete()
-            return 
-            
-        tservice = TradeService(merge_trade.user.visitor_id,merge_trade)
+            return
+
+        tservice = TradeService(merge_trade.user.visitor_id, merge_trade)
         tservice.sendTrade()
-    
-    except Exception,exc:
+
+    except Exception, exc:
 
         merge_trade.append_reason_code(pcfg.POST_MODIFY_CODE)
         MergeTradeDelivery.objects.filter(trade_id=trade_id).update(
-                                    status=MergeTradeDelivery.FAIL_DELIVERY,
-                                    message=exc.message)
-                                                                           
-        log_action(operator_id,merge_trade,CHANGE,u'单号上传失败:%s'%exc.message)
-          
+            status=MergeTradeDelivery.FAIL_DELIVERY,
+            message=exc.message)
+
+        log_action(operator_id, merge_trade, CHANGE, u'单号上传失败:%s' % exc.message)
+
     else:
         delivery_trade.delete()
-        
+
         if delivery_trade.is_sub and merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             merge_trade.sys_status = pcfg.FINISHED_STATUS
-              
+
         merge_trade.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         merge_trade.consign_time = datetime.datetime.now()
         merge_trade.save()
-          
-        log_action(operator_id,merge_trade,CHANGE,
-                   u'快递单号上传成功[%s:%s]'%(merge_trade.logistics_company.name,merge_trade.out_sid))
-       
-       
+
+        log_action(operator_id, merge_trade, CHANGE,
+                   u'快递单号上传成功[%s:%s]' % (merge_trade.logistics_company.name, merge_trade.out_sid))
+
+
 @task()
 def regularRemainOrderTask():
     """更新定时提醒订单"""
     dt = datetime.datetime.now()
-    MergeTrade.objects.filter(Q(remind_time__lte=dt)|Q(remind_time=None),
-                              sys_status=pcfg.REGULAR_REMAIN_STATUS)\
-                      .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+    MergeTrade.objects.filter(Q(remind_time__lte=dt) | Q(remind_time=None),
+                              sys_status=pcfg.REGULAR_REMAIN_STATUS) \
+        .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+
 
 @task
-def saveTradeByTidTask(tid,seller_nick):
+def saveTradeByTidTask(tid, seller_nick):
     user = User.objects.get(nick=seller_nick)
-    Trade.get_or_create(tid,user.visitor_id)
-    
+    Trade.get_or_create(tid, user.visitor_id)
+
+
 @task()
 def importTradeFromFileTask(fileName):
     """根据导入文件获取淘宝订单"""
-    with open(fileName,'r') as f:
+    with open(fileName, 'r') as f:
         for line in f:
             if not line:
                 continue
-            
+
             try:
-                seller_nick,tid = line.split(',')
+                seller_nick, tid = line.split(',')
                 if tid:
                     subtask(saveTradeByTidTask).delay(tid,
                                                       seller_nick.decode('gbk'))
             except:
                 pass
-    
+
 
 @task()
 def pushBuyerToCustomerTask(day):
     """ 将订单买家信息保存为客户信息 """
-    
+
     dt = datetime.datetime.now()
     all_trades = MergeTrade.objects.filter(
-                    created__gte=dt-datetime.timedelta(day,0,0)).order_by('-pay_time')
-                
+        created__gte=dt - datetime.timedelta(day, 0, 0)).order_by('-pay_time')
+
     for trade in all_trades:
         try:
             if not (trade.receiver_mobile or trade.receiver_phone):
-                return 
-       
-            customer,state     = Customer.objects.get_or_create(
-                                    nick=trade.buyer_nick,
-                                    mobile=trade.receiver_mobile,
-                                    phone=trade.receiver_phone)
-            
-            customer.name      = trade.receiver_name
-            customer.zip       = trade.receiver_zip
-            customer.address   = trade.receiver_address
-            customer.city      = trade.receiver_city
-            customer.state     = trade.receiver_state
-            customer.district  = trade.receiver_district
+                return
+
+            customer, state = Customer.objects.get_or_create(
+                nick=trade.buyer_nick,
+                mobile=trade.receiver_mobile,
+                phone=trade.receiver_phone)
+
+            customer.name = trade.receiver_name
+            customer.zip = trade.receiver_zip
+            customer.address = trade.receiver_address
+            customer.city = trade.receiver_city
+            customer.state = trade.receiver_state
+            customer.district = trade.receiver_district
             customer.save()
-            
-            trades        = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,
-                            receiver_mobile=trade.receiver_mobile,
-                            status__in=pcfg.ORDER_SUCCESS_STATUS)\
-                            .exclude(is_express_print=False,
-                            sys_status=pcfg.FINISHED_STATUS).order_by('-pay_time')
-            trade_num     = trades.count()
-            
-            if trades.count()>0 and trade_num != customer.buy_times:
-                total_nums    =  trades.count()
+
+            trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,
+                                               receiver_mobile=trade.receiver_mobile,
+                                               status__in=pcfg.ORDER_SUCCESS_STATUS) \
+                .exclude(is_express_print=False,
+                         sys_status=pcfg.FINISHED_STATUS).order_by('-pay_time')
+            trade_num = trades.count()
+
+            if trades.count() > 0 and trade_num != customer.buy_times:
+                total_nums = trades.count()
                 total_payment = trades.aggregate(total_payment=Sum('payment')).get('total_payment') or 0
-                
+
                 customer.last_buy_time = trades[0].pay_time
-                customer.buy_times     = trades.count()
-                customer.avg_payment   = float(round(float(total_payment)/total_nums,2))
+                customer.buy_times = trades.count()
+                customer.avg_payment = float(round(float(total_payment) / total_nums, 2))
                 customer.save()
         except:
             pass
-        
-        
+
+
 import os
-from django.db import connection 
+from django.db import connection
 from common.utils import CSVUnicodeWriter
 from shopback.users.models import User
 from shopback.logistics.models import LogisticsCompany
 
+
 def get_User_Key_Name_Map():
-    
     kn_maps = {}
     users = User.objects.all()
     for user in users:
-        kn_maps['%s'%user.id] = user.nick
-        
+        kn_maps['%s' % user.id] = user.nick
+
     return kn_maps
 
+
 def get_Logistic_Company_Key_Name_Map():
-    
     kn_maps = {}
     logistics = LogisticsCompany.objects.all()
     for lg in logistics:
-        kn_maps['%s'%lg.id] = lg.name
-        
+        kn_maps['%s' % lg.id] = lg.name
+
     return kn_maps
+
 
 from common.utils import replace_utf8mb4
 
+
 @task()
-def task_Gen_Order_Report_File(date_from,date_to,file_dir=None):
-    
-    
+def task_Gen_Order_Report_File(date_from, date_to, file_dir=None):
     un_maps = get_User_Key_Name_Map()
     lc_maps = get_Logistic_Company_Key_Name_Map()
-    
-    fields = ['tid','user_id','buyer_nick','payment','post_fee','pay_time','weight_time','receiver_mobile',
-              'receiver_phone','receiver_state','receiver_city','out_sid','logistics_company_id','sys_status']
-    dump_fields   = ','.join(fields)
+
+    fields = ['tid', 'user_id', 'buyer_nick', 'payment', 'post_fee', 'pay_time', 'weight_time', 'receiver_mobile',
+              'receiver_phone', 'receiver_state', 'receiver_city', 'out_sid', 'logistics_company_id', 'sys_status']
+    dump_fields = ','.join(fields)
     date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
-    date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
-    exec_sql = "select {0} from shop_trades_mergetrade where pay_time > '{1}' and pay_time < '{2}';".format(dump_fields,date_from_str,date_to_str)
-    
+    date_to_str = date_to.strftime('%Y-%m-%d %H:%M:%S')
+    exec_sql = "select {0} from shop_trades_mergetrade where pay_time > '{1}' and pay_time < '{2}';".format(dump_fields,
+                                                                                                            date_from_str,
+                                                                                                            date_to_str)
+
     try:
         cursor = connection.cursor()
         cursor.execute(exec_sql)
         cursor_set = cursor.fetchall()
-        
-        field_name_list = [u'原始单号',u'店铺名称',u'会员名称',u'付款金额',u'实付邮费',u'付款日期',u'称重日期',u'手机',u'电话',u'省',u'市',u'运单号',u'快递名称',u'订单状态']
-        
+
+        field_name_list = [u'原始单号', u'店铺名称', u'会员名称', u'付款金额', u'实付邮费', u'付款日期', u'称重日期', u'手机', u'电话', u'省', u'市',
+                           u'运单号', u'快递名称', u'订单状态']
+
         if not file_dir:
-            file_dir = os.path.join(settings.DOWNLOAD_ROOT,ORDER_DIR)
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT, ORDER_DIR)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
-        
-        file_name = u'order_%s~%s.csv'%(date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
-        file_path_name = os.path.join(file_dir,file_name)
-        with open(file_path_name,'w+') as myfile:
-        
-            writer = CSVUnicodeWriter(myfile,encoding= 'gbk')
+
+        file_name = u'order_%s~%s.csv' % (date_from.strftime('%Y-%m-%d'), date_to.strftime('%Y-%m-%d'))
+        file_path_name = os.path.join(file_dir, file_name)
+        with open(file_path_name, 'w+') as myfile:
+
+            writer = CSVUnicodeWriter(myfile, encoding='gbk')
             writer.writerow(field_name_list)
-            
+
             for t in cursor_set:
-                row     = ['%s'%r for r in t]
-                row[2]  = replace_utf8mb4(row[2])
-                row[1]  = un_maps.get(str(t[1]),u'未找到')
-                row[10] = lc_maps.get(str(t[10]),u'未找到')
+                row = ['%s' % r for r in t]
+                row[2] = replace_utf8mb4(row[2])
+                row[1] = un_maps.get(str(t[1]), u'未找到')
+                row[10] = lc_maps.get(str(t[10]), u'未找到')
                 writer.writerow(row)
     finally:
         cursor.close()
 
 
 @task()
-def task_Gen_Logistic_Report_File(date_from,date_to,file_dir=None):
-    
+def task_Gen_Logistic_Report_File(date_from, date_to, file_dir=None):
     un_maps = get_User_Key_Name_Map()
     lc_maps = get_Logistic_Company_Key_Name_Map()
-    
-    fields = ['out_sid','tid','user_id','receiver_name','receiver_state',
-              'receiver_city','weight','logistics_company_id','post_fee','weight_time']
-    dump_fields   = ','.join(fields)
+
+    fields = ['out_sid', 'tid', 'user_id', 'receiver_name', 'receiver_state',
+              'receiver_city', 'weight', 'logistics_company_id', 'post_fee', 'weight_time']
+    dump_fields = ','.join(fields)
     date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
-    date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
+    date_to_str = date_to.strftime('%Y-%m-%d %H:%M:%S')
     exec_sql = "select {0} from shop_trades_mergetrade where weight_time > '{1}' and weight_time < '{2}';"
-    exec_sql = exec_sql.format(dump_fields,date_from_str,date_to_str)
-    
+    exec_sql = exec_sql.format(dump_fields, date_from_str, date_to_str)
+
     try:
         cursor = connection.cursor()
         cursor.execute(exec_sql)
         cursor_set = cursor.fetchall()
-        
-        field_name_list = [u'运单ID',u'原始单号',u'店铺',u'收货人',u'省',u'市',u'重量',u'快递',u'实付邮费',u'称重日期']
-        
+
+        field_name_list = [u'运单ID', u'原始单号', u'店铺', u'收货人', u'省', u'市', u'重量', u'快递', u'实付邮费', u'称重日期']
+
         if not file_dir:
-            file_dir = os.path.join(settings.DOWNLOAD_ROOT,LOGISTIC_DIR)
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT, LOGISTIC_DIR)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
-        
-        file_name = u'logistic_%s~%s.csv'%(date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
-        file_path_name = os.path.join(file_dir,file_name)
-        with open(file_path_name,'w+') as myfile:
-        
-            writer = CSVUnicodeWriter(myfile,encoding= 'gbk')
+
+        file_name = u'logistic_%s~%s.csv' % (date_from.strftime('%Y-%m-%d'), date_to.strftime('%Y-%m-%d'))
+        file_path_name = os.path.join(file_dir, file_name)
+        with open(file_path_name, 'w+') as myfile:
+
+            writer = CSVUnicodeWriter(myfile, encoding='gbk')
             writer.writerow(field_name_list)
-            
+
             for t in cursor_set:
-                row    = ['%s'%r for r in t]
-                row[2] = un_maps.get(str(t[2]),u'未找到')
-                row[7] = lc_maps.get(str(t[7]),u'未找到')
+                row = ['%s' % r for r in t]
+                row[2] = un_maps.get(str(t[2]), u'未找到')
+                row[7] = lc_maps.get(str(t[7]), u'未找到')
                 writer.writerow(row)
     finally:
         cursor.close()
@@ -465,115 +468,115 @@ def task_Gen_Logistic_Report_File(date_from,date_to,file_dir=None):
 
 from shopback.trades.models import MergeOrder
 
+
 def origin_price_payment(trade_id):
-    
     origin_price = 0
     payment = 0
     merge_orders = MergeOrder.objects.filter(merge_trade=trade_id)
     for order in merge_orders.filter(is_merge=False,
-                                           gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
-        .values('outer_id','outer_sku_id','payment','num'):
+                                     gift_type=pcfg.REAL_ORDER_GIT_TYPE) \
+            .values('outer_id', 'outer_sku_id', 'payment', 'num'):
         order_origin = 0
         try:
             product = Product.objects.get(outer_id=order['outer_id'])
-            psku    = None
+            psku = None
             if order['outer_sku_id']:
                 psku = ProductSku.objects.get(outer_id=order['outer_sku_id'],
                                               product=product)
             order_origin = psku and psku.cost * order['num'] or product.cost * order['num']
-        except (Product.DoesNotExist,ProductSku.DoesNotExist):
+        except (Product.DoesNotExist, ProductSku.DoesNotExist):
             pass
         origin_price += order_origin
-        payment      += order['payment']
-    
-    return (origin_price,payment)
+        payment += order['payment']
 
-def is_order_refund(status,sys_status):
-    
+    return (origin_price, payment)
+
+
+def is_order_refund(status, sys_status):
     if status == pcfg.TRADE_CLOSED or sys_status == pcfg.INVALID_STATUS:
         return True
     return False
-        
+
 
 @task()
-def task_Gen_XiaoluSale_Report(date_from,date_to,file_dir=''):
-    
+def task_Gen_XiaoluSale_Report(date_from, date_to, file_dir=''):
     un_maps = get_User_Key_Name_Map()
-    
-    fields = ['id','tid','user_id','receiver_mobile','buyer_nick','pay_time','payment','status','sys_status']
-    dump_fields   = ','.join(fields)
+
+    fields = ['id', 'tid', 'user_id', 'receiver_mobile', 'buyer_nick', 'pay_time', 'payment', 'status', 'sys_status']
+    dump_fields = ','.join(fields)
     date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
-    date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
-    exec_sql = ("select {0} from shop_trades_mergetrade where pay_time between '{1}' and '{2}' and type in ('wx','sale');"
-                .format(dump_fields,date_from_str,date_to_str))
-    
+    date_to_str = date_to.strftime('%Y-%m-%d %H:%M:%S')
+    exec_sql = (
+    "select {0} from shop_trades_mergetrade where pay_time between '{1}' and '{2}' and type in ('wx','sale');"
+    .format(dump_fields, date_from_str, date_to_str))
+
     try:
         cursor = connection.cursor()
         cursor.execute(exec_sql)
         cursor_set = cursor.fetchall()
-        
-        field_name_list = [u'订单编号',u'原单编号',u'店铺名称',u'手机号',u'买家ID',u'付款日期',u'货品价格',u'订单金额',u'是否退款']
-        
+
+        field_name_list = [u'订单编号', u'原单编号', u'店铺名称', u'手机号', u'买家ID', u'付款日期', u'货品价格', u'订单金额', u'是否退款']
+
         if not file_dir:
-            file_dir = os.path.join(settings.DOWNLOAD_ROOT,REPORT_DIR)
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT, REPORT_DIR)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
-        
-        file_name = u'order_report_%s~%s.csv'%(date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
-        file_path_name = os.path.join(file_dir,file_name)
-        with open(file_path_name,'w+') as myfile:
-        
-            writer = CSVUnicodeWriter(myfile,encoding= 'gbk')
+
+        file_name = u'order_report_%s~%s.csv' % (date_from.strftime('%Y-%m-%d'), date_to.strftime('%Y-%m-%d'))
+        file_path_name = os.path.join(file_dir, file_name)
+        with open(file_path_name, 'w+') as myfile:
+
+            writer = CSVUnicodeWriter(myfile, encoding='gbk')
             writer.writerow(field_name_list)
-            
+
             for t in cursor_set:
-                row     = []
+                row = []
                 row.append(t[0])
                 row.append(t[1])
-                row.append(un_maps.get(str(t[2]),u'未找到'))
+                row.append(un_maps.get(str(t[2]), u'未找到'))
                 row.append(t[3])
                 row.append(replace_utf8mb4(t[4]))
                 row.append(t[5])
-                
+
                 price_tp = origin_price_payment(t[0])
-                order_refund = is_order_refund(t[7],t[8])
+                order_refund = is_order_refund(t[7], t[8])
                 row.append(price_tp[0])
                 row.append(price_tp[1])
                 row.append(order_refund and u'是' or u'否')
-                writer.writerow(['%s'%r for r in row])
+                writer.writerow(['%s' % r for r in row])
     finally:
         cursor.close()
 
 
-
-def previous_year_month(year,month):
-    
+def previous_year_month(year, month):
     if month == 1:
         return year - 1, 12
-    return year,month - 1
-    
-@task()    
+    return year, month - 1
+
+
+@task()
 def task_Gen_Logistic_Report_File_By_Month(pre_month=1):
-        
     dt = datetime.datetime.now()
-    year, month = dt.year, dt.month    
-    for i in range(0,pre_month):
-        year, month = previous_year_month(year,month)
-    
-    month_range = calendar.monthrange(year,month)
-    date_from = datetime.datetime(year,month,1,0,0,0)
-    date_to   = datetime.datetime(year,month,month_range[1],23,59,59)
-    
-    task_Gen_Logistic_Report_File(date_from,date_to)
-   
+    year, month = dt.year, dt.month
+    for i in range(0, pre_month):
+        year, month = previous_year_month(year, month)
+
+    month_range = calendar.monthrange(year, month)
+    date_from = datetime.datetime(year, month, 1, 0, 0, 0)
+    date_to = datetime.datetime(year, month, month_range[1], 23, 59, 59)
+
+    task_Gen_Logistic_Report_File(date_from, date_to)
+
 
 from . import serializers
 from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime, format_date, format_datetime)
 from shopback.refunds.models import REFUND_STATUS, Refund
+
+
 @task()
 def task_Gen_Product_Statistic(shop_id, sc_by, wait_send, p_outer_id, start_dt, end_dt, is_sale="1"):
     order_qs = getSourceOrders(shop_id=shop_id, sc_by=sc_by, wait_send=wait_send,
-                                p_outer_id=p_outer_id, start_dt=start_dt, end_dt=end_dt, is_sale=is_sale)
+                               p_outer_id=p_outer_id, start_dt=start_dt, end_dt=end_dt, is_sale=is_sale)
 
     empty_order_qs = getSourceOrders(shop_id=shop_id,
                                      sc_by=sc_by,
@@ -610,10 +613,9 @@ def getSourceOrders(shop_id=None, is_sale=None,
                     sc_by='created', start_dt=None,
                     end_dt=None, wait_send='0',
                     p_outer_id='', empty_code=False):
-
-    order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
-        .exclude(merge_trade__type=pcfg.REISSUE_TYPE)\
-        .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE)\
+    order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
+        .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
+        .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
         .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
     if shop_id:
         order_qs = order_qs.filter(merge_trade__user=shop_id)
@@ -632,16 +634,16 @@ def getSourceOrders(shop_id=None, is_sale=None,
         order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,
                                    merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
     else:
-        order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
-            .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS))\
+        order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
+            .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
             .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
-    
+
     if empty_code:
         order_qs = order_qs.filter(outer_id='')
         return order_qs
 
     if is_sale:
-        order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
+        order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
             .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
 
     if p_outer_id:
@@ -659,83 +661,83 @@ def getTotalRefundFee(order_qs):
     effect_oids = getEffectOrdersId(order_qs)
 
     return Refund.objects.filter(oid__in=effect_oids, status__in=(
-                pcfg.REFUND_WAIT_SELLER_AGREE, pcfg.REFUND_CONFIRM_GOODS, pcfg.REFUND_SUCCESS))\
-                .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
+        pcfg.REFUND_WAIT_SELLER_AGREE, pcfg.REFUND_CONFIRM_GOODS, pcfg.REFUND_SUCCESS)) \
+               .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
 
 
 def getTradeSortedItems(order_qs, is_sale=False):
-
-    trade_items  = {}
+    trade_items = {}
     for order in order_qs:
 
         outer_id = order.outer_id.strip() or str(order.num_iid)
         outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
         payment = float(order.payment or 0)
         order_num = order.num or 0
-        prod, prod_sku = getProductAndSku(outer_id,outer_sku_id)
+        prod, prod_sku = getProductAndSku(outer_id, outer_sku_id)
 
         if trade_items.has_key(outer_id):
             trade_items[outer_id]['num'] += order_num
             skus = trade_items[outer_id]['skus']
 
             if skus.has_key(outer_sku_id):
-                skus[outer_sku_id]['num']   += order_num
-                skus[outer_sku_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order_num
+                skus[outer_sku_id]['num'] += order_num
+                skus[outer_sku_id]['cost'] += skus[outer_sku_id]['std_purchase_price'] * order_num
                 skus[outer_sku_id]['sales'] += payment
-                #累加商品成本跟销售额
-                trade_items[outer_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order_num
+                # 累加商品成本跟销售额
+                trade_items[outer_id]['cost'] += skus[outer_sku_id]['std_purchase_price'] * order_num
                 trade_items[outer_id]['sales'] += payment
             else:
-                prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
+                prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
                 purchase_price = float(prod_sku.cost) if prod_sku else 0
-                #累加商品成本跟销售额
-                trade_items[outer_id]['cost']  += purchase_price*order_num
+                # 累加商品成本跟销售额
+                trade_items[outer_id]['cost'] += purchase_price * order_num
                 trade_items[outer_id]['sales'] += payment
 
                 skus[outer_sku_id] = {
-                                      'sku_name':prod_sku_name,
-                                      'num':order_num,
-                                      'cost':purchase_price*order_num,
-                                      'sales':payment,
-                                      'std_purchase_price':purchase_price}
+                    'sku_name': prod_sku_name,
+                    'num': order_num,
+                    'cost': purchase_price * order_num,
+                    'sales': payment,
+                    'std_purchase_price': purchase_price}
         else:
-            prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
-            purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num
-            trade_items[outer_id]={
-                                   'product_id':prod and prod.id or None,
-                                   'num':order_num,
-                                   'title': prod.name if prod else order.title,
-                                   'cost':purchase_price*order_num ,
-                                   'pic_path':prod and prod.PIC_PATH or '',
-                                   'sales':payment,
-                                   'sale_charger':prod and prod.sale_charger or '',
-                                   'storage_charger':prod and prod.storage_charger or '',
-                                   'sales':payment,
-                                   'skus':{outer_sku_id:{
-                                        'sku_name':prod_sku_name,
-                                        'num':order_num,
-                                        'cost':purchase_price*order_num ,
-                                        'sales':payment,
-                                        'std_purchase_price':purchase_price}}
-                                   }
+            prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
+            purchase_price = float(prod_sku.cost) if prod_sku else payment / order_num
+            trade_items[outer_id] = {
+                'product_id': prod and prod.id or None,
+                'num': order_num,
+                'title': prod.name if prod else order.title,
+                'cost': purchase_price * order_num,
+                'pic_path': prod and prod.PIC_PATH or '',
+                'sales': payment,
+                'sale_charger': prod and prod.sale_charger or '',
+                'storage_charger': prod and prod.storage_charger or '',
+                'sales': payment,
+                'skus': {outer_sku_id: {
+                    'sku_name': prod_sku_name,
+                    'num': order_num,
+                    'cost': purchase_price * order_num,
+                    'sales': payment,
+                    'std_purchase_price': purchase_price}}
+            }
 
-    if  is_sale:
-        def sort_items(x,y):
+    if is_sale:
+        def sort_items(x, y):
             if x[0][:-1] == y[0][:-1]:
-                return -cmp(x[1],y[1])
-            return cmp(x[0],y[0])
-        order_items = sorted(trade_items.items(),key=lambda d:(d[0],d[1]['num']),cmp=sort_items)
-    else:
-        order_items = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+                return -cmp(x[1], y[1])
+            return cmp(x[0], y[0])
 
-    total_cost   = 0
-    total_sales  = 0
-    total_num    = 0
+        order_items = sorted(trade_items.items(), key=lambda d: (d[0], d[1]['num']), cmp=sort_items)
+    else:
+        order_items = sorted(trade_items.items(), key=lambda d: d[1]['num'], reverse=True)
+
+    total_cost = 0
+    total_sales = 0
+    total_num = 0
     for trade in order_items:
-        total_cost  += trade[1]['cost']
+        total_cost += trade[1]['cost']
         total_sales += trade[1]['sales']
-        total_num   += trade[1]['num']
-        trade[1]['skus'] = sorted(trade[1]['skus'] .items(),key=lambda d:d[0])
+        total_num += trade[1]['num']
+        trade[1]['skus'] = sorted(trade[1]['skus'].items(), key=lambda d: d[0])
 
     order_items.append(total_sales)
     order_items.append(total_cost)
@@ -748,16 +750,15 @@ def getEffectOrdersId(order_qs):
     return [o[0] for o in order_qs.values_list('oid') if len(o) > 0]
 
 
-def getProductAndSku(outer_id,outer_sku_id):
-
+def getProductAndSku(outer_id, outer_sku_id):
     prod_map = {}
-    outer_key = '-'.join((outer_id,outer_sku_id))
+    outer_key = '-'.join((outer_id, outer_sku_id))
     if prod_map.has_key(outer_key):
         return prod_map.get(outer_key)
 
     prod = getProductByOuterId(outer_id)
-    prod_sku = getProductSkuByOuterId(outer_id,outer_sku_id)
-    prod_map[outer_key] = (prod,prod_sku)
+    prod_sku = getProductSkuByOuterId(outer_id, outer_sku_id)
+    prod_map[outer_key] = (prod, prod_sku)
     return (prod, prod_sku)
 
 
@@ -768,7 +769,7 @@ def getProductByOuterId(outer_id):
         return None
 
 
-def getProductSkuByOuterId(outer_id,outer_sku_id):
+def getProductSkuByOuterId(outer_id, outer_sku_id):
     try:
         return ProductSku.objects.get(outer_id=outer_sku_id, product__outer_id=outer_id)
     except:

@@ -74,9 +74,9 @@ def raw_handler(outer_raw=None, mm_raw=None, inner_raw=None):
     inner_order_num = inner_raw[0][0]
 
     # 非专属金额
-    outer_order_amount = float(outer_raw[0][1] or 0)/100.0
-    mm_order_amount = float(mm_raw[0][1] or 0)/100.0
-    inner_order_amount = float(inner_raw[0][1] or 0)/100.0
+    outer_order_amount = float(outer_raw[0][1] or 0) / 100.0
+    mm_order_amount = float(mm_raw[0][1] or 0) / 100.0
+    inner_order_amount = float(inner_raw[0][1] or 0) / 100.0
 
     total_amount = (outer_order_amount + mm_order_amount + inner_order_amount)
 

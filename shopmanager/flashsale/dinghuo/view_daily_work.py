@@ -28,8 +28,8 @@ from supplychain.supplier.models import SaleProduct, SaleProductManage, SaleProd
 
 from . import forms
 
-class DailyDingHuoView(View):
 
+class DailyDingHuoView(View):
     def parseEndDt(self, end_dt):
         if not end_dt:
             dt = datetime.datetime.now()
@@ -139,9 +139,9 @@ class DailyDingHuoView(View):
                          "ku_cun_num": int(product[9] or 0),
                          "arrival_num": arrival_num}
             if dhstatus == u'0' or (
-                (flag_of_more or flag_of_less) and dhstatus == u'1') or (
-                    flag_of_less and
-                    dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
+                        (flag_of_more or flag_of_less) and dhstatus == u'1') or (
+                        flag_of_less and
+                            dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                 if product[0] not in trade_dict:
                     trade_dict[product[0]] = [temp_dict]
                 else:
@@ -161,7 +161,6 @@ class DailyDingHuoView(View):
 
 
 class DailyDingHuoView2(View):
-
     def parseEndDt(self, end_dt):
         if not end_dt:
             dt = datetime.datetime.now()
@@ -201,8 +200,8 @@ class DailyDingHuoView2(View):
         query_time = self.parseEndDt(query_time_str)
         dinghuo_begin = self.parseEndDt(dinghuo_begin_str)
         task_id = task_ding_huo.delay(shelve_from, time_to, groupname, search_text,
-                                  target_date, dinghuo_begin, query_time,
-                                  dhstatus)
+                                      target_date, dinghuo_begin, query_time,
+                                      dhstatus)
         return render_to_response("dinghuo/daily_work.html",
                                   {"task_id": task_id,
                                    "shelve_from": target_date,
@@ -216,7 +215,6 @@ class DailyDingHuoView2(View):
 
 
 class DailyDingHuoOptimizeView(View):
-
     def parseEndDt(self, end_dt):
         if not end_dt:
             dt = datetime.datetime.now()
@@ -313,7 +311,6 @@ from django.core import serializers
 
 
 class ShowPicView(View):
-
     def get_src_by_product(self, pro_id):
         a = Product.objects.filter(id=pro_id)
         if a.count() > 0:
@@ -384,7 +381,7 @@ class AddDingHuoView(generics.ListCreateAPIView):
                 sku_dict = model_to_dict(sku)
                 sku_dict[
                     'wait_post_num'] = functions2view.get_lack_num_by_product(
-                        product, sku)
+                    product, sku)
                 product_dict.setdefault('prod_skus', []).append(sku_dict)
             productres.append(product_dict)
 
@@ -394,7 +391,7 @@ class AddDingHuoView(generics.ListCreateAPIView):
             saleproduct_mapping[saleproduct.id] = saleproduct.supplier_sku or ''
         for item in productres:
             item['supplier_sku'] = saleproduct_mapping.get(item[
-                'sale_product']) or ''
+                                                               'sale_product']) or ''
 
         return Response({'productRestult': productres,
                          'drafts': orderdraft.objects.all().filter(
@@ -427,7 +424,8 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             schedule_ids.add(m.id)
 
         sale_product_ids = set()
-        for d in SaleProductManageDetail.objects.filter(schedule_manage_id__in=list(schedule_ids), today_use_status='normal'):
+        for d in SaleProductManageDetail.objects.filter(schedule_manage_id__in=list(schedule_ids),
+                                                        today_use_status='normal'):
             sale_product_ids.add(d.sale_product_id)
 
         buyers_dict = {}
@@ -446,8 +444,8 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                     'buyer_name': ''
                 }
                 orderlists = OrderList.objects.filter(
-                    supplier_id = s.sale_supplier.id
-                ).exclude(Q(status=OrderList.ZUOFEI)|Q(buyer__isnull=True)).order_by('-created')[:1]
+                    supplier_id=s.sale_supplier.id
+                ).exclude(Q(status=OrderList.ZUOFEI) | Q(buyer__isnull=True)).order_by('-created')[:1]
                 if orderlists:
                     orderlist = orderlists[0]
                     if orderlist.buyer_id:
@@ -512,7 +510,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
             sys_status=pcfg.IN_EFFECT).values(
-                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'), last_pay_time=Max('pay_time'))
+            'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'), last_pay_time=Max('pay_time'))
 
         order_products = {}
         for s in sale_stats:
@@ -541,10 +539,10 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 skus[sku.id] = sku_dict
 
         dinghuo_stats = OrderDetail.objects \
-          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-          .values('product_id', 'chichu_id') \
-          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
-                        inferior_quantity=Sum('inferior_quantity'))
+            .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+            .values('product_id', 'chichu_id') \
+            .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                      inferior_quantity=Sum('inferior_quantity'))
         for s in dinghuo_stats:
             product_id, sku_id = map(int, (s['product_id'], s['chichu_id']))
             sku_ids.add(sku_id)
@@ -607,7 +605,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             for sku in [skus[k] for k in sorted(skus.keys())]:
                 effect_quantity = sku['quantity'] + sku[
                     'buy_quantity'] - sku['arrival_quantity'] - sku[
-                        'sale_quantity']
+                                      'sale_quantity']
                 if show_ab == 1 and effect_quantity == 0:
                     continue
                 if show_ab == 2 and effect_quantity >= 0:

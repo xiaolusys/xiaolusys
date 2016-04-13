@@ -65,7 +65,7 @@ class DirtyMergeTrade(models.Model):
     WARE_CHOICES = ((WARE_NONE, u'未选仓'), (WARE_SH, u'上海仓'), (WARE_GZ, u'广州仓'))
 
     tid = models.CharField(max_length=32,
-                           default=lambda: 'DD%d' % int(time.time() * 10**5),
+                           default=lambda: 'DD%d' % int(time.time() * 10 ** 5),
                            verbose_name=u'原单ID')
     user = models.ForeignKey(User,
                              related_name='dirty_merge_trades',
@@ -204,7 +204,7 @@ class DirtyMergeTrade(models.Model):
 
     reason_code = models.CharField(max_length=100,
                                    blank=True,
-                                   verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
+                                   verbose_name=u'问题编号')  # 1,2,3 问题单原因编码集合
     status = models.CharField(max_length=32,
                               choices=TAOBAO_TRADE_STATUS,
                               blank=True,
@@ -221,7 +221,7 @@ class DirtyMergeTrade(models.Model):
     has_sys_err = models.BooleanField(default=False, verbose_name=u'系统错误')
     refund_num = models.IntegerField(null=True,
                                      default=0,
-                                     verbose_name=u'退款单数')  #退款单数
+                                     verbose_name=u'退款单数')  # 退款单数
 
     is_qrcode = models.BooleanField(default=False, verbose_name=u'热敏订单')
     qrcode_msg = models.CharField(max_length=32,
@@ -284,7 +284,7 @@ class DirtyMergeOrder(models.Model):
     SYS_ORDER_STATUS = ((NORMAL, u'有效'), (DELETE, u'无效'),)
 
     oid = models.CharField(max_length=32,
-                           default=lambda: 'DO%d' % int(time.time() * 10**5),
+                           default=lambda: 'DO%d' % int(time.time() * 10 ** 5),
                            verbose_name=u'原单ID')
     merge_trade = models.ForeignKey(DirtyMergeTrade,
                                     related_name='merge_orders',

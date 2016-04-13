@@ -11,5 +11,3 @@
 #     """ docstring for SearchResource ModelResource """
 #
 #     exclude = ('url',)
-
-

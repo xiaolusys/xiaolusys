@@ -14,6 +14,7 @@ from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
 import logging
 
+
 class RefundReason(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "refunds/refund_analysis.html"
@@ -77,7 +78,7 @@ def refund_Invalid_Create(request):
     """
     REASON = (u"其他", u"错拍", u"缺货", u"没有发货", u"未收到货", u"与描述不符", u"七天无理由退换货")
     content = request.REQUEST
-    
+
     trade_id = content.get("trade_id", None)
     reason = int(content.get("reason", None))
     try:
@@ -95,7 +96,7 @@ def refund_Invalid_Create(request):
         ref.order_status = trade.get_status_display()  # 订单状态
         ref.save()
         return HttpResponse("ok")
-    except Exception,exc:
+    except Exception, exc:
         logger = logging.getLogger('django.request')
-        logger.error(exc.message or 'empty',exc_info=True)
-        return HttpResponse('error:%s'%exc.message)
+        logger.error(exc.message or 'empty', exc_info=True)
+        return HttpResponse('error:%s' % exc.message)

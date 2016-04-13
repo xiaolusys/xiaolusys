@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'linjie'
-from django.shortcuts import render_to_response,render
+from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from models import MergeTrade, MergeOrder
 import datetime
@@ -93,28 +93,28 @@ def product_Analysis(request):
 
     # 统计每月销售top50 以及次品数量
     sql = "SELECT " \
-                "C.product_id, C.sum_num, C.name, detail.inferior_quantity " \
-            "FROM" \
-                "(SELECT " \
-                    "A.product_id, A.sum_num, B.name " \
-                "FROM" \
-                    "(SELECT " \
-                    "product_id, SUM(sale_num) AS sum_num  " \
-                "FROM " \
-                    "supply_chain_stats_order WHERE created BETWEEN '{0}' AND '{1}' " \
-                "GROUP BY product_id " \
-                "ORDER BY sum_num DESC " \
-                "LIMIT 50) AS A " \
-                "LEFT JOIN (SELECT " \
-                    "outer_id, name " \
-                "FROM " \
-                    "shop_items_product) AS B ON A.product_id = B.outer_id) AS C " \
-                    "LEFT JOIN" \
-                "(SELECT " \
-                    " outer_id, inferior_quantity " \
-                "FROM " \
-                    "suplychain_flashsale_orderdetail WHERE created BETWEEN '{0}' AND '{1}' " \
-                "GROUP BY outer_id) AS detail ON detail.outer_id = C.product_id".format(
+          "C.product_id, C.sum_num, C.name, detail.inferior_quantity " \
+          "FROM" \
+          "(SELECT " \
+          "A.product_id, A.sum_num, B.name " \
+          "FROM" \
+          "(SELECT " \
+          "product_id, SUM(sale_num) AS sum_num  " \
+          "FROM " \
+          "supply_chain_stats_order WHERE created BETWEEN '{0}' AND '{1}' " \
+          "GROUP BY product_id " \
+          "ORDER BY sum_num DESC " \
+          "LIMIT 50) AS A " \
+          "LEFT JOIN (SELECT " \
+          "outer_id, name " \
+          "FROM " \
+          "shop_items_product) AS B ON A.product_id = B.outer_id) AS C " \
+          "LEFT JOIN" \
+          "(SELECT " \
+          " outer_id, inferior_quantity " \
+          "FROM " \
+          "suplychain_flashsale_orderdetail WHERE created BETWEEN '{0}' AND '{1}' " \
+          "GROUP BY outer_id) AS detail ON detail.outer_id = C.product_id".format(
         date_from, date_to)
 
     cursor = connection.cursor()
@@ -137,6 +137,7 @@ def get_week_from_date(date_time):
     date_to = datetime.datetime(day_to.year, day_to.month, day_to.day, 23, 59, 59)  # 上一周的结束时间
     return date_from, date_to
 
+
 def product_Top100_By_Week(request):
     content = request.REQUEST
     daystr = content.get("week", None)
@@ -150,26 +151,25 @@ def product_Top100_By_Week(request):
     prev_week = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_week = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-
     sql = "SELECT " \
-                " sale.product_id, product.name, " \
-                "SUM(sale.confirm_num) AS sale_num, " \
-                "SUM(sale.confirm_payment) AS sale_payment, " \
-                "LEFT(product.outer_id, 9) AS pid " \
-            "FROM " \
-                "((SELECT " \
-                    " product_id, confirm_num, confirm_payment " \
-                "FROM " \
-                    "shop_items_daysale WHERE  day_date BETWEEN '{0}' AND '{1}') AS sale " \
-                "LEFT JOIN (SELECT " \
-                    "id, outer_id, name " \
-                "FROM " \
-                    "shop_items_product) AS product ON sale.product_id = product.id) " \
-            "WHERE " \
-                "LENGTH(product.outer_id) >= 9 " \
-            "GROUP BY pid " \
-            "ORDER BY sale_num DESC " \
-            " LIMIT 100 ".format(date_from, date_to)
+          " sale.product_id, product.name, " \
+          "SUM(sale.confirm_num) AS sale_num, " \
+          "SUM(sale.confirm_payment) AS sale_payment, " \
+          "LEFT(product.outer_id, 9) AS pid " \
+          "FROM " \
+          "((SELECT " \
+          " product_id, confirm_num, confirm_payment " \
+          "FROM " \
+          "shop_items_daysale WHERE  day_date BETWEEN '{0}' AND '{1}') AS sale " \
+          "LEFT JOIN (SELECT " \
+          "id, outer_id, name " \
+          "FROM " \
+          "shop_items_product) AS product ON sale.product_id = product.id) " \
+          "WHERE " \
+          "LENGTH(product.outer_id) >= 9 " \
+          "GROUP BY pid " \
+          "ORDER BY sale_num DESC " \
+          " LIMIT 100 ".format(date_from, date_to)
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -179,37 +179,35 @@ def product_Top100_By_Week(request):
     return render_to_response('product_analysis/product_analysis_top100.html', {'data': raw, 'date_dic': date_dic},
                               context_instance=RequestContext(request))
 
+
 # 统计特卖商品剩余库存最多的前100个
 # 关联表:shopback/items/models.py #Product,ProductSku
 
 # Product: collect_num, name
 
 def product_Collect_Topp100(request):
-
-
     sql = "SELECT  " \
-                "product.id, " \
-                "product.name, " \
-                "product.collect_num, " \
-                "sku.properties_alias, " \
-                "sku.quantity " \
-            "FROM " \
-                "(SELECT " \
-                     "id, name, collect_num " \
-                "FROM " \
-                    "shop_items_product where length(outer_id)>=9  and ( left(outer_id,1)=9 or " \
-                                        " left(outer_id,1)=8 or left(outer_id,1)=1)  and status!='delete' " \
-                "ORDER BY collect_num DESC " \
-               " LIMIT 100) AS product " \
-                    "LEFT JOIN " \
-                "(SELECT " \
-                   " product_id, quantity, properties_alias " \
-                "FROM " \
-                   " shop_items_productsku) AS sku ON product.id = sku.product_id"
+          "product.id, " \
+          "product.name, " \
+          "product.collect_num, " \
+          "sku.properties_alias, " \
+          "sku.quantity " \
+          "FROM " \
+          "(SELECT " \
+          "id, name, collect_num " \
+          "FROM " \
+          "shop_items_product where length(outer_id)>=9  and ( left(outer_id,1)=9 or " \
+          " left(outer_id,1)=8 or left(outer_id,1)=1)  and status!='delete' " \
+          "ORDER BY collect_num DESC " \
+          " LIMIT 100) AS product " \
+          "LEFT JOIN " \
+          "(SELECT " \
+          " product_id, quantity, properties_alias " \
+          "FROM " \
+          " shop_items_productsku) AS sku ON product.id = sku.product_id"
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
-
 
     pro = {}
     for i in raw:
@@ -221,20 +219,23 @@ def product_Collect_Topp100(request):
 
     return render_to_response('product_analysis/product_analysis_collect_top100.html', {'data': pro},
                               context_instance=RequestContext(request))
+
+
 # 打开订单送货时间查询页面
 def open_trade_time(request):
-
     return render(request, 'trades/trade_time.html')
+
 
 import json
 # 订单送货时间查询结果
 from rest_framework.response import Response
+
+
 @csrf_exempt
 def list_trade_time(request):
-
     quest = request.POST
     start = quest['startdate']
-    end   = quest['enddate']
+    end = quest['enddate']
 
     year, month, day = start.split('-')
     start_date = datetime.date(int(year), int(month), int(day))
@@ -257,27 +258,17 @@ def list_trade_time(request):
 
     for trade in listTrade:
         if trade.weight_time not in (None, " "):
-            tian = int((trade.weight_time-trade.pay_time).days)+1
-            if tian <= 3:# 三天之内发货的
+            tian = int((trade.weight_time - trade.pay_time).days) + 1
+            if tian <= 3:  # 三天之内发货的
                 c3 += 1
-            elif tian > 3 and tian <= 5:# 三到五天之内发货的的
+            elif tian > 3 and tian <= 5:  # 三到五天之内发货的的
                 c5 += 1
-            elif tian > 5 and tian <= 7:# 五到七天之内发货的的
+            elif tian > 5 and tian <= 7:  # 五到七天之内发货的的
                 c7 += 1
-            elif tian > 7 and tian <= 9:# 七到九天之内发货的的
+            elif tian > 7 and tian <= 9:  # 七到九天之内发货的的
                 c9 += 1
-            else:# 九天之后发货的
+            else:  # 九天之后发货的
                 c10 += 1
-    csum = c3+c5+c7+c9+c10
-    data = {"c3": c3, "c5": c5, "c7": c7, "c9": c9, "c10": c10, "csum":csum}
+    csum = c3 + c5 + c7 + c9 + c10
+    data = {"c3": c3, "c5": c5, "c7": c7, "c9": c9, "c10": c10, "csum": csum}
     return HttpResponse(json.dumps(data), content_type='application/json')
-
-
-
-
-
-
-
-
-
-

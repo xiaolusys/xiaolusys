@@ -103,7 +103,7 @@ class CouponTemplate(BaseModel):
         if not self.use_pro_category:  # 没有设置分类限制信息　则为全部分类可以使用
             return
         from shopback.items.models import Product
-        
+
         tpl_categorys = self.use_pro_category.strip().split(',') if self.use_pro_category else []
         pros_categorys = Product.objects.filter(id__in=product_ids).values('category_id')
         category_ids = [str(i['category_id']) for i in pros_categorys]

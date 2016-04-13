@@ -27,7 +27,6 @@ from supplychain.supplier.models import SaleProduct, SaleSupplier
 
 
 class ChangeDetailView(View):
-
     @staticmethod
     def get(request, order_detail_id):
         order_list = OrderList.objects.get(id=order_detail_id)
@@ -125,16 +124,16 @@ class ChangeDetailView(View):
         flag_of_sample = False
         if order_list.status == u'7':
             flag_of_sample = True
-        #是否到货商品关联订单
+        # 是否到货商品关联订单
         try:
             from shopback.items.tasks import releaseProductTradesTask
             distinct_pids = [
                 p['product_id']
                 for p in order_details.values('product_id').distinct()
-            ]
+                ]
             outer_ids = [p['outer_id']
                          for p in Product.objects.filter(
-                             id__in=distinct_pids).values('outer_id')]
+                    id__in=distinct_pids).values('outer_id')]
             releaseProductTradesTask.delay(outer_ids)
         except Exception, exc:
             logger = logging.getLogger('django.request')
@@ -149,7 +148,6 @@ class ChangeDetailView(View):
 
 
 class AutoNewOrder(View):
-
     @staticmethod
     def get(request, order_list_id):
         user = request.user
@@ -199,7 +197,6 @@ def change_inferior_num(request):
 
 
 class ChangeDetailExportView(View):
-
     @staticmethod
     def get_old(request, order_detail_id):
         headers = [u'商品编码', u'供应商编码', u'商品名称', u'规格', u'购买数量', u'买入价格', u'单项价格',
@@ -267,7 +264,7 @@ class ChangeDetailExportView(View):
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
 
         receiver_address = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼' if order_list.p_district == '3' else \
-          '上海市佘山镇吉业路245号5号楼'
+            '上海市佘山镇吉业路245号5号楼'
         receiver_name = '小鹿美美%d号工作人员' % order_list.id
         receiver_contact = '15023333762' if order_list.p_district == '3' else '021-37698479, 15026869609'
         if order_details:
@@ -292,24 +289,24 @@ class ChangeDetailExportView(View):
         for product in Product.objects.filter(
                 pk__in=[order_detail.product_id for order_detail in
                         order_details]):
-            print repr(product.pic_path)
             products[product.id] = {
                 'sale_product_id': product.sale_product,
                 'pic_path':
-                ('%s?imageMogr2/thumbnail/560/crop/560x480/format/jpg' %
-                 common.utils.url_utf8_quote(product.pic_path.encode('utf-8')))
-                if product.pic_path else ''
+                    ('%s?imageMogr2/thumbnail/560/crop/560x480/format/jpg' %
+                     common.utils.url_utf8_quote(product.pic_path.encode('utf-8')))
+                    if product.pic_path else ''
             }
 
         sale_products = {}
         for sale_product in SaleProduct.objects.filter(pk__in=[product[
-                'sale_product_id'] for product in products.values()]):
+                                                                   'sale_product_id'] for product in
+                                                               products.values()]):
             sale_products[sale_product.id] = sale_product.product_link
 
         skus = {}
         for sku in ProductSku.objects.filter(
                 pk__in=[order_detail.chichu_id for order_detail in order_details
-                       ]):
+                        ]):
             skus[sku.id] = sku.outer_id
 
         def _parse_name(product_name):
@@ -349,7 +346,7 @@ class ChangeDetailExportView(View):
             worksheet.write(row, 3, order_detail.product_chicun)
             if pic_path:
                 opt = {'image_data':
-                       io.BytesIO(urllib.urlopen(pic_path).read()),
+                           io.BytesIO(urllib.urlopen(pic_path).read()),
                        'x_scale': 0.25,
                        'y_scale': 0.25}
                 if product_link:
@@ -365,7 +362,6 @@ class ChangeDetailExportView(View):
             all_quantity += order_detail.buy_quantity
             all_price += decimal.Decimal(str(order_detail.total_price))
             row += 1
-
 
         worksheet.write(row, 4, '总数:', bold)
         worksheet.write(row, 5, all_quantity)

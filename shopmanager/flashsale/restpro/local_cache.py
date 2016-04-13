@@ -2,6 +2,7 @@
 from common import cacheable
 from qiniu import urlsafe_base64_encode
 
+
 class ImageWaterMarkCache(cacheable.LocalCacheable):
     WATERMARK_TPL = 'watermark/1/image/%s/dissovle/50/gravity/Center/dx/0/dy/0/ws/1'
 
@@ -23,5 +24,6 @@ class ImageWaterMarkCache(cacheable.LocalCacheable):
         if not self.watermark_url:
             return ''
         return self.WATERMARK_TPL % urlsafe_base64_encode(self.watermark_url)
+
 
 image_watermark_cache = ImageWaterMarkCache()

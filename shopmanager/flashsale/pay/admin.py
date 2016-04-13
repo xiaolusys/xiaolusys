@@ -50,11 +50,11 @@ class SaleOrderInline(admin.TabularInline):
 
 class SaleOrderAdmin(admin.ModelAdmin):
     list_display = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment',
-                    'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'item_id')
+                    'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
     list_display_links = ('oid',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('sign_time', DateFieldListFilter))
     search_fields = ['=oid', '=sale_trade__tid', '=outer_id']
 
 
@@ -63,27 +63,27 @@ admin.site.register(SaleOrder, SaleOrderAdmin)
 
 class SaleTradeAdmin(admin.ModelAdmin):
     list_display = (
-    'id', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
+        'id', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
     list_display_links = ('id', 'tid', 'buyer_id')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (
-    'status', 'channel', 'order_type', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+        'status', 'channel', 'order_type', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
 
     inlines = [SaleOrderInline]
 
-    #-------------- 页面布局 --------------
+    # -------------- 页面布局 --------------
     fieldsets = ((u'订单基本信息:', {
-                'classes': ('expand',),
-                'fields': (('tid', 'buyer_nick', 'channel', 'status')
-                           , ('trade_type','order_type','pay_cash','has_budget_paid')
-                           ,( 'total_fee', 'payment', 'post_fee','discount_fee')
-                           , ('pay_time', 'consign_time', 'charge')
-                           , ('buyer_id', 'openid','extras_info')
-                           , ('buyer_message', 'seller_memo',)
-                           )
-                 }),
+        'classes': ('expand',),
+        'fields': (('tid', 'buyer_nick', 'channel', 'status')
+                   , ('trade_type', 'order_type', 'pay_cash', 'has_budget_paid')
+                   , ('total_fee', 'payment', 'post_fee', 'discount_fee')
+                   , ('pay_time', 'consign_time', 'charge')
+                   , ('buyer_id', 'openid', 'extras_info')
+                   , ('buyer_message', 'seller_memo',)
+                   )
+    }),
                  (u'收货人及物流信息:', {
                      'classes': ('expand',),
                      'fields': (('receiver_name', 'receiver_state', 'receiver_city', 'receiver_district')
@@ -92,7 +92,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
                  }),
                  )
 
-    #--------定制控件属性----------------
+    # --------定制控件属性----------------
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '16'})},
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 35})},
@@ -221,7 +221,8 @@ class SaleRefundAdmin(admin.ModelAdmin):
                     'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status')
 
     list_filter = (
-    'status', 'good_status', 'channel', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
+        'status', 'good_status', 'channel', 'has_good_return', 'has_good_change', Filte_By_Reason, "created",
+        "modified")
 
     search_fields = ['=refund_no', '=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20
@@ -265,7 +266,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                                 , ('good_status', 'status'))
                  }),)
 
-    #--------定制控件属性----------------
+    # --------定制控件属性----------------
     formfield_overrides = {
         models.FloatField: {'widget': TextInput(attrs={'size': '8'})},
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 35})},
@@ -283,7 +284,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
         return SaleRefundChangeList
 
     def response_change(self, request, obj, *args, **kwargs):
-        #订单处理页面
+        # 订单处理页面
         opts = obj._meta
         # Handle proxy models automatically created by .only() or .defer()
         verbose_name = opts.verbose_name
@@ -585,14 +586,12 @@ admin.site.register(Integral, IntegralAdmin)
 class IntegralLogAdmin(admin.ModelAdmin):
     list_display = (
         'integral_user', 'order_id', 'mobile', 'log_value', 'log_status', 'log_type', 'in_out', 'created', 'modified')
-    list_filter = ('created', 'log_status', 'log_type', 'in_out', )
+    list_filter = ('created', 'log_status', 'log_type', 'in_out',)
     search_fields = ['=integral_user', '=mobile']
     list_per_page = 50
 
 
 admin.site.register(IntegralLog, IntegralLogAdmin)
-
-
 
 ###################################################################
 from models_coupon_new import CouponsPool, UserCoupon, CouponTemplate
@@ -706,7 +705,6 @@ class UserCouponAdmin(admin.ModelAdmin):
 
 admin.site.register(UserCoupon, UserCouponAdmin)
 
-
 ######################################################################
 
 from flashsale.pay.models import ShoppingCart
@@ -743,6 +741,7 @@ from .models_shops import CuShopPros, CustomerShops
 from .filters import CushopProCategoryFiler
 import constants
 
+
 class CuShopProsAdmin(admin.ModelAdmin):
     list_display = ('id', 'shop', 'customer', 'pro_category_dec', 'product',
                     'model', 'pro_status', 'position', 'created')
@@ -765,7 +764,7 @@ class CuShopProsAdmin(admin.ModelAdmin):
     def upload_products(self, request, queryset):
         queryset.update(pro_status=CuShopPros.UP_SHELF)
         count = queryset.count()
-        return self.message_user(request, '成功上架%s个产品!'%count)
+        return self.message_user(request, '成功上架%s个产品!' % count)
 
     upload_products.short_description = u'上架选中商品'
 
@@ -790,9 +789,9 @@ admin.site.register(CustomerShops, CustomShopadmin)
 
 class UserBudgetAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'amount', 'total_redenvelope', 'total_consumption', 'total_refund', 'created')
-    list_display_links = ('id', )
+    list_display_links = ('id',)
 
-#     list_filter = ('status',)
+    #     list_filter = ('status',)
     search_fields = ['=id', '=user__mobile', '=user__id']
 
     def get_readonly_fields(self, request, obj=None):
@@ -803,10 +802,11 @@ admin.site.register(UserBudget, UserBudgetAdmin)
 
 
 class BudgetLogAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer_id', 'flow_amount', 'budget_type', 'budget_log_type', 'referal_id', 'created', 'status')
-    list_display_links = ('id', )
+    list_display = (
+    'id', 'customer_id', 'flow_amount', 'budget_type', 'budget_log_type', 'referal_id', 'created', 'status')
+    list_display_links = ('id',)
 
-    list_filter = ('budget_type', 'budget_log_type', 'status','modified')
+    list_filter = ('budget_type', 'budget_log_type', 'status', 'modified')
     search_fields = ['=id', '=customer_id']
 
     # def get_readonly_fields(self, request, obj=None):
@@ -815,14 +815,37 @@ class BudgetLogAdmin(admin.ModelAdmin):
 
 admin.site.register(BudgetLog, BudgetLogAdmin)
 
-from .models_faqs import SaleFaqs
+from .models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
 
 
-class SaleFaqsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'question_type', "detail_type", 'question')
-    list_display_links = ('question', 'id')
+class FaqMainCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'category_name')
+    list_display_links = ('id', 'category_name')
 
-    list_filter = ('question_type', 'detail_type')
+    list_filter = ('created',)
     search_fields = ['=id', ]
 
-admin.site.register(SaleFaqs, SaleFaqsAdmin)
+
+admin.site.register(FaqMainCategory, FaqMainCategoryAdmin)
+
+
+class FaqsDetailCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'category_name')
+    list_display_links = ('id', 'category_name')
+
+    list_filter = ('created',)
+    search_fields = ['=id', ]
+
+
+admin.site.register(FaqsDetailCategory, FaqsDetailCategoryAdmin)
+
+
+class SaleFaqAdmin(admin.ModelAdmin):
+    list_display = ('id', 'question', 'main_category')
+    list_display_links = ('id', 'question', 'main_category')
+
+    list_filter = ('created',)
+    search_fields = ['=id', ]
+
+
+admin.site.register(SaleFaq, SaleFaqAdmin)

@@ -1,8 +1,8 @@
 import json
 from django.template import RequestContext, loader
-#from djangorestframework.renderers import JSONRenderer ,TemplateRenderer
-#from djangorestframework.utils.mediatypes import get_media_type_params
-from chartit import Chart,PivotChart
+# from djangorestframework.renderers import JSONRenderer ,TemplateRenderer
+# from djangorestframework.utils.mediatypes import get_media_type_params
+from chartit import Chart, PivotChart
 # from core.options.renderers import ChartTemplateRenderer
 
 
@@ -80,6 +80,4 @@ from chartit import Chart,PivotChart
 #     template = ""
 # 
 # 
-# 
-
-
+#

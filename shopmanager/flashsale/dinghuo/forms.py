@@ -1,4 +1,5 @@
 # coding: utf-8
+import json
 
 from django import forms
 
@@ -27,6 +28,9 @@ class InBoundListForm(BaseForm):
 class EditInBoundForm(InBoundListForm):
     inbound_id = forms.IntegerField(required=False, initial=0)
     skus = forms.CharField(required=False, initial='[]')
+    images = forms.CharField(required=False, initial='[]')
+    memo = forms.CharField(required=False, initial='')
+
 
 class AdvanceDingHuoForm(BaseForm):
     start_date = forms.DateField(required=True)

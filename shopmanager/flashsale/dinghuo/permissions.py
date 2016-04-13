@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 
 
 def has_change_order_list_inline_permission(user):

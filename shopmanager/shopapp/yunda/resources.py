@@ -29,4 +29,4 @@
 #     model  = BranchZone
 #     fields = ('code','name','barcode','province',
 #               'city','district','address','branch_zone') 
-#     exclude = ('url',)    
+#     exclude = ('url',)

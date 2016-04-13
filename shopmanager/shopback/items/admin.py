@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 import json
 import urllib
 import datetime, time
@@ -42,11 +42,11 @@ from flashsale.dinghuo.models import ReturnGoods, RGDetail
 from supplychain.supplier.models import SaleProduct
 
 import logging
+
 logger = logging.getLogger('django.request')
 
 
 class ProductSkuInline(admin.TabularInline):
-
     model = ProductSku
     fields = ('outer_id', 'properties_name', 'properties_alias', 'quantity',
               'warn_num', 'remain_num', 'wait_post_num', 'reduce_num',
@@ -69,25 +69,25 @@ class ProductSkuInline(admin.TabularInline):
 
 
 class ProductdetailInline(admin.StackedInline):
-
     model = Productdetail
-    form  = ProductdetailForm
+    form = ProductdetailForm
 
-#     fields = ('head_imgs', 'content_imgs',
-#               ('is_seckill', 'is_recommend', 'is_sale', 'order_weight',
-#                'mama_discount', 'buy_limit', 'per_limit', 'rebeta_scheme_id'),
-#               ('material', 'color'), ('note', 'wash_instructions'))
+    #     fields = ('head_imgs', 'content_imgs',
+    #               ('is_seckill', 'is_recommend', 'is_sale', 'order_weight',
+    #                'mama_discount', 'buy_limit', 'per_limit', 'rebeta_scheme_id'),
+    #               ('material', 'color'), ('note', 'wash_instructions'))
     fieldsets = (('题头图内容图及商品参数:', {
-                    'classes': ('collapse',),
-                    'fields':
-                    ('head_imgs', 'content_imgs',
-                     ('material', 'color'), ('note', 'wash_instructions'))
-                }),
-                ('商品销售策略设置', {
-                    'classes': ('expand',),
-                    'fields':
-                    (('is_seckill', 'is_recommend', 'is_sale', 'order_weight','mama_discount', 'buy_limit', 'per_limit', 'rebeta_scheme_id'),)
-                }),)
+        'classes': ('collapse',),
+        'fields':
+            ('head_imgs', 'content_imgs',
+             ('material', 'color'), ('note', 'wash_instructions'))
+    }),
+                 ('商品销售策略设置', {
+                     'classes': ('expand',),
+                     'fields':
+                         (('is_seckill', 'is_recommend', 'is_sale', 'order_weight', 'mama_discount', 'buy_limit',
+                           'per_limit', 'rebeta_scheme_id'),)
+                 }),)
 
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '50'})},
@@ -100,10 +100,10 @@ class ItemAdmin(admin.ModelAdmin):
                     'delivery_time', 'list_time', 'last_num_updated',
                     'approve_status', 'status')
     list_display_links = ('num_iid', 'title')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'last_num_updated'
-    #ordering = ['created_at']
+    # ordering = ['created_at']
 
     list_filter = ('user', 'has_showcase', 'sync_stock', 'approve_status')
     search_fields = ['num_iid', 'outer_id', 'title']
@@ -115,7 +115,6 @@ from flashsale.dinghuo.models import OrderDetail
 
 
 class ProductAdmin(ApproxAdmin):
-
     category_list = []
     ware_list = []
     #     storage_chargers = []
@@ -126,12 +125,12 @@ class ProductAdmin(ApproxAdmin):
     list_display = ('id', 'outer_id_link', 'pic_link', 'collect_num',
                     'category_select', 'remain_num', 'wait_post_num',
                     'lock_num', 'wait_receive_num', 'cost', 'std_sale_price',
-                    'agent_price', 'model_id', 'sync_stock','is_watermark',
-                    'sale_time_select', 'sale_charger','ware_select',
-                    'district_link', 'shelf_status')  #'charger_select',
+                    'agent_price', 'model_id', 'sync_stock', 'is_watermark',
+                    'sale_time_select', 'sale_charger', 'ware_select',
+                    'district_link', 'shelf_status')  # 'charger_select',
 
     list_display_links = ('id',)
-    #list_editable = ('name',)
+    # list_editable = ('name',)
 
     date_hierarchy = 'sale_time'
     #     ordering = ['created','']
@@ -143,7 +142,7 @@ class ProductAdmin(ApproxAdmin):
                    'sync_stock',
                    'is_split',
                    'is_match',
-                   'is_assign',  #ChargerFilter,
+                   'is_assign',  # ChargerFilter,
                    'is_verify',
                    'details__is_seckill',
                    'details__is_recommend',
@@ -158,7 +157,7 @@ class ProductAdmin(ApproxAdmin):
 
         try:
             product_detail = obj.details
-        except :
+        except:
             product_detail = None
         head_img_url = product_detail and product_detail.head_imgs.split('\n')[0] or Product.NO_PIC_PATH
 
@@ -312,25 +311,25 @@ class ProductAdmin(ApproxAdmin):
             return "".join(cat_list)
         else:
             return obj.storage_charger and '[%s]' % [obj.storage_charger
-                                                    ] or '[-]'
+                                                     ] or '[-]'
 
     charger_select.allow_tags = True
     charger_select.short_description = u"所属仓管员"
 
     inlines = [ProductdetailInline, ProductSkuInline]
 
-    #--------设置页面布局----------------
+    # --------设置页面布局----------------
     fieldsets = (('商品基本信息:', {
-                    'classes': ('expand',),
-                    'fields':
-                    (('outer_id', 'category'), ('name', 'pic_path'),
-                     ('collect_num', 'warn_num', 'remain_num', 'wait_post_num',
-                      'reduce_num'),
-                     ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
-                     ('sale_time', 'offshelf_time'),
-                     ('cost', 'std_sale_price', 'agent_price'),
-                     ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
-                }),
+        'classes': ('expand',),
+        'fields':
+            (('outer_id', 'category'), ('name', 'pic_path'),
+             ('collect_num', 'warn_num', 'remain_num', 'wait_post_num',
+              'reduce_num'),
+             ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
+             ('sale_time', 'offshelf_time'),
+             ('cost', 'std_sale_price', 'agent_price'),
+             ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
+    }),
                  ('商品系统设置:', {
                      'classes': ('collapse',),
                      'fields': (('weight', 'sync_stock', 'is_assign',
@@ -353,7 +352,7 @@ class ProductAdmin(ApproxAdmin):
             "admin/css/forms.css", "css/admin/dialog.css",
             "css/admin/common.css", "jquery/jquery-ui-1.10.1.css",
             "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")
-            }
+        }
         js = (
             "js/admin/adminpopup.js", "js/item_change_list.js",
             "jquery/jquery-ui-1.8.13.min.js",
@@ -366,7 +365,7 @@ class ProductAdmin(ApproxAdmin):
             return self.readonly_fields + (
                 'model_id', 'sale_product', 'collect_num', 'warn_num',
                 'lock_num', 'inferior_num', 'wait_post_num', 'sale_charger',
-                'storage_charger','shelf_status','status')
+                'storage_charger', 'shelf_status', 'status')
         return self.readonly_fields
 
     def get_actions(self, request):
@@ -455,7 +454,7 @@ class ProductAdmin(ApproxAdmin):
             qs = qs.order_by(*ordering)
         return qs
 
-    #更新用户线上商品入库
+    # 更新用户线上商品入库
     def sync_items_stock(self, request, queryset):
 
         from shopback.items.tasks import updateUserProductSkuTask, updateItemNum
@@ -466,7 +465,7 @@ class ProductAdmin(ApproxAdmin):
             pull_dict = {'outer_id': prod.outer_id, 'name': prod.name}
             try:
                 items = Item.objects.filter(outer_id=prod.outer_id)
-                #更新商品信息
+                # 更新商品信息
                 for item in items:
                     Item.get_or_create(item.user.visitor_id,
                                        item.num_iid,
@@ -477,11 +476,11 @@ class ProductAdmin(ApproxAdmin):
                     raise Exception(u'请确保商品在售')
 
                 for u in users:
-                    #更新商品线上SKU状态
+                    # 更新商品线上SKU状态
                     updateUserProductSkuTask(
                         user_id=u.visitor_id,
                         outer_ids=[i.outer_id for i in items if i.outer_id])
-                #更新商品及SKU库存
+                # 更新商品及SKU库存
                 for item in items:
                     updateItemNum(item.user.visitor_id, item.num_iid)
             except Exception, exc:
@@ -500,7 +499,7 @@ class ProductAdmin(ApproxAdmin):
 
     sync_items_stock.short_description = u"同步淘宝线上库存"
 
-    #作废商品
+    # 作废商品
     def invalid_product_action(self, request, queryset):
 
         uninvalid_qs = queryset.filter(models.Q(collect_num__gt=0) | models.Q(
@@ -534,7 +533,7 @@ class ProductAdmin(ApproxAdmin):
 
     invalid_product_action.short_description = u"作废库存商品（批量）"
 
-    #更新用户线上商品入库
+    # 更新用户线上商品入库
     def sync_purchase_items_stock(self, request, queryset):
 
         from shopback.items.tasks import updatePurchaseItemNum
@@ -550,7 +549,7 @@ class ProductAdmin(ApproxAdmin):
                 if items.count() < 1:
                     raise Exception(u'请确保商品在售')
 
-                #更新商品及SKU库存
+                # 更新商品及SKU库存
                 for item in items:
                     FenxiaoProduct.get_or_create(item.user.visitor_id,
                                                  item.pid,
@@ -578,7 +577,7 @@ class ProductAdmin(ApproxAdmin):
             product.collect_num, product.wait_post_num, product.remain_num,
             product.wait_post_num)
 
-    #更新商品库存数至预留数
+    # 更新商品库存数至预留数
     def update_quantity2remain_action(self, request, queryset):
 
         #         downshelfs = queryset.filter(shelf_status=Product.DOWN_SHELF)
@@ -600,7 +599,7 @@ class ProductAdmin(ApproxAdmin):
 
     update_quantity2remain_action.short_description = u"更新商品库存为预留数"
 
-    #取消该商品缺货订单
+    # 取消该商品缺货订单
     def cancle_orders_out_stock(self, request, queryset):
 
         sync_items = []
@@ -629,7 +628,7 @@ class ProductAdmin(ApproxAdmin):
 
     cancle_orders_out_stock.short_description = u"取消订单商品缺货"
 
-    #创建订货单
+    # 创建订货单
     def create_saleproduct_order(self, request, queryset):
 
         user = request.user
@@ -645,7 +644,7 @@ class ProductAdmin(ApproxAdmin):
                 sku_dict['name'] = guige.name
                 sku_dict[
                     'wait_post_num'] = functions2view.get_lack_num_by_product(
-                        p, guige)
+                    p, guige)
                 product_dict['prod_skus'].append(sku_dict)
             productres.append(product_dict)
         return render_to_response("dinghuo/addpurchasedetail.html",
@@ -655,7 +654,7 @@ class ProductAdmin(ApproxAdmin):
 
     create_saleproduct_order.short_description = u"创建特卖商品订货单"
 
-    #取消商品库存同步（批量）
+    # 取消商品库存同步（批量）
     def active_syncstock_action(self, request, queryset):
 
         for p in queryset:
@@ -693,7 +692,7 @@ class ProductAdmin(ApproxAdmin):
         effect_num = 0
         for t in merge_trades:
             if (t.status == pcfg.WAIT_SELLER_SEND_GOODS and not t.out_sid and
-                    t.prod_num == 1):
+                        t.prod_num == 1):
                 t.sys_status = MergeTrade.REGULAR_REMAIN_STATUS
                 t.remind_time = remind_time
                 t.save()
@@ -808,7 +807,7 @@ class ProductAdmin(ApproxAdmin):
 
     downshelf_product_action.short_description = u"下架微信商品 (批量)"
 
-    #导出商品规格信息
+    # 导出商品规格信息
     def export_prodsku_info_action(self, request, queryset):
         """ 导出商品及规格信息 """
 
@@ -821,13 +820,13 @@ class ProductAdmin(ApproxAdmin):
             skus = prod.pskus.exclude(is_split=True)
             if skus.count() > 0:
                 for sku in skus:
-                    pcsv.append((prod.outer_id,prod.name,sku.outer_id,sku.name,str(sku.quantity),str(sku.warn_num),\
-                                 str(sku.remain_num),str(sku.wait_post_num),str(sku.sale_num),str(sku.cost),\
-                                 str(sku.std_sale_price),sku.get_districts_code(),sku.barcode))
+                    pcsv.append((prod.outer_id, prod.name, sku.outer_id, sku.name, str(sku.quantity), str(sku.warn_num), \
+                                 str(sku.remain_num), str(sku.wait_post_num), str(sku.sale_num), str(sku.cost), \
+                                 str(sku.std_sale_price), sku.get_districts_code(), sku.barcode))
             else:
-                pcsv.append((prod.outer_id,prod.name,'','',str(prod.collect_num),str(prod.warn_num),\
-                                 str(prod.remain_num),str(prod.wait_post_num),str(sku.sale_num),str(prod.cost),\
-                                 str(prod.std_sale_price),prod.get_districts_code(),prod.barcode))
+                pcsv.append((prod.outer_id, prod.name, '', '', str(prod.collect_num), str(prod.warn_num), \
+                             str(prod.remain_num), str(prod.wait_post_num), str(sku.sale_num), str(prod.cost), \
+                             str(prod.std_sale_price), prod.get_districts_code(), prod.barcode))
             pcsv.append(['', '', '', '', '', '', '', '', '', '', '', ''])
 
         tmpfile = StringIO.StringIO()
@@ -840,7 +839,7 @@ class ProductAdmin(ApproxAdmin):
         tmpfile.close()
         response[
             'Content-Disposition'] = 'attachment; filename=product-sku-info-%s.csv' % str(
-                int(time.time()))
+            int(time.time()))
 
         return response
 
@@ -901,7 +900,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
     list_editable = ('quantity',)
 
     date_hierarchy = 'modified'
-    #ordering = ['created_at']
+    # ordering = ['created_at']
 
     list_filter = ('status', 'sync_stock', 'is_split', 'is_match', 'is_assign',
                    'post_check')
@@ -910,7 +909,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
 
     def district_link(self, obj):
         return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' % (
-            obj.id, obj.districts or u'--')
+            obj.id, obj.get_districts_code() or u'--')
 
     district_link.allow_tags = True
     district_link.short_description = "库位"
@@ -922,18 +921,18 @@ class ProductSkuAdmin(admin.ModelAdmin):
                                                      'cols': 25})},
     }
 
-    #--------设置页面布局----------------
+    # --------设置页面布局----------------
     fieldsets = (('商品基本信息:', {
         'classes': ('expand',),
         'fields':
-        (('outer_id', 'properties_name', 'properties_alias', 'status'),
-         ('quantity', 'warn_num', 'remain_num', 'wait_post_num', 'lock_num', 'assign_num', 'weight'),
-         ('cost', 'std_purchase_price', 'std_sale_price', 'agent_price',
-          'staff_price'), ('sync_stock', 'is_assign', 'is_split', 'is_match',
-                           'memo', 'buyer_prompt', "sku_inferior_num"))
+            (('outer_id', 'properties_name', 'properties_alias', 'status'),
+             ('quantity', 'warn_num', 'remain_num', 'wait_post_num', 'lock_num', 'assign_num', 'weight'),
+             ('cost', 'std_purchase_price', 'std_sale_price', 'agent_price',
+              'staff_price'), ('sync_stock', 'is_assign', 'is_split', 'is_match',
+                               'memo', 'buyer_prompt', "sku_inferior_num"))
     }),)
 
-    #取消该商品缺货订单
+    # 取消该商品缺货订单
     def cancle_items_out_stock(self, request, queryset):
 
         sync_items = []
@@ -976,7 +975,7 @@ class SkuPropertyAdmin(admin.ModelAdmin):
                     'quantity', 'with_hold_quantity', 'sku_delivery_time',
                     'created', 'modified', 'status')
     list_display_links = ('sku_id', 'outer_id')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status',)
     search_fields = ['outer_id', 'sku_id', 'num_iid', 'properties_name']
@@ -989,7 +988,7 @@ class ProductLocationAdmin(admin.ModelAdmin):
     list_display = ('product_id', 'sku_id', 'outer_id', 'name', 'outer_sku_id',
                     'properties_name', 'district')
     list_display_links = ('outer_id', 'outer_sku_id')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
     search_fields = ['product_id', 'sku_id', 'outer_id', 'outer_sku_id',
                      'district__parent_no']
@@ -1002,7 +1001,7 @@ class ItemNumTaskLogAdmin(ApproxAdmin):
     list_display = ('id', 'user_id', 'outer_id', 'sku_outer_id', 'num',
                     'start_at', 'end_at')
     list_display_links = ('outer_id', 'sku_outer_id')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
     #     date_hierarchy = 'end_at'
 
@@ -1018,9 +1017,9 @@ class ProductDaySaleAdmin(admin.ModelAdmin):
                     'sale_payment', 'confirm_num', 'confirm_payment',
                     'sale_refund')
     list_display_links = ('day_date', 'user_id', 'product_id')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    #date_hierarchy = 'day_date'
+    # date_hierarchy = 'day_date'
 
     list_filter = ('user_id', ('day_date', DateFieldListFilter))
     search_fields = ['id', 'user_id', 'product_id', 'sku_id']
@@ -1033,9 +1032,9 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
     list_display = ('wave_no', 'product_id', 'qc_code', 'sku_code',
                     'product_name', 'barcode', 'scan_num', 'created', 'status')
     list_display_links = ('product_id', 'barcode')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    #date_hierarchy = 'day_date'
+    # date_hierarchy = 'day_date'
 
     list_filter = ('status', ('created', DateFieldListFilter))
     search_fields = ['product_id', 'qc_code', 'barcode', 'wave_no']
@@ -1066,7 +1065,7 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
             qs = qs.order_by(*ordering)
         return qs
 
-    #取消该商品缺货订单
+    # 取消该商品缺货订单
     def confirm_scan_action(self, request, queryset):
 
         queryset = queryset.filter(status=ProductScanStorage.WAIT)
@@ -1108,13 +1107,12 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
 
     confirm_scan_action.short_description = u"确认入库"
 
-    #取消该商品缺货订单
+    # 取消该商品缺货订单
     def delete_scan_action(self, request, queryset):
 
         queryset = queryset.filter(status=ProductScanStorage.WAIT)
         try:
             for prod in queryset:
-
                 prod.scan_num = 0
                 prod.status = ProductScanStorage.DELETE
 
@@ -1133,7 +1131,7 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
 
     delete_scan_action.short_description = u"作废扫描记录"
 
-    #取消该商品缺货订单
+    # 取消该商品缺货订单
     def export_scan_action(self, request, queryset):
         """ 导出商品及规格信息 """
 
@@ -1179,7 +1177,7 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
         tmpfile.close()
         response[
             'Content-Disposition'] = 'attachment; filename=product-scan-%s.csv' % str(
-                int(time.time()))
+            int(time.time()))
 
         return response
 
@@ -1216,7 +1214,6 @@ admin.site.register(ContrastContent, ContrastContentAdmin)
 
 
 class ImageWaterMarkAdmin(admin.ModelAdmin):
-
     class Media:
         js = ('//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js',
               'script/qiniu.js', 'js/image_watermark.js')
@@ -1238,11 +1235,14 @@ class ImageWaterMarkAdmin(admin.ModelAdmin):
             'item_url': '/admin/items/imagewatermark/%d/' % obj.id,
             'image_url': '%s?imageMogr2/thumbnail/100/format/jpg/quality/90' % url
         }
+
     pic_preview.allow_tags = True
     pic_preview.short_description = u'预览'
 
     def mark_invalid(self, request, queryset):
         queryset.update(status=0)
+
     mark_invalid.short_description = u'设为作废'
+
 
 admin.site.register(ImageWaterMark, ImageWaterMarkAdmin)

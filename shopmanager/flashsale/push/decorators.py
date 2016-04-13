@@ -13,7 +13,9 @@ def mask(bits=0):
         def _inner(self, *args, **kwargs):
             n = f(self, *args, **kwargs)
             return n | bits
+
         return _inner
+
     return _wrapper
 
 
@@ -40,5 +42,7 @@ def retry(times=3):
                     else:
                         return result
             return result
+
         return _inner
+
     return _wrapper
