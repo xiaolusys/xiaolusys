@@ -20,6 +20,7 @@ from .models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
 from .models_share import CustomShare
 from .models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
 from . import managers
+from . import constants as CONST
 
 from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
@@ -555,7 +556,7 @@ class SaleOrder(PayBaseModel):
     def is_finishable(self):
         """
         1，订单发货后超过15天未确认签收,系统自动变成已完成状态；
-        2，订单确认签收后，７天之后订单状态变成已完成；
+        2，订单确认签收后，2天之后订单状态变成已完成；
         """
         now_time = datetime.datetime.now()
         consign_time = self.consign_time
@@ -563,10 +564,10 @@ class SaleOrder(PayBaseModel):
         if self.refund_status in SaleRefund.REFUNDABLE_STATUS:
             return False
         if (self.status == self.WAIT_BUYER_CONFIRM_GOODS
-            and (not consign_time or (now_time - consign_time).days > 15)):
+            and (not consign_time or (now_time - consign_time).days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
             return True
         elif (self.status == self.TRADE_BUYER_SIGNED
-              and (not sign_time or (now_time - sign_time).days > 7)):
+              and (not sign_time or (now_time - sign_time).days > CONST.ORDER_SIGNED_TO_FINISHED_DAYS)):
             return True
         return False
 
