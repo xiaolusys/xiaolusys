@@ -608,7 +608,6 @@ class SaleOrder(PayBaseModel):
             psku = ProductSku.objects.get(id=self.sku_id)
             psku.assign_num -= self.num
             psku.save()
-            psku.assign_packages()
             return True
         return False
 
