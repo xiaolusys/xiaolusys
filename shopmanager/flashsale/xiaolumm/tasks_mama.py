@@ -256,7 +256,7 @@ def task_order_trigger(sale_order):
             # check fan's relationship
             from flashsale.xiaolumm.models_fans import XlmmFans
             
-            fans_records = XlmmFans.objects.filter(fans_cusid=customer_id,created__lt=sale_order.pay_time)    
+            fans_records = XlmmFans.objects.filter(fans_cusid=customer_id,created__lt=sale_order.created)    
             if fans_records.count() > 0:
                 mama_id = fans_records[0].xlmm
                 mm_linkid_mama = XiaoluMama.objects.get(id=mama_id)
