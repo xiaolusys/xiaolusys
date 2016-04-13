@@ -1,5 +1,5 @@
 # -*- encoding:utf-8 -*-
-
+import datetime
 from celery.task import task
 from flashsale.xiaolumm import util_description
 
@@ -53,6 +53,8 @@ def gen_envelope_type_value_pair(customer_id, event_id):
         for item in records:
             slots.remove(item.value)
         return (1, random.choice(slots))
+    
+from flashsale.push import push_activity
 
 
 @task()
@@ -93,6 +95,8 @@ def task_generate_red_envelope(application):
         envelope2 = RedEnvelope(customer_id=customer_id, event_id=event_id, uni_key=uni_key2, type=type,
                                 vale=value, friend_img=application.headimgurl, friend_nick=application.nick)
         envelope2.save()
+        # 推送发红消息给customer
+        push_activity.activity_red_packet_release_push(customer_id)
 
 
 @task()
@@ -135,6 +139,8 @@ def task_envelope_update_budgetlog(envelope):
         budget_log = budget_logs[0]
         budget_log.status = BudgetLog.CONFIRMED
         budget_log.save()
+        # 拆红包推送
+        push_activity.activity_open_red_packet_push(envelope.customer_id)
 
 
 @task()

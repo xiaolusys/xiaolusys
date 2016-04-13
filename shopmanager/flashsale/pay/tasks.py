@@ -481,9 +481,6 @@ def task_budgetlog_update_userbudget(budget_log):
 
 
 from extrafunc.renewremind.tasks import send_message
-from flashsale.push.mipush import mipush_of_ios, mipush_of_android
-from flashsale.protocol import get_target_url
-from flashsale.protocol import constants
 from shopapp.smsmgr.models import SMSActivity
 from django.contrib.admin.models import CHANGE
 
@@ -527,20 +524,7 @@ def send_refund_msg(refund):
     if message:
         send_message(mobile=mobile, message=message, taskName=refund.get_status_display())
 
-
-def push_refund_app_msg(refend):
-    """ 发送同意app推送 """
-    customer_id = refend.buyer_id
-    if customer_id:
-        target_url = get_target_url(constants.TARGET_TYPE_REFUNDS)
-        message = make_refund_message(refend)
-        if message:
-            mipush_of_android.push_to_account(customer_id,
-                                              {'target_url': target_url},
-                                              description=message)
-            mipush_of_ios.push_to_account(customer_id,
-                                          {'target_url': target_url},
-                                          description=message)
+from flashsale.push.push_refund import push_refund_app_msg
 
 
 @task
@@ -553,6 +537,16 @@ def task_send_msg_for_refund(refund):
         return
     send_refund_msg(refund)
     push_refund_app_msg(refund)
+
+
+from flashsale.push.push_usercoupon import user_coupon_release_push
+
+
+@task
+def task_release_coupon_push(customer_id):
+    """ 特卖用户领取红包 """
+    user_coupon_release_push(customer_id)
+    return
 
 
 def close_refund(refund):
