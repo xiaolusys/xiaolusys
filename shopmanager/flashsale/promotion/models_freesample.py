@@ -45,11 +45,22 @@ class XLSampleSku(CacheModel):
 
 
 class AppDownloadRecord(BaseModel):
-    WAP = 0
-    WX = 1
-    QQ = 2
 
-    UFROM = ((WAP, u'WAP'), (WX, u'微信'), (QQ, u'QQ'))
+    WXAPP = 'wxapp'
+    PYQ = 'pyq'
+    QQ = 'qq'
+    SINAWB = 'sinawb'
+    WAP = 'wap'
+    QQSPA = 'qqspa'
+    APP = 'app'
+
+    UFROM = ((WAP, u'微信'),
+             (WAP, u'朋友圈'),
+             (WAP, u'新浪微博'),
+             (WAP, u'WAP'),
+             (WAP, u'QQ空间'),
+             (WAP, u'小鹿美美app'))
+
     UNUSE = 0
     USED = 1
 
@@ -60,7 +71,7 @@ class AppDownloadRecord(BaseModel):
     unionid = models.CharField(max_length=128, db_index=True, blank=True, null=True, verbose_name=u'微信授权unionid')
     status = models.BooleanField(default=UNUSE, choices=USE_STATUS, db_index=True, verbose_name=u'是否注册APP')
     mobile = models.CharField(max_length=11, blank=True, null=True, db_index=True, verbose_name=u'手机号')
-    ufrom = models.IntegerField(default=0, choices=UFROM, verbose_name=u'来自平台')
+    ufrom = models.CharField(max_length=8, choices=UFROM, verbose_name=u'来自平台')
 
     class Meta:
         db_table = 'flashsale_promotion_download_record'
