@@ -93,7 +93,7 @@ def task_generate_red_envelope(application):
     uni_key2 = 'self-' + uni_key1
     count = RedEnvelope.objects.filter(uni_key=uni_key2).count()
     if count <= 0:
-        value = random.choices([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        value = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
         envelope2 = RedEnvelope(customer_id=customer_id, event_id=event_id, uni_key=uni_key2, type=type,
                                 vale=value, friend_img=application.headimgurl, friend_nick=application.nick)
         envelope2.save()
