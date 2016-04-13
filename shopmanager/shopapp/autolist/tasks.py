@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 import datetime
 import time
 from celery.task import task
@@ -6,19 +6,19 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback.users.models import User
 from shopback.items.models import Item
-from shopapp.autolist.models import Logs,ItemListTask,SUCCESS,EXECERROR,UNEXECUTE
-from common.utils import getSignatureTaoBao,format_time,single_instance_task
+from shopapp.autolist.models import Logs, ItemListTask, SUCCESS, EXECERROR, UNEXECUTE
+from common.utils import getSignatureTaoBao, format_time, single_instance_task
 from auth import apis
 import logging
-
-
 
 logger = logging.getLogger('django.request')
 
 START_TIME = '00:00'
 END_TIME = '23:59'
-#商品上架时间幅度，当前时间加减后的时间间隔
-EXECUTE_RANGE_TIME = 3*60
+# 商品上架时间幅度，当前时间加减后的时间间隔
+EXECUTE_RANGE_TIME = 3 * 60
+
+
 #
 
 def write_to_log_db(task, response):
@@ -35,7 +35,7 @@ def write_to_log_db(task, response):
     log.list_weekday = task.list_weekday
     log.list_time = task.list_time
     log.task_type = task.task_type
-    
+
     try:
         if task.task_type == "listing":
             log.status = response["item_update_listing_response"]["item"]["modified"]
@@ -53,59 +53,58 @@ def write_to_log_db(task, response):
 
 @task(max_retry=3)
 def updateItemListTask(num_iid):
-
     try:
         task = ItemListTask.objects.get(num_iid=num_iid)
     except ItemListTask.DoesNotExist:
-        logger.error(u'上架任务不存在(num_iid:%s)' %(num_iid))
+        logger.error(u'上架任务不存在(num_iid:%s)' % (num_iid))
         return
 
     success = True
-    response = {'error_response':u'商品上下架任务不正常！'}
+    response = {'error_response': u'商品上下架任务不正常！'}
     try:
         if task.task_type == 'listing':
-            item = apis.taobao_item_get(num_iid=int(task.num_iid),tb_user_id=task.user_id)
+            item = apis.taobao_item_get(num_iid=int(task.num_iid), tb_user_id=task.user_id)
 
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item'):
                 task.num = int(item['item_get_response']['item']['num'])
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
-                    response = apis.taobao_item_update_delisting(num_iid=task.num_iid,tb_user_id=task.user_id)
+                    response = apis.taobao_item_update_delisting(num_iid=task.num_iid, tb_user_id=task.user_id)
                     task.task_type = "delisting"
                     write_to_log_db(task, response)
-                
+
                 task.task_type = "listing"
-                response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,tb_user_id=task.user_id)
+                response = apis.taobao_item_update_listing(num_iid=task.num_iid, num=task.num, tb_user_id=task.user_id)
                 write_to_log_db(task, response)
-                
+
                 item_modified = response['item_update_listing_response']['item']['modified']
                 Item.objects.filter(num_iid=num_iid).update(list_time=item_modified)
-                
+
                 if item['item_get_response']['item']['has_showcase'] == True:
                     task.task_type = "recommend"
-                    response = apis.taobao_item_recommend_add(num_iid=task.num_iid,tb_user_id=task.user_id)
+                    response = apis.taobao_item_recommend_add(num_iid=task.num_iid, tb_user_id=task.user_id)
                     write_to_log_db(task, response)
-            else :
+            else:
                 success = False
-    
+
         elif task.task_type == 'delisting':
-            item = apis.taobao_item_get(num_iid=task.num_iid,tb_user_id=task.user_id)
-    
-            if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
+            item = apis.taobao_item_get(num_iid=task.num_iid, tb_user_id=task.user_id)
+
+            if item.has_key('item_get_response') and item['item_get_response'].has_key('item'):
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
-                    response = apis.taobao_item_update_delisting(num_iid=task.num_iid,tb_user_id=task.user_id)
+                    response = apis.taobao_item_update_delisting(num_iid=task.num_iid, tb_user_id=task.user_id)
                     task.num = item['num']
                 else:
                     success = False
-            else :
+            else:
                 success = False
-    
+
         if response.has_key('error_response'):
             success = False
             raise Exception(response['error_response'])
 
-    except Exception,exc:
+    except Exception, exc:
         success = False
-        logger.error(u'上下架任务异常(商品ID:%s) 错误:%s' %(num_iid,exc), exc_info=True)
+        logger.error(u'上下架任务异常(商品ID:%s) 错误:%s' % (num_iid, exc), exc_info=True)
 
     if success:
         task.status = SUCCESS
@@ -115,33 +114,29 @@ def updateItemListTask(num_iid):
     task.save()
 
 
-@single_instance_task(30*60,prefix='shopapp.autolist.tasks.')
+@single_instance_task(30 * 60, prefix='shopapp.autolist.tasks.')
 def updateAllItemListTask():
     currentdate = datetime.datetime.now()
     currenttime = time.mktime(currentdate.timetuple())
     weekday = currentdate.isoweekday()
 
-    date_ago = datetime.datetime.fromtimestamp\
-            (currenttime - EXECUTE_RANGE_TIME)
+    date_ago = datetime.datetime.fromtimestamp \
+        (currenttime - EXECUTE_RANGE_TIME)
 
-
-    if date_ago.isoweekday() <weekday:
+    if date_ago.isoweekday() < weekday:
         time_ago = START_TIME
     else:
         time_ago = format_time(date_ago)
 
-    date_future = datetime.datetime.fromtimestamp\
-            (currenttime + EXECUTE_RANGE_TIME)
-    if date_future.isoweekday() >weekday:
+    date_future = datetime.datetime.fromtimestamp \
+        (currenttime + EXECUTE_RANGE_TIME)
+    if date_future.isoweekday() > weekday:
         time_future = END_TIME
     else:
         time_future = format_time(date_future)
 
-    tasks = ItemListTask.objects.filter\
-            (list_weekday=weekday,list_time__gte=time_ago,list_time__lte=time_future,status=UNEXECUTE)
+    tasks = ItemListTask.objects.filter \
+        (list_weekday=weekday, list_time__gte=time_ago, list_time__lte=time_future, status=UNEXECUTE)
 
     for task in tasks:
         updateItemListTask(task.num_iid)
-
-
-    

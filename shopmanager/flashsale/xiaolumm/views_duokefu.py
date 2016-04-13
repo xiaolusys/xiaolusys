@@ -198,4 +198,3 @@ def kf_Search_Order_Detail(request):
                       }
         data.append(data_entry)
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
-

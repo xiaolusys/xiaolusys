@@ -18,8 +18,7 @@ class MyGroup(models.Model):
 
 
 class MyUser(models.Model):
-    
-    user  = models.OneToOneField(DjangoUser, verbose_name=u'原始用户')
+    user = models.OneToOneField(DjangoUser, verbose_name=u'原始用户')
     group = models.ForeignKey(MyGroup, verbose_name=u'组', blank=True)
 
     class Meta:
@@ -30,4 +29,3 @@ class MyUser(models.Model):
 
     def __unicode__(self):
         return self.user.username
-

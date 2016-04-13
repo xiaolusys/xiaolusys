@@ -37,9 +37,9 @@ logger = logging.getLogger('django.request')
 
 class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
     """ 小鹿妈妈申请成为代理 """
-    authentication_classes = (authentication.SessionAuthentication, )
+    authentication_classes = (authentication.SessionAuthentication,)
     # permission_classes = (permissions.IsAuthenticated, )
-    renderer_classes = (renderers.TemplateHTMLRenderer, )
+    renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "apply/step-1.html"
 
     def get(self, request):
@@ -57,7 +57,7 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         customer = Customer.objects.get(user=request.user)
         openid = customer.openid
         unionid = customer.unionid
-        logger.info('mama register：%s,%s,%s'%(customer,openid,unionid))
+        logger.info('mama register：%s,%s,%s' % (customer, openid, unionid))
         # if not valid_openid(openid) or not valid_openid(unionid):
         #     redirect_url = self.get_snsuserinfo_redirct_url(request)
         #     return redirect(redirect_url)
@@ -128,7 +128,7 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
 
 class PayDepositeView(PayInfoMethodMixin, APIView):
     """ 小鹿妈妈支付押金 """
-    authentication_classes = (authentication.SessionAuthentication, )
+    authentication_classes = (authentication.SessionAuthentication,)
     #     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
     template_name = 'apply/step-2.html'
@@ -182,7 +182,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
         bn_payment = bn_totalfee + post_fee - discount_fee
         if post_fee < 0 or payment <= 0 or abs(payment - bn_payment) > 10:
             raise exceptions.ParseError(u'付款金额异常')
-        #         addr_id  = CONTENT.get('addr_id')
+        # addr_id  = CONTENT.get('addr_id')
         #         address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
         address = None
         channel = CONTENT.get('channel')
@@ -210,7 +210,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
 
 
 class MamaSuccessView(APIView):
-    authentication_classes = (authentication.SessionAuthentication, )
+    authentication_classes = (authentication.SessionAuthentication,)
     #     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "apply/mama_success.html"
@@ -229,6 +229,7 @@ class MamaFailView(APIView):
     def get(self, request):
         response = {'mama_id': request.REQUEST.get('mama_id')}
         return Response(response)
+
 
 from .models_fortune import ReferalRelationship
 
@@ -249,14 +250,14 @@ class MamaInvitationRes(APIView):
         xlmm = customer.getXiaolumm()
         if not xlmm:
             return Response({"num_handred": 0, "num_ten": 0,
-             'num_unit': 0})
+                             'num_unit': 0})
         #
         # referals = XiaoluMama.objects.filter(referal_from=xlmm.mobile, charge_status=XiaoluMama.CHARGED)
         # referal_count = referals.count()
         referals = ReferalRelationship.objects.filter(referal_from_mama_id=xlmm.id)
         referal_count = referals.count()
 
-        num_handred = referal_count/100
+        num_handred = referal_count / 100
         num_ten = referal_count % 100 / 10
         num_unit = referal_count % 10
         agencylevel = xlmm.agencylevel

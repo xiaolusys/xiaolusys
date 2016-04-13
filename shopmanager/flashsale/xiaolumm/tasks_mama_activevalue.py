@@ -9,13 +9,14 @@ from flashsale.xiaolumm.models_fortune import ActiveValue, OrderCarry, UniqueVis
 import sys
 import datetime
 
+
 def get_cur_info():
     """Return the frame object for the caller's stack frame."""
     try:
         raise Exception
     except:
         f = sys.exc_info()[2].tb_frame.f_back
-    #return (f.f_code.co_name, f.f_lineno)
+    # return (f.f_code.co_name, f.f_lineno)
     return f.f_code.co_name
 
 
@@ -43,7 +44,7 @@ def task_ordercarry_update_activevalue(order_carry_unikey):
     order_carrys = OrderCarry.objects.filter(uni_key=order_carry_unikey)
     if order_carrys.count() <= 0:
         return
-    
+
     order_carry = order_carrys[0]
     mama_id = order_carry.mama_id
     print "%s, mama_id: %s" % (get_cur_info(), order_carry.mama_id)
@@ -54,7 +55,7 @@ def task_ordercarry_update_activevalue(order_carry_unikey):
 
     uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
     value_num = ActiveValue.VALUE_MAP[str(value_type)]
-        
+
     active_values = ActiveValue.objects.filter(uni_key=uni_key)
     if active_values.count() > 0:
         active_value = active_values[0]
@@ -62,37 +63,36 @@ def task_ordercarry_update_activevalue(order_carry_unikey):
             active_value.status = order_carry.status
             active_value.value_num = value_num
             if order_carry.status == 0:
-                active_value.status = 3 # canceled
-                
+                active_value.status = 3  # canceled
+
             active_value.save()
         return
-    
+
     if order_carry.status == 0:
         # dont create ActiveValue record if order status is "unpaid"
         return
-    
+
     status = order_carry.status
     description = util_description.gen_activevalue_description(value_type)
     active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type,
                                value_description=description,
                                uni_key=uni_key, date_field=date_field, status=status)
     active_value.save()
-    
-    
+
+
 @task()
 def task_referal_update_activevalue(mama_id, date_field, contributor_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    value_type = 3 # referal
-    status = 2 # confirmed
+    value_type = 3  # referal
+    status = 2  # confirmed
     value_num = ActiveValue.VALUE_MAP[str(value_type)]
     description = util_description.gen_activevalue_description(value_type)
     order_id = ""
     uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
-    active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type, 
+    active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type,
                                value_description=description,
                                uni_key=uni_key, date_field=date_field, status=status)
     active_value.save()
-    
 
 
 @task()
@@ -105,41 +105,36 @@ def task_confirm_previous_activevalue(mama_id, today_date_field, num_days):
 
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
 
-    value_type = 1 # click-type
-    active_values = ActiveValue.objects.filter(mama_id=mama_id, value_type=value_type, date_field__lte=end_date_field, status=1).order_by('-date_field')[:7]
+    value_type = 1  # click-type
+    active_values = ActiveValue.objects.filter(mama_id=mama_id, value_type=value_type, date_field__lte=end_date_field,
+                                               status=1).order_by('-date_field')[:7]
     if active_values.count() <= 0:
         return
 
     for active_value in active_values:
         date_field = active_value.date_field
-        value_num = UniqueVisitor.objects.filter(mama_id=mama_id,date_field=date_field).count()
+        value_num = UniqueVisitor.objects.filter(mama_id=mama_id, date_field=date_field).count()
         active_value.value_num = value_num
-        active_value.status = 2 # confirm
+        active_value.status = 2  # confirm
         active_value.save()
-        
+
 
 @task()
 def task_visitor_increment_activevalue(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    value_type = 1 # click
+    value_type = 1  # click
 
     uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, None, None)
     active_values = ActiveValue.objects.filter(uni_key=uni_key)
-    
+
     if active_values.count() <= 0:
-        status = 1 # pending
+        status = 1  # pending
         description = util_description.gen_activevalue_description(value_type)
-        active_value = ActiveValue(mama_id=mama_id,value_num=1, value_type=value_type, 
+        active_value = ActiveValue(mama_id=mama_id, value_num=1, value_type=value_type,
                                    uni_key=uni_key, value_description=description,
-                                   date_field=date_field,status=status)
+                                   date_field=date_field, status=status)
         active_value.save()
-        #task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
-        
+        # task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
+
     else:
-        active_values.update(value_num=F('value_num')+1)
-        
-        
-
-    
-
-                       
+        active_values.update(value_num=F('value_num') + 1)

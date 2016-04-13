@@ -23,10 +23,9 @@ TARGET_TYPE_WEBVIEW = 9
 # 小鹿妈妈
 TARGET_TYPE_VIP_HOME = 10
 # 小鹿妈妈每日上新
-TARGET_TYPE_VIP_0DAY= 11
+TARGET_TYPE_VIP_0DAY = 11
 # 退款退货列表
 TARGET_TYPE_REFUNDS = 12
-
 
 TARGET_PATHS = {
     TARGET_TYPE_HOME_TAB_1: 'app/v1/products/promote_today',

@@ -143,10 +143,10 @@ from django.db.models import Sum
 from django.core import serializers
 from django.forms.models import model_to_dict
 
+
 class StatsDinghuoView(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "dinghuo/stats_ding_huo.html"
-
 
     def get(self, request, format=None):
         content = request.REQUEST

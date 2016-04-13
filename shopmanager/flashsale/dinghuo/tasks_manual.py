@@ -13,6 +13,7 @@ import sys
 from supplychain.supplier.models import SaleProduct
 from core.options import log_action, CHANGE, SYSTEMOA_USER
 
+
 @task()
 def task_dinghuo_supplier():
     """将供应商名字写入订货表"""
@@ -33,5 +34,3 @@ def task_dinghuo_supplier():
             one_dinghuo.supplier_shop = supplier
             one_dinghuo.save()
             log_action(SYSTEMOA_USER.ID, one_dinghuo, CHANGE, u'修改供应商')
-
-

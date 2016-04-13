@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 import datetime
 
 from django.db import models
@@ -7,9 +7,8 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from shopback import paramconfig as pcfg
-from core.filters import SimpleListFilter,FieldListFilter
+from core.filters import SimpleListFilter, FieldListFilter
 from shopback.items.models import Product
-
 
 
 class ChargerFilter(SimpleListFilter):
@@ -27,9 +26,8 @@ class ChargerFilter(SimpleListFilter):
         human-readable name for the option that will appear
         in the right sidebar.
         """
-        return (('mycharge',u'我接管的'),
-                ('uncharge',u'未接管的'),)
-    
+        return (('mycharge', u'我接管的'),
+                ('uncharge', u'未接管的'),)
 
     def queryset(self, request, queryset):
         """
@@ -37,17 +35,17 @@ class ChargerFilter(SimpleListFilter):
         provided in the query string and retrievable via
         `self.value()`.
         """
-        status_name  = self.value()
-        myuser_name  = request.user.username
+        status_name = self.value()
+        myuser_name = request.user.username
         if not status_name:
             return queryset
         elif status_name == 'mycharge':
-            return queryset.filter(models.Q(sale_charger=myuser_name)|models.Q(storage_charger=myuser_name))
-                                   
+            return queryset.filter(models.Q(sale_charger=myuser_name) | models.Q(storage_charger=myuser_name))
+
         else:
             return queryset.exclude(sale_charger=myuser_name).exclude(storage_charger=myuser_name)
-        
-        
+
+
 class DateScheduleFilter(FieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):
         self.field_generic = '%s__' % field_path
@@ -66,15 +64,15 @@ class DateScheduleFilter(FieldListFilter):
 
         if isinstance(field, models.DateTimeField):
             today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        else:       # field is a models.DateField
+        else:  # field is a models.DateField
             today = now.date()
         tomorrow = today + datetime.timedelta(days=1)
-        
+
         self.lookup_kwarg_since = '%s__gte' % field_path
         self.lookup_kwarg_until = '%s__lt' % field_path
         self.links = (
             (_('All'), {}),
-             (_(u'五天后'), {
+            (_(u'五天后'), {
                 self.lookup_kwarg_since: str(today + datetime.timedelta(days=5)),
                 self.lookup_kwarg_until: str(today + datetime.timedelta(days=6)),
             }),
@@ -100,7 +98,7 @@ class DateScheduleFilter(FieldListFilter):
             }),
             (_(u'昨天'), {
                 self.lookup_kwarg_since: str(today - datetime.timedelta(days=1)),
-                self.lookup_kwarg_until: str(today ),
+                self.lookup_kwarg_until: str(today),
             }),
             (_(u'前天'), {
                 self.lookup_kwarg_since: str(today - datetime.timedelta(days=2)),
@@ -138,15 +136,15 @@ class DateScheduleFilter(FieldListFilter):
             yield {
                 'selected': self.date_params == param_dict,
                 'query_string': cl.get_query_string(
-                                    param_dict, [self.field_generic]),
+                    param_dict, [self.field_generic]),
                 'display': title,
             }
+
 
 FieldListFilter.register(
     lambda f: isinstance(f, models.DateField), DateScheduleFilter)
 
-
-from flashsale.dinghuo.models_user import MyUser,MyGroup
+from flashsale.dinghuo.models_user import MyUser, MyGroup
 
 
 class GroupNameFilter(SimpleListFilter):
@@ -169,30 +167,31 @@ class GroupNameFilter(SimpleListFilter):
             user_list = MyUser.objects.filter(group_id__in=group_id)
             my_users = [my_user.user.username for my_user in user_list]
             return queryset.filter(sale_charger__in=my_users)
-        
+
 
 from shopback.categorys.models import ProductCategory
-       
+
+
 class CategoryFilter(SimpleListFilter):
     """ """
     title = u'商品类别'
     parameter_name = 'category'
 
     def lookups(self, request, model_admin):
-        
-        cat_id = request.GET.get(self.parameter_name,'')
+
+        cat_id = request.GET.get(self.parameter_name, '')
         cat_parent_id = None
         try:
             cat_parent_id = ProductCategory.objects.get(cid=cat_id).parent_cid
         except:
             pass
-        
+
         cate_list = []
-        cate_qs   = ProductCategory.objects.filter(is_parent=True,status=ProductCategory.NORMAL)
+        cate_qs = ProductCategory.objects.filter(is_parent=True, status=ProductCategory.NORMAL)
         for cate in cate_qs:
             cate_list.append((str(cate.cid), str(cate)))
             if cat_id and int(cat_id) == cate.cid or (cat_parent_id and int(cat_parent_id) == cate.cid):
-                sub_cates = ProductCategory.objects.filter(parent_cid=cate.cid, is_parent=False, 
+                sub_cates = ProductCategory.objects.filter(parent_cid=cate.cid, is_parent=False,
                                                            status=ProductCategory.NORMAL)
                 for sub_cate in sub_cates:
                     cate_list.append((str(sub_cate.cid), str(sub_cate)))
@@ -200,17 +199,15 @@ class CategoryFilter(SimpleListFilter):
         return tuple(cate_list)
 
     def queryset(self, request, queryset):
-        
+
         cat_id = self.value()
         if not cat_id:
             return queryset
         else:
             categorys = ProductCategory.objects.filter(parent_cid=cat_id)
-            cate_ids  = [cate.cid for cate in categorys]
+            cate_ids = [cate.cid for cate in categorys]
             if len(cate_ids) == 0:
                 return queryset.filter(category=cat_id)
             else:
                 cate_ids.append(int(cat_id))
                 return queryset.filter(category__in=cate_ids)
-        
-        

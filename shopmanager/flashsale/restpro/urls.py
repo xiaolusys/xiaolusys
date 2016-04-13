@@ -29,7 +29,6 @@ from . import views_promotion
 from . import views_login_v2
 from . import views_faqs
 
-
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
 router.register(r'register', views_user.RegisterViewSet)
@@ -58,7 +57,6 @@ router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 router.register(r'download', views.AppDownloadLinkViewSet)
 router.register(r'faqs', views_faqs.SaleCategoryViewSet)
 
-
 #  推广接口注册
 promotion_router = routers.DefaultRouter(trailing_slash=False)
 promotion_router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
@@ -75,58 +73,56 @@ promotion_router.register(r'free_proinfo', views_promotion.XLFreeSampleViewSet)
 promotion_router.register(r'free_order', views_promotion.XLSampleOrderViewSet)
 promotion_router.register(r'fanlist', views_promotion.InviteReletionshipView)
 
-
 router.register(r'wuliu', views_wuliu_new.WuliuViewSet)
 
 # 推送相关
 router.register(r'push', views_push.PushViewSet)
 
-
 router_urls = router.urls
 router_urls_promotion = promotion_router.urls
 
 router_urls += format_suffix_patterns([
-        url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),
-        url(r'^users/weixin_test/$',weixin_test,name='weixin-test'),
-        url(r'^users/weixin_auth/$',weixin_auth_and_redirect,name='xlmm-wxauth'),
+    url(r'^users/weixin_login/$', weixin_login, name='weixin-login'),
+    url(r'^users/weixin_test/$', weixin_test, name='weixin-test'),
+    url(r'^users/weixin_auth/$', weixin_auth_and_redirect, name='xlmm-wxauth'),
 
-        url(r'^products/modellist/(?P<model_id>[0-9]+)$',
-            views_product.ProductViewSet.as_view({'get': 'modellist'}),
-            name='product-model-list'),
-        url(r'^products/preview_modellist/(?P<model_id>[0-9]+)$',
-            views_product.ProductViewSet.as_view({'get': 'preview_modellist'}),
-            name='product-model-list'),
-        url(r'^products/(?P<pk>[0-9]+)/snapshot$',
-            views_product.ProductShareView.as_view(),
-            name='product-snapshot'),
-        url(r'^trades/(?P<pk>[0-9]+)/orders$',
-            views_trade.SaleOrderViewSet.as_view({'get': 'list'}),
-            name='saletrade-saleorder'),
-        url(r'^trades/(?P<pk>[0-9]+)/orders/details$',
-            views_trade.SaleOrderViewSet.as_view({'get': 'details'}),
-            name='saleorder-details'),
-        url(r'^trades/(?P<tid>[0-9]+)/orders/(?P<pk>[0-9]+)$',
-            views_trade.SaleOrderViewSet.as_view({'get': 'retrieve'}),
-            name='saleorder-detail'),
-        
-        url(r'^order/(?P<pk>[0-9]+)/confirm_sign$',
-            views_trade.SaleOrderViewSet.as_view({'post': 'confirm_sign'}),
-            name='confirm_sign_order'),
-        url(r'^users/integral',
-            views_integral.UserIntegralViewSet.as_view({'get': 'list'}),
-            name="user-intergral"),
-        url(r'^users/integrallog',
-            views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
-            name="user-intergrallog"),
-         url(r'^users/(?P<pk>[0-9]+)/bang_budget',
-            views_user.UserBugetBangView.as_view(),
-            name="user-budget-bang"),
-    ])
+    url(r'^products/modellist/(?P<model_id>[0-9]+)$',
+        views_product.ProductViewSet.as_view({'get': 'modellist'}),
+        name='product-model-list'),
+    url(r'^products/preview_modellist/(?P<model_id>[0-9]+)$',
+        views_product.ProductViewSet.as_view({'get': 'preview_modellist'}),
+        name='product-model-list'),
+    url(r'^products/(?P<pk>[0-9]+)/snapshot$',
+        views_product.ProductShareView.as_view(),
+        name='product-snapshot'),
+    url(r'^trades/(?P<pk>[0-9]+)/orders$',
+        views_trade.SaleOrderViewSet.as_view({'get': 'list'}),
+        name='saletrade-saleorder'),
+    url(r'^trades/(?P<pk>[0-9]+)/orders/details$',
+        views_trade.SaleOrderViewSet.as_view({'get': 'details'}),
+        name='saleorder-details'),
+    url(r'^trades/(?P<tid>[0-9]+)/orders/(?P<pk>[0-9]+)$',
+        views_trade.SaleOrderViewSet.as_view({'get': 'retrieve'}),
+        name='saleorder-detail'),
 
+    url(r'^order/(?P<pk>[0-9]+)/confirm_sign$',
+        views_trade.SaleOrderViewSet.as_view({'post': 'confirm_sign'}),
+        name='confirm_sign_order'),
+    url(r'^users/integral',
+        views_integral.UserIntegralViewSet.as_view({'get': 'list'}),
+        name="user-intergral"),
+    url(r'^users/integrallog',
+        views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
+        name="user-intergrallog"),
+    url(r'^users/(?P<pk>[0-9]+)/bang_budget',
+        views_user.UserBugetBangView.as_view(),
+        name="user-budget-bang"),
+])
 
 # 2016-3-2 v2
 from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login
 from flashsale.restpro.v2 import views_trade_v2
+
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'carts', views_trade.ShoppingCartViewSet)
 v2_router.register(r'trades', views_trade_v2.SaleTradeViewSet)
@@ -150,19 +146,19 @@ v2_router_urls += ([
 ])
 
 urlpatterns = patterns('',
-    url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
-    url(r'^v1/', include(router_urls,namespace='v1')),
-    url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
+                       url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
+                       url(r'^v1/', include(router_urls, namespace='v1')),
+                       url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
+                       url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+                       url(r'^wuliu/', views_wuliu.WuliuView.as_view()),
 
-    #url(r'^test/',views_wuliu.test),
-    url(r'^v2/', include(v2_router_urls, namespace='v2')),
-    url(r'^v2/mama/', include(v2_router_urls, namespace='v2_mama')),
-    url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
-    url(r'^v2/send_code', views_verifycode_login.SendCodeView.as_view()),
-    url(r'^v2/verify_code', views_verifycode_login.VerifyCodeView.as_view()),
-    url(r'^v2/reset_password', views_verifycode_login.ResetPasswordView.as_view()),
-    url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
-    url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
-)
+                       # url(r'^test/',views_wuliu.test),
+                       url(r'^v2/', include(v2_router_urls, namespace='v2')),
+                       url(r'^v2/mama/', include(v2_router_urls, namespace='v2_mama')),
+                       url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
+                       url(r'^v2/send_code', views_verifycode_login.SendCodeView.as_view()),
+                       url(r'^v2/verify_code', views_verifycode_login.VerifyCodeView.as_view()),
+                       url(r'^v2/reset_password', views_verifycode_login.ResetPasswordView.as_view()),
+                       url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
+                       url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
+                       )

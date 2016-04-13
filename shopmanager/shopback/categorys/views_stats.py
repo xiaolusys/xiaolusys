@@ -12,7 +12,7 @@ from operator import itemgetter
 class CategoryStatViewSet(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BaseAuthentication)
     renderer_classes = (renderers.TemplateHTMLRenderer, renderers.JSONRenderer)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     queryset = CategorySaleStat.objects.all()
     template_name = "categorysalestat/category_stat.html"
 

@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 import datetime
 from flashsale.dinghuo.models import OrderList
 
+
 class GroupNameFilter(SimpleListFilter):
     """按组过滤"""
     title = u'采购分组'
@@ -106,7 +107,7 @@ class DateFieldListFilter(FieldListFilter):
                 self.lookup_kwarg_until: str(tomorrow),
             }),
             (_(u'上周'), {
-                self.lookup_kwarg_since: str(today - datetime.timedelta(days=today.weekday()+7)),
+                self.lookup_kwarg_since: str(today - datetime.timedelta(days=today.weekday() + 7)),
                 self.lookup_kwarg_until: str(today - datetime.timedelta(days=today.weekday())),
             }),
             (_(u'今日'), {

@@ -6,6 +6,7 @@ from django import forms
 
 from core.admin import ApproxAdmin
 
+
 class DailyStatForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(DailyStatForm, self).__init__(*args, **kwargs)
@@ -23,12 +24,13 @@ class DailyStatForm(forms.ModelForm):
 
 
 class DailyStatAdmin(ApproxAdmin):
-    
     form = DailyStatForm
-    list_display = ('day_date', 'total_click_count', 'total_valid_count','total_visiter_num', 'total_new_visiter_num',
-                    'get_total_payment_display', 'total_order_num', 'total_new_order_num', 'total_buyer_num', 'get_new_customer_num_display',
-                    'get_seven_new_buyer_num','get_daily_rpi_display','get_price_per_customer_display', 'get_daily_roi_display')
-    list_filter = (('day_date',DateFieldListFilter),)
+    list_display = ('day_date', 'total_click_count', 'total_valid_count', 'total_visiter_num', 'total_new_visiter_num',
+                    'get_total_payment_display', 'total_order_num', 'total_new_order_num', 'total_buyer_num',
+                    'get_new_customer_num_display',
+                    'get_seven_new_buyer_num', 'get_daily_rpi_display', 'get_price_per_customer_display',
+                    'get_daily_roi_display')
+    list_filter = (('day_date', DateFieldListFilter),)
     date_hierarchy = 'day_date'
     search_fields = ['=day_date']
     ordering = ('-day_date',)
@@ -40,13 +42,13 @@ admin.site.register(DailyStat, DailyStatAdmin)
 class PopularizeCostAdmin(admin.ModelAdmin):
     list_display = ('date',
                     'carrylog_order', 'carrylog_click', 'carrylog_thousand', 'carrylog_agency', 'carrylog_recruit',
-                    'carrylog_order_buy','carrylog_cash_out','carrylog_deposit','carrylog_refund_return', 'carrylog_red_packet',
+                    'carrylog_order_buy', 'carrylog_cash_out', 'carrylog_deposit', 'carrylog_refund_return',
+                    'carrylog_red_packet',
                     'total_carry_in',
                     'total_carry_out')
-    list_filter = (('date',DateFieldListFilter),)
+    list_filter = (('date', DateFieldListFilter),)
     search_fields = ['=date']
     ordering = ('-date',)
-    
-    
+
 
 admin.site.register(PopularizeCost, PopularizeCostAdmin)

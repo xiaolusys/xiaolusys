@@ -8,9 +8,10 @@ from shopback.trades.models import MergeTrade
 import admin
 from django.views.decorators.csrf import csrf_exempt
 
+
 # ...........======..............
 
-#（测试）打印模版
+# （测试）打印模版
 def ztprint(request):
     orderlist(request)
 
@@ -18,7 +19,7 @@ def ztprint(request):
     return render_to_response('yunda_bill.html', {'tu': tt})
 
 
-#下订单
+# 下订单
 def place_order(request, oid):
     ol = ZTOOrderList.objects.get(cus_oid=oid)
 
@@ -30,7 +31,7 @@ def place_order(request, oid):
     ol.save()
 
 
-#打印记录
+# 打印记录
 def printrecord(request, m):
     pr = PrintRecord()
     if pr.record_name == u'':
@@ -49,7 +50,7 @@ def printrecord(request, m):
     pr.save()
 
 
-#获取中通订单
+# 获取中通订单
 def orderlist(request):
     mt = MergeTrade.objects.filter(logistics_company=500)
 

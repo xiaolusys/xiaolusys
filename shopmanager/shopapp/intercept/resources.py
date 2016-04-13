@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 # __author__ = 'meixqhi'
 # from djangorestframework.resources import ModelResource
 # from .models import InterceptTrade
@@ -11,4 +11,4 @@
 #     fields = ('success','redirect_url') 
 #     exclude = ('url',)
 #     
-#     
+#

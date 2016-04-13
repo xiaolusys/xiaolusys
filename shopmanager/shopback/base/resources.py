@@ -12,4 +12,4 @@
 #     """ docstring for TradeResource ModelResource """
 # 
 #     #fields = (('charts','ChartSerializer'),('item_dict',None))
-#     exclude = ('url',) 
+#     exclude = ('url',)

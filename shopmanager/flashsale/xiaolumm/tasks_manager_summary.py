@@ -6,7 +6,6 @@ from django.conf import settings
 from common.utils import CSVUnicodeWriter
 from celery.task import task
 
-
 REPORT_DIR = 'report'
 
 
@@ -21,7 +20,7 @@ def task_make_Manager_Summary_Cvs(file_dir=None):
         file_dir = os.path.join(settings.DOWNLOAD_ROOT, REPORT_DIR)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
-    field_name_list = [(u'管理员', 'username'), ( u'订单数量', 'sum_ordernumcount'), (u'购买人数', 'sum_buyercount'),
+    field_name_list = [(u'管理员', 'username'), (u'订单数量', 'sum_ordernumcount'), (u'购买人数', 'sum_buyercount'),
                        (u'UV', 'uv_summary'), (u'PV', 'pv_summary'),
                        (u'转化率', 'conversion_rate'), (u'代理人数', 'xlmm_num'),
                        (u'活跃度', 'activity'), (u'有效点击', 'sum_click_valid')]
@@ -36,6 +35,3 @@ def task_make_Manager_Summary_Cvs(file_dir=None):
         for i in data:
             ivalues = [str(i[k[1]]) for k in field_name_list]
             writer.writerow(ivalues)
-            
-            
-            

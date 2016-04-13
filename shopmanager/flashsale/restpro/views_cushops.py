@@ -112,7 +112,7 @@ def save_pro_info(product, user):
     shop_pro.carry_amount = rebet_amount
     shop_pro.carry_scheme = rebt.id
     shop_pro.pro_category = pro.category.cid
-    shop_pro.model = pro.model_id   # save model info
+    shop_pro.model = pro.model_id  # save model info
     shop_pro.save()
     return shop_pro, pro_state
 

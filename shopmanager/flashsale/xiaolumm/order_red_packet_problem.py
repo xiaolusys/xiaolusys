@@ -22,7 +22,7 @@ def order_Red_Packet():
         carry_logs = CarryLog.objects.filter(xlmm=mama.id, log_type=CarryLog.ORDER_RED_PAC)  # 该妈妈的订单红包状态记录
 
         # 如果大于等于一单 并且有订单红包记录
-        if shops.count() >= 1 and carry_logs.count() == 0 and shops.count() < 10 :
+        if shops.count() >= 1 and carry_logs.count() == 0 and shops.count() < 10:
             # 并且没有发放红包的 OrderRedPacket 中没有首单红包的记录
             # 并且CarryLog 中没有该代理的订单红包记录的
             if order_pac_get.first_red is False:
@@ -69,7 +69,3 @@ def order_Red_Packet():
                             order_red_carry_log.save()
                             mama_id_list_ten.append({'ten': mama.id})
     print mama_id_list_first, mama_id_list_ten
-
-
-
-

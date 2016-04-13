@@ -12,6 +12,7 @@ from django.db import transaction
 from core.options import log_action, ADDITION, CHANGE
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -52,6 +53,7 @@ class ModelProductView(View):
         *   get:款式商品列表，根据款式的id进行搜索，找出相关联的库存商品
         *   post:将搜索出来的商品，关联到某个款式
     """
+
     @staticmethod
     def get(request):
         content = request.GET
@@ -102,6 +104,7 @@ class CheckModelExistView(View):
         else:
             result_str = """{"result":false}"""
         return HttpResponse(result_str)
+
 
 import datetime
 from django.forms.models import model_to_dict
@@ -193,7 +196,7 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
                 else:
                     model_product.content_imgs = pic_link
                 model_product.save()
-                #同步同款所有的商品detail
+                # 同步同款所有的商品detail
                 log_action(request.user.id, model_product, CHANGE, u'上传内容图')
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)

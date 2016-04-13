@@ -53,4 +53,5 @@ def performance_record(sender, **kwargs):
     except:
         pass
 
+
 signal_kefu_operate_record.connect(performance_record, sender=KefuPerformance)

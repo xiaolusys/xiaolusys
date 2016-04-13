@@ -31,6 +31,7 @@ class EditInBoundForm(InBoundListForm):
     images = forms.CharField(required=False, initial='[]')
     memo = forms.CharField(required=False, initial='')
 
+
 class AdvanceDingHuoForm(BaseForm):
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=True)

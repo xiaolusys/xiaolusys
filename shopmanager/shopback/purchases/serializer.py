@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 # from django.db import models
 # from django.db.models.query import QuerySet
 # from django.db.models.fields.related import RelatedField
@@ -54,4 +54,4 @@
 #     
 #     
 #     
-#     
+#

@@ -1,12 +1,13 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord, RedEnvelope, AwardWinner
+from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord, \
+    RedEnvelope, AwardWinner
 from .models import XLInviteCode, XLReferalRelationship, XLInviteCount
 
 
 class XLFreeSampleAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'name', 'expiried', 'pic_url', 'sale_url')
-    list_display_links = ('id', 'outer_id', )
+    list_display_links = ('id', 'outer_id',)
     search_fields = ['=id', '=outer_id', ]
     list_per_page = 40
 
@@ -15,7 +16,8 @@ admin.site.register(XLFreeSample, XLFreeSampleAdmin)
 
 
 class XLSampleApplyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'event_id', 'from_customer', 'user_openid', 'customer_id', 'mobile', 'ufrom', 'outer_id', 'status', 'created')
+    list_display = (
+    'id', 'event_id', 'from_customer', 'user_openid', 'customer_id', 'mobile', 'ufrom', 'outer_id', 'status', 'created')
     list_filter = ('event_id', 'status', 'ufrom')
     list_display_links = ('id', 'event_id')
     search_fields = ['=id', '=from_customer', '=customer_id', '=mobile', '=user_openid']
@@ -30,7 +32,7 @@ class XLSampleOrderAdmin(admin.ModelAdmin):
         'id', 'xlsp_apply', 'customer_id', 'outer_id', 'sku_code', 'vipcode', 'created',
         'problem_score', 'award_status', 'status')
     list_filter = ('status', 'award_status')
-    list_display_links = ('id', 'customer_id', )
+    list_display_links = ('id', 'customer_id',)
     search_fields = ['=id', '=customer_id', 'vipcode', '=xlsp_apply']
     list_per_page = 40
 
@@ -51,7 +53,7 @@ admin.site.register(XLSampleSku, XLSampleSkuAdmin)
 class XLInviteCodeAdmin(admin.ModelAdmin):
     list_display = ('id', 'mobile', 'vipcode', 'expiried', 'code_type', 'max_usage', 'usage_count')
     list_filter = ('code_type',)
-    list_display_links = ('id', 'mobile', 'vipcode', )
+    list_display_links = ('id', 'mobile', 'vipcode',)
     search_fields = ['id', 'mobile', 'vipcode', ]
     list_per_page = 40
 
@@ -109,7 +111,8 @@ class RedEnvelopeAdmin(admin.ModelAdmin):
     list_display = ('id', 'customer_id', 'value', 'description', 'friend_img', 'friend_nick', 'type', 'status')
     list_filter = ('type', 'status')
     search_fields = ('customer_id', 'friend_nick')
-    
+
+
 admin.site.register(RedEnvelope, RedEnvelopeAdmin)
 
 
@@ -117,5 +120,6 @@ class AwardWinnerAdmin(admin.ModelAdmin):
     list_display = ('id', 'customer_id', 'customer_nick', 'event_id', 'invite_num', 'status')
     list_filter = ('status',)
     search_fields = ('customer_id', 'customer_nick')
-    
+
+
 admin.site.register(AwardWinner, AwardWinnerAdmin)

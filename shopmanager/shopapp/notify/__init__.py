@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*
+# -*- coding:utf8 -*
 #        #修改地址
 #        elif notify.status == 'TradeLogisticsAddressChanged':
 #            trade = MergeTrade.objects.get(tid=notify.tid)

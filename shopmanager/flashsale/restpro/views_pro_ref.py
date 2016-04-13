@@ -15,7 +15,7 @@ class ProRefRcdViewSet(viewsets.ModelViewSet):
     queryset = ProRefunRcord.objects.all()
     serializer_class = serializers.ProRefunRcordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
@@ -47,7 +47,7 @@ class CalcuProRefRcd(viewsets.ModelViewSet):
     queryset = ProRefunRcord.objects.all()
     serializer_class = serializers.ProRefunRcdSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
@@ -82,4 +82,3 @@ class CalcuProRefRcd(viewsets.ModelViewSet):
         tzone_query = self.time_zone_query(request, queryset)
         serializer = self.get_serializer(tzone_query, many=True)
         return Response(serializer.data)
-

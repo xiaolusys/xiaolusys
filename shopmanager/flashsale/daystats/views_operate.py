@@ -56,7 +56,10 @@ class DailyCheckView(generics.ListCreateAPIView):
                  "all_pro_num": all_pro_num, "shelf_num": shelf_num, "down_shelf_num": down_shelf_num})
         return Response({"result_data": result_data, "all_shelf_num": all_shelf_num})
 
+
 from supplychain.supplier.models import SaleSupplier, SaleProduct
+
+
 class SupplierPreviewView(generics.ListCreateAPIView):
     """
         供应商预览界面

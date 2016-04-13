@@ -265,4 +265,3 @@ def update_refundpro_to_product(can_reuse=False):
             num = sku[1]
             # 修改该商品的该sku库存
             acrion_product_num(outer_id, sku_out_id, num, can_reuse)
-

@@ -7,6 +7,7 @@ from shopback import paramconfig as pcfg
 
 from core.filters import SimpleListFilter
 
+
 class TradeStatusFilter(SimpleListFilter):
     # Human-readable title which will be displayed in the
     title = u'系统状态'
@@ -37,11 +38,11 @@ class TradeStatusFilter(SimpleListFilter):
             return queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
                                                    pcfg.WAIT_CHECK_BARCODE_STATUS,
                                                    pcfg.WAIT_SCAN_WEIGHT_STATUS),
-                                   can_review=False)\
-                           .exclude(reason_code='',
-                                 is_express_print=True,
-                                 sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
-                                                 pcfg.WAIT_SCAN_WEIGHT_STATUS))
+                                   can_review=False) \
+                .exclude(reason_code='',
+                         is_express_print=True,
+                         sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                         pcfg.WAIT_SCAN_WEIGHT_STATUS))
 
         else:
             return queryset.filter(sys_status=status_name)

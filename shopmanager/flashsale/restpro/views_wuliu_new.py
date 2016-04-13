@@ -24,7 +24,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
     queryset = TradeWuliu.objects.all()
     serializer_class = serializers.TradeWuliuSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     gap_time = 7200  # 查询间隔时间
     BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"  # 访问第三方接口
@@ -130,4 +130,3 @@ class WuliuViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """ 创建本地物流信息存储 """
         return Response({"code": 0})
-

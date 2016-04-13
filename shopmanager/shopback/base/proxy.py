@@ -23,9 +23,11 @@ class ProxyView(View):
         elif request.method == 'POST':
             data = copy.copy(request.POST)
             data.update(self.get_extra_post_params())
-            response, content = conn.request(url, request.method, data.urlencode(), headers={'content-type':'application/x-www-form-urlencoded'})
+            response, content = conn.request(url, request.method, data.urlencode(),
+                                             headers={'content-type': 'application/x-www-form-urlencoded'})
         content = self.process_response(response, content)
-        return HttpResponse(content, status=int(response['status']), content_type=response.get('content-type',response.get('Content-Type','text/html')))
+        return HttpResponse(content, status=int(response['status']),
+                            content_type=response.get('content-type', response.get('Content-Type', 'text/html')))
 
     def get_extra_get_params(self):
         """docstring for get_extra_get_params"""
@@ -40,5 +42,3 @@ class ProxyView(View):
         return content
 
     get = post = put = request_handler
-    
-    

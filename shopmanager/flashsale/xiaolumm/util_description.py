@@ -2,7 +2,8 @@
 
 import random
 
-def get_ordercarry_description(via_app=False,second_level=False):
+
+def get_ordercarry_description(via_app=False, second_level=False):
     second_level_desc = [
         "嘿嘿，下属妈妈的佣金又到啦～",
         "下属佣金，休息日子也能拿哦！",
@@ -10,7 +11,7 @@ def get_ordercarry_description(via_app=False,second_level=False):
         "下属佣金，细钱长流～",
         "下属佣金，在不知不觉中积累。",
         "下属佣金，感谢老大推荐我！"
-        ]
+    ]
     via_app_desc = [
         "APP粉丝佣金，来得更直接！",
         "APP粉丝佣金，直接找到您！",
@@ -22,7 +23,7 @@ def get_ordercarry_description(via_app=False,second_level=False):
         "APP粉丝佣金，让粉丝更多吧～",
         "APP粉丝佣金，抓紧加粉丝！",
         "APP粉丝佣金，努力加粉丝哦！"
-        ]
+    ]
     other_desc = [
         "坐收佣金，好羡慕啊～",
         "躺着也能赚钱呢～",
@@ -37,14 +38,14 @@ def get_ordercarry_description(via_app=False,second_level=False):
         "APP一键分享，佣金自来。",
         "APP分享拿佣金，更方便啦～",
         "APP分享拿佣金，更高效啦～"
-        ]
-    
+    ]
+
     if via_app:
         return random.choice(via_app_desc)
     if second_level:
         return random.choice(second_level_desc)
     return random.choice(other_desc)
-    
+
 
 def get_awardcarry_description(carry_type):
     referal_desc = [
@@ -60,7 +61,7 @@ def get_awardcarry_description(carry_type):
         "向金牌妈妈努力进发吧!",
         "每天拿奖金的记忆，要继续！",
         "奖金和努力成正比，谢谢您！"
-        ]
+    ]
     group_desc = [
         "哇塞，又有队员加入啦!",
         "哇塞，奖金拿得好爽呀～",
@@ -74,14 +75,14 @@ def get_awardcarry_description(carry_type):
         "团队在成长，奖金在增多。。。",
         "我的团队，奖金归我。",
         "有团队就有一切，有奖金～"
-        ]
-    
+    ]
+
     if carry_type == 1:
         return random.choice(referal_desc)
 
     return random.choice(group_desc)
 
-    
+
 def get_clickcarry_description():
     desc = [
         "亲，你每天都有返现拿哦～",
@@ -95,10 +96,10 @@ def get_clickcarry_description():
         "不放过任何一天的返现。",
         "每天第一件事：分享返现！",
         "返现的大日子，终于等到您！"
-        ]
-
+    ]
 
     return random.choice(desc)
+
 
 def gen_activevalue_description(value_type):
     desc = [
@@ -107,7 +108,7 @@ def gen_activevalue_description(value_type):
         "订单活跃值 +%d",
         "推荐小鹿妈妈活跃值 +%d",
         "粉丝活跃值 +%d",
-        ]
+    ]
     from flashsale.xiaolumm.models_fortune import ActiveValue
     value_num = ActiveValue.VALUE_MAP[str(value_type)]
 

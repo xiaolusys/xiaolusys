@@ -11,7 +11,7 @@ from flashsale.pay.signals import signal_saletrade_refund_post
 import math
 
 
-def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None, 
+def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None,
                         reason=None, desc=None, channel=None,
                         good_status=None, proof_pic=None):
     sale_refund.buyer_id = order.sale_trade.buyer_id
@@ -35,7 +35,7 @@ def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None,
     sale_refund.save()
 
 
-def common_Handler(customer=None, order=None, reason=None, num=None, 
+def common_Handler(customer=None, order=None, reason=None, num=None,
                    refund_fee=None, desc=None, refund_type=None,
                    modify=None, proof_pic=None):
     if num == 0 or None:  # 提交的退款产品数量为0
@@ -56,7 +56,7 @@ def common_Handler(customer=None, order=None, reason=None, num=None,
         log_action(customer, order, CHANGE, u'用户售后提交申请时修改order信息！')
         # 保存其他信息到 sale_refund
         save_Other_Atriibut(order=order, sale_refund=sale_refund, refund_num=num,
-                            good_status=refund_type,channel= sale_trade.channel,
+                            good_status=refund_type, channel=sale_trade.channel,
                             reason=reason, desc=desc, proof_pic=proof_pic)
         log_action(customer, sale_refund, ADDITION, u'用户售后增加退货款单信息！')
         # 发送信号退款
@@ -65,7 +65,7 @@ def common_Handler(customer=None, order=None, reason=None, num=None,
     elif modify == 1 and state is False:  # 有退款单
         # 修改该订单的
         if sale_refund.status in (
-                SaleRefund.REFUND_SUCCESS, SaleRefund.REFUND_WAIT_RETURN_GOODS, 
+                SaleRefund.REFUND_SUCCESS, SaleRefund.REFUND_WAIT_RETURN_GOODS,
                 SaleRefund.REFUND_APPROVE, SaleRefund.REFUND_CLOSED):  # 退款成功 等待返款 同意退款 退款关闭  之后不允许修改
             raise exceptions.APIException(u'退款已被受理或关闭,不予用户自行修改')
         order.refund_fee = refund_fee

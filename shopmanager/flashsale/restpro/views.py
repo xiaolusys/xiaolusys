@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 import hashlib
 import os, urlparse
 from django.conf import settings
@@ -15,17 +15,18 @@ from rest_framework import exceptions
 from flashsale.apprelease.models import AppRelease
 from .views_refund import refund_Handler
 
-from flashsale.pay.models import SaleTrade,Customer
+from flashsale.pay.models import SaleTrade, Customer
 
 from . import permissions as perms
 from . import serializers
 
-from flashsale.pay.models import SaleRefund,District,UserAddress,SaleOrder
+from flashsale.pay.models import SaleRefund, District, UserAddress, SaleOrder
 from flashsale.xiaolumm.models import XiaoluMama
 from django.forms import model_to_dict
 import json
 
 from qiniu import Auth
+
 
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
@@ -68,10 +69,10 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SaleRefundSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
-    def get_owner_queryset(self,request):
-        customer = get_object_or_404(Customer,user=request.user)
+    def get_owner_queryset(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
 
     def list(self, request, *args, **kwargs):
@@ -111,7 +112,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         return Response(refund_dic)
 
     @list_route(methods=["get"])
-    def qiniu_token(self, request,**kwargs):
+    def qiniu_token(self, request, **kwargs):
         q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)
         token = q.upload_token("xiaolumm", expires=3600)
         return Response({'uptoken': token})
@@ -149,13 +150,13 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             ```
     """
     queryset = UserAddress.objects.all()
-    serializer_class = serializers.UserAddressSerializer# Create your views here.
+    serializer_class = serializers.UserAddressSerializer  # Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
-    def get_owner_queryset(self,request):
-        customer = get_object_or_404(Customer,user=request.user)
+    def get_owner_queryset(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
         return self.queryset.filter(cus_uid=customer.id, status=UserAddress.NORMAL).order_by('-default')
 
     def list(self, request, *args, **kwargs):
@@ -167,7 +168,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def update(self, request, pk, *args, **kwargs):
-        customer = get_object_or_404(Customer,user=request.user)
+        customer = get_object_or_404(Customer, user=request.user)
         content = request.REQUEST
         receiver_state = content.get('receiver_state', '').strip()
         receiver_city = content.get('receiver_city', '').strip()
@@ -196,9 +197,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 UserAddress.objects.filter(pk=pk).update(status=UserAddress.DELETE)
             if default is not None:
                 new_address.default = default
-            return Response({'ret':True,'code':0, 'info':'更新成功'})
+            return Response({'ret': True, 'code': 0, 'info': '更新成功'})
         except:
-            return Response({'ret':False,'code':1, 'info':'更新失败'})
+            return Response({'ret': False, 'code': 1, 'info': '更新失败'})
 
     @detail_route(methods=["post"])
     def delete_address(self, request, pk=None):
@@ -209,6 +210,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             return Response({'ret': True})
         except:
             return Response({'ret': False})
+
     '''
     @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
@@ -223,6 +225,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             result['ret'] = False
         return Response(result)
     '''
+
     @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
         id_default = pk
@@ -254,9 +257,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_mobile = content.get('receiver_mobile', '').strip()
         try:
             UserAddress.objects.get_or_create(cus_uid=customer_id, receiver_name=receiver_name,
-                                       receiver_state=receiver_state, default=False,
-                                       receiver_city=receiver_city, receiver_district=receiver_district,
-                                       receiver_address=receiver_address, receiver_mobile=receiver_mobile)
+                                              receiver_state=receiver_state, default=False,
+                                              receiver_city=receiver_city, receiver_district=receiver_district,
+                                              receiver_address=receiver_address, receiver_mobile=receiver_mobile)
             result['ret'] = True
         except:
             result['ret'] = False
@@ -270,7 +273,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+
 from rest_framework_extensions.cache.decorators import cache_response
+
 
 class DistrictViewSet(viewsets.ModelViewSet):
     """
@@ -282,26 +287,26 @@ class DistrictViewSet(viewsets.ModelViewSet):
     >  id:即country ID
     """
     queryset = District.objects.all()
-    serializer_class = serializers.DistrictSerializer# Create your views here.
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
-    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    serializer_class = serializers.DistrictSerializer  # Create your views here.
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def calc_distirct_cache_key(self, view_instance, view_method,
-                            request, args, kwargs):
+                                request, args, kwargs):
         key_vals = ['id']
         key_maps = kwargs or {}
-        for k,v in request.GET.copy().iteritems():
+        for k, v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
                 key_maps[k] = v
 
         return hashlib.sha256(u'.'.join([
-                view_instance.__module__,
-                view_instance.__class__.__name__,
-                view_method.__name__,
-                json.dumps(key_maps, sort_keys=True).encode('utf-8')
-            ])).hexdigest()
+            view_instance.__module__,
+            view_instance.__class__.__name__,
+            view_method.__name__,
+            json.dumps(key_maps, sort_keys=True).encode('utf-8')
+        ])).hexdigest()
 
-    @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
+    @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -313,36 +318,36 @@ class DistrictViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
+    @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def province_list(self, request, *args, **kwargs):
         queryset = District.objects.filter(grade=1)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
+    @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def city_list(self, request, *args, **kwargs):
         content = request.REQUEST
-        province_id = content.get('id',None)
-        if province_id==u'0':
-            return      Response({"result":False})
+        province_id = content.get('id', None)
+        if province_id == u'0':
+            return Response({"result": False})
         else:
             queryset = District.objects.filter(parent_id=province_id)
             serializer = self.get_serializer(queryset, many=True)
-            return Response({"result":True,"data":serializer.data})
+            return Response({"result": True, "data": serializer.data})
 
-    @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
+    @cache_response(timeout=24 * 60 * 60, key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def country_list(self, request, *args, **kwargs):
         content = request.REQUEST
-        city_id = content.get('id',None)
-        if city_id==u'0':
-            return      Response({"result":False})
+        city_id = content.get('id', None)
+        if city_id == u'0':
+            return Response({"result": False})
         else:
             queryset = District.objects.filter(parent_id=city_id)
             serializer = self.get_serializer(queryset, many=True)
-            return Response({"result":True,"data":serializer.data})
+            return Response({"result": True, "data": serializer.data})
 
 
 from core.weixin.mixins import WeixinAuthMixin

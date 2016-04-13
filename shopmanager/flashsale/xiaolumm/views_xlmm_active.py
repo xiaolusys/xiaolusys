@@ -70,5 +70,3 @@ class XlmmActive(APIView):
             return Response({'ac_day': [ac_record, total_record], 'tol_da': tol_da, 'user_da': user_da})
         else:
             return Response({})
-
-

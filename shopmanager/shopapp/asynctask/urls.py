@@ -3,12 +3,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 # from core.options.authentication import UserLoggedInAuthentication
 # from core.options.permissions import IsAuthenticated
-#from shopapp.asynctask.renderers import BaseJsonRenderer,AsyncPrintHtmlRenderer
+# from shopapp.asynctask.renderers import BaseJsonRenderer,AsyncPrintHtmlRenderer
 from shopapp.asynctask.views import (AsyncCategoryView,
                                      AsyncOrderView,
                                      AsyncInvoicePrintView,
                                      AsyncExpressPrintView)
-#from shopapp.asynctask.resources import AsyncTaskResource
+
+# from shopapp.asynctask.resources import AsyncTaskResource
 # from rest_framework import routers
 # 
 # 
@@ -23,30 +24,30 @@ from shopapp.asynctask.views import (AsyncCategoryView,
 
 urlpatterns = patterns('',
 
-   (r'^category/(?P<cids>[^/]+)/$',AsyncCategoryView.as_view(
-        #resource=AsyncTaskResource,
-        #renderers=(BaseJsonRenderer,),
-       # authentication=(UserLoggedInAuthentication,),
-        #permissions=(IsAuthenticated,)
-    )),
-    (r'^orders/(?P<start_dt>[^/]+)/(?P<end_dt>[^/]+)/$',AsyncOrderView.as_view(
-       # resource=AsyncTaskResource,
-       # renderers=(BaseJsonRenderer,),
-      #  authentication=(UserLoggedInAuthentication,),
-       # permissions=(IsAuthenticated,)
-    )), 
-                       
-    (r'^invoice/$',staff_member_required(AsyncInvoicePrintView.as_view())),
-       # resource=AsyncTaskResource,
-       # renderers=(AsyncPrintHtmlRenderer,),
-      #  authentication=(UserLoggedInAuthentication,),
-       # permissions=(IsAuthenticated,)
-   # ))), 
-                       
-    (r'^express/$',staff_member_required(AsyncExpressPrintView.as_view(
-       # resource=AsyncTaskResource,
-       # renderers=(AsyncPrintHtmlRenderer,),
-       # authentication=(UserLoggedInAuthentication,),
-       #permissions=(IsAuthenticated,)
-    ))),                                     
-)
+                       (r'^category/(?P<cids>[^/]+)/$', AsyncCategoryView.as_view(
+                           # resource=AsyncTaskResource,
+                           # renderers=(BaseJsonRenderer,),
+                           # authentication=(UserLoggedInAuthentication,),
+                           # permissions=(IsAuthenticated,)
+                       )),
+                       (r'^orders/(?P<start_dt>[^/]+)/(?P<end_dt>[^/]+)/$', AsyncOrderView.as_view(
+                           # resource=AsyncTaskResource,
+                           # renderers=(BaseJsonRenderer,),
+                           #  authentication=(UserLoggedInAuthentication,),
+                           # permissions=(IsAuthenticated,)
+                       )),
+
+                       (r'^invoice/$', staff_member_required(AsyncInvoicePrintView.as_view())),
+                       # resource=AsyncTaskResource,
+                       # renderers=(AsyncPrintHtmlRenderer,),
+                       #  authentication=(UserLoggedInAuthentication,),
+                       # permissions=(IsAuthenticated,)
+                       # ))),
+
+                       (r'^express/$', staff_member_required(AsyncExpressPrintView.as_view(
+                           # resource=AsyncTaskResource,
+                           # renderers=(AsyncPrintHtmlRenderer,),
+                           # authentication=(UserLoggedInAuthentication,),
+                           # permissions=(IsAuthenticated,)
+                       ))),
+                       )

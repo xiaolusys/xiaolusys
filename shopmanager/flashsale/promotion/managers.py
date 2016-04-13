@@ -44,7 +44,6 @@ class VipCodeManager(BaseManager):
                 raise Exception(u'邀请码生成异常')
 
 
-
 class ReadPacketManager(CacheManager):
     content = ['美女，您就是真命的白富美，现金红包拿去{0}元。',
                '亲亲，您魅力引来三位好友，奖励现金红包{0}元。',
