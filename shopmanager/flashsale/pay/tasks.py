@@ -472,12 +472,17 @@ def task_budgetlog_update_userbudget(budget_log):
         if entry["budget_type"] == BudgetLog.BUDGET_OUT:
             out_amount = entry["total"]
 
-    user_budget = UserBudget.objects.get(user=customer_id)
-
     cash = in_amount - out_amount
-    if user_budget.amount != cash:
-        user_budget.amount = cash
-        user_budget.save()
+            
+    budgets = UserBudget.objects.filter(user=customer_id)
+    if budgets.count() <= 0:
+        budget = UserBudget(user=customer_id,amount=cash)
+        budget.save()
+    else:
+        budget = budgets[0]
+        if budget.amount != cash:
+            budget.amount = cash
+            budget.save()
 
 
 from extrafunc.renewremind.tasks import send_message
