@@ -8,31 +8,32 @@ from core.options import log_action, ADDITION, CHANGE
 import logging
 
 import json
-import urllib,urllib2
+import urllib, urllib2
 from shopback.trades.models import TradeWuliu
+
 BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"
-BAIDU_POST_CODE_EXCHANGE={
-                         'YUNDA':'yunda',
-                         'STO':'shentong',
-                         'EMS':'ems',
-                         'ZTO':'zhongtong',
-                         'ZJS':'zhaijisong',
-                         'SF':'shunfeng',
-                         'YTO':'yuantong',
-                         'HTKY':'huitongkuaidi',
-                         'TTKDEX':'tiantian',
-                         'QFKD':'quanfengkuaidi',
-                         }
-POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
-                      'STO':u'申通快递',
-                      'EMS':u'邮政EMS',
-                      'ZTO':u'中通快递',
-                      'ZJS':u'宅急送',
-                      'SF':u'顺丰速运',
-                      'YTO':u'圆通',
-                      'HTKY':u'汇通快递',
-                      'TTKDEX':u'天天快递',
-                      'QFKD':u'全峰快递',
+BAIDU_POST_CODE_EXCHANGE = {
+    'YUNDA': 'yunda',
+    'STO': 'shentong',
+    'EMS': 'ems',
+    'ZTO': 'zhongtong',
+    'ZJS': 'zhaijisong',
+    'SF': 'shunfeng',
+    'YTO': 'yuantong',
+    'HTKY': 'huitongkuaidi',
+    'TTKDEX': 'tiantian',
+    'QFKD': 'quanfengkuaidi',
+}
+POST_CODE_NAME_MAP = {'YUNDA': u'韵达快递',
+                      'STO': u'申通快递',
+                      'EMS': u'邮政EMS',
+                      'ZTO': u'中通快递',
+                      'ZJS': u'宅急送',
+                      'SF': u'顺丰速运',
+                      'YTO': u'圆通',
+                      'HTKY': u'汇通快递',
+                      'TTKDEX': u'天天快递',
+                      'QFKD': u'全峰快递',
                       }
 
 
@@ -81,13 +82,15 @@ def task_off_the_shelf(product_id=None):
     except Exception, exc:
         raise task_off_the_shelf.retry(exc=exc)
 
+
 from common.cachelock import cache_lock
 import datetime
+
 
 @cache_lock(cache_time=60 * 60)
 def close_timeout_carts_and_orders():
     djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
-    now = datetime.datetime.now() 
+    now = datetime.datetime.now()
     all_product_in_cart = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, remain_time__lte=now)
 
     for product_in_cart in all_product_in_cart:
@@ -97,13 +100,14 @@ def close_timeout_carts_and_orders():
     all_trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_PAY)
     for trade in all_trade:
         if trade.is_payable():
-                continue
+            continue
         try:
             trade.close_trade()
             log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
         except Exception, exc:
             logger = logging.getLogger('django.request')
             logger.error(exc.message, exc_info=True)
+
 
 @task()
 def task_schedule_cart():
@@ -139,6 +143,7 @@ def SaveWuliu_only(tid, content):
 from flashsale.pay.models_shops import CustomerShops, CuShopPros
 from views_cushops import save_pro_info
 import logging
+
 logger = logging.getLogger(__name__)
 
 

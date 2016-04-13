@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 
 
 class ProductListHtmlRenderer(TemplateHTMLRenderer):
@@ -10,7 +10,7 @@ class ProductListHtmlRenderer(TemplateHTMLRenderer):
 
     media_type = 'text/html'
     format = 'html'
-   # template_name = 'items/itemmainpage.html'
+    # template_name = 'items/itemmainpage.html'
     template_name = 'items/new_itemmainpage.html'
 
 
@@ -22,7 +22,6 @@ class ProductItemHtmlRenderer(TemplateHTMLRenderer):
     media_type = 'text/html'
     format = 'html'
     template_name = 'items/productitemspage.html'
-
 
 
 class ProductUpdateHtmlRenderer(TemplateHTMLRenderer):
@@ -53,6 +52,7 @@ class ProductHtmlRenderer(TemplateHTMLRenderer):
     media_type = 'text/html'
     format = 'html'
     template_name = 'items/product_detail.html'
+
 
 class ProductDistrictHtmlRenderer(TemplateHTMLRenderer):
     """
@@ -102,6 +102,7 @@ class ProductSaleAsyncHtmlRenderer(TemplateHTMLRenderer):
     media_type = 'text/html'
     format = 'html'
     template_name = 'items/product_sale_stat_async.html'
+
 
 class ProductScanRenderer(TemplateHTMLRenderer):
     """

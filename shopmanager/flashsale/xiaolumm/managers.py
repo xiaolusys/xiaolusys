@@ -3,9 +3,9 @@
 from django.db import models
 from core.managers import BaseManager
 
-class XiaoluMamaManager(BaseManager):
 
-    def  charge(self,xlmm,user,*args,**kwargs):
+class XiaoluMamaManager(BaseManager):
+    def charge(self, xlmm, user, *args, **kwargs):
 
         if xlmm.charge_status == self.model.CHARGED:
             return False
@@ -15,7 +15,7 @@ class XiaoluMamaManager(BaseManager):
         xlmm.save()
         return True
 
-    def  uncharge(self,xlmm,*args,**kwargs):
+    def uncharge(self, xlmm, *args, **kwargs):
 
         xlmm.charge_status = self.model.UNCHARGE
         xlmm.save()
@@ -25,7 +25,7 @@ class XiaoluMamaManager(BaseManager):
 
         queryset = self.get_queryset()
         return queryset.filter(status=self.model.EFFECT)
-    
+
     def get_by_saletrade(self, sale_trade):
         """ 通过特卖订单获取小鹿妈妈 """
         extra = sale_trade.extras_info
@@ -36,10 +36,9 @@ class XiaoluMamaManager(BaseManager):
         if qs.exists():
             return qs[0]
         return None
-        
+
 
 class XlmmFansManager(BaseManager):
-
     def record_fans_num(self, xlmm, xlmm_cusid):
         from flashsale.xiaolumm.models_fans import FansNumberRecord
 
@@ -77,7 +76,7 @@ class XlmmFansManager(BaseManager):
                         fans_thumbnail=current_cu.thumbnail)
             self.record_fans_num(from_xlmm.id, from_cu.id)
 
-        else:   # 推荐人也不是代理
+        else:  # 推荐人也不是代理
             fanses = self.filter(fans_cusid=from_cu.id)  # 找到含有该推荐人的粉丝表记录
             if fanses.exists():
                 fans = fanses[0]  # 提取记录中的　推荐人和代理创建粉丝记录
@@ -89,4 +88,3 @@ class XlmmFansManager(BaseManager):
                             fans_thumbnail=current_cu.thumbnail)
                 self.record_fans_num(fans.xlmm, fans.xlmm_cusid)
         return
-

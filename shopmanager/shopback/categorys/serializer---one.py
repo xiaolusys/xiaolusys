@@ -10,7 +10,6 @@ import decimal
 import inspect
 import types
 
-
 # We register serializer classes, so that we can refer to them by their
 # class names, if there are cyclical serialization heirachys.
 _serializers = {}
@@ -24,11 +23,13 @@ def _field_to_tuple(field):
         return (field[0], field[1])
     return (field, None)
 
+
 def _fields_to_list(fields):
     """
     Return a list of field names.
     """
     return [_field_to_tuple(field)[0] for field in fields or ()]
+
 
 def _fields_to_dict(fields):
     """
@@ -50,6 +51,7 @@ class _RegisterSerializer(type):
     """
     Metaclass to register serializers.
     """
+
     def __new__(cls, name, bases, attrs):
         # Build the class and register it.
         ret = super(_RegisterSerializer, cls).__new__(cls, name, bases, attrs)
@@ -104,12 +106,10 @@ class Serializer(object):
     The maximum depth to serialize to, or `None`.
     """
 
-
     def __init__(self, depth=None, stack=[], **kwargs):
         if depth is not None:
             self.depth = depth
         self.stack = stack
-
 
     def get_fields(self, obj):
         """
@@ -130,7 +130,6 @@ class Serializer(object):
 
         return fields
 
-
     def get_default_fields(self, obj):
         """
         Return the default list of field names/keys for a model instance/dict.
@@ -142,7 +141,6 @@ class Serializer(object):
         else:
             return obj.keys()
 
-
     def get_related_serializer(self, key):
         info = _fields_to_dict(self.fields).get(key, None)
 
@@ -152,6 +150,7 @@ class Serializer(object):
         if isinstance(info, (list, tuple)):
             class OnTheFlySerializer(Serializer):
                 fields = info
+
             return OnTheFlySerializer
 
         # If an element in `fields` is a 2-tuple of (str, Serializer)
@@ -172,14 +171,12 @@ class Serializer(object):
         # Otherwise use `related_serializer` or fall back to `Serializer`
         return getattr(self, 'related_serializer') or Serializer
 
-
     def serialize_key(self, key):
         """
         Keys serialize to their string value,
         unless they exist in the `rename` dict.
         """
         return self.rename.get(smart_str(key), smart_str(key))
-
 
     def serialize_val(self, key, obj):
         """
@@ -202,7 +199,6 @@ class Serializer(object):
 
         return related_serializer(depth=depth, stack=stack).serialize(obj)
 
-
     def serialize_max_depth(self, obj):
         """
         Determine how objects should be serialized once `depth` is exceeded.
@@ -210,14 +206,12 @@ class Serializer(object):
         """
         raise _SkipField
 
-
     def serialize_recursion(self, obj):
         """
         Determine how objects should be serialized if recursion occurs.
         The default behavior is to ignore the field.
         """
         raise _SkipField
-
 
     def serialize_model(self, instance):
         """
@@ -252,13 +246,11 @@ class Serializer(object):
 
         return data
 
-
     def serialize_iter(self, obj):
         """
         Convert iterables into a serializable representation.
         """
         return [self.serialize(item) for item in obj]
-
 
     def serialize_func(self, obj):
         """
@@ -266,20 +258,17 @@ class Serializer(object):
         """
         return self.serialize(obj())
 
-
     def serialize_manager(self, obj):
         """
         Convert a model manager into a serializable representation.
         """
         return self.serialize_iter(obj.all())
 
-
     def serialize_fallback(self, obj):
         """
         Convert any unhandled object into a serializable representation.
         """
         return smart_unicode(obj, strings_only=True)
-
 
     def serialize(self, obj):
         """

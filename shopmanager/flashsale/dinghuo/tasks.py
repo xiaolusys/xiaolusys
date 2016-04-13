@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import division
+
 __author__ = 'yann'
 
 from celery.task import task
@@ -12,7 +13,7 @@ from django.db.models import Max, Sum
 
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList
-from flashsale.dinghuo.models_stats import SupplyChainDataStats,PayToPackStats
+from flashsale.dinghuo.models_stats import SupplyChainDataStats, PayToPackStats
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
@@ -22,9 +23,9 @@ from . import function_of_task, functions
 
 
 @task(max_retry=3, default_retry_delay=5)
-def task_stats_paytopack(pay_date,sku_num,total_days):
+def task_stats_paytopack(pay_date, sku_num, total_days):
     try:
-        entry,status = PayToPackStats.objects.get_or_create(pay_date=pay_date)
+        entry, status = PayToPackStats.objects.get_or_create(pay_date=pay_date)
         entry.packed_sku_num += sku_num
         entry.total_days += total_days
         entry.save()
@@ -172,7 +173,7 @@ def get_supply_name(name):
             return result[0].split("//")[1].split(".")[0]
         else:
             content2 = urllib2.urlopen(url_str).read()
-            type = sys.getfilesystemencoding()   # 关键
+            type = sys.getfilesystemencoding()  # 关键
             content2 = content2.decode("UTF-8").encode(type)  # 关键
             reg5 = r'class="main-news-dangkou-name">.*</a>'
             re5 = re.compile(reg5)
@@ -182,7 +183,10 @@ def get_supply_name(name):
             return ""
     except Exception, ex:
         return ""
+
+
 from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl
+
 
 @task()
 def task_write_supply_name2():
@@ -212,6 +216,7 @@ def get_supply_name2(name):
             return ""
     except:
         return ""
+
 
 from flashsale.dinghuo.models_stats import RecordGroupPoint
 from flashsale.dinghuo.models_user import MyUser, MyGroup
@@ -530,7 +535,8 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
                      "ding_huo_status": ding_huo_status, "sample_num": sample_num,
                      "flag_of_more": flag_of_more, "flag_of_less": flag_of_less,
                      "sku_id": product[8], "ku_cun_num": int(product[9] or 0),
-                     "arrival_num": arrival_num,'supplier_id': int(product[13] or 0), 'supplier_name': product[14] or '',
+                     "arrival_num": arrival_num, 'supplier_id': int(product[13] or 0),
+                     'supplier_name': product[14] or '',
                      'supplier_contact': product[15] or '', 'username': product[16] or ''}
         if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                     flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
@@ -548,9 +554,13 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
     result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "supplier_dict": supplier_dict}
     return result_dict
 
+
 import function_of_task_optimize
+
+
 @task()
-def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
+def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time,
+                           dhstatus):
     """非没有退款状态的，不算作销售数,没有之前的速度快"""
     if len(search_text) > 0:
         search_text = str(search_text)
@@ -611,6 +621,7 @@ def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_
     trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
     result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "trade_dict": trade_dict}
     return result_dict
+
 
 from supplychain.supplier.models import SaleProduct
 from flashsale.pay.models_refund import SaleRefund
@@ -682,17 +693,17 @@ def get_sale_product_supplier(sale_product):
 @task()
 def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
     # SKUID   sku_id
-        # 产品ID   pro_id
-        # 名称　   name
-        # 成本    cost
-        # 库存    quantity
-        # 待发数   wait_post_num
-        # 次品数   inferior_num
+    # 产品ID   pro_id
+    # 名称　   name
+    # 成本    cost
+    # 库存    quantity
+    # 待发数   wait_post_num
+    # 次品数   inferior_num
 
-        # 退款数
-        # 申请退货数
-        # 退货到仓数
-        # 供应商
+    # 退款数
+    # 申请退货数
+    # 退货到仓数
+    # 供应商
     date_from, date_to = time_zone_handler(date_from, date_to)
     sale_refunds = SaleRefund.objects.filter(created__gte=date_from, created__lte=date_to)
     backed_refunds = RefundProduct.objects.filter(created__gte=date_from, created__lte=date_to)
@@ -728,8 +739,9 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
                                    }
 
     for re_pro in backed_refunds:
-        name, cost, quantity, wait_post_num, inferior_num, pro_id, sku_id, sale_product = get_args_by_re_product(re_pro.outer_id,
-                                                                                           re_pro.outer_sku_id)
+        name, cost, quantity, wait_post_num, inferior_num, pro_id, sku_id, sale_product = get_args_by_re_product(
+            re_pro.outer_id,
+            re_pro.outer_sku_id)
         sale_supplier_pk = get_sale_product_supplier(sale_product)
         if sale_supplier_pk == 0:  # 没有供应商的不纳入退货范畴
             continue
@@ -747,11 +759,11 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
             # 退货到仓库的数量　在sale 中统计不到　置0
             backed_num = re_pro.num
             info[sku_id] = {"pro_id": pro_id,
-                                   "name": name, "cost": cost, "quantity": quantity,
-                                   "wait_post_num": wait_post_num, "inferior_num": inferior_num,
-                                   "return_num": return_num, "return_pro_num": return_pro_num,
-                                   "backed_num": backed_num, "sale_supplier_pk": sale_supplier_pk
-                                   }
+                            "name": name, "cost": cost, "quantity": quantity,
+                            "wait_post_num": wait_post_num, "inferior_num": inferior_num,
+                            "return_num": return_num, "return_pro_num": return_pro_num,
+                            "backed_num": backed_num, "sale_supplier_pk": sale_supplier_pk
+                            }
 
     data = [info]
     return data
@@ -768,7 +780,7 @@ def task_daily_preview(default_time=15):
 def function_of_settime(default_time):
     today = datetime.date.today()
     for i in range(1, default_time):
-        target_order = DailySupplyChainStatsOrder.objects.filter(sale_time=today-datetime.timedelta(days=i))
+        target_order = DailySupplyChainStatsOrder.objects.filter(sale_time=today - datetime.timedelta(days=i))
         total_time = 0
         total_num = 0
         total_return = 0
@@ -783,15 +795,15 @@ def function_of_settime(default_time):
                 continue
             during_time = one_data.goods_out_time * one_data.sale_num - one_data.trade_general_time * one_data.sale_num
             if during_time > 0:
-                total_return += one_data.return_num                                     # 退款数
-                total_cost += one_data.cost_of_product                                  # 成本
-                total_num += one_data.sale_num                                          # 销售数
-                total_money += one_data.sale_cost_of_product                            # 成本
-                total_return_money += (one_product.agent_price * one_data.return_num)   # 退款额
-                total_time += during_time                                               # 发货速度
+                total_return += one_data.return_num  # 退款数
+                total_cost += one_data.cost_of_product  # 成本
+                total_num += one_data.sale_num  # 销售数
+                total_money += one_data.sale_cost_of_product  # 成本
+                total_return_money += (one_product.agent_price * one_data.return_num)  # 退款额
+                total_time += during_time  # 发货速度
         if total_num != 0:
             fahuo = total_time / total_num
-            one_preview, state = DailyStatsPreview.objects.get_or_create(sale_time=today-datetime.timedelta(days=i))
+            one_preview, state = DailyStatsPreview.objects.get_or_create(sale_time=today - datetime.timedelta(days=i))
             one_preview.sale_num = total_num
             one_preview.goods_out_time = fahuo
             one_preview.shelf_num = shelf_num
@@ -811,7 +823,7 @@ def task_supplier_avg_post_time(days=5):
     """
     from django.db.models import Avg
     from common.modelutils import update_model_fields
-    time_to = datetime.datetime.today() - datetime.timedelta(days-8)
+    time_to = datetime.datetime.today() - datetime.timedelta(days - 8)
     time_from = time_to - datetime.timedelta(days=days)
     pros = Product.objects.filter(sale_time__gte=time_from, sale_time__lte=time_to, status='normal')
     pro_sales = pros.values('sale_product').distinct()
@@ -827,15 +839,16 @@ def task_supplier_avg_post_time(days=5):
         sale_ids = one_supplier_sale.values('id')
         sig_sup_allpros = Product.objects.filter(sale_product__in=sale_ids)  # 该供应商选品对应的所有产品
         sig_sup_outers = sig_sup_allpros.values('outer_id')
-        sorders = DailySupplyChainStatsOrder.objects.filter(product_id__in=sig_sup_outers).exclude(trade_general_time=0).\
+        sorders = DailySupplyChainStatsOrder.objects.filter(product_id__in=sig_sup_outers).exclude(
+            trade_general_time=0). \
             exclude(goods_arrival_time=0)  # 获取统计供应链统计数据(排除订货时间为０或者到货时间为０的记录)
         # 计算平均发货天数
-        avg_order_time = sorders.aggregate(order_time=Avg('trade_general_time')).get('order_time') or 0    # 平均下单时间
+        avg_order_time = sorders.aggregate(order_time=Avg('trade_general_time')).get('order_time') or 0  # 平均下单时间
         avg_arrive_time = sorders.aggregate(arri_time=Avg('goods_arrival_time')).get('arri_time') or 0  # 平均到货时间
         avg_orde = datetime.datetime.utcfromtimestamp(avg_order_time)
         avr_arri = datetime.datetime.utcfromtimestamp(avg_arrive_time)
         minus = avr_arri - avg_orde  # 时间差值
-        avg_day = round(minus.seconds/3600.0/24, 4)  # 天数
+        avg_day = round(minus.seconds / 3600.0 / 24, 4)  # 天数
         supplier.avg_post_days = avg_day
         update_model_fields(supplier, update_fields=['avg_post_days'])
 
@@ -909,10 +922,10 @@ def task_stat_category_inventory_data(date=None):
 
     # 产品的到货数量和未到货数量会有延迟　
     odts_female_the_date = all_orders.filter(outer_id__startswith='8', orderlist__created=the_date)  # 女装
-    f_arrived = odts_female_the_date.aggregate(t_arrival_quantity=Sum('arrival_quantity')).get("t_arrival_quantity") or 0
+    f_arrived = odts_female_the_date.aggregate(t_arrival_quantity=Sum('arrival_quantity')).get(
+        "t_arrival_quantity") or 0
     f_not_arrive = odts_female_the_date.aggregate(t_non_arrival_quantity=Sum('non_arrival_quantity')).get(
         "t_non_arrival_quantity") or 0
-
 
     # 总库存统计 排除优尼世界的产品
     childps = Product.objects.filter(status=Product.NORMAL, collect_num__gt=0).filter(
@@ -970,8 +983,8 @@ def get_suppliers():
          pcfg.REGULAR_REMAIN_STATUS],
         sys_status=pcfg.IN_EFFECT).values('outer_id',
                                           'outer_sku_id').annotate(
-                                              sale_num=Sum('num'),
-                                              last_pay_time=Max('pay_time'))
+        sale_num=Sum('num'),
+        last_pay_time=Max('pay_time'))
 
     order_products = {}
     for s in sale_stats:
@@ -1001,10 +1014,10 @@ def get_suppliers():
             skus[sku.id] = sku_dict
 
     dinghuo_stats = OrderDetail.objects \
-      .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-      .values('product_id', 'chichu_id') \
-      .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
-                    inferior_quantity=Sum('inferior_quantity'))
+        .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+        .values('product_id', 'chichu_id') \
+        .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                  inferior_quantity=Sum('inferior_quantity'))
 
     for s in dinghuo_stats:
         product_id, sku_id = map(int, (s['product_id'], s['chichu_id']))
@@ -1074,7 +1087,7 @@ def get_suppliers():
         for sku in [skus[k] for k in sorted(skus.keys())]:
             effect_quantity = sku['quantity'] + sku[
                 'buy_quantity'] - min(sku['arrival_quantity'], sku['buy_quantity']) - sku[
-                    'sale_quantity']
+                                  'sale_quantity']
             if effect_quantity >= 0:
                 continue
             sku['effect_quantity'] = effect_quantity
@@ -1177,8 +1190,8 @@ def create_orderlist(supplier):
                     orderdetail = old_orderdetails[sku['id']]
                     orderdetail.buy_quantity += abs(sku['effect_quantity'])
                     orderdetail.total_price += (
-                        orderdetail.buy_unitprice or
-                        sku['cost']) * abs(sku['effect_quantity'])
+                                                   orderdetail.buy_unitprice or
+                                                   sku['cost']) * abs(sku['effect_quantity'])
                     orderdetail.save()
                 else:
                     orderdetail = OrderDetail(
@@ -1202,7 +1215,7 @@ def create_orderlist(supplier):
     rows = OrderList.objects.filter(
         supplier_id=supplier_id,
         created_by=OrderList.CREATED_BY_MACHINE) \
-        .exclude(status=OrderList.ZUOFEI).order_by('-created')[:1]
+               .exclude(status=OrderList.ZUOFEI).order_by('-created')[:1]
     if rows:
         old_orderlist = rows[0]
     if not old_orderlist:
@@ -1212,6 +1225,7 @@ def create_orderlist(supplier):
             _new(supplier, old_orderlist)
         else:
             _merge(supplier, old_orderlist)
+
 
 @task(max_retry=3, default_retry_delay=5)
 def create_dinghuo():

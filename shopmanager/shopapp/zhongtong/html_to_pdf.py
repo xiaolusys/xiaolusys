@@ -70,14 +70,12 @@ def lianda(request, result_dict):
 # 批量打印
 @csrf_exempt
 def ztoprint(request):
-
     queryse = [{'out_sid': '728105650184', 'test': '728105650184'}, {'out_sid': '718850489884', 'test': '728105650184'}]
 
     result_dict = {}
     for v in queryse:
-
         shuju = zprint(request, v['out_sid'])
-        
+
         result_dict[v['out_sid']] = shuju
 
     lianda(request, result_dict)

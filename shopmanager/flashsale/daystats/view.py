@@ -16,6 +16,7 @@ from flashsale.xiaolumm.models import CarryLog
 
 from .models import DailyStat, PopularizeCost
 
+
 # 推广成本分类统计，包含（订单返利，代理补贴，点击补贴，…）
 # 可以集成到 [flashsale.daystat] app里面
 
@@ -96,7 +97,9 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_s_delay = q.filter(pay_time__lte=threshold2).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay}
         elif type_ == 2:
-            q = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_SELLER_AGREE, SaleRefund.REFUND_WAIT_RETURN_GOODS, SaleRefund.REFUND_CONFIRM_GOODS, SaleRefund.REFUND_APPROVE])
+            q = SaleRefund.objects.filter(
+                status__in=[SaleRefund.REFUND_WAIT_SELLER_AGREE, SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                            SaleRefund.REFUND_CONFIRM_GOODS, SaleRefund.REFUND_APPROVE])
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold).only('id').count()
             n_s_delay = q.filter(created__lte=threshold2).only('id').count()

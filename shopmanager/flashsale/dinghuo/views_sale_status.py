@@ -43,11 +43,12 @@ class EntranceView(View):
 
 class SaleHotView(View):
     """热销产品统计"""
+
     @staticmethod
     def get(request):
         content = request.REQUEST
         start_time_str = content.get("df", datetime.date.today().strftime('%Y-%m-%d'))
-        end_time_str = content.get("dt",  datetime.date.today().strftime('%Y-%m-%d'))
+        end_time_str = content.get("dt", datetime.date.today().strftime('%Y-%m-%d'))
         category = content.get("category", None)
         send_tasks = task_calc_hot_sale.delay(start_time_str, end_time_str, category)
         return render_to_response("dinghuo/data2hotsale.html",
@@ -58,11 +59,12 @@ class SaleHotView(View):
 
 class SaleBadView(View):
     """滞销产品统计"""
+
     @staticmethod
     def get(request):
         content = request.REQUEST
         start_time_str = content.get("df", datetime.date.today().strftime('%Y-%m-%d'))
-        end_time_str = content.get("dt",  datetime.date.today().strftime('%Y-%m-%d'))
+        end_time_str = content.get("dt", datetime.date.today().strftime('%Y-%m-%d'))
         category = content.get("category", None)
         send_tasks = task_calc_sale_bad.delay(start_time_str, end_time_str, category)
         return render_to_response("dinghuo/data2salebad.html",
@@ -70,9 +72,13 @@ class SaleBadView(View):
                                    "end_date": end_time_str, "category": category},
                                   context_instance=RequestContext(request))
 
+
 from django.db.models import Q
+
+
 class TopStockView(View):
     """库存多的商品"""
+
     @staticmethod
     def get(request):
         content = request.REQUEST
@@ -101,6 +107,7 @@ class TopStockView(View):
                                   {"task_id": send_tasks, "start_date": start_date,
                                    "end_date": end_date, "limit_num": limit_num},
                                   context_instance=RequestContext(request))
+
 
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -190,8 +197,3 @@ class SaleStatusView(generics.ListCreateAPIView):
             result_data.append({"outer_id": one_product.outer_id, "warning": warning,
                                 "name": one_product.name, "pic_path": one_product.PIC_PATH})
         return Response({"warn_num": warn_num, "target_date": target_date, "result_data": result_data})
-
-
-
-
-

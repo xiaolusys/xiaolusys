@@ -1,7 +1,8 @@
- #from djangorestframework.authentication import BaseAuthentication
+# from djangorestframework.authentication import BaseAuthentication
 from rest_framework import authentication
-from django.http import HttpResponse,HttpResponseNotFound
- 
+from django.http import HttpResponse, HttpResponseNotFound
+
+
 # class UserLoggedInAuthentication(authentication):
 #     """
 #     Use Django's session framework for authentication.
@@ -25,27 +26,27 @@ from django.http import HttpResponse,HttpResponseNotFound
 # #                    return None
 #             return request.user
 #         return None
-     
-     
-def login_required_ajax(function=None,redirect_field_name=None):
-     # from djangorestframework.authentication import BaseAuthentication    
+
+
+def login_required_ajax(function=None, redirect_field_name=None):
+    # from djangorestframework.authentication import BaseAuthentication
     """
     Just make sure the user is authenticated to access a certain ajax view
  
     Otherwise return a HttpResponse 401 - authentication required
     instead of the 302 redirect of the original Django decorator
     """
+
     def _decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
             if request.user.is_authenticated():
                 return view_func(request, *args, **kwargs)
             else:
                 return HttpResponse(status=401)
+
         return _wrapped_view
- 
+
     if function is None:
         return _decorator
     else:
         return _decorator(function)
-     
-     

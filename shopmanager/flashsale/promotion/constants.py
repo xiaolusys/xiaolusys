@@ -1,6 +1,6 @@
-#coding:utf-8
-SAHRE_ICON  = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-share-pyq2.png"
-SHARE_LINK  = '/sale/promotion/xlsampleapply/?from_customer={customer_id}&ufrom={ufrom}'
+# coding:utf-8
+SAHRE_ICON = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-share-pyq2.png"
+SHARE_LINK = '/sale/promotion/xlsampleapply/?from_customer={customer_id}&ufrom={ufrom}'
 PROMOTION_LINKID_PATH = 'qrcode/promote'
 
 DEFAULT_NICK = '鹿小美'
@@ -11,4 +11,3 @@ ANDROID_DOWNLOAD_QRCODE = 'http://7xogkj.com2.z0.glb.qiniucdn.com/1456293315.svg
 
 APP_STORE_DOWNLOAD = 'https://itunes.apple.com/us/app/xiao-lu-mei-mei/id1051166985'
 APP_STORE_DOWNLOAD_QRCODE = 'http://7xogkj.com2.z0.glb.qiniucdn.com/appstore_download_link.svg'
-

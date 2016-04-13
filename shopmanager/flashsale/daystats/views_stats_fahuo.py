@@ -53,6 +53,3 @@ class StatsFahuoView(generics.ListCreateAPIView):
         #                 {'sale_time': "2015-9-17", 'time_to_day': 9.4},
         #                 {'sale_time': "2015-10-10", 'time_to_day': 0.5}]
         return Response(result_data)
-
-
-

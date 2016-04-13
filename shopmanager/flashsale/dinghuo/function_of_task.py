@@ -205,13 +205,13 @@ def daily_data_stats():
     """商品销售统计"""
     all_data = SupplyChainStatsOrder.objects.all()
     all_data_dict = {}
-    #从原始表中汇总
-    #判断商品是否在字典中，不在，则初始化，在，判断这个商品的上架日期在不在list中，不在，加入list，在则相加处理
+    # 从原始表中汇总
+    # 判断商品是否在字典中，不在，则初始化，在，判断这个商品的上架日期在不在list中，不在，加入list，在则相加处理
     for data in all_data:
         if data.product_id in all_data_dict:
             is_exist, temp_var = check_in(data.shelve_time, all_data_dict[data.product_id])
             if is_exist:
-                #temp_var = all_data_dict[data.product_id][data.shelve_time]
+                # temp_var = all_data_dict[data.product_id][data.shelve_time]
                 if data.ding_huo_num > 0:
                     ding_huo_num = temp_var['ding_huo_num']
                     ding_huo_time = temp_var['order_deal_time']
@@ -259,7 +259,7 @@ def daily_data_stats():
                                                                   "goods_arrival_time": data.goods_arrival_time,
                                                                   "goods_out_num": data.goods_out_num,
                                                                   "goods_out_time": data.goods_out_time}}]
-    #将汇总的数据写入
+    # 将汇总的数据写入
     for pro_id, temp_data in all_data_dict.items():
         for one_product_shelve in temp_data:
             for shelve_time, data in one_product_shelve.items():
@@ -285,7 +285,8 @@ def daily_data_stats():
                     daily_order.fahuo_num = data['goods_out_num']
                     daily_order.save()
                 else:
-                    temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time, sale_num=data['sale_num'],
+                    temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time,
+                                                      sale_num=data['sale_num'],
                                                       ding_huo_num=data['ding_huo_num'],
                                                       cost_of_product=cost, sale_cost_of_product=sale_price,
                                                       # return_num=get_return_num_by_product_id(pro_id),
@@ -297,13 +298,16 @@ def daily_data_stats():
                                                       fahuo_num=data['goods_out_num'])
                     temp.save()
 
+
 import decimal
+
+
 def daily_data_stats_update():
     """将每日的记录内容填入汇总表"""
     today = datetime.date.today()
-    all_data = SupplyChainStatsOrder.objects.filter(sale_time=today-datetime.timedelta(days=1))
+    all_data = SupplyChainStatsOrder.objects.filter(sale_time=today - datetime.timedelta(days=1))
     all_data_dict = {}
-    #判断商品是否在字典中，不在，则初始化，在，判断这个商品的上架日期在不在list中，不在，加入list，在则相加处理
+    # 判断商品是否在字典中，不在，则初始化，在，判断这个商品的上架日期在不在list中，不在，加入list，在则相加处理
     for data in all_data:
         if data.product_id in all_data_dict:
             is_exist, temp_var = check_in(data.shelve_time, all_data_dict[data.product_id])
@@ -355,7 +359,7 @@ def daily_data_stats_update():
                                                                   "goods_arrival_time": data.goods_arrival_time,
                                                                   "goods_out_num": data.goods_out_num,
                                                                   "goods_out_time": data.goods_out_time}}]
-    #将汇总的数据写入
+    # 将汇总的数据写入
     for pro_id, temp_data in all_data_dict.items():
         for one_product_shelve in temp_data:
             for shelve_time, data in one_product_shelve.items():
@@ -377,7 +381,8 @@ def daily_data_stats_update():
                         daily_order.sale_num = all_sale_num
                         daily_order.trade_general_time = trade_time
                         daily_order.cost_of_product = decimal.Decimal(daily_order.cost_of_product) + cost
-                        daily_order.sale_cost_of_product = decimal.Decimal(daily_order.sale_cost_of_product) + sale_price
+                        daily_order.sale_cost_of_product = decimal.Decimal(
+                            daily_order.sale_cost_of_product) + sale_price
                     daily_order.inferior_num = get_inferior_num_by_product_id(pro_id)
                     daily_order.ding_huo_num += data['ding_huo_num']
                     daily_order.order_deal_time = data['order_deal_time']
@@ -389,7 +394,8 @@ def daily_data_stats_update():
                         daily_order.fahuo_num = all_fahuo_num
                     daily_order.save()
                 else:
-                    temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time, sale_num=data['sale_num'],
+                    temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time,
+                                                      sale_num=data['sale_num'],
                                                       ding_huo_num=data['ding_huo_num'],
                                                       cost_of_product=cost, sale_cost_of_product=sale_price,
                                                       inferior_num=get_inferior_num_by_product_id(pro_id),
@@ -399,6 +405,8 @@ def daily_data_stats_update():
                                                       goods_out_time=data['goods_out_time'],
                                                       fahuo_num=data['goods_out_num'])
                     temp.save()
+
+
 from shopback.refunds.models import RefundProduct, Refund
 from django.db.models import Sum, F
 from shopback.trades.models import MergeTrade, MergeOrder

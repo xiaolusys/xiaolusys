@@ -7,4 +7,3 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('cid', 'parent_cid', 'is_parent', 'name', 'status', 'sort_order')
-

@@ -11,7 +11,7 @@ def get_pagination_row(paginator,
                        kdict={},
                        page_threshold=5,
                        page_key='p',
-                       anchor='',params={}):
+                       anchor='', params={}):
     template_div = '<nav><ul class="pagination">%s</ul></nav>'
     template_current_page = '<li class="active"><a href="%(url)s">%(pn)s</a></li>'
     template_first_page = '<li><a href="%(url)s" aria-label="Previous">&laquo;</a></li>'

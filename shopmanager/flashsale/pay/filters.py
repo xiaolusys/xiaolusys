@@ -28,6 +28,7 @@ class Filte_By_Reason(SimpleListFilter):
             qs = queryset.filter(reason__contains=self.r_lit[int(categry)][1])
             return qs
 
+
 import constants
 
 
@@ -52,4 +53,3 @@ class CushopProCategoryFiler(SimpleListFilter):
                 return queryset
             qs = queryset.filter(pro_category__in=fenlei)
             return qs
-

@@ -4,6 +4,7 @@ from django.conf import settings
 
 pingpp.api_key = settings.PINGPP_APPKEY
 
+
 def redpack(order_no):
     """ 
     {
@@ -35,10 +36,10 @@ def redpack(order_no):
         body='Your Body',
         currency='cny',
         app=dict(id=settings.PINGPP_APPID),
-        extra=dict(nick_name='Nick Name',send_name='Send Name'),
+        extra=dict(nick_name='Nick Name', send_name='Send Name'),
         recipient='our5huIOSuFF5FdojFMFNP5HNOmA',
         description='Your Description'
     )
-    
-    print 'appkey,secret:'+settings.PINGPP_APPID,settings.PINGPP_APPKEY
-    print 'red pack:',redenvelope
+
+    print 'appkey,secret:' + settings.PINGPP_APPID, settings.PINGPP_APPKEY
+    print 'red pack:', redenvelope

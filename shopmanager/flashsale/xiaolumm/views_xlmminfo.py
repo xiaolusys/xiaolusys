@@ -241,5 +241,3 @@ def xlmmExitAction(request):
     log_action(request.user.id, xlmm, CHANGE, u'代理退出修改信息')
     data = {"flush_cash": flush_cash}
     return HttpResponse(json.dumps(data))
-
-

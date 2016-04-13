@@ -4,7 +4,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from core.fields import BigIntegerAutoField
 
-
 from core.fields import JSONCharMyField
 from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from shopback.items.models import ProductSku, Product
@@ -14,21 +13,21 @@ from supplychain.supplier.models import SaleSupplier
 from .models_user import MyUser, MyGroup
 from .models_stats import SupplyChainDataStats
 
-class OrderList(models.Model):
 
-    #订单状态
-    SUBMITTING = u'草稿'  #提交中
-    APPROVAL = u'审核'  #审核
-    ZUOFEI = u'作废'  #作废
-    COMPLETED = u'验货完成'  #验货完成
-    QUESTION = u'有问题'  #有问题
+class OrderList(models.Model):
+    # 订单状态
+    SUBMITTING = u'草稿'  # 提交中
+    APPROVAL = u'审核'  # 审核
+    ZUOFEI = u'作废'  # 作废
+    COMPLETED = u'验货完成'  # 验货完成
+    QUESTION = u'有问题'  # 有问题
     CIPIN = u'5'  # 有次品
     QUESTION_OF_QUANTITY = u'6'  # 到货有问题
-    DEALED = u'已处理' #已处理
+    DEALED = u'已处理'  # 已处理
     SAMPLE = u'7'  # 样品
-    NEAR = u'1'         #江浙沪皖
-    SHANGDONG = u'2'    #山东
-    GUANGDONG = u'3'    #广东
+    NEAR = u'1'  # 江浙沪皖
+    SHANGDONG = u'2'  # 山东
+    GUANGDONG = u'3'  # 广东
     YUNDA = u'YUNDA'
     STO = u'STO'
     ZTO = u'ZTO'
@@ -79,7 +78,8 @@ class OrderList(models.Model):
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
     supplier_name = models.CharField(default="", blank=True, max_length=128, verbose_name=u'商品链接')
     supplier_shop = models.CharField(default="", blank=True, max_length=32, verbose_name=u'供应商店铺名')
-    supplier = models.ForeignKey(SaleSupplier, null=True, blank=True, related_name='dinghuo_orderlist', verbose_name=u'供应商')
+    supplier = models.ForeignKey(SaleSupplier, null=True, blank=True, related_name='dinghuo_orderlist',
+                                 verbose_name=u'供应商')
 
     express_company = models.CharField(choices=EXPRESS_CONPANYS, blank=True, max_length=32, verbose_name=u'快递公司')
     express_no = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递单号')
@@ -88,7 +88,7 @@ class OrderList(models.Model):
     costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, db_index=True, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
     pay_status = models.CharField(max_length=32, db_index=True, verbose_name=u'收款状态')
-    p_district = models.CharField(max_length=32, default=NEAR, verbose_name=u'地区', choices=ORDER_DISTRICT) # 从发货地对应仓库
+    p_district = models.CharField(max_length=32, default=NEAR, verbose_name=u'地区', choices=ORDER_DISTRICT)  # 从发货地对应仓库
     reach_standard = models.BooleanField(default=False, verbose_name=u"达标")
     created = models.DateField(auto_now_add=True, db_index=True, verbose_name=u'订货日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
@@ -103,10 +103,11 @@ class OrderList(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'订货表'
         verbose_name_plural = u'订货表'
-        permissions = [("change_order_list_inline", u"修改后台订货信息"),]
+        permissions = [("change_order_list_inline", u"修改后台订货信息"), ]
 
     def costofems_cash(self):
         return self.costofems / 100.0
+
     costofems_cash.allow_tags = True
     costofems_cash.short_description = u"快递费用"
 
@@ -115,7 +116,6 @@ class OrderList(models.Model):
 
 
 class OrderDetail(models.Model):
-
     id = BigIntegerAutoField(primary_key=True)
     orderlist = models.ForeignKey(OrderList, related_name='order_list', verbose_name=u'订单编号')
     product_id = models.CharField(db_index=True, max_length=32, verbose_name=u'商品id')
@@ -130,8 +130,8 @@ class OrderDetail(models.Model):
     inferior_quantity = models.IntegerField(default=0, verbose_name=u'次品数量')
     non_arrival_quantity = models.IntegerField(default=0, verbose_name=u'未到数量')
 
-    created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'生成日期')#index
-    updated = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'更新日期')#index
+    created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'生成日期')  # index
+    updated = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'更新日期')  # index
     arrival_time = models.DateTimeField(blank=True, verbose_name=u'到货时间')
 
     class Meta:
@@ -166,7 +166,6 @@ class orderdraft(models.Model):
 
 
 class ProductSkuDetail(models.Model):
-
     product_sku = models.BigIntegerField(unique=True, verbose_name=u'库存商品规格')
     exist_stock_num = models.IntegerField(default=0, verbose_name=u'上架前库存')
     sample_num = models.IntegerField(default=0, verbose_name=u'样品数量')
@@ -180,11 +179,13 @@ class ProductSkuDetail(models.Model):
         verbose_name_plural = u'特卖商品库存列表'
 
     def __unicode__(self):
-        return u'<%s>'%(self.product_sku)
+        return u'<%s>' % (self.product_sku)
+
 
 from shopback import signals
 
-def init_stock_func(sender,product_list,*args,**kwargs):
+
+def init_stock_func(sender, product_list, *args, **kwargs):
     import datetime
     from django.db.models import Sum
     today = datetime.date.today()
@@ -194,7 +195,7 @@ def init_stock_func(sender,product_list,*args,**kwargs):
         for sku_bean in sku_qs:
             total_num = OrderDetail.objects.filter(chichu_id=sku_bean.id,
                                                    orderlist__created__range=(
-                                                   today - datetime.timedelta(days=7), today)).exclude(
+                                                       today - datetime.timedelta(days=7), today)).exclude(
                 orderlist__status=OrderList.ZUOFEI).aggregate(total_num=Sum('arrival_quantity')).get(
                 'total_num') or 0
             pro_sku_beans = ProductSkuDetail.objects.get_or_create(product_sku=sku_bean.id)
@@ -205,6 +206,7 @@ def init_stock_func(sender,product_list,*args,**kwargs):
             sku_bean.memo = ""
             sku_bean.save()
             pro_sku_bean.save()
+
 
 signals.signal_product_upshelf.connect(init_stock_func, sender=Product)
 
@@ -244,7 +246,6 @@ class ReturnGoods(models.Model):
 
 
 class RGDetail(models.Model):
-
     skuid = models.BigIntegerField(db_index=True, verbose_name=u"退货商品skuid")
     return_goods = models.ForeignKey(ReturnGoods, related_name='rg_details', verbose_name=u'退货单信息')
     num = models.IntegerField(default=0, verbose_name=u"正品退货数量")
@@ -280,6 +281,7 @@ from django.db.models.signals import post_save
 
 def syncRGdTreturn(sender, instance, **kwargs):
     instance.sync_rg_field()
+
 
 post_save.connect(syncRGdTreturn, sender=RGDetail)
 
@@ -377,7 +379,6 @@ class InBoundDetail(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'入仓单明细'
         verbose_name_plural = u'入仓单明细列表'
-
 
 
 class OrderDetailInBoundDetail(models.Model):

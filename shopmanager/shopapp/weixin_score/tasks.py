@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 import time
 import datetime
 import json
@@ -7,5 +7,3 @@ from celery import Task
 from django.conf import settings
 
 from common.utils import update_model_fields
-
-

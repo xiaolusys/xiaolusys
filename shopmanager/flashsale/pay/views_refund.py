@@ -1,111 +1,112 @@
-#-*- encoding:utf8 -*-
+# -*- encoding:utf8 -*-
 from django.conf import settings
-from django.http import Http404,HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden
 from django.views.generic import View
 from django.forms import model_to_dict
-from django.shortcuts import redirect,get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.views import APIView
 
-from .models import SaleTrade,SaleOrder,Customer,TradeCharge
+from .models import SaleTrade, SaleOrder, Customer, TradeCharge
 from .models_refund import SaleRefund
 from . import tasks
 import pingpp
 import logging
+
 logger = logging.getLogger('django.request')
 
-class RefundApply(APIView):
 
-    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
-#     permission_classes = (permissions.IsAuthenticated,)
+class RefundApply(APIView):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    #     permission_classes = (permissions.IsAuthenticated,)
     template_name = "pay/mrefundapply.html"
 
     def get(self, request, format=None):
 
-        content  = request.GET
-        user     = request.user
-        customer = get_object_or_404(Customer,user=request.user)
+        content = request.GET
+        user = request.user
+        customer = get_object_or_404(Customer, user=request.user)
 
         trade_id = content.get('trade_id')
         order_id = content.get('order_id')
 
-        sale_order = get_object_or_404(SaleOrder,pk=order_id,sale_trade=trade_id,sale_trade__buyer_id=customer.id)
+        sale_order = get_object_or_404(SaleOrder, pk=order_id, sale_trade=trade_id, sale_trade__buyer_id=customer.id)
 
         if not sale_order.refundable:
             raise Http404
 
         if sale_order.refund:
-            return redirect('refund_confirm',pk=sale_order.refund.id)
+            return redirect('refund_confirm', pk=sale_order.refund.id)
 
-        return Response({'order':model_to_dict(sale_order)})
+        return Response({'order': model_to_dict(sale_order)})
 
     def post(self, request, format=None):
 
-        content  = request.POST
-        user     = request.user
+        content = request.POST
+        user = request.user
 
         trade_id = content.get('trade_id')
         order_id = content.get('order_id')
         return_good = content.get('return_good')
 
-        customer = get_object_or_404(Customer,user=request.user)
-        sale_trade = get_object_or_404(SaleTrade,pk=trade_id,buyer_id=customer.id)
-        sale_order = get_object_or_404(SaleOrder,pk=order_id,sale_trade=trade_id,sale_trade__buyer_id=customer.id)
+        customer = get_object_or_404(Customer, user=request.user)
+        sale_trade = get_object_or_404(SaleTrade, pk=trade_id, buyer_id=customer.id)
+        sale_order = get_object_or_404(SaleOrder, pk=order_id, sale_trade=trade_id, sale_trade__buyer_id=customer.id)
 
         if not sale_order.refundable:
             return HttpResponseForbidden('UNREFUNDABLE')
 
         if sale_order.refund:
-            return redirect('refund_confirm',pk=sale_order.refund.id)
+            return redirect('refund_confirm', pk=sale_order.refund.id)
 
         params = {
-                  'reason':content.get('reason'),
-                  'refund_fee':content.get('refund_fee'),
-                  'desc':content.get('desc'),
-                  'trade_id':sale_trade.id,
-                  'order_id':sale_order.id,
-                  'buyer_id':sale_trade.buyer_id,
-                  'buyer_nick':sale_trade.buyer_nick,
-                  'item_id':sale_order.item_id,
-                  'title':sale_order.title,
-                  'sku_id':sale_order.sku_id,
-                  'sku_name':sale_order.sku_name,
-                  'total_fee':sale_order.total_fee,
-                  'payment':sale_order.payment,
-                  'mobile':sale_trade.receiver_mobile,
-                  'phone':sale_trade.receiver_phone,
-                  'charge':sale_trade.charge,
-                  }
+            'reason': content.get('reason'),
+            'refund_fee': content.get('refund_fee'),
+            'desc': content.get('desc'),
+            'trade_id': sale_trade.id,
+            'order_id': sale_order.id,
+            'buyer_id': sale_trade.buyer_id,
+            'buyer_nick': sale_trade.buyer_nick,
+            'item_id': sale_order.item_id,
+            'title': sale_order.title,
+            'sku_id': sale_order.sku_id,
+            'sku_name': sale_order.sku_name,
+            'total_fee': sale_order.total_fee,
+            'payment': sale_order.payment,
+            'mobile': sale_trade.receiver_mobile,
+            'phone': sale_trade.receiver_phone,
+            'charge': sale_trade.charge,
+        }
         if return_good:
-            params.update({'refund_num':content.get('refund_num'),
-                           'company_name':content.get('company_name'),
-                           'sid':content.get('sid'),
-                           'has_good_return':True,
-                           'good_status':SaleRefund.BUYER_RECEIVED,
-                           'status':SaleRefund.REFUND_WAIT_SELLER_AGREE
+            params.update({'refund_num': content.get('refund_num'),
+                           'company_name': content.get('company_name'),
+                           'sid': content.get('sid'),
+                           'has_good_return': True,
+                           'good_status': SaleRefund.BUYER_RECEIVED,
+                           'status': SaleRefund.REFUND_WAIT_SELLER_AGREE
                            })
 
         else:
-            good_status   = SaleRefund.BUYER_NOT_RECEIVED
-            good_receive  = content.get('good_receive')
+            good_status = SaleRefund.BUYER_NOT_RECEIVED
+            good_receive = content.get('good_receive')
             if good_receive.lower() == 'y':
                 good_status = SaleRefund.BUYER_RECEIVED
 
-            params.update({'has_good_return':False,
-                           'good_status':good_status,
-                           'status':SaleRefund.REFUND_WAIT_SELLER_AGREE
+            params.update({'has_good_return': False,
+                           'good_status': good_status,
+                           'status': SaleRefund.REFUND_WAIT_SELLER_AGREE
                            })
 
         sale_refund = SaleRefund.objects.create(**params)
 
-        sale_order.refund_id  = sale_refund.id
+        sale_order.refund_id = sale_refund.id
         sale_order.refund_fee = sale_refund.refund_fee
-        sale_order.refund_status  = sale_refund.status
+        sale_order.refund_status = sale_refund.status
         sale_order.save()
         sale_order.cancel_assign()
         if settings.DEBUG:
@@ -117,33 +118,31 @@ class RefundApply(APIView):
 
 
 class RefundConfirm(APIView):
-
-    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
-#     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    #     permission_classes = (permissions.IsAuthenticated,)
     template_name = "pay/mrefundconfirm.html"
 
     def get(self, request, pk, format=None):
-
-        customer = get_object_or_404(Customer,user=request.user)
-        sale_refund = get_object_or_404(SaleRefund,pk=pk)
-        sale_order  = get_object_or_404(SaleOrder,pk=sale_refund.order_id,
-                                        sale_trade=sale_refund.trade_id,
-                                        sale_trade__buyer_id=customer.id)
+        customer = get_object_or_404(Customer, user=request.user)
+        sale_refund = get_object_or_404(SaleRefund, pk=pk)
+        sale_order = get_object_or_404(SaleOrder, pk=sale_refund.order_id,
+                                       sale_trade=sale_refund.trade_id,
+                                       sale_trade__buyer_id=customer.id)
 
         refund_dict = model_to_dict(sale_refund)
-        refund_dict.update({'created':sale_refund.created,
-                            'modified':sale_refund.modified})
+        refund_dict.update({'created': sale_refund.created,
+                            'modified': sale_refund.modified})
 
-        return Response({'order':model_to_dict(sale_order),
-                         'refund':refund_dict})
+        return Response({'order': model_to_dict(sale_order),
+                         'refund': refund_dict})
 
     def post(self, request, pk, format=None):
-
         return Response({})
+
 
 from core.options import log_action, User, ADDITION, CHANGE
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
-from flashsale.pay.models_user import UserBudget,BudgetLog
+from flashsale.pay.models_user import UserBudget, BudgetLog
 from django.db import models
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback import paramconfig as pcfg
@@ -211,12 +210,12 @@ class RefundPopPageView(APIView):
                     strade = SaleTrade.objects.get(id=obj.trade_id)
                     sorder = SaleOrder.objects.get(id=obj.order_id)
                     customer = Customer.objects.get(id=strade.buyer_id)
-                    if strade.channel == SaleTrade.WALLET :
+                    if strade.channel == SaleTrade.WALLET:
                         payment = int(obj.refund_fee * 100)
                         xlmm_queryset = XiaoluMama.objects.filter(openid=customer.unionid)
                         xlmm = xlmm_queryset[0]
                         clogs = CarryLog.objects.filter(xlmm=xlmm.id,
-                                                        order_num=obj.order_id, # 以子订单为准
+                                                        order_num=obj.order_id,  # 以子订单为准
                                                         log_type=CarryLog.REFUND_RETURN)
                         if clogs.exists():
                             total_refund = clogs[0].value + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
@@ -234,7 +233,7 @@ class RefundPopPageView(APIView):
                                 obj.save()
                                 log_action(request.user.id, obj, CHANGE, u'二次退款审核通过:%s' % obj.refund_id)
                         # assert clogs.count() == 0, u'订单已经退款！'
-                        else:   # 钱包中不存在该笔子订单的历史退款记录　则创建记录
+                        else:  # 钱包中不存在该笔子订单的历史退款记录　则创建记录
                             if payment > int(sorder.payment * 100):
                                 raise Exception(u'超过订单实际支付金额!')
                             CarryLog.objects.create(xlmm=xlmm.id,
@@ -249,12 +248,12 @@ class RefundPopPageView(APIView):
                             obj.save()
                             log_action(request.user.id, obj, CHANGE, u'首次退款审核通过:%s' % obj.refund_id)
                         obj.refund_Confirm()
-                        
+
                     elif strade.channel == SaleTrade.BUDGET or strade.has_budget_paid:
-                        payment     = int(obj.refund_fee * 100)
+                        payment = int(obj.refund_fee * 100)
                         user_budgets = UserBudget.objects.filter(user=strade.buyer_id)
                         blogs = BudgetLog.objects.filter(customer_id=strade.buyer_id,
-                                                         referal_id=obj.order_id, # 以子订单为准
+                                                         referal_id=obj.order_id,  # 以子订单为准
                                                          budget_log_type=BudgetLog.BG_REFUND)
                         if blogs.exists():
                             total_refund = blogs[0].flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
@@ -271,22 +270,22 @@ class RefundPopPageView(APIView):
                                 obj.status = SaleRefund.REFUND_SUCCESS
                                 obj.save()
                                 log_action(request.user.id, obj, CHANGE, u'二次退款审核通过:%s' % obj.refund_id)
-                            
+
                         else:
                             if payment > int(sorder.payment * 100):
                                 raise Exception(u'超过订单实际支付金额!')
                             BudgetLog.objects.create(customer_id=strade.buyer_id,
-                                                    referal_id=obj.order_id,
-                                                    flow_amount=payment,
-                                                    budget_type=BudgetLog.BUDGET_IN,
-                                                    budget_log_type=BudgetLog.BG_REFUND,
-                                                    status=BudgetLog.CONFIRMED)
+                                                     referal_id=obj.order_id,
+                                                     flow_amount=payment,
+                                                     budget_type=BudgetLog.BUDGET_IN,
+                                                     budget_log_type=BudgetLog.BG_REFUND,
+                                                     status=BudgetLog.CONFIRMED)
                             user_budgets.update(amount=models.F('amount') + payment)
                             obj.status = SaleRefund.REFUND_SUCCESS
                             obj.save()
                             log_action(request.user.id, obj, CHANGE, u'首次退款审核通过:%s' % obj.refund_id)
                         obj.refund_Confirm()
-                        
+
                     elif obj.refund_fee > 0 and obj.charge:  # 有支付编号
                         import pingpp
                         pingpp.api_key = settings.PINGPP_APPKEY
@@ -374,6 +373,3 @@ def fix_ref_exception():
             logger.error(exc.message, exc_info=True)
             print order_id
             continue
-
-
-

@@ -7,7 +7,7 @@ from celery.task import task
 from django.conf import settings
 
 from common.utils import year_month_range
-from flashsale.clickcount.models import Clicks,ClickCount
+from flashsale.clickcount.models import Clicks, ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models import CarryLog
 from flashsale.pay.models import Customer
@@ -21,10 +21,10 @@ from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharg
 from shopback.categorys.models import ProductCategory
 
 import logging
+
 logger = logging.getLogger('celery.handler')
 
 
-    
 @task()
 def task_Push_Sales_To_DailyStat(target_date):
     df = datetime.datetime(target_date.year, target_date.month, target_date.day, 0, 0, 0)
@@ -42,9 +42,9 @@ def task_Push_Sales_To_DailyStat(target_date):
     total_valid_count = clicks.filter(isvalid=True).values('linkid', 'openid').distinct().count()
 
     total_old_visiter_num = 0
-    click_openids = clicks.values('openid','app_key').distinct()
+    click_openids = clicks.values('openid', 'app_key').distinct()
     for stat in click_openids:
-        unionid = get_unionid_by_openid(stat['openid'],stat['app_key'])
+        unionid = get_unionid_by_openid(stat['openid'], stat['app_key'])
         if not unionid:
             last_clicks = Clicks.objects.filter(click_time__lte=df, openid=stat['openid'])
             if last_clicks.count() > 0:
@@ -190,19 +190,21 @@ def task_PopularizeCost_By_Day(pre_day=1):
 
 import os
 import csv
+
 STAT_DIR = "stat_backup"
 from flashsale.daystats.models import DaystatCalcResult
+
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_xlmm(start_time_str, end_time_str):
     """计算某个月内所有购买的人数和小鹿妈妈数量，重复购买"""
     try:
-        calc_key = 'task_calc_xlmm_%s_%s'%(start_time_str, end_time_str)
-        
+        calc_key = 'task_calc_xlmm_%s_%s' % (start_time_str, end_time_str)
+
         calc_results = DaystatCalcResult.objects.filter(calc_key=calc_key)
         if calc_results.exists():
             return calc_results[0].calc_result
-        
+
         today = datetime.date.today()
         if start_time_str:
             year, month, day = start_time_str.split('-')
@@ -217,16 +219,16 @@ def task_calc_xlmm(start_time_str, end_time_str):
         else:
             end_date = today
         """找出选择的开始月份和结束月份"""
-        month_range = year_month_range(start_date,end_date)
+        month_range = year_month_range(start_date, end_date)
         result_list = []
 
         for year, month in month_range:
             month_start_date = datetime.datetime(year, month, 1, 0, 0, 0)
-            month_end_date   = datetime.datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
-            
+            month_end_date = datetime.datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
+
             all_purchase = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
-                                                             shoptime__lte=month_end_date)\
-                                                             .values("openid").distinct()
+                                                             shoptime__lte=month_end_date) \
+                .values("openid").distinct()
             all_purchase_num = all_purchase.count()
             history_purchase = StatisticsShopping.objects.filter(shoptime__lt=month_start_date).values(
                 "openid").distinct()
@@ -245,13 +247,13 @@ def task_calc_xlmm(start_time_str, end_time_str):
             repeat_xlmm = repeat_user_unionid & all_xlmm_detail
             xlmm_num = all_purchase_detail_unionid & all_xlmm_detail
             result_list.append(
-                ('%04d-%02d'%(year,month), all_purchase_num, len(repeat_user), len(repeat_xlmm), len(xlmm_num))
+                ('%04d-%02d' % (year, month), all_purchase_num, len(repeat_user), len(repeat_xlmm), len(xlmm_num))
             )
-            
-        DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=result_list)
+
+        DaystatCalcResult.objects.create(calc_key=calc_key, calc_result=result_list)
         return result_list
     except Exception, exc:
-        logger.error(exc.message or 'empty error',exc_info=True)
+        logger.error(exc.message or 'empty error', exc_info=True)
         raise task_calc_xlmm.retry(exc=exc)
 
 
@@ -260,17 +262,16 @@ from shopback.items.models import Product
 from django.db.models import Q
 
 
-
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
     """计算热销商品"""
     try:
-        calc_key = 'task_calc_hot_sale_%s_%s_%s'%(start_time_str, end_time_str,category)
-        
+        calc_key = 'task_calc_hot_sale_%s_%s_%s' % (start_time_str, end_time_str, category)
+
         calc_results = DaystatCalcResult.objects.filter(calc_key=calc_key)
         if calc_results.exists():
             return calc_results[0].calc_result
-        
+
         today = datetime.date.today()
         if start_time_str:
             year, month, day = start_time_str.split('-')
@@ -326,14 +327,14 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                     created__gte=start_date
                 ).exclude(
                     status__in=(
-                        SaleRefund.REFUND_REFUSE_BUYER, 
+                        SaleRefund.REFUND_REFUSE_BUYER,
                         SaleRefund.REFUND_CLOSED
                     )
                 )
-                pre_tui_huo = refs.filter(good_status=SaleRefund.BUYER_NOT_RECEIVED)\
-                    .aggregate(t_refund_num=Sum('refund_num')).get('t_refund_num') or 0
-                post_tui_huo = refs.filter(good_status__in=(SaleRefund.BUYER_RECEIVED,SaleRefund.BUYER_RETURNED_GOODS))\
-                    .aggregate(t_refund_num=Sum('refund_num')).get('t_refund_num') or 0
+                pre_tui_huo = refs.filter(good_status=SaleRefund.BUYER_NOT_RECEIVED) \
+                                  .aggregate(t_refund_num=Sum('refund_num')).get('t_refund_num') or 0
+                post_tui_huo = refs.filter(good_status__in=(SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS)) \
+                                   .aggregate(t_refund_num=Sum('refund_num')).get('t_refund_num') or 0
                 supplier_list = ""
                 sale_contactor = ""
                 if sale_product_id != 0:
@@ -341,9 +342,9 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                     if one_sale_product.count() > 0:
                         supplier_list = one_sale_product[0].sale_supplier.supplier_name
                         sale_contactor = one_sale_product[0].contactor.username if one_sale_product[0].contactor else ""
-                if p_sales > 0 and pre_tui_huo/p_sales >= 0.2:
+                if p_sales > 0 and pre_tui_huo / p_sales >= 0.2:
                     warning_status = "1"
-                elif p_sales > 0 and pre_tui_huo/p_sales >= 0.1:
+                elif p_sales > 0 and pre_tui_huo / p_sales >= 0.1:
                     warning_status = "2"
                 else:
                     warning_status = "3"
@@ -351,26 +352,28 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                           "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
                           "p_sales": p_sales, "cost": cost, "agent_price": agent_price, "p_cost": cost * int(p_sales),
                           "p_agent_price": agent_price * int(p_sales), "suppliers": supplier_list,
-                          "pic_path": product_item.pic_path, "sale_contactor": sale_contactor,"tui_huo": pre_tui_huo,
-                          "post_tui_huo":post_tui_huo, "product_category": product_category, "warning_status": warning_status}
+                          "pic_path": product_item.pic_path, "sale_contactor": sale_contactor, "tui_huo": pre_tui_huo,
+                          "post_tui_huo": post_tui_huo, "product_category": product_category,
+                          "warning_status": warning_status}
                 result_list.append(p_dict)
-                
-        DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=result_list)
+
+        DaystatCalcResult.objects.create(calc_key=calc_key, calc_result=result_list)
         return result_list
 
     except Exception, exc:
         raise task_calc_hot_sale.retry(exc=exc)
 
+
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
     """计算滞销商品"""
     try:
-        calc_key = 'task_calc_sale_bad_%s_%s_%s'%(start_time_str, end_time_str, category)
-        
+        calc_key = 'task_calc_sale_bad_%s_%s_%s' % (start_time_str, end_time_str, category)
+
         calc_results = DaystatCalcResult.objects.filter(calc_key=calc_key)
         if calc_results.exists():
             return calc_results[0].calc_result
-        
+
         today = datetime.date.today()
         if start_time_str:
             year, month, day = start_time_str.split('-')
@@ -424,8 +427,8 @@ def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
                           "pic_path": product_item.pic_path, "sale_contactor": sale_contactor,
                           "tui_huo": tui_huo, "product_category": product_category}
                 result_list.append(p_dict)
-                
-        DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=result_list)
+
+        DaystatCalcResult.objects.create(calc_key=calc_key, calc_result=result_list)
         return result_list
 
     except Exception, exc:
@@ -435,13 +438,13 @@ def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
 @task()
 def task_calc_stock_top(start_time_str, end_time_str, limit=100):
     """计算库存多的商品"""
-    
-    calc_key = 'task_calc_stock_top_%s_%s'%(start_time_str, end_time_str)
-        
+
+    calc_key = 'task_calc_stock_top_%s_%s' % (start_time_str, end_time_str)
+
     calc_results = DaystatCalcResult.objects.filter(calc_key=calc_key)
     if calc_results.exists():
         return calc_results[0].calc_result[0:limit]
-    
+
     today = datetime.date.today()
     if start_time_str:
         year, month, day = start_time_str.split('-')
@@ -505,9 +508,10 @@ def task_calc_stock_top(start_time_str, end_time_str, limit=100):
                 product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0)
 
     sale_list = sorted(sale_top.items(), key=lambda d: d[1]['collect_num'], reverse=True)
-    
-    DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=sale_list)
+
+    DaystatCalcResult.objects.create(calc_key=calc_key, calc_result=sale_list)
     return sale_list[0:limit]
+
 
 def get_new_user(user_data, old_user):
     new_user = []
@@ -520,13 +524,13 @@ def get_new_user(user_data, old_user):
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_new_user_repeat(start_date, end_date):
     """计算新用户的重复购买率"""
-    
-    calc_key = 'task_calc_new_user_repeat_%s_%s'%(start_date, end_date)
-    
+
+    calc_key = 'task_calc_new_user_repeat_%s_%s' % (start_date, end_date)
+
     calc_results = DaystatCalcResult.objects.filter(calc_key=calc_key)
     if calc_results.exists():
         return calc_results[0].calc_result
-    
+
     start_month = start_date.month
     end_month = end_date.month
     month_march = "2015-03-01"
@@ -573,11 +577,12 @@ def task_calc_new_user_repeat(start_date, end_date):
                     user_data_list.append(temp_dict)
             result_data_dict["user_data"] = user_data_list
             result_data_list.append(result_data_dict)
-            
-        DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=result_data_list)
+
+        DaystatCalcResult.objects.create(calc_key=calc_key, calc_result=result_data_list)
         return result_data_list
     except Exception, exc:
         raise task_calc_new_user_repeat.retry(exc=exc)
+
 
 from shopback.trades.models import MergeTrade
 
@@ -586,33 +591,33 @@ from shopback.trades.models import MergeTrade
 def task_calc_package(start_date, end_date, old=True):
     """计算包裹数量"""
     try:
-        calc_key = 'task_calc_package_%s_%s'%(start_date, end_date)
-    
+        calc_key = 'task_calc_package_%s_%s' % (start_date, end_date)
+
         calc_results = DaystatCalcResult.objects.filter(calc_key=calc_key)
         if calc_results.exists():
             return calc_results[0].calc_result
-        
-        month_range = year_month_range(start_date,end_date)
+
+        month_range = year_month_range(start_date, end_date)
         result_list = []
         for year, month in month_range:
             month_start_time = datetime.datetime(year, month, 1, 0, 0, 0)
-            month_end_time   = datetime.datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
+            month_end_time = datetime.datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
             total_sale_amount = DailyStat.objects.filter(
-                    day_date__range=(month_start_time ,month_end_time )
-                ).aggregate(
-                    total_sale_amount=Sum('total_payment')
-                ).get('total_sale_amount') or 0
+                day_date__range=(month_start_time, month_end_time)
+            ).aggregate(
+                total_sale_amount=Sum('total_payment')
+            ).get('total_sale_amount') or 0
             total_order_num = DailyStat.objects.filter(
-                    day_date__range=(month_start_time ,month_end_time)
-                ).aggregate(
-                    total_sale_order=Sum('total_order_num')
-                ).get('total_sale_order') or 0
+                day_date__range=(month_start_time, month_end_time)
+            ).aggregate(
+                total_sale_order=Sum('total_order_num')
+            ).get('total_sale_order') or 0
             shoping_stats = StatisticsShopping.objects.filter(
-                shoptime__range=(month_start_time ,month_end_time)
+                shoptime__range=(month_start_time, month_end_time)
             )
             total_sale_num = 0
             sm = {}
-            for shop_stat in shoping_stats.values('shoptime','openid'):
+            for shop_stat in shoping_stats.values('shoptime', 'openid'):
                 tm = shop_stat['shoptime'].strftime('%y-%m－%d')
                 openid = shop_stat['openid']
                 if tm in sm:
@@ -621,33 +626,33 @@ def task_calc_package(start_date, end_date, old=True):
                     sm[tm] = set([openid])
             for s, m in sm.iteritems():
                 total_sale_num += len(m)
-            
+
             total_package_num = MergeTrade.objects.filter(
-                    type__in=("sale", "wx"),
-                    sys_status=u'FINISHED',
-                    weight_time__range=(month_start_time ,month_end_time)
-                ).count()
+                type__in=("sale", "wx"),
+                sys_status=u'FINISHED',
+                weight_time__range=(month_start_time, month_end_time)
+            ).count()
             result_list.append(
-                ('%04d-%02d'%(year,month), total_sale_amount / 100, total_order_num, total_package_num, total_sale_num))
-        
-        DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=result_list)
+                ('%04d-%02d' % (year, month), total_sale_amount / 100, total_order_num, total_package_num,
+                 total_sale_num))
+
+        DaystatCalcResult.objects.create(calc_key=calc_key, calc_result=result_list)
         return result_list
     except Exception, exc:
-        logger.error(exc.message or 'empty',exc_info=True)
+        logger.error(exc.message or 'empty', exc_info=True)
         raise task_calc_package.retry(exc=exc)
-
 
 
 @task(max_retry=1, default_retry_delay=5)
 def task_calc_performance_by_user(start_date, end_date, category="0"):
     """计算买手绩效"""
     try:
-        calc_key = 'task_calc_performance_by_user_%s_%s_%s'%(start_date, end_date, category)
-    
+        calc_key = 'task_calc_performance_by_user_%s_%s_%s' % (start_date, end_date, category)
+
         calc_results = DaystatCalcResult.objects.filter(calc_key=calc_key)
         if calc_results.exists():
             return calc_results[0].calc_result
-        
+
         year, month, day = start_date.split('-')
         start_date_time = datetime.datetime(int(year), int(month), int(day))
         year, month, day = end_date.split('-')
@@ -672,7 +677,7 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
         elif category == "2":
             all_order_data = DailySupplyChainStatsOrder.objects.filter(
                 sale_time__range=(start_date_time, end_date_time)).filter(product_id__startswith='8')
-        #获取商品的销售情况
+        # 获取商品的销售情况
         for one_order_data in all_order_data:
             try:
                 one_product = Product.objects.get(outer_id=one_order_data.product_id)
@@ -688,7 +693,7 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
                             one_data["tui_kuan_money"] += one_order_data.return_num * one_product.agent_price
                 else:
                     result_contactors.add(one_contactor)
-                    
+
                     one_temp_data = {"username": one_contactor,
                                      "all_sale_num": one_order_data.sale_num,
                                      "all_sale_cost": one_order_data.cost_of_product,
@@ -729,8 +734,8 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
                                     "all_sale_money": 0,
                                     "all_tui_kuan": 0,
                                     "tui_kuan_money": 0})
-    
-        DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=result_data)
+
+        DaystatCalcResult.objects.create(calc_key=calc_key, calc_result=result_data)
     except Exception, exc:
         raise task_calc_performance_by_user.retry(exc=exc)
     return result_data
@@ -739,11 +744,12 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
 REFUND_REASON = (u'其他', u'错拍', u'缺货', u'开线/脱色/脱毛/有色差/有虫洞',
                  u'发错货/漏发', u'没有发货', u'未收到货', u'与描述不符', u'退运费', u'发票问题', u'七天无理由退换货')
 
+
 @task(max_retry=1, default_retry_delay=5)
 def task_calc_performance_by_supplier(start_date, end_date, category="0"):
     """计算供应商"""
     try:
-        #获取开始和结束时间
+        # 获取开始和结束时间
         year, month, day = start_date.split('-')
         start_date_time = datetime.datetime(int(year), int(month), int(day))
         year, month, day = end_date.split('-')
@@ -768,7 +774,7 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
         elif category == "2":
             all_order_data = DailySupplyChainStatsOrder.objects.filter(
                 sale_time__range=(start_date_time, end_date_time)).filter(product_id__startswith='8')
-        #获取商品的销售情况
+        # 获取商品的销售情况
         for one_order_data in all_order_data:
             try:
                 one_product = Product.objects.get(outer_id=one_order_data.product_id)
@@ -792,17 +798,17 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                 all_refund = SaleRefund.objects.filter(item_id=one_product.id, created__gte=start_date_time)
                 all_tui_kuan_ceshi = all_refund.count()
                 if one_order_data.order_deal_time > 0 and one_order_data.goods_arrival_time > 0:
-                            fa_huo_num = one_order_data.sale_num
-                            fa_huo_time = (one_order_data.goods_arrival_time - one_order_data.order_deal_time)\
-                                                                                * one_order_data.sale_num
+                    fa_huo_num = one_order_data.sale_num
+                    fa_huo_time = (one_order_data.goods_arrival_time - one_order_data.order_deal_time) \
+                                  * one_order_data.sale_num
                 if one_supplier.id in result_suppliers:
                     for one_data in result_data:
                         if one_data["supplier_id"] == one_supplier.id:
-                            one_data["all_sale_num"] += one_order_data.sale_num  #销售数量
-                            one_data["all_sale_cost"] += one_order_data.cost_of_product #销售成本
-                            one_data["all_sale_money"] += one_order_data.sale_cost_of_product #销售额
-                            one_data["all_tui_kuan"] += one_order_data.return_num #退款数
-                            one_data["tui_kuan_money"] += one_order_data.return_num * one_product.agent_price #退款钱
+                            one_data["all_sale_num"] += one_order_data.sale_num  # 销售数量
+                            one_data["all_sale_cost"] += one_order_data.cost_of_product  # 销售成本
+                            one_data["all_sale_money"] += one_order_data.sale_cost_of_product  # 销售额
+                            one_data["all_tui_kuan"] += one_order_data.return_num  # 退款数
+                            one_data["tui_kuan_money"] += one_order_data.return_num * one_product.agent_price  # 退款钱
                             one_data["fa_huo_num"] += fa_huo_num
                             one_data["fa_huo_time"] += fa_huo_time
                             one_data["all_tui_kuan_ceshi"] += all_tui_kuan_ceshi
@@ -844,11 +850,11 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                                                             status=SaleProduct.SCHEDULE)
             shelf_sale_num = charger_product_shelf.count()
             one_data["shelf_sale_num"] = shelf_sale_num
-            one_data["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
-            fa_huo_time = one_data["fa_huo_time"]/one_data["fa_huo_num"] if one_data["fa_huo_num"] != 0 else 0
+            one_data["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num / choose_sale_num, 2)
+            fa_huo_time = one_data["fa_huo_time"] / one_data["fa_huo_num"] if one_data["fa_huo_num"] != 0 else 0
             one_data["fa_huo_time"] = format_time(fa_huo_time)
-        
-        
+
+
     except Exception, exc:
         raise task_calc_performance_by_supplier.retry(exc=exc)
     return result_data
@@ -884,7 +890,7 @@ def task_calc_performance_by_supplier_back(start_date, end_date, category="0"):
             charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
             shelf_sale_num = charger_product_shelf.count()
             one_temp["shelf_sale_num"] = shelf_sale_num
-            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
+            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num / choose_sale_num, 2)
             all_sale_num = 0
             all_sale_cost = 0
             all_sale_money = 0
@@ -908,8 +914,8 @@ def task_calc_performance_by_supplier_back(start_date, end_date, category="0"):
                         tui_kuan_money += stat_data.return_num * one_kucun_product.agent_price
                         if stat_data.order_deal_time > 0 and stat_data.goods_arrival_time > 0:
                             fa_huo_num += stat_data.sale_num
-                            fa_huo_time += (stat_data.goods_arrival_time - stat_data.order_deal_time)\
-                                                                                * stat_data.sale_num
+                            fa_huo_time += (stat_data.goods_arrival_time - stat_data.order_deal_time) \
+                                           * stat_data.sale_num
                     all_refund = SaleRefund.objects.filter(item_id=one_kucun_product.id, created__gte=start_date_time)
                     all_tui_kuan_ceshi += all_refund.count()
                     for one_reason in REFUND_REASON:
@@ -917,7 +923,7 @@ def task_calc_performance_by_supplier_back(start_date, end_date, category="0"):
                             one_temp["tuo_kuan"][one_reason] += all_refund.filter(reason=one_reason).count()
                         else:
                             one_temp["tuo_kuan"][one_reason] = all_refund.filter(reason=one_reason).count()
-            fa_huo_time = fa_huo_time/fa_huo_num if fa_huo_num != 0 else 0
+            fa_huo_time = fa_huo_time / fa_huo_num if fa_huo_num != 0 else 0
             fa_huo_time = format_time(fa_huo_time)
             one_temp["fa_huo_time"] = fa_huo_time
             one_temp["all_tui_kuan_ceshi"] = all_tui_kuan_ceshi
@@ -951,6 +957,8 @@ def format_time(time_of_long):
 
 
 import collections
+
+
 @task(max_retry=1, default_retry_delay=5)
 def task_calc_sale_product(start_date, end_date, category="0"):
     """计算选品情况"""
@@ -1009,8 +1017,11 @@ def task_calc_sale_product(start_date, end_date, category="0"):
         raise task_calc_sale_product.retry(exc=exc)
     return {"nv_data": nv_data, "child_data": child_data}
 
+
 from django.core.serializers.json import DjangoJSONEncoder
 import json
+
+
 @task(max_retry=1, default_retry_delay=5)
 def task_calc_operate_data(start_date, end_date, category="0"):
     """计算运营数据"""
@@ -1028,7 +1039,7 @@ def task_calc_operate_data(start_date, end_date, category="0"):
         result_data = []
         child_result_data = []
         for i in range(interval_day + 1):
-            target_date = start_date+datetime.timedelta(days=i)
+            target_date = start_date + datetime.timedelta(days=i)
             daily_data = all_data.filter(sale_time=target_date)
             temp_data = []
             for one_data in daily_data:
@@ -1086,4 +1097,3 @@ def get_category(category):
     except:
         p_cat = u'--'
     return p_cat
-

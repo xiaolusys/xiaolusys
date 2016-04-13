@@ -3,11 +3,12 @@ __author__ = 'yann'
 import datetime
 from django.views.generic import View
 from django.contrib.auth.models import User
-from django.shortcuts import  render_to_response
+from django.shortcuts import render_to_response
 from django.template import RequestContext
 from flashsale.xiaolumm.models import XiaoluMama
 from .models import StatisticsShopping, StatisticsShoppingByDay
 from django.http import HttpResponse
+
 
 class StatisticTongJi(View):
     def getUserName(self, uid):
@@ -49,8 +50,10 @@ class StatisticTongJi(View):
                                    "target_date": target_date, "next_day": next_day},
                                   context_instance=RequestContext(request))
 
+
 from flashsale.clickrebeta import tasks
+
+
 def ShengChengAll(req):
     tasks.task_Tongji_All_Order.delay()
     return HttpResponse("OK")
-

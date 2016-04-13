@@ -11,7 +11,6 @@ from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSam
 
 from managers import VipCodeManager
 
-
 SAFE_CODE_SECONDS = 180
 TOKEN_EXPIRED_IN = 15 * 60
 
@@ -35,7 +34,7 @@ class XLInviteCode(BaseModel):
     ### once or multiple times
     max_usage = models.IntegerField(default=0, verbose_name=u'可用次数')
     usage_count = models.IntegerField(default=0, db_index=True, verbose_name=u'已使用')
-    
+
     objects = VipCodeManager()
 
     class Meta:
@@ -44,19 +43,19 @@ class XLInviteCode(BaseModel):
         verbose_name = u'推广/活动邀请码'
         verbose_name_plural = u'推广/活动邀请码列表'
 
+
 class XLInviteCount(BaseModel):
-    
-    customer     = models.OneToOneField(Customer,verbose_name=u'特卖用户')
-    apply_count  = models.IntegerField(default=0, verbose_name=u'申请人数')
+    customer = models.OneToOneField(Customer, verbose_name=u'特卖用户')
+    apply_count = models.IntegerField(default=0, verbose_name=u'申请人数')
     invite_count = models.IntegerField(default=0, verbose_name=u'激活人数')
-    click_count  = models.IntegerField(default=0, verbose_name=u'点击次数')
-    
+    click_count = models.IntegerField(default=0, verbose_name=u'点击次数')
+
     class Meta:
         db_table = 'flashsale_promotion_invitecount'
         app_label = 'promotion'
         verbose_name = u'推广/活动邀请结果'
         verbose_name_plural = u'推广/活动邀请结果列表'
-        
+
 
 class XLReferalRelationship(BaseModel):
     """ 用户邀请引用关系 """
@@ -72,28 +71,30 @@ class XLReferalRelationship(BaseModel):
 
 
 from django.db.models.signals import post_save
-def sampleorder_create_and_update_count(sender,instance,created,*args,**kwargs):
+
+
+def sampleorder_create_and_update_count(sender, instance, created, *args, **kwargs):
     """ 试用订单更新邀请数 """
     if not created:
         return
     xlapply = XLSampleApply.objects.get(id=instance.xlsp_apply)
-    inv_count,state = XLInviteCount.objects.get_or_create(customer_id=xlapply.from_customer)
+    inv_count, state = XLInviteCount.objects.get_or_create(customer_id=xlapply.from_customer)
     inv_count.invite_count = models.F('invite_count') + 1
     inv_count.save()
-     
+
+
 post_save.connect(sampleorder_create_and_update_count, sender=XLSampleOrder)
 
-
-
 from django.db.models.signals import post_save
-def sampleapply_create_and_update_count(sender,instance,created,*args,**kwargs):
+
+
+def sampleapply_create_and_update_count(sender, instance, created, *args, **kwargs):
     """ 试用订单更新邀请数 """
     if not created or not instance.from_customer:
         return
-    inv_count,state = XLInviteCount.objects.get_or_create(customer_id=instance.from_customer)
+    inv_count, state = XLInviteCount.objects.get_or_create(customer_id=instance.from_customer)
     inv_count.apply_count = models.F('apply_count') + 1
     inv_count.save()
-     
+
+
 post_save.connect(sampleapply_create_and_update_count, sender=XLSampleApply)
-
-

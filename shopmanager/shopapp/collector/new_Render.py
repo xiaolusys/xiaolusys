@@ -1,18 +1,18 @@
 import json
 from django.template import RequestContext, loader
 
-#from djangorestframework.utils.mediatypes import get_media_type_params
-from chartit import Chart,PivotChart
-from shopback.base.new_renders    import new_ChartTemplateRenderer
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+# from djangorestframework.utils.mediatypes import get_media_type_params
+from chartit import Chart, PivotChart
+from shopback.base.new_renders import new_ChartTemplateRenderer
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
 from django.core.exceptions import ImproperlyConfigured
 from django.template import Context, RequestContext, loader, Template
 
+
 class SearchRankHTMLRenderer(TemplateHTMLRenderer):
- 
     media_type = 'text/html'
     format = 'chart'
-    template_name ='search_rank_template.html'
+    template_name = 'search_rank_template.html'
     exception_template_names = [
         '%(status_code)s.html',
         'api_exception.html'
@@ -31,7 +31,7 @@ class SearchRankHTMLRenderer(TemplateHTMLRenderer):
         """
         if type(data) is not dict:
             return data
-    
+
         renderer_context = renderer_context or {}
         view = renderer_context['view']
         request = renderer_context['request']
@@ -80,7 +80,6 @@ class SearchRankHTMLRenderer(TemplateHTMLRenderer):
                                        response.status_text.title()))
 
 
-
 class RankChartHtmlRenderer(new_ChartTemplateRenderer):
     """
     Renderer which serializes to JSON
@@ -90,13 +89,11 @@ class RankChartHtmlRenderer(new_ChartTemplateRenderer):
     template = ""
 
 
-
 class KeysChartHtmlRenderer(RankChartHtmlRenderer):
     """
     Renderer which serializes to JSON
     """
     template = "keywords_itemsrank.html"
-
 
 
 class RankPivotChartHtmlRenderer(RankChartHtmlRenderer):
@@ -106,7 +103,6 @@ class RankPivotChartHtmlRenderer(RankChartHtmlRenderer):
     template = "keywords_rankstatistic.html"
 
 
-
 class AvgRankPivotChartHtmlRenderer(RankChartHtmlRenderer):
     """
     Renderer which serializes to JSON
@@ -114,13 +110,11 @@ class AvgRankPivotChartHtmlRenderer(RankChartHtmlRenderer):
     template = "keywords_itemsrank.html"
 
 
-
 class TradePivotChartHtmlRenderer(RankChartHtmlRenderer):
     """
     Renderer which serializes to JSON
     """
     template = ""
-
 
 
 class TradeTopChartHtmlRenderer(RankChartHtmlRenderer):

@@ -6,7 +6,6 @@ from shopback.categorys.models import ProductCategory
 
 
 class RebetaSchemaCache(cacheable.LocalCacheable):
-
     def __init__(self):
         super(RebetaSchemaCache, self).__init__()
 

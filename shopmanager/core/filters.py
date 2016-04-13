@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 import datetime
 
 from django.db import models
@@ -7,6 +7,7 @@ from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.contrib.admin import SimpleListFilter, FieldListFilter
+
 
 class DateScheduleFilter(FieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):
@@ -26,10 +27,10 @@ class DateScheduleFilter(FieldListFilter):
 
         if isinstance(field, models.DateTimeField):
             today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        else:       # field is a models.DateField
+        else:  # field is a models.DateField
             today = now.date()
         tomorrow = today + datetime.timedelta(days=1)
-        
+
         self.lookup_kwarg_since = '%s__gte' % field_path
         self.lookup_kwarg_until = '%s__lt' % field_path
         self.links = (
@@ -58,7 +59,7 @@ class DateScheduleFilter(FieldListFilter):
                 self.lookup_kwarg_since: str(today + datetime.timedelta(days=1)),
                 self.lookup_kwarg_until: str(today + datetime.timedelta(days=31)),
             }),
-           (_(u'未来两月'), {
+            (_(u'未来两月'), {
                 self.lookup_kwarg_since: str(today + datetime.timedelta(days=1)),
                 self.lookup_kwarg_until: str(today + datetime.timedelta(days=61)),
             }),
@@ -74,12 +75,14 @@ class DateScheduleFilter(FieldListFilter):
             yield {
                 'selected': self.date_params == param_dict,
                 'query_string': cl.get_query_string(
-                                    param_dict, [self.field_generic]),
+                    param_dict, [self.field_generic]),
                 'display': title,
             }
 
+
 FieldListFilter.register(
     lambda f: isinstance(f, models.DateField), DateScheduleFilter)
+
 
 class DateFieldListFilter(FieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):
@@ -99,13 +102,13 @@ class DateFieldListFilter(FieldListFilter):
 
         if isinstance(field, models.DateTimeField):
             today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        else:       # field is a models.DateField
+        else:  # field is a models.DateField
             today = now.date()
-        yesterday  = today - datetime.timedelta(days=1)
+        yesterday = today - datetime.timedelta(days=1)
         before_yesterday = today - datetime.timedelta(days=2)
         tomorrow = today + datetime.timedelta(days=1)
-        last_month = today.month-1
-        
+        last_month = today.month - 1
+
         self.lookup_kwarg_since = '%s__gte' % field_path
         self.lookup_kwarg_until = '%s__lt' % field_path
         self.links = (
@@ -131,8 +134,9 @@ class DateFieldListFilter(FieldListFilter):
                 self.lookup_kwarg_until: str(tomorrow),
             }),
             (_(u'过去一月'), {
-                self.lookup_kwarg_since: str(datetime.date(last_month and today.year or today.year -1,last_month or 12,1)),
-                self.lookup_kwarg_until: str(datetime.date(today.year ,today.month ,1)),
+                self.lookup_kwarg_since: str(
+                    datetime.date(last_month and today.year or today.year - 1, last_month or 12, 1)),
+                self.lookup_kwarg_until: str(datetime.date(today.year, today.month, 1)),
             }),
             (_(u'本年'), {
                 self.lookup_kwarg_since: str(today.replace(month=1, day=1)),
@@ -150,12 +154,10 @@ class DateFieldListFilter(FieldListFilter):
             yield {
                 'selected': self.date_params == param_dict,
                 'query_string': cl.get_query_string(
-                                    param_dict, [self.field_generic]),
+                    param_dict, [self.field_generic]),
                 'display': title,
             }
 
+
 FieldListFilter.register(
     lambda f: isinstance(f, models.DateField), DateFieldListFilter)
-
-    
-    

@@ -2,6 +2,7 @@
 
 from django import forms
 
+
 class FormAttrs(object):
     pass
 

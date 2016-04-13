@@ -97,4 +97,3 @@ def task_category_collect_num(days=15):
             collect_amount += psku.collect_amount
         cgysta.collect_amount = collect_amount
         update_model_fields(cgysta, update_fields=['collect_num', "collect_amount"])
-

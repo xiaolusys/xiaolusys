@@ -4,9 +4,8 @@ from django.views.decorators.cache import cache_page
 
 from rest_framework.urlpatterns import format_suffix_patterns
 
-
-from .import views
+from . import views
 
 urlpatterns = patterns('',
-    url(r'^awards/',views.LuckyAwardView.as_view(),name="lucky-awards"),
-)
+                       url(r'^awards/', views.LuckyAwardView.as_view(), name="lucky-awards"),
+                       )

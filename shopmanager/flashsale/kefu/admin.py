@@ -14,8 +14,6 @@ class KefuPerformanceAdmin(admin.ModelAdmin):
         if not request.user.is_superuser:
             return self.readonly_fields + ('kefu_id', 'kefu_name', 'operation', 'trade_id', 'operate_time')
         return self.readonly_fields
+
+
 admin.site.register(KefuPerformance, KefuPerformanceAdmin)
-
-
-
-

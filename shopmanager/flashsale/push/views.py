@@ -83,9 +83,9 @@ class PushViewSet(viewsets.ModelViewSet):
 
         # 获取用户会员信息
         sql = (
-            'select x.agencylevel from flashsale_customer c, xiaolumm_xiaolumama x where c.id=%d'
-            ' and c.unionid=x.openid;'
-        ) % customer.id
+                  'select x.agencylevel from flashsale_customer c, xiaolumm_xiaolumama x where c.id=%d'
+                  ' and c.unionid=x.openid;'
+              ) % customer.id
         cursor = connection.cursor()
         cursor.execute(sql)
         row = cursor.fetchone()

@@ -1,5 +1,5 @@
 # coding=utf-8
-#__author__ = 'linjie'
+# __author__ = 'linjie'
 from .models import Product
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
@@ -7,6 +7,7 @@ from django.template import RequestContext
 from django.http import HttpResponse
 import datetime
 from core.options import log_action, CHANGE
+
 
 @csrf_exempt
 @transaction.atomic
@@ -30,6 +31,3 @@ def change_Sale_Time(request):
 
     else:
         return HttpResponse('false')
-
-
-

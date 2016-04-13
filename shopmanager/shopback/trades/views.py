@@ -23,13 +23,13 @@ from shopback.items.models import Product, ProductSku, ProductDaySale
 from shopback.logistics import getLogisticTrace
 from shopback.logistics.models import LogisticsCompany
 
-from shopback.items.models import Product,ProductSku,ProductDaySale
+from shopback.items.models import Product, ProductSku, ProductDaySale
 from core.options import log_action, ADDITION, CHANGE
 
 from shopapp.memorule import ruleMatchSplit
 from shopback.refunds.models import REFUND_STATUS, Refund
 from shopback.signals import rule_signal, change_addr_signal
-from shopback.trades.models import (MergeTrade, MergeOrder, DirtyMergeOrder,PackageOrder,
+from shopback.trades.models import (MergeTrade, MergeOrder, DirtyMergeOrder, PackageOrder,
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
@@ -88,8 +88,8 @@ class OutStockOrderProductView(APIView):
                                           'quality': prod_sku.quantity
                                           if prod_sku else 0,
                                           'wait_post_num':
-                                          prod_sku.wait_post_num if prod_sku
-                                          else 0}
+                                              prod_sku.wait_post_num if prod_sku
+                                              else 0}
             else:
                 prod = None
                 try:
@@ -134,7 +134,7 @@ class OutStockOrderProductView(APIView):
 
 class StatisticMergeOrderView(APIView):
     """ docstring for class StatisticsMergeOrderView """
-    #serializer_class = serializers. ItemListTaskSerializer
+    # serializer_class = serializers. ItemListTaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,
                               authentication.BasicAuthentication,)
@@ -174,10 +174,10 @@ class StatisticMergeOrderView(APIView):
                         p_outer_id='',
                         empty_code=False):
 
-        order_qs  = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
-                            .exclude(merge_trade__type=pcfg.REISSUE_TYPE)\
-                            .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE)\
-                            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+        order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
+            .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
+            .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
+            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
         if shop_id:
             order_qs = order_qs.filter(merge_trade__user=shop_id)
 
@@ -199,17 +199,17 @@ class StatisticMergeOrderView(APIView):
                 merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,
                 merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
         else:
-            order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
-                .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
-                .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,merge_trade__is_express_print=False)
+            order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
+                .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
+                .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
 
         if empty_code:
             order_qs = order_qs.filter(outer_id='')
             return order_qs
 
         if is_sale:
-            order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
-                .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
+            order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
+                .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
 
         if p_outer_id:
             order_qs = order_qs.filter(outer_id__startswith=p_outer_id)
@@ -221,7 +221,7 @@ class StatisticMergeOrderView(APIView):
         trade_ids = [t[0] for t in order_qs.values_list('merge_trade__id')]
 
         return set(trade_ids)
-        #return MergeTrade.objects.filter(id__in=trade_ids)
+        # return MergeTrade.objects.filter(id__in=trade_ids)
 
     def getEffectOrdersId(self, order_qs):
 
@@ -272,16 +272,16 @@ class StatisticMergeOrderView(APIView):
                 if skus.has_key(outer_sku_id):
                     skus[outer_sku_id]['num'] += order_num
                     skus[outer_sku_id]['cost'] += skus[outer_sku_id][
-                        'std_purchase_price'] * order_num
+                                                      'std_purchase_price'] * order_num
                     skus[outer_sku_id]['sales'] += payment
-                    #累加商品成本跟销售额
+                    # 累加商品成本跟销售额
                     trade_items[outer_id]['cost'] += skus[outer_sku_id][
-                        'std_purchase_price'] * order_num
+                                                         'std_purchase_price'] * order_num
                     trade_items[outer_id]['sales'] += payment
                 else:
                     prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
                     purchase_price = float(prod_sku.cost) if prod_sku else 0
-                    #累加商品成本跟销售额
+                    # 累加商品成本跟销售额
                     trade_items[outer_id]['cost'] += purchase_price * order_num
                     trade_items[outer_id]['sales'] += payment
 
@@ -350,9 +350,9 @@ class StatisticMergeOrderView(APIView):
 
         effect_oids = self.getEffectOrdersId(order_qs)
 
-        return Refund.objects.filter(oid__in=effect_oids,status__in=(
-                    pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
-                    .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
+        return Refund.objects.filter(oid__in=effect_oids, status__in=(
+            pcfg.REFUND_WAIT_SELLER_AGREE, pcfg.REFUND_CONFIRM_GOODS, pcfg.REFUND_SUCCESS)) \
+                   .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
 
     def responseCSVFile(self, request, order_items):
 
@@ -390,7 +390,7 @@ class StatisticMergeOrderView(APIView):
 
         response[
             'Content-Disposition'] = 'attachment;filename=wx-sale-%s.csv' % dt.strftime(
-                "%Y%m%d%H")
+            "%Y%m%d%H")
 
         return response
 
@@ -448,23 +448,23 @@ class StatisticMergeOrderView(APIView):
 
         return Response(
             {"object":
-             {'df': format_datetime(start_dt),
-              'dt': format_datetime(end_dt),
-              'sc_by': sc_by,
-              'is_sale': is_sale,
-              'outer_id': p_outer_id,
-              'wait_send': wait_send,
-              'shops': shopers,
-              'trade_items': trade_list,
-              'empty_order_count': empty_order_count,
-              'shop_id': shop_id and int(shop_id) or '',
-              'total_cost': total_cost and round(total_cost, 2) or 0,
-              'total_sales': total_sales and round(total_sales, 2) or 0,
-              'total_num': total_num,
-              'refund_fees': refund_fees and round(refund_fees, 2) or 0,
-              'buyer_nums': buyer_nums,
-              'trade_nums': trade_nums,
-              'post_fees': total_post_fee}})
+                 {'df': format_datetime(start_dt),
+                  'dt': format_datetime(end_dt),
+                  'sc_by': sc_by,
+                  'is_sale': is_sale,
+                  'outer_id': p_outer_id,
+                  'wait_send': wait_send,
+                  'shops': shopers,
+                  'trade_items': trade_list,
+                  'empty_order_count': empty_order_count,
+                  'shop_id': shop_id and int(shop_id) or '',
+                  'total_cost': total_cost and round(total_cost, 2) or 0,
+                  'total_sales': total_sales and round(total_sales, 2) or 0,
+                  'total_num': total_num,
+                  'refund_fees': refund_fees and round(refund_fees, 2) or 0,
+                  'buyer_nums': buyer_nums,
+                  'trade_nums': trade_nums,
+                  'post_fees': total_post_fee}})
 
     post = get
 
@@ -542,12 +542,12 @@ class CheckOrderView(APIView):
         # print "进入get"
         try:
             trade = MergeTrade.objects.get(id=id)
-            #print trade.inuse_orders
+            # print trade.inuse_orders
         except MergeTrade.DoesNotExist:
             return Response('该订单不存在'.decode('utf8'))
 
-        #rule_signal.send(sender='payment_rule',trade_id=trade.id)
-        #logistics = LogisticsCompany.objects.filter(status=True)
+        # rule_signal.send(sender='payment_rule',trade_id=trade.id)
+        # logistics = LogisticsCompany.objects.filter(status=True)
         logistics = serializers.LogisticsCompanySerializer(
             LogisticsCompany.objects.filter(status=True),
             many=True).data
@@ -557,7 +557,7 @@ class CheckOrderView(APIView):
         trade_dict.update(
             {'id': trade.id,
              'seller_nick': trade.user.nick,
-             #'used_orders':trade.inuse_orders,   2015-7-25
+             # 'used_orders':trade.inuse_orders,   2015-7-25
              'used_orders': serializers.MergeOrderSerializer(trade.inuse_orders,
                                                              many=True).data,
              'total_num': order_nums,
@@ -576,7 +576,7 @@ class CheckOrderView(APIView):
              'ware_list': MergeTrade.WARE_CHOICES})
         return Response({"object": {'trade': trade_dict,
                                     'logistics': logistics}})
-        #'shippings33':dict(SHIPPING_TYPE_CHOICE)  }
+        # 'shippings33':dict(SHIPPING_TYPE_CHOICE)  }
 
     def post(self, request, id, *args, **kwargs):
         user_id = request.user.id
@@ -643,9 +643,9 @@ class CheckOrderView(APIView):
                         trade.sys_status = pcfg.FINISHED_STATUS
                         trade.status = pcfg.TRADE_FINISHED
                         trade.consign_time = datetime.datetime.now()
-                        #更新退换货库存
+                        # 更新退换货库存
                         trade.update_inventory()
-                    #订单需物流
+                    # 订单需物流
                     else:
                         trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
                         trade.status = pcfg.WAIT_SELLER_SEND_GOODS
@@ -663,9 +663,9 @@ class CheckOrderView(APIView):
                     trade.sys_status = pcfg.FINISHED_STATUS
                     trade.status = pcfg.TRADE_FINISHED
                     trade.consign_time = datetime.datetime.now()
-                    #更新库存
+                    # 更新库存
                     trade.update_inventory()
-                #订单需物流
+                # 订单需物流
                 else:
                     trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
                     trade.status = pcfg.WAIT_SELLER_SEND_GOODS
@@ -755,11 +755,11 @@ class OrderPlusView(APIView):
 
     def post(self, request, *args, **kwargs):
         CONTENT = request.REQUEST
-        #print "post搜索条件",CONTENT.get('trade_id')
+        # print "post搜索条件",CONTENT.get('trade_id')
         user_id = request.user.id
         #  trade_id = request.POST.get('trade_id')
         trade_id = CONTENT.get('trade_id')
-        #outer_id = request.POST.get('outer_id')
+        # outer_id = request.POST.get('outer_id')
         outer_id = CONTENT.get('outer_id')
         # outer_sku_id = request.POST.get('outer_sku_id')
         outer_sku_id = CONTENT.get('outer_sku_id')
@@ -802,22 +802,21 @@ class OrderPlusView(APIView):
             gift_type=type,
             status=pcfg.WAIT_BUYER_CONFIRM_GOODS,
             is_reverse=is_reverse_order)
-        #组合拆分
+        # 组合拆分
         ruleMatchSplit(merge_trade)
         Product.objects.updateWaitPostNumByCode(
             merge_order.outer_id, merge_order.outer_sku_id, merge_order.num)
         log_action(user_id, merge_trade, ADDITION,
                    u'添加子订单(%d)' % merge_order.id)
-        #print merge_order
+        # print merge_order
         return Response(serializers.MergeOrderSerializer(merge_order).data)
 
 
 def change_trade_addr(request):
-
     user_id = request.user.id
-    #print "用户",user_id
+    # print "用户",user_id
     CONTENT = request.REQUEST
-    #print "参数是",CONTENT.get('receiver_name')
+    # print "参数是",CONTENT.get('receiver_name')
     trade_id = CONTENT.get('trade_id')
     try:
         trade = MergeTrade.objects.get(id=trade_id)
@@ -835,11 +834,11 @@ def change_trade_addr(request):
         if trade.type in (pcfg.TAOBAO_TYPE,
                           pcfg.FENXIAO_TYPE,
                           pcfg.GUARANTEE_TYPE) \
-            and trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,
-                                     pcfg.WAIT_CHECK_BARCODE_STATUS,
-                                     pcfg.WAIT_SCAN_WEIGHT_STATUS):
+                and trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,
+                                         pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                         pcfg.WAIT_SCAN_WEIGHT_STATUS):
             apis.taobao_trade_shippingaddress_update(
-                #tid=trade.tid,
+                # tid=trade.tid,
                 receiver_name=trade.receiver_name,
                 receiver_phone=trade.receiver_phone,
                 receiver_mobile=trade.receiver_mobile,
@@ -848,12 +847,12 @@ def change_trade_addr(request):
                 receiver_district=trade.receiver_district,
                 receiver_address=trade.receiver_address,
                 receiver_zip=trade.receiver_zip,
-                #tb_user_id=trade.user.visitor_id
+                # tb_user_id=trade.user.visitor_id
             )
     except Exception, exc:
         logger.debug(u'订单地址更新失败：%s' % exc.message)
 
-    #通知其他APP，订单地址已修改
+    # 通知其他APP，订单地址已修改
     change_addr_signal.send(sender=MergeTrade, tid=trade.id)
 
     trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
@@ -870,7 +869,6 @@ def change_trade_addr(request):
 
 
 def change_trade_order(request, id):
-
     user_id = request.user.id
     CONTENT = request.REQUEST
     outer_sku_id = CONTENT.get('outer_sku_id')
@@ -950,7 +948,6 @@ def change_trade_order(request, id):
 
 
 def delete_trade_order(request, id):
-
     user_id = request.user.id
     try:
         merge_order = MergeOrder.objects.get(id=id, sys_status=pcfg.IN_EFFECT)
@@ -958,7 +955,6 @@ def delete_trade_order(request, id):
         is_reverse_order = False
         if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                       pcfg.WAIT_SCAN_WEIGHT_STATUS):
-
             merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
             is_reverse_order = True
 
@@ -1000,7 +996,7 @@ def delete_trade_order(request, id):
 ############################### 订单复审 #################################
 class ReviewOrderView(APIView):
     """ docstring for class ReviewOrderView """
-    #serializer_class = serializers. ItemListTaskSerializer
+    # serializer_class = serializers. ItemListTaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,
                               authentication.BasicAuthentication,)
@@ -1031,9 +1027,9 @@ class ReviewOrderView(APIView):
                  many=True).data,  # trade.inuse_orders,
              'order_nums': order_nums,
              'logistics_company': serializers.LogisticsCompanySerializer(
-                 trade.logistics_company).data,  #trade.logistics_company,
+                 trade.logistics_company).data,  # trade.logistics_company,
              'can_review_status': trade.sys_status in
-             pcfg.WAIT_SCAN_CHECK_WEIGHT,
+                                  pcfg.WAIT_SCAN_CHECK_WEIGHT,
              'out_of_logistic': trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
              'has_rule_match': (trade.has_rule_match and trade.has_reason_code(
                  pcfg.RULE_MATCH_CODE)),
@@ -1054,13 +1050,13 @@ class ReviewOrderView(APIView):
              'wait_merge': trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),})
         print serializers.MergeOrderSerializer(trade.inuse_orders,
                                                many=True).data
-        #print trade_dict
+        # print trade_dict
         return Response({"object": {'trade': trade_dict,
                                     'logistics': logistics}})
 
 
 def review_order(request, id):
-    #仓库订单复审
+    # 仓库订单复审
     user_id = request.user.id
     try:
         merge_trade = MergeTrade.objects.get(id=id)
@@ -1071,7 +1067,7 @@ def review_order(request, id):
             content_type="application/json")
 
     if not merge_trade.can_review and merge_trade.sys_status \
-        not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+            not in (pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS):
         return HttpResponse(
             json.dumps({'code': 1,
                         'response_error': u'该订单不能复审'}),
@@ -1086,7 +1082,6 @@ def review_order(request, id):
 
 
 def change_order_stock_status(request, id):
-
     content = request.REQUEST
     out_stock = content.get('out_stock', '0')
     user_id = request.user.id
@@ -1123,7 +1118,6 @@ def change_order_stock_status(request, id):
 
 
 def change_logistic_and_outsid(request):
-
     user_id = request.user.id
     CONTENT = request.REQUEST
     trade_id = CONTENT.get('trade_id')
@@ -1155,14 +1149,14 @@ def change_logistic_and_outsid(request):
 
             try:
                 if not is_qrcode and merge_trade.consign_time and (
-                        dt - merge_trade.consign_time).days < 1:
+                            dt - merge_trade.consign_time).days < 1:
                     response = apis.taobao_logistics_consign_resend(
                         tid=merge_trade.tid,
                         out_sid=out_sid,
                         company_code=real_logistic_code,
                         tb_user_id=merge_trade.user.visitor_id)
                     if not response['logistics_consign_resend_response'][
-                            'shipping']['is_success']:
+                        'shipping']['is_success']:
                         raise Exception(u'重发失败')
             except Exception, exc:
                 dt = datetime.datetime.now()
@@ -1179,7 +1173,7 @@ def change_logistic_and_outsid(request):
         elif merge_trade.sys_status == pcfg.FINISHED_STATUS:
             try:
                 if not is_qrcode and merge_trade.consign_time and (
-                        dt - merge_trade.consign_time).days < 1:
+                            dt - merge_trade.consign_time).days < 1:
                     apis.taobao_logistics_consign_resend(
                         tid=merge_trade.tid,
                         out_sid=out_sid,
@@ -1214,7 +1208,7 @@ def change_logistic_and_outsid(request):
 class ExchangeOrderView(APIView):
     """ docstring for class ExchangeOrderView """
     permission_classes = (permissions.IsAuthenticated,)
-    #authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    # authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ExchangeOrderRender, new_BaseJSONRenderer,
                         BrowsableAPIRenderer)
 
@@ -1273,14 +1267,14 @@ class ExchangeOrderInstanceView(APIView):
     def get(self, request, id, *args, **kwargs):
 
         merge_trade = MergeTrade.objects.get(id=id)
-        #print merge_trade.user,serializers.MergeTradeSerializer(merge_trade).data['user']
+        # print merge_trade.user,serializers.MergeTradeSerializer(merge_trade).data['user']
         #         return  Response({ 'object':{'trade':merge_trade,
         #                 'sellers':User.objects.all()}})
         return Response(
             {'object':
-             {'trade': serializers.MergeTradeSerializer(merge_trade).data,
-              'sellers': serializers.UserSerializer(User.objects.all(),
-                                                    many=True).data}})
+                 {'trade': serializers.MergeTradeSerializer(merge_trade).data,
+                  'sellers': serializers.UserSerializer(User.objects.all(),
+                                                        many=True).data}})
 
     def post(self, request, id, *args, **kwargs):
 
@@ -1307,10 +1301,10 @@ class ExchangeOrderInstanceView(APIView):
 
         return Response(
             {'object':
-             {'trade': serializers.MergeTradeSerializer(merge_trade).data,
-              'type': merge_trade.type,
-              'sellers': serializers.UserSerializer(User.objects.all(),
-                                                    many=True).data}})
+                 {'trade': serializers.MergeTradeSerializer(merge_trade).data,
+                  'type': merge_trade.type,
+                  'sellers': serializers.UserSerializer(User.objects.all(),
+                                                        many=True).data}})
 
 
 ############################### 内售订单 #################################
@@ -1425,14 +1419,13 @@ class DirectOrderInstanceView(APIView):
         #                 'sellers':User.objects.all()}
         return Response(
             {'object':
-             {'trade': serializers.MergeTradeSerializer(merge_trade).data,
-              'trade_type': merge_trade.type,
-              'sellers': serializers.UserSerializer(User.objects.all(),
-                                                    many=True).data}})
+                 {'trade': serializers.MergeTradeSerializer(merge_trade).data,
+                  'trade_type': merge_trade.type,
+                  'sellers': serializers.UserSerializer(User.objects.all(),
+                                                        many=True).data}})
 
 
 def update_sys_memo(request):
-
     user_id = request.user.id
     content = request.REQUEST
     trade_id = content.get('trade_id', '')
@@ -1448,8 +1441,8 @@ def update_sys_memo(request):
         merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
         merge_trade.sys_memo = sys_memo
         merge_trade.save()
-        MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
-            .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
+        MergeTrade.objects.filter(id=merge_trade.id, sys_status=pcfg.WAIT_PREPARE_SEND_STATUS, out_sid='') \
+            .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         log_action(user_id, merge_trade, CHANGE, u'系统备注:%s' % sys_memo)
         return HttpResponse(
             json.dumps({'code': 0,
@@ -1458,7 +1451,6 @@ def update_sys_memo(request):
 
 
 def regular_trade(request, id):
-
     regular_days = request.REQUEST.get('days', '1')
     if not regular_days.isdigit() or int(regular_days) <= 0:
         return HttpResponse(
@@ -1494,7 +1486,6 @@ def regular_trade(request, id):
 
 
 def replay_trade_send_result(request, id):
-
     try:
         replay_trade = ReplayPostTrade.objects.get(id=id)
     except:
@@ -1669,6 +1660,7 @@ class OrderListView(APIView):
 
         return Response({"object": {'order_list': order_list}})
 
+
 ############################### 关联销售商品 #################################
 
 
@@ -1708,8 +1700,8 @@ class RelatedOrderStateView(APIView):
                 outer_id=outer_id,
                 created__gte=start_dt,
                 created__lte=end_dt).exclude(
-                    status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,
-                                pcfg.WAIT_BUYER_PAY, pcfg.TRADE_CLOSED))
+                status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,
+                            pcfg.WAIT_BUYER_PAY, pcfg.TRADE_CLOSED))
             if outer_sku_ids:
                 sku_ids = outer_sku_ids.split(',')
                 merge_orders = merge_orders.filter(outer_sku_id__in=sku_ids)
@@ -1727,8 +1719,8 @@ class RelatedOrderStateView(APIView):
                         is_merge=False,
                         created__gte=start_dt,
                         created__lte=end_dt).exclude(
-                            status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,
-                                        pcfg.WAIT_BUYER_PAY, pcfg.TRADE_CLOSED))
+                        status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,
+                                    pcfg.WAIT_BUYER_PAY, pcfg.TRADE_CLOSED))
                     for o in relat_orders:
                         relat_outer_id = o.outer_id
                         if relative_orders_dict.has_key(relat_outer_id):
@@ -1736,11 +1728,11 @@ class RelatedOrderStateView(APIView):
                                 'cnum'] += o.num
                         else:
                             relative_orders_dict[relat_outer_id] = {'pic_path':
-                                                                    o.pic_path,
+                                                                        o.pic_path,
                                                                     'title':
-                                                                    o.title,
+                                                                        o.title,
                                                                     'cnum':
-                                                                    o.num}
+                                                                        o.num}
                 else:
                     buyer_set.add(receiver_mobile)
 
@@ -1775,7 +1767,7 @@ class RelatedOrderStateView(APIView):
 ############################### 订单物流信息列表 #################################
 class TradeLogisticView(APIView):
     """ docstring for class TradeLogisticView """
-    #serializer_class = serializers.ProductSerializer
+    # serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,
                               authentication.BasicAuthentication,)
@@ -1829,12 +1821,12 @@ class TradeLogisticView(APIView):
             SH_count = queryset.filter(receiver_state=u'上海').count()
             JZA_weight = queryset.filter(
                 receiver_state__in=(u'江苏省', u'浙江省', u'安徽省')).aggregate(
-                    wt=Sum('weight')).get('wt')
+                wt=Sum('weight')).get('wt')
             JZA_count = queryset.filter(
                 receiver_state__in=(u'江苏省', u'浙江省', u'安徽省')).count()
             OTHER_weight = queryset.exclude(
                 receiver_state__in=(u'上海', '江苏省', u'浙江省', u'安徽省')).aggregate(
-                    wt=Sum('weight')).get('wt')
+                wt=Sum('weight')).get('wt')
             OTHER_count = queryset.exclude(
                 receiver_state__in=(u'上海', '江苏省', u'浙江省', u'安徽省')).count()
 
@@ -1859,7 +1851,7 @@ def calFenxiaoInterval(fdt, tdt):
                                         pay_time__lte=tdt,
                                         type=pcfg.FENXIAO_TYPE,
                                         sys_status=pcfg.FINISHED_STATUS)
-    #buyer_nick elf,
+    # buyer_nick elf,
     for f in fenxiao:
 
         buyer_nick = f.buyer_nick
@@ -1879,7 +1871,6 @@ def calFenxiaoInterval(fdt, tdt):
 
 
 def countFenxiaoAcount(request):
-
     content = request.POST
     fromDate = content.get('fromDate')
     toDate = content.get('endDate')
@@ -1913,7 +1904,6 @@ def showFenxiaoDateilFilter(fenxiao, fdt, tdt):
 
 
 def showFenxiaoDetail(request):
-
     content = request.GET
     fenxiao = content.get('fenxiao')
 
@@ -1963,11 +1953,10 @@ def showFenxiaoDetail(request):
         payment.append(c.payment)
 
     for i, v in enumerate(tid):
-
         fenxiao_render_data.append((buyer_nick[i], tid[i], receiver_name[
             i], receiver_mobile[i], receiver_state[i], receiver_city[
-                i], receiver_district[i], receiver_address[i], payment[i], iid[
-                    i]))
+                                        i], receiver_district[i], receiver_address[i], payment[i], iid[
+                                        i]))
 
     return render_to_response('trades/trade_fenxiao_detail.html',
                               {'FenxiaoDateil': FenxiaoDateil,
@@ -1984,19 +1973,19 @@ class ImprovePriorityView(APIView):
     renderer_classes = (new_BaseJSONRenderer, BrowsableAPIRenderer)
 
     def post(self, request, id, *args, **kwargs):
-
         row = MergeTrade.objects.filter(id=id).update(
             priority=pcfg.PRIORITY_HIG)
 
         return Response({'success': row > 0})
 
+
 ########################## 提升订单优先级 ###########################
 
 
-#fang  将django中的方法提取出来
-#获取订单备注，几乎是自己重新写的方法   2015-7-29
+# fang  将django中的方法提取出来
+# 获取订单备注，几乎是自己重新写的方法   2015-7-29
 class InstanceModelView_new(APIView):
-    #print "zheli"
+    # print "zheli"
     serializer_class = serializers.MergeTradeSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -2008,7 +1997,7 @@ class InstanceModelView_new(APIView):
         # print "zheli44",id
         trade = MergeTrade.objects.get(id=id)
         serializer = serializers.MergeTradeSerializer(trade).data
-        #return Response({"example":"get__function"})
+        # return Response({"example":"get__function"})
         return Response(serializer)
 
 
@@ -2118,9 +2107,11 @@ class PackageScanCheckView(APIView):
 
         return Response({'isSuccess': True})
 
+
 from core.options import SYSTEMOA_USER
 from flashsale.dinghuo.tasks import task_stats_paytopack
 from shopback.trades.tasks import uploadTradeLogisticsTask
+
 
 ########################## 订单重量入库 ###########################
 class PackageScanWeightView(APIView):
@@ -2212,7 +2203,7 @@ class PackageScanWeightView(APIView):
         mt.weight_time = datetime.datetime.now()
         mt.weighter = request.user.username
         mt.save()
-        #上传单号
+        # 上传单号
         uploadTradeLogisticsTask.delay(mt.id, SYSTEMOA_USER.id)
         log_action(mt.user.user.id, mt, CHANGE, u'扫描称重')
 
@@ -2323,16 +2314,16 @@ class SaleMergeOrderListView(APIView):
                 if skus.has_key(outer_sku_id):
                     skus[outer_sku_id]['num'] += order_num
                     skus[outer_sku_id]['cost'] += skus[outer_sku_id][
-                        'std_purchase_price'] * order_num
+                                                      'std_purchase_price'] * order_num
                     skus[outer_sku_id]['sales'] += payment
-                    #累加商品成本跟销售额
+                    # 累加商品成本跟销售额
                     trade_items[outer_id]['cost'] += skus[outer_sku_id][
-                        'std_purchase_price'] * order_num
+                                                         'std_purchase_price'] * order_num
                     trade_items[outer_id]['sales'] += payment
                 else:
                     prod_sku_name = prod_sku.name if prod_sku else order_sku_name
                     purchase_price = float(prod_sku.cost) if prod_sku else 0
-                    #累加商品成本跟销售额
+                    # 累加商品成本跟销售额
                     trade_items[outer_id]['cost'] += purchase_price * order_num
                     trade_items[outer_id]['sales'] += payment
 
@@ -2392,11 +2383,12 @@ class SaleMergeOrderListView(APIView):
     def getTotalRefundFee(self, order_qs):
 
         return 0
-#         effect_oids = self.getEffectOrdersId(order_qs)
 
-#         return Refund.objects.filter(oid__in=effect_oids,status__in=(
-#                     pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
-#                     .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
+    #         effect_oids = self.getEffectOrdersId(order_qs)
+
+    #         return Refund.objects.filter(oid__in=effect_oids,status__in=(
+    #                     pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
+    #                     .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
 
     def responseCSVFile(self, request, order_items):
 
@@ -2434,7 +2426,7 @@ class SaleMergeOrderListView(APIView):
 
         response[
             'Content-Disposition'] = 'attachment;filename=wx-sale-%s.csv' % dt.strftime(
-                "%Y%m%d%H")
+            "%Y%m%d%H")
 
         return response
 
@@ -2509,16 +2501,16 @@ def detail(request):
 def detail22(request):
     today = datetime.datetime.utcnow()
     # startcount=MergeTrade.objects.all().count()
-    #startcount=
+    # startcount=
     print '开始'
-    #trade_info=MergeTrade.objects.raw('SELECT id,tid FROM shop_trades_mergetrade where id=75225 ')
+    # trade_info=MergeTrade.objects.raw('SELECT id,tid FROM shop_trades_mergetrade where id=75225 ')
     trade_info = MergeTrade.objects.raw(
         'SELECT id,count(*) as nuee  from shop_trades_mergetrade')
     print trade_info[0].tid
-    #endcount=startcount-10
+    # endcount=startcount-10
     # print endcount
-    #trade_info=MergeTrade.objects.filter(id__gte=endcount)
-    #trade_info=MergeTrade.objects.all().order_by('-created')[0:100]
+    # trade_info=MergeTrade.objects.filter(id__gte=endcount)
+    # trade_info=MergeTrade.objects.all().order_by('-created')[0:100]
     rec1 = []
     for item in trade_info:
         info = {}
@@ -2526,8 +2518,8 @@ def detail22(request):
             a = getLogisticTrace(item.out_sid, item.logistics_company.code)
         except:
             a = []
-        #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
-        #print ' 物流信息',a
+        # a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        # print ' 物流信息',a
         info['trans'] = a
         info['trade'] = item
         info['detail'] = []
@@ -2538,11 +2530,11 @@ def detail22(request):
                 product_info = Product.objects.get(outer_id=order_info.outer_id)
             except:
                 product_info = []
-            #product_info=Product.objects.get(outer_id=order_info.outer_id)
+            # product_info=Product.objects.get(outer_id=order_info.outer_id)
             sum['product'] = product_info
             info['detail'].append(sum)
         rec1.append(info)
-        #print rec1
+        # print rec1
     return render(request, 'trades/order_detail.html', {'info': rec1,
                                                         'time': today})
 
@@ -2624,7 +2616,7 @@ def search_trade(request):
         else:
             trade_info = MergeTrade.objects.filter(Q(
                 receiver_mobile=number) | Q(tid=number) | Q(
-                    out_sid=number)).order_by("pay_time")
+                out_sid=number)).order_by("pay_time")
             if status:
                 if status == u'1':
                     trade_info = trade_info.filter(
@@ -2634,7 +2626,7 @@ def search_trade(request):
             for item in trade_info:
                 info = {}
                 try:
-                    #a = getLogisticTrace(item.out_sid, item.logistics_company.code)
+                    # a = getLogisticTrace(item.out_sid, item.logistics_company.code)
                     a = []
                 except:
                     a = []
@@ -2732,7 +2724,6 @@ def select_Stock(request):
 
 
 class DirtyOrderListAPIView(APIView):
-
     def get(self, request):
         # mapping
         from .models import TRADE_TYPE, SYS_TRADE_STATUS

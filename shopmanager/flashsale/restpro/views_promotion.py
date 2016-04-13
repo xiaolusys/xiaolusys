@@ -36,18 +36,20 @@ PYQ_TITLES = [
     '哈哈，只有1%的人知道，原来这两个我都想要～'
 ]
 
+
 def get_random_title():
-    n = int(random.random()*3) % 3
+    n = int(random.random() * 3) % 3
     return PYQ_TITLES[n], n
+
 
 class XLFreeSampleViewSet(viewsets.ModelViewSet):
     """ 获取免费申请试用　产品信息接口　"""
     queryset = XLFreeSample.objects.all()
     serializer_class = serializers.XLFreeSampleSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    free_samples = (1, )
+    free_samples = (1,)
 
     def list(self, request, *args, **kwargs):
         queryset = self.queryset.filter(id__in=self.free_samples)  # 要加入活动的产品
@@ -112,8 +114,8 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
         share_link = self.share_link.format(**{'customer_id': customer_id})
         link_qrcode = self.gen_customer_share_qrcode_pic(customer_id, 'web')
-        res = {'promote_count': promote_count, 
-               'app_down_count': app_down_count, 
+        res = {'promote_count': promote_count,
+               'app_down_count': app_down_count,
                'share_link': share_link,
                'link_qrcode': link_qrcode}
         return res
@@ -121,23 +123,23 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
         return link.format(**params)
-    
+
     def get_qrcode_page_link(self):
-        return urlparse.urljoin(settings.M_SITE_URL,reverse('qrcode_view'))
-        
+        return urlparse.urljoin(settings.M_SITE_URL, reverse('qrcode_view'))
+
     def gen_customer_share_qrcode_pic(self, customer_id, ufrom):
-        
+
         params = {'customer_id': customer_id, "ufrom": ufrom}
         file_name = os.path.join(self.self.PROMOTION_LINKID_PATH,
                                  'custom-{customer_id}-{ufrom}.jpg'.format(**params))
         share_link = self.get_share_link(params)
-        
+
         from core.upload.xqrcode import push_qrcode_to_remote
         qrcode_url = push_qrcode_to_remote(file_name, share_link)
-        
+
         return qrcode_url
 
-    @list_route(methods=['get','post'])
+    @list_route(methods=['get', 'post'])
     def get_share_content(self, request):
         """ 返回要分享的内容 share_type: picture and link"""
         content = request.REQUEST
@@ -145,8 +147,8 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id
         nick = customer.nick
-        #link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, ufrom)
-        title,n = get_random_title()
+        # link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, ufrom)
+        title, n = get_random_title()
 
         # add nick to title shared to PengYouQuan
         if n == 0:
@@ -166,7 +168,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
                          "title": title,
                          "share_link": share_link,
                          "share_img": constants.SAHRE_ICON,
-                         "qrcode_link":self.get_qrcode_page_link(),
+                         "qrcode_link": self.get_qrcode_page_link(),
                          "share_type": "link",
                          "active_dec": active_dec})
 
@@ -226,7 +228,6 @@ class InviteReletionshipView(viewsets.mixins.ListModelMixin, viewsets.GenericVie
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    
+
     def list(self, request, *args, **kwargs):
         return Response([])
-

@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import division
+
 __author__ = 'yann'
 from django.db import models
 
@@ -163,7 +164,7 @@ class PayToPackStats(models.Model):
     total_days = models.FloatField(default=0, verbose_name=u'总耗天数')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
-    
+
     class Meta:
         db_table = 'supply_chain_paytopack'
         app_label = 'dinghuo'
@@ -172,11 +173,9 @@ class PayToPackStats(models.Model):
 
     def __unicode__(self):
         return '<%s>' % (self.pay_date)
-    
+
     def avg_post_days(self):
         return round(self.total_days / self.packed_sku_num, 2)
-    
+
     avg_post_days.allow_tags = True
     avg_post_days.short_description = u"平均发货日期"
-    
-    

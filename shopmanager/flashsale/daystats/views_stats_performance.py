@@ -25,8 +25,9 @@ class StatsPerformanceView(generics.ListCreateAPIView):
         end_date = content.get("dt", datetime.date.today().strftime("%Y-%m-%d"))
         all_category = SaleCategory.objects.filter(is_parent=True)
         start_task = task_calc_performance_by_user.delay(start_date, end_date, category)
-        return Response({"task_id": start_task, "category": int(category), "start_date": start_date, "end_date": end_date,
-                         "all_category": all_category})
+        return Response(
+            {"task_id": start_task, "category": int(category), "start_date": start_date, "end_date": end_date,
+             "all_category": all_category})
 
 
 class StatsSupplierView(generics.ListCreateAPIView):
@@ -44,8 +45,9 @@ class StatsSupplierView(generics.ListCreateAPIView):
         end_date = content.get("dt", datetime.date.today().strftime("%Y-%m-%d"))
         all_category = SaleCategory.objects.filter(is_parent=True)
         start_task = task_calc_performance_by_supplier.delay(start_date, end_date, category)
-        return Response({"task_id": start_task, "category": int(category), "start_date": start_date, "end_date": end_date,
-                         "all_category": all_category})
+        return Response(
+            {"task_id": start_task, "category": int(category), "start_date": start_date, "end_date": end_date,
+             "all_category": all_category})
 
 
 from supplychain.supplier.models import SaleCategory

@@ -5,7 +5,3 @@
 #     """ docstring for TradeRuleResource ModelResource """
 # 
 #     exclude = ('url',)
-
-
-
-  

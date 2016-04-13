@@ -7,14 +7,14 @@ from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 
-
 from rest_framework import status, exceptions
 from rest_framework.compat import HttpResponseBase, View, set_rollback
 from rest_framework.response import Response
 
-
 import logging
+
 logger = logging.getLogger('restapi.errors')
+
 
 def my_exception_handler(exc, context):
     """
@@ -58,16 +58,18 @@ def my_exception_handler(exc, context):
     # Note: Unhandled exceptions will raise a 500 error.
     return None
 
+
 def rest_exception(errmsg=''):
     def _func_wrapper(func):
         @wraps(func)
-        def _wrapper(*args,**kwargs):
+        def _wrapper(*args, **kwargs):
             try:
-                return func(*args,**kwargs)
-            except Exception,exc:
-                logger.error(exc.message ,exc_info=True)
+                return func(*args, **kwargs)
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
                 err_msg = errmsg or exc.message or ''
                 raise exceptions.APIException(err_msg)
-            
+
         return _wrapper
+
     return _func_wrapper

@@ -1,5 +1,6 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 from __future__ import division
+
 __author__ = 'yann'
 from django.views.generic import View
 from django.shortcuts import render_to_response
@@ -98,7 +99,7 @@ class StatsSaleView(View):
                 "task_id_sale": task_id,
                 "start_date": start_date,
                 "end_date": end_date
-             },
+            },
             context_instance=RequestContext(request)
         )
 
@@ -113,4 +114,3 @@ class StatsSalePeopleView(View):
         return render_to_response("xiaolumm/data2salepeople.html",
                                   {"task_id": send_tasks},
                                   context_instance=RequestContext(request))
-        

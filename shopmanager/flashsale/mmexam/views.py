@@ -58,7 +58,8 @@ def exam(request, question_id):
                 else:  # 回答正确进入下一题
                     number = int(number) + 1  # 题号加１
                     question = get_object_or_404(Question, pk=question_id)
-                    return render(request, 'mmexam/mmexam_exam.html', {'question': question, 'result': "", 'number': number})
+                    return render(request, 'mmexam/mmexam_exam.html',
+                                  {'question': question, 'result': "", 'number': number})
             except:  # 出现异常
                 question = get_object_or_404(Question, pk=START_QUESTION_NO)
                 return render(request, 'mmexam/mmexam_exam.html',
@@ -84,5 +85,3 @@ def valid_openid(openid):
     if not OPENID_RE.match(openid):
         return False
     return True
-
-

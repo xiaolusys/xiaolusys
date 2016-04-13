@@ -47,4 +47,4 @@
 #     fields = ('purchases','storages','error_msg','purchase_payment','perms','extra_info') 
 #     exclude = ('url',)
 #     
-#     
+#

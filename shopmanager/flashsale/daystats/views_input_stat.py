@@ -10,6 +10,8 @@ from supplychain.supplier.models import SaleCategory
 from shopback.items.models import Product, ProductCategory
 import flashsale.dinghuo.utils as tools_util
 import collections
+
+
 class ProductInputStatView(generics.ListCreateAPIView):
     """
         录入资料统计
@@ -57,8 +59,11 @@ class ProductInputStatView(generics.ListCreateAPIView):
         return Response({"result_data": result_data, "category_list": category_list,
                          "start_date_str": start_date_str, "end_date_str": end_date_str})
 
+
 from flashsale.dinghuo.models import OrderList, OrderDetail
 from django.db.models import Sum
+
+
 class TempView(generics.ListCreateAPIView):
     """
         ceshi

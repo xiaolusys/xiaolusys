@@ -16,6 +16,7 @@ admin.site.register(Category, CategoryAdmin)
 
 class ProductCategoryAdmin(admin.ModelAdmin):
     list_display = ('cid', 'parent_cid', 'full_name', 'is_parent', 'status', 'sort_order')
+
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     def full_name(self, obj):
@@ -46,5 +47,6 @@ class CategorySaleStatAdmin(admin.ModelAdmin):
 
     category_show.allow_tags = True
     category_show.short_description = "类别"
+
 
 admin.site.register(CategorySaleStat, CategorySaleStatAdmin)

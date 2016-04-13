@@ -54,7 +54,7 @@ def filter_Categry(queryset, categry):
         pros = Product.objects.raw("select id, outer_id from shop_items_product where "
                                    " category_id in (5,12,13,14,15,16,17)   ")
         product_outer_ids = [pro.outer_id for pro in pros]
-        qs =  queryset.filter(outer_id__in=product_outer_ids)
+        qs = queryset.filter(outer_id__in=product_outer_ids)
         return qs
 
     elif categry == '2':
@@ -65,7 +65,7 @@ def filter_Categry(queryset, categry):
         product_outer_ids = [pro.outer_id for pro in pros]
         qs = queryset.filter(outer_id__in=product_outer_ids)
         return qs
-    
+
     elif categry == '3':
         # 过滤出其他 退货产品
         pros = Product.objects.raw("select id, outer_id from shop_items_product where "
@@ -77,13 +77,14 @@ def filter_Categry(queryset, categry):
     else:
         return queryset
 
+
 # 按照 男童装、 女童装、 女装 过滤  退货商品
 class BoyGirlWomen(SimpleListFilter):
     title = u'类别'
     parameter_name = "categery"
 
     def lookups(self, request, model_admin):
-        c_lit = [(1, u'童装'), (2, u'女装'),(3, u'其他')]
+        c_lit = [(1, u'童装'), (2, u'女装'), (3, u'其他')]
         return tuple(c_lit)
 
     def queryset(self, request, queryset):

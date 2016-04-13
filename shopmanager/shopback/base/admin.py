@@ -3,6 +3,7 @@ from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.contrib import admin
 
+
 class ApproxCountQuerySet(QuerySet):
     def count(self):
         '''
@@ -16,8 +17,8 @@ class ApproxCountQuerySet(QuerySet):
 
         query = self.query
         if (is_mysql and not query.where and
-                query.high_mark is None and
-                query.low_mark == 0 and
+                    query.high_mark is None and
+                    query.low_mark == 0 and
                 not query.select and
                 not query.group_by and
                 not query.having and
@@ -27,14 +28,13 @@ class ApproxCountQuerySet(QuerySet):
             # get an approximation instead.
             cursor = connections[self.db].cursor()
             cursor.execute("SHOW TABLE STATUS LIKE %s",
-                    (self.model._meta.db_table,))
+                           (self.model._meta.db_table,))
             return cursor.fetchall()[0][4]
         else:
             return self.query.get_count(using=self.db)
-        
-class MyAdmin(admin.ModelAdmin):
 
+
+class MyAdmin(admin.ModelAdmin):
     def queryset(self, request):
         qs = super(MyAdmin, self).queryset(request)
-        return qs._clone(klass=ApproxCountQuerySet)        
-
+        return qs._clone(klass=ApproxCountQuerySet)

@@ -1,4 +1,4 @@
-#coding:utf-8 
+# coding:utf-8
 import datetime
 from django.db.models import F, Sum
 from django.conf import settings
@@ -16,13 +16,14 @@ __author__ = 'linjie'
 
 logger = logging.getLogger('celery.handler')
 
-CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,15,10)
-CLICK_MAX_LIMIT_DATE  = datetime.date(2015,6,5)
-#切换小鹿妈妈点击提成到新小鹿妈妈结算体系日期
-SWITCH_CLICKREBETA_DATE = datetime.datetime(2016,2,24) 
+CLICK_ACTIVE_START_TIME = datetime.datetime(2015, 6, 15, 10)
+CLICK_MAX_LIMIT_DATE = datetime.date(2015, 6, 5)
+# 切换小鹿妈妈点击提成到新小鹿妈妈结算体系日期
+SWITCH_CLICKREBETA_DATE = datetime.datetime(2016, 2, 24)
+
 
 @task()
-def task_Create_Click_Record(xlmmid,openid,unionid,click_time,app_key):
+def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     """
     异步保存妈妈分享点击记录
     xlmm_id:小鹿妈妈id,
@@ -30,20 +31,20 @@ def task_Create_Click_Record(xlmmid,openid,unionid,click_time,app_key):
     click_time:点击时间
     """
     xlmmid = int(xlmmid)
-    
+
     today = datetime.datetime.now()
-    tf = datetime.datetime(today.year,today.month,today.day,0,0,0)
-    tt = datetime.datetime(today.year,today.month,today.day,23,59,59)
-    
+    tf = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
+    tt = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+
     isvalid = False
-    clicks = Clicks.objects.filter(openid=openid,click_time__range=(tf,tt))
+    clicks = Clicks.objects.filter(openid=openid, click_time__range=(tf, tt))
     click_linkids = set([l.get('linkid') for l in clicks.values('linkid').distinct()])
-    click_count   = len(click_linkids)
+    click_count = len(click_linkids)
     xlmms = XiaoluMama.objects.filter(id=xlmmid)
-    
+
     if click_count < Clicks.CLICK_DAY_LIMIT and xlmms.count() > 0 and xlmmid not in click_linkids:
         isvalid = True
-        
+
     click = Clicks.objects.create(
         linkid=xlmmid,
         openid=openid,
@@ -52,71 +53,70 @@ def task_Create_Click_Record(xlmmid,openid,unionid,click_time,app_key):
         app_key=app_key
     )
     if unionid:
-        WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
-        
+        WeixinUnionID.objects.get_or_create(openid=openid, app_key=app_key, unionid=unionid)
+
     return click.id
+
 
 @task()
 def task_Update_User_Click(click_id, *args, **kwargs):
-    
     click = Clicks.objects.get(id=click_id)
-    openid  = click.openid
+    openid = click.openid
     app_key = click.app_key
     click_time = click.click_time
-    wxunions = WeixinUnionID.objects.filter(openid=openid,app_key=app_key)
+    wxunions = WeixinUnionID.objects.filter(openid=openid, app_key=app_key)
     if not wxunions.exists():
-        return 
-    
-    unionid = wxunions[0].unionid
-    user_click,state = UserClicks.objects.get_or_create(unionid=unionid)
-    params  = {}
-    if (not user_click.click_end_time or 
-        (click_time > user_click.click_end_time and
-         click_time.date() != user_click.click_end_time.date())):
-        params.update(visit_days = F('visit_days') + 1)
-    
-    if not user_click.click_start_time or user_click.click_start_time > click_time:
-        params.update(click_start_time = click_time)
-    
-    if not user_click.click_end_time or user_click.click_end_time < click_time:
-        params.update(click_end_time = click_time)
-    
-    update_model_change_fields(user_click,update_params=params)
-    
-    
+        return
 
-def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
-    
+    unionid = wxunions[0].unionid
+    user_click, state = UserClicks.objects.get_or_create(unionid=unionid)
+    params = {}
+    if (not user_click.click_end_time or
+            (click_time > user_click.click_end_time and
+                     click_time.date() != user_click.click_end_time.date())):
+        params.update(visit_days=F('visit_days') + 1)
+
+    if not user_click.click_start_time or user_click.click_start_time > click_time:
+        params.update(click_start_time=click_time)
+
+    if not user_click.click_end_time or user_click.click_end_time < click_time:
+        params.update(click_end_time=click_time)
+
+    update_model_change_fields(user_click, update_params=params)
+
+
+def calc_Xlmm_ClickRebeta(xlmm, time_from, time_to, xlmm_cc=None):
     from flashsale.clickrebeta.models import StatisticsShopping
-    
+
     if not xlmm_cc:
-        mama_ccs = ClickCount.objects.filter(date=time_from.date(),linkid=xlmm.id)
+        mama_ccs = ClickCount.objects.filter(date=time_from.date(), linkid=xlmm.id)
         if mama_ccs.count() == 0:
             return 0
         xlmm_cc = mama_ccs[0]
-        
+
     buyercount = StatisticsShopping.normal_objects.filter(linkid=xlmm.id,
-                            shoptime__range=(time_from, time_to)).values('openid').distinct().count()
-    day_date     = time_from.date()
-    click_price  = xlmm.get_Mama_Click_Price_By_Day(buyercount, day_date=day_date)
-    click_num    = xlmm_cc.valid_num
-    
-    #设置最高有效最高点击上限
-    max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount,day_date=day_date)
-#         click_rebeta = click_num  * click_price
-    
-    ten_click_num   = 0
+                                                          shoptime__range=(time_from, time_to)).values(
+        'openid').distinct().count()
+    day_date = time_from.date()
+    click_price = xlmm.get_Mama_Click_Price_By_Day(buyercount, day_date=day_date)
+    click_num = xlmm_cc.valid_num
+
+    # 设置最高有效最高点击上限
+    max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount, day_date=day_date)
+    #         click_rebeta = click_num  * click_price
+
+    ten_click_num = 0
     ten_click_price = 0
     if CLICK_ACTIVE_START_TIME.date() == time_from.date():
         click_qs = Clicks.objects.filter(linkid=xlmm_cc.linkid,
-                                         click_time__range=(CLICK_ACTIVE_START_TIME,time_to),isvalid=True)
+                                         click_time__range=(CLICK_ACTIVE_START_TIME, time_to), isvalid=True)
         ten_click_num = click_qs.values('openid').distinct().count()
         ten_click_price = click_price + 0
-        
+
     if time_from.date() >= CLICK_MAX_LIMIT_DATE:
-        click_num = min(max_click_count,click_num - ten_click_num)
-        ten_click_num = min(ten_click_num,max_click_count)
-        
+        click_num = min(max_click_count, click_num - ten_click_num)
+        ten_click_num = min(ten_click_num, max_click_count)
+
     click_rebeta = click_num * click_price + ten_click_num * ten_click_price
     return click_rebeta
 
@@ -124,42 +124,43 @@ def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
 @task()
 def task_Push_ClickCount_To_MamaCash(target_date):
     """ 计算每日妈妈点击数现金提成，并更新到妈妈钱包账户"""
-    
+
     carry_no = int(target_date.strftime('%y%m%d'))
-    time_from = datetime.datetime(target_date.year,target_date.month,target_date.day,0,0,0)
-    time_end = datetime.datetime(target_date.year,target_date.month,target_date.day,23,59,59)
-    
-    mm_clickcounts = ClickCount.objects.filter(date=target_date,valid_num__gt=0)
+    time_from = datetime.datetime(target_date.year, target_date.month, target_date.day, 0, 0, 0)
+    time_end = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+
+    mm_clickcounts = ClickCount.objects.filter(date=target_date, valid_num__gt=0)
     for mm_cc in mm_clickcounts:
         xlmms = XiaoluMama.objects.filter(id=mm_cc.linkid)
         if xlmms.count() == 0:
             continue
-        
+
         xlmm = xlmms[0]
-        click_rebeta = calc_Xlmm_ClickRebeta(xlmm,time_from,time_end,xlmm_cc=mm_cc)
+        click_rebeta = calc_Xlmm_ClickRebeta(xlmm, time_from, time_end, xlmm_cc=mm_cc)
 
         if mm_cc.valid_num == 0 or click_rebeta == 0:
             continue
-        
-        c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
-                                                     order_num=carry_no,
-                                                     log_type=CarryLog.CLICK_REBETA)
+
+        c_log, state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
+                                                      order_num=carry_no,
+                                                      log_type=CarryLog.CLICK_REBETA)
         if not state and c_log.status != CarryLog.PENDING:
             continue
-        
+
         c_log.value = click_rebeta
         c_log.carry_date = target_date
         c_log.carry_type = CarryLog.CARRY_IN
         c_log.status = CarryLog.PENDING
         c_log.save()
-        
+
         XiaoluMama.objects.filter(id=mm_cc.linkid).update(pending=F('pending') + click_rebeta)
 
-@task 
+
+@task
 def task_Delete_Mamalink_Clicks(pre_date):
-    
     clicks = Clicks.objects.filter(created__lt=pre_date)
     clicks.delete()
+
 
 @task(max_retry=3, default_retry_delay=5)
 def task_Record_User_Click(pre_day=1):
@@ -173,30 +174,32 @@ def task_Record_User_Click(pre_day=1):
         clicks = Clicks.objects.filter(click_time__range=(time_from, time_to),
                                        linkid=xiaolumama.id)  # 根据代理的id过滤出点击表中属于该代理的点击
         click_num = clicks.count()  # 点击数量
-        user_num  = clicks.values('openid').distinct().count()  # 点击人数
+        user_num = clicks.values('openid').distinct().count()  # 点击人数
         valid_num = clicks.filter(isvalid=True).values('openid').distinct().count()  # 有效点击数量
         if click_num > 0 or user_num > 0 or valid_num > 0:  # 有不为0的数据是后才产生统计数字
             clickcount, state = ClickCount.objects.get_or_create(date=pre_date,
                                                                  linkid=xiaolumama.id)
             # 在点击统计表中找今天的记录 如果 有number和小鹿妈妈的id相等的 说明已经该记录已经统计过了
-            clickcount.weikefu   = xiaolumama.weikefu  # 写名字到统计表
-            clickcount.username  = xiaolumama.manager  # 接管人
+            clickcount.weikefu = xiaolumama.weikefu  # 写名字到统计表
+            clickcount.username = xiaolumama.manager  # 接管人
             clickcount.click_num = click_num
-            clickcount.mobile    = xiaolumama.mobile
+            clickcount.mobile = xiaolumama.mobile
             clickcount.agencylevel = xiaolumama.agencylevel
             clickcount.user_num = user_num
             clickcount.valid_num = valid_num
             clickcount.save()
-    
+
     if pre_date < SWITCH_CLICKREBETA_DATE:
-        #update xlmm click rebeta
+        # update xlmm click rebeta
         task_Push_ClickCount_To_MamaCash(pre_date)
-        #delete ximm click some days ago
-        pre_delete_date = (datetime.datetime.today() - 
+        # delete ximm click some days ago
+        pre_delete_date = (datetime.datetime.today() -
                            datetime.timedelta(days=constants.CLICK_RECORDS_REMAIN_DAYS))
         task_Delete_Mamalink_Clicks(pre_delete_date)
 
+
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
+
 
 @task(max_retry=3, default_retry_delay=5)
 def task_Record_User_Click_Weekly(date_from, date_to, week_code):
@@ -215,15 +218,16 @@ def task_Record_User_Click_Weekly(date_from, date_to, week_code):
         # 总有效点击数
         sum_valid_num = click_count.aggregate(total_valid_num=Sum('valid_num')).get('total_valid_num') or 0
         # 订单总数
-        sum_ordernumcount = shoppings.aggregate(total_ordernumcount=Sum('ordernumcount')).get('total_ordernumcount')or 0
+        sum_ordernumcount = shoppings.aggregate(total_ordernumcount=Sum('ordernumcount')).get(
+            'total_ordernumcount') or 0
         # 购买总人数
         sum_buyercount = shoppings.aggregate(total_buyercount=Sum('buyercount')).get('total_buyercount') or 0
         # 转化率计算
         if sum_user_num == 0:
             conversion_rate = 0
         else:
-            conversion_rate = float(sum_buyercount)/sum_user_num  # 转化率等于 购买人数 除以 点击人数
-        #创建一条周记录
+            conversion_rate = float(sum_buyercount) / sum_user_num  # 转化率等于 购买人数 除以 点击人数
+        # 创建一条周记录
         week_count, state = WeekCount.objects.get_or_create(linkid=xlmm.id, week_code=week_code)
         week_count.weikefu = xlmm.weikefu
         week_count.user_num = sum_user_num
@@ -239,34 +243,33 @@ def week_Count_week_Handdle(pre_week_start_dt=None):
     """计算上一周的 开始时间 和 结束时间
     编码周= 'year + month + id'  id = 上一周是本年的 第 id 周
     """
-    today = datetime.date.today() #datetime.datetime.today()
+    today = datetime.date.today()  # datetime.datetime.today()
     if not pre_week_start_dt:
         weekday = int(today.strftime("%w"))
         dura_days = weekday == 0 and (7 + 6) or (7 + weekday - 1)
         pre_week_start_dt = today - datetime.timedelta(days=dura_days)
-            
+
     pre_week_end_dt = pre_week_start_dt + datetime.timedelta(days=6)
-    
-    time_from = datetime.datetime(pre_week_start_dt.year,pre_week_start_dt.month,pre_week_start_dt.day,0,0,0)
-    time_to   = datetime.datetime(pre_week_end_dt.year,pre_week_end_dt.month,pre_week_end_dt.day,23,59,59)
-    
+
+    time_from = datetime.datetime(pre_week_start_dt.year, pre_week_start_dt.month, pre_week_start_dt.day, 0, 0, 0)
+    time_to = datetime.datetime(pre_week_end_dt.year, pre_week_end_dt.month, pre_week_end_dt.day, 23, 59, 59)
+
     week_code = str(pre_week_start_dt.year) + pre_week_start_dt.strftime('%U')
-    
+
     task_Record_User_Click_Weekly(time_from, time_to, week_code)
-    
 
 
 def push_history_week_data():  # 初始执行
-    
+
     today = datetime.datetime.today()
     weekday = int(today.strftime("%w"))
-    dura_days = weekday == 0 and  6 or weekday - 1
+    dura_days = weekday == 0 and 6 or weekday - 1
     week_start = today - datetime.timedelta(days=dura_days)
-    
-    for i in xrange(1,14):
-        week_date = week_start - datetime.timedelta(days=7*i)
-        
-        week_Count_week_Handdle(pre_week_start_dt = week_date)
+
+    for i in xrange(1, 14):
+        week_date = week_start - datetime.timedelta(days=7 * i)
+
+        week_Count_week_Handdle(pre_week_start_dt=week_date)
 
 
 @task()
@@ -291,12 +294,10 @@ def task_Count_ClickCount_Info(instance=None, created=None):
             time_from = datetime.datetime(date.year, date.month, date.day)
             time_to = datetime.datetime(date.year, date.month, date.day, 23, 59, 59)
             clicks = Clicks.objects.filter(click_time__range=(time_from, time_to), linkid=xlmm.id)
-            click_count.click_num = F('click_num') +1  # 累加１
+            click_count.click_num = F('click_num') + 1  # 累加１
             click_count.valid_num = clicks.filter(isvalid=True).values('openid').distinct().count()  # 有效点击数量
-            click_count.user_num  = clicks.values('openid').distinct().count()  # 点击人数
+            click_count.user_num = clicks.values('openid').distinct().count()  # 点击人数
             click_count.date = date
             click_count.save()
     except XiaoluMama.DoesNotExist:
         return
-
-

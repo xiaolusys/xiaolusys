@@ -1,7 +1,9 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 from rest_framework import serializers
-#from .models import Category
+
+
+# from .models import Category
 
 # class CategorySerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -15,26 +17,30 @@ from rest_framework import serializers
 #         model = Category
 #         fields =  ('cid','parent_cid' ,'is_parent' ,'name','status','sort_order')
 #         fields = ('parent_cid' ,'is_parent' ) 
-        
-        
+
+
 class TimeOrderStatSerializer(serializers.ModelSerializer):
     """ docstring for TradeResource ModelResource """
+
     class Meta:
-       fields  = ('df','dt','nicks','cat_by','type','xy',('charts','ChartSerializer'))
-       exlcude = ('url',)
-   
-   
-   
+        fields = ('df', 'dt', 'nicks', 'cat_by', 'type', 'xy', ('charts', 'ChartSerializer'))
+        exlcude = ('url',)
+
+
 from shopback.base.serializer import ChartSerializer
+
 
 class ChartsSerializer(serializers.ModelSerializer):
     """ docstring for TradeResource ModelResource """
+
     class Meta:
-        fields = (('charts','ChartSerializer'),('item_dict',None),('skus',None))
-    #exclude = ('url',)     
+        fields = (('charts', 'ChartSerializer'), ('item_dict', None), ('skus', None))
+        # exclude = ('url',)
+
 
 class BaseSerializer(serializers.ModelSerializer):
     """ docstring for TradeResource ModelResource """
+
     class Meta:
-    #fields = (('charts','ChartSerializer'),('item_dict',None))
-          exclude = ('url',) 
+        # fields = (('charts','ChartSerializer'),('item_dict',None))
+        exclude = ('url',)

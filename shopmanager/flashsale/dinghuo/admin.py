@@ -7,7 +7,8 @@ from django.http import HttpResponseRedirect
 from core.options import log_action, CHANGE
 from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
-from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, PayToPackStats
+from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
+    PayToPackStats
 import time
 from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter
 from flashsale.dinghuo import permissions as perms
@@ -38,10 +39,13 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'express_no', 'created', 'shenhe', 'is_postpay', 'pay_status',
-        'changedetail', 'note_name', 'supplier', 'p_district', 'reach_standard', 'updated', 'last_pay_date', 'created_by'
+        'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'express_no',
+        'created', 'shenhe', 'is_postpay', 'pay_status',
+        'changedetail', 'note_name', 'supplier', 'p_district', 'reach_standard', 'updated', 'last_pay_date',
+        'created_by'
     )
-    list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
+    list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
+                   'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note']
     date_hierarchy = 'created'
 
@@ -60,7 +64,7 @@ class ordelistAdmin(admin.ModelAdmin):
 
         for user in User.objects.filter(is_staff=True,
                                         groups__name__in=(u'小鹿买手资料员', u'小鹿采购管理员', u'小鹿采购员', u'管理员', u'小鹿管理员')). \
-                                        distinct().order_by('id'):
+                distinct().order_by('id'):
             username = '%s%s' % (user.last_name, user.first_name)
             username = username or user.username
             if user.id == obj.buyer_id:
@@ -80,6 +84,7 @@ class ordelistAdmin(admin.ModelAdmin):
             pro = Product.objects.get(id=detail.product_id)
             amount += detail.buy_quantity * pro.cost
         return amount
+
     calcu_item_sum_amount.allow_tags = True
     calcu_item_sum_amount.short_description = "录入价"
 
@@ -105,8 +110,9 @@ class ordelistAdmin(admin.ModelAdmin):
     quantity.short_description = "商品数量"
 
     def supply_chain(self, obj):
-        return u'<div style="width: 150px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"><a href="{0}" target="_blank" >{1}</a></div>'.format(obj.supplier_name,
-                                                               obj.supplier_shop or obj.supplier_name)
+        return u'<div style="width: 150px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"><a href="{0}" target="_blank" >{1}</a></div>'.format(
+            obj.supplier_name,
+            obj.supplier_shop or obj.supplier_name)
 
     supply_chain.allow_tags = True
     supply_chain.short_description = "供应商"
@@ -177,7 +183,6 @@ class ordelistAdmin(admin.ModelAdmin):
 
     verify_order_action.short_description = u'审核(待支付)'
 
-
     # 批量验货完成
     def action_quick_complete(self, request, queryset):
         count = 0
@@ -200,6 +205,7 @@ class ordelistAdmin(admin.ModelAdmin):
                 order.save()
                 log_action(request.user.id, order, CHANGE, u'已收款')
         return HttpResponseRedirect(request.get_full_path())
+
     action_receive_money.short_description = u'收款（批量）'
 
     actions = ['test_order_action', 'verify_order_action', 'action_quick_complete', 'action_receive_money']
@@ -218,15 +224,14 @@ class ordelistAdmin(admin.ModelAdmin):
     def get_changelist(self, request, **kwargs):
         return OrderListChangeList
 
-
     class Media:
         css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
         js = ("https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
-              "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js", "js/admin_js.js", "js/dinghuo_orderlist.js")
+              "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js", "js/admin_js.js",
+              "js/dinghuo_orderlist.js")
 
 
 class OrderListChangeList(ChangeList):
-
     def get_queryset(self, request):
         qs = self.root_queryset
         search_q = request.GET.get('q', '').strip()
@@ -294,7 +299,9 @@ admin.site.register(MyGroup)
 class PayToPackStatsAdmin(admin.ModelAdmin):
     list_display = ('pay_date', 'packed_sku_num', 'total_days', 'avg_post_days', 'updated')
 
-admin.site.register(PayToPackStats,PayToPackStatsAdmin)
+
+admin.site.register(PayToPackStats, PayToPackStatsAdmin)
+
 
 class SupplyChainDataStatsAdmin(admin.ModelAdmin):
     list_display = ('sale_quantity', 'cost_amount', 'turnover',
@@ -314,6 +321,7 @@ class DailyStatsPreviewAdmin(admin.ModelAdmin):
     list_display = ('sale_time', 'shelf_num', 'sale_num', "time_to_day",
                     'return_num', 'cost_of_product', 'sale_money', 'return_money')
     list_filter = ('created',)
+
 
 admin.site.register(DailyStatsPreview, DailyStatsPreviewAdmin)
 
@@ -360,7 +368,8 @@ admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
 class DailySupplyChainStatsOrderAdmin(admin.ModelAdmin):
     list_display = (
         'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time',
-        'ding_huo_num', 'fahuo_num', 'sale_num', 'cost_of_product', 'sale_cost_of_product', 'return_num','return_pro', 'inferior_num')
+        'ding_huo_num', 'fahuo_num', 'sale_num', 'cost_of_product', 'sale_cost_of_product', 'return_num', 'return_pro',
+        'inferior_num')
     search_fields = ['product_id']
 
 
@@ -400,11 +409,12 @@ class RGDetailInline(admin.TabularInline):
 
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleSupplier
-from flashsale.pay.models import  SaleRefund
+from flashsale.pay.models import SaleRefund
+
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
     list_display = ('id', "show_pic", "show_detail_num", "deal_sum_amount", "status_contrl",
-                     "consign_time", "sid", "noter", "consigner", 'show_memo','show_reason')
+                    "consign_time", "sid", "noter", "consigner", 'show_memo', 'show_reason')
     search_fields = ['id', "product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
@@ -435,9 +445,11 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
         js_str = u"'%s','%s','%s'" % (
             supplier_name or u"none", mobile or u"none", address or u"none")
         html = u'<img src="{0}" style="width:62px;height:100px"><a style="display:inline" onclick="supplier_admin({4})">供应商：{3}</a>' \
-               u'<br><a target="_blank" href="/admin/items/product/?id={2}">{1}</a>'.format(pro.pic_path, pro.name, product_id,
-                                                                         obj.supplier_id, js_str)
+               u'<br><a target="_blank" href="/admin/items/product/?id={2}">{1}</a>'.format(pro.pic_path, pro.name,
+                                                                                            product_id,
+                                                                                            obj.supplier_id, js_str)
         return html
+
     show_pic.allow_tags = True
     show_pic.short_description = u"产品图/名"
 
@@ -450,6 +462,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
         for ref in refs:
             html += u'<br>' + ref.desc
         return html
+
     show_reason.allow_tags = True
     show_reason.short_description = u"原因"
 
@@ -463,12 +476,14 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
             sub_html = u'{0} :{1} / {2}<br><br>'.format(skuid, num, inferior_num)
             html = html + sub_html
         return html
+
     show_detail_num.allow_tags = True
     show_detail_num.short_description = u"数量信息"
 
     def deal_sum_amount(self, obj):
-        html = u'<a onclick="change_sum_price({0},{2})">{1}</a>'.format(obj.id, obj.sum_amount,obj.return_num)
+        html = u'<a onclick="change_sum_price({0},{2})">{1}</a>'.format(obj.id, obj.sum_amount, obj.return_num)
         return html
+
     deal_sum_amount.allow_tags = True
     deal_sum_amount.short_description = u"退款总金额"
 
@@ -490,17 +505,21 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
             return html
         else:
             return obj.get_status_display()
+
     status_contrl.allow_tags = True
     status_contrl.short_description = u"退货状态控制"
 
     def show_memo(self, obj):
         memo = u'{0}'.format(str(obj.memo).replace('\r', '<br><br>'))
         return memo
+
     show_memo.allow_tags = True
     show_memo.short_description = u"备注信息"
+
     class Media:
-        css = {"all": ("css/admin_css.css", "css/return_goods.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
-                       )}
+        css = {"all": (
+        "css/admin_css.css", "css/return_goods.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
+        )}
         js = ("js/tuihuo_ctrl.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
               "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js")
 
@@ -512,11 +531,13 @@ from .models import SaleInventoryStat
 
 class SaleInventoryStatAdmin(admin.ModelAdmin):
     list_display = ('stat_date', 'newly_increased', 'not_arrive', 'arrived', 'deliver', 'inventory')
-    list_filter = ('category', )
+    list_filter = ('category',)
+
 
 admin.site.register(SaleInventoryStat, SaleInventoryStatAdmin)
 
 from .models import InBound, InBoundDetail, OrderDetailInBoundDetail
+
 
 class InBoundAdmin(admin.ModelAdmin):
     list_display = ('show_id', 'supplier', 'express_no', 'sent_from',
@@ -525,7 +546,9 @@ class InBoundAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created')
 
     def show_id(self, obj):
-        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.id}
+        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {
+            'id': obj.id}
+
     show_id.allow_tags = True
     show_id.short_description = u'ID'
 
@@ -539,29 +562,41 @@ class InBoundAdmin(admin.ModelAdmin):
         for url in obj.images:
             images.append(tpl % {'url': url})
         return ''.join(images)
+
     show_images.allow_tags = True
     show_images.short_description = u'图片'
 
+
 class InBoundDetailAdmin(admin.ModelAdmin):
-    list_display = ('show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'created', 'modified', 'status')
+    list_display = (
+    'show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity',
+    'created', 'modified', 'status')
 
     def show_inbound(self, obj):
-        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.inbound_id}
+        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {
+            'id': obj.inbound_id}
+
     show_inbound.allow_tags = True
     show_inbound.short_description = u'入仓单ID'
 
+
 class OrderDetailInBoundDetailAdmin(admin.ModelAdmin):
-    list_display = ('show_orderdetail', 'show_inbounddetail', 'arrival_quantity', 'inferior_quantity', 'created', 'status')
+    list_display = (
+    'show_orderdetail', 'show_inbounddetail', 'arrival_quantity', 'inferior_quantity', 'created', 'status')
 
     def show_orderdetail(self, obj):
         return '<a href="/admin/dinghuo/orderdetail/?id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.orderdetail_id}
+
     show_orderdetail.allow_tags = True
     show_orderdetail.short_description = u'订货明细ID'
 
     def show_inbounddetail(self, obj):
-        return '<a href="/admin/dinghuo/inbounddetail/?id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.inbounddetail_id}
+        return '<a href="/admin/dinghuo/inbounddetail/?id=%(id)d" target="_blank">%(id)d</a>' % {
+            'id': obj.inbounddetail_id}
+
     show_inbounddetail.allow_tags = True
     show_inbounddetail.short_description = u'入仓明细ID'
+
 
 admin.site.register(InBound, InBoundAdmin)
 admin.site.register(InBoundDetail, InBoundDetailAdmin)

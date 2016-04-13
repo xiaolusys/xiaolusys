@@ -45,22 +45,21 @@ class XlmmFans(BaseModel):
         return self.fans_nick
 
 
-
 def update_activevalue(sender, instance, created, **kwargs):
     """
     更新妈妈活跃度
     """
     if not created:
         return
-    
-    from flashsale.xiaolumm import tasks_mama_activevalue 
+
+    from flashsale.xiaolumm import tasks_mama_activevalue
     mama_id = instance.xlmm
     fans_customer_id = instance.fans_cusid
     date_field = instance.created.date()
     tasks_mama_activevalue.task_fans_update_activevalue.delay(mama_id, fans_customer_id, date_field)
 
-post_save.connect(update_activevalue, sender=XlmmFans, dispatch_uid='post_save_update_activevalue')
 
+post_save.connect(update_activevalue, sender=XlmmFans, dispatch_uid='post_save_update_activevalue')
 
 
 def update_mamafortune_fans_num(sender, instance, created, **kwargs):
@@ -69,6 +68,7 @@ def update_mamafortune_fans_num(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     mama_id = instance.xlmm
     tasks_mama_fortune.task_update_mamafortune_fans_num.delay(mama_id)
+
 
 post_save.connect(update_mamafortune_fans_num,
                   sender=XlmmFans, dispatch_uid='post_save_update_mamafortune_fans_num')
@@ -91,6 +91,8 @@ class FansNumberRecord(BaseModel):
 
 
 from django.contrib.auth.signals import user_logged_in
+
+
 def login_update_fans(sender, request, user, *args, **kwargs):
     """
     Only check whether this user has download-relationship, if he/she has
@@ -101,9 +103,9 @@ def login_update_fans(sender, request, user, *args, **kwargs):
     we confirm the user is actived via app, we dont do this check upon future 
     login from the user.
     """
-    
+
     from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_update_fans
-    task_login_update_fans.delay(user)    
+    task_login_update_fans.delay(user)
+
 
 user_logged_in.connect(login_update_fans, dispatch_uid='user_login_update_direct_fans')
-

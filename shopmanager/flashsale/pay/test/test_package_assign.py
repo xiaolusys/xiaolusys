@@ -12,7 +12,8 @@ def print_out_package(buyer_id):
     trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_SELLER_SEND_GOODS, buyer_id=buyer_id)[0]
     print '================================================================='
     if trade.user_address_id:
-        print str(trade.buyer_id) + ':' + str(trade.user_address_id) + ' ' + str(UserAddress.objects.get(id=trade.user_address_id))
+        print str(trade.buyer_id) + ':' + str(trade.user_address_id) + ' ' + str(
+            UserAddress.objects.get(id=trade.user_address_id))
     else:
         print str(trade.buyer_id) + ':'
     print '----------------------------------'
@@ -21,9 +22,10 @@ def print_out_package(buyer_id):
         for order in trade.sale_orders.filter(refund_status=SaleRefund.NO_REFUND):
             if order.sku_id:
                 if order.assign_status:
-                #if True:
-                    print str(order.id) + '|'+ str(order.sku_id) + '|' + str(order.num) + '|' + str(order.assign_status) +'|' + str(order.package_order_id)
-                    res1[order.sku_id] = res1.get(order.sku_id,0) + order.num
+                    # if True:
+                    print str(order.id) + '|' + str(order.sku_id) + '|' + str(order.num) + '|' + str(
+                        order.assign_status) + '|' + str(order.package_order_id)
+                    res1[order.sku_id] = res1.get(order.sku_id, 0) + order.num
             else:
                 print order.id
     print '-              -              -'
@@ -32,12 +34,12 @@ def print_out_package(buyer_id):
         print 'package_order:' + str(p.id)
         for order in SaleOrder.objects.filter(package_order_id=p.id):
             if order.assign_status:
-            #if True:
-                print str(order.id) + '|'+ str(order.sku_id) + '|' + str(order.num) + '|' + str(order.assign_status)
-                res2[order.sku_id] = res2.get(order.sku_id,0) + order.num
+                # if True:
+                print str(order.id) + '|' + str(order.sku_id) + '|' + str(order.num) + '|' + str(order.assign_status)
+                res2[order.sku_id] = res2.get(order.sku_id, 0) + order.num
             psku = ProductSku.objects.get(id=order.sku_id)
-            #print 'stock: '+ str(order.sku_id)+ '| quantity ' + str(psku.quantity) +'| assign_num:' + str(psku.assign_num)
-    if res1!=res2:
+            # print 'stock: '+ str(order.sku_id)+ '| quantity ' + str(psku.quantity) +'| assign_num:' + str(psku.assign_num)
+    if res1 != res2:
         print 'error'
     print res1
     print res2
@@ -57,7 +59,8 @@ def print_out_sku(sku_id):
     for productSku in ProductSku.objects.filter(id=sku_id, assign_num__gt=0):
         product_sku_res[str(productSku.id)] = productSku.assign_num
     res = {}
-    for s in SaleOrder.objects.filter(sku_id=sku_id, assign_status=1, status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS],refund_status=SaleRefund.NO_REFUND):
+    for s in SaleOrder.objects.filter(sku_id=sku_id, assign_status=1, status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS],
+                                      refund_status=SaleRefund.NO_REFUND):
         res[s.sku_id] = res.get(s.sku_id, 0) + s.num
     print product_sku_res
     print res
@@ -69,7 +72,10 @@ def print_out_sku(sku_id):
         print 'error'
     return
 
+
 skus = []
+
+
 def assign_all():
     for s in SaleOrder.objects.values('sku_id').filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS]).distinct():
         print s.values()[0]
@@ -77,7 +83,8 @@ def assign_all():
 
 
 def print_out_all_sku():
-    skus = [s.values()[0] for s in SaleOrder.objects.values('sku_id').filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS])]
+    skus = [s.values()[0] for s in
+            SaleOrder.objects.values('sku_id').filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS])]
     skus = list(set(skus))
     for sku_id in skus:
         print '=============================' + sku_id + '======================================'
@@ -85,8 +92,8 @@ def print_out_all_sku():
 
 
 if __name__ == '__main__':
-    #get_all_buyer()
-    #for buyer_id in get_all_buyer():
+    # get_all_buyer()
+    # for buyer_id in get_all_buyer():
     #    print_out_package(buyer_id)
     print_out_package(4452)
     print_out_package(4452)
