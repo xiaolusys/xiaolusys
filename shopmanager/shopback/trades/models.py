@@ -1424,12 +1424,12 @@ class PackageStat(models.Model):
         verbose_name = u'包裹发送计数'
         verbose_name_plural = u'包裹发送计数列表'
 
+from core.models import BaseModel
 
-class PackageSkuItem(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
-    sale_order_id = models.BigIntegerField()
-    num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
-    package_order_id = models.CharField(max_length=100, verbose_name=u'所属包裹订单', null=True)
+class PackageSkuItem(BaseModel):
+    sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
+    num = models.IntegerField(default=0, verbose_name=u'商品数量')
+    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, verbose_name=u'所属包裹订单')
 
     REAL_ORDER_GIT_TYPE = 0  # 实付
     CS_PERMI_GIT_TYPE = 1  # 赠送
@@ -1452,14 +1452,15 @@ class PackageSkuItem(models.Model):
     NOT_ASSIGNED = 0
     ASSIGNED = 1
     FINISHED = 2
+    CANCELED = 3
     ASSIGN_STATUS = (
-        (NOT_ASSIGNED, u'未分配'),
+        (NOT_ASSIGNED, u'待分配'),
         (ASSIGNED, u'已分配'),
-        (FINISHED, u'已出货')
+        (FINISHED, u'已出货'),
+        (CANCELED, u'已取消')
     )
-    assign_status = models.IntegerField(choices=ASSIGN_STATUS, default=NOT_ASSIGNED, verbose_name=u'状态')
-    status = models.CharField(max_length=32, choices=TAOBAO_ORDER_STATUS,
-                              blank=True, verbose_name=u'订单状态')
+    assign_status = models.IntegerField(choices=ASSIGN_STATUS, default=NOT_ASSIGNED, db_index=True, verbose_name=u'状态')
+    status = models.CharField(max_length=32, choices=TAOBAO_ORDER_STATUS, blank=True, verbose_name=u'订单状态')
     sys_status = models.CharField(max_length=32,
                                   choices=SYS_ORDER_STATUS,
                                   blank=True,
@@ -1473,8 +1474,7 @@ class PackageSkuItem(models.Model):
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     price = models.FloatField(default=0.0, verbose_name=u'单价')
 
-    sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
-    num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
+    sku_id = models.CharField(max_length=20, blank=True, db_index=True, verbose_name=u'规格ID')
     outer_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
     outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
 
@@ -1505,3 +1505,5 @@ class PackageSkuItem(models.Model):
             self._sale_trade_ = self.sale_order.sale_trade
         return self._sale_trade_
 
+    def is_finished(self):
+        return self.assign_status == FINISHED

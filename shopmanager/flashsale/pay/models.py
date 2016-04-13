@@ -637,7 +637,6 @@ def order_trigger(sender, instance, created, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
-    refresh_package_sku_item(instance)
     if instance.is_deposit():
         if instance.is_confirmed():
             from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
@@ -646,32 +645,16 @@ def order_trigger(sender, instance, created, **kwargs):
         from flashsale.xiaolumm import tasks_mama
         tasks_mama.task_order_trigger.delay(instance)
 
-
-def refresh_package_sku_item(sale_order):
-    """ 更新订单状态 """
-    if sale_order.status not in [SaleOrder.TRADE_NO_CREATE_PAY, SaleOrder.WAIT_BUYER_PAY]:
-        from shopback.trades.models import PackageSkuItem
-        try:
-            package_sku_item = PackageSkuItem.objects.get(
-                sale_order_id=sale_order.pk
-            )
-        except:
-            package_sku_item = PackageSkuItem(sale_order_id=sale_order.pk)
-        package_sku_item.status = sale_order.status
-        # package_sku_item.sys_status = sale_order.sys_status
-        package_sku_item.refund_status = sale_order.refund_status
-        attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
-                 'payment', 'discount_fee']
-        attrs.append('assign_status')
-        # package_sku_item.sku_properties_name = sale_order.properties_values
-        for attr in attrs:
-            val = getattr(sale_order, attr)
-            setattr(package_sku_item, attr, val)
-        package_sku_item.save()
-        return
-
-
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
+
+
+def update_package_sku_item(sender, instance, created, **kwargs):
+    """ 更新PackageSkuItem状态 """
+    if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS:
+        from flashsale.pay.tasks import task_saleorder_update_package_sku_item
+        task_saleorder_update_package_sku_item.delay(instance)
+
+post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 
 class TradeCharge(PayBaseModel):
