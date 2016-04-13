@@ -540,17 +540,31 @@ from .models import InBound, InBoundDetail, OrderDetailInBoundDetail
 
 
 class InBoundAdmin(admin.ModelAdmin):
-    list_display = ('show_id', 'supplier', 'express_no', 'sent_from',
-                    'show_images', 'memo', 'created', 'modified', 'status')
+    fieldsets = ((
+        u'详情', {
+            'classes': ('expand', ),
+            'fields': ('express_no', 'sent_from', 'memo')
+        }
+    ), )
+
+    list_display = ('id', 'show_id', 'supplier', 'express_no', 'sent_from',
+                    'show_images', 'memo', 'show_orderlists', 'created', 'modified', 'status')
 
     list_filter = ('status', 'created')
 
     def show_id(self, obj):
-        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {
-            'id': obj.id}
-
+        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">详情</a>' % {'id': obj.id}
     show_id.allow_tags = True
-    show_id.short_description = u'ID'
+    show_id.short_description = u'详情'
+
+    def show_orderlists(self, obj):
+        tmp = []
+        for orderlist_id in obj.orderlist_ids:
+            tmp.append('<a href="/sale/dinghuo/changedetail/%(id)d/">%(id)d</a>' % {'id': orderlist_id})
+        return ''.join(tmp)
+
+    show_orderlists.allow_tags = True
+    show_orderlists.short_description = u'关联订货单'
 
     def show_images(self, obj):
         tpl = """
@@ -568,10 +582,13 @@ class InBoundAdmin(admin.ModelAdmin):
 
 
 class InBoundDetailAdmin(admin.ModelAdmin):
-    list_display = (
-    'show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity',
-    'created', 'modified', 'status')
-
+    fieldsets = ((
+        u'详情', {
+            'classes': ('expand', ),
+            'fields': ('product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'status')
+        }
+    ), )
+    list_display = ('id', 'show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'created', 'modified', 'status')
     def show_inbound(self, obj):
         return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {
             'id': obj.inbound_id}

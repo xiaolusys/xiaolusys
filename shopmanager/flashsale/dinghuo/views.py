@@ -11,6 +11,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import F, Q, Sum, Count
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseRedirect
+from django.utils.safestring import mark_safe
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -22,7 +23,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from flashsale.dinghuo import paramconfig as pcfg
-from core.options import log_action, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
                                       OrderDetailInBoundDetail)
@@ -891,12 +892,41 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                     status = OrderList.APPROVAL
             if status:
                 orderlist.status = status
+                if orderlist.note:
+                    orderlist.note += '\n'
+                orderlist.note += '-->%s%s: %s' % (datetime.datetime.now().strftime('%m月%d %H:%M'), request.user.username, orderlist_status_dict[status])
                 orderlist.save()
+
                 msg = u'更新状态为 %s' % orderlist_status_dict[status]
                 log_action(request.user.id, orderlist, CHANGE, msg)
                 op_logs.append(cls.ORDERLIST_OP_LOG_TPL % {
                     'id': orderlist.id, 'msg': msg
                 })
+
+    @classmethod
+    def update_inbound(cls, request, inbound, inbound_skus_dict, op_logs):
+        if inbound_skus_dict:
+            inbound.status = InBound.PENDING
+            op_logs.append(cls.INBOUND_OP_LOG_TPL % {'id': inbound.id, 'msg': '设为待处理'})
+            log_action(request.user.id, inbound, CHANGE, '待处理')
+            if inbound.memo:
+                inbound.memo += '\n'
+            inbound.memo += '输入大于待入库数, 系统设为待处理'
+        else:
+            inbound.status = InBound.NORMAL
+            op_logs.append(cls.INBOUND_OP_LOG_TPL % {'id': inbound.id, 'msg': '设为正常'})
+            log_action(request.user.id, inbound, CHANGE, '正常')
+
+        inbounddetail_ids = set()
+        for detail in inbound.details.filter(Q(arrival_quantity__gt=0)|Q(inferior_quantity__gt=0)).exclude(sku__isnull=True):
+            inbounddetail_ids.add(detail.id)
+
+        orderlist_ids = set()
+        for record in OrderDetailInBoundDetail.objects.select_related('orderdetail').filter(inbounddetail_id__in=list(inbounddetail_ids),
+                                                                                            status=OrderDetailInBoundDetail.NORMAL):
+            orderlist_ids.add(record.orderdetail.orderlist_id)
+        inbound.orderlist_ids = sorted(list(orderlist_ids))
+        inbound.save()
 
     @detail_route(methods=['post'])
     def change_buyer(self, request, pk):
@@ -947,9 +977,11 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
         self.update_orderlist(request, orderlist_ids, op_logs)
         inbound.status = InBound.INVALID
+        inbound.orderlist_ids = []
         inbound.save()
         op_logs.append(self.INBOUND_OP_LOG_TPL % {'id': inbound.id, 'msg': '设为无效'})
         log_action(request.user.id, inbound, CHANGE, u'设为无效')
+        log_action(request.user.id, inbound, CHANGE, mark_safe('\n'.join(op_logs)))
         return Response({'msg': ''.join(map(lambda x: '<p>%s</p>' % x, op_logs))})
 
     @list_route(methods=['post'])
@@ -974,7 +1006,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         if form.cleaned_attrs.memo:
             inbound.memo = form.cleaned_attrs.memo
         inbound.save()
-        log_action(request.user.id, inbound, CHANGE, u'修改入仓单')
+        log_action(request.user.id, inbound, CHANGE, u'修改')
 
         inbound_skus_dict = json.loads(form.cleaned_attrs.skus)
         if not inbound_skus_dict:
@@ -1032,7 +1064,6 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 else:
                     for record in inbound_detail.records.filter(
                             status=OrderDetailInBoundDetail.NORMAL):
-
                         if record.arrival_quantity:
                             record.orderdetail.arrival_quantity -= record.arrival_quantity
                             op_logs.append(
@@ -1079,8 +1110,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
         orderlists_with_express_no = []
         orderlists_without_express_no = []
-        for orderlist in OrderList.objects.filter(supplier_id=form.cleaned_attrs.target_id) \
-                .exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]).order_by('created'):
+        for orderlist in OrderList.objects.filter(supplier_id=inbound.supplier_id) \
+          .exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]).order_by('created'):
             if form.cleaned_attrs.express_no and orderlist.express_no:
                 if form.cleaned_attrs.express_no.strip() in \
                         self.EXPRESS_NO_SPLIT_PATTERN.split(orderlist.express_no.strip()):
@@ -1098,10 +1129,10 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 inbound_detail = inbound_details.get(sku_id)
                 if not (inbound_detail and inbound_sku_dict):
                     continue
-                orderlist_ids.add(orderlist.id)
                 plan_quantity = orderdetail.buy_quantity - orderdetail.arrival_quantity - orderdetail.inferior_quantity
-                if not plan_quantity:
+                if plan_quantity <= 0:
                     continue
+                orderlist_ids.add(orderlist.id)
                 arrival_quantity_delta = min(plan_quantity, inbound_sku_dict['arrival_quantity'])
                 inferior_quantity_delta = min(plan_quantity, inbound_sku_dict['inferior_quantity'])
 
@@ -1135,7 +1166,10 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         if len_of_op_logs == len(op_logs):
             op_logs.append('执行完毕, 无需重新分配')
 
+        log_action(request.user.id, inbound, CHANGE, u'修改')
         self.update_orderlist(request, orderlist_ids, op_logs)
+        self.update_inbound(request, inbound, inbound_skus_dict, op_logs)
+        log_action(request.user.id, inbound, CHANGE, mark_safe('\n'.join(op_logs)))
         return Response({'msg': ''.join(map(lambda x: '<p>%s</p>' % x, op_logs))})
 
     @list_route(methods=['post'])
@@ -1168,20 +1202,6 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 'plan_quantity': s['buy_quantity'] - min(s['arrival_quantity'], s['buy_quantity']) -
                                  s['inferior_quantity']
             }
-
-        error_skus_dict = {}
-        for sku_id, inbound_sku_dict in inbound_skus_dict.iteritems():
-            plan_quantity = (old_skus_dict.get(sku_id) or
-                             {}).get('plan_quantity') or 0
-            in_quantity = inbound_sku_dict[
-                              'arrival_quantity'] + inbound_sku_dict['inferior_quantity']
-            if plan_quantity < in_quantity:
-                error_skus_dict[sku_id] = {
-                    'plan_quantity': plan_quantity,
-                    'error': '大于待入库数'
-                }
-        if error_skus_dict:
-            return Response({'error': '入库异常', 'error_skus': error_skus_dict})
 
         inbound = InBound(supplier_id=supplier_id,
                           sent_from=InBound.SUPPLIER,
@@ -1299,7 +1319,10 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                             inbound_sku_dict.get('inferior_quantity')):
                     inbound_skus_dict.pop(sku_id, False)
 
+        log_action(request.user.id, inbound, ADDITION, u'新建')
         self.update_orderlist(request, orderlist_ids, op_logs)
+        self.update_inbound(request, inbound, inbound_skus_dict, op_logs)
+        log_action(request.user.id, inbound, CHANGE, mark_safe('\n'.join(op_logs)))
         return Response({'inbound_id': inbound.id, 'msg': ''.join(map(lambda x: '<p>%s</p>' % x, op_logs))})
 
     @list_route(methods=['get'])
@@ -1317,19 +1340,21 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             for inbound_detail in InBoundDetail.objects.filter(inbound=inbound):
                 sku_ids.add(inbound_detail.sku_id)
                 skus_dict = products_dict.setdefault(inbound_detail.product_id, {})
+                s = inbound_detail.records.filter(status=OrderDetailInBoundDetail.NORMAL) \
+                  .values('inbounddetail_id').annotate(arrival_quantity=Sum('arrival_quantity'), inferior_quantity=Sum('inferior_quantity'))
+                s = {} if not s else s[0]
                 skus_dict[inbound_detail.sku_id] = {
                     'id': inbound_detail.sku_id,
                     'arrival_quantity': inbound_detail.arrival_quantity,
                     'inferior_quantity': inbound_detail.inferior_quantity,
-                    'plan_quantity': inbound_detail.arrival_quantity + inbound_detail.inferior_quantity
+                    'plan_quantity': (s.get('arrival_quantity') or 0) + (s.get('inferior_quantity') or 0)
                 }
 
             dinghuo_stats = OrderDetail.objects.filter(chichu_id__in=map(str, skus_dict.keys())) \
-                .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-                .values('product_id', 'chichu_id') \
-                .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
-                          inferior_quantity=Sum('inferior_quantity'))
-
+              .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+              .values('product_id', 'chichu_id') \
+              .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                        inferior_quantity=Sum('inferior_quantity'))
             for s in dinghuo_stats:
                 product_id, sku_id = map(int, (s['product_id'], s['chichu_id']))
                 skus_dict = products_dict.setdefault(product_id, {})
@@ -1337,7 +1362,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 sku_dict.update({
                     'id': sku_id,
                     'plan_quantity': s['buy_quantity'] - s['arrival_quantity'] - \
-                                     s['inferior_quantity'] + s['arrival_quantity']
+                        s['inferior_quantity'] + sku_dict['plan_quantity']
                 })
             new_products_dict = {}
             for sku in ProductSku.objects.select_related('product').filter(id__in=list(sku_ids)):
