@@ -592,13 +592,15 @@ def task_close_refund(days=None):
 
 @task
 def task_saleorder_update_package_sku_item(sale_order):
-    from shopback.trades.models import PackageSkuItem    
+    from shopback.trades.models import PackageSkuItem
+    from shopback.items.models import ProductSku
     items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
     if items.count() <= 0:
         if not sale_order.is_pending():
             # we create PackageSkuItem only if sale_order is 'pending'.
             return
-        sku_item = PackageSkuItem(sale_order_id=sale_order.id)
+        ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
+        sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
     else:
         sku_item = items[0]
         if sku_item.is_finished():
@@ -615,7 +617,7 @@ def task_saleorder_update_package_sku_item(sale_order):
         # to be sent to him (most likely because it's not necessary, maybe she/he
         # bought a virtual product).
         sku_item.assign_status = PackageSkuItem.CANCELED
-    
+
     attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
              'payment', 'discount_fee', 'refund_status', 'status']
     for attr in attrs:
