@@ -14,7 +14,7 @@ from rest_framework.exceptions import APIException
 from shopback.items.models import Product
 from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
 from flashsale.pay.models import Customer, ShoppingCart
-
+from flashsale.pay.tasks import task_release_coupon_push
 
 class UserCouponsViewSet(viewsets.ModelViewSet):
     """
@@ -97,10 +97,14 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             template_ids = [int(i) for i in template_ids.split(',')]
             customer = Customer.objects.get(user=request.user)
             if template_ids:  # 根据模板id发放
+                release_res = None
                 for template_id in template_ids:
                     uc = UserCoupon()
                     cus = {"buyer_id": customer.id, "template_id": template_id}
                     release_res = uc.release_by_template(**cus)
+                if release_res == '领取成功':
+                    # 推送消息提醒
+                    task_release_coupon_push.s(customer.id).delay()
                 return Response({"code": 0, "res": release_res})
         except Customer.DoesNotExist:
             return Response({"code": 2, "res": "需登陆后领取"})

@@ -279,6 +279,10 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_push_mama_cashout_msg',
     },  # 代理有提现成功推送消息提醒
+    'flashsale.pay.tasks.task_release_coupon_push': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_release_coupon_push',
+    },  # 用户领取优惠券推送消息
     #######################################################
     'flashsale.clickcount.tasks.task_Create_Click_Record': {
         'queue': 'frency',
@@ -357,7 +361,6 @@ CELERY_ROUTES = {
         'queue': 'async',
         'routing_key': 'async.task_ReleaseMamaLinkCoupon',
     },  # 代理专属有订单则发送优惠券(对应类型)
-
 }
 CELERY_ROUTES.update(DAILY_STATS_ROUTES)
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)

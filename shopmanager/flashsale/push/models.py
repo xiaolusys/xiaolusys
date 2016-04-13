@@ -3,6 +3,8 @@
 from django.db import models
 
 from core.fields import BigIntegerAutoField
+from models_message import PushMsgTpl
+
 
 
 class PushTopic(models.Model):
