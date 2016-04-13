@@ -36,7 +36,9 @@ def get_application(event_id, unionid=None, mobile=None):
 
 
 def gen_cash_value():
-    return random.random()
+    values = [28,28,36,38,46,48,56,58,66,66,68,78,88,88,118,128]
+    x = random.choice(values)
+    return x
 
 
 def gen_envelope_type_value_pair(customer_id, event_id):
