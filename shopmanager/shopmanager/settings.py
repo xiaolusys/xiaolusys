@@ -286,43 +286,7 @@ if os.environ.get('TARGET') == 'staging':
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
 
-if os.environ.get('TARGET') == 'django18':
-    DEBUG = False
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
-            'USER': 'xiaoludev',  # Not used with sqlite3.
-            'PASSWORD': 'xiaolu_test123',  # Not used with sqlite3.
-            'HOST': 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com',
-            # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
-            'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
-            'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
-                        'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
-        }
-    }
-    CACHES = {
-        'default': {
-            'BACKEND': 'redis_cache.RedisCache',
-            'LOCATION': '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379',
-            'OPTIONS': {
-                'DB': 9,
-                'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
-            }
-        }
-    }
-    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
-    import raven
-
-    RAVEN_CONFIG = {
-        'dsn': 'http://e419f1ed03004d03bad7b4b563f74241:12fbfa94d636472d92ae964757627367@sentry.xiaolumm.com/3',
-        # If you are using git, you can also automatically configure the
-        # release based on the git info.
-        'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
-    }
-
-if os.environ.get('TARGET') == 'production':
+if os.environ.get('TARGET') in ('production', 'django18'):
     DEBUG = False
     DATABASES = {
         'default': {
