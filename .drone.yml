@@ -44,6 +44,8 @@ deploy:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn-staging
       - docker run --name=gunicorn-staging -e TARGET=staging -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
+      - docker rm -f celery-staging 
+      - docker run --name=celery-staging -e TARGET=staging --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program celery worker -A shopmanager --loglevel=ERROR -c 2
   ssh:
     host: staging.xiaolumm.com
     user: root
