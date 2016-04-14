@@ -587,6 +587,6 @@ def task_close_refund(days=None):
     aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                                            SaleRefund.REFUND_CLOSED,
                                                            SaleRefund.REFUND_REFUSE_BUYER],
-                                               created__lte=time_point,
-                                               good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
+                                               created__lte=time_point)  # 这里不考虑退货状态
+                                               # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
     res = map(close_refund, aggree_refunds)
