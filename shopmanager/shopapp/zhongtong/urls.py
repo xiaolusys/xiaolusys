@@ -1,7 +1,8 @@
 __author__ = 'timi06'
 # coding: utf-8
+import html_to_pdf
+import views
 from django.conf.urls import patterns, url
-import views, html_to_pdf
 
 urlpatterns = patterns('',
 

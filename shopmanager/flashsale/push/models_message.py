@@ -14,7 +14,7 @@ class PushMsgTpl(BaseModel):
 
     class Meta:
         db_table = 'push_msg_tpl'
-        app_label = 'apprelease'
+        app_label = 'push'
         verbose_name = u'推送/推送信息模板表'
         verbose_name_plural = u'推送/推送信息模板列表'
 

@@ -5,9 +5,8 @@ import datetime
 from django.db import models
 from django.db.models import Q, Sum
 from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
-
 from bitfield import BitField
+
 from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 
 from shopback.users.models import User
@@ -178,9 +177,9 @@ class MergeTrade(models.Model):
                     (WARE_SH, u'上海仓'),
                     (WARE_GZ, u'广州仓'))
 
-    id = BigIntegerAutoField(primary_key=True, verbose_name=u'订单ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'订单ID')
     tid = models.CharField(max_length=32,
-                           default=lambda: 'DD%d' % int(time.time() * 10 ** 5),
+                           default='DD%d' % int(time.time() * 10 ** 5),
                            verbose_name=u'原单ID')
     user = models.ForeignKey(User, related_name='merge_trades', verbose_name=u'所属店铺')
     buyer_nick = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'买家昵称')
@@ -717,11 +716,11 @@ class MergeOrder(models.Model):
         (DELETE, u'无效'),
     )
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     oid = models.CharField(max_length=32,
-                           default=lambda: 'DO%d' % int(time.time() * 10 ** 5),
+                           default='DO%d' % int(time.time() * 10 ** 5),
                            verbose_name=u'原单ID')
-    merge_trade = BigIntegerForeignKey(MergeTrade,
+    merge_trade = models.ForeignKey(MergeTrade,
                                        related_name='merge_orders',
                                        verbose_name=u'所属订单')
     sale_order_id = models.BigIntegerField(null=True, default=None, db_index=True, verbose_name=u'对应的SaleOrder')
@@ -1056,7 +1055,8 @@ class MergeTradeDelivery(models.Model):
 
     DELIVERY_CHOICES = ((WAIT_DELIVERY, u'等待上传'),
                         (FAIL_DELIVERY, u'上传失败'),)
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
+
     seller = models.ForeignKey(User, null=True, verbose_name=u'所属店铺')
 
     trade_id = models.BigIntegerField(unique=True, verbose_name=u'订单ID')

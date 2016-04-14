@@ -46,7 +46,7 @@ class StatisticsShopping(models.Model):
     class Meta:
         db_table = 'flashsale_tongji_shopping'
         unique_together = ('linkid', 'wxorderid')
-        app_label = 'xiaolumm'
+        app_label = 'clickrebeta'
         verbose_name = u'统计购买'
         verbose_name_plural = u'统计购买列表'
 
@@ -137,7 +137,7 @@ class OrderDetailRebeta(models.Model):
     class Meta:
         db_table = 'flashsale_tongji_orderebeta'
         unique_together = ('order', 'detail_id')
-        app_label = 'xiaolumm'
+        app_label = 'clickrebeta'
         verbose_name = u'订单佣金明细'
         verbose_name_plural = u'订单佣金明细'
 
@@ -177,7 +177,7 @@ class StatisticsShoppingByDay(models.Model):
     class Meta:
         db_table = 'flashsale_tongji_shopping_day'
         unique_together = ('linkid', 'tongjidate')
-        app_label = 'xiaolumm'
+        app_label = 'clickrebeta'
         verbose_name = u'统计购买(按天)'
         verbose_name_plural = u'统计购买(按天)列表'
 

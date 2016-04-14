@@ -1,10 +1,9 @@
 __author__ = 'meixqhi'
-from core.fields import BigIntegerAutoField
 from django.db import models
 
 
 class ProductPageRank(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
 
     keyword = models.CharField(max_length=20, db_index=True)
 
@@ -26,7 +25,7 @@ class ProductPageRank(models.Model):
 
 
 class ProductTrade(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
 
     item_id = models.CharField(max_length=32, db_index=True)
     user_id = models.CharField(max_length=32, db_index=True)

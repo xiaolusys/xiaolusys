@@ -12,10 +12,6 @@ class BigIntegerAutoField(models.AutoField):
         return 'bigint(20) auto_increment'
 
 
-# if settings.DEBUG:
-#    BigIntegerAutoField = models.AutoField
-
-
 class TimestampField(models.Field):
     description = 'simple Timestamp field for MYSQL'
 

@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
-from core.fields import BigIntegerAutoField
 
 ROLE_CHOICES = (
     ('seller', u'卖家'),
@@ -16,7 +15,7 @@ RESULT_CHOICES = (
 
 
 class Comment(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
 
     num_iid = models.BigIntegerField(null=False, db_index=True, verbose_name=u'商品ID')
     tid = models.BigIntegerField(null=False, db_index=True, verbose_name=u'交易ID')
@@ -99,7 +98,7 @@ class CommentGrade(models.Model):
         (GRADE_BAD, u'不合格'),
     )
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
 
     num_iid = models.BigIntegerField(null=False, verbose_name=u'商品ID')
     tid = models.BigIntegerField(null=False, db_index=True, verbose_name=u'交易ID')

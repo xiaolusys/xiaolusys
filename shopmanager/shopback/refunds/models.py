@@ -4,7 +4,6 @@ import json
 import time
 from common.utils import parse_datetime
 from django.db import models
-from core.fields import BigIntegerAutoField
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
 from django.db.models.signals import post_save
@@ -75,9 +74,9 @@ class Refund(models.Model):
     REFUND_CLOSED = pcfg.REFUND_CLOSED
     REFUND_SUCCESS = pcfg.REFUND_SUCCESS
 
-    id = BigIntegerAutoField(primary_key=True, verbose_name='ID')
+    id = models.AutoField(primary_key=True, verbose_name='ID')
     refund_id = models.CharField(max_length=32,
-                                 default=lambda: 'RF%d' % int(time.time() * 10 ** 4),
+                                 default='RF%d' % int(time.time() * 10 ** 4),
                                  verbose_name='退款单ID')
     tid = models.CharField(max_length=32, blank=True, verbose_name='交易ID')
 

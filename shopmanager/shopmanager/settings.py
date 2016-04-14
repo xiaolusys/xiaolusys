@@ -165,8 +165,6 @@ INSTALLED_APPS = (
     'shopapp.weixin',
     'shopapp.tmcnotify',
 
-    # 'shopapp.zhongtong',
-
     'shopapp.jingdong',
     'shopapp.intercept',
     'shopapp.examination',
@@ -175,7 +173,6 @@ INSTALLED_APPS = (
     'shopapp.weixin_examination',
     'shopapp.sampleproduct',
 
-    # 'shopapp.second_time_sort',
     'supplychain.wavepick',
     'supplychain.supplier',
     'supplychain.category',
@@ -201,7 +198,8 @@ INSTALLED_APPS = (
     'flashsale.protocol',
     'extrafunc.renewremind',
     # 'test.celery',
-    # 'shopapp.notify',
+    'shopapp.notify',
+    # 'shopapp.zhongtong'
 )
 
 AUTH_PROFILE_MODULE = 'users.user'

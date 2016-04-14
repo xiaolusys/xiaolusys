@@ -31,7 +31,7 @@ class Clicks(models.Model):
 
     class Meta:
         db_table = 'xiaolumm_clicks'
-        app_label = 'xiaolumm'
+        app_label = 'clickcount'
         verbose_name = u'用户点击记录'
         verbose_name_plural = u'用户点击记录列表'
 
@@ -62,7 +62,7 @@ class UserClicks(models.Model):
 
     class Meta:
         db_table = 'flashsale_userclicks'
-        app_label = 'xiaolumm'
+        app_label = 'clickcount'
         verbose_name = u'用户活跃记录'
         verbose_name_plural = u'用户活跃记录列表'
 
@@ -94,7 +94,7 @@ class ClickCount(models.Model):
     class Meta:
         db_table = 'flashsale_clickcount'
         unique_together = ('linkid', 'date')  # 联合索引
-        app_label = 'xiaolumm'
+        app_label = 'clickcount'
         verbose_name = u'点击统计表'
         verbose_name_plural = u'点击统计表列表'
         ordering = ['-date']
@@ -118,7 +118,7 @@ class WeekCount(models.Model):
     class Meta:
         db_table = "flashsale_weekcount_table"
         unique_together = ('linkid', 'week_code')  # 联合索引
-        app_label = 'xiaolumm'
+        app_label = 'clickcount'
         verbose_name = u"代理转化率周统计"
         verbose_name_plural = u"代理转化率周统计列表"
         ordering = ['write_time']

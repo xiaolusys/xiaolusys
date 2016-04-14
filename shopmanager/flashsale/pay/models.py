@@ -6,7 +6,6 @@ from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save
 from django.db import transaction
 
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
@@ -118,7 +117,7 @@ class SaleTrade(BaseModel):
         (TRADE_CLOSED_BY_SYS, u'交易关闭'),
     )
 
-    id = BigIntegerAutoField(primary_key=True, verbose_name=u'订单ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'订单ID')
 
     tid = models.CharField(max_length=40, unique=True,
                            default=genTradeUniqueid,
@@ -163,7 +162,7 @@ class SaleTrade(BaseModel):
     openid = models.CharField(max_length=40, blank=True, verbose_name=u'微信OpenID')
     charge = models.CharField(max_length=28, verbose_name=u'支付编号')
 
-    extras_info = JSONCharMyField(max_length=256, blank=True, default=lambda: {}, verbose_name=u'附加信息')
+    extras_info = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'附加信息')
 
     status = models.IntegerField(choices=TRADE_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'交易状态')
@@ -496,12 +495,12 @@ class SaleOrder(PayBaseModel):
                            TRADE_BUYER_SIGNED,
                            TRADE_FINISHED,)
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     oid = models.CharField(max_length=40, unique=True,
-                           default=lambda: uniqid(
-                               '%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d'))),
+                           # default=lambda: uniqid(
+                           #     '%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d'))),
                            verbose_name=u'原单ID')
-    sale_trade = BigIntegerForeignKey(SaleTrade, related_name='sale_orders',
+    sale_trade = models.ForeignKey(SaleTrade, related_name='sale_orders',
                                       verbose_name=u'所属订单')
 
     item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
@@ -712,7 +711,7 @@ class ShoppingCart(BaseModel):
     STATUS_CHOICE = ((NORMAL, u'正常'),
                      (CANCEL, u'关闭'))
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     buyer_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'买家ID')
     buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
 

@@ -10,7 +10,8 @@ def get_systemoa_user():
     return user
 
 
-SYSTEMOA_USER = get_systemoa_user()
+#SYSTEMOA_USER = get_systemoa_user()
+SYSTEMOA_USER = None
 
 
 def log_action(user_id, obj, action, msg):
