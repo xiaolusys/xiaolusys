@@ -117,6 +117,7 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
         if not self.valid_openid(openid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
+            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
             userinfo = self.get_auth_userinfo(request)
             openid = userinfo.get("openid")
 
