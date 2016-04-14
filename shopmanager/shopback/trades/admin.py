@@ -1137,7 +1137,7 @@ class MergeTradeDeliveryAdmin(admin.ModelAdmin):
                 return
 
             send_tasks = chord([uploadTradeLogisticsTask.s(trade.trade_id, user_id) for trade in queryset])(
-                deliveryTradeCallBack.s())
+                deliveryTradeCallBack.s(),max_retries=300)
 
         except Exception, exc:
             return HttpResponse('<body style="text-align:center;"><h1>发货信息上传执行出错:（%s）</h1></body>' % exc.message)
