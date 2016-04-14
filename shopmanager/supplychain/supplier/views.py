@@ -789,6 +789,7 @@ class ScheduleDetailAPIView(APIView):
             return Response({'error': u'参数错误'})
         typed_value = None
         _id, field = m.group(1, 2)
+
         value = request.data.get(k) or ''
         _id = int(_id)
         schedule_detail = SaleProductManageDetail.objects.get(pk=_id)
@@ -812,9 +813,12 @@ class ScheduleDetailAPIView(APIView):
                     else:
                         product.name = typed_value
                     product.save()
+                    log_action(request.user.id, product, CHANGE, u'修改名称: %s' % product.name)
+
                 if model_id:
                     ModelProduct.objects.filter(pk=model_id).update(
                         name=typed_value)
+
         elif field == 'remain_num':
             try:
                 typed_value = int(value)
@@ -824,9 +828,13 @@ class ScheduleDetailAPIView(APIView):
                                                       status='normal'):
                     product.remain_num = typed_value
                     product.save()
+                    log_action(request.user.id, product, CHANGE, u'修改预留数: %d' % product.remain_num)
                     ProductSku.objects.filter(product_id=product.id,
                                               status='normal').update(
                                                   remain_num=typed_value)
+                    for sku in product.prod_skus.filter(status='normal'):
+                        log_action(request.user.id, sku, CHANGE, u'修改预留数: %d' % sku.remain_num)
+
             except:
                 typed_value = None
         elif field == 'order_weight':
@@ -841,6 +849,8 @@ class ScheduleDetailAPIView(APIView):
                             product=product)
                         product_detail.order_weight = typed_value
                         product_detail.save()
+                        log_action(request.user.id, product, CHANGE, u'修改权重: %d' % typed_value)
+
             except:
                 typed_value = None
 
@@ -854,9 +864,13 @@ class ScheduleDetailAPIView(APIView):
                                                           status='normal'):
                         product.cost = typed_value
                         product.save()
+                        log_action(request.user.id, product, CHANGE, u'修改采购价: %.2f' % product.cost)
                         ProductSku.objects.filter(product_id=product.id,
                                                   status='normal').update(
                                                       cost=typed_value)
+                        for sku in product.prod_skus.filter(status='normal'):
+                            log_action(request.user.id, sku, CHANGE, u'修改采购价: %.2f' % sku.cost)
+
                 elif field == 'std_sale_price':
                     SaleProduct.objects.filter(pk=_id).update(
                         std_sale_price=typed_value)
@@ -864,9 +878,12 @@ class ScheduleDetailAPIView(APIView):
                                                           status='normal'):
                         product.std_sale_price = typed_value
                         product.save()
+                        log_action(request.user.id, product, CHANGE, u'修改吊牌价: %.2f' % product.std_sale_price)
                         ProductSku.objects.filter(
                             product_id=product.id,
                             status='normal').update(std_sale_price=typed_value)
+                        for sku in product.prod_skus.filter(status='normal'):
+                            log_action(request.user.id, sku, CHANGE, u'修改吊牌价: %.2f' % sku.std_sale_price)
                 elif field == 'on_sale_price':
                     SaleProduct.objects.filter(pk=_id).update(
                         on_sale_price=typed_value)
@@ -874,9 +891,12 @@ class ScheduleDetailAPIView(APIView):
                                                           status='normal'):
                         product.agent_price = typed_value
                         product.save()
+                        log_action(request.user.id, product, CHANGE, u'修改售价: %.2f' % product.agent_price)
                         ProductSku.objects.filter(product_id=product.id,
                                                   status='normal').update(
                                                       agent_price=typed_value)
+                        for sku in product.prod_skus.filter(status='normal'):
+                            log_action(request.user.id, sku, CHANGE, u'修改售价: %.2f' % sku.agent_price)
             except:
                 typed_value = None
 
@@ -1128,6 +1148,10 @@ class RemainNumAPIView(APIView):
             stat = sku.product.prod_skus.filter(status='normal').aggregate(remain_sum=Sum('remain_num'))
             sku.product.remain_num = stat.get('remain_sum') or 0
             sku.product.save()
+
+            log_action(request.user.id, sku, CHANGE, u'修改预留数: %d' % sku.remain_num)
+            log_action(request.user.id, sku.product, CHANGE, u'修改预留数: %d' % sku.product.remain_num)
+
         except:
             import traceback
             traceback.print_exc()
@@ -1240,9 +1264,12 @@ class SyncStockAPIView(APIView):
                 collect_num += left_num
                 sku.remain_num = left_num
                 sku.save()
+                log_action(request.user.id, sku, CHANGE, u'修改预留数: %d' % sku.remain_num)
             product.collect_num = collect_num
             product.remain_num = collect_num
             product.save()
+            log_action(request.user.id, product, CHANGE, u'修改预留数: %d' % product.remain_num)
+            log_action(request.user.id, product, CHANGE, u'修改库存: %d' % product.collect_num)
         return Response({'msg': 'OK'})
 
 
