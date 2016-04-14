@@ -406,7 +406,7 @@ class MainView(APIView):
         for item in envelope_serializer.data:
             if item['type'] == 'card' and item['status'] == 'open':
                 index = item['value']
-                cards[index] = 1
+                cards[index - 1] = 1
 
         inactive_applications = XLSampleApply.objects.filter(event_id=event_id, from_customer=customer_id,
                                                              status=XLSampleApply.INACTIVE).order_by('-created')
