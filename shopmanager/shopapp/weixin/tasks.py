@@ -340,6 +340,9 @@ def task_userinfo_update_customer(instance):
             customers.update(**params)
 
 
+from core.weixin.options import valid_openid
+
+
 @task
 def task_snsauth_update_weixin_userinfo(userinfo):
     """
@@ -350,6 +353,7 @@ def task_snsauth_update_weixin_userinfo(userinfo):
     nick = userinfo.get("nickname")
     thumbnail = userinfo.get("headimgurl")
     unionid = userinfo.get("unionid")
+    openid = userinfo.get("openid")
 
     if not unionid:
         return
@@ -359,6 +363,14 @@ def task_snsauth_update_weixin_userinfo(userinfo):
     if records.count() <= 0:
         info = WeixinUserInfo(unionid=unionid, nick=nick, thumbnail=thumbnail)
         info.save()
+    try:
+        WeixinUnionID.objects.get(unionid=unionid)
+    except WeixinUnionID.DoesNotExist:
+        if valid_openid(openid)and valid_openid(unionid):
+            WeixinUnionID.objects.create(openid=openid, app_key=settings.WXPAY_APPID, unionid=unionid)
+    except Exception, exc:
+        logger.info(exc.message)
+
     else:
         info = records[0]
         update = False
