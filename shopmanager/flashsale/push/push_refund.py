@@ -29,7 +29,7 @@ def make_refund_message(refend):
 
     if push_msg_tpls.exists():
         push_msg_tpl = push_msg_tpls[0]
-        return push_msg_tpl.tpl_content
+        return push_msg_tpl.get_emoji_content()
     return None
 
 

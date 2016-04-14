@@ -77,6 +77,8 @@ def task_generate_red_envelope(application):
             envelope1 = RedEnvelope(customer_id=from_customer_id, event_id=event_id, uni_key=uni_key1, type=type,
                                     value=value, friend_img=application.headimgurl, friend_nick=application.nick)
             envelope1.save()
+            # 给推荐人发送红包的发放推送
+            push_activity.activity_red_packet_release_push(from_customer_id)
 
     # when activating my application, i get one red envelope (with type 'card')
     type = 1  # card
