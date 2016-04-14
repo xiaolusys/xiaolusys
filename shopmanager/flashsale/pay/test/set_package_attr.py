@@ -1,7 +1,8 @@
 # coding=utf-8
 
-from flashsale.pay.models import SaleOrder, SaleTrade, refresh_package_sku_item
+from flashsale.pay.models import SaleOrder, SaleTrade
 from shopback.trades.models import MergeTrade, PackageOrder, PackageSkuItem
+
 
 # ADD COLUMN `pid` bigint(20) auto_increment NOT NULL PRIMARY KEY,
 # ADD COLUMN `is_picking_print`  tinyint(1) NOT NULL DEFAULT 0 AFTER `is_charged`,
@@ -35,11 +36,55 @@ def set_package_attr(package, sale_trade, merge_trade):
     package.save()
     return
 
+
 def set_package_sku_item():
-    for sale_order in SaleOrder.objects.exclude(status__in=[SaleOrder.TRADE_NO_CREATE_PAY,
-        SaleOrder.WAIT_BUYER_PAY, SaleOrder.TRADE_FINISHED, SaleOrder.TRADE_CLOSED,
-        SaleOrder.TRADE_CLOSED_BY_SYS]):
-        refresh_package_sku_item(sale_order)
+    for s in SaleOrder.objects.filter(refund_status=0).exclude(
+        status__in=[SaleOrder.TRADE_NO_CREATE_PAY, SaleOrder.WAIT_BUYER_PAY, SaleOrder.TRADE_FINISHED,
+                    SaleOrder.TRADE_CLOSED, SaleOrder.TRADE_CLOSED_BY_SYS]):
+        task_saleorder_update_package_sku_item(s)
+    # for sale_order in SaleOrder.objects.exclude(status__in=[SaleOrder.TRADE_NO_CREATE_PAY,
+    #                                                         SaleOrder.WAIT_BUYER_PAY, SaleOrder.TRADE_FINISHED,
+    #                                                         SaleOrder.TRADE_CLOSED,
+    #                                                         SaleOrder.TRADE_CLOSED_BY_SYS], refund_status=0):
+    #     sale_order.save()
+
+
+def task_saleorder_update_package_sku_item(sale_order):
+    from shopback.trades.models import PackageSkuItem
+    from shopback.items.models import ProductSku
+    items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
+    if items.count() <= 0:
+        if not sale_order.is_pending():
+            # we create PackageSkuItem only if sale_order is 'pending'.
+            return
+        ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
+        sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
+    else:
+        sku_item = items[0]
+        if sku_item.is_finished():
+            # if it's finished, that means the package is sent out,
+            # then we dont do further updates, simply return.
+            return
+
+    # Now the package has not been sent out yet.
+
+    if sale_order.is_canceled() or sale_order.is_confirmed():
+        # If saleorder is canceled or confirmed before we send out package, we
+        # then dont want to send out the package, simply cancel. Note: if the
+        # order is confirmed, we assume the customer does not want the package
+        # to be sent to him (most likely because it's not necessary, maybe she/he
+        # bought a virtual product).
+        sku_item.assign_status = PackageSkuItem.CANCELED
+
+    attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
+             'payment', 'discount_fee', 'refund_status', 'status']
+    for attr in attrs:
+        if hasattr(sale_order, attr):
+            val = getattr(sale_order, attr)
+            setattr(sku_item, attr, val)
+
+    sku_item.save()
+
 
 # sku_order = SaleOrder.objects.filter(package_order_id=package.id)[0]
 # sale_trade = SaleTrade.objects.get(id=sku_order.sale_trade_id)
@@ -52,7 +97,7 @@ def set_pacakges_attr():
             set_package_attr(package, sale_trade, merge_trade)
             print str(package.id) + '|successs'
         else:
-            print str(package.id)+'|no merge_trades'
+            print str(package.id) + '|no merge_trades'
 
 
 # def set_package_order():
@@ -69,4 +114,3 @@ def set_package_merge_order_id():
         for item in package.sku_items:
             tid = item.sale_order.sale_trade.tid
             MergeTrade.objects()
-

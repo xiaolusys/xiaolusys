@@ -600,16 +600,16 @@ class SaleOrder(PayBaseModel):
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
             update_model_fields(sale_trade, update_fields=['status'])
 
-    def cancel_assign(self):
-        if self.assign_status == SaleOrder.ASSIGNED:
-            self.assign_status = SaleOrder.NOT_ASSIGNED
-            self.package_order_id = None
-            self.save()
-            psku = ProductSku.objects.get(id=self.sku_id)
-            psku.assign_num -= self.num
-            psku.save()
-            return True
-        return False
+    # def cancel_assign(self):
+    #     if self.assign_status == SaleOrder.ASSIGNED:
+    #         self.assign_status = SaleOrder.NOT_ASSIGNED
+    #         self.package_order_id = None
+    #         self.save()
+    #         psku = ProductSku.objects.get(id=self.sku_id)
+    #         psku.assign_num -= self.num
+    #         psku.save()
+    #         return True
+    #     return False
 
     def second_kill_title(self):
         """ 判断是否秒杀标题　"""

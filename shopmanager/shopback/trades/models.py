@@ -1360,6 +1360,22 @@ class PackageOrder(models.Model):
     def pstat_id(self):
         return str(self.buyer_id) + '-' + str(self.user_address_id) + '-' + str(self.ware_by)
 
+    @staticmethod
+    def generate(id, sale_trade):
+        if not PackageSkuItem.objects.filter(id=id).exists():
+            package_order = PackageSkuItem()
+            package_order.copy_order_info(sale_trade)
+            package_order.save()
+        else:
+            package_order = PackageSkuItem.objects.get(id=id)
+            if package_order.sys_status != PackageOrder.WAIT_PREPARE_SEND_STATUS:
+                package_order.redo_sign = True
+                package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+                package_order.out_sid = ''
+                package_order.logistic_company_id = None
+                package_order.save()
+        return package_order
+
     def sync_merge_trade(self, merge_trade):
         """出库时同步实际数据于理论数据，如果需要就产生新包裹"""
         # TODO@hy 在本次代码上线而自动拆单未完成时生效
@@ -1431,7 +1447,7 @@ from core.models import BaseModel
 class PackageSkuItem(BaseModel):
     sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
     num = models.IntegerField(default=0, verbose_name=u'商品数量')
-    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, verbose_name=u'所属包裹订单')
+    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'所属包裹订单')
 
     REAL_ORDER_GIT_TYPE = 0  # 实付
     CS_PERMI_GIT_TYPE = 1  # 赠送
@@ -1506,9 +1522,35 @@ class PackageSkuItem(BaseModel):
     @property
     def sale_trade(self):
         if not hasattr(self, '_sale_trade_'):
-            from flashsale.pay.models import SaleTrade
             self._sale_trade_ = self.sale_order.sale_trade
         return self._sale_trade_
 
+    @property
+    def product_sku(self):
+        if not hasattr(self, '_product_sku_'):
+            self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
+        return self._product_sku_
+
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
+
+
+def update_product_sku_assign_num(sender, instance, created, **kwargs):
+    #if instance.assign_status == PackageSkuItem.NOT_ASSIGNED:
+    from shopback.items.tasks import task_update_product_sku_assign_num
+    task_update_product_sku_assign_num.delay(instance.sku_id)
+
+
+post_save.connect(update_product_sku_assign_num, sender=PackageSkuItem, dispatch_uid='post_save_update_product_sku_assign_num')
+
+
+def packagize_sku_item(sender, instance, created, **kwargs):
+    if instance.assign_status == PackageSkuItem.ASSIGNED and not instance.package_order_id:
+        sale_trade = instance.sale_trade
+        package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
+                                                               instance.product_sku.ware_by)
+        PackageOrder.generate(package_order_id, sale_trade)
+        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
+
+
+post_save.connect(packagize_sku_item, sender=PackageSkuItem, dispatch_uid='post_save_packagize_sku_item')

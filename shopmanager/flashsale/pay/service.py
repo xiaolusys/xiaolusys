@@ -148,8 +148,8 @@ class FlashSaleService(LocalService):
             return
             ###################################################################
         self.__class__.createMergeTrade(self.trade)
-        for sale_order in self.trade.sale_orders.all():
-            ProductSku.objects.get(id=sale_order.sku_id).assign_packages()
+        # for sale_order in self.trade.sale_orders.all():
+        #    ProductSku.objects.get(id=sale_order.sku_id).assign_packages()
         return
 
     def sendTrade(self, company_code=None, out_sid=None, merge_trade=None, retry_times=3, *args, **kwargs):
