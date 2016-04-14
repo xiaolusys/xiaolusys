@@ -775,6 +775,7 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
     except:
         return None
 
+
 @task()
 def task_assign_stock_to_package_sku_item(product_sku):
     from shopback.trades.models import PackageSkuItem
@@ -787,7 +788,3 @@ def task_assign_stock_to_package_sku_item(product_sku):
             package_sku_item = package_sku_items[0]
             package_sku_item.assign_status = PackageSkuItem.ASSIGNED
             package_sku_item.save()
-
-
-
-

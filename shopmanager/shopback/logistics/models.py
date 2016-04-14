@@ -11,11 +11,13 @@ from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo
 from common.utils import parse_datetime
 from auth import apis
+from shopback import paramconfig as pcfg
 import logging
 from shopback import paramconfig as pcfg
 
 POST_STATE = (u'甘肃', u'青海', u'陕西', u'广西', u'宁夏', u'贵州', u'内蒙', u'西藏', u'新疆', u'云南')
 
+POST_STATE = (u'甘肃', u'青海', u'陕西', u'广西', u'宁夏', u'贵州', u'内蒙', u'西藏', u'新疆', u'云南')
 logger = logging.getLogger('django.request')
 
 LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
