@@ -95,7 +95,7 @@ def task_generate_red_envelope(application):
     if count <= 0:
         value = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
         envelope2 = RedEnvelope(customer_id=customer_id, event_id=event_id, uni_key=uni_key2, type=type,
-                                vale=value, friend_img=application.headimgurl, friend_nick=application.nick)
+                                value=value, friend_img=application.headimgurl, friend_nick=application.nick)
         envelope2.save()
         # 推送发红消息给customer
         push_activity.activity_red_packet_release_push(customer_id)
@@ -213,6 +213,10 @@ def task_sampleapply_update_appdownloadrecord(application):
     """
     if not (application.user_unionid or application.mobile):
         # We dont create downloadrecord if both unionid and mobile are missing.
+        return
+
+    if not application.from_customer:
+        #自己下载的,不是别人推荐的,那么直接退出
         return
 
     record = get_appdownloadrecord(application.user_unionid, application.mobile)
