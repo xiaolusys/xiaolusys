@@ -334,11 +334,13 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if ufrom:
             params.update({"ufrom": ufrom})
         if unionid:
-            params.update({"user_unionid": unionid, "status": XLSampleApply.ACTIVED})
+            customer = get_customer(request)
+            params.update({"user_unionid": unionid, "customer_id":customer.id, "status": XLSampleApply.ACTIVED})
         if openid:
             params.update({"user_openid": openid})
         if mobile:
             params.update({"mobile": mobile})
+
 
         if application_count <= 0:
             logger.warn("ApplicationView post: application_count=%s, create sampleapply record" % application_count)
