@@ -286,6 +286,10 @@ if os.environ.get('TARGET') == 'staging':
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
 
+if os.environ.get('TARGET') in ('staging','django18'):
+    CELERY_ALWAYS_EAGER = True
+
+
 if os.environ.get('TARGET') in ('production', 'django18'):
     DEBUG = False
     DATABASES = {
@@ -322,8 +326,6 @@ if os.environ.get('TARGET') in ('production', 'django18'):
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
-    if os.environ.get('TARGET') == 'django18':
-        CELERY_ALWAYS_EAGER = True
 
 if not DEBUG:
     TEMPLATE_DEBUG = DEBUG
