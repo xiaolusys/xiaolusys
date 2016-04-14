@@ -755,7 +755,7 @@ class MergeTradeAdmin(ApproxAdmin):
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
 
             send_tasks = chord([sendTaobaoTradeTask.s(user_id, trade.id)
-                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id))
+                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id),max_retries=300)
 
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
