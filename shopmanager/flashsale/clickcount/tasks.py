@@ -19,7 +19,7 @@ logger = logging.getLogger('celery.handler')
 CLICK_ACTIVE_START_TIME = datetime.datetime(2015, 6, 15, 10)
 CLICK_MAX_LIMIT_DATE = datetime.date(2015, 6, 5)
 # 切换小鹿妈妈点击提成到新小鹿妈妈结算体系日期
-SWITCH_CLICKREBETA_DATE = datetime.datetime(2016, 2, 24)
+SWITCH_CLICKREBETA_DATE = datetime.date(2016, 2, 24)
 
 
 @task()
