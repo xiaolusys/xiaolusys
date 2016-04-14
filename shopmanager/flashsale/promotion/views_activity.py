@@ -401,11 +401,12 @@ class MainView(APIView):
         envelope_serializer = RedEnvelopeSerializer(envelopes, many=True)
         winner_serializer = AwardWinnerSerializer(latest_five, many=True)
 
-        cards = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+        #cards = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+        cards = [0,0,0,0,0,0,0,0,0]
         for item in envelope_serializer.data:
             if item['type'] == 'card' and item['status'] == 'open':
-                key = str(item['value'])
-                cards[key] = 1
+                index = item['value']
+                cards[index] = 1
 
         inactive_applications = XLSampleApply.objects.filter(event_id=event_id, from_customer=customer_id,
                                                              status=XLSampleApply.INACTIVE).order_by('-created')
