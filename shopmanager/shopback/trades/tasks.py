@@ -774,3 +774,20 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
         return ProductSku.objects.get(outer_id=outer_sku_id, product__outer_id=outer_id)
     except:
         return None
+
+@task()
+def task_assign_stock_to_package_sku_item(product_sku):
+    from shopback.trades.models import PackageSkuItem
+    available_num = product_sku.quantity - product_sku.assign_num
+    if available_num > 0:
+        package_sku_items = PackageSkuItem.objects.filter(sku_id=product_sku.id,
+                                    assign_status=PackageSkuItem.NOT_ASSIGNED,
+                                    num__lte=available_num)
+        if package_sku_items.count() > 0:
+            package_sku_item = package_sku_items[0]
+            package_sku_item.assign_status = PackageSkuItem.ASSIGNED
+            package_sku_item.save()
+
+
+
+

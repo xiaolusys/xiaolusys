@@ -62,9 +62,12 @@ class ProductStock(object):
     @staticmethod
     def add_order_detail(orderdetail, num):
         Product.objects.filter(id=orderdetail.product_id).update(collect_num=F('collect_num') + num)
-        ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') + num)
-        p = ProductSku.objects.get(id=orderdetail.chichu_id)
-        p.assign_packages()
+        # ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') + num)
+        product_sku = ProductSku.objects.get(id=orderdetail.chichu_id)
+        product_sku.num += num
+        product_sku.save()
+        # p = ProductSku.objects.get(id=orderdetail.chichu_id)
+        # p.quantity =
 
 
 class Product(models.Model):
@@ -970,6 +973,15 @@ class ProductSku(models.Model):
     def collect_amount(self):
         return self.cost * self.quantity
 
+
+def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
+    if instance.quantity > instance.assign_num:
+        from shopback.trades.tasks import task_assign_stock_to_package_sku_item
+        task_assign_stock_to_package_sku_item.delay(instance)
+    elif instance.quantity < instance.assign_num:
+        logger.error('assign_num error: sku assign_num bigger than quantity:' + str(instance.id))
+
+post_save.connect(assign_stock_to_package_sku_item, sender=ProductSku, dispatch_uid='post_save_assign_stock_to_package_sku_item')
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
