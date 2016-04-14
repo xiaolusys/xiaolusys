@@ -225,14 +225,14 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             sample_apply.save()
             img_src = get_product_img(sample_apply.sku_code)  # 获取sku图片
             # 生成自己的邀请码
-            #             expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
-            #             XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
+            # expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
+            # XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
 
             custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
             cust = custs[0] if custs.exists() else ''
-            #             if cust:  # 给分享人（存在）则计数邀请数量
-            #                 participates = XLInviteCode.objects.filter(mobile=cust.mobile)
-            #                 if participates.exists():
+            # if cust:  # 给分享人（存在）则计数邀请数量
+            # participates = XLInviteCode.objects.filter(mobile=cust.mobile)
+            # if participates.exists():
             #                     participate = participates[0]
             #                     participate.usage_count += 1
             #                     participate.save()  # 使用次数累加
@@ -253,6 +253,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
 
 from .models import AppDownloadRecord
+from shopapp.weixin import options
 
 
 class APPDownloadView(WeixinAuthMixin, View):
@@ -269,14 +270,20 @@ class APPDownloadView(WeixinAuthMixin, View):
         if from_customer:  # 创建下载记录
             if self.is_from_weixin(request):  # 如果是在微信里面
                 self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
-                openid, unionid = self.get_openid_and_unionid(request)
-                if not self.valid_openid(unionid):  # 若果是无效的unionid则跳转到授权页面
+                openid, unionid = self.get_openid_and_unionid(request)  # 先获取cookie如果没有则会静默授权获取openid
+                if not self.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
                     return redirect(self.get_wxauth_redirct_url(request))
-                if openid:  # openid 创建下载记录
+                else:
+                    if not self.valid_openid(unionid):  # openid 有效
+                        unionid = options.get_unionid_by_openid(openid, settings.WXPAY_APPID)
+
+                    if not self.valid_openid(unionid):  # 先获取一次数据库中的unionid　不合法　高级授权
+                        return redirect(self.get_snsuserinfo_redirct_url(request))
+
                     download, state = AppDownloadRecord.objects.get_or_create(unionid=unionid)
                     if state:
                         download.from_customer = int(from_customer)
-                        download.ufrom = AppDownloadRecord.WX
+                        download.ufrom = ufrom
                         download.mobile = mobile
                         download.save()
             else:
@@ -284,7 +291,7 @@ class APPDownloadView(WeixinAuthMixin, View):
                     download, state = AppDownloadRecord.objects.get_or_create(mobile=mobile)
                     if state:
                         download.from_customer = int(from_customer)
-                        download.ufrom = AppDownloadRecord.WAP
+                        download.ufrom = ufrom
                         download.save()
 
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
@@ -733,6 +740,7 @@ class QrCodeView(APIView):
         share_link = self.get_share_link(params)
 
         from core.upload.xqrcode import push_qrcode_to_remote
+
         qrcode_url = push_qrcode_to_remote(file_name, share_link)
 
         return qrcode_url
