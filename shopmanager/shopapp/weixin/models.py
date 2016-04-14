@@ -9,8 +9,10 @@ from core.fields import BigIntegerAutoField, JSONCharMyField
 from .managers import VipCodeManager, WeixinUserManager
 
 from shopback.trades.models import MergeTrade
-from .models_base import WeixinUnionID, WeixinUserInfo
-from .models_sale import WXProduct, WXSkuProperty, WXProductSku, WXOrder, WXLogistic
+from .models_base import WeixinUnionID,WeixinUserInfo
+from shopback.trades.models import PackageOrder
+from .models_base import WeixinUnionID
+from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
@@ -932,7 +934,62 @@ def convert_trade_payment2score(sender, trade_id, *args, **kwargs):
         logger.error(u'订单积分转换失败:%s' % exc.message, exc_info=True)
 
 
-confirm_trade_signal.connect(convert_trade_payment2score, sender=MergeTrade)
+#confirm_trade_signal.connect(convert_trade_payment2score, sender=MergeTrade)
+#包裹确认收货增加积分
+def convert_package_payment2score(sender,package_order_id,*args,**kwargs):
+    try:
+        from shopback import paramconfig as pcfg
+        instance = PackageOrder.objects.get(id = package_order_id)
+        #the order is finished , print express or handsale
+        if (instance.sys_status != PackageOrder.FINISHED_STATUS
+            or (not instance.is_express_print)
+            or instance.type in (pcfg.FENXIAO_TYPE,
+                                 pcfg.EXCHANGE_TYPE,
+                                 pcfg.REISSUE_TYPE)):
+            return
+
+        trade_score_relev,state = TradeScoreRelevance.objects.get_or_create(trade_id=instance.id)
+        if state:
+            trade_score_relev.mobile = instance.receiver_mobile
+            payment_dict = instance.merge_orders.filter(sys_status=pcfg.IN_EFFECT)\
+                            .aggregate(total_payment=models.Sum('payment'))
+            trade_score_relev.payment = int((payment_dict.get('total_payment') or 0)*100)
+            trade_score_relev.save()
+
+        if trade_score_relev.is_used:
+            return
+
+        mobiles  = set([m.strip() for m in instance.receiver_mobile.split(',') if len(m.strip())==11 ])
+        mobiles.update([m.strip() for m in instance.receiver_phone.split(',') if len(m.strip())==11  ])
+        wx_users = WeiXinUser.objects.filter(mobile__in=mobiles)
+
+        if wx_users.count() > 0:
+
+            user_openid = wx_users[0].openid
+            payment_score = int(round(trade_score_relev.payment/1000.0))
+            WeixinScoreItem.objects.create(user_openid=user_openid,
+                                           score=payment_score,
+                                           score_type=WeixinScoreItem.SHOPPING,
+                                           expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                           memo=u"订单(%s)确认收货，结算积分。"%(instance.id))
+
+            wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
+            wx_user_score.user_score  = models.F('user_score') + payment_score
+            wx_user_score.save()
+
+            trade_score_relev.user_openid = user_openid
+            trade_score_relev.is_used = True
+            trade_score_relev.save()
+
+    except Exception,exc:
+
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'订单积分转换失败:%s'%exc.message,exc_info=True)
+
+        
+confirm_trade_signal.connect(convert_package_payment2score, sender=PackageOrder)
+
 
 
 # 推荐关系增加积分
