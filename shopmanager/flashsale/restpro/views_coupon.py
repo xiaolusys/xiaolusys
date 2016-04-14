@@ -16,6 +16,7 @@ from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTempl
 from flashsale.pay.models import Customer, ShoppingCart
 from flashsale.pay.tasks import task_release_coupon_push
 
+
 class UserCouponsViewSet(viewsets.ModelViewSet):
     """
     - {prefix}/method: get 获取用户惠券(默认为有效且没有过期的优惠券)
@@ -159,6 +160,24 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             if coupon_message != '':
                 res = 1
         return Response({"res": res, "coupon_message": coupon_message})
+
+    @list_route(methods=['get'])
+    def get_usercoupons_by_template(self, request):
+        """
+        :arg template_id
+        :return user coupon with the template
+        """
+        content = request.REQUEST
+        template_id = content.get('template_id') or 0
+        queryset = self.get_owner_queryset(request)
+        queryset = queryset.filter(cp_id__template__id=template_id)
+        queryset = queryset.order_by('created')[::-1]  # 时间排序
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class CouponTemplateViewSet(viewsets.ModelViewSet):
