@@ -25,7 +25,7 @@ def push_msg_to_mama(message):
             mstpls = PushMsgTpl.objects.filter(id=5, is_valid=True)
             if mstpls.exists():
                 mstpl = mstpls[0]
-                msg = mstpl.tpl_content
+                msg = mstpl.get_emoji_content()
         if msg is not None:
             mipush_of_android.push_to_account(customer_id,
                                               {'target_url': target_url},

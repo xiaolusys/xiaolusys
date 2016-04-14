@@ -14,7 +14,7 @@ def user_coupon_release_push(customer_id):
     tpls = PushMsgTpl.objects.filter(id=9, is_valid=True)
     if tpls.exists():
         tpl = tpls[0]
-        msg = tpl.tpl_content
+        msg = tpl.get_emoji_content()
     if msg:
         target_url = get_target_url(protocal_constants.TARGET_TYPE_HOME_TAB_1)
         mipush_of_android.push_to_account(customer_id,
