@@ -9,6 +9,7 @@ logger = logging.getLogger('celery.handler')
 
 from flashsale.pay.models_user import Customer, BudgetLog, UserBudget
 from flashsale.promotion.models_freesample import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord
+from utils import get_application
 
 import sys, random
 
@@ -22,17 +23,6 @@ def get_cur_info():
     # return (f.f_code.co_name, f.f_lineno)
     return f.f_code.co_name
 
-
-def get_application(event_id, unionid=None, mobile=None):
-    if unionid:
-        xls = XLSampleApply.objects.filter(event_id=event_id, user_unionid=unionid).order_by('-created')
-        if xls.exists():
-            return xls[0]
-    if mobile:
-        xls = XLSampleApply.objects.filter(event_id=event_id, mobile=mobile).order_by('-created')
-        if xls.exists():
-            return xls[0]
-    return None
 
 
 def gen_cash_value():

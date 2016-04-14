@@ -24,6 +24,7 @@ from shopback.items.models import Product
 
 from .models_freesample import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
 from serializers import RedEnvelopeSerializer, AwardWinnerSerializer
+from utils import  get_application
 
 import logging
 
@@ -200,8 +201,9 @@ class AppJoinView(WeixinAuthMixin, APIView):
             return Response({"bind": False})
 
         unionid, openid = customer.openid, customer.unionid
-        application_count = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id).count()
-        if application_count <= 0:
+
+        application = get_application(event_id, unionid, customer.mobile)
+        if not application:
             key = 'apply'
         else:
             key = 'activate'
@@ -399,7 +401,7 @@ class MainView(APIView):
 
         cards = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
         for item in envelope_serializer.data:
-            if item['type'] == 'card':
+            if item['type'] == 'card' and item['status'] == 'open':
                 key = str(item['value'])
                 cards[key] = 1
 
