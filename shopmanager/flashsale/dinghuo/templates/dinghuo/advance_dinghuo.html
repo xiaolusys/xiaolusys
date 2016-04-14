@@ -257,7 +257,8 @@
              $('.date').datepicker({dateFormat: 'yy-mm-dd'});
 
              $('.chosen-select').chosen({
-                 no_results_text: '无此记录'
+                 no_results_text: '无此记录',
+                 search_contains: true
              }).on('change', onSelectChange);
 
              $('#reset').click(function(){

@@ -71,15 +71,20 @@ class PushViewSet(viewsets.ModelViewSet):
                 'customer_id': customer.id,
                 'update_time': now
             })
+            flag = False
             if not rows:
+                flag = True
                 row = serializer.create(new_data)
+            else:
+                row = rows[0]
+                if time.time() - row.update_time > 3600:
+                    flag = True
+                serializer.update(row, new_data)
+            if flag:
                 if settings.DEBUG:
                     tasks.subscribe(platform, regid, topic)
                 else:
                     tasks.subscribe.delay(platform, regid, topic)
-            else:
-                row = rows[0]
-                serializer.update(row, new_data)
 
         # 获取用户会员信息
         sql = (
