@@ -476,8 +476,10 @@ def task_budgetlog_update_userbudget(budget_log):
             
     budgets = UserBudget.objects.filter(user=customer_id)
     if budgets.count() <= 0:
-        budget = UserBudget(user=customer_id,amount=cash)
-        budget.save()
+        customers = Customer.objects.filter(id=customer_id)
+        if customers.count() > 0:
+            budget = UserBudget(user=customers[0], amount=cash)
+            budget.save()
     else:
         budget = budgets[0]
         if budget.amount != cash:
