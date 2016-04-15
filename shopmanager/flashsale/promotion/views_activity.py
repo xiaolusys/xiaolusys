@@ -456,9 +456,9 @@ class StatsView(APIView):
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
-        #customer = Customer.objects.get(user=request.user)
-        #customer_id = customer.id
-        customer_id = 1  # debug
+        customer = Customer.objects.get(user=request.user)
+        customer_id = customer.id
+        #customer_id = 1  # debug
         envelopes = RedEnvelope.objects.filter(customer_id=customer_id, event_id=event_id)
         invite_num = envelopes.count()
 
