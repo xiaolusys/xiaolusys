@@ -474,11 +474,14 @@ class StatsView(APIView):
                 index = item['value']
                 cards[index - 1] = 1
 
-        winner = AwardWinner.objects.get(customer_id=customer_id)
-        if winner:
-            status = winner.status
-        else:
-            status = 0
+        try:
+            winner = AwardWinner.objects.get(customer_id=customer_id)
+            if winner:
+                status = winner.status
+            else:
+                status = 0
+        except AwardWinner.DoesNotExist:
+            status =0
 
         response = Response({"invite_num": invite_num, "total": total, "cards": cards, "status":status})
         response["Access-Control-Allow-Origin"] = "*"
