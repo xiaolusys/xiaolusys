@@ -417,7 +417,6 @@ class CarryRecordAdmin(admin.ModelAdmin):
     search_fields = ['mama_id', 'carry_description']
     list_filter = ('status', 'carry_type',)
 
-
 admin.site.register(CarryRecord, CarryRecordAdmin)
 
 
@@ -429,6 +428,9 @@ class OrderCarryAdmin(admin.ModelAdmin):
     list_filter = ('status', 'carry_type',)
     search_fields = ('mama_id', 'order_id', 'carry_description', 'contributor_nick',)
 
+    def get_changelist(self, request, **kwargs):
+        from .changelist import OrderCarryChangeList
+        return OrderCarryChangeList
 
 admin.site.register(OrderCarry, OrderCarryAdmin)
 

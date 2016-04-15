@@ -7,12 +7,12 @@ import datetime
 import decimal
 
 from django.conf import settings
-from django.shortcuts import get_object_or_404, HttpResponseRedirect
-from django.contrib.auth.models import User, AnonymousUser
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User as DjangoUser
 
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -21,21 +21,20 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
+from rest_framework import exceptions
 
+from core.options import log_action, ADDITION, CHANGE, SYSTEMOA_USER
 from core.weixin.options import gen_weixin_redirect_url
+from core.weixin.options import gen_wxlogin_sha1_sign
+from core.utils.httputils import get_client_ip
 
 from flashsale.pay.models import Register, Customer, Integral, BudgetLog, UserBudget
-from rest_framework import exceptions
-from core.options import log_action, ADDITION, CHANGE, SYSTEMOA_USER
+from shopapp.smsmgr.tasks import task_register_code
 from . import permissions as perms
 from . import serializers
-from . import options
-from core.utils.httputils import get_client_ip
-from shopapp.smsmgr.tasks import task_register_code
-from django.contrib.auth.models import User as DjangoUser
 import logging
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 TIME_LIMIT = 360
@@ -360,7 +359,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not timestamp or time.time() - int(timestamp) > 3600:
             return False
         origin_sign = params.pop('sign')
-        new_sign = options.gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
+        new_sign = gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
         if origin_sign and origin_sign == new_sign:
             return True
         params.update({'sign': origin_sign})

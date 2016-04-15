@@ -6,7 +6,6 @@ from django.shortcuts import get_object_or_404
 from django.forms import model_to_dict
 from django.db.models import Sum, Count
 from django.conf import settings
-from options import gen_and_save_jpeg_pic
 
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
