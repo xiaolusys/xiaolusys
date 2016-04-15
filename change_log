@@ -1,3 +1,6 @@
+######## 2016-04-16 ########
+ALTER TABLE xiaolumm_carrylog ADD INDEX IDX_CA_ST_LO_VA (CARRY_DATE,STATUS,LOG_TYPE,VALUE)
+ALTER TABLE xiaolumm_cashout ADD INDEX IDX_XL_ST_VA (XLMM,STATUS,VALUE);
 ######## 2016-04-13 ########
 ALTER TABLE `flashsale_package`
 ADD COLUMN `pid` bigint NOT NULL AUTO_INCREMENT FIRST ,
@@ -53,7 +56,6 @@ CREATE INDEX `flashsale_package_sku_item_ec9ad377` ON `flashsale_package_sku_ite
 CREATE INDEX `flashsale_package_sku_item_8572d23c` ON `flashsale_package_sku_item` (`package_order_id`);
 CREATE INDEX `flashsale_package_sku_item_5821760e` ON `flashsale_package_sku_item` (`assign_status`);
 CREATE INDEX `flashsale_package_sku_item_34476b66` ON `flashsale_package_sku_item` (`sku_id`);
-
 ######## 2016-04-13 ##########
 alter table flashsale_dinghuo_inbound add column orderlist_ids longtext;
 alter table flashsale_promotion_download_record drop column ufrom;
