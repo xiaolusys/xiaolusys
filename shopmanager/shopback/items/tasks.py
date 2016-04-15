@@ -163,7 +163,7 @@ def updateUserProductSkuTask(user_id=None, outer_ids=None, force_update_num=Fals
                                 properties += (prop_dict[sku['num_iid']].get(prop, '')
                                                or sku_prop_dict.get(prop, ''))
                                 psku.properties_name = properties
-                            #                         psku.status = pcfg.NORMAL
+                                #                         psku.status = pcfg.NORMAL
                         psku.save()
 
             except Exception, exc:
@@ -1004,3 +1004,43 @@ def task_Auto_Download_Shelf():
         log_sign = get_product_logsign(product)  # 生成日志信息
         log_action(systemoa.id, product, CHANGE, u'系统自动下架商品:%s' % log_sign)  # 保存操作日志
     logger.error("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
+
+
+# @transaction.atomic
+@task(max_retry=3, default_retry_delay=60)
+def assign_package_stock(sku_id, ware_by, package_order):
+    from shopback.trades.models import PackageSkuItem
+    from flashsale import pay
+    sale_orders = PackageSkuItem.objects.filter(
+        sku_id=sku_id,
+        ware_by=ware_by,
+        assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED],
+        refund_status=pay.NO_REFUND)
+    self = ProductSku.objects.get(id=sku_id)
+    # assign_now = self.assign_num
+    assign_now = sum([so.num for so in sale_orders if so.assign_status == PackageSkuItem.ASSIGNED])
+    package_sale_orders = [so for so in sale_orders
+                           if
+                           so.package_order_id == package_order.id and so.assign_status == PackageSkuItem.NOT_ASSIGNED]
+    assigns = []
+    for sale_order in package_sale_orders:
+        if assign_now + sale_order.num <= self.quantity:
+            assign_now += sale_order.num
+            assigns.append(sale_order)
+    self.assign_num = assign_now
+    PackageSkuItem.objects.filter(id__in=[sale_order.id for sale_order in assigns]). \
+        update(assign_status=PackageSkuItem.ASSIGNED)
+    self.save()
+
+
+@task()
+def task_update_product_sku_assign_num(sku_id):
+    from shopback.trades.models import PackageSkuItem
+    # assign_status_list = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).values(
+    #     'assign_status').annotate(
+    #     total=Sum('num'))
+    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).aggregate(
+        Sum('num'))
+    product_sku = ProductSku.objects.get(id=sku_id)
+    product_sku.assign_num = assign_num_res['num__sum']
+    product_sku.save()

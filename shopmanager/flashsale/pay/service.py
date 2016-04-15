@@ -141,17 +141,18 @@ class FlashSaleService(LocalService):
         return merge_trade
 
     def payTrade(self, *args, **kwargs):
-
+        from shopback.items.models import ProductSku
         ########################## 押金链接，不需仓库处理 ######################
         outer_ids = set([o[0] for o in self.trade.normal_orders.values_list('outer_id')])
         if len(outer_ids) == 1 and list(outer_ids)[0].startswith('RMB'):
             return
             ###################################################################
-
-        return self.__class__.createMergeTrade(self.trade)
+        self.__class__.createMergeTrade(self.trade)
+        # for sale_order in self.trade.sale_orders.all():
+        #    ProductSku.objects.get(id=sale_order.sku_id).assign_packages()
+        return
 
     def sendTrade(self, company_code=None, out_sid=None, merge_trade=None, retry_times=3, *args, **kwargs):
-
         from shopback.logistics.models import LogisticsCompany
         consign_time = datetime.datetime.now()
         buyer_id = self.trade.buyer_id

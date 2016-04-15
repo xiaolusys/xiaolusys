@@ -264,6 +264,10 @@ class SaleTrade(BaseModel):
     def is_refunded(self):
         return self.status == self.TRADE_CLOSED
 
+    def get_merge_trades(self):
+        from shopback.trades.models import MergeTrade
+        return MergeTrade.objects.filter(tid=self.tid)
+
     def is_Deposite_Order(self):
 
         for order in self.sale_orders.all():
@@ -596,17 +600,16 @@ class SaleOrder(PayBaseModel):
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
             update_model_fields(sale_trade, update_fields=['status'])
 
-    def cancel_assign(self):
-        if self.assign_status == SaleOrder.ASSIGNED:
-            self.assign_status = SaleOrder.NOT_ASSIGNED
-            self.package_order_id = None
-            self.save()
-            psku = ProductSku.objects.get(id=self.sku_id)
-            psku.assign_num -= self.num
-            psku.save()
-            psku.assign_packages()
-            return True
-        return False
+    # def cancel_assign(self):
+    #     if self.assign_status == SaleOrder.ASSIGNED:
+    #         self.assign_status = SaleOrder.NOT_ASSIGNED
+    #         self.package_order_id = None
+    #         self.save()
+    #         psku = ProductSku.objects.get(id=self.sku_id)
+    #         psku.assign_num -= self.num
+    #         psku.save()
+    #         return True
+    #     return False
 
     def second_kill_title(self):
         """ 判断是否秒杀标题　"""
@@ -629,19 +632,10 @@ class SaleOrder(PayBaseModel):
         return self.outer_id.startswith('RMB')
 
 
-def refresh_sale_trade_status(sender, instance, *args, **kwargs):
-    """ 更新订单状态 """
-    # TODO
-
-
-post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
-
-
 def order_trigger(sender, instance, created, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
-
     if instance.is_deposit():
         if instance.is_confirmed():
             from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
@@ -650,9 +644,16 @@ def order_trigger(sender, instance, created, **kwargs):
         from flashsale.xiaolumm import tasks_mama
         tasks_mama.task_order_trigger.delay(instance)
 
-
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 
+
+def update_package_sku_item(sender, instance, created, **kwargs):
+    """ 更新PackageSkuItem状态 """
+    if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS:
+        from flashsale.pay.tasks import task_saleorder_update_package_sku_item
+        task_saleorder_update_package_sku_item.delay(instance)
+
+post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 
 class TradeCharge(PayBaseModel):

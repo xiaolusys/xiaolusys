@@ -150,8 +150,6 @@ def confirmTradeChargeTask(sale_trade_id, charge_time=None):
     strade.charge_confirm(charge_time=charge_time)
     saleservice = FlashSaleService(strade)
     saleservice.payTrade()
-    for sale_order in strade.sale_orders.all():
-        ProductSku.objects.get(id=sale_order.sku_id).assign_packages()
 
 
 @task(max_retry=3, default_retry_delay=60)
@@ -592,3 +590,39 @@ def task_close_refund(days=None):
     res = map(close_refund, aggree_refunds)
 
 
+@task
+def task_saleorder_update_package_sku_item(sale_order):
+    from shopback.trades.models import PackageSkuItem
+    from shopback.items.models import ProductSku
+    items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
+    if items.count() <= 0:
+        if not sale_order.is_pending():
+            # we create PackageSkuItem only if sale_order is 'pending'.
+            return
+        ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
+        sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
+    else:
+        sku_item = items[0]
+        if sku_item.is_finished():
+            # if it's finished, that means the package is sent out,
+            # then we dont do further updates, simply return.
+            return
+
+    # Now the package has not been sent out yet.
+    
+    if sale_order.is_canceled() or sale_order.is_confirmed():
+        # If saleorder is canceled or confirmed before we send out package, we
+        # then dont want to send out the package, simply cancel. Note: if the
+        # order is confirmed, we assume the customer does not want the package
+        # to be sent to him (most likely because it's not necessary, maybe she/he
+        # bought a virtual product).
+        sku_item.assign_status = PackageSkuItem.CANCELED
+
+    attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
+             'payment', 'discount_fee', 'refund_status', 'status']
+    for attr in attrs:
+        if hasattr(sale_order, attr):
+            val = getattr(sale_order, attr)
+            setattr(sku_item, attr, val)
+    
+    sku_item.save()

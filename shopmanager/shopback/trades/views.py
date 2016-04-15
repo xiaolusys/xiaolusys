@@ -29,7 +29,8 @@ from core.options import log_action, ADDITION, CHANGE
 from shopapp.memorule import ruleMatchSplit
 from shopback.refunds.models import REFUND_STATUS, Refund
 from shopback.signals import rule_signal, change_addr_signal
-from shopback.trades.models import (MergeTrade, MergeOrder, DirtyMergeOrder, PackageOrder,
+from shopback.trades.models_dirty import DirtyMergeOrder
+from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder,
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
