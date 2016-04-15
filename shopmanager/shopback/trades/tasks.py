@@ -507,8 +507,8 @@ def task_Gen_XiaoluSale_Report(date_from, date_to, file_dir=''):
     date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
     date_to_str = date_to.strftime('%Y-%m-%d %H:%M:%S')
     exec_sql = (
-    "select {0} from shop_trades_mergetrade where pay_time between '{1}' and '{2}' and type in ('wx','sale');"
-    .format(dump_fields, date_from_str, date_to_str))
+        "select {0} from shop_trades_mergetrade where pay_time between '{1}' and '{2}' and type in ('wx','sale');"
+            .format(dump_fields, date_from_str, date_to_str))
 
     try:
         cursor = connection.cursor()
@@ -782,9 +782,26 @@ def task_assign_stock_to_package_sku_item(product_sku):
     available_num = product_sku.quantity - product_sku.assign_num
     if available_num > 0:
         package_sku_items = PackageSkuItem.objects.filter(sku_id=product_sku.id,
-                                    assign_status=PackageSkuItem.NOT_ASSIGNED,
-                                    num__lte=available_num)
+                                                          assign_status=PackageSkuItem.NOT_ASSIGNED,
+                                                          num__lte=available_num).order_by('id')
         if package_sku_items.count() > 0:
-            package_sku_item = package_sku_items[0]
+            package_sku_item = package_sku_items.first()
             package_sku_item.assign_status = PackageSkuItem.ASSIGNED
             package_sku_item.save()
+
+
+@task()
+def task_packagize_sku_item(instance):
+    from shopback.trades.models import PackageSkuItem, PackageOrder
+    if instance.assign_status == PackageSkuItem.ASSIGNED and not instance.package_order_id:
+        sale_trade = instance.sale_trade
+        package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
+                                                           instance.product_sku.ware_by)
+        package, new_create = PackageOrder.get_or_create(package_order_id, sale_trade)
+        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
+        if not new_create:
+            package.reset_to_wait_prepare_send()
+    elif instance.package_order_id and instance.assign_status in [
+                PackageSkuItem.NOT_ASSIGNED or PackageSkuItem.CANCELED]:
+        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=None)
+        PackageOrder.objects.get(id=instance.package_order_id).reset_to_wait_prepare_send()
