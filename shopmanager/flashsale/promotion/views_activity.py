@@ -456,9 +456,9 @@ class StatsView(APIView):
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
-        # customer = Customer.objects.get(user=request.user)
-        # customer_id = customer.id
-        customer_id = 1  # debug
+        customer = Customer.objects.get(user=request.user)
+        customer_id = customer.id
+        #customer_id = 1  # debug
         envelopes = RedEnvelope.objects.filter(customer_id=customer_id, event_id=event_id)
         invite_num = envelopes.count()
 
@@ -467,6 +467,19 @@ class StatsView(APIView):
         if res:
             total = float("%.2f" % (res[0]["total"] * 0.01))
 
-        response = Response({"invite_num": invite_num, "total": total})
+        envelope_serializer = RedEnvelopeSerializer(envelopes, many=True)
+        cards = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for item in envelope_serializer.data:
+            if item['type'] == 'card' and item['status'] == 'open':
+                index = item['value']
+                cards[index - 1] = 1
+
+        winner = AwardWinner.objects.filter(customer_id=customer_id)
+        if winner:
+            status = winner.status
+        else:
+            status = 0
+
+        response = Response({"invite_num": invite_num, "total": total, "cards": cards, "status":status})
         response["Access-Control-Allow-Origin"] = "*"
         return response
