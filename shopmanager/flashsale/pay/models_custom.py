@@ -185,7 +185,7 @@ DEFAULT_CHD_POSTER = [
     {
         "subject": ['2折起', '小鹿美美  童装专场'],
         "item_link": "http://m.xiaolumeimei.com/chaotong.html",
-        "app_link": "app:/",
+        "app_link": "com.jimei.xlmm://app/v1/products/childlist",
         "pic_link": ""
     }
 ]

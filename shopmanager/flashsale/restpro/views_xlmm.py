@@ -26,6 +26,7 @@ from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans, FansNumberRecord
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
+from flashsale.xiaolumm.models_fortune import MamaFortune
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
@@ -123,6 +124,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         mama_link = os.path.join(settings.M_SITE_URL, "m/{}/".format(xlmm.id))  # 专属链接
         # share_mmcode = xlmm.get_share_qrcode_path()  20160406 wulei 此字段转换为存储妈妈邀请新代理的h5页面url
         from flashsale.restpro import constants
+
         share_mmcode = constants.MAMA_INVITE_AGENTCY_URL.format(**{'site_url': settings.M_SITE_URL})
 
         share_qrcode = xlmm.get_share_qrcode_url()
@@ -451,8 +453,23 @@ class CashOutViewSet(viewsets.ModelViewSet):
         """ 获取可以提现的金额 """
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
-        cash, payment, could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
+        try:
+            fortune = MamaFortune.objects.get(mama_id=xlmm.id)
+            could_cash_out = fortune.cash_num_display()
+        except Exception, exc:
+            raise APIException(u'{0}'.format(exc.message))
+        # could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
         return Response({"could_cash_out": could_cash_out})
+
+    def get_mamafortune(self, mama_id):
+        """　获取活跃值 """
+        try:
+            fortune = MamaFortune.objects.get(mama_id=mama_id)
+            could_cash_out = fortune.cash_num_display()
+            active_value_num = fortune.active_value_num
+        except Exception, exc:
+            raise APIException(u'{0}'.format(exc.message))
+        return could_cash_out, active_value_num
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -467,28 +484,22 @@ class CashOutViewSet(viewsets.ModelViewSet):
         """代理提现"""
         cash_type = request.REQUEST.get('choice', None)
         if cash_type is None:  # 参数错误
-            return Response({"code": 1})
+            return Response({"code": 1, "msg": '暂未开通'})
         value = self.cashout_type.get(cash_type)
 
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
-
-        from flashsale.xiaolumm.models_fortune import MamaFortune
-        could_cash_out = 0
-        try:
-            fortune = MamaFortune.objects.get(mama_id=xlmm.id)
-            could_cash_out = fortune.cash_num_display()
-        except Exception, exc:
-            raise APIException(u'{0}'.format(exc.message))
-
+        could_cash_out, active_value_num = self.get_mamafortune(xlmm.id)
+        if active_value_num < 100:
+            return Response({"code": 4, 'msg': '活跃值不足'})  # 活跃值不够
         if self.queryset.filter(status=CashOut.PENDING, xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
-            return Response({"code": 3})
+            return Response({"code": 3, 'msg': '提现审核中'})
         if could_cash_out < value * 0.01:  # 如果可以提现金额不足
-            return Response({"code": 2})
+            return Response({"code": 2, 'msg': '余额不足'})
         # 满足提现请求　创建提现记录
         cashout = CashOut.objects.create(xlmm=xlmm.id, value=value)
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
-        return Response({"code": 0})
+        return Response({"code": 0, 'msg': '提交成功'})
 
     def update(self, request, *args, **kwargs):
         raise exceptions.APIException('method not allowed')

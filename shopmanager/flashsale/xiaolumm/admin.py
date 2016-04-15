@@ -187,11 +187,23 @@ admin.site.register(AgencyLevel, AgencyLevelAdmin)
 class CashOutAdmin(ApproxAdmin):
     form = forms.CashOutForm
     list_display = ('id', 'xlmm', 'get_cashout_verify', 'get_value_display', 'get_xlmm_history_cashin',
-                    'get_xlmm_history_cashout', 'get_xlmm_history_cashout_record', 'get_xlmm_total_click',
+                    'get_xlmm_history_cashout', 'get_xlmm_history_cashout_record', 'fortune_cash_num_display',
+                    'get_xlmm_total_click',
                     'get_xlmm_total_order', 'status', 'approve_time', 'created', 'get_cash_out_xlmm_manager')
     list_filter = ('status', ('approve_time', DateFieldListFilter), ('created', DateFieldListFilter), UserNameFilter)
     search_fields = ['=id', '=xlmm']
     list_per_page = 15
+
+    def fortune_cash_num_display(self, obj):
+        """妈妈财富表的余额"""
+        try:
+            fortune = MamaFortune.objects.get(mama_id=obj.xlmm)
+        except Exception, exc:
+            return '暂无财富记录'
+        return fortune.cash_num_display()
+
+    fortune_cash_num_display.allow_tags = True
+    fortune_cash_num_display.short_description = u"财富余额"
 
     def get_cashout_verify(self, obj):
         # return obj.xlmm  # 返回id号码
