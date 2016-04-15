@@ -5,14 +5,16 @@ import urllib
 import time
 import datetime
 from django.conf import settings
-from flashsale.restpro import options
+from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth import authenticate, login, logout
 
 from rest_framework import views
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login, logout
+
 from flashsale.pay.models import Register, Customer
 from shopapp.smsmgr.tasks import task_register_code
-from django.contrib.auth.models import User as DjangoUser
+from core.weixin.options import gen_wxlogin_sha1_sign
+
 import logging
 logger = logging.getLogger('django.request')
 
@@ -335,7 +337,7 @@ def check_sign(request):
     if not timestamp or time.time() - int(timestamp) > 30:
         return False
     origin_sign = params.pop('sign')
-    new_sign = options.gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
+    new_sign =gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
     if origin_sign and origin_sign == new_sign:
         return True
     params.update({'sign': origin_sign})

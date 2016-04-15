@@ -548,7 +548,6 @@ class ModelProductViewSet(viewsets.ModelViewSet):
         queryset = self.queryset.filter(sale_time__gte=last_date,sale_time__lte=today_date)
 
         category = int(category)
-        print category
         if category > 0:
             queryset = queryset.filter(category=category)
 

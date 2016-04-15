@@ -23,7 +23,6 @@ from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample,
 from . import serializers
 from flashsale.pay.models import Customer
 from flashsale.promotion.models import XLReferalRelationship
-from options import gen_and_save_jpeg_pic
 from flashsale.promotion import constants
 import logging
 import random

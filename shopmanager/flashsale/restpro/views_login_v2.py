@@ -1,6 +1,11 @@
 # coding=utf-8
 import time, re
-from flashsale.restpro import options
+from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.shortcuts import HttpResponseRedirect
+from core.weixin.options import gen_weixin_redirect_url
+from django.contrib.auth import authenticate, login, logout
+
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -8,11 +13,9 @@ from rest_framework.decorators import list_route
 from rest_framework import renderers
 from rest_framework import exceptions
 
-from django.conf import settings
-from django.core.urlresolvers import reverse
-from django.shortcuts import HttpResponseRedirect
-from core.weixin.options import gen_weixin_redirect_url
-from django.contrib.auth import authenticate, login, logout
+from flashsale.restpro import options
+from core.weixin.options import gen_wxlogin_sha1_sign
+
 import logging
 import serializers
 
@@ -61,7 +64,7 @@ def check_sign(request):
     if not timestamp or time.time() - int(timestamp) > 30:
         return False
     origin_sign = params.pop('sign')
-    new_sign = options.gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
+    new_sign = gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
     if origin_sign and origin_sign == new_sign:
         return True
     params.update({'sign': origin_sign})
