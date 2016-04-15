@@ -10,7 +10,6 @@ from django.views.generic import View
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, Http404
-from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Sum, Count, Q
@@ -20,13 +19,11 @@ from rest_framework import permissions, authentication
 from rest_framework import renderers
 from rest_framework.response import Response
 
-from core.weixin.options import gen_and_save_jpeg_pic
 from core.weixin.mixins import WeixinAuthMixin
 from core.weixin.signals import signal_weixin_snsauth_response
 from core.utils.modelutils import update_model_fields
 
 from flashsale.pay.models import Customer
-from shopapp.weixin.views import get_user_openid, valid_openid
 from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder, ReadPacket
 from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans

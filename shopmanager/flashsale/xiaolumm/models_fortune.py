@@ -173,6 +173,8 @@ class CarryRecord(BaseModel):
     def carry_num_display(self):
         return float('%.2f' % (self.carry_num * 0.01))
 
+    carry_num_display.short_description = u"收益金额"
+
     def today_carry(self):
         """
         this must exists to bypass serializer check
