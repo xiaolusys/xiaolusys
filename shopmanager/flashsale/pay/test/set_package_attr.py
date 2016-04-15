@@ -41,7 +41,7 @@ def set_package_sku_item():
     for s in SaleOrder.objects.filter(refund_status=0).exclude(
         status__in=[SaleOrder.TRADE_NO_CREATE_PAY, SaleOrder.WAIT_BUYER_PAY, SaleOrder.TRADE_FINISHED,
                     SaleOrder.TRADE_CLOSED, SaleOrder.TRADE_CLOSED_BY_SYS]):
-        task_saleorder_update_package_sku_item(s)
+        s.save()
     # for sale_order in SaleOrder.objects.exclude(status__in=[SaleOrder.TRADE_NO_CREATE_PAY,
     #                                                         SaleOrder.WAIT_BUYER_PAY, SaleOrder.TRADE_FINISHED,
     #                                                         SaleOrder.TRADE_CLOSED,

@@ -128,8 +128,7 @@ GIFT_TYPE = (
 )
 
 
-class \
-        MergeTrade(models.Model):
+class MergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
     FENXIAO_TYPE = pcfg.FENXIAO_TYPE
     SALE_TYPE = pcfg.SALE_TYPE
@@ -414,13 +413,12 @@ class \
             try:
                 sale_trade = self.get_sale_trade()
                 if sale_trade and self.ware_by:
-                    return PackageOrder.objects.get(buyer_id=sale_trade.buyer_id,
-                                                    user_address_id=sale_trade.user_address_id, ware_by=self.ware_by,
-                                                    status=PackageOrder.PKG_NOT_CONFIRM)
+                    return PackageOrder.objects.filter(buyer_id=sale_trade.buyer_id,
+                                                    user_address_id=sale_trade.user_address_id, ware_by=self.ware_by)\
+                        .order_by('-id').first()
                 elif sale_trade:
                     return PackageOrder.objects.filter(buyer_id=sale_trade.buyer_id,
-                                                       user_address_id=sale_trade.user_address_id,
-                                                       status=PackageOrder.PKG_NOT_CONFIRM)[0]
+                                                       user_address_id=sale_trade.user_address_id).order_by('-id').first()
                 else:
                     return None
             except:
@@ -1203,10 +1201,10 @@ class PackageOrder(models.Model):
     WARE_GZ = 2
     WARE_CHOICES = ((WARE_SH, u'上海仓'),
                     (WARE_GZ, u'广州仓'))
-    PKG_CONFIRM = 'PKG_CONFIRM'
-    PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
-    PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
-                              (PKG_CONFIRM, u'已确定'))
+    # PKG_CONFIRM = 'PKG_CONFIRM'
+    # PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
+    # PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
+    #                           (PKG_CONFIRM, u'已确定'))
     pid = BigIntegerAutoField(verbose_name=u'包裹主键', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹ID')
     tid = models.CharField(max_length=32, verbose_name=u'原单ID')
@@ -1226,9 +1224,6 @@ class PackageOrder(models.Model):
     status = models.CharField(max_length=32, db_index=True,
                               choices=TAOBAO_TRADE_STATUS, blank=True,
                               default=pcfg.TRADE_NO_CREATE_PAY, verbose_name=u'系统状态')
-    merge_status = models.CharField(max_length=32, db_index=True,
-                              choices=PACKAGE_CONFIRM_STATUS, blank=True,
-                              default=PKG_CONFIRM, verbose_name=u'系统状态')# 合单状态：未确定；已确定；
     PKG_NEW_CREATED = 'PKG_NEW_CREATED'
     WAIT_PREPARE_SEND_STATUS = 'WAIT_PREPARE_SEND_STATUS'
     WAIT_CHECK_BARCODE_STATUS = 'WAIT_CHECK_BARCODE_STATUS'
@@ -1367,13 +1362,13 @@ class PackageOrder(models.Model):
 
     def finish(self, mt):
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
-        self.status = PackageOrder.PKG_CONFIRM
+        self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.copy_order_info_from_merge_trade(mt)
         self.save()
 
     def finish_scan_weight(self):
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
-        self.status = PackageOrder.PKG_CONFIRM
+        self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
         package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id, assign_status=PackageSkuItem.ASSIGNED)
         for sku_item in package_sku_items:
@@ -1386,6 +1381,18 @@ class PackageOrder(models.Model):
     @property
     def pstat_id(self):
         return str(self.buyer_id) + '-' + str(self.user_address_id) + '-' + str(self.ware_by)
+
+    @property
+    def can_merge(self):
+        '''
+            是否能向包裹中加入sku订单
+        '''
+        return self.sys_status not in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS,
+                                       PackageOrder.DELETE]
+
+    @property
+    def package_sku_items(self):
+        return PackageSkuItem.objects.filter(package_order_id=self.id)
 
     @property
     def sale_orders(self):

@@ -250,21 +250,17 @@ class PackageScanWeightView(APIView):
             return Response(u'运单号未找到订单')
         except PackageOrder.MultipleObjectsReturned:
             return Response(u'结果返回多个订单')
-        mt = package.get_merge_trade(sync=True)
         package.weight = package_weight
         package.sys_status = pcfg.FINISHED_STATUS
         package.weight_time = datetime.datetime.now()
         package.weighter = request.user.username
         package.save()
         package.finish_scan_weight()
-        mt.sync_attr_from_package(package)
-        mt.save()
-        log_action(mt.user.user.id, mt, CHANGE, u'扫描称重')
         mo = package.sale_orders
         for entry in mo:
             pay_date = entry.pay_time.date()
             sku_num = 1  # not entry.num, intentionally ignore sku_num effect
-            time_delta = mt.weight_time - entry.pay_time
+            time_delta = package.weight_time - entry.pay_time
             total_days = sku_num * (time_delta.total_seconds() / 86400.0)
             task_stats_paytopack.s(pay_date, sku_num, total_days)()
         return Response({'isSuccess': True})
