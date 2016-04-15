@@ -2,7 +2,7 @@
 import datetime
 from django.conf import settings
 from django.db import models
-
+from django.db.models.signals import post_save
 from .base import PayBaseModel
 import pingpp
 
@@ -155,3 +155,15 @@ class Envelop(PayBaseModel):
             return True
 
         return False
+
+
+def push_envelop_get_msg(sender, instance, created, **kwargs):
+    """ 发送红包待领取状态的时候　给妈妈及时领取推送消息　"""
+    from flashsale.xiaolumm.tasks_mama_push import task_push_mama_cashout_msg
+    sent_status = instance.send_status
+    if sent_status != Envelop.SENT:
+        return
+    task_push_mama_cashout_msg.s(instance).delay()
+
+
+post_save.connect(push_envelop_get_msg, sender=Envelop)
