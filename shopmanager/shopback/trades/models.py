@@ -128,7 +128,8 @@ GIFT_TYPE = (
 )
 
 
-class MergeTrade(models.Model):
+class \
+        MergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
     FENXIAO_TYPE = pcfg.FENXIAO_TYPE
     SALE_TYPE = pcfg.SALE_TYPE
@@ -779,6 +780,17 @@ class MergeOrder(models.Model):
     def __unicode__(self):
         return '<%s,%s>' % (str(self.id), self.outer_id)
 
+    @property
+    def sale_order(self):
+        if not hasattr(self, '_sale_trade_'):
+            try:
+                from flashsale.pay.models import SaleOrder
+                sale_trade = SaleTrade.objects.get(tid=self.merge_trade.tid)
+                self._sale_trade_ = SaleOrder.objects.get(sale_trade_id=sale_trade.id, sku_id=self.sku_id, num=self.num)
+            except:
+                self._sale_trade_ = None
+        return self._sale_trade_
+
     def isEffect(self):
         return self.sys_status == pcfg.IN_EFFECT
 
@@ -1213,7 +1225,10 @@ class PackageOrder(models.Model):
     )
     status = models.CharField(max_length=32, db_index=True,
                               choices=TAOBAO_TRADE_STATUS, blank=True,
-                              default=pcfg.TRADE_NO_CREATE_PAY, verbose_name=u'系统状态') # 合单状态：未确定；已确定；
+                              default=pcfg.TRADE_NO_CREATE_PAY, verbose_name=u'系统状态')
+    merge_status = models.CharField(max_length=32, db_index=True,
+                              choices=PACKAGE_CONFIRM_STATUS, blank=True,
+                              default=PKG_CONFIRM, verbose_name=u'系统状态')# 合单状态：未确定；已确定；
     PKG_NEW_CREATED = 'PKG_NEW_CREATED'
     WAIT_PREPARE_SEND_STATUS = 'WAIT_PREPARE_SEND_STATUS'
     WAIT_CHECK_BARCODE_STATUS = 'WAIT_CHECK_BARCODE_STATUS'
@@ -1356,25 +1371,52 @@ class PackageOrder(models.Model):
         self.copy_order_info_from_merge_trade(mt)
         self.save()
 
+    def finish_scan_weight(self):
+        self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
+        self.status = PackageOrder.PKG_CONFIRM
+        self.save()
+        package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id, assign_status=PackageSkuItem.ASSIGNED)
+        for sku_item in package_sku_items:
+            order_num = sku_item.num
+            psku = ProductSku.objects.get(id=sku_item.sku_id)
+            psku.update_quantity(order_num, dec_update=True)
+            psku.update_wait_post_num(order_num, dec_update=True)
+            psku.update_assign_num(order_num, dec_update=True)
+
     @property
     def pstat_id(self):
         return str(self.buyer_id) + '-' + str(self.user_address_id) + '-' + str(self.ware_by)
 
+    @property
+    def sale_orders(self):
+        if not hasattr(self, '_sale_orders_'):
+            from flashsale.pay.models import SaleOrder
+            sale_order_ids = [p.sale_order_id for p in PackageSkuItem.objects.filter(package_order_id=self.id)]
+            self._sale_orders_ = SaleOrder.objects.filter(id__in=sale_order_ids)
+        return self._sale_orders_
+
+    def reset_to_wait_prepare_send(self):
+        """
+            重设状态到待发货准备
+        """
+        if self.sys_status != PackageOrder.WAIT_PREPARE_SEND_STATUS:
+            self.redo_sign = True
+            self.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+            self.out_sid = ''
+            self.logistic_company_id = None
+            self.save()
+
     @staticmethod
-    def generate(id, sale_trade):
-        if not PackageSkuItem.objects.filter(id=id).exists():
-            package_order = PackageSkuItem()
+    def get_or_create(id, sale_trade):
+        if not PackageOrder.objects.filter(id=id).exists():
+            package_order = PackageOrder()
             package_order.copy_order_info(sale_trade)
             package_order.save()
+            new_create = True
         else:
-            package_order = PackageSkuItem.objects.get(id=id)
-            if package_order.sys_status != PackageOrder.WAIT_PREPARE_SEND_STATUS:
-                package_order.redo_sign = True
-                package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-                package_order.out_sid = ''
-                package_order.logistic_company_id = None
-                package_order.save()
-        return package_order
+            package_order = PackageOrder.objects.get(id=id)
+            new_create = False
+        return package_order, new_create
 
     def sync_merge_trade(self, merge_trade):
         """出库时同步实际数据于理论数据，如果需要就产生新包裹"""
@@ -1403,6 +1445,17 @@ class PackageOrder(models.Model):
         self.merge_trade_id = merge_trade.id
         self.save()
 
+
+    def get_merge_trade(self, sync=True):
+        from shopback.trades.models import MergeTrade
+        if self.merge_trade_id:
+            return MergeTrade.objects.get(id=self.merge_trade_id)
+        if not sync:
+            if MergeTrade.objects.filter(tid=self.tid).exists():
+                return MergeTrade.objects.filter(tid=self.tid).order_by('-sys_status').first()
+        return None
+
+
     @staticmethod
     def gen_new_package_id(buyer_id, address_id, ware_by_id):
         id = str(buyer_id) + '-' + str(address_id) + '-' + str(ware_by_id)
@@ -1429,6 +1482,44 @@ def sync_merge_trade_by_package(sender, instance, created, **kwargs):
 
 
 post_save.connect(get_logistics_company, sender=PackageOrder)
+# post_save.connect(sync_merge_trade_by_package, sender=PackageOrder)
+
+
+def create_merge_order(merge_trade, sku_item):
+    MergeOrder.objects
+    pass
+
+
+def is_merge_trade_package_order_diff(package):
+    merge_trade = package.get_merge_trade()
+    # package_sku_items = package.package_sku_items
+    # sale_order_ids = set([i.sale_order_id for i in package_sku_items])
+    sale_order_ids = set([p.sale_order_id for p in PackageSkuItem.objects.filter(package_order_id=package.id)])
+    sale_order_ids2 = set([mo.sale_order.id for mo in merge_trade.normal_orders])
+    return sale_order_ids == sale_order_ids2
+
+
+def sync_merge_trade_by_package_after_order_express(package):
+    pass
+    # '''
+    #     merge_trade出库
+    #     利用package_order，创建新的merge_trade
+    # :param package:
+    # :return:
+    # '''
+    #
+    # if not is_merge_trade_package_order_diff(package):
+    #     merge_trade = package.get_merge_trade()
+    # else:
+    #     merge_trade =
+    #
+    # merge_trade = MergeTrade()
+    # merge_trade.sync_attr_from_package(package)
+    # merge_trade.save()
+    # package.merge_trade_id = merge_trade
+    # for sku_item in package.package_sku_items:
+    #     merge_order = create_merge_order(merge_trade, sku_item)
+    #     merge_order.save()
 
 
 class PackageStat(models.Model):
@@ -1545,12 +1636,7 @@ post_save.connect(update_product_sku_assign_num, sender=PackageSkuItem, dispatch
 
 
 def packagize_sku_item(sender, instance, created, **kwargs):
-    if instance.assign_status == PackageSkuItem.ASSIGNED and not instance.package_order_id:
-        sale_trade = instance.sale_trade
-        package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                               instance.product_sku.ware_by)
-        PackageOrder.generate(package_order_id, sale_trade)
-        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
-
+    from shopback.trades.tasks import task_packagize_sku_item
+    task_packagize_sku_item.delay(instance)
 
 post_save.connect(packagize_sku_item, sender=PackageSkuItem, dispatch_uid='post_save_packagize_sku_item')
