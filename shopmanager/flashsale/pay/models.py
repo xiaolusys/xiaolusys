@@ -654,6 +654,7 @@ def order_trigger(sender, instance, created, **kwargs):
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 
 
+
 class TradeCharge(PayBaseModel):
     order_no = models.CharField(max_length=40, verbose_name=u'订单ID')
     charge = models.CharField(max_length=28, verbose_name=u'支付编号')

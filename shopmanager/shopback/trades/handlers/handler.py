@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 from django.conf import settings
 from django.db.models.signals import post_save
 
@@ -176,6 +176,7 @@ class FinalHandler(BaseHandler):
             
         if kwargs.get('first_pay_load',None):
             for order in merge_trade.inuse_orders:
+                ### we should comment the following line in order to retire updating waitpostnum
                 Product.objects.updateWaitPostNumByCode(order.outer_id,
                                                         order.outer_sku_id,
                                                         order.num)
