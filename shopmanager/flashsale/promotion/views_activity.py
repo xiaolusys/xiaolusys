@@ -474,7 +474,7 @@ class StatsView(APIView):
                 index = item['value']
                 cards[index - 1] = 1
 
-        winner = AwardWinner.objects.filter(customer_id=customer_id)
+        winner = AwardWinner.objects.get(customer_id=customer_id)
         if winner:
             status = winner.status
         else:
