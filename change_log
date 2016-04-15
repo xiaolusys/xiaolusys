@@ -1,7 +1,6 @@
 update shop_items_productsku SET assign_num=0 where assign_num is NULL;
 ALTER TABLE `shop_items_productsku`MODIFY COLUMN `assign_num` int(11) NOT NULL DEFAULT 0 AFTER `lock_num`;
 ######## 2016-04-13 ########
-
 ALTER TABLE `flashsale_package`
 ADD COLUMN `pid` bigint NOT NULL AUTO_INCREMENT FIRST ,
 DROP PRIMARY KEY,ADD PRIMARY KEY (`pid`),

@@ -128,7 +128,8 @@ GIFT_TYPE = (
 )
 
 
-class MergeTrade(models.Model):
+class \
+        MergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
     FENXIAO_TYPE = pcfg.FENXIAO_TYPE
     SALE_TYPE = pcfg.SALE_TYPE
@@ -1201,10 +1202,17 @@ class PackageOrder(models.Model):
     WARE_GZ = 2
     WARE_CHOICES = ((WARE_SH, u'上海仓'),
                     (WARE_GZ, u'广州仓'))
+<<<<<<< HEAD
     # PKG_CONFIRM = 'PKG_CONFIRM'
     # PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
     # PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
     #                           (PKG_CONFIRM, u'已确定'))
+=======
+    PKG_CONFIRM = 'PKG_CONFIRM'
+    PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
+    PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
+                              (PKG_CONFIRM, u'已确定'))
+>>>>>>> edf284db9221e9195c32a03e350545f47f00a0a5
     pid = BigIntegerAutoField(verbose_name=u'包裹主键', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹ID')
     tid = models.CharField(max_length=32, verbose_name=u'原单ID')
