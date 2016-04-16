@@ -17,6 +17,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
+from flashsale.pay.models_coupon_new import UserCoupon
 from flashsale.pay.models_user import Customer
 from flashsale.pay.models_custom import ActivityEntry
 
@@ -498,5 +499,33 @@ class StatsView(APIView):
             status =0
 
         response = Response({"invite_num": invite_num, "total": total, "cards": cards, "status":status})
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+
+
+
+class GetAwardView(APIView):
+    ''' 达到赢取奖品条件后,获得奖品 '''
+    authentication_classes = (authentication.SessionAuthentication,)
+    # permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
+    def post(self, request, event_id, *args, **kwargs):
+        content = request.POST
+        template_id = content.get("template_id", None)
+
+        customer = Customer.objects.get(user=request.user)
+        customer_id = customer.id
+
+        user_coupon = UserCoupon()
+        kwargs = {"buyer_id": customer_id, "template_id": template_id}
+        code, msg = user_coupon.release_by_template(**kwargs)
+
+        if (code==0):
+            winner = AwardWinner.objects.get(customer_id=customer_id)
+            winner.status = 1
+            winner.save()
+
+        response = Response({"code": code, "res": msg})
         response["Access-Control-Allow-Origin"] = "*"
         return response
