@@ -562,8 +562,7 @@ def delete_pro_record_supplier(sender, instance, created, **kwargs):
 
 post_save.connect(delete_pro_record_supplier, Product)
 
-from shopback.signals import signal_product_upshelf
-
+from shopback.signals import signal_product_upshelf,signal_product_downshelf
 
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     products = Product.objects.filter(id=instance.id)
@@ -572,13 +571,23 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
         # 如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
             instance.is_verify = False
-        if (product.shelf_status != instance.shelf_status and
-                    instance.shelf_status == Product.UP_SHELF):
-            # 通知其它程序商品上架状态发生变化
-            signal_product_upshelf.send(sender=Product, product_list=[product])
+        if (product.shelf_status != instance.shelf_status):
+            if instance.shelf_status == Product.UP_SHELF:
+                # 商品上架信号
+                signal_product_upshelf.send(sender=Product, product_list=[product])
 
+            elif instance.shelf_status == Product.DOWN_SHELF:
+                # 商品下架信号
+                signal_product_downshelf.send(sender=Product, product_list=[product])
 
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
+
+def update_productsku_salestats(sender, instance, raw, *args, **kwargs):
+    from shopback.items.models_stats import ProductSkuSaleStats
+    #TODO
+
+pre_save.connect(change_obj_state_by_pre_save, sender=Product)
+
 
 
 def update_mama_shop(sender, instance, raw, *args, **kwargs):

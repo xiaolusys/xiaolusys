@@ -1035,6 +1035,8 @@ def assign_package_stock(sku_id, ware_by, package_order):
 
 @task()
 def task_assign_stock_to_package_sku_item(product_sku):
+    """ """
+    from shopback.trades.models import PackageSkuItem
     available_num = product_sku.quantity - product_sku.assign_num
     if available_num > 0:
         package_sku_items = PackageSkuItem.objects.filter(sku_id=product_sku.id,

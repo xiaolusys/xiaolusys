@@ -1598,6 +1598,7 @@ class PackageSkuItem(BaseModel):
     discount_fee = models.FloatField(default=0.0, verbose_name=u'折扣')
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
 
+    pay_time   = models.DateTimeField(verbose_name=u'付款时间')
     sku_properties_name = models.CharField(max_length=256, blank=True,
                                            verbose_name=u'购买规格')
 
@@ -1634,8 +1635,8 @@ def update_productsku_sold_num(sender, instance, created, **kwargs):
     sold_num can increase or decrease, so whenever PackageSkuItem status change, we 
     have to recalculate sold_num.
     """
-    from shopback.trades.tasks import task_update_productsku_sold_num
-    task_packageskuitem_update_productsku_sold_num.delay(instance.sku_id)
+    from shopback.trades.tasks import task_packageskuitem_update_productskustats_sold_num
+    task_packageskuitem_update_productskustats_sold_num.delay(instance.sku_id)
 
 post_save.connect(update_productsku_sold_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_sold_num')
 
@@ -1645,18 +1646,24 @@ def update_productsku_post_num(sender, instance, created, **kwargs):
     post_num only increases, never decreases. We only update post_num upon finishing a PackageSkuItem.
     """
     if instance.is_finished():
-        from shopback.trades.tasks import task_packageskuitem_update_productsku_post_num
-        task_packageskuitem_update_productsku_post_num.delay(instance.sku_id)
+        from shopback.trades.tasks import task_packageskuitem_update_productskustats_post_num
+        task_packageskuitem_update_productskustats_post_num.delay(instance.sku_id)
 
 post_save.connect(update_productsku_sold_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_sold_num')
 
 
 def update_productsku_assign_num(sender, instance, created, **kwargs):
-    from shopback.trades.tasks import task_packageskuitem_update_productsku_assign_num
-    task_packageskuitem_update_productsku_assign_num.delay(instance.sku_id)
+    from shopback.trades.tasks import task_packageskuitem_update_productskustats_assign_num
+    task_packageskuitem_update_productskustats_assign_num.delay(instance.sku_id)
 
 post_save.connect(update_productsku_assign_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_assign_num')
 
+
+def update_productsku_salestats_num(sender, instance, created, **kwargs):
+    from shopback.trades.tasks import task_packageskuitem_update_productskustats_assign_num
+    task_packageskuitem_update_productskustats_assign_num.delay(instance.sku_id)
+
+post_save.connect(update_productsku_assign_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_assign_num')
 
 def packagize_sku_item(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packagize_sku_item

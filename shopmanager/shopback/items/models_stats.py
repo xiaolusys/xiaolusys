@@ -65,8 +65,12 @@ class ProductSkuSaleStats(models.Model):
         app_label = 'items'
         verbose_name = u'商品购买统计数据'
         verbose_name_plural = u'商品购买统计数据列表'
-    
-    STATUS = ((0,'EFFECT'), (1,'DISCARD'), (2,'FINISH'))
+
+    ST_EFFECT = 0
+    ST_DISCARD = 1
+    ST_FINISH = 2
+
+    STATUS = ((ST_EFFECT,'EFFECT'), (ST_DISCARD,'DISCARD'), (ST_FINISH,'FINISH'))
 
     # uni_key = sku_id + number of finished records
     uni_key = models.IntegerField(null=True, unique=True, verbose_name='UNIQUE ID')
@@ -74,7 +78,7 @@ class ProductSkuSaleStats(models.Model):
     sku_id = models.IntegerField(null=True, db_index=True, verbose_name='商品SKU记录ID')
     product_id = models.IntegerField(null=True, db_index=True, verbose_name='商品记录ID')
 
-    init_wait_assign_num = models.IntegerField(default=0, verbose_name='上架前待分配数')
+    init_waitassign_num = models.IntegerField(default=0, verbose_name='上架前待分配数')
     num = models.IntegerField(default=0, verbose_name='上架期间购买数')
     sale_start_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='开始时间')
     sale_end_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='结束时间')
@@ -84,7 +88,7 @@ class ProductSkuSaleStats(models.Model):
     status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name='状态') 
 
     def __unicode__(self):
-        return '<%s,%s:%s>' % (self.id, self.properties_alias or self.properties_name)
+        return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
 
     @property
     def properties_name(self):
@@ -93,7 +97,7 @@ class ProductSkuSaleStats(models.Model):
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
 
 def gen_productsksalestats_unikey(sku_id):
-    count = ProductSkuSaleStats.objects.filter(sku_id=sku_id,status=1).count()
+    count = ProductSkuSaleStats.objects.filter(sku_id=sku_id,status=2).count()
     return "%s-%s" % (sku_id, count)
     
     

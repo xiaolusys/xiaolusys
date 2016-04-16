@@ -777,7 +777,7 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 
 
 from shopback.trades.models import PackageSkuItem, PackageOrder
-from shopback.items.models_stats import ProductSkuStats
+
 
 @task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats_sold_num(sku_id):
@@ -787,6 +787,8 @@ def task_packageskuitem_update_productskustats_sold_num(sku_id):
     2) We should built joint-index for (sku_id, assign_status)?
     -- Zifei 2016-04-15
     """
+    from shopback.items.models_stats import ProductSkuStats
+
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id).exclude(assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
 
@@ -814,6 +816,8 @@ def task_packageskuitem_update_productskustats_post_num(sku_id):
     2) We should built joint-index for (sku_id, assign_status)?
     -- Zifei 2016-04-15
     """
+    from shopback.items.models_stats import ProductSkuStats
+
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,assign_status=PackageSkuItem.FINISHED).aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
 
@@ -832,7 +836,6 @@ def task_packageskuitem_update_productskustats_post_num(sku_id):
             stat.post_num = total
             stat.save(update_fields=["post_num"])
     
-    
 
 @task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats_assign_num(sku_id):
@@ -842,6 +845,8 @@ def task_packageskuitem_update_productskustats_assign_num(sku_id):
     2) We should built joint-index for (sku_id, assign_status)?
     -- Zifei 2016-04-15
     """
+    from shopback.items.models_stats import ProductSkuStats
+
     assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).aggregate(
         Sum('num'))
     total = assign_num_res['num__sum'] or 0
@@ -860,6 +865,35 @@ def task_packageskuitem_update_productskustats_assign_num(sku_id):
         if stat.assign_num != total:
             stat.assign_num = total
             stat.save(update_fields=["assign_num"])
+
+
+@task(max_retries=3, default_retry_delay=6)
+def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
+    """
+    Recalculate and update skustats_num.
+    """
+    from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
+    sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id,
+                                                    sale_start_time__gte=pay_time,
+                                                    sale_end_time__lte=pay_time,
+                                                    status__in=(ProductSkuSaleStats.ST_EFFECT,ProductSkuSaleStats.ST_FINISH))
+    if not sale_stats.exists():
+        logger.warn('update productskusalestats_num not found | sku_id:%s, pay_time:%s'%(sku_id, pay_time))
+        return
+
+    sale_stat  = sale_stats[0]
+    assign_num_qs = PackageSkuItem.objects.filter(sku_id=sku_id)\
+        .exclude(assign_status=PackageSkuItem.CANCELED)
+    if sale_stat.sale_start_time:
+        assign_num_qs = assign_num_qs.filter(pay_time__gte=sale_stat.sale_start_time)
+    if sale_stat.sale_end_time:
+        assign_num_qs = assign_num_qs.filter(pay_time__lte=sale_stat.sale_end_time)
+    assign_num_res = assign_num_qs.aggregate(Sum('num'))
+    total = assign_num_res['num__sum'] or 0
+
+    if sale_stat.num != total:
+        sale_stat.num = total
+        sale_stat.save(update_fields=["num"])
 
 
 @task(max_retries=3, default_retry_delay=6)
