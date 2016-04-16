@@ -437,6 +437,9 @@ class OpenEnvelopeView(APIView):
         # 1. we have to check login
         content = request.GET
 
+        customer = Customer.objects.get(user=request.user)
+        customer_id = customer.id
+
         if envelope_id <= 0:
             return Response({"rcode": 1, "msg": "envelope id wrong"})
         envelopes = RedEnvelope.objects.filter(id=envelope_id)
@@ -448,9 +451,15 @@ class OpenEnvelopeView(APIView):
             envelope.status = 1  # otherwise, return envelope.status is 0.
             envelope.save()
 
+        event_id = envelope.event_id
         serializer = RedEnvelopeSerializer(envelope)
 
-        response = Response(serializer.data)
+        num_cards = RedEnvelope.objects.filter(event_id=event_id, customer_id=customer_id, type=1, status=1).count()
+
+        data = serializer.data
+        data.update({"num_cards":num_cards})
+        
+        response = Response(data)
         response["Access-Control-Allow-Origin"] = "*"
         return response
 
