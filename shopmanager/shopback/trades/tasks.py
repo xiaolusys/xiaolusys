@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 import time
 import datetime
 import calendar
@@ -354,7 +354,7 @@ def pushBuyerToCustomerTask(day):
 
 
 import os
-from django.db import connection
+from django.db import connection, IntegrityError
 from common.utils import CSVUnicodeWriter
 from shopback.users.models import User
 from shopback.logistics.models import LogisticsCompany
@@ -776,23 +776,128 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
         return None
 
 
-@task()
-def task_assign_stock_to_package_sku_item(product_sku):
-    from shopback.trades.models import PackageSkuItem
-    available_num = product_sku.quantity - product_sku.assign_num
-    if available_num > 0:
-        package_sku_items = PackageSkuItem.objects.filter(sku_id=product_sku.id,
-                                                          assign_status=PackageSkuItem.NOT_ASSIGNED,
-                                                          num__lte=available_num).order_by('id')
-        if package_sku_items.count() > 0:
-            package_sku_item = package_sku_items.first()
-            package_sku_item.assign_status = PackageSkuItem.ASSIGNED
-            package_sku_item.save()
+from shopback.trades.models import PackageSkuItem, PackageOrder
 
 
-@task()
+@task(max_retries=3, default_retry_delay=6)
+def task_packageskuitem_update_productskustats_sold_num(sku_id):
+    """
+    Recalculate and update sold_num. 
+    1) But start from when? -- We have to determine a start time.
+    2) We should built joint-index for (sku_id, assign_status)?
+    -- Zifei 2016-04-15
+    """
+    from shopback.items.models_stats import ProductSkuStats
+
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id).exclude(assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
+    total = sum_res["total"] or 0
+
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        product_id = ProductSku.objects.get(id=sku_id).product.id
+        try:
+            stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,sold_num=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - productskustat/sold_num | sku_id: %s, sold_num: %s" % (sku_id, total))
+            raise task_packageskuitem_update_productskustats_sold_num.retry(exc=exc)
+    else:
+        stat = stats[0]
+        if stat.sold_num != total:
+            stat.sold_num = total
+            stat.save(update_fields=["sold_num"])
+
+
+@task(max_retries=3, default_retry_delay=6)
+def task_packageskuitem_update_productskustats_post_num(sku_id):
+    """
+    Recalculate and update post_num.
+    1) But start from when? -- We have to determine a start time.
+    2) We should built joint-index for (sku_id, assign_status)?
+    -- Zifei 2016-04-15
+    """
+    from shopback.items.models_stats import ProductSkuStats
+
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,assign_status=PackageSkuItem.FINISHED).aggregate(total=Sum('num'))
+    total = sum_res["total"] or 0
+
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        product_id = ProductSku.objects.get(id=sku_id).product.id
+        try:
+            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, post_num=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - productskustat/post_num | sku_id: %s, post_num: %s" % (sku_id, total))
+            raise task_packageskuitem_update_productskustats_post_num.retry(exc=exc)
+    else:
+        stat = stats[0]
+        if stat.post_num != total:
+            stat.post_num = total
+            stat.save(update_fields=["post_num"])
+    
+
+@task(max_retries=3, default_retry_delay=6)
+def task_packageskuitem_update_productskustats_assign_num(sku_id):
+    """
+    Recalculate and update post_num.
+    1) But start from when? -- We have to determine a start time.
+    2) We should built joint-index for (sku_id, assign_status)?
+    -- Zifei 2016-04-15
+    """
+    from shopback.items.models_stats import ProductSkuStats
+
+    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).aggregate(
+        Sum('num'))
+    total = assign_num_res['num__sum'] or 0
+
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        product_id = ProductSku.objects.get(id=sku_id).product.id
+        try:
+            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, assign_num=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - productskustat/assign_num | sku_id: %s, assign_num: %s" % (sku_id, total))
+            raise task_packageskuitem_update_productskustats_assign_num.retry(exc=exc)
+    else:
+        stat = stats[0]
+        if stat.assign_num != total:
+            stat.assign_num = total
+            stat.save(update_fields=["assign_num"])
+
+
+@task(max_retries=3, default_retry_delay=6)
+def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
+    """
+    Recalculate and update skustats_num.
+    """
+    from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
+    sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id,
+                                                    sale_start_time__gte=pay_time,
+                                                    sale_end_time__lte=pay_time,
+                                                    status__in=(ProductSkuSaleStats.ST_EFFECT,ProductSkuSaleStats.ST_FINISH))
+    if not sale_stats.exists():
+        logger.warn('update productskusalestats_num not found | sku_id:%s, pay_time:%s'%(sku_id, pay_time))
+        return
+
+    sale_stat  = sale_stats[0]
+    assign_num_qs = PackageSkuItem.objects.filter(sku_id=sku_id)\
+        .exclude(assign_status=PackageSkuItem.CANCELED)
+    if sale_stat.sale_start_time:
+        assign_num_qs = assign_num_qs.filter(pay_time__gte=sale_stat.sale_start_time)
+    if sale_stat.sale_end_time:
+        assign_num_qs = assign_num_qs.filter(pay_time__lte=sale_stat.sale_end_time)
+    assign_num_res = assign_num_qs.aggregate(Sum('num'))
+    total = assign_num_res['num__sum'] or 0
+
+    if sale_stat.num != total:
+        sale_stat.num = total
+        sale_stat.save(update_fields=["num"])
+
+
+@task(max_retries=3, default_retry_delay=6)
 def task_packagize_sku_item(instance):
-    from shopback.trades.models import PackageSkuItem, PackageOrder
     if instance.assign_status == PackageSkuItem.ASSIGNED and not instance.package_order_id:
         sale_trade = instance.sale_trade
         package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,

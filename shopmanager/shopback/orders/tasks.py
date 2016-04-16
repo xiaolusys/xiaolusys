@@ -30,7 +30,7 @@ TASK_SUCCESS = 'SUCCESS'
 TASK_FAIL = 'FAIL'
 
 
-@task(max_retry=3)
+@task(max_retries=3)
 def saveUserDuringOrdersTask(user_id, update_from=None, update_to=None, status=None):
     """ 下载用户商城订单 """
     update_tids = []

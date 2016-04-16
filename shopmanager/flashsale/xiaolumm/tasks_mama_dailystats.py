@@ -68,7 +68,7 @@ def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
         stats.save()
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_visitor_increment_dailystats(mama_id, date_field):
     # print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -86,7 +86,7 @@ def task_visitor_increment_dailystats(mama_id, date_field):
         records.update(today_visitor_num=F('today_visitor_num') + 1)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_carryrecord_update_dailystats(mama_id, date_field):
     # print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -111,7 +111,7 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
         records.update(today_carry_num=today_carry_num)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_ordercarry_increment_dailystats(mama_id, date_field):
     # print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 

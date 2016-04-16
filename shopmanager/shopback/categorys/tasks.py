@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 
-@task(max_retry=3)
+@task(max_retries=3)
 def RecurUpdateCategoreyTask(user_id, cid):
     try:
         response = apis.taobao_itemcats_get(parent_cid=cid, tb_user_id=user_id)
@@ -39,7 +39,7 @@ def RecurUpdateCategoreyTask(user_id, cid):
             RecurUpdateCategoreyTask.retry(exc=exc, countdown=2)
 
 
-@task(max_retry=3)
+@task(max_retries=3)
 def UpdateCategoryIncrementTask():
     """增量更新类目，暂未实现！！"""
     config = SystemConfig.getconfig()
@@ -54,7 +54,7 @@ def UpdateCategoryIncrementTask():
 from common.modelutils import update_model_fields
 
 
-@task(max_retry=3)
+@task(max_retries=3)
 def category_pit_num_stat():
     """
         定时任务　计算保存　分类统计中的产品坑位数量

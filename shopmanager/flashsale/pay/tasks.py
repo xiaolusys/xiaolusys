@@ -143,7 +143,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             strade.save()
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id, charge_time=None):
     from shopback.items.models import ProductSku
     strade = SaleTrade.objects.get(id=sale_trade_id)
@@ -152,7 +152,7 @@ def confirmTradeChargeTask(sale_trade_id, charge_time=None):
     saleservice.payTrade()
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 @transaction.atomic
 def notifyTradePayTask(notify):
     """ 订单确认支付通知消息，如果订单分阶段支付，则在原单ID后追加:[tid]-[数字] """
@@ -195,7 +195,7 @@ def notifyTradePayTask(notify):
 from .options import getOrCreateSaleSeller
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def notifyTradeRefundTask(notify):
     try:
         refund_id = notify['id']
@@ -553,23 +553,22 @@ def task_release_coupon_push(customer_id):
     user_coupon_release_push(customer_id)
     return
 
+from core.options import SYSTEMOA_USER
 
 def close_refund(refund):
     """ 关闭退款单 """
-    now = datetime.datetime.now()
-    fifth_time = now - datetime.timedelta(days=30)  # days天前的时间
 
     order = SaleOrder.objects.get(id=refund.order_id)
     if order.status not in [SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]:
         return  # 判断订单状态是否在　确认签收　和　交易成功　状态　否则　不去做关闭退款单操作
-    if refund.created >= fifth_time:  # 30天前的记录才关闭
-        return False
+
     old_status = refund.get_status_display()
     refund.status = SaleRefund.REFUND_CLOSED
     refund.save()  # 注意这里会触发model中的post_save信号
-    msg = old_status + '修改为退款关闭状态(定时任务)'
+
     from core.options import log_action
-    log_action(863902, refund, CHANGE, msg)
+    msg = old_status + '修改为退款关闭状态(定时任务)'
+    log_action(SYSTEMOA_USER.id, refund, CHANGE, msg)
     # log_action(56, refund, CHANGE, msg)  # 本地
     return True
 
@@ -583,7 +582,6 @@ def task_close_refund(days=None):
         days = 30
     time_point = datetime.datetime.now() - datetime.timedelta(days=days)
     aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
-                                                           SaleRefund.REFUND_CLOSED,
                                                            SaleRefund.REFUND_REFUSE_BUYER],
                                                created__lte=time_point)  # 这里不考虑退货状态
                                                # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
@@ -619,7 +617,7 @@ def task_saleorder_update_package_sku_item(sale_order):
         sku_item.assign_status = PackageSkuItem.CANCELED
 
     attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
-             'payment', 'discount_fee', 'refund_status', 'status']
+             'payment', 'discount_fee', 'refund_status', '', 'status']
     for attr in attrs:
         if hasattr(sale_order, attr):
             val = getattr(sale_order, attr)

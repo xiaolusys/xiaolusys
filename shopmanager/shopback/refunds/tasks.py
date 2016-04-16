@@ -16,7 +16,7 @@ __author__ = 'meixqhi'
 logger = logging.getLogger('django.request')
 
 
-@task(max_retry=3)
+@task(max_retries=3)
 def saveUserRefundOrderTask(user_id, update_from=None, update_to=None):
     update_from = format_datetime(update_from)
     update_to = format_datetime(update_to)

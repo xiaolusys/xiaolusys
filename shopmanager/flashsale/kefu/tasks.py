@@ -16,7 +16,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 import json
 
 
-@task(max_retry=1, default_retry_delay=5)
+@task(max_retries=1, default_retry_delay=5)
 def task_record_kefu_performance(start_date, end_date, record_type="0"):
     """客服操作"""
     try:

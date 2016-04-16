@@ -382,6 +382,14 @@ class InBoundDetail(models.Model):
         verbose_name_plural = u'入仓单明细列表'
 
 
+def update_productsku_inbound_quantity(sender, instance, created, **kwargs):
+    from flashsale.dinghuo.tasks import task_inbounddetail_update_productsku_inbound_quantity
+    task_inbounddetail_update_productsku_inbound_quantity.delay(instance.sku.id)
+
+post_save.connect(update_productsku_inbound_quantity, sender=InBoundDetail, dispatch_uid='post_save_update_productsku_inbound_quantity')
+
+
+
 class OrderDetailInBoundDetail(models.Model):
     INVALID = 0
     NORMAL = 1

@@ -230,9 +230,9 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             # if cust:  # 给分享人（存在）则计数邀请数量
             # participates = XLInviteCode.objects.filter(mobile=cust.mobile)
             # if participates.exists():
-            #                     participate = participates[0]
-            #                     participate.usage_count += 1
-            #                     participate.save()  # 使用次数累加
+            # participate = participates[0]
+            # participate.usage_count += 1
+            # participate.save()  # 使用次数累加
             if ufrom == 'app':
                 # 如果用户来自app内部则跳转到活动激活页面
                 url = '/sale/promotion/xlsampleorder/'
@@ -251,6 +251,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
 from .models import AppDownloadRecord
 from shopapp.weixin import options
+from common.utils import valid_mobile
 
 
 class APPDownloadView(WeixinAuthMixin, View):
@@ -260,7 +261,7 @@ class APPDownloadView(WeixinAuthMixin, View):
 
     def get(self, request):
         content = request.GET
-        from_customer = content.get('from_customer', None)  # 分享人的用户id
+        from_customer = content.get('from_customer') or 0  # 分享人的用户id
         mobile = content.get('mobile', None)
         ufrom = content.get("ufrom", None)
 
@@ -277,22 +278,22 @@ class APPDownloadView(WeixinAuthMixin, View):
                     if not self.valid_openid(unionid):  # 先获取一次数据库中的unionid　不合法　高级授权
                         return redirect(self.get_snsuserinfo_redirct_url(request))
 
-                    download, state = AppDownloadRecord.objects.get_or_create(unionid=unionid)
-                    if state:
-                        download.from_customer = int(from_customer)
-                        download.ufrom = ufrom
-                        download.mobile = mobile
-                        download.save()
+                    download, state = AppDownloadRecord.objects.get_or_create(unionid=unionid,
+                                                                              from_customer=int(from_customer))
+                    download.mobile = mobile
+                    download.openid = openid
+                    download.ufrom = ufrom
+                    download.save()
+
             else:
-                if mobile:
-                    download, state = AppDownloadRecord.objects.get_or_create(mobile=mobile)
-                    if state:
-                        download.from_customer = int(from_customer)
-                        download.ufrom = ufrom
-                        download.save()
+                if valid_mobile(mobile):  # 合法手机号
+                    download, state = AppDownloadRecord.objects.get_or_create(mobile=mobile,
+                                                                              from_customer=int(from_customer))
+                    download.ufrom = ufrom
+                    download.save()
 
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
-        if "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
+        if agent and "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
             url = self.QQ_YINYONGBAO_URL
             return redirect(url)
 

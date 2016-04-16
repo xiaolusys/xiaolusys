@@ -958,7 +958,7 @@ def get_product_logsign(product):
                                                     product.remain_num, product.lock_num)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Auto_Upload_Shelf():
     """ 自动上架商品　"""
     logger = logging.getLogger('celery.handler')
@@ -982,7 +982,7 @@ def task_Auto_Upload_Shelf():
     logger.error("{0}系统自动上架{1}个产品,未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Auto_Download_Shelf():
     """ 自动下架商品 """
     logger = logging.getLogger('celery.handler')
@@ -1007,7 +1007,7 @@ def task_Auto_Download_Shelf():
 
 
 # @transaction.atomic
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def assign_package_stock(sku_id, ware_by, package_order):
     from shopback.trades.models import PackageSkuItem
     from flashsale import pay
@@ -1034,13 +1034,16 @@ def assign_package_stock(sku_id, ware_by, package_order):
 
 
 @task()
-def task_update_product_sku_assign_num(sku_id):
+def task_assign_stock_to_package_sku_item(product_sku):
+    """ """
     from shopback.trades.models import PackageSkuItem
-    # assign_status_list = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).values(
-    #     'assign_status').annotate(
-    #     total=Sum('num'))
-    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).aggregate(
-        Sum('num'))
-    product_sku = ProductSku.objects.get(id=sku_id)
-    product_sku.assign_num = assign_num_res['num__sum']
-    product_sku.save()
+    available_num = product_sku.quantity - product_sku.assign_num
+    if available_num > 0:
+        package_sku_items = PackageSkuItem.objects.filter(sku_id=product_sku.id,
+                                                          assign_status=PackageSkuItem.NOT_ASSIGNED,
+                                                          num__lte=available_num).order_by('id')
+        if package_sku_items.count() > 0:
+            package_sku_item = package_sku_items.first()
+            package_sku_item.assign_status = PackageSkuItem.ASSIGNED
+            package_sku_item.save()
+

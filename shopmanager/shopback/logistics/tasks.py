@@ -20,7 +20,7 @@ __author__ = 'meixqhi'
 logger = logging.getLogger('django.request')
 
 
-@task(max_retry=3)
+@task(max_retries=3)
 def saveUserOrdersLogisticsTask(user_id, update_from=None, update_to=None):
     if not (update_from and update_to):
         dt = datetime.datetime.now()
@@ -62,7 +62,7 @@ def updateAllUserOrdersLogisticsTask(update_from=None, update_to=None):
             subtask(saveUserOrdersLogisticsTask).delay(user.visitor_id)
 
 
-@task(max_retry=3)
+@task(max_retries=3)
 def saveUserUnfinishOrdersLogisticsTask(user_id, update_from=None, update_to=None):
     trades = Trade.objects.filter(user__visitor_id=user_id, status__in=pcfg.ORDER_OK_STATUS,
                                   consign_time__gte=update_from, consign_time__lte=update_to)
@@ -91,7 +91,7 @@ def updateAllUserUnfinishOrdersLogisticsTask(update_from=None, update_to=None):
         saveUserUnfinishOrdersLogisticsTask(user.visitor_id, update_from=update_from, update_to=update_to)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_get_logistics_company(package_order):
 
     from shopback.trades.models import PackageOrder

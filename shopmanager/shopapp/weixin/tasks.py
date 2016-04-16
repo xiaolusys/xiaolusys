@@ -65,7 +65,7 @@ def update_weixin_productstock():
                 logger.error(exc.message, exc_info=True)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Update_Weixin_Userinfo(openId, unionId=None, userinfo={}, accessToken=None):
     """ 通过接口获取用户信息 """
     _wx_api = WeiXinAPI()
@@ -100,7 +100,7 @@ def task_Update_Weixin_Userinfo(openId, unionId=None, userinfo={}, accessToken=N
     WeixinUnionID.objects.get_or_create(openid=openId, app_key=app_key, unionid=wx_user.unionid)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Mod_Merchant_Product_Status(outer_ids, status):
     from shopback.items.models import Product
     from shopback import signals
@@ -344,7 +344,7 @@ from core.weixin.options import valid_openid
 
 
 @task
-def task_snsauth_update_weixin_userinfo(userinfo):
+def task_snsauth_update_weixin_userinfo(userinfo, appid):
     """
     Every time we have snsauth userfinfo, we update WeixinUserInfo.
     -- Zifei 2016-04-12
@@ -366,8 +366,8 @@ def task_snsauth_update_weixin_userinfo(userinfo):
     try:
         WeixinUnionID.objects.get(unionid=unionid)
     except WeixinUnionID.DoesNotExist:
-        if valid_openid(openid)and valid_openid(unionid):
-            WeixinUnionID.objects.create(openid=openid, app_key=settings.WXPAY_APPID, unionid=unionid)
+        if valid_openid(openid) and valid_openid(unionid):
+            WeixinUnionID.objects.create(openid=openid, app_key=appid, unionid=unionid)
     except Exception, exc:
         logger.info(exc.message)
 

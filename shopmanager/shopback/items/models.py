@@ -21,16 +21,16 @@ from django.forms.models import model_to_dict
 from auth import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
-from flashsale.dinghuo.models_user import MyUser
 from flashsale.restpro.local_cache import image_watermark_cache
 from core.fields import BigIntegerAutoField
+from shopback import paramconfig as pcfg
+
 from shopback.categorys.models import Category, ProductCategory
 from shopback.archives.models import Deposite, DepositeDistrict
-from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser, User
 from supplychain.supplier.models import SaleProduct
-from collections import OrderedDict
-from django.db import transaction
+from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
+
 from . import constants, managers
 
 logger = logging.getLogger('django.request')
@@ -562,8 +562,7 @@ def delete_pro_record_supplier(sender, instance, created, **kwargs):
 
 post_save.connect(delete_pro_record_supplier, Product)
 
-from shopback.signals import signal_product_upshelf
-
+from shopback.signals import signal_product_upshelf,signal_product_downshelf
 
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     products = Product.objects.filter(id=instance.id)
@@ -572,13 +571,23 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
         # 如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
             instance.is_verify = False
-        if (product.shelf_status != instance.shelf_status and
-                    instance.shelf_status == Product.UP_SHELF):
-            # 通知其它程序商品上架状态发生变化
-            signal_product_upshelf.send(sender=Product, product_list=[product])
+        if (product.shelf_status != instance.shelf_status):
+            if instance.shelf_status == Product.UP_SHELF:
+                # 商品上架信号
+                signal_product_upshelf.send(sender=Product, product_list=[product])
 
+            elif instance.shelf_status == Product.DOWN_SHELF:
+                # 商品下架信号
+                signal_product_downshelf.send(sender=Product, product_list=[product])
 
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
+
+def update_productsku_salestats(sender, instance, raw, *args, **kwargs):
+    from shopback.items.models_stats import ProductSkuSaleStats
+    #TODO
+
+pre_save.connect(change_obj_state_by_pre_save, sender=Product)
+
 
 
 def update_mama_shop(sender, instance, raw, *args, **kwargs):
@@ -627,9 +636,15 @@ class ProductSku(models.Model):
     sale_num = models.IntegerField(default=0, verbose_name=u'日出库数')  # 日出库
     reduce_num = models.IntegerField(default=0, verbose_name='预减数')  # 下次入库减掉这部分库存
     lock_num = models.IntegerField(default=0, verbose_name='锁定数')  # 特卖待发货，待付款数量
-    assign_num = models.IntegerField(default=0, verbose_name='分配数')  # 未出库包裹单中已分配的sku数量
+    #assign_num = models.IntegerField(default=0, verbose_name='分配数')  # 未出库包裹单中已分配的sku数量
     sku_inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
 
+    #history_quantity = models.IntegerField(default=0, verbose_name='历史库存数')  #
+    #inbound_quantity = models.IntegerField(default=0, verbose_name='入仓库存数')  #
+    #post_num = models.IntegerField(default=0, verbose_name='已发货数')  #
+    #sold_num = models.IntegerField(default=0, verbose_name='已被购买数')  #
+    #realtime_lock_num = models.IntegerField(default=0, verbose_name='实时锁定数')  #
+    
     cost = models.FloatField(default=0, verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0, verbose_name='标准进价')
     std_sale_price = models.FloatField(default=0, verbose_name='吊牌价')
@@ -665,6 +680,20 @@ class ProductSku(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
+
+    @property
+    def realtime_quantity(self):
+        """
+        This tells how many quantity in store.
+        """
+        return self.history_quantity + self.inbound_quantity - self.post_num
+
+    @property
+    def aggregate_quantity(self):
+        """
+        This tells how many quantity we have in total since we introduced inbound_quantity.
+        """
+        return history_quantity + inbound_quantity
 
     @property
     def name(self):
@@ -769,7 +798,7 @@ class ProductSku(models.Model):
             sku_id=self.id,
             assign_status=PackageSkuItem.NOT_ASSIGNED,
             refund_status=SaleRefund.NO_REFUND)
-        res = OrderedDict([])
+        res = collections.OrderedDict([])
         for sku_item in sku_items:
             sale_trade = sku_item.sale_trade
             if not sale_trade.user_address_id or not sale_trade.buyer_id:
@@ -976,12 +1005,13 @@ class ProductSku(models.Model):
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     if instance.quantity > instance.assign_num:
-        from shopback.trades.tasks import task_assign_stock_to_package_sku_item
+        from shopback.items.tasks import task_assign_stock_to_package_sku_item
         task_assign_stock_to_package_sku_item.delay(instance)
     elif instance.quantity < instance.assign_num:
         logger.error('assign_num error: sku assign_num bigger than quantity:' + str(instance.id))
 
 post_save.connect(assign_stock_to_package_sku_item, sender=ProductSku, dispatch_uid='post_save_assign_stock_to_package_sku_item')
+
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """

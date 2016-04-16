@@ -10,6 +10,7 @@ from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
+from shopback.items.models import Product, ProductSku
 from .models_user import Register, Customer, UserBudget, BudgetLog
 from .models_addr import District, UserAddress
 from .models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry
@@ -27,6 +28,7 @@ from .options import uniqid
 from core.fields import JSONCharMyField
 from common.utils import update_model_fields
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -689,7 +691,7 @@ class TradeCharge(PayBaseModel):
         return '<%s>' % (self.id)
 
 
-from shopback.items.models import Product, ProductSku
+
 
 
 class ShoppingCart(BaseModel):

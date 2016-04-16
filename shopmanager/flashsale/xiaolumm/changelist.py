@@ -1,12 +1,13 @@
+# coding=utf-8
 import re
 from django.contrib.admin.views.main import ChangeList
-from django.contrib import messages
-
 from core.utils.regex import REGEX_MOBILE
 from .models_fortune import OrderCarry
 
+
 class OrderCarryChangeList(ChangeList):
     """ 订单佣金ADMIN CHANGELIST """
+
     def get_queryset(self, request):
 
         search_q = request.GET.get('q', '').strip()
@@ -22,6 +23,5 @@ class OrderCarryChangeList(ChangeList):
             order_ids = qs_order.values_list('oid', flat=True)
             if order_ids:
                 return OrderCarry.objects.filter(order_id__in=order_ids)
-
 
         return super(OrderCarryChangeList, self).get_queryset(request)
