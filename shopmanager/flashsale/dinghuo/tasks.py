@@ -1234,9 +1234,10 @@ def create_dinghuo():
 
 
 @task()
-def task_inbounddetail_update_productsku_inbound_quantity(sku):
+def task_inbounddetail_update_productsku_inbound_quantity(sku_id):
     """
     Whenever we have products inbound, we update the inbound quantity.
+    1) we should build joint-index for (sku,status)?
     --Zifei 2016-04-15
     """
     from flashsale.dinghuo.models import InBoundDetail
@@ -1244,6 +1245,14 @@ def task_inbounddetail_update_productsku_inbound_quantity(sku):
     sum_res = InBoundDetail.objects.filter(sku=sku.id, status=InBoundDetail.NORMAL).aggregate(total=Sum('num'))
     total = sum_res["total"]
     
-    if sku.inbound_quantity != total:
-        sku.inbound_quantity = total
-        sku.save(update_fields=['inbound_quantity'])
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        stat = ProductSkuStats(sku_id=sku_id,inbound_quantity=total)
+        stat.save()
+    else:
+        stat = stats[0]
+        if stat.inbound_quantity != total:
+            stat.inbound_quantity = total
+            stat.save(update_fields=['inbound_quantity']
+
+     

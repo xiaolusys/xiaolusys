@@ -384,7 +384,7 @@ class InBoundDetail(models.Model):
 
 def update_productsku_inbound_quantity(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_inbounddetail_update_productsku_inbound_quantity
-    task_inbounddetail_update_productsku_inbound_quantity.delay(instance.sku)
+    task_inbounddetail_update_productsku_inbound_quantity.delay(instance.sku.id)
 
 post_save.connect(update_productsku_inbound_quantity, sender=InBoundDetail, dispatch_uid='post_save_update_productsku_inbound_quantity')
 

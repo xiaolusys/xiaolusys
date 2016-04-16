@@ -777,40 +777,60 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 
 
 from shopback.trades.models import PackageSkuItem, PackageOrder
-    
-            
-@task()
-def task_packageskuitem_update_productsku_sold_num(sku_id):
+from shopback.trades.modes_stats import ProductSkuStats    
+
+
+        try:
+            create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - MamaFortune | mama_id: %s, cash: %s" % (mama_id, cash))
+            raise task_xiaolumama_update_mamafortune.retry(exc=exc)
+
+
+@task(max_retry=2, default_retry_delay=6)
+def task_packageskuitem_update_productskustats_sold_num(sku_id, product_id):
     """
-    Recalculate and update sold_num. But start from when? -- We have to determine a start time.
+    Recalculate and update sold_num. 
+    1) But start from when? -- We have to determine a start time.
+    2) We should built joint-index for (sku_id, assign_status)?
     -- Zifei 2016-04-15
     """
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id).exclude(assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
     total = sum_res["total"]
-    product_sku = ProductSku.objects.get(id=sku_id)
-    if product_sku.sold_num != total:
-        product_sku.sold_num = total
-        product_sku.save(update_fields=["sold_num"])
+
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        try:
+            stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,sold_num=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - productskustat/sold_num | sku_id: %s, sold_num: %s" % (sku_id, total))
+            raise task_packageskuitem_update_productskustats_sold_num.retry(exc=exc)
+    else:
+        stat = stats[0]
+        if stat.sold_num != total:
+            stat.sold_num = total
+            stat.save(update_fields=["sold_num"])
 
 
 @task()
-def task_packageskuitem_update_productsku_post_num(sku_id):
+def task_packageskuitem_update_productskustats_post_num(sku_id):
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,assign_status=PackageSkuItem.FINISHED).aggregate(total=Sum('num'))
     total = sum_res["total"]
-    product_sku = ProductSku.objects.get(id=sku_id)
-    if product_sku.post_num != total:
-        product_sku.post_num = total
-        product_sku.save(update_fields=["post_num"])
+    stats = ProductSkuStats.objects.get(id=sku_id)
+    if stats.post_num != total:
+        stats.post_num = total
+        stats.save(update_fields=["post_num"])
     
     
 
 @task()
-def task_packageskuitem_update_productsku_assign_num(sku_id):
+def task_packageskuitem_update_productskustats_assign_num(sku_id):
     assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).aggregate(
         Sum('num'))
-    product_sku = ProductSku.objects.get(id=sku_id)
-    product_sku.assign_num = assign_num_res['num__sum']
-    product_sku.save()
+    stats = ProductSkuStats.objects.get(id=sku_id)
+    stats.assign_num = assign_num_res['num__sum']
+    stats.save()
 
 
 
