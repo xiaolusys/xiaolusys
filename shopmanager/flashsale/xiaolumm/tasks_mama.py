@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 from celery.task import task
+from django.db import IntegrityError
 from flashsale.xiaolumm import util_description
 
 import logging
@@ -29,8 +30,9 @@ def get_cur_info():
 def task_update_second_level_ordercarry(referal_relationship, order_carry):
     print "%s, mama_id: %s" % (get_cur_info(), order_carry.mama_id)
 
+    carry_type = 3  # second level
     parent_mama_id = referal_relationship.referal_from_mama_id
-    uni_key = util_unikey.gen_ordercarry_unikey(parent_mama_id, order_carry.order_id)
+    uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_carry.order_id)
     records = OrderCarry.objects.filter(uni_key=uni_key)
     if records.count() > 0:
         record = records[0]
@@ -43,7 +45,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
     order_id = order_carry.order_id
     order_value = order_carry.order_value
     carry_num = order_carry.carry_num * 0.1  # 10 percent carry
-    carry_type = 3  # second level
+
     sku_name = order_carry.sku_name
     sku_img = order_carry.sku_img
 
@@ -88,8 +90,13 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
     elif order.is_canceled():
         status = 3
 
+    carry_type = 1  # direct order
+    if via_app:
+        carry_type = 2  # app order
+
     order_id = order.oid
-    uni_key = util_unikey.gen_ordercarry_unikey(mama_id, order_id)
+    # each order can only generate carry once for one type.
+    uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_id)
 
     order_carrys = OrderCarry.objects.filter(uni_key=uni_key)
     if order_carrys.count() > 0:
@@ -105,9 +112,6 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
         order_value = order.payment * 100
         carry_num = carry_amount
 
-        carry_type = 1  # direct order
-        if via_app:
-            carry_type = 2  # app order
 
         sku_name = order.title
         sku_img = order.pic_path
@@ -127,8 +131,8 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
                                  agency_level=agency_level, carry_plan_name=carry_plan_name,
                                  date_field=date_field, uni_key=uni_key, status=status)
         order_carry.save()
-    except Exception, e:
-        logger.error(e.message, exc_info=True)
+    except IntegrityError as exc:
+        logger.warn("IntegrityError - task_update_ordercarry | mama_id: %s, order_id: %s" % (mama_id, order_id))
 
 
 award_carry_array = [[0, 0], [1, 3000], [4, 4000], [8, 5000], [21, 7000], [41, 9000], [101, 11000]]

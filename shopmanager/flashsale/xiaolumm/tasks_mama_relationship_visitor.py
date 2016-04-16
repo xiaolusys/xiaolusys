@@ -119,6 +119,9 @@ def task_login_update_fans(user):
     All fans logic/relationship starts from here. Any other fans logic should be canceled.
     
     If AppDownloadRecord has multiple record for the same openid, we use the latest one.
+    1) Only XiaoluMama can have fans;
+    2) If I am a XiaoluMama, I should not be a fan of any other XiaoluMama;
+    3) I should not be a fan of myself.
     """
 
     customers = Customer.objects.filter(user=user)
@@ -126,6 +129,11 @@ def task_login_update_fans(user):
         return
 
     customer = customers[0]
+    self_mama = customer.getXiaolumm()
+    if self_mama:
+        # XiaoluMama can't be a fan of any others.
+        return
+    
     unionid = customer.unionid
     mobile = customer.mobile
     if not (unionid or mobile):

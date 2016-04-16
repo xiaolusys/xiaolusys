@@ -1,7 +1,8 @@
 # coding=utf-8
 
-def gen_ordercarry_unikey(mama_id, order_id):
-    return '-'.join(['order', str(mama_id), order_id])
+def gen_ordercarry_unikey(carry_type, order_id):
+    # For each type ordercarry, a single order only generate once such carry.
+    return '-'.join(['order', str(carry_type), order_id])
 
 
 def gen_awardcarry_unikey(from_mama_id, to_mama_id):
