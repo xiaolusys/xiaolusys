@@ -344,7 +344,7 @@ from core.weixin.options import valid_openid
 
 
 @task
-def task_snsauth_update_weixin_userinfo(userinfo):
+def task_snsauth_update_weixin_userinfo(userinfo, appid):
     """
     Every time we have snsauth userfinfo, we update WeixinUserInfo.
     -- Zifei 2016-04-12
@@ -366,8 +366,8 @@ def task_snsauth_update_weixin_userinfo(userinfo):
     try:
         WeixinUnionID.objects.get(unionid=unionid)
     except WeixinUnionID.DoesNotExist:
-        if valid_openid(openid)and valid_openid(unionid):
-            WeixinUnionID.objects.create(openid=openid, app_key=settings.WXPAY_APPID, unionid=unionid)
+        if valid_openid(openid) and valid_openid(unionid):
+            WeixinUnionID.objects.create(openid=openid, app_key=appid, unionid=unionid)
     except Exception, exc:
         logger.info(exc.message)
 
