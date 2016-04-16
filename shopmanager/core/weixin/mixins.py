@@ -9,8 +9,8 @@ from . import options
 
 class WeixinAuthMixin(object):
     
-    _wxpubid = settings.WEIXIN_APPID
-    _wxpubsecret = settings.WEIXIN_SECRET
+    _wxpubid = settings.WXPAY_APPID
+    _wxpubsecret = settings.WXPAY_SECRET
     
     def is_from_weixin(self, request):
         return options.is_from_weixin(request)
