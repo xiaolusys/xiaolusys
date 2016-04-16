@@ -1,3 +1,6 @@
+######## 2016-04-16 ########
+ALTER TABLE `shop_trades_mergeorder`ADD INDEX `sale_order_id` (`sale_order_id`) USING HASH ;
+ALTER TABLE `shop_trades_mergeorder`ADD COLUMN `sale_order_id` bigint NULL DEFAULT NULL AFTER `cid`;
 update shop_items_productsku SET assign_num=0 where assign_num is NULL;
 ALTER TABLE `shop_items_productsku`MODIFY COLUMN `assign_num` int(11) NOT NULL DEFAULT 0 AFTER `lock_num`;
 ######## 2016-04-13 ########

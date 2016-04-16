@@ -2218,11 +2218,16 @@ class PackageScanWeightView(APIView):
             task_stats_paytopack.delay(pay_date, sku_num, total_days)
         if mt.type == pcfg.SALE_TYPE:
             mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+
             from shopback.trades.models import PackageSkuItem
             for merge_order in mo:
-                item = PackageSkuItem.FINISHED
-                item.assign_status = PackageSkuItem.FINISHED
-                item.save()
+                if merge_order.sale_order_id:
+                    try:
+                        item = PackageSkuItem.objects.get(id=merge_order.sale_order_id)
+                        item.assign_status = PackageSkuItem.FINISHED
+                        item.save()
+                    except:
+                        log_action(mt.user.user.id, mt, CHANGE, u'mergeorder出库同步packageorder')
         return Response({'isSuccess': True})
 
 

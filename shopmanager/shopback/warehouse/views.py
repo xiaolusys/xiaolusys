@@ -58,10 +58,6 @@ class PackagOrderRevertView(APIView):
 class PackagOrderExpressView(APIView):
     """ 订单打单 """
 
-    def printYundaPdf(self, package_order_ids):
-        PackageOrder.objects.filter(pid__in=package_order_ids.split(',')).update(is_express_print=True)
-        return Response({'isSuccess': True})
-
     def post(self, request, *args, **kwargs):
         # def setOutSid(package_order_id, out_sid, is_qrcode=False, qrcode_msg=''):
         content = request.REQUEST
@@ -205,7 +201,6 @@ class PackageScanWeightView(APIView):
 
         try:
             package_order = PackageOrder.objects.get(
-                # id=package_order_id
                 out_sid=package_id
             )
         except PackageOrder.DoesNotExist:
@@ -231,19 +226,14 @@ class PackageScanWeightView(APIView):
         content = request.REQUEST
         package_no = content.get('package_no', '').strip()
         out_sid = self.parsePackageNo(package_no)
-        # package_order_id = content.get('package_order_id', '').strip()
         package_weight = content.get('package_weight', '').strip()
-
         if not out_sid:
             return Response(u'包裹运单号不能为空')
-
         try:
             if float(package_weight) > 100000:
                 return Response(u'重量超过100千克')
         except:
             return Response(u'重量异常:%s' % package_weight)
-
-        # package_id = self.parsePackageNo(package_no)
         try:
             package = PackageOrder.objects.get(out_sid=out_sid)
         except PackageOrder.DoesNotExist:
@@ -266,14 +256,33 @@ class PackageScanWeightView(APIView):
         return Response({'isSuccess': True})
 
 
-        # todo＠hy　回填单号
-
-
 def package_order_print_pickle(request):
     content = request.REQUEST
     package_order_ids = content.get('package_order_ids')
     package_order_ids = package_order_ids.split(',')
-    PackageOrder.objects.filter(pid__in=package_order_ids, status=PackageOrder.WAIT_PREPARE_SEND_STATUS,
-                                is_picking_print=True, is_express_print=True
-                                ).update(status=PackageOrder.WAIT_CHECK_BARCODE_STATUS)
-    return
+    package_orders = PackageOrder.objects.filter(pid__in=package_order_ids,
+                                                 status=PackageOrder.WAIT_PREPARE_SEND_STATUS, is_picking_print=True,
+                                                 is_express_print=True)
+    num = package_orders.count()
+    if num != len(package_order_ids):
+        return Response({'isSuccess': False, 'response_error': u'部分包裹不存在或者未准备好'})
+    package_orders.update(status=PackageOrder.WAIT_CHECK_BARCODE_STATUS)
+    return Response({'isSuccess': True})
+
+
+def package_order_print_express(request):
+    content = request.REQUEST
+    package_order_ids = content.get('package_order_ids')
+    package_order_ids = package_order_ids.split(',')
+    package_orders = PackageOrder.objects.filter(pid__in=package_order_ids)
+    package_orders.update(is_express_print=True)
+    return Response({'isSuccess': True})
+
+
+def package_order_print_picking(request):
+    content = request.REQUEST
+    package_order_ids = content.get('package_order_ids')
+    package_order_ids = package_order_ids.split(',')
+    package_orders = PackageOrder.objects.filter(pid__in=package_order_ids)
+    package_orders.update(is_picking_print=True)
+    return Response({'isSuccess': True})

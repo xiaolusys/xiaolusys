@@ -810,3 +810,8 @@ def task_packagize_sku_item(instance):
 def task_update_package_stat_num(instance):
     from shopback.trades.models import PackageStat, PackageOrder
     PackageStat.objects.filter(id=instance.id).update(num=PackageOrder.objects.filter(id__contains=PackageStat.get_sended_package_num(instance.id)))
+
+
+@task()
+def task_set_sale_order(instance):
+    instance.set_sale_order_id()

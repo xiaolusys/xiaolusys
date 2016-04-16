@@ -128,8 +128,7 @@ GIFT_TYPE = (
 )
 
 
-class \
-        MergeTrade(models.Model):
+class MergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
     FENXIAO_TYPE = pcfg.FENXIAO_TYPE
     SALE_TYPE = pcfg.SALE_TYPE
@@ -295,7 +294,6 @@ class \
     reserveo = models.CharField(max_length=64, blank=True, verbose_name=u'自定义1')
     reservet = models.CharField(max_length=64, blank=True, verbose_name=u'自定义2')
     reserveh = models.CharField(max_length=64, blank=True, verbose_name=u'自定义3')
-
     objects = MergeTradeManager()
 
     class Meta:
@@ -722,7 +720,7 @@ class MergeOrder(models.Model):
     merge_trade = BigIntegerForeignKey(MergeTrade,
                                        related_name='merge_orders',
                                        verbose_name=u'所属订单')
-
+    sale_order_id = models.BigIntegerField(null=True, default=None, db_index=True, verbose_name=u'对应的SaleOrder')
     cid = models.BigIntegerField(null=True, verbose_name=u'商品分类')
     num_iid = models.CharField(max_length=64, blank=True, verbose_name=u'线上商品编号')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
@@ -781,14 +779,29 @@ class MergeOrder(models.Model):
 
     @property
     def sale_order(self):
-        if not hasattr(self, '_sale_trade_'):
-            try:
+        if not hasattr(self, '_sale_order_'):
+            if self.sale_order_id is None:
+                self.sale_order_id = self.set_sale_order_id()
+            if self.sale_order_id:
                 from flashsale.pay.models import SaleOrder
-                sale_trade = SaleTrade.objects.get(tid=self.merge_trade.tid)
-                self._sale_trade_ = SaleOrder.objects.get(sale_trade_id=sale_trade.id, sku_id=self.sku_id, num=self.num)
-            except:
-                self._sale_trade_ = None
-        return self._sale_trade_
+                self._sale_order_ = SaleOrder.objects.get(id=self.sale_order_id)
+            elif self.sale_order_id == '':
+                self._sale_order_ = None
+            else:
+                self._sale_order_ = None
+        return self._sale_order_
+
+    def set_sale_order_id(self):
+        try:
+            from flashsale.pay.models import SaleOrder
+            sale_order_id = SaleOrder.objects.get(oid=self.oid).id
+            # sale_trade = SaleTrade.objects.get(tid=self.merge_trade.tid)
+            # sale_order_id = SaleOrder.objects.get(sale_trade_id=sale_trade.id, sku_id=self.sku_id, num=self.num).id
+        except:
+            sale_order_id = ''
+        SaleOrder.objects.filter(id=self).update(sale_order_id=sale_order_id)
+        return sale_order_id
+
 
     def isEffect(self):
         return self.sys_status == pcfg.IN_EFFECT
@@ -985,6 +998,15 @@ def refund_update_order_info(sender, obj, *args, **kwargs):
 
 
 signals.order_refund_signal.connect(refund_update_order_info, sender=MergeOrder)
+
+
+def set_sale_order(sender, instance, *args, **kwargs):
+    if instance.sale_order_id is None:
+        from shopback.trades.tasks import task_set_sale_order
+        task_set_sale_order.delay(instance)
+
+
+post_save.connect(set_sale_order, sender=MergeOrder)
 
 
 class MergeBuyerTrade(models.Model):
@@ -1209,7 +1231,7 @@ class PackageOrder(models.Model):
     pid = BigIntegerAutoField(verbose_name=u'包裹主键', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹ID')
     tid = models.CharField(max_length=32, verbose_name=u'原单ID')
-    ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'所属仓库')
+    ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     type = models.CharField(max_length=32, choices=TRADE_TYPE, db_index=True, default=pcfg.SALE_TYPE,
                             blank=True, verbose_name=u'订单类型')
     TAOBAO_TRADE_STATUS = (
