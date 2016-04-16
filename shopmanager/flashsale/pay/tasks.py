@@ -583,8 +583,10 @@ def task_close_refund(days=None):
     if days is None:
         days = 30
     time_point = datetime.datetime.now() - datetime.timedelta(days=days)
-    aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
+    aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.NO_REFUND,
+                                                           SaleRefund.REFUND_WAIT_SELLER_AGREE,
+                                                           SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                                            SaleRefund.REFUND_REFUSE_BUYER],
                                                created__lte=time_point)  # 这里不考虑退货状态
-                                               # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
+    # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
     res = map(close_refund, aggree_refunds)
