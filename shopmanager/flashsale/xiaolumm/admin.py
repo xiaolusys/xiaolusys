@@ -346,6 +346,9 @@ class XlmmAdvertisAdmin(admin.ModelAdmin):
 admin.site.register(XlmmAdvertis, XlmmAdvertisAdmin)
 
 
+from django.contrib import messages
+
+
 class NinePicAdverAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'auther', 'turns_num', 'start_time', 'is_pushed')
     search_fields = ['title', 'id']
@@ -357,11 +360,14 @@ class NinePicAdverAdmin(admin.ModelAdmin):
 
         if queryset.count() == 1:
             ninepic = queryset[0]
-            task_push_ninpic_remind.s(ninepic).delay()
-            queryset.update(is_pushed=True)
-            return self.message_user(request, u'推送成功')
+            if not ninepic.is_pushed:
+                task_push_ninpic_remind.delay(ninepic)
+                queryset.update(is_pushed=True)
+                return self.message_user(request, u'推送成功')
+            else:
+                return self.message_user(request, u'已经是推送过了的状态', level=messages.ERROR)
         else:
-            return self.message_user(request, u'勾选一个推送项')
+            return self.message_user(request, u'勾选一个推送项', level=messages.WARNING)
 
     push_to_mama.short_description = u'推送给代理'
     actions = ['push_to_mama', ]
