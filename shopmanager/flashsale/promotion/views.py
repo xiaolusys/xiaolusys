@@ -262,8 +262,8 @@ class APPDownloadView(WeixinAuthMixin, View):
     def get(self, request):
         content = request.GET
         from_customer = content.get('from_customer') or 0  # 分享人的用户id
-        mobile = content.get('mobile', None)
-        ufrom = content.get("ufrom", None)
+        mobile = content.get('mobile') or ''
+        ufrom = content.get("ufrom") or None
 
         if from_customer:  # 创建下载记录
             if self.is_from_weixin(request):  # 如果是在微信里面
@@ -590,17 +590,16 @@ class ExchangeRedToCoupon(APIView):
             coupon_5_count = 1 if leave_mony / 5 < 1 else 2  # 剩下的红包金额除以5　大于１则发送2张５元优惠券　否则发放１张优惠券
         else:
             coupon_5_count = 0
-        status_1 = ''
-        status_2 = ''
+        code = ''
         for i in range(coupon_10_count):
             user_coupon = UserCoupon()
             kwargs = {"buyer_id": customer, "template_id": 21}
-            status_1 = user_coupon.release_by_template(**kwargs)
+            code, msg = user_coupon.release_by_template(**kwargs)
         for j in range(coupon_5_count):
             user_coupon = UserCoupon()
             kwargs = {"buyer_id": customer, "template_id": 20}
-            status_2 = user_coupon.release_by_template(**kwargs)
-        if status_1 == '领取成功' or status_2 == '领取成功':
+            code, msg = user_coupon.release_by_template(**kwargs)
+        if code == 0 or code == 0:
             reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
         coupon_value = coupon_10_count * 10 + coupon_5_count * 5
         return code, coupon_10_count + coupon_5_count, coupon_value

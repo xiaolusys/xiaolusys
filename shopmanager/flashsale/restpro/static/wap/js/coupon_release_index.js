@@ -21,26 +21,27 @@ function Action_release(data, d) {
         }
     });
     function callback(res) {
-
-        if (res.res == "success") {
-            drawToast("领取成功 赶紧去挑选商品吧 ！");
-            //等待3秒跳转到优惠券页面
-        }
-        if (res.res == "already") {
-            drawToast("您已经领取优惠券啦 赶紧去挑选商品吧 ！");
-        }
-        if (res.res == "no_type") {
-            drawToast("还没有开放该优惠券敬请期待！");
-        }
-        if (res.res == "not_release") {
-            drawToast("还没有开放该优惠券哦 敬请期待！");
-        }
-        if (res.res == "cu_not_fund") {
-            drawToast("用户未找到！尝试重新登陆");
-        }
-        if (res.res == "limit") {
-            drawToast("您已经领取过了哦~");
-        }
+        console.log('res --->: ',res);
+        drawToast(res.res);
+    //    if (res.res == "success") {
+    //        drawToast("领取成功 赶紧去挑选商品吧 ！");
+    //        //等待3秒跳转到优惠券页面
+    //    }
+    //    if (res.res == "already") {
+    //        drawToast("您已经领取优惠券啦 赶紧去挑选商品吧 ！");
+    //    }
+    //    if (res.res == "no_type") {
+    //        drawToast("还没有开放该优惠券敬请期待！");
+    //    }
+    //    if (res.res == "not_release") {
+    //        drawToast("还没有开放该优惠券哦 敬请期待！");
+    //    }
+    //    if (res.res == "cu_not_fund") {
+    //        drawToast("用户未找到！尝试重新登陆");
+    //    }
+    //    if (res.res == "limit") {
+    //        drawToast("您已经领取过了哦~");
+    //    }
     }
 }
 

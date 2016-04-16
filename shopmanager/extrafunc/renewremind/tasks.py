@@ -59,22 +59,13 @@ def send_message(mobile, message, taskName):
 def trace_renew_remind_send_msm():
     """ 追踪续费服务提醒记录处理 """
     reminds = RenewRemind.objects.filter(is_trace=True)  # 在追踪状态的续费提醒记录
-    sms_txt = []
-    phone_num = set()
     for remind in reminds:
-        # 提醒时间如果在未来时间的一个月（暂定）以内则发送短信提醒管理员　否则跳过
         now = datetime.datetime.now()
         now_ahead = now + datetime.timedelta(days=constants.REMIND_SEND_MESSAGE_DAYS)
+        # 提醒时间如果在未来时间的一个月（暂定）以内则发送短信提醒管理员　否则跳过
         if remind.expire_time <= now_ahead:
             # 项目名称
             msg = '系统后台服务' + remind.project_name + '将到期,时间:' + remind.expire_time.strftime('%Y-%m-%d') + '请及时续费!'
-            sms_txt.append(msg)
-            phone_num.add(remind.principal_phone)  # 添加要发送短信的手机号码
-            phone_num.add(remind.principal2_phone)
-            phone_num.add(remind.principal3_phone)
-        else:
-            continue
-    message = ''.join(sms_txt)
-    for mobile in phone_num:
-        send_message(mobile, message, taskName='续费服务提醒')
-
+            send_message(remind.principal_phone, msg, taskName='续费服务提醒')
+            send_message(remind.principal2_phone, msg, taskName='续费服务提醒')
+            send_message(remind.principal3_phone, msg, taskName='续费服务提醒')
