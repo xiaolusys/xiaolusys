@@ -519,7 +519,7 @@ class GetAwardView(APIView):
         buyer_id = str(customer_id)
 
         coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
-        code = 0
+        code,msg = 0,""
         if coups.count() <= 0:
             user_coupon = UserCoupon()
             kwargs = {"buyer_id": buyer_id, "template_id": template_id}
