@@ -22,15 +22,15 @@ class ProductSkuStats(models.Model):
     post_num = models.IntegerField(default=0, verbose_name='已发货数')  #
     sold_num = models.IntegerField(default=0, verbose_name='已被购买数')  #
 
-    shopping_cart_num = models.IntegerField(default=0, verbose_name='加入购物车数')  #
-    wait_to_pay_num = models.IntegerField(default=0, verbose_name='等待付款数')  #
+    shoppingcart_num = models.IntegerField(default=0, verbose_name='加入购物车数')  #
+    waitingpay_num = models.IntegerField(default=0, verbose_name='等待付款数')  #
     
     created = models.DateTimeField(null=True, blank=True, db_index=True,auto_now_add=True, verbose_name='创建时间')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name='修改时间')
     status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name='状态') 
 
     def __unicode__(self):
-        return '<%s,%s:%s>' % (self.id, self.properties_alias or self.properties_name)
+        return '<%s,%s:%s>' % (self.id, self.product_id ,self.sku_id)
 
     @property
     def realtime_quantity(self):
@@ -50,7 +50,7 @@ class ProductSkuStats(models.Model):
 
     @property
     def realtime_lock_num(self):
-        return self.shopping_cart_num + self.wait_to_pay_num
+        return self.shoppingcart_num + self.waitingpay_num
 
     @property
     def properties_name(self):
@@ -74,10 +74,8 @@ class ProductSkuSaleStats(models.Model):
     sku_id = models.IntegerField(null=True, db_index=True, verbose_name='商品SKU记录ID')
     product_id = models.IntegerField(null=True, db_index=True, verbose_name='商品记录ID')
 
-    properties_name = models.TextField(max_length=200, blank=True, verbose_name='线上规格名称')
-    properties_alias = models.TextField(max_length=200, blank=True, verbose_name='系统规格名称')
-
-    num = models.IntegerField(default=0, verbose_name='已被购买数')
+    init_wait_assign_num = models.IntegerField(default=0, verbose_name='上架前待分配数')
+    num = models.IntegerField(default=0, verbose_name='上架期间购买数')
     sale_start_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='开始时间')
     sale_end_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='结束时间')
     
@@ -87,6 +85,12 @@ class ProductSkuSaleStats(models.Model):
 
     def __unicode__(self):
         return '<%s,%s:%s>' % (self.id, self.properties_alias or self.properties_name)
+
+    @property
+    def properties_name(self):
+        from shopback.items.models import ProductSku
+        product_sku = ProductSku.objects.get(id=self.sku_id)
+        return ':'.join([product_sku.properties_name, product_sku.properties_alias])
 
 def gen_productsksalestats_unikey(sku_id):
     count = ProductSkuSaleStats.objects.filter(sku_id=sku_id,status=1).count()

@@ -354,7 +354,7 @@ def pushBuyerToCustomerTask(day):
 
 
 import os
-from django.db import connection
+from django.db import connection, IntegrityError
 from common.utils import CSVUnicodeWriter
 from shopback.users.models import User
 from shopback.logistics.models import LogisticsCompany
@@ -779,9 +779,8 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 from shopback.trades.models import PackageSkuItem, PackageOrder
 from shopback.items.models_stats import ProductSkuStats
 
-
 @task(max_retries=3, default_retry_delay=6)
-def task_packageskuitem_update_productskustats_sold_num(sku_id, product_id):
+def task_packageskuitem_update_productskustats_sold_num(sku_id):
     """
     Recalculate and update sold_num. 
     1) But start from when? -- We have to determine a start time.
@@ -789,10 +788,11 @@ def task_packageskuitem_update_productskustats_sold_num(sku_id, product_id):
     -- Zifei 2016-04-15
     """
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id).exclude(assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
-    total = sum_res["total"]
+    total = sum_res["total"] or 0
 
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
+        product_id = ProductSku.objects.get(id=sku_id).product.id
         try:
             stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,sold_num=total)
             stat.save()
@@ -806,28 +806,63 @@ def task_packageskuitem_update_productskustats_sold_num(sku_id, product_id):
             stat.save(update_fields=["sold_num"])
 
 
-@task()
+@task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats_post_num(sku_id):
+    """
+    Recalculate and update post_num.
+    1) But start from when? -- We have to determine a start time.
+    2) We should built joint-index for (sku_id, assign_status)?
+    -- Zifei 2016-04-15
+    """
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,assign_status=PackageSkuItem.FINISHED).aggregate(total=Sum('num'))
-    total = sum_res["total"]
-    stats = ProductSkuStats.objects.get(id=sku_id)
-    if stats.post_num != total:
-        stats.post_num = total
-        stats.save(update_fields=["post_num"])
+    total = sum_res["total"] or 0
+
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        product_id = ProductSku.objects.get(id=sku_id).product.id
+        try:
+            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, post_num=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - productskustat/post_num | sku_id: %s, post_num: %s" % (sku_id, total))
+            raise task_packageskuitem_update_productskustats_post_num.retry(exc=exc)
+    else:
+        stat = stats[0]
+        if stat.post_num != total:
+            stat.post_num = total
+            stat.save(update_fields=["post_num"])
     
     
 
-@task()
+@task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats_assign_num(sku_id):
+    """
+    Recalculate and update post_num.
+    1) But start from when? -- We have to determine a start time.
+    2) We should built joint-index for (sku_id, assign_status)?
+    -- Zifei 2016-04-15
+    """
     assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).aggregate(
         Sum('num'))
-    stats = ProductSkuStats.objects.get(id=sku_id)
-    stats.assign_num = assign_num_res['num__sum']
-    stats.save()
+    total = assign_num_res['num__sum'] or 0
+
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        product_id = ProductSku.objects.get(id=sku_id).product.id
+        try:
+            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, assign_num=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - productskustat/assign_num | sku_id: %s, assign_num: %s" % (sku_id, total))
+            raise task_packageskuitem_update_productskustats_assign_num.retry(exc=exc)
+    else:
+        stat = stats[0]
+        if stat.assign_num != total:
+            stat.assign_num = total
+            stat.save(update_fields=["assign_num"])
 
 
-
-@task()
+@task(max_retries=3, default_retry_delay=6)
 def task_packagize_sku_item(instance):
     if instance.assign_status == PackageSkuItem.ASSIGNED and not instance.package_order_id:
         sale_trade = instance.sale_trade

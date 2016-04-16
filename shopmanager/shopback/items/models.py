@@ -21,16 +21,16 @@ from django.forms.models import model_to_dict
 from auth import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
-from flashsale.dinghuo.models_user import MyUser
 from flashsale.restpro.local_cache import image_watermark_cache
 from core.fields import BigIntegerAutoField
+from shopback import paramconfig as pcfg
+
 from shopback.categorys.models import Category, ProductCategory
 from shopback.archives.models import Deposite, DepositeDistrict
-from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser, User
 from supplychain.supplier.models import SaleProduct
-from collections import OrderedDict
-from django.db import transaction
+from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
+
 from . import constants, managers
 
 logger = logging.getLogger('django.request')
@@ -789,7 +789,7 @@ class ProductSku(models.Model):
             sku_id=self.id,
             assign_status=PackageSkuItem.NOT_ASSIGNED,
             refund_status=SaleRefund.NO_REFUND)
-        res = OrderedDict([])
+        res = collections.OrderedDict([])
         for sku_item in sku_items:
             sale_trade = sku_item.sale_trade
             if not sale_trade.user_address_id or not sale_trade.buyer_id:

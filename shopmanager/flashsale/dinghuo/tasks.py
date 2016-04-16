@@ -20,7 +20,8 @@ from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
 
 from . import function_of_task, functions
-
+import logging
+logger = logging.getLogger(__name__)
 
 @task(max_retries=3, default_retry_delay=5)
 def task_stats_paytopack(pay_date, sku_num, total_days):
@@ -1232,8 +1233,9 @@ def create_dinghuo():
     for supplier in get_suppliers():
         create_orderlist(supplier)
 
+from django.db import IntegrityError
 
-@task()
+@task(max_retries=3, default_retry_delay=6)
 def task_inbounddetail_update_productsku_inbound_quantity(sku_id):
     """
     Whenever we have products inbound, we update the inbound quantity.
@@ -1241,14 +1243,21 @@ def task_inbounddetail_update_productsku_inbound_quantity(sku_id):
     --Zifei 2016-04-15
     """
     from flashsale.dinghuo.models import InBoundDetail
+    from shopback.items.models import ProductSkuStats
     # InBoundDetail has to have index built on sku and status in order to speedup the following query.
-    sum_res = InBoundDetail.objects.filter(sku=sku.id, status=InBoundDetail.NORMAL).aggregate(total=Sum('num'))
-    total = sum_res["total"]
+    sum_res = InBoundDetail.objects.filter(sku=sku_id, status=InBoundDetail.NORMAL).aggregate(total=Sum('num'))
+    total = sum_res["total"] or 0
     
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
-        stat = ProductSkuStats(sku_id=sku_id,inbound_quantity=total)
-        stat.save()
+        product_id = ProductSku.objects.get(id=sku_id).product.id
+        try:
+            stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,inbound_quantity=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn(
+                "IntegrityError - productskustat/inbound_quantity | sku_id: %s, inbound_quantity: %s" % (sku_id, total))
+            raise task_inbounddetail_update_productsku_inbound_quantity.retry(exc=exc)
     else:
         stat = stats[0]
         if stat.inbound_quantity != total:
