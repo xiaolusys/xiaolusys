@@ -1367,32 +1367,11 @@ class PackageOrder(models.Model):
         verbose_name = u'包裹单'
         verbose_name_plural = u'包裹列表'
 
-    def copy_order_info(self, sale_trade):
-        """从package_order或者sale_trade复制信息"""
-        attrs = ['tid', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
-                 'receiver_zip', 'receiver_mobile', 'receiver_phone', 'buyer_nick']
-        for attr in attrs:
-            v = getattr(sale_trade, attr)
-            setattr(self, attr, v)
-
     def set_out_sid(self, out_sid, logistics_company_id):
         if not self.out_sid:
             self.out_sid = out_sid
             self.logistics_company_id = logistics_company_id
             self.save()
-
-    def copy_order_info_from_merge_trade(self, merge_trade):
-        attrs = ['weight', 'can_review', 'priority', 'operator', 'scanner', 'weighter', 'weight_time']
-        for attr in attrs:
-            val = getattr(merge_trade, attr)
-            setattr(self, attr, val)
-
-    def finish(self, mt):
-        self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
-        self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
-        self.copy_order_info_from_merge_trade(mt)
-        self.save()
-        PackageStat.objects.get(id=self.pstat_id).save()
 
     def finish_scan_weight(self):
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
@@ -1455,33 +1434,6 @@ class PackageOrder(models.Model):
             new_create = False
         return package_order, new_create
 
-    def sync_merge_trade(self, merge_trade):
-        """出库时同步实际数据于理论数据，如果需要就产生新包裹"""
-        # TODO@hy 在本次代码上线而自动拆单未完成时生效
-        from flashsale.pay.models import SaleOrder
-        for sale_order in SaleOrder.objects.filter(package_order_id=self.id):
-            if sale_order.status == SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
-                sale_order.assign_status = SaleOrder.FINISHED
-                sale_order.save()
-        pstat = PackageStat.objects.get(id=self.pstat_id)
-        pstat.num += 1
-        pstat.save()
-        now_num = pstat.num + 1
-        new_id = str(pstat.id) + '-' + str(now_num)
-        if SaleOrder.objects.filter(package_order_id=self.id).exclude(assign_status=SaleOrder.FINISHED).exists():
-            package_order = PackageOrder.objects.create(pid=new_id,
-                                                        ware_by=self.ware_by,
-                                                        buyer_id=self.buyer_id,
-                                                        user_address_id=self.user_address_id)
-            package_order.copy_order_info(self)
-            package_order.save()
-            for sale_order in SaleOrder.objects.filter(package_order_id=self.id).exclude(
-                    assign_status=SaleOrder.FINISHED):
-                sale_order.package_order_id = new_id
-                sale_order.save()
-        self.merge_trade_id = merge_trade.id
-        self.save()
-
     def get_merge_trade(self, sync=True):
         from shopback.trades.models import MergeTrade
         if self.merge_trade_id:
@@ -1535,29 +1487,6 @@ def is_merge_trade_package_order_diff(package):
     sale_order_ids = set([p.sale_order_id for p in PackageSkuItem.objects.filter(package_order_id=package.id)])
     sale_order_ids2 = set([mo.sale_order.id for mo in merge_trade.normal_orders])
     return sale_order_ids == sale_order_ids2
-
-
-def sync_merge_trade_by_package_after_order_express(package):
-    pass
-    # '''
-    #     merge_trade出库
-    #     利用package_order，创建新的merge_trade
-    # :param package:
-    # :return:
-    # '''
-    #
-    # if not is_merge_trade_package_order_diff(package):
-    #     merge_trade = package.get_merge_trade()
-    # else:
-    #     merge_trade =
-    #
-    # merge_trade = MergeTrade()
-    # merge_trade.sync_attr_from_package(package)
-    # merge_trade.save()
-    # package.merge_trade_id = merge_trade
-    # for sku_item in package.package_sku_items:
-    #     merge_order = create_merge_order(merge_trade, sku_item)
-    #     merge_order.save()
 
 
 class PackageStat(models.Model):
@@ -1647,7 +1576,7 @@ class PackageSkuItem(BaseModel):
     discount_fee = models.FloatField(default=0.0, verbose_name=u'折扣')
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
 
-    pay_time   = models.DateTimeField(verbose_name=u'付款时间')
+    pay_time = models.DateTimeField(verbose_name=u'付款时间')
     sku_properties_name = models.CharField(max_length=256, blank=True,
                                            verbose_name=u'购买规格')
 
@@ -1698,25 +1627,25 @@ def update_productsku_post_num(sender, instance, created, **kwargs):
         from shopback.trades.tasks import task_packageskuitem_update_productskustats_post_num
         task_packageskuitem_update_productskustats_post_num.delay(instance.sku_id)
 
-post_save.connect(update_productsku_sold_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_sold_num')
+post_save.connect(update_productsku_sold_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_post_num')
 
 
 
-def update_product_sku_assign_num(sender, instance, created, **kwargs):
+def update_product_sku_stats_assign_num(sender, instance, created, **kwargs):
     # if instance.assign_status == PackageSkuItem.NOT_ASSIGNED:
     from shopback.trades.tasks import task_packageskuitem_update_productskustats_assign_num
     task_packageskuitem_update_productskustats_assign_num.delay(instance.sku_id)
 
 
-post_save.connect(update_product_sku_assign_num, sender=PackageSkuItem,
-                  dispatch_uid='post_save_update_product_sku_assign_num')
+post_save.connect(update_product_sku_stats_assign_num, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_product_sku_stats_assign_num')
 
 
 def update_productsku_salestats_num(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
-    task_packageskuitem_update_productskusalestats_num.delay(instance.sku_id)
+    task_packageskuitem_update_productskusalestats_num.delay(instance.sku_id, instance.pay_time)
 
-post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_assign_num')
+post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_salestats_num')
 
 def packagize_sku_item(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packagize_sku_item

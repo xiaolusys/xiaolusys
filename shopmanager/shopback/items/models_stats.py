@@ -1,6 +1,8 @@
 # coding: utf-8
+import logging
 from django.db import models
-
+from django.db.models.signals import pre_save, post_save
+logger = logging.getLogger('django.request')
 
 class ProductSkuStats(models.Model):
     class Meta:
@@ -58,7 +60,17 @@ class ProductSkuStats(models.Model):
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
 
-    
+
+def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
+    if instance.aggregate_quantity > instance.assign_num:
+        from shopback.items.tasks import task_assign_stock_to_package_sku_item
+        task_assign_stock_to_package_sku_item.delay(instance)
+    elif instance.aggregate_quantity < instance.assign_num:
+        logger.error('assign_num error: sku assign_num bigger than quantity:' + str(instance.id))
+
+post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats, dispatch_uid='post_save_assign_stock_to_package_sku_item')
+
+
 class ProductSkuSaleStats(models.Model):
     class Meta:
         db_table = 'shop_items_productskusalestats'

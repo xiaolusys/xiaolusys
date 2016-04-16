@@ -599,28 +599,34 @@ def task_saleorder_update_package_sku_item(sale_order):
             return
         ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
         sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
-    else:
-        sku_item = items[0]
-        if sku_item.is_finished():
-            # if it's finished, that means the package is sent out,
-            # then we dont do further updates, simply return.
-            return
+        attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
+                'payment', 'discount_fee', 'refund_status', 'pay_time', 'status']
+        for attr in attrs:
+            if hasattr(sale_order, attr):
+                val = getattr(sale_order, attr)
+                setattr(sku_item, attr, val)
+        sku_item.save()
+        return
 
-    # Now the package has not been sent out yet.
-    
+    sku_item = items[0]
+    if sku_item.is_finished():
+        # if it's finished, that means the package is sent out,
+        # then we dont do further updates, simply return.
+        return
+
+    # Now the sku_item has not been sent out yet, it can only stay in 3 states:
+    # 1) CANCELED; 2) NOT_ASSIGNED; 3) ASSIGNED
+    # And, sale_order can only have 3 states: cancel, confirmed, pending.
     if sale_order.is_canceled() or sale_order.is_confirmed():
         # If saleorder is canceled or confirmed before we send out package, we
         # then dont want to send out the package, simply cancel. Note: if the
         # order is confirmed, we assume the customer does not want the package
         # to be sent to him (most likely because it's not necessary, maybe she/he
         # bought a virtual product).
-        sku_item.assign_status = PackageSkuItem.CANCELED
+        assign_status = PackageSkuItem.CANCELED
+    elif sale_order.is_pending():
+        assign_status = PackageSkuItem.NOT_ASSIGNED
 
-    attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
-             'payment', 'discount_fee', 'refund_status', '', 'status']
-    for attr in attrs:
-        if hasattr(sale_order, attr):
-            val = getattr(sale_order, attr)
-            setattr(sku_item, attr, val)
-    
-    sku_item.save()
+    if sku_item.assign_status != assign_status:
+        sku_item.assign_status = assign_status
+        sku_item.save()

@@ -522,18 +522,6 @@ class SaleOrder(PayBaseModel):
     status = models.IntegerField(choices=ORDER_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'订单状态')
 
-    package_order_id = models.CharField(max_length=100, verbose_name=u'所属包裹订单', null=True)
-    NOT_ASSIGNED = 0
-    ASSIGNED = 1
-    FINISHED = 2
-    ASSIGN_STATUS = (
-        (NOT_ASSIGNED, u'未分配'),
-        (ASSIGNED, u'已分配'),
-        (FINISHED, u'已出货')
-    )
-
-    assign_status = models.IntegerField(default=NOT_ASSIGNED, choices=ASSIGN_STATUS, verbose_name=u'库存分派状态')
-
     def __unicode__(self):
         return '<%s>' % (self.id)
 

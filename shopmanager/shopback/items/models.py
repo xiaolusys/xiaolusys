@@ -636,7 +636,7 @@ class ProductSku(models.Model):
     sale_num = models.IntegerField(default=0, verbose_name=u'日出库数')  # 日出库
     reduce_num = models.IntegerField(default=0, verbose_name='预减数')  # 下次入库减掉这部分库存
     lock_num = models.IntegerField(default=0, verbose_name='锁定数')  # 特卖待发货，待付款数量
-    #assign_num = models.IntegerField(default=0, verbose_name='分配数')  # 未出库包裹单中已分配的sku数量
+    # assign_num = models.IntegerField(default=0, verbose_name='分配数')  # 未出库包裹单中已分配的sku数量
     sku_inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
 
     #history_quantity = models.IntegerField(default=0, verbose_name='历史库存数')  #
@@ -741,76 +741,6 @@ class ProductSku(models.Model):
     def ware_by(self):
         return self.product.ware_by
 
-    def assign_stock(self, sale_order, package_order_id):
-        """
-            分配库存，仅设定状态，不改变实际库存数
-        """
-        from flashsale.pay.models import SaleOrder
-        from shopback.trades.models import PackageOrder
-        self.assign_num += sale_order.num
-        if self.quantity >= self.assign_num:
-            sale_order.assign_status = SaleOrder.ASSIGNED
-            sale_order.package_order_id = package_order_id
-            sale_order.save()
-            self.save()
-            package_order = PackageOrder.objects.get(id=sale_order.package_order_id or package_order_id)
-            if not package_order.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS:
-                package_order.redo_sign = True
-                package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-                package_order.out_sid = ''
-                package_order.logistic_company_id = None
-                package_order.save()
-            return True
-        else:
-            return False
-
-    def assign_package(self, sku_items, package_order_id):
-        """
-            分配库存，仅设定状态，不改变实际库存数
-            一次性分配多个sale_orders进入包裹，确保不会因为同步发生异常
-        """
-        from shopback.trades.models import PackageOrder, PackageSkuItem
-        from shopback.items import tasks
-        sale_trade = sku_items[0].sale_trade
-        package_order, state = PackageOrder.objects.get_or_create(id=package_order_id,
-                                                                  ware_by=self.product.ware_by,
-                                                                  buyer_id=sale_trade.buyer_id,
-                                                                  user_address_id=sale_trade.user_address_id)
-        if state:
-            package_order.copy_order_info(sale_trade)
-            package_order.save()
-        elif package_order.sys_status != PackageOrder.WAIT_PREPARE_SEND_STATUS:
-            package_order.redo_sign = True
-            package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-            package_order.out_sid = ''
-            package_order.logistic_company_id = None
-            package_order.save()
-        PackageSkuItem.objects.filter(id__in=[sku_item.id for sku_item in sku_items]). \
-            update(package_order_id=package_order_id)
-        tasks.assign_package_stock.delay(self.id, self.ware_by, package_order)
-
-    def assign_packages(self):
-        """分配sku的所有包裹"""
-        # from flashsale.pay.models import SaleOrder
-        from shopback.trades.models import PackageOrder, PackageSkuItem
-        from flashsale.pay.models_refund import SaleRefund
-        sku_items = PackageSkuItem.objects.filter(
-            sku_id=self.id,
-            assign_status=PackageSkuItem.NOT_ASSIGNED,
-            refund_status=SaleRefund.NO_REFUND)
-        res = collections.OrderedDict([])
-        for sku_item in sku_items:
-            sale_trade = sku_item.sale_trade
-            if not sale_trade.user_address_id or not sale_trade.buyer_id:
-                continue
-            new_package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                                   self.product.ware_by)
-            if new_package_order_id not in res:
-                res[new_package_order_id] = []
-            res[new_package_order_id].append(sku_item)
-        for package_order_id in res:
-            self.assign_package(res[package_order_id], package_order_id)
-
     @property
     def size_of_sku(self):
         try:
@@ -875,21 +805,6 @@ class ProductSku(models.Model):
 
         psku = self.__class__.objects.get(id=self.id)
         self.quantity = psku.quantity
-
-        post_save.send(sender=self.__class__, instance=self, created=False)
-
-    def update_assign_num(self, num, full_update=False, dec_update=False):
-        """ 更新规格库存 """
-        if full_update:
-            self.assign_num = num
-        elif dec_update:
-            self.assign_num = F('assign_num') - num
-        else:
-            self.assign_num = F('assign_num') + num
-        update_model_fields(self, update_fields=['assign_num'])
-
-        psku = self.__class__.objects.get(id=self.id)
-        self.assign_num = psku.assign_num
 
         post_save.send(sender=self.__class__, instance=self, created=False)
 
@@ -1001,16 +916,6 @@ class ProductSku(models.Model):
     @property
     def collect_amount(self):
         return self.cost * self.quantity
-
-
-def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
-    if instance.quantity > instance.assign_num:
-        from shopback.items.tasks import task_assign_stock_to_package_sku_item
-        task_assign_stock_to_package_sku_item.delay(instance)
-    elif instance.quantity < instance.assign_num:
-        logger.error('assign_num error: sku assign_num bigger than quantity:' + str(instance.id))
-
-post_save.connect(assign_stock_to_package_sku_item, sender=ProductSku, dispatch_uid='post_save_assign_stock_to_package_sku_item')
 
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):

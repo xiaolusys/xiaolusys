@@ -1006,40 +1006,13 @@ def task_Auto_Download_Shelf():
     logger.error("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
 
-# @transaction.atomic
-@task(max_retries=3, default_retry_delay=60)
-def assign_package_stock(sku_id, ware_by, package_order):
-    from shopback.trades.models import PackageSkuItem
-    from flashsale import pay
-    sale_orders = PackageSkuItem.objects.filter(
-        sku_id=sku_id,
-        ware_by=ware_by,
-        assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED],
-        refund_status=pay.NO_REFUND)
-    self = ProductSku.objects.get(id=sku_id)
-    # assign_now = self.assign_num
-    assign_now = sum([so.num for so in sale_orders if so.assign_status == PackageSkuItem.ASSIGNED])
-    package_sale_orders = [so for so in sale_orders
-                           if
-                           so.package_order_id == package_order.id and so.assign_status == PackageSkuItem.NOT_ASSIGNED]
-    assigns = []
-    for sale_order in package_sale_orders:
-        if assign_now + sale_order.num <= self.quantity:
-            assign_now += sale_order.num
-            assigns.append(sale_order)
-    self.assign_num = assign_now
-    PackageSkuItem.objects.filter(id__in=[sale_order.id for sale_order in assigns]). \
-        update(assign_status=PackageSkuItem.ASSIGNED)
-    self.save()
-
-
 @task()
-def task_assign_stock_to_package_sku_item(product_sku):
+def task_assign_stock_to_package_sku_item(stat):
     """ """
     from shopback.trades.models import PackageSkuItem
-    available_num = product_sku.quantity - product_sku.assign_num
+    available_num = stat.aggregate_quantity - stat.assign_num
     if available_num > 0:
-        package_sku_items = PackageSkuItem.objects.filter(sku_id=product_sku.id,
+        package_sku_items = PackageSkuItem.objects.filter(sku_id=stat.sku_id,
                                                           assign_status=PackageSkuItem.NOT_ASSIGNED,
                                                           num__lte=available_num).order_by('id')
         if package_sku_items.count() > 0:
