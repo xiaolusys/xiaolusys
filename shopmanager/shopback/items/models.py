@@ -630,6 +630,12 @@ class ProductSku(models.Model):
     assign_num = models.IntegerField(default=0, verbose_name='分配数')  # 未出库包裹单中已分配的sku数量
     sku_inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
 
+    history_quantity = models.IntegerField(default=0, verbose_name='历史库存数')  #
+    inbound_quantity = models.IntegerField(default=0, verbose_name='入仓库存数')  #
+    post_num = models.IntegerField(default=0, verbose_name='已发货数')  #
+    sold_num = models.IntegerField(default=0, verbose_name='已被购买数')  #
+    realtime_lock_num = models.IntegerField(default=0, verbose_name='实时锁定数')  #
+    
     cost = models.FloatField(default=0, verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0, verbose_name='标准进价')
     std_sale_price = models.FloatField(default=0, verbose_name='吊牌价')
@@ -665,6 +671,20 @@ class ProductSku(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
+
+    @property
+    def realtime_quantity(self):
+        """
+        This tells how many quantity in store.
+        """
+        return self.history_quantity + self.inbound_quantity - self.post_num
+
+    @property
+    def aggregate_quantity(self):
+        """
+        This tells how many quantity we have in total since we introduced inbound_quantity.
+        """
+        return history_quantity + inbound_quantity
 
     @property
     def name(self):
@@ -976,12 +996,13 @@ class ProductSku(models.Model):
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     if instance.quantity > instance.assign_num:
-        from shopback.trades.tasks import task_assign_stock_to_package_sku_item
+        from shopback.items.tasks import task_assign_stock_to_package_sku_item
         task_assign_stock_to_package_sku_item.delay(instance)
     elif instance.quantity < instance.assign_num:
         logger.error('assign_num error: sku assign_num bigger than quantity:' + str(instance.id))
 
 post_save.connect(assign_stock_to_package_sku_item, sender=ProductSku, dispatch_uid='post_save_assign_stock_to_package_sku_item')
+
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """

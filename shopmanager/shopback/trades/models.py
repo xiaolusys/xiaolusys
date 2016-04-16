@@ -1629,13 +1629,33 @@ class PackageSkuItem(BaseModel):
         return self.assign_status == PackageSkuItem.FINISHED
 
 
-def update_product_sku_assign_num(sender, instance, created, **kwargs):
-    #if instance.assign_status == PackageSkuItem.NOT_ASSIGNED:
-    from shopback.items.tasks import task_update_product_sku_assign_num
-    task_update_product_sku_assign_num.delay(instance.sku_id)
+def update_productsku_sold_num(sender, instance, created, **kwargs):
+    """
+    sold_num can increase or decrease, so whenever PackageSkuItem status change, we 
+    have to recalculate sold_num.
+    """
+    from shopback.trades.tasks import task_update_productsku_sold_num
+    task_packageskuitem_update_productsku_sold_num.delay(instance.sku_id)
+
+post_save.connect(update_productsku_sold_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_sold_num')
 
 
-post_save.connect(update_product_sku_assign_num, sender=PackageSkuItem, dispatch_uid='post_save_update_product_sku_assign_num')
+def update_productsku_post_num(sender, instance, created, **kwargs):
+    """
+    post_num only increases, never decreases. We only update post_num upon finishing a PackageSkuItem.
+    """
+    if instance.is_finished():
+        from shopback.trades.tasks import task_packageskuitem_update_productsku_post_num
+        task_packageskuitem_update_productsku_post_num.delay(instance.sku_id)
+
+post_save.connect(update_productsku_sold_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_sold_num')
+
+
+def update_productsku_assign_num(sender, instance, created, **kwargs):
+    from shopback.trades.tasks import task_packageskuitem_update_productsku_assign_num
+    task_packageskuitem_update_productsku_assign_num.delay(instance.sku_id)
+
+post_save.connect(update_product_sku_assign_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_assign_num')
 
 
 def packagize_sku_item(sender, instance, created, **kwargs):
@@ -1643,3 +1663,4 @@ def packagize_sku_item(sender, instance, created, **kwargs):
     task_packagize_sku_item.delay(instance)
 
 post_save.connect(packagize_sku_item, sender=PackageSkuItem, dispatch_uid='post_save_packagize_sku_item')
+

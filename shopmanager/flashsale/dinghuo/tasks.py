@@ -1231,3 +1231,19 @@ def create_orderlist(supplier):
 def create_dinghuo():
     for supplier in get_suppliers():
         create_orderlist(supplier)
+
+
+@task()
+def task_inbounddetail_update_productsku_inbound_quantity(sku):
+    """
+    Whenever we have products inbound, we update the inbound quantity.
+    --Zifei 2016-04-15
+    """
+    from flashsale.dinghuo.models import InBoundDetail
+    # InBoundDetail has to have index built on sku and status in order to speedup the following query.
+    sum_res = InBoundDetail.objects.filter(sku=sku.id, status=InBoundDetail.NORMAL).aggregate(total=Sum('num'))
+    total = sum_res["total"]
+    
+    if sku.inbound_quantity != total:
+        sku.inbound_quantity = total
+        sku.save(update_fields=['inbound_quantity'])

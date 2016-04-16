@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 import time
 import datetime
 import calendar
@@ -776,23 +776,46 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
         return None
 
 
+from shopback.trades.models import PackageSkuItem, PackageOrder
+    
+            
 @task()
-def task_assign_stock_to_package_sku_item(product_sku):
-    from shopback.trades.models import PackageSkuItem
-    available_num = product_sku.quantity - product_sku.assign_num
-    if available_num > 0:
-        package_sku_items = PackageSkuItem.objects.filter(sku_id=product_sku.id,
-                                                          assign_status=PackageSkuItem.NOT_ASSIGNED,
-                                                          num__lte=available_num).order_by('id')
-        if package_sku_items.count() > 0:
-            package_sku_item = package_sku_items.first()
-            package_sku_item.assign_status = PackageSkuItem.ASSIGNED
-            package_sku_item.save()
+def task_packageskuitem_update_productsku_sold_num(sku_id):
+    """
+    Recalculate and update sold_num. But start from when? -- We have to determine a start time.
+    -- Zifei 2016-04-15
+    """
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id).exclude(assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
+    total = sum_res["total"]
+    product_sku = ProductSku.objects.get(id=sku_id)
+    if product_sku.sold_num != total:
+        product_sku.sold_num = total
+        product_sku.save(update_fields=["sold_num"])
+
+
+@task()
+def task_packageskuitem_update_productsku_post_num(sku_id):
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,assign_status=PackageSkuItem.FINISHED).aggregate(total=Sum('num'))
+    total = sum_res["total"]
+    product_sku = ProductSku.objects.get(id=sku_id)
+    if product_sku.post_num != total:
+        product_sku.post_num = total
+        product_sku.save(update_fields=["post_num"])
+    
+    
+
+@task()
+def task_packageskuitem_update_productsku_assign_num(sku_id):
+    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).aggregate(
+        Sum('num'))
+    product_sku = ProductSku.objects.get(id=sku_id)
+    product_sku.assign_num = assign_num_res['num__sum']
+    product_sku.save()
+
 
 
 @task()
 def task_packagize_sku_item(instance):
-    from shopback.trades.models import PackageSkuItem, PackageOrder
     if instance.assign_status == PackageSkuItem.ASSIGNED and not instance.package_order_id:
         sale_trade = instance.sale_trade
         package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
