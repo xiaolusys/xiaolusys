@@ -1655,7 +1655,7 @@ def update_productsku_assign_num(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packageskuitem_update_productsku_assign_num
     task_packageskuitem_update_productsku_assign_num.delay(instance.sku_id)
 
-post_save.connect(update_product_sku_assign_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_assign_num')
+post_save.connect(update_productsku_assign_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_assign_num')
 
 
 def packagize_sku_item(sender, instance, created, **kwargs):

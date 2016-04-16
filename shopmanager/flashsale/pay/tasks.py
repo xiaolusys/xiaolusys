@@ -143,7 +143,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             strade.save()
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id, charge_time=None):
     from shopback.items.models import ProductSku
     strade = SaleTrade.objects.get(id=sale_trade_id)
@@ -152,7 +152,7 @@ def confirmTradeChargeTask(sale_trade_id, charge_time=None):
     saleservice.payTrade()
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 @transaction.atomic
 def notifyTradePayTask(notify):
     """ 订单确认支付通知消息，如果订单分阶段支付，则在原单ID后追加:[tid]-[数字] """
@@ -195,7 +195,7 @@ def notifyTradePayTask(notify):
 from .options import getOrCreateSaleSeller
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def notifyTradeRefundTask(notify):
     try:
         refund_id = notify['id']

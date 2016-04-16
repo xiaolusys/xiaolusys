@@ -54,6 +54,7 @@ class ProductSkuStats(models.Model):
 
     @property
     def properties_name(self):
+        from shopback.items.models import ProductSku
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
 

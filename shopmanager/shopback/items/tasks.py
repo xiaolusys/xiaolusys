@@ -958,7 +958,7 @@ def get_product_logsign(product):
                                                     product.remain_num, product.lock_num)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Auto_Upload_Shelf():
     """ 自动上架商品　"""
     logger = logging.getLogger('celery.handler')
@@ -982,7 +982,7 @@ def task_Auto_Upload_Shelf():
     logger.error("{0}系统自动上架{1}个产品,未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Auto_Download_Shelf():
     """ 自动下架商品 """
     logger = logging.getLogger('celery.handler')
@@ -1007,7 +1007,7 @@ def task_Auto_Download_Shelf():
 
 
 # @transaction.atomic
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def assign_package_stock(sku_id, ware_by, package_order):
     from shopback.trades.models import PackageSkuItem
     from flashsale import pay
@@ -1045,6 +1045,3 @@ def task_assign_stock_to_package_sku_item(product_sku):
             package_sku_item.assign_status = PackageSkuItem.ASSIGNED
             package_sku_item.save()
 
-
-    
-    

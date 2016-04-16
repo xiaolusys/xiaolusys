@@ -162,7 +162,7 @@ def task_Delete_Mamalink_Clicks(pre_date):
     clicks.delete()
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_Record_User_Click(pre_day=1):
     """ 计算每日妈妈点击数，汇总"""
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
@@ -201,7 +201,7 @@ def task_Record_User_Click(pre_day=1):
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_Record_User_Click_Weekly(date_from, date_to, week_code):
     """ 功能：统计date_from - date_to 时间段 的点击 购买 情况 计算转化率
         查询： ClickCount  StatisticsShoppingByDay

@@ -65,7 +65,7 @@ def update_weixin_productstock():
                 logger.error(exc.message, exc_info=True)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Update_Weixin_Userinfo(openId, unionId=None, userinfo={}, accessToken=None):
     """ 通过接口获取用户信息 """
     _wx_api = WeiXinAPI()
@@ -100,7 +100,7 @@ def task_Update_Weixin_Userinfo(openId, unionId=None, userinfo={}, accessToken=N
     WeixinUnionID.objects.get_or_create(openid=openId, app_key=app_key, unionid=wx_user.unionid)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Mod_Merchant_Product_Status(outer_ids, status):
     from shopback.items.models import Product
     from shopback import signals

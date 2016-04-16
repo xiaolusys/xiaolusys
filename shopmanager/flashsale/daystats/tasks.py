@@ -195,7 +195,7 @@ STAT_DIR = "stat_backup"
 from flashsale.daystats.models import DaystatCalcResult
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_calc_xlmm(start_time_str, end_time_str):
     """计算某个月内所有购买的人数和小鹿妈妈数量，重复购买"""
     try:
@@ -262,7 +262,7 @@ from shopback.items.models import Product
 from django.db.models import Q
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
     """计算热销商品"""
     try:
@@ -364,7 +364,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
         raise task_calc_hot_sale.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
     """计算滞销商品"""
     try:
@@ -521,7 +521,7 @@ def get_new_user(user_data, old_user):
     return new_user
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_calc_new_user_repeat(start_date, end_date):
     """计算新用户的重复购买率"""
 
@@ -587,7 +587,7 @@ def task_calc_new_user_repeat(start_date, end_date):
 from shopback.trades.models import MergeTrade
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_calc_package(start_date, end_date, old=True):
     """计算包裹数量"""
     try:
@@ -643,7 +643,7 @@ def task_calc_package(start_date, end_date, old=True):
         raise task_calc_package.retry(exc=exc)
 
 
-@task(max_retry=1, default_retry_delay=5)
+@task(max_retries=1, default_retry_delay=5)
 def task_calc_performance_by_user(start_date, end_date, category="0"):
     """计算买手绩效"""
     try:
@@ -745,7 +745,7 @@ REFUND_REASON = (u'其他', u'错拍', u'缺货', u'开线/脱色/脱毛/有色�
                  u'发错货/漏发', u'没有发货', u'未收到货', u'与描述不符', u'退运费', u'发票问题', u'七天无理由退换货')
 
 
-@task(max_retry=1, default_retry_delay=5)
+@task(max_retries=1, default_retry_delay=5)
 def task_calc_performance_by_supplier(start_date, end_date, category="0"):
     """计算供应商"""
     try:
@@ -959,7 +959,7 @@ def format_time(time_of_long):
 import collections
 
 
-@task(max_retry=1, default_retry_delay=5)
+@task(max_retries=1, default_retry_delay=5)
 def task_calc_sale_product(start_date, end_date, category="0"):
     """计算选品情况"""
     try:
@@ -1022,7 +1022,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 import json
 
 
-@task(max_retry=1, default_retry_delay=5)
+@task(max_retries=1, default_retry_delay=5)
 def task_calc_operate_data(start_date, end_date, category="0"):
     """计算运营数据"""
     try:

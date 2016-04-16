@@ -22,7 +22,7 @@ from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplie
 from . import function_of_task, functions
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_stats_paytopack(pay_date, sku_num, total_days):
     try:
         entry, status = PayToPackStats.objects.get_or_create(pay_date=pay_date)
@@ -33,7 +33,7 @@ def task_stats_paytopack(pay_date, sku_num, total_days):
         raise task_stats_paytopack.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_stats_daily_product(pre_day=1):
     """计算原始数据表"""
     try:
@@ -53,7 +53,7 @@ def task_stats_product():
     function_of_task.daily_data_stats_update()
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_stats_daily_order_by_group(pre_day=1):
     """每组统计，已经暂停使用"""
     try:
@@ -125,7 +125,7 @@ def task_stats_daily_order_by_group(pre_day=1):
         raise task_stats_daily_order_by_group.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_send_daily_message():
     """使用企业号发送每日订货短信，已经暂停使用"""
     try:
@@ -138,7 +138,7 @@ def task_send_daily_message():
         raise task_send_daily_message.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_write_supply_name():
     """根据填写的商品链接抓取供应商，已经停止使用"""
     try:
@@ -222,7 +222,7 @@ from flashsale.dinghuo.models_stats import RecordGroupPoint
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_daily_stat_group_point():
     """每组得分情况，已经作废"""
     try:
@@ -262,7 +262,7 @@ def task_daily_stat_group_point():
         raise task_daily_stat_group_point.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_daily_stat_ding_huo():
     """订货达标任务，已经作废"""
     try:
@@ -1227,7 +1227,7 @@ def create_orderlist(supplier):
             _merge(supplier, old_orderlist)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def create_dinghuo():
     for supplier in get_suppliers():
         create_orderlist(supplier)
@@ -1253,6 +1253,6 @@ def task_inbounddetail_update_productsku_inbound_quantity(sku_id):
         stat = stats[0]
         if stat.inbound_quantity != total:
             stat.inbound_quantity = total
-            stat.save(update_fields=['inbound_quantity']
+            stat.save(update_fields=['inbound_quantity'])
 
      

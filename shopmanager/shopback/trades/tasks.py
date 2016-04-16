@@ -777,17 +777,10 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 
 
 from shopback.trades.models import PackageSkuItem, PackageOrder
-from shopback.trades.modes_stats import ProductSkuStats    
+from shopback.items.models_stats import ProductSkuStats
 
 
-        try:
-            create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
-        except IntegrityError as exc:
-            logger.warn("IntegrityError - MamaFortune | mama_id: %s, cash: %s" % (mama_id, cash))
-            raise task_xiaolumama_update_mamafortune.retry(exc=exc)
-
-
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats_sold_num(sku_id, product_id):
     """
     Recalculate and update sold_num. 

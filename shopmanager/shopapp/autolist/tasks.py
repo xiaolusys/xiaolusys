@@ -51,7 +51,7 @@ def write_to_log_db(task, response):
     log.save()
 
 
-@task(max_retry=3)
+@task(max_retries=3)
 def updateItemListTask(num_iid):
     try:
         task = ItemListTask.objects.get(num_iid=num_iid)
