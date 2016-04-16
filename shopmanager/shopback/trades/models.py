@@ -1366,6 +1366,7 @@ class PackageOrder(models.Model):
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.copy_order_info_from_merge_trade(mt)
         self.save()
+        PackageStat.objects.get(id=self.pstat_id).save()
 
     def finish_scan_weight(self):
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
@@ -1378,6 +1379,7 @@ class PackageOrder(models.Model):
             psku.update_quantity(order_num, dec_update=True)
             psku.update_wait_post_num(order_num, dec_update=True)
             psku.update_assign_num(order_num, dec_update=True)
+        PackageStat.objects.get(id=self.pstat_id).save()
 
     @property
     def pstat_id(self):
@@ -1453,7 +1455,6 @@ class PackageOrder(models.Model):
         self.merge_trade_id = merge_trade.id
         self.save()
 
-
     def get_merge_trade(self, sync=True):
         from shopback.trades.models import MergeTrade
         if self.merge_trade_id:
@@ -1463,12 +1464,12 @@ class PackageOrder(models.Model):
                 return MergeTrade.objects.filter(tid=self.tid).order_by('-sys_status').first()
         return None
 
-
     @staticmethod
     def gen_new_package_id(buyer_id, address_id, ware_by_id):
         id = str(buyer_id) + '-' + str(address_id) + '-' + str(ware_by_id)
-        pstat = PackageStat.objects.get_or_create(id=id)[0]
-        now_num = pstat.num + 1
+        now_num = PackageStat.get_sended_package_num(id) + 1
+        # pstat = PackageStat.objects.get_or_create(id=id)[0]
+        # now_num = pstat.num + 1
         return id + '-' + str(now_num)
 
 
@@ -1539,6 +1540,19 @@ class PackageStat(models.Model):
         app_label = 'trades'
         verbose_name = u'包裹发送计数'
         verbose_name_plural = u'包裹发送计数列表'
+
+    @staticmethod
+    def get_sended_package_num(package_stat_id):
+        return PackageOrder.objects.filter(id__contains=package_stat_id + '-', sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS])
+
+
+def update_package_stat_num(sender, instance, created, **kwargs):
+    from shopback.trades.tasks import task_update_package_stat_num
+    task_update_package_stat_num.delay(instance)
+
+
+post_save.connect(update_package_stat_num, sender=PackageStat, dispatch_uid='post_update_package_stat_num')
+
 
 from core.models import BaseModel
 

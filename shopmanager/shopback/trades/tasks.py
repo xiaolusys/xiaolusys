@@ -805,3 +805,8 @@ def task_packagize_sku_item(instance):
                 PackageSkuItem.NOT_ASSIGNED or PackageSkuItem.CANCELED]:
         PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=None)
         PackageOrder.objects.get(id=instance.package_order_id).reset_to_wait_prepare_send()
+
+@task()
+def task_update_package_stat_num(instance):
+    from shopback.trades.models import PackageStat, PackageOrder
+    PackageStat.objects.filter(id=instance.id).update(num=PackageOrder.objects.filter(id__contains=PackageStat.get_sended_package_num(instance.id)))
