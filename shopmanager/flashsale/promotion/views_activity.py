@@ -507,7 +507,7 @@ class StatsView(APIView):
 class GetAwardView(APIView):
     ''' 达到赢取奖品条件后,获得奖品 '''
     authentication_classes = (authentication.SessionAuthentication,)
-    # permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
 
     def post(self, request, event_id, *args, **kwargs):
@@ -516,16 +516,21 @@ class GetAwardView(APIView):
 
         customer = Customer.objects.get(user=request.user)
         customer_id = customer.id
+        buyer_id = str(customer_id)
 
-        user_coupon = UserCoupon()
-        kwargs = {"buyer_id": customer_id, "template_id": template_id}
-        code, msg = user_coupon.release_by_template(**kwargs)
+        coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
+        code = 0
+        if coups.count() <= 0:
+            user_coupon = UserCoupon()
+            kwargs = {"buyer_id": buyer_id, "template_id": template_id}
+            code, msg = user_coupon.release_by_template(**kwargs)
 
-        if (code==0):
-            winner = AwardWinner.objects.get(customer_id=customer_id)
+        if code == 0:
+            winner = AwardWinner.objects.get(customer_id=customer_id,event_id=event_id)
             winner.status = 1
             winner.save()
 
         response = Response({"code": code, "res": msg})
         response["Access-Control-Allow-Origin"] = "*"
         return response
+
