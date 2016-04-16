@@ -41,6 +41,6 @@ urlpatterns = patterns('',
                        url(r'^open_envelope/(?P<envelope_id>\d+)/', views_activity.OpenEnvelopeView.as_view(),
                            name="open_envelope_activity"),
                        url(r'^stats/(?P<event_id>\d+)/', views_activity.StatsView.as_view(), name="stats_activity"),
-                       url(r'^get_award/$', views_activity.GetAwardView.as_view(), name="get_award"),
+                       url(r'^get_award/', views_activity.GetAwardView.as_view(), name="get_award"),
 
                        )
