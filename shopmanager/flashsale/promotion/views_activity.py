@@ -108,6 +108,7 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
+        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
         activity_entry = get_activity_entry(event_id)
         if not activity_entry:
             return Response({"error": "wrong event id"})
@@ -117,7 +118,6 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
         if not self.valid_openid(openid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
-            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
             userinfo = self.get_auth_userinfo(request)
             openid = userinfo.get("openid")
 
@@ -149,6 +149,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
+        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
         activity_entry = get_activity_entry(event_id)
         if not activity_entry:
             return Response({"error": "wrong event id"})
