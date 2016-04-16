@@ -416,6 +416,8 @@ class MainView(APIView):
         for item in inactive_applications:
             inactives.append({"headimgurl": item.headimgurl, "nick": item.nick})
 
+        cards = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+
         data = {"cards": cards, "envelopes": envelope_serializer.data, "num_of_envelope": len(envelope_serializer.data),
                 "award_list": winner_serializer.data, "award_left": award_left, "inactives": inactives}
 
