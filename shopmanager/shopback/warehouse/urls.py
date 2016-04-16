@@ -8,7 +8,7 @@ from shopback.warehouse.views import (PackageScanCheckView,
                                       PackagOrderExpressView,
                                       PackagOrderOperateView,
                                       PackagOrderRevertView,
-                                      package_order_print_pickle,
+                                      package_order_print_post,
                                       package_order_print_express,
                                       package_order_print_picking
                                       )
@@ -24,6 +24,6 @@ urlpatterns = patterns('shopback.warehouse.views',
                        (r'^revert/$', csrf_exempt(PackagOrderRevertView.as_view())),
                        (r'^print_express/$', package_order_print_express),
                        (r'^print_picking/$', package_order_print_picking),
-                       (r'^print_pickle/$', package_order_print_pickle),
+                       (r'^print_post/$', package_order_print_post),
                        )
 urlpatterns += router.urls

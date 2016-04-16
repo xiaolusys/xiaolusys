@@ -256,7 +256,7 @@ class PackageScanWeightView(APIView):
         return Response({'isSuccess': True})
 
 
-def package_order_print_pickle(request):
+def package_order_print_post(request):
     content = request.REQUEST
     package_order_ids = content.get('package_order_ids')
     package_order_ids = package_order_ids.split(',')

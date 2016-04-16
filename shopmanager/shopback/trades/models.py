@@ -413,11 +413,12 @@ class MergeTrade(models.Model):
                 sale_trade = self.get_sale_trade()
                 if sale_trade and self.ware_by:
                     return PackageOrder.objects.filter(buyer_id=sale_trade.buyer_id,
-                                                    user_address_id=sale_trade.user_address_id, ware_by=self.ware_by)\
+                                                       user_address_id=sale_trade.user_address_id, ware_by=self.ware_by) \
                         .order_by('-id').first()
                 elif sale_trade:
                     return PackageOrder.objects.filter(buyer_id=sale_trade.buyer_id,
-                                                       user_address_id=sale_trade.user_address_id).order_by('-id').first()
+                                                       user_address_id=sale_trade.user_address_id).order_by(
+                        '-id').first()
                 else:
                     return None
             except:
@@ -782,10 +783,10 @@ class MergeOrder(models.Model):
         if not hasattr(self, '_sale_order_'):
             if self.sale_order_id is None:
                 self.sale_order_id = self.set_sale_order_id()
-            if self.sale_order_id:
+            if self.sale_order_id and self.sale_order_id != -1:
                 from flashsale.pay.models import SaleOrder
                 self._sale_order_ = SaleOrder.objects.get(id=self.sale_order_id)
-            elif self.sale_order_id == '':
+            elif self.sale_order_id == -1:
                 self._sale_order_ = None
             else:
                 self._sale_order_ = None
@@ -798,10 +799,9 @@ class MergeOrder(models.Model):
             # sale_trade = SaleTrade.objects.get(tid=self.merge_trade.tid)
             # sale_order_id = SaleOrder.objects.get(sale_trade_id=sale_trade.id, sku_id=self.sku_id, num=self.num).id
         except:
-            sale_order_id = ''
-        SaleOrder.objects.filter(id=self).update(sale_order_id=sale_order_id)
+            sale_order_id = -1
+        MergeOrder.objects.filter(id=self.id).update(sale_order_id=sale_order_id)
         return sale_order_id
-
 
     def isEffect(self):
         return self.sys_status == pcfg.IN_EFFECT
@@ -1357,6 +1357,7 @@ class PackageOrder(models.Model):
     reason_code = models.CharField(max_length=100, blank=True, verbose_name=u'问题编号')  # 1,2,3 问题单原因编码集合
     redo_sign = models.BooleanField(default=False, verbose_name=u'重做标志')  # 重做标志，表示该单要进行了一次废弃的打单验货
     merge_trade_id = models.BigIntegerField(null=True, blank=True, verbose_name=u'对应的MergeTrade')
+
     class Meta:
         db_table = 'flashsale_package'
         app_label = 'trades'
@@ -1394,7 +1395,8 @@ class PackageOrder(models.Model):
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
-        package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id, assign_status=PackageSkuItem.ASSIGNED)
+        package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
+                                                          assign_status=PackageSkuItem.ASSIGNED)
         for sku_item in package_sku_items:
             order_num = sku_item.num
             psku = ProductSku.objects.get(id=sku_item.sku_id)
@@ -1513,6 +1515,8 @@ def sync_merge_trade_by_package(sender, instance, created, **kwargs):
 
 
 post_save.connect(get_logistics_company, sender=PackageOrder)
+
+
 # post_save.connect(sync_merge_trade_by_package, sender=PackageOrder)
 
 
@@ -1565,7 +1569,9 @@ class PackageStat(models.Model):
 
     @staticmethod
     def get_sended_package_num(package_stat_id):
-        return PackageOrder.objects.filter(id__contains=package_stat_id + '-', sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS])
+        return PackageOrder.objects.filter(id__contains=package_stat_id + '-',
+                                           sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE,
+                                                           PackageOrder.FINISHED_STATUS]).count()
 
 
 def update_package_stat_num(sender, instance, created, **kwargs):
@@ -1574,7 +1580,6 @@ def update_package_stat_num(sender, instance, created, **kwargs):
 
 
 post_save.connect(update_package_stat_num, sender=PackageStat, dispatch_uid='post_update_package_stat_num')
-
 
 from core.models import BaseModel
 
@@ -1671,16 +1676,18 @@ class PackageSkuItem(BaseModel):
 
 
 def update_product_sku_assign_num(sender, instance, created, **kwargs):
-    #if instance.assign_status == PackageSkuItem.NOT_ASSIGNED:
+    # if instance.assign_status == PackageSkuItem.NOT_ASSIGNED:
     from shopback.items.tasks import task_update_product_sku_assign_num
     task_update_product_sku_assign_num.delay(instance.sku_id)
 
 
-post_save.connect(update_product_sku_assign_num, sender=PackageSkuItem, dispatch_uid='post_save_update_product_sku_assign_num')
+post_save.connect(update_product_sku_assign_num, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_product_sku_assign_num')
 
 
 def packagize_sku_item(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packagize_sku_item
     task_packagize_sku_item.delay(instance)
+
 
 post_save.connect(packagize_sku_item, sender=PackageSkuItem, dispatch_uid='post_save_packagize_sku_item')
