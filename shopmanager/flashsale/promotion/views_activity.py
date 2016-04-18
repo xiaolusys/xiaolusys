@@ -418,7 +418,7 @@ class MainView(APIView):
         envelopes = envelope_serializer.data
         num_of_envelope = len(envelopes)
         for item in inactive_applications:
-            envelopes.append({{"headimgurl": item.headimgurl, "nick": item.nick, "type":"inactive"}})
+            envelopes.append({"headimgurl": item.headimgurl, "nick": item.nick, "type":"inactive"})
 
         #cards,num_cards = [1, 1, 1, 1, 1, 1, 1, 1, 1],9
 
