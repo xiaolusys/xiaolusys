@@ -63,28 +63,24 @@ CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016, 3, 30, 23, 59, 59)
 
 @task(max_retry=2, default_retry_delay=6)
 def task_cashout_update_mamafortune(mama_id):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
-    cashouts = CashOut.objects.filter(xlmm=mama_id, status=CashOut.APPROVED,
-                                      approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).values('status').annotate(
-        total=Sum('value'))
+    cashout_res = CashOut.objects.filter(xlmm=mama_id,
+                                         status__in=(CashOut.PENDING, CashOut.APPROVED, CashOut.COMPLETED),
+                                         approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME)\
+        .aggregate(total=Sum('value'))
 
-    cashout_confirmed = 0
-    for entry in cashouts:
-        if entry["status"] == CashOut.APPROVED:  # confirmed
-            cashout_confirmed = entry["total"]
+    effect_cashout = cashout_res['total'] or 0
 
-    logger.warn("%s - mama_id: %s, cashout_confirmed: %s" % (get_cur_info(), mama_id, cashout_confirmed))
+    logger.warn("%s - mama_id: %s, effect_cashout: %s" % (get_cur_info(), mama_id, effect_cashout))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]
-        if fortune.carry_cashout != cashout_confirmed:
-            fortunes.update(carry_cashout=cashout_confirmed)
-            # fortune.carry_cashout = cashout_confirmed
-            # fortune.save()
+        if fortune.carry_cashout != effect_cashout:
+            fortune.carry_cashout = effect_cashout
+            fortune.save(update_fields=['carry_cashout'])
     else:
         try:
-            create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
+            create_mamafortune_with_integrity(mama_id, carry_cashout=effect_cashout)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune cashout | mama_id: %s" % (mama_id))
             raise task_cashout_update_mamafortune.retry(exc=exc)
