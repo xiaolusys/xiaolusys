@@ -9,7 +9,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 from shopback.base.new_renders import new_BaseJSONRenderer
 from shopback.items.models import Product
 from shopback.logistics.models import LogisticsCompany
-from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder)
+from shopback.trades.models import MergeTrade, PackageSkuItem, PackageOrder
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -68,11 +68,9 @@ class PackagOrderExpressView(APIView):
 
         PackageOrder.objects.filter(pid=package_order_id).update(out_sid=out_sid, is_qrcode=is_qrcode,
                                                                  qrcode_msg=qrcode_msg)
-        package = PackageOrder.objects.get(pid=package_order_id)
-        # MergeTrade.objects.filter
-        # 同步mergeTrade与packageOrder
-        from shopback.trades.models import sync_merge_trade_by_package_after_order_express
-        sync_merge_trade_by_package_after_order_express(package)
+        from shopback.trades.models import MergeOrder
+        for package_sku_item in PackageSkuItem.objects.filter(package_order_id=package_order_id):
+            MergeOrder.objects.filter(sale_order_id=package_sku_item.sale_order_id).update(status=MergeOrder.DELETE)
         return Response({'isSuccess': True})
 
     get = post

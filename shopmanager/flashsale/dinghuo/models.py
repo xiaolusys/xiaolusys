@@ -1,17 +1,12 @@
 # -*- coding:utf-8 -*-
 from django.db import models
-
+from django.db.models.signals import post_save
 from django.contrib.auth.models import User
-from core.fields import BigIntegerAutoField
-
 from core.fields import JSONCharMyField
-from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
+from shopback.base.fields import BigIntegerAutoField
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier
-
-from .models_user import MyUser, MyGroup
-from .models_stats import SupplyChainDataStats
 
 
 class OrderList(models.Model):

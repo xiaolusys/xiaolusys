@@ -2223,7 +2223,7 @@ class PackageScanWeightView(APIView):
             for merge_order in mo:
                 if merge_order.sale_order_id:
                     try:
-                        item = PackageSkuItem.objects.get(id=merge_order.sale_order_id)
+                        item = PackageSkuItem.objects.get(sale_order_id=merge_order.sale_order_id)
                         item.assign_status = PackageSkuItem.FINISHED
                         item.save()
                     except:

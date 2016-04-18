@@ -1380,11 +1380,8 @@ class PackageOrder(models.Model):
         package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
                                                           assign_status=PackageSkuItem.ASSIGNED)
         for sku_item in package_sku_items:
-            order_num = sku_item.num
-            psku = ProductSku.objects.get(id=sku_item.sku_id)
-            psku.update_quantity(order_num, dec_update=True)
-            psku.update_wait_post_num(order_num, dec_update=True)
-            psku.update_assign_num(order_num, dec_update=True)
+            sku_item.assign_status = PackageSkuItem.FINISHED
+            sku_item.save()
         PackageStat.objects.get(id=self.pstat_id).save()
 
     @property
@@ -1636,7 +1633,7 @@ def packagize_sku_item(sender, instance, created, **kwargs):
 post_save.connect(packagize_sku_item, sender=PackageSkuItem, dispatch_uid='post_save_packagize_sku_item')
 
 
-def update_product_order_status(sender, instance, created, **kwargs):
+def update_package_order_status(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_update_package_order_status
     if instance.assign_status == PackageSkuItem.FINISHED and PackageOrder.objects.get(
             id=instance.package_order_id).status != PackageOrder.FINISHED_STATUS:
@@ -1644,5 +1641,5 @@ def update_product_order_status(sender, instance, created, **kwargs):
 
 
 # TODO@hy 两套客户端出库的同步过渡方法
-post_save.connect(update_product_order_status, sender=PackageSkuItem,
-                  dispatch_uid='post_save_update_product_order_status')
+post_save.connect(update_package_order_status, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_package_order_status')
