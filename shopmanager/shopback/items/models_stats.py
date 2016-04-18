@@ -69,7 +69,7 @@ class ProductSkuStats(models.Model):
 
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
-    if instance.aggregate_quantity > instance.assign_num:
+    if instance.realtime_quantity > instance.assign_num:
         from shopback.items.tasks import task_assign_stock_to_package_sku_item
         task_assign_stock_to_package_sku_item.delay(instance)
     elif instance.realtime_quantity < instance.assign_num:

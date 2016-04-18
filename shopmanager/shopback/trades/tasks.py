@@ -831,24 +831,15 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     Recalculate and update skustats_num.
     """
     from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
-    sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id,
-                                                    sale_start_time__gte=pay_time,
-                                                    sale_end_time__lte=pay_time,
-                                                    status__in=(
-                                                        ProductSkuSaleStats.ST_EFFECT, ProductSkuSaleStats.ST_FINISH))
+    sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id,sale_start_time__lte=pay_time,status=ProductSkuSaleStats.ST_EFFECT)
     if not sale_stats.exists():
-        logger.warn('update productskusalestats_num not found | sku_id:%s, pay_time:%s' % (sku_id, pay_time))
+        logger.warn('effect productskusalestats not found | sku_id:%s, pay_time:%s'%(sku_id, pay_time))
         return
 
-    sale_stat = sale_stats[0]
-    assign_num_qs = PackageSkuItem.objects.filter(sku_id=sku_id) \
-        .exclude(assign_status=PackageSkuItem.CANCELED)
-    if sale_stat.sale_start_time:
-        assign_num_qs = assign_num_qs.filter(pay_time__gte=sale_stat.sale_start_time)
-    if sale_stat.sale_end_time:
-        assign_num_qs = assign_num_qs.filter(pay_time__lte=sale_stat.sale_end_time)
-    assign_num_res = assign_num_qs.aggregate(Sum('num'))
-    total = assign_num_res['num__sum'] or 0
+    sale_stat  = sale_stats[0]
+    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id,pay_time__gte=sale_stat.sale_start_time)\
+        .exclude(assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
+    total = assign_num_res['total'] or 0
 
     if sale_stat.num != total:
         sale_stat.num = total
