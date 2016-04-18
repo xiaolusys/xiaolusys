@@ -25,7 +25,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
 from flashsale.pay.models import GoodShelf, ModelProduct
-from flashsale.pay.models_custom import Productdetail, ActivityEntry
+from flashsale.pay.models_custom import Productdetail, ActivityEntry, BrandProduct
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
@@ -751,6 +751,28 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = serializers.SimpleProductSerializer(product_list, many=True)
         return Response(serializer.data)
 
+    @list_route(methods=['get'])
+    def brandlist(self, request, *args, **kwargs):
+        """ 品牌推广展示商品信息 """
+        content = request.REQUEST
+        brand_id = content.get('brand')
+
+        tnow = datetime.datetime.now()
+        queryset = BrandProduct.objects.filter(brand_id=brand_id)
+        resultset = Product.objects.none()
+        for brand in queryset:
+            print "product id %d"%brand.product_id
+            resultset = resultset | (Product.objects.filter(id=brand.product_id))
+        print resultset.count()
+        pagin_query = self.paginate_queryset(resultset)
+        if pagin_query is not None:
+            object_list = self.objets_from_cache(pagin_query)
+            serializer = self.get_serializer(object_list, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
+        serializer = self.get_serializer(object_list, many=True)
+        return Response(serializer.data)
 
 class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """

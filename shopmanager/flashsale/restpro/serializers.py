@@ -132,7 +132,7 @@ class BrandEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BrandEntry
-        fields = ('id', 'title', 'brand_desc', 'brand_pic', 'brand_post',
+        fields = ('id', 'brand_name', 'brand_desc', 'brand_pic', 'brand_post',
                   'brand_applink', 'start_time', 'end_time', 'is_active')
 
 
@@ -140,7 +140,7 @@ class BrandProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BrandProduct
-        fields = ('id', 'title',
+        fields = ('id', 'brand_name',
                   'product_id', 'start_time', 'end_time')
 
 
@@ -206,10 +206,11 @@ class PosterSerializer(serializers.HyperlinkedModelSerializer):
     wem_posters = JSONParseField(read_only=True, required=False)
     chd_posters = JSONParseField(read_only=True, required=False)
     activity = ActivityEntrySerializer(source='get_activity', read_only=True)
+    brand_promotion = BrandEntrySerializer(source='get_brand', read_only=True, many=True)
 
     class Meta:
         model = GoodShelf
-        fields = ('id', 'url', 'wem_posters', 'chd_posters', 'active_time', 'activity')
+        fields = ('id', 'url', 'wem_posters', 'chd_posters', 'active_time', 'activity','brand_promotion')
 
 
 #####################################################################################
