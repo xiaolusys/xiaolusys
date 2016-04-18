@@ -85,7 +85,8 @@ def task_generate_red_envelope(application):
     uni_key2 = 'self-' + uni_key1
     count = RedEnvelope.objects.filter(uni_key=uni_key2).count()
     if count <= 0:
-        value = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        #value = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        value = 1 # give the first card as default
         envelope2 = RedEnvelope(customer_id=customer_id, event_id=event_id, uni_key=uni_key2, type=type,
                                 value=value, friend_img=application.headimgurl, friend_nick=application.nick)
         envelope2.save()

@@ -415,14 +415,15 @@ class MainView(APIView):
 
         inactive_applications = XLSampleApply.objects.filter(event_id=event_id, from_customer=customer_id,
                                                              status=XLSampleApply.INACTIVE).order_by('-created')
-        inactives = []
+        envelopes = envelope_serializer.data
+        num_of_envelope = len(envelopes)
         for item in inactive_applications:
-            inactives.append({"headimgurl": item.headimgurl, "nick": item.nick})
+            envelopes.append({{"headimgurl": item.headimgurl, "nick": item.nick, "type":"inactive"}})
 
         #cards,num_cards = [1, 1, 1, 1, 1, 1, 1, 1, 1],9
 
-        data = {"cards": cards, "envelopes": envelope_serializer.data, "num_of_envelope": len(envelope_serializer.data),
-                "award_list": winner_serializer.data, "award_left": award_left, "inactives": inactives, "num_cards":num_cards}
+        data = {"cards": cards, "envelopes": envelopes, "num_of_envelope": num_of_envelope,
+                "award_list": winner_serializer.data, "award_left": award_left, "num_cards":num_cards}
 
         response = Response(data)
         response["Access-Control-Allow-Origin"] = "*"
