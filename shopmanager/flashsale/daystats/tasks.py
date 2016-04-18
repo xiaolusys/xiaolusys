@@ -213,10 +213,6 @@ def task_PopularizeCost_By_Day(pre_day=1):
         logger.warning('First time running no popularizecost data to search ')
 
 
-import os
-import csv
-
-STAT_DIR = "stat_backup"
 from flashsale.daystats.models import DaystatCalcResult
 
 
