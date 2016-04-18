@@ -1,4 +1,5 @@
 # coding=utf-8
+from flashsale.pay.models_custom import BrandEntry, BrandProduct
 from shopback.items.models import Product, ProductSku, ProductCategory
 from flashsale.pay.models import (
     SaleTrade,
@@ -124,6 +125,22 @@ class ActivityEntrySerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link',
                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras',
                   'total_member_num', 'friend_member_num', 'is_active')
+
+
+class BrandEntrySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BrandEntry
+        fields = ('id', 'title', 'brand_desc', 'brand_pic', 'brand_post',
+                  'brand_applink', 'start_time', 'end_time', 'is_active')
+
+
+class BrandProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BrandProduct
+        fields = ('id', 'title',
+                  'product_id', 'start_time', 'end_time')
 
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
