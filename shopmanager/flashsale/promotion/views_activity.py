@@ -518,12 +518,12 @@ class GetAwardView(APIView):
         customer_id = customer.id
         buyer_id = str(customer_id)
 
-        coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
+        #coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
         code,msg = 0,""
-        if coups.count() <= 0:
-            user_coupon = UserCoupon()
-            kwargs = {"buyer_id": buyer_id, "template_id": template_id}
-            code, msg = user_coupon.release_by_template(**kwargs)
+        #if coups.count() <= 0:
+        user_coupon = UserCoupon()
+        kwargs = {"buyer_id": buyer_id, "template_id": template_id}
+        code, msg = user_coupon.release_by_template(**kwargs)
 
         if code == 0:
             winner = AwardWinner.objects.get(customer_id=customer_id,event_id=event_id)
