@@ -574,7 +574,7 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
         #商品上下架状态变更
         if (product.shelf_status != instance.shelf_status):
             if instance.shelf_status == Product.UP_SHELF:
-                print 'debug shelf status:', instance.shelf_status
+
                 # 商品上架信号
                 from shopback.items.tasks_stats import \
                     task_product_upshelf_update_productskusalestats_initwait_assign_num
@@ -583,17 +583,15 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
                     task_product_upshelf_update_productskusalestats_initwait_assign_num.delay(sku.id)
 
             elif instance.shelf_status == Product.DOWN_SHELF:
-                print 'debug shelf status:', instance.shelf_status
+
                 # 商品下架信号
                 from shopback.items.tasks_stats import \
                     task_product_downshelf_update_productskusalestats_initwait_assign_num
-                st = product.sale_time
-                sale_end_time = st and datetime.datetime.combine(st,
-                                  datetime.datetime.min.time()) or datetime.datetime.now()
+                sale_end_time = product.offshelf_time or datetime.datetime.now()
                 product_skus = product.normal_skus
                 for sku in product_skus:
                     task_product_downshelf_update_productskusalestats_initwait_assign_num.delay(sku.id,
-                                                                                                    sale_end_time)
+                                                                                                sale_end_time)
 
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 

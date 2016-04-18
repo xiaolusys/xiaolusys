@@ -31,7 +31,7 @@ def task_product_upshelf_update_productskusalestats_initwait_assign_num(sku_id):
 
     stats_uni_key = gen_productsksalestats_unikey(sku_id)
     stats = ProductSkuSaleStats.objects.filter(uni_key= stats_uni_key, sku_id=sku_id)
-    print 'stats up:',stats_uni_key
+
     if stats.count() == 0:
         try:
             stat = ProductSkuSaleStats(uni_key=stats_uni_key,
@@ -62,7 +62,7 @@ def task_product_downshelf_update_productskusalestats_initwait_assign_num(sku_id
 
     stats_uni_key   = gen_productsksalestats_unikey(sku_id)
     stats = ProductSkuSaleStats.objects.filter(uni_key= stats_uni_key, sku_id=sku_id)
-    print 'stats down:', stats_uni_key
+
     if stats.count() > 0:
         try:
             stat = stats[0]
