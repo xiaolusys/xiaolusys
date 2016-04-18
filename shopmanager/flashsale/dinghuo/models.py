@@ -132,7 +132,7 @@ class OrderDetail(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'生成日期')  # index
     updated = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'更新日期')  # index
-    arrival_time = models.DateTimeField(blank=True, verbose_name=u'到货时间')
+    arrival_time = models.DateTimeField(blank=True, db_index=True, verbose_name=u'到货时间')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderdetail'
@@ -142,6 +142,14 @@ class OrderDetail(models.Model):
 
     def __unicode__(self):
         return self.product_id
+
+
+def update_productskustats_inbound_quantity(sender, instance, created, **kwargs):
+    # Note: chichu_id is actually the id of related ProductSku record.
+    from flashsale.dinghuo.tasks import task_orderdetail_update_productskustats_inbound_quantity
+    task_orderdetail_update_productskustats_inbound_quantity.delay(instance.chichu_id)
+
+post_save.connect(update_productskustats_inbound_quantity, sender=OrderDetail, dispatch_uid='post_save_update_productskustats_inbound_quantity')
 
 
 class orderdraft(models.Model):
@@ -382,11 +390,6 @@ class InBoundDetail(models.Model):
         verbose_name_plural = u'入仓单明细列表'
 
 
-def update_productsku_inbound_quantity(sender, instance, created, **kwargs):
-    from flashsale.dinghuo.tasks import task_inbounddetail_update_productsku_inbound_quantity
-    task_inbounddetail_update_productsku_inbound_quantity.delay(instance.sku.id)
-
-post_save.connect(update_productsku_inbound_quantity, sender=InBoundDetail, dispatch_uid='post_save_update_productsku_inbound_quantity')
 
 
 

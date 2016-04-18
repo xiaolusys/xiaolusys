@@ -1020,3 +1020,31 @@ def task_assign_stock_to_package_sku_item(stat):
             package_sku_item.assign_status = PackageSkuItem.ASSIGNED
             package_sku_item.save()
 
+@task()
+def task_productsku_create_productskustats(sku_id, product_id):
+    from shopback.items.models_stats import ProductSkuStats
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        stat = ProductSkuStats(sku_id=sku_id,product_id=product_id)
+        stat.save()
+
+
+@task()
+def task_productsku_update_productskusalestats(sku_id, sale_start_time, sale_end_time):
+    """
+    We still have to make sure what exact information we should update.
+    """
+    from shopback.items.models_stats import ProductSkuSaleStats, gen_productsksalestats_unikey
+    uni_key = gen_productsksalestats_unikey(sku_id)
+    
+    stats = ProductSkuSaleStats.objects.filter(uni_key=uni_key)
+    if stats.count() <= 0:
+        stat = ProductSkuStats(uni_key=uni_key, sku_id=sku_id, sale_start_time=sale_start_time, sale_end_time=sale_end_time)
+        stat.save()
+    else:
+        stat = stats[0]
+        stat.sale_start_time = sale_start_time
+        stat.sale_end_time = sale_end_time
+        stat.save(update_fields=['sale_start_time', 'sale_end_time'])
+        
+

@@ -115,7 +115,7 @@ class ProductSkuSaleStats(models.Model):
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
 
 def gen_productsksalestats_unikey(sku_id):
-    count = ProductSkuSaleStats.objects.filter(sku_id=sku_id,status=2).count()
+    count = ProductSkuSaleStats.objects.filter(sku_id=sku_id,status=ProductSkuSaleStats.ST_FINISH).count()
     return "%s-%s" % (sku_id, count)
     
     

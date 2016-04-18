@@ -786,7 +786,7 @@ def task_packageskuitem_update_productskustats(sku_id):
     """
     1) we added db_index=True for pay_time in packageskuitem;
     2) we should built joint-index for (sku_id, assign_status,pay_time)?
-    -- Zifei 2016-04-15
+    -- Zifei 2016-04-18
     """
     from shopback.items.models_stats import ProductSkuStats
     sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,pay_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME).exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))

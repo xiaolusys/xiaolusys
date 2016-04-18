@@ -962,6 +962,30 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 
 
+def create_product_skustats(sender, instance, created, **kwargs):
+    """
+    Whenever ProductSku gets created, we create ProductSkuStats
+    """
+    if created:
+        from shopback.items.tasks import task_productsku_update_productskustats
+        task_productsku_create_productskustats.delay(instance.id, instance.product.id)
+    
+post_save.connect(create_product_skustats, sender=ProductSku, dispatch_uid='post_save_create_productskustats')
+
+
+def update_productskusalestats(sender, instance, created, **kwargs):
+    """
+    Whenever ProductSku gets updated, we update ProductSkuSaleStats
+    """
+    from shopback.items.tasks import task_productsku_update_productskusalestats
+    sale_start_time = instance.product.sale_time
+    sale_end_time = instance.product.offshelf_time
+    task_productsku_update_productskusalestats.delay(instance.id, sale_start_time, sale_end_time)
+    
+post_save.connect(update_productskusalestats, sender=ProductSku, dispatch_uid='post_save_update_productskusalestats')
+
+
+
 def upshelf_product_clear_locknum(sender, product_list, *args, **kwargs):
     """ 商品上架时将商品规格待发数更新为锁定库存数 """
     for product in product_list:
