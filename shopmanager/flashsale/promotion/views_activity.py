@@ -276,7 +276,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
             applied = True
 
         mobile_required = True
-        if mobile or openid:
+        if mobile or self.valid_openid(openid):
             mobile_required = False
 
         img, nick = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/100/format/png", u"小鹿妈妈"
@@ -312,7 +312,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if not mobile:
             mobile = request.COOKIES.get("mobile", None)
 
-        if not (mobile or openid):
+        if not (mobile or self.valid_openid(openid)):
             response = Response({"rcode": 1, "msg": "openid or moible must be provided one"})
             response["Access-Control-Allow-Origin"] = "*"
             return response
@@ -332,17 +332,19 @@ class ApplicationView(WeixinAuthMixin, APIView):
             applicaiton_count = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id).count()
 
         params = {}
+        customer = get_customer(request)
         if from_customer:
             params.update({"from_customer": from_customer})
         if ufrom:
             params.update({"ufrom": ufrom})
         if unionid:
-            customer = get_customer(request)
-            params.update({"user_unionid": unionid, "customer_id":customer.id, "status": XLSampleApply.ACTIVED})
+            params.update({"user_unionid": unionid})
         if openid:
             params.update({"user_openid": openid})
         if mobile:
             params.update({"mobile": mobile})
+        if customer and ufrom == "app":
+            params.update({"customer_id":customer.id,"status": XLSampleApply.ACTIVE})
 
 
         if application_count <= 0:
@@ -351,7 +353,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
             application.save()
 
         next_page = "download"
-        if ufrom == 'wxapp' or ufrom == 'pyq':
+        if self.is_from_weixin(request):
             next_page = "snsauth"
         if ufrom == "app":
             next_page = "activate"
