@@ -526,7 +526,7 @@ class ClickLogView(WeixinAuthMixin, View):
 
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
-        xlmms = XiaoluMama.objects.filter(openid=unionid)
+        xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
         if xlmms.exists():
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id, ufrom='wx')
         else:

@@ -382,12 +382,16 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
         if mm_linkid is None:
             return Response({'download_url': download_url})
         else:  # 有推荐代理的情况才记录
+            from_customer = None
             try:
-                xlmm = XiaoluMama.objects.get(pk=mm_linkid)
-                from_customer = Customer.objects.get(unionid=xlmm.openid)
+                xlmms = XiaoluMama.objects.filter(pk=mm_linkid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
+                if xlmms.exists():
+                    xlmm = xlmms[0]
+                    from_customer = Customer.objects.get(unionid=xlmm.openid)
             except:
                 return Response({'download_url': download_url})
             # 带上参数跳转到下载页面
-            download_url = urlparse.urljoin(settings.M_SITE_URL,
-                                            'sale/promotion/appdownload/?from_customer={0}'.format(from_customer.id))
+            if from_customer:
+                download_url = urlparse.urljoin(settings.M_SITE_URL,
+                                                'sale/promotion/appdownload/?from_customer={0}'.format(from_customer.id))
             return Response({'download_url': download_url})
