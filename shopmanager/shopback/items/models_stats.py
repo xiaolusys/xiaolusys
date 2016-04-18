@@ -8,7 +8,8 @@ from django.db.models.signals import pre_save, post_save
 logger = logging.getLogger('django.request')
 
 # This is the commit time, and also the time we start.
-PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 17, 23, 59, 59)
+# after switch, we can't update product sku quantity any more!!!
+PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 18, 23, 59, 59)
 
 
 class ProductSkuStats(models.Model):

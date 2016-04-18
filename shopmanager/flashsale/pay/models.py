@@ -646,6 +646,15 @@ def update_package_sku_item(sender, instance, created, **kwargs):
 post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 
+def aleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
+
+    from flashsale.pay.tasks_stats import task_saleorder_update_productskustats_waitingpay_num
+    task_saleorder_update_productskustats_waitingpay_num.delay(instance.sku_id)
+
+post_save.connect(aleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
+                  dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
+
+
 class TradeCharge(PayBaseModel):
     order_no = models.CharField(max_length=40, verbose_name=u'订单ID')
     charge = models.CharField(max_length=28, verbose_name=u'支付编号')
@@ -775,6 +784,17 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
+
+
+def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, *args, **kwargs):
+
+    from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
+    task_shoppingcart_update_productskustats_shoppingcart_num.delay(instance.sku_id)
+
+
+post_save.connect(shoppingcart_update_productskustats_shoppingcart_num, sender=ShoppingCart,
+                  dispatch_uid='post_save_shoppingcart_update_productskustats_shoppingcart_num')
+
 
 from models_coupon_new import CouponTemplate, CouponsPool, UserCoupon
 from models_shops import CustomerShops, CuShopPros

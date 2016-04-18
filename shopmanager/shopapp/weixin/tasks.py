@@ -129,7 +129,6 @@ def task_Mod_Merchant_Product_Status(outer_ids, status):
         #             exception = exc
 
         product = Product.objects.get(outer_id=outer_id)
-        print 'debug product:', outer_id,status
 
         if status == WXProduct.UP_ACTION:
             product.shelf_status = Product.UP_SHELF

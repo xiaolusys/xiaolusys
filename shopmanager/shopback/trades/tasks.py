@@ -778,8 +778,6 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 
 from shopback.trades.models import PackageSkuItem, PackageOrder
 
-from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
-
 
 @task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats(sku_id):
