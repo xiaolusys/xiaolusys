@@ -28,6 +28,7 @@ class InBoundListForm(BaseForm):
 class EditInBoundForm(InBoundListForm):
     inbound_id = forms.IntegerField(required=False, initial=0)
     skus = forms.CharField(required=False, initial='[]')
+    details = forms.CharField(required=False, initial='[]')
     images = forms.CharField(required=False, initial='[]')
     memo = forms.CharField(required=False, initial='')
 
