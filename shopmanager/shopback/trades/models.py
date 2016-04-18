@@ -1232,7 +1232,7 @@ class PackageOrder(models.Model):
     # PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
     #                           (PKG_CONFIRM, u'已确定'))
     pid = BigIntegerAutoField(verbose_name=u'包裹主键', primary_key=True)
-    id = models.CharField(max_length=100, verbose_name=u'包裹ID')
+    id = models.CharField(max_length=100, verbose_name=u'包裹ID', unique=True)
     tid = models.CharField(max_length=32, verbose_name=u'原单ID')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     type = models.CharField(max_length=32, choices=TRADE_TYPE, db_index=True, default=pcfg.SALE_TYPE,
@@ -1367,6 +1367,14 @@ class PackageOrder(models.Model):
         verbose_name = u'包裹单'
         verbose_name_plural = u'包裹列表'
 
+    def copy_order_info(self, sale_trade):
+        """从package_order或者sale_trade复制信息"""
+        attrs = ['tid', 'buyer_id', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
+                 'receiver_zip', 'receiver_mobile', 'receiver_phone', 'buyer_nick']
+        for attr in attrs:
+            v = getattr(sale_trade, attr)
+            setattr(self, attr, v)
+
     def set_out_sid(self, out_sid, logistics_company_id):
         if not self.out_sid:
             self.out_sid = out_sid
@@ -1422,7 +1430,7 @@ class PackageOrder(models.Model):
     @staticmethod
     def get_or_create(id, sale_trade):
         if not PackageOrder.objects.filter(id=id).exists():
-            package_order = PackageOrder()
+            package_order = PackageOrder(id=id)
             package_order.copy_order_info(sale_trade)
             package_order.save()
             new_create = True
@@ -1467,6 +1475,11 @@ def sync_merge_trade_by_package(sender, instance, created, **kwargs):
 
 
 post_save.connect(get_logistics_company, sender=PackageOrder)
+
+
+
+# TODO@hy
+#post_save.connect(update_merge_order_item_status, sender=PackageOrder)
 
 
 # post_save.connect(sync_merge_trade_by_package, sender=PackageOrder)

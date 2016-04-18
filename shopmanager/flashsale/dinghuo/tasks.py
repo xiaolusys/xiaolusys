@@ -1244,9 +1244,10 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     --Zifei 2016-04-18
     """
     from flashsale.dinghuo.models import OrderDetail
-    from shopback.items.models import ProductSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
+    from shopback.items.models import ProductSkuStats
+    from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
 
-    sum_res = OrderDetail.objects.filter(chichu_id=sku_id,arrival_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME).aggregate(total=Sum('num'))
+    sum_res = OrderDetail.objects.filter(chichu_id=sku_id,arrival_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME).aggregate(total=Sum('arrival_quantity'))
     total = sum_res["total"] or 0
     
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)

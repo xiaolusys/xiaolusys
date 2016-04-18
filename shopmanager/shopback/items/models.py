@@ -64,7 +64,7 @@ class ProductStock(object):
         Product.objects.filter(id=orderdetail.product_id).update(collect_num=F('collect_num') + num)
         # ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') + num)
         product_sku = ProductSku.objects.get(id=orderdetail.chichu_id)
-        product_sku.num += num
+        product_sku.quantity += num
         product_sku.save()
         # p = ProductSku.objects.get(id=orderdetail.chichu_id)
         # p.quantity =

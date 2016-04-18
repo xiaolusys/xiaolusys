@@ -1039,7 +1039,7 @@ def task_productsku_update_productskusalestats(sku_id, sale_start_time, sale_end
     
     stats = ProductSkuSaleStats.objects.filter(uni_key=uni_key)
     if stats.count() <= 0:
-        stat = ProductSkuStats(uni_key=uni_key, sku_id=sku_id, sale_start_time=sale_start_time, sale_end_time=sale_end_time)
+        stat = ProductSkuSaleStats(uni_key=uni_key, sku_id=sku_id, sale_start_time=sale_start_time, sale_end_time=sale_end_time)
         stat.save()
     else:
         stat = stats[0]

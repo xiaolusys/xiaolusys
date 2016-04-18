@@ -264,7 +264,9 @@ def package_order_print_post(request):
     num = package_orders.count()
     if num != len(package_order_ids):
         return Response({'isSuccess': False, 'response_error': u'部分包裹不存在或者未准备好'})
-    package_orders.update(status=PackageOrder.WAIT_CHECK_BARCODE_STATUS)
+    for package_order in package_orders:
+        package_order.status = PackageOrder.WAIT_CHECK_BARCODE_STATUS
+        package_order.save()
     return Response({'isSuccess': True})
 
 

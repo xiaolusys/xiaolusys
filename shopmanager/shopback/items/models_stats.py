@@ -8,7 +8,7 @@ from django.db.models.signals import pre_save, post_save
 logger = logging.getLogger('django.request')
 
 # This is the commit time, and also the time we start.
-PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 18, 23, 59, 59)
+PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 17, 23, 59, 59)
 
 
 class ProductSkuStats(models.Model):
@@ -72,7 +72,7 @@ def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     if instance.aggregate_quantity > instance.assign_num:
         from shopback.items.tasks import task_assign_stock_to_package_sku_item
         task_assign_stock_to_package_sku_item.delay(instance)
-    elif instance.aggregate_quantity < instance.assign_num:
+    elif instance.realtime_quantity < instance.assign_num:
         logger.error('assign_num error: sku assign_num bigger than quantity:' + str(instance.id))
 
 
@@ -94,7 +94,7 @@ class ProductSkuSaleStats(models.Model):
     STATUS = ((ST_EFFECT, 'EFFECT'), (ST_DISCARD, 'DISCARD'), (ST_FINISH, 'FINISH'))
 
     # uni_key = sku_id + number of finished records
-    uni_key = models.IntegerField(null=True, unique=True, verbose_name='UNIQUE ID')
+    uni_key = models.CharField(max_length=32, null=True, unique=True, verbose_name='UNIQUE ID')
 
     sku_id = models.IntegerField(null=True, db_index=True, verbose_name='商品SKU记录ID')
     product_id = models.IntegerField(null=True, db_index=True, verbose_name='商品记录ID')

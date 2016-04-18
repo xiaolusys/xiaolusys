@@ -96,13 +96,14 @@ def task_get_logistics_company(package_order):
 
     from shopback.trades.models import PackageOrder
     from shopback.logistics.models import LogisticsCompanyProcessor
+    from shopback.warehouse import WARE_GZ
     # 如果订单属于广州仓，则默认发韵达
-    if package_order.ware_by == pcfg.WARE_GZ:
+    if package_order.ware_by == WARE_GZ:
         package_order.logistics_company = LogisticsCompanyProcessor.getGZLogisticCompany(
-            package_order, package_order.state, package_order.city, package_order.district,
+            package_order, package_order.receiver_state, package_order.receiver_city, package_order.receiver_district,
             package_order.shipping_type, package_order.receiver_address)
     else:
         package_order.logistics_company = LogisticsCompanyProcessor.getSHLogisticCompany(
-            package_order, package_order.state, package_order.city, package_order.district,
+            package_order, package_order.receiver_state, package_order.receiver_city, package_order.receiver_district,
             package_order.shipping_type, package_order.receiver_address)
     update_model_fields(package_order, update_fields=['logistics_company', 'ware_by'])
