@@ -196,12 +196,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         strade_id     = sale_trade.id
         channel       = sale_trade.channel
         
-        urows = UserBudget.objects.filter(
-                user=buyer,
-                amount__gte=payment
-            ).update(amount=models.F('amount') - payment)
+        urows = UserBudget.objects.filter(user=buyer, amount__gte=payment)
         logger.info('budget charge:saletrade=%s, updaterows=%d'%(sale_trade, urows))
-        if urows == 0 :
+        if not urows.exists():
             raise Exception(u'小鹿钱包余额不足')
         
         BudgetLog.objects.create(customer_id=buyer.id,

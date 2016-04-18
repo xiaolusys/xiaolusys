@@ -707,6 +707,10 @@ def cash_modify(request, data):
             cashout.status = 'approved'
             cashout.approve_time = datetime.datetime.now()
             cashout.save()
+            logger.warn('cashout save approved: cash_d:%s mama_id:%s pre_cash:%s cashout_value:%s' % (cash_id,
+                                                                                                      mama_id,
+                                                                                                      pre_cash,
+                                                                                                      cashout.value))
 
             today_dt = datetime.date.today()
             CarryLog.objects.get_or_create(xlmm=mama_id,
