@@ -2,6 +2,8 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
+
+from core.fields import BigIntegerAutoField
 from core.fields import JSONCharMyField
 from shopback.base.fields import BigIntegerAutoField
 from shopback.items.models import ProductSku, Product
@@ -278,8 +280,6 @@ class RGDetail(models.Model):
         self.return_goods.sum_amount = total_amount
         self.return_goods.save()
 
-
-from django.db.models.signals import post_save
 
 
 def syncRGdTreturn(sender, instance, **kwargs):

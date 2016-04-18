@@ -788,10 +788,12 @@ def task_packageskuitem_update_productskustats(sku_id):
     2) we should built joint-index for (sku_id, assign_status,pay_time)?
     -- Zifei 2016-04-18
     """
-    from shopback.items.models_stats import ProductSkuStats
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME).exclude(
-        assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
-    wait_assign_num, assign_num, post_num = 0, 0, 0
+
+    from shopback.items.models_stats import ProductSkuStats,PRODUCT_SKU_STATS_COMMIT_TIME
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,pay_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME).\
+        exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
+    wait_assign_num,assign_num,post_num = 0,0,0
+
     for entry in sum_res:
         if entry["assign_status"] == PackageSkuItem.NOT_ASSIGNED:
             wait_assign_num = entry["total"]
@@ -809,10 +811,10 @@ def task_packageskuitem_update_productskustats(sku_id):
             stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, **params)
             stat.save()
         except IntegrityError as exc:
-            logger.warn(
-                "IntegrityError - productskustat/sold_num | sku_id:%s, sold_num:%s, assign_num:%s, post_num:%s" % (
-                    sku_id, sold_num, assign_num, post_num))
-            raise task_packageskuitem_update_productskustats.retry(exc=exc)
+
+            logger.warn("IntegrityError - productskustat/sold_num | sku_id:%s, sold_num:%s, assign_num:%s, post_num:%s"
+                        % (sku_id,sold_num,assign_num,post_num))
+
     else:
         stat = stats[0]
         update_fields = []

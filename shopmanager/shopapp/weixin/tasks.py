@@ -105,10 +105,12 @@ def task_Mod_Merchant_Product_Status(outer_ids, status):
     from shopback.items.models import Product
     from shopback import signals
 
-    update_wxpids = set([])
-    _wx_api = WeiXinAPI()
+
     exception = None
     for outer_id in outer_ids:
+        # update_wxpids = set([])
+        # _wx_api = WeiXinAPI()
+        ###############################
         #         try:
         #             wx_skus = WXProductSku.objects.filter(outer_id=outer_id).values('product').distinct()
         #             wx_prodids = [p['product'] for p in wx_skus]
@@ -127,8 +129,7 @@ def task_Mod_Merchant_Product_Status(outer_ids, status):
         #             exception = exc
 
         product = Product.objects.get(outer_id=outer_id)
-        if status == product.shelf_status:
-            continue
+        print 'debug product:', outer_id,status
 
         if status == WXProduct.UP_ACTION:
             product.shelf_status = Product.UP_SHELF

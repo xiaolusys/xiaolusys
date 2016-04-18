@@ -565,29 +565,37 @@ post_save.connect(delete_pro_record_supplier, Product)
 from shopback.signals import signal_product_upshelf,signal_product_downshelf
 
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
-    products = Product.objects.filter(id=instance.id)
-    if products.count() > 0:
-        product = products[0]
+    if not raw:
+        product = Product.objects.get(id=instance.id)
         # 如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
             instance.is_verify = False
+        print product.shelf_status != instance.shelf_status, product.shelf_status
+        #商品上下架状态变更
         if (product.shelf_status != instance.shelf_status):
             if instance.shelf_status == Product.UP_SHELF:
+                print 'debug shelf status:', instance.shelf_status
                 # 商品上架信号
-                signal_product_upshelf.send(sender=Product, product_list=[product])
+                from shopback.items.tasks_stats import \
+                    task_product_upshelf_update_productskusalestats_initwait_assign_num
+                product_skus = product.normal_skus
+                for sku in product_skus:
+                    task_product_upshelf_update_productskusalestats_initwait_assign_num.delay(sku.id)
 
             elif instance.shelf_status == Product.DOWN_SHELF:
+                print 'debug shelf status:', instance.shelf_status
                 # 商品下架信号
-                signal_product_downshelf.send(sender=Product, product_list=[product])
+                from shopback.items.tasks_stats import \
+                    task_product_downshelf_update_productskusalestats_initwait_assign_num
+                st = product.sale_time
+                sale_end_time = st and datetime.datetime.combine(st,
+                                  datetime.datetime.min.time()) or datetime.datetime.now()
+                product_skus = product.normal_skus
+                for sku in product_skus:
+                    task_product_downshelf_update_productskusalestats_initwait_assign_num.delay(sku.id,
+                                                                                                    sale_end_time)
 
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
-
-def update_productsku_salestats(sender, instance, raw, *args, **kwargs):
-    from shopback.items.models_stats import ProductSkuSaleStats
-    #TODO
-
-pre_save.connect(change_obj_state_by_pre_save, sender=Product)
-
 
 
 def update_mama_shop(sender, instance, raw, *args, **kwargs):
@@ -682,18 +690,32 @@ class ProductSku(models.Model):
                 setattr(self, field.name, getattr(self, field.name).strip())
 
     @property
+    def obj_sku_stats(self):
+        try:
+            return ProductSkuStats.objects.get(sku_id=self.id)
+        except ProductSkuStats.DoesNotExist:
+            return None
+
+    @property
+    def obj_active_sku_salestats(self):
+        try:
+            return ProductSkuSaleStats.objects.get(sku_id=self.id,status=ProductSkuSaleStats.ST_EFFECT)
+        except ProductSkuSaleStats.DoesNotExist:
+            return None
+
+    @property
     def realtime_quantity(self):
         """
         This tells how many quantity in store.
         """
-        return self.history_quantity + self.inbound_quantity - self.post_num
+        raise NotImplementedError
 
     @property
     def aggregate_quantity(self):
         """
         This tells how many quantity we have in total since we introduced inbound_quantity.
         """
-        return history_quantity + inbound_quantity
+        raise NotImplementedError
 
     @property
     def name(self):
@@ -967,23 +989,10 @@ def create_product_skustats(sender, instance, created, **kwargs):
     Whenever ProductSku gets created, we create ProductSkuStats
     """
     if created:
-        from shopback.items.tasks import task_productsku_update_productskustats
-        task_productsku_create_productskustats.delay(instance.id, instance.product.id)
+        from shopback.items.tasks_stats import task_productsku_update_productskustats
+        task_productsku_update_productskustats.delay(instance.id, instance.product.id)
     
 post_save.connect(create_product_skustats, sender=ProductSku, dispatch_uid='post_save_create_productskustats')
-
-
-def update_productskusalestats(sender, instance, created, **kwargs):
-    """
-    Whenever ProductSku gets updated, we update ProductSkuSaleStats
-    """
-    from shopback.items.tasks import task_productsku_update_productskusalestats
-    sale_start_time = instance.product.sale_time
-    sale_end_time = instance.product.offshelf_time
-    task_productsku_update_productskusalestats.delay(instance.id, sale_start_time, sale_end_time)
-    
-post_save.connect(update_productskusalestats, sender=ProductSku, dispatch_uid='post_save_update_productskusalestats')
-
 
 
 def upshelf_product_clear_locknum(sender, product_list, *args, **kwargs):

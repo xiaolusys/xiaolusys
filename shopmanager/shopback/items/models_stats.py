@@ -15,8 +15,8 @@ class ProductSkuStats(models.Model):
     class Meta:
         db_table = 'shop_items_productskustats'
         app_label = 'items'
-        verbose_name = u'库存商品统计数据'
-        verbose_name_plural = u'库存商品统计数据列表'
+        verbose_name = u'库存/商品统计数据'
+        verbose_name_plural = u'库存/商品统计数据列表'
 
     STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
 
@@ -61,6 +61,19 @@ class ProductSkuStats(models.Model):
     def realtime_lock_num(self):
         return self.shoppingcart_num + self.waitingpay_num
 
+    def realtime_lock_num_display(self):
+        try:
+            sale_state = ProductSkuSaleStats.objects.get(sku_id=self.id, status=ProductSkuSaleStats.ST_EFFECT)
+        except ProductSkuSaleStats.DoesNotExist:
+            sale_state = None
+        return '%s(c:%s|w:%s|i:%s|s%s)'%(self.realtime_lock_num,
+                                      self.shoppingcart_num,
+                                      self.waitingpay_num,
+                                      sale_state and sale_state.init_waitassign_num or 0,
+                                      sale_state and sale_state.num or 0)
+
+    realtime_lock_num_display.short_description = u"实时锁定库存"
+
     @property
     def properties_name(self):
         from shopback.items.models import ProductSku
@@ -84,8 +97,8 @@ class ProductSkuSaleStats(models.Model):
     class Meta:
         db_table = 'shop_items_productskusalestats'
         app_label = 'items'
-        verbose_name = u'商品购买统计数据'
-        verbose_name_plural = u'商品购买统计数据列表'
+        verbose_name = u'库存/商品购买统计数据'
+        verbose_name_plural = u'库存/商品购买统计数据列表'
 
     ST_EFFECT = 0
     ST_DISCARD = 1
