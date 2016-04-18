@@ -1236,16 +1236,17 @@ def create_dinghuo():
 from django.db import IntegrityError
 
 @task(max_retries=3, default_retry_delay=6)
-def task_inbounddetail_update_productsku_inbound_quantity(sku_id):
+def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     """
     Whenever we have products inbound, we update the inbound quantity.
-    1) we should build joint-index for (sku,status)?
-    --Zifei 2016-04-15
+    0) OrderDetail arrival_time add db_index=True
+    1) we should build joint-index for (sku,arrival_time)?
+    --Zifei 2016-04-18
     """
-    from flashsale.dinghuo.models import InBoundDetail
-    from shopback.items.models import ProductSkuStats
-    # InBoundDetail has to have index built on sku and status in order to speedup the following query.
-    sum_res = InBoundDetail.objects.filter(sku=sku_id, status=InBoundDetail.NORMAL).aggregate(total=Sum('num'))
+    from flashsale.dinghuo.models import OrderDetail
+    from shopback.items.models import ProductSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
+
+    sum_res = OrderDetail.objects.filter(chichu_id=sku_id,arrival_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME).aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
     
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
@@ -1257,7 +1258,7 @@ def task_inbounddetail_update_productsku_inbound_quantity(sku_id):
         except IntegrityError as exc:
             logger.warn(
                 "IntegrityError - productskustat/inbound_quantity | sku_id: %s, inbound_quantity: %s" % (sku_id, total))
-            raise task_inbounddetail_update_productsku_inbound_quantity.retry(exc=exc)
+            raise task_orderdetail_update_productskustats_inbound_quantity.retry(exc=exc)
     else:
         stat = stats[0]
         if stat.inbound_quantity != total:

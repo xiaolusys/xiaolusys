@@ -778,95 +778,51 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 
 from shopback.trades.models import PackageSkuItem, PackageOrder
 
+from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
+
 
 @task(max_retries=3, default_retry_delay=6)
-def task_packageskuitem_update_productskustats_sold_num(sku_id):
+def task_packageskuitem_update_productskustats(sku_id):
     """
-    Recalculate and update sold_num. 
-    1) But start from when? -- We have to determine a start time.
-    2) We should built joint-index for (sku_id, assign_status)?
-    -- Zifei 2016-04-15
+    1) we added db_index=True for pay_time in packageskuitem;
+    2) we should built joint-index for (sku_id, assign_status,pay_time)?
+    -- Zifei 2016-04-18
     """
     from shopback.items.models_stats import ProductSkuStats
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME).exclude(
+        assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
+    wait_assign_num, assign_num, post_num = 0, 0, 0
+    for entry in sum_res:
+        if entry["assign_status"] == PackageSkuItem.NOT_ASSIGNED:
+            wait_assign_num = entry["total"]
+        elif entry["assign_status"] == PackageSkuItem.ASSIGNED:
+            assign_num = entry["total"]
+        elif entry["assign_status"] == PackageSkuItem.FINISHED:
+            post_num = entry["total"]
 
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id).exclude(assign_status=PackageSkuItem.CANCELED).aggregate(
-        total=Sum('num'))
-    total = sum_res["total"] or 0
-
+    sold_num = wait_assign_num + assign_num + post_num
+    params = {"sold_num": sold_num, "assign_num": assign_num, "post_num": post_num}
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
         product_id = ProductSku.objects.get(id=sku_id).product.id
         try:
-            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, sold_num=total)
+            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, **params)
             stat.save()
         except IntegrityError as exc:
-            logger.warn("IntegrityError - productskustat/sold_num | sku_id: %s, sold_num: %s" % (sku_id, total))
-            raise task_packageskuitem_update_productskustats_sold_num.retry(exc=exc)
+            logger.warn(
+                "IntegrityError - productskustat/sold_num | sku_id:%s, sold_num:%s, assign_num:%s, post_num:%s" % (
+                    sku_id, sold_num, assign_num, post_num))
+            raise task_packageskuitem_update_productskustats.retry(exc=exc)
     else:
         stat = stats[0]
-        if stat.sold_num != total:
-            stat.sold_num = total
-            stat.save(update_fields=["sold_num"])
-
-
-@task(max_retries=3, default_retry_delay=6)
-def task_packageskuitem_update_productskustats_post_num(sku_id):
-    """
-    Recalculate and update post_num.
-    1) But start from when? -- We have to determine a start time.
-    2) We should built joint-index for (sku_id, assign_status)?
-    -- Zifei 2016-04-15
-    """
-    from shopback.items.models_stats import ProductSkuStats
-
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.FINISHED).aggregate(
-        total=Sum('num'))
-    total = sum_res["total"] or 0
-
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-    if stats.count() <= 0:
-        product_id = ProductSku.objects.get(id=sku_id).product.id
-        try:
-            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, post_num=total)
-            stat.save()
-        except IntegrityError as exc:
-            logger.warn("IntegrityError - productskustat/post_num | sku_id: %s, post_num: %s" % (sku_id, total))
-            raise task_packageskuitem_update_productskustats_post_num.retry(exc=exc)
-    else:
-        stat = stats[0]
-        if stat.post_num != total:
-            stat.post_num = total
-            stat.save(update_fields=["post_num"])
-
-
-@task(max_retries=3, default_retry_delay=6)
-def task_packageskuitem_update_productskustats_assign_num(sku_id):
-    """
-    Recalculate and update post_num.
-    1) But start from when? -- We have to determine a start time.
-    2) We should built joint-index for (sku_id, assign_status)?
-    -- Zifei 2016-04-15
-    """
-    from shopback.items.models_stats import ProductSkuStats
-
-    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).aggregate(
-        Sum('num'))
-    total = assign_num_res['num__sum'] or 0
-
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-    if stats.count() <= 0:
-        product_id = ProductSku.objects.get(id=sku_id).product.id
-        try:
-            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, assign_num=total)
-            stat.save()
-        except IntegrityError as exc:
-            logger.warn("IntegrityError - productskustat/assign_num | sku_id: %s, assign_num: %s" % (sku_id, total))
-            raise task_packageskuitem_update_productskustats_assign_num.retry(exc=exc)
-    else:
-        stat = stats[0]
-        if stat.assign_num != total:
-            stat.assign_num = total
-            stat.save(update_fields=["assign_num"])
+        update_fields = []
+        for k, v in params.iteritems():
+            if hasattr(stat, k):
+                if getattr(stat, k) != v:
+                    setattr(stat, k, v)
+                    update_fields.append(k)
+        if update_fields:
+            stat.save(update_fields=update_fields)
 
 
 @task(max_retries=3, default_retry_delay=6)
@@ -879,7 +835,7 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
                                                     sale_start_time__gte=pay_time,
                                                     sale_end_time__lte=pay_time,
                                                     status__in=(
-                                                    ProductSkuSaleStats.ST_EFFECT, ProductSkuSaleStats.ST_FINISH))
+                                                        ProductSkuSaleStats.ST_EFFECT, ProductSkuSaleStats.ST_FINISH))
     if not sale_stats.exists():
         logger.warn('update productskusalestats_num not found | sku_id:%s, pay_time:%s' % (sku_id, pay_time))
         return
