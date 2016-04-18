@@ -575,6 +575,38 @@ class ActivityEntryAdmin(admin.ModelAdmin):
 
 admin.site.register(ActivityEntry, ActivityEntryAdmin)
 
+
+class BrandEntryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'start_time', 'end_time', 'created', 'is_active')
+
+    list_filter = ('is_active', ('start_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    search_fields = ['title']
+    list_per_page = 25
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 128})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
+    }
+
+
+admin.site.register(ActivityEntry, BrandEntryAdmin)
+
+
+class BrandProductAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'start_time', 'end_time',  'product_id')
+
+    list_filter = ('start_time', DateFieldListFilter)
+    search_fields = ['title']
+    list_per_page = 25
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 128})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
+    }
+
+
+admin.site.register(ActivityEntry, BrandProductAdmin)
+
 from models_coupon import Integral, IntegralLog
 
 

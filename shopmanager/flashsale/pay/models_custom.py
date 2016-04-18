@@ -5,6 +5,7 @@ from django.db.models import F
 
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
+from shopback.base.fields import BigIntegerAutoField
 from .base import PayBaseModel
 
 from shopback.items.models import Product
@@ -289,3 +290,51 @@ class ActivityEntry(PayBaseModel):
 
     def friend_member_num(self):
         return 16
+
+class BrandEntry(PayBaseModel):
+    """ 品牌推广入口 """
+
+    id = BigIntegerAutoField(primary_key=True)
+    title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
+
+    brand_desc = models.TextField(max_length=512, blank=True, verbose_name=u'品牌活动描述')
+    brand_pic = models.CharField(max_length=256, blank=True, verbose_name=u'品牌图片')
+    brand_post = models.CharField(max_length=256, blank=True, verbose_name=u'品牌海报')
+    brand_applink = models.CharField(max_length=256, blank=True, verbose_name=u'品牌APP协议链接')
+
+    start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
+    end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
+
+    is_active = models.BooleanField(default=True, verbose_name=u'上线')
+
+    class Meta:
+        db_table = 'flashsale_brand_entry'
+        app_label = 'pay'
+        verbose_name = u'特卖/品牌推广入口'
+        verbose_name_plural = u'特卖/品牌推广入口'
+
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.id, self.title)
+
+class BrandProduct(PayBaseModel):
+    """ 品牌商品信息 """
+
+    id = BigIntegerAutoField(primary_key=True)
+    brand = models.ForeignKey(BrandEntry, related_name='brand', verbose_name=u'品牌编号id')
+
+    title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
+
+    product_id = models.CharField(db_index=True, max_length=32, verbose_name=u'商品id')
+
+    start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
+    end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
+
+
+    class Meta:
+        db_table = 'flashsale_brand_product'
+        app_label = 'pay'
+        verbose_name = u'特卖/品牌商品'
+        verbose_name_plural = u'特卖/品牌商品'
+
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.id, self.title)
