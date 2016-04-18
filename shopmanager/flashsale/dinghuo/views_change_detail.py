@@ -74,9 +74,11 @@ class ChangeDetailView(View):
         order_list_list = sorted(order_list_list, key=_sort)
 
         product_link = product_links[0] if product_links else ''
-        if order_list.status == "草稿":
+
+        if order_list.status == OrderList.SUBMITTING:
             flag_of_status = True
-        elif order_list.status == u'有问题' or order_list.status == u'5' or order_list.status == u'6':
+        elif order_list.status in [OrderList.QUESTION, OrderList.CIPIN, OrderList.QUESTION_OF_QUANTITY,
+                                   OrderList.TO_BE_PAID, OrderList.TO_PAY, OrderList.CLOSED]:
             flag_of_question = True
         if order_list.status == u'7':
             flag_of_sample = True
@@ -100,9 +102,13 @@ class ChangeDetailView(View):
         status = post.get("status", "").strip()
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
-            if status == '已处理(需收款)':
-                order_list.pay_status = '需收款'
-            order_list.status = status
+            if status == OrderList.COMPLETED:
+                if order_list.is_postpay:
+                    order_list.status = OrderList.TO_PAY
+                else:
+                    order_list.status = OrderList.CLOSED
+            else:
+                order_list.status = status
             order_list.note = order_list.note + "\n" + "-->" + datetime.datetime.now(
             ).strftime('%m月%d %H:%M') + request.user.username + ":" + remarks
             order_list.save()
@@ -125,6 +131,11 @@ class ChangeDetailView(View):
         if order_list.status == u'7':
             flag_of_sample = True
         # 是否到货商品关联订单
+        flag_of_question = False
+        if order_list.status in [OrderList.QUESTION, OrderList.CIPIN, OrderList.QUESTION_OF_QUANTITY,
+                                OrderList.TO_BE_PAID, OrderList.TO_PAY, OrderList.CLOSED]:
+            flag_of_question = True
+
         try:
             from shopback.items.tasks import releaseProductTradesTask
             distinct_pids = [
@@ -142,6 +153,7 @@ class ChangeDetailView(View):
         return render_to_response("dinghuo/changedetail.html",
                                   {"orderlist": order_list,
                                    "flagofstatus": flag_of_status,
+                                   'flagofquestion': flag_of_question,
                                    "orderdetails": order_list_list,
                                    "flag_of_sample": flag_of_sample},
                                   context_instance=RequestContext(request))
