@@ -986,7 +986,7 @@ def create_product_skustats(sender, instance, created, **kwargs):
     Whenever ProductSku gets created, we create ProductSkuStats
     """
     if created:
-        from shopback.items.tasks_stats import task_productsku_update_productskustats
+        from shopback.items.tasks import task_productsku_update_productskustats
         task_productsku_update_productskustats.delay(instance.id, instance.product.id)
     else:
         from shopback.items.tasks_stats import task_productsku_update_productskusalestats_history_quantity
