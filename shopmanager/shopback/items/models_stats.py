@@ -1,8 +1,14 @@
 # coding: utf-8
 import logging
+import datetime
+
 from django.db import models
 from django.db.models.signals import pre_save, post_save
 logger = logging.getLogger('django.request')
+
+
+# This is the commit time, and also the time we start.
+PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016,4,18,23,59,59)
 
 class ProductSkuStats(models.Model):
     class Meta:
@@ -48,7 +54,7 @@ class ProductSkuStats(models.Model):
 
     @property
     def wait_assign_num(self):
-        return self.sold_num - self.assign_num
+        return self.sold_num - self.assign_num - self.post_num
 
     @property
     def realtime_lock_num(self):
