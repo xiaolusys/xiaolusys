@@ -292,10 +292,10 @@ class APPDownloadView(WeixinAuthMixin, View):
                     download.ufrom = ufrom
                     download.save()
 
-        agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
-        if agent and "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
-            url = self.QQ_YINYONGBAO_URL
-            return redirect(url)
+        # agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
+        # if agent and "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
+        #     url = self.QQ_YINYONGBAO_URL
+        #     return redirect(url)
 
         appreleases = AppRelease.objects.filter(status=AppRelease.VALID).order_by('-release_time')
         android_download_link = constants.ANDROID_DOWNLOAD
