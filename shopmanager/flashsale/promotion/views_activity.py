@@ -344,7 +344,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if mobile:
             params.update({"mobile": mobile})
         if customer and ufrom == "app":
-            params.update({"customer_id":customer.id,"status": XLSampleApply.ACTIVE})
+            params.update({"customer_id":customer.id,"status": XLSampleApply.ACTIVED})
 
 
         if application_count <= 0:
