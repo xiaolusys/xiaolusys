@@ -113,6 +113,16 @@ class PopularizeCost(models.Model):
         verbose_name = u'每日推广支出'
         verbose_name_plural = u'每日推广支出列表'
 
+    def total_incarry(self):
+        return self.carrylog_order + self.carrylog_click + self.carrylog_thousand + self.carrylog_agency + self.carrylog_recruit + self.carrylog_red_packet
+
+    total_incarry.short_description = u'推广费用'
+
+    def total_outcarry(self):
+        return self.carrylog_order_buy + self.carrylog_cash_out
+
+    total_outcarry.short_description = u'妈妈支出'
+
 
 from core.fields import JSONCharMyField
 from core.models import BaseModel

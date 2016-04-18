@@ -15,6 +15,7 @@ from flashsale.pay.models_refund import SaleRefund
 from .models import DailyStat, PopularizeCost
 from flashsale.clickcount.models import UserClicks
 from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models_fortune import CarryRecord
 from shopapp.weixin.options import get_unionid_by_openid
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
@@ -27,6 +28,7 @@ logger = logging.getLogger('celery.handler')
 
 @task()
 def task_Push_Sales_To_DailyStat(target_date):
+    """ 统计每日特卖数据(点击,访客,成交额) """
     df = datetime.datetime(target_date.year, target_date.month, target_date.day, 0, 0, 0)
     dt = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
 
@@ -55,24 +57,25 @@ def task_Push_Sales_To_DailyStat(target_date):
                 if uclicks[0].click_start_time.date() < target_date:
                     total_old_visiter_num += 1
 
-    shoping_stats = StatisticsShopping.objects.filter(shoptime__range=(df, dt))
-    total_payment = shoping_stats.aggregate(total_payment=Sum('wxorderamount')).get('total_payment') or 0
-    total_order_num = shoping_stats.values('wxorderid').distinct().count()
-    total_buyer_num = shoping_stats.values('openid').distinct().count()
+    from flashsale.pay.models import SaleOrder,SaleTrade
+    order_stats = SaleTrade.objects.filter(pay_time__range=(df, dt))
+    total_payment = order_stats.aggregate(total_payment=Sum('payment')).get('total_payment') or 0
+    total_order_num = order_stats.count()
+    total_buyer_num = order_stats.values('receiver_mobile').distinct().count()
 
     total_old_buyer_num = 0
     seven_old_buyer_num = 0
-
     total_old_order_num = 0
-    stats_openids = shoping_stats.values('openid').distinct()
-    for stat in stats_openids:
-        day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=df, openid=stat['openid'])
+
+    stats_mobiles = SaleTrade.objects.filter(pay_time__range=(df,dt)).values('receiver_mobile').distinct()
+    for mobile in stats_mobiles:
+        day_ago_stats = SaleTrade.objects.filter(pay_time__lte=df, receiver_mobile=mobile)
         if day_ago_stats.exists():
             total_old_buyer_num += 1
-            total_old_order_num += shoping_stats.filter(openid=stat['openid']).values('wxorderid').distinct().count()
+            total_old_order_num += order_stats.filter(receiver_mobile=mobile).count()
 
-        seven_day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=seven_day_before,
-                                                                openid=stat['openid'])
+        seven_day_ago_stats = SaleTrade.objects.filter(pay_time__lte=seven_day_before,
+                                                       receiver_mobile=mobile)
         if seven_day_ago_stats.exists():
             seven_old_buyer_num += 1
 
@@ -105,6 +108,7 @@ def carrylog_Handler_By_Log_Type(date, log_type=CarryLog.ORDER_REBETA):
     carry = carry / 100.0
     return carry
 
+from .constants import SWITCH_CARRYLOG_TIME
 
 def carrylogs_By_Date(date):
     carrylog_order = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.ORDER_REBETA)  # 订单返现
@@ -136,14 +140,33 @@ def carrylogs_By_Date(date):
             total_carry_in, total_carry_out, carrylog_red_packet]
     return data
 
+def calc_mama_carry_cost_by_day(date):
+    crecords = CarryRecord.objects.filter(date_field=date,
+                                          status__in=(CarryRecord.PENDING,CarryRecord.CONFIRMED))
+    carry_res = crecords.values_list('carry_type').annotate(total=Sum('carry_num'))
+
+    carrylog_order_buy = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.ORDER_BUY)  # 消费支出
+    carrylog_refund_return = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.REFUND_RETURN)  # 退款返现
+    carrylog_cash_out = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.CASH_OUT)  # 提现
+    carrys_dict = dict(carry_res)
+    return [
+            carrys_dict.get(CarryRecord.CR_ORDER) or 0,
+            carrys_dict.get(CarryRecord.CR_CLICK) or 0,
+            0, 0,
+            carrys_dict.get(CarryRecord.CR_RECOMMEND) or 0,
+            carrylog_order_buy, carrylog_refund_return, carrylog_cash_out,
+            0, 0, 0, 0
+            ]
+
 
 @task()
 def task_PopularizeCost_By_Day(pre_day=1):
-    # PopularizeCost
-    # 写昨天的数据（确认状态 AND pending 状态的）
+    # 统计记录某天推广支出
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
-
-    data = carrylogs_By_Date(pre_date)  # 接收计算数据
+    if pre_date < SWITCH_CARRYLOG_TIME:
+        data = carrylogs_By_Date(pre_date)  # 接收计算数据
+    else:
+        data = calc_mama_carry_cost_by_day(pre_date)
     # 创建推广记录
     popu_cost, state = PopularizeCost.objects.get_or_create(date=pre_date)
     popu_cost.carrylog_order = data[0]
@@ -162,12 +185,14 @@ def task_PopularizeCost_By_Day(pre_day=1):
     popu_cost.carrylog_red_packet = data[11]
     popu_cost.save()
 
-    twelve_date = datetime.date.today() - datetime.timedelta(days=12)
-
+    twelve_date = datetime.date.today() - datetime.timedelta(days=15)
     # 修改12天前的推广记录
     try:
         twelve_date_popu_cost = PopularizeCost.objects.get(date=twelve_date)
-        data = carrylogs_By_Date(twelve_date)
+        if pre_date < SWITCH_CARRYLOG_TIME:
+            data = carrylogs_By_Date(twelve_date)  # 接收计算数据
+        else:
+            data = calc_mama_carry_cost_by_day(twelve_date)
 
         twelve_date_popu_cost.carrylog_order = data[0]
         twelve_date_popu_cost.carrylog_click = data[1]
