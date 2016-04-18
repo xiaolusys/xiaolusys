@@ -789,14 +789,15 @@ def task_packageskuitem_update_productskustats_sold_num(sku_id):
     """
     from shopback.items.models_stats import ProductSkuStats
 
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id).exclude(assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id).exclude(assign_status=PackageSkuItem.CANCELED).aggregate(
+        total=Sum('num'))
     total = sum_res["total"] or 0
 
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
         product_id = ProductSku.objects.get(id=sku_id).product.id
         try:
-            stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,sold_num=total)
+            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, sold_num=total)
             stat.save()
         except IntegrityError as exc:
             logger.warn("IntegrityError - productskustat/sold_num | sku_id: %s, sold_num: %s" % (sku_id, total))
@@ -818,7 +819,8 @@ def task_packageskuitem_update_productskustats_post_num(sku_id):
     """
     from shopback.items.models_stats import ProductSkuStats
 
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,assign_status=PackageSkuItem.FINISHED).aggregate(total=Sum('num'))
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.FINISHED).aggregate(
+        total=Sum('num'))
     total = sum_res["total"] or 0
 
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
@@ -835,7 +837,7 @@ def task_packageskuitem_update_productskustats_post_num(sku_id):
         if stat.post_num != total:
             stat.post_num = total
             stat.save(update_fields=["post_num"])
-    
+
 
 @task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats_assign_num(sku_id):
@@ -876,13 +878,14 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id,
                                                     sale_start_time__gte=pay_time,
                                                     sale_end_time__lte=pay_time,
-                                                    status__in=(ProductSkuSaleStats.ST_EFFECT,ProductSkuSaleStats.ST_FINISH))
+                                                    status__in=(
+                                                    ProductSkuSaleStats.ST_EFFECT, ProductSkuSaleStats.ST_FINISH))
     if not sale_stats.exists():
-        logger.warn('update productskusalestats_num not found | sku_id:%s, pay_time:%s'%(sku_id, pay_time))
+        logger.warn('update productskusalestats_num not found | sku_id:%s, pay_time:%s' % (sku_id, pay_time))
         return
 
-    sale_stat  = sale_stats[0]
-    assign_num_qs = PackageSkuItem.objects.filter(sku_id=sku_id)\
+    sale_stat = sale_stats[0]
+    assign_num_qs = PackageSkuItem.objects.filter(sku_id=sku_id) \
         .exclude(assign_status=PackageSkuItem.CANCELED)
     if sale_stat.sale_start_time:
         assign_num_qs = assign_num_qs.filter(pay_time__gte=sale_stat.sale_start_time)
@@ -911,12 +914,25 @@ def task_packagize_sku_item(instance):
         PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=None)
         PackageOrder.objects.get(id=instance.package_order_id).reset_to_wait_prepare_send()
 
+
 @task()
 def task_update_package_stat_num(instance):
     from shopback.trades.models import PackageStat, PackageOrder
-    PackageStat.objects.filter(id=instance.id).update(num=PackageOrder.objects.filter(id__contains=PackageStat.get_sended_package_num(instance.id)))
+    PackageStat.objects.filter(id=instance.id).update(
+        num=PackageOrder.objects.filter(id__contains=PackageStat.get_sended_package_num(instance.id)))
 
 
 @task()
 def task_set_sale_order(instance):
     instance.set_sale_order_id()
+
+
+@task()
+def task_update_package_order_status(package_order_id):
+    assign_status_set = set(
+        [p.assign_status for p in PackageSkuItem.objects.filter(package_order_id=package_order_id)])
+    if PackageSkuItem.CANCELED in assign_status_set:
+        assign_status_set.remove(PackageSkuItem.CANCELED)
+    if len(assign_status_set) > 0 and PackageSkuItem.NOT_ASSIGNED not in \
+            assign_status_set and PackageSkuItem.ASSIGN_STATUS not in assign_status_set:
+        PackageOrder.objects.filter(id=package_order_id).update(sys_status=PackageOrder.FINISHED_STATUS)

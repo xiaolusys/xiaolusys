@@ -991,10 +991,10 @@ def refund_update_order_info(sender, obj, *args, **kwargs):
                 log_action(sysoa.id, itrade, CHANGE, u'飞行模式订单(oid:%s)退款自动关闭' % morder.id)
             else:
                 log_action(sysoa.id, itrade, CHANGE, u'订单(oid:%s)退款自动关闭' % morder.id)
-                
+
                 ### we should comment the following line in order to retire updating waitpostnum
                 Product.objects.reduceWaitPostNumByCode(morder.outer_id, morder.outer_sku_id, morder.num)
-                
+
                 Product.objects.reduceLockNumByCode(morder.outer_id, morder.outer_sku_id, morder.num)
     except Exception, exc:
         logger.error('order refund signal:%s' % exc.message)
@@ -1616,7 +1616,9 @@ def update_productsku_sold_num(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packageskuitem_update_productskustats_sold_num
     task_packageskuitem_update_productskustats_sold_num.delay(instance.sku_id)
 
-post_save.connect(update_productsku_sold_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_sold_num')
+
+post_save.connect(update_productsku_sold_num, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_productsku_sold_num')
 
 
 def update_productsku_post_num(sender, instance, created, **kwargs):
@@ -1627,8 +1629,9 @@ def update_productsku_post_num(sender, instance, created, **kwargs):
         from shopback.trades.tasks import task_packageskuitem_update_productskustats_post_num
         task_packageskuitem_update_productskustats_post_num.delay(instance.sku_id)
 
-post_save.connect(update_productsku_sold_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_post_num')
 
+post_save.connect(update_productsku_sold_num, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_productsku_post_num')
 
 
 def update_product_sku_stats_assign_num(sender, instance, created, **kwargs):
@@ -1645,7 +1648,10 @@ def update_productsku_salestats_num(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
     task_packageskuitem_update_productskusalestats_num.delay(instance.sku_id, instance.pay_time)
 
-post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem, dispatch_uid='post_save_update_productsku_salestats_num')
+
+post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_productsku_salestats_num')
+
 
 def packagize_sku_item(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_packagize_sku_item
@@ -1654,3 +1660,14 @@ def packagize_sku_item(sender, instance, created, **kwargs):
 
 post_save.connect(packagize_sku_item, sender=PackageSkuItem, dispatch_uid='post_save_packagize_sku_item')
 
+
+def update_product_order_status(sender, instance, created, **kwargs):
+    from shopback.trades.tasks import task_update_package_order_status
+    if instance.assign_status == PackageSkuItem.FINISHED and PackageOrder.objects.get(
+            id=instance.package_order_id).status != PackageOrder.FINISHED_STATUS:
+        task_update_package_order_status.delay(instance.package_order_id)
+
+
+# TODO@hy 两套客户端出库的同步过渡方法
+post_save.connect(update_product_order_status, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_product_order_status')
