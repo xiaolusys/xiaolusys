@@ -514,7 +514,7 @@ class EnvelopAdmin(admin.ModelAdmin):
 
 admin.site.register(Envelop, EnvelopAdmin)
 
-from flashsale.pay.models_custom import ModelProduct
+from flashsale.pay.models_custom import ModelProduct, BrandEntry, BrandProduct
 
 
 class ModelProductAdmin(admin.ModelAdmin):
@@ -572,10 +572,10 @@ admin.site.register(ActivityEntry, ActivityEntryAdmin)
 
 
 class BrandEntryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'start_time', 'end_time', 'created', 'is_active')
+    list_display = ('id', 'brand_name', 'start_time', 'end_time', 'created', 'is_active')
 
     list_filter = ('is_active', ('start_time', DateFieldListFilter), ('created', DateFieldListFilter))
-    search_fields = ['title']
+    search_fields = ['brand_name']
     list_per_page = 25
 
     formfield_overrides = {
@@ -584,14 +584,14 @@ class BrandEntryAdmin(admin.ModelAdmin):
     }
 
 
-admin.site.register(ActivityEntry, BrandEntryAdmin)
+admin.site.register(BrandEntry, BrandEntryAdmin)
 
 
 class BrandProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'start_time', 'end_time',  'product_id')
+    list_display = ('id', 'brand_name', 'start_time', 'end_time',  'product_id')
 
-    list_filter = ('start_time', DateFieldListFilter)
-    search_fields = ['title']
+    list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))
+    search_fields = ['brand_name']
     list_per_page = 25
 
     formfield_overrides = {
@@ -600,7 +600,7 @@ class BrandProductAdmin(admin.ModelAdmin):
     }
 
 
-admin.site.register(ActivityEntry, BrandProductAdmin)
+admin.site.register(BrandProduct, BrandProductAdmin)
 
 from models_coupon import Integral, IntegralLog
 

@@ -220,6 +220,9 @@ class GoodShelf(PayBaseModel):
     def get_activity(self):
         return ActivityEntry.get_default_activity()
 
+    def get_brand(self):
+        return BrandEntry.get_brand()
+
 
 class ActivityEntry(PayBaseModel):
     """ 商城活动入口 """
@@ -295,7 +298,7 @@ class BrandEntry(PayBaseModel):
     """ 品牌推广入口 """
 
     id = BigIntegerAutoField(primary_key=True)
-    title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
+    brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
 
     brand_desc = models.TextField(max_length=512, blank=True, verbose_name=u'品牌活动描述')
     brand_pic = models.CharField(max_length=256, blank=True, verbose_name=u'品牌图片')
@@ -314,7 +317,18 @@ class BrandEntry(PayBaseModel):
         verbose_name_plural = u'特卖/品牌推广入口'
 
     def __unicode__(self):
-        return u'<%s,%s>' % (self.id, self.title)
+        return u'<%s,%s>' % (self.id, self.brand_name)
+
+    @classmethod
+    def get_brand(cls):
+        print 'get brand'
+        acts = cls.objects.filter(is_active=True)
+        if acts.exists():
+            print "acts count %d"%(acts.count())
+            return acts
+        print 'null'
+        return []
+
 
 class BrandProduct(PayBaseModel):
     """ 品牌商品信息 """
@@ -322,9 +336,9 @@ class BrandProduct(PayBaseModel):
     id = BigIntegerAutoField(primary_key=True)
     brand = models.ForeignKey(BrandEntry, related_name='brand', verbose_name=u'品牌编号id')
 
-    title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
+    brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
 
-    product_id = models.CharField(db_index=True, max_length=32, verbose_name=u'商品id')
+    product_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品id')
 
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
@@ -337,4 +351,4 @@ class BrandProduct(PayBaseModel):
         verbose_name_plural = u'特卖/品牌商品'
 
     def __unicode__(self):
-        return u'<%s,%s>' % (self.id, self.title)
+        return u'<%s,%s>' % (self.id, self.brand_name)
