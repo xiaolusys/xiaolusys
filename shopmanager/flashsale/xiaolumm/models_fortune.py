@@ -572,6 +572,16 @@ class ReferalRelationship(BaseModel):
             return u"匿名用户"
         return self.referal_to_mama_nick
 
+    def get_referal_award(self):
+        """ 获取妈妈的推荐红包 """
+        award_carrys = AwardCarry.objects.filter(mama_id=self.referal_from_mama_id,
+                                                 contributor_mama_id=self.referal_to_mama_id)
+        if award_carrys.exists():
+            award_carry = award_carrys[0]
+            return award_carry
+        else:
+            return None
+
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
     if not created:
