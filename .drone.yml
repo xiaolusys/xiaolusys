@@ -65,6 +65,7 @@ deploy:
     host:
       - sale.xiaolumm.com
       - sale2.xiaolumm.com
+      - sale3.xiaolumm.com
     user: root
     when:
       branch: master

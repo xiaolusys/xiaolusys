@@ -40,7 +40,7 @@ class ordelistAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'express_no',
-        'created', 'shenhe', 'is_postpay', 'pay_status',
+        'created', 'shenhe', 'is_postpay',
         'changedetail', 'note_name', 'supplier', 'p_district', 'reach_standard', 'updated', 'last_pay_date',
         'created_by'
     )

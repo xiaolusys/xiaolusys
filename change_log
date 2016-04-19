@@ -1,4 +1,4 @@
-######## 2016-04-16 ########
+######## 2016-04-19 ########
 ALTER TABLE `shop_trades_mergeorder`ADD INDEX `sale_order_id` (`sale_order_id`) USING HASH ;
 ALTER TABLE `shop_trades_mergeorder`ADD COLUMN `sale_order_id` bigint NULL DEFAULT NULL AFTER `cid`;
 update shop_items_productsku SET assign_num=0 where assign_num is NULL;
@@ -60,6 +60,17 @@ CREATE INDEX `flashsale_package_sku_item_ec9ad377` ON `flashsale_package_sku_ite
 CREATE INDEX `flashsale_package_sku_item_8572d23c` ON `flashsale_package_sku_item` (`package_order_id`);
 CREATE INDEX `flashsale_package_sku_item_5821760e` ON `flashsale_package_sku_item` (`assign_status`);
 CREATE INDEX `flashsale_package_sku_item_34476b66` ON `flashsale_package_sku_item` (`sku_id`);
+
+######## 2016-04-18 ##########
+alter table flashsale_userbudget drop column total_redenvelope;
+alter table flashsale_userbudget drop column total_consumption;
+alter table flashsale_userbudget drop column total_refund;
+
+alter table flashsale_userbudget add column total_income int(11);
+alter table flashsale_userbudget add column total_expense int(11);
+######################################
+ALTER TABLE xiaolumm_carrylog ADD INDEX IDX_CA_ST_LO_VA (CARRY_DATE,STATUS,LOG_TYPE,VALUE)
+ALTER TABLE xiaolumm_cashout ADD INDEX IDX_XL_ST_VA (XLMM,STATUS,VALUE);
 ######## 2016-04-13 ##########
 alter table flashsale_dinghuo_inbound add column orderlist_ids longtext;
 alter table flashsale_promotion_download_record drop column ufrom;

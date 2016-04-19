@@ -251,10 +251,8 @@ class UserBudget(PayBaseModel):
 
     user = models.OneToOneField(Customer, verbose_name=u'原始用户')
     amount = models.IntegerField(default=0, verbose_name=u'账户余额(分)')
-
-    total_redenvelope = models.CharField(max_length=32, blank=True, verbose_name=u'累计获取红包')
-    total_consumption = models.CharField(max_length=32, blank=True, verbose_name=u'累计消费')
-    total_refund = models.CharField(max_length=32, blank=True, verbose_name=u'累计退款')
+    total_income = models.IntegerField(default=0, verbose_name=u'总收入')
+    total_expense = models.IntegerField(default=0, verbose_name=u'总支出')
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.user, self.amount)
@@ -318,7 +316,7 @@ class UserBudget(PayBaseModel):
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
         # 如果提现金额小于0　code 1
-        if cash_out_amount < 0:
+        if cash_out_amount <= 0:
             return 1, '提现金额小于0'
         # 如果提现金额大于当前用户钱包的金额 code 2
         elif cash_out_amount > self.amount:
@@ -332,11 +330,12 @@ class UserBudget(PayBaseModel):
                 wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
             except WeixinUnionID.DoesNotExist:
                 return 4, '请扫描二维码'  # 用户没有公众号提现账户
-            before_cash_amount = self.amount
-            # 减去当前用户的账户余额
-            amount = self.amount - cash_out_amount
-            self.amount = amount
-            self.save()  # 保存提现后金额
+
+            # 发放公众号红包
+            recipient = wx_union.openid  # 接收人的openid
+            body = constants.ENVELOP_BODY  # 红包祝福语
+            description = constants.ENVELOP_CASHOUT_DESC.format(self.user.id,
+                                                                self.amount)  # 备注信息 用户id, 提现前金额
             # 创建钱包提现记录
             budgelog = BudgetLog.objects.create(customer_id=self.user.id,
                                                 flow_amount=cash_out_amount,
@@ -344,11 +343,7 @@ class UserBudget(PayBaseModel):
                                                 budget_log_type=BudgetLog.BG_CASHOUT,
                                                 budget_date=datetime.date.today(),
                                                 status=BudgetLog.CONFIRMED)
-            # 发放公众号红包
-            recipient = wx_union.openid  # 接收人的openid
-            body = constants.ENVELOP_BODY  # 红包祝福语
-            description = constants.ENVELOP_CASHOUT_DESC.format(self.user.id,
-                                                                before_cash_amount)  # 备注信息 用户id, 提现前金额
+
             Envelop.objects.create(amount=cash_out_amount,
                                    platform=Envelop.WXPUB,
                                    recipient=recipient,
@@ -382,12 +377,14 @@ class BudgetLog(PayBaseModel):
     BG_REFUND = 'refund'
     BG_CONSUM = 'consum'
     BG_CASHOUT = 'cashout'
+    BG_MAMA_CASH = 'mmcash'
 
     BUDGET_LOG_CHOICES = (
         (BG_ENVELOPE, u'红包'),
         (BG_REFUND, u'退款'),
         (BG_CONSUM, u'消费'),
         (BG_CASHOUT, u'提现'),
+        (BG_MAMA_CASH, u'代理提现至余额'),
     )
 
     CONFIRMED = 0
@@ -437,9 +434,6 @@ class BudgetLog(PayBaseModel):
         if self.budget_type == self.BUDGET_OUT:
             self.status = self.CANCELED
             self.save()
-
-            user_budgets = UserBudget.objects.filter(user=self.customer_id)
-            user_budgets.update(amount=models.F('amount') + self.flow_amount)
             return True
 
 

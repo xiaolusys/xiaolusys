@@ -1,6 +1,7 @@
 #/bin/bash
 
 sudo apt-get install curl
+curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -
 echo "DOCKER_OPTS=\"--registry-mirror=https://n5fb0zgg.mirror.aliyuncs.com\"" | sudo tee -a /etc/default/docker
 service docker restart
 docker login --username=己美网络 registry.aliyuncs.com

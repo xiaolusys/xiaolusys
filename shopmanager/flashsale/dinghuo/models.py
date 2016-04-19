@@ -22,6 +22,9 @@ class OrderList(models.Model):
     QUESTION_OF_QUANTITY = u'6'  # 到货有问题
     DEALED = u'已处理'  # 已处理
     SAMPLE = u'7'  # 样品
+    TO_BE_PAID = u'待收款'
+    TO_PAY = u'待付款'
+    CLOSED = u'关闭'
     NEAR = u'1'  # 江浙沪皖
     SHANGDONG = u'2'  # 山东
     GUANGDONG = u'3'  # 广东
@@ -50,7 +53,17 @@ class OrderList(models.Model):
         (COMPLETED, u'验货完成'),
         (DEALED, u'已处理'),
         (SAMPLE, u'样品'),
+        (TO_PAY, u'待付款'),
+        (TO_BE_PAID, u'待收款'),
+        (CLOSED, u'关闭')
     )
+    BUYER_OP_STATUS = (
+        (DEALED, u'已处理'),
+        (TO_BE_PAID, u'待收款'),
+        (TO_PAY, u'待付款'),
+        (CLOSED, u'关闭')
+    )
+
     ORDER_DISTRICT = (
         (NEAR, u'江浙沪皖'),
         (SHANGDONG, u'山东'),

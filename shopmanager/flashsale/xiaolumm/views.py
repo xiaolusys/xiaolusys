@@ -526,7 +526,7 @@ class ClickLogView(WeixinAuthMixin, View):
 
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
-        xlmms = XiaoluMama.objects.filter(openid=unionid)
+        xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
         if xlmms.exists():
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id, ufrom='wx')
         else:
@@ -707,6 +707,10 @@ def cash_modify(request, data):
             cashout.status = 'approved'
             cashout.approve_time = datetime.datetime.now()
             cashout.save()
+            logger.warn('cashout save approved: cash_d:%s mama_id:%s pre_cash:%s cashout_value:%s' % (cash_id,
+                                                                                                      mama_id,
+                                                                                                      pre_cash,
+                                                                                                      cashout.value))
 
             today_dt = datetime.date.today()
             CarryLog.objects.get_or_create(xlmm=mama_id,

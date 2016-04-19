@@ -13,6 +13,7 @@ class OrderCarryChangeList(ChangeList):
         search_q = request.GET.get('q', '').strip()
         qs_trade = None
         from flashsale.pay.models import SaleOrder, SaleTrade
+
         if search_q.startswith('xd'):
             qs_trade = SaleTrade.objects.filter(tid=search_q)
         elif re.compile(REGEX_MOBILE).match(search_q):

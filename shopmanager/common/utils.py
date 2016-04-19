@@ -92,8 +92,10 @@ def pinghost(hostid):
 
 
 def valid_mobile(m):
+    if not m or m == '':
+        return False
     rg = re.compile('^1[34578][0-9]{9}$')
-    return rg.match(m)
+    return rg.match(m) and True or False
 
 
 def group_list(l, block):

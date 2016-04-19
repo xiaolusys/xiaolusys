@@ -1008,14 +1008,13 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         inbound.save()
         log_action(request.user.id, inbound, CHANGE, u'修改')
 
-        inbound_skus_dict = json.loads(form.cleaned_attrs.skus)
-        if not inbound_skus_dict:
+        inbound_skus = json.loads(form.cleaned_attrs.skus)
+        if not inbound_skus:
             return Response({'error': '请点击作废按钮'})
+        inbound_skus_dict = {int(x['sku_id']): x for x in inbound_skus}
+
         if not any([x['arrival_quantity'] + x['inferior_quantity'] for x in inbound_skus_dict.values()]):
             return Response({'error': '请点击作废按钮'})
-
-        inbound_skus_dict = {int(k): v
-                             for k, v in inbound_skus_dict.iteritems()}
 
         op_logs = []
         skus_dict = {}
@@ -1178,13 +1177,14 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         if not form.is_valid():
             return Response({'error': '参数错误'})
 
-        inbound_skus_dict = json.loads(form.cleaned_attrs.skus)
-        if not inbound_skus_dict:
+        inbound_skus = json.loads(form.cleaned_attrs.skus)
+        if not inbound_skus:
             return Response({'error': '请填写入库数据'})
-        inbound_skus_dict = {int(k): v
-                             for k, v in inbound_skus_dict.iteritems()}
+        inbound_skus_dict = {int(x['sku_id']): x for x in inbound_skus}
         if not any([x['arrival_quantity'] + x['inferior_quantity'] for x in inbound_skus_dict.values()]):
             return Response({'error': '请填写入库数据'})
+        details = json.loads(form.cleaned_attrs.details)
+
 
         supplier_id = form.cleaned_attrs.target_id
         old_skus_dict = {}
@@ -1253,6 +1253,27 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                                            inferior_quantity=inferior_quantity)
             inbound_detail.save()
             inbound_details[sku_id] = inbound_detail
+
+        for detail_dict in details:
+            if detail_dict['detail_id']:
+                continue
+            if not detail_dict.get('detail_name'):
+                continue
+            product_name = detail_dict['detail_name']
+            properties_name = detail_dict.get('properties_name') or ''
+            arrival_quantity = detail_dict.get('arrival_quantity') or 0
+            inferior_quantity = detail_dict.get('inferior_quantity') or 0
+
+            inbound_detail = InBoundDetail(
+                inbound=inbound,
+                product_name=product_name,
+                properties_name=properties_name,
+                arrival_quantity=arrival_quantity,
+                inferior_quantity=inferior_quantity
+            )
+            inbound_detail.save()
+            detail_dict['detail_id'] = inbound_detail.id
+
 
         orderlists_with_express_no = []
         orderlists_without_express_no = []
@@ -1323,7 +1344,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         self.update_orderlist(request, orderlist_ids, op_logs)
         self.update_inbound(request, inbound, inbound_skus_dict, op_logs)
         log_action(request.user.id, inbound, CHANGE, mark_safe('\n'.join(op_logs)))
-        return Response({'inbound_id': inbound.id, 'msg': ''.join(map(lambda x: '<p>%s</p>' % x, op_logs))})
+        return Response({'inbound_id': inbound.id, 'msg': ''.join(map(lambda x: '<p>%s</p>' % x, op_logs)), 'details': details})
 
     @list_route(methods=['get'])
     def list_for_inbound(self, request):
@@ -1391,7 +1412,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                     for k in sorted(product_dict['skus'].keys())
                     ]
                 data.append(product_dict)
-            return data, inbound.images or [], inbound.memo
+            return data, inbound
 
         def _supplier_data(supplier_id):
             sku_ids = set()
@@ -1468,7 +1489,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
         result = {
             'suppliers': [{'id': k,
-                           'text': supplier_dict[k]}
+                           'text': '%s(%d)' % (supplier_dict[k], k)}
                           for k in sorted(supplier_dict.keys())],
             'express_nos': [{'id': express_no_dict[k],
                              'text': k,
@@ -1481,10 +1502,12 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         else:
             result.update(form.json)
             if form.cleaned_attrs.inbound_id:
-                data, images, memo = _inbound_data(form.cleaned_attrs.inbound_id)
+                data, inbound = _inbound_data(form.cleaned_attrs.inbound_id)
                 result.update({
-                    'images': images,
-                    'memo': memo
+                    'images': inbound.images or [],
+                    'memo': inbound.memo or '',
+                    'target_id': inbound.supplier.id,
+                    'supplier_name': inbound.supplier.supplier_name
                 })
             else:
                 if form.cleaned_attrs.sent_from == InBound.SUPPLIER:

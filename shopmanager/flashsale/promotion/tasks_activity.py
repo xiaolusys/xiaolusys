@@ -85,7 +85,8 @@ def task_generate_red_envelope(application):
     uni_key2 = 'self-' + uni_key1
     count = RedEnvelope.objects.filter(uni_key=uni_key2).count()
     if count <= 0:
-        value = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        #value = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        value = 1 # give the first card as default
         envelope2 = RedEnvelope(customer_id=customer_id, event_id=event_id, uni_key=uni_key2, type=type,
                                 value=value, friend_img=application.headimgurl, friend_nick=application.nick)
         envelope2.save()
@@ -175,7 +176,7 @@ def task_decide_award_winner(envelope):
     if winners.count() > 0:
         return
 
-    invite_num = XLSampleApply.objects.filter(from_customer=customer_id, status=XLSampleApply.ACTIVED).count()
+    invite_num = XLSampleApply.objects.filter(from_customer=customer_id, event_id=event_id, status=XLSampleApply.ACTIVED).count()
     customer = Customer.objects.get(id=customer_id)
     winner = AwardWinner(customer_id=customer_id, customer_img=customer.thumbnail,
                          customer_nick=customer.nick, event_id=event_id,

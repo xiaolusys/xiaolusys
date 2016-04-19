@@ -553,8 +553,8 @@ class SaleOrder(PayBaseModel):
 
     def is_finishable(self):
         """
-        1，订单发货后超过15天未确认签收,系统自动变成已完成状态；
-        2，订单确认签收后，2天之后订单状态变成已完成；
+        1，订单发货后超过14天未确认签收,系统自动变成已完成状态；
+        2，订单确认签收后，7天之后订单状态变成已完成；
         """
         now_time = datetime.datetime.now()
         consign_time = self.consign_time

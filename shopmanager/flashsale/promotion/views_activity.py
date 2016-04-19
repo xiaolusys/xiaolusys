@@ -17,6 +17,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
+from flashsale.pay.models_coupon_new import UserCoupon
 from flashsale.pay.models_user import Customer
 from flashsale.pay.models_custom import ActivityEntry
 
@@ -118,7 +119,6 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
         if not self.valid_openid(openid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
-            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
             userinfo = self.get_auth_userinfo(request)
             openid = userinfo.get("openid")
 
@@ -276,7 +276,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
             applied = True
 
         mobile_required = True
-        if mobile or openid:
+        if mobile or self.valid_openid(openid):
             mobile_required = False
 
         img, nick = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/100/format/png", u"小鹿妈妈"
@@ -297,6 +297,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         res_data = {"applied": applied, "img": img, "nick": nick, "end_time": end_time,
                     "mobile_required": mobile_required}
         response = Response(res_data)
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
         response["Access-Control-Allow-Origin"] = "*"
         return response
 
@@ -312,7 +313,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if not mobile:
             mobile = request.COOKIES.get("mobile", None)
 
-        if not (mobile or openid):
+        if not (mobile or self.valid_openid(openid)):
             response = Response({"rcode": 1, "msg": "openid or moible must be provided one"})
             response["Access-Control-Allow-Origin"] = "*"
             return response
@@ -332,17 +333,19 @@ class ApplicationView(WeixinAuthMixin, APIView):
             applicaiton_count = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id).count()
 
         params = {}
+        customer = get_customer(request)
         if from_customer:
             params.update({"from_customer": from_customer})
         if ufrom:
             params.update({"ufrom": ufrom})
         if unionid:
-            customer = get_customer(request)
-            params.update({"user_unionid": unionid, "customer_id":customer.id, "status": XLSampleApply.ACTIVED})
+            params.update({"user_unionid": unionid})
         if openid:
             params.update({"user_openid": openid})
         if mobile:
             params.update({"mobile": mobile})
+        if customer and ufrom == "app":
+            params.update({"customer_id":customer.id,"status": XLSampleApply.ACTIVED})
 
 
         if application_count <= 0:
@@ -351,7 +354,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
             application.save()
 
         next_page = "download"
-        if ufrom == 'wxapp' or ufrom == 'pyq':
+        if self.is_from_weixin(request):
             next_page = "snsauth"
         if ufrom == "app":
             next_page = "activate"
@@ -406,19 +409,24 @@ class MainView(APIView):
 
         #cards = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
         cards = [0,0,0,0,0,0,0,0,0]
+        num_cards = 0
         for item in envelope_serializer.data:
             if item['type'] == 'card' and item['status'] == 'open':
                 index = item['value']
                 cards[index - 1] = 1
+                num_cards += 1
 
         inactive_applications = XLSampleApply.objects.filter(event_id=event_id, from_customer=customer_id,
                                                              status=XLSampleApply.INACTIVE).order_by('-created')
-        inactives = []
+        envelopes = envelope_serializer.data
+        num_of_envelope = len(envelopes)
         for item in inactive_applications:
-            inactives.append({"headimgurl": item.headimgurl, "nick": item.nick})
+            envelopes.append({"headimgurl": item.headimgurl, "nick": item.nick, "type":"inactive"})
 
-        data = {"cards": cards, "envelopes": envelope_serializer.data, "num_of_envelope": len(envelope_serializer.data),
-                "award_list": winner_serializer.data, "award_left": award_left, "inactives": inactives}
+        #cards,num_cards = [1, 1, 1, 1, 1, 1, 1, 1, 1],9
+
+        data = {"cards": cards, "envelopes": envelopes, "num_of_envelope": num_of_envelope,
+                "award_list": winner_serializer.data, "award_left": award_left, "num_cards":num_cards}
 
         response = Response(data)
         response["Access-Control-Allow-Origin"] = "*"
@@ -434,6 +442,9 @@ class OpenEnvelopeView(APIView):
         # 1. we have to check login
         content = request.GET
 
+        customer = Customer.objects.get(user=request.user)
+        customer_id = customer.id
+
         if envelope_id <= 0:
             return Response({"rcode": 1, "msg": "envelope id wrong"})
         envelopes = RedEnvelope.objects.filter(id=envelope_id)
@@ -445,9 +456,15 @@ class OpenEnvelopeView(APIView):
             envelope.status = 1  # otherwise, return envelope.status is 0.
             envelope.save()
 
+        event_id = envelope.event_id
         serializer = RedEnvelopeSerializer(envelope)
 
-        response = Response(serializer.data)
+        num_cards = RedEnvelope.objects.filter(event_id=event_id, customer_id=customer_id, type=1, status=1).count()
+
+        data = serializer.data
+        data.update({"num_cards":num_cards})
+        
+        response = Response(data)
         response["Access-Control-Allow-Origin"] = "*"
         return response
 
@@ -488,3 +505,36 @@ class StatsView(APIView):
         response = Response({"invite_num": invite_num, "total": total, "cards": cards, "status":status})
         response["Access-Control-Allow-Origin"] = "*"
         return response
+
+
+
+class GetAwardView(APIView):
+    ''' 达到赢取奖品条件后,获得奖品 '''
+    authentication_classes = (authentication.SessionAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
+    def post(self, request, event_id, *args, **kwargs):
+        content = request.POST
+        template_id = content.get("template_id", None)
+
+        customer = Customer.objects.get(user=request.user)
+        customer_id = customer.id
+        buyer_id = str(customer_id)
+
+        #coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
+        code,msg = 0,""
+        #if coups.count() <= 0:
+        user_coupon = UserCoupon()
+        kwargs = {"buyer_id": buyer_id, "template_id": template_id}
+        code, msg = user_coupon.release_by_template(**kwargs)
+
+        if code == 0:
+            winner = AwardWinner.objects.get(customer_id=customer_id,event_id=event_id)
+            winner.status = 1
+            winner.save()
+
+        response = Response({"code": code, "res": msg})
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+

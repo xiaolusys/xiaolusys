@@ -675,11 +675,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         strade_id = sale_trade.id
         channel = sale_trade.channel
 
-        urows = UserBudget.objects.filter(
-            user=buyer,
-            amount__gte=payment
-        ).update(amount=models.F('amount') - payment)
-        if urows == 0:
+        urows = UserBudget.objects.filter(user=buyer, amount__gte=payment)
+        if not urows.exists():
             return {'channel': channel, 'success': False, 'id': sale_trade.id, 'info': u'小鹿钱包余额不足'}
         BudgetLog.objects.create(customer_id=buyer.id,
                                  referal_id=strade_id,

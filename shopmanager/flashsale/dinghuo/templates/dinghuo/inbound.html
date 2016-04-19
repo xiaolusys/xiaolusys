@@ -118,10 +118,10 @@
 
          #form-2 input[type="number"] {
              text-align: center;
-             height: 40px;
          }
          #form-2 input{
              font-size: 18px;
+             padding-bottom: 5px;
          }
 
         #tips {
@@ -151,7 +151,6 @@
 
          #cancel-btn {
              display: none;
-             margin-top: 10px;
          }
          .chosen-container span, .chosen-results li {
              font-size: 16px;
@@ -161,6 +160,15 @@
              color: red;
              display: none;
          }
+         #memo-panel a:nth-child(-n+3) {margin-bottom: 10px;}
+
+         i.remove {
+             position: absolute;
+             left: -80px;
+         }
+         i.remove:hover {color: #ff4500;}
+
+         tr.detail td:first-child input {width: 200px; display: inline-block}
         </style>
     </head>
     <body>
@@ -205,7 +213,7 @@
                                 {% endif %}
                             </h2>
                             {% if sent_from == 1 %}
-                            <h2 style="text-align:center;margin-top:0"><small>{{supplier_name}}</small></h2>
+                            <h2 style="text-align:center;margin-top:0"><small>{{ supplier_name }}({{ target_id }})</small></h2>
                             {% endif %}
                             <p style="margin-bottom:30px"></p>
                             <table class="table table-striped" style="width:70%;margin:0 auto">
@@ -224,7 +232,7 @@
                                     <th>编码</th>
                                     <th width="120px">图片</th>
                                     <th>规格ID</th>
-                                    <th>尺寸</th>
+                                    <th width="90px">尺寸</th>
                                     <th>待入库数</th>
                                     <th width="100px">正品</th>
                                     <th width="100px">次品</th>
@@ -256,8 +264,8 @@
                                     <td>{{ sku.properties_name }}</td>
                                     <td class="plan-quantity">
                                         <p class="n">
-                                            <i class="glyphicon glyphicon-info-sign warning" data-plan-quantity="{{ sku.plan_quantity }}"></i>
                                             {{ sku.plan_quantity }}
+                                            <i class="glyphicon glyphicon-info-sign warning quantity-warning" data-plan-quantity="{{ sku.plan_quantity }}"></i>
                                         </p>
                                     </td>
                                     <td>
@@ -314,6 +322,8 @@
         </div>
 
         <div id="memo-panel">
+            <a href="javascript:;" class="btn btn-warning btn-danger" id="add">疑难</a>
+            <br>
             <a href="javascript:;" class="btn btn-warning btn-block" id="memo-btn">备注</a>
             <br>
             <a href="javascript:;" class="btn btn-danger btn-block" id="cancel-btn">作废</a>
@@ -330,10 +340,40 @@
         <script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js"></script>
         <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
         <script src="{{ STATIC_URL }}chosen_v1.5.1/chosen.jquery.js"></script>
+        <script src="/static/wap/js/template.js"></script>
+        {% verbatim %}
+        <script id="detail" type="text/html">
+            <tr class="detail" data-detail-id="0" data-new-id="{{new_id}}">
+                <td style="vertical-align:middle">
+                    <div style="position:relative">
+                        <i class="glyphicon glyphicon-remove remove" onclick="javascript:removeDetail(this);"></i>
+                        <input class="detail-name form-control" placeholder="商品名">
+                        <i class="glyphicon glyphicon-info-sign warning name-warning"></i>
+                    </div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <input class="detail-properties-name form-control" style="width:80px" placeholder="尺寸">
+                </td>
+                <td></td>
+                <td>
+                    <input type="number" class="arrival-quantity form-control" style="width:100px" min="0">
+                </td>
+                <td>
+                    <input type="number" class="inferior-quantity form-control" style="width:100px" min="0">
+                </td>
+            </tr>
+        </script>
+        {% endverbatim %}
+
         <script>
          var SENT_FROM_SUPPLIER = 1;
          var SENT_FROM_REFUND = 2;
          var SKU_TR_TPL = _.template('tr[data-sku-id="<%= sku_id %>"]');
+         var NEW_DETAIL_TR_TPL = _.template('tr[data-new-id="<%= new_id %>"]');
          var PRODUCT_TR_TPL = _.template('tr[data-product-id="<%= product_id %>"]');
          var CREATE_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/create_supplier_inbound';
          var EDIT_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/edit_supplier_inbound';
@@ -380,21 +420,38 @@
          }
 
          function getFormData(){
-             var skus, sku_id;
+             var sku_id, detail_id,new_id;
+             var skus, details;
              var arrival_quantity, inferior_quantity;
              var formData = {};
 
-             skus = {};
+             skus = [];
+             details = [];
              $('tr', $('#form-2')).each(function(index, el){
-                 sku_id = $(this).attr('data-sku-id') - 0;
-                 arrival_quantity = parseInt($(this).find('input.arrival-quantity').val());
-                 inferior_quantity = parseInt($(this).find('input.inferior-quantity').val());
-                 if(!_.isNaN(arrival_quantity) && _.isNumber(arrival_quantity) ||
-                    !_.isNaN(inferior_quantity) && _.isNumber(inferior_quantity)){
-                     skus[sku_id] = {
-                         sku_id: sku_id,
-                         arrival_quantity: arrival_quantity || 0,
-                         inferior_quantity: inferior_quantity || 0
+                 var $this = $(this);
+
+                 detail_id = parseInt($this.attr('data-detail-id')) || 0;
+                 sku_id = parseInt($this.attr('data-sku-id')) || 0;
+                 new_id = parseInt($this.attr('data-new-id')) || 0;
+                 arrival_quantity = parseInt($this.find('input.arrival-quantity').val());
+                 inferior_quantity = parseInt($this.find('input.inferior-quantity').val());
+                 if(!_.isNaN(arrival_quantity) && _.isNumber(arrival_quantity) || !_.isNaN(inferior_quantity) && _.isNumber(inferior_quantity)){
+                     if(sku_id){
+                         skus.push({
+                             sku_id: sku_id,
+                             arrival_quantity: arrival_quantity || 0,
+                             inferior_quantity: inferior_quantity || 0
+                         });
+                     }
+                     else{
+                         details.push({
+                             detail_id: detail_id,
+                             new_id: new_id,
+                             detail_name: $this.find('input.detail-name').val(),
+                             properties_name: $this.find('input.detail-properties-name').val(),
+                             arrival_quantity: arrival_quantity || 0,
+                             inferior_quantity: inferior_quantity || 0
+                         });
                      }
                  }
              });
@@ -404,6 +461,7 @@
              });
 
              formData.skus = JSON.stringify(skus);
+             formData.details = JSON.stringify(details);
              formData.inbound_id = $('#inbound-id').val() - 0 || 0;
              formData.memo = $('#memo').val();
              formData.images = JSON.stringify($('#images').uploader('getData'));
@@ -435,18 +493,31 @@
              }
          }
 
-         function onInputChange(){
+         function onQuantityChange(){
              var $tr = $(this).closest('tr');
              var arrival_quantity = parseInt($tr.find('input.arrival-quantity').val()) || 0;
              var inferior_quantity = parseInt($tr.find('input.inferior-quantity').val()) || 0;
              if(arrival_quantity || inferior_quantity){
-                 var $i = $tr.find('i.warning');
+                 var $i = $tr.find('i.quantity-warning');
                  var plan_quantity = parseInt($i.attr('data-plan-quantity'));
                  if(arrival_quantity + inferior_quantity > plan_quantity)
                      $i.slideDown();
                  else
                      $i.slideUp();
              }
+         }
+
+         function onNameChange(){
+             var $this = $(this);
+             var name = $this.val().replace(/(^\s*)|(\s*$)/g, '');
+             if(name)
+                 $this.closest('tr').find('i.name-warning').slideUp();
+             else
+                 $this.closest('tr').find('i.name-warning').slideDown();
+         }
+
+         function removeDetail(el){
+             $(el).closest('tr').remove();
          }
 
          $(function(){
@@ -464,103 +535,121 @@
              var formData = getFormData();
              initUI(formData);
 
-             var matcher = function(items){
-                 return function findMatches(q, cb){
-                     var matches, subStrRegex;
-                     matches = [];
-                     subStrRegex = new RegExp(q, 'i');
-                     $.each(items, function(i, item){
-                         if(subStrRegex.test(item.text))
-                             matches.push(item.text);
-                     });
-                     cb(matches);
-                 };
-             };
+              var matcher = function(items){
+                  return function findMatches(q, cb){
+                      var matches, subStrRegex;
+                      matches = [];
+                      subStrRegex = new RegExp(q, 'i');
+                      $.each(items, function(i, item){
+                          if(subStrRegex.test(item.text))
+                              matches.push(item.text);
+                      });
+                      cb(matches);
+                  };
+              };
 
-             $('#supplier').typeahead({
-                 hint: true,
-                 highlight: true,
-                 minLength: 1
-             }, {
-                 name: 'suppliers',
-                 source: matcher(suppliers)
-             }).bind('typeahead:select', function(e, suggestion){
-                 var i, id;
-                 for(i=0; i < suppliers.length; ++i){
-                     if(suppliers[i].text == suggestion){
-                         id = suppliers[i].id;
-                         break;
-                     }
-                 }
-                 if(id){
-                     $('#sent-from').val(SENT_FROM_SUPPLIER);
-                     $('#target-id').val(id);
-                 }
-             });
+              $('#supplier').typeahead({
+                  hint: true,
+                  highlight: true,
+                  minLength: 1
+              }, {
+                  name: 'suppliers',
+                  source: matcher(suppliers)
+              }).bind('typeahead:select', function(e, suggestion){
+                  var i, id;
+                  for(i=0; i < suppliers.length; ++i){
+                      if(suppliers[i].text == suggestion){
+                          id = suppliers[i].id;
+                          break;
+                      }
+                  }
+                  if(id){
+                      $('#sent-from').val(SENT_FROM_SUPPLIER);
+                      $('#target-id').val(id);
+                  }
+              });
 
-             $('#express-no').typeahead({
-                 hint: true,
-                 highlight: true,
-                 minLength: 1
-             }, {
-                 name: 'expressNos',
-                 source: matcher(expressNos)
-             }).bind('typeahead:select', function(e, suggestion){
-                 var i, id, sentFrom;
-                 for(i=0; i < expressNos.length; ++i){
-                     if(expressNos[i].text == suggestion){
-                         id = expressNos[i].id;
-                         sentFrom = expressNos[i].sent_from;
-                         break;
-                     }
-                 }
-                 if(id && sentFrom){
-                     $('#sent-from').val(sentFrom);
-                     $('#target-id').val(id);
-                 }
-             });
-             $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
+              $('#express-no').typeahead({
+                  hint: true,
+                  highlight: true,
+                  minLength: 1
+              }, {
+                  name: 'expressNos',
+                  source: matcher(expressNos)
+              }).bind('typeahead:select', function(e, suggestion){
+                  var i, id, sentFrom;
+                  for(i=0; i < expressNos.length; ++i){
+                      if(expressNos[i].text == suggestion){
+                          id = expressNos[i].id;
+                          sentFrom = expressNos[i].sent_from;
+                          break;
+                      }
+                  }
+                  if(id && sentFrom){
+                      $('#sent-from').val(sentFrom);
+                      $('#target-id').val(id);
+                  }
+              });
+              $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
 
-             $('#form-2').submit(function(){
-                 $('td.plan-quantity').find('small.error').html('');
+              $('#form-2').submit(function(){
+                  var flag = false;
+                  $('tr.detail').each(function(){
+                      var name = $(this).find('input.detail-name').val().replace(/(^\s*)|(\s*$)/g, '');
+                      if(name)
+                          $(this).find('i.name-warning').slideUp();
+                      else{
+                          flag = true;
+                          $(this).find('i.name-warning').slideDown();
+                      }
+                  });
+                  if(flag)
+                      return false;
 
-                 var formData = getFormData();
-                 var requestUrl = getRequestUrl(formData);
+                  var formData = getFormData();
+                  var requestUrl = getRequestUrl(formData);
 
-                 if(!requestUrl){
-                     $('#tips').noty({
-                         text: '未能找到请求URL',
-                         type: 'error',
-                         theme: 'bootstrapTheme',
-                         closeWith: ['button', 'click'],
-                         maxVisible: 20,
-                         modal: false
-                     });
-                     return;
-                 }
+                  if(!requestUrl){
+                      $('#tips').noty({
+                          text: '未能找到请求URL',
+                          type: 'error',
+                          theme: 'bootstrapTheme',
+                          closeWith: ['button', 'click'],
+                          maxVisible: 20,
+                          modal: false
+                      });
+                      return;
+                  }
 
-                 $.ajax({
-                     url: requestUrl,
-                     type: 'post',
-                     dataType: 'json',
-                     data: formData,
-                     success: function(result){
-                         if(result.error){
-                             $('#tips').noty({
-                                 text: result.error,
-                                 type: 'error',
-                                 theme: 'bootstrapTheme',
-                                 closeWith: ['button', 'click'],
-                                 maxVisible: 20,
-                                 modal: false
-                             });
-                         }
-                         else{
-                             if(result.inbound_id && (result.inbound_id - 0)){
-                                 $('#cancel-btn').show();
-                                 $('#inbound-id').val(result.inbound_id);
-                                 $('#form-2 .reset').hide();
-                                 $('#form-2 .submit').html('修改');
+                  $.ajax({
+                      url: requestUrl,
+                      type: 'post',
+                      dataType: 'json',
+                      data: formData,
+                      success: function(result){
+                          if(result.error){
+                              $('#tips').noty({
+                                  text: result.error,
+                                  type: 'error',
+                                  theme: 'bootstrapTheme',
+                                  closeWith: ['button', 'click'],
+                                  maxVisible: 20,
+                                  modal: false
+                              });
+                          }
+                          else{
+                              if(result.inbound_id && (result.inbound_id - 0)){
+                                  $('#cancel-btn').show();
+                                  $('#inbound-id').val(result.inbound_id);
+                                  $('#form-2 .reset').hide();
+                                  $('#form-2 .submit').html('修改');
+                              }
+                              if(result.details){
+                                  _.each(result.details, function(el){
+                                      if(el.new_id && el.detail_id){
+                                          $(NEW_DETAIL_TR_TPL({new_id: el.new_id})).attr('data-detail-id', el.detail_id);
+                                      }
+                                 });
                              }
                              if(result.msg){
                                  $('#tips').noty({
@@ -625,13 +714,39 @@
                  search_contains: true
              }).on('change', onSelectChange);
 
-             $('i.warning').popover({
+             $('i.quantity-warning').popover({
                  html: true,
                  trigger: 'hover',
+                 container: 'body',
                  content: '输入大于待入库数'
              });
 
-             $('input.arrival-quantity,input.inferior-quantity').each(onInputChange).change(onInputChange);
+             $('i.name-warning').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: '请填写商品名'
+             });
+
+             $('input.arrival-quantity,input.inferior-quantity').each(onQuantityChange).change(onQuantityChange);
+
+             $('#add').click(function(){
+                 if($('#target-id').val() - 0){
+                     var new_id = 1;
+                     if($('tr.detail[data-new-id]').length){
+                         new_id = parseInt($('tr.detail[data-new-id]').last().attr('data-new-id')) + 1;
+                     }
+                     $('table').append(template('detail', {new_id: new_id}));
+                     $lastTr = $('table').find('tr.detail').last();
+                     $lastTr.find('i.name-warning').popover({
+                         html: true,
+                         trigger: 'hover',
+                         container: 'body',
+                         content: '请填写商品名'
+                     });
+                     $lastTr.find('input.detail-name').change(onNameChange).keyup(onNameChange);
+                 }
+             });
          });
         </script>
     </body>

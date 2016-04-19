@@ -98,21 +98,22 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             template_ids = [int(i) for i in template_ids.split(',')]
             customer = Customer.objects.get(user=request.user)
             if template_ids:  # 根据模板id发放
-                release_res = None
+                code = None
+                msg = None
                 for template_id in template_ids:
                     uc = UserCoupon()
                     cus = {"buyer_id": customer.id, "template_id": template_id}
-                    release_res = uc.release_by_template(**cus)
-                if release_res == '领取成功':
+                    code, msg = uc.release_by_template(**cus)
+                if code == 0:
                     # 推送消息提醒
                     task_release_coupon_push.s(customer.id).delay()
-                return Response({"code": 0, "res": release_res})
+                return Response({"code": code, "res": msg})
         except Customer.DoesNotExist:
-            return Response({"code": 2, "res": "需登陆后领取"})
+            return Response({"code": 5, "res": "需登陆后领取"})
         except TypeError:
-            return Response({"code": 1, "res": "优惠券不存在"})
+            return Response({"code": 4, "res": "优惠券不存在"})
         else:
-            return Response({"code": 1, "res": "优惠券不存在"})
+            return Response({"code": 3, "res": "优惠券不存在"})
 
     def check_by_coupon(self, coupon, product_ids=None, use_fee=None):
         coupon_message = ''

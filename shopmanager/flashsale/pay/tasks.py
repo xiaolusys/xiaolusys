@@ -457,11 +457,12 @@ from flashsale.pay.models_user import BudgetLog, UserBudget
 from django.db.models import Sum
 
 
-@task()
+@task(max_retries=3, default_retry_delay=6)
 def task_budgetlog_update_userbudget(budget_log):
     customer_id = budget_log.customer_id
-    records = BudgetLog.objects.filter(customer_id=customer_id, status=BudgetLog.CONFIRMED).values(
-        'budget_type').annotate(total=Sum('flow_amount'))
+    bglogs = BudgetLog.objects.filter(customer_id=customer_id,
+                                      status=BudgetLog.CONFIRMED)
+    records = bglogs.values('budget_type').annotate(total=Sum('flow_amount'))
 
     in_amount, out_amount = 0, 0
     for entry in records:
@@ -470,20 +471,27 @@ def task_budgetlog_update_userbudget(budget_log):
         if entry["budget_type"] == BudgetLog.BUDGET_OUT:
             out_amount = entry["total"]
 
-    cash = in_amount - out_amount
-            
-    budgets = UserBudget.objects.filter(user=customer_id)
-    if budgets.count() <= 0:
-        customers = Customer.objects.filter(id=customer_id)
-        if customers.count() > 0:
-            budget = UserBudget(user=customers[0], amount=cash)
+    cash = in_amount - out_amount  # 总收入－总支出
+    customers = Customer.objects.filter(id=customer_id)
+    try:
+        if not customers.exists():
+            logger.warn('customer %s　not exists when create user budget!' % customer_id)
+        budgets = UserBudget.objects.filter(user=customer_id)
+        if not budgets.exists():  # 不存在钱包记录　添加钱包记录
+            budget = UserBudget(user=customers[0],
+                                amount=cash,
+                                total_income=in_amount,
+                                total_expense=out_amount)
             budget.save()
-    else:
-        budget = budgets[0]
-        if budget.amount != cash:
-            budget.amount = cash
+        else:
+            budget = budgets[0]
+            if budget.amount != cash:
+                budget.amount = cash
+            budget.total_income = in_amount
+            budget.total_expense = out_amount
             budget.save()
-
+    except Exception, exc:
+        raise task_budgetlog_update_userbudget.retry(exc=exc)
 
 from extrafunc.renewremind.tasks import send_message
 from shopapp.smsmgr.models import SMSActivity
@@ -581,10 +589,12 @@ def task_close_refund(days=None):
     if days is None:
         days = 30
     time_point = datetime.datetime.now() - datetime.timedelta(days=days)
-    aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
+    aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.NO_REFUND,
+                                                           SaleRefund.REFUND_WAIT_SELLER_AGREE,
+                                                           SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                                            SaleRefund.REFUND_REFUSE_BUYER],
                                                created__lte=time_point)  # 这里不考虑退货状态
-                                               # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
+    # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
     res = map(close_refund, aggree_refunds)
 
 
