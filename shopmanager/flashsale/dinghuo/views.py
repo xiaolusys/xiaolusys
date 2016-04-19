@@ -29,7 +29,8 @@ from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       OrderDetailInBoundDetail)
 
 from flashsale.dinghuo.models_stats import SupplyChainDataStats
-from shopback.items.models import Product, ProductCategory, ProductSku, ProductStock
+from shopback.archives.models import DepositeDistrict
+from shopback.items.models import Product, ProductCategory, ProductSku, ProductStock, ProductLocation
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 
 from . import forms, functions, functions2view, models
@@ -863,6 +864,13 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
     ORDERLIST_OP_LOG_TPL = '订货单ID:<a href="/sale/dinghuo/changedetail/%(id)d/" target="_blank">%(id)d</a> %(msg)s'
     INBOUND_OP_LOG_TPL = '入仓单ID:%(id)d %(msg)s'
 
+    DISTRICT_REGEX = re.compile('^(?P<pno>[a-zA-Z0-9=]+)-(?P<dno>[a-zA-Z0-9]+)?$')
+
+    @classmethod
+    def get_district(cls, product_dict):
+        pass
+
+
     @classmethod
     def update_orderlist(cls, request, orderlist_ids, op_logs):
         orderlist_status_dict = dict(OrderList.ORDER_PRODUCT_STATUS)
@@ -927,6 +935,18 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             orderlist_ids.add(record.orderdetail.orderlist_id)
         inbound.orderlist_ids = sorted(list(orderlist_ids))
         inbound.save()
+
+    @detail_route(methods=['post'])
+    def delete_detail(self, request, pk):
+        detail_id = int(request.POST.get('detail_id') or 0)
+        if detail_id:
+            InBoundDetail.objects.get(id=detail_id).delete()
+        return Response('OK')
+
+    @list_route(methods=['get'])
+    def districts(self, request):
+        districts = DepositeDistrict.objects.all().order_by('id')
+        return Response([str(x) for x in districts])
 
     @detail_route(methods=['post'])
     def change_buyer(self, request, pk):
@@ -1016,6 +1036,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         if not any([x['arrival_quantity'] + x['inferior_quantity'] for x in inbound_skus_dict.values()]):
             return Response({'error': '请点击作废按钮'})
 
+        details = json.loads(form.cleaned_attrs.details)
         op_logs = []
         skus_dict = {}
         for sku in ProductSku.objects.select_related('product').filter(
@@ -1047,6 +1068,19 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             properties_name = sku_dict['properties_name']
             arrival_quantity = inbound_sku_dict['arrival_quantity']
             inferior_quantity = inbound_sku_dict['inferior_quantity']
+            district = inbound_sku_dict['district']
+            m = self.DISTRICT_REGEX.match(district)
+            if m:
+                tmp = m.groupdict()
+                pno = tmp.get('pno') or ''
+                dno = tmp.get('dno') or ''
+                deposite_district = DepositeDistrict.objects.get(parent_no=pno, district_no=dno)
+                ProductLocation.objects.filter(product_id=product_id, sku_id=sku_id).delete()
+                ProductLocation.objects.get_or_create(
+                    product_id=product_id,
+                    sku_id=sku_id,
+                    district=deposite_district
+                )
 
             inbound_sku_dict.update({
                 'outer_id': outer_id,
@@ -1106,6 +1140,35 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                                                      'msg': '创建 到货数%d 次品数%d' % (arrival_quantity, inferior_quantity)}
                 )
                 inbound_details[sku_id] = inbound_detail
+
+        for detail_dict in details:
+            if not detail_dict.get('name'):
+                continue
+            detail_id = detail_dict['id']
+            product_name = detail_dict.get('name') or ''
+            properties_name = detail_dict.get('properties_name') or ''
+            arrival_quantity = detail_dict.get('arrival_quantity') or 0
+            inferior_quantity = detail_dict.get('inferior_quantity') or 0
+            district = detail_dict.get('district') or ''
+            if detail_id:
+                inbound_detail = InBoundDetail.objects.get(id=detail_id)
+                inbound_detail.product_name = product_name
+                inbound_detail.properties_name = properties_name
+                inbound_detail.arrival_quantity = arrival_quantity
+                inbound_detail.inferior_quantity = inferior_quantity
+                inbound_detail.district = district
+                inbound_detail.save()
+            else:
+                inbound_detail = InBoundDetail(
+                    inbound=inbound,
+                    product_name=product_name,
+                    properties_name=properties_name,
+                    arrival_quantity=arrival_quantity,
+                    inferior_quantity=inferior_quantity,
+                    district=district
+                )
+                inbound_detail.save()
+                detail_dict['id'] = inbound_detail.id
 
         orderlists_with_express_no = []
         orderlists_without_express_no = []
@@ -1185,7 +1248,6 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             return Response({'error': '请填写入库数据'})
         details = json.loads(form.cleaned_attrs.details)
 
-
         supplier_id = form.cleaned_attrs.target_id
         old_skus_dict = {}
         dinghuo_stats = OrderDetail.objects.filter(orderlist__supplier_id=supplier_id) \
@@ -1236,12 +1298,25 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             properties_name = sku_dict['properties_name']
             arrival_quantity = inbound_sku_dict['arrival_quantity']
             inferior_quantity = inbound_sku_dict['inferior_quantity']
+            district = inbound_sku_dict.get('district') or ''
 
             inbound_sku_dict.update({
                 'outer_id': outer_id,
                 'product_name': product_name,
                 'properties_name': properties_name
             })
+
+            m = self.DISTRICT_REGEX.match(district)
+            if m:
+                tmp = m.groupdict()
+                pno = tmp.get('pno') or ''
+                dno = tmp.get('dno') or ''
+                deposite_district = DepositeDistrict.objects.get(parent_no=pno, district_no=dno)
+                ProductLocation.objects.get_or_create(
+                    product_id=product_id,
+                    sku_id=sku_id,
+                    district=deposite_district
+                )
 
             inbound_detail = InBoundDetail(inbound=inbound,
                                            product_id=product_id,
@@ -1255,24 +1330,26 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             inbound_details[sku_id] = inbound_detail
 
         for detail_dict in details:
-            if detail_dict['detail_id']:
+            if detail_dict['id']:
                 continue
-            if not detail_dict.get('detail_name'):
+            if not detail_dict.get('name'):
                 continue
-            product_name = detail_dict['detail_name']
+            product_name = detail_dict['name']
             properties_name = detail_dict.get('properties_name') or ''
             arrival_quantity = detail_dict.get('arrival_quantity') or 0
             inferior_quantity = detail_dict.get('inferior_quantity') or 0
+            district = detail_dict.get('district') or ''
 
             inbound_detail = InBoundDetail(
                 inbound=inbound,
                 product_name=product_name,
                 properties_name=properties_name,
                 arrival_quantity=arrival_quantity,
-                inferior_quantity=inferior_quantity
+                inferior_quantity=inferior_quantity,
+                district=district
             )
             inbound_detail.save()
-            detail_dict['detail_id'] = inbound_detail.id
+            detail_dict['id'] = inbound_detail.id
 
 
         orderlists_with_express_no = []
@@ -1355,21 +1432,32 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             pass
 
         def _inbound_data(inbound_id):
+            details = []
             products_dict = {}
-            inbound = InBound.objects.get(id=inbound_id)
             sku_ids = set()
-            for inbound_detail in InBoundDetail.objects.filter(inbound=inbound):
-                sku_ids.add(inbound_detail.sku_id)
-                skus_dict = products_dict.setdefault(inbound_detail.product_id, {})
-                s = inbound_detail.records.filter(status=OrderDetailInBoundDetail.NORMAL) \
-                  .values('inbounddetail_id').annotate(arrival_quantity=Sum('arrival_quantity'), inferior_quantity=Sum('inferior_quantity'))
-                s = {} if not s else s[0]
-                skus_dict[inbound_detail.sku_id] = {
-                    'id': inbound_detail.sku_id,
-                    'arrival_quantity': inbound_detail.arrival_quantity,
-                    'inferior_quantity': inbound_detail.inferior_quantity,
-                    'plan_quantity': (s.get('arrival_quantity') or 0) + (s.get('inferior_quantity') or 0)
-                }
+            inbound = InBound.objects.get(id=inbound_id)
+            for inbound_detail in InBoundDetail.objects.filter(inbound=inbound).order_by('id'):
+                if not inbound_detail.sku:
+                    details.append({
+                        'id': inbound_detail.id,
+                        'name': inbound_detail.product_name or '',
+                        'properties_name': inbound_detail.properties_name,
+                        'arrival_quantity': inbound_detail.arrival_quantity or 0,
+                        'inferior_quantity': inbound_detail.inferior_quantity or 0,
+                        'district': inbound_detail.district
+                    })
+                else:
+                    sku_ids.add(inbound_detail.sku_id)
+                    skus_dict = products_dict.setdefault(inbound_detail.product_id, {})
+                    s = inbound_detail.records.filter(status=OrderDetailInBoundDetail.NORMAL) \
+                      .values('inbounddetail_id').annotate(arrival_quantity=Sum('arrival_quantity'), inferior_quantity=Sum('inferior_quantity'))
+                    s = {} if not s else s[0]
+                    skus_dict[inbound_detail.sku_id] = {
+                        'id': inbound_detail.sku_id,
+                        'arrival_quantity': inbound_detail.arrival_quantity,
+                        'inferior_quantity': inbound_detail.inferior_quantity,
+                        'plan_quantity': (s.get('arrival_quantity') or 0) + (s.get('inferior_quantity') or 0)
+                    }
 
             dinghuo_stats = OrderDetail.objects.filter(chichu_id__in=map(str, skus_dict.keys())) \
               .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
@@ -1390,11 +1478,15 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 product_id = sku.product.id
                 sku_id = sku.id
 
+                product_location = None
+                product_locations = ProductLocation.objects.select_related('district').filter(product_id=product_id, sku_id=sku_id)[:1]
+                if product_locations:
+                    product_location = product_locations[0]
                 product_dict = new_products_dict.setdefault(product_id, {
                     'id': product_id,
                     'name': sku.product.name,
                     'outer_id': sku.product.outer_id,
-                    'pic_path': '%s?imageView2/0/w/120' % sku.product.pic_path.strip(),
+                    'pic_path': '%s' % sku.product.pic_path.strip(),
                     'skus': {}
                 })
                 sku_dict = products_dict[product_id][sku_id]
@@ -1402,17 +1494,19 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                     'properties_name': sku.properties_name or sku.properties_alias,
                     'quantity': sku.quantity
                 })
+                if product_location:
+                    sku_dict['district'] = str(product_location.district)
                 product_dict['skus'][sku_id] = sku_dict
 
-            data = []
+            products = []
             for product_id in sorted(new_products_dict.keys()):
                 product_dict = new_products_dict[product_id]
                 product_dict['skus'] = [
                     product_dict['skus'][k]
                     for k in sorted(product_dict['skus'].keys())
                     ]
-                data.append(product_dict)
-            return data, inbound
+                products.append(product_dict)
+            return products, details, inbound
 
         def _supplier_data(supplier_id):
             sku_ids = set()
@@ -1441,14 +1535,17 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 product_id = sku.product.id
                 sku_id = sku.id
                 saleproduct_ids.add(sku.product.sale_product)
+                product_location = None
+                product_locations = ProductLocation.objects.select_related('district').filter(product_id=product_id, sku_id=sku_id)[:1]
+                if product_locations:
+                    product_location = product_locations[0]
 
                 product_dict = new_products_dict.setdefault(
                     product_id, {'id': product_id,
                                  'saleproduct_id': sku.product.sale_product,
                                  'name': sku.product.name,
                                  'outer_id': sku.product.outer_id,
-                                 'pic_path': '%s?imageView2/0/w/120' %
-                                             sku.product.pic_path.strip(),
+                                 'pic_path': '%s' % sku.product.pic_path.strip(),
                                  'skus': {}})
                 sku_dict = products_dict[product_id][sku_id]
                 sku_dict.update({
@@ -1456,6 +1553,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                                        sku.properties_alias,
                     'quantity': sku.quantity
                 })
+                if product_location:
+                    sku_dict['district'] = str(product_location.district)
                 product_dict['skus'][sku_id] = sku_dict
 
             saleproducts_dict = {}
@@ -1502,8 +1601,10 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         else:
             result.update(form.json)
             if form.cleaned_attrs.inbound_id:
-                data, inbound = _inbound_data(form.cleaned_attrs.inbound_id)
+                products, details, inbound = _inbound_data(form.cleaned_attrs.inbound_id)
                 result.update({
+                    'products': products,
+                    'details': details,
                     'images': inbound.images or [],
                     'memo': inbound.memo or '',
                     'target_id': inbound.supplier.id,
@@ -1524,10 +1625,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                     if not supplier_id:
                         error = '找不到供应商'
                     else:
-                        data = _supplier_data(supplier_id)
+                        result['products'] = _supplier_data(supplier_id)
                         result['supplier_name'] = supplier_dict[supplier_id]
                 elif form.sent_from == InBound.REFUND:
                     pass
-
-        result['data'] = data
         return Response(result, template_name='dinghuo/inbound.html')

@@ -1,4 +1,5 @@
 ######## 2016-04-19 ############
+alter table flashsale_dinghuo_inbounddetail add column district varchar(64) default '';
 drop table flashsale_package_sku_item;
 CREATE TABLE `flashsale_package_sku_item` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -140,6 +141,8 @@ CREATE INDEX `flashsale_package_sku_item_ec9ad377` ON `flashsale_package_sku_ite
 CREATE INDEX `flashsale_package_sku_item_8572d23c` ON `flashsale_package_sku_item` (`package_order_id`);
 CREATE INDEX `flashsale_package_sku_item_5821760e` ON `flashsale_package_sku_item` (`assign_status`);
 CREATE INDEX `flashsale_package_sku_item_34476b66` ON `flashsale_package_sku_item` (`sku_id`);
+
+
 
 ######## 2016-04-18 ##########
 alter table flashsale_userbudget drop column total_redenvelope;

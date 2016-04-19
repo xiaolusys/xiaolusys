@@ -9,6 +9,7 @@
         <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}chosen_v1.5.1/chosen.min.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}bootstrap-tagsinput/dist/bootstrap-tagsinput.css" rel="stylesheet">
         <style>
          body > div.container {
              width: 98%;
@@ -139,14 +140,21 @@
 	     bottom: 100px;
              width: 80px;
              top: 36%;
-             left: 50px;
+             left: 10px;
 	     text-align: center;
 	     z-index: 1;
          }
-         #memo-panel a {
-             font-size: 20px;
+         #memo-panel a{
+             font-size: 18px;
              width: 75px;
              display: inline-block;
+         }
+         #memo-panel span {
+             font-size: 18px;
+             width: 75px;
+             display: inline-block;
+             font-weight: 400;
+             line-height: 1.42857143;
          }
 
          #cancel-btn {
@@ -160,7 +168,6 @@
              color: red;
              display: none;
          }
-         #memo-panel a:nth-child(-n+3) {margin-bottom: 10px;}
 
          i.remove {
              position: absolute;
@@ -169,6 +176,12 @@
          i.remove:hover {color: #ff4500;}
 
          tr.detail td:first-child input {width: 200px; display: inline-block}
+         div.bootstrap-tagsinput {width: 120px; height: 36px;}
+         #form2 div.tt-menu{width: 120px;}
+
+         #memo-panel ul {list-style-type:none;}
+         #memo-panel ul > li {line-height: 50px}
+         #form-2 span.twitter-typeahead, #form-2 input.tt-input, #form-2 input.tt-hint {width: 120px;}
         </style>
     </head>
     <body>
@@ -198,7 +211,7 @@
                 <input type="hidden" id="sent-from" name="sent_from" value="{{ sent_from|default:1 }}">
                 <input type="hidden" id="inbound-id" name="inbound_id" value="{{ inbound_id|default:0 }}">
             </form>
-            {% if data %}
+            {% if products %}
             <form id="form-2">
                 <div class="row" id="tips">
                 </div>
@@ -222,7 +235,7 @@
                                         商品名
                                         <p>
                                             <select class="chosen-select form-control" id="select-product-names" multiple data-placeholder="搜索商品名">
-                                                {% for product in data %}
+                                                {% for product in products %}
                                                 <option value="{{ product.id }}">{{ product.name }}</option>
                                                 {% endfor %}
                                             </select>
@@ -234,16 +247,17 @@
                                     <th>规格ID</th>
                                     <th width="90px">尺寸</th>
                                     <th>待入库数</th>
-                                    <th width="100px">正品</th>
-                                    <th width="100px">次品</th>
+                                    <th width="80px">正品</th>
+                                    <th width="80px">次品</th>
+                                    <th width="180px">库位</th>
                                 </tr>
-                                {% for product in data %}
+                                {% for product in products %}
                                 {% for sku in product.skus %}
                                 <tr class="sku" data-product-id="{{ product.id }}" data-sku-id="{{ sku.id }}">
                                     {% if forloop.first %}
                                     <td rowspan="{{ product.skus|length }}">{{ product.name }}</td>
                                     <td rowspan="{{ product.skus|length }}">
-                                        <a href="/admin/items/product/?id={{ product.id }}" target="_blank">
+                                        <a href="/items/product/district/{{product.id}}/" target="_blank" alt="商品库位">
                                             {{ product.id }}
                                         </a>
                                     </td>
@@ -255,7 +269,7 @@
                                     <td rowspan="{{ product.skus|length }}">
                                         <div class="portfolio-box">
                                             <a href="{{ product.product_link }}" target="_blank">
-                                                <img src="{{ product.pic_path }}" class="img-circle">
+                                                <img src="{{ product.pic_path }}?imageView2/0/w/120" class="img-circle" data-pic-path="{{ product.pic_path }}">
                                             </a>
                                         </div>
                                     </td>
@@ -270,15 +284,48 @@
                                     </td>
                                     <td>
                                         <input type="number" class="arrival-quantity form-control"
-                                               style="width:100px" min="0" value="{{ sku.arrival_quantity|default:'' }}">
+                                               style="width:80px" min="0" value="{{ sku.arrival_quantity|default:'' }}">
                                     </td>
                                     <td>
                                         <input type="number" class="inferior-quantity form-control"
-                                               style="width:100px" min="0" value="{{ sku.inferior_quantity|default:'' }}">
+                                               style="width:80px" min="0" value="{{ sku.inferior_quantity|default:'' }}">
+                                    </td>
+                                    <td>
+                                        <input class="district form-control" style="width:80px" value="{{ sku.district|default:'' }}">
                                     </td>
                                 </tr>
                                 {% endfor %}
                                 {% endfor %}
+                                {% if details %}
+                                {% for detail in details %}
+                                <tr class="detail" data-detail-id="{{ detail.id }}">
+                                    <td style="vertical-align:middle">
+                                        <div style="position:relative">
+                                            <i class="glyphicon glyphicon-remove remove" onclick="javascript:removeDetail(this);"></i>
+                                            <input class="detail-name form-control" placeholder="商品名" value="{{ detail.name|default:'' }}">
+                                            <i class="glyphicon glyphicon-info-sign warning name-warning"></i>
+                                        </div>
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <input class="detail-properties-name form-control" style="width:80px" placeholder="尺寸" value="{{ detail.properties_name|default:'' }}">
+                                    </td>
+                                    <td></td>
+                                    <td>
+                                        <input type="number" class="arrival-quantity form-control" style="width:80px" min="0" value="{{ detail.arrival_quantity|default:'' }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="inferior-quantity form-control" style="width:80px" min="0" value="{{ detail.inferior_quantity|default:'' }}">
+                                    </td>
+                                    <td>
+                                        <input class="district form-control" style="width:80px" value="{{ detail.district|default:'' }}">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
                             </table>
                         </div>
                     </div>
@@ -322,11 +369,27 @@
         </div>
 
         <div id="memo-panel">
-            <a href="javascript:;" class="btn btn-warning btn-danger" id="add">疑难</a>
-            <br>
-            <a href="javascript:;" class="btn btn-warning btn-block" id="memo-btn">备注</a>
-            <br>
-            <a href="javascript:;" class="btn btn-danger btn-block" id="cancel-btn">作废</a>
+            <ul>
+                <li>
+                    <span class="label label-success">
+                        正: <i id="total-arrival-quantity">0</i>
+                    </span>
+                </li>
+                <li>
+                    <span class="label label-warning">
+                        次: <i id="total-inferior-quantity">0</i>
+                    </span>
+                </li>
+                <li>
+                    <a href="javascript:;" class="btn btn-warning btn-danger" id="add">疑难</a>
+                </li>
+                <li>
+                    <a href="javascript:;" class="btn btn-warning btn-block" id="memo-btn">备注</a>
+                </li>
+                <li>
+                    <a href="javascript:;" class="btn btn-danger btn-block" id="cancel-btn">作废</a>
+                </li>
+            </ul>
         </div>
         <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
         <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
@@ -341,6 +404,7 @@
         <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
         <script src="{{ STATIC_URL }}chosen_v1.5.1/chosen.jquery.js"></script>
         <script src="/static/wap/js/template.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap-tagsinput/dist/bootstrap-tagsinput.js"></script>
         {% verbatim %}
         <script id="detail" type="text/html">
             <tr class="detail" data-detail-id="0" data-new-id="{{new_id}}">
@@ -360,10 +424,13 @@
                 </td>
                 <td></td>
                 <td>
-                    <input type="number" class="arrival-quantity form-control" style="width:100px" min="0">
+                    <input type="number" class="arrival-quantity form-control" style="width:80px" min="0">
                 </td>
                 <td>
-                    <input type="number" class="inferior-quantity form-control" style="width:100px" min="0">
+                    <input type="number" class="inferior-quantity form-control" style="width:80px" min="0">
+                </td>
+                <td>
+                    <input class="district form-control" style="width:80px">
                 </td>
             </tr>
         </script>
@@ -375,6 +442,8 @@
          var SKU_TR_TPL = _.template('tr[data-sku-id="<%= sku_id %>"]');
          var NEW_DETAIL_TR_TPL = _.template('tr[data-new-id="<%= new_id %>"]');
          var PRODUCT_TR_TPL = _.template('tr[data-product-id="<%= product_id %>"]');
+         var IMAGE_PREVIEW_TPL = _.template('<img src="<%= pic_path %>" width=800 height=800>');
+
          var CREATE_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/create_supplier_inbound';
          var EDIT_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/edit_supplier_inbound';
 
@@ -384,6 +453,14 @@
          var suppliers = {{ suppliers|jsonify }};
          var expressNos = {{ express_nos|jsonify }};
          var images = {{ images|jsonify }};
+
+         var districtsEngine = new Bloodhound({
+             datumTokenizer: Bloodhound.tokenizers.whitespace,
+             queryTokenizer: Bloodhound.tokenizers.whitespace,
+             prefetch: '/sale/dinghuo/dinghuo_orderlist/districts'
+         });
+         districtsEngine.initialize();
+
 
          $.noty.defaults = $.extend($.noty.defaults, {
              animation: {
@@ -423,6 +500,7 @@
              var sku_id, detail_id,new_id;
              var skus, details;
              var arrival_quantity, inferior_quantity;
+             var district;
              var formData = {};
 
              skus = [];
@@ -435,22 +513,25 @@
                  new_id = parseInt($this.attr('data-new-id')) || 0;
                  arrival_quantity = parseInt($this.find('input.arrival-quantity').val());
                  inferior_quantity = parseInt($this.find('input.inferior-quantity').val());
+                 district = $this.find('input.district').val() || '1';
                  if(!_.isNaN(arrival_quantity) && _.isNumber(arrival_quantity) || !_.isNaN(inferior_quantity) && _.isNumber(inferior_quantity)){
                      if(sku_id){
                          skus.push({
                              sku_id: sku_id,
                              arrival_quantity: arrival_quantity || 0,
-                             inferior_quantity: inferior_quantity || 0
+                             inferior_quantity: inferior_quantity || 0,
+                             district: district
                          });
                      }
                      else{
                          details.push({
-                             detail_id: detail_id,
+                             id: detail_id,
                              new_id: new_id,
-                             detail_name: $this.find('input.detail-name').val(),
+                             name: $this.find('input.detail-name').val(),
                              properties_name: $this.find('input.detail-properties-name').val(),
                              arrival_quantity: arrival_quantity || 0,
-                             inferior_quantity: inferior_quantity || 0
+                             inferior_quantity: inferior_quantity || 0,
+                             district: district
                          });
                      }
                  }
@@ -485,14 +566,6 @@
              return requestUrl;
          }
 
-         function initUI(formData){
-             if(formData.inbound_id){
-                 $('#cancel-btn').show();
-                 $('#form-2 .reset').hide();
-                 $('#form-2 .submit').html('修改');
-             }
-         }
-
          function onQuantityChange(){
              var $tr = $(this).closest('tr');
              var arrival_quantity = parseInt($tr.find('input.arrival-quantity').val()) || 0;
@@ -505,7 +578,9 @@
                  else
                      $i.slideUp();
              }
+             calcTotalQuantity();
          }
+
 
          function onNameChange(){
              var $this = $(this);
@@ -517,7 +592,46 @@
          }
 
          function removeDetail(el){
-             $(el).closest('tr').remove();
+             var $tr = $(el).closest('tr');
+             var detail_id = parseInt($tr.attr('data-detail-id'));
+             var inbound_id = parseInt($('#inbound-id').val());
+             if(inbound_id && detail_id){
+                 $.ajax({
+                     url: '/sale/dinghuo/dinghuo_orderlist/' + inbound_id + '/delete_detail',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {detail_id: detail_id},
+                 });
+             }
+             $tr.remove();
+         }
+
+         function calcTotalQuantity(){
+             var totalArrivalQuantity = 0;
+             var totalInferiorQuantity = 0;
+
+             $('.arrival-quantity').each(function(index, el){
+                 var n = parseInt($(this).val());
+                 if(n)
+                     totalArrivalQuantity += n;
+             });
+
+             $('.inferior-quantity').each(function(index, el){
+                 var n = parseInt($(this).val());
+                 if(n)
+                     totalInferiorQuantity += n;
+             });
+             $('#total-arrival-quantity').html(totalArrivalQuantity);
+             $('#total-inferior-quantity').html(totalInferiorQuantity);
+         }
+
+         function initUI(formData){
+             if(formData.inbound_id){
+                 $('#cancel-btn').show();
+                 $('#form-2 .reset').hide();
+                 $('#form-2 .submit').html('修改');
+             }
+             calcTotalQuantity();
          }
 
          $(function(){
@@ -647,7 +761,7 @@
                               if(result.details){
                                   _.each(result.details, function(el){
                                       if(el.new_id && el.detail_id){
-                                          $(NEW_DETAIL_TR_TPL({new_id: el.new_id})).attr('data-detail-id', el.detail_id);
+                                          $(NEW_DETAIL_TR_TPL({new_id: el.new_id})).attr('data-detail-id', el.id);
                                       }
                                  });
                              }
@@ -745,8 +859,32 @@
                          content: '请填写商品名'
                      });
                      $lastTr.find('input.detail-name').change(onNameChange).keyup(onNameChange);
+                     $lastTr.find('input.district').tagsinput({
+                         typeaheadjs: {name: 'districts', source: districtsEngine.ttAdapter()}
+                     });
                  }
              });
+             $('.district').tagsinput({
+                 hint: false,
+                 highlight: false,
+                 freeInput: false,
+                 typeaheadjs: {
+                     hint: false,
+                     highlight: false,
+                     name: 'districts',
+                     source: districtsEngine.ttAdapter()
+                 }
+             });
+             $('img.img-circle').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: function(){
+                     var pic_path = $(this).attr('data-pic-path');
+                     return IMAGE_PREVIEW_TPL({pic_path: pic_path});
+                 }
+             });
+
          });
         </script>
     </body>
