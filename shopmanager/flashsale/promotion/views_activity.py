@@ -297,6 +297,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         res_data = {"applied": applied, "img": img, "nick": nick, "end_time": end_time,
                     "mobile_required": mobile_required}
         response = Response(res_data)
+        response.set_cookie("mobile", mobile)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         response["Access-Control-Allow-Origin"] = "*"
         return response
