@@ -386,7 +386,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                          id=coupon_id, 
                                          customer=str(buyer_id),
                                          status=UserCoupon.UNUSED)
-        
+        print "390       .........", item_ids
         coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
         coupon_pool = coupon.cp_id
         
@@ -453,7 +453,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
                 item_ids.append(cart.item_id)
                 
-            extra_params = {'item_ids':','.join(item_ids),
+            extra_params = {'item_ids': item_ids,
                             'buyer_id':customer.id,
                             'payment':cart_total_fee - cart_discount}
             try:
@@ -538,7 +538,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
             bn_discount += round(coupon_pool.template.value * 100)
-        
+
         bn_discount += self.calc_extra_discount(pay_extras)
         bn_discount = min(bn_discount, bn_totalfee)
         if discount_fee > bn_discount:
