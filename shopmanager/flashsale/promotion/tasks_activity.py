@@ -97,6 +97,9 @@ def task_generate_red_envelope(application):
 @task()
 def task_activate_application(event_id, customer):
     unionid, mobile = customer.unionid, customer.mobile
+    if not unionid or not mobile:
+        # user must have both unionid and mobile to activate
+        return 
     application = get_application(event_id, unionid, mobile)
 
     if application and not application.is_activated():
