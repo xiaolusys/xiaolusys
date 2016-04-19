@@ -157,7 +157,7 @@ def raise_except_or_ret_json(content):
     return content
 
 
-def apis(api_method, method='GET', max_retry=3, limit_rate=0.5):
+def apis(api_method, method='GET', max_retries=3, limit_rate=0.5):
     """ docstring for tengxun apis """
 
     def decorator(func):
@@ -267,7 +267,7 @@ def taobao_topats_itemcats_get(seller_type=None, cids=None, output_format='json'
 
 ############# items apis ###################
 
-@apis('taobao.item.get', max_retry=3, limit_rate=5)
+@apis('taobao.item.get', max_retries=3, limit_rate=5)
 def taobao_item_get(num_iid=None, fields=API_FIELDS['taobao.item.get'], tb_user_id=None):
     pass
 
@@ -353,21 +353,21 @@ def taobao_trade_get(tid=None, fields=API_FIELDS['taobao.trade.get'], tb_user_id
     pass
 
 
-@apis('taobao.trades.sold.get', max_retry=20, limit_rate=10)
+@apis('taobao.trades.sold.get', max_retries=20, limit_rate=10)
 def taobao_trades_sold_get(start_created=None, end_created=None, page_no=None, page_size=None, use_has_next=None,
                            status=None, type=None,
                            fields=API_FIELDS['taobao.trades.sold.get'], tb_user_id=None):
     pass
 
 
-@apis('taobao.trades.sold.increment.get', max_retry=20, limit_rate=10)
+@apis('taobao.trades.sold.increment.get', max_retries=20, limit_rate=10)
 def taobao_trades_sold_increment_get(start_modified=None, end_modified=None, page_no=None, page_size=None,
                                      use_has_next=None, status=None, type=None,
                                      fields=API_FIELDS['taobao.trades.sold.get'], tb_user_id=None):
     pass
 
 
-@apis('taobao.trade.fullinfo.get', max_retry=3, limit_rate=1)
+@apis('taobao.trade.fullinfo.get', max_retries=3, limit_rate=1)
 def taobao_trade_fullinfo_get(tid=None, fields=API_FIELDS['taobao.trade.fullinfo.get'], tb_user_id=None):
     pass
 
@@ -377,7 +377,7 @@ def taobao_topats_trades_fullinfo_get(tids=None, fields=API_FIELDS['taobao.trade
     pass
 
 
-@apis('taobao.trade.amount.get', max_retry=5, limit_rate=1)
+@apis('taobao.trade.amount.get', max_retries=5, limit_rate=1)
 def taobao_trade_amount_get(tid=None, fields=API_FIELDS['taobao.trade.amount.get'], tb_user_id=None):
     pass
 
@@ -422,7 +422,7 @@ def taobao_logistics_companies_get(fields=API_FIELDS['taobao.logistics.companies
     pass
 
 
-@apis('taobao.logistics.orders.detail.get', max_retry=10, limit_rate=5)
+@apis('taobao.logistics.orders.detail.get', max_retries=10, limit_rate=5)
 def taobao_logistics_orders_detail_get(tid=None, seller_confirm='yes', start_created=None, end_created=None,
                                        page_no=None, page_size=None,
                                        fields=API_FIELDS['taobao.logistics.orders.detail.get'], tb_user_id=None):
@@ -459,14 +459,14 @@ def taobao_logistics_consign_resend(tid=None, out_sid=None, company_code=None, t
 
 
 ###############  fengxiao apis  ##################
-@apis('taobao.fenxiao.orders.get', max_retry=20, limit_rate=20)
+@apis('taobao.fenxiao.orders.get', max_retries=20, limit_rate=20)
 def taobao_fenxiao_orders_get(start_created=None, end_created=None, time_type=None, purchase_order_id=None,
                               trade_type=None,
                               page_no=None, page_size=None, status=None, tb_user_id=None):
     pass
 
 
-@apis('taobao.fenxiao.products.get', max_retry=20, limit_rate=20)
+@apis('taobao.fenxiao.products.get', max_retries=20, limit_rate=20)
 def taobao_fenxiao_products_get(outer_id=None, productcat_id=None, status=None, pids=None, item_ids=None,
                                 start_modified=None, end_modified=None,
                                 page_no=None, page_size=None, fields=API_FIELDS['taobao.fenxiao.products.get'],
@@ -486,7 +486,7 @@ def taobao_fenxiao_product_update(pid=None, outer_id=None, quantity=None,
 
 
 ################  refund apis  ##################
-@apis('taobao.refunds.receive.get', max_retry=20, limit_rate=20)
+@apis('taobao.refunds.receive.get', max_retries=20, limit_rate=20)
 def taobao_refunds_receive_get(status=None, start_modified=None, end_modified=None,
                                type='guarantee_trade,auto_delivery,fenxiao',
                                page_no=None, page_size=None, fields=API_FIELDS['taobao.refunds.receive.get'],

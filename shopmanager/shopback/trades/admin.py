@@ -12,15 +12,14 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.encoding import force_unicode
-from django.contrib.admin.views.main import ORDER_VAR
 from bitfield import BitField
 from bitfield.forms import BitFieldCheckboxSelectMultiple
 from django.conf import settings
-
-from celery import chord, group
-from shopback.orders.models import Trade
+from celery import chord
 from shopback.items.models import Product, ProductSku
-from shopback.trades.models import (MergeTrade,
+from shopback.trades.models import (PackageOrder,
+                                    PackageSkuItem,
+                                    MergeTrade,
                                     MergeOrder,
                                     MergeBuyerTrade,
                                     ReplayPostTrade,
@@ -30,12 +29,9 @@ from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask, sendTradeCallBack
 from shopback.trades import permissions as perms
 from .forms import YundaCustomerForm
-from shopback.logistics.models import LogisticsCompany
-
 from shopback.trades.filters import (TradeStatusFilter,
                                      OrderPendingStatusFilter)
 from core.filters import DateFieldListFilter
-
 from shopback.trades.service import TradeService
 from core.admin import ApproxAdmin
 from core.options import log_action, User, ADDITION, CHANGE
@@ -45,12 +41,11 @@ from common.utils import (gen_cvs_tuple,
                           CSVUnicodeWriter,
                           parse_datetime,
                           pinghost)
-from auth import apis
 import logging
 
 # fang  2015-8-19
 from shopback.trades.models import TradeWuliu
-
+from shopback.trades.tasks import send_package_task
 logger = logging.getLogger('django.request')
 
 import re
@@ -160,7 +155,7 @@ class MergeTradeAdmin(ApproxAdmin):
 
     def popup_tid_link(self, obj):
         return u'<a href="%d/" onclick="return showTradePopup(this);"    >%s</a>' % (
-        obj.id, obj.tid and str(obj.tid) or '--')
+            obj.id, obj.tid and str(obj.tid) or '--')
 
     popup_tid_link.allow_tags = True
     popup_tid_link.short_description = u"原单ID"
@@ -360,8 +355,8 @@ class MergeTradeAdmin(ApproxAdmin):
 
                 return HttpResponseRedirect("../%s/" % pk_value)
             else:
-                self.message_user(request, u"审核未通过（请确保订单状态为问题单，无退款，无问题编码"
-                                           u"，无匹配，无缺货, 未合单，已选择快递）")
+                self.message_user(request, u"审核未通过（请确保订单状态为问题单,无退款,无问题编码"
+                                           u",无匹配,无缺货, 未合单,已选择快递）")
                 return HttpResponseRedirect("../%s/" % pk_value)
 
         elif request.POST.has_key("_invalid"):
@@ -437,7 +432,7 @@ class MergeTradeAdmin(ApproxAdmin):
                 log_action(request.user.id, obj, CHANGE, msg)
                 return HttpResponseRedirect("../%s/" % pk_value)
             else:
-                self.message_user(request, u"订单不在定时提醒区，不需要取消定时")
+                self.message_user(request, u"订单不在定时提醒区,不需要取消定时")
                 return HttpResponseRedirect("../%s/" % pk_value)
 
         elif request.POST.has_key("_split"):
@@ -457,7 +452,7 @@ class MergeTradeAdmin(ApproxAdmin):
                 msg = u"订单已取消待合并状态"
                 log_action(request.user.id, obj, CHANGE, msg)
             else:
-                msg = u"该订单不在问题单，或待扫描状态,或没有合并子订单"
+                msg = u"该订单不在问题单,或待扫描状态,或没有合并子订单"
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
 
@@ -482,7 +477,7 @@ class MergeTradeAdmin(ApproxAdmin):
                                                           'obj': force_unicode(obj)}
                 log_action(request.user.id, obj, CHANGE, msg)
             else:
-                msg = u"订单不在待扫描验货或待扫描称重，不能修改为已完成状态"
+                msg = u"订单不在待扫描验货或待扫描称重,不能修改为已完成状态"
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
 
@@ -511,7 +506,7 @@ class MergeTradeAdmin(ApproxAdmin):
                                                            'obj': force_unicode(obj)}
                 log_action(request.user.id, obj, CHANGE, msg)
             else:
-                msg = u"订单不在已完成，不能修改为待扫描状态"
+                msg = u"订单不在已完成,不能修改为待扫描状态"
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
 
@@ -567,11 +562,11 @@ class MergeTradeAdmin(ApproxAdmin):
                                                   pcfg.WAIT_SCAN_WEIGHT_STATUS))
         if wlbset.count() > 0:
             is_merge_success = False
-            fail_reason = u'有订单使用物流宝发货，若需在系统发货，请手动取消该订单物流宝状态'
+            fail_reason = u'有订单使用物流宝发货,若需在系统发货,请手动取消该订单物流宝状态'
 
         elif queryset.count() < 2 or myset.count() > 0 or postset.count() > 1:
             is_merge_success = False
-            fail_reason = u'不符合合并条件（合并订单必须两单以上，订单状态在问题单或待扫描,未关闭状态）'
+            fail_reason = u'不符合合并条件（合并订单必须两单以上,订单状态在问题单或待扫描,未关闭状态）'
 
         else:
             from shopapp.memorule import ruleMatchPayment
@@ -691,7 +686,7 @@ class MergeTradeAdmin(ApproxAdmin):
         pull_fail_ids = []
 
         for trade in queryset:
-            # 如果有合单，则取消合并
+            # 如果有合单,则取消合并
             if trade.has_merge:
                 pull_fail_ids.append(trade.id)
                 continue
@@ -755,7 +750,7 @@ class MergeTradeAdmin(ApproxAdmin):
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
 
             send_tasks = chord([sendTaobaoTradeTask.s(user_id, trade.id)
-                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id),max_retries=300)
+                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id), max_retries=300)
 
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
@@ -1128,7 +1123,7 @@ class MergeTradeDeliveryAdmin(admin.ModelAdmin):
         try:
             pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
             if pingstatus:
-                return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定，请稍后再试...</h1></body>')
+                return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定,请稍后再试...</h1></body>')
 
             user_id = request.user.id
             trade_ids = [t.id for t in queryset]
@@ -1137,7 +1132,7 @@ class MergeTradeDeliveryAdmin(admin.ModelAdmin):
                 return
 
             send_tasks = chord([uploadTradeLogisticsTask.s(trade.trade_id, user_id) for trade in queryset])(
-                deliveryTradeCallBack.s(),max_retries=300)
+                deliveryTradeCallBack.s(), max_retries=300)
 
         except Exception, exc:
             return HttpResponse('<body style="text-align:center;"><h1>发货信息上传执行出错:（%s）</h1></body>' % exc.message)
@@ -1186,7 +1181,7 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     def check_post(self, request, queryset):
 
         if queryset.count() != 1:
-            return HttpResponse('<body style="text-align:center;"><h1>你只能对单条记录操作，请返回重新选择</h1></body>')
+            return HttpResponse('<body style="text-align:center;"><h1>你只能对单条记录操作,请返回重新选择</h1></body>')
         replay_trade = queryset[0]
 
         trade_ids = replay_trade.succ_ids.split(',')
@@ -1250,3 +1245,61 @@ class WuliuAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TradeWuliu, WuliuAdmin)
+
+
+class PackageOrderAdmin(admin.ModelAdmin):
+    # list_display = ('pid','id','ware_by','seller_id','buyer_message','seller_memo','sys_memo','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','seller_id','buyer_id','buyer_nick','user_address_id','post_cost','is_lgtype','lg_aging','lg_aging_type','gift_type','weight','is_qrcode','qrcode_msg','can_review','operator','scanner','weighter','is_locked','is_charged','is_picking_print','is_express_print','is_send_sms','has_refund','created','merged','send_time','weight_time','charge_time','remind_time','consign_time','reason_code','redo_sign','merge_trade_id')
+    list_display = ('pid', 'id', 'seller_id', 'buyer_id', 'ware_by', 'buyer_nick', 'type',
+                    'weight', 'is_locked', 'is_charged', 'is_picking_print', 'is_express_print',
+                    'is_send_sms', 'has_refund', 'created', 'send_time', 'weight_time',
+                    'remind_time', 'consign_time', 'redo_sign',
+                    'merge_trade_id')
+
+    search_fields = ['id', 'seller_id', 'ware_by', 'out_sid', 'receiver_mobile']
+    list_filter = ('status',)
+
+    def push_package_to_scan(self, request, queryset):
+        try:
+            user_id = request.user.id
+            trade_ids = [t.pid for t in queryset]
+            if not trade_ids:
+                self.message_user(request, u'没有可发货的订单')
+                return
+
+            replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,
+                                                          order_num=len(trade_ids),
+                                                          trade_ids=','.join([str(i) for i in trade_ids]))
+
+            send_tasks = chord([send_package_task.s(user_id, order.pid)
+                                for order in queryset])(sendTradeCallBack.s(replay_trade.id), max_retries=300)
+
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+            return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）</h1></body>' % exc.message)
+
+        response_dict = {'task_id': send_tasks.task_id, 'replay_id': replay_trade.id}
+
+        return render_to_response('trades/send_package_reponse.html',
+                                  response_dict,
+                                  context_instance=RequestContext(request),
+                                  content_type="text/html")
+
+    push_package_to_scan.short_description = "同步发货".decode('utf8')
+
+
+    actions = ['push_package_to_scan']
+admin.site.register(PackageOrder, PackageOrderAdmin)
+
+
+class PackageSkuItemAdmin(admin.ModelAdmin):
+    # list_display = ('pid','id','ware_by','seller_id','buyer_message','seller_memo','sys_memo','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','seller_id','buyer_id','buyer_nick','user_address_id','post_cost','is_lgtype','lg_aging','lg_aging_type','gift_type','weight','is_qrcode','qrcode_msg','can_review','operator','scanner','weighter','is_locked','is_charged','is_picking_print','is_express_print','is_send_sms','has_refund','created','merged','send_time','weight_time','charge_time','remind_time','consign_time','reason_code','redo_sign','merge_trade_id')
+    list_display = (
+        'id', 'sale_order_id', 'num', 'package_order_id', 'gift_type', 'assign_status', 'status', 'sys_status',
+        'refund_status', 'cid', 'title', 'price', 'sku_id', 'num', 'total_fee', 'payment', 'discount_fee', 'adjust_fee',
+        'sku_properties_name')
+
+    search_fields = ['id', 'seller_id', 'ware_by', 'out_sid', 'receiver_mobile']
+    list_filter = ('status',)
+
+
+admin.site.register(PackageSkuItem, PackageSkuItemAdmin)

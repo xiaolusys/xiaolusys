@@ -37,7 +37,7 @@ POST_CODE_NAME_MAP = {'YUNDA': u'韵达快递',
                       }
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_off_the_shelf(product_id=None):
     """
         如果有传入商品的id，就执行一个
@@ -117,7 +117,7 @@ def task_schedule_cart():
     close_timeout_carts_and_orders()
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def SaveWuliu_only(tid, content):
     """
         用户点击物流信息，进行物流信息存入数据库。

@@ -10,23 +10,26 @@ from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
-from .models_user import Register, Customer, UserBudget, BudgetLog
-from .models_addr import District, UserAddress
-from .models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry
-from .models_refund import SaleRefund
-from .models_envelope import Envelop
-from .models_coupon import Integral, IntegralLog
-from .models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
-from .models_share import CustomShare
-from .models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
-from . import managers
-from . import constants as CONST
+from shopback.items.models import Product, ProductSku
+from flashsale.pay.models_user import Register, Customer, UserBudget, BudgetLog
+from flashsale.pay.models_addr import District, UserAddress
+from flashsale.pay.models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry
+from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models_envelope import Envelop
+from flashsale.pay.models_coupon import Integral, IntegralLog
+from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
+from flashsale.pay.models_share import CustomShare
+from flashsale.pay.models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
+from flashsale.pay import managers
+from flashsale.pay import constants as CONST
 
 from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
 from core.fields import JSONCharMyField
 from common.utils import update_model_fields
+from shopback.users.models import User
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -226,6 +229,9 @@ class SaleTrade(BaseModel):
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
 
+    seller = User.objects.get(uid='flashsale')
+
+
     def get_cash_payment(self):
         """ 实际需支付金额 """
         if not self.has_budget_paid:
@@ -263,6 +269,10 @@ class SaleTrade(BaseModel):
 
     def is_refunded(self):
         return self.status == self.TRADE_CLOSED
+
+    def get_merge_trades(self):
+        from shopback.trades.models import MergeTrade
+        return MergeTrade.objects.filter(tid=self.tid)
 
     def is_Deposite_Order(self):
 
@@ -353,6 +363,14 @@ class SaleTrade(BaseModel):
             order.confirm_sign_order()  # 同时修改正常订单到交易完成
         self.status = SaleTrade.TRADE_FINISHED
         self.save()
+
+
+def set_user_address_id(sender, instance, created, **kwargs):
+    if not instance.user_address_id:
+        from flashsale.pay.tasks import tasks_set_user_address_id
+        tasks_set_user_address_id.delay(instance)
+
+post_save.connect(set_user_address_id, sender=SaleTrade, dispatch_uid='post_set_user_address_id')
 
 
 def record_supplier_args(sender, obj, **kwargs):
@@ -516,18 +534,6 @@ class SaleOrder(PayBaseModel):
     status = models.IntegerField(choices=ORDER_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'订单状态')
 
-    package_order_id = models.CharField(max_length=100, verbose_name=u'所属包裹订单', null=True)
-    NOT_ASSIGNED = 0
-    ASSIGNED = 1
-    FINISHED = 2
-    ASSIGN_STATUS = (
-        (NOT_ASSIGNED, u'未分配'),
-        (ASSIGNED, u'已分配'),
-        (FINISHED, u'已出货')
-    )
-
-    assign_status = models.IntegerField(default=NOT_ASSIGNED, choices=ASSIGN_STATUS, verbose_name=u'库存分派状态')
-
     def __unicode__(self):
         return '<%s>' % (self.id)
 
@@ -596,17 +602,16 @@ class SaleOrder(PayBaseModel):
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
             update_model_fields(sale_trade, update_fields=['status'])
 
-    def cancel_assign(self):
-        if self.assign_status == SaleOrder.ASSIGNED:
-            self.assign_status = SaleOrder.NOT_ASSIGNED
-            self.package_order_id = None
-            self.save()
-            psku = ProductSku.objects.get(id=self.sku_id)
-            psku.assign_num -= self.num
-            psku.save()
-            psku.assign_packages()
-            return True
-        return False
+    # def cancel_assign(self):
+    #     if self.assign_status == SaleOrder.ASSIGNED:
+    #         self.assign_status = SaleOrder.NOT_ASSIGNED
+    #         self.package_order_id = None
+    #         self.save()
+    #         psku = ProductSku.objects.get(id=self.sku_id)
+    #         psku.assign_num -= self.num
+    #         psku.save()
+    #         return True
+    #     return False
 
     def second_kill_title(self):
         """ 判断是否秒杀标题　"""
@@ -629,19 +634,10 @@ class SaleOrder(PayBaseModel):
         return self.outer_id.startswith('RMB')
 
 
-def refresh_sale_trade_status(sender, instance, *args, **kwargs):
-    """ 更新订单状态 """
-    # TODO
-
-
-post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
-
-
 def order_trigger(sender, instance, created, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
-
     if instance.is_deposit():
         if instance.is_confirmed():
             from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
@@ -650,8 +646,25 @@ def order_trigger(sender, instance, created, **kwargs):
         from flashsale.xiaolumm import tasks_mama
         tasks_mama.task_order_trigger.delay(instance)
 
-
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
+
+
+def update_package_sku_item(sender, instance, created, **kwargs):
+    """ 更新PackageSkuItem状态 """
+    if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS:
+        from flashsale.pay.tasks import task_saleorder_update_package_sku_item
+        task_saleorder_update_package_sku_item.delay(instance)
+
+post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
+
+
+def aleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
+
+    from flashsale.pay.tasks_stats import task_saleorder_update_productskustats_waitingpay_num
+    task_saleorder_update_productskustats_waitingpay_num.delay(instance.sku_id)
+
+post_save.connect(aleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
+                  dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
 
 
 class TradeCharge(PayBaseModel):
@@ -687,7 +700,7 @@ class TradeCharge(PayBaseModel):
         return '<%s>' % (self.id)
 
 
-from shopback.items.models import Product, ProductSku
+
 
 
 class ShoppingCart(BaseModel):
@@ -783,6 +796,17 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
+
+
+def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, *args, **kwargs):
+
+    from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
+    task_shoppingcart_update_productskustats_shoppingcart_num.delay(instance.sku_id)
+
+
+post_save.connect(shoppingcart_update_productskustats_shoppingcart_num, sender=ShoppingCart,
+                  dispatch_uid='post_save_shoppingcart_update_productskustats_shoppingcart_num')
+
 
 from models_coupon_new import CouponTemplate, CouponsPool, UserCoupon
 from models_shops import CustomerShops, CuShopPros

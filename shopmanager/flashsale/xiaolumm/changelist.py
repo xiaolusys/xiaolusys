@@ -1,8 +1,6 @@
 # coding=utf-8
 import re
 from django.contrib.admin.views.main import ChangeList
-from django.contrib import messages
-
 from core.utils.regex import REGEX_MOBILE
 from .models_fortune import OrderCarry
 

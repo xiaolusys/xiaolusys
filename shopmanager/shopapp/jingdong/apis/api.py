@@ -82,7 +82,7 @@ def refreshAccessToken(jd_user):
     return jd_user.top_session
         
 
-def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
+def apis(api_method,method='GET',max_retries=3,limit_rate=0.5):
     """ docstring for tengxun apis """
     def decorator(func):
         """ docstring for decorator """

@@ -65,7 +65,7 @@ def update_weixin_productstock():
                 logger.error(exc.message, exc_info=True)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Update_Weixin_Userinfo(openId, unionId=None, userinfo={}, accessToken=None):
     """ 通过接口获取用户信息 """
     _wx_api = WeiXinAPI()
@@ -100,15 +100,17 @@ def task_Update_Weixin_Userinfo(openId, unionId=None, userinfo={}, accessToken=N
     WeixinUnionID.objects.get_or_create(openid=openId, app_key=app_key, unionid=wx_user.unionid)
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def task_Mod_Merchant_Product_Status(outer_ids, status):
     from shopback.items.models import Product
     from shopback import signals
 
-    update_wxpids = set([])
-    _wx_api = WeiXinAPI()
+
     exception = None
     for outer_id in outer_ids:
+        # update_wxpids = set([])
+        # _wx_api = WeiXinAPI()
+        ###############################
         #         try:
         #             wx_skus = WXProductSku.objects.filter(outer_id=outer_id).values('product').distinct()
         #             wx_prodids = [p['product'] for p in wx_skus]
@@ -127,8 +129,6 @@ def task_Mod_Merchant_Product_Status(outer_ids, status):
         #             exception = exc
 
         product = Product.objects.get(outer_id=outer_id)
-        if status == product.shelf_status:
-            continue
 
         if status == WXProduct.UP_ACTION:
             product.shelf_status = Product.UP_SHELF

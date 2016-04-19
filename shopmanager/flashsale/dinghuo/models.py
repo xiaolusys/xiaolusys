@@ -1,17 +1,14 @@
 # -*- coding:utf-8 -*-
 from django.db import models
-
+from django.db.models.signals import post_save
 from django.contrib.auth.models import User
-from core.fields import BigIntegerAutoField
 
+from core.fields import BigIntegerAutoField
 from core.fields import JSONCharMyField
-from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
+from shopback.base.fields import BigIntegerAutoField
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier
-
-from .models_user import MyUser, MyGroup
-from .models_stats import SupplyChainDataStats
 
 
 class OrderList(models.Model):
@@ -145,7 +142,7 @@ class OrderDetail(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'生成日期')  # index
     updated = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'更新日期')  # index
-    arrival_time = models.DateTimeField(blank=True, verbose_name=u'到货时间')
+    arrival_time = models.DateTimeField(blank=True, db_index=True, verbose_name=u'到货时间')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderdetail'
@@ -155,6 +152,14 @@ class OrderDetail(models.Model):
 
     def __unicode__(self):
         return self.product_id
+
+
+def update_productskustats_inbound_quantity(sender, instance, created, **kwargs):
+    # Note: chichu_id is actually the id of related ProductSku record.
+    from flashsale.dinghuo.tasks import task_orderdetail_update_productskustats_inbound_quantity
+    task_orderdetail_update_productskustats_inbound_quantity.delay(instance.chichu_id)
+
+post_save.connect(update_productskustats_inbound_quantity, sender=OrderDetail, dispatch_uid='post_save_update_productskustats_inbound_quantity')
 
 
 class orderdraft(models.Model):
@@ -289,8 +294,6 @@ class RGDetail(models.Model):
         self.return_goods.save()
 
 
-from django.db.models.signals import post_save
-
 
 def syncRGdTreturn(sender, instance, **kwargs):
     instance.sync_rg_field()
@@ -393,6 +396,9 @@ class InBoundDetail(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'入仓单明细'
         verbose_name_plural = u'入仓单明细列表'
+
+
+
 
 
 class OrderDetailInBoundDetail(models.Model):

@@ -31,6 +31,7 @@ from shopback.items.filters import ChargerFilter, DateScheduleFilter, GroupNameF
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter, update_model_fields
 from flashsale.pay.models_custom import Productdetail
 from flashsale.pay.forms import ProductdetailForm
+from shopback.items.models import  ProductSkuStats, ProductSkuSaleStats
 
 from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
@@ -893,7 +894,7 @@ admin.site.register(Product, ProductAdmin)
 class ProductSkuAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'product', 'properties_name',
                     'properties_alias', 'quantity', 'warn_num', 'remain_num',
-                    'wait_post_num', 'lock_num', 'assign_num', 'cost', 'std_sale_price', 'sync_stock',
+                    'wait_post_num', 'lock_num', 'cost', 'std_sale_price', 'sync_stock',
                     'is_assign', 'is_split', 'is_match', 'post_check',
                     'district_link', 'status')
     list_display_links = ('outer_id',)
@@ -1206,6 +1207,22 @@ class ProductSkuContrastAdmin(admin.ModelAdmin):
 admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 
+class ProductSkuStatsAdmin(admin.ModelAdmin):
+    list_display = ('sku_id', 'properties_name','realtime_quantity', 'post_num', 'assign_num', 'inferior_num', 'sold_num' ,'realtime_lock_num_display','created')
+    search_fields = ['=sku_id', '=product_id']
+    list_per_page = 25
+
+admin.site.register(ProductSkuStats, ProductSkuStatsAdmin)
+
+
+class ProductSkuSaleStatsAdmin(admin.ModelAdmin):
+    list_display = ('sku_id', 'properties_name', 'init_waitassign_num', 'num', 'sale_start_time', 'sale_end_time')
+    search_fields = ['=sku_id']
+    list_per_page = 25
+
+admin.site.register(ProductSkuSaleStats, ProductSkuSaleStatsAdmin)
+
+
 class ContrastContentAdmin(admin.ModelAdmin):
     list_display = ('cid', 'name', 'sid', 'status')
 
@@ -1246,3 +1263,8 @@ class ImageWaterMarkAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ImageWaterMark, ImageWaterMarkAdmin)
+
+
+
+
+
