@@ -5,7 +5,9 @@ from django.contrib.auth.models import User
 
 from core.fields import BigIntegerAutoField
 from core.fields import JSONCharMyField
-from shopback.base.fields import BigIntegerAutoField
+
+from shopback.archives.models import DepositeDistrict
+from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier
@@ -24,7 +26,7 @@ class OrderList(models.Model):
     SAMPLE = u'7'  # 样品
     TO_BE_PAID = u'待收款'
     TO_PAY = u'待付款'
-    CLOSED = u'关闭'
+    CLOSED = u'完成'
     NEAR = u'1'  # 江浙沪皖
     SHANGDONG = u'2'  # 山东
     GUANGDONG = u'3'  # 广东
@@ -55,7 +57,7 @@ class OrderList(models.Model):
         (SAMPLE, u'样品'),
         (TO_PAY, u'待付款'),
         (TO_BE_PAID, u'待收款'),
-        (CLOSED, u'关闭')
+        (CLOSED, u'完成')
     )
     BUYER_OP_STATUS = (
         (DEALED, u'已处理'),
@@ -387,6 +389,7 @@ class InBoundDetail(models.Model):
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
     status = models.SmallIntegerField(default=NORMAL, choices=((NORMAL, u'正常'), (PROBLEM, u'疑难')), verbose_name=u'状态')
+    district = models.CharField(max_length=64, blank=True, verbose_name=u'库位')
 
     def __unicode__(self):
         return str(self.id)
