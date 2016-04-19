@@ -196,12 +196,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         strade_id     = sale_trade.id
         channel       = sale_trade.channel
         
-        urows = UserBudget.objects.filter(
-                user=buyer,
-                amount__gte=payment
-            ).update(amount=models.F('amount') - payment)
+        urows = UserBudget.objects.filter(user=buyer, amount__gte=payment)
         logger.info('budget charge:saletrade=%s, updaterows=%d'%(sale_trade, urows))
-        if urows == 0 :
+        if not urows.exists():
             raise Exception(u'小鹿钱包余额不足')
         
         BudgetLog.objects.create(customer_id=buyer.id,
@@ -389,7 +386,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                          id=coupon_id, 
                                          customer=str(buyer_id),
                                          status=UserCoupon.UNUSED)
-        
         coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
         coupon_pool = coupon.cp_id
         
@@ -456,7 +452,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
                 item_ids.append(cart.item_id)
                 
-            extra_params = {'item_ids':','.join(item_ids),
+            extra_params = {'item_ids': item_ids,
                             'buyer_id':customer.id,
                             'payment':cart_total_fee - cart_discount}
             try:
@@ -541,7 +537,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
             bn_discount += round(coupon_pool.template.value * 100)
-        
+
         bn_discount += self.calc_extra_discount(pay_extras)
         bn_discount = min(bn_discount, bn_totalfee)
         if discount_fee > bn_discount:
