@@ -9,7 +9,7 @@ logger = logging.getLogger('django.request')
 
 # This is the commit time, and also the time we start.
 # after switch, we can't update product sku quantity any more!!!
-PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 20, 00, 45, 00)
+PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 20, 01, 00, 00)
 
 
 class ProductSkuStats(models.Model):
