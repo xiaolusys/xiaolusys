@@ -176,7 +176,7 @@ def task_decide_award_winner(envelope):
     if winners.count() > 0:
         return
 
-    invite_num = XLSampleApply.objects.filter(from_customer=customer_id, status=XLSampleApply.ACTIVED).count()
+    invite_num = XLSampleApply.objects.filter(from_customer=customer_id, event_id=event_id, status=XLSampleApply.ACTIVED).count()
     customer = Customer.objects.get(id=customer_id)
     winner = AwardWinner(customer_id=customer_id, customer_img=customer.thumbnail,
                          customer_nick=customer.nick, event_id=event_id,
