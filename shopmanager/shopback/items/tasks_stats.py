@@ -32,7 +32,8 @@ def task_productsku_update_productskustats_history_quantity(sku_id):
                                        status=SaleOrder.WAIT_SELLER_SEND_GOODS,
                                        pay_time__lte=PRODUCT_SKU_STATS_COMMIT_TIME)
     sorder_num = sorders.aggregate(Sum('num'))
-    history_quantity = product_sku.quantity - sorder_num['num__sum']
+    sorder_num = sorder_num['num__sum'] or 0
+    history_quantity = product_sku.quantity - sorder_num
     if sku_stats.count() == 0:
 
         try:
