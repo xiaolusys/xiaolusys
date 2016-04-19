@@ -1,3 +1,8 @@
+
+######## 2016-04-20 ###########
+alter table flashsale_apppushmsg add column push_time datetime;
+CREATE INDEX `flashsale_apppushmsg_e4f97278` ON `flashsale_apppushmsg` (`push_time`);
+
 ######## 2016-04-19 ############
 alter table flashsale_dinghuo_inbounddetail add column district varchar(64) default '';
 drop table flashsale_package_sku_item;

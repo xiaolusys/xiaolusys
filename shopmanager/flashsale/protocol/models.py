@@ -59,3 +59,4 @@ class APPFullPushMessge(BaseModel):
     regid = models.CharField(max_length=512, blank=True, verbose_name=u'小米regid')
     result = JSONCharMyField(max_length=2048, default=lambda: {}, blank=True, verbose_name=u'推送结果')
     status = models.SmallIntegerField(db_index=True, choices=STATUSES, default=FAIL, verbose_name=u'状态')
+    push_time = models.DateTimeField(db_index=True, blank=True, verbose_name=u'设置推送时间')
