@@ -264,7 +264,6 @@ class APPDownloadView(WeixinAuthMixin, View):
         from_customer = content.get('from_customer') or 0  # 分享人的用户id
         mobile = content.get('mobile') or ''
         ufrom = content.get("ufrom") or None
-
         if from_customer:  # 创建下载记录
             if self.is_from_weixin(request):  # 如果是在微信里面
                 self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)

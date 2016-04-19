@@ -20,9 +20,10 @@ from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
 
 from . import function_of_task, functions
+import logging
+logger = logging.getLogger(__name__)
 
-
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_stats_paytopack(pay_date, sku_num, total_days):
     try:
         entry, status = PayToPackStats.objects.get_or_create(pay_date=pay_date)
@@ -33,7 +34,7 @@ def task_stats_paytopack(pay_date, sku_num, total_days):
         raise task_stats_paytopack.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_stats_daily_product(pre_day=1):
     """计算原始数据表"""
     try:
@@ -53,7 +54,7 @@ def task_stats_product():
     function_of_task.daily_data_stats_update()
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_stats_daily_order_by_group(pre_day=1):
     """每组统计，已经暂停使用"""
     try:
@@ -125,7 +126,7 @@ def task_stats_daily_order_by_group(pre_day=1):
         raise task_stats_daily_order_by_group.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_send_daily_message():
     """使用企业号发送每日订货短信，已经暂停使用"""
     try:
@@ -138,7 +139,7 @@ def task_send_daily_message():
         raise task_send_daily_message.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_write_supply_name():
     """根据填写的商品链接抓取供应商，已经停止使用"""
     try:
@@ -222,7 +223,7 @@ from flashsale.dinghuo.models_stats import RecordGroupPoint
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_daily_stat_group_point():
     """每组得分情况，已经作废"""
     try:
@@ -262,7 +263,7 @@ def task_daily_stat_group_point():
         raise task_daily_stat_group_point.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_daily_stat_ding_huo():
     """订货达标任务，已经作废"""
     try:
@@ -1227,7 +1228,43 @@ def create_orderlist(supplier):
             _merge(supplier, old_orderlist)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def create_dinghuo():
     for supplier in get_suppliers():
         create_orderlist(supplier)
+
+from django.db import IntegrityError
+
+@task(max_retries=3, default_retry_delay=6)
+def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
+    """
+    Whenever we have products inbound, we update the inbound quantity.
+    0) OrderDetail arrival_time add db_index=True
+    1) we should build joint-index for (sku,arrival_time)?
+    --Zifei 2016-04-18
+    """
+    from flashsale.dinghuo.models import OrderDetail
+    from shopback.items.models import ProductSkuStats
+    from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
+
+    sum_res = OrderDetail.objects.filter(chichu_id=sku_id,arrival_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME)\
+        .aggregate(total=Sum('arrival_quantity'))
+    total = sum_res["total"] or 0
+    
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        product_id = ProductSku.objects.get(id=sku_id).product.id
+        try:
+            stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,inbound_quantity=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn(
+                "IntegrityError - productskustat/inbound_quantity | sku_id: %s, inbound_quantity: %s" % (sku_id, total))
+            raise task_orderdetail_update_productskustats_inbound_quantity.retry(exc=exc)
+    else:
+        stat = stats[0]
+        if stat.inbound_quantity != total:
+            stat.inbound_quantity = total
+            stat.save(update_fields=['inbound_quantity'])
+
+     
