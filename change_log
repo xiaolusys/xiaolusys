@@ -1,3 +1,83 @@
+######## 2016-04-19 ############
+drop table flashsale_package_sku_item;
+CREATE TABLE `flashsale_package_sku_item` (
+    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `created` datetime NOT NULL,
+    `modified` datetime NOT NULL,
+    `sale_order_id` integer NOT NULL UNIQUE,
+    `num` integer NOT NULL,
+    `package_order_id` varchar(100),
+    `gift_type` integer NOT NULL,
+    `ware_by` integer NOT NULL,
+    `assign_status` integer NOT NULL,
+    `status` varchar(32) NOT NULL,
+    `sys_status` varchar(32) NOT NULL,
+    `refund_status` integer NOT NULL,
+    `cid` bigint,
+    `title` varchar(128) NOT NULL,
+    `price` double precision NOT NULL,
+    `sku_id` varchar(20) NOT NULL,
+    `outer_id` varchar(20) NOT NULL,
+    `outer_sku_id` varchar(20) NOT NULL,
+    `total_fee` double precision NOT NULL,
+    `payment` double precision NOT NULL,
+    `discount_fee` double precision NOT NULL,
+    `adjust_fee` double precision NOT NULL,
+    `pay_time` datetime NOT NULL,
+    `sku_properties_name` varchar(256) NOT NULL
+)
+;
+
+
+CREATE INDEX `flashsale_package_sku_item_63b5ea41` ON `flashsale_package_sku_item` (`created`);
+CREATE INDEX `flashsale_package_sku_item_ec9ad377` ON `flashsale_package_sku_item` (`modified`);
+CREATE INDEX `flashsale_package_sku_item_8572d23c` ON `flashsale_package_sku_item` (`package_order_id`);
+CREATE INDEX `flashsale_package_sku_item_b4361769` ON `flashsale_package_sku_item` (`ware_by`);
+CREATE INDEX `flashsale_package_sku_item_5821760e` ON `flashsale_package_sku_item` (`assign_status`);
+CREATE INDEX `flashsale_package_sku_item_34476b66` ON `flashsale_package_sku_item` (`sku_id`);
+CREATE INDEX `flashsale_package_sku_item_c44474f4` ON `flashsale_package_sku_item` (`pay_time`);
+CREATE TABLE `shop_items_productskustats` (
+    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `sku_id` integer UNIQUE,
+    `product_id` integer,
+    `assign_num` integer NOT NULL,
+    `inferior_num` integer NOT NULL,
+    `history_quantity` integer NOT NULL,
+    `inbound_quantity` integer NOT NULL,
+    `post_num` integer NOT NULL,
+    `sold_num` integer NOT NULL,
+    `shoppingcart_num` integer NOT NULL,
+    `waitingpay_num` integer NOT NULL,
+    `created` datetime,
+    `modified` datetime,
+    `status` integer NOT NULL
+)
+;
+CREATE TABLE `shop_items_productskusalestats` (
+    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `uni_key` varchar(32) UNIQUE,
+    `sku_id` integer,
+    `product_id` integer,
+    `init_waitassign_num` integer NOT NULL,
+    `num` integer NOT NULL,
+    `sale_start_time` datetime,
+    `sale_end_time` datetime,
+    `created` datetime,
+    `modified` datetime,
+    `status` integer NOT NULL
+)
+;
+
+CREATE INDEX `shop_items_productskustats_10a0e6a0` ON `shop_items_productskustats` (`product_id`);
+CREATE INDEX `shop_items_productskustats_63b5ea41` ON `shop_items_productskustats` (`created`);
+CREATE INDEX `shop_items_productskustats_48fb58bb` ON `shop_items_productskustats` (`status`);
+CREATE INDEX `shop_items_productskusalestats_34476b66` ON `shop_items_productskusalestats` (`sku_id`);
+CREATE INDEX `shop_items_productskusalestats_10a0e6a0` ON `shop_items_productskusalestats` (`product_id`);
+CREATE INDEX `shop_items_productskusalestats_4d105c33` ON `shop_items_productskusalestats` (`sale_start_time`);
+CREATE INDEX `shop_items_productskusalestats_bbd4af52` ON `shop_items_productskusalestats` (`sale_end_time`);
+CREATE INDEX `shop_items_productskusalestats_63b5ea41` ON `shop_items_productskusalestats` (`created`);
+CREATE INDEX `shop_items_productskusalestats_48fb58bb` ON `shop_items_productskusalestats` (`status`);
+
 ######## 2016-04-19 ########
 ALTER TABLE `shop_trades_mergeorder`ADD INDEX `sale_order_id` (`sale_order_id`) USING HASH ;
 ALTER TABLE `shop_trades_mergeorder`ADD COLUMN `sale_order_id` bigint NULL DEFAULT NULL AFTER `cid`;
