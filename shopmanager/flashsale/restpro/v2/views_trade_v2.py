@@ -386,7 +386,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                          id=coupon_id, 
                                          customer=str(buyer_id),
                                          status=UserCoupon.UNUSED)
-        print "390       .........", item_ids
         coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
         coupon_pool = coupon.cp_id
         
