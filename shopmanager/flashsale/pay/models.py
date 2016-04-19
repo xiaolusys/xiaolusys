@@ -365,6 +365,14 @@ class SaleTrade(BaseModel):
         self.save()
 
 
+def set_user_address_id(sender, instance, created, **kwargs):
+    if not instance.user_address_id:
+        from flashsale.pay.tasks import tasks_set_user_address_id
+        tasks_set_user_address_id.delay(instance)
+
+post_save.connect(set_user_address_id, sender=SaleTrade, dispatch_uid='post_set_user_address_id')
+
+
 def record_supplier_args(sender, obj, **kwargs):
     """ 随支付成功信号 更新供应商的销售额，销售数量
         :arg obj -> SaleTrade instance

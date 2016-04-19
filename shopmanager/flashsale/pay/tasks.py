@@ -640,3 +640,26 @@ def task_saleorder_update_package_sku_item(sale_order):
     if sku_item.assign_status != assign_status:
         sku_item.assign_status = assign_status
         sku_item.save()
+
+@task()
+def tasks_set_user_address_id(sale_trade):
+    from flashsale.pay.models_addr import UserAddress
+    ua = UserAddress.objects.filter(
+        cus_uid=sale_trade.buyer_id,
+        receiver_name=sale_trade.receiver_name,
+        receiver_state=sale_trade.receiver_state,
+        receiver_city=sale_trade.receiver_city,
+        receiver_district=sale_trade.receiver_district,
+        receiver_address=sale_trade.receiver_address,
+        receiver_zip=sale_trade.receiver_zip,
+        receiver_mobile=sale_trade.receiver_mobile,
+        receiver_phone=sale_trade.receiver_phone,
+        status='normal').first()
+    if not ua:
+        ua = UserAddress.objects.filter(
+            cus_uid=sale_trade.buyer_id,
+            receiver_name=sale_trade.receiver_name,
+            receiver_mobile=sale_trade.receiver_mobile,
+            status='normal').order_by('-id').first()
+    if ua:
+        SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)
