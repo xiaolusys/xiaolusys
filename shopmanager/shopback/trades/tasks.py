@@ -128,6 +128,86 @@ def get_replay_results(replay_trade):
     return reponse_result
 
 
+def get_package_pickle_list_data(post_trades):
+    """生成包裹配货单数据列表"""
+    trade_items = {}
+    for trade in post_trades:
+        used_orders = trade.package_sku_items
+        for order in used_orders:
+            outer_id = order.outer_id or str(order.num_iid)
+            outer_sku_id = order.outer_sku_id or str(order.sku_id)
+            prod = None
+            prod_sku = None
+            prod = Product.objects.get(outer_id=outer_id)
+            prod_sku = ProductSku.objects.get(outer_id=outer_sku_id, product=prod)
+            location = prod_sku and prod_sku.get_districts_code() or (prod and prod.get_districts_code() or '')
+            if trade_items.has_key(outer_id):
+                trade_items[outer_id]['num'] += order.num
+                skus = trade_items[outer_id]['skus']
+                if skus.has_key(outer_sku_id):
+                    skus[outer_sku_id]['num'] += order.num
+                else:
+                    prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
+                    skus[outer_sku_id] = {'sku_name': prod_sku_name,
+                                          'num': order.num,
+                                          'location': location}
+            else:
+                prod_sku_name = prod_sku.properties_name if prod_sku else order.sku_properties_name
+
+                trade_items[outer_id] = {
+                    'num': order.num,
+                    'title': prod.name if prod else order.title,
+                    'location': prod and prod.get_districts_code() or '',
+                    'skus': {outer_sku_id: {
+                        'sku_name': prod_sku_name,
+                        'num': order.num,
+                        'location': location}}
+                }
+
+    trade_list = sorted(trade_items.items(), key=lambda d: d[1]['num'], reverse=True)
+    for trade in trade_list:
+        skus = trade[1]['skus']
+        trade[1]['skus'] = sorted(skus.items(), key=lambda d: d[1]['num'], reverse=True)
+
+    return trade_list
+
+
+def get_replay_package_results(replay_trade):
+    reponse_result = replay_trade.post_data
+    if not reponse_result:
+        trade_ids = replay_trade.trade_ids.split(',')
+        queryset = PackageOrder.objects.filter(pid__in=trade_ids)
+        post_trades = queryset.filter(sys_status__in=(PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+                                                      PackageOrder.WAIT_SCAN_WEIGHT_STATUS,
+                                                      PackageOrder.FINISHED_STATUS))
+        trade_list = get_package_pickle_list_data(post_trades)
+        trades = []
+        for trade in queryset:
+            trade_dict = {}
+            trade_dict['id'] = trade.id
+            trade_dict['tid'] = trade.tid
+            trade_dict['seller_nick'] = trade.seller.nick
+            trade_dict['buyer_nick'] = trade.buyer_nick
+            trade_dict['company_name'] = (trade.logistics_company and
+                                          trade.logistics_company.name or '--')
+            trade_dict['out_sid'] = trade.out_sid
+            trade_dict['is_success'] = trade.sys_status in (PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+                                                            PackageOrder.WAIT_SCAN_WEIGHT_STATUS,
+                                                            PackageOrder.FINISHED_STATUS)
+            trade_dict['sys_status'] = trade.sys_status
+            trades.append(trade_dict)
+        reponse_result = {'trades': trades, 'trade_items': trade_list, 'post_no': replay_trade.id}
+        replay_trade.succ_ids = ','.join([str(t.id) for t in post_trades])
+        replay_trade.succ_num = post_trades.count()
+        replay_trade.post_data = json.dumps(reponse_result)
+        replay_trade.status = pcfg.RP_WAIT_ACCEPT_STATUS
+        replay_trade.finished = datetime.datetime.now()
+        replay_trade.save()
+    else:
+        reponse_result = json.loads(reponse_result)
+    return reponse_result
+
+
 @task()
 def sendTradeCallBack(trade_ids, *args, **kwargs):
     try:
@@ -209,6 +289,34 @@ def sendTaobaoTradeTask(operator_id, trade_id):
     trade.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
     trade.save()
     log_action(operator_id, trade, CHANGE, u'订单打印')
+
+    return trade_id
+
+
+@task(ignore_result=False)
+def send_package_task(operator_id, trade_id):
+    """ 淘宝发货任务 """
+    # trade = MergeTrade.objects.get(id=trade_id)
+    package = PackageOrder.objects.get(pid=trade_id)
+    if (not package.is_picking_print or
+            not package.is_express_print or not package.out_sid
+        or package.sys_status != PackageOrder.WAIT_PREPARE_SEND_STATUS):
+        return trade_id
+
+    mtd, state = MergeTradeDelivery.objects.get_or_create(seller=package.seller,
+                                                          trade_id=package.pid)
+
+    mtd.trade_no = package.tid
+    mtd.buyer_nick = package.buyer_nick
+    mtd.is_parent = False
+    mtd.is_sub = False
+    mtd.parent_tid = 0
+    mtd.status = MergeTradeDelivery.WAIT_DELIVERY
+    mtd.save()
+
+    package.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
+    package.save()
+    log_action(operator_id, package, CHANGE, u'包裹订单打印')
 
     return trade_id
 
@@ -855,8 +963,8 @@ def task_packagize_sku_item(instance):
         sale_trade = instance.sale_trade
         package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
                                                            instance.product_sku.ware_by)
-        package, new_create = PackageOrder.get_or_create(package_order_id, sale_trade)
         PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
+        package, new_create = PackageOrder.get_or_create(package_order_id, sale_trade)
         if not new_create:
             package.reset_to_wait_prepare_send()
     elif instance.package_order_id and instance.assign_status in [

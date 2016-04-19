@@ -1508,6 +1508,28 @@ def replay_trade_send_result(request, id):
                                   content_type="text/html")
 
 
+def replay_package_send_result(request, id):
+    try:
+        replay_trade = ReplayPostTrade.objects.get(id=id)
+    except:
+        return HttpResponse(
+            '<body style="text-align:center;"><h1>发货结果未找到</h1></body>')
+    else:
+        from shopback.trades.tasks import get_replay_package_results
+        try:
+            reponse_result = get_replay_package_results(replay_trade)
+        except Exception, exc:
+            logger.error('trade post callback error:%s' % exc.message,
+                         exc_info=True)
+        reponse_result['post_no'] = reponse_result.get('post_no',
+                                                       None) or replay_trade.id
+
+        return render_to_response('trades/trade_post_success.html',
+                                  reponse_result,
+                                  context_instance=RequestContext(request),
+                                  content_type="text/html")
+
+
 class TradeSearchView(APIView):
     """ docstring for class ExchangeOrderView """
     permission_classes = (permissions.IsAuthenticated,)

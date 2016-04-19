@@ -45,7 +45,7 @@ import logging
 
 # fang  2015-8-19
 from shopback.trades.models import TradeWuliu
-
+from shopback.trades.tasks import send_package_task
 logger = logging.getLogger('django.request')
 
 import re
@@ -750,7 +750,7 @@ class MergeTradeAdmin(ApproxAdmin):
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
 
             send_tasks = chord([sendTaobaoTradeTask.s(user_id, trade.id)
-                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id),max_retries=300)
+                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id), max_retries=300)
 
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
@@ -1132,7 +1132,7 @@ class MergeTradeDeliveryAdmin(admin.ModelAdmin):
                 return
 
             send_tasks = chord([uploadTradeLogisticsTask.s(trade.trade_id, user_id) for trade in queryset])(
-                deliveryTradeCallBack.s(),max_retries=300)
+                deliveryTradeCallBack.s(), max_retries=300)
 
         except Exception, exc:
             return HttpResponse('<body style="text-align:center;"><h1>发货信息上传执行出错:（%s）</h1></body>' % exc.message)
@@ -1258,7 +1258,36 @@ class PackageOrderAdmin(admin.ModelAdmin):
     search_fields = ['id', 'seller_id', 'ware_by', 'out_sid', 'receiver_mobile']
     list_filter = ('status',)
 
+    def push_package_to_scan(self, request, queryset):
+        try:
+            user_id = request.user.id
+            trade_ids = [t.pid for t in queryset]
+            if not trade_ids:
+                self.message_user(request, u'没有可发货的订单')
+                return
 
+            replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,
+                                                          order_num=len(trade_ids),
+                                                          trade_ids=','.join([str(i) for i in trade_ids]))
+
+            send_tasks = chord([send_package_task.s(user_id, order.pid)
+                                for order in queryset])(sendTradeCallBack.s(replay_trade.id), max_retries=300)
+
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+            return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）</h1></body>' % exc.message)
+
+        response_dict = {'task_id': send_tasks.task_id, 'replay_id': replay_trade.id}
+
+        return render_to_response('trades/send_package_reponse.html',
+                                  response_dict,
+                                  context_instance=RequestContext(request),
+                                  content_type="text/html")
+
+    push_package_to_scan.short_description = "同步发货".decode('utf8')
+
+
+    actions = ['push_package_to_scan']
 admin.site.register(PackageOrder, PackageOrderAdmin)
 
 

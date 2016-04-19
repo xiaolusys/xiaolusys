@@ -11,22 +11,23 @@ from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
 from shopback.items.models import Product, ProductSku
-from .models_user import Register, Customer, UserBudget, BudgetLog
-from .models_addr import District, UserAddress
-from .models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry
-from .models_refund import SaleRefund
-from .models_envelope import Envelop
-from .models_coupon import Integral, IntegralLog
-from .models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
-from .models_share import CustomShare
-from .models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
-from . import managers
-from . import constants as CONST
+from flashsale.pay.models_user import Register, Customer, UserBudget, BudgetLog
+from flashsale.pay.models_addr import District, UserAddress
+from flashsale.pay.models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry
+from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models_envelope import Envelop
+from flashsale.pay.models_coupon import Integral, IntegralLog
+from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
+from flashsale.pay.models_share import CustomShare
+from flashsale.pay.models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
+from flashsale.pay import managers
+from flashsale.pay import constants as CONST
 
 from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
 from core.fields import JSONCharMyField
 from common.utils import update_model_fields
+from shopback.users.models import User
 import logging
 
 
@@ -227,6 +228,9 @@ class SaleTrade(BaseModel):
     @property
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
+
+    seller = User.objects.get(uid='flashsale')
+
 
     def get_cash_payment(self):
         """ 实际需支付金额 """

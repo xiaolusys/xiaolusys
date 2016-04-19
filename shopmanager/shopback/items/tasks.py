@@ -1021,3 +1021,10 @@ def task_assign_stock_to_package_sku_item(stat):
             package_sku_item.save()
 
 
+@task()
+def task_productsku_update_productskustats(sku_id, product_id):
+    from shopback.items.models_stats import ProductSkuStats
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        stat = ProductSkuStats(sku_id=sku_id,product_id=product_id)
+        stat.save()

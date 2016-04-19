@@ -1360,6 +1360,7 @@ class PackageOrder(models.Model):
     reason_code = models.CharField(max_length=100, blank=True, verbose_name=u'问题编号')  # 1,2,3 问题单原因编码集合
     redo_sign = models.BooleanField(default=False, verbose_name=u'重做标志')  # 重做标志，表示该单要进行了一次废弃的打单验货
     merge_trade_id = models.BigIntegerField(null=True, blank=True, verbose_name=u'对应的MergeTrade')
+    shipping_type = 'express'
 
     class Meta:
         db_table = 'flashsale_package'
@@ -1369,11 +1370,12 @@ class PackageOrder(models.Model):
 
     def copy_order_info(self, sale_trade):
         """从package_order或者sale_trade复制信息"""
-        attrs = ['tid', 'buyer_id', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
-                 'receiver_zip', 'receiver_mobile', 'receiver_phone', 'buyer_nick']
+        attrs = ['tid', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district',
+                 'receiver_address', 'receiver_zip', 'receiver_mobile', 'receiver_phone', 'buyer_nick']
         for attr in attrs:
             v = getattr(sale_trade, attr)
             setattr(self, attr, v)
+        self.seller_id = sale_trade.seller.id
 
     def set_out_sid(self, out_sid, logistics_company_id):
         if not self.out_sid:
@@ -1416,6 +1418,10 @@ class PackageOrder(models.Model):
             self._sale_orders_ = SaleOrder.objects.filter(id__in=sale_order_ids)
         return self._sale_orders_
 
+    @property
+    def seller(self):
+        return User.objects.get(id=self.seller_id)
+
     def reset_to_wait_prepare_send(self):
         """
             重设状态到待发货准备
@@ -1431,6 +1437,10 @@ class PackageOrder(models.Model):
     def get_or_create(id, sale_trade):
         if not PackageOrder.objects.filter(id=id).exists():
             package_order = PackageOrder(id=id)
+            buyer_id, address_id, ware_by_id, order = id.split('-')
+            package_order.buyer_id = int(buyer_id)
+            package_order.address_id = int(address_id)
+            package_order.ware_by_id = int(ware_by_id)
             package_order.copy_order_info(sale_trade)
             package_order.save()
             new_create = True
@@ -1463,23 +1473,20 @@ def get_logistics_company(sender, instance, created, **kwargs):
         tasks.task_get_logistics_company.delay(instance)
 
 
-def sync_merge_trade_by_package(sender, instance, created, **kwargs):
-    if created:
-        merge_trade = MergeTrade()
-        merge_trade.sync_attr_from_package(instance)
-    elif instance.merge_trade_id:
-        merge_trade = MergeTrade.objects.get(id=instance.merge_trade_id)
-        merge_trade.sync_attr_from_package(instance)
-    merge_trade.save()
-    return
-
-
 post_save.connect(get_logistics_company, sender=PackageOrder)
 
 
+def check_package_order_status(sender, instance, created, **kwargs):
+    if instance.sys_status == PackageOrder.PKG_NEW_CREATED and PackageSkuItem.objects.filter(
+            package_order_id=instance.id, status=PackageSkuItem.ASSIGNED).exists():
+        PackageOrder.objects.filter(pid=instance.pid).update(sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
+
+
+post_save.connect(check_package_order_status, sender=PackageOrder)
+
 
 # TODO@hy
-#post_save.connect(update_merge_order_item_status, sender=PackageOrder)
+# post_save.connect(update_merge_order_item_status, sender=PackageOrder)
 
 
 # post_save.connect(sync_merge_trade_by_package, sender=PackageOrder)
@@ -1586,7 +1593,7 @@ class PackageSkuItem(BaseModel):
     discount_fee = models.FloatField(default=0.0, verbose_name=u'折扣')
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
 
-    pay_time = models.DateTimeField(db_index=True,verbose_name=u'付款时间')
+    pay_time = models.DateTimeField(db_index=True, verbose_name=u'付款时间')
     sku_properties_name = models.CharField(max_length=256, blank=True,
                                            verbose_name=u'购买规格')
 
