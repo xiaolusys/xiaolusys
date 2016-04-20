@@ -1036,7 +1036,7 @@ def get_suppliers():
         sku_dict = products[sku.product_id][sku.id]
         sku_dict.update({
             'id': sku.id,
-            'quantity': sku.quantity,
+            'quantity': max(sku.quantity, 0),
             'properties_name': sku.properties_name or sku.properties_alias,
             'outer_id': sku.outer_id,
             'cost': sku.cost or 0
@@ -1250,7 +1250,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     sum_res = OrderDetail.objects.filter(chichu_id=sku_id,arrival_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME)\
         .aggregate(total=Sum('arrival_quantity'))
     total = sum_res["total"] or 0
-    
+
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
         product_id = ProductSku.objects.get(id=sku_id).product.id
@@ -1266,5 +1266,3 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
         if stat.inbound_quantity != total:
             stat.inbound_quantity = total
             stat.save(update_fields=['inbound_quantity'])
-
-     
