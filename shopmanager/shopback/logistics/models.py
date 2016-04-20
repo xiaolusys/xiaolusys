@@ -266,13 +266,13 @@ class LogisticsCompanyProcessor(object):
     def getGZLogisticCompany(state, city, district, shipping_type, receiver_address):
         if not state or not city or not district:
             raise Exception(u"地址不全(请精确到省市区（县）)")
-        if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
+        if shipping_type.upper() == pcfg.EXPRESS_SHIPPING_TYPE.upper():
             # 定制订单快递分配
             if (receiver_address.find(u'镇') >= 0 and receiver_address.find(u'村') >= 0):
                 if state.startswith(POST_STATE):
                     return LogisticsCompany.objects.get_or_create(code='POSTB')[0]
             return LogisticsCompanyProcessor.getYundaLGC()
-        elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
+        elif shipping_type.upper() in (pcfg.POST_SHIPPING_TYPE.upper(),
                                pcfg.EMS_SHIPPING_TYPE.upper()):
             return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]
 
@@ -281,7 +281,7 @@ class LogisticsCompanyProcessor(object):
         if not state or not city or not district:
             raise Exception(u"地址不全(请精确到省市区（县）)")
 
-        if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
+        if shipping_type.upper() == pcfg.EXPRESS_SHIPPING_TYPE.upper():
             # 定制订单快递分配
             if (receiver_address.find(u'镇') >= 0
                 and receiver_address.find(u'村') >= 0):
@@ -290,6 +290,6 @@ class LogisticsCompanyProcessor(object):
                 return LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
 
             return LogisticsCompany.get_recommend_express(state, city, district)
-        elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
+        elif shipping_type.upper() in (pcfg.POST_SHIPPING_TYPE.upper(),
                                pcfg.EMS_SHIPPING_TYPE.upper()):
             return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]

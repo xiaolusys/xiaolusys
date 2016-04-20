@@ -370,6 +370,7 @@ def set_user_address_id(sender, instance, created, **kwargs):
         from flashsale.pay.tasks import tasks_set_user_address_id
         tasks_set_user_address_id.delay(instance)
 
+# TODO@HY 这迟早要去掉 在产生sale_trade时提供一个address_id就足够了
 post_save.connect(set_user_address_id, sender=SaleTrade, dispatch_uid='post_set_user_address_id')
 
 
@@ -648,19 +649,19 @@ post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order
 
 def update_package_sku_item(sender, instance, created, **kwargs):
     """ 更新PackageSkuItem状态 """
-    if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS:
+    if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and not instance.is_deposit():
         from flashsale.pay.tasks import task_saleorder_update_package_sku_item
         task_saleorder_update_package_sku_item.delay(instance)
 
 post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 
-def aleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
+def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
 
     from flashsale.pay.tasks_stats import task_saleorder_update_productskustats_waitingpay_num
     task_saleorder_update_productskustats_waitingpay_num.delay(instance.sku_id)
 
-post_save.connect(aleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
+post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
                   dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
 
 

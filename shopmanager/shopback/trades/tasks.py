@@ -895,10 +895,10 @@ def task_packageskuitem_update_productskustats(sku_id):
     -- Zifei 2016-04-18
     """
 
-    from shopback.items.models_stats import ProductSkuStats,PRODUCT_SKU_STATS_COMMIT_TIME
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id,pay_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME).\
+    from shopback.items.models_stats import ProductSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME). \
         exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
-    wait_assign_num,assign_num,post_num = 0,0,0
+    wait_assign_num, assign_num, post_num = 0, 0, 0
 
     for entry in sum_res:
         if entry["assign_status"] == PackageSkuItem.NOT_ASSIGNED:
@@ -919,7 +919,7 @@ def task_packageskuitem_update_productskustats(sku_id):
         except IntegrityError as exc:
 
             logger.warn("IntegrityError - productskustat/sold_num | sku_id:%s, sold_num:%s, assign_num:%s, post_num:%s"
-                        % (sku_id,sold_num,assign_num,post_num))
+                        % (sku_id, sold_num, assign_num, post_num))
 
     else:
         stat = stats[0]
@@ -942,13 +942,14 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     print sku_id
     print pay_time
     from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
-    sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id,sale_start_time__lte=pay_time,status=ProductSkuSaleStats.ST_EFFECT)
+    sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id, sale_start_time__lte=pay_time,
+                                                    status=ProductSkuSaleStats.ST_EFFECT)
     if not sale_stats.exists():
-        logger.warn('effect productskusalestats not found | sku_id:%s, pay_time:%s'%(sku_id, pay_time))
+        logger.warn('effect productskusalestats not found | sku_id:%s, pay_time:%s' % (sku_id, pay_time))
         return
 
-    sale_stat  = sale_stats[0]
-    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id,pay_time__gte=sale_stat.sale_start_time)\
+    sale_stat = sale_stats[0]
+    assign_num_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gte=sale_stat.sale_start_time) \
         .exclude(assign_status=PackageSkuItem.CANCELED).aggregate(total=Sum('num'))
     total = assign_num_res['total'] or 0
 
@@ -961,12 +962,15 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
 def task_packagize_sku_item(instance):
     if instance.assign_status == PackageSkuItem.ASSIGNED and not instance.package_order_id:
         sale_trade = instance.sale_trade
-        package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                           instance.product_sku.ware_by)
-        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
-        package, new_create = PackageOrder.get_or_create(package_order_id, sale_trade)
-        if not new_create:
-            package.reset_to_wait_prepare_send()
+        if sale_trade.buyer_id and sale_trade.user_address_id and instance.product_sku.ware_by:
+            package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
+                                                               instance.product_sku.ware_by)
+            PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
+            package, new_create = PackageOrder.get_or_create(package_order_id, sale_trade)
+            if not new_create:
+                package.reset_to_wait_prepare_send()
+        else:
+            logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
     elif instance.package_order_id and instance.assign_status in [
                 PackageSkuItem.NOT_ASSIGNED or PackageSkuItem.CANCELED]:
         PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=None)
