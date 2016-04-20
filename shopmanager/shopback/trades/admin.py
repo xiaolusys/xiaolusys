@@ -131,8 +131,7 @@ class MergeTradeChangeList(ChangeList):
 class MergeTradeAdmin(ApproxAdmin):
     list_display = ('trade_id_link', 'popup_tid_link', 'buyer_nick_link', 'type',
                     'payment', 'pay_time', 'consign_time', 'trade_ding_huo', 'sys_status', 'status',
-                    'reason_code', 'is_picking_print', 'is_express_print'  #
-                    , 'can_review', 'ware_by', 'weight_time')
+                    'reason_code', 'is_picking_print', 'is_express_print', 'can_review', 'ware_by', 'weight_time')
     # list_display_links = ('trade_id_link','popup_tid_link')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -229,7 +228,7 @@ class MergeTradeAdmin(ApproxAdmin):
                    , ('is_brand_sale', 'is_force_wlb', 'buyer_rate', 'seller_rate', 'seller_can_rate'
                       , 'is_lgtype', 'lg_aging_type')
                    , ('send_time', 'lg_aging', 'step_paid_fee', 'step_trade_status')
-                   , ('created', 'modified', 'pay_time', 'consign_time')
+                   , ('created', 'pay_time', 'consign_time')
                    , ('buyer_message', 'seller_memo', 'sys_memo')
                    )
     }),
