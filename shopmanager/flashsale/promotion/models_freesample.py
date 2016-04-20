@@ -117,6 +117,7 @@ class XLSampleApply(CacheModel):
     user_unionid = models.CharField(max_length=64, db_index=True, blank=True, null=True, verbose_name=u'用户unionid')
     mobile = models.CharField(max_length=11, null=False, db_index=True, blank=False, verbose_name=u'试用手机')
     vipcode = models.CharField(max_length=16, db_index=True, blank=True, null=True, verbose_name=u'试用邀请码')
+    event_imei = models.CharField(max_length=20, verbose_name=u'设备标识号')
     status = models.IntegerField(default=INACTIVE, choices=STATUS_CHOICES, db_index=True, verbose_name=u"状态")
 
     customer_id = models.IntegerField(null=True, blank=True, verbose_name=u"申请者ID")
@@ -131,6 +132,27 @@ class XLSampleApply(CacheModel):
 
     def is_activated(self):
         return self.status == self.ACTIVED
+
+from django.db import connection
+
+
+def handler_event_imei_unique():
+    """
+    XLSampleApply　model 处理　-->  event_imei　unique处理
+
+    处理方法：
+    1. 添加普通字段
+    2. 给历史数据生成唯一记录的　event_imei　字段　event_id + '_' + id
+    3. sql 添加 unique 到　event_imei　字段
+    """
+    sql = "UPDATE flashsale_promotion_sampleapply " \
+          "SET " \
+          "event_imei = CONCAT('3_', id) " \
+          "WHERE id != 0; " \
+          "ALTER TABLE flashsale_promotion_sampleapply ADD UNIQUE (event_imei);"
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    cursor.close()
 
 
 def generate_red_envelope(sender, instance, created, *args, **kwargs):
