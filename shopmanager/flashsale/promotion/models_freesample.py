@@ -234,7 +234,7 @@ post_save.connect(open_envelope_decide_awardwinner, sender=RedEnvelope)
 
 
 class AwardWinner(CacheModel):
-    STATUS = ((0, '未领取'), (1, '已领取'))
+    STATUS = ((0, '未领取'), (1, '已领取'), (2, '已作废'))
     customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u"用户ID")
     customer_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'头像')
     customer_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'昵称')
