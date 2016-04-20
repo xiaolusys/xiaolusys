@@ -230,7 +230,7 @@
                             <h2 style="text-align:center;margin-top:0"><small>{{ supplier_name }}({{ target_id }})</small></h2>
                             {% endif %}
                             <p style="margin-bottom:30px"></p>
-                            <table class="table table-striped" style="width:70%;margin:0 auto">
+                            <table class="table table-striped" style="width:80%;margin:0 auto">
                                 <tr>
                                     <th>
                                         商品名
@@ -247,6 +247,7 @@
                                     <th width="120px">图片</th>
                                     <th>规格ID</th>
                                     <th width="90px">尺寸</th>
+                                    <th width="100px">条码</th>
                                     <th>待入库数</th>
                                     <th width="80px">正品</th>
                                     <th width="80px">次品</th>
@@ -277,6 +278,7 @@
                                     {% endif %}
                                     <td>{{ sku.id }}</td>
                                     <td>{{ sku.properties_name }}</td>
+                                    <td>{{ sku.barcode }}</td>
                                     <td class="plan-quantity">
                                         <p class="n">
                                             {{ sku.plan_quantity }}
@@ -314,6 +316,7 @@
                                     <td>
                                         <input class="detail-properties-name form-control" style="width:80px" placeholder="尺寸" value="{{ detail.properties_name|default:'' }}">
                                     </td>
+                                    <td></td>
                                     <td></td>
                                     <td>
                                         <input type="number" class="arrival-quantity form-control" style="width:80px" min="0" value="{{ detail.arrival_quantity|default:'' }}">
@@ -423,6 +426,7 @@
                 <td>
                     <input class="detail-properties-name form-control" style="width:80px" placeholder="尺寸">
                 </td>
+                <td></td>
                 <td></td>
                 <td>
                     <input type="number" class="arrival-quantity form-control" style="width:80px" min="0">
