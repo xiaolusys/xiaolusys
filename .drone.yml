@@ -21,6 +21,17 @@ publish:
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
     when:
       branch: django18
+  docker:
+    username: $$DOCKER_USERNAME
+    password: $$DOCKER_PASSWORD
+    email: $$DOCKER_EMAIL
+    registry: registry.aliyuncs.com
+    repo: xiaolu-img/xiaolusys
+    tag: migrate18
+    file: Dockerfile
+    mirror: https://n5fb0zgg.mirror.aliyuncs.com
+    when:
+      branch: migrate18
 deploy:
   ssh:
     host: staging.xiaolumm.com
@@ -52,7 +63,16 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:django18
       - docker rm -f gunicorn-django18
-      - docker run --name=gunicorn-django18 -e TARGET=django18 -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18 blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi 
+      - docker run --name=gunicorn-django18 -e TARGET=django18 -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18 blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
+  ssh:
+    host: staging.xiaolumm.com
+    user: root
+    when:
+      branch: migrate18
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:migrate18
+      - docker rm -f gunicorn-migrate18
+      - docker run --name=gunicorn-migrate18 -e TARGET=migrate18 -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9003:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:migrate18 blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi 
   ssh:
     host:
       - sale.xiaolumm.com
