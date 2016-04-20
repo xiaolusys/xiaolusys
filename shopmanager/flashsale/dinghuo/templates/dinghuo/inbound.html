@@ -9,6 +9,7 @@
         <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}chosen_v1.5.1/chosen.min.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}bootstrap-tagsinput/dist/bootstrap-tagsinput.css" rel="stylesheet">
         <style>
          body > div.container {
              width: 98%;
@@ -118,10 +119,10 @@
 
          #form-2 input[type="number"] {
              text-align: center;
-             height: 40px;
          }
          #form-2 input{
              font-size: 18px;
+             padding-bottom: 5px;
          }
 
         #tips {
@@ -139,19 +140,25 @@
 	     bottom: 100px;
              width: 80px;
              top: 36%;
-             left: 50px;
+             left: 10px;
 	     text-align: center;
 	     z-index: 1;
          }
-         #memo-panel a {
-             font-size: 20px;
+         #memo-panel a{
+             font-size: 18px;
              width: 75px;
              display: inline-block;
+         }
+         #memo-panel span {
+             font-size: 18px;
+             width: 75px;
+             display: inline-block;
+             font-weight: 400;
+             line-height: 1.42857143;
          }
 
          #cancel-btn {
              display: none;
-             margin-top: 10px;
          }
          .chosen-container span, .chosen-results li {
              font-size: 16px;
@@ -161,6 +168,21 @@
              color: red;
              display: none;
          }
+
+         i.remove {
+             position: absolute;
+             left: -80px;
+         }
+         i.remove:hover {color: #ff4500;}
+
+         tr.detail td:first-child input {width: 200px; display: inline-block}
+         div.bootstrap-tagsinput {width: 120px; height: 36px;}
+         #form2 div.tt-menu{width: 120px;}
+
+         #memo-panel ul {list-style-type:none;}
+         #memo-panel ul > li {line-height: 50px}
+         #form-2 span.twitter-typeahead, #form-2 input.tt-input, #form-2 input.tt-hint {width: 120px;}
+         #form-2 input.tt-input {padding-top: 7px;}
         </style>
     </head>
     <body>
@@ -190,7 +212,7 @@
                 <input type="hidden" id="sent-from" name="sent_from" value="{{ sent_from|default:1 }}">
                 <input type="hidden" id="inbound-id" name="inbound_id" value="{{ inbound_id|default:0 }}">
             </form>
-            {% if data %}
+            {% if products %}
             <form id="form-2">
                 <div class="row" id="tips">
                 </div>
@@ -205,16 +227,16 @@
                                 {% endif %}
                             </h2>
                             {% if sent_from == 1 %}
-                            <h2 style="text-align:center;margin-top:0"><small>{{supplier_name}}</small></h2>
+                            <h2 style="text-align:center;margin-top:0"><small>{{ supplier_name }}({{ target_id }})</small></h2>
                             {% endif %}
                             <p style="margin-bottom:30px"></p>
-                            <table class="table table-striped" style="width:70%;margin:0 auto">
+                            <table class="table table-striped" style="width:80%;margin:0 auto">
                                 <tr>
                                     <th>
                                         商品名
                                         <p>
                                             <select class="chosen-select form-control" id="select-product-names" multiple data-placeholder="搜索商品名">
-                                                {% for product in data %}
+                                                {% for product in products %}
                                                 <option value="{{ product.id }}">{{ product.name }}</option>
                                                 {% endfor %}
                                             </select>
@@ -224,18 +246,20 @@
                                     <th>编码</th>
                                     <th width="120px">图片</th>
                                     <th>规格ID</th>
-                                    <th>尺寸</th>
+                                    <th width="90px">尺寸</th>
+                                    <th width="100px">条码</th>
                                     <th>待入库数</th>
-                                    <th width="100px">正品</th>
-                                    <th width="100px">次品</th>
+                                    <th width="80px">正品</th>
+                                    <th width="80px">次品</th>
+                                    <th width="180px">库位</th>
                                 </tr>
-                                {% for product in data %}
+                                {% for product in products %}
                                 {% for sku in product.skus %}
                                 <tr class="sku" data-product-id="{{ product.id }}" data-sku-id="{{ sku.id }}">
                                     {% if forloop.first %}
                                     <td rowspan="{{ product.skus|length }}">{{ product.name }}</td>
                                     <td rowspan="{{ product.skus|length }}">
-                                        <a href="/admin/items/product/?id={{ product.id }}" target="_blank">
+                                        <a href="/items/product/district/{{product.id}}/" target="_blank" alt="商品库位">
                                             {{ product.id }}
                                         </a>
                                     </td>
@@ -247,30 +271,65 @@
                                     <td rowspan="{{ product.skus|length }}">
                                         <div class="portfolio-box">
                                             <a href="{{ product.product_link }}" target="_blank">
-                                                <img src="{{ product.pic_path }}" class="img-circle">
+                                                <img src="{{ product.pic_path }}?imageView2/0/w/120" class="img-circle" data-pic-path="{{ product.pic_path }}">
                                             </a>
                                         </div>
                                     </td>
                                     {% endif %}
                                     <td>{{ sku.id }}</td>
                                     <td>{{ sku.properties_name }}</td>
+                                    <td>{{ sku.barcode }}</td>
                                     <td class="plan-quantity">
                                         <p class="n">
-                                            <i class="glyphicon glyphicon-info-sign warning" data-plan-quantity="{{ sku.plan_quantity }}"></i>
                                             {{ sku.plan_quantity }}
+                                            <i class="glyphicon glyphicon-info-sign warning quantity-warning" data-plan-quantity="{{ sku.plan_quantity }}"></i>
                                         </p>
                                     </td>
                                     <td>
                                         <input type="number" class="arrival-quantity form-control"
-                                               style="width:100px" min="0" value="{{ sku.arrival_quantity|default:'' }}">
+                                               style="width:80px" min="0" value="{{ sku.arrival_quantity|default:'' }}">
                                     </td>
                                     <td>
                                         <input type="number" class="inferior-quantity form-control"
-                                               style="width:100px" min="0" value="{{ sku.inferior_quantity|default:'' }}">
+                                               style="width:80px" min="0" value="{{ sku.inferior_quantity|default:'' }}">
+                                    </td>
+                                    <td>
+                                        <input class="district form-control" style="width:80px" value="{{ sku.district|default:'' }}">
                                     </td>
                                 </tr>
                                 {% endfor %}
                                 {% endfor %}
+                                {% if details %}
+                                {% for detail in details %}
+                                <tr class="detail" data-detail-id="{{ detail.id }}">
+                                    <td style="vertical-align:middle">
+                                        <div style="position:relative">
+                                            <i class="glyphicon glyphicon-remove remove" onclick="javascript:removeDetail(this);"></i>
+                                            <input class="detail-name form-control" placeholder="商品名" value="{{ detail.name|default:'' }}">
+                                            <i class="glyphicon glyphicon-info-sign warning name-warning"></i>
+                                        </div>
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <input class="detail-properties-name form-control" style="width:80px" placeholder="尺寸" value="{{ detail.properties_name|default:'' }}">
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <input type="number" class="arrival-quantity form-control" style="width:80px" min="0" value="{{ detail.arrival_quantity|default:'' }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="inferior-quantity form-control" style="width:80px" min="0" value="{{ detail.inferior_quantity|default:'' }}">
+                                    </td>
+                                    <td>
+                                        <input class="district form-control" style="width:80px" value="{{ detail.district|default:'' }}">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
                             </table>
                         </div>
                     </div>
@@ -314,9 +373,27 @@
         </div>
 
         <div id="memo-panel">
-            <a href="javascript:;" class="btn btn-warning btn-block" id="memo-btn">备注</a>
-            <br>
-            <a href="javascript:;" class="btn btn-danger btn-block" id="cancel-btn">作废</a>
+            <ul>
+                <li>
+                    <span class="label label-success">
+                        正: <i id="total-arrival-quantity">0</i>
+                    </span>
+                </li>
+                <li>
+                    <span class="label label-warning">
+                        次: <i id="total-inferior-quantity">0</i>
+                    </span>
+                </li>
+                <li>
+                    <a href="javascript:;" class="btn btn-warning btn-danger" id="add">疑难</a>
+                </li>
+                <li>
+                    <a href="javascript:;" class="btn btn-warning btn-block" id="memo-btn">备注</a>
+                </li>
+                <li>
+                    <a href="javascript:;" class="btn btn-danger btn-block" id="cancel-btn">作废</a>
+                </li>
+            </ul>
         </div>
         <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
         <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
@@ -330,11 +407,48 @@
         <script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js"></script>
         <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
         <script src="{{ STATIC_URL }}chosen_v1.5.1/chosen.jquery.js"></script>
+        <script src="/static/wap/js/template.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap-tagsinput/dist/bootstrap-tagsinput.js"></script>
+        {% verbatim %}
+        <script id="detail" type="text/html">
+            <tr class="detail" data-detail-id="0" data-new-id="{{new_id}}">
+                <td style="vertical-align:middle">
+                    <div style="position:relative">
+                        <i class="glyphicon glyphicon-remove remove" onclick="javascript:removeDetail(this);"></i>
+                        <input class="detail-name form-control" placeholder="商品名">
+                        <i class="glyphicon glyphicon-info-sign warning name-warning"></i>
+                    </div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <input class="detail-properties-name form-control" style="width:80px" placeholder="尺寸">
+                </td>
+                <td></td>
+                <td></td>
+                <td>
+                    <input type="number" class="arrival-quantity form-control" style="width:80px" min="0">
+                </td>
+                <td>
+                    <input type="number" class="inferior-quantity form-control" style="width:80px" min="0">
+                </td>
+                <td>
+                    <input class="district form-control" style="width:80px">
+                </td>
+            </tr>
+        </script>
+        {% endverbatim %}
+
         <script>
          var SENT_FROM_SUPPLIER = 1;
          var SENT_FROM_REFUND = 2;
          var SKU_TR_TPL = _.template('tr[data-sku-id="<%= sku_id %>"]');
+         var NEW_DETAIL_TR_TPL = _.template('tr[data-new-id="<%= new_id %>"]');
          var PRODUCT_TR_TPL = _.template('tr[data-product-id="<%= product_id %>"]');
+         var IMAGE_PREVIEW_TPL = _.template('<img src="<%= pic_path %>" width=800 height=800>');
+
          var CREATE_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/create_supplier_inbound';
          var EDIT_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/edit_supplier_inbound';
 
@@ -344,6 +458,14 @@
          var suppliers = {{ suppliers|jsonify }};
          var expressNos = {{ express_nos|jsonify }};
          var images = {{ images|jsonify }};
+
+         var districtsEngine = new Bloodhound({
+             datumTokenizer: Bloodhound.tokenizers.whitespace,
+             queryTokenizer: Bloodhound.tokenizers.whitespace,
+             prefetch: '/sale/dinghuo/dinghuo_orderlist/districts'
+         });
+         districtsEngine.initialize();
+
 
          $.noty.defaults = $.extend($.noty.defaults, {
              animation: {
@@ -380,21 +502,42 @@
          }
 
          function getFormData(){
-             var skus, sku_id;
+             var sku_id, detail_id,new_id;
+             var skus, details;
              var arrival_quantity, inferior_quantity;
+             var district;
              var formData = {};
 
-             skus = {};
+             skus = [];
+             details = [];
              $('tr', $('#form-2')).each(function(index, el){
-                 sku_id = $(this).attr('data-sku-id') - 0;
-                 arrival_quantity = parseInt($(this).find('input.arrival-quantity').val());
-                 inferior_quantity = parseInt($(this).find('input.inferior-quantity').val());
-                 if(!_.isNaN(arrival_quantity) && _.isNumber(arrival_quantity) ||
-                    !_.isNaN(inferior_quantity) && _.isNumber(inferior_quantity)){
-                     skus[sku_id] = {
-                         sku_id: sku_id,
-                         arrival_quantity: arrival_quantity || 0,
-                         inferior_quantity: inferior_quantity || 0
+                 var $this = $(this);
+
+                 detail_id = parseInt($this.attr('data-detail-id')) || 0;
+                 sku_id = parseInt($this.attr('data-sku-id')) || 0;
+                 new_id = parseInt($this.attr('data-new-id')) || 0;
+                 arrival_quantity = parseInt($this.find('input.arrival-quantity').val());
+                 inferior_quantity = parseInt($this.find('input.inferior-quantity').val());
+                 district = $this.find('input.district').val() || '1';
+                 if(!_.isNaN(arrival_quantity) && _.isNumber(arrival_quantity) || !_.isNaN(inferior_quantity) && _.isNumber(inferior_quantity)){
+                     if(sku_id){
+                         skus.push({
+                             sku_id: sku_id,
+                             arrival_quantity: arrival_quantity || 0,
+                             inferior_quantity: inferior_quantity || 0,
+                             district: district
+                         });
+                     }
+                     else{
+                         details.push({
+                             id: detail_id,
+                             new_id: new_id,
+                             name: $this.find('input.detail-name').val(),
+                             properties_name: $this.find('input.detail-properties-name').val(),
+                             arrival_quantity: arrival_quantity || 0,
+                             inferior_quantity: inferior_quantity || 0,
+                             district: district
+                         });
                      }
                  }
              });
@@ -404,6 +547,7 @@
              });
 
              formData.skus = JSON.stringify(skus);
+             formData.details = JSON.stringify(details);
              formData.inbound_id = $('#inbound-id').val() - 0 || 0;
              formData.memo = $('#memo').val();
              formData.images = JSON.stringify($('#images').uploader('getData'));
@@ -427,26 +571,72 @@
              return requestUrl;
          }
 
-         function initUI(formData){
-             if(formData.inbound_id){
-                 $('#cancel-btn').show();
-                 $('#form-2 .reset').hide();
-                 $('#form-2 .submit').html('修改');
-             }
-         }
-
-         function onInputChange(){
+         function onQuantityChange(){
              var $tr = $(this).closest('tr');
              var arrival_quantity = parseInt($tr.find('input.arrival-quantity').val()) || 0;
              var inferior_quantity = parseInt($tr.find('input.inferior-quantity').val()) || 0;
              if(arrival_quantity || inferior_quantity){
-                 var $i = $tr.find('i.warning');
+                 var $i = $tr.find('i.quantity-warning');
                  var plan_quantity = parseInt($i.attr('data-plan-quantity'));
                  if(arrival_quantity + inferior_quantity > plan_quantity)
                      $i.slideDown();
                  else
                      $i.slideUp();
              }
+             calcTotalQuantity();
+         }
+
+
+         function onNameChange(){
+             var $this = $(this);
+             var name = $this.val().replace(/(^\s*)|(\s*$)/g, '');
+             if(name)
+                 $this.closest('tr').find('i.name-warning').slideUp();
+             else
+                 $this.closest('tr').find('i.name-warning').slideDown();
+         }
+
+         function removeDetail(el){
+             var $tr = $(el).closest('tr');
+             var detail_id = parseInt($tr.attr('data-detail-id'));
+             var inbound_id = parseInt($('#inbound-id').val());
+             if(inbound_id && detail_id){
+                 $.ajax({
+                     url: '/sale/dinghuo/dinghuo_orderlist/' + inbound_id + '/delete_detail',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {detail_id: detail_id},
+                 });
+             }
+             $tr.remove();
+         }
+
+         function calcTotalQuantity(){
+             var totalArrivalQuantity = 0;
+             var totalInferiorQuantity = 0;
+
+             $('.arrival-quantity').each(function(index, el){
+                 var n = parseInt($(this).val());
+                 if(n)
+                     totalArrivalQuantity += n;
+             });
+
+             $('.inferior-quantity').each(function(index, el){
+                 var n = parseInt($(this).val());
+                 if(n)
+                     totalInferiorQuantity += n;
+             });
+             $('#total-arrival-quantity').html(totalArrivalQuantity);
+             $('#total-inferior-quantity').html(totalInferiorQuantity);
+         }
+
+         function initUI(formData){
+             if(formData.inbound_id){
+                 $('#cancel-btn').show();
+                 $('#form-2 .reset').hide();
+                 $('#form-2 .submit').html('修改');
+             }
+             calcTotalQuantity();
          }
 
          $(function(){
@@ -464,103 +654,121 @@
              var formData = getFormData();
              initUI(formData);
 
-             var matcher = function(items){
-                 return function findMatches(q, cb){
-                     var matches, subStrRegex;
-                     matches = [];
-                     subStrRegex = new RegExp(q, 'i');
-                     $.each(items, function(i, item){
-                         if(subStrRegex.test(item.text))
-                             matches.push(item.text);
-                     });
-                     cb(matches);
-                 };
-             };
+              var matcher = function(items){
+                  return function findMatches(q, cb){
+                      var matches, subStrRegex;
+                      matches = [];
+                      subStrRegex = new RegExp(q, 'i');
+                      $.each(items, function(i, item){
+                          if(subStrRegex.test(item.text))
+                              matches.push(item.text);
+                      });
+                      cb(matches);
+                  };
+              };
 
-             $('#supplier').typeahead({
-                 hint: true,
-                 highlight: true,
-                 minLength: 1
-             }, {
-                 name: 'suppliers',
-                 source: matcher(suppliers)
-             }).bind('typeahead:select', function(e, suggestion){
-                 var i, id;
-                 for(i=0; i < suppliers.length; ++i){
-                     if(suppliers[i].text == suggestion){
-                         id = suppliers[i].id;
-                         break;
-                     }
-                 }
-                 if(id){
-                     $('#sent-from').val(SENT_FROM_SUPPLIER);
-                     $('#target-id').val(id);
-                 }
-             });
+              $('#supplier').typeahead({
+                  hint: true,
+                  highlight: true,
+                  minLength: 1
+              }, {
+                  name: 'suppliers',
+                  source: matcher(suppliers)
+              }).bind('typeahead:select', function(e, suggestion){
+                  var i, id;
+                  for(i=0; i < suppliers.length; ++i){
+                      if(suppliers[i].text == suggestion){
+                          id = suppliers[i].id;
+                          break;
+                      }
+                  }
+                  if(id){
+                      $('#sent-from').val(SENT_FROM_SUPPLIER);
+                      $('#target-id').val(id);
+                  }
+              });
 
-             $('#express-no').typeahead({
-                 hint: true,
-                 highlight: true,
-                 minLength: 1
-             }, {
-                 name: 'expressNos',
-                 source: matcher(expressNos)
-             }).bind('typeahead:select', function(e, suggestion){
-                 var i, id, sentFrom;
-                 for(i=0; i < expressNos.length; ++i){
-                     if(expressNos[i].text == suggestion){
-                         id = expressNos[i].id;
-                         sentFrom = expressNos[i].sent_from;
-                         break;
-                     }
-                 }
-                 if(id && sentFrom){
-                     $('#sent-from').val(sentFrom);
-                     $('#target-id').val(id);
-                 }
-             });
-             $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
+              $('#express-no').typeahead({
+                  hint: true,
+                  highlight: true,
+                  minLength: 1
+              }, {
+                  name: 'expressNos',
+                  source: matcher(expressNos)
+              }).bind('typeahead:select', function(e, suggestion){
+                  var i, id, sentFrom;
+                  for(i=0; i < expressNos.length; ++i){
+                      if(expressNos[i].text == suggestion){
+                          id = expressNos[i].id;
+                          sentFrom = expressNos[i].sent_from;
+                          break;
+                      }
+                  }
+                  if(id && sentFrom){
+                      $('#sent-from').val(sentFrom);
+                      $('#target-id').val(id);
+                  }
+              });
+              $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
 
-             $('#form-2').submit(function(){
-                 $('td.plan-quantity').find('small.error').html('');
+              $('#form-2').submit(function(){
+                  var flag = false;
+                  $('tr.detail').each(function(){
+                      var name = $(this).find('input.detail-name').val().replace(/(^\s*)|(\s*$)/g, '');
+                      if(name)
+                          $(this).find('i.name-warning').slideUp();
+                      else{
+                          flag = true;
+                          $(this).find('i.name-warning').slideDown();
+                      }
+                  });
+                  if(flag)
+                      return false;
 
-                 var formData = getFormData();
-                 var requestUrl = getRequestUrl(formData);
+                  var formData = getFormData();
+                  var requestUrl = getRequestUrl(formData);
 
-                 if(!requestUrl){
-                     $('#tips').noty({
-                         text: '未能找到请求URL',
-                         type: 'error',
-                         theme: 'bootstrapTheme',
-                         closeWith: ['button', 'click'],
-                         maxVisible: 20,
-                         modal: false
-                     });
-                     return;
-                 }
+                  if(!requestUrl){
+                      $('#tips').noty({
+                          text: '未能找到请求URL',
+                          type: 'error',
+                          theme: 'bootstrapTheme',
+                          closeWith: ['button', 'click'],
+                          maxVisible: 20,
+                          modal: false
+                      });
+                      return;
+                  }
 
-                 $.ajax({
-                     url: requestUrl,
-                     type: 'post',
-                     dataType: 'json',
-                     data: formData,
-                     success: function(result){
-                         if(result.error){
-                             $('#tips').noty({
-                                 text: result.error,
-                                 type: 'error',
-                                 theme: 'bootstrapTheme',
-                                 closeWith: ['button', 'click'],
-                                 maxVisible: 20,
-                                 modal: false
-                             });
-                         }
-                         else{
-                             if(result.inbound_id && (result.inbound_id - 0)){
-                                 $('#cancel-btn').show();
-                                 $('#inbound-id').val(result.inbound_id);
-                                 $('#form-2 .reset').hide();
-                                 $('#form-2 .submit').html('修改');
+                  $.ajax({
+                      url: requestUrl,
+                      type: 'post',
+                      dataType: 'json',
+                      data: formData,
+                      success: function(result){
+                          if(result.error){
+                              $('#tips').noty({
+                                  text: result.error,
+                                  type: 'error',
+                                  theme: 'bootstrapTheme',
+                                  closeWith: ['button', 'click'],
+                                  maxVisible: 20,
+                                  modal: false
+                              });
+                          }
+                          else{
+                              if(result.inbound_id && (result.inbound_id - 0)){
+                                  $('#cancel-btn').show();
+                                  $('#inbound-id').val(result.inbound_id);
+                                  $('#form-2 .reset').hide();
+                                  $('#form-2 .submit').html('修改');
+                              }
+                              if(result.details){
+                                  _.each(result.details, function(el){
+                                      if(el.new_id && el.detail_id){
+                                          $(NEW_DETAIL_TR_TPL({new_id: el.new_id})).attr('data-detail-id', el.id);
+                                      }
+                                 });
                              }
                              if(result.msg){
                                  $('#tips').noty({
@@ -625,13 +833,63 @@
                  search_contains: true
              }).on('change', onSelectChange);
 
-             $('i.warning').popover({
+             $('i.quantity-warning').popover({
                  html: true,
                  trigger: 'hover',
+                 container: 'body',
                  content: '输入大于待入库数'
              });
 
-             $('input.arrival-quantity,input.inferior-quantity').each(onInputChange).change(onInputChange);
+             $('i.name-warning').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: '请填写商品名'
+             });
+
+             $('input.arrival-quantity,input.inferior-quantity').each(onQuantityChange).change(onQuantityChange);
+
+             $('#add').click(function(){
+                 if($('#target-id').val() - 0){
+                     var new_id = 1;
+                     if($('tr.detail[data-new-id]').length){
+                         new_id = parseInt($('tr.detail[data-new-id]').last().attr('data-new-id')) + 1;
+                     }
+                     $('table').append(template('detail', {new_id: new_id}));
+                     $lastTr = $('table').find('tr.detail').last();
+                     $lastTr.find('i.name-warning').popover({
+                         html: true,
+                         trigger: 'hover',
+                         container: 'body',
+                         content: '请填写商品名'
+                     });
+                     $lastTr.find('input.detail-name').change(onNameChange).keyup(onNameChange);
+                     $lastTr.find('input.district').tagsinput({
+                         typeaheadjs: {name: 'districts', source: districtsEngine.ttAdapter()}
+                     });
+                 }
+             });
+             $('.district').tagsinput({
+                 hint: false,
+                 highlight: false,
+                 freeInput: false,
+                 typeaheadjs: {
+                     hint: false,
+                     highlight: false,
+                     name: 'districts',
+                     source: districtsEngine.ttAdapter()
+                 }
+             });
+             $('img.img-circle').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: function(){
+                     var pic_path = $(this).attr('data-pic-path');
+                     return IMAGE_PREVIEW_TPL({pic_path: pic_path});
+                 }
+             });
+
          });
         </script>
     </body>

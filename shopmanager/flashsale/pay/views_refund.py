@@ -108,7 +108,6 @@ class RefundApply(APIView):
         sale_order.refund_fee = sale_refund.refund_fee
         sale_order.refund_status = sale_refund.status
         sale_order.save()
-        sale_order.cancel_assign()
         if settings.DEBUG:
             tasks.pushTradeRefundTask(sale_refund.id)
         else:
@@ -251,7 +250,6 @@ class RefundPopPageView(APIView):
 
                     elif strade.channel == SaleTrade.BUDGET or strade.has_budget_paid:
                         payment = int(obj.refund_fee * 100)
-                        user_budgets = UserBudget.objects.filter(user=strade.buyer_id)
                         blogs = BudgetLog.objects.filter(customer_id=strade.buyer_id,
                                                          referal_id=obj.order_id,  # 以子订单为准
                                                          budget_log_type=BudgetLog.BG_REFUND)
@@ -266,7 +264,6 @@ class RefundPopPageView(APIView):
                                 cl.save()
                                 log_action(request.user.id, blogs[0], CHANGE, u'二次退款,退款返钱包:%s' % blogs[0].id)
                                 # 操作记录
-                                user_budgets.update(amount=models.F('amount') + payment)
                                 obj.status = SaleRefund.REFUND_SUCCESS
                                 obj.save()
                                 log_action(request.user.id, obj, CHANGE, u'二次退款审核通过:%s' % obj.refund_id)
@@ -280,7 +277,6 @@ class RefundPopPageView(APIView):
                                                      budget_type=BudgetLog.BUDGET_IN,
                                                      budget_log_type=BudgetLog.BG_REFUND,
                                                      status=BudgetLog.CONFIRMED)
-                            user_budgets.update(amount=models.F('amount') + payment)
                             obj.status = SaleRefund.REFUND_SUCCESS
                             obj.save()
                             log_action(request.user.id, obj, CHANGE, u'首次退款审核通过:%s' % obj.refund_id)

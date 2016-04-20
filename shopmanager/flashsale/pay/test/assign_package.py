@@ -94,10 +94,10 @@ def get_all_buyer():
 if __name__=='__main__':#
     # print_out_res()
     #assign_reset()
-    print_out_package(42)
+    #print_out_package(42)
     # #print_out_res()
     # for buyer_id in get_all_buyer():
     #     print_out_package(buyer_id)
     #assign_all()
     # print_out_res()
-    ProductSku.objects.get(id=3737).assign_packages()
+    ProductSku.objects.get(id=145842).assign_packages()

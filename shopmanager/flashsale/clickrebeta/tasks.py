@@ -47,7 +47,7 @@ def task_Push_Rebeta_To_MamaCash(target_date):
 from .models import tongji_wxorder, tongji_saleorder
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_Tongji_User_Order(pre_day=1):
     try:
         pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
@@ -76,7 +76,7 @@ def task_Tongji_User_Order(pre_day=1):
         raise task_Tongji_User_Order.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task(max_retries=3, default_retry_delay=5)
 def task_Tongji_All_Order():
     try:
         StatisticsShoppingByDay.objects.all().delete()

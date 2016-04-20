@@ -26,6 +26,7 @@ from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans, F
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models_fortune import MamaFortune
+from flashsale.pay.models import BudgetLog
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
@@ -479,25 +480,60 @@ class CashOutViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    def get_customer_and_xlmm(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
+        return customer, xlmm
+
+    def verify_cashout(self, cash_type, customer, xlmm):
+
+        if cash_type is None:  # 参数错误
+            return 0, {"code": 1, "msg": '暂未开通'}
+        value = self.cashout_type.get(cash_type)
+        could_cash_out, active_value_num = self.get_mamafortune(xlmm.id)
+
+        if active_value_num < 100:
+            return 0, {"code": 4, 'msg': '活跃值不足'}  # 活跃值不够
+        if self.queryset.filter(status=CashOut.PENDING, xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
+            return 0, {"code": 3, 'msg': '提现审核中'}
+        if could_cash_out < value * 0.01:  # 如果可以提现金额不足
+            return 0, {"code": 2, 'msg': '余额不足'}
+        return value, {"code": 0, 'msg': '提交成功'}
+
     def create(self, request, *args, **kwargs):
         """代理提现"""
         cash_type = request.REQUEST.get('choice', None)
-        if cash_type is None:  # 参数错误
-            return Response({"code": 1, "msg": '暂未开通'})
-        value = self.cashout_type.get(cash_type)
+        customer, xlmm = self.get_customer_and_xlmm(request)
 
-        customer = get_object_or_404(Customer, user=request.user)
-        xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
-        could_cash_out, active_value_num = self.get_mamafortune(xlmm.id)
-        if active_value_num < 100:
-            return Response({"code": 4, 'msg': '活跃值不足'})  # 活跃值不够
-        if self.queryset.filter(status=CashOut.PENDING, xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
-            return Response({"code": 3, 'msg': '提现审核中'})
-        if could_cash_out < value * 0.01:  # 如果可以提现金额不足
-            return Response({"code": 2, 'msg': '余额不足'})
+        value, msg = self.verify_cashout(cash_type, customer, xlmm)
+        if value <= 0:
+            return Response(msg)
         # 满足提现请求　创建提现记录
         cashout = CashOut.objects.create(xlmm=xlmm.id, value=value)
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
+        return Response(msg)
+
+    @list_route(methods=['get'])
+    def cashout_to_budget(self, request):
+        """ 代理提现到用户余额 """
+        cash_type = request.REQUEST.get('choice', None)
+        customer, xlmm = self.get_customer_and_xlmm(request)
+        value, msg = self.verify_cashout(cash_type, customer, xlmm)
+        if value <= 0:
+            return Response(msg)
+        # 创建Cashout
+        cashout = CashOut.objects.create(xlmm=xlmm.id,
+                                         value=value,
+                                         approve_time=datetime.datetime.now(),
+                                         status=CashOut.APPROVED)
+        log_action(request.user.id, cashout, ADDITION, '代理提现到余额')
+
+        BudgetLog.objects.create(customer_id=customer.id,
+                                 flow_amount=value,
+                                 budget_type=BudgetLog.BUDGET_IN,
+                                 referal_id=cashout.id,
+                                 budget_log_type=BudgetLog.BG_MAMA_CASH,
+                                 status=BudgetLog.CONFIRMED)
         return Response({"code": 0, 'msg': '提交成功'})
 
     def update(self, request, *args, **kwargs):

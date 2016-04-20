@@ -15,6 +15,8 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_push',
     'flashsale.dinghuo.tasks',
     'flashsale.promotion.tasks_activity',
+    'flashsale.pay.tasks_stats',
+    'shopback.items.tasks_stats',
 )
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -61,11 +63,52 @@ CELERY_QUEUES = (
     Queue('mamafortune', routing_key='mamafortune.#'),
     Queue('relationship', routing_key='relationship.#'),
     Queue('carryrecord', routing_key='carryrecord.#'),
+    Queue('skustats', routing_key='skustats.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
 CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
+
+SKU_STATS_ROUTES = {
+    'shopback.trades.tasks.task_packageskuitem_update_productskustats': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_packageskuitem_update_productskustats',
+    },
+    'shopback.trades.tasks.task_packageskuitem_update_productskusalestats_num': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_packageskuitem_update_productskusalestats_num',
+    },
+    'flashsale.pay.tasks_stats.task_shoppingcart_update_productskustats_shoppingcart_num': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_shoppingcart_update_productskustats_shoppingcart_num',
+    },
+     'flashsale.pay.tasks_stats.task_saleorder_update_productskustats_waitingpay_num': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_saleorder_update_productskustats_waitingpay_num',
+    },
+    'shopback.items.tasks_stats.task_productsku_update_productskustats_history_quantity': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_productsku_update_productskustats_history_quantity',
+    },
+    'shopback.items.tasks_stats.task_productsku_create_productskustats': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_productsku_create_productskustats',
+    },
+    'shopback.items.tasks_stats.task_product_downshelf_update_productskusalestats': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_product_downshelf_update_productskusalestats',
+    },
+    'shopback.items.tasks_stats.task_product_upshelf_update_productskusalestats': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_product_upshelf_update_productskusalestats',
+    },
+    'flashsale.dinghuo.tasks.task_inbounddetail_update_productsku_inbound_quantity': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_inbounddetail_update_productsku_inbound_quantity',
+    },
+}
+
 
 DAILY_STATS_ROUTES = {
     'flashsale.xiaolumm.tasks_mama_dailystats.task_confirm_previous_dailystats': {
@@ -368,6 +411,7 @@ CELERY_ROUTES.update(MAMA_FORTUNE_ROUTES)
 CELERY_ROUTES.update(MAMA_RELATIONSHIP_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRY_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRYRECORD_ROUTES)
+CELERY_ROUTES.update(SKU_STATS_ROUTES)
 
 API_REQUEST_INTERVAL_TIME = 10  # (seconds)
 API_TIME_OUT_SLEEP = 60  # (seconds)
@@ -772,6 +816,12 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
+    u'定时检查全站推送': {
+        'task': 'flashsale.protocol.tasks.task_site_push',
+        'schedule': crontab(minute="*/30"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     #    'runs-every-10-minutes-update-seller-flag':{
     #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
     #        'schedule':crontab(minute="*/10"),

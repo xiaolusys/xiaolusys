@@ -156,8 +156,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         coupon_id = sale_trade.extras_info.get('coupon')
         if coupon_id:
             coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(sale_trade.buyer_id))
-            if coupon.status != UserCoupon.UNUSED:
-                raise Exception('选择的优惠券不可用')
+            if coupon.status == UserCoupon.USED and coupon.sale_trade != sale_trade.id:
+                raise Exception('优惠券已在其它订单上使用')
+            if coupon.status == UserCoupon.FREEZE :
+                raise Exception('优惠券已失效')
+            if coupon.status == UserCoupon.UNUSED:
+                coupon.status = UserCoupon.USED
+                coupon.sale_trade = sale_trade.id
+                coupon.save()
 
     def wallet_charge(self, sale_trade):
         """ 妈妈钱包支付实现 """
@@ -196,12 +202,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         strade_id     = sale_trade.id
         channel       = sale_trade.channel
         
-        urows = UserBudget.objects.filter(
-                user=buyer,
-                amount__gte=payment
-            ).update(amount=models.F('amount') - payment)
+        urows = UserBudget.objects.filter(user=buyer, amount__gte=payment)
         logger.info('budget charge:saletrade=%s, updaterows=%d'%(sale_trade, urows))
-        if urows == 0 :
+        if not urows.exists():
             raise Exception(u'小鹿钱包余额不足')
         
         BudgetLog.objects.create(customer_id=buyer.id,
@@ -389,7 +392,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                          id=coupon_id, 
                                          customer=str(buyer_id),
                                          status=UserCoupon.UNUSED)
-        
         coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
         coupon_pool = coupon.cp_id
         
@@ -456,7 +458,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
                 item_ids.append(cart.item_id)
                 
-            extra_params = {'item_ids':','.join(item_ids),
+            extra_params = {'item_ids': item_ids,
                             'buyer_id':customer.id,
                             'payment':cart_total_fee - cart_discount}
             try:
@@ -541,7 +543,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
             bn_discount += round(coupon_pool.template.value * 100)
-        
+
         bn_discount += self.calc_extra_discount(pay_extras)
         bn_discount = min(bn_discount, bn_totalfee)
         if discount_fee > bn_discount:

@@ -147,8 +147,21 @@ post_save.connect(confirm_previous_dailystats,
 
 
 class CarryRecord(BaseModel):
-    CARRY_TYPES = ((1, u'返现'), (2, u'佣金'), (3, u'奖金'),)
-    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
+
+    PENDING = 1
+    CONFIRMED = 2
+    CANCEL  = 3
+
+    STATUS_TYPES = ((PENDING, u'待确定'),
+                    (CONFIRMED, u'已确定'),
+                    (CANCEL, u'取消'),)
+
+    CR_CLICK = 1
+    CR_ORDER = 2
+    CR_RECOMMEND = 3
+    CARRY_TYPES = ((CR_CLICK, u'返现'),
+                   (CR_ORDER, u'佣金'),
+                   (CR_RECOMMEND, u'奖金'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     carry_num = models.IntegerField(default=0, verbose_name=u'收益数')
@@ -558,6 +571,16 @@ class ReferalRelationship(BaseModel):
         if self.referal_to_mama_nick == "":
             return u"匿名用户"
         return self.referal_to_mama_nick
+
+    def get_referal_award(self):
+        """ 获取妈妈的推荐红包 """
+        award_carrys = AwardCarry.objects.filter(mama_id=self.referal_from_mama_id,
+                                                 contributor_mama_id=self.referal_to_mama_id)
+        if award_carrys.exists():
+            award_carry = award_carrys[0]
+            return award_carry
+        else:
+            return None
 
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):

@@ -41,7 +41,7 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
     # MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_xiaolumama_update_mamafortune(mama_id, cash):
     logger.warn("%s - mama_id: %s, params: %s" % (get_cur_info(), mama_id, cash))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
@@ -61,36 +61,32 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
 CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016, 3, 30, 23, 59, 59)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_cashout_update_mamafortune(mama_id):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
-    cashouts = CashOut.objects.filter(xlmm=mama_id, status=CashOut.APPROVED,
-                                      approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).values('status').annotate(
-        total=Sum('value'))
+    cashout_res = CashOut.objects.filter(xlmm=mama_id,
+                                         status__in=(CashOut.PENDING, CashOut.APPROVED, CashOut.COMPLETED),
+                                         approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME)\
+        .aggregate(total=Sum('value'))
 
-    cashout_confirmed = 0
-    for entry in cashouts:
-        if entry["status"] == CashOut.APPROVED:  # confirmed
-            cashout_confirmed = entry["total"]
+    effect_cashout = cashout_res['total'] or 0
 
-    logger.warn("%s - mama_id: %s, cashout_confirmed: %s" % (get_cur_info(), mama_id, cashout_confirmed))
+    logger.warn("%s - mama_id: %s, effect_cashout: %s" % (get_cur_info(), mama_id, effect_cashout))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]
-        if fortune.carry_cashout != cashout_confirmed:
-            fortunes.update(carry_cashout=cashout_confirmed)
-            # fortune.carry_cashout = cashout_confirmed
-            # fortune.save()
+        if fortune.carry_cashout != effect_cashout:
+            fortune.carry_cashout = effect_cashout
+            fortune.save(update_fields=['carry_cashout'])
     else:
         try:
-            create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
+            create_mamafortune_with_integrity(mama_id, carry_cashout=effect_cashout)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune cashout | mama_id: %s" % (mama_id))
             raise task_cashout_update_mamafortune.retry(exc=exc)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_carryrecord_update_mamafortune(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -119,7 +115,7 @@ def task_carryrecord_update_mamafortune(mama_id):
             raise task_carryrecord_update_mamafortune.retry(exc=exc)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_activevalue_update_mamafortune(mama_id):
     """
     更新妈妈activevalue
@@ -147,7 +143,7 @@ def task_activevalue_update_mamafortune(mama_id):
             raise task_activevalue_update_mamafortune.retry(exc=exc)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_invite_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -169,7 +165,7 @@ def task_update_mamafortune_invite_num(mama_id):
             raise task_update_mamafortune_invite_num.retry(exc=exc)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_mama_level(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -206,7 +202,7 @@ def task_update_mamafortune_mama_level(mama_id):
             raise task_update_mamafortune_mama_level.retry(exc=exc)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_fans_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
@@ -224,7 +220,7 @@ def task_update_mamafortune_fans_num(mama_id):
             raise task_update_mamafortune_fans_num.retry(exc=exc)
 
 
-@task(max_retry=2, default_retry_delay=6)
+@task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_order_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     records = OrderCarry.objects.filter(mama_id=mama_id).exclude(status=3).values('contributor_id')

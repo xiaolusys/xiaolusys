@@ -12,7 +12,6 @@ from httpproxy.views import HttpProxy
 admin.autodiscover()
 
 urlpatterns = patterns('',
-
                        (r'^accounts/', include('auth.accounts.urls')),
                        (r'^category/', include('shopback.categorys.urls')),
                        (r'^fenxiao/', include('shopback.fenxiao.urls')),
@@ -20,6 +19,7 @@ urlpatterns = patterns('',
                        (r'^logistics/', include('shopback.logistics.urls')),
                        (r'^orders/', include('shopback.orders.urls')),
                        (r'^trades/', include('shopback.trades.urls')),
+                       (r'^warehouse/',include('shopback.warehouse.urls')),
                        (r'^refunds/', include('shopback.refunds.urls')),
                        (r'^purchases/', include('shopback.purchases.urls')),
                        (r'^users/', include('shopback.users.urls')),

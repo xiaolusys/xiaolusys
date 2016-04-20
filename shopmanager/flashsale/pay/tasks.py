@@ -143,18 +143,16 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             strade.save()
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id, charge_time=None):
     from shopback.items.models import ProductSku
     strade = SaleTrade.objects.get(id=sale_trade_id)
     strade.charge_confirm(charge_time=charge_time)
     saleservice = FlashSaleService(strade)
     saleservice.payTrade()
-    for sale_order in strade.sale_orders.all():
-        ProductSku.objects.get(id=sale_order.sku_id).assign_packages()
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 @transaction.atomic
 def notifyTradePayTask(notify):
     """ 订单确认支付通知消息，如果订单分阶段支付，则在原单ID后追加:[tid]-[数字] """
@@ -197,7 +195,7 @@ def notifyTradePayTask(notify):
 from .options import getOrCreateSaleSeller
 
 
-@task(max_retry=3, default_retry_delay=60)
+@task(max_retries=3, default_retry_delay=60)
 def notifyTradeRefundTask(notify):
     try:
         refund_id = notify['id']
@@ -459,11 +457,12 @@ from flashsale.pay.models_user import BudgetLog, UserBudget
 from django.db.models import Sum
 
 
-@task()
+@task(max_retries=3, default_retry_delay=6)
 def task_budgetlog_update_userbudget(budget_log):
     customer_id = budget_log.customer_id
-    records = BudgetLog.objects.filter(customer_id=customer_id, status=BudgetLog.CONFIRMED).values(
-        'budget_type').annotate(total=Sum('flow_amount'))
+    bglogs = BudgetLog.objects.filter(customer_id=customer_id,
+                                      status=BudgetLog.CONFIRMED)
+    records = bglogs.values('budget_type').annotate(total=Sum('flow_amount'))
 
     in_amount, out_amount = 0, 0
     for entry in records:
@@ -472,20 +471,27 @@ def task_budgetlog_update_userbudget(budget_log):
         if entry["budget_type"] == BudgetLog.BUDGET_OUT:
             out_amount = entry["total"]
 
-    cash = in_amount - out_amount
-            
-    budgets = UserBudget.objects.filter(user=customer_id)
-    if budgets.count() <= 0:
-        customers = Customer.objects.filter(id=customer_id)
-        if customers.count() > 0:
-            budget = UserBudget(user=customers[0], amount=cash)
+    cash = in_amount - out_amount  # 总收入－总支出
+    customers = Customer.objects.filter(id=customer_id)
+    try:
+        if not customers.exists():
+            logger.warn('customer %s　not exists when create user budget!' % customer_id)
+        budgets = UserBudget.objects.filter(user=customer_id)
+        if not budgets.exists():  # 不存在钱包记录　添加钱包记录
+            budget = UserBudget(user=customers[0],
+                                amount=cash,
+                                total_income=in_amount,
+                                total_expense=out_amount)
             budget.save()
-    else:
-        budget = budgets[0]
-        if budget.amount != cash:
-            budget.amount = cash
+        else:
+            budget = budgets[0]
+            if budget.amount != cash:
+                budget.amount = cash
+            budget.total_income = in_amount
+            budget.total_expense = out_amount
             budget.save()
-
+    except Exception, exc:
+        raise task_budgetlog_update_userbudget.retry(exc=exc)
 
 from extrafunc.renewremind.tasks import send_message
 from shopapp.smsmgr.models import SMSActivity
@@ -590,3 +596,70 @@ def task_close_refund(days=None):
                                                created__lte=time_point)  # 这里不考虑退货状态
     # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
     res = map(close_refund, aggree_refunds)
+
+
+@task
+def task_saleorder_update_package_sku_item(sale_order):
+    from shopback.trades.models import PackageSkuItem
+    from shopback.items.models import ProductSku
+    items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
+    if items.count() <= 0:
+        if not sale_order.is_pending():
+            # we create PackageSkuItem only if sale_order is 'pending'.
+            return
+        ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
+        sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
+        attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
+                'payment', 'discount_fee', 'refund_status', 'pay_time', 'status']
+        for attr in attrs:
+            if hasattr(sale_order, attr):
+                val = getattr(sale_order, attr)
+                setattr(sku_item, attr, val)
+        sku_item.save()
+        return
+
+    sku_item = items[0]
+    if sku_item.is_finished():
+        # if it's finished, that means the package is sent out,
+        # then we dont do further updates, simply return.
+        return
+
+    # Now the sku_item has not been sent out yet, it can only stay in 3 states:
+    # 1) CANCELED; 2) NOT_ASSIGNED; 3) ASSIGNED
+    # And, sale_order can only have 3 states: cancel, confirmed, pending.
+    if sale_order.is_canceled() or sale_order.is_confirmed():
+        # If saleorder is canceled or confirmed before we send out package, we
+        # then dont want to send out the package, simply cancel. Note: if the
+        # order is confirmed, we assume the customer does not want the package
+        # to be sent to him (most likely because it's not necessary, maybe she/he
+        # bought a virtual product).
+        assign_status = PackageSkuItem.CANCELED
+    elif sale_order.is_pending():
+        assign_status = PackageSkuItem.NOT_ASSIGNED
+
+    if sku_item.assign_status != assign_status:
+        sku_item.assign_status = assign_status
+        sku_item.save()
+
+@task()
+def tasks_set_user_address_id(sale_trade):
+    from flashsale.pay.models_addr import UserAddress
+    ua = UserAddress.objects.filter(
+        cus_uid=sale_trade.buyer_id,
+        receiver_name=sale_trade.receiver_name,
+        receiver_state=sale_trade.receiver_state,
+        receiver_city=sale_trade.receiver_city,
+        receiver_district=sale_trade.receiver_district,
+        receiver_address=sale_trade.receiver_address,
+        receiver_zip=sale_trade.receiver_zip,
+        receiver_mobile=sale_trade.receiver_mobile,
+        receiver_phone=sale_trade.receiver_phone,
+        status='normal').first()
+    if not ua:
+        ua = UserAddress.objects.filter(
+            cus_uid=sale_trade.buyer_id,
+            receiver_name=sale_trade.receiver_name,
+            receiver_mobile=sale_trade.receiver_mobile,
+            status='normal').order_by('-id').first()
+    if ua:
+        SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)

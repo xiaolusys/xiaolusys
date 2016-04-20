@@ -29,7 +29,8 @@ from core.options import log_action, ADDITION, CHANGE
 from shopapp.memorule import ruleMatchSplit
 from shopback.refunds.models import REFUND_STATUS, Refund
 from shopback.signals import rule_signal, change_addr_signal
-from shopback.trades.models import (MergeTrade, MergeOrder, DirtyMergeOrder, PackageOrder,
+from shopback.trades.models_dirty import DirtyMergeOrder
+from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder,
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
@@ -1507,6 +1508,28 @@ def replay_trade_send_result(request, id):
                                   content_type="text/html")
 
 
+def replay_package_send_result(request, id):
+    try:
+        replay_trade = ReplayPostTrade.objects.get(id=id)
+    except:
+        return HttpResponse(
+            '<body style="text-align:center;"><h1>发货结果未找到</h1></body>')
+    else:
+        from shopback.trades.tasks import get_replay_package_results
+        try:
+            reponse_result = get_replay_package_results(replay_trade)
+        except Exception, exc:
+            logger.error('trade post callback error:%s' % exc.message,
+                         exc_info=True)
+        reponse_result['post_no'] = reponse_result.get('post_no',
+                                                       None) or replay_trade.id
+
+        return render_to_response('trades/trade_post_success.html',
+                                  reponse_result,
+                                  context_instance=RequestContext(request),
+                                  content_type="text/html")
+
+
 class TradeSearchView(APIView):
     """ docstring for class ExchangeOrderView """
     permission_classes = (permissions.IsAuthenticated,)
@@ -2215,16 +2238,18 @@ class PackageScanWeightView(APIView):
             total_days = sku_num * (time_delta.total_seconds() / 86400.0)
 
             task_stats_paytopack.delay(pay_date, sku_num, total_days)
-
         if mt.type == pcfg.SALE_TYPE:
-            package = mt.get_package()
             mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
-            if package:
-                try:
-                    package.finish(mt)
-                    package.sync_merge_trade(mt)
-                except Exception, exc:
-                    logger.error(exc.message, exc_info=True)
+
+            from shopback.trades.models import PackageSkuItem
+            for merge_order in mo:
+                if merge_order.sale_order_id:
+                    try:
+                        item = PackageSkuItem.objects.get(sale_order_id=merge_order.sale_order_id)
+                        item.assign_status = PackageSkuItem.FINISHED
+                        item.save()
+                    except:
+                        log_action(mt.user.user.id, mt, CHANGE, u'mergeorder出库同步packageorder')
         return Response({'isSuccess': True})
 
 

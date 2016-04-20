@@ -686,7 +686,9 @@ class ScheduleDetailAPIView(APIView):
                 'collect_num': 0,
                 'order_weight': 0,
                 'model_id': 0,
-                'preview_url': ''
+                'preview_url': '',
+                'outer_id': '',
+                'is_verify': True
             }
 
         product_outer_ids = []
@@ -697,8 +699,12 @@ class ScheduleDetailAPIView(APIView):
                 status=u'normal').only('pic_path', 'outer_id'):
             product_outer_ids.append(product.outer_id)
             sale_product = sale_products.get(product.sale_product)
+            sale_product['is_verify'] = sale_product['is_verify'] and product.is_verify
+            if product.outer_id and not sale_product.get('outer_id'):
+                sale_product['outer_id'] = product.outer_id[:-1]
             if product.outer_id and product.outer_id[-1] == '1':
                 sale_product['model_id'] = product.model_id
+                sale_product['outer_id'] = product.outer_id[:-1]
                 if product.model_id:
                     try:
                         model_product = ModelProduct.objects.get(
@@ -931,7 +937,8 @@ class ScheduleDetailAPIView(APIView):
             'is_approved': '是' if schedule_detail.is_approved else '否',
             'collect_num': 0,
             'order_weight': 0,
-            'model_id': 0
+            'model_id': 0,
+            'is_verify': True
         }
 
         collect_num = 0
@@ -945,8 +952,12 @@ class ScheduleDetailAPIView(APIView):
                                               status='normal').only('pic_path',
                                                                     'outer_id'):
             product_outer_ids.append(product.outer_id)
+            item['is_verify'] = item['is_verify'] and product.is_verify
+            if product.outer_id and not item.get('outer_id'):
+                item['outer_id'] = product.outer_id
             if product.outer_id and product.outer_id[-1] == '1':
                 item['model_id'] = product.model_id
+                item['outer_id'] = product.outer_id[:-1]
                 if product.model_id:
                     try:
                         model_product = ModelProduct.objects.get(

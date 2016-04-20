@@ -21,14 +21,15 @@ from django.forms.models import model_to_dict
 from auth import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
-from flashsale.dinghuo.models_user import MyUser
 from flashsale.restpro.local_cache import image_watermark_cache
 from core.fields import BigIntegerAutoField
+from shopback import paramconfig as pcfg
+
 from shopback.categorys.models import Category, ProductCategory
 from shopback.archives.models import Deposite, DepositeDistrict
-from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser, User
 from supplychain.supplier.models import SaleProduct
+from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
 
 from . import constants, managers
 
@@ -61,9 +62,12 @@ class ProductStock(object):
     @staticmethod
     def add_order_detail(orderdetail, num):
         Product.objects.filter(id=orderdetail.product_id).update(collect_num=F('collect_num') + num)
-        ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') + num)
-        p = ProductSku.objects.get(id=orderdetail.chichu_id)
-        p.assign_packages()
+        # ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') + num)
+        product_sku = ProductSku.objects.get(id=orderdetail.chichu_id)
+        product_sku.quantity += num
+        product_sku.save()
+        # p = ProductSku.objects.get(id=orderdetail.chichu_id)
+        # p.quantity =
 
 
 class Product(models.Model):
@@ -558,21 +562,35 @@ def delete_pro_record_supplier(sender, instance, created, **kwargs):
 
 post_save.connect(delete_pro_record_supplier, Product)
 
-from shopback.signals import signal_product_upshelf
-
+from shopback.signals import signal_product_upshelf,signal_product_downshelf
 
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
-    products = Product.objects.filter(id=instance.id)
-    if products.count() > 0:
-        product = products[0]
+    if instance and instance.id:
+        product = Product.objects.get(id=instance.id)
         # 如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
             instance.is_verify = False
-        if (product.shelf_status != instance.shelf_status and
-                    instance.shelf_status == Product.UP_SHELF):
-            # 通知其它程序商品上架状态发生变化
-            signal_product_upshelf.send(sender=Product, product_list=[product])
 
+        #商品上下架状态变更
+        if (product.shelf_status != instance.shelf_status):
+            if instance.shelf_status == Product.UP_SHELF:
+
+                # 商品上架信号
+                from shopback.items.tasks_stats import \
+                    task_product_upshelf_update_productskusalestats
+                product_skus = product.normal_skus
+                for sku in product_skus:
+                    task_product_upshelf_update_productskusalestats.delay(sku.id)
+
+            elif instance.shelf_status == Product.DOWN_SHELF:
+
+                # 商品下架信号
+                from shopback.items.tasks_stats import \
+                    task_product_downshelf_update_productskusalestats
+                sale_end_time = product.offshelf_time or datetime.datetime.now()
+                product_skus = product.normal_skus
+                for sku in product_skus:
+                    task_product_downshelf_update_productskusalestats.delay(sku.id, sale_end_time)
 
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 
@@ -623,8 +641,14 @@ class ProductSku(models.Model):
     sale_num = models.IntegerField(default=0, verbose_name=u'日出库数')  # 日出库
     reduce_num = models.IntegerField(default=0, verbose_name='预减数')  # 下次入库减掉这部分库存
     lock_num = models.IntegerField(default=0, verbose_name='锁定数')  # 特卖待发货，待付款数量
-    assign_num = models.IntegerField(default=0, verbose_name='分配数')  # 未出库包裹单中已分配的sku数量
+    # assign_num = models.IntegerField(default=0, verbose_name='分配数')  # 未出库包裹单中已分配的sku数量
     sku_inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
+
+    #history_quantity = models.IntegerField(default=0, verbose_name='历史库存数')  #
+    #inbound_quantity = models.IntegerField(default=0, verbose_name='入仓库存数')  #
+    #post_num = models.IntegerField(default=0, verbose_name='已发货数')  #
+    #sold_num = models.IntegerField(default=0, verbose_name='已被购买数')  #
+    #realtime_lock_num = models.IntegerField(default=0, verbose_name='实时锁定数')  #
 
     cost = models.FloatField(default=0, verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0, verbose_name='标准进价')
@@ -661,6 +685,34 @@ class ProductSku(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
+
+    @property
+    def obj_sku_stats(self):
+        try:
+            return ProductSkuStats.objects.get(sku_id=self.id)
+        except ProductSkuStats.DoesNotExist:
+            return None
+
+    @property
+    def obj_active_sku_salestats(self):
+        try:
+            return ProductSkuSaleStats.objects.get(sku_id=self.id,status=ProductSkuSaleStats.ST_EFFECT)
+        except ProductSkuSaleStats.DoesNotExist:
+            return None
+
+    @property
+    def realtime_quantity(self):
+        """
+        This tells how many quantity in store.
+        """
+        raise NotImplementedError
+
+    @property
+    def aggregate_quantity(self):
+        """
+        This tells how many quantity we have in total since we introduced inbound_quantity.
+        """
+        raise NotImplementedError
 
     @property
     def name(self):
@@ -704,84 +756,9 @@ class ProductSku(models.Model):
             return False
         return True
 
-    def assign_stock(self, sale_order, package_order_id):
-        """
-            分配库存，仅设定状态，不改变实际库存数
-        """
-        from flashsale.pay.models import SaleOrder
-        from shopback.trades.models import PackageOrder
-        self.assign_num += sale_order.num
-        if self.quantity >= self.assign_num:
-            sale_order.assign_status = SaleOrder.ASSIGNED
-            sale_order.package_order_id = package_order_id
-            sale_order.save()
-            self.save()
-            package_order = PackageOrder.objects.get(id=sale_order.package_order_id or package_order_id)
-            if not package_order.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS:
-                package_order.redo_sign = True
-                package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-                package_order.out_sid = ''
-                package_order.logistic_company_id = None
-                package_order.save()
-            return True
-        else:
-            return False
-
-    def assign_stocks(self, sale_orders, package_order_id):
-        """
-            分配库存，仅设定状态，不改变实际库存数
-            一次性分配多个sale_orders进入包裹，确保不会因为同步发生异常
-        """
-        from flashsale.pay.models import SaleOrder
-        from shopback.trades.models import PackageOrder
-        sale_trade = sale_orders[0].sale_trade
-        package_order, state = PackageOrder.objects.get_or_create(id=package_order_id,
-                                                                  ware_by=self.product.ware_by,
-                                                                  buyer_id=sale_trade.buyer_id,
-                                                                  user_address_id=sale_trade.user_address_id)
-        if state:
-            package_order.copy_order_info(sale_trade)
-            package_order.save()
-        elif package_order.sys_status != PackageOrder.WAIT_PREPARE_SEND_STATUS:
-            package_order.redo_sign = True
-            package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-            package_order.out_sid = ''
-            package_order.logistic_company_id = None
-            package_order.save()
-        assign_now = self.assign_num
-        assigns = []
-        for sale_order in sale_orders:
-            if assign_now + sale_order.num <= self.quantity:
-                assign_now += sale_order.num
-                assigns.append(sale_order)
-        SaleOrder.objects.filter(id__in=[sale_order.id for sale_order in assigns]). \
-            update(assign_status=SaleOrder.ASSIGNED, package_order_id=package_order_id)
-        self.assign_num = assign_now
-        self.save()
-        return assign_now
-
-    def assign_packages(self):
-        """分配sku的所有包裹"""
-        from flashsale.pay.models import SaleOrder
-        from shopback.trades.models import PackageOrder
-        from flashsale.pay.models_refund import SaleRefund
-        sale_orders = SaleOrder.objects.filter(
-            sku_id=self.id,
-            status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-            assign_status=SaleOrder.NOT_ASSIGNED,
-            refund_status=SaleRefund.NO_REFUND)
-        res = {}
-        for sale_order in sale_orders:
-            sale_trade = sale_order.sale_trade
-            if not sale_trade.user_address_id or not sale_trade.buyer_id:
-                continue
-            new_package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                                   self.product.ware_by)
-            if new_package_order_id not in res:
-                res[new_package_order_id] = []
-            res[new_package_order_id].append(sale_order)
-        for package_order_id in res:
-            self.assign_num = self.assign_stocks(res[package_order_id], package_order_id)
+    @property
+    def ware_by(self):
+        return self.product.ware_by
 
     @property
     def size_of_sku(self):
@@ -850,21 +827,6 @@ class ProductSku(models.Model):
 
         post_save.send(sender=self.__class__, instance=self, created=False)
 
-    def update_assign_num(self, num, full_update=False, dec_update=False):
-        """ 更新规格库存 """
-        if full_update:
-            self.assign_num = num
-        elif dec_update:
-            self.assign_num = F('assign_num') - num
-        else:
-            self.assign_num = F('assign_num') + num
-        update_model_fields(self, update_fields=['assign_num'])
-
-        psku = self.__class__.objects.get(id=self.id)
-        self.assign_num = psku.assign_num
-
-        post_save.send(sender=self.__class__, instance=self, created=False)
-
     def update_wait_post_num(self, num, full_update=False, dec_update=False):
         """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
         if full_update:
@@ -907,7 +869,6 @@ class ProductSku(models.Model):
         post_save.send(sender=self.__class__, instance=self, created=False)
 
     def update_quantity_by_storage_num(self, num):
-
         if num < 0:
             raise Exception(u'入库更新商品库存数不能小于0')
 
@@ -1020,6 +981,20 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 
 
+def create_product_skustats(sender, instance, created, **kwargs):
+    """
+    Whenever ProductSku gets created, we create ProductSkuStats
+    """
+    if created:
+        from shopback.items.tasks import task_productsku_update_productskustats
+        task_productsku_update_productskustats.delay(instance.id, instance.product.id)
+    else:
+        from shopback.items.tasks_stats import task_productsku_update_productskustats_history_quantity
+        task_productsku_update_productskustats_history_quantity.delay(instance.id)
+
+post_save.connect(create_product_skustats, sender=ProductSku, dispatch_uid='post_save_create_productskustats')
+
+
 def upshelf_product_clear_locknum(sender, product_list, *args, **kwargs):
     """ 商品上架时将商品规格待发数更新为锁定库存数 """
     for product in product_list:
@@ -1033,7 +1008,6 @@ class Item(models.Model):
     """ 淘宝线上商品 """
 
     num_iid = models.CharField(primary_key=True, max_length=64, verbose_name='商品ID')
-
     user = models.ForeignKey(User, null=True, related_name='items', verbose_name='店铺')
     category = models.ForeignKey(Category, null=True, related_name='items', verbose_name='淘宝分类')
     product = models.ForeignKey(Product, null=True, related_name='items', verbose_name='关联库存商品')
@@ -1074,7 +1048,6 @@ class Item(models.Model):
 
     desc = models.TextField(blank=True, verbose_name='商品描述')
     skus = models.TextField(blank=True, verbose_name='规格')
-
     status = models.BooleanField(default=True, verbose_name='使用')
 
     class Meta:
