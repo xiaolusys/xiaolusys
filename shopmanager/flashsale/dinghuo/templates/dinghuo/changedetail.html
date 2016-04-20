@@ -402,9 +402,9 @@
 
             {% for order in orderdetails %}
                 <tr id="orderdetail_{{ forloop.counter }}">
-                    <td><a href="/admin/items/product/?q={{ order.outer_id|slice:":9" }}" target="_blank">{{ order.outer_id }}</a></td>
+                    <td><a href="/admin/items/product/?q={{ order.outer_id }}" target="_blank">{{ order.outer_id }}</a></td>
                     <td>
-                        <a href="/admin/trades/mergeorder/?outer_id={{order.outer_id}}&sku_properties_name={{order.product_chicun}}&order_pending_status=2" target="_blank">
+                        <a href="/admin/pay/saleorder/?status__exact=2&sku_name={{order.product_chicun}}&sku_id={{order.chichu_id}}" target="_blank">
                             {{ order.supplier_outer_id }}
                         </a>
                     </td>

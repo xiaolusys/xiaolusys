@@ -11,9 +11,12 @@ import urllib2
 from django.db import connection
 from django.db.models import Max, Sum
 
+import common.constants
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, PayToPackStats
+from flashsale.pay.models import SaleOrder
+
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
@@ -973,8 +976,7 @@ def task_stat_category_inventory_data(date=None):
     fifth_inventory_f.save()
 
 
-def get_suppliers():
-    min_datetime = datetime.datetime(1900, 1, 1)
+def _get_suppliers():
     sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
         merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
                                pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
@@ -1006,7 +1008,7 @@ def get_suppliers():
             sku_dict = {
                 'cost': sku.cost or 0,
                 'sale_quantity': 0,
-                'last_pay_time': min_datetime,
+                'last_pay_time': common.constants.MIN_DATETIME,
                 'buy_quantity': 0,
                 'arrival_quantity': 0,
                 'inferior_quantity': 0
@@ -1025,7 +1027,7 @@ def get_suppliers():
         sku_ids.add(sku_id)
         skus = products.setdefault(product_id, {})
         sku = skus.setdefault(sku_id, {'sale_quantity': 0,
-                                       'last_pay_time': min_datetime})
+                                       'last_pay_time': common.constants.MIN_DATETIME})
         sku.update({
             'buy_quantity': s['buy_quantity'],
             'arrival_quantity': s['arrival_quantity'],
@@ -1097,7 +1099,7 @@ def get_suppliers():
             continue
         new_product.update({
             'last_pay_time': max(filter(None, map(
-                lambda x: x['last_pay_time'], new_skus)) or [min_datetime]),
+                lambda x: x['last_pay_time'], new_skus)) or [common.constants.MIN_DATETIME]),
             'skus': new_skus
         })
         sale_product_id = new_product['sale_product_id']
@@ -1122,7 +1124,7 @@ def get_suppliers():
             continue
         last_pay_time = max(map(lambda x: x['last_pay_time'], supplier[
             'products']))
-        if last_pay_time == min_datetime:
+        if last_pay_time == common.constants.MIN_DATETIME:
             last_pay_date = '暂无销售'
         else:
             last_pay_date = last_pay_time.strftime('%Y-%m-%d')
@@ -1131,10 +1133,116 @@ def get_suppliers():
         new_suppliers.append(supplier)
     return new_suppliers
 
+def get_suppliers():
+    sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS) \
+      .values('sku_id').annotate(sale_quantity=Sum('num'), last_pay_time=Max('pay_time'))
+
+    sale_skus_dict = {}
+    for sale_stat in sale_stats:
+        sku_id = (sale_stat.get('sku_id') or '').strip()
+        if not sku_id:
+            continue
+        sale_skus_dict[int(sku_id)] = {
+            'sale_quantity': sale_stat['sale_quantity'],
+            'last_pay_time': sale_stat.get('last_pay_time') or common.constants.MIN_DATETIME
+        }
+
+    dinghuo_skus_dict = {}
+    dinghuo_stats = OrderDetail.objects.select_related('orderlist').filter(chichu_id__in=map(str, sale_skus_dict.keys())) \
+      .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED]) \
+      .values('chichu_id') \
+      .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'), inferior_quantity=Sum('inferior_quantity'))
+    for dinghuo_stat in dinghuo_stats:
+        sku_id = (dinghuo_stat.get('chichu_id') or '').strip()
+        dinghuo_skus_dict[int(sku_id)] = {
+            'buy_quantity': dinghuo_stat['buy_quantity'],
+            'arrival_quantity': dinghuo_stat['arrival_quantity'],
+            'inferior_quantity': dinghuo_stat['inferior_quantity']
+        }
+
+    saleproduct_ids = set()
+    products_dict = {}
+    for sku in ProductSku.objects.select_related('product').filter(id__in=sale_skus_dict.keys()):
+        product = sku.product
+        saleproduct_ids.add(product.sale_product)
+        product_dict = products_dict.setdefault(product.id, {
+            'id': product.id,
+            'name': product.name,
+            'pic_path': '%s?imageView2/0/w/120' % product.pic_path.strip(),
+            'outer_id': product.outer_id,
+            'saleproduct_id': product.sale_product,
+            'skus': {}
+        })
+
+        sku_dict = {
+            'id': sku.id,
+            'quantity': max(sku.quantity, 0),
+            'properties_name': sku.properties_name or sku.properties_alias,
+            'outer_id': sku.outer_id,
+            'cost': sku.cost,
+            'sale_quantity': 0,
+            'buy_quantity': 0,
+            'arrival_quantity': 0,
+            'inferior_quantity': 0
+        }
+        sku_dict.update(sale_skus_dict.get(sku.id) or {})
+        sku_dict.update(dinghuo_skus_dict.get(sku.id) or {})
+        product_dict['skus'][sku.id] = sku_dict
+
+    suppliers_dict = {}
+    saleproduct2supplier_dict = {}
+    for saleproduct in SaleProduct.objects.select_related('sale_supplier').filter(id__in=list(saleproduct_ids)):
+        saleproduct2supplier_dict[saleproduct.id] = saleproduct.sale_supplier.id
+        if saleproduct.sale_supplier.id not in suppliers_dict:
+            suppliers_dict[saleproduct.sale_supplier.id] = {
+                'id': saleproduct.sale_supplier.id,
+                'name': saleproduct.sale_supplier.supplier_name,
+                'ware_by': saleproduct.sale_supplier.ware_by or 0,
+                'products': []
+            }
+
+    new_suppliers_dict = {}
+    for product_id in sorted(products_dict.keys()):
+        product_dict = products_dict[product_id]
+        skus_dict = product_dict['skus']
+        new_skus = []
+
+        for sku_id in sorted(skus_dict.keys()):
+            sku_dict = skus_dict[sku_id]
+            effect_quantity = sku_dict['quantity'] + sku_dict['buy_quantity'] - \
+              min(sku_dict['arrival_quantity'], sku_dict['buy_quantity']) - \
+              sku_dict['sale_quantity']
+            if effect_quantity >= 0:
+                continue
+            sku_dict['effect_quantity'] = effect_quantity
+            new_skus.append(sku_dict)
+        if not new_skus:
+            continue
+        product_dict['skus'] = new_skus
+        product_dict['last_pay_time'] = max(x['last_pay_time'] for x in new_skus)
+
+        saleproduct_id = product_dict['saleproduct_id']
+        supplier_id = saleproduct2supplier_dict.get(saleproduct_id) or 0
+        default_supplier_dict = {
+            'id': supplier_id,
+            'name': '未知',
+            'ware_by': SaleSupplier.WARE_SH,
+            'products': []
+        }
+        supplier_dict = new_suppliers_dict.setdefault(supplier_id,
+                                                      suppliers_dict.get(supplier_id) or default_supplier_dict)
+
+        supplier_dict['products'].append(product_dict)
+
+    new_suppliers = []
+    for supplier_id in sorted(new_suppliers_dict.keys()):
+        supplier_dict = new_suppliers_dict[supplier_id]
+        supplier_dict['last_pay_time'] = max(x['last_pay_time'] for x in supplier_dict['products'])
+        new_suppliers.append(supplier_dict)
+    return new_suppliers
 
 def create_orderlist(supplier):
     now = datetime.datetime.now()
-    min_datetime = datetime.datetime(1900, 1, 1)
     supplier_id = supplier['id']
 
     def _new(supplier, old_orderlist=None):
@@ -1146,7 +1254,7 @@ def create_orderlist(supplier):
 
         last_pay_time = supplier.get('last_pay_time')
         ware_by = supplier.get('ware_by')
-        if last_pay_time and last_pay_time > min_datetime:
+        if last_pay_time and last_pay_time > common.constants.MIN_DATETIME:
             orderlist.last_pay_date = last_pay_time.date()
         if ware_by:
             if ware_by == SaleSupplier.WARE_SH:

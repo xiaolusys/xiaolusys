@@ -805,9 +805,9 @@ class PendingDingHuoViewSet(viewsets.GenericViewSet):
         now = datetime.datetime.now()
         items = []
 
-        status_mapping = {'5': '有次品', '6': '到货有问题', '7': '样品'}
+        status_mapping = dict(models.OrderList.ORDER_PRODUCT_STATUS)
         for order_list in models.OrderList.objects \
-                .exclude(status__in=[models.OrderList.COMPLETED, models.OrderList.ZUOFEI]) \
+                .exclude(status__in=[models.OrderList.COMPLETED, models.OrderList.ZUOFEI, models.OrderList.CLOSED]) \
                 .order_by('-updated'):
             items.append({
                 'id': order_list.id,
@@ -865,11 +865,6 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
     INBOUND_OP_LOG_TPL = '入仓单ID:%(id)d %(msg)s'
 
     DISTRICT_REGEX = re.compile('^(?P<pno>[a-zA-Z0-9=]+)-(?P<dno>[a-zA-Z0-9]+)?$')
-
-    @classmethod
-    def get_district(cls, product_dict):
-        pass
-
 
     @classmethod
     def update_orderlist(cls, request, orderlist_ids, op_logs):
