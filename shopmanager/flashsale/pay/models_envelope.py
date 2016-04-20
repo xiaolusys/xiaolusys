@@ -129,30 +129,36 @@ class Envelop(PayBaseModel):
         else:
             self.handle_envelop(redenvelope)
 
-    def cancel_envelop(self):
-        pingpp.api_key = settings.PINGPP_APPKEY
-        if not self.envelop_id:
-            return False
+    def refund_envelop(self):
+        if self.subject == self.XLAPP_CASHOUT:  # 用户钱包提现
+            from flashsale.pay.models import BudgetLog
+            blog = BudgetLog.objects.get(id=self.referal_id, budget_log_type=BudgetLog.BG_CASHOUT)
+            blog.cancel_and_return()
+        else:
+            from flashsale.xiaolumm.models import CarryLog, CashOut
+            # clog = CarryLog.objects.get(order_num=self.referal_id,log_type=CarryLog.CASH_OUT)
+            # clog.cancel_and_return()
+            # 取消
+            cashouts = CashOut.objects.filter(id=self.referal_id)
+            if cashouts.exists():
+                cashouts[0].fail_and_return()
 
-        envelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
-        self.handle_envelop(envelope)
-        if envelope['status'] in (self.SEND_FAILED, self.REFUND) and \
-                        self.status in (Envelop.WAIT_SEND, Envelop.FAIL, Envelop.CONFIRM_SEND):
+    def cancel_envelop(self):
+
+        if not self.envelop_id and self.status == self.WAIT_SEND:
             self.status = Envelop.CANCEL
-            self.save()
-            if self.subject == self.XLAPP_CASHOUT:  # 用户钱包提现
-                from flashsale.pay.models import BudgetLog
-                blog = BudgetLog.objects.get(id=self.referal_id, budget_log_type=BudgetLog.BG_CASHOUT)
-                blog.cancel_and_return()
-            else:
-                from flashsale.xiaolumm.models import CarryLog, CashOut
-                # clog = CarryLog.objects.get(order_num=self.referal_id,log_type=CarryLog.CASH_OUT)
-                # clog.cancel_and_return()
-                # 取消
-                cashouts = CashOut.objects.filter(id=self.referal_id)
-                if cashouts.exists():
-                    cashouts[0].fail_and_return()
-            return True
+            self.save(update_fields=['status'])
+            self.refund_envelop()
+        else:
+            pingpp.api_key = settings.PINGPP_APPKEY
+            envelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
+            self.handle_envelop(envelope)
+            if envelope['status'] in (self.SEND_FAILED, self.REFUND) and \
+                            self.status in (Envelop.WAIT_SEND, Envelop.FAIL, Envelop.CONFIRM_SEND):
+                self.status = Envelop.CANCEL
+                self.save()
+                self.refund_envelop()
+                return True
 
         return False
 

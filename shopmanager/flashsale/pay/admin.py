@@ -68,7 +68,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (
-        'status', 'channel', 'order_type', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+        'status', 'channel', 'has_budget_paid', 'order_type', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
 
     inlines = [SaleOrderInline]

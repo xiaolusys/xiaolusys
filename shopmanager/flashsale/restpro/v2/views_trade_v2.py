@@ -156,8 +156,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         coupon_id = sale_trade.extras_info.get('coupon')
         if coupon_id:
             coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(sale_trade.buyer_id))
-            if coupon.status != UserCoupon.UNUSED:
-                raise Exception('选择的优惠券不可用')
+            if coupon.status == UserCoupon.USED and coupon.sale_trade != sale_trade.id:
+                raise Exception('优惠券已在其它订单上使用')
+            if coupon.status == UserCoupon.FREEZE :
+                raise Exception('优惠券已失效')
+            if coupon.status == UserCoupon.UNUSED:
+                coupon.status = UserCoupon.USED
+                coupon.sale_trade = sale_trade.id
+                coupon.save()
 
     def wallet_charge(self, sale_trade):
         """ 妈妈钱包支付实现 """
