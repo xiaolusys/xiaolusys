@@ -1492,7 +1492,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 sku_dict = products_dict[product_id][sku_id]
                 sku_dict.update({
                     'properties_name': sku.properties_name or sku.properties_alias,
-                    'quantity': sku.quantity
+                    'quantity': sku.quantity,
+                    'barcode': sku.barcode
                 })
                 if product_location:
                     sku_dict['district'] = str(product_location.district)
@@ -1551,7 +1552,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 sku_dict.update({
                     'properties_name': sku.properties_name or
                                        sku.properties_alias,
-                    'quantity': sku.quantity
+                    'quantity': sku.quantity,
+                    'barcode': sku.barcode
                 })
                 if product_location:
                     sku_dict['district'] = str(product_location.district)
