@@ -411,7 +411,7 @@ class MamaFortuneAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'mama_name', 'mama_level', 'cash_num_display', 'carry_num_display',
                     'carry_pending_display', 'carry_confirmed_display', 'order_num',
                     'fans_num', 'invite_num', 'modified', 'created')
-    search_fields = ['mama_id', 'mama_name']
+    search_fields = ['=mama_id', '=mama_name']
 
 
 admin.site.register(MamaFortune, MamaFortuneAdmin)
