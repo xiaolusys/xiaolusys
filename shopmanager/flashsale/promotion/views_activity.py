@@ -252,6 +252,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         content = request.GET
+        imei = content.get('mobileSNCode') or ''  # 用户设备号
         from_customer = request.COOKIES.get("from_customer", "")
         mobile = request.COOKIES.get("mobile")
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
@@ -269,10 +270,19 @@ class ApplicationView(WeixinAuthMixin, APIView):
         applied = False
         application_count = 0
         if openid:
-            application_count = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id).count()
+            applications = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id)
+            application_count = applications.count()
         elif mobile:
-            applicaiton_count = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id).count()
+            applications = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id)
+            applicaiton_count = applications.count()
         if application_count > 0:
+            # 保存设备号
+            application = applications[0]
+            try:
+                application.event_imei = '{0}_{1}'.format(event_id, imei)
+                application.save()
+            except Exception, exc:
+                logger.warn(exc.message)
             applied = True
 
         mobile_required = True
