@@ -63,7 +63,7 @@ class OrderList(models.Model):
         (DEALED, u'已处理'),
         (TO_BE_PAID, u'待收款'),
         (TO_PAY, u'待付款'),
-        (CLOSED, u'关闭')
+        (CLOSED, u'完成')
     )
 
     ORDER_DISTRICT = (

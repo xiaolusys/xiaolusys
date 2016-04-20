@@ -661,5 +661,9 @@ def tasks_set_user_address_id(sale_trade):
             receiver_name=sale_trade.receiver_name,
             receiver_mobile=sale_trade.receiver_mobile,
             status='normal').order_by('-id').first()
+    if not ua:
+        ua = UserAddress.objects.filter(
+            cus_uid=sale_trade.buyer_id,
+            status='normal').order_by('-id').first()
     if ua:
         SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)

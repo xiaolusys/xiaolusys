@@ -46,6 +46,7 @@ import logging
 # fang  2015-8-19
 from shopback.trades.models import TradeWuliu
 from shopback.trades.tasks import send_package_task
+
 logger = logging.getLogger('django.request')
 
 import re
@@ -1248,14 +1249,14 @@ admin.site.register(TradeWuliu, WuliuAdmin)
 
 class PackageOrderAdmin(admin.ModelAdmin):
     # list_display = ('pid','id','ware_by','seller_id','buyer_message','seller_memo','sys_memo','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','seller_id','buyer_id','buyer_nick','user_address_id','post_cost','is_lgtype','lg_aging','lg_aging_type','gift_type','weight','is_qrcode','qrcode_msg','can_review','operator','scanner','weighter','is_locked','is_charged','is_picking_print','is_express_print','is_send_sms','has_refund','created','merged','send_time','weight_time','charge_time','remind_time','consign_time','reason_code','redo_sign','merge_trade_id')
-    list_display = ('pid', 'id', 'seller_id', 'buyer_id', 'ware_by', 'buyer_nick', 'type',
+    list_display = ('pid', 'id', 'sys_status', 'seller_id', 'buyer_id', 'ware_by', 'buyer_nick', 'type',
                     'weight', 'is_locked', 'is_charged', 'is_picking_print', 'is_express_print',
                     'is_send_sms', 'has_refund', 'created', 'send_time', 'weight_time',
                     'remind_time', 'consign_time', 'redo_sign',
                     'merge_trade_id')
 
     search_fields = ['id', 'seller_id', 'ware_by', 'out_sid', 'receiver_mobile']
-    list_filter = ('status',)
+    list_filter = ('status', 'sys_status', 'ware_by', 'redo_sign')
 
     def push_package_to_scan(self, request, queryset):
         try:
@@ -1285,20 +1286,20 @@ class PackageOrderAdmin(admin.ModelAdmin):
 
     push_package_to_scan.short_description = "同步发货".decode('utf8')
 
-
     actions = ['push_package_to_scan']
+
+
 admin.site.register(PackageOrder, PackageOrderAdmin)
 
 
 class PackageSkuItemAdmin(admin.ModelAdmin):
-    # list_display = ('pid','id','ware_by','seller_id','buyer_message','seller_memo','sys_memo','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','seller_id','buyer_id','buyer_nick','user_address_id','post_cost','is_lgtype','lg_aging','lg_aging_type','gift_type','weight','is_qrcode','qrcode_msg','can_review','operator','scanner','weighter','is_locked','is_charged','is_picking_print','is_express_print','is_send_sms','has_refund','created','merged','send_time','weight_time','charge_time','remind_time','consign_time','reason_code','redo_sign','merge_trade_id')
     list_display = (
         'id', 'sale_order_id', 'num', 'package_order_id', 'gift_type', 'assign_status', 'status', 'sys_status',
         'refund_status', 'cid', 'title', 'price', 'sku_id', 'num', 'total_fee', 'payment', 'discount_fee', 'adjust_fee',
         'sku_properties_name')
 
     search_fields = ['id', 'seller_id', 'ware_by', 'out_sid', 'receiver_mobile']
-    list_filter = ('status',)
+    list_filter = ('assign_status', 'status', 'ware_by')
 
 
 admin.site.register(PackageSkuItem, PackageSkuItemAdmin)
