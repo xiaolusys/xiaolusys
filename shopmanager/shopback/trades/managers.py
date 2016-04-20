@@ -294,7 +294,6 @@ class MergeTradeManager(BaseManager):
                                               outer_id=outer_sku_id)
                 psku.update_quantity(order_num, dec_update=True)
                 psku.update_wait_post_num(order_num, dec_update=True)
-                psku.update_assign_num(order_num, dec_update=True)
 
             else:
                 prod = Product.objects.get(outer_id=outer_id)
