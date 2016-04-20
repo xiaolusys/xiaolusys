@@ -816,6 +816,12 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
+    u'定时检查全站推送': {
+        'task': 'flashsale.protocol.tasks.task_site_push',
+        'schedule': crontab(minute="*/30"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     #    'runs-every-10-minutes-update-seller-flag':{
     #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
     #        'schedule':crontab(minute="*/10"),

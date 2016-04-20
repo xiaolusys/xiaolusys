@@ -211,6 +211,9 @@ class UserCoupon(BaseModel):
 
     def use_coupon(self):
         """ 使用优惠券 """
+        coupon = self.__class__.objects.get(id=self.id)
+        if coupon.status != UserCoupon.UNUSED:
+            raise AssertionError(u"优惠券已使用")
         self.status = self.USED
         self.save()
 
