@@ -9,9 +9,9 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('refunds', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('refunds', '__first__'),
-        ('items', '0001_initial'),
+        ('items', '0002_auto_20160420_1650'),
         ('supplier', '0001_initial'),
     ]
 
@@ -99,6 +99,7 @@ class Migration(migrations.Migration):
                 ('modified', models.DateTimeField(auto_now=True, verbose_name='\u4fee\u6539\u65f6\u95f4')),
                 ('memo', models.TextField(max_length=1024, verbose_name='\u5907\u6ce8', blank=True)),
                 ('status', models.SmallIntegerField(default=1, verbose_name='\u72b6\u6001', choices=[(1, '\u6b63\u5e38'), (2, '\u7591\u96be')])),
+                ('district', models.CharField(max_length=64, verbose_name='\u5e93\u4f4d', blank=True)),
                 ('inbound', models.ForeignKey(related_name='details', verbose_name='\u5165\u5e93\u5355', to='dinghuo.InBound')),
                 ('product', models.ForeignKey(related_name='inbound_details', verbose_name='\u5165\u5e93\u989c\u8272', blank=True, to='items.Product', null=True)),
                 ('sku', models.ForeignKey(related_name='inbound_details', verbose_name='\u5165\u5e93\u89c4\u683c', blank=True, to='items.ProductSku', null=True)),
@@ -151,7 +152,7 @@ class Migration(migrations.Migration):
                 ('non_arrival_quantity', models.IntegerField(default=0, verbose_name='\u672a\u5230\u6570\u91cf')),
                 ('created', models.DateTimeField(auto_now_add=True, verbose_name='\u751f\u6210\u65e5\u671f', db_index=True)),
                 ('updated', models.DateTimeField(auto_now=True, verbose_name='\u66f4\u65b0\u65e5\u671f', db_index=True)),
-                ('arrival_time', models.DateTimeField(verbose_name='\u5230\u8d27\u65f6\u95f4', blank=True)),
+                ('arrival_time', models.DateTimeField(db_index=True, verbose_name='\u5230\u8d27\u65f6\u95f4', blank=True)),
             ],
             options={
                 'db_table': 'suplychain_flashsale_orderdetail',
@@ -208,7 +209,7 @@ class Migration(migrations.Migration):
                 ('express_no', models.CharField(default=b'', max_length=32, verbose_name='\u5feb\u9012\u5355\u53f7', blank=True)),
                 ('receiver', models.CharField(default=b'', max_length=32, verbose_name='\u8d1f\u8d23\u4eba')),
                 ('costofems', models.IntegerField(default=0, verbose_name='\u5feb\u9012\u8d39\u7528')),
-                ('status', models.CharField(db_index=True, max_length=32, verbose_name='\u8ba2\u8d27\u5355\u72b6\u6001', choices=[('\u8349\u7a3f', '\u8349\u7a3f'), ('\u5ba1\u6838', '\u5ba1\u6838'), ('\u4f5c\u5e9f', '\u4f5c\u5e9f'), ('\u6709\u95ee\u9898', '\u6709\u6b21\u54c1\u53c8\u7f3a\u8d27'), ('5', '\u6709\u6b21\u54c1'), ('6', '\u5230\u8d27\u6570\u91cf\u95ee\u9898'), ('\u9a8c\u8d27\u5b8c\u6210', '\u9a8c\u8d27\u5b8c\u6210'), ('\u5df2\u5904\u7406', '\u5df2\u5904\u7406'), ('7', '\u6837\u54c1')])),
+                ('status', models.CharField(db_index=True, max_length=32, verbose_name='\u8ba2\u8d27\u5355\u72b6\u6001', choices=[('\u8349\u7a3f', '\u8349\u7a3f'), ('\u5ba1\u6838', '\u5ba1\u6838'), ('\u4f5c\u5e9f', '\u4f5c\u5e9f'), ('\u6709\u95ee\u9898', '\u6709\u6b21\u54c1\u53c8\u7f3a\u8d27'), ('5', '\u6709\u6b21\u54c1'), ('6', '\u5230\u8d27\u6570\u91cf\u95ee\u9898'), ('\u9a8c\u8d27\u5b8c\u6210', '\u9a8c\u8d27\u5b8c\u6210'), ('\u5df2\u5904\u7406', '\u5df2\u5904\u7406'), ('7', '\u6837\u54c1'), ('\u5f85\u4ed8\u6b3e', '\u5f85\u4ed8\u6b3e'), ('\u5f85\u6536\u6b3e', '\u5f85\u6536\u6b3e'), ('\u5b8c\u6210', '\u5b8c\u6210')])),
                 ('pay_status', models.CharField(max_length=32, verbose_name='\u6536\u6b3e\u72b6\u6001', db_index=True)),
                 ('p_district', models.CharField(default='1', max_length=32, verbose_name='\u5730\u533a', choices=[('1', '\u6c5f\u6d59\u6caa\u7696'), ('2', '\u5c71\u4e1c'), ('3', '\u5e7f\u4e1c\u798f\u5efa')])),
                 ('reach_standard', models.BooleanField(default=False, verbose_name='\u8fbe\u6807')),

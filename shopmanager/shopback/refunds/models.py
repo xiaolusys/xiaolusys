@@ -64,6 +64,8 @@ REFUND_REASON = (
     (10, u'七天无理由退换货')
 )
 
+def default_refund_id():
+    return 'RF%d' % int(time.time() * 10 ** 4)
 
 class Refund(models.Model):
     NO_REFUND = pcfg.NO_REFUND
@@ -76,7 +78,7 @@ class Refund(models.Model):
 
     id = models.AutoField(primary_key=True, verbose_name='ID')
     refund_id = models.CharField(max_length=32,
-                                 default='RF%d' % int(time.time() * 10 ** 4),
+                                 default=default_refund_id,
                                  verbose_name='退款单ID')
     tid = models.CharField(max_length=32, blank=True, verbose_name='交易ID')
 

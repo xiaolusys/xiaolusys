@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 FLASH_SELLER_ID = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
 TIME_FOR_PAYMENT = 25 * 60
-
+# seller = User.objects.get(uid='flashsale')
 
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
@@ -779,17 +779,18 @@ from django.contrib.auth.models import User as DjangoUser
 
 
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
-    from core.options import log_action, CHANGE, SYSTEMOA_USER
+    from core.options import log_action, CHANGE, get_systemoa_user
+    sysoa_user = get_systemoa_user()
     for pro_bean in product_list:
         all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL)
         for cart in all_cart:
             cart.close_cart()
-            log_action(SYSTEMOA_USER.id, cart, CHANGE, u'下架后更新')
+            log_action(sysoa_user.id, cart, CHANGE, u'下架后更新')
         all_trade = SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)
         for trade in all_trade:
             try:
                 trade.close_trade()
-                log_action(SYSTEMOA_USER.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
+                log_action(sysoa_user.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
 

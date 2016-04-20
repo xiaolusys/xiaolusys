@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('items', '0001_initial'),
+        ('items', '0002_auto_20160420_1650'),
         ('logistics', '0001_initial'),
     ]
 
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('customer_id', models.BigIntegerField(verbose_name='\u7528\u6237id', db_index=True)),
                 ('flow_amount', models.IntegerField(default=0, verbose_name='\u6d41\u6c34\u91d1\u989d(\u5206)')),
                 ('budget_type', models.IntegerField(db_index=True, verbose_name='\u6536\u652f\u7c7b\u578b', choices=[(0, '\u6536\u5165'), (1, '\u652f\u51fa')])),
-                ('budget_log_type', models.CharField(db_index=True, max_length=8, verbose_name='\u8bb0\u5f55\u7c7b\u578b', choices=[(b'envelop', '\u7ea2\u5305'), (b'refund', '\u9000\u6b3e'), (b'consum', '\u6d88\u8d39'), (b'cashout', '\u63d0\u73b0')])),
+                ('budget_log_type', models.CharField(db_index=True, max_length=8, verbose_name='\u8bb0\u5f55\u7c7b\u578b', choices=[(b'envelop', '\u7ea2\u5305'), (b'refund', '\u9000\u6b3e'), (b'consum', '\u6d88\u8d39'), (b'cashout', '\u63d0\u73b0'), (b'mmcash', '\u4ee3\u7406\u63d0\u73b0\u81f3\u4f59\u989d')])),
                 ('budget_date', models.DateField(default=datetime.date.today, verbose_name='\u4e1a\u52a1\u65e5\u671f')),
                 ('referal_id', models.CharField(db_index=True, max_length=32, verbose_name='\u5f15\u7528id', blank=True)),
                 ('status', models.IntegerField(default=0, db_index=True, verbose_name='\u72b6\u6001', choices=[(2, '\u5f85\u786e\u5b9a'), (0, '\u5df2\u786e\u5b9a'), (1, '\u5df2\u53d6\u6d88')])),
@@ -291,7 +291,7 @@ class Migration(migrations.Migration):
                 ('modified', models.DateTimeField(auto_now=True, verbose_name='\u4fee\u6539\u65e5\u671f', db_index=True)),
                 ('title', models.CharField(db_index=True, max_length=32, verbose_name='\u6d77\u62a5\u540d\u79f0', blank=True)),
                 ('wem_posters', jsonfield.fields.JSONField(default=b'[\n  {\n    "item_link": "http://m.xiaolumeimei.com/nvzhuang.html", \n    "pic_link": "", \n    "app_link": "com.jimei.xlmm://app/v1/products/ladylist", \n    "subject": [\n      "2\\u6298\\u8d77", \n      "\\u5c0f\\u9e7f\\u7f8e\\u7f8e  \\u5973\\u88c5\\u4e13\\u573a"\n    ]\n  }\n]', max_length=10240, verbose_name='\u5973\u88c5\u6d77\u62a5', blank=True)),
-                ('chd_posters', jsonfield.fields.JSONField(default=b'[\n  {\n    "item_link": "http://m.xiaolumeimei.com/chaotong.html", \n    "pic_link": "", \n    "app_link": "app:/", \n    "subject": [\n      "2\\u6298\\u8d77", \n      "\\u5c0f\\u9e7f\\u7f8e\\u7f8e  \\u7ae5\\u88c5\\u4e13\\u573a"\n    ]\n  }\n]', max_length=10240, verbose_name='\u7ae5\u88c5\u6d77\u62a5', blank=True)),
+                ('chd_posters', jsonfield.fields.JSONField(default=b'[\n  {\n    "item_link": "http://m.xiaolumeimei.com/chaotong.html", \n    "pic_link": "", \n    "app_link": "com.jimei.xlmm://app/v1/products/childlist", \n    "subject": [\n      "2\\u6298\\u8d77", \n      "\\u5c0f\\u9e7f\\u7f8e\\u7f8e  \\u7ae5\\u88c5\\u4e13\\u573a"\n    ]\n  }\n]', max_length=10240, verbose_name='\u7ae5\u88c5\u6d77\u62a5', blank=True)),
                 ('is_active', models.BooleanField(default=True, verbose_name='\u4e0a\u7ebf')),
                 ('active_time', models.DateTimeField(db_index=True, null=True, verbose_name='\u4e0a\u7ebf\u65e5\u671f', blank=True)),
             ],
@@ -454,8 +454,6 @@ class Migration(migrations.Migration):
                 ('refund_fee', models.FloatField(default=0.0, verbose_name='\u9000\u6b3e\u8d39\u7528')),
                 ('refund_status', models.IntegerField(default=0, blank=True, verbose_name=b'\xe9\x80\x80\xe6\xac\xbe\xe7\x8a\xb6\xe6\x80\x81', choices=[(0, b'\xe6\xb2\xa1\xe6\x9c\x89\xe9\x80\x80\xe6\xac\xbe'), (3, b'\xe7\x94\xb3\xe8\xaf\xb7\xe9\x80\x80\xe6\xac\xbe'), (4, b'\xe5\x90\x8c\xe6\x84\x8f\xe7\x94\xb3\xe8\xaf\xb7'), (5, b'\xe9\x80\x80\xe8\xb4\xa7\xe9\x80\x94\xe4\xb8\xad'), (2, b'\xe6\x8b\x92\xe7\xbb\x9d\xe9\x80\x80\xe6\xac\xbe'), (6, b'\xe7\xad\x89\xe5\xbe\x85\xe8\xbf\x94\xe6\xac\xbe'), (1, b'\xe9\x80\x80\xe6\xac\xbe\xe5\x85\xb3\xe9\x97\xad'), (7, b'\xe9\x80\x80\xe6\xac\xbe\xe6\x88\x90\xe5\x8a\x9f')])),
                 ('status', models.IntegerField(default=0, blank=True, verbose_name='\u8ba2\u5355\u72b6\u6001', db_index=True, choices=[(0, '\u8ba2\u5355\u521b\u5efa'), (1, '\u5f85\u4ed8\u6b3e'), (2, '\u5df2\u4ed8\u6b3e'), (3, '\u5df2\u53d1\u8d27'), (4, '\u786e\u8ba4\u7b7e\u6536'), (5, '\u4ea4\u6613\u6210\u529f'), (6, '\u9000\u6b3e\u5173\u95ed'), (7, '\u4ea4\u6613\u5173\u95ed')])),
-                ('package_order_id', models.CharField(max_length=100, null=True, verbose_name='\u6240\u5c5e\u5305\u88f9\u8ba2\u5355')),
-                ('assign_status', models.IntegerField(default=0, verbose_name='\u5e93\u5b58\u5206\u6d3e\u72b6\u6001', choices=[(0, '\u672a\u5206\u914d'), (1, '\u5df2\u5206\u914d'), (2, '\u5df2\u51fa\u8d27')])),
             ],
             options={
                 'db_table': 'flashsale_order',
@@ -633,9 +631,8 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True, verbose_name='\u521b\u5efa\u65e5\u671f', db_index=True)),
                 ('modified', models.DateTimeField(auto_now=True, verbose_name='\u4fee\u6539\u65e5\u671f', db_index=True)),
                 ('amount', models.IntegerField(default=0, verbose_name='\u8d26\u6237\u4f59\u989d(\u5206)')),
-                ('total_redenvelope', models.CharField(max_length=32, verbose_name='\u7d2f\u8ba1\u83b7\u53d6\u7ea2\u5305', blank=True)),
-                ('total_consumption', models.CharField(max_length=32, verbose_name='\u7d2f\u8ba1\u6d88\u8d39', blank=True)),
-                ('total_refund', models.CharField(max_length=32, verbose_name='\u7d2f\u8ba1\u9000\u6b3e', blank=True)),
+                ('total_income', models.IntegerField(default=0, verbose_name='\u603b\u6536\u5165')),
+                ('total_expense', models.IntegerField(default=0, verbose_name='\u603b\u652f\u51fa')),
                 ('user', models.OneToOneField(verbose_name='\u539f\u59cb\u7528\u6237', to='pay.Customer')),
             ],
             options={

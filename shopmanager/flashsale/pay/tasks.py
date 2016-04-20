@@ -561,7 +561,7 @@ def task_release_coupon_push(customer_id):
     user_coupon_release_push(customer_id)
     return
 
-from core.options import SYSTEMOA_USER
+from core.options import get_systemoa_user
 
 def close_refund(refund):
     """ 关闭退款单 """
@@ -576,7 +576,7 @@ def close_refund(refund):
 
     from core.options import log_action
     msg = old_status + '修改为退款关闭状态(定时任务)'
-    log_action(SYSTEMOA_USER.id, refund, CHANGE, msg)
+    log_action(get_systemoa_user().id, refund, CHANGE, msg)
     # log_action(56, refund, CHANGE, msg)  # 本地
     return True
 

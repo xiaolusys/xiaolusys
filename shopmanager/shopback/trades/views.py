@@ -2132,7 +2132,7 @@ class PackageScanCheckView(APIView):
         return Response({'isSuccess': True})
 
 
-from core.options import SYSTEMOA_USER
+from core.options import get_systemoa_user
 from flashsale.dinghuo.tasks import task_stats_paytopack
 from shopback.trades.tasks import uploadTradeLogisticsTask
 
@@ -2228,7 +2228,7 @@ class PackageScanWeightView(APIView):
         mt.weighter = request.user.username
         mt.save()
         # 上传单号
-        uploadTradeLogisticsTask.delay(mt.id, SYSTEMOA_USER.id)
+        uploadTradeLogisticsTask.delay(mt.id, get_systemoa_user().id)
         log_action(mt.user.user.id, mt, CHANGE, u'扫描称重')
 
         mo = mt.normal_orders

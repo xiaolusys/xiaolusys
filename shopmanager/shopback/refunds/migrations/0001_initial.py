@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import shopback.refunds.models
 
 
 class Migration(migrations.Migration):
@@ -70,7 +71,7 @@ class Migration(migrations.Migration):
             name='Refund',
             fields=[
                 ('id', models.AutoField(serialize=False, verbose_name=b'ID', primary_key=True)),
-                ('refund_id', models.CharField(default=b'RF14606350169251', max_length=32, verbose_name=b'\xe9\x80\x80\xe6\xac\xbe\xe5\x8d\x95ID')),
+                ('refund_id', models.CharField(default=shopback.refunds.models.default_refund_id, max_length=32, verbose_name=b'\xe9\x80\x80\xe6\xac\xbe\xe5\x8d\x95ID')),
                 ('tid', models.CharField(max_length=32, verbose_name=b'\xe4\xba\xa4\xe6\x98\x93ID', blank=True)),
                 ('title', models.CharField(max_length=64, verbose_name=b'\xe5\x87\xba\xe5\x94\xae\xe6\xa0\x87\xe9\xa2\x98', blank=True)),
                 ('num_iid', models.BigIntegerField(default=0, null=True, verbose_name=b'\xe5\x95\x86\xe5\x93\x81ID')),

@@ -126,6 +126,8 @@ GIFT_TYPE = (
     (pcfg.ITEM_GIFT_TYPE, u'买就送'),
 )
 
+def default_trade_tid():
+    return 'DD%d' % int(time.time() * 10 ** 5)
 
 class MergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
@@ -179,7 +181,7 @@ class MergeTrade(models.Model):
 
     id = models.AutoField(primary_key=True, verbose_name=u'订单ID')
     tid = models.CharField(max_length=32,
-                           default='DD%d' % int(time.time() * 10 ** 5),
+                           default=default_trade_tid,
                            verbose_name=u'原单ID')
     user = models.ForeignKey(User, related_name='merge_trades', verbose_name=u'所属店铺')
     buyer_nick = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'买家昵称')
@@ -687,6 +689,8 @@ signals.recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 #     def __unicode__(self):
 #         return '<%s,%s>'%(str(self.mergetrade),self.sys_status)
 
+def default_order_oid():
+    return 'DO%d' % int(time.time() * 10 ** 5)
 
 class MergeOrder(models.Model):
     NO_REFUND = pcfg.NO_REFUND
@@ -718,7 +722,7 @@ class MergeOrder(models.Model):
 
     id = models.AutoField(primary_key=True)
     oid = models.CharField(max_length=32,
-                           default='DO%d' % int(time.time() * 10 ** 5),
+                           default=default_order_oid,
                            verbose_name=u'原单ID')
     merge_trade = models.ForeignKey(MergeTrade,
                                        related_name='merge_orders',
@@ -1230,7 +1234,12 @@ class PackageOrder(models.Model):
     WARE_GZ = 2
     WARE_CHOICES = ((WARE_SH, u'上海仓'),
                     (WARE_GZ, u'广州仓'))
-    pid = BigIntegerAutoField(verbose_name=u'包裹主键', primary_key=True)
+
+    # PKG_CONFIRM = 'PKG_CONFIRM'
+    # PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
+    # PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
+    #                           (PKG_CONFIRM, u'已确定'))
+    pid = models.AutoField(verbose_name=u'包裹主键', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹ID', unique=True)
     tid = models.CharField(max_length=32, verbose_name=u'原单ID')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')

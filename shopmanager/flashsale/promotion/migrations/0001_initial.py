@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('unionid', models.CharField(db_index=True, max_length=128, null=True, verbose_name='\u5fae\u4fe1\u6388\u6743unionid', blank=True)),
                 ('status', models.BooleanField(default=0, verbose_name='\u662f\u5426\u6ce8\u518cAPP', db_index=True, choices=[(0, '\u672a\u6ce8\u518c'), (1, '\u5df2\u6ce8\u518c')])),
                 ('mobile', models.CharField(db_index=True, max_length=11, null=True, verbose_name='\u624b\u673a\u53f7', blank=True)),
-                ('ufrom', models.IntegerField(default=0, verbose_name='\u6765\u81ea\u5e73\u53f0', choices=[(0, 'WAP'), (1, '\u5fae\u4fe1'), (2, 'QQ')])),
+                ('ufrom', models.CharField(max_length=8, verbose_name='\u6765\u81ea\u5e73\u53f0', choices=[(b'wap', '\u5fae\u4fe1'), (b'wap', '\u670b\u53cb\u5708'), (b'wap', '\u65b0\u6d6a\u5fae\u535a'), (b'wap', 'WAP'), (b'wap', 'QQ\u7a7a\u95f4'), (b'wap', '\u5c0f\u9e7f\u7f8e\u7f8eapp')])),
             ],
             options={
                 'db_table': 'flashsale_promotion_download_record',
