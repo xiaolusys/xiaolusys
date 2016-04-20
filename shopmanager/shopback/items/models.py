@@ -565,7 +565,7 @@ post_save.connect(delete_pro_record_supplier, Product)
 from shopback.signals import signal_product_upshelf,signal_product_downshelf
 
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
-    if not raw:
+    if instance and instance.id:
         product = Product.objects.get(id=instance.id)
         # 如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
@@ -649,7 +649,7 @@ class ProductSku(models.Model):
     #post_num = models.IntegerField(default=0, verbose_name='已发货数')  #
     #sold_num = models.IntegerField(default=0, verbose_name='已被购买数')  #
     #realtime_lock_num = models.IntegerField(default=0, verbose_name='实时锁定数')  #
-    
+
     cost = models.FloatField(default=0, verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0, verbose_name='标准进价')
     std_sale_price = models.FloatField(default=0, verbose_name='吊牌价')
@@ -991,7 +991,7 @@ def create_product_skustats(sender, instance, created, **kwargs):
     else:
         from shopback.items.tasks_stats import task_productsku_update_productskustats_history_quantity
         task_productsku_update_productskustats_history_quantity.delay(instance.id)
-    
+
 post_save.connect(create_product_skustats, sender=ProductSku, dispatch_uid='post_save_create_productskustats')
 
 
