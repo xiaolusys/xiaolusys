@@ -4,8 +4,9 @@ import datetime
 
 from django.core.management.base import BaseCommand
 
-from flashsale.pay import REFUND_REFUSE_BUYER
+from flashsale.pay import REFUND_REFUSE_BUYER, REFUND_CLOSED
 from flashsale.pay.models import SaleOrder
+from flashsale.pay.models_refund import SaleRefund
 
 
 class Command(BaseCommand):
@@ -15,3 +16,8 @@ class Command(BaseCommand):
             sale_order.status = SaleOrder.TRADE_CLOSED
             print sale_order.id
             sale_order.save()
+
+        for sale_refund in SaleRefund.objects.filter(buyer_id=1):
+            sale_refund.status = REFUND_CLOSED
+            print sale_refund.id
+            sale_refund.save()
