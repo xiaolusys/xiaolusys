@@ -41,10 +41,14 @@ def delete_customer_active_coupon(customer_id):
     删除用户的活动优惠券
     """
     ucps = UserCoupon.objects.filter(customer=customer_id,
-                                     cp_id__template__id=27)  # 卡通浴巾188元 id 40
+                                     cp_id__template__id=40)  # 卡通浴巾188元 id 40
+    # 记录优惠券
+    coupon_ids = []
     for ucp in ucps:
+        coupon_ids.append(str(ucp.id))
         ucp.cp_id.delete()  # 删除券池数据
         ucp.delete()  # 删除优惠
+    return ','.join(coupon_ids)
 
 
 def get_customer_product_order(customer_id):
@@ -85,30 +89,35 @@ def make_sale_order_refund(order):
     refunds = SaleRefund.objects.filter(order_id=order.id)
     if refunds.exists():
         refund = refunds[0]
+        refund.charge = order.sale_trade.charge
+        refund.save()
         refund_id = refund.id
         return refund_id
     else:
-        is_budget = make_budget_log(order)  # 如果是下来了钱包退回小鹿钱包
-        if is_budget:
-            return ''
-        refund = SaleRefund.objects.create(trade_id=order.sale_trade.id,
-                                           order_id=order.id,
-                                           buyer_id=order.sale_trade.buyer_id,
-                                           item_id=order.item_id,
-                                           title=order.title,
-                                           sku_id=order.sku_id,
-                                           sku_name=order.sku_name,
-                                           refund_num=order.num,
-                                           refund_fee=order.payment,
-                                           mobile=order.sale_trade.receiver_mobile,
-                                           status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
-        channel = order.sale_trade.channel
-        refund.channel = channel
-        refund.save()
-        action_user = get_systemoa_user()
-        log_action(action_user, refund, ADDITION, u'活动浴巾作废订单处理')
-        refund_id = refund.id
-        return refund_id
+        return ''
+        # else:
+        # # is_budget = make_budget_log(order)  # 如果是下来了钱包退回小鹿钱包
+        #     # if is_budget:
+        #     #     return ''
+        #     refund = SaleRefund.objects.create(trade_id=order.sale_trade.id,
+        #                                        order_id=order.id,
+        #                                        buyer_id=order.sale_trade.buyer_id,
+        #                                        item_id=order.item_id,
+        #                                        title=order.title,
+        #                                        sku_id=order.sku_id,
+        #                                        sku_name=order.sku_name,
+        #                                        refund_num=order.num,
+        #                                        refund_fee=order.payment,
+        #                                        mobile=order.sale_trade.receiver_mobile,
+        #                                        status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
+        #     channel = order.sale_trade.channel
+        #     refund.channel = channel
+        #     refund.charge = order.sale_trade.charge
+        #     refund.save()
+        #     action_user = get_systemoa_user()
+        #     log_action(action_user, refund, ADDITION, u'活动浴巾作废订单处理')
+        #     refund_id = refund.id
+        #     return refund_id
 
 
 def close_merge_trade(tid):
@@ -120,10 +129,10 @@ def close_merge_trade(tid):
 
     try:
         mt = MergeTrade.objects.get(tid=tid)
-        mt.status = pcfg.TRADE_CLOSED
-        mt.save()
-        action_user = get_systemoa_user()
-        log_action(action_user, mt, CHANGE, u'作废活动订单,退款关闭')
+        # mt.status = pcfg.TRADE_CLOSED
+        # mt.save()
+        # action_user = get_systemoa_user()
+        # log_action(action_user, mt, CHANGE, u'作废活动订单,退款关闭')
         trade_id = mt.id
         return trade_id
     except Exception, exc:
@@ -137,7 +146,7 @@ import csv
 def record_to_csv(filename, data):
     csvfile = file(filename, 'wb')
     writer = csv.writer(csvfile)
-    writer.writerow(['用户id', '中奖状态', 'merge_trade_link', 'sale_trade_link', 'sale_refund_link'])
+    writer.writerow(['用户id', '中奖状态', 'merge_trade_link', 'sale_trade_link', 'sale_refund_link', '优惠券'])
     writer.writerows(data)
     csvfile.close()
 
@@ -154,21 +163,22 @@ def close_saleorder_by_obsolete_awards():
     awards1 = AwardWinner.objects.filter(status=1)  # 已经领取中奖信息
     awards2 = AwardWinner.objects.filter(status=2)  # 已经作废中奖信息
 
+    store_data = []
     for award in awards1:  # 领取的
         customer_id = award.customer_id
         award_status = '已领取'
         s_orders = get_customer_product_order(customer_id)
         if s_orders.count() > 1:  # 如果用户有超过一个的浴巾活动的订单
-            store_data = []
+
             sale_trade_ids_1 = []
             refund_ids_1 = []
 
             for order in s_orders[1::]:
                 refund_id = make_sale_order_refund(order)
-                order.refund_status = SaleRefund.REFUND_WAIT_SELLER_AGREE
-                order.save()
-                action_user = get_systemoa_user()
-                log_action(action_user.id, order, CHANGE, u'活动浴巾修改该订单到申请退款状态')
+                # order.refund_status = SaleRefund.REFUND_WAIT_SELLER_AGREE
+                # order.save()
+                # action_user = get_systemoa_user()
+                # log_action(action_user.id, order, CHANGE, u'活动浴巾修改该订单到申请退款状态')
 
                 sale_trade_ids_1.append(str(order.sale_trade.id))
                 refund_ids_1.append(str(refund_id))
@@ -179,16 +189,18 @@ def close_saleorder_by_obsolete_awards():
                     award_status,
                     '',
                     sale_trade_link.format(','.join(sale_trade_ids_1)),
-                    sale_refund_link.format(','.join(refund_ids_1))
+                    sale_refund_link.format(','.join(refund_ids_1)),
+                    ''
                 )
             )
-            record_to_csv('handler_acitve_apply.csv', store_data)
+    record_to_csv('handler_acitve_apply.csv', store_data)
 
+    data = []
     for award in awards2:  # 已经作废
         customer_id = award.customer_id
         award_status = '已作废'
         # 删除该用户所有浴巾活动优惠券（含券池）
-        delete_customer_active_coupon(customer_id)
+        user_coupons = delete_customer_active_coupon(customer_id)
         # 查找该用户所有浴巾活动订单
         orders = get_customer_product_order(customer_id)
 
@@ -197,14 +209,13 @@ def close_saleorder_by_obsolete_awards():
         merge_trade_ids = []
         refund_ids = []
 
-        data = []
         for order in orders:
             refund_id = make_sale_order_refund(order)
             # sale_order 切换到退款状态
-            order.refund_status = SaleRefund.REFUND_WAIT_SELLER_AGREE
-            order.save()
-            action_user = get_systemoa_user()
-            log_action(action_user.id, order, CHANGE, u'活动浴巾修改该订单到申请退款状态')
+            # order.refund_status = SaleRefund.REFUND_WAIT_SELLER_AGREE
+            # order.save()
+            # action_user = get_systemoa_user()
+            # log_action(action_user.id, order, CHANGE, u'活动浴巾修改该订单到申请退款状态')
 
             # 关闭 Mergetrade
             tid = order.sale_trade.tid
@@ -220,7 +231,8 @@ def close_saleorder_by_obsolete_awards():
                 award_status,
                 merge_trade_link.format(','.join(merge_trade_ids)),
                 sale_trade_link.format(','.join(sale_trade_ids)),
-                sale_refund_link.format(','.join(refund_ids))
+                sale_refund_link.format(','.join(refund_ids)),
+                user_coupons
             )
         )
-        record_to_csv('handler_obsolete_apply.csv', data)
+    record_to_csv('handler_obsolete_apply.csv', data)
