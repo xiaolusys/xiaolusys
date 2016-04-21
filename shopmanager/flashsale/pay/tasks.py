@@ -615,6 +615,8 @@ def task_saleorder_update_package_sku_item(sale_order):
             if hasattr(sale_order, attr):
                 val = getattr(sale_order, attr)
                 setattr(sku_item, attr, val)
+        sku_item.outer_sku_id = sku_item.product_sku.outer_id
+        sku_item.outer_id = sku_item.product_sku.product.outer_id
         sku_item.save()
         return
 

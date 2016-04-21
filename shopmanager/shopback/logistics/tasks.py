@@ -93,8 +93,6 @@ def updateAllUserUnfinishOrdersLogisticsTask(update_from=None, update_to=None):
 
 @task(max_retries=3, default_retry_delay=6)
 def task_get_logistics_company(package_order):
-
-    from shopback.trades.models import PackageOrder
     from shopback.logistics.models import LogisticsCompanyProcessor
     from shopback.warehouse import WARE_GZ
     # 如果订单属于广州仓，则默认发韵达
