@@ -81,19 +81,21 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'core.middleware.middleware.AttachContentTypeMiddleware',
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'core.middleware.middleware.SecureRequiredMiddleware',
     'core.middleware.middleware.DisableDRFCSRFCheck',
-    'django.middleware.common.CommonMiddleware',
-    # 'django.contrib.sessions.middleware.SessionMiddleware',
     'core.middleware.middleware.XSessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.RemoteUserMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 )
 
 ROOT_URLCONF = 'shopmanager.urls'
+WSGI_APPLICATION = 'shopmanager.wsgi.application'
 
 TEMPLATES_ROOT = os.path.join(PROJECT_ROOT, "site_media", "templates")
 TEMPLATE_DIRS = (
@@ -112,13 +114,11 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'core.middleware.context_processors.session',
 )
 
-INSTALLED_APPS = (
+INSTALLED_APPS =(
     'django.contrib.admin',
-    # 'django.contrib.admindocs',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
