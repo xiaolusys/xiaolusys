@@ -1463,18 +1463,6 @@ def check_package_order_status(sender, instance, created, **kwargs):
 post_save.connect(check_package_order_status, sender=PackageOrder)
 
 
-# TODO@hy
-# post_save.connect(update_merge_order_item_status, sender=PackageOrder)
-
-
-# post_save.connect(sync_merge_trade_by_package, sender=PackageOrder)
-
-
-def create_merge_order(merge_trade, sku_item):
-    MergeOrder.objects
-    pass
-
-
 def is_merge_trade_package_order_diff(package):
     merge_trade = package.get_merge_trade()
     # package_sku_items = package.package_sku_items
@@ -1578,6 +1566,7 @@ class PackageSkuItem(BaseModel):
 
     class Meta:
         db_table = 'flashsale_package_sku_item'
+        app_label = 'trades'
         verbose_name = u'sku包裹单'
         verbose_name_plural = u'sku包裹单列表'
 
