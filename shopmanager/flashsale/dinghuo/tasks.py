@@ -1135,7 +1135,7 @@ def _get_suppliers():
     return new_suppliers
 
 def get_suppliers():
-    sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS, refund_status=SaleRefund.NO_REFUND) \
+    sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS, refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER) \
       .exclude(outer_id__startswith='RMB') \
       .values('sku_id').annotate(sale_quantity=Sum('num'), last_pay_time=Max('pay_time'))
 
