@@ -353,6 +353,18 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         if total_price:
             sale_product_price = '出售平均价：%.2f' % (sum(total_price) /
                                                  len(total_price),)
+
+
+        schedule_ids = set()
+        for schedule_detail in SaleProductManageDetail.objects.filter(sale_product_id=sale_product_id):
+            schedule_ids.add(schedule_detail.schedule_manage_id)
+
+        sale_dates = set()
+        for schedule in SaleProductManage.objects.filter(id__in=list(schedule_ids)):
+            if schedule.sale_time:
+                sale_dates.add(schedule.sale_time)
+        sale_date_strs = [x.strftime('%y年%m月%d') for x in sorted(list(sale_dates))]
+
         return Response(
             {"flag": "done",
              "color_list": color_list,
@@ -376,7 +388,9 @@ class SaleProductAPIView(generics.ListCreateAPIView):
              'show_buyer_btn': request.user.has_perm('supplier.add_product'),
              'add_product_url': add_product_url,
              'username': request.user.username,
-             'contactor_name': contactor_name})
+             'contactor_name': contactor_name,
+             'sale_dates': ','.join(sale_date_strs)
+            })
 
     def post(self, request, *args, **kwargs):
         detail = request.POST.get("detail_id")

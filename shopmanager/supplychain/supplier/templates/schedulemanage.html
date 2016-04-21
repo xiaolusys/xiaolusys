@@ -195,9 +195,12 @@
                                 </a>
                             </td>
                             <td><textarea style="width:150px;height: 150px;border:0;" readonly="readonly">{{ data1.sale_memo }}</textarea></td>
-                            <td><a data-sale-product="{{ data1.sale_product_id }}" class="id_list"
+                            <td>
+                                <a data-sale-product="{{ data1.sale_product_id }}" class="id_list"
                                    href="/supplychain/supplier/bdproduct/{{ data1.sale_product_id }}"
-                                   target="_blank">{{ data1.name }}</a></td>
+                                   target="_blank">{{ data1.name }}</a>
+                                <p class="sale_product_sale_dates_{{ data1.sale_product_id }}" style="margin-top:8px;color:#cc3333;"></p>
+                            </td>
                             <td>
                                 <span style="font-size: 18px;font-family: sans-serif;"
                                       class="color_{{ data1.sale_product_id }}"></span><br><br>
@@ -617,6 +620,9 @@
                      }
                      if(result.librarian && result.librarian == result.username){
                          $('.name_' + sale_product_id).closest('tr').addClass('mine');
+                     }
+                     if(result.sale_dates){
+                         $('.sale_product_sale_dates_' + sale_product_id).html('上架日期:' + result.sale_dates);
                      }
                      $('td.buyer_' + sale_product_id).html(buyer_spans.join('<br>'));
                  }
