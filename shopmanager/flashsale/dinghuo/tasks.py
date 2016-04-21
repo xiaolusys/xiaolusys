@@ -17,6 +17,7 @@ from flashsale.dinghuo.models import OrderDetail, OrderList
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, PayToPackStats
 from flashsale.pay.models import SaleOrder
 
+
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
@@ -976,7 +977,7 @@ def task_stat_category_inventory_data(date=None):
     fifth_inventory_f.save()
 
 
-def get_suppliers():
+def _get_suppliers():
     sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
         merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
                                pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
@@ -1133,8 +1134,9 @@ def get_suppliers():
         new_suppliers.append(supplier)
     return new_suppliers
 
-def _get_suppliers():
-    sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS) \
+def get_suppliers():
+    sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS, refund_status=SaleRefund.NO_REFUND) \
+      .exclude(outer_id__startswith='RMB') \
       .values('sku_id').annotate(sale_quantity=Sum('num'), last_pay_time=Max('pay_time'))
 
     sale_skus_dict = {}
