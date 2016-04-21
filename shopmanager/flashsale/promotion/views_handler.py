@@ -42,9 +42,13 @@ def delete_customer_active_coupon(customer_id):
     """
     ucps = UserCoupon.objects.filter(customer=customer_id,
                                      cp_id__template__id=40)  # 卡通浴巾188元 id 40
+    # 记录优惠券
+    coupon_ids = []
     for ucp in ucps:
+        coupon_ids.append(str(ucp.id))
         ucp.cp_id.delete()  # 删除券池数据
         ucp.delete()  # 删除优惠
+    return ','.join(coupon_ids)
 
 
 def get_customer_product_order(customer_id):
@@ -91,29 +95,29 @@ def make_sale_order_refund(order):
         return refund_id
     else:
         return ''
-    # else:
-    #     # is_budget = make_budget_log(order)  # 如果是下来了钱包退回小鹿钱包
-    #     # if is_budget:
-    #     #     return ''
-    #     refund = SaleRefund.objects.create(trade_id=order.sale_trade.id,
-    #                                        order_id=order.id,
-    #                                        buyer_id=order.sale_trade.buyer_id,
-    #                                        item_id=order.item_id,
-    #                                        title=order.title,
-    #                                        sku_id=order.sku_id,
-    #                                        sku_name=order.sku_name,
-    #                                        refund_num=order.num,
-    #                                        refund_fee=order.payment,
-    #                                        mobile=order.sale_trade.receiver_mobile,
-    #                                        status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
-    #     channel = order.sale_trade.channel
-    #     refund.channel = channel
-    #     refund.charge = order.sale_trade.charge
-    #     refund.save()
-    #     action_user = get_systemoa_user()
-    #     log_action(action_user, refund, ADDITION, u'活动浴巾作废订单处理')
-    #     refund_id = refund.id
-    #     return refund_id
+        # else:
+        # # is_budget = make_budget_log(order)  # 如果是下来了钱包退回小鹿钱包
+        #     # if is_budget:
+        #     #     return ''
+        #     refund = SaleRefund.objects.create(trade_id=order.sale_trade.id,
+        #                                        order_id=order.id,
+        #                                        buyer_id=order.sale_trade.buyer_id,
+        #                                        item_id=order.item_id,
+        #                                        title=order.title,
+        #                                        sku_id=order.sku_id,
+        #                                        sku_name=order.sku_name,
+        #                                        refund_num=order.num,
+        #                                        refund_fee=order.payment,
+        #                                        mobile=order.sale_trade.receiver_mobile,
+        #                                        status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
+        #     channel = order.sale_trade.channel
+        #     refund.channel = channel
+        #     refund.charge = order.sale_trade.charge
+        #     refund.save()
+        #     action_user = get_systemoa_user()
+        #     log_action(action_user, refund, ADDITION, u'活动浴巾作废订单处理')
+        #     refund_id = refund.id
+        #     return refund_id
 
 
 def close_merge_trade(tid):
@@ -155,6 +159,7 @@ def close_saleorder_by_obsolete_awards():
     merge_trade_link = 'http://youni.huyi.so/admin/trades/mergetrade/?id__in={0}'
     sale_trade_link = 'http://youni.huyi.so/admin/pay/saletrade/?id__in={0}'
     sale_refund_link = 'http://youni.huyi.so/admin/pay/salerefund/?id__in={0}'  # 42247,42248
+    user_coupon_link = 'http://youni.huyi.so/admin/pay/usercoupon/?id__in={0}'
 
     awards1 = AwardWinner.objects.filter(status=1)  # 已经领取中奖信息
     awards2 = AwardWinner.objects.filter(status=2)  # 已经作废中奖信息
@@ -185,7 +190,8 @@ def close_saleorder_by_obsolete_awards():
                     award_status,
                     '',
                     sale_trade_link.format(','.join(sale_trade_ids_1)),
-                    sale_refund_link.format(','.join(refund_ids_1))
+                    sale_refund_link.format(','.join(refund_ids_1)),
+                    ''
                 )
             )
     record_to_csv('handler_acitve_apply.csv', store_data)
@@ -195,7 +201,7 @@ def close_saleorder_by_obsolete_awards():
         customer_id = award.customer_id
         award_status = '已作废'
         # 删除该用户所有浴巾活动优惠券（含券池）
-        delete_customer_active_coupon(customer_id)
+        user_coupons = delete_customer_active_coupon(customer_id)
         # 查找该用户所有浴巾活动订单
         orders = get_customer_product_order(customer_id)
 
@@ -226,7 +232,8 @@ def close_saleorder_by_obsolete_awards():
                 award_status,
                 merge_trade_link.format(','.join(merge_trade_ids)),
                 sale_trade_link.format(','.join(sale_trade_ids)),
-                sale_refund_link.format(','.join(refund_ids))
+                sale_refund_link.format(','.join(refund_ids)),
+                user_coupon_link.format(user_coupons)
             )
         )
     record_to_csv('handler_obsolete_apply.csv', data)
