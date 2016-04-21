@@ -117,7 +117,7 @@ class XLSampleApply(CacheModel):
     user_unionid = models.CharField(max_length=64, db_index=True, blank=True, null=True, verbose_name=u'用户unionid')
     mobile = models.CharField(max_length=11, null=False, db_index=True, blank=False, verbose_name=u'试用手机')
     vipcode = models.CharField(max_length=16, db_index=True, blank=True, null=True, verbose_name=u'试用邀请码')
-    event_imei = models.CharField(max_length=20, verbose_name=u'设备标识号')
+    event_imei = models.CharField(max_length=64, verbose_name=u'设备标识号')
     status = models.IntegerField(default=INACTIVE, choices=STATUS_CHOICES, db_index=True, verbose_name=u"状态")
 
     customer_id = models.IntegerField(null=True, blank=True, verbose_name=u"申请者ID")
