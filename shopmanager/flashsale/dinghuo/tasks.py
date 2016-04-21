@@ -976,7 +976,7 @@ def task_stat_category_inventory_data(date=None):
     fifth_inventory_f.save()
 
 
-def _get_suppliers():
+def get_suppliers():
     sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
         merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
                                pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
@@ -1017,7 +1017,7 @@ def _get_suppliers():
             skus[sku.id] = sku_dict
 
     dinghuo_stats = OrderDetail.objects \
-        .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+        .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED]) \
         .values('product_id', 'chichu_id') \
         .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
                   inferior_quantity=Sum('inferior_quantity'))
@@ -1133,7 +1133,7 @@ def _get_suppliers():
         new_suppliers.append(supplier)
     return new_suppliers
 
-def get_suppliers():
+def _get_suppliers():
     sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS) \
       .values('sku_id').annotate(sale_quantity=Sum('num'), last_pay_time=Max('pay_time'))
 
