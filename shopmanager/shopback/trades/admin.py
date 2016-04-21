@@ -1248,15 +1248,16 @@ admin.site.register(TradeWuliu, WuliuAdmin)
 
 
 class PackageOrderAdmin(admin.ModelAdmin):
-    # list_display = ('pid','id','ware_by','seller_id','buyer_message','seller_memo','sys_memo','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','seller_id','buyer_id','buyer_nick','user_address_id','post_cost','is_lgtype','lg_aging','lg_aging_type','gift_type','weight','is_qrcode','qrcode_msg','can_review','operator','scanner','weighter','is_locked','is_charged','is_picking_print','is_express_print','is_send_sms','has_refund','created','merged','send_time','weight_time','charge_time','remind_time','consign_time','reason_code','redo_sign','merge_trade_id')
-    list_display = ('pid', 'id', 'sys_status', 'seller_id', 'buyer_id', 'ware_by', 'buyer_nick', 'type',
-                    'weight', 'is_locked', 'is_charged', 'is_picking_print', 'is_express_print',
-                    'is_send_sms', 'has_refund', 'created', 'send_time', 'weight_time',
-                    'remind_time', 'consign_time', 'redo_sign',
-                    'merge_trade_id')
+    list_display = ('pid', 'id', 'sys_status', 'type', 'out_sid', 'receiver_name', 'receiver_mobile',
+                    'payment', 'operator', 'is_charged', 'is_picking_print', 'is_express_print',
+                    'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
+                    'consign_time', 'weight', 'redo_sign', 'merge_trade_id')
 
-    search_fields = ['id', 'seller_id', 'ware_by', 'out_sid', 'receiver_mobile']
-    list_filter = ('status', 'sys_status', 'ware_by', 'redo_sign')
+    search_fields = ['id', 'out_sid', 'receiver_name', 'receiver_mobile']
+    list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign')
+    change_list_template = "admin/trades/package_change_list.html"
+    ordering = ['-sys_status']
+    list_per_page = 50
 
     def push_package_to_scan(self, request, queryset):
         try:
@@ -1293,13 +1294,15 @@ admin.site.register(PackageOrder, PackageOrderAdmin)
 
 
 class PackageSkuItemAdmin(admin.ModelAdmin):
+    # TODO@HY self.sale_order.sale_trade.buyer_nick写法多次查询数据库，以后可以优化性能
     list_display = (
-        'id', 'sale_order_id', 'num', 'package_order_id', 'gift_type', 'assign_status', 'status', 'sys_status',
-        'refund_status', 'cid', 'title', 'price', 'sku_id', 'num', 'total_fee', 'payment', 'discount_fee', 'adjust_fee',
-        'sku_properties_name')
+        'id', 'sale_order_id', 'oid', 'package_order_id', 'assign_status', 'sys_status',
+        'title', 'ware_by', 'sku_id', 'outer_id', 'outer_sku_id', 'num', 'price', 'total_fee', 'payment', 'discount_fee', 'adjust_fee')
 
-    search_fields = ['id', 'seller_id', 'ware_by', 'out_sid', 'receiver_mobile']
+    search_fields = ['id', 'sale_order_id', 'package_order_id']
     list_filter = ('assign_status', 'status', 'ware_by')
-
+    change_list_template = "admin/trades/package_change_list.html"
+    ordering = ['-sys_status']
+    list_per_page = 50
 
 admin.site.register(PackageSkuItem, PackageSkuItemAdmin)

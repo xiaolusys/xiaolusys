@@ -1,4 +1,5 @@
-
+######## 2016-04-21 ###########
+ALTER TABLE `flashsale_package_sku_item`ADD COLUMN `oid` varchar(40) NULL AFTER `modified`;
 ######## 2016-04-20 ###########
 alter table flashsale_apppushmsg add column push_time datetime;
 CREATE INDEX `flashsale_apppushmsg_e4f97278` ON `flashsale_apppushmsg` (`push_time`);

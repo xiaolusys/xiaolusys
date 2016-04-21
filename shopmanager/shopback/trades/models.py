@@ -728,7 +728,7 @@ class MergeOrder(models.Model):
     price = models.FloatField(default=0.0, verbose_name=u'单价')
 
     sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
-    num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
+    num = models.IntegerField(null=True, default=0, verbose_name=u'数量')
 
     outer_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品编码')
     outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格编码')
@@ -1227,10 +1227,6 @@ class PackageOrder(models.Model):
     WARE_GZ = 2
     WARE_CHOICES = ((WARE_SH, u'上海仓'),
                     (WARE_GZ, u'广州仓'))
-    # PKG_CONFIRM = 'PKG_CONFIRM'
-    # PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
-    # PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
-    #                           (PKG_CONFIRM, u'已确定'))
     pid = BigIntegerAutoField(verbose_name=u'包裹主键', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹ID', unique=True)
     tid = models.CharField(max_length=32, verbose_name=u'原单ID')
@@ -1271,9 +1267,6 @@ class PackageOrder(models.Model):
                                   default=PKG_NEW_CREATED, verbose_name=u'系统状态')
     # 物流信息
     seller_id = models.BigIntegerField(db_index=True, verbose_name=u'卖家ID')
-    buyer_message = models.TextField(max_length=1000, blank=True, default='', null=False, verbose_name=u'买家留言')
-    seller_memo = models.TextField(max_length=1000, blank=True, default='', null=False, verbose_name=u'卖家备注')
-    sys_memo = models.TextField(max_length=1000, blank=True, default='', null=False, verbose_name=u'系统备注')
     # 收货信息
     receiver_name = models.CharField(max_length=25,
                                      blank=True, verbose_name=u'收货人姓名')
@@ -1285,21 +1278,17 @@ class PackageOrder(models.Model):
     receiver_mobile = models.CharField(max_length=24, db_index=True,
                                        blank=True, verbose_name=u'手机')
     receiver_phone = models.CharField(max_length=20, db_index=True, blank=True, verbose_name=u'电话')
-    seller_id = models.BigIntegerField(db_index=True, verbose_name=u'所属店铺')
+
+    user_address_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'地址ID')
     # 物流信息
     buyer_id = models.BigIntegerField(db_index=True, verbose_name=u'买家ID')
     buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
-    user_address_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'地址ID')
-    post_cost = models.FloatField(default=0.0, verbose_name=u'物流成本')
 
     buyer_message = models.TextField(max_length=1000, blank=True, verbose_name=u'买家留言')
     seller_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'卖家备注')
     sys_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'系统备注')
     seller_flag = models.IntegerField(null=True, verbose_name=u'淘宝旗帜')
 
-    is_lgtype = models.BooleanField(default=False, verbose_name=u'速递')
-    lg_aging = models.DateTimeField(null=True, blank=True, verbose_name=u'速递送达时间')
-    lg_aging_type = models.CharField(max_length=20, blank=True, verbose_name=u'速递类型')
     GIFT_TYPE = (
         (pcfg.REAL_ORDER_GIT_TYPE, u'实付'),
         (pcfg.CS_PERMI_GIT_TYPE, u'赠送'),
@@ -1309,24 +1298,8 @@ class PackageOrder(models.Model):
         (pcfg.CHANGE_GOODS_GIT_TYPE, u'换货'),
         (pcfg.ITEM_GIFT_TYPE, u'买就送'),
     )
-    sys_status = models.CharField(max_length=32, db_index=True,
-                                  choices=PACKAGE_STATUS, blank=True,
-                                  default=PKG_NEW_CREATED, verbose_name=u'系统状态')
-    # 收货信息
-    receiver_name = models.CharField(max_length=25,
-                                     blank=True, verbose_name=u'收货人姓名')
-    receiver_state = models.CharField(max_length=16, blank=True, verbose_name=u'省')
-    receiver_city = models.CharField(max_length=16, blank=True, verbose_name=u'市')
-    receiver_district = models.CharField(max_length=16, blank=True, verbose_name=u'区')
-    receiver_address = models.CharField(max_length=128, blank=True, verbose_name=u'详细地址')
-    receiver_zip = models.CharField(max_length=10, blank=True, verbose_name=u'邮编')
-    receiver_mobile = models.CharField(max_length=24, db_index=True,
-                                       blank=True, verbose_name=u'手机')
-    receiver_phone = models.CharField(max_length=20, db_index=True,
-                                      blank=True, verbose_name=u'电话')
-    # 物流信息
-    buyer_id = models.BigIntegerField(db_index=True, verbose_name=u'买家ID')
-    user_address_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'地址ID')
+
+
     post_cost = models.FloatField(default=0.0, verbose_name=u'物流成本')
     is_lgtype = models.BooleanField(default=False, verbose_name=u'速递')
     lg_aging = models.DateTimeField(null=True, blank=True, verbose_name=u'速递送达时间')
@@ -1407,16 +1380,21 @@ class PackageOrder(models.Model):
                                        PackageOrder.DELETE]
 
     @property
-    def package_sku_items(self):
-        return PackageSkuItem.objects.filter(package_order_id=self.id)
-
-    @property
     def sale_orders(self):
         if not hasattr(self, '_sale_orders_'):
             from flashsale.pay.models import SaleOrder
             sale_order_ids = [p.sale_order_id for p in PackageSkuItem.objects.filter(package_order_id=self.id)]
             self._sale_orders_ = SaleOrder.objects.filter(id__in=sale_order_ids)
         return self._sale_orders_
+
+    # @property
+    def payment(self):
+        return sum([p.payment for p in self.package_sku_items])
+    payment.short_description = u'付款额'
+
+    @property
+    def package_sku_items(self):
+        return PackageSkuItem.objects.filter(package_order_id=self.id)
 
     @property
     def seller(self):
@@ -1535,8 +1513,9 @@ from core.models import BaseModel
 
 class PackageSkuItem(BaseModel):
     sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
-    num = models.IntegerField(default=0, verbose_name=u'商品数量')
-    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'所属包裹订单')
+    # oid = models.CharField(max_length=40, null=True, db_inidex=True, verbose_name=u'原单ID')
+    num = models.IntegerField(default=0, verbose_name=u'数量')
+    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单ID')
 
     REAL_ORDER_GIT_TYPE = 0  # 实付
     CS_PERMI_GIT_TYPE = 1  # 赠送
@@ -1584,8 +1563,8 @@ class PackageSkuItem(BaseModel):
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     price = models.FloatField(default=0.0, verbose_name=u'单价')
 
-    sku_id = models.CharField(max_length=20, blank=True, db_index=True, verbose_name=u'规格ID')
-    outer_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
+    sku_id = models.CharField(max_length=20, blank=True, db_index=True, verbose_name=u'SKUID')
+    outer_id = models.CharField(max_length=20, blank=True, verbose_name=u'商品编码')
     outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
 
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
@@ -1621,8 +1600,22 @@ class PackageSkuItem(BaseModel):
             self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
         return self._product_sku_
 
+    @property
+    def package_order(self):
+        if self.package_order_id:
+            if not hasattr(self, '_package_order_'):
+                self._package_order_ = PackageOrder.objects.get(id=self.package_order_id)
+            return self._package_order_
+        else:
+            return None
+
+    def oid(self):
+        return self.sale_order.oid
+    oid.short_description = u'原单id'
+
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
+
 
 
 def update_productskustats(sender, instance, created, **kwargs):
