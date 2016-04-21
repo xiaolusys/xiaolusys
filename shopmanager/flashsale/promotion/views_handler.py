@@ -5,7 +5,7 @@ from flashsale.pay.models_user import BudgetLog
 from decimal import Decimal
 import logging
 
-logger = logging.getLogger('__name__')
+logger = logging.getLogger(__name__)
 
 
 def pmt_red_to_budgetlog():
