@@ -146,7 +146,7 @@ import csv
 def record_to_csv(filename, data):
     csvfile = file(filename, 'wb')
     writer = csv.writer(csvfile)
-    writer.writerow(['用户id', '中奖状态', 'merge_trade_link', 'sale_trade_link', 'sale_refund_link'])
+    writer.writerow(['用户id', '中奖状态', 'merge_trade_link', 'sale_trade_link', 'sale_refund_link', '优惠券'])
     writer.writerows(data)
     csvfile.close()
 
@@ -159,7 +159,6 @@ def close_saleorder_by_obsolete_awards():
     merge_trade_link = 'http://youni.huyi.so/admin/trades/mergetrade/?id__in={0}'
     sale_trade_link = 'http://youni.huyi.so/admin/pay/saletrade/?id__in={0}'
     sale_refund_link = 'http://youni.huyi.so/admin/pay/salerefund/?id__in={0}'  # 42247,42248
-    user_coupon_link = 'http://youni.huyi.so/admin/pay/usercoupon/?id__in={0}'
 
     awards1 = AwardWinner.objects.filter(status=1)  # 已经领取中奖信息
     awards2 = AwardWinner.objects.filter(status=2)  # 已经作废中奖信息
@@ -233,7 +232,7 @@ def close_saleorder_by_obsolete_awards():
                 merge_trade_link.format(','.join(merge_trade_ids)),
                 sale_trade_link.format(','.join(sale_trade_ids)),
                 sale_refund_link.format(','.join(refund_ids)),
-                user_coupon_link.format(user_coupons)
+                user_coupons
             )
         )
     record_to_csv('handler_obsolete_apply.csv', data)
