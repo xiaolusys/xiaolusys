@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# coding: utf-8
 import datetime
 from django.contrib import admin
 from django.db import models
@@ -49,7 +49,7 @@ class SaleOrderInline(admin.TabularInline):
 
 
 class SaleOrderAdmin(admin.ModelAdmin):
-    list_display = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment',
+    list_display = ('show_trade', 'oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment',
                     'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
     list_display_links = ('oid',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
@@ -57,6 +57,11 @@ class SaleOrderAdmin(admin.ModelAdmin):
     list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('sign_time', DateFieldListFilter))
     search_fields = ['=oid', '=sale_trade__tid', '=outer_id']
 
+    def show_trade(self, obj):
+        return '<a href="/admin/pay/saletrade/?id=%(trade_id)d">%(trade_id)d</a>' % {'trade_id': obj.sale_trade_id}
+
+    show_trade.allow_tags = True
+    show_trade.short_description = '订单ID'
 
 admin.site.register(SaleOrder, SaleOrderAdmin)
 
