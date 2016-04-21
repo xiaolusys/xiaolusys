@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import core.fields
 
 
 class Migration(migrations.Migration):
@@ -64,7 +65,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Trade',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True)),
+                ('id', core.fields.BigAutoField(serialize=False, primary_key=True)),
                 ('seller_id', models.CharField(max_length=64, blank=True)),
                 ('seller_nick', models.CharField(max_length=64, blank=True)),
                 ('buyer_nick', models.CharField(max_length=64, blank=True)),
@@ -126,6 +127,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='trade',
-            field=models.ForeignKey(related_name='trade_orders', to='orders.Trade', null=True),
+            field=core.fields.BigForeignKey(related_name='trade_orders', to='orders.Trade', null=True),
         ),
     ]

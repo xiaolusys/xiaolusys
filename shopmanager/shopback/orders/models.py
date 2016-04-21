@@ -2,7 +2,9 @@
 import json
 import time
 from django.db import models
+
 from core.models import BaseModel
+from core.fields import BigAutoField, BigForeignKey
 from shopback.users.models import User
 from shopback.items.models import Item
 from shopback import paramconfig as pcfg
@@ -42,7 +44,7 @@ STEP_TRADE_STATUS = (
 
 
 class Trade(models.Model):
-    id = models.AutoField(primary_key=True)
+    id   = BigAutoField(primary_key=True)
     user = models.ForeignKey(User, null=True, related_name='trades')
 
     seller_id = models.CharField(max_length=64, blank=True)
@@ -192,7 +194,7 @@ class Order(models.Model):
     oid = models.AutoField(primary_key=True)
     cid = models.BigIntegerField(null=True)
 
-    trade = models.ForeignKey(Trade, null=True, related_name='trade_orders')
+    trade = BigForeignKey(Trade, null=True, related_name='trade_orders')
 
     num_iid = models.CharField(max_length=64, blank=True)
     title = models.CharField(max_length=128)
