@@ -980,8 +980,8 @@ def task_packagize_sku_item(instance):
 @task()
 def task_update_package_stat_num(instance):
     from shopback.trades.models import PackageStat, PackageOrder
-    PackageStat.objects.filter(id=instance.id).update(
-        num=PackageOrder.objects.filter(id__contains=PackageStat.get_sended_package_num(instance.id)))
+    num = PackageStat.get_sended_package_num(instance.id)
+    PackageStat.objects.filter(id=instance.id).update(num=num)
 
 
 @task()
