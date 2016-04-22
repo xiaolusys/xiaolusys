@@ -40,6 +40,7 @@
          }
          .panel-message .panel-body {
              padding: 0;
+             margin-bottom: 0;
          }
          tr.odd {background-color: #e5ebf5;}
          i.ok {color: #00cc33;}
@@ -52,6 +53,16 @@
                 <p class="bg-danger"></p>
             </div>
         </div>
+        <p class="bg-info" style="text-align:center">
+            排期商品总计: <span class="text-warning">{{scheduled_n}}</span>
+            上架商品总计: <span class="text-warning">{{total_n}}</span>
+            {% if q1 %}
+            <a href="/admin/items/product/?id__in={{q1}}" target="_blank">错误上架</a>
+            {% endif %}
+            {% if q2 %}
+            <a href="/admin/items/product/?id__in={{q2}}" target="_blank">遗漏上架</a>
+            {% endif %}
+        </p>
         <div class="container" style="width:98%">
             <div class="row" style="margin-top:60px">
                 <table id="main-table" class="display"></table>
