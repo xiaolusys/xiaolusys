@@ -356,7 +356,7 @@ class FetchAndCreateProduct(APIView):
     renderer_classes = (TemplateHTMLRenderer,)
     template_name = "product_detail.html"
 
-    SUPPLIER_SKU_PATTERN = re.compile(r'^[\w\-_]*$')
+    SUPPLIER_SKU_PATTERN = re.compile(r'^[\w\-_#]*$')
 
     def getItemPrice(self, soup):
         return 0
@@ -484,7 +484,7 @@ class FetchAndCreateProduct(APIView):
                 return Response({'code': 2, 'error_response': '该选品已存在, 不能重复添加'})
             m = self.SUPPLIER_SKU_PATTERN.match(supplier_sku)
             if not m:
-                return Response({'code': 2, 'error_response': '供应商货号只能包含字母, 数字, 下划线(_), 横杠(-)'})
+                return Response({'code': 2, 'error_response': '供应商货号只能包含字母, 数字, 下划线(_), 横杠(-), 井号(#)'})
 
         if not sproduct:
             sproduct, state = SaleProduct.objects.get_or_create(
