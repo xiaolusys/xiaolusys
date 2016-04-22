@@ -639,7 +639,34 @@ class ScheduleDetailView(APIView):
     template_name = "scheduledetail.html"
 
     def get(self, request):
-        return Response({})
+        schedule_id = int(request.GET.get('schedule_id') or 0)
+
+        schedule = SaleProductManage.objects.get(id=schedule_id)
+        sale_time = schedule.sale_time
+
+        saleproduct_ids = set()
+        for schedule_detail in schedule.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL):
+            saleproduct_ids.add(schedule_detail.sale_product_id)
+
+        product_ids = []
+        scheduled_product_ids = []
+        for product in Product.objects.filter(sale_time=sale_time, shelf_status=Product.UP_SHELF):
+            if product.sale_product in saleproduct_ids:
+                scheduled_product_ids.append(product.id)
+            product_ids.append(product.id)
+
+        diff_product_ids1 = set(product_ids) - set(scheduled_product_ids)
+        diff_product_ids2 = set(scheduled_product_ids) - set(product_ids)
+
+        total_n = len(product_ids)
+        scheduled_n = len(scheduled_product_ids)
+
+        return Response({
+            'total_n': total_n,
+            'scheduled_n': scheduled_n,
+            'q1': ','.join(map(str, diff_product_ids1)),
+            'q2': ','.join(map(str, diff_product_ids2))
+        })
 
 
 class ScheduleDetailAPIView(APIView):
@@ -1004,7 +1031,9 @@ class ScheduleDetailAPIView(APIView):
             sys_status=pcfg.IN_EFFECT, outer_id__in=product_outer_ids).values(
                 'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
         for s in sale_stats:
-            skus_dict['%s-%s' % (s['outer_id'], s['outer_sku_id'])]['sale_num'] = s['sale_num']
+            sku_dict = skus_dict.get('%s-%s' % (s['outer_id'], s['outer_sku_id']))
+            if sku_dict:
+                sku_dict['sale_num'] = s['sale_num']
 
         dinghuo_stats = OrderDetail.objects \
           .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
@@ -1120,7 +1149,10 @@ class RemainNumAPIView(APIView):
             sys_status=pcfg.IN_EFFECT, outer_id__in=map(lambda x: x['outer_id'], products_dict.values())).values(
                 'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
         for s in sale_stats:
-            skus_dict['%s-%s' % (s['outer_id'], s['outer_sku_id'])]['sale_num'] = s['sale_num']
+            sku_dict = skus_dict.get('%s-%s' % (s['outer_id'], s['outer_sku_id']))
+            if sku_dict:
+                sku_dict['sale_num'] = s['sale_num']
+
 
         dinghuo_stats = OrderDetail.objects \
           .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
