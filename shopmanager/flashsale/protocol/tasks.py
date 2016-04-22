@@ -7,6 +7,10 @@ from flashsale.protocol import get_target_url
 from flashsale.protocol.models import APPFullPushMessge
 from flashsale.xiaolumm import util_emoji
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def sit_push(obj, now):
     resp = {}
@@ -40,10 +44,14 @@ def task_site_push(obj=None):
     """
     now = datetime.datetime.now()
     sit_push(obj, now)
+    if obj:
+        log.warn('site_push:%s.' % obj.id)
     if obj is None:
         thirth_minute_ago = now - datetime.timedelta(minutes=30)  # 30分钟之前的时间
+
         allpushsmss = APPFullPushMessge.objects.filter(push_time__gte=thirth_minute_ago, push_time__lt=now,
                                                        status=APPFullPushMessge.FAIL).order_by('-push_time')
+        log.warn('site push time_zone : %s-%s' % (thirth_minute_ago, now))
         for obj in allpushsmss:
             sit_push(obj, now)
 

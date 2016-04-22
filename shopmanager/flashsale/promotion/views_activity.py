@@ -82,7 +82,6 @@ class JoinView(WeixinAuthMixin, APIView):
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
 
-        #logger.warn("JoinView: ufrom=%s, from_customer=%s, event_id=%s" % (ufrom, from_customer, event_id))
         # the following is for debug
         # if ufrom == 'app':
         #    response = redirect(reverse('app_join_activity', args=(event_id,)))
@@ -252,7 +251,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         content = request.GET
-        imei = content.get('mobileSNCode') or ''  # 用户设备号
         from_customer = request.COOKIES.get("from_customer", "")
         mobile = request.COOKIES.get("mobile")
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
@@ -276,13 +274,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
             applications = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id)
             applicaiton_count = applications.count()
         if application_count > 0:
-            # 保存设备号
-            application = applications[0]
-            try:
-                application.event_imei = '{0}_{1}'.format(event_id, imei)
-                application.save()
-            except Exception, exc:
-                logger.warn(exc.message)
             applied = True
 
         mobile_required = True
@@ -316,6 +307,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         content = request.POST
         ufrom = request.COOKIES.get("ufrom", None)
         mobile = content.get("mobile", None)
+        imei = content.get('mobileSNCode') or ''  # 用户设备号
         from_customer = request.COOKIES.get("from_customer", None)
 
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
@@ -332,17 +324,27 @@ class ApplicationView(WeixinAuthMixin, APIView):
         applied = False
         application_count = 0
         if unionid:
-            application_count = XLSampleApply.objects.filter(user_unionid=unionid, event_id=event_id).count()
+            applications = XLSampleApply.objects.filter(user_unionid=unionid, event_id=event_id)
+            application_count = applications.count()
         elif openid:
-            application_count = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id).count()
+            applications = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id)
+            application_count = applications.count()
         elif mobile:
             from flashsale.restpro.v2.views_verifycode_login import validate_mobile
             if not validate_mobile(mobile):
                 response = Response({"rcode": 2, "msg": "mobile number wrong"})
                 response["Access-Control-Allow-Origin"] = "*"
                 return response
-            applicaiton_count = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id).count()
-
+            applications = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id)
+            applicaiton_count = applications.count()
+        if application_count > 0:
+            # 保存设备号
+            try:
+                application = applications[0]
+                application.event_imei = '{0}_{1}'.format(event_id, imei)
+                application.save()
+            except Exception, exc:
+                logger.warn(exc.message)
         params = {}
         customer = get_customer(request)
         if from_customer:
@@ -383,6 +385,8 @@ class ActivateView(APIView):
 
     def get(self, request, event_id, *args, **kwargs):
         # 1. check whether event_id is valid
+        content = request.GET
+        imei = content.get('mobileSNCode') or ''  # 用户设备号
         activity_entry = get_activity_entry(event_id)
         if not activity_entry:
             return Response({"error": "wrong event id"})
@@ -390,7 +394,7 @@ class ActivateView(APIView):
             # 2. activate application
         customer = get_customer(request)
         from tasks_activity import task_activate_application
-        task_activate_application.delay(event_id, customer)
+        task_activate_application.delay(event_id, customer, imei)
 
         # 3. redirect to mainpage
         key = 'mainpage'
