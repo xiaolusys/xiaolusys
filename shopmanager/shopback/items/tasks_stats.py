@@ -34,6 +34,7 @@ def task_productsku_update_productskustats_history_quantity(sku_id):
     sorder_num = sorders.aggregate(Sum('num'))
     sorder_num = sorder_num['num__sum'] or 0
     history_quantity = product_sku.quantity - sorder_num
+    
     if sku_stats.count() == 0:
 
         try:
@@ -50,41 +51,6 @@ def task_productsku_update_productskustats_history_quantity(sku_id):
         if sale_stat.history_quantity != history_quantity:
             sale_stat.history_quantity = history_quantity
             sale_stat.save(update_fields=["history_quantity"])
-
-
-@task(max_retries=3, default_retry_delay=6)
-def task_product_upshelf_update_productskusalestats(sku_id):
-    """
-    Recalculate and update init_waitassign_num,sale_start_time.
-    """
-    from shopback.items.models import ProductSku
-    from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats, gen_productsksalestats_unikey
-
-
-    product = ProductSku.objects.get(id=sku_id).product
-    product_id = product.id
-    sku_stats,state = ProductSkuStats.objects.get_or_create(sku_id=sku_id,product_id=product_id)
-
-    wait_assign_num = sku_stats.wait_assign_num
-
-    stats_uni_key = gen_productsksalestats_unikey(sku_id)
-    stats = ProductSkuSaleStats.objects.filter(uni_key= stats_uni_key, sku_id=sku_id)
-
-    if stats.count() == 0:
-        try:
-            stat = ProductSkuSaleStats(uni_key=stats_uni_key,
-                                   sku_id=sku_id,
-                                   product_id=product_id,
-                                   init_waitassign_num=wait_assign_num,
-                                   sale_start_time=product.sale_time)
-            stat.save()
-        except IntegrityError as exc:
-            logger.warn("IntegrityError - productskusalestat/init_waitassign_num | sku_id: %s, init_waitassign_num: %s" % (
-                sku_id, wait_assign_num))
-            raise task_product_upshelf_update_productskusalestats.retry(exc=exc)
-    else:
-        logger.warn("RepeatUpshelf- productskusalestat/init_waitassign_num | sku_id: %s, init_waitassign_num: %s" % (
-        sku_id, wait_assign_num))
 
 
 @task(max_retries=3, default_retry_delay=6)
