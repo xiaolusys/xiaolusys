@@ -95,7 +95,7 @@ def task_generate_red_envelope(application):
 
 
 @task()
-def task_activate_application(event_id, customer):
+def task_activate_application(event_id, customer, imei):
     unionid, mobile = customer.unionid, customer.mobile
     if not unionid or not mobile:
         # user must have both unionid and mobile to activate
@@ -106,6 +106,9 @@ def task_activate_application(event_id, customer):
         application.status = XLSampleApply.ACTIVED
         application.customer_id = customer.id
         application.headimgurl = customer.thumbnail
+        application.user_openid = customer.openid
+        application.user_unionid = unionid
+        application.event_imei = str(event_id) + "_" + imei
         application.nick = customer.nick
         application.save()
 
