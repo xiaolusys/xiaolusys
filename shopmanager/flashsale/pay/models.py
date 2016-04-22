@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+#-*- coding:utf-8 -*-
 import uuid
 import datetime
 from django.db import models
@@ -228,9 +228,6 @@ class SaleTrade(BaseModel):
     @property
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
-
-    seller = User.objects.get(uid='flashsale')
-
 
     def get_cash_payment(self):
         """ 实际需支付金额 """
