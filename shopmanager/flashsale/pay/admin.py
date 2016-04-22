@@ -49,7 +49,7 @@ class SaleOrderInline(admin.TabularInline):
 
 
 class SaleOrderAdmin(admin.ModelAdmin):
-    list_display = ('show_trade', 'oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'pay_time',
+    list_display = ('id', 'show_trade', 'oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'pay_time',
                     'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
     list_display_links = ('oid',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
