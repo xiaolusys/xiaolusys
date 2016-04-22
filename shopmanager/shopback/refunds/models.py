@@ -76,7 +76,7 @@ class Refund(models.Model):
     REFUND_CLOSED = pcfg.REFUND_CLOSED
     REFUND_SUCCESS = pcfg.REFUND_SUCCESS
 
-    id = models.AutoField(primary_key=True, verbose_name='ID')
+    id = models.BigIntegerField(primary_key=True, verbose_name='ID')
     refund_id = models.CharField(max_length=32,
                                  default=default_refund_id,
                                  verbose_name='退款单ID')

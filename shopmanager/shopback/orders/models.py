@@ -44,7 +44,7 @@ STEP_TRADE_STATUS = (
 
 
 class Trade(models.Model):
-    id   = BigAutoField(primary_key=True)
+    id   = models.BigIntegerField(primary_key=True)
     user = models.ForeignKey(User, null=True, related_name='trades')
 
     seller_id = models.CharField(max_length=64, blank=True)
@@ -191,10 +191,10 @@ class Trade(models.Model):
 
 
 class Order(models.Model):
-    oid = models.AutoField(primary_key=True)
+    oid = models.BigIntegerField(primary_key=True)
     cid = models.BigIntegerField(null=True)
 
-    trade = BigForeignKey(Trade, null=True, related_name='trade_orders')
+    trade = models.ForeignKey(Trade, null=True, related_name='trade_orders')
 
     num_iid = models.CharField(max_length=64, blank=True)
     title = models.CharField(max_length=128)

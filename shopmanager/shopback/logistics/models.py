@@ -171,7 +171,7 @@ class LogisticsCompany(models.Model):
 
 
 class Logistics(models.Model):
-    tid = models.AutoField(primary_key=True)
+    tid = models.BigIntegerField(primary_key=True)
     user = models.ForeignKey(User, null=True, related_name='logistics')
 
     order_code = models.CharField(max_length=64, blank=True)
