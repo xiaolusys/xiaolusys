@@ -280,7 +280,7 @@ if os.environ.get('TARGET') == 'staging':
     import raven
 
     RAVEN_CONFIG = {
-        'dsn': 'http://e419f1ed03004d03bad7b4b563f74241:12fbfa94d636472d92ae964757627367@sentry.xiaolumm.com/3',
+        'dsn': 'http://4d0d1c129af94f35b2ca16f1993865cf:725c7627bb4f49858bb315a3e2e16988@sentry.xiaolumm.com/3',
         # If you are using git, you can also automatically configure the
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
@@ -321,7 +321,7 @@ if os.environ.get('TARGET') in ('production', 'django18'):
     import raven
 
     RAVEN_CONFIG = {
-        'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
+        'dsn': 'http://da7007ee84ad4004bb12bf866f665f48:85828683495d423b8917e044c9fbcd1d@sentry.xiaolumm.com/2',
         # If you are using git, you can also automatically configure the
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),

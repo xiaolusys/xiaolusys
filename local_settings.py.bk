@@ -63,7 +63,7 @@ ORMCACHE_ENABLE = True
 
 import raven
 RAVEN_CONFIG = {
-    'dsn': 'http://4efada3907e24b3892e7344aae7c4aab:ccd82ec60936430a913059c752bb6a87@sentry.xiaolumm.com/1',
+    'dsn': 'http://2d9b723937cd498daca947d5facf6bd0:4ba446bae19a46c4abcb273bef851197@sentry.xiaolumm.com/1',
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': raven.fetch_git_sha( os.path.dirname(PROJECT_ROOT)),
