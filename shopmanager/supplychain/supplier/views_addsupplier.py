@@ -356,7 +356,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
 
 
         schedule_ids = set()
-        for schedule_detail in SaleProductManageDetail.objects.filter(sale_product_id=sale_product_id):
+        for schedule_detail in SaleProductManageDetail.objects.filter(sale_product_id=sale_product_id, today_use_status=SaleProductManageDetail.NORMAL):
             schedule_ids.add(schedule_detail.schedule_manage_id)
 
         sale_dates = set()

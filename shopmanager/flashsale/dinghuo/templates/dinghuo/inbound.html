@@ -259,12 +259,12 @@
                                     {% if forloop.first %}
                                     <td rowspan="{{ product.skus|length }}">{{ product.name }}</td>
                                     <td rowspan="{{ product.skus|length }}">
-                                        <a href="/items/product/district/{{product.id}}/" target="_blank" alt="商品库位">
+                                        <a href="/items/product/district/{{product.id}}/" target="_blank" title="商品库位">
                                             {{ product.id }}
                                         </a>
                                     </td>
                                     <td rowspan="{{ product.skus|length }}">
-                                        <a href="/admin/items/product/?outer_id={{ product.outer_id }}" target="_blank">
+                                        <a href="/admin/items/product/?outer_id={{ product.outer_id }}" target="_blank" title="库存商品列表">
                                             {{ product.outer_id }}
                                         </a>
                                     </td>
@@ -518,7 +518,7 @@
                  new_id = parseInt($this.attr('data-new-id')) || 0;
                  arrival_quantity = parseInt($this.find('input.arrival-quantity').val());
                  inferior_quantity = parseInt($this.find('input.inferior-quantity').val());
-                 district = $this.find('input.district').val() || '1';
+                 district = $this.find('input.district').val() || '';
                  if(!_.isNaN(arrival_quantity) && _.isNumber(arrival_quantity) || !_.isNaN(inferior_quantity) && _.isNumber(inferior_quantity)){
                      if(sku_id){
                          skus.push({
