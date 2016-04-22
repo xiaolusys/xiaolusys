@@ -757,7 +757,9 @@ class ScheduleDetailAPIView(APIView):
             sys_status=pcfg.IN_EFFECT, outer_id__in=product_outer_ids).values(
                 'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
         for s in sale_stats:
-            skus_dict['%s-%s' % (s['outer_id'], s['outer_sku_id'])]['sale_num'] = s['sale_num']
+            sku_dict = skus_dict.get('%s-%s' % (s['outer_id'], s['outer_sku_id']))
+            if sku_dict:
+                sku_dict['sale_num'] = s['sale_num']
 
         dinghuo_stats = OrderDetail.objects \
           .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
