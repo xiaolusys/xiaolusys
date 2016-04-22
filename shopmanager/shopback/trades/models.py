@@ -598,13 +598,16 @@ class MergeTrade(models.Model):
 
         return self.seller_memo
 
-    def sync_attr_from_package(self, package):
-        attrs = []
-        for attr in attrs:
-            val = getattr(package, attr)
-            setattr(self, attr, val)
-        self.save()
 
+def update_package_sku_item(sender, instance, created, **kwargs):
+    """ 更新PackageSkuItem状态 """
+    if instance.type == pcfg.SALE_TYPE and instance.sys_status == MergeTrade.FINISHED_STATUS:
+        from shopback.trades.tasks import task_merge_trade_update_package_sku_item, task_merge_trade_update_sale_order
+        task_merge_trade_update_package_sku_item.delay(instance)
+        task_merge_trade_update_sale_order.delay(instance)
+
+
+post_save.connect(update_package_sku_item, sender=MergeTrade, dispatch_uid='post_save_update_package_sku_item')
 
 # 平台名称与存储编码映射
 TF_CODE_MAP = {
@@ -1299,8 +1302,6 @@ class PackageOrder(models.Model):
         (pcfg.CHANGE_GOODS_GIT_TYPE, u'换货'),
         (pcfg.ITEM_GIFT_TYPE, u'买就送'),
     )
-
-
     post_cost = models.FloatField(default=0.0, verbose_name=u'物流成本')
     is_lgtype = models.BooleanField(default=False, verbose_name=u'速递')
     lg_aging = models.DateTimeField(null=True, blank=True, verbose_name=u'速递送达时间')
@@ -1358,6 +1359,7 @@ class PackageOrder(models.Model):
             self.save()
 
     def finish_scan_weight(self):
+        from shopback.items.models import ProductSkuStats
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
@@ -1366,7 +1368,9 @@ class PackageOrder(models.Model):
         for sku_item in package_sku_items:
             sku_item.assign_status = PackageSkuItem.FINISHED
             sku_item.save()
-        PackageStat.objects.get(id=self.pstat_id).save()
+            psku = ProductSku.objects.get(id=sku_item.sku_id)
+            psku.update_quantity(sku_item.num, dec_update=True)
+            psku.update_wait_post_num(sku_item.num, dec_update=True)
 
     @property
     def pstat_id(self):
@@ -1391,6 +1395,7 @@ class PackageOrder(models.Model):
     # @property
     def payment(self):
         return sum([p.payment for p in self.package_sku_items])
+
     payment.short_description = u'付款额'
 
     @property
@@ -1459,8 +1464,10 @@ def check_package_order_status(sender, instance, created, **kwargs):
     if instance.sys_status == PackageOrder.PKG_NEW_CREATED and PackageSkuItem.objects.filter(
             package_order_id=instance.id, status=PackageSkuItem.ASSIGNED).exists():
         PackageOrder.objects.filter(pid=instance.pid).update(sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
+    PackageStat.objects.get(id=instance.pstat_id).save()
 
 
+# TODO@HY@5.1 已经换成了更改数量改变状态的方式
 post_save.connect(check_package_order_status, sender=PackageOrder)
 
 
@@ -1601,11 +1608,11 @@ class PackageSkuItem(BaseModel):
 
     def oid(self):
         return self.sale_order.oid
+
     oid.short_description = u'原单id'
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
-
 
 
 def update_productskustats(sender, instance, created, **kwargs):
@@ -1646,3 +1653,12 @@ def update_package_order_status(sender, instance, created, **kwargs):
 # TODO@hy 两套客户端出库的同步过渡方法
 post_save.connect(update_package_order_status, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_package_order_status')
+
+
+def update_package_order_sku_num(sender, instance, created, **kwargs):
+    from shopback.trades.tasks import task_update_package_order_sku_num
+    task_update_package_order_sku_num.delay(instance.package_order_id)
+
+
+post_save.connect(update_package_order_sku_num, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_package_order_sku_num')

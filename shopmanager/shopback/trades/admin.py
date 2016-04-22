@@ -1261,6 +1261,7 @@ class PackageOrderAdmin(admin.ModelAdmin):
 
     def push_package_to_scan(self, request, queryset):
         try:
+
             user_id = request.user.id
             trade_ids = [t.pid for t in queryset]
             if not trade_ids:
@@ -1289,6 +1290,15 @@ class PackageOrderAdmin(admin.ModelAdmin):
 
     actions = ['push_package_to_scan']
 
+    class Media:
+        css = {"all": ("admin/css/forms.css", "css/admin/dialog.css", "css/admin/checkorder.css")}
+        #         js = ("jquery/jquery-1.8.13.min.js","script/admin/adminpopup.js","script/trades/new_checkTrade.js",
+        #               "layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","script/trades/select_stock.js",)
+        js = ("closure-library/closure/goog/base.js", "script/admin/adminpopup.js", "script/base.js",
+              "script/trades/checkpackage.js",
+              "script/trades/tradetags.js", "script/trades/new_checkTrade.js", "layer-v1.9.2/layer/layer.js",
+              "bootstrap/js/bootstrap.js", "jquery/jquery-1.8.13.min.js", "script/trades/select_stock.js")
+
 
 admin.site.register(PackageOrder, PackageOrderAdmin)
 
@@ -1296,13 +1306,15 @@ admin.site.register(PackageOrder, PackageOrderAdmin)
 class PackageSkuItemAdmin(admin.ModelAdmin):
     # TODO@HY self.sale_order.sale_trade.buyer_nick写法多次查询数据库，以后可以优化性能
     list_display = (
-        'id', 'sale_order_id', 'oid', 'package_order_id', 'assign_status', 'sys_status',
-        'title', 'ware_by', 'sku_id', 'outer_id', 'outer_sku_id', 'num', 'price', 'total_fee', 'payment', 'discount_fee', 'adjust_fee')
+        'id', 'sale_order_id', 'oid', 'package_order_id', 'assign_status', 'sys_status', 'pay_time',
+        'title', 'ware_by', 'sku_id', 'outer_id', 'outer_sku_id', 'num', 'price', 'total_fee', 'payment',
+        'discount_fee', 'adjust_fee')
 
     search_fields = ['id', 'sale_order_id', 'package_order_id']
     list_filter = ('assign_status', 'status', 'ware_by')
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
+
 
 admin.site.register(PackageSkuItem, PackageSkuItemAdmin)
