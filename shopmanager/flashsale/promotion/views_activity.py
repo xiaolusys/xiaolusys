@@ -324,7 +324,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         applied = False
         application_count = 0
         if unionid:
-            applications = XLSampleApply.objects.filter(user_unionid=unionid, event_id=event_id).count()
+            applications = XLSampleApply.objects.filter(user_unionid=unionid, event_id=event_id)
             application_count = applications.count()
         elif openid:
             applications = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id)
