@@ -302,7 +302,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
 
         end_time = int(time.mktime(activity_entry.end_time.timetuple()) * 1000)
         #logger.warn("ApplicationView GET: end_time=%s, mobile_required:%s, openid:%s, mobile:%s, customer:%s" % (
-        end_time, mobile_required, openid, mobile, customer))
+        #end_time, mobile_required, openid, mobile, customer))
 
         res_data = {"applied": applied, "img": img, "nick": nick, "end_time": end_time,
                     "mobile_required": mobile_required}
