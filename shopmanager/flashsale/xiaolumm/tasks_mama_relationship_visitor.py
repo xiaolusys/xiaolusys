@@ -177,4 +177,8 @@ def task_login_update_fans(user):
     fan = XlmmFans(xlmm=mama_id, xlmm_cusid=mama_customer_id, refreal_cusid=referal_customer_id, fans_cusid=customer.id,
                    fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
     fan.save()
-    records.update(status=AppDownloadRecord.USED)
+
+    record.status = AppDownloadRecord.USED
+    record.save()
+    
+    #records.update(status=AppDownloadRecord.USED)
