@@ -732,7 +732,7 @@ class MergeOrder(models.Model):
     price = models.FloatField(default=0.0, verbose_name=u'单价')
 
     sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
-    num = models.IntegerField(null=True, default=0, verbose_name=u'数量')
+    num = models.IntegerField(default=0, verbose_name=u'数量')
 
     outer_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品编码')
     outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格编码')
@@ -1332,7 +1332,9 @@ class PackageOrder(models.Model):
     is_express_print = models.BooleanField(default=False, verbose_name=u'物流单')
     is_send_sms = models.BooleanField(default=False, verbose_name=u'发货通知')
     has_refund = models.BooleanField(default=False, verbose_name=u'待退款')
+
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name=u'生成日期')
+    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改日期')
     merged = models.DateTimeField(null=True, blank=True, verbose_name=u'合并日期')
     send_time = models.DateTimeField(null=True, blank=True, verbose_name=u'发货日期')
     weight_time = models.DateTimeField(db_index=True, null=True, blank=True, verbose_name=u'称重日期')
