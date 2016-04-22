@@ -173,6 +173,7 @@ def task_login_update_fans(user):
         # self canot be self's fan
         return
 
+    logger.warn("task_login_update_fans|mama_id:%s,mama_customer_id:%s,referal_customer_id:%s,fan_customer_id:%s, fan_nick:%s" % (mama_id, mama_customer_id, referal_customer_id, customer.id, customer.nick))
     fan = XlmmFans(xlmm=mama_id, xlmm_cusid=mama_customer_id, refreal_cusid=referal_customer_id, fans_cusid=customer.id,
                    fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
     fan.save()
