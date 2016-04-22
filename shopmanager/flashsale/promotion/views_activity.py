@@ -82,7 +82,7 @@ class JoinView(WeixinAuthMixin, APIView):
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
 
-        logger.warn("JoinView: ufrom=%s, from_customer=%s, event_id=%s" % (ufrom, from_customer, event_id))
+        #logger.warn("JoinView: ufrom=%s, from_customer=%s, event_id=%s" % (ufrom, from_customer, event_id))
         # the following is for debug
         # if ufrom == 'app':
         #    response = redirect(reverse('app_join_activity', args=(event_id,)))
@@ -126,7 +126,7 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
                 # 4. if we still dont have openid, we have to do oauth
                 redirect_url = self.get_wxauth_redirct_url(request)
                 return redirect(redirect_url)
-            logger.warn("baseauth: %s" % userinfo)
+            #logger.warn("baseauth: %s" % userinfo)
 
         # now we already have openid, we check whether application exists.
         application_count = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id).count()
@@ -170,7 +170,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
                 return redirect(redirect_url)
 
             # now we have userinfo
-            logger.warn("snsauth: %s" % userinfo)
+            #logger.warn("snsauth: %s" % userinfo)
             from .tasks_activity import task_userinfo_update_application
             task_userinfo_update_application.delay(userinfo)
 
@@ -211,7 +211,7 @@ class AppJoinView(WeixinAuthMixin, APIView):
         else:
             key = 'activate'
 
-        logger.warn("AppJoinView: customer=%s, event_id=%s, key=%s, openid=%s" % (customer.nick, event_id, key, openid))
+        #logger.warn("AppJoinView: customer=%s, event_id=%s, key=%s, openid=%s" % (customer.nick, event_id, key, openid))
 
         html = activity_entry.get_html(key)
         response = redirect(html)
@@ -239,7 +239,7 @@ class WebJoinView(APIView):
             if application_count > 0:
                 key = 'download'
 
-        logger.warn("WebJoinView: event_id=%s, key=%s" % (event_id, key))
+        #logger.warn("WebJoinView: event_id=%s, key=%s" % (event_id, key))
 
         html = activity_entry.get_html(key)
         return redirect(html)
@@ -301,7 +301,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
                 pass
 
         end_time = int(time.mktime(activity_entry.end_time.timetuple()) * 1000)
-        logger.warn("ApplicationView GET: end_time=%s, mobile_required:%s, openid:%s, mobile:%s, customer:%s" % (
+        #logger.warn("ApplicationView GET: end_time=%s, mobile_required:%s, openid:%s, mobile:%s, customer:%s" % (
         end_time, mobile_required, openid, mobile, customer))
 
         res_data = {"applied": applied, "img": img, "nick": nick, "end_time": end_time,
@@ -360,7 +360,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
 
 
         if application_count <= 0:
-            logger.warn("ApplicationView post: application_count=%s, create sampleapply record" % application_count)
+            #logger.warn("ApplicationView post: application_count=%s, create sampleapply record" % application_count)
             application = XLSampleApply(event_id=event_id, **params)
             application.save()
 
