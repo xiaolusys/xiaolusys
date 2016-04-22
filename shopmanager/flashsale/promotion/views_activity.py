@@ -194,7 +194,7 @@ class AppJoinView(WeixinAuthMixin, APIView):
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
-        # 1. check whether event_id is valid 
+        # 1. check whether event_id is valid
         activity_entry = get_activity_entry(event_id)
         if not activity_entry:
             return Response({"error": "wrong event id"})
@@ -257,7 +257,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         mobile = request.COOKIES.get("mobile")
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
-        # 1. check whether event_id is valid 
+        # 1. check whether event_id is valid
         activity_entry = get_activity_entry(event_id)
         if not activity_entry:
             return Response({"rcode": 1, "msg": "wrong event id"})
@@ -474,7 +474,7 @@ class OpenEnvelopeView(APIView):
 
         data = serializer.data
         data.update({"num_cards":num_cards})
-        
+
         response = Response(data)
         response["Access-Control-Allow-Origin"] = "*"
         return response
@@ -548,4 +548,3 @@ class GetAwardView(APIView):
         response = Response({"code": code, "res": msg})
         response["Access-Control-Allow-Origin"] = "*"
         return response
-
