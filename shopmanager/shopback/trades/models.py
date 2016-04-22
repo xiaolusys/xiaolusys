@@ -1265,6 +1265,7 @@ class PackageOrder(models.Model):
     sys_status = models.CharField(max_length=32, db_index=True,
                                   choices=PACKAGE_STATUS, blank=True,
                                   default=PKG_NEW_CREATED, verbose_name=u'系统状态')
+    sku_num = models.IntegerField(default=0, verbose_name=u'SKU种类数')
     # 物流信息
     seller_id = models.BigIntegerField(db_index=True, verbose_name=u'卖家ID')
     # 收货信息
@@ -1501,7 +1502,7 @@ from core.models import BaseModel
 
 class PackageSkuItem(BaseModel):
     sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
-    # oid = models.CharField(max_length=40, null=True, db_inidex=True, verbose_name=u'原单ID')
+    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'原单ID')
     num = models.IntegerField(default=0, verbose_name=u'数量')
     package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单ID')
 
