@@ -61,8 +61,8 @@ class AppDownloadRecord(BaseModel):
              (WAP, u'QQ空间'),
              (WAP, u'小鹿美美app'))
 
-    UNUSE = 0
-    USED = 1
+    UNUSE = False
+    USED = True
 
     USE_STATUS = ((UNUSE, u'未注册'), (USED, u'已注册'))
 
