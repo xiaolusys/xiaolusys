@@ -63,9 +63,9 @@ def task_Refresh_Sale_Customer(user_params, app_key=None):
             profile.mobile = wxusers[0].mobile
 
         profile.nick = user_params.get('nickname') or profile.nick
-        profile.openid = profile.openid or user_params.get('openid')
+        # profile.openid = profile.openid or user_params.get('openid') #not save weixin app auth openid
         profile.thumbnail = user_params.get('headimgurl') or profile.thumbnail
-        update_model_fields(profile, update_fields=['nick', 'mobile', 'openid', 'thumbnail'])
+        update_model_fields(profile, update_fields=['nick', 'mobile', 'thumbnail'])
 
     except Exception, exc:
         logger.debug(exc.message, exc_info=True)
