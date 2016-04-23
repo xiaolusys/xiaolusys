@@ -94,7 +94,9 @@ def genCustomerNickname():
     """
     生成用户的默认昵称
     """
-    return '小鹿女神'
+    chr_list = [''.join(map(chr, range(97, 123))), ''.join(map(chr, range(65, 91))), ''.join(map(chr, range(48, 58)))]
+    chr_str = ''.join(chr_list)
+    return ''.join(random.sample(chr_str, 6))
 
 
 class Customer(BaseModel):
@@ -238,7 +240,7 @@ class Customer(BaseModel):
             return False
 
     @property
-    def get_nick_name(self):
+    def nick_name(self):
         """
         获取默认昵称如果没有昵称的话
         """
