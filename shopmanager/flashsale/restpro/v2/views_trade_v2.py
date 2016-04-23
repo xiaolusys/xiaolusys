@@ -491,8 +491,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         try:
             if channel == SaleTrade.WALLET:
-                #妈妈钱包支付
-                response_charge = self.wallet_charge(sale_trade)
+                # 妈妈钱包支付 2016-4-23 关闭代理钱包支付功能
+                return Response({'code': 7, 'info': u'妈妈钱包支付功能已取消'})
+                # response_charge = self.wallet_charge(sale_trade)
             elif channel == SaleTrade.BUDGET:
                 #小鹿钱包
                 response_charge = self.budget_charge(sale_trade)
