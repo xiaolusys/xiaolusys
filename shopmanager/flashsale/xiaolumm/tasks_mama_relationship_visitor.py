@@ -143,7 +143,7 @@ def task_login_update_fans(user):
     if records.count() <= 0 and mobile:
         records = AppDownloadRecord.objects.filter(mobile=mobile, status=AppDownloadRecord.UNUSE).order_by('-created')
     if not records or records.count() <= 0:
-            return
+        return
 
     record = records[0]
     from_customer = record.from_customer
