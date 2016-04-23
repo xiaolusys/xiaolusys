@@ -973,8 +973,8 @@ def task_packagize_sku_item(instance):
             logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
     elif instance.package_order_id and instance.assign_status in [
                 PackageSkuItem.NOT_ASSIGNED or PackageSkuItem.CANCELED]:
-        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=None)
         PackageOrder.objects.get(id=instance.package_order_id).reset_to_wait_prepare_send()
+        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=None)
 
 
 @task()
