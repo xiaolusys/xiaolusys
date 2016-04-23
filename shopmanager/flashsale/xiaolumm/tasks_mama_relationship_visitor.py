@@ -136,13 +136,13 @@ def task_login_update_fans(user):
     
     unionid = customer.unionid
     mobile = customer.mobile
-    if not (unionid or mobile):
-        return
 
-    records = AppDownloadRecord.objects.filter(unionid=unionid, status=AppDownloadRecord.UNUSE).order_by('-created')
-    if records.count() <= 0:
+    records = None
+    if unionid:
+        records = AppDownloadRecord.objects.filter(unionid=unionid, status=AppDownloadRecord.UNUSE).order_by('-created')
+    if records.count() <= 0 and mobile:
         records = AppDownloadRecord.objects.filter(mobile=mobile, status=AppDownloadRecord.UNUSE).order_by('-created')
-        if records.count() <= 0:
+    if not records or records.count() <= 0:
             return
 
     record = records[0]
@@ -178,7 +178,5 @@ def task_login_update_fans(user):
                    fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
     fan.save()
 
-    record.status = AppDownloadRecord.USED
-    record.save()
-    
-    #records.update(status=AppDownloadRecord.USED)
+    records.update(status=AppDownloadRecord.USED)
+ 
