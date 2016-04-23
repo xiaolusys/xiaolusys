@@ -354,8 +354,9 @@ class SaleTrade(BaseModel):
 
     @property
     def seller(self):
-        from shopback.users.models import User
-        return User.objects.get(uid=FLASH_SELLER_ID)
+        if not hasattr(SaleTrade, '_seller'):
+            SaleTrade._seller = User.objects.get(uid=FLASH_SELLER_ID)
+        return SaleTrade._seller
 
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """
