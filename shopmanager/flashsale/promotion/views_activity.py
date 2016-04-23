@@ -273,7 +273,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
             application_count = applications.count()
         elif mobile:
             applications = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id)
-            applicaiton_count = applications.count()
+            application_count = applications.count()
         if application_count > 0:
             try:
                 application = applications[0]
@@ -328,7 +328,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
             response["Access-Control-Allow-Origin"] = "*"
             return response
 
-        applied = False
         application_count = 0
         if unionid:
             applications = XLSampleApply.objects.filter(user_unionid=unionid, event_id=event_id)
@@ -343,7 +342,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
                 response["Access-Control-Allow-Origin"] = "*"
                 return response
             applications = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id)
-            applicaiton_count = applications.count()
+            application_count = applications.count()
         if application_count > 0:
             # 保存设备号
             try:
