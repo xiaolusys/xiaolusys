@@ -90,6 +90,15 @@ class Register(PayBaseModel):
         return False
 
 
+def genCustomerNickname():
+    """
+    生成用户的默认昵称
+    """
+    chr_list = [''.join(map(chr, range(97, 123))), ''.join(map(chr, range(65, 91))), ''.join(map(chr, range(48, 58)))]
+    chr_str = ''.join(chr_list)
+    return ''.join(random.sample(chr_str, 6))
+
+
 class Customer(BaseModel):
     class Meta:
         db_table = 'flashsale_customer'
@@ -113,7 +122,7 @@ class Customer(BaseModel):
 
     id = BigIntegerAutoField(primary_key=True, verbose_name=u'客户ID')
     user = models.OneToOneField(DjangoUser, verbose_name=u'原始用户')
-    nick = models.CharField(max_length=32, blank=True, verbose_name=u'昵称')
+    nick = models.CharField(max_length=32, blank=True, default=genCustomerNickname, verbose_name=u'昵称')
     thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'头像')
     mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'手机')
     email = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'邮箱')
@@ -230,6 +239,17 @@ class Customer(BaseModel):
         else:
             return False
 
+    @property
+    def nick_name(self):
+        """
+        获取默认昵称如果没有昵称的话
+        """
+        if (self.nick is None) or (self.nick.strip() == ''):
+            self.nick = genCustomerNickname()
+            self.save(update_fields=['nick'])
+            return self.nick
+        else:
+            return self.nick
 
 # 2016-4-9 有登陆检查后注释不执行
 # def triger_record_xlmm_fans(sender, instance, created, **kwargs):

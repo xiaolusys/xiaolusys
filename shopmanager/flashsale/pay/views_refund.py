@@ -18,7 +18,7 @@ from . import tasks
 import pingpp
 import logging
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 
 class RefundApply(APIView):
@@ -185,18 +185,16 @@ class RefundPopPageView(APIView):
 
         method = content.get('method', None)
         refund_feedback = content.get('refund_feedback', None)
+        if refund_feedback:
+            obj.feedback = refund_feedback
         if method == "save":  # 保存退款状态　和　审核意见
             refund_status = content.get('refund_status', None)
             if refund_status:
                 obj.status = refund_status
-            if refund_feedback:
-                obj.feedback = refund_feedback
             obj.save()
             log_action(request.user.id, obj, CHANGE, '保存状态信息')
         if method == "agree_product":  # 同意退货
             # 将状态修改成卖家同意退款(退货)
-            if refund_feedback:
-                obj.feedback = refund_feedback
             obj.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
             obj.save()
             log_action(request.user.id, obj, CHANGE, '保存状态信息到－退货状态')
@@ -292,10 +290,6 @@ class RefundPopPageView(APIView):
                         obj.status = SaleRefund.REFUND_APPROVE  # 确认退款等待返款
                         obj.save()
                         log_action(request.user.id, obj, CHANGE, u'退款审核通过:%s' % obj.refund_id)
-                if refund_feedback:
-                    obj.feedback = refund_feedback
-                    obj.save()
-                    log_action(request.user.id, obj, CHANGE, '退款审核通过:%s' % obj.refund_id)
                 else:  # 退款单状态不可审核
                     Response({"res": "not_in_status"})
             except Exception, exc:
@@ -307,8 +301,6 @@ class RefundPopPageView(APIView):
                 if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,  # 买家已经申请退款
                                   SaleRefund.REFUND_WAIT_RETURN_GOODS,  # 卖家已经同意退款
                                   SaleRefund.REFUND_CONFIRM_GOODS):  # 买家已经退货
-                    if refund_feedback:  # 驳回意见
-                        obj.feedback = refund_feedback
                     obj.status = SaleRefund.REFUND_REFUSE_BUYER  # 修改该退款单为拒绝状态
                     obj.save()
                     log_action(request.user.id, obj, CHANGE, '驳回重申')
@@ -322,9 +314,7 @@ class RefundPopPageView(APIView):
             try:
                 if obj.status == SaleRefund.REFUND_APPROVE:
                     obj.refund_Confirm()
-                    if refund_feedback:
-                        obj.feedback = refund_feedback
-                        obj.save()
+                    obj.save()
                     log_action(request.user.id, obj, CHANGE, '确认退款完成:%s' % obj.refund_id)
                 else:
                     Response({"res": "no_complete"})
@@ -334,38 +324,3 @@ class RefundPopPageView(APIView):
         task_send_msg_for_refund.s(obj).delay()
         return Response({"res": True})
 
-
-"""
-fix the bug problem case run onece time only
-2015-10-28 17:31:05 start
-2015-10-28 15:32:08 end
-"""
-
-import datetime
-
-
-def fix_ref_exception():
-    start_time = datetime.datetime(2015, 10, 28, 15, 32, 5)
-    end_time = datetime.datetime(2015, 10, 28, 17, 31, 8)
-    refunds = SaleRefund.objects.filter(created__gte=start_time, created__lte=end_time)
-    print "deal with refund count  is :", refunds.count()
-    for ref in refunds:
-        order_id = ref.order_id
-        print "order_id:", order_id, 'ref id:', ref.id
-        try:
-            order = SaleOrder.objects.get(id=order_id)
-            trade = order.sale_trade
-            ref.item_id = order.item_id
-            ref.sku_id = order.sku_id
-            ref.title = order.title
-            ref.buyer_id = trade.buyer_id
-            ref.charge = trade.charge
-            ref.refund_num = order.num
-            ref.mobile = trade.receiver_mobile
-            ref.payment = order.payment
-            ref.refund_fee = order.payment
-            ref.save()
-        except Exception, exc:
-            logger.error(exc.message, exc_info=True)
-            print order_id
-            continue

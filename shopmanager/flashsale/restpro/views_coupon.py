@@ -93,7 +93,9 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """　根据参数生成不同类型的优惠券,多张优惠券逗号分隔 """
         content = request.REQUEST
-        template_ids = content.get("template_id", '')
+        template_ids = content.get("template_id") or ''
+        if not template_ids:  # 参数有误
+            return Response({"code": 3, "res": "优惠券不存在"})
         try:
             template_ids = [int(i) for i in template_ids.split(',')]
             customer = Customer.objects.get(user=request.user)

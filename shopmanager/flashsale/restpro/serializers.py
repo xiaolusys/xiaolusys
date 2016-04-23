@@ -50,6 +50,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     has_usable_password = serializers.BooleanField(source='user.has_usable_password', read_only=True)
     has_password = serializers.BooleanField(source='has_user_password', read_only=True)
     is_attention_public = serializers.IntegerField(source='is_attention_wx_public', read_only=True)
+    nick = serializers.CharField(source='nick_name', read_only=True)
 
     coupon_num = serializers.IntegerField(source='get_coupon_num', read_only=True)
     waitpay_num = serializers.IntegerField(source='get_waitpay_num', read_only=True)
