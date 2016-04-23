@@ -194,7 +194,7 @@ class Order(models.Model):
     oid = models.BigIntegerField(primary_key=True)
     cid = models.BigIntegerField(null=True)
 
-    trade = models.ForeignKey(Trade, null=True, related_name='trade_orders')
+    trade = BigForeignKey(Trade, null=True, related_name='trade_orders')
 
     num_iid = models.CharField(max_length=64, blank=True)
     title = models.CharField(max_length=128)
