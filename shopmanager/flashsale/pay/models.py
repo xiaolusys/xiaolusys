@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 import uuid
 import datetime
 from django.db import models
@@ -29,7 +29,6 @@ from core.fields import JSONCharMyField
 from common.utils import update_model_fields
 from shopback.users.models import User
 import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -353,6 +352,11 @@ class SaleTrade(BaseModel):
                                         SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
                                         SaleOrder.TRADE_BUYER_SIGNED))
 
+    @property
+    def seller(self):
+        from shopback.users.models import User
+        return User.objects.get(uid=FLASH_SELLER_ID)
+
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """
         SaleTrade.objects.get(id=self.id)
@@ -366,6 +370,7 @@ def set_user_address_id(sender, instance, created, **kwargs):
     if not instance.user_address_id:
         from flashsale.pay.tasks import tasks_set_user_address_id
         tasks_set_user_address_id.delay(instance)
+
 
 # TODO@HY 这迟早要去掉 在产生sale_trade时提供一个address_id就足够了
 post_save.connect(set_user_address_id, sender=SaleTrade, dispatch_uid='post_set_user_address_id')
@@ -641,6 +646,7 @@ def order_trigger(sender, instance, created, **kwargs):
         from flashsale.xiaolumm import tasks_mama
         tasks_mama.task_order_trigger.delay(instance)
 
+
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 
 
@@ -650,13 +656,14 @@ def update_package_sku_item(sender, instance, created, **kwargs):
         from flashsale.pay.tasks import task_saleorder_update_package_sku_item
         task_saleorder_update_package_sku_item.delay(instance)
 
+
 post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 
 def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
-
     from flashsale.pay.tasks_stats import task_saleorder_update_productskustats_waitingpay_num
     task_saleorder_update_productskustats_waitingpay_num.delay(instance.sku_id)
+
 
 post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
                   dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
@@ -693,9 +700,6 @@ class TradeCharge(PayBaseModel):
 
     def __unicode__(self):
         return '<%s>' % (self.id)
-
-
-
 
 
 class ShoppingCart(BaseModel):
@@ -794,14 +798,12 @@ signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
 
 def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, *args, **kwargs):
-
     from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
     task_shoppingcart_update_productskustats_shoppingcart_num.delay(instance.sku_id)
 
 
 post_save.connect(shoppingcart_update_productskustats_shoppingcart_num, sender=ShoppingCart,
                   dispatch_uid='post_save_shoppingcart_update_productskustats_shoppingcart_num')
-
 
 from models_coupon_new import CouponTemplate, CouponsPool, UserCoupon
 from models_shops import CustomerShops, CuShopPros
@@ -859,4 +861,3 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
 
 
 post_save.connect(check_SaleRefund_Status, sender=SaleRefund)
-
