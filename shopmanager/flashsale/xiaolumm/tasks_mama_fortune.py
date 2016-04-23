@@ -63,14 +63,18 @@ CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016, 3, 30, 23, 59, 59)
 
 @task(max_retries=3, default_retry_delay=6)
 def task_cashout_update_mamafortune(mama_id):
+    pending_res = CashOut.objects.filter(xlmm=mama_id,status=CashOut.PENDING).aggregate(total=Sum('value'))
+    pending_cash = pending_res['total'] or 0
 
     cashout_res = CashOut.objects.filter(xlmm=mama_id,
-                                         status__in=(CashOut.PENDING, CashOut.APPROVED, CashOut.COMPLETED),
+                                         status__in=(CashOut.APPROVED, CashOut.COMPLETED),
                                          approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME)\
         .aggregate(total=Sum('value'))
 
     effect_cashout = cashout_res['total'] or 0
 
+    effect_cashout += pending_cash
+    
     logger.warn("%s - mama_id: %s, effect_cashout: %s" % (get_cur_info(), mama_id, effect_cashout))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
