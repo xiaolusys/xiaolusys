@@ -259,12 +259,24 @@ class APPDownloadView(WeixinAuthMixin, View):
     download_page = 'promotion/download.html'
     QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
 
+    def get_current_customer(self, unionid=None, mobile=None):
+        """
+        获取当前访问用户
+        """
+        customers = Customer.objects.filter(Q(unionid=unionid) | Q(mobile=mobile))
+        if customers.exists():
+            return customers[0]
+        return None
+
     def get(self, request):
         content = request.GET
-        from_customer = content.get('from_customer') or 0  # 分享人的用户id
+        from_customer = content.get('from_customer') or '0'  # 分享人的用户id
+        from_customer = from_customer.strip()
         mobile = content.get('mobile') or ''
         ufrom = content.get("ufrom") or None
         if from_customer:  # 创建下载记录
+            # 如果当前用户等于from_customer 则return
+
             if self.is_from_weixin(request):  # 如果是在微信里面
                 self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
                 openid, unionid = self.get_openid_and_unionid(request)  # 先获取cookie如果没有则会静默授权获取openid
@@ -276,20 +288,25 @@ class APPDownloadView(WeixinAuthMixin, View):
 
                     if not self.valid_openid(unionid):  # 先获取一次数据库中的unionid　不合法　高级授权
                         return redirect(self.get_snsuserinfo_redirct_url(request))
+                    request_customer = self.get_current_customer(unionid=unionid)
 
-                    download, state = AppDownloadRecord.objects.get_or_create(unionid=unionid,
-                                                                              from_customer=int(from_customer))
-                    download.mobile = mobile
-                    download.openid = openid
-                    download.ufrom = ufrom
-                    download.save()
+                    if not (request_customer and from_customer.isdigit() and request_customer.id == int(from_customer)):
+                        # 如果当前用户不是from_customer 则添加下载记录
+                        download, state = AppDownloadRecord.objects.get_or_create(unionid=unionid,
+                                                                                  from_customer=int(from_customer))
+                        download.mobile = mobile
+                        download.openid = openid
+                        download.ufrom = ufrom
+                        download.save()
 
             else:
                 if valid_mobile(mobile):  # 合法手机号
-                    download, state = AppDownloadRecord.objects.get_or_create(mobile=mobile,
-                                                                              from_customer=int(from_customer))
-                    download.ufrom = ufrom
-                    download.save()
+                    request_customer = self.get_current_customer(mobile=mobile)
+                    if not (request_customer and from_customer.isdigit() and request_customer.id == int(from_customer)):
+                        download, state = AppDownloadRecord.objects.get_or_create(mobile=mobile,
+                                                                                  from_customer=int(from_customer))
+                        download.ufrom = ufrom
+                        download.save()
 
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         if agent and "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
