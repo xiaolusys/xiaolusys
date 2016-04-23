@@ -43,10 +43,10 @@ def task_site_push(obj=None):
     全站点推送该条记录
     """
     now = datetime.datetime.now()
-    sit_push(obj, now)
     if obj:
+        sit_push(obj, now)  # admin 后台手动执行
         log.warn('site_push:%s.' % obj.id)
-    if obj is None:
+    else:  # 定时任务执行
         thirth_minute_ago = now - datetime.timedelta(minutes=30)  # 30分钟之前的时间
 
         allpushsmss = APPFullPushMessge.objects.filter(push_time__gte=thirth_minute_ago, push_time__lt=now,
