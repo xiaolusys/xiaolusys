@@ -253,6 +253,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
         content = request.GET
         from_customer = request.COOKIES.get("from_customer", "")
         mobile = request.COOKIES.get("mobile")
+        imei = content.get('mobileSNCode') or ''  # 用户设备号
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
         # 1. check whether event_id is valid
@@ -272,8 +273,14 @@ class ApplicationView(WeixinAuthMixin, APIView):
             application_count = applications.count()
         elif mobile:
             applications = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id)
-            applicaiton_count = applications.count()
+            application_count = applications.count()
         if application_count > 0:
+            try:
+                application = applications[0]
+                application.event_imei = '{0}_{1}'.format(event_id, imei)
+                application.save()
+            except Exception, exc:
+                logger.warn(exc.message)
             applied = True
 
         mobile_required = True
@@ -321,7 +328,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
             response["Access-Control-Allow-Origin"] = "*"
             return response
 
-        applied = False
         application_count = 0
         if unionid:
             applications = XLSampleApply.objects.filter(user_unionid=unionid, event_id=event_id)
@@ -336,7 +342,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
                 response["Access-Control-Allow-Origin"] = "*"
                 return response
             applications = XLSampleApply.objects.filter(mobile=mobile, event_id=event_id)
-            applicaiton_count = applications.count()
+            application_count = applications.count()
         if application_count > 0:
             # 保存设备号
             try:

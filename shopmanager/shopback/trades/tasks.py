@@ -973,8 +973,8 @@ def task_packagize_sku_item(instance):
             logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
     elif instance.package_order_id and instance.assign_status in [
                 PackageSkuItem.NOT_ASSIGNED or PackageSkuItem.CANCELED]:
-        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=None)
         PackageOrder.objects.get(id=instance.package_order_id).reset_to_wait_prepare_send()
+        PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=None)
 
 
 @task()
@@ -991,10 +991,50 @@ def task_set_sale_order(instance):
 
 @task()
 def task_update_package_order_status(package_order_id):
+    sku_items = PackageSkuItem.objects.filter(package_order_id=package_order_id)
     assign_status_set = set(
-        [p.assign_status for p in PackageSkuItem.objects.filter(package_order_id=package_order_id)])
+        [p.assign_status for p in sku_items])
     if PackageSkuItem.CANCELED in assign_status_set:
         assign_status_set.remove(PackageSkuItem.CANCELED)
     if len(assign_status_set) > 0 and PackageSkuItem.NOT_ASSIGNED not in \
             assign_status_set and PackageSkuItem.ASSIGN_STATUS not in assign_status_set:
         PackageOrder.objects.filter(id=package_order_id).update(sys_status=PackageOrder.FINISHED_STATUS)
+
+
+@task()
+def task_update_package_order_sku_num(package_order_id):
+    sku_items = PackageSkuItem.objects.filter(package_order_id=package_order_id)
+    sku_num = sku_items.exclude(assign_status=PackageSkuItem.CANCELED).count()
+    if sku_num == 0:
+        PackageOrder.objects.filter(id=package_order_id).update(sku_num=sku_num,
+                                                                sys_status=PackageOrder.PKG_NEW_CREATED)
+    else:
+        if PackageOrder.objects.get(id=package_order_id).status == PackageOrder.PKG_NEW_CREATED:
+            PackageOrder.objects.filter(id=package_order_id).update(sku_num=sku_num,
+                                                                    status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
+        else:
+            PackageOrder.objects.filter(id=package_order_id).update(sku_num=sku_num)
+
+
+@task()
+def task_merge_trade_update_package_sku_item(merge_trade):
+    if merge_trade.type == pcfg.SALE_TYPE and merge_trade.sys_status == MergeTrade.FINISHED_STATUS:
+        from shopback.trades.models import PackageSkuItem
+        for mo in merge_trade.normal_orders:
+            if mo.sale_order_id:
+                sku_item = PackageSkuItem.objects.get(sale_order_id=mo.sale_order_id)
+                sku_item.assign_status = PackageSkuItem.FINISHED
+                sku_item.save()
+
+
+@task()
+def task_merge_trade_update_sale_order(merge_trade):
+    if merge_trade.type == pcfg.SALE_TYPE and merge_trade.sys_status == MergeTrade.FINISHED_STATUS:
+        from shopback.trades.models import PackageSkuItem
+        from flashsale.pay.models import SaleOrder
+        for mo in merge_trade.normal_orders:
+            if mo.sale_order_id:
+                sale_order = SaleOrder.objects.get(id=mo.sale_order_id)
+                if not sale_order.status >= SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
+                    sale_order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+                    sale_order.save()

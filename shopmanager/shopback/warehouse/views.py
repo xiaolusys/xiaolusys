@@ -99,16 +99,12 @@ class PackageScanCheckView(APIView):
             return package_no
         return package_no[0:13]
 
-    def getOrderItemsFromTrade(self, trade):
+    def get_item_from_package(self, package):
         order_items = []
-        for order in trade.print_orders:
-            barcode = Product.objects.getBarcodeByOuterid(order.outer_id,
-                                                          order.outer_sku_id)
-            product = Product.objects.getProductByOuterid(order.outer_id)
-            product_sku = None
-            if order.outer_sku_id:
-                product_sku = Product.objects.getProductSkuByOuterid(
-                    order.outer_id, order.outer_sku_id)
+        for order in package.package_sku_items:
+            product_sku = order.product_sku
+            product = order.product_sku.product
+            barcode = product_sku and product_sku.BARCODE or product.BARCODE
             is_need_check = product_sku and product_sku.post_check or product.post_check
             order_dict = {'barcode': barcode,
                           'order_id': order.id,
@@ -131,36 +127,38 @@ class PackageScanCheckView(APIView):
             return Response(u'运单号不能为空')
         package_id = self.parsePackageNo(package_no)
         try:
-            mt = MergeTrade.objects.get(
+            package = PackageOrder.objects.get(
                 out_sid=package_id,
                 reason_code='',
-                sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
+                sys_status=PackageOrder.WAIT_CHECK_BARCODE_STATUS)
         except MergeTrade.DoesNotExist:
             return Response(u'运单号未找到订单')
         except MergeTrade.MultipleObjectsReturned:
             return Response(u'结果返回多个订单')
 
-        order_items = self.getOrderItemsFromTrade(mt)
+        order_items = self.get_item_from_package(package)
 
-        return Response({'package_no': package_id,
-                         'trade_id': mt.id,
+        return Response({'package_no': package.out_sid,
+                         'trade_id': package.pid,
                          'order_items': order_items})
 
     def post(self, request, *args, **kwargs):
         content = request.REQUEST
-        package_order_id = content.get('package_order_id', '').strip()
-        if not package_order_id:
+        package_id = content.get('package_no', '').strip()
+        if not package_id:
             return Response(u'单号不能为空')
         try:
-            package_order = PackageOrder.objects.get(pid=package_order_id)
+            package_order = PackageOrder.objects.get(
+                out_sid=package_id,
+                reason_code='',
+                sys_status=PackageOrder.WAIT_CHECK_BARCODE_STATUS)
         except PackageOrder.DoesNotExist:
             return Response(u'单号未找到')
         except PackageOrder.MultipleObjectsReturned:
             return Response(u'单号返回多个订单')
-        package_order.sys_status = pcfg.WAIT_SCAN_WEIGHT_STATUS
+        package_order.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS
         package_order.scanner = request.user.username
         package_order.save()
-        log_action(package_order.user.user.id, package_order, CHANGE, u'扫描验货')
         return Response({'isSuccess': True})
 
 
@@ -199,16 +197,17 @@ class PackageScanWeightView(APIView):
 
         try:
             package_order = PackageOrder.objects.get(
-                out_sid=package_id
-            )
+                out_sid=package_id,
+                reason_code='',
+                sys_status=PackageOrder.WAIT_SCAN_WEIGHT_STATUS)
         except PackageOrder.DoesNotExist:
             return Response(u'运单号未找到订单或被拦截')
         except PackageOrder.MultipleObjectsReturned:
             return Response(u'运单号返回多个订单')
 
         return Response({'package_no': package_id,
-                         'trade_id': package_order.id,
-                         'seller_nick': package_order.user.nick,
+                         'trade_id': package_order.pid,
+                         'seller_nick': package_order.seller.nick,
                          'trade_type': package_order.get_type_display(),
                          'buyer_nick': package_order.buyer_nick,
                          'sys_status': package_order.get_sys_status_display(),
@@ -244,45 +243,44 @@ class PackageScanWeightView(APIView):
         package.weighter = request.user.username
         package.save()
         package.finish_scan_weight()
-        mo = package.sale_orders
-        for entry in mo:
-            pay_date = entry.pay_time.date()
-            sku_num = 1  # not entry.num, intentionally ignore sku_num effect
-            time_delta = package.weight_time - entry.pay_time
-            total_days = sku_num * (time_delta.total_seconds() / 86400.0)
-            task_stats_paytopack.s(pay_date, sku_num, total_days)()
         return Response({'isSuccess': True})
 
 
-def package_order_print_post(request):
-    content = request.REQUEST
-    package_order_ids = content.get('package_order_ids')
-    package_order_ids = package_order_ids.split(',')
-    package_orders = PackageOrder.objects.filter(pid__in=package_order_ids,
-                                                 status=PackageOrder.WAIT_PREPARE_SEND_STATUS, is_picking_print=True,
-                                                 is_express_print=True)
-    num = package_orders.count()
-    if num != len(package_order_ids):
-        return Response({'isSuccess': False, 'response_error': u'部分包裹不存在或者未准备好'})
-    for package_order in package_orders:
-        package_order.status = PackageOrder.WAIT_CHECK_BARCODE_STATUS
-        package_order.save()
-    return Response({'isSuccess': True})
+class PackagePrintPostView(APIView):
+    def post(self, request, *args, **kwargs):
+        content = request.REQUEST
+        package_order_ids = content.get('package_order_ids')
+        package_order_ids = package_order_ids.split(',')
+        package_orders = PackageOrder.objects.filter(pid__in=package_order_ids,
+                                                     status=PackageOrder.WAIT_PREPARE_SEND_STATUS, is_picking_print=True,
+                                                     is_express_print=True)
+        num = package_orders.count()
+        if num != len(package_order_ids):
+            return Response({'isSuccess': False, 'response_error': u'部分包裹不存在或者未准备好'})
+        for package_order in package_orders:
+            package_order.status = PackageOrder.WAIT_CHECK_BARCODE_STATUS
+            package_order.save()
+        return Response({'isSuccess': True})
+    get = post
 
 
-def package_order_print_express(request):
-    content = request.REQUEST
-    package_order_ids = content.get('package_order_ids')
-    package_order_ids = package_order_ids.split(',')
-    package_orders = PackageOrder.objects.filter(pid__in=package_order_ids)
-    package_orders.update(is_express_print=True)
-    return Response({'isSuccess': True})
+class PackagePrintExpressView(APIView):
+    def post(self, request, *args, **kwargs):
+        content = request.REQUEST
+        package_order_ids = content.get('package_order_ids')
+        package_order_ids = package_order_ids.split(',')
+        package_orders = PackageOrder.objects.filter(pid__in=package_order_ids)
+        package_orders.update(is_express_print=True)
+        return Response({'isSuccess': True})
+    get = post
 
 
-def package_order_print_picking(request):
-    content = request.REQUEST
-    package_order_ids = content.get('package_order_ids')
-    package_order_ids = package_order_ids.split(',')
-    package_orders = PackageOrder.objects.filter(pid__in=package_order_ids)
-    package_orders.update(is_picking_print=True)
-    return Response({'isSuccess': True})
+class PackagePrintPickingView(APIView):
+    def post(self, request, *args, **kwargs):
+        content = request.REQUEST
+        package_order_ids = content.get('package_order_ids')
+        package_order_ids = package_order_ids.split(',')
+        package_orders = PackageOrder.objects.filter(pid__in=package_order_ids)
+        package_orders.update(is_picking_print=True)
+        return Response({'isSuccess': True})
+    get = post
