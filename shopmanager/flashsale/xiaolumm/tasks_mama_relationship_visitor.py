@@ -149,7 +149,13 @@ def task_login_update_fans(user):
     from_customer = record.from_customer
     referal_customer_id = from_customer
 
-    customer1 = Customer.objects.get(id=from_customer)
+    customer1 = None
+    try:
+        customer1 = Customer.objects.get(id=from_customer)
+    except Customer.DoesNotExist:
+        # We simply return if no from_customer exists.
+        return
+    
     from_mama = customer1.getXiaolumm()
 
     mama_id, mama_customer_id = None, None
