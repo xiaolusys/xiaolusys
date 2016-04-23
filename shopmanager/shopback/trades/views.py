@@ -1516,6 +1516,7 @@ def replay_package_send_result(request, id):
             '<body style="text-align:center;"><h1>发货结果未找到</h1></body>')
     else:
         from shopback.trades.tasks import get_replay_package_results
+        reponse_result = {}
         try:
             reponse_result = get_replay_package_results(replay_trade)
         except Exception, exc:

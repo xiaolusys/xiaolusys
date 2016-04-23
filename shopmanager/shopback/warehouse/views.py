@@ -1,17 +1,20 @@
 # coding: utf-8
 import cStringIO as StringIO
 import datetime
-import json
 import logging
 import re
+from django.db.models import Q, Sum
+from django.forms.models import model_to_dict
 from shopback import paramconfig as pcfg
-from shopback.base import log_action, ADDITION, CHANGE
 from shopback.base.new_renders import new_BaseJSONRenderer
-from shopback.items.models import Product
 from shopback.logistics.models import LogisticsCompany
-from shopback.trades.models import MergeTrade, PackageSkuItem, PackageOrder
+from shopback.trades.models import PackageSkuItem, PackageOrder, SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS
+from shopback.trades import serializers
+from shopback.warehouse.renderers import ReviewOrderRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import authentication, permissions
+
 
 logger = logging.getLogger('django.request')
 
@@ -129,11 +132,10 @@ class PackageScanCheckView(APIView):
         try:
             package = PackageOrder.objects.get(
                 out_sid=package_id,
-                reason_code='',
                 sys_status=PackageOrder.WAIT_CHECK_BARCODE_STATUS)
-        except MergeTrade.DoesNotExist:
+        except PackageOrder.DoesNotExist:
             return Response(u'运单号未找到订单')
-        except MergeTrade.MultipleObjectsReturned:
+        except PackageOrder.MultipleObjectsReturned:
             return Response(u'结果返回多个订单')
 
         order_items = self.get_item_from_package(package)
@@ -150,7 +152,6 @@ class PackageScanCheckView(APIView):
         try:
             package_order = PackageOrder.objects.get(
                 out_sid=package_id,
-                reason_code='',
                 sys_status=PackageOrder.WAIT_CHECK_BARCODE_STATUS)
         except PackageOrder.DoesNotExist:
             return Response(u'单号未找到')
@@ -198,7 +199,6 @@ class PackageScanWeightView(APIView):
         try:
             package_order = PackageOrder.objects.get(
                 out_sid=package_id,
-                reason_code='',
                 sys_status=PackageOrder.WAIT_SCAN_WEIGHT_STATUS)
         except PackageOrder.DoesNotExist:
             return Response(u'运单号未找到订单或被拦截')
@@ -232,7 +232,8 @@ class PackageScanWeightView(APIView):
         except:
             return Response(u'重量异常:%s' % package_weight)
         try:
-            package = PackageOrder.objects.get(out_sid=out_sid)
+            package = PackageOrder.objects.get(out_sid=out_sid,
+                    sys_status=PackageOrder.WAIT_SCAN_WEIGHT_STATUS)
         except PackageOrder.DoesNotExist:
             return Response(u'运单号未找到订单')
         except PackageOrder.MultipleObjectsReturned:
@@ -284,3 +285,51 @@ class PackagePrintPickingView(APIView):
         package_orders.update(is_picking_print=True)
         return Response({'isSuccess': True})
     get = post
+
+
+class PackageReviewView(APIView):
+    """ docstring for class ReviewOrderView """
+    # serializer_class = serializers. ItemListTaskSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication,
+                              authentication.BasicAuthentication,)
+    renderer_classes = (ReviewOrderRenderer,
+                        new_BaseJSONRenderer,
+                        BrowsableAPIRenderer,)
+
+    def get(self, request, id, *args, **kwargs):
+
+        try:
+            trade = PackageOrder.objects.get(pid=id)
+        except PackageOrder.DoesNotExist:
+            return Response('该订单不存在'.decode('utf8'))
+
+        logistics = serializers.LogisticsCompanySerializer(
+            LogisticsCompany.objects.filter(status=True),
+            many=True).data
+        order_nums = trade.package_sku_items.exclude(assign_status=PackageSkuItem.CANCELED).aggregate(
+            total_num=Sum('num')).get('total_num')
+
+        trade_dict = model_to_dict(trade)
+
+        trade_dict.update(
+            {'id': trade.id,
+             'seller_nick': trade.seller.nick,
+             'used_orders': trade.package_sku_items.exclude(assign_status=PackageSkuItem.CANCELED),
+             'order_nums': order_nums,
+             'logistics_company': serializers.LogisticsCompanySerializer(
+                 trade.logistics_company).data,  # trade.logistics_company,
+             'can_review_status': True,
+             'out_of_logistic': '',
+             'need_manual_merge': '',
+             'status_name': trade.get_status_display(),
+             'sys_status_name': trade.get_sys_status_display(),
+             'new_memo': '',
+             'new_refund': '',
+             'order_modify': '',
+             'addr_modify': '',
+             'new_merge': '',
+             'wait_merge': '',})
+        # print trade_dict
+        return Response({"object": {'trade': trade_dict,
+                                    'logistics': logistics}})

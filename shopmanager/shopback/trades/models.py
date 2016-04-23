@@ -1359,7 +1359,6 @@ class PackageOrder(models.Model):
             self.save()
 
     def finish_scan_weight(self):
-        from shopback.items.models import ProductSkuStats
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
@@ -1406,16 +1405,38 @@ class PackageOrder(models.Model):
     def seller(self):
         return User.objects.get(id=self.seller_id)
 
-    def reset_to_wait_prepare_send(self):
+    def reset_to_wait_prepare_send(self, save_data=True):
         """
             重设状态到待发货准备
         """
-        if self.sys_status != PackageOrder.WAIT_PREPARE_SEND_STATUS:
+        if self.sys_status not in [PackageOrder.WAIT_PREPARE_SEND_STATUS,
+                                   PackageOrder.PKG_NEW_CREATED] and self.is_picking_print:
             self.redo_sign = True
-            self.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-            self.out_sid = ''
-            self.logistic_company_id = None
+            if save_data:
+                self.save()
+
+    def reset_sku_item_num(self, save_data=True):
+        sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
+                                                  sys_status__in=[PackageSkuItem.ASSIGNED,
+                                                                  PackageSkuItem.FINISHED])
+        sku_num = sku_items.count()
+        if self.sku_num != sku_num:
+            PackageOrder.objects.filter(id=self.id).update(sku_num=sku_num)
+        if save_data:
             self.save()
+
+
+    @staticmethod
+    def create(id, sale_trade):
+        package_order = PackageOrder(id=id)
+        buyer_id, address_id, ware_by_id, order = id.split('-')
+        package_order.buyer_id = int(buyer_id)
+        package_order.address_id = int(address_id)
+        package_order.ware_by_id = int(ware_by_id)
+        package_order.copy_order_info(sale_trade)
+        package_order.sku_num = 1
+        package_order.save()
+        return package_order
 
     @staticmethod
     def get_or_create(id, sale_trade):
@@ -1451,23 +1472,11 @@ class PackageOrder(models.Model):
         return id + '-' + str(now_num)
 
 
-def get_logistics_company(sender, instance, created, **kwargs):
-    from shopback.logistics import tasks
-    if created:
-        tasks.task_get_logistics_company.delay(instance)
-
-
-post_save.connect(get_logistics_company, sender=PackageOrder)
-
-
 def check_package_order_status(sender, instance, created, **kwargs):
-    if instance.sys_status == PackageOrder.PKG_NEW_CREATED and PackageSkuItem.objects.filter(
-            package_order_id=instance.id, status=PackageSkuItem.ASSIGNED).exists():
-        PackageOrder.objects.filter(pid=instance.pid).update(sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
-    PackageStat.objects.get(id=instance.pstat_id).save()
+    from shopback.logistics.tasks import task_get_logistics_company
+    if created:
+        task_get_logistics_company.delay(instance)
 
-
-# TODO@HY@5.1 已经换成了更改数量改变状态的方式
 post_save.connect(check_package_order_status, sender=PackageOrder)
 
 
@@ -1635,30 +1644,10 @@ post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_productsku_salestats_num')
 
 
-def packagize_sku_item(sender, instance, created, **kwargs):
-    from shopback.trades.tasks import task_packagize_sku_item
-    task_packagize_sku_item.delay(instance)
+def update_package_order(sender, instance, created, **kwargs):
+    from shopback.trades.tasks import task_update_package_order
+    task_update_package_order.delay(instance)
 
 
-post_save.connect(packagize_sku_item, sender=PackageSkuItem, dispatch_uid='post_save_packagize_sku_item')
-
-
-def update_package_order_status(sender, instance, created, **kwargs):
-    from shopback.trades.tasks import task_update_package_order_status
-    if instance.assign_status == PackageSkuItem.FINISHED and PackageOrder.objects.get(
-            id=instance.package_order_id).status != PackageOrder.FINISHED_STATUS:
-        task_update_package_order_status.delay(instance.package_order_id)
-
-
-# TODO@hy 两套客户端出库的同步过渡方法
-post_save.connect(update_package_order_status, sender=PackageSkuItem,
-                  dispatch_uid='post_save_update_package_order_status')
-
-
-def update_package_order_sku_num(sender, instance, created, **kwargs):
-    from shopback.trades.tasks import task_update_package_order_sku_num
-    task_update_package_order_sku_num.delay(instance.package_order_id)
-
-
-post_save.connect(update_package_order_sku_num, sender=PackageSkuItem,
-                  dispatch_uid='post_save_update_package_order_sku_num')
+post_save.connect(update_package_order, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_package_order')
