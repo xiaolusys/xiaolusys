@@ -140,7 +140,7 @@ def task_login_update_fans(user):
     records = None
     if unionid:
         records = AppDownloadRecord.objects.filter(unionid=unionid, status=AppDownloadRecord.UNUSE).order_by('-created')
-    if records.count() <= 0 and mobile:
+    if (not records or records.count() <= 0) and mobile:
         records = AppDownloadRecord.objects.filter(mobile=mobile, status=AppDownloadRecord.UNUSE).order_by('-created')
     if not records or records.count() <= 0:
         return
