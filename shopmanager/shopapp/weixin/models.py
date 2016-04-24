@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 from core.models import CacheModel
-from core.fields import BigIntegerAutoField, JSONCharMyField
+from core.fields import JSONCharMyField
 from .managers import VipCodeManager, WeixinUserManager
 
 from shopback.trades.models import MergeTrade
@@ -60,7 +60,7 @@ class WeiXinAccount(models.Model):
     js_expired = models.DateTimeField(default=timezone.now,
                                       verbose_name="TICKET上次过期时间")
 
-    jmenu = JSONCharMyField(max_length=4096, blank=True, default=lambda: {}, verbose_name=u'菜单代码')
+    jmenu = JSONCharMyField(max_length=4096, blank=True, default={}, verbose_name=u'菜单代码')
 
     in_voice = models.BooleanField(default=False, verbose_name=u'开启语音')
     is_active = models.BooleanField(default=False, verbose_name=u'激活')
@@ -361,7 +361,7 @@ class WeiXinAutoResponse(models.Model):
     music_url = models.CharField(max_length=512, blank=True, verbose_name=u'音乐链接')
     hq_music_url = models.CharField(max_length=512, blank=True, verbose_name=u'高品质音乐链接')
 
-    news_json = JSONCharMyField(max_length=8192, blank=True, default=lambda: {}, verbose_name=u'图文信息')
+    news_json = JSONCharMyField(max_length=8192, blank=True, default={}, verbose_name=u'图文信息')
 
     fuzzy_match = models.BooleanField(default=True, verbose_name=u'模糊匹配')
 

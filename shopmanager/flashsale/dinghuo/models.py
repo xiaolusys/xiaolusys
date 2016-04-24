@@ -3,11 +3,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 
-from core.fields import BigIntegerAutoField
 from core.fields import JSONCharMyField
 
-from shopback.archives.models import DepositeDistrict
-from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier
@@ -84,7 +81,7 @@ class OrderList(models.Model):
         (QFKD, u'全峰快递'),
         (DBKD, u'德邦快递'),
     )
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     buyer = models.ForeignKey(User, null=True, related_name='dinghuo_orderlists', verbose_name=u'负责人')
     buyer_name = models.CharField(default="", max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
@@ -128,7 +125,7 @@ class OrderList(models.Model):
 
 
 class OrderDetail(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     orderlist = models.ForeignKey(OrderList, related_name='order_list', verbose_name=u'订单编号')
     product_id = models.CharField(db_index=True, max_length=32, verbose_name=u'商品id')
     outer_id = models.CharField(max_length=32, db_index=True, verbose_name=u'产品外部编码')

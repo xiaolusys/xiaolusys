@@ -147,8 +147,9 @@ class CouponsPool(BaseModel):
     POOL_COUPON_STATUS = ((RELEASE, u"已发放"), (UNRELEASE, u"未发放"), (PAST, u"已过期"))
 
     template = models.ForeignKey(CouponTemplate, verbose_name=u"模板ID", null=True, on_delete=models.SET_NULL)
-    coupon_no = models.CharField(max_length=32, db_index=True, unique=True, default=lambda: uniqid(
-        '%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))), verbose_name=u"优惠券号码")
+    coupon_no = models.CharField(max_length=32, db_index=True, unique=True,
+                                 # default=lambda: uniqid('%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))),
+                                 verbose_name=u"优惠券号码")
     status = models.IntegerField(default=UNRELEASE, choices=POOL_COUPON_STATUS, verbose_name=u"发放状态")
 
     class Meta:

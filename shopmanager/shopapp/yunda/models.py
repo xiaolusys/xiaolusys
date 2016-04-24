@@ -4,7 +4,6 @@ import datetime
 from django.db import models
 from shopback.signals import change_addr_signal
 from shopback.trades.models import MergeTrade
-from core.fields import BigIntegerAutoField
 import logging
 
 logger = logging.getLogger('yunda.handler')
@@ -128,7 +127,7 @@ class YundaCustomer(models.Model):
 
 
 class LogisticOrder(models.Model):
-    id = BigIntegerAutoField(primary_key=True, verbose_name=u'ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'ID')
     cus_oid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'客户订单编号')
     yd_customer = models.ForeignKey(YundaCustomer, verbose_name=u'所属客户')
 

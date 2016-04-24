@@ -21,7 +21,7 @@ class Question(BaseModel):
 
     class Meta:
         db_table = 'flashsale_mmexam_question'
-        app_label = 'xiaolumm'
+        app_label = 'mmexam'
         verbose_name = u'代理考试题目'
         verbose_name_plural = u'代理考试题目列表'
 
@@ -37,7 +37,7 @@ class Choice(BaseModel):
 
     class Meta:
         db_table = 'flashsale_mmexam_choice'
-        app_label = 'xiaolumm'
+        app_label = 'mmexam'
         verbose_name = u'代理考试选项'
         verbose_name_plural = u'代理考试选项列表'
 
@@ -53,7 +53,7 @@ class Result(BaseModel):
 
     class Meta:
         db_table = 'flashsale_mmexam_result'
-        app_label = 'xiaolumm'
+        app_label = 'mmexam'
         verbose_name = u'代理考试结果'
         verbose_name_plural = u'代理考试结果列表'
 

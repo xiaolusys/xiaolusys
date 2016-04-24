@@ -81,19 +81,21 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'core.middleware.middleware.AttachContentTypeMiddleware',
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'core.middleware.middleware.SecureRequiredMiddleware',
     'core.middleware.middleware.DisableDRFCSRFCheck',
-    'django.middleware.common.CommonMiddleware',
-    # 'django.contrib.sessions.middleware.SessionMiddleware',
     'core.middleware.middleware.XSessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.RemoteUserMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 )
 
 ROOT_URLCONF = 'shopmanager.urls'
+WSGI_APPLICATION = 'shopmanager.wsgi.application'
 
 TEMPLATES_ROOT = os.path.join(PROJECT_ROOT, "site_media", "templates")
 TEMPLATE_DIRS = (
@@ -112,14 +114,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'core.middleware.context_processors.session',
 )
 
-INSTALLED_APPS = (
+INSTALLED_APPS =(
     'django.contrib.admin',
-    # 'django.contrib.admindocs',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.messages',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
 
     'chartit',
@@ -165,8 +166,6 @@ INSTALLED_APPS = (
     'shopapp.weixin',
     'shopapp.tmcnotify',
 
-    # 'shopapp.zhongtong',
-
     'shopapp.jingdong',
     'shopapp.intercept',
     'shopapp.examination',
@@ -175,7 +174,6 @@ INSTALLED_APPS = (
     'shopapp.weixin_examination',
     'shopapp.sampleproduct',
 
-    # 'shopapp.second_time_sort',
     'supplychain.wavepick',
     'supplychain.supplier',
     'supplychain.category',
@@ -201,7 +199,8 @@ INSTALLED_APPS = (
     'flashsale.protocol',
     'extrafunc.renewremind',
     # 'test.celery',
-    # 'shopapp.notify',
+    'shopapp.notify',
+    # 'shopapp.zhongtong'
 )
 
 AUTH_PROFILE_MODULE = 'users.user'
@@ -250,7 +249,7 @@ REST_FRAMEWORK_EXTENSIONS = {
 
 JSONFIELD_ENCODER_CLASS = 'django.core.serializers.json.DjangoJSONEncoder'
 
-if os.environ.get('TARGET') == 'staging':
+if os.environ.get('TARGET') in ('staging',):
     DEBUG = False
     DATABASES = {
         'default': {
@@ -286,17 +285,13 @@ if os.environ.get('TARGET') == 'staging':
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
 
-if os.environ.get('TARGET') in ('staging','django18'):
-    CELERY_ALWAYS_EAGER = True
-
-
 if os.environ.get('TARGET') in ('production', 'django18'):
     DEBUG = False
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
+            'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
             'USER': 'qiyue',  # Not used with sqlite3.
             'PASSWORD': 'youni_2014qy',  # Not used with sqlite3.
             'HOST': 'jconnfymhz868.mysql.rds.aliyuncs.com',
@@ -326,6 +321,9 @@ if os.environ.get('TARGET') in ('production', 'django18'):
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
+
+if os.environ.get('TARGET') in ('staging','django18'):
+    CELERY_ALWAYS_EAGER = True
 
 if not DEBUG:
     TEMPLATE_DEBUG = DEBUG

@@ -1,12 +1,11 @@
 # -*- coding:utf8 -*-
 import datetime
 from django.db import models
-from core.fields import BigIntegerAutoField
 from common.utils import parse_datetime
 
 
 class ItemNotify(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user_id = models.BigIntegerField()
     num_iid = models.BigIntegerField()
 
@@ -53,7 +52,7 @@ class ItemNotify(models.Model):
 
 
 class TradeNotify(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user_id = models.BigIntegerField()
     tid = models.BigIntegerField()
     oid = models.BigIntegerField()
@@ -101,7 +100,7 @@ class TradeNotify(models.Model):
 
 
 class RefundNotify(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user_id = models.BigIntegerField()
     tid = models.BigIntegerField()
     oid = models.BigIntegerField()

@@ -1,7 +1,6 @@
 # -*- coding:utf8 -*-
 import datetime
 from django.db import models
-from core.fields import BigIntegerAutoField
 
 from .managers import InterceptTradeManager
 

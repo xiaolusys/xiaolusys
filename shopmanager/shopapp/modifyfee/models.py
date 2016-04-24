@@ -1,7 +1,6 @@
 # -*- coding:utf8 -*-
 import datetime
 from django.db import models
-from core.fields import BigIntegerAutoField
 from shopapp.signals import modify_fee_signal
 from auth import apis
 
@@ -22,7 +21,7 @@ class FeeRule(models.Model):
 
 
 class ModifyFee(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     tid = models.BigIntegerField(verbose_name='淘宝交易ID')
     buyer_nick = models.CharField(max_length=32, verbose_name='买家昵称')
     total_fee = models.CharField(max_length=10, verbose_name='订单金额')

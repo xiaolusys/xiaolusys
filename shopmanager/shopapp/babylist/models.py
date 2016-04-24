@@ -1,7 +1,6 @@
 # -*- coding:utf8 -*-
 __author__ = 'meixqhi'
 from django.db import models
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 
 
 class BabyPhone(models.Model):

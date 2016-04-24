@@ -6,7 +6,6 @@ from django.db.models import Q, Sum
 from django.db.models.signals import post_save
 
 from shopback import paramconfig as pcfg
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .signals import signal_saletrade_refund_confirm
 from .options import uniqid
 
@@ -66,9 +65,9 @@ class SaleRefund(PayBaseModel):
         (BUYER_RETURNED_GOODS, '买家已退货'),
     )
 
-    id = BigIntegerAutoField(primary_key=True, verbose_name='ID')
+    id = models.AutoField(primary_key=True, verbose_name='ID')
     refund_no = models.CharField(max_length=32, unique=True,
-                                 default=lambda: uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d'))),
+                                 # default=lambda: uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d'))),
                                  verbose_name='退款编号')
     trade_id = models.IntegerField(verbose_name='交易ID')
     order_id = models.IntegerField(verbose_name='订单ID')
