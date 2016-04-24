@@ -6,7 +6,6 @@ from django.db import models
 from core.models import BaseModel
 from django.contrib.auth.models import User as DjangoUser
 from shopback.signals import user_logged_in
-from core.fields import BigIntegerAutoField
 from shopback import paramconfig as pcfg
 from auth import apis
 import logging
@@ -94,7 +93,7 @@ class User(models.Model):
         (SHOP_TYPE_OTHER, u'其它'),
     )
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(DjangoUser, null=True, verbose_name=u'关联用户')
 
     top_session = models.CharField(max_length=128, blank=True, verbose_name=u'SessionID')

@@ -1,16 +1,14 @@
 # -*- coding:utf-8 -*-
 
-from django.template.loader import render_to_string
-from django.http import HttpResponse
-import time
-import datetime
-import views
-from shopmanager.shopapp.zhongtong.ztjiekou import zhongtong
-from xhtml2pdf import pisa
+from shopapp.zhongtong.ztjiekou import zhongtong
 from shopmanager.shopapp.zhongtong import code
-from shopback.trades.models import MergeTrade
-from .models import ZTOOrderList
+
+import views
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
+from xhtml2pdf import pisa
+from .models import ZTOOrderList
 
 
 # html转pdf

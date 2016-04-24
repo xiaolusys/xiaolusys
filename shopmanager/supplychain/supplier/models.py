@@ -9,7 +9,6 @@ from django.contrib.auth.models import User
 import common.utils
 from models_praise import SalePraise
 from models_hots import HotProduct
-from core.fields import BigIntegerForeignKey
 
 from .managers import SaleSupplierManager
 from .models_buyer_group import BuyerGroup
@@ -164,7 +163,7 @@ class SaleSupplier(models.Model):
     platform = models.CharField(max_length=16, blank=True, choices=PLATFORM_CHOICE,
                                 default=MANUAL, verbose_name=u'来自平台')
 
-    category = BigIntegerForeignKey(SaleCategory, null=True,
+    category = models.ForeignKey(SaleCategory, null=True,
                                     related_name='category_suppliers', verbose_name=u'类别')
 
     level = models.IntegerField(db_index=True,default=LEVEL_NORMAL,choices=LEVEL_CHOICES,verbose_name=u'等级')
@@ -233,8 +232,7 @@ class SupplierCharge(models.Model):
     )
 
     supplier_id = models.IntegerField(default=0, verbose_name=u'供应商ID')
-    employee = BigIntegerForeignKey(User,
-                                    related_name='employee_suppliers', verbose_name=u'接管人')
+    employee = models.ForeignKey(User,related_name='employee_suppliers', verbose_name=u'接管人')
 
     status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES,
                               default=EFFECT, verbose_name=u'状态')
@@ -305,15 +303,15 @@ class SaleProduct(models.Model):
                       (IGNORED, u'忽略'),)
 
     outer_id = models.CharField(max_length=64, blank=True,
-                                default=lambda: 'OO%s' % int(time.time() * 10 ** 3),
+                                # default=lambda: 'OO%s' % int(time.time() * 10 ** 3),
                                 verbose_name=u'外部ID')
     title = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'标题')
     price = models.FloatField(default=0, verbose_name=u'价格')
     pic_url = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
     product_link = models.CharField(max_length=512, blank=True, verbose_name=u'商品外部链接')
 
-    sale_supplier = BigIntegerForeignKey(SaleSupplier, null=True, related_name='supplier_products', verbose_name=u'供货商')
-    sale_category = BigIntegerForeignKey(SaleCategory, null=True, related_name='category_products', verbose_name=u'类别')
+    sale_supplier = models.ForeignKey(SaleSupplier, null=True, related_name='supplier_products', verbose_name=u'供货商')
+    sale_category = models.ForeignKey(SaleCategory, null=True, related_name='category_products', verbose_name=u'类别')
     platform = models.CharField(max_length=16, blank=True, default=MANUAL,
                                 choices=PLATFORM_CHOICE, verbose_name=u'来自平台')
 
@@ -329,7 +327,7 @@ class SaleProduct(models.Model):
     status = models.CharField(max_length=16, blank=True,
                               choices=STATUS_CHOICES, default=WAIT, verbose_name=u'状态')
 
-    contactor = BigIntegerForeignKey(User, null=True, related_name='sale_products', verbose_name=u'接洽人')
+    contactor = models.ForeignKey(User, null=True, related_name='sale_products', verbose_name=u'接洽人')
     librarian = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'资料员')
     buyer = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'采购员')
 
@@ -448,7 +446,7 @@ class SaleProductManageDetail(models.Model):
         (TAKEOVER, u'接管'),
         (NOTTAKEOVER, u'未接管')
     )
-    schedule_manage = BigIntegerForeignKey(SaleProductManage, related_name='manage_schedule', verbose_name=u'排期管理')
+    schedule_manage = models.ForeignKey(SaleProductManage, related_name='manage_schedule', verbose_name=u'排期管理')
     sale_product_id = models.BigIntegerField(default=0, verbose_name=u"选品ID")
     name = models.CharField(max_length=64, verbose_name=u'选品名称')
     pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')

@@ -5,7 +5,6 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
 
-from core.fields import BigIntegerAutoField
 from core.models import BaseModel
 from .base import PayBaseModel
 from flashsale.pay.models_envelope import Envelop
@@ -19,7 +18,7 @@ class Register(PayBaseModel):
     MAX_VALID_COUNT = 6
     MAX_SUBMIT_TIMES = 20
 
-    id = BigIntegerAutoField(primary_key=True, verbose_name=u'ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'ID')
     cus_uid = models.BigIntegerField(db_index=True, default=0, null=True, verbose_name=u"客户ID")
     vmobile = models.CharField(max_length=11, unique=True, blank=True, verbose_name=u"待验证手机")
     verify_code = models.CharField(max_length=8, blank=True, verbose_name=u"验证码")
@@ -120,7 +119,7 @@ class Customer(BaseModel):
         (SUPERVISE, u'监管'),
     )
 
-    id = BigIntegerAutoField(primary_key=True, verbose_name=u'客户ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'客户ID')
     user = models.OneToOneField(DjangoUser, verbose_name=u'原始用户')
     nick = models.CharField(max_length=32, blank=True, default=genCustomerNickname, verbose_name=u'昵称')
     thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u'头像')

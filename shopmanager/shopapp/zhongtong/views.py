@@ -1,12 +1,11 @@
 # coding: utf-8
-from .models import ZTOOrderList, PrintRecord
+import time
+
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
-import time
-from shopmanager.shopapp.zhongtong.ztjiekou import zhongtong
+from shopapp.zhongtong import zhongtong
 from shopback.trades.models import MergeTrade
-import admin
-from django.views.decorators.csrf import csrf_exempt
+from .models import ZTOOrderList, PrintRecord
 
 
 # ...........======..............

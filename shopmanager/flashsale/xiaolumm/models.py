@@ -8,7 +8,6 @@ from django.contrib.auth.models import User as DjangoUser
 
 from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 # Create your models here.
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
@@ -57,6 +56,7 @@ class XiaoluMama(models.Model):
 
     CHARGED = 'charged'
     UNCHARGE = 'uncharge'
+
     CHARGE_STATUS_CHOICES = (
         (UNCHARGE, u'待接管'),
         (CHARGED, u'已接管'),
@@ -91,7 +91,7 @@ class XiaoluMama(models.Model):
     agencylevel = models.IntegerField(default=INNER_LEVEL, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
     lowest_uncoushout = models.FloatField(default=0.0, verbose_name=u"最低不可提金额")
-    user_group = BigIntegerForeignKey(UserGroup, null=True, verbose_name=u"分组")
+    user_group = models.ForeignKey(UserGroup, null=True, verbose_name=u"分组")
 
     charge_time = models.DateTimeField(default=datetime.datetime.now,
                                        db_index=True, blank=True, null=True, verbose_name=u'接管时间')

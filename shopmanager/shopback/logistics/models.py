@@ -6,7 +6,6 @@ import random
 from django.db import models
 from django.db.models import Sum
 from core.models import BaseModel
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo
 from common.utils import parse_datetime
@@ -172,7 +171,7 @@ class LogisticsCompany(models.Model):
 
 
 class Logistics(models.Model):
-    tid = BigIntegerAutoField(primary_key=True)
+    tid = models.BigIntegerField(primary_key=True)
     user = models.ForeignKey(User, null=True, related_name='logistics')
 
     order_code = models.CharField(max_length=64, blank=True)

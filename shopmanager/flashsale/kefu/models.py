@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 from django.db import models
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from flashsale.signals import signal_kefu_operate_record
 
 
@@ -23,7 +22,7 @@ class KefuPerformance(models.Model):
 
     class Meta:
         db_table = 'flashsale_kefu_record'
-        app_label = 'trades'
+        app_label = 'kefu'
         verbose_name = u'客服操作记录'
         verbose_name_plural = u'客服操作记录表'
 

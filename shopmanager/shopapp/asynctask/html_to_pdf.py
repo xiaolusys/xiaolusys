@@ -1,13 +1,10 @@
 # -*- coding:utf-8 -*-
 
-from django.template.loader import render_to_string
-from django.http import HttpResponse
 import time
-import datetime
-import views
+
+from django.template.loader import render_to_string
+from shopapp.zhongtong import code
 from xhtml2pdf import pisa
-from shopmanager.shopapp.zhongtong import code
-from shopback.trades.models import MergeTrade
 from .models import PrintAsyncTaskModel
 
 

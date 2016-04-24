@@ -1,4 +1,3 @@
-from core.fields import BigIntegerAutoField
 from django.db import models
 
 

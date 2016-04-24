@@ -10,9 +10,6 @@ def get_systemoa_user():
     return user
 
 
-SYSTEMOA_USER = get_systemoa_user()
-
-
 def log_action(user_id, obj, action, msg):
     if not isinstance(user_id, (int, long)):
         user_id = user_id.id

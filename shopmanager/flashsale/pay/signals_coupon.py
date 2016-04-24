@@ -10,7 +10,7 @@ from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate
 
 from django.db.models import F
 from common.modelutils import update_model_fields
-from core.options import log_action, CHANGE, SYSTEMOA_USER
+from core.options import log_action, CHANGE, get_systemoa_user
 
 """
 当创建订单的时候创建积分待确认记录
@@ -142,12 +142,13 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
         CarryLog.objects.create(xlmm=xlmm.id, order_num=order_id, buyer_nick=xlmm.weikefu,
                                 value=payment_value, log_type=CarryLog.RECHARGE,
                                 carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
+        sysoa_user = get_systemoa_user()
         # 修改xlmm　cash
         before_cash = xlmm.cash
         xlmm.cash = F('cash') + payment_value
         update_model_fields(xlmm, update_fields=['cash'])
         action_desc = u"代理充值修改cash:{0}金额{1}".format(before_cash, xlmm.cash)
-        log_action(SYSTEMOA_USER.id, xlmm, CHANGE, action_desc)
+        log_action(sysoa_user.id, xlmm, CHANGE, action_desc)
 
         # 修改xlmm lowest_uncoushout
         before_lowest_uncoushout = xlmm.lowest_uncoushout
@@ -155,15 +156,15 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
         update_model_fields(xlmm, update_fields=['lowest_uncoushout'])
         action_desc_lowest = u"代理充值修改lowest_uncoushout:{0}金额{1}".format(before_lowest_uncoushout,
                                                                         xlmm.lowest_uncoushout)
-        log_action(SYSTEMOA_USER.id, xlmm, CHANGE, action_desc_lowest)
+        log_action(sysoa_user.id, xlmm, CHANGE, action_desc_lowest)
 
         # 交易状态修改　交易成功
         instance.status = SaleOrder.TRADE_FINISHED
         update_model_fields(instance, update_fields=['status'])
-        log_action(SYSTEMOA_USER.id, instance, CHANGE, u"充值修改该订单明细状态")
+        log_action(sysoa_user.id, instance, CHANGE, u"充值修改该订单明细状态")
         instance.sale_trade.status = SaleTrade.TRADE_FINISHED
         update_model_fields(instance.sale_trade, update_fields=['status'])
-        log_action(SYSTEMOA_USER.id, instance.sale_trade, CHANGE, u"充值修改该订单交易状态")
+        log_action(sysoa_user.id, instance.sale_trade, CHANGE, u"充值修改该订单交易状态")
 
 
 post_save.connect(xlmm_Recharge, sender=SaleOrder)

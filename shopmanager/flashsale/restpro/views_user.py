@@ -23,7 +23,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import exceptions
 
-from core.options import log_action, ADDITION, CHANGE, SYSTEMOA_USER
+from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
 from core.weixin.options import gen_weixin_redirect_url
 from core.weixin.options import gen_wxlogin_sha1_sign
 from core.utils.httputils import get_client_ip
@@ -116,6 +116,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if customers.exists():
             return Response({"result": "0", "code": 0, "info": "手机已注册"})
 
+        sysoa_user = get_systemoa_user()
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() > 0:
             temp_reg = reg[0]
@@ -130,7 +131,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.code_time = current_time
                 temp_reg.save()
-                log_action(SYSTEMOA_USER.id, temp_reg, CHANGE, u'修改，注册手机验证码')
+                log_action(sysoa_user.id, temp_reg, CHANGE, u'修改，注册手机验证码')
                 task_register_code.delay(mobile, "1")
                 return Response({"result": "OK", "code": 0, "info": "OK"})
         else:
@@ -142,7 +143,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 new_reg.save()
             except IntegrityError:
                 return Response({"result": "0", "code": 0, "info": "请勿重复点击"})
-            log_action(SYSTEMOA_USER.id, new_reg, ADDITION, u'新建，注册手机验证码')
+            log_action(sysoa_user.id, new_reg, ADDITION, u'新建，注册手机验证码')
             task_register_code.delay(mobile, "1")
             return Response({"result": "OK", "code": 0, "info": "OK"})
 
@@ -198,6 +199,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "1"})  # 尚无用户或者手机未绑定
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
             return Response({"result": "false"})
+
+        sysoa_user = get_systemoa_user()
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
             new_reg = Register(vmobile=mobile)
@@ -206,7 +209,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             new_reg.mobile_pass = True
             new_reg.code_time = current_time
             new_reg.save()
-            log_action(SYSTEMOA_USER.id, new_reg, ADDITION, u'新建，忘记密码验证码')
+            log_action(sysoa_user.id, new_reg, ADDITION, u'新建，忘记密码验证码')
             task_register_code.delay(mobile, "2")
             return Response({"result": "0"})
         else:
@@ -218,7 +221,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
-            log_action(SYSTEMOA_USER.id, reg_temp, CHANGE, u'修改，忘记密码验证码')
+            log_action(sysoa_user.id, reg_temp, CHANGE, u'修改，忘记密码验证码')
             task_register_code.delay(mobile, "2")
         return Response({"result": "0"})
 
@@ -257,6 +260,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "4"})
         if verify_code_server != verify_code:
             return Response({"result": "3"})  # 验证码不对
+
+        sysoa_user = get_systemoa_user()
         try:
             system_user = customer.user
             system_user.set_password(passwd1)
@@ -266,8 +271,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             if self.is_login(request):
                 customer.mobile = mobile
                 customer.save()
-            log_action(SYSTEMOA_USER.id, already_exist[0], CHANGE, u'忘记密码，修改成功')
-            log_action(SYSTEMOA_USER.id, reg_temp, CHANGE, u'忘记密码，修改成功')
+            log_action(sysoa_user.id, already_exist[0], CHANGE, u'忘记密码，修改成功')
+            log_action(sysoa_user.id, reg_temp, CHANGE, u'忘记密码，修改成功')
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
