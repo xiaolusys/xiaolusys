@@ -249,7 +249,7 @@ REST_FRAMEWORK_EXTENSIONS = {
 
 JSONFIELD_ENCODER_CLASS = 'django.core.serializers.json.DjangoJSONEncoder'
 
-if os.environ.get('TARGET') in ('staging','migrate18'):
+if os.environ.get('TARGET') in ('staging',):
     DEBUG = False
     DATABASES = {
         'default': {
@@ -280,42 +280,6 @@ if os.environ.get('TARGET') in ('staging','migrate18'):
 
     RAVEN_CONFIG = {
         'dsn': 'http://4d0d1c129af94f35b2ca16f1993865cf:725c7627bb4f49858bb315a3e2e16988@sentry.xiaolumm.com/3',
-        # If you are using git, you can also automatically configure the
-        # release based on the git info.
-        'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
-    }
-
-if os.environ.get('TARGET') == 'migrate18':
-    DEBUG = True
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'shopmgr_v2',  # Or path to database file if using sqlite3.
-            'USER': 'xiaoludev',  # Not used with sqlite3.
-            'PASSWORD': 'xiaolu_test123',  # Not used with sqlite3.
-            'HOST': 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com',
-            # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
-            'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
-            'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
-                        'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
-        }
-    }
-    CACHES = {
-        'default': {
-            'BACKEND': 'redis_cache.RedisCache',
-            'LOCATION': '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379',
-            'OPTIONS': {
-                'DB': 10,
-                'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
-            }
-        }
-    }
-    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/11'
-    import raven
-
-    RAVEN_CONFIG = {
-        'dsn': 'http://e419f1ed03004d03bad7b4b563f74241:12fbfa94d636472d92ae964757627367@sentry.xiaolumm.com/3',
         # If you are using git, you can also automatically configure the
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
@@ -358,7 +322,7 @@ if os.environ.get('TARGET') in ('production', 'django18'):
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
 
-if os.environ.get('TARGET') in ('staging','django18','migrate18'):
+if os.environ.get('TARGET') in ('staging','django18'):
     CELERY_ALWAYS_EAGER = True
 
 if not DEBUG:
