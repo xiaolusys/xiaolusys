@@ -292,8 +292,8 @@ if os.environ.get('TARGET') in ('production', 'django18'):
             'ENGINE': 'django.db.backends.mysql',
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
             'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
-            'USER': 'qiyue',  # Not used with sqlite3.
-            'PASSWORD': 'youni_2014qy',  # Not used with sqlite3.
+            'USER': 'xiaolu_dba',  # Not used with sqlite3.
+            'PASSWORD': 'xiaolu_2016jm',  # Not used with sqlite3.
             'HOST': 'jconnfymhz868.mysql.rds.aliyuncs.com',
         # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
             'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
