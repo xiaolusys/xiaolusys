@@ -327,7 +327,7 @@ if os.environ.get('TARGET') in ('production', 'django18'):
         'default': {
             'ENGINE': 'django.db.backends.mysql',
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
+            'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
             'USER': 'qiyue',  # Not used with sqlite3.
             'PASSWORD': 'youni_2014qy',  # Not used with sqlite3.
             'HOST': 'jconnfymhz868.mysql.rds.aliyuncs.com',
