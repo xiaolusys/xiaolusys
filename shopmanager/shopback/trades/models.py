@@ -1526,10 +1526,6 @@ from core.models import BaseModel
 
 
 class PackageSkuItem(BaseModel):
-    sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
-    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'原单ID')
-    num = models.IntegerField(default=0, verbose_name=u'数量')
-    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单ID')
 
     REAL_ORDER_GIT_TYPE = 0  # 实付
     CS_PERMI_GIT_TYPE = 1  # 赠送
@@ -1559,6 +1555,11 @@ class PackageSkuItem(BaseModel):
         (FINISHED, u'已出货'),
         (CANCELED, u'已取消')
     )
+    sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
+    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'原单ID')
+    num = models.IntegerField(default=0, verbose_name=u'数量')
+    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单ID')
+
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
                                   db_index=True, verbose_name=u'所属仓库')
 
@@ -1623,11 +1624,6 @@ class PackageSkuItem(BaseModel):
             return self._package_order_
         else:
             return None
-
-    def oid(self):
-        return self.sale_order.oid
-
-    oid.short_description = u'原单id'
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
