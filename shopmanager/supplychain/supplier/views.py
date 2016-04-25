@@ -1421,3 +1421,21 @@ class ScheduleExportView(APIView):
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment;filename=%s' % filename
         return response
+
+
+class SaleProductScheduleDateView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request):
+        saleproduct_id = int(request.GET['saleproduct_id'])
+
+        schedule_ids = set()
+        for schedule_detail in SaleProductManageDetail.objects.filter(sale_product_id=saleproduct_id, today_use_status=SaleProductManageDetail.NORMAL):
+            schedule_ids.add(schedule_detail.schedule_manage_id)
+
+        sale_dates = set()
+        for schedule in SaleProductManage.objects.filter(id__in=list(schedule_ids)):
+            if schedule.sale_time:
+                sale_dates.add(schedule.sale_time)
+        sale_date_strs = [x.strftime('%y年%m月%d') for x in sorted(list(sale_dates))]
+        return Response({'select_dates': sale_date_strs})
