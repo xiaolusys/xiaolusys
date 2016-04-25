@@ -16,6 +16,8 @@ from supplychain.supplier.models import SaleProduct
 from .constants import CHANNEL_CHOICES
 from flashsale.pay import NO_REFUND ,REFUND_CLOSED ,REFUND_REFUSE_BUYER ,REFUND_WAIT_SELLER_AGREE ,REFUND_WAIT_RETURN_GOODS ,REFUND_CONFIRM_GOODS ,REFUND_APPROVE ,REFUND_SUCCESS ,REFUND_STATUS
 
+def default_refund_no():
+    return uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d')))
 
 class SaleRefund(PayBaseModel):
     NO_REFUND = NO_REFUND
@@ -67,7 +69,7 @@ class SaleRefund(PayBaseModel):
 
     id = models.AutoField(primary_key=True, verbose_name='ID')
     refund_no = models.CharField(max_length=32, unique=True,
-                                 # default=lambda: uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d'))),
+                                 default=default_refund_no, 
                                  verbose_name='退款编号')
     trade_id = models.IntegerField(verbose_name='交易ID')
     order_id = models.IntegerField(verbose_name='订单ID')

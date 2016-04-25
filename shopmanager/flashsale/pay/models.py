@@ -460,7 +460,7 @@ def release_mamalink_coupon(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 
 def default_oid():
-    return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d'))),
+    return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
 
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """

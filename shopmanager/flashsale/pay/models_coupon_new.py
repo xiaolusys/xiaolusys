@@ -140,7 +140,7 @@ class CouponTemplate(BaseModel):
             return '全场通用'
 
 def default_coupon_no():
-    return uniqid('%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))),
+    return uniqid('%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d')))
 
 class CouponsPool(BaseModel):
     RELEASE = 1
