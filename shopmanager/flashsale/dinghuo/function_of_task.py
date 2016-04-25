@@ -460,7 +460,7 @@ def refund_handdler_return_num(ref_days=20, pro_days=15):
     # 1 对照退货款单计算退款数量
     ref_pro_nums = {}
     for ref in refunds:
-        mero = MergeOrder.objects.filter(oid=ref.oid)  # 找到订单　这里的一个oid 一一对应　一个订单
+        mero = MergeOrder.objects.filter(oid=ref.get_oid())  # 找到订单　这里的一个oid 一一对应　一个订单
         # 找到订单，判断订单的产品是否是　上文的上架产品
         if not mero.exists():
             continue
