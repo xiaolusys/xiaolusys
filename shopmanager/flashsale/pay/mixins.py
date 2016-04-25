@@ -173,6 +173,7 @@ class PayInfoMethodMixin(object):
                 'buyer_nick': customer.nick,
                 'buyer_message': form.get('buyer_message', ''),
                 'payment': float(form.get('payment')),
+                'pay_cash': float(form.get('pay_cash')),
                 'total_fee': float(form.get('total_fee')),
                 'post_fee': float(form.get('post_fee')),
                 'discount_fee': float(form.get('discount_fee')),
