@@ -734,8 +734,8 @@ class MergeOrder(models.Model):
     sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
     num = models.IntegerField(default=0, verbose_name=u'数量')
 
-    outer_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品编码')
-    outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格编码')
+    outer_id = models.CharField(max_length=32, blank=True, verbose_name=u'商品编码')
+    outer_sku_id = models.CharField(max_length=32, blank=True, verbose_name=u'规格编码')
 
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
     payment = models.FloatField(default=0.0, verbose_name=u'实付款')

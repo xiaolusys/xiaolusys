@@ -110,7 +110,7 @@ class Product(models.Model):
     PRODUCT_CODE_DELIMITER = '.'
     NO_PIC_PATH = '/static/img/nopic.jpg'
 
-    outer_id = models.CharField(max_length=64, unique=True, null=False,
+    outer_id = models.CharField(max_length=32, unique=True, null=False,
                                 blank=True, verbose_name=u'外部编码')
     name = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'商品名称')
     model_id = models.BigIntegerField(db_index=True, default=0, verbose_name='商品款式ID')
@@ -628,7 +628,7 @@ class ProductSku(models.Model):
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
 
-    outer_id = models.CharField(max_length=64, blank=False, verbose_name=u'供应商货号/编码')
+    outer_id = models.CharField(max_length=32, blank=False, verbose_name=u'供应商货号/编码')
 
     barcode = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='条码')
     product = models.ForeignKey(Product, null=True, related_name='prod_skus', verbose_name='商品')
