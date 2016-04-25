@@ -65,9 +65,9 @@ class IntegralLog(PayBaseModel):
 
     @property
     def order_info(self):
-        info = json.loads(self.order)
-        if isinstance(info, list) and len(info) == 1:
-            return json.loads(self.order)[0]
+        if len(self.order) == 1:
+            info = json.dumps(self.order[0])
+            return json.loads(info)
         else:
             return {}
 
