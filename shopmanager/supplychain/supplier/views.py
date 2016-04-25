@@ -650,7 +650,7 @@ class ScheduleDetailView(APIView):
 
         product_ids = []
         scheduled_product_ids = []
-        for product in Product.objects.filter(sale_time=sale_time, shelf_status=Product.UP_SHELF):
+        for product in Product.objects.filter(sale_time=sale_time, status=Product.NORMAL):
             if product.sale_product in saleproduct_ids:
                 scheduled_product_ids.append(product.id)
             product_ids.append(product.id)

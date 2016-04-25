@@ -141,7 +141,7 @@ class OrderDetail(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'生成日期')  # index
     updated = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'更新日期')  # index
-    arrival_time = models.DateTimeField(blank=True, db_index=True, verbose_name=u'到货时间')
+    arrival_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'到货时间')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderdetail'
