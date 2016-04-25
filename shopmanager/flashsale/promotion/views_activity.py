@@ -277,8 +277,9 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if application_count > 0:
             try:
                 application = applications[0]
-                application.event_imei = '{0}_{1}'.format(event_id, imei)
-                application.save()
+                if imei:
+                    application.event_imei = '{0}_{1}'.format(event_id, imei)
+                    application.save()
             except Exception, exc:
                 logger.warn(exc.message)
             applied = True
@@ -347,8 +348,9 @@ class ApplicationView(WeixinAuthMixin, APIView):
             # 保存设备号
             try:
                 application = applications[0]
-                application.event_imei = '{0}_{1}'.format(event_id, imei)
-                application.save()
+                if imei:
+                    application.event_imei = '{0}_{1}'.format(event_id, imei)
+                    application.save()
             except Exception, exc:
                 logger.warn(exc.message)
         params = {}
