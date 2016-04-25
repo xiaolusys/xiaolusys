@@ -302,6 +302,19 @@
         </div>
 
     </div>
+    {% for inbound in inbounds %}
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="alert alert-success" role="alert">
+                <strong>入仓单:</strong>
+                <a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id={{ inbound.id }}" target="_blank">{{ inbound.id }}</a>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <textarea rows="3" cols="40" class="form-control" style="background-color:#B4EEB4" readonly>{{ inbound.memo|safe }}</textarea>
+        </div>
+    </div>
+    {% endfor %}
     <div class="row">
     <div class="col-lg-2">
         <input class="btn btn-info" type="button" onclick="showlayer({{ orderlist.id }})" value="点我修改订单">
@@ -375,6 +388,7 @@
                 <div class="col-lg-4"><input type="submit" class="btn btn-danger" value="保存"></div>
             </form>
         </div>
+
     {% endif %}
     <div class="row">
         <legend>
@@ -463,8 +477,6 @@
                     <td><input type="button" class="btn btn-default" onclick="changearrived({{ order.id }})"
                                value="加入库存"></td>
                 </tr>
-
-
             {% endfor %}
             </tbody>
             <tfoot>

@@ -20,7 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 import common.utils
 from common.utils import CSVUnicodeWriter
 from core.options import log_action, CHANGE
-from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft
+from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDetailInBoundDetail, InBoundDetail, InBound
 import functions
 from shopback.items.models import Product, ProductSku, ProductStock
 from supplychain.supplier.models import SaleProduct, SaleSupplier
@@ -86,13 +86,29 @@ class ChangeDetailView(View):
         if order_list.buyer_id:
             buyer_name = '%s%s' % (order_list.buyer.last_name, order_list.buyer.first_name)
             buyer_name = buyer_name or order_list.buyer.username
+
+
+        inbounddetail_ids = set()
+        for record in OrderDetailInBoundDetail.objects.filter(orderdetail_id__in=[x['id'] for x in order_list_list],
+                                                              status=OrderDetailInBoundDetail.NORMAL):
+            inbounddetail_ids.add(record.inbounddetail_id)
+        inbound_ids = set()
+        for inbounddetail in InBoundDetail.objects.filter(id__in=list(inbounddetail_ids)):
+            inbound_ids.add(inbounddetail.inbound_id)
+        inbound_dicts = []
+        for inbound in InBound.objects.filter(id__in=list(inbound_ids), status__in=[InBound.NORMAL, InBound.PENDING]).order_by('id'):
+            inbound_dicts.append({
+                'id': inbound.id,
+                'memo': inbound.memo
+            })
         return render_to_response("dinghuo/changedetail.html",
                                   {"orderlist": order_list,
                                    "flagofstatus": flag_of_status,
                                    "flagofquestion": flag_of_question,
                                    "flag_of_sample": flag_of_sample,
                                    "orderdetails": order_list_list,
-                                   'product_link': product_link, 'buyer_name': buyer_name},
+                                   'product_link': product_link, 'buyer_name': buyer_name,
+                                   'inbounds': inbound_dicts},
                                   context_instance=RequestContext(request))
 
     @staticmethod
