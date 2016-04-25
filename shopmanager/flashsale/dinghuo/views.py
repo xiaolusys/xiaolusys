@@ -890,7 +890,10 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 status = OrderList.QUESTION_OF_QUANTITY
             else:
                 if flag_arrival > 0:
-                    status = OrderList.COMPLETED
+                    if orderlist.is_postpay:
+                        status = OrderList.TO_PAY
+                    else:
+                        status = OrderList.CLOSED
                 else:
                     status = OrderList.APPROVAL
             if status:
@@ -930,6 +933,36 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             orderlist_ids.add(record.orderdetail.orderlist_id)
         inbound.orderlist_ids = sorted(list(orderlist_ids))
         inbound.save()
+
+    @list_route(methods=['get'])
+    def suggest_district(self, request):
+        product_id = int(request.GET.get('product_id'))
+
+        district = ''
+        stats = {}
+        for product_location in ProductLocation.objects.filter(product_id=product_id):
+            k = str(product_location.district)
+            stats[k] = stats.setdefault(k, 0) + 1
+        if stats:
+            district, _ = max(stats.items(), key=lambda x: x[1])
+        if district:
+            return Response({'district': district})
+
+        the_product = Product.objects.get(id=product_id)
+        product_ids = []
+        for product in Product.objects.filter(sale_product=the_product.sale_product):
+            product_ids.append(product.id)
+
+        stats = {}
+        for product_location in ProductLocation.objects.filter(product_id__in=product_ids):
+            k = str(product_location.district)
+            stats[k] = stats.setdefault(k, 0) + 1
+
+        if stats:
+            district, _ = max(stats.items(), key=lambda x: x[1])
+        return Response({'district': district})
+
+
 
     @detail_route(methods=['post'])
     def delete_detail(self, request, pk):
@@ -1517,11 +1550,13 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 product_id, sku_id = map(int, (s['product_id'], s['chichu_id']))
                 sku_ids.add(sku_id)
 
+                plan_quantity = s['buy_quantity'] - s['arrival_quantity'] - s['inferior_quantity']
+                if plan_quantity <= 0:
+                    continue
                 skus_dict = products_dict.setdefault(product_id, {})
                 skus_dict[sku_id] = {
                     'id': sku_id,
-                    'plan_quantity': s['buy_quantity'] - s['arrival_quantity'] -
-                                     s['inferior_quantity']
+                    'plan_quantity': plan_quantity
                 }
 
             saleproduct_ids = set()
@@ -1530,6 +1565,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                     id__in=list(sku_ids)):
                 product_id = sku.product.id
                 sku_id = sku.id
+                if not (product_id in products_dict and sku_id in products_dict[product_id]):
+                    continue
                 saleproduct_ids.add(sku.product.sale_product)
                 product_location = None
                 product_locations = ProductLocation.objects.select_related('district').filter(product_id=product_id, sku_id=sku_id)[:1]
@@ -1543,6 +1580,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                                  'outer_id': sku.product.outer_id,
                                  'pic_path': '%s' % sku.product.pic_path.strip(),
                                  'skus': {}})
+
                 sku_dict = products_dict[product_id][sku_id]
                 sku_dict.update({
                     'properties_name': sku.properties_name or

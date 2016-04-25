@@ -82,6 +82,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         now = datetime.datetime.now()
         threshold = now - datetime.timedelta(days=3)
         threshold2 = now - datetime.timedelta(days=5)
+        threshold3 = now - datetime.timedelta(days=15)
         if type_ == 1:
             q = MergeOrder.objects.filter(
                 merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
@@ -95,7 +96,8 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_total = q.only('id').count()
             n_delay = q.filter(pay_time__lte=threshold).only('id').count()
             n_s_delay = q.filter(pay_time__lte=threshold2).only('id').count()
-            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay}
+            n_ss_delay = q.filter(pay_time__lte=threshold3).only('id').count()
+            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         elif type_ == 2:
             q = SaleRefund.objects.filter(
                 status__in=[SaleRefund.REFUND_WAIT_SELLER_AGREE, SaleRefund.REFUND_WAIT_RETURN_GOODS,
@@ -103,19 +105,22 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold).only('id').count()
             n_s_delay = q.filter(created__lte=threshold2).only('id').count()
-            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay}
+            n_ss_delay = q.filter(created__lte=threshold3).only('id').count()
+            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         elif type_ == 3:
             q = SaleRefund.objects.filter(status=SaleRefund.REFUND_APPROVE)
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold).only('id').count()
             n_s_delay = q.filter(created__lte=threshold2).only('id').count()
-            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay}
+            n_ss_delay = q.filter(created__lte=threshold3).only('id').count()
+            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         elif type_ == 4:
             q = OrderList.objects.exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED])
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold.date()).only('id').count()
             n_s_delay = q.filter(created__lte=threshold2.date()).only('id').count()
-            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay}
+            n_ss_delay = q.filter(created__lte=threshold3.date()).only('id').count()
+            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         if data:
             return Response(data)
         return Response({'error': '参数错误'})
