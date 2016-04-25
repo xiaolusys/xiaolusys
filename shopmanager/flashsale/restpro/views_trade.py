@@ -142,7 +142,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             if shop_cart.count() > 0:
                 shop_cart_temp = shop_cart[0]
                 shop_cart_temp.num += int(sku_num) if sku_num else 0
-                shop_cart_temp.total_fee = decimal.Decimal(shop_cart_temp.total_fee) + sku.agent_price
+                shop_cart_temp.total_fee = decimal.Decimal(shop_cart_temp.total_fee) + decimal.Decimal(sku.agent_price)
                 shop_cart_temp.save()
                 return Response({"result": "1", "code": 1, "info": "购物车已存在"})  # 购物车已经有了
 
