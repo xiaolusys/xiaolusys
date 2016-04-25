@@ -51,9 +51,9 @@ class CuShopPros(PayBaseModel):
     pic_path = models.CharField(max_length=256, blank=True, verbose_name=u'商品主图')
     std_sale_price = models.FloatField(default=0, verbose_name=u'吊牌价')
     agent_price = models.FloatField(default=0, verbose_name=u'出售价')
-    remain_num = models.IntegerField(verbose_name=u'预留数量')
+    remain_num = models.IntegerField(default=0, verbose_name=u'预留数量')
 
-    carry_scheme = models.IntegerField(db_index=True, verbose_name=u'返利模式')
+    carry_scheme = models.IntegerField(default=0, db_index=True, verbose_name=u'返利模式')
     carry_amount = models.FloatField(default=0, verbose_name=u'返利金额')
     position = models.IntegerField(db_index=True, default=0, verbose_name=u'排序位置')
 
