@@ -108,7 +108,8 @@ def task_activate_application(event_id, customer, imei):
         application.headimgurl = customer.thumbnail
         application.user_openid = customer.openid
         application.user_unionid = unionid
-        application.event_imei = str(event_id) + "_" + imei
+        if imei:
+            application.event_imei = str(event_id) + "_" + imei
         application.nick = customer.nick
         application.save()
 
