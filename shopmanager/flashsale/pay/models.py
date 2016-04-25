@@ -459,6 +459,8 @@ def release_mamalink_coupon(sender, obj, **kwargs):
 
 signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 
+def default_oid():
+    return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d'))),
 
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
@@ -497,8 +499,7 @@ class SaleOrder(PayBaseModel):
 
     id = models.AutoField(primary_key=True)
     oid = models.CharField(max_length=40, unique=True,
-                           # default=lambda: uniqid(
-                           #     '%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d'))),
+                           default=default_oid,
                            verbose_name=u'原单ID')
     sale_trade = models.ForeignKey(SaleTrade, related_name='sale_orders',
                                       verbose_name=u'所属订单')

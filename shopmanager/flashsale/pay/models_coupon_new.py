@@ -139,6 +139,8 @@ class CouponTemplate(BaseModel):
         else:
             return '全场通用'
 
+def default_coupon_no():
+    return uniqid('%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))),
 
 class CouponsPool(BaseModel):
     RELEASE = 1
@@ -148,7 +150,7 @@ class CouponsPool(BaseModel):
 
     template = models.ForeignKey(CouponTemplate, verbose_name=u"模板ID", null=True, on_delete=models.SET_NULL)
     coupon_no = models.CharField(max_length=32, db_index=True, unique=True,
-                                 # default=lambda: uniqid('%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))),
+                                 default=default_coupon_no,
                                  verbose_name=u"优惠券号码")
     status = models.IntegerField(default=UNRELEASE, choices=POOL_COUPON_STATUS, verbose_name=u"发放状态")
 
