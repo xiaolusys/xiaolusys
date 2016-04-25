@@ -95,7 +95,8 @@ def save_pro_info(product, user):
     if not shop.name:
         shop.name = customer.nick  # 保存店铺名称
         shop.save()
-    shop_pro, pro_state = CuShopPros.objects.get_or_create(shop=shop.id, product=pro.id)
+
+    shop_pro, pro_state = CuShopPros.objects.get_or_create(customer=customer.id, shop=shop.id, product=pro.id)
     kwargs = {'agencylevel': xlmm.agencylevel,
               'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
     rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
