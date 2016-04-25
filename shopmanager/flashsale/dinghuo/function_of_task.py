@@ -407,7 +407,7 @@ def daily_data_stats_update():
                     temp.save()
 
 
-from shopback.refunds.models import RefundProduct, Refund
+from shopback.refunds.models import RefundProduct
 from django.db.models import Sum, F
 from shopback.trades.models import MergeTrade, MergeOrder
 
@@ -449,11 +449,14 @@ def refund_handdler_return_num(ref_days=20, pro_days=15):
     start_pro_dt = datetime.datetime(target_pro_day.year, target_pro_day.month, target_pro_day.day)
     end_dt = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
     products = Product.objects.filter(sale_time__gte=start_pro_dt, sale_time__lte=end_dt)
+
     from shopback import paramconfig as pcfg
-    refunds = Refund.objects.filter(created__gte=start_ref_dt, created__lte=end_dt,
-                                    status__in=(pcfg.REFUND_SUCCESS,  # 退款成功
-                                                pcfg.REFUND_CONFIRM_GOODS,  # 买家已经退货
-                                                pcfg.REFUND_WAIT_SELLER_AGREE))  # 卖家同意退款
+    from flashsale.pay.models import SaleRefund
+    refunds = SaleRefund.objects.filter(
+        created__gte=start_ref_dt, created__lte=end_dt,
+        status__in=(SaleRefund.REFUND_SUCCESS,  # 退款成功
+                    SaleRefund.REFUND_CONFIRM_GOODS,  # 买家已经退货
+                    SaleRefund.REFUND_WAIT_RETURN_GOODS))  # 卖家同意退款
     # 1 对照退货款单计算退款数量
     ref_pro_nums = {}
     for ref in refunds:

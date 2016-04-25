@@ -241,7 +241,8 @@ def pushTradeRefundTask(refund_id):
 
         seller = getOrCreateSaleSeller()
         sorder = SaleOrder.objects.get(id=sale_refund.order_id)
-        refund, state = Refund.objects.get_or_create(tid=strade.tid,
+        refund, state = Refund.objects.get_or_create(id=refund_id,
+                                                     tid=strade.tid,
                                                      oid=sorder.oid)
         refund.user = seller
         refund.title = sorder.title
