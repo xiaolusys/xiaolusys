@@ -1,4 +1,5 @@
 # coding=utf-8
+from flashsale.pay.models_custom import BrandEntry, BrandProduct
 from shopback.items.models import Product, ProductSku, ProductCategory
 from flashsale.pay.models import (
     SaleTrade,
@@ -127,6 +128,22 @@ class ActivityEntrySerializer(serializers.ModelSerializer):
                   'total_member_num', 'friend_member_num', 'is_active')
 
 
+class BrandEntrySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BrandEntry
+        fields = ('id', 'brand_name', 'brand_desc', 'brand_pic', 'brand_post',
+                  'brand_applink', 'start_time', 'end_time', 'is_active')
+
+
+class BrandProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BrandProduct
+        fields = ('id', 'brand_name',
+                  'product_id', 'start_time', 'end_time')
+
+
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
     category = ProductCategorySerializer(read_only=True)
@@ -189,10 +206,11 @@ class PosterSerializer(serializers.HyperlinkedModelSerializer):
     wem_posters = JSONParseField(read_only=True, required=False)
     chd_posters = JSONParseField(read_only=True, required=False)
     activity = ActivityEntrySerializer(source='get_activity', read_only=True)
+    brand_promotion = BrandEntrySerializer(source='get_brand', read_only=True, many=True)
 
     class Meta:
         model = GoodShelf
-        fields = ('id', 'url', 'wem_posters', 'chd_posters', 'active_time', 'activity')
+        fields = ('id', 'url', 'wem_posters', 'chd_posters', 'active_time', 'activity','brand_promotion')
 
 
 #####################################################################################

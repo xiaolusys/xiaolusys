@@ -519,7 +519,7 @@ class EnvelopAdmin(admin.ModelAdmin):
 
 admin.site.register(Envelop, EnvelopAdmin)
 
-from flashsale.pay.models_custom import ModelProduct
+from flashsale.pay.models_custom import ModelProduct, BrandEntry, BrandProduct
 
 
 class ModelProductAdmin(admin.ModelAdmin):
@@ -574,6 +574,38 @@ class ActivityEntryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ActivityEntry, ActivityEntryAdmin)
+
+
+class BrandEntryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'brand_name', 'start_time', 'end_time', 'created', 'is_active')
+
+    list_filter = ('is_active', ('start_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    search_fields = ['brand_name']
+    list_per_page = 25
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 128})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
+    }
+
+
+admin.site.register(BrandEntry, BrandEntryAdmin)
+
+
+class BrandProductAdmin(admin.ModelAdmin):
+    list_display = ('id', 'brand_name', 'start_time', 'end_time',  'product_id')
+
+    list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))
+    search_fields = ['brand_name']
+    list_per_page = 25
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 128})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
+    }
+
+
+admin.site.register(BrandProduct, BrandProductAdmin)
 
 from models_coupon import Integral, IntegralLog
 
