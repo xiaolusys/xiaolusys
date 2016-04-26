@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <title>小鹿美美 - 入库后台</title>
-        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
@@ -174,6 +174,7 @@
              left: -80px;
          }
          i.remove:hover {color: #ff4500;}
+         i.glyphicon-copy:hover {color: #ff4500;}
 
          tr.detail td:first-child input {width: 200px; display: inline-block}
          div.bootstrap-tagsinput {width: 120px; height: 36px;}
@@ -244,6 +245,7 @@
                                     </th>
                                     <th>商品ID</th>
                                     <th>编码</th>
+                                    <th>所属仓库</th>
                                     <th width="120px">图片</th>
                                     <th>规格ID</th>
                                     <th width="90px">尺寸</th>
@@ -269,6 +271,13 @@
                                         </a>
                                     </td>
                                     <td rowspan="{{ product.skus|length }}">
+                                        <select class="ware-select form-control" data-product-id="{{ product.id }}">
+                                            {% for ware_choice in ware_choices %}
+                                            <option value="{{ ware_choice.value }}"{% if ware_choice.value == product.ware_by %} selected{% endif %}>{{ ware_choice.text }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td rowspan="{{ product.skus|length }}">
                                         <div class="portfolio-box">
                                             <a href="{{ product.product_link }}" target="_blank">
                                                 <img src="{{ product.pic_path }}?imageView2/0/w/120" class="img-circle" data-pic-path="{{ product.pic_path }}">
@@ -277,7 +286,10 @@
                                     </td>
                                     {% endif %}
                                     <td>{{ sku.id }}</td>
-                                    <td>{{ sku.properties_name }}</td>
+                                    <td>
+                                        {{ sku.properties_name }}
+                                        <i class="glyphicon glyphicon-copy copy" data-clipboard-text="{{ product.outer_id }} {{ product.name }} {{ sku.properties_name }}"></i>
+                                    </td>
                                     <td>{{ sku.barcode }}</td>
                                     <td class="plan-quantity">
                                         <p class="n">
@@ -309,6 +321,7 @@
                                             <i class="glyphicon glyphicon-info-sign warning name-warning"></i>
                                         </div>
                                     </td>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -352,10 +365,14 @@
                         <button type="button" class="close" data-dismiss="modal" arial-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        <form>
+                        <form id="memo-form">
                             <div class="form-group">
                                 <label class="control-label">备注:</label><br>
-                                <textarea id="memo" rows="5" cols="40">{{ memo|default:'' }}</textarea>
+                                <textarea class="form-control" id="memo" rows="5" cols="60" readonly>{{ memo|default:'' }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control" id="memo-input" style="width:500px;display:inline-block">
+                                <button class="btn btn-success">添加</button>
                             </div>
                             <div class="form-group">
                                 <label class="control-label">拍照:</label>
@@ -398,10 +415,10 @@
                 </li>
             </ul>
         </div>
-        <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+        <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
         <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
         <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
-        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
         <script src="{{ STATIC_URL }}list.js"></script>
         <script src="{{ STATIC_URL }}typeahead.bundle.min.js"></script>
         <script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
@@ -412,6 +429,7 @@
         <script src="{{ STATIC_URL }}chosen_v1.5.1/chosen.jquery.js"></script>
         <script src="/static/wap/js/template.js"></script>
         <script src="{{ STATIC_URL }}bootstrap-tagsinput/dist/bootstrap-tagsinput.js"></script>
+        <script src="{{ STATIC_URL }}clipboard.js"></script>
         {% verbatim %}
         <script id="detail" type="text/html">
             <tr class="detail" data-detail-id="0" data-new-id="{{new_id}}">
@@ -422,6 +440,7 @@
                         <i class="glyphicon glyphicon-info-sign warning name-warning"></i>
                     </div>
                 </td>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -589,7 +608,6 @@
              }
              calcTotalQuantity();
          }
-
 
          function onNameChange(){
              var $this = $(this);
@@ -889,14 +907,13 @@
                  trigger: 'hover',
                  container: 'body',
                  content: function(){
-                     var pic_path = $(this).attr('data-pic-path');
-                     return IMAGE_PREVIEW_TPL({pic_path: pic_path});
+                     return IMAGE_PREVIEW_TPL({pic_path: $(this).attr('data-pic-path')});
                  }
              });
              $('tr.sku').each(function(index, el){
                  var $this = $(this);
-                 var product_id = parseInt($this.attr('data-product-id'));
-                 if(product_id){
+                 var productId = parseInt($this.attr('data-product-id'));
+                 if(productId){
                      var flag = false;
                      var $districts = $this.find('input.district');
                      $districts.each(function(index, el){
@@ -908,7 +925,7 @@
                              url: '/sale/dinghuo/dinghuo_orderlist/suggest_district',
                              type: 'get',
                              dataType: 'json',
-                             data: {product_id: product_id},
+                             data: {product_id: productId},
                              success: function(result){
                                  if(result.district){
                                      $districts.after(SUGGEST_DISTRICT_TPL({district: result.district}));
@@ -921,12 +938,55 @@
 
              $('tr.sku input.district').on('itemAdded', function(e){
                  var $tr = $(this).closest('tr[data-product-id]');
-                 var product_id = parseInt($tr.attr('data-product-id'));
-                 $(PRODUCT_TR_TPL({product_id: product_id}) + ' input.district').each(function(index, el){
+                 var productId = parseInt($tr.attr('data-product-id'));
+                 $(PRODUCT_TR_TPL({product_id: productId}) + ' input.district').each(function(index, el){
                      if(!$(this).val()){
                          $(this).tagsinput('add', e.item);
                      }
                  });
+             });
+
+             $('.ware-select').change(function(){
+                 var $this = $(this);
+                 var productId = parseInt($this.attr('data-product-id'));
+                 $.ajax({
+                     url: '/items/product/' + productId + '/?format=json',
+                     dataType: 'json',
+                     type: 'post',
+                     data: {format: 'json', ware_by: $this.val()},
+                     success: function(result){
+                         $('#tips').noty({
+                             text: '修改仓库成功',
+                             type: 'information',
+                             theme: 'bootstrapTheme',
+                             closeWith: ['button', 'click'],
+                             maxVisible: 20,
+                             modal: false
+                         });
+                     }
+                 });
+             });
+             var clipboard = new Clipboard('i.copy');
+
+             $('#memo-form').submit(function(){
+                 var text = $('#memo-input').val();
+                 if(text){
+                     $.ajax({
+                         url: '/sale/dinghuo/dinghuo_orderlist/do_memo',
+                         type: 'get',
+                         dataType: 'json',
+                         data: {content: text},
+                         success: function(result){
+                             if(result.memo){
+                                 var oldText = $('#memo').val();
+                                 if(oldText)
+                                     oldText += '\n';
+                                 $('#memo').val(oldText + result.memo);
+                             }
+                         }
+                     });
+                 }
+                 return false;
              });
          });
         </script>
