@@ -1,9 +1,11 @@
 # coding=utf-8
+import time
+import datetime
 from .models import Refund
 from django.http import HttpResponse
 from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
-import datetime
+
 from shopback.trades.models import MergeTrade
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -83,7 +85,11 @@ def refund_Invalid_Create(request):
     reason = int(content.get("reason", None))
     try:
         trade = MergeTrade.objects.get(id=trade_id)
+        # if trade.type != MergeTrade.SALE_TYPE:
+        #     return HttpResponse("not sale order")
+
         ref = Refund()
+        ref.id  = time.time() * 10 ** 2
         ref.tid = trade.tid
         ref.user = trade.user  # 店铺
         ref.buyer_nick = trade.buyer_nick  # 买家昵称

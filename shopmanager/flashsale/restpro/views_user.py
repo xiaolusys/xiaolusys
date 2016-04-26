@@ -518,6 +518,14 @@ class CustomerViewSet(viewsets.ModelViewSet):
         instance.status = Customer.DELETE
         instance.save()
 
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({'code':0, 'info':u'保存成功'})
+
     @list_route(methods=['get', 'post'])
     def customer_logout(self, request, *args, **kwargs):
         logout(request)
