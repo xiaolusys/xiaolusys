@@ -115,7 +115,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_ss_delay = q.filter(created__lte=threshold3).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         elif type_ == 4:
-            q = OrderList.objects.exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED])
+            q = OrderList.objects.exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED, OrderList.TO_PAY])
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold.date()).only('id').count()
             n_s_delay = q.filter(created__lte=threshold2.date()).only('id').count()
