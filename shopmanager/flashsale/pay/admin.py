@@ -260,7 +260,8 @@ class SaleRefundAdmin(admin.ModelAdmin):
                  ('内部信息:', {
                      'classes': ('collapse',),
                      'fields': (('buyer_nick', 'mobile', 'phone',),
-                                ('item_id', 'sku_id', 'refund_id', 'charge',))
+                                ('item_id', 'sku_id', 'refund_id', 'charge',),
+                                ('amount_flow'))
 
                  }),
                  ('审核信息:', {
