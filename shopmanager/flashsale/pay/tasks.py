@@ -610,7 +610,7 @@ def task_saleorder_update_package_sku_item(sale_order):
             return
         ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
         sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
-        attrs = ['num', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
+        attrs = ['num', 'oid', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
                 'payment', 'discount_fee', 'refund_status', 'pay_time', 'status']
         for attr in attrs:
             if hasattr(sale_order, attr):
@@ -618,6 +618,7 @@ def task_saleorder_update_package_sku_item(sale_order):
                 setattr(sku_item, attr, val)
         sku_item.outer_sku_id = sku_item.product_sku.outer_id
         sku_item.outer_id = sku_item.product_sku.product.outer_id
+        # sku_item.sku_properties_name = sale_order.properties_values
         sku_item.save()
         return
 

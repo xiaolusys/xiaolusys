@@ -7,6 +7,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from shopapp.asynctask.views import (AsyncCategoryView,
                                      AsyncOrderView,
                                      AsyncInvoicePrintView,
+                                     AsyncInvoice2PrintView,
                                      AsyncExpressPrintView)
 
 # from shopapp.asynctask.resources import AsyncTaskResource
@@ -38,6 +39,7 @@ urlpatterns = patterns('',
                        )),
 
                        (r'^invoice/$', staff_member_required(AsyncInvoicePrintView.as_view())),
+                       (r'^invoice2/$', staff_member_required(AsyncInvoice2PrintView.as_view())),
                        # resource=AsyncTaskResource,
                        # renderers=(AsyncPrintHtmlRenderer,),
                        #  authentication=(UserLoggedInAuthentication,),
@@ -49,5 +51,5 @@ urlpatterns = patterns('',
                            # renderers=(AsyncPrintHtmlRenderer,),
                            # authentication=(UserLoggedInAuthentication,),
                            # permissions=(IsAuthenticated,)
-                       ))),
+                        ))),
                        )

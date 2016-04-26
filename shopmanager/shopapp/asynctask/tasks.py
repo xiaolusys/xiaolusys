@@ -31,8 +31,9 @@ from shopback.monitor.models import SystemConfig
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
 from shopback.orders.models import Trade
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade, PackageOrder, PackageSkuItem
 from shopback.items.models import Product, ProductSku
+
 from auth import apis
 import logging
 
@@ -435,6 +436,142 @@ class PrintAsyncTask(Task):
         else:
 
             express_data = self.genExpressData(trade_list)
+        return 0
+
+
+tasks.register(PrintAsyncTask)
+
+
+class PrintAsyncTask2(Task):
+    ignore_result = False
+
+    def genExpressData(self, trade_list):
+        pass
+
+    def genInvoiceData(self, package_orders):
+
+        picking_data_list = []
+        for trade in package_orders:
+
+            dt = datetime.datetime.now()
+            trade_data = {'ins': trade,
+                          'today': dt,
+                          'juhuasuan': False,
+                          'order_nums': 0,
+                          'total_fee': 0,
+                          'discount_fee': 0,
+                          'payment': 0,}
+
+            prompt_set = set()
+            order_items = {}
+            for sku_item in trade.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED):
+
+                trade_data['order_nums'] += sku_item.num
+                trade_data['discount_fee'] += float(sku_item.discount_fee or 0)
+                trade_data['total_fee'] += float(sku_item.total_fee or 0)
+                trade_data['payment'] += float(sku_item.payment or 0)
+
+                outer_id = sku_item.outer_id
+                outer_sku_id = sku_item.outer_sku_id or str(sku_item.sku_id)
+
+                prod_sku = sku_item.product_sku
+                product = sku_item.product
+
+                promptmsg = (prod_sku and prod_sku.buyer_prompt) or (product and product.buyer_prompt) or ''
+                if promptmsg:
+                    prompt_set.add(promptmsg)
+
+                product_location = product and product.get_districts_code() or ''
+                product_sku_location = prod_sku and prod_sku.get_districts_code() or ''
+
+                if order_items.has_key(outer_id):
+                    order_items[outer_id]['num'] += sku_item.num
+                    skus = order_items[outer_id]['skus']
+                    if skus.has_key(outer_sku_id):
+                        skus[outer_sku_id]['num'] += sku_item.num
+                    else:
+                        prod_sku_name = prod_sku and prod_sku.name or sku_item.sku_properties_name
+                        skus[outer_sku_id] = {'sku_name': prod_sku_name,
+                                              'num': sku_item.num,
+                                              'location': product_sku_location}
+                else:
+                    prod_sku_name = prod_sku and prod_sku.name or sku_item.sku_properties_name
+                    order_items[outer_id] = {
+                        'num': sku_item.num,
+                        'location': product_location,
+                        'title': product.name if product else sku_item.title,
+                        'skus': {outer_sku_id: {
+                            'sku_name': prod_sku_name,
+                            'num': sku_item.num,
+                            'location': product_sku_location}
+                        }
+                    }
+            # if:
+            #    prompt_set.add(u'客官，您的订单已拆单分批发货，其它宝贝正在陆续赶来，请您耐心等候')
+
+            trade_data['buyer_prompt'] = prompt_set and ','.join(list(prompt_set)) or ''
+            order_list = sorted(order_items.items(), key=lambda d: d[1]['location'])
+            for trade in order_list:
+                skus = trade[1]['skus']
+                trade[1]['skus'] = sorted(skus.items(), key=lambda d: d[1]['location'])
+
+            trade_data['orders'] = order_list
+            picking_data_list.append(trade_data)
+
+        return picking_data_list
+
+    def genHtmlPDF(self, file_path, html_text):
+
+        import xhtml2pdf.pisa as pisa
+        import cStringIO as StringIO
+
+        with open(file_path, 'wb') as result:
+            pdf = pisa.pisaDocument(StringIO.StringIO(html_text), result)
+            if pdf.err:
+                raise Exception(u'PDF 创建失败')
+
+    def genHtmlPDFIostream(self, html_text):
+
+        import xhtml2pdf.pisa as pisa
+        import cStringIO as StringIO
+        result = StringIO.StringIO()
+        pdf = pisa.pisaDocument(StringIO.StringIO(html_text), result)
+        if pdf.err:
+            raise Exception(u'PDF 创建失败')
+        return StringIO.StringIO(result.getvalue())
+
+    def run(self, async_print_id, *args, **kwargs):
+
+        print_async = PrintAsyncTaskModel.objects.get(pk=async_print_id)
+        print 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        params_json = json.loads(print_async.params)
+        trade_ids = [int(p.strip()) for p in params_json['trade_ids'].split(',')]
+        user_code = params_json['user_code'].lower()
+
+        # trade_list = MergeTrade.objects.filter(id__in=trade_ids).order_by('out_sid')
+        package_orders = PackageOrder.objects.filter(pid__in=trade_ids).order_by('out_sid')
+        print 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbb'
+        if print_async.task_type == PrintAsyncTaskModel.INVOICE:
+
+            invoice_data = self.genInvoiceData(package_orders)
+            invoice_html = render_to_string('asynctask/print/invoice_%s_template2.html' % user_code,
+                                            {'trade_list': invoice_data})
+            #             invoice_path = os.path.join(settings.DOWNLOAD_ROOT,'print','invoice')
+            #             if not os.path.exists(invoice_path):
+            #                 os.makedirs(invoice_path)
+
+            file_pathname = os.path.join('print', 'invoice', 'IN%d.pdf' % print_async.pk)
+            #             self.genHtmlPDF(os.path.join(invoice_path, file_name), invoice_html.encode('utf-8'))
+            file_stream = self.genHtmlPDFIostream(invoice_html.encode('utf-8'))
+            upload_data_to_remote(file_pathname, file_stream)
+
+            print_async.file_path_to = generate_private_url(file_pathname)
+            print_async.status = PrintAsyncTaskModel.TASK_SUCCESS
+            print_async.save()
+            return print_async.file_path_to
+        else:
+
+            express_data = self.genExpressData(package_orders)
         return 0
 
 
