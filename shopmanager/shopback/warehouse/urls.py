@@ -10,7 +10,8 @@ from shopback.warehouse.views import (PackageScanCheckView,
                                       PackagOrderRevertView,
                                       PackagePrintPostView,
                                       PackagePrintExpressView,
-                                      PackagePrintPickingView
+                                      PackagePrintPickingView,
+                                      PackageReviewView
                                       )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -25,5 +26,7 @@ urlpatterns = patterns('shopback.warehouse.views',
                        (r'^print_express/$', csrf_exempt(PackagePrintExpressView.as_view())),
                        (r'^print_picking/$', csrf_exempt(PackagePrintPickingView.as_view())),
                        (r'^print_post/$', csrf_exempt(PackagePrintPostView.as_view())),
+                       (r'^revieworder/(?P<id>\d{1,20})/$', csrf_exempt(PackageReviewView.as_view(
+                       ))),
                        )
 urlpatterns += router.urls

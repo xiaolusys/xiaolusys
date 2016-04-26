@@ -2,7 +2,6 @@
 import json
 import datetime
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField
 from shopback.signals import user_logged_in
 import logging
 
@@ -16,7 +15,7 @@ class ValidUserManager(models.Manager):
 
 
 class TmcMessage(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user_id = models.BigIntegerField(db_index=True, verbose_name=u'店铺ID')
 
     topic = models.CharField(max_length=128, blank=True, verbose_name=u'消息主题')

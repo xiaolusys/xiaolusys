@@ -21,7 +21,7 @@
          .tt-hint {
              height: 40px;
              padding: 8px 12px;
-             font-size: 24px;
+             font-size: 18px;
              line-height: 30px;
              border: 2px solid #ccc;
              -webkit-border-radius: 8px;
@@ -60,7 +60,7 @@
 
          .tt-suggestion {
              padding: 3px 20px;
-             font-size: 18px;
+             font-size: 16px;
              line-height: 24px;
          }
 
@@ -84,11 +84,11 @@
          }
 
          label.control-label {
-             font-size: 20px;
+             font-size: 16px;
          }
 
          #form-1 .btn {
-             font-size: 20px;
+             font-size: 16px;
          }
 
          .panel {
@@ -114,22 +114,22 @@
          }
 
          #form-2, #form-2 .btn {
-             font-size: 20px;
+             font-size: 16px;
          }
 
          #form-2 input[type="number"] {
              text-align: center;
          }
          #form-2 input{
-             font-size: 18px;
+             font-size: 16px;
              padding-bottom: 5px;
          }
 
         #tips {
-            margin: 20px auto 0;
+            margin: 16px auto 0;
          }
          #tips .noty_message {
-             font-size: 20px !important;
+             font-size: 16px !important;
              line-height: 20px !important;
              height: 50px;
              padding: 20px 0 35px !important;
@@ -451,6 +451,7 @@
          var NEW_DETAIL_TR_TPL = _.template('tr[data-new-id="<%= new_id %>"]');
          var PRODUCT_TR_TPL = _.template('tr[data-product-id="<%= product_id %>"]');
          var IMAGE_PREVIEW_TPL = _.template('<img src="<%= pic_path %>" width=800 height=800>');
+         var SUGGEST_DISTRICT_TPL = _.template('<br><small>建议库位:</small><span class="bg-success"><%= district %></span>')
 
          var CREATE_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/create_supplier_inbound';
          var EDIT_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/edit_supplier_inbound';
@@ -892,7 +893,41 @@
                      return IMAGE_PREVIEW_TPL({pic_path: pic_path});
                  }
              });
+             $('tr.sku').each(function(index, el){
+                 var $this = $(this);
+                 var product_id = parseInt($this.attr('data-product-id'));
+                 if(product_id){
+                     var flag = false;
+                     var $districts = $this.find('input.district');
+                     $districts.each(function(index, el){
+                         if(!$(this).val())
+                             flag = true;
+                     });
+                     if(flag){
+                         $.ajax({
+                             url: '/sale/dinghuo/dinghuo_orderlist/suggest_district',
+                             type: 'get',
+                             dataType: 'json',
+                             data: {product_id: product_id},
+                             success: function(result){
+                                 if(result.district){
+                                     $districts.after(SUGGEST_DISTRICT_TPL({district: result.district}));
+                                 }
+                             }
+                         });
+                     }
+                 }
+             });
 
+             $('tr.sku input.district').on('itemAdded', function(e){
+                 var $tr = $(this).closest('tr[data-product-id]');
+                 var product_id = parseInt($tr.attr('data-product-id'));
+                 $(PRODUCT_TR_TPL({product_id: product_id}) + ' input.district').each(function(index, el){
+                     if(!$(this).val()){
+                         $(this).tagsinput('add', e.item);
+                     }
+                 });
+             });
          });
         </script>
     </body>

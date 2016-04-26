@@ -5,7 +5,6 @@ from common.utils import parse_datetime
 from django.db import models
 from shopback.users.models import User
 from shopback.items.models import Item
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 import logging
 
 logger = logging.getLogger('amounts.handler')
@@ -42,7 +41,7 @@ class TradeAmount(models.Model):
 
     class Meta:
         db_table = 'shop_amounts_tradeamount'
-        app_label = 'orders'
+        app_label = 'amounts'
 
     def __unicode__(self):
         return str(self.tid)
@@ -117,7 +116,7 @@ class OrderAmount(models.Model):
 
     class Meta:
         db_table = 'shop_amounts_orderamount'
-        app_label = 'orders'
+        app_label = 'amounts'
 
     def __unicode__(self):
         return str(self.oid)

@@ -648,11 +648,12 @@ class ScheduleDetailView(APIView):
         for schedule_detail in schedule.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL):
             saleproduct_ids.add(schedule_detail.sale_product_id)
 
-        product_ids = []
         scheduled_product_ids = []
-        for product in Product.objects.filter(sale_time=sale_time, shelf_status=Product.UP_SHELF):
-            if product.sale_product in saleproduct_ids:
-                scheduled_product_ids.append(product.id)
+        for product in Product.objects.filter(sale_product__in=list(saleproduct_ids), status=Product.NORMAL):
+            scheduled_product_ids.append(product.id)
+
+        product_ids = []
+        for product in Product.objects.filter(sale_time=sale_time, status=Product.NORMAL):
             product_ids.append(product.id)
 
         diff_product_ids1 = set(product_ids) - set(scheduled_product_ids)

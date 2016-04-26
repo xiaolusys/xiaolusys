@@ -5,10 +5,7 @@ import datetime
 from django.db import models
 from django.db.models import Q, Sum
 from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
-
 from bitfield import BitField
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 
 from shopback.users.models import User
 from core.options import log_action, CHANGE
@@ -127,6 +124,8 @@ GIFT_TYPE = (
     (pcfg.ITEM_GIFT_TYPE, u'买就送'),
 )
 
+def default_trade_tid():
+    return 'DD%d' % int(time.time() * 10 ** 5)
 
 class MergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
@@ -178,9 +177,9 @@ class MergeTrade(models.Model):
                     (WARE_SH, u'上海仓'),
                     (WARE_GZ, u'广州仓'))
 
-    id = BigIntegerAutoField(primary_key=True, verbose_name=u'订单ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'订单ID')
     tid = models.CharField(max_length=32,
-                           default=lambda: 'DD%d' % int(time.time() * 10 ** 5),
+                           default=default_trade_tid,
                            verbose_name=u'原单ID')
     user = models.ForeignKey(User, related_name='merge_trades', verbose_name=u'所属店铺')
     buyer_nick = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'买家昵称')
@@ -688,6 +687,8 @@ signals.recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 #     def __unicode__(self):
 #         return '<%s,%s>'%(str(self.mergetrade),self.sys_status)
 
+def default_order_oid():
+    return 'DO%d' % int(time.time() * 10 ** 5)
 
 class MergeOrder(models.Model):
     NO_REFUND = pcfg.NO_REFUND
@@ -717,11 +718,11 @@ class MergeOrder(models.Model):
         (DELETE, u'无效'),
     )
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     oid = models.CharField(max_length=32,
-                           default=lambda: 'DO%d' % int(time.time() * 10 ** 5),
+                           default=default_order_oid,
                            verbose_name=u'原单ID')
-    merge_trade = BigIntegerForeignKey(MergeTrade,
+    merge_trade = models.ForeignKey(MergeTrade,
                                        related_name='merge_orders',
                                        verbose_name=u'所属订单')
     sale_order_id = models.BigIntegerField(null=True, default=None, db_index=True, verbose_name=u'对应的SaleOrder')
@@ -731,10 +732,10 @@ class MergeOrder(models.Model):
     price = models.FloatField(default=0.0, verbose_name=u'单价')
 
     sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
-    num = models.IntegerField(null=True, default=0, verbose_name=u'数量')
+    num = models.IntegerField(default=0, verbose_name=u'数量')
 
-    outer_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品编码')
-    outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格编码')
+    outer_id = models.CharField(max_length=32, blank=True, verbose_name=u'商品编码')
+    outer_sku_id = models.CharField(max_length=32, blank=True, verbose_name=u'规格编码')
 
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
     payment = models.FloatField(default=0.0, verbose_name=u'实付款')
@@ -1056,7 +1057,8 @@ class MergeTradeDelivery(models.Model):
 
     DELIVERY_CHOICES = ((WAIT_DELIVERY, u'等待上传'),
                         (FAIL_DELIVERY, u'上传失败'),)
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
+
     seller = models.ForeignKey(User, null=True, verbose_name=u'所属店铺')
 
     trade_id = models.BigIntegerField(unique=True, verbose_name=u'订单ID')
@@ -1230,7 +1232,12 @@ class PackageOrder(models.Model):
     WARE_GZ = 2
     WARE_CHOICES = ((WARE_SH, u'上海仓'),
                     (WARE_GZ, u'广州仓'))
-    pid = BigIntegerAutoField(verbose_name=u'包裹主键', primary_key=True)
+
+    # PKG_CONFIRM = 'PKG_CONFIRM'
+    # PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
+    # PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
+    #                           (PKG_CONFIRM, u'已确定'))
+    pid = models.AutoField(verbose_name=u'包裹主键', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹ID', unique=True)
     tid = models.CharField(max_length=32, verbose_name=u'原单ID')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
@@ -1325,7 +1332,9 @@ class PackageOrder(models.Model):
     is_express_print = models.BooleanField(default=False, verbose_name=u'物流单')
     is_send_sms = models.BooleanField(default=False, verbose_name=u'发货通知')
     has_refund = models.BooleanField(default=False, verbose_name=u'待退款')
+
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name=u'生成日期')
+    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改日期')
     merged = models.DateTimeField(null=True, blank=True, verbose_name=u'合并日期')
     send_time = models.DateTimeField(null=True, blank=True, verbose_name=u'发货日期')
     weight_time = models.DateTimeField(db_index=True, null=True, blank=True, verbose_name=u'称重日期')
@@ -1359,7 +1368,6 @@ class PackageOrder(models.Model):
             self.save()
 
     def finish_scan_weight(self):
-        from shopback.items.models import ProductSkuStats
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
@@ -1406,16 +1414,38 @@ class PackageOrder(models.Model):
     def seller(self):
         return User.objects.get(id=self.seller_id)
 
-    def reset_to_wait_prepare_send(self):
+    def reset_to_wait_prepare_send(self, save_data=True):
         """
             重设状态到待发货准备
         """
-        if self.sys_status != PackageOrder.WAIT_PREPARE_SEND_STATUS:
+        if self.sys_status not in [PackageOrder.WAIT_PREPARE_SEND_STATUS,
+                                   PackageOrder.PKG_NEW_CREATED] and self.is_picking_print:
             self.redo_sign = True
-            self.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-            self.out_sid = ''
-            self.logistic_company_id = None
+            if save_data:
+                self.save()
+
+    def reset_sku_item_num(self, save_data=True):
+        sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
+                                                  sys_status__in=[PackageSkuItem.ASSIGNED,
+                                                                  PackageSkuItem.FINISHED])
+        sku_num = sku_items.count()
+        if self.sku_num != sku_num:
+            PackageOrder.objects.filter(id=self.id).update(sku_num=sku_num)
+        if save_data:
             self.save()
+
+
+    @staticmethod
+    def create(id, sale_trade):
+        package_order = PackageOrder(id=id)
+        buyer_id, address_id, ware_by_id, order = id.split('-')
+        package_order.buyer_id = int(buyer_id)
+        package_order.user_address_id = int(address_id)
+        package_order.ware_by_id = int(ware_by_id)
+        package_order.copy_order_info(sale_trade)
+        package_order.sku_num = 1
+        package_order.save()
+        return package_order
 
     @staticmethod
     def get_or_create(id, sale_trade):
@@ -1451,23 +1481,11 @@ class PackageOrder(models.Model):
         return id + '-' + str(now_num)
 
 
-def get_logistics_company(sender, instance, created, **kwargs):
-    from shopback.logistics import tasks
-    if created:
-        tasks.task_get_logistics_company.delay(instance)
-
-
-post_save.connect(get_logistics_company, sender=PackageOrder)
-
-
 def check_package_order_status(sender, instance, created, **kwargs):
-    if instance.sys_status == PackageOrder.PKG_NEW_CREATED and PackageSkuItem.objects.filter(
-            package_order_id=instance.id, status=PackageSkuItem.ASSIGNED).exists():
-        PackageOrder.objects.filter(pid=instance.pid).update(sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
-    PackageStat.objects.get(id=instance.pstat_id).save()
+    from shopback.logistics.tasks import task_get_logistics_company
+    if created:
+        task_get_logistics_company.delay(instance)
 
-
-# TODO@HY@5.1 已经换成了更改数量改变状态的方式
 post_save.connect(check_package_order_status, sender=PackageOrder)
 
 
@@ -1508,10 +1526,6 @@ from core.models import BaseModel
 
 
 class PackageSkuItem(BaseModel):
-    sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
-    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'原单ID')
-    num = models.IntegerField(default=0, verbose_name=u'数量')
-    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单ID')
 
     REAL_ORDER_GIT_TYPE = 0  # 实付
     CS_PERMI_GIT_TYPE = 1  # 赠送
@@ -1541,6 +1555,11 @@ class PackageSkuItem(BaseModel):
         (FINISHED, u'已出货'),
         (CANCELED, u'已取消')
     )
+    sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
+    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'原单ID')
+    num = models.IntegerField(default=0, verbose_name=u'数量')
+    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单ID')
+
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
                                   db_index=True, verbose_name=u'所属仓库')
 
@@ -1606,11 +1625,6 @@ class PackageSkuItem(BaseModel):
         else:
             return None
 
-    def oid(self):
-        return self.sale_order.oid
-
-    oid.short_description = u'原单id'
-
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
 
@@ -1635,30 +1649,10 @@ post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_productsku_salestats_num')
 
 
-def packagize_sku_item(sender, instance, created, **kwargs):
-    from shopback.trades.tasks import task_packagize_sku_item
-    task_packagize_sku_item.delay(instance)
+def update_package_order(sender, instance, created, **kwargs):
+    from shopback.trades.tasks import task_update_package_order
+    task_update_package_order.delay(instance)
 
 
-post_save.connect(packagize_sku_item, sender=PackageSkuItem, dispatch_uid='post_save_packagize_sku_item')
-
-
-def update_package_order_status(sender, instance, created, **kwargs):
-    from shopback.trades.tasks import task_update_package_order_status
-    if instance.assign_status == PackageSkuItem.FINISHED and PackageOrder.objects.get(
-            id=instance.package_order_id).status != PackageOrder.FINISHED_STATUS:
-        task_update_package_order_status.delay(instance.package_order_id)
-
-
-# TODO@hy 两套客户端出库的同步过渡方法
-post_save.connect(update_package_order_status, sender=PackageSkuItem,
-                  dispatch_uid='post_save_update_package_order_status')
-
-
-def update_package_order_sku_num(sender, instance, created, **kwargs):
-    from shopback.trades.tasks import task_update_package_order_sku_num
-    task_update_package_order_sku_num.delay(instance.package_order_id)
-
-
-post_save.connect(update_package_order_sku_num, sender=PackageSkuItem,
-                  dispatch_uid='post_save_update_package_order_sku_num')
+post_save.connect(update_package_order, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_package_order')

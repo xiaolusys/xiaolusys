@@ -16,4 +16,3 @@ class BuyerGroup(models.Model):
         app_label = 'supplier'
         verbose_name = u'买手分组'
         verbose_name_plural = u'买手分组列表'
-        app_label = 'users'

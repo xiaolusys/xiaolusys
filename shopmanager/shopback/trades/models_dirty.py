@@ -65,7 +65,7 @@ class DirtyMergeTrade(models.Model):
     WARE_CHOICES = ((WARE_NONE, u'未选仓'), (WARE_SH, u'上海仓'), (WARE_GZ, u'广州仓'))
 
     tid = models.CharField(max_length=32,
-                           default=lambda: 'DD%d' % int(time.time() * 10 ** 5),
+                           default='DD%d' % int(time.time() * 10 ** 5),
                            verbose_name=u'原单ID')
     user = models.ForeignKey(User,
                              related_name='dirty_merge_trades',
@@ -284,7 +284,7 @@ class DirtyMergeOrder(models.Model):
     SYS_ORDER_STATUS = ((NORMAL, u'有效'), (DELETE, u'无效'),)
 
     oid = models.CharField(max_length=32,
-                           default=lambda: 'DO%d' % int(time.time() * 10 ** 5),
+                           default='DO%d' % int(time.time() * 10 ** 5),
                            verbose_name=u'原单ID')
     merge_trade = models.ForeignKey(DirtyMergeTrade,
                                     related_name='merge_orders',

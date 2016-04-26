@@ -50,7 +50,7 @@ class IntegralLog(PayBaseModel):
     log_type = models.IntegerField(choices=LOG_TYPE, verbose_name=u'积分类型')
     in_out = models.IntegerField(choices=IN_OUT, verbose_name=u'积分收支')
     order = JSONCharMyField(max_length=10240, blank=True,
-                            default=lambda: '[{"order_id":"","pic_link":"","trade_id":"","order_status":""}]',
+                            default='[{"order_id":"","pic_link":"","trade_id":"","order_status":""}]',
                             verbose_name=u'订单信息')
 
     class Meta:
@@ -65,9 +65,9 @@ class IntegralLog(PayBaseModel):
 
     @property
     def order_info(self):
-        info = json.loads(self.order)
-        if isinstance(info, list) and len(info) == 1:
-            return json.loads(self.order)[0]
+        if len(self.order) == 1:
+            info = json.dumps(self.order[0])
+            return json.loads(info)
         else:
             return {}
 
@@ -177,8 +177,9 @@ class CouponPool(PayBaseModel):
     POST_FEE = 5
     CO_TYPE = ((LIM30, u"订单满30减3"), (LIM300, u"订单满300减30"), (LIM118, u"妈妈专享 订单满30减30"), (POST_FEE, u"优惠券"))
 
-    coupon_no = models.CharField(max_length=40, unique=True, default=lambda: uniqid(
-        '%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))), verbose_name=u"优惠券号码")
+    coupon_no = models.CharField(max_length=40, unique=True,
+                                 # default=lambda: uniqid('%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))),
+                                 verbose_name=u"优惠券号码")
     deadline = models.DateTimeField(verbose_name=u"截止日期")
     coupon_type = models.IntegerField(choices=CO_TYPE, default=1, verbose_name=u"优惠券类型")
     coupon_value = models.FloatField(default=1.0, verbose_name=u"优惠券数值")

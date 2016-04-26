@@ -22,9 +22,8 @@ from auth import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
 from flashsale.restpro.local_cache import image_watermark_cache
-from core.fields import BigIntegerAutoField
-from shopback import paramconfig as pcfg
 
+from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category, ProductCategory
 from shopback.archives.models import Deposite, DepositeDistrict
 from shopback.users.models import DjangoUser, User
@@ -111,7 +110,7 @@ class Product(models.Model):
     PRODUCT_CODE_DELIMITER = '.'
     NO_PIC_PATH = '/static/img/nopic.jpg'
 
-    outer_id = models.CharField(max_length=64, unique=True, null=False,
+    outer_id = models.CharField(max_length=32, unique=True, null=False,
                                 blank=True, verbose_name=u'外部编码')
     name = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'商品名称')
     model_id = models.BigIntegerField(db_index=True, default=0, verbose_name='商品款式ID')
@@ -629,7 +628,7 @@ class ProductSku(models.Model):
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
 
-    outer_id = models.CharField(max_length=64, blank=False, verbose_name=u'供应商货号/编码')
+    outer_id = models.CharField(max_length=32, blank=False, verbose_name=u'供应商货号/编码')
 
     barcode = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='条码')
     product = models.ForeignKey(Product, null=True, related_name='prod_skus', verbose_name='商品')
@@ -1192,7 +1191,7 @@ class ProductLocation(models.Model):
 
 
 class ItemNumTaskLog(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
 
     user_id = models.CharField(max_length=64, blank=True, verbose_name='店铺ID')
     outer_id = models.CharField(max_length=64, blank=True, verbose_name='商品编码')
@@ -1216,7 +1215,7 @@ class ItemNumTaskLog(models.Model):
 
 
 class ProductDaySale(models.Model):
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
 
     day_date = models.DateField(verbose_name=u'销售日期')
     sale_time = models.DateField(null=True, verbose_name=u'上架日期')
@@ -1308,7 +1307,7 @@ class ProductSkuContrast(models.Model):
     """ 商品规格尺寸参数 """
     product = models.OneToOneField(Product, primary_key=True, related_name='contrast',
                                    verbose_name=u'商品ID')
-    contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=lambda: SKU_DEFAULT, verbose_name=u'对照表详情')
+    contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=SKU_DEFAULT, verbose_name=u'对照表详情')
     created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
     modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
 

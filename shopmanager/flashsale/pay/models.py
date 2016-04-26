@@ -6,7 +6,6 @@ from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save
 from django.db import transaction
 
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
@@ -35,7 +34,7 @@ logger = logging.getLogger(__name__)
 FLASH_SELLER_ID = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
 TIME_FOR_PAYMENT = 25 * 60
-
+# seller = User.objects.get(uid='flashsale')
 
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
@@ -118,7 +117,7 @@ class SaleTrade(BaseModel):
         (TRADE_CLOSED_BY_SYS, u'交易关闭'),
     )
 
-    id = BigIntegerAutoField(primary_key=True, verbose_name=u'订单ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'订单ID')
 
     tid = models.CharField(max_length=40, unique=True,
                            default=genTradeUniqueid,
@@ -163,7 +162,7 @@ class SaleTrade(BaseModel):
     openid = models.CharField(max_length=40, blank=True, verbose_name=u'微信OpenID')
     charge = models.CharField(max_length=28, verbose_name=u'支付编号')
 
-    extras_info = JSONCharMyField(max_length=256, blank=True, default=lambda: {}, verbose_name=u'附加信息')
+    extras_info = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'附加信息')
 
     status = models.IntegerField(choices=TRADE_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'交易状态')
@@ -354,8 +353,9 @@ class SaleTrade(BaseModel):
 
     @property
     def seller(self):
-        from shopback.users.models import User
-        return User.objects.get(uid=FLASH_SELLER_ID)
+        if not hasattr(SaleTrade, '_seller'):
+            SaleTrade._seller = User.objects.get(uid=FLASH_SELLER_ID)
+        return SaleTrade._seller
 
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """
@@ -459,6 +459,8 @@ def release_mamalink_coupon(sender, obj, **kwargs):
 
 signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 
+def default_oid():
+    return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
 
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
@@ -495,12 +497,11 @@ class SaleOrder(PayBaseModel):
                            TRADE_BUYER_SIGNED,
                            TRADE_FINISHED,)
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     oid = models.CharField(max_length=40, unique=True,
-                           default=lambda: uniqid(
-                               '%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d'))),
+                           default=default_oid,
                            verbose_name=u'原单ID')
-    sale_trade = BigIntegerForeignKey(SaleTrade, related_name='sale_orders',
+    sale_trade = models.ForeignKey(SaleTrade, related_name='sale_orders',
                                       verbose_name=u'所属订单')
 
     item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
@@ -510,8 +511,8 @@ class SaleOrder(PayBaseModel):
     sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'属性编码')
     num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
 
-    outer_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品外部编码')
-    outer_sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格外部编码')
+    outer_id = models.CharField(max_length=32, blank=True, verbose_name=u'商品外部编码')
+    outer_sku_id = models.CharField(max_length=32, blank=True, verbose_name=u'规格外部编码')
 
     total_fee = models.FloatField(default=0.0, verbose_name=u'总费用')
     payment = models.FloatField(default=0.0, verbose_name=u'实付款')
@@ -711,7 +712,7 @@ class ShoppingCart(BaseModel):
     STATUS_CHOICE = ((NORMAL, u'正常'),
                      (CANCEL, u'关闭'))
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     buyer_id = models.BigIntegerField(null=False, db_index=True, verbose_name=u'买家ID')
     buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
 
@@ -779,17 +780,18 @@ from django.contrib.auth.models import User as DjangoUser
 
 
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
-    from core.options import log_action, CHANGE, SYSTEMOA_USER
+    from core.options import log_action, CHANGE, get_systemoa_user
+    sysoa_user = get_systemoa_user()
     for pro_bean in product_list:
         all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL)
         for cart in all_cart:
             cart.close_cart()
-            log_action(SYSTEMOA_USER.id, cart, CHANGE, u'下架后更新')
+            log_action(sysoa_user.id, cart, CHANGE, u'下架后更新')
         all_trade = SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)
         for trade in all_trade:
             try:
                 trade.close_trade()
-                log_action(SYSTEMOA_USER.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
+                log_action(sysoa_user.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
 

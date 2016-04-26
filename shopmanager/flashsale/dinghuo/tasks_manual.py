@@ -11,7 +11,7 @@ import re
 from django.db import connection
 import sys
 from supplychain.supplier.models import SaleProduct
-from core.options import log_action, CHANGE, SYSTEMOA_USER
+from core.options import log_action, CHANGE, get_systemoa_user
 
 
 @task()
@@ -33,4 +33,4 @@ def task_dinghuo_supplier():
         if supplier != "":
             one_dinghuo.supplier_shop = supplier
             one_dinghuo.save()
-            log_action(SYSTEMOA_USER.ID, one_dinghuo, CHANGE, u'修改供应商')
+            log_action(get_systemoa_user().id, one_dinghuo, CHANGE, u'修改供应商')
