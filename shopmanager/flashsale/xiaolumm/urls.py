@@ -24,7 +24,6 @@ urlpatterns = patterns('',
                        # url(r'^register/sendcode/$', views_register.SendCode.as_view(), name="mama_register_sendcode"),
                        # url(r'^register/verifycode/$', views_register.VerifyCode.as_view(), name="mama_register_sendcode"),
 
-
                        url(r'^register/deposite/$',
                            weixin_xlmm_auth(redirecto=constants.MALL_LOGIN_URL)(
                                views_register.PayDepositeView.as_view()), name="mama_deposite"),

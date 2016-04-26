@@ -286,11 +286,11 @@ if os.environ.get('TARGET') in ('staging',):
     }
     ####################### WAP AND WEIXIN CONFIG ########################
     M_SITE_URL   = 'http://staging.xiaolumeimei.com'
-    WEIXIN_APPID = 'wx2905e09c720b65d4'
-    WEIXIN_SECRET = '0a810c9070e6168e0b8747dcf82757c7'
+    WEIXIN_APPID = 'wxc2848fa1e1aa94b5'
+    WEIXIN_SECRET = 'bc41b3a535b095afc55cd40d2e808d9c'
 
-    WXPAY_APPID  = "wx2905e09c720b65d4"
-    WXPAY_SECRET = "0a810c9070e6168e0b8747dcf82757c7"
+    WXPAY_APPID  = "wxc2848fa1e1aa94b5"
+    WXPAY_SECRET = "bc41b3a535b095afc55cd40d2e808d9c"
 
     WXAPP_ID     = "wx25fcb32689872499"
     WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
