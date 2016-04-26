@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import json
+import datetime
 from django.db import models
 from django.db.models import F
 
@@ -266,7 +267,9 @@ class ActivityEntry(PayBaseModel):
 
     @classmethod
     def get_default_activity(cls):
-        acts = cls.objects.filter(is_active=True).order_by('-order_val', '-modified')
+        acts = cls.objects.filter(is_active=True,
+                                  end_time__gte=datetime.datetime.now())\
+            .order_by('-order_val', '-modified')
         if acts.exists():
             return acts[0]
         return None

@@ -276,14 +276,16 @@ if os.environ.get('TARGET') in ('staging',):
         }
     }
     BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
-    import raven
 
+    import raven
     RAVEN_CONFIG = {
         'dsn': 'http://4d0d1c129af94f35b2ca16f1993865cf:725c7627bb4f49858bb315a3e2e16988@sentry.xiaolumm.com/3',
         # If you are using git, you can also automatically configure the
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
+    # WAP DNS
+    M_SITE_URL = 'http://staging.xiaolumeimei.com'
 
 if os.environ.get('TARGET') in ('production', 'django18'):
     DEBUG = False
@@ -314,13 +316,14 @@ if os.environ.get('TARGET') in ('production', 'django18'):
     BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/2'
 
     import raven
-
     RAVEN_CONFIG = {
         'dsn': 'http://da7007ee84ad4004bb12bf866f665f48:85828683495d423b8917e044c9fbcd1d@sentry.xiaolumm.com/2',
         # If you are using git, you can also automatically configure the
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
+    # WAP DNS
+    M_SITE_URL = 'http://m.xiaolumeimei.com'
 
 if os.environ.get('TARGET') in ('staging','django18'):
     CELERY_ALWAYS_EAGER = True
@@ -342,8 +345,7 @@ if not DEBUG:
     # WEB DNS
     SITE_URL = 'http://youni.huyi.so/'
     # WAP DNS
-    M_SITE_URL = 'http://m.xiaolumeimei.com'
-
+    # M_SITE_URL = 'http://m.xiaolumeimei.com'
     ########################### ONEAPM Statsd ##############################
     STATSD_HOST = '192.168.0.1'
     STATSD_PORT = 8251
