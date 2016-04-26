@@ -5,7 +5,6 @@ from django.db.models import F
 
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
-from shopback.base.fields import BigIntegerAutoField
 from .base import PayBaseModel
 
 from shopback.items.models import Product
@@ -297,7 +296,7 @@ class ActivityEntry(PayBaseModel):
 class BrandEntry(PayBaseModel):
     """ 品牌推广入口 """
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
 
     brand_desc = models.TextField(max_length=512, blank=True, verbose_name=u'品牌活动描述')
@@ -333,7 +332,7 @@ class BrandEntry(PayBaseModel):
 class BrandProduct(PayBaseModel):
     """ 品牌商品信息 """
 
-    id = BigIntegerAutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     brand = models.ForeignKey(BrandEntry, related_name='brand', verbose_name=u'品牌编号id')
 
     brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
