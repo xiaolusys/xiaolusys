@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        cus = Customer.objects.filter(nick='')[:10]
-        logger.debug('total customer:%s'%cus.count())
+        cus = Customer.objects.raw("select id,nick from flashsale_customer where nick=''")
+        # logger.debug('total customer:%s'%cus.count())
         cnt = 0
         for u in cus:
             u.nick = genCustomerNickname()
