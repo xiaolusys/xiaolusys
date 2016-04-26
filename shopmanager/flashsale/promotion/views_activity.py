@@ -494,7 +494,7 @@ class OpenEnvelopeView(APIView):
 
 class StatsView(APIView):
     authentication_classes = (authentication.SessionAuthentication,)
-    # permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, event_id, *args, **kwargs):
