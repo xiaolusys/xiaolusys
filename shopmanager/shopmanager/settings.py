@@ -284,8 +284,16 @@ if os.environ.get('TARGET') in ('staging',):
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
-    # WAP DNS
-    M_SITE_URL = 'http://staging.xiaolumeimei.com'
+    ####################### WAP AND WEIXIN CONFIG ########################
+    M_SITE_URL   = 'http://staging.xiaolumeimei.com'
+    WEIXIN_APPID = 'wx2905e09c720b65d4'
+    WEIXIN_SECRET = '0a810c9070e6168e0b8747dcf82757c7'
+
+    WXPAY_APPID  = "wx2905e09c720b65d4"
+    WXPAY_SECRET = "0a810c9070e6168e0b8747dcf82757c7"
+
+    WXAPP_ID     = "wx25fcb32689872499"
+    WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
 
 if os.environ.get('TARGET') in ('production', 'django18'):
     DEBUG = False
@@ -322,8 +330,18 @@ if os.environ.get('TARGET') in ('production', 'django18'):
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
-    # WAP DNS
+    #######################  WAP AND WEIXIN CONFIG ########################
     M_SITE_URL = 'http://m.xiaolumeimei.com'
+
+    WEIXIN_APPID = 'wxc2848fa1e1aa94b5'
+    WEIXIN_SECRET = 'bc41b3a535b095afc55cd40d2e808d9c'
+
+    WXPAY_APPID = "wx3f91056a2928ad2d"
+    WXPAY_SECRET = "e8e1f648a5e02492e1584e5413cef158"
+
+    WXAPP_ID = "wx25fcb32689872499"
+    WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
+
 
 if os.environ.get('TARGET') in ('staging','django18'):
     CELERY_ALWAYS_EAGER = True
@@ -412,14 +430,6 @@ if not DEBUG:
     WEIXIN_MEDIA_HOST = "http://file.api.weixin.qq.com"
     WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
     WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
-    WEIXIN_APPID = 'wxc2848fa1e1aa94b5'
-    WEIXIN_SECRET = 'bc41b3a535b095afc55cd40d2e808d9c'
-
-    WXPAY_APPID = "wx3f91056a2928ad2d"
-    WXPAY_SECRET = "e8e1f648a5e02492e1584e5413cef158"
-
-    WXAPP_ID = "wx25fcb32689872499"
-    WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
 
     ################### JINGDONG SETTINGS #################
 
