@@ -999,8 +999,8 @@ def task_update_package_order(instance):
                 package_order.set_redo_sign(save_data=False)
                 package_order.reset_sku_item_num(save_data=True)
     elif instance.assign_status == PackageSkuItem.CANCELED:
-        package_order = PackageOrder.objects.filter(id=instance.package_order_id).first()
-        if package_order:
+        if instance.package_order_id:
+            package_order = PackageOrder.objects.get(id=instance.package_order_id)
             package_order.set_redo_sign(save_data=False)
             package_order.reset_sku_item_num(save_data=True)
     elif instance.assign_status == PackageSkuItem.FINISHED:
