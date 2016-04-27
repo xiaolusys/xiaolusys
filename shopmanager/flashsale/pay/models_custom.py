@@ -217,10 +217,27 @@ class GoodShelf(PayBaseModel):
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
 
+    def get_cat_imgs(self):
+        return [
+            {'id': 5, 'name': u'童装专区',
+             'cat_img': 'http://7xogkj.com2.z0.glb.qiniucdn.com/category/child.png',
+             'cat_link': 'http://m.xiaolumeimei.com/chaotong.html?'},
+            {'id': 8, 'name': u'女装专区',
+             'cat_img': 'http://7xogkj.com2.z0.glb.qiniucdn.com/category/lady.png',
+             'cat_link': 'http://m.xiaolumeimei.com/nvzhuang.html?'},
+        ]
+
+    def get_posters(self):
+        return self.wem_posters + self.chd_posters
+
     def get_activity(self):
         return ActivityEntry.get_default_activity()
 
-    def get_brand(self):
+    def get_current_activitys(self):
+        now = datetime.datetime.now()
+        return ActivityEntry.get_effect_activitys(now)
+
+    def get_brands(self):
         return BrandEntry.get_brand()
 
 
@@ -268,11 +285,21 @@ class ActivityEntry(PayBaseModel):
     @classmethod
     def get_default_activity(cls):
         acts = cls.objects.filter(is_active=True,
-                                  end_time__gte=datetime.datetime.now())\
+                                  end_time__gte=datetime.datetime.now()) \
             .order_by('-order_val', '-modified')
         if acts.exists():
             return acts[0]
         return None
+
+    @classmethod
+    def get_effect_activitys(cls, active_time):
+        """ 根据时间获取活动列表 """
+        acts = cls.objects.filter(is_active=True,
+                                  end_time__gte=active_time) \
+            .order_by('-order_val', '-modified')
+        if acts.exists():
+            return acts
+        return cls.objects.none()
 
     def get_shareparams(self, **params):
         return {
@@ -296,6 +323,7 @@ class ActivityEntry(PayBaseModel):
     def friend_member_num(self):
         return 16
 
+
 class BrandEntry(PayBaseModel):
     """ 品牌推广入口 """
 
@@ -310,6 +338,8 @@ class BrandEntry(PayBaseModel):
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
 
+    order_val = models.IntegerField(default=0, verbose_name=u'排序值')
+
     is_active = models.BooleanField(default=True, verbose_name=u'上线')
 
     class Meta:
@@ -323,28 +353,35 @@ class BrandEntry(PayBaseModel):
 
     @classmethod
     def get_brand(cls):
-        print 'get brand'
         acts = cls.objects.filter(is_active=True)
         if acts.exists():
-            print "acts count %d"%(acts.count())
             return acts
-        print 'null'
         return []
+
+    @classmethod
+    def get_effect_brands(cls, btime):
+        """ 根据时间获取活动列表 """
+        brands = cls.objects.filter(is_active=True,
+                                  end_time__gte=btime) \
+            .order_by('-order_val', '-modified')
+        if brands.exists():
+            return brands
+        return cls.objects.none()
 
 
 class BrandProduct(PayBaseModel):
     """ 品牌商品信息 """
 
     id = models.AutoField(primary_key=True)
-    brand = models.ForeignKey(BrandEntry, related_name='brand', verbose_name=u'品牌编号id')
-
+    brand = models.ForeignKey(BrandEntry, related_name='brand_products', verbose_name=u'品牌编号id')
     brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
 
     product_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品id')
+    product_name = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品名称')
+    product_img  = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品图片')
 
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
-
 
     class Meta:
         db_table = 'flashsale_brand_product'

@@ -206,7 +206,7 @@ class PosterSerializer(serializers.HyperlinkedModelSerializer):
     wem_posters = JSONParseField(read_only=True, required=False)
     chd_posters = JSONParseField(read_only=True, required=False)
     activity = ActivityEntrySerializer(source='get_activity', read_only=True)
-    brand_promotion = BrandEntrySerializer(source='get_brand', read_only=True, many=True)
+    brand_promotion = BrandEntrySerializer(source='get_brands', read_only=True, many=True)
 
     class Meta:
         model = GoodShelf
