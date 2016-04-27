@@ -1163,7 +1163,7 @@ class RemainNumAPIView(APIView):
                         inferior_quantity=Sum('inferior_quantity'))
         for s in dinghuo_stats:
             skus_dict2['%s-%s' % (s['product_id'], s['chichu_id'])]['buy_num'] = s['buy_quantity'] - \
-              min(s['buy_quantity'], s['arrival_quantity']) - s['inferior_quantity']
+              min(s['buy_quantity'], s['arrival_quantity'] + s['inferior_quantity'])
 
         items = []
         for k in sorted(products_dict.keys(), reverse=True):

@@ -884,12 +884,12 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             flag_lack = 0
             flag_arrival = 0
             for orderdetail in orderlist.order_list.all():
-                if orderdetail.inferior_quantity > 0:
+                if orderdetail.inferior_quantity + orderdetail.arrival_quantity < orderdetail.buy_quantity:
+                    flag_lack = 1
+                if orderdetail.arrival_quantity < orderdetail.buy_quantity and orderdetail.inferior_quantity > 0:
                     flag_inferior = 1
                 if orderdetail.arrival_quantity > 0:
                     flag_arrival = 1
-                if orderdetail.inferior_quantity + orderdetail.arrival_quantity < orderdetail.buy_quantity:
-                    flag_lack = 1
 
             status = None
             if flag_inferior and flag_lack:
@@ -927,6 +927,12 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         username = '%s%s' % (request.user.last_name, request.user.first_name)
         username = username or request.user.username
         now = datetime.datetime.now()
+
+        # 过滤无效输入
+        for k in inbound_skus_dict.keys():
+            inbound_sku_dict = inbound_skus_dict[k]
+            if not (inbound_sku_dict['arrival_quantity'] or inbound_sku_dict['inferior_quantity']):
+                inbound_skus_dict.pop(k, False)
 
         if inbound_skus_dict:
             inbound.status = InBound.PENDING
