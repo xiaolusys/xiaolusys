@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class RefundApply(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
-    #     permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
     template_name = "pay/mrefundapply.html"
 
     def get(self, request, format=None):
@@ -118,7 +118,7 @@ class RefundApply(APIView):
 
 class RefundConfirm(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
-    #     permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
     template_name = "pay/mrefundconfirm.html"
 
     def get(self, request, pk, format=None):
@@ -146,6 +146,45 @@ from django.db import models
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback import paramconfig as pcfg
 from tasks import task_send_msg_for_refund
+
+
+def calculate_amount_flow(refund):
+    """
+    :arg SaleRefund instance AND SaleOrder instance
+    计算退款单中的amount_flow字段内容
+    """
+    order = SaleOrder.objects.get(id=refund.order_id)
+    sale_trade = order.sale_trade
+    if sale_trade.payment <= 0:
+        raise Exception(u"付款金额有误,核实后操作")
+    if order.num <= 0:
+        raise Exception(u"退款数量有误,核实后操作")
+
+    amount_flow = refund.amount_flow  # 字段原始信息
+    # 请求退款的数量
+    refund_num = refund.refund_num
+    # 支付渠道
+    channel = sale_trade.channel
+    refund_money = order.payment * (refund_num / float(order.num))  # 退款总金额 = 订单实付款 * (退款数量 / 订购数量)
+    # 计算钱包支付金额 = 实付款 - 实付现金
+    budget_pay_money = sale_trade.payment - sale_trade.pay_cash
+    # 支付渠道支付金额 = 实付款 - 钱包支付金额
+    channel_cash = sale_trade.payment - budget_pay_money
+
+    # 退款单的金额 = (渠道的金额 / 实付款) * 退款金额
+    buget_refund_money = budget_pay_money / sale_trade.payment * refund_money
+    channel_refund_money = channel_cash / sale_trade.payment * refund_money
+
+    # 对应支付渠道的金额
+    amount_flow[channel] = "%.2f" % channel_refund_money
+    amount_flow['budget'] = "%.2f" % buget_refund_money
+
+    if sale_trade.has_budget_paid:  # 如果是有小鹿钱包参与支付
+        amount_flow['desc'] = u'您的退款已退至小鹿钱包'
+    else:
+        channel_name = sale_trade.get_channel_display()
+        amount_flow['desc'] = u'您的退款将退至%s' % channel_name
+    return amount_flow
 
 
 class RefundPopPageView(APIView):
@@ -282,6 +321,7 @@ class RefundPopPageView(APIView):
 
                     elif obj.refund_fee > 0 and obj.charge:  # 有支付编号
                         import pingpp
+
                         pingpp.api_key = settings.PINGPP_APPKEY
                         ch = pingpp.Charge.retrieve(obj.charge)
                         re = ch.refunds.create(description=obj.refund_desc(),
@@ -290,6 +330,8 @@ class RefundPopPageView(APIView):
                         obj.status = SaleRefund.REFUND_APPROVE  # 确认退款等待返款
                         obj.save()
                         log_action(request.user.id, obj, CHANGE, u'退款审核通过:%s' % obj.refund_id)
+                    obj.amount_flow = calculate_amount_flow(obj)
+                    obj.save()
                 else:  # 退款单状态不可审核
                     Response({"res": "not_in_status"})
             except Exception, exc:
