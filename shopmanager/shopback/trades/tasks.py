@@ -985,17 +985,23 @@ def task_update_package_order(instance):
                     PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order.id)
                 else:
                     PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
-                    package_order.reset_to_wait_prepare_send(save_data=False)
+                    package_order.set_redo_sign(save_data=False)
                     package_order.reset_sku_item_num(save_data=True)
             else:
                 logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
                 return
         else:
-            PackageOrder.objects.get(id=instance.package_order_id).save()
+            package_order = PackageOrder.objects.get(id=instance.package_order_id)
+            if package_order.sys_status == PackageOrder.PKG_NEW_CREATED:
+                package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+                package_order.reset_sku_item_num(save_data=True)
+            else:
+                package_order.set_redo_sign(save_data=False)
+                package_order.reset_sku_item_num(save_data=True)
     elif instance.assign_status == PackageSkuItem.CANCELED:
         package_order = PackageOrder.objects.filter(id=instance.package_order_id).first()
         if package_order:
-            package_order.reset_to_wait_prepare_send(save_data=False)
+            package_order.set_redo_sign(save_data=False)
             package_order.reset_sku_item_num(save_data=True)
     elif instance.assign_status == PackageSkuItem.FINISHED:
         sku_items = PackageSkuItem.objects.filter(package_order_id=instance.package_order_id)

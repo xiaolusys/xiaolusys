@@ -2,7 +2,7 @@ import datetime
 import json
 from django.http import HttpResponse
 from .models import PrintAsyncTaskModel
-from shopapp.asynctask.tasks import AsyncCategoryTask, AsyncOrderTask, PrintAsyncTask
+from shopapp.asynctask.tasks import AsyncCategoryTask, AsyncOrderTask, PrintAsyncTask, PrintAsyncTask2
 from common.utils import parse_date
 
 from rest_framework import generics
@@ -83,6 +83,31 @@ class AsyncInvoicePrintView(APIView):
         return Response({"task_id": print_async_task, "async_print_id": task_model.pk})
 
     post = get
+
+class AsyncInvoice2PrintView(APIView):
+    """ docstring for class AsyncPrintView """
+    serializer_class = serializers.PrintAsyncTaskModeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (TemplateHTMLRenderer, BrowsableAPIRenderer)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
+    template_name = "asynctask/async_print_commit.html"
+
+    # print "start   AsyncInvoicePrintView"
+    def get(self, request, *args, **kwargs):
+        print " get  function"
+        profile = request.user
+        content = request.REQUEST
+
+        params = {'trade_ids': content.get('trade_ids'),
+                  'user_code': content.get('user_code')}
+        task_model = PrintAsyncTaskModel.objects.create(
+            task_type=PrintAsyncTaskModel.INVOICE,
+            operator=profile.username,
+            params=json.dumps(params))
+
+        print_async_task = PrintAsyncTask2.delay(task_model.pk)
+
+        return Response({"task_id": print_async_task, "async_print_id": task_model.pk})
 
 
 class AsyncExpressPrintView(APIView):

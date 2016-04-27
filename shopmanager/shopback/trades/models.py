@@ -1414,7 +1414,7 @@ class PackageOrder(models.Model):
     def seller(self):
         return User.objects.get(id=self.seller_id)
 
-    def reset_to_wait_prepare_send(self, save_data=True):
+    def set_redo_sign(self, save_data=True):
         """
             重设状态到待发货准备
         """
