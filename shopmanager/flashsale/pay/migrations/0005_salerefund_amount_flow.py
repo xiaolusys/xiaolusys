@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='salerefund',
             name='amount_flow',
-            field=jsonfield.fields.JSONField(default=b'{"wx":"","alipay":"","wx_pub":"","alipay_wap":"","upmp_wap":"","wallet":"","budget":"","applepay_upacp":"", "desc":""}', max_length=512, verbose_name='\u9000\u6b3e\u53bb\u5411', blank=True),
+            field=jsonfield.fields.JSONField(default=b'{"desc":""}', max_length=512, verbose_name='\u9000\u6b3e\u53bb\u5411', blank=True),
         ),
     ]
