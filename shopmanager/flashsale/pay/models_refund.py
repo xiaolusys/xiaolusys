@@ -97,9 +97,7 @@ class SaleRefund(PayBaseModel):
     payment = models.FloatField(default=0.0, verbose_name='实付')
     refund_fee = models.FloatField(default=0.0, verbose_name='退款费用')
     amount_flow = JSONCharMyField(max_length=512, blank=True,
-                                  default='{"wx":"","alipay":"","wx_pub":"",'
-                                          '"alipay_wap":"","upmp_wap":"","wallet":"",'
-                                          '"budget":"","applepay_upacp":"", "desc":""}',
+                                  default='{"desc":""}',
                                   verbose_name=u'退款去向')
     success_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name='退款成功时间')
 
