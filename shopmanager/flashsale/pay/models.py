@@ -12,7 +12,7 @@ from shopback.items.models import DIPOSITE_CODE_PREFIX
 from shopback.items.models import Product, ProductSku
 from flashsale.pay.models_user import Register, Customer, UserBudget, BudgetLog
 from flashsale.pay.models_addr import District, UserAddress
-from flashsale.pay.models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry
+from flashsale.pay.models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry, BrandProduct, BrandEntry
 from flashsale.pay.models_refund import SaleRefund
 from flashsale.pay.models_envelope import Envelop
 from flashsale.pay.models_coupon import Integral, IntegralLog
@@ -563,18 +563,21 @@ class SaleOrder(PayBaseModel):
     def is_finishable(self):
         """
         1，订单发货后超过14天未确认签收,系统自动变成已完成状态；
-        2，订单确认签收后，7天之后订单状态变成已完成；
+        2，订单确认签收后，7天之后(最多7天,应在在发货后14天以内)订单状态变成已完成；
         """
         now_time = datetime.datetime.now()
         consign_time = self.consign_time
         sign_time = self.sign_time
         if self.refund_status in SaleRefund.REFUNDABLE_STATUS:
             return False
+        delta_days = consign_time and (now_time - consign_time).days or 0
         if (self.status == self.WAIT_BUYER_CONFIRM_GOODS
-            and (not consign_time or (now_time - consign_time).days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
+            and (delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
             return True
         elif (self.status == self.TRADE_BUYER_SIGNED
-              and (not sign_time or (now_time - sign_time).days > CONST.ORDER_SIGNED_TO_FINISHED_DAYS)):
+            and (not sign_time
+                or (now_time - sign_time).days > CONST.ORDER_SIGNED_TO_FINISHED_DAYS
+                or delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
             return True
         return False
 

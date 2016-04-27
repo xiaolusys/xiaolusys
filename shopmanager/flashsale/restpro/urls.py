@@ -121,10 +121,11 @@ router_urls += format_suffix_patterns([
 
 # 2016-3-2 v2
 from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login
-from flashsale.restpro.v2 import views_trade_v2
+from flashsale.restpro.v2 import views_trade_v2, views_product_v2
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
-v2_router.register(r'carts', views_trade.ShoppingCartViewSet)
+v2_router.register(r'cart', views_trade.ShoppingCartViewSet)
+v2_router.register(r'poster', views_product_v2.PosterViewSet)
 v2_router.register(r'trades', views_trade_v2.SaleTradeViewSet)
 v2_router.register(r'address', views.UserAddressViewSet)
 v2_router.register(r'fortune', views_mama_v2.MamaFortuneViewSet)
@@ -146,19 +147,19 @@ v2_router_urls += ([
 ])
 
 urlpatterns = patterns('',
-                       url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
-                       url(r'^v1/', include(router_urls, namespace='v1')),
-                       url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
-                       url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-                       url(r'^wuliu/', views_wuliu.WuliuView.as_view()),
+    url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
+    url(r'^v1/', include(router_urls, namespace='v1')),
+    url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^wuliu/', views_wuliu.WuliuView.as_view()),
 
-                       # url(r'^test/',views_wuliu.test),
-                       url(r'^v2/', include(v2_router_urls, namespace='v2')),
-                       url(r'^v2/mama/', include(v2_router_urls, namespace='v2_mama')),
-                       url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
-                       url(r'^v2/send_code', views_verifycode_login.SendCodeView.as_view()),
-                       url(r'^v2/verify_code', views_verifycode_login.VerifyCodeView.as_view()),
-                       url(r'^v2/reset_password', views_verifycode_login.ResetPasswordView.as_view()),
-                       url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
-                       url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
-                       )
+    # url(r'^test/',views_wuliu.test),
+    url(r'^v2/', include(v2_router_urls, namespace='v2')),
+    url(r'^v2/mama/', include(v2_router_urls, namespace='v2_mama')),
+    url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
+    url(r'^v2/send_code', views_verifycode_login.SendCodeView.as_view()),
+    url(r'^v2/verify_code', views_verifycode_login.VerifyCodeView.as_view()),
+    url(r'^v2/reset_password', views_verifycode_login.ResetPasswordView.as_view()),
+    url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
+    url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
+)

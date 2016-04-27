@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import jsonfield.fields
 
 
 class Migration(migrations.Migration):
@@ -49,6 +50,11 @@ class Migration(migrations.Migration):
                 'verbose_name': '\u7279\u5356/\u54c1\u724c\u5546\u54c1',
                 'verbose_name_plural': '\u7279\u5356/\u54c1\u724c\u5546\u54c1',
             },
+        ),
+        migrations.AddField(
+            model_name='salerefund',
+            name='amount_flow',
+            field=jsonfield.fields.JSONField(default=b'{"desc":""}', max_length=512, verbose_name='\u9000\u6b3e\u53bb\u5411', blank=True),
         ),
         migrations.AlterField(
             model_name='saleorder',
