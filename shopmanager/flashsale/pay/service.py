@@ -54,6 +54,7 @@ class FlashSaleService(LocalService):
             update_prams['outer_id'] = product.outer_id
             update_prams['sku_properties_name'] = order.sku_name
             update_prams['outer_sku_id'] = sku.outer_id
+            update_prams['sku_id'] = sku.sku_id
 
         update_prams['created'] = merge_trade.created
         update_prams['pay_time'] = merge_trade.pay_time
