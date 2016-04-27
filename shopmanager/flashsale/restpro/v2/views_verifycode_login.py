@@ -213,6 +213,11 @@ class VerifyCodeView(views.APIView):
         if customer:
             if action == 'register':
                 return Response({"rcode": 2, "msg": u"该用户已经存在啦！"})  # 已经有用户了
+            if action == 'bind':
+                # 如果已绑定过微信,则不能重复绑定
+                customers = Customer.objects.filter(mobile=mobile).exclude(unionid='')
+                if customers.exists():
+                    return Response({"rcode": 2, "msg": u"该手机号码已注册！"})  # 已经有用户了
         else:
             if action == 'find_pwd' or action == 'change_pwd' or action == 'bind':
                 return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
