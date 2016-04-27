@@ -93,8 +93,9 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         elif xiaolumm.need_pay_deposite():  # 如果没有已经申请没有支付押金的跳转到支付押金页面
             return redirect(deposite_url)
 
-        else:  # 如果申请了并且交付的代理押金则直接跳转到代理的主页
-            return redirect(reverse('mama_homepage'))
+        else:  # 如果申请了并且交付的代理押金则直接跳转到下载app页面
+            download_url = '/sale/promotion/appdownload/'
+            return redirect(download_url)
 
     def post(self, request):
         # 验证码通过才可以进入本函数
@@ -148,7 +149,8 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
             return redirect(register_url)
 
         if mama_id == xlmm.id or not xlmm.need_pay_deposite():
-            return redirect(reverse('mama_homepage'))
+            download_url = '/sale/promotion/appdownload/'
+            return redirect(download_url)
 
         product = self.get_deposite_product()
         deposite_params = self.calc_deposite_amount_params(request, product)
