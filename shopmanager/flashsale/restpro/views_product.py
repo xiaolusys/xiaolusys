@@ -774,6 +774,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(object_list, many=True)
         return Response(serializer.data)
 
+
 class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """
     queryset = Product.objects.all()  # ,shelf_status=Product.UP_SHELF
@@ -828,3 +829,6 @@ class ProductShareView(generics.RetrieveAPIView):
         product_dict['share_qrcode'] = self.gen_item_share_qrcode_link(instance.id, linkid=xlmm and xlmm.id or 0)
 
         return Response(product_dict)
+
+
+
