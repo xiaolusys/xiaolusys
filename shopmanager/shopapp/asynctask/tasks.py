@@ -571,4 +571,4 @@ class PrintAsyncTask2(Task):
         return 0
 
 
-tasks.register(PrintAsyncTask)
+tasks.register(PrintAsyncTask2)
