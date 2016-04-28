@@ -129,10 +129,12 @@ router_urls += format_suffix_patterns([
 
 # 2016-3-2 v2
 from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login
-from flashsale.restpro.v2 import views_trade_v2
+from flashsale.restpro.v2 import views_trade_v2, views_product_v2
+
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'cart', views_trade.ShoppingCartViewSet)
+v2_router.register(r'product', views_product_v2.ProductViewSet)
 v2_router.register(r'trades', views_trade_v2.SaleTradeViewSet)
 v2_router.register(r'address', views.UserAddressViewSet)
 v2_router.register(r'fortune', views_mama_v2.MamaFortuneViewSet)
