@@ -45,7 +45,7 @@ import logging
 
 # fang  2015-8-19
 from shopback.trades.models import TradeWuliu
-from shopback.trades.tasks import send_package_task
+from shopback.trades.tasks import send_package_task, send_package_call_Back
 
 logger = logging.getLogger('django.request')
 
@@ -1273,7 +1273,7 @@ class PackageOrderAdmin(admin.ModelAdmin):
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
 
             send_tasks = chord([send_package_task.s(user_id, order.pid)
-                                for order in queryset])(sendTradeCallBack.s(replay_trade.id), max_retries=300)
+                                for order in queryset])(send_package_call_Back.s(replay_trade.id), max_retries=300)
 
         except Exception, exc:
             logger.error(exc.message, exc_info=True)

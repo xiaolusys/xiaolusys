@@ -221,6 +221,18 @@ def sendTradeCallBack(trade_ids, *args, **kwargs):
             logger.error('trade post callback error:%s' % exc.message, exc_info=True)
         return None
 
+@task()
+def send_package_call_Back(trade_ids, *args, **kwargs):
+    try:
+        replay_trade = ReplayPostTrade.objects.get(id=args[0])
+    except:
+        return None
+    else:
+        try:
+            get_replay_package_results(replay_trade)
+        except Exception, exc:
+            logger.error('trade post callback error:%s' % exc.message, exc_info=True)
+        return None
 
 @task(ignore_result=False)
 def sendTaobaoTradeTask(operator_id, trade_id):
