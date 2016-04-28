@@ -63,6 +63,8 @@ REFUND_REASON = (
     (9, u'发票问题'),
     (10, u'七天无理由退换货')
 )
+def default_refund_no():
+    return int(time.time() * 10 ** 4)
 
 def default_refund_id():
     return 'RF%d' % int(time.time() * 10 ** 4)
@@ -76,7 +78,7 @@ class Refund(models.Model):
     REFUND_CLOSED = pcfg.REFUND_CLOSED
     REFUND_SUCCESS = pcfg.REFUND_SUCCESS
 
-    id = models.BigIntegerField(primary_key=True, verbose_name='ID')
+    id = models.BigIntegerField(primary_key=True, default=default_refund_no, verbose_name='ID')
     refund_id = models.CharField(max_length=32,
                                  default=default_refund_id,
                                  verbose_name='退款单ID')
