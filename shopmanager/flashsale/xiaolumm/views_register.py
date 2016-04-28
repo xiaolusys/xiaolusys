@@ -103,13 +103,20 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         mobile = content.get('mobile')
         user = request.user
         customers = Customer.objects.filter(user=user)
-        mama_id = content.get('mama_id', 1)
-
         if not customers.exists():  # 这个不可能存在
             return redirect('./')
-        customer = customers[0]
-        customer.mobile = mobile  # 保存用户的手机号码
-        customer.save()
+
+        customer = customers.first()
+        mama_id = content.get('mama_id', 1)
+        if customer.mobile:  # 如果用户的手机号码存在
+            # 比较提交的号码与当前用户的号码是否一致
+            if customer.mobile != mobile:
+                logger.warn(u'代理提交资料时,号码与客户列表号码不一致 %s'%customer.id)
+        else:  # 没有手机号
+            customer.mobile = mobile  # 保存用户的手机号码
+            customer.save()
+        if not customer.unionid:
+            logger.warn(u'邀请代理:用户没有uninoid %s'%customer.id)
 
         xlmm, state = XiaoluMama.objects.get_or_create(openid=customer.unionid)
         parent_mobile = xlmm.referal_from  # 取出当前代理的推荐人
