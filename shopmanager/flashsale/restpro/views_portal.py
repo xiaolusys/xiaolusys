@@ -2,15 +2,7 @@
 import json
 import datetime
 import hashlib
-import urlparse
-import random
-from django.conf import settings
-from django.shortcuts import get_object_or_404
-from django.db.models import Q
-from django.core.urlresolvers import reverse
-from django.forms import model_to_dict
 
-from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import permissions
@@ -22,22 +14,21 @@ from rest_framework import exceptions
 from rest_framework_extensions.cache.decorators import cache_response
 
 
-from flashsale.pay.models import GoodShelf, ModelProduct
+from flashsale.pay.models import GoodShelf, BrandEntry, BrandProduct
 
 
 from . import serializers
 
 
-CACHE_VIEW_TIMEOUT = 30
+CACHE_VIEW_TIMEOUT = 60
 
-class PosterViewSet(viewsets.ReadOnlyModelViewSet):
+class PortalViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ###特卖海报API：
+    ###商城入口API(包含海报,类目,活动,及品牌推广)：
     - {prefix}/today[.format]: 获取今日特卖海报;
-    - {prefix}/previous[.format]: 获取昨日特卖海报;
     """
     queryset = GoodShelf.objects.filter(is_active=True)
-    serializer_class = serializers.PosterSerializer
+    serializer_class = serializers.PortalSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
@@ -75,43 +66,50 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
                                        active_time__day=target_date.day)
         return posters.count() and posters[0] or None
 
-    def get_previous_poster(self):
-        target_date = datetime.date.today() - datetime.timedelta(days=1)
-        target_date = self.get_latest_right_date(target_date)
-        posters = self.queryset.filter(active_time__year=target_date.year,
-                                       active_time__month=target_date.month,
-                                       active_time__day=target_date.day)
-        return posters.count() and posters[0] or None
-
-    def get_future_poster(self, request):
-        view_days = int(request.GET.get('days', '1'))
-        target_date = datetime.date.today() + datetime.timedelta(days=view_days)
-        target_date = self.get_latest_right_date(target_date)
-        posters = self.queryset.filter(active_time__year=target_date.year,
-                                       active_time__month=target_date.month,
-                                       active_time__day=target_date.day)
-        return posters.count() and posters[0] or None
-
-    def list(self, request, *args, **kwargs):
-        raise exceptions.APIException(u'该接口暂未实现')
-
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_porter_cache_key')
-    @list_route(methods=['get'])
-    def today(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         poster = self.get_today_poster()
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
-    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_porter_cache_key')
-    @list_route(methods=['get'])
-    def previous(self, request, *args, **kwargs):
-        poster = self.get_previous_poster()
-        serializer = self.get_serializer(poster, many=False)
+
+class BrandProductViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ###品牌商品入口：
+    - {prefix}/list[.format]: 获取品牌商品列表;
+    """
+    queryset = BrandProduct.objects.all()
+    serializer_class = serializers.BrandProductSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def list(self, request, brand_id, *args, **kwargs):
+        """
+        品牌商品列表
+        """
+        qs = self.queryset.filter(brand_id=brand_id)
+        queryset = self.filter_queryset(qs)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_porter_cache_key')
-    @list_route(methods=['get'])
-    def preview(self, request, *args, **kwargs):
-        poster = self.get_future_poster(request)
-        serializer = self.get_serializer(poster, many=False)
-        return Response(serializer.data)
+
+class BrandEntryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+     ###品牌入口：
+    - {prefix}/list[.format]: 获取品牌列表;
+    - {prefix}/{brand_id}/products[.format]: 获取品牌商品列表;
+    """
+    queryset = BrandEntry.objects.all()
+    serializer_class = serializers.BrandEntrySerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def get_queryset(self):
+        return self.queryset.filter(is_active=True)
+
+

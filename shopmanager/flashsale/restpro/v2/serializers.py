@@ -16,49 +16,6 @@ from flashsale.xiaolumm.models_fortune import (
     DailyStats,
 )
 
-from flashsale.pay.models import GoodShelf
-
-
-class JSONParseField(serializers.Field):
-    def to_representation(self, obj):
-        return obj
-
-    def to_internal_value(self, data):
-        return data
-
-class ActivityEntrySerializer(serializers.ModelSerializer):
-    extras = JSONParseField(read_only=True, required=False)
-
-    class Meta:
-        model = ActivityEntry
-        fields = ('id', 'title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link',
-                  'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras',
-                  'total_member_num', 'friend_member_num', 'is_active')
-
-class BrandProductSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = BrandProduct
-        fields = ('id', 'product_id', 'product_name', 'product_img', 'product_lowest_price', 'product_std_sale_price')
-
-class BrandEntrySerializer(serializers.ModelSerializer):
-    brand_products = BrandProductSerializer(read_only=True,many=True)
-    class Meta:
-        model = BrandEntry
-        fields = ('id', 'brand_name', 'brand_desc', 'brand_pic', 'brand_post',
-                  'brand_applink', 'start_time', 'end_time', 'brand_products')
-
-class PosterSerializer(serializers.ModelSerializer):
-
-    posters = JSONParseField(source='get_posters', read_only=True)
-    categorys = JSONParseField(source='get_cat_imgs', read_only=True)
-    current_activitys  = ActivityEntrySerializer(source='get_current_activitys', read_only=True, many=True)
-    promotion_brands   = BrandEntrySerializer(source='get_brands', read_only=True, many=True)
-
-    class Meta:
-        model = GoodShelf
-        fields = ('id', 'posters', 'categorys', 'current_activitys', 'promotion_brands' ,'active_time')
-
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
     cash_value = serializers.FloatField(source='cash_num_display', read_only=True)

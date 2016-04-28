@@ -14,6 +14,7 @@ from . import views_trade
 from . import views_share
 from . import views_coupon
 from . import views_integral
+from . import views_portal
 from flashsale.pay.views_login import weixin_login, weixin_test, weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 from flashsale.push import views as views_push
@@ -40,6 +41,9 @@ router.register(r'activitys', views_product.ActivityViewSet)
 router.register(r'carts', views_trade.ShoppingCartViewSet)
 router.register(r'trades', views_trade.SaleTradeViewSet)
 router.register(r'wxorders', views_trade.WXOrderViewSet)
+router.register(r'portal', views_portal.PortalViewSet)
+router.register(r'brands', views_portal.BrandEntryViewSet)
+
 
 router.register(r'refunds', views.SaleRefundViewSet)
 router.register(r'address', views.UserAddressViewSet)
@@ -95,6 +99,10 @@ router_urls += format_suffix_patterns([
     url(r'^products/(?P<pk>[0-9]+)/snapshot$',
         views_product.ProductShareView.as_view(),
         name='product-snapshot'),
+    url(r'^brands/(?P<brand_id>[0-9]+)/products$',
+        views_portal.BrandProductViewSet.as_view({'get': 'list'}),
+        name='brand-product'),
+
     url(r'^trades/(?P<pk>[0-9]+)/orders$',
         views_trade.SaleOrderViewSet.as_view({'get': 'list'}),
         name='saletrade-saleorder'),
@@ -121,11 +129,10 @@ router_urls += format_suffix_patterns([
 
 # 2016-3-2 v2
 from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login
-from flashsale.restpro.v2 import views_trade_v2, views_product_v2
+from flashsale.restpro.v2 import views_trade_v2
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'cart', views_trade.ShoppingCartViewSet)
-v2_router.register(r'poster', views_product_v2.PosterViewSet)
 v2_router.register(r'trades', views_trade_v2.SaleTradeViewSet)
 v2_router.register(r'address', views.UserAddressViewSet)
 v2_router.register(r'fortune', views_mama_v2.MamaFortuneViewSet)

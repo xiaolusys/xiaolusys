@@ -133,15 +133,23 @@ class BrandEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = BrandEntry
         fields = ('id', 'brand_name', 'brand_desc', 'brand_pic', 'brand_post',
-                  'brand_applink', 'start_time', 'end_time', 'is_active')
+                  'brand_applink', 'start_time', 'end_time')
 
 
 class BrandProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BrandProduct
-        fields = ('id', 'brand_name',
-                  'product_id', 'start_time', 'end_time')
+        fields = ('id', 'product_id', 'product_name', 'product_img', 'product_lowest_price', 'product_std_sale_price')
+
+
+class BrandPortalSerializer(serializers.ModelSerializer):
+
+    brand_products = BrandProductSerializer(many=True)
+    class Meta:
+        model = BrandEntry
+        fields = ('id', 'brand_name', 'brand_desc', 'brand_pic', 'brand_post',
+                  'brand_applink', 'brand_products', 'start_time', 'end_time')
 
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
@@ -212,6 +220,17 @@ class PosterSerializer(serializers.HyperlinkedModelSerializer):
         model = GoodShelf
         fields = ('id', 'url', 'wem_posters', 'chd_posters', 'active_time', 'activity','brand_promotion')
 
+
+class PortalSerializer(serializers.ModelSerializer):
+    """ 商城入口初始加载数据 """
+    posters = JSONParseField(source='get_posters', read_only=True)
+    categorys = JSONParseField(source='get_cat_imgs', read_only=True)
+    activitys  = ActivityEntrySerializer(source='get_current_activitys', read_only=True, many=True)
+    promotion_brands   = BrandEntrySerializer(source='get_brands', read_only=True, many=True)
+
+    class Meta:
+        model = GoodShelf
+        fields = ('id', 'posters', 'categorys', 'activitys', 'promotion_brands' ,'active_time')
 
 #####################################################################################
 
