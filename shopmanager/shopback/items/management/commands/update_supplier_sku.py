@@ -4,6 +4,7 @@ import datetime
 import re
 
 from django.core.management.base import BaseCommand
+from django.db import connection
 
 from core.options import log_action, CHANGE
 from flashsale.pay.models import SaleOrder
@@ -45,5 +46,13 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **kwargs):
+        cursor = connection.cursor()
+        i = 0
+        cursor.execute('select count(1) from shop_items_productsku where LENGTH(outer_id) != CHAR_LENGTH(outer_id) or outer_id regexp "#"')
+        row = cursor.fetchone()
+        n = row[0]
+
         for sku in ProductSku.objects.raw('select * from shop_items_productsku where LENGTH(outer_id) != CHAR_LENGTH(outer_id) or outer_id regexp "#"'):
+            i += 1
+            print '%s/%s' % (i, n)
             self.process_abnormal(sku)
