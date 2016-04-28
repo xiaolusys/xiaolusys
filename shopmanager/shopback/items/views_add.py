@@ -132,7 +132,7 @@ class AddItemView(generics.ListCreateAPIView):
             count = 1
             for sku in all_sku:
                 barcode = one_product.outer_id + str(count)
-                outer_id = content.get(color + "_" + sku + "_outerid", "") or count
+                outer_id = barcode
                 remain_num = content.get(color + "_" + sku + "_remainnum", "")
                 cost = content.get(color + "_" + sku + "_cost", "")
                 price = content.get(color + "_" + sku + "_pricestd", "")
