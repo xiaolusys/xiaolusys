@@ -36,7 +36,7 @@ class ShopProductCategoryManager(BaseManager):
 
 
 class UserCouponManager(BaseManager):
-    def create_by_template(self, buyer_id, template_id, trade_id=None, **kwargs):
+    def create_by_template(self, buyer_id, template_id, trade_id=None, batch_no=None, ufrom=None, **kwargs):
         """
         发放不绑定交易的任何类型的优惠券
         """
@@ -71,7 +71,7 @@ class UserCouponManager(BaseManager):
         if tpl_release_count > tpl.nums:  # 如果大于定义的限制领取数量
             return None, 3, u"优惠券已经发完了"
         user_coupon_count = coupons.filter(customer=int(buyer_id)).count()
-        batch_no = kwargs.get("batch_no") or ''
+        batch_no = batch_no or ''
         if tpl.type != CouponTemplate.SHARE:  # 分享类型没有领取限制(即不是分享类型的需要校验领取限制张数)
             if user_coupon_count >= tpl.limit_num:
                 return None, 2, u"领取超过限制"
@@ -88,7 +88,7 @@ class UserCouponManager(BaseManager):
             if tpl.valid_days:
                 start_use_time = 1  # 今天
                 deadline = 1  # 今天+tpl.valid_days
-        ufrom = kwargs.get("ufrom") or ''
+        ufrom = ufrom or ''
         template_num_unique = str(tpl.id) + "_" + str(user_coupon_count + 1)  # 唯一键约束 是 优惠id + "_" + 该优惠券领取张数
         cou = UserCoupon.objects.create(template_id=int(template_id),
                                         title=tpl.title,
