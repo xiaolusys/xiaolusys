@@ -14,16 +14,16 @@ from core.fields import JSONCharMyField
 class CouponTemplate(BaseModel):
     USUAL = 1
     SHARE = 2
-    PROMMOTION = 3
+    PROMOTION = 3
 
-    COUPON_TYPE = ((USUAL, u"普通"), (SHARE, u"分享类型"), (PROMMOTION, u"活动类型"))
+    COUPON_TYPE = ((USUAL, u"普通"), (SHARE, u"分享类型"), (PROMOTION, u"活动类型"))
 
     CLICK_WAY = 1
     BUY_WAY = 2
     XMM_LINK = 3
-    PROMOTION = 4
+    PROMOTION_WAY = 4
     COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"),
-                  (XMM_LINK, u"购买专属链接"), (PROMOTION, u"活动发放"))
+                  (XMM_LINK, u"购买专属链接"), (PROMOTION_WAY, u"活动发放"))
     ALL_USER = 1
     AGENCY_VIP = 2
     AGENCY_A = 3
@@ -147,6 +147,14 @@ def default_batch_no():
 
 
 class CouponShareBatch(BaseModel):
+    WX = u'wx'
+    PYQ = u'pyq'
+    QQ = u'qq'
+    QQ_SPA = u'qq_spa'
+    SINA = u'sina'
+    WAP = u'wap'
+    PLATFORM = ((WX, u"微信好友"), (PYQ, u"朋友圈"), (QQ, u"QQ好友"), (QQ_SPA, u"QQ空间"), (SINA, u"新浪微博"), (WAP, u'wap'))
+
     template_choose = models.IntegerField(db_index=True, verbose_name=u"模板ID")
     share_customer = models.IntegerField(db_index=True, verbose_name=u'分享用户')
     nick = models.CharField(max_length=32, blank=True, verbose_name=u'分享用户的昵称')
@@ -183,8 +191,8 @@ from flashsale.pay.managers import UserCouponManager
 class UserCoupon(BaseModel):
     USUAL = 1
     SHARE = 2
-    PROMMOTION = 3
-    COUPON_TYPE = ((USUAL, u"普通"), (SHARE, u"分享类型"), (PROMMOTION, u"活动类型"))
+    PROMOTION = 3
+    COUPON_TYPE = ((USUAL, u"普通"), (SHARE, u"分享类型"), (PROMOTION, u"活动类型"))
 
     USED = 1
     UNUSED = 0
@@ -195,9 +203,18 @@ class UserCoupon(BaseModel):
     CLICK_WAY = 1
     BUY_WAY = 2
     XMM_LINK = 3
-    PROMOTION = 4
+    PROMOTION_WAY = 4
     COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"),
-                  (XMM_LINK, u"购买专属链接"), (PROMOTION, u"活动发放"))
+                  (XMM_LINK, u"购买专属链接"), (PROMOTION_WAY, u"活动发放"))
+
+    WX = u'wx'
+    PYQ = u'pyq'
+    QQ = u'qq'
+    QQ_SPA = u'qq_spa'
+    SINA = u'sina'
+    WAP = u'wap'
+    PLATFORM = ((WX, u"微信好友"), (PYQ, u"朋友圈"), (QQ, u"QQ好友"),
+                (QQ_SPA, u"QQ空间"), (SINA, u"新浪微博"), (WAP, u'wap'))
 
     template_id = models.IntegerField(db_index=True, verbose_name=u"优惠券id")
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
@@ -216,7 +233,7 @@ class UserCoupon(BaseModel):
     sale_trade = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u"绑定交易ID")
     start_use_time = models.DateTimeField(db_index=True, verbose_name=u"开始使用时间")
     deadline = models.DateTimeField(db_index=True, verbose_name=u"截止时间")
-
+    ufrom = models.CharField(max_length=8, choices=PLATFORM, db_index=True, blank=True, verbose_name=u'领取平台')
     template_num_unique = models.CharField(unique=True, verbose_name=u"模板领取唯一标识")
     status = models.IntegerField(default=UNUSED, choices=USER_COUPON_STATUS, verbose_name=u"使用状态")
 
@@ -231,8 +248,11 @@ class UserCoupon(BaseModel):
     def __unicode__(self):
         return "<%s,%s>" % (self.id, self.customer)
 
-    def coupon_status_check(self):
-        """ 用户优惠券检查 """
+    def coupon_basic_check(self):
+        """
+        日期检测 & 状态检查
+        """
+        now = datetime.datetime.now()
         coupon = self.__class__.objects.get(id=self.id)
         if coupon.status == UserCoupon.USED:
             raise AssertionError(u"优惠券已使用")
@@ -240,18 +260,22 @@ class UserCoupon(BaseModel):
             raise AssertionError(u"优惠券已冻结")
         elif coupon.status == UserCoupon.PAST:
             raise AssertionError(u"优惠券已过期")
-        else:
-            return coupon
+        if not (coupon.start_use_time <= now <= coupon.deadline):
+            raise AssertionError(u"使用日期错误")
+        return coupon
+
+    def check_user_coupon(self, product_ids=None, use_fee=None):
+        """  用户优惠券检查是否可用 """
+        tpl = CouponTemplate.objects.get(id=self.template_id)
+        tpl.check_bind_pros(product_ids=product_ids)  # 绑定产品检查
+        tpl.template_valid_check()  # 模板有效性检查
+        tpl.usefee_check(use_fee)  # 优惠券状态检查
+        self.coupon_basic_check()  # 基础检查
+        return
 
     def use_coupon(self):
         """ 使用优惠券 """
-        coupon = self.__class__.objects.get(id=self.id)
-        if coupon.status == UserCoupon.FREEZE:
-            raise AssertionError(u"优惠券被冻结")
-        elif coupon.status == UserCoupon.USED:
-            raise AssertionError(u"优惠券已用过")
-        elif coupon.status == UserCoupon.PAST:
-            raise AssertionError(u"优惠券过期了")
+        self.coupon_basic_check()  # 基础检查
         self.status = self.USED
         self.save()
 
@@ -270,23 +294,3 @@ class UserCoupon(BaseModel):
             raise AssertionError(u"优惠券不在冻结状态,解冻出错")
         self.status = self.UNUSED
         self.save()
-
-    def check_user_coupon_date(self):
-        """
-        日期检测
-        """
-        coupon = self.__class__.objects.get(id=self.id)
-        now = datetime.datetime.now()
-        if not (coupon.start_use_time <= now <= coupon.deadline):
-            raise AssertionError(u"使用日期错误")
-        return
-
-    def check_usercoupon(self, product_ids=None, use_fee=None):
-        """  用户优惠券检查是否可用 """
-        tpl = CouponTemplate.objects.get(id=self.template_id)
-        tpl.check_bind_pros(product_ids=product_ids)  # 绑定产品检查
-        tpl.template_valid_check()  # 模板有效性检查
-        tpl.usefee_check(use_fee)  # 优惠券状态检查
-        self.coupon_status_check()  # 校验用户优惠券状态
-        self.check_user_coupon_date()  # 使用日期检测
-        return

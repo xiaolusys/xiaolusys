@@ -1,8 +1,6 @@
 # -*- coding:utf8 -*-
 import datetime
 import random
-from django.db import models
-from django.db.models import Q, Sum
 
 from core.managers import BaseManager
 
@@ -46,14 +44,14 @@ class UserCouponManager(BaseManager):
 
         trade_id = trade_id or ''
         if not (buyer_id and template_id):
-            return None, 6, u'没有发放'
+            return None, 7, u'没有发放'
         try:
             tpl = CouponTemplate.objects.get(id=int(template_id), valid=True)  # 获取优惠券模板
             now = datetime.datetime.now()
             if not (tpl.release_start_time <= now <= tpl.release_end_time):
-                return None, 5, u"没有发放"  # 不在模板定义的发放时间内
+                return None, 6, u"没有发放"  # 不在模板定义的发放时间内
         except CouponTemplate.DoesNotExist:
-            return None, 4, u"没有发放"
+            return None, 5, u"没有发放"
         # 身份判定（判断身份是否和优惠券模板指定用户一致） 注意　这里是硬编码　和　XiaoluMama　代理级别关联
         user_level = CouponTemplate.ALL_USER
         from flashsale.pay.models import Customer
@@ -66,18 +64,20 @@ class UserCouponManager(BaseManager):
 
         if user_level != tpl.target_user:
             # 如果用户领取的优惠券和用户身份不一致则不予领取
-            return None, 3, u"用户不一致"
+            return None, 4, u"用户不一致"
         coupons = UserCoupon.objects.filter(template_id=template_id)
 
         tpl_release_count = coupons.count()
         if tpl_release_count > tpl.nums:  # 如果大于定义的限制领取数量
-            return None, 1, u"优惠券已经发完了"
+            return None, 3, u"优惠券已经发完了"
         user_coupon_count = coupons.filter(customer=int(buyer_id)).count()
+        batch_no = kwargs.get("batch_no") or ''
         if tpl.type != CouponTemplate.SHARE:  # 分享类型没有领取限制(即不是分享类型的需要校验领取限制张数)
             if user_coupon_count >= tpl.limit_num:
                 return None, 2, u"领取超过限制"
-
-        batch_no = kwargs.get("batch_no") or ''
+        else:  # 如果是分享类型
+            if not batch_no:  # 如果分享类型没有分享批次号码则不予领取优惠券
+                return None, 1, u"没有领取到呢"
         value = tpl.value
         start_use_time = tpl.start_use_time
         deadline = tpl.deadline
@@ -88,6 +88,7 @@ class UserCouponManager(BaseManager):
             if tpl.valid_days:
                 start_use_time = 1  # 今天
                 deadline = 1  # 今天+tpl.valid_days
+        ufrom = kwargs.get("ufrom") or ''
         template_num_unique = str(tpl.id) + "_" + str(user_coupon_count + 1)  # 唯一键约束 是 优惠id + "_" + 该优惠券领取张数
         cou = UserCoupon.objects.create(template_id=int(template_id),
                                         title=tpl.title,
@@ -101,5 +102,6 @@ class UserCouponManager(BaseManager):
                                         sale_trade=str(trade_id),
                                         start_use_time=start_use_time,
                                         deadline=deadline,
+                                        ufrom=ufrom,
                                         template_num_unique=template_num_unique)
         return cou, 0, u"领取成功"
