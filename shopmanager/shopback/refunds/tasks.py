@@ -5,6 +5,8 @@ import calendar
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
+from django.db.models import Max, Sum
+from django.db import IntegrityError
 from common.utils import format_time, format_datetime, format_year_month, parse_datetime
 from shopback.refunds.models import Refund
 from shopback.users.models import User
@@ -303,3 +305,29 @@ def handler_Refund_Send_Num():
         rcd.ref_sed_num = ref_num - ref_num_out - ref_num_in  # 发货后等于总的减去２４外和内
         print "{0}记录,总退款 {1},发货后退款 {2}".format(rcd.date_cal, ref_num, rcd.ref_sed_num)
         rcd.save()
+
+@task
+def task_refundproduct_update_productskustats_return_quantity(sku_id):
+    from shopback.refunds.models import RefundProduct
+    from shopback.items.models import ProductSkuStats, ProductSku
+    from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
+
+    sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
+        .aggregate(total=Sum('num'))
+    total = sum_res["total"] or 0
+
+    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
+    if stats.count() <= 0:
+        product_id = ProductSku.objects.get(id=sku_id).product.id
+        try:
+            stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,return_quantity=total)
+            stat.save()
+        except IntegrityError as exc:
+            logger.warn(
+                "IntegrityError - productskustat/inbound_quantity | sku_id: %s, inbound_quantity: %s" % (sku_id, total))
+            raise task_refundproduct_update_productskustats_return_quantity.retry(exc=exc)
+    else:
+        stat = stats[0]
+        if stat.return_quantity != total:
+            stat.return_quantity = total
+            stat.save(update_fields=['return_quantity'])

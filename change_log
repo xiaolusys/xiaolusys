@@ -1,3 +1,8 @@
+ALTER TABLE `shop_items_productskustats`
+ADD COLUMN `return_quantity`  int NOT NULL DEFAULT 0 AFTER `history_quantity`;
+
+ALTER TABLE `shop_refunds_product`
+ADD COLUMN `sku_id`  int NULL AFTER `company`;
 ######## 2016-04-21 ###########
 ALTER TABLE `flashsale_package`ADD COLUMN `sku_num` int not NULL DEFAULT 0 AFTER `sys_status`;
 ALTER TABLE `flashsale_package_sku_item`ADD COLUMN `oid` varchar(40) NULL AFTER `modified`;

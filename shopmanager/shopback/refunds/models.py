@@ -227,6 +227,7 @@ class RefundProduct(models.Model):
     oid = models.CharField(max_length=64, db_index=True, blank=True, default='', verbose_name='子订单ID')
     outer_id = models.CharField(max_length=64, db_index=True, blank=True, verbose_name='商品编码')
     outer_sku_id = models.CharField(max_length=64, db_index=True, blank=True, verbose_name='规格编码')
+    sku_id = models.IntegerField(null=True, verbose_name='SKUID')
     num = models.IntegerField(default=0, verbose_name='数量')
     title = models.CharField(max_length=64, blank=True, verbose_name='商品名称')
     property = models.CharField(max_length=64, blank=True, verbose_name='规格名称')
@@ -256,3 +257,13 @@ class RefundProduct(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
+
+
+def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
+    from shopback.refunds.tasks import task_refundproduct_update_productskustats_return_quantity
+    from shopback.items.models import ProductSku
+    sku_id = ProductSku.get_by_outer_id(instance.outer_id,instance.outer_sku_id).id
+    RefundProduct.objects.filter(id=instance.id).update(sku_id=sku_id)
+    task_refundproduct_update_productskustats_return_quantity.delay(sku_id)
+
+post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')
