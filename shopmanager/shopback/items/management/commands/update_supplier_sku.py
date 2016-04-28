@@ -7,8 +7,9 @@ from django.core.management.base import BaseCommand
 
 from core.options import log_action, CHANGE
 from flashsale.pay.models import SaleOrder
-from shopback.trades.models import MergeOrder, PackageSkuItem
 from shopback.items.models import Product, ProductSku
+from shopback.refunds.models import RefundProduct
+from shopback.trades.models import MergeOrder, PackageSkuItem
 from supplychain.supplier.models import SaleProduct
 
 
@@ -39,6 +40,9 @@ class Command(BaseCommand):
             PackageSkuItem.objects.filter(id=package_sku_item.id).update(outer_sku_id=new_outer_id)
             log_action(ADMIN_ID, package_sku_item, CHANGE, '更新outer_sku_id, %s->%s' % (old_outer_id, new_outer_id))
 
+        for refund_product in RefundProduct.objects.filter(outer_id=sku.product.outer_id, outer_sku_id=old_outer_id):
+            RefundProduct.objects.filter(id=refund_product.id).update(outer_sku_id=new_outer_id)
+            log_action(ADMIN_ID, refund_product, CHANGE, '更新outer_sku_id, %s->%s' % (old_outer_id, new_outer_id))
 
 
     def handle(self, *args, **kwargs):
