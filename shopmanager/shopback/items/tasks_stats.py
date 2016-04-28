@@ -14,44 +14,6 @@ def task_productsku_create_productskustats(sku_id, product_id):
         stat = ProductSkuStats(sku_id=sku_id,product_id=product_id)
         stat.save()
 
-@task(max_retries=3, default_retry_delay=6)
-def task_productsku_update_productskustats_history_quantity(sku_id):
-    """
-    Recalculate and update init_waitassign_num,sale_start_time.
-    """
-    from shopback.items.models import ProductSku
-    from shopback.items.models_stats import ProductSkuStats,PRODUCT_SKU_STATS_COMMIT_TIME
-
-    product_sku = ProductSku.objects.get(id=sku_id)
-    product = product_sku.product
-    product_id = product.id
-    sku_stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-
-    from flashsale.pay.models import SaleOrder
-    sorders = SaleOrder.objects.filter(sku_id=sku_id,
-                                       status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                       pay_time__lte=PRODUCT_SKU_STATS_COMMIT_TIME)
-    sorder_num = sorders.aggregate(Sum('num'))
-    sorder_num = sorder_num['num__sum'] or 0
-    history_quantity = product_sku.quantity - sorder_num
-    
-    if sku_stats.count() == 0:
-
-        try:
-            stat = ProductSkuStats(sku_id=sku_id,
-                                   product_id=product_id,
-                                   history_quantity=history_quantity)
-            stat.save()
-        except IntegrityError as exc:
-            logger.warn("IntegrityError - productskustat/history_quantity | sku_id: %s, history_quantity: %s" % (
-                sku_id, history_quantity))
-            raise task_productsku_update_productskustats_history_quantity.retry(exc=exc)
-    else:
-        sale_stat = sku_stats[0]
-        if sale_stat.history_quantity != history_quantity:
-            sale_stat.history_quantity = history_quantity
-            sale_stat.save(update_fields=["history_quantity"])
-
 
 @task(max_retries=3, default_retry_delay=6)
 def task_product_upshelf_update_productskusalestats(sku_id):

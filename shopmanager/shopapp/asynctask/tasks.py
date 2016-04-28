@@ -475,7 +475,7 @@ class PrintAsyncTask2(Task):
                 outer_sku_id = sku_item.outer_sku_id or str(sku_item.sku_id)
 
                 prod_sku = sku_item.product_sku
-                product = sku_item.product
+                product = prod_sku.product
 
                 promptmsg = (prod_sku and prod_sku.buyer_prompt) or (product and product.buyer_prompt) or ''
                 if promptmsg:
@@ -543,14 +543,10 @@ class PrintAsyncTask2(Task):
     def run(self, async_print_id, *args, **kwargs):
 
         print_async = PrintAsyncTaskModel.objects.get(pk=async_print_id)
-        print 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
         params_json = json.loads(print_async.params)
         trade_ids = [int(p.strip()) for p in params_json['trade_ids'].split(',')]
         user_code = params_json['user_code'].lower()
-
-        # trade_list = MergeTrade.objects.filter(id__in=trade_ids).order_by('out_sid')
         package_orders = PackageOrder.objects.filter(pid__in=trade_ids).order_by('out_sid')
-        print 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbb'
         if print_async.task_type == PrintAsyncTaskModel.INVOICE:
 
             invoice_data = self.genInvoiceData(package_orders)
