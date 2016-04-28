@@ -516,6 +516,8 @@ class CashOutViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def cashout_to_budget(self, request):
         """ 代理提现到用户余额 """
+        if True:
+            return Response({"code": 1, "msg": "暂未开放"})
         cash_type = request.REQUEST.get('choice', None)
         customer, xlmm = self.get_customer_and_xlmm(request)
         value, msg = self.verify_cashout(cash_type, customer, xlmm)
