@@ -935,6 +935,11 @@ class ProductSku(models.Model):
     def collect_amount(self):
         return self.cost * self.quantity
 
+    @staticmethod
+    def get_by_outer_id(outer_id, outer_sku_id):
+        product = Product.objects.get(outer_id=outer_id)
+        # return ProductSku.objects.filter(outer_id=outer_sku_id, product_id=product.id).first()
+        return ProductSku.objects.get(outer_id=outer_sku_id, product_id=product.id)
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """

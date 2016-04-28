@@ -29,6 +29,7 @@ class ProductSkuStats(models.Model):
 
     history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存数')  #
     inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存数')  #
+    return_quantity = models.IntegerField(default=0, verbose_name=u'退货数')  #
     post_num = models.IntegerField(default=0, verbose_name=u'已发货数')  #
     sold_num = models.IntegerField(default=0, verbose_name=u'已被购买数')  #
 
@@ -44,7 +45,7 @@ class ProductSkuStats(models.Model):
 
     @property
     def realtime_quantity(self):
-        return self.history_quantity + self.inbound_quantity - self.post_num
+        return self.history_quantity + self.inbound_quantity + self.return_quantity - self.post_num
 
     @property
     def aggregate_quantity(self):
