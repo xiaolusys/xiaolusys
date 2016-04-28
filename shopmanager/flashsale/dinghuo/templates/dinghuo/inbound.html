@@ -20,7 +20,7 @@
          .tt-query,
          .tt-hint {
              height: 40px;
-             padding: 8px 12px;
+             padding: 8px 13px;
              font-size: 18px;
              line-height: 30px;
              border: 2px solid #ccc;
@@ -45,7 +45,7 @@
          }
 
          .tt-menu {
-             margin: 12px 0;
+             margin: 14px 0;
              padding: 8px 0;
              background-color: #fff;
              border: 1px solid #ccc;
@@ -87,7 +87,7 @@
              font-size: 16px;
          }
 
-         #form-1 .btn {
+         #form-1 .btn, #form-2 .btn {
              font-size: 16px;
          }
 
@@ -113,15 +113,15 @@
              transform: scale(1) rotate(20deg);
          }
 
-         #form-2, #form-2 .btn {
-             font-size: 16px;
+         #form-2 {
+             font-size: 14px;
          }
 
          #form-2 input[type="number"] {
              text-align: center;
          }
          #form-2 input{
-             font-size: 16px;
+             font-size: 14px;
              padding-bottom: 5px;
          }
 
@@ -145,12 +145,12 @@
 	     z-index: 1;
          }
          #memo-panel a{
-             font-size: 18px;
+             font-size: 16px;
              width: 75px;
              display: inline-block;
          }
          #memo-panel span {
-             font-size: 18px;
+             font-size: 16px;
              width: 75px;
              display: inline-block;
              font-weight: 400;
@@ -161,7 +161,7 @@
              display: none;
          }
          .chosen-container span, .chosen-results li {
-             font-size: 16px;
+             font-size: 14px;
              font-weight: normal;
          }
          i.warning {
@@ -231,9 +231,9 @@
                             <h2 style="text-align:center;margin-top:0"><small>{{ supplier_name }}({{ target_id }})</small></h2>
                             {% endif %}
                             <p style="margin-bottom:30px"></p>
-                            <table class="table table-striped" style="width:80%;margin:0 auto">
+                            <table class="table table-striped" style="width:85%;margin:0 auto">
                                 <tr>
-                                    <th>
+                                    <th width="200px">
                                         商品名
                                         <p>
                                             <select class="chosen-select form-control" id="select-product-names" multiple data-placeholder="搜索商品名">
@@ -250,7 +250,7 @@
                                     <th>规格ID</th>
                                     <th width="90px">尺寸</th>
                                     <th width="100px">条码</th>
-                                    <th>待入库数</th>
+                                    <th width="80px">待入库数</th>
                                     <th width="80px">正品</th>
                                     <th width="80px">次品</th>
                                     <th width="180px">库位</th>
@@ -289,7 +289,7 @@
                                         <a href="/admin/items/productsku/{{ sku.id }}/history/" target="_blank">{{ sku.id }}</a>
                                     </td>
                                     <td>
-                                        <a href="/admin/items/productsku/{{ sku.id }}/" target="_blank">{{ sku.properties_name }}</a>
+                                        <a href="/admin/items/productsku/{{ sku.id }}/" target="_blank" style="font-size:16px">{{ sku.properties_name }}</a>
                                         <i class="glyphicon glyphicon-copy copy" data-clipboard-text="{{ product.outer_id }} {{ product.name }} {{ sku.properties_name }}"></i>
                                     </td>
                                     <td>{{ sku.barcode }}</td>
@@ -373,8 +373,9 @@
                                 <textarea class="form-control" id="memo" rows="5" cols="60" readonly>{{ memo|default:'' }}</textarea>
                             </div>
                             <div class="form-group">
-                                <input class="form-control" id="memo-input" style="width:500px;display:inline-block">
-                                <button class="btn btn-success">添加</button>
+                                <input class="form-control" id="memo-input" style="width:90%;display:inline-block;float:left">
+                                <button class="btn btn-success" style="width:50px;margin-left:5px">添加</button>
+                                <div style="clear:both"></div>
                             </div>
                             <div class="form-group">
                                 <label class="control-label">拍照:</label>
@@ -484,6 +485,8 @@
 
          var CREATE_REFUND_INBOUND_URL = '';
          var EDIT_REFUND_INBOUND_URL = '';
+
+         var SUGGESTION_LIMIT = 200;
 
          var suppliers = {{ suppliers|jsonify }};
          var expressNos = {{ express_nos|jsonify }};
@@ -894,7 +897,7 @@
                      });
                      $lastTr.find('input.detail-name').change(onNameChange).keyup(onNameChange);
                      $lastTr.find('input.district').tagsinput({
-                         typeaheadjs: {name: 'districts', source: districtsEngine.ttAdapter()}
+                         typeaheadjs: {name: 'districts', source: districtsEngine.ttAdapter(), limit: SUGGESTION_LIMIT}
                      });
                  }
              });
@@ -906,7 +909,8 @@
                      hint: false,
                      highlight: false,
                      name: 'districts',
-                     source: districtsEngine.ttAdapter()
+                     source: districtsEngine.ttAdapter(),
+                     limit: SUGGESTION_LIMIT
                  }
              });
              $('img.img-circle').popover({

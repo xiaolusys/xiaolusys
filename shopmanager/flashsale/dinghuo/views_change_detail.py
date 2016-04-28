@@ -41,13 +41,14 @@ class ChangeDetailView(View):
             order_dict = model_to_dict(order)
             order_dict['pic_path'] = product.pic_path
             product_sku = ProductSku.objects.get(id=order.chichu_id)
-            order_dict['supplier_outer_id'] = product_sku.outer_id
+            order_dict['supplier_outer_id'] = ''
             order_dict['wait_post_num'] = product_sku.wait_post_num
             if product.sale_product:
                 try:
                     saleproduct = SaleProduct.objects.get(
                         id=product.sale_product)
                     order_dict['product_link'] = saleproduct.product_link or ''
+                    order_dict['supplier_outer_id'] = saleproduct.supplier_sku or ''
                 except:
                     pass
             order_list_list.append(order_dict)
@@ -329,13 +330,18 @@ class ChangeDetailExportView(View):
         for sale_product in SaleProduct.objects.filter(pk__in=[product[
                                                                    'sale_product_id'] for product in
                                                                products.values()]):
-            sale_products[sale_product.id] = sale_product.product_link
+            sale_products[sale_product.id] = {
+                'product_link': sale_product.product_link,
+                'supplier_sku': sale_product.supplier_sku or ''
+            }
 
+        """
         skus = {}
         for sku in ProductSku.objects.filter(
                 pk__in=[order_detail.chichu_id for order_detail in order_details
                         ]):
-            skus[sku.id] = sku.outer_id
+            skus[sku.id] = sku.supplier_sku
+        """
 
         def _parse_name(product_name):
             name, color = ('-',) * 2
@@ -362,11 +368,12 @@ class ChangeDetailExportView(View):
         all_quantity = 0
         for order_detail in order_details:
             name, color = _parse_name(order_detail.product_name)
-            sku_outer_id = skus.get(int(order_detail.chichu_id)) or ''
             product = products.get(int(order_detail.product_id)) or {}
             pic_path = product.get('pic_path') or ''
-            product_link = sale_products.get(product.get(
-                'sale_product_id')) or ''
+            sale_product_dict = sale_products.get(product.get(
+                'sale_product_id')) or {}
+            product_link = sale_product_dict.get('product_link') or ''
+            sku_outer_id = sale_product_dict.get('supplier_sku') or ''
 
             worksheet.write(row, 0, name)
             worksheet.write(row, 1, sku_outer_id.rsplit('-')[0])
