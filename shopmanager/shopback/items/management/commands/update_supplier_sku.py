@@ -19,7 +19,6 @@ class Command(BaseCommand):
     PATTERN = re.compile(r'^[\w\-_]*$')
 
     def process_abnormal(self, sku):
-        print sku.id, sku.outer_id
         old_outer_id = sku.outer_id
         if sku.barcode:
             new_outer_id = sku.barcode
