@@ -87,10 +87,6 @@ SKU_STATS_ROUTES = {
         'queue': 'skustats',
         'routing_key': 'skustats.task_saleorder_update_productskustats_waitingpay_num',
     },
-    'shopback.items.tasks_stats.task_productsku_update_productskustats_history_quantity': {
-        'queue': 'skustats',
-        'routing_key': 'skustats.task_productsku_update_productskustats_history_quantity',
-    },
     'shopback.items.tasks_stats.task_productsku_create_productskustats': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_productsku_create_productskustats',

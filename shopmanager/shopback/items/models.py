@@ -992,9 +992,6 @@ def create_product_skustats(sender, instance, created, **kwargs):
     if created:
         from shopback.items.tasks import task_productsku_update_productskustats
         task_productsku_update_productskustats.delay(instance.id, instance.product.id)
-    else:
-        from shopback.items.tasks_stats import task_productsku_update_productskustats_history_quantity
-        task_productsku_update_productskustats_history_quantity.delay(instance.id)
 
 post_save.connect(create_product_skustats, sender=ProductSku, dispatch_uid='post_save_create_productskustats')
 
