@@ -98,8 +98,9 @@
 
         $(document).ready(function () {
             var os = OSTest();
+            var url = location.href;
+            alert(url);
             if (isWeiXin()) {//如果是微信内置浏览器则提示在外部浏览器打开
-                var url = location.href;
                 if (url.indexOf('weixin') >= 0) {//url中含有微信链接则不显示下载提示
                     location.href = '/sale/promotion/appdownload/';
                 }

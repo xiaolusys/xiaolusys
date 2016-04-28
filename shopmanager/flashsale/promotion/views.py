@@ -274,7 +274,6 @@ class APPDownloadView(WeixinAuthMixin, View):
         mobile = content.get('mobile') or ''
         ufrom = content.get("ufrom") or None
         if from_customer:  # 创建下载记录
-            from_customer = int(from_customer.strip())
             # 如果当前用户等于from_customer 则return
 
             if self.is_from_weixin(request):  # 如果是在微信里面
