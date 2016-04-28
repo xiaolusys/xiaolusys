@@ -1,11 +1,11 @@
 # coding: utf-8
 import chardet
-from core.options import log_action, CHANGE
 import datetime
 import re
 
 from django.core.management.base import BaseCommand
 
+from core.options import log_action, CHANGE
 from flashsale.pay.models import SaleOrder
 from shopback.trades.models import MergeOrder, PackageSkuItem
 from shopback.items.models import Product, ProductSku
@@ -13,7 +13,6 @@ from supplychain.supplier.models import SaleProduct
 
 
 ADMIN_ID = 1
-
 
 class Command(BaseCommand):
     PATTERN = re.compile(r'^[\w\-_]*$')
