@@ -522,6 +522,11 @@ admin.site.register(Envelop, EnvelopAdmin)
 
 from flashsale.pay.models_custom import ModelProduct, BrandEntry, BrandProduct
 
+class BrandProductInline(admin.TabularInline):
+    model = BrandProduct
+    fields = ( 'product_name', 'product_img', 'product_id', 'start_time', 'end_time',  )
+
+
 
 class ModelProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'buy_limit', 'per_limit', 'sale_time', 'status')
@@ -584,6 +589,8 @@ class BrandEntryAdmin(admin.ModelAdmin):
     search_fields = ['brand_name']
     list_per_page = 25
 
+    inlines = [BrandProductInline]
+
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': 128})},
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
@@ -594,7 +601,7 @@ admin.site.register(BrandEntry, BrandEntryAdmin)
 
 
 class BrandProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'brand_name', 'start_time', 'end_time',  'product_id')
+    list_display = ('id','brand_name', 'product_name', 'product_img', 'product_id', 'start_time', 'end_time')
 
     list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))
     search_fields = ['brand_name']

@@ -339,7 +339,6 @@ class BrandEntry(PayBaseModel):
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
 
     order_val = models.IntegerField(default=0, verbose_name=u'排序值')
-
     is_active = models.BooleanField(default=True, verbose_name=u'上线')
 
     class Meta:
@@ -377,8 +376,8 @@ class BrandProduct(PayBaseModel):
     brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
 
     product_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品id')
-    product_name = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品名称')
-    product_img  = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品图片')
+    product_name = models.CharField(max_length=64, blank=True, verbose_name=u'商品名称')
+    product_img  = models.CharField(max_length=256, blank=True, verbose_name=u'商品图片')
 
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
@@ -391,3 +390,25 @@ class BrandProduct(PayBaseModel):
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.brand_name)
+
+    def save(self, *args, **kwargs):
+        if not self.brand_name:
+            self.brand_name = self.brand.brand_name
+        if not self.product_name:
+            self.product_name = self.prodouct.name
+            self.product_img  = self.prodouct.head_img()
+        return super(BrandProduct, self).save(*args, **kwargs)
+
+    @property
+    def prodouct(self):
+        if not hasattr(self, '_product_'):
+            self._product_ = Product.objects.get(id=self.product_id)
+        return self._product_
+
+    def product_lowest_price(self):
+        """ 商品最低价 """
+        return self.prodouct.product_lowest_price()
+
+    def product_std_sale_price(self):
+        """ 商品吊牌价 """
+        return  self.prodouct.std_sale_price

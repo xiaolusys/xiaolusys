@@ -35,22 +35,18 @@ class ActivityEntrySerializer(serializers.ModelSerializer):
                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras',
                   'total_member_num', 'friend_member_num', 'is_active')
 
-class ActivityEntrySerializer(serializers.ModelSerializer):
-    extras = JSONParseField(read_only=True, required=False)
+class BrandProductSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ActivityEntry
-        fields = ('id', 'title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link',
-                  'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras',
-                  'total_member_num', 'friend_member_num', 'is_active')
+        model = BrandProduct
+        fields = ('id', 'product_id', 'product_name', 'product_img', 'product_lowest_price', 'product_std_sale_price')
 
 class BrandEntrySerializer(serializers.ModelSerializer):
-
-
+    brand_products = BrandProductSerializer(read_only=True,many=True)
     class Meta:
         model = BrandEntry
         fields = ('id', 'brand_name', 'brand_desc', 'brand_pic', 'brand_post',
-                  'brand_applink', 'start_time', 'end_time', 'is_active')
+                  'brand_applink', 'start_time', 'end_time', 'brand_products')
 
 class PosterSerializer(serializers.ModelSerializer):
 
