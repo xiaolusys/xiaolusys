@@ -25,7 +25,6 @@ CACHE_VIEW_TIMEOUT = 60
 class PortalViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###商城入口API(包含海报,类目,活动,及品牌推广)：
-    - {prefix}/today[.format]: 获取今日特卖海报;
     """
     queryset = GoodShelf.objects.filter(is_active=True)
     serializer_class = serializers.PortalSerializer

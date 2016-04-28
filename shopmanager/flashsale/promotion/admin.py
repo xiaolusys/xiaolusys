@@ -4,6 +4,8 @@ from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSam
     RedEnvelope, AwardWinner
 from .models import XLInviteCode, XLReferalRelationship, XLInviteCount
 
+from core.filters import DateFieldListFilter
+
 
 class XLFreeSampleAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'name', 'expiried', 'pic_url', 'sale_url')
@@ -19,7 +21,7 @@ class XLSampleApplyAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'event_id', 'from_customer', 'user_openid', 'customer_id', 'mobile', 'ufrom', 'outer_id',
         'event_imei', 'status', 'created')
-    list_filter = ('event_id', 'status', 'ufrom')
+    list_filter = ('event_id', 'status', 'ufrom', ('created', DateFieldListFilter))
     list_display_links = ('id', 'event_id')
     search_fields = ['=id', '=from_customer', '=customer_id', '=mobile', '=user_openid']
     list_per_page = 40
