@@ -633,9 +633,10 @@ def cash_Out_Verify(request, id, xlmm):
 
     cashout = CashOut.objects.get(pk=id)
     mama_id = cashout.xlmm
-
+    if cashout.status != CashOut.PENDING:
+        raise Exception(u'审核订单不在待审状态')
     fortune = MamaFortune.objects.get(mama_id=mama_id)
-    pre_cash = fortune.cash_num_display()
+    pre_cash = fortune.cash_num_display() + (cashout.value * 0.01)  # 未出账余额 = 财富余额(是扣除待提现金额) + 待提现金额
     xiaolumama = XiaoluMama.objects.get(id=mama_id)  # object.get(id=mama_id)
 
     value = cashout.value
@@ -695,12 +696,16 @@ from flashsale.xiaolumm.models_fortune import MamaFortune
 @transaction.atomic
 def cash_modify(request, data):
     cash_id = int(data)
+
+    print "in modify", cash_id
     if cash_id:
         cashout = CashOut.objects.get(pk=cash_id)
+        if cashout.status != CashOut.PENDING:
+            raise Exception(u'提现记录不是待审核状态')
         mama_id = cashout.xlmm
 
         fortune = MamaFortune.objects.get(mama_id=mama_id)
-        pre_cash = fortune.cash_num_display()
+        pre_cash = fortune.cash_num_display() + (cashout.value * 0.01)
         xiaolumama = XiaoluMama.objects.get(id=mama_id)  # object.get(id=mama_id)
 
         if xiaolumama.is_cashoutable() and pre_cash * 100 >= cashout.value and cashout.status == 'pending':
