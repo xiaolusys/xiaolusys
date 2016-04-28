@@ -352,6 +352,10 @@ CELERY_ROUTES = {
         'queue': 'async',
         'routing_key': 'async.async_invoice_print',
     },  # 发货单打印任务
+    'shopapp.asynctask.tasks.PrintAsyncTask2': {
+        'queue': 'async',
+        'routing_key': 'async.async_invoice_print',
+    },  # 发货单打印任务
     'shopback.trades.tasks.sendTaobaoTradeTask': {
         'queue': 'async',
         'routing_key': 'async.sendTaobaoTradeTask',
