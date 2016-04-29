@@ -643,6 +643,7 @@ def task_saleorder_update_package_sku_item(sale_order):
 
     if sku_item.assign_status != assign_status:
         sku_item.assign_status = assign_status
+        sku_item.set_assign_status_time()
         sku_item.save()
 
 @task()

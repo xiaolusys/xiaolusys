@@ -1021,6 +1021,7 @@ def task_assign_stock_to_package_sku_item(stat):
         if package_sku_items.count() > 0:
             package_sku_item = package_sku_items.first()
             package_sku_item.assign_status = PackageSkuItem.ASSIGNED
+            package_sku_item.set_assign_status_time()
             package_sku_item.save()
 
 
@@ -1029,5 +1030,5 @@ def task_productsku_update_productskustats(sku_id, product_id):
     from shopback.items.models_stats import ProductSkuStats
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
-        stat = ProductSkuStats(sku_id=sku_id,product_id=product_id)
+        stat = ProductSkuStats(sku_id=sku_id, product_id=product_id)
         stat.save()

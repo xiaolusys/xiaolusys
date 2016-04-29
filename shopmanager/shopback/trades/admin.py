@@ -1306,7 +1306,7 @@ admin.site.register(PackageOrder, PackageOrderAdmin)
 class PackageSkuItemAdmin(admin.ModelAdmin):
     # TODO@HY self.sale_order.sale_trade.buyer_nick写法多次查询数据库，以后可以优化性能
     list_display = (
-        'id', 'sale_order_id', 'oid', 'package_order_id', 'assign_status', 'sys_status', 'pay_time',
+        'id', 'sale_order_id', 'oid', 'package_order_id', 'assign_status', 'sys_status', 'pay_time', 'assign_time',
         'title', 'ware_by', 'sku_id', 'outer_id', 'outer_sku_id', 'num', 'price', 'total_fee', 'payment',
         'discount_fee', 'adjust_fee')
 
