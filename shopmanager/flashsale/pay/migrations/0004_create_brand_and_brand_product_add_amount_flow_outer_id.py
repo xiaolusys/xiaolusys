@@ -54,19 +54,19 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': '\u7279\u5356/\u54c1\u724c\u5546\u54c1',
             },
         ),
-        # migrations.AddField(
-        #     model_name='salerefund',
-        #     name='amount_flow',
-        #     field=jsonfield.fields.JSONField(default=b'{"desc":""}', max_length=512, verbose_name='\u9000\u6b3e\u53bb\u5411', blank=True),
-        # ),
-        # migrations.AlterField(
-        #     model_name='saleorder',
-        #     name='outer_id',
-        #     field=models.CharField(max_length=32, verbose_name='\u5546\u54c1\u5916\u90e8\u7f16\u7801', blank=True),
-        # ),
-        # migrations.AlterField(
-        #     model_name='saleorder',
-        #     name='outer_sku_id',
-        #     field=models.CharField(max_length=32, verbose_name='\u89c4\u683c\u5916\u90e8\u7f16\u7801', blank=True),
-        # ),
+        migrations.AddField(
+            model_name='salerefund',
+            name='amount_flow',
+            field=jsonfield.fields.JSONField(default=b'{"desc":""}', max_length=512, verbose_name='\u9000\u6b3e\u53bb\u5411', blank=True),
+        ),
+        migrations.AlterField(
+            model_name='saleorder',
+            name='outer_id',
+            field=models.CharField(max_length=32, verbose_name='\u5546\u54c1\u5916\u90e8\u7f16\u7801', blank=True),
+        ),
+        migrations.AlterField(
+            model_name='saleorder',
+            name='outer_sku_id',
+            field=models.CharField(max_length=32, verbose_name='\u89c4\u683c\u5916\u90e8\u7f16\u7801', blank=True),
+        ),
     ]
