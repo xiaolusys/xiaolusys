@@ -1785,3 +1785,103 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 elif form.sent_from == InBound.REFUND:
                     pass
         return Response(result, template_name='dinghuo/inbound.html')
+
+
+class InBoundViewSet(viewsets.GenericViewSet):
+    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated, )
+    queryset = models.OrderList.objects.all()
+    EXPRESS_NO_SPLIT_PATTERN = re.compile(r'\s+|,|，')
+
+    def list(self, request):
+        orderlist_id_dict = {}
+        express_no_dict = {}
+        for orderlist in OrderList.objects.select_related('supplier').exclude(
+            status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED, OrderList.TO_PAY]
+        ):
+            if not orderlist.supplier_id:
+                continue
+
+            orderlist_id_dict[orderlist.id] = orderlist.supplier_id
+            if orderlist.express_no:
+                for express_no in self.EXPRESS_NO_SPLIT_PATTERN.split(orderlist.express_no.strip()):
+                    express_no_dict[express_no.strip()] = orderlist.supplier_id
+
+        result = {
+            'orderlist_ids': [{'id': v, 'text': k} for k,v in orderlist_id_dict.iteritems()],
+            'express_nos': [{'id': v, 'text': k} for k,v in express_no_dict.iteritems()]
+        }
+
+        form = forms.InBoundForm(request.GET)
+        if not form.is_valid():
+            return Response(result, template_name='dinghuo/inbound2.html')
+        result.update(form.cleaned_data)
+
+        if form.cleaned_data.get('supplier_id'):
+            supplier_orderlist_ids = []
+            supplier_id = form.cleaned_data['supplier_id']
+            supplier = SaleSupplier.objects.get(id=supplier_id)
+            for orderlist in OrderList.objects.filter(supplier_id=supplier_id).exclude(
+                status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED, OrderList.TO_PAY]
+            ):
+                orderlist_express_nos = self.EXPRESS_NO_SPLIT_PATTERN.split(orderlist.express_no.strip())
+                if form.cleaned_data.get('orderlist_id') and form.cleaned_data['orderlist_id'] == orderlist.id:
+                    supplier_orderlist_ids.insert(0, orderlist.id)
+                elif form.cleaned_data.get('express_no') and form.cleaned_data['express_no'] in orderlist_express_nos:
+                    supplier_orderlist_ids.insert(0, orderlist.id)
+                else:
+                    supplier_orderlist_ids.append(orderlist.id)
+
+            product_weights_dict = {}
+            max_weight = len(supplier_orderlist_ids)
+            weights = {k:i for i,k in enumerate(supplier_orderlist_ids)}
+
+            for orderdetail in OrderDetail.objects.filter(orderlist_id__in=supplier_orderlist_ids):
+                product_id = int(orderdetail.product_id)
+                product_weights_dict[product_id] = min(product_weights_dict.setdefault(product_id, max_weight), weights[orderdetail.orderlist_id])
+
+            products_dict = {}
+            for sku in ProductSku.objects.select_related('product').filter(product_id__in=product_weights_dict.keys(), status=ProductSku.NORMAL):
+                product_dict = {
+                    'id': sku.product.id,
+                    'saleproduct_id': sku.product.sale_product,
+                    'name': sku.product.name,
+                    'outer_id': sku.product.outer_id,
+                    'pic_path': '%s' % sku.product.pic_path.strip(),
+                    'ware_by': sku.product.ware_by,
+                    'skus': {},
+                    'weight': product_weights_dict[sku.product.id]
+                }
+                product_dict = products_dict.setdefault(sku.product.id, product_dict)
+                sku_dict = {
+                    'id': sku.id,
+                    'properties_name': sku.properties_name or sku.properties_alias,
+                    'barcode': sku.barcode,
+                    'district': ''
+                }
+                product_location = ProductLocation.objects.select_related('district').filter(product_id=sku.product.id,sku_id=sku.id).first()
+                if product_location:
+                    sku_dict['district'] = str(product_location.district)
+                product_dict['skus'][sku.id] = sku_dict
+
+            saleproducts_dict = {}
+            saleproduct_ids = list(set([x['saleproduct_id'] for x in products_dict.values()]))
+            for saleproduct in SaleProduct.objects.filter(id__in=saleproduct_ids):
+                saleproducts_dict[saleproduct.id] = {
+                    'product_link': saleproduct.product_link,
+                    'title': saleproduct.title
+                }
+
+            products = []
+            for product_dict in sorted(products_dict.values(), key=lambda x: x['weight']):
+                skus_dict = product_dict['skus']
+                product_dict['skus'] = [skus_dict[k] for k in sorted(skus_dict.keys())]
+                product_dict.update(saleproducts_dict.get(product_dict['saleproduct_id']) or {})
+                products.append(product_dict)
+
+            result.update({
+                'supplier_id': supplier.id,
+                'supplier_name': supplier.supplier_name,
+                'products': products
+            })
+        return Response(result, template_name='dinghuo/inbound2.html')

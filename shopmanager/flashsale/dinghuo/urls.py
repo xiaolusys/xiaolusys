@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from rest_framework import routers, viewsets
 from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView, PendingDingHuoViewSet, \
-    DingHuoOrderListViewSet
+    DingHuoOrderListViewSet, InBoundViewSet
 
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, ChangeDetailExportView
@@ -24,6 +24,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'pending_dinghuo', PendingDingHuoViewSet)
 router.register(r'instant_dinghuo', InstantDingHuoViewSet, 'dinghuo')
 router.register(r'dinghuo_orderlist', DingHuoOrderListViewSet, 'dinghuo_orderlist')
+router.register(r'inbound', InBoundViewSet, 'inbound')
 
 urlpatterns = [
     url(r'^searchproduct/$', views.search_product, name='searchProduct'),  # 搜索所有的商品 ajax
