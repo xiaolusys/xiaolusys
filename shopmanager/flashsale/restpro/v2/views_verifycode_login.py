@@ -210,6 +210,10 @@ class VerifyCodeView(views.APIView):
             return Response({"rcode": 1, "msg": u"亲，操作错误！"})
     
         customer = get_customer(request, mobile)
+
+        if not validate_code(mobile, verify_code):
+            return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})  # 验证码过期或者不对
+
         if customer:
             if action == 'register':
                 return Response({"rcode": 2, "msg": u"该用户已经存在啦！"})  # 已经有用户了
@@ -221,10 +225,6 @@ class VerifyCodeView(views.APIView):
         else:
             if action == 'find_pwd' or action == 'change_pwd' or action == 'bind':
                 return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
-
-        if not validate_code(mobile, verify_code):
-            return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})  # 验证码过期或者不对
-        
         if not customer:
             django_user,state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
             customer,state = Customer.objects.get_or_create(user=django_user)

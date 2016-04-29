@@ -62,6 +62,18 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         #     redirect_url = self.get_snsuserinfo_redirct_url(request)
         #     return redirect(redirect_url)
         customer_mobile = customer.mobile
+        referal = XiaoluMama.objects.filter(id=mama_id).first()
+        referal_from = referal.mobile if referal else ''  # 如果推荐人存在则
+        if customer_mobile:  # 如果用户存在手机号码
+            xlmm = XiaoluMama.objects.filter(openid=unionid).first()
+            if xlmm:  # 存在则保存当前登陆用户的手机号码到当前小鹿妈妈的手机号字段
+                xlmm.mobile = customer_mobile
+                xlmm.save()
+            else:  # 否则创建当前用户的小鹿妈妈账号 并且是填写资料后状态
+                XiaoluMama.objects.create(mobile=customer_mobile,
+                                          referal_from=referal_from,
+                                          progress=XiaoluMama.PROFILE,
+                                          openid=unionid)
 
         try:
             xiaolumm = XiaoluMama.objects.get(openid=unionid)
@@ -103,13 +115,20 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         mobile = content.get('mobile')
         user = request.user
         customers = Customer.objects.filter(user=user)
-        mama_id = content.get('mama_id', 1)
-
         if not customers.exists():  # 这个不可能存在
             return redirect('./')
-        customer = customers[0]
-        customer.mobile = mobile  # 保存用户的手机号码
-        customer.save()
+
+        customer = customers.first()
+        mama_id = content.get('mama_id', 1)
+        if customer.mobile:  # 如果用户的手机号码存在
+            # 比较提交的号码与当前用户的号码是否一致
+            if customer.mobile != mobile:
+                logger.warn(u'代理提交资料时,号码与客户列表号码不一致 %s'%customer.id)
+        else:  # 没有手机号
+            customer.mobile = mobile  # 保存用户的手机号码
+            customer.save()
+        if not customer.unionid:
+            logger.warn(u'邀请代理:用户没有uninoid %s'%customer.id)
 
         xlmm, state = XiaoluMama.objects.get_or_create(openid=customer.unionid)
         parent_mobile = xlmm.referal_from  # 取出当前代理的推荐人
