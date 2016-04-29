@@ -3,7 +3,7 @@ build:
   environment:
     - TARGET=staging
   commands:
-    - cd shopmanager;python manage.py test -t . --keepdb
+    - cd shopmanager;pip install sqlparse;python manage.py test -t . --keepdb
   when:
     branch: staging
 publish:
