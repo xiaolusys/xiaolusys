@@ -1636,7 +1636,7 @@ class PackageSkuItem(BaseModel):
         elif self.assign_status == PackageSkuItem.ASSIGNED:
             self.assign_time = datetime.datetime.now()
         elif self.assign_status == PackageSkuItem.CANCELED:
-            self.cancel_time == PackageSkuItem.FINISHED
+            self.cancel_time == datetime.datetime.now()
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED

@@ -158,7 +158,9 @@ def update_productskustats_inbound_quantity(sender, instance, created, **kwargs)
     from flashsale.dinghuo.tasks import task_orderdetail_update_productskustats_inbound_quantity
     task_orderdetail_update_productskustats_inbound_quantity.delay(instance.chichu_id)
 
-post_save.connect(update_productskustats_inbound_quantity, sender=OrderDetail, dispatch_uid='post_save_update_productskustats_inbound_quantity')
+
+post_save.connect(update_productskustats_inbound_quantity, sender=OrderDetail,
+                  dispatch_uid='post_save_update_productskustats_inbound_quantity')
 
 
 class orderdraft(models.Model):
@@ -262,6 +264,20 @@ class ReturnGoods(models.Model):
         return u'<%s,%s>' % (self.supplier_id, self.product_id)
 
 
+def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
+    from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
+    if instance.created >= PRODUCT_SKU_STATS_COMMIT_TIME and instance.status in [ReturnGoods.VERIFY_RG,
+                                                                                 ReturnGoods.DELIVER_RG,
+                                                                                 ReturnGoods.SUCCEED_RG]:
+        from flashsale.dinghuo.tasks import task_update_product_sku_stat_rg_quantity
+        for rg in instance.rg_details.all():
+            task_update_product_sku_stat_rg_quantity.delay(rg.skuid)
+
+
+post_save.connect(update_product_sku_stat_rg_quantity, sender=ReturnGoods,
+                  dispatch_uid='post_save_update_product_sku_stat_rg_quantity')
+
+
 class RGDetail(models.Model):
     skuid = models.BigIntegerField(db_index=True, verbose_name=u"退货商品skuid")
     return_goods = models.ForeignKey(ReturnGoods, related_name='rg_details', verbose_name=u'退货单信息')
@@ -291,7 +307,6 @@ class RGDetail(models.Model):
         self.return_goods.return_num = total_num
         self.return_goods.sum_amount = total_amount
         self.return_goods.save()
-
 
 
 def syncRGdTreturn(sender, instance, **kwargs):
@@ -396,9 +411,6 @@ class InBoundDetail(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'入仓单明细'
         verbose_name_plural = u'入仓单明细列表'
-
-
-
 
 
 class OrderDetailInBoundDetail(models.Model):
