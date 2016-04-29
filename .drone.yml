@@ -1,3 +1,11 @@
+build:
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:a65bf71a8e9d6f9fd4988e374865cbc6afe6a0c5
+  environment:
+    - TARGET=staging
+  commands:
+    - python manage.py test -t . --keepdb
+  when:
+    branch: staging
 publish:
   docker:
     username: $$DOCKER_USERNAME

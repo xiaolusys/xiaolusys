@@ -263,6 +263,10 @@ if os.environ.get('TARGET') in ('staging',):
             'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
             'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
                         'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
+            'TEST': {
+                'NAME': 'test_shopmgr',
+                'CHARSET': 'utf8',
+            }
         }
     }
     CACHES = {
@@ -275,8 +279,8 @@ if os.environ.get('TARGET') in ('staging',):
             }
         }
     }
-    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
 
+    BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
     import raven
     RAVEN_CONFIG = {
         'dsn': 'http://4d0d1c129af94f35b2ca16f1993865cf:725c7627bb4f49858bb315a3e2e16988@sentry.xiaolumm.com/3',
