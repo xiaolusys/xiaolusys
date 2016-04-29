@@ -1,0 +1,19 @@
+[
+{
+  "fields": {
+    "created": "2016-04-27T22:56:13",
+    "start_time": "2016-04-27T22:27:54",
+    "is_active": true,
+    "brand_name": "\u5996\u7cbe\u7684\u53e3\u888b  \u4e13\u573a",
+    "modified": "2016-04-28T09:43:06",
+    "brand_post": "",
+    "end_time": "2016-05-31T22:28:00",
+    "brand_applink": "",
+    "brand_desc": "",
+    "brand_pic": "http://7xogkj.com2.z0.glb.qiniucdn.com/brand/yinman.png",
+    "order_val": 0
+  },
+  "model": "pay.brandentry",
+  "pk": 1
+}
+]

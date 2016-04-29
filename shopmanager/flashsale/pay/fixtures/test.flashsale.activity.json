@@ -1,0 +1,132 @@
+[
+{
+  "fields": {
+    "login_required": true,
+    "act_type": "",
+    "share_icon": "",
+    "act_img": "http://7xogkj.com2.z0.glb.qiniucdn.com/222-app-event-gate.png",
+    "start_time": "2016-02-15T17:49:56",
+    "title": "\u514d\u8d39\u8bd5\u7528\u6d3b\u52a8",
+    "is_active": false,
+    "modified": "2016-03-12T10:43:40",
+    "created": "2016-02-15T17:50:00",
+    "act_applink": "app:m.xiaolumeimei.com/chaotong",
+    "act_desc": "\u514d\u8d39\u9001\u51fa1000\u4e2a\u7a7a\u6c14\u68c9\u6052\u6e29\u7761\u888b\uff01\u5168\u56fd\u5305\u90ae\u514d\u8d39\u9001\uff01",
+    "end_time": "2016-02-29T17:50:00",
+    "act_link": "http://m.xiaolumeimei.com/sale/promotion/xlsampleorder/",
+    "mask_link": "",
+    "order_val": 0,
+    "share_link": "",
+    "extras": {}
+  },
+  "model": "pay.activityentry",
+  "pk": 1
+},
+{
+  "fields": {
+    "login_required": true,
+    "act_type": "",
+    "share_icon": "",
+    "act_img": "http://image.xiaolu.so/TT1458525006756%E4%BC%9A%E5%91%98%E6%97%A5%E4%BC%98%E6%83%A0%E5%88%B8.png?imageMogr2thumbnail/618/format/jpg/quality/95",
+    "start_time": "2016-03-21T00:00:00",
+    "title": "3.21\u6625\u590f\u7f8e\u8863\u5927\u8d4f\u4f18\u60e0",
+    "is_active": false,
+    "modified": "2016-03-22T17:13:49",
+    "created": "2016-03-21T23:45:15",
+    "act_applink": "",
+    "act_desc": "",
+    "end_time": "2016-03-23T00:00:00",
+    "act_link": "http://m.xiaolumeimei.com/sale/promotion/activity/",
+    "mask_link": "",
+    "order_val": 0,
+    "share_link": "",
+    "extras": {}
+  },
+  "model": "pay.activityentry",
+  "pk": 2
+},
+{
+  "fields": {
+    "login_required": true,
+    "act_type": "webview",
+    "share_icon": "http://image.xiaolu.so/TT1460975782360fenxiang.png",
+    "act_img": "http://image.xiaolu.so/TT1461031358721rukou.png",
+    "start_time": "2016-04-19T10:00:00",
+    "title": "4\u6708\u5b9d\u5b9d\u6d74\u5dfe\u514d\u8d39\u5927\u6d3e\u9001\uff5c2000\u6761\u5168\u68c9\u5361\u901a\u9020\u578b\u8d85\u6709\u8303\u513f\u6d74\u5dfe\uff5e\uff5e",
+    "is_active": true,
+    "modified": "2016-04-19T20:04:39",
+    "created": "2016-04-01T15:17:12",
+    "act_applink": "",
+    "act_desc": "\u53ef\u80fd\u662f\u4e2d\u56fd\u8d28\u91cf\u6700\u597d\uff0c\u9020\u578b\u6700\u5361\u901a\uff0c\u7acb\u4f53\u8d85\u6709\u8303\u513f\u7684\u6d74\u5dfe\uff0c\u9650\u91cf2000\u6761\u5168\u56fd\u514d\u8d39\u5305\u90ae\u6d3e\u9001\u5566\uff5e\uff5e\u5fc5\u987b\u62a2\u62a2\u62a2\uff01\uff01\uff01",
+    "end_time": "2016-04-26T10:00:00",
+    "act_link": "http://m.xiaolumeimei.com/sale/promotion/join/3/?ufrom=app",
+    "mask_link": "http://image.xiaolu.so/TT1460975795366tanchuang.png?imageMogr2/thumbnail/350/format/png",
+    "order_val": 0,
+    "share_link": "http://m.xiaolumm.com/sale/promotion/join/3/?from_customer={customer.id}",
+    "extras": {
+      "html": {
+        "activate": "/sale/promotion/activate/3/",
+        "end": "/activity/0407/html/act-0405-4.html",
+        "download": "/activity/0407/html/act-0405-2.html",
+        "mainpage": "/activity/0407/html/act-0405-3.html",
+        "qrcode": "/activity/0407/html/act-0405-5.html",
+        "apply": "/activity/0407/html/act-0405-1.html"
+      },
+      "data": {}
+    }
+  },
+  "model": "pay.activityentry",
+  "pk": 3
+},
+{
+  "fields": {
+    "login_required": true,
+    "act_type": "webview",
+    "share_icon": "http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png?imageMogr2/thumbnail/60/format/png",
+    "act_img": "",
+    "start_time": "2016-04-08T11:52:07",
+    "title": "\u9080\u8bf7\u60a8\u52a0\u5165\u5c0f\u9e7f",
+    "is_active": false,
+    "modified": "2016-04-13T10:19:32",
+    "created": "2016-04-08T11:52:18",
+    "act_applink": "",
+    "act_desc": "\u767b\u5f55\u6ce8\u518c\uff0c\u5f00\u542f\u60a8\u7684\u5c0f\u9e7f\u521b\u4e1a\u4e4b\u65c5\u3002",
+    "end_time": "2017-04-08T11:52:10",
+    "act_link": "",
+    "mask_link": "",
+    "order_val": 0,
+    "share_link": "http://m.xiaolumeimei.com/m/register/?mama_id={mama_id}",
+    "extras": {}
+  },
+  "model": "pay.activityentry",
+  "pk": 4
+},
+{
+  "fields": {
+    "login_required": true,
+    "act_type": "webview",
+    "share_icon": "http://image.xiaolu.so/TT1461565088395fenxiang.png",
+    "act_img": "http://image.xiaolu.so/TT1461405903371AppTop10entrance.png",
+    "start_time": "2016-04-24T20:00:00",
+    "title": "\u3010\u7cbe\u9009Top10\u3011\u7528\u5fc3\u63a8\u8350",
+    "is_active": true,
+    "modified": "2016-04-27T18:21:48",
+    "created": "2016-04-23T18:07:51",
+    "act_applink": "",
+    "act_desc": "\u5c0f\u9e7f\u7f8e\u7f8e\u672c\u5468top10\u70ed\u9500\u5546\u54c1\uff0c\u6ee180\u51cf10\u5143\uff0c\u4f18\u60e0\u591a\u591a",
+    "end_time": "2016-04-30T20:00:00",
+    "act_link": "http://m.xiaolumeimei.com/sale/promotion/join/5/?ufrom=app",
+    "mask_link": "",
+    "order_val": 0,
+    "share_link": "http://m.xiaolumeimei.com/sale/promotion/join/5/",
+    "extras": {
+      "html": {
+        "apply": "/activity/post/index.html"
+      },
+      "data": {}
+    }
+  },
+  "model": "pay.activityentry",
+  "pk": 5
+}
+]

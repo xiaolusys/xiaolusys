@@ -564,7 +564,7 @@ post_save.connect(delete_pro_record_supplier, Product)
 from shopback.signals import signal_product_upshelf,signal_product_downshelf
 
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
-    if instance and instance.id:
+    if not raw and instance and instance.id :
         product = Product.objects.get(id=instance.id)
         # 如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
