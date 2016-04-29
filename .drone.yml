@@ -3,7 +3,7 @@ build:
   environment:
     - TARGET=staging
   commands:
-    - python manage.py test -t . --keepdb
+    - cd shopmanager;python manage.py test -t . --keepdb
   when:
     branch: staging
 publish:
