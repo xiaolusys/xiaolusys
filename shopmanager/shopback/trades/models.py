@@ -1375,10 +1375,12 @@ class PackageOrder(models.Model):
                                                           assign_status=PackageSkuItem.ASSIGNED)
         for sku_item in package_sku_items:
             sku_item.assign_status = PackageSkuItem.FINISHED
+            sku_item.set_assign_status_time()
             sku_item.save()
             psku = ProductSku.objects.get(id=sku_item.sku_id)
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
+
 
     @property
     def pstat_id(self):
@@ -1588,6 +1590,9 @@ class PackageSkuItem(BaseModel):
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
 
     pay_time = models.DateTimeField(db_index=True, verbose_name=u'付款时间')
+    assign_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配SKU时间')
+    finish_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'完成时间')
+    cancel_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'取消时间')
     sku_properties_name = models.CharField(max_length=256, blank=True,
                                            verbose_name=u'购买规格')
 
@@ -1624,6 +1629,14 @@ class PackageSkuItem(BaseModel):
             return self._package_order_
         else:
             return None
+
+    def set_assign_status_time(self):
+        if self.assign_status == PackageSkuItem.FINISHED:
+            self.finish_time = datetime.datetime.now()
+        elif self.assign_status == PackageSkuItem.ASSIGNED:
+            self.assign_time = datetime.datetime.now()
+        elif self.assign_status == PackageSkuItem.CANCELED:
+            self.cancel_time == datetime.datetime.now()
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED

@@ -29,7 +29,8 @@ class ProductSkuStats(models.Model):
 
     history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存数')  #
     inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存数')  #
-    return_quantity = models.IntegerField(default=0, verbose_name=u'退货数')  #
+    return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货数')  #
+    rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商货数')  #
     post_num = models.IntegerField(default=0, verbose_name=u'已发货数')  #
     sold_num = models.IntegerField(default=0, verbose_name=u'已被购买数')  #
 
@@ -45,7 +46,7 @@ class ProductSkuStats(models.Model):
 
     @property
     def realtime_quantity(self):
-        return self.history_quantity + self.inbound_quantity + self.return_quantity - self.post_num
+        return self.history_quantity + self.inbound_quantity + self.return_quantity - self.post_num - self.rg_quantity
 
     @property
     def aggregate_quantity(self):
@@ -53,11 +54,11 @@ class ProductSkuStats(models.Model):
 
     @property
     def wait_post_num(self):
-        return self.sold_num - self.post_num
+        return self.sold_num + self.return_quantity - self.post_num - self.rg_quantity
 
     @property
     def wait_assign_num(self):
-        return self.sold_num - self.assign_num - self.post_num
+        return self.sold_num - self.assign_num - self.post_num - self.rg_quantity
 
     @property
     def realtime_lock_num(self):

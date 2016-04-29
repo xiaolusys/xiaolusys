@@ -1036,6 +1036,7 @@ def task_merge_trade_update_package_sku_item(merge_trade):
             if mo.sale_order_id:
                 sku_item = PackageSkuItem.objects.get(sale_order_id=mo.sale_order_id)
                 sku_item.assign_status = PackageSkuItem.FINISHED
+                sku_item.set_assign_status_time()
                 sku_item.save()
 
 

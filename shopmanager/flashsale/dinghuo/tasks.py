@@ -17,7 +17,6 @@ from flashsale.dinghuo.models import OrderDetail, OrderList
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, PayToPackStats
 from flashsale.pay.models import SaleOrder
 
-
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
@@ -25,7 +24,9 @@ from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplie
 
 from . import function_of_task, functions
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 @task(max_retries=3, default_retry_delay=5)
 def task_stats_paytopack(pay_date, sku_num, total_days):
@@ -1134,10 +1135,13 @@ def _get_suppliers():
         new_suppliers.append(supplier)
     return new_suppliers
 
+
 def get_suppliers():
-    sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS, refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER, pay_time__gt=datetime.datetime(2016, 4, 1)) \
-      .exclude(outer_id__startswith='RMB') \
-      .values('sku_id').annotate(sale_quantity=Sum('num'), last_pay_time=Max('pay_time'))
+    sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                          refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,
+                                          pay_time__gt=datetime.datetime(2016, 4, 1)) \
+        .exclude(outer_id__startswith='RMB') \
+        .values('sku_id').annotate(sale_quantity=Sum('num'), last_pay_time=Max('pay_time'))
 
     sale_skus_dict = {}
     for sale_stat in sale_stats:
@@ -1150,10 +1154,12 @@ def get_suppliers():
         }
 
     dinghuo_skus_dict = {}
-    dinghuo_stats = OrderDetail.objects.select_related('orderlist').filter(chichu_id__in=map(str, sale_skus_dict.keys())) \
-      .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED]) \
-      .values('chichu_id') \
-      .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'), inferior_quantity=Sum('inferior_quantity'))
+    dinghuo_stats = OrderDetail.objects.select_related('orderlist').filter(
+        chichu_id__in=map(str, sale_skus_dict.keys())) \
+        .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED]) \
+        .values('chichu_id') \
+        .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                  inferior_quantity=Sum('inferior_quantity'))
     for dinghuo_stat in dinghuo_stats:
         sku_id = (dinghuo_stat.get('chichu_id') or '').strip()
         dinghuo_skus_dict[int(sku_id)] = {
@@ -1212,8 +1218,8 @@ def get_suppliers():
         for sku_id in sorted(skus_dict.keys()):
             sku_dict = skus_dict[sku_id]
             effect_quantity = sku_dict['quantity'] + sku_dict['buy_quantity'] - \
-              min(sku_dict['arrival_quantity'], sku_dict['buy_quantity']) - \
-              sku_dict['sale_quantity']
+                              min(sku_dict['arrival_quantity'], sku_dict['buy_quantity']) - \
+                              sku_dict['sale_quantity']
             if effect_quantity >= 0:
                 continue
             sku_dict['effect_quantity'] = effect_quantity
@@ -1242,6 +1248,7 @@ def get_suppliers():
         supplier_dict['last_pay_time'] = max(x['last_pay_time'] for x in supplier_dict['products'])
         new_suppliers.append(supplier_dict)
     return new_suppliers
+
 
 def create_orderlist(supplier):
     now = datetime.datetime.now()
@@ -1343,7 +1350,9 @@ def create_dinghuo():
     for supplier in get_suppliers():
         create_orderlist(supplier)
 
+
 from django.db import IntegrityError
+
 
 @task(max_retries=3, default_retry_delay=6)
 def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
@@ -1357,7 +1366,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     from shopback.items.models import ProductSkuStats
     from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
 
-    sum_res = OrderDetail.objects.filter(chichu_id=sku_id,arrival_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME)\
+    sum_res = OrderDetail.objects.filter(chichu_id=sku_id, arrival_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME) \
         .aggregate(total=Sum('arrival_quantity'))
     total = sum_res["total"] or 0
 
@@ -1365,7 +1374,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
     if stats.count() <= 0:
         product_id = ProductSku.objects.get(id=sku_id).product.id
         try:
-            stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,inbound_quantity=total)
+            stat = ProductSkuStats(sku_id=sku_id, product_id=product_id, inbound_quantity=total)
             stat.save()
         except IntegrityError as exc:
             logger.warn(
@@ -1376,3 +1385,17 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
         if stat.inbound_quantity != total:
             stat.inbound_quantity = total
             stat.save(update_fields=['inbound_quantity'])
+
+
+@task()
+def task_update_product_sku_stat_rg_quantity(sku_id):
+    from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
+    from shopback.items.models import ProductSkuStats
+    sum_res = RGDetail.objects.filter(skuid=sku_id, created__gte=PRODUCT_SKU_STATS_COMMIT_TIME,
+                                      return_goods__status__in=[ReturnGoods.VERIFY_RG, ReturnGoods.DELIVER_RG,
+                                                                ReturnGoods.SUCCEED_RG]).aggregate(total=Sum('num'))
+    total = sum_res["total"] or 0
+    stat = ProductSkuStats.objects.get(sku_id=sku_id)
+    if stat.rg_quantity != total:
+        stat.rg_quantity = total
+        stat.save(update_fields=['rg_quantity'])
