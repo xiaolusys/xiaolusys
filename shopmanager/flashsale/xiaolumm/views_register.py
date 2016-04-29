@@ -62,6 +62,18 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         #     redirect_url = self.get_snsuserinfo_redirct_url(request)
         #     return redirect(redirect_url)
         customer_mobile = customer.mobile
+        referal = XiaoluMama.objects.filter(id=mama_id).first()
+        referal_from = referal.mobile if referal else ''  # 如果推荐人存在则
+        if customer_mobile:  # 如果用户存在手机号码
+            xlmm = XiaoluMama.objects.filter(openid=unionid).first()
+            if xlmm:  # 存在则保存当前登陆用户的手机号码到当前小鹿妈妈的手机号字段
+                xlmm.mobile = customer_mobile
+                xlmm.save()
+            else:  # 否则创建当前用户的小鹿妈妈账号 并且是填写资料后状态
+                XiaoluMama.objects.create(mobile=customer_mobile,
+                                          referal_from=referal_from,
+                                          progress=XiaoluMama.PROFILE,
+                                          openid=unionid)
 
         try:
             xiaolumm = XiaoluMama.objects.get(openid=unionid)
