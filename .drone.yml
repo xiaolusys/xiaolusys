@@ -3,8 +3,8 @@ build:
   environment:
     - TARGET=staging
   commands:
-    - cd shopmanager;python manage.py test -t . --keepdb
-    - python manage.py migrate --noinput
+    - cd shopmanager;python manage.py migrate --noinput
+    - python manage.py test -t . --keepdb
   when:
     branch: staging
 publish:
