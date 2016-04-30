@@ -179,6 +179,7 @@ def get_replay_package_results(replay_trade):
         queryset = PackageOrder.objects.filter(pid__in=trade_ids)
         post_trades = queryset.filter(sys_status__in=(PackageOrder.WAIT_CHECK_BARCODE_STATUS,
                                                       PackageOrder.WAIT_SCAN_WEIGHT_STATUS,
+                                                      PackageOrder.WAIT_CUSTOMER_RECEIVE,
                                                       PackageOrder.FINISHED_STATUS))
         trade_list = get_package_pickle_list_data(post_trades)
         trades = []
@@ -193,6 +194,7 @@ def get_replay_package_results(replay_trade):
             trade_dict['out_sid'] = trade.out_sid
             trade_dict['is_success'] = trade.sys_status in (PackageOrder.WAIT_CHECK_BARCODE_STATUS,
                                                             PackageOrder.WAIT_SCAN_WEIGHT_STATUS,
+                                                            PackageOrder.WAIT_CUSTOMER_RECEIVE,
                                                             PackageOrder.FINISHED_STATUS)
             trade_dict['sys_status'] = trade.sys_status
             trades.append(trade_dict)
@@ -221,6 +223,7 @@ def sendTradeCallBack(trade_ids, *args, **kwargs):
             logger.error('trade post callback error:%s' % exc.message, exc_info=True)
         return None
 
+
 @task()
 def send_package_call_Back(trade_ids, *args, **kwargs):
     try:
@@ -233,6 +236,7 @@ def send_package_call_Back(trade_ids, *args, **kwargs):
         except Exception, exc:
             logger.error('trade post callback error:%s' % exc.message, exc_info=True)
         return None
+
 
 @task(ignore_result=False)
 def sendTaobaoTradeTask(operator_id, trade_id):
@@ -1025,7 +1029,8 @@ def task_update_package_order(instance):
                 sys_status=PackageOrder.PKG_NEW_CREATED)
         if len(assign_status_set) > 0 and PackageSkuItem.NOT_ASSIGNED not in \
                 assign_status_set and PackageSkuItem.ASSIGN_STATUS not in assign_status_set:
-            PackageOrder.objects.filter(id=instance.package_order_id).update(sys_status=PackageOrder.FINISHED_STATUS)
+            PackageOrder.objects.filter(id=instance.package_order_id).update(
+                sys_status=PackageOrder.WAIT_CUSTOMER_RECEIVE)
 
 
 @task()

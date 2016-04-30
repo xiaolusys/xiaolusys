@@ -30,6 +30,7 @@ from shopback.trades.views import (StatisticMergeOrderView,
                                    ImprovePriorityView,
                                    replay_trade_send_result,
                                    replay_package_send_result,
+                                   change_package_logistic_and_outsid,
                                    countFenxiaoAcount,
                                    showFenxiaoDetail,
                                    PackageScanCheckView,
@@ -76,7 +77,9 @@ urlpatterns = patterns('shopback.trades.views',
                        (
                        r'^replaysend/(?P<id>\d{1,20})/$', csrf_exempt(staff_member_required(replay_trade_send_result))),
                        (r'^replay_package_send/(?P<id>\d{1,20})/$', csrf_exempt(staff_member_required(replay_package_send_result))),
+
                        (r'review/(?P<id>\d{1,20})/$', csrf_exempt(login_required_ajax(review_order))),
+                       (r'change_logistic/$', csrf_exempt(login_required_ajax(change_package_logistic_and_outsid))),
                        (r'logistic/$', csrf_exempt(login_required_ajax(change_logistic_and_outsid))),
                        (r'^memo/$', csrf_exempt(login_required_ajax(update_sys_memo))),
                        (r'^priority/(?P<id>\d{1,20})/', ImprovePriorityView.as_view(

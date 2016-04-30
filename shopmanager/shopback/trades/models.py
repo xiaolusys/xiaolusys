@@ -124,8 +124,10 @@ GIFT_TYPE = (
     (pcfg.ITEM_GIFT_TYPE, u'买就送'),
 )
 
+
 def default_trade_tid():
     return 'DD%d' % int(time.time() * 10 ** 5)
+
 
 class MergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
@@ -690,6 +692,7 @@ signals.recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 def default_order_oid():
     return 'DO%d' % int(time.time() * 10 ** 5)
 
+
 class MergeOrder(models.Model):
     NO_REFUND = pcfg.NO_REFUND
     REFUND_WAIT_SELLER_AGREE = pcfg.REFUND_WAIT_SELLER_AGREE
@@ -723,8 +726,8 @@ class MergeOrder(models.Model):
                            default=default_order_oid,
                            verbose_name=u'原单ID')
     merge_trade = models.ForeignKey(MergeTrade,
-                                       related_name='merge_orders',
-                                       verbose_name=u'所属订单')
+                                    related_name='merge_orders',
+                                    verbose_name=u'所属订单')
     sale_order_id = models.BigIntegerField(null=True, default=None, db_index=True, verbose_name=u'对应的SaleOrder')
     cid = models.BigIntegerField(null=True, verbose_name=u'商品分类')
     num_iid = models.CharField(max_length=64, blank=True, verbose_name=u'线上商品编号')
@@ -1381,6 +1384,12 @@ class PackageOrder(models.Model):
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
 
+    @property
+    def buyer(self):
+        if not hasattr(self, '_buyer_'):
+            from flashsale.pay.models import Customer
+            self._buyer_ = Customer.objects.get(id=self.buyer_id)
+        return self._buyer_
 
     @property
     def pstat_id(self):
@@ -1414,7 +1423,9 @@ class PackageOrder(models.Model):
 
     @property
     def seller(self):
-        return User.objects.get(id=self.seller_id)
+        if not hasattr(self, '_seller_'):
+            self._seller_ = User.objects.get(id=self.seller_id)
+        return self._seller_
 
     def set_redo_sign(self, save_data=True):
         """
@@ -1435,7 +1446,6 @@ class PackageOrder(models.Model):
             PackageOrder.objects.filter(id=self.id).update(sku_num=sku_num)
         if save_data:
             self.save()
-
 
     @staticmethod
     def create(id, sale_trade):
@@ -1488,6 +1498,7 @@ def check_package_order_status(sender, instance, created, **kwargs):
     if created:
         task_get_logistics_company.delay(instance)
 
+
 post_save.connect(check_package_order_status, sender=PackageOrder)
 
 
@@ -1528,7 +1539,6 @@ from core.models import BaseModel
 
 
 class PackageSkuItem(BaseModel):
-
     REAL_ORDER_GIT_TYPE = 0  # 实付
     CS_PERMI_GIT_TYPE = 1  # 赠送
     OVER_PAYMENT_GIT_TYPE = 2  # 满就送

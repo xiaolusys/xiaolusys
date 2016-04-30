@@ -300,36 +300,12 @@ class PackageReviewView(APIView):
     def get(self, request, id, *args, **kwargs):
 
         try:
-            trade = PackageOrder.objects.get(pid=id)
+            package_order = PackageOrder.objects.get(pid=id)
         except PackageOrder.DoesNotExist:
             return Response('该订单不存在'.decode('utf8'))
 
         logistics = serializers.LogisticsCompanySerializer(
             LogisticsCompany.objects.filter(status=True),
             many=True).data
-        order_nums = trade.package_sku_items.exclude(assign_status=PackageSkuItem.CANCELED).aggregate(
-            total_num=Sum('num')).get('total_num')
-
-        trade_dict = model_to_dict(trade)
-
-        trade_dict.update(
-            {'id': trade.id,
-             'seller_nick': trade.seller.nick,
-             'used_orders': trade.package_sku_items.exclude(assign_status=PackageSkuItem.CANCELED),
-             'order_nums': order_nums,
-             'logistics_company': serializers.LogisticsCompanySerializer(
-                 trade.logistics_company).data,  # trade.logistics_company,
-             'can_review_status': True,
-             'out_of_logistic': '',
-             'need_manual_merge': '',
-             'status_name': trade.get_status_display(),
-             'sys_status_name': trade.get_sys_status_display(),
-             'new_memo': '',
-             'new_refund': '',
-             'order_modify': '',
-             'addr_modify': '',
-             'new_merge': '',
-             'wait_merge': '',})
-        # print trade_dict
-        return Response({"object": {'trade': trade_dict,
+        return Response({"object": {'package_order': package_order,
                                     'logistics': logistics}})
