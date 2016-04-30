@@ -127,58 +127,48 @@
 {% load trade_tags %} 
 
 
-{% with trade=object.trade logistics=object.logistics %}
+{% with trade=object.package_order logistics=object.logistics %}
   <body>
 	<div >
 		<fieldset>
-			<legend>问题列表(淘宝订单状态:<span class="status-label">{{ trade.status_name }}</span>，系统状态:<span class="status-label">{{ trade.sys_status_name }}</span>)</legend>
-			<div style="padding: 9px 15px">
-				<ul id="id-trade-problems" class="thumbnails1">
-					{% if trade.new_memo %}<li><span class="badge1 badge-warning1">新留言</span></li>{% endif %} 
-					{% if trade.new_refund %}<li><span class="badge1 badge-warning1">新退款</span></li>{% endif %} 
-					{% if trade.order_modify %}<li><span class="badge1 badge-warning1">订单修改</span></li>{% endif %} 
-					{% if trade.new_merge %}<li><span class="badge1 badge-warning1">新合单</span></li>{% endif %}
-					{% if trade.wait_merge %}<li><span class="badge1 badge-warning1">待合单</span></li>{% endif %}
-					{% if trade.addr_modify %}<li><span class="badge1 badge-warning1">修改快递或地址信息</span></li>{% endif %}
-					{% if trade.has_out_stock %}<li><span class="badge1 badge-warning1">缺货</span></li>{% endif %}
-				</ul>
+			<legend>包裹(:<span class="status-label">{{ trade.pid }}</span>，系统状态:<span class="status-label">{{ trade.get_sys_status_display }}</span>)</legend>
+			<div class="row-through">
+				<div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
 			</div>
 		</fieldset>
 		<fieldset>
 			<legend>基本信息</legend>
 			<div class="row-through">
-				<input type="hidden" id="id_review_trade" name="trade_id" value="{{ trade.id }}">
+				<input type="hidden" id="id_review_trade" name="trade_id" value="{{ trade.pid }}">
 				<input type="hidden" id="id_trade_status" name="trade_status" value="{{ trade.sys_status }}">
-				<div  class="trade_info"><label class="simple-label">订单号: </label>{{ trade.id }}</div>
-				<div  class="trade_info"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
-				<div  class="trade_info"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div>
-				<div  class="trade_info"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
-				<div  class="trade_info"><label class="simple-label">发货日期: </label>{{ trade.consign_time }}</div>
-				<br><br>
-				<div  class="trade_info"><label class="simple-label">实付款: </label>{{ trade.payment }}</div>
-				<div  class="trade_info"><label class="simple-label">邮费: </label>{{ trade.post_fee }}</div>
-				<div  class="trade_info"><label class="simple-label">快递公司: </label>
-					<span id="id_logistic_name" class="logistic-label">{{ trade.logistics_company.name }}</span></div>
-				<div  class="trade_info"><label class="simple-label">快递单号: </label>
-					<span id="id_out_sid" class="logistic-label">{{ trade.out_sid }}</span></div>
-				<div  class="trade_info"><label class="simple-label">问题编号: </label>{{ trade.reason_code }}</div>
-				<br><br>
-				<div  class="trade_info"><label class="simple-label">收货人: </label>{{ trade.receiver_name }}</div>
-				<div  class="trade_info"><label class="simple-label">省: </label>{{ trade.receiver_state }}</div>
-				<div  class="trade_info"><label class="simple-label">市: </label>{{ trade.receiver_city }}</div>
-				<div  class="trade_info"><label class="simple-label">区: </label>{{ trade.receiver_district }}</div>
+				<div  class="trade_info"><label class="simple-label">包裹码: </label>{{ trade.id }}</div>
+				<div  class="trade_info"><label class="simple-label">收件人: </label>{{ trade.receiver_name }}</div>
 				<div  class="trade_info">
 					<label class="simple-label">联系方式: </label>
 					{% if trade.receiver_mobile %}{{ trade.receiver_mobile }}{% else %}{{ trade.receiver_phone }}{% endif %}
 				</div>
-				<br><br>
+				<div  class="trade_info"><label class="simple-label">省: </label>{{ trade.receiver_state }}</div>
+				<div  class="trade_info"><label class="simple-label">市: </label>{{ trade.receiver_city }}</div>
+				<div  class="trade_info"><label class="simple-label">区: </label>{{ trade.receiver_district }}</div>
 				<div style="display: inline-block; width: 100%;" ><label class="simple-label">详细地址: </label>{{ trade.receiver_address }}</div>
-			</div>
-			<div class="row-through">
-				<div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
-				<div class="alert-message seller"><strong>卖家留言: </strong>{{ trade.seller_memo }}{{ trade.sys_memo }}</div>
+				<br><br>
+				<div  class="trade_info"><label class="simple-label">买家: </label>{{ trade.buyer.nick }}</div>
+				<div  class="trade_info"><label class="simple-label">店铺: </label>{{ trade.seller.nick }}</div>
+				<div  class="trade_info"><label class="simple-label">实付款: </label>{{ trade.payment }}</div>
+				<div  class="trade_info"><label class="simple-label">邮费: </label>{{ trade.post_fee }}</div>
+				<br><br>
+				<div  class="trade_info"><label class="simple-label">付款时间: </label>{{ trade.created|default:''}}</div>
+				<!--div  class="trade_info"><label class="simple-label">打单时间: </label>{{ trade.weight_time|default:''}}</div>
+				<div  class="trade_info"><label class="simple-label">扫描时间: </label>{{ trade.weight_time|default:''}}</div-->
+				<div  class="trade_info"><label class="simple-label">称重时间: </label>{{ trade.weight_time|default:''}}</div>
+				<br><br>
+
 			</div>
 			<div>
+				<div  class="trade_info"><label class="simple-label">快递公司: </label>
+					<span id="id_logistic_name" class="logistic-label">{{ trade.logistics_company.name }}</span></div>
+				<div  class="trade_info"><label class="simple-label">快递单号: </label>
+					<span id="id_out_sid" class="logistic-label">{{ trade.out_sid }}</span></div>
 				<div id="id_express_content" class="accordion-inner1">
 					<label class="simple-label">选择快递:</label> 
 					<select id="id_logistics" class="selection">
@@ -196,7 +186,7 @@
 			</div>
 		</fieldset>
 		<fieldset>
-			<legend>订单信息(总数量{{ trade.order_nums }})</legend>
+			<legend>订单信息(总数量{{ trade.package_sku_items.count }})</legend>
 			<table class="table table-bordered table-striped table-condensed">
 				<tr>
 					<th>ID</th>
@@ -205,37 +195,23 @@
 					<th>规格编码</th>
 					<th>规格名称</th>
 					<th>数量</th>
-					<th>有修改</th>
-					<th>缺货</th>
+					<th>分配时间</th>
+					<th>状态</th>
 				</tr>
-				{% for order in trade.used_orders %}
+				{% for order in trade.package_sku_items %}
 				<tr>
 					<td>{{ order.id }}</td>
 					<td>{{ order.outer_id }}</td>
+					<td>{{ order.product_sku.product.name }}</td>
 					<td>{{ order.outer_sku_id }}</td>
-	<!--				<td>{{ order|sku_name }}</td>  -->
+					<td>{{ order.sku_properties_name }}</td>
 					<td>{{ order.num }}</td>
-					<td>
-					    <img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">
-					</td>
-					<td><input type="checkbox" class="order_stock_status" oid="{{ order.id }}" {% if order.out_stock %}checked{% endif %} /></td>
+					<th>{{ order.assign_time|default:'' }}</th>
+					<td>{{ order.get_assign_status_display }}</td>
 				</tr>
 				{% endfor %}
 			</table>
 		</fieldset>
-		<div class="bottom-area" >
-			{% if trade.can_review and trade.can_review_status %}
-				{% if trade.reason_code %}
-				<button id="id-review-order-btn" class="btn-large btn-primary">复审通过</button>
-				{% else %}
-				<button id="id-review-order-btn" class="btn-large" disabled="disabled">订单已复审</button>
-				{% endif %}
-			{% elif not trade.can_review and trade.can_review_status and trade.reason_code != '' %}
-			<button id="id-review-order-btn" class="btn-large" disabled="disabled">客服未处理，暂不能复审</button>
-			{% else%}
-			<button id="id-review-order-btn" class="btn-large" disabled="disabled">订单无须复审</button>
-			{% endif %}
-		</div>
 	</div>
 	<script type="text/javascript">
 	
@@ -247,7 +223,7 @@
 				&&(logistic_code == '' || out_sid == '')){
 				alert('物流单号不能为空');
 			}else{
-				$.post('/trades/logistic/',
+				$.post('/trades/change_logistic/',
 					{'trade_id':trade_id,'logistic_code':logistic_code,'out_sid':out_sid,'format':'json'},
 					function(data){
 						if (data.code == 0){
@@ -261,47 +237,8 @@
 			}
 		};
 		
-		var review_order  = function(evt){
-			var trade_id      = $('#id_review_trade').val();
-			var post_url      = '/trades/review/'+trade_id+'/';
-			$.post(post_url,
-				{'format':'json'},
-				function(data){
-					if(data.code == 0){
-						$('#id-trade-problems').html('');
-						$('#id-review-order-btn').hide();
-					}else{
-						alert('订单复核失败:'+data.response_error);
-					}
-				},
-				'json');
-		};
-		
-		var check_outstock  = function(evt){
-			var target      = evt.target;
-			var oid         = target.getAttribute('oid');
-			var out_stock  = target.checked;
-			var post_url    = '/trades/order/outstock/'+oid+'/';
-			$.post(post_url,
-				{'format':'json','out_stock': out_stock?1:0},
-				function(data){
-					if(data.code == 0 ){
-						if (data.response_content.out_stock){
-							alert('缺货状态设置成功');
-						}else{
-							alert('缺货状态取消成功');
-						}
-					}else{
-						alert('订单修改失败:'+data.response_error);
-					}
-				},
-				'json');
-		};
-		
+
 		$('#id-chg-express-no-btn').click(change_logistic);
-		$('#id-review-order-btn').click(review_order);
-		$('.order_stock_status').click(check_outstock);
-		
 		$('#id_logistics').change(function(e){
 			var company_code  = $(this,"option:selected").val();
 			

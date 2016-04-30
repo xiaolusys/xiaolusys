@@ -1253,7 +1253,7 @@ class PackageOrderAdmin(admin.ModelAdmin):
                     'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
                     'consign_time', 'weight', 'redo_sign', 'merge_trade_id')
 
-    search_fields = ['id', 'out_sid', 'receiver_name', 'receiver_mobile']
+    search_fields = ['pid', 'id', 'out_sid', 'receiver_name', 'receiver_mobile']
     list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign')
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']

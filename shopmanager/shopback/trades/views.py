@@ -1206,6 +1206,54 @@ def change_logistic_and_outsid(request):
     return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
 
+def change_package_logistic_and_outsid(request):
+    CONTENT = request.REQUEST
+    trade_id = CONTENT.get('trade_id')
+    out_sid = CONTENT.get('out_sid')
+    logistic_code = CONTENT.get('logistic_code', '').upper()
+    is_qrcode = logistic_code.endswith('QR')
+
+    if not trade_id or (not is_qrcode and (not out_sid or not logistic_code)):
+        ret_params = {'code': 1, 'response_error': u'请填写快递名称及单号'}
+        return HttpResponse(json.dumps(ret_params), content_type="application/json")
+    try:
+        package_order = PackageOrder.objects.get(pid=trade_id)
+    except:
+        ret_params = {'code': 1, 'response_error': u'未找到该订单'}
+        return HttpResponse(json.dumps(ret_params), content_type="application/json")
+    try:
+        logistic = LogisticsCompany.objects.get(code=logistic_code)
+        logistic_regex = re.compile(logistic.reg_mail_no)
+        if not is_qrcode and not logistic_regex.match(out_sid):
+            raise Exception(u'快递单号不合规则')
+        if package_order.sys_status in (PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+                                        PackageOrder.WAIT_SCAN_WEIGHT_STATUS):
+
+            package_order.logistics_company = logistic
+            package_order.out_sid = out_sid
+            package_order.save()
+        elif package_order.sys_status == pcfg.FINISHED_STATUS:
+            dt = datetime.datetime.now()
+            package_order.sys_memo = u'%s,退回重发单号[%s]:(%s)%s' % (
+                package_order.sys_memo, dt.strftime('%Y-%m-%d %H:%M'),
+                logistic_code, out_sid)
+            package_order.logistics_company = logistic
+            package_order.out_sid = out_sid
+            package_order.save()
+        else:
+            raise Exception(u'该包裹不能修改')
+
+    except Exception, exc:
+        ret_params = {'code': 1, 'response_error': exc.message}
+        return HttpResponse(json.dumps(ret_params), content_type="application/json")
+
+    ret_params = {'code': 0,
+                  'response_content': {'logistic_company_name': logistic.name,
+                                       'logistic_company_code': logistic.code,
+                                       'out_sid': out_sid}}
+    return HttpResponse(json.dumps(ret_params), content_type="application/json")
+
+
 ############################### 退换货订单 #################################
 class ExchangeOrderView(APIView):
     """ docstring for class ExchangeOrderView """
