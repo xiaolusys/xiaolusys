@@ -1,9 +1,9 @@
 build:
-  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:a65bf71a8e9d6f9fd4988e374865cbc6afe6a0c5
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:0cf32a415c707decacd13620edf64aa361472af6
   environment:
     - TARGET=staging
   commands:
-    - cd shopmanager;pip install sqlparse;python manage.py test -t . --keepdb
+    - cd shopmanager;python manage.py test -t . --keepdb
   when:
     branch: staging
 publish:
