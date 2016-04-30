@@ -32,7 +32,7 @@ class RefundHandler(BaseHandler):
                 update_model_fields(main_order,update_fields=['status',
                                                               'refund_status',
                                                               'sys_status'])
-            if main_order : 
+            if main_order :
                 ruleMatchSplit(main_trade)
                 ruleMatchPayment(main_trade)
             
@@ -81,7 +81,7 @@ class RefundHandler(BaseHandler):
             self.atWAIT_SELLER_SEND_GOODS(merge_trade)
         elif merge_trade.sys_status == pcfg.INVALID_STATUS:
             self.atTRADE_CLOSED(merge_trade)
-        elif merge_trade.sys_status in pcfg.HAS_DELIVERY_STATUS:
+        elif merge_trade.sys_status in pcfg.WAIT_SCAN_CHECK_WEIGHT:
             self.atWAIT_BUYER_CONFIRM_GOODS(merge_trade)
         update_model_fields(merge_trade,update_fields=['has_refund'])
             
@@ -97,8 +97,7 @@ class RefundHandler(BaseHandler):
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
         
         if merge_trade.is_part_consign:
-            refund_orders = merge_trade.merge_orders.exclude(
-                                    refund_status=pcfg.NO_REFUND)
+            refund_orders = merge_trade.merge_orders.exclude(refund_status=pcfg.NO_REFUND)
             for order in refund_orders:
                 match_orders = (MergeOrder.objects.filter(oid=order.oid,
                                                           merge_trade__user=merge_trade.user,
