@@ -13,6 +13,7 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_clickcarry',
     'flashsale.xiaolumm.tasks_mama_dailystats',
     'flashsale.xiaolumm.tasks_mama_push',
+    'flashsale.xiaolumm.tasks_lesson',
     'flashsale.dinghuo.tasks',
     'flashsale.promotion.tasks_activity',
     'flashsale.pay.tasks_stats',
@@ -219,6 +220,10 @@ MAMA_RELATIONSHIP_ROUTES = {
     'flashsale.promotion.tasks_activity.task_userinfo_update_application': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_userinfo_update_application',
+    },
+    'flashsale.xiaolumm.tasks_lesson.task_userinfo_update_attendrecord': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_userinfo_update_attendrecord',
     },
     'flashsale.promotion.tasks_activity.task_decide_award_winner': {
         'queue': 'relationship',

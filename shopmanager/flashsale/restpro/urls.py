@@ -132,6 +132,7 @@ from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login
 from flashsale.restpro.v2 import views_trade_v2, views_product_v2
 
 
+
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'carts', views_trade.ShoppingCartViewSet)
 v2_router.register(r'products', views_product_v2.ProductViewSet)
@@ -155,6 +156,14 @@ v2_router_urls += ([
 
 ])
 
+
+from flashsale.restpro.v2 import views_lesson
+lesson_router = routers.DefaultRouter(trailing_slash=False)
+lesson_router.register(r'lessontopic', views_lesson.LessonTopicViewSet)
+lesson_router.register(r'lesson', views_lesson.LessonViewSet)
+lesson_router.register(r'instructor', views_lesson.InstructorViewSet)
+lesson_router.register(r'attendrecord', views_lesson.AttendRecordViewSet)
+
 urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
     url(r'^v1/', include(router_urls, namespace='v1')),
@@ -171,4 +180,6 @@ urlpatterns = patterns('',
     url(r'^v2/reset_password', views_verifycode_login.ResetPasswordView.as_view()),
     url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
     url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
+    url(r'^lesson/', include(lesson_router.urls, namespace='lesson')),
+    url(r'^lesson/snsauth/(?P<lesson_id>\d+)', views_lesson.WeixinSNSAuthJoinView.as_view()),                       
 )

@@ -31,3 +31,7 @@ def gen_uniquevisitor_unikey(openid, date_field):
 
 def gen_dailystats_unikey(mama_id, date_field):
     return "-".join([str(mama_id), str(date_field)])
+
+
+def gen_attendrecord_unikey(lesson_id, unionid):
+    return '-'.join([str(lesson_id), unionid])
