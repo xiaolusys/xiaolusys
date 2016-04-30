@@ -5,8 +5,13 @@
 
 {% block object-tools %}
   {% if has_add_permission %}
+<input id="input-saleproduct-date" style="visibility:hidden;width:0;height:0;float:left">
+<div style="clear:both"></div>
     <ul class="object-tools">
       {% block object-tools-items %}
+        <li>
+            <a href="javascript:;" id="select-saleproduct-date">上架日期</a>
+        </li>
         <li>
           <a href="/supplychain/supplier/manage_schedule/" target="_blank">
             排期管理
@@ -26,4 +31,3 @@
     </ul>
   {% endif %}
 {% endblock %}
-
