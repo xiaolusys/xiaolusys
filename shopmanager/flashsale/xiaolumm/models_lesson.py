@@ -25,7 +25,7 @@ class LessonTopic(BaseModel):
     LESSON_TYPES = ((0, u'LESSON'), (1, u'PRACTICE'), (2, u'KNOWLEDGE'))
 
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
-    desciption = models.TextField(max_length=512, blank=True, verbose_name=u'课程描述')
+    description = models.TextField(max_length=512, blank=True, verbose_name=u'课程描述')
 
     num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
     content_link = models.CharField(max_length=256, blank=True, verbose_name=u'内容链接')
