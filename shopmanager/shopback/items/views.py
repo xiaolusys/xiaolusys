@@ -85,6 +85,9 @@ def update_product_stock(request):
     remain_num = content.get('remain_num', '')
     reduce_num = content.get('reduce_num', 0)
     mode = content.get('mode', 0)  # 0增量，1全量
+    if request.user.has_perm('items.change_product_skunum'):
+        return HttpResponse(json.dumps({'code': 2, 'response_error': u'权限不足'})
+                            , content_type='application/json')
 
     if not num:
         return HttpResponse(json.dumps({'code': 1, 'response_error': u'库存数量不能为空'})
@@ -130,9 +133,8 @@ def update_product_stock(request):
         return HttpResponse(json.dumps(response), content_type='application/json')
 
     log_action(request.user.id, prod, CHANGE, u'更新商品库存,%s，编码%s-%s,库存数%d,预留数%s,预减数%d' %
-               (
-               mode and u'全量' or u'增量', prod.outer_id, prod_sku and prod_sku.outer_id or sku_id, num, remain_num or '-',
-               reduce_num))
+               (mode and u'全量' or u'增量', prod.outer_id,
+                prod_sku and prod_sku.outer_id or sku_id, num, remain_num or '-', reduce_num))
 
     response = {
         'id': prod.id,
