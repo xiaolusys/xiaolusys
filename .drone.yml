@@ -4,7 +4,7 @@ build:
     - TARGET=staging
   commands:
     - cd shopmanager;python manage.py test -t . --keepdb
-    - cd shopmanager;python manage.py migrate --noinput
+    - python manage.py migrate --noinput
   when:
     branch: staging
 publish:
