@@ -874,6 +874,12 @@ def change_trade_order(request, id):
     CONTENT = request.REQUEST
     outer_sku_id = CONTENT.get('outer_sku_id')
     order_num = int(CONTENT.get('order_num', 0))
+    if not request.user.has_perm('trades.can_trade_modify'):
+        return HttpResponse(
+            json.dumps({'code': 1,
+                        "response_error": "没有权限操作"}),
+            content_type="application/json")
+
     try:
         order = MergeOrder.objects.get(id=id)
     except MergeOrder.DoesNotExist:
@@ -950,6 +956,10 @@ def change_trade_order(request, id):
 
 def delete_trade_order(request, id):
     user_id = request.user.id
+    if not request.user.has_perm('trades.can_trade_modify'):
+        ret_params = {'code': 1, 'response_error': u'权限不足'}
+        return HttpResponse(json.dumps(ret_params), content_type="application/json")
+
     try:
         merge_order = MergeOrder.objects.get(id=id, sys_status=pcfg.IN_EFFECT)
         merge_trade = merge_order.merge_trade

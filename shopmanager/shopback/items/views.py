@@ -85,7 +85,7 @@ def update_product_stock(request):
     remain_num = content.get('remain_num', '')
     reduce_num = content.get('reduce_num', 0)
     mode = content.get('mode', 0)  # 0增量，1全量
-    if request.user.has_perm('items.change_product_skunum'):
+    if not request.user.has_perm('items.change_product_skunum'):
         return HttpResponse(json.dumps({'code': 2, 'response_error': u'权限不足'})
                             , content_type='application/json')
 
