@@ -1371,6 +1371,7 @@ class PackageOrder(models.Model):
             self.save()
 
     def finish_scan_weight(self):
+        from flashsale.pay.models import SaleOrder
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
@@ -1380,6 +1381,9 @@ class PackageOrder(models.Model):
             sku_item.assign_status = PackageSkuItem.FINISHED
             sku_item.set_assign_status_time()
             sku_item.save()
+            sale_order = sku_item.sale_order
+            sale_order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+            sale_order.save()
             psku = ProductSku.objects.get(id=sku_item.sku_id)
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
@@ -1570,7 +1574,8 @@ class PackageSkuItem(BaseModel):
     sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
     oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'原单ID')
     num = models.IntegerField(default=0, verbose_name=u'数量')
-    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单ID')
+    package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹码')
+    # package_order_pid = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹ID')
 
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
                                   db_index=True, verbose_name=u'所属仓库')
