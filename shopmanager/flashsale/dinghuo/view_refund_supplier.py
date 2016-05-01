@@ -106,25 +106,25 @@ def change_duihuo_status(request):
     change_status_des = u"仓库退货单状态变更为_{0}"
     if act_str == "ok":  # 审核通过
         rg.status = ReturnGoods.VERIFY_RG
-        update_model_fields(rg, update_fields=['status'])
+        rg.save()
         change_product_inventory(rg, request.user.username, request.user.id)
         log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
         # 减少库存
     elif act_str == "no":  # 作废
         rg.status = ReturnGoods.OBSOLETE_RG
-        update_model_fields(rg, update_fields=['status'])
+        rg.save()
         log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
     elif act_str == "send":  # 已经发货
         rg.status = ReturnGoods.DELIVER_RG
-        update_model_fields(rg, update_fields=['status'])
+        rg.save()
         log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
     elif act_str == "send_ok":  # 已经发货
         rg.status = ReturnGoods.SUCCEED_RG
-        update_model_fields(rg, update_fields=['status'])
+        rg.save()
         log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
     elif act_str == "send_fail":  # 已经发货
         rg.status = ReturnGoods.FAILED_RG
-        update_model_fields(rg, update_fields=['status'])
+        rg.save()
         log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
     return HttpResponse(True)
 
@@ -140,7 +140,8 @@ def change_sum_price(request):
     user_id = request.user.id
     rg = ReturnGoods.objects.get(id=id)
     rg.sum_amount = sum_price
-    update_model_fields(rg, update_fields=['sum_amount'])
+    rg.save()
+    # update_model_fields(rg, update_fields=['sum_amount'])
     change_sum_price_des = u"仓库退货单总金额改为_{0}"
     log_action(user_id, rg, CHANGE, change_sum_price_des.format(sum_price))
     rgdts = rg.rg_details.all()

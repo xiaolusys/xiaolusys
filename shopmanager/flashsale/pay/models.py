@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 FLASH_SELLER_ID = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
 TIME_FOR_PAYMENT = 25 * 60
+
+
 # seller = User.objects.get(uid='flashsale')
 
 def genUUID():
@@ -459,8 +461,10 @@ def release_mamalink_coupon(sender, obj, **kwargs):
 
 signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 
+
 def default_oid():
     return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
+
 
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
@@ -502,7 +506,7 @@ class SaleOrder(PayBaseModel):
                            default=default_oid,
                            verbose_name=u'原单ID')
     sale_trade = models.ForeignKey(SaleTrade, related_name='sale_orders',
-                                      verbose_name=u'所属订单')
+                                   verbose_name=u'所属订单')
 
     item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
@@ -575,9 +579,9 @@ class SaleOrder(PayBaseModel):
             and (delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
             return True
         elif (self.status == self.TRADE_BUYER_SIGNED
-            and (not sign_time
-                or (now_time - sign_time).days > CONST.ORDER_SIGNED_TO_FINISHED_DAYS
-                or delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
+              and (not sign_time
+                   or (now_time - sign_time).days > CONST.ORDER_SIGNED_TO_FINISHED_DAYS
+                   or delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
             return True
         return False
 
@@ -671,6 +675,17 @@ def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **k
 
 post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
                   dispatch_uid='post_save_aleorder_update_productskustats_waitingpay_num')
+
+
+def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
+    if instance.status == SaleOrder.WAIT_BUYER_CONFIRM_GOODS and \
+                    instance.sale_trade.status < SaleTrade.WAIT_BUYER_CONFIRM_GOODS:
+        from flashsale.pay.tasks import tasks_update_sale_trade_status
+        tasks_update_sale_trade_status.delay(instance.sale_trade)
+
+
+post_save.connect(saleorder_update_saletrade_status, sender=SaleOrder,
+                  dispatch_uid='post_save_saleorder_update_saletrade_status')
 
 
 class TradeCharge(PayBaseModel):

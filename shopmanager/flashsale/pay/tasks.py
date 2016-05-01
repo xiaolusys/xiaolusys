@@ -672,3 +672,12 @@ def tasks_set_user_address_id(sale_trade):
             status='normal').order_by('-id').first()
     if ua:
         SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)
+
+
+@task()
+def tasks_update_sale_trade_status(sale_trade):
+    sale_order_status = [s['status'] for s in
+                             SaleOrder.objects.filter(sale_trade_id=sale_trade.id).values('status')]
+    if SaleOrder.WAIT_SELLER_SEND_GOODS not in sale_order_status:
+        sale_trade.status = SaleTrade.WAIT_BUYER_CONFIRM_GOODS
+        sale_trade.save()
