@@ -5,7 +5,7 @@ from flashsale.xiaolumm.models_lesson import (
     LessonTopic,
     Instructor,
     Lesson,
-    AttendRecord,
+    LessonAttendRecord,
 )
 
 
@@ -22,7 +22,12 @@ class LessonSerializer(serializers.ModelSerializer):
     is_started = serializers.IntegerField(read_only=True)
     
     class Meta:
+        extra_kwargs = {'customer_id_last_digit': {'read_only': True}}
         model = Lesson
+        fields = ('lesson_topic_id', 'title', 'description', 'content_link', 'instructor_id',
+                  'instructor_name', 'instructor_title', 'instructor_image', 'num_attender',
+                  'num_score', 'start_time_display', 'qrcode_links', 'status', 'status_display',
+                  'is_started', 'customer_id_last_digit',)
 
 class InstructorSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)
@@ -30,11 +35,11 @@ class InstructorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instructor
 
-class AttendRecordSerializer(serializers.ModelSerializer):
+class LessonAttendRecordSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)
     
     class Meta:
-        model = AttendRecord
+        model = LessonAttendRecord
 
         
 

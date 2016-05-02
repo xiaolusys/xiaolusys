@@ -1,6 +1,7 @@
 # coding=utf-8
 from django.db import models
 from core.models import BaseModel
+from core.fields import JSONCharMyField
 from django.db.models.signals import post_save
 from django.conf import settings
 
@@ -86,10 +87,13 @@ class Lesson(BaseModel):
     instructor_title = models.CharField(max_length=64, blank=True, verbose_name=u'讲师头衔')
     instructor_image = models.CharField(max_length=256, blank=True, verbose_name=u'讲师头像')
     
-    num_attender = models.IntegerField(default=0, verbose_name=u'听课人数')
+    num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
+    effect_num_attender = models.IntegerField(default=0, verbose_name=u'有效听课人数')
     num_score = models.IntegerField(default=0, verbose_name=u'课程评分')
     start_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'开始时间')
-    qrcode_link = models.CharField(max_length=256, blank=True, verbose_name=u'群二维码链接')
+
+    # at most 10 qrcode_links
+    qrcode_links = JSONCharMyField(max_length=1024, default={}, blank=True, verbose_name=u'群二维码链接')
     
     # uni_key: lesson_topic_id + instructor_id + start_time
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
@@ -115,7 +119,10 @@ class Lesson(BaseModel):
         if datetime.datetime.now() > self.start_time and self.status == 0:
             return 1
         return 0
-            
+
+    def customer_id_last_digit(self):
+        return None
+    
     class Meta:
         db_table = 'flashsale_xlmm_lesson'
         app_label = 'xiaolumm'
@@ -125,13 +132,22 @@ class Lesson(BaseModel):
     def __unicode__(self):
         return "%s:%s:%s" % (self.title, self.instructor_name, self.start_time)
 
-    
-class AttendRecord(BaseModel):
-    STATUS_TYPES = ((0, u'EFFECT'), (1, u'CANCELED'))
+def lesson_update_instructor_attender_num(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks_lesson import task_lesson_update_instructor_attender_num
+    task_lesson_update_instructor_attender_num.delay(instance.instructor_id)
+
+post_save.connect(lesson_update_instructor_attender_num,
+                  sender=Lesson, dispatch_uid='post_save_lesson_update_instructor_attender_num')
+
+
+class LessonAttendRecord(BaseModel):
+    EFFECT = 0
+    CANCELED = 1 
+    STATUS_TYPES = ((EFFECT, u'有效'), (CANCELED, u'无效'))
     
     lesson_id = models.IntegerField(default=0, db_index=True, verbose_name=u'课程ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
-
+    
     student_unionid = models.CharField(max_length=64, db_index=True, verbose_name=u"学员UnionID")
     student_nick = models.CharField(max_length=64, verbose_name=u"学员昵称")
     student_image = models.CharField(max_length=256, verbose_name=u"学员头像")
@@ -141,13 +157,76 @@ class AttendRecord(BaseModel):
     # uni_key = lesson_id + student_unionid
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u"唯一ID")
 
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
+    status = models.IntegerField(default=1, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')
     
     class Meta:
-        db_table = 'flashsale_xlmm_attend_record'
+        db_table = 'flashsale_xlmm_lesson_attend_record'
         app_label = 'xiaolumm'
-        verbose_name = u'小鹿大学/课程学员'
-        verbose_name_plural = u'小鹿大学/课程学员列表'
+        verbose_name = u'小鹿大学/课程学员记录'
+        verbose_name_plural = u'小鹿大学/课程学员记录列表'
 
     def __unicode__(self):
         return "%s:%s" % (self.lesson_id, self.student_nick)
+
+
+def lessonattendrecord_create_topicattendrecord(sender, instance, created, **kwargs):
+    if created:
+        from flashsale.xiaolumm.tasks_lesson import task_lessonattendrecord_create_topicattendrecord
+        task_lessonattendrecord_create_topicattendrecord.delay(instance)
+
+post_save.connect(lessonattendrecord_create_topicattendrecord,
+                  sender=LessonAttendRecord, dispatch_uid='post_save_lessonattendrecord_topicattendrecord')
+
+def update_lesson_attender_num(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks_lesson import task_update_lesson_attender_num
+    task_update_lesson_attender_num.delay(instance.lesson_id)
+    
+post_save.connect(update_lesson_attender_num,
+                  sender=LessonAttendRecord, dispatch_uid='post_save_update_lesson_attender_num')
+
+                  
+class TopicAttendRecord(BaseModel):
+    STATUS_TYPES = ((0, u'EFFECT'), (1, u'CANCELED'))
+
+
+    topic_id = models.IntegerField(default=0, db_index=True, verbose_name=u'主题ID')
+    title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
+
+    student_unionid = models.CharField(max_length=64, db_index=True, verbose_name=u"学员UnionID")
+    student_nick = models.CharField(max_length=64, verbose_name=u"学员昵称")
+    student_image = models.CharField(max_length=256, verbose_name=u"学员头像")
+    
+    # uni_key = topic_id + student_unionid + year + week_num
+    # This means a person can only attend the same topic once per week.
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u"唯一ID")
+
+    # TopicAttendRecord must be generated by a LessonAttendRecord
+    lesson_attend_record_id = models.IntegerField(default=0, verbose_name=u'课程参加记录ID')
+    
+    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
+    
+    class Meta:
+        db_table = 'flashsale_xlmm_topic_attend_record'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿大学/主题学员记录'
+        verbose_name_plural = u'小鹿大学/主题学员记录列表'
+
+    def __unicode__(self):
+        return "%s:%s" % (self.topic_id, self.student_nick)
+
+
+def topicattendrecord_validate_lessonattendrecord(sender, instance, created, **kwargs):
+    if created:
+        from flashsale.xiaolumm.tasks_lesson import task_topicattendrecord_validate_lessonattendrecord
+        lesson_attend_record_id = instance.lesson_attend_record_id
+        task_topicattendrecord_validate_lessonattendrecord.delay(lesson_attend_record_id)
+
+post_save.connect(topicattendrecord_validate_lessonattendrecord,
+                  sender=TopicAttendRecord, dispatch_uid='post_save_topicattendrecord_lessonattendrecord')
+
+def update_topic_attender_num(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks_lesson import task_update_topic_attender_num
+    task_update_topic_attender_num.delay(instance.topic_id)
+
+post_save.connect(update_topic_attender_num, sender=TopicAttendRecord, dispatch_uid='post_save_update_topic_attender_num')
+

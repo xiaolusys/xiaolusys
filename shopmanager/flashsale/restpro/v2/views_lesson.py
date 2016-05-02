@@ -20,7 +20,7 @@ from flashsale.restpro import permissions as perms
 from . import lesson_serializers
 
 
-from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, AttendRecord
+from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
 
 
 def get_customer_id(user):
@@ -115,8 +115,13 @@ class LessonViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
-        topics = self.paginate_queryset(self.queryset)
-        serializer = lesson_serializers.LessonSerializer(topics, many=True)
+        datalist = self.paginate_queryset(self.queryset)
+        #customer_id = get_customer_id(request.user)
+        customer_id = 0 # debug
+        for entry in datalist:
+            entry.customer_id_last_digit = customer_id % 10
+            
+        serializer = lesson_serializers.LessonSerializer(datalist, many=True)
         res = self.get_paginated_response(serializer.data)
         res['Access-Control-Allow-Origin'] = '*'
         return res
@@ -156,7 +161,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
 
-class AttendRecordViewSet(viewsets.ModelViewSet):
+class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     """
     Return attending records.
     
@@ -164,8 +169,8 @@ class AttendRecordViewSet(viewsets.ModelViewSet):
     lesson_id: lesson id
     unionid: user's unionid
     """
-    queryset = AttendRecord.objects.all()
-    serializer_class = lesson_serializers.AttendRecordSerializer
+    queryset = LessonAttendRecord.objects.all()
+    serializer_class = lesson_serializers.LessonAttendRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     #permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -187,7 +192,7 @@ class AttendRecordViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         query_set = self.get_queryset(request)
         topics = self.paginate_queryset(query_set)
-        serializer = lesson_serializers.AttendRecordSerializer(topics, many=True)
+        serializer = lesson_serializers.LessonAttendRecordSerializer(topics, many=True)
         return self.get_paginated_response(serializer.data)
         
     def create(self, request, *args, **kwargs):
@@ -228,8 +233,8 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
             from flashsale.promotion.tasks_activity import task_userinfo_update_application
             task_userinfo_update_application.delay(userinfo)
 
-        from flashsale.xiaolumm.tasks_lesson import task_userinfo_update_attendrecord
-        task_userinfo_update_attendrecord.delay(lesson_id, userinfo)
+            from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
+            task_create_lessonattendrecord.delay(lesson_id, userinfo)
 
         response = redirect('/rest/lesson/attendrecord?unionid=%s' % unionid)
         self.set_cookie_openid_and_unionid(response, openid, unionid)

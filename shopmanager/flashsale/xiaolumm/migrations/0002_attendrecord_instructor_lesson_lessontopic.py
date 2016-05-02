@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import jsonfield.fields
 
 
 class Migration(migrations.Migration):
@@ -19,7 +20,7 @@ class Migration(migrations.Migration):
                 ('modified', models.DateTimeField(auto_now=True, verbose_name='\u4fee\u6539\u65e5\u671f', db_index=True)),
                 ('lesson_id', models.IntegerField(default=0, verbose_name='\u8bfe\u7a0bID', db_index=True)),
                 ('title', models.CharField(max_length=128, verbose_name='\u8bfe\u7a0b\u4e3b\u9898', blank=True)),
-                ('student_unionid', models.CharField(max_length=64, verbose_name='\u5b66\u5458UnionID')),
+                ('student_unionid', models.CharField(max_length=64, verbose_name='\u5b66\u5458UnionID', db_index=True)),
                 ('student_nick', models.CharField(max_length=64, verbose_name='\u5b66\u5458\u6635\u79f0')),
                 ('student_image', models.CharField(max_length=256, verbose_name='\u5b66\u5458\u5934\u50cf')),
                 ('num_score', models.IntegerField(default=0, verbose_name='\u8bfe\u7a0b\u8bc4\u5206')),
@@ -28,8 +29,8 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'flashsale_xlmm_attend_record',
-                'verbose_name': '\u5c0f\u9e7f\u5927\u5b66/\u8bfe\u7a0b\u5b66\u5458',
-                'verbose_name_plural': '\u5c0f\u9e7f\u5927\u5b66/\u8bfe\u7a0b\u5b66\u5458\u5217\u8868',
+                'verbose_name': '\u5c0f\u9e7f\u5927\u5b66/\u8bfe\u7a0b\u5b66\u5458\u8bb0\u5f55\u8bb0\u5f55',
+                'verbose_name_plural': '\u5c0f\u9e7f\u5927\u5b66/\u8bfe\u7a0b\u5b66\u5458\u8bb0\u5f55\u5217\u8868',
             },
         ),
         migrations.CreateModel(
@@ -69,7 +70,7 @@ class Migration(migrations.Migration):
                 ('num_attender', models.IntegerField(default=0, verbose_name='\u542c\u8bfe\u4eba\u6570')),
                 ('num_score', models.IntegerField(default=0, verbose_name='\u8bfe\u7a0b\u8bc4\u5206')),
                 ('start_time', models.DateTimeField(db_index=True, null=True, verbose_name='\u5f00\u59cb\u65f6\u95f4', blank=True)),
-                ('qrcode_link', models.CharField(max_length=256, verbose_name='\u7fa4\u4e8c\u7ef4\u7801\u94fe\u63a5', blank=True)),
+                ('qrcode_links', jsonfield.fields.JSONField(default={}, max_length=1024, verbose_name='\u7fa4\u4e8c\u7ef4\u7801\u94fe\u63a5', blank=True)),
                 ('uni_key', models.CharField(unique=True, max_length=128, verbose_name='\u552f\u4e00ID', blank=True)),
                 ('status', models.IntegerField(default=0, verbose_name='\u72b6\u6001', choices=[(0, '\u6709\u6548'), (1, '\u5df2\u5b8c\u6210'), (2, '\u53d6\u6d88')])),
             ],

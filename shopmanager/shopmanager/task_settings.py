@@ -221,10 +221,6 @@ MAMA_RELATIONSHIP_ROUTES = {
         'queue': 'relationship',
         'routing_key': 'relationship.task_userinfo_update_application',
     },
-    'flashsale.xiaolumm.tasks_lesson.task_userinfo_update_attendrecord': {
-        'queue': 'relationship',
-        'routing_key': 'relationship.task_userinfo_update_attendrecord',
-    },
     'flashsale.promotion.tasks_activity.task_decide_award_winner': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_decide_award_winner',
@@ -232,6 +228,30 @@ MAMA_RELATIONSHIP_ROUTES = {
     'flashsale.promotion.tasks_activity.task_sampleapply_update_appdownloadapp': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_sampleapply_update_appdownloadapp',
+    },
+    'flashsale.xiaolumm.tasks_lesson.task_create_lessonattendrecord': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_create_lessonattendrecord',
+    },
+    'flashsale.xiaolumm.tasks_lesson.task_lessonattendrecord_create_topicattendrecord': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_lessonattendrecord_create_topicattendrecord',
+    },
+    'flashsale.xiaolumm.tasks_lesson.task_topicattendrecord_validate_lessonattendrecord': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_topicattendrecord_validate_lessonattendrecord',
+    },
+    'flashsale.xiaolumm.tasks_lesson.task_update_topic_attender_num': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_update_topic_attender_num',
+    },
+    'flashsale.xiaolumm.tasks_lesson.task_update_lesson_attender_num': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_update_lesson_attender_num',
+    },
+    'flashsale.xiaolumm.tasks_lesson.task_lesson_update_instructor_attender_num': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_lesson_update_instructor_attender_num',
     },
 }
 

@@ -162,7 +162,7 @@ lesson_router = routers.DefaultRouter(trailing_slash=False)
 lesson_router.register(r'lessontopic', views_lesson.LessonTopicViewSet)
 lesson_router.register(r'lesson', views_lesson.LessonViewSet)
 lesson_router.register(r'instructor', views_lesson.InstructorViewSet)
-lesson_router.register(r'attendrecord', views_lesson.AttendRecordViewSet)
+lesson_router.register(r'lessonattendrecord', views_lesson.LessonAttendRecordViewSet)
 
 urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),

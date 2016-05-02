@@ -523,7 +523,7 @@ class DailyStatsAdmin(admin.ModelAdmin):
 admin.site.register(DailyStats, DailyStatsAdmin)
 
 
-from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, AttendRecord
+from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
 
 class LessonTopicAdmin(admin.ModelAdmin):
     list_display = ('title', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')
@@ -546,10 +546,15 @@ class LessonAdmin(admin.ModelAdmin):
 admin.site.register(Lesson, LessonAdmin)
 
 
-class AttendRecordAdmin(admin.ModelAdmin):
+class LessonAttendRecordAdmin(admin.ModelAdmin):
     list_display = ('lesson_id', 'title', 'student_nick', 'num_score', 'status', 'modified', 'created')
     search_fields = ('title', )
     list_filter = ('status',)
-admin.site.register(AttendRecord, AttendRecordAdmin)
+admin.site.register(LessonAttendRecord, LessonAttendRecordAdmin)
 
+class TopicAttendRecordAdmin(admin.ModelAdmin):
+    list_display = ('topic_id', 'title', 'student_nick', 'lesson_attend_record_id', 'status', 'modified', 'created')
+    search_fields = ('title', )
+    list_filter = ('status',)
+admin.site.register(TopicAttendRecord, TopicAttendRecordAdmin)
     
