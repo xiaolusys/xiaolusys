@@ -289,8 +289,8 @@ def func2send_message(trade):
         mobile = trade.receiver_mobile
         if not mobile or len(mobile) != 11:
             return
-
-        all_order = trade.merge_orders.all()
+        from shopback.trades.models import MergeOrder
+        all_order = trade.merge_orders.all().filter(sys_status=MergeOrder.NORMAL)
         if all_order.count() == 0:
             return
         title = all_order[0].title.split("/")[0][0:6]
