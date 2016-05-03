@@ -1,0 +1,14 @@
+[
+{
+  "fields": {
+    "customer": "15937",
+    "status": 1,
+    "created": "2015-09-07T23:21:32",
+    "modified": "2015-12-23T11:01:22",
+    "sale_trade": "89718",
+    "cp_id": 1
+  },
+  "model": "pay.usercoupon",
+  "pk": 1
+}
+]

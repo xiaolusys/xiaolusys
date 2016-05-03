@@ -65,6 +65,7 @@ CELERY_QUEUES = (
     Queue('relationship', routing_key='relationship.#'),
     Queue('carryrecord', routing_key='carryrecord.#'),
     Queue('skustats', routing_key='skustats.#'),
+    Queue('coupon', routing_key='coupon.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
@@ -309,6 +310,17 @@ MAMA_CARRYRECORD_ROUTES = {
     },
 }
 
+FLASHSALE_COUPON_ROUTES = {
+    'flashsale.coupon.tasks.task_update_tpl_released_coupon_nums': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_update_tpl_released_coupon_nums',
+    },
+    'flashsale.coupon.tasks.task_update_share_coupon_release_count': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_update_share_coupon_release_count',
+    },
+}
+
 CELERY_ROUTES = {
     'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
         'queue': 'peroid',
@@ -441,6 +453,7 @@ CELERY_ROUTES.update(MAMA_RELATIONSHIP_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRY_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRYRECORD_ROUTES)
 CELERY_ROUTES.update(SKU_STATS_ROUTES)
+CELERY_ROUTES.update(FLASHSALE_COUPON_ROUTES)
 
 API_REQUEST_INTERVAL_TIME = 10  # (seconds)
 API_TIME_OUT_SLEEP = 60  # (seconds)

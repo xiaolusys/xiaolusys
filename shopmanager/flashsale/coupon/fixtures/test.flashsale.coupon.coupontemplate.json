@@ -1,0 +1,28 @@
+[
+{
+  "fields": {
+    "release_fee": 0.0,
+    "release_end_time": "2018-03-24T12:00:00",
+    "release_start_time": "2016-03-24T12:00:00",
+    "limit_num": 1,
+    "nums": 10000,
+    "title": "\u4ee3\u7406\u4e13\u4eab\u6ee130\u51cf30",
+    "start_use_time": "2015-08-01T12:00:00",
+    "created": "2015-09-05T12:04:43",
+    "target_user": 1,
+    "modified": "2016-04-06T21:28:06",
+    "value": 30.0,
+    "way_type": 0,
+    "post_img": "",
+    "valid": true,
+    "deadline": "2017-08-01T12:00:00",
+    "use_pro_category": "",
+    "bind_pros": "",
+    "use_notice": "",
+    "use_fee": 0.0,
+    "type": 0
+  },
+  "model": "pay.coupontemplate",
+  "pk": 1
+}
+]
