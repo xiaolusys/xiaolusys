@@ -523,7 +523,7 @@ class DailyStatsAdmin(admin.ModelAdmin):
 admin.site.register(DailyStats, DailyStatsAdmin)
 
 
-from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
+from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, TopicAttendRecord
 
 class LessonTopicAdmin(admin.ModelAdmin):
     list_display = ('title', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')

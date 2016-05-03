@@ -347,7 +347,7 @@ post_save.connect(ordercarry_update_order_number,
 
 
 class AwardCarry(BaseModel):
-    AWARD_TYPES = ((1, u'直荐奖励'), (2, u'团队奖励'),)
+    AWARD_TYPES = ((1, u'直荐奖励'), (2, u'团队奖励'), (3, u'授课奖金'),)
     STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')

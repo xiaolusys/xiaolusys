@@ -94,4 +94,41 @@ def task_lesson_update_instructor_attender_num(instructor_id):
     instructor = Instructor.objects.get(id=instructor_id)
     instructor.num_attender = num_attender
     instructor.save(update_fields=['num_attender'])
+
+
+@task()
+def task_lesson_update_instructor_payment(lesson):
+    instructor_id = lesson.instructor_id
+    instructor = Instructor.objects.get(id=instructor_id)
+    mama_id = instructor.mama_id
+
+    status = 1 # pending
+    if lesson.is_canceled():
+        status = 3 # cancel
+    if lesson.is_confirmed():
+        status = 2
+
+    if status == 1:
+        # Only cancel/confirm we revise/create awardcarry for lesson
+        return
+    
+    carry_type = 3 # 授课奖金
+    carry_num = lesson.carry_num()
+    carry_description = util_description.get_awardcarry_description(carry_type)
+    contributor_nick = 'lesson-%s' % lesson.id
+    date_field = lesson.start_time.date()
+    carry_num = lesson.carry()
+    
+    uni_key = util_unikey.gen_awardcarry_unikey('lesson', lesson.id)
+    records = AwardCarry.objects.filter(uni_key=uni_key)
+    if records.count() <= 0:
+        ac = AwardCarry(mama_id=mama_id,carry_num=carry_num,carry_type=carry_type,
+                        carry_description=carry_description,contributor_nick=contributor_nick,
+                        date_field=date_field,uni_key=uni_key,status=status)
+        ac.save()
+    else:
+        ac = records[0]
+        if ac.status != status:
+            ac.status = status
+            ac.save(update_fields=['status'])
     

@@ -76,11 +76,22 @@ def get_awardcarry_description(carry_type):
         "我的团队，奖金归我。",
         "有团队就有一切，有奖金～"
     ]
+    lesson_desc = [
+        "您的课太精彩啦～",
+        "加油，就快成金牌讲师啦～",
+        "小鹿大学，让推广更专业～",
+        "最专业的课都在小鹿大学!",
+        "三人行，必有我师!",
+        "小鹿大学，敢讲就能成讲师!",
+        "亲，你比马云更会讲呢!",
+        "小鹿大学，让收益来得更轻松!"
+    ]
 
     if carry_type == 1:
         return random.choice(referal_desc)
-
-    return random.choice(group_desc)
+    if carry_type == 2:
+        return random.choice(group_desc)
+    return random.choice(lesson_desc)
 
 
 def get_clickcarry_description():

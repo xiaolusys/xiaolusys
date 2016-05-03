@@ -60,6 +60,7 @@ class Instructor(BaseModel):
     image = models.CharField(max_length=256, blank=True, verbose_name=u'讲师头像')
     introduction = models.TextField(max_length=512, blank=True, verbose_name=u'讲师简介')
 
+    mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'Mama ID')
     num_lesson = models.IntegerField(default=0, verbose_name=u'总课时')
     num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
     status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
@@ -120,8 +121,22 @@ class Lesson(BaseModel):
             return 1
         return 0
 
+    def carry(self):
+        base_carry = 70
+        if self.effect_num_attender >= 300:
+            base_carry = 90
+        if self.effect_num_attender >= 400:
+            base_carry = 110
+        return base_carry
+        
     def customer_id_last_digit(self):
         return None
+
+    def is_canceled(self):
+        return self.status == 2
+
+    def is_confirmed(self):
+        return self.status == 1
     
     class Meta:
         db_table = 'flashsale_xlmm_lesson'
@@ -138,6 +153,14 @@ def lesson_update_instructor_attender_num(sender, instance, created, **kwargs):
 
 post_save.connect(lesson_update_instructor_attender_num,
                   sender=Lesson, dispatch_uid='post_save_lesson_update_instructor_attender_num')
+
+
+def lesson_update_instructor_payment(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks_lesson import task_lesson_update_instructor_payment
+    task_lesson_update_instructor_payment.delay(instance)
+
+post_save.connect(lesson_update_instructor_payment,
+                  sender=Lesson, dispatch_uid='post_save_lesson_update_instructor_payment')
 
 
 class LessonAttendRecord(BaseModel):
@@ -193,8 +216,8 @@ class TopicAttendRecord(BaseModel):
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
 
     student_unionid = models.CharField(max_length=64, db_index=True, verbose_name=u"学员UnionID")
-    student_nick = models.CharField(max_length=64, verbose_name=u"学员昵称")
-    student_image = models.CharField(max_length=256, verbose_name=u"学员头像")
+    student_nick = models.CharField(max_length=64, blank=True, verbose_name=u"学员昵称")
+    student_image = models.CharField(max_length=256, blank=True, verbose_name=u"学员头像")
     
     # uni_key = topic_id + student_unionid + year + week_num
     # This means a person can only attend the same topic once per week.

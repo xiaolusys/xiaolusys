@@ -253,6 +253,10 @@ MAMA_RELATIONSHIP_ROUTES = {
         'queue': 'relationship',
         'routing_key': 'relationship.task_lesson_update_instructor_attender_num',
     },
+    'flashsale.xiaolumm.tasks_lesson.task_lesson_update_instructor_payment': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_lesson_update_instructor_payment',
+    },
 }
 
 MAMA_CARRY_ROUTES = {
