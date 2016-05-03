@@ -22,6 +22,7 @@ from flashsale.pay.models_user import Customer
 from flashsale.pay.models_custom import ActivityEntry
 
 from shopback.items.models import Product
+from shopapp.weixin.options import get_openid_by_unionid
 
 from .models_freesample import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
 from serializers import RedEnvelopeSerializer, AwardWinnerSerializer
@@ -202,7 +203,8 @@ class AppJoinView(WeixinAuthMixin, APIView):
         if not customer or not customer.mobile:
             return Response({"bind": False})
 
-        unionid, openid = customer.openid, customer.unionid
+        unionid = customer.unionid
+        openid = get_openid_by_unionid(unionid, settings.WXPAY_APPID)
 
         application = get_application(event_id, unionid, customer.mobile)
         if not application:
@@ -263,7 +265,7 @@ class ApplicationView(WeixinAuthMixin, APIView):
 
         customer = get_customer(request)
         if customer:
-            openid = customer.openid
+            openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
             mobile = customer.mobile
 
         applied = False

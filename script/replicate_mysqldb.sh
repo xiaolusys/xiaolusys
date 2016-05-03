@@ -1,7 +1,7 @@
 #!/bin/bash
-MyUSER="jimei"     # USERNAME
-MyPASS="xiaolu2015jm"       # PASSWORD
-MyHOST="jconnfymhz868.mysql.rds.aliyuncs.com"          # Hostname
+MyUSER="xiaoludev"     # USERNAME
+MyPASS="xiaolu_test123"       # PASSWORD
+MyHOST="rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com"          # Hostname
 
 # Linux bin paths, change this if it can not be autodetected via which command
 MYSQL="$(which mysql)"

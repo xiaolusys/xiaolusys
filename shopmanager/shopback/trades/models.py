@@ -263,7 +263,7 @@ class MergeTrade(models.Model):
 
     reason_code = models.CharField(max_length=100, blank=True, verbose_name=u'问题编号')  # 1,2,3 问题单原因编码集合
     status = models.CharField(max_length=32, choices=TAOBAO_TRADE_STATUS,
-                              blank=True, verbose_name=u'订单状态')
+                              db_index=True,blank=True, verbose_name=u'订单状态')
 
     is_picking_print = models.BooleanField(default=False, verbose_name=u'发货单')
     is_express_print = models.BooleanField(default=False, verbose_name=u'物流单')
@@ -777,7 +777,8 @@ class MergeOrder(models.Model):
 
     class Meta:
         db_table = 'shop_trades_mergeorder'
-        unique_together = ("oid", "merge_trade")
+        unique_together = [("oid", "merge_trade")]
+        index_together = [('outer_id', 'outer_sku_id', 'merge_trade')]
         app_label = 'trades'
         verbose_name = u'订单明细'
         verbose_name_plural = u'订单明细列表'

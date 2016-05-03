@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from core.weixin.mixins import WeixinAuthMixin
 from flashsale.pay.models_user import Customer
 from flashsale.xiaolumm.models import XiaoluMama
+from shopapp.weixin.options import  get_openid_by_unionid
 from .models import MamaDressResult
 from . import constants
 
@@ -158,9 +159,9 @@ class DressQuestionView(WeixinAuthMixin, DressShareMixin, APIView):
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
         else:
-            openid = customer.openid
+            openid = get_openid_by_unionid(unionid, settings.WXPAY_APPID)
             user_infos = {
-                'openid': customer.openid,
+                'openid': openid,
                 'unionid': customer.unionid,
                 'nickname': customer.nick,
                 'headimgurl': customer.thumbnail,

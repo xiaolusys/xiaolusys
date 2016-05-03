@@ -109,7 +109,7 @@ def get_customer(request):
         customer = None
     return customer
 
-
+from shopapp.weixin.options import get_openid_by_unionid
 class XLSampleapplyView(WeixinAuthMixin, View):
     xlsampleapply = 'promotion/apply.html'
 
@@ -124,7 +124,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         customer = get_customer(request)
         if not customer:
             return '', ''
-        return customer.openid, customer.unionid
+        openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+        return openid, customer.unionid
 
     def get(self, request):
         content = request.GET
@@ -226,7 +227,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             # XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
 
             custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
-            cust = custs[0] if custs.exists() else ''
+            # cust = custs[0] if custs.exists() else ''
             # if cust:  # 给分享人（存在）则计数邀请数量
             # participates = XLInviteCode.objects.filter(mobile=cust.mobile)
             # if participates.exists():

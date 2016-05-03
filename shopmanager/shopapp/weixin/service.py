@@ -154,12 +154,14 @@ class WeixinUserService():
         if not self._wx_user:
             self._wx_user = WeiXinUser.getAnonymousWeixinUser()
 
-    def getOrCreateUser(self, openId, unionId=None, force_update=False):
+    def getOrCreateUser(self, openId, unionId=None, appkey=None, force_update=False):
         if unionId:
             try:
                 return WeiXinUser.objects.get(unionid=unionId)
             except:
                 pass
+        if not appkey != settings.WEIXIN_APPID:
+            raise Exception('not valid weixin auth:appkey=%s, openid=%s, unionid=%s'% (appkey, openId, unionId))
         wx_user, state = WeiXinUser.objects.get_or_create(openid=openId)
         if state or force_update or not wx_user.unionid:
             from .tasks import task_Update_Weixin_Userinfo

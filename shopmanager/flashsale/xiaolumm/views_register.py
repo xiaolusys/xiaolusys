@@ -29,7 +29,7 @@ from shopback.items.models import ProductSku
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.models import WeiXinUser
 from shopback.items.models import Product
-
+from shopapp.weixin.options import get_openid_by_unionid
 import logging
 
 logger = logging.getLogger('django.request')
@@ -55,8 +55,9 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         # 获取 openid 和 unionid
         # openid, unionid = self.get_openid_and_unionid(request)
         customer = Customer.objects.get(user=request.user)
-        openid = customer.openid
         unionid = customer.unionid
+        openid  = get_openid_by_unionid(unionid, settings.WXPAY_APPID)
+
         logger.info('mama register：%s,%s,%s' % (customer, openid, unionid))
         # if not valid_openid(openid) or not valid_openid(unionid):
         #     redirect_url = self.get_snsuserinfo_redirct_url(request)

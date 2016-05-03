@@ -64,10 +64,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    paginate_by = 100
+    paginate_by = 10
     page_query_param = 'page'
     paginate_by_param = 'page_size'
-    max_paginate_by = 100
+    max_paginate_by = 20
     INDEX_ORDER_BY = 'main'
 
     def calc_items_cache_key(self, view_instance, view_method,

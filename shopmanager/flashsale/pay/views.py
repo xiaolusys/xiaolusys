@@ -15,6 +15,7 @@ from shopback.items.models import Product, ProductSku, ProductCategory
 from .models import SaleTrade, SaleOrder, genUUID, Customer
 from .tasks import confirmTradeChargeTask
 from flashsale.xiaolumm.models import CarryLog, XiaoluMama
+from shopapp.weixin.options import get_openid_by_unionid
 import pingpp
 import logging
 
@@ -37,7 +38,7 @@ class PINGPPChargeView(View):
         total_fee = sku.std_sale_price * int(form.get('num'))
         #         if float(form['payment']) < total_fee:
         #             raise Exception(u'订单提交金额与商品价格差异')
-
+        openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
         sale_trade = SaleTrade.objects.create(
             tid=form.get('uuid'),
             buyer_id=customer.id,
@@ -59,7 +60,7 @@ class PINGPPChargeView(View):
             discount_fee=form.get('discount_fee'),
             charge=charge and charge['id'] or '',
             status=SaleTrade.WAIT_BUYER_PAY,
-            openid=customer.openid
+            openid=openid
         )
         sale_order_no = form.get('uuid').replace('FD', 'FO')
         SaleOrder.objects.create(oid=sale_order_no,
@@ -149,7 +150,8 @@ class PINGPPChargeView(View):
                 payback_url = urlparse.urljoin(settings.M_SITE_URL, reverse('user_payresult'))
                 extra = {}
                 if channel == SaleTrade.WX_PUB:
-                    extra = {'open_id': customer.openid, 'trade_type': 'JSAPI'}
+                    openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+                    extra = {'open_id': openid, 'trade_type': 'JSAPI'}
 
                 elif channel == SaleTrade.ALIPAY_WAP:
                     extra = {"success_url": payback_url,

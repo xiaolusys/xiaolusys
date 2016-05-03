@@ -42,8 +42,8 @@ class SupplyChainStatsOrder(models.Model):
     goods_out_time = models.BigIntegerField(default=0, verbose_name=u'到货发出时间')
     refund_amount_num = models.IntegerField(default=0, verbose_name=u"退款数量")
     refund_num = models.IntegerField(default=0, verbose_name=u"退货数量")
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+    created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'创建日期')
+    updated = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'更新日期')
 
     class Meta:
         db_table = 'supply_chain_stats_order'

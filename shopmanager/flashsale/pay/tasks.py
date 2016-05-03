@@ -33,7 +33,7 @@ def task_Update_Sale_Customer(unionid, openid=None, app_key=None):
         wxusers = WeiXinUser.objects.filter(unionid=unionid)
         if wxusers.exists():
             wxuser = wxusers[0]
-            profile.openid = profile.openid or openid or ''
+            # profile.openid = profile.openid or openid or ''
             profile.nick = wxuser.nickname or profile.nick
             profile.mobile = profile.mobile.strip() or wxuser.mobile
             profile.thumbnail = wxuser.headimgurl or profile.thumbnail
@@ -86,7 +86,7 @@ def task_Merge_Sale_Customer(user, code):
     try:
         profile, state = Customer.objects.get_or_create(user=user)
         wxuser = WeiXinUser.objects.get(models.Q(openid=openid) | models.Q(unionid=unionid))
-        profile.nick = wxuser.nickname
+        profile.nick   = wxuser.nickname
         profile.mobile = profile.mobile or wxuser.mobile
         profile.openid = profile.openid.strip() or openid
         profile.unionid = profile.unionid.strip() or unionid

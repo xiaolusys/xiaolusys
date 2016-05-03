@@ -910,7 +910,6 @@ class UserBugetBangView(WeixinAuthMixin, APIView):
 
         if not response:
             customer.unionid = unionid
-            customer.openid = openid
             customer.save()
 
             task_Refresh_Sale_Customer.delay(user_infos, app_key=self._wxpubid)

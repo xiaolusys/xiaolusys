@@ -26,7 +26,6 @@ from shopapp.weixin.views import get_user_openid, valid_openid
 from shopapp.weixin.models import WXOrder, WeiXinUser
 from shopapp.weixin.service import WeixinUserService
 from shopapp.weixin.options import get_unionid_by_openid
-from shopapp.weixin.tasks import task_Update_Weixin_Userinfo
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.options import set_cookie_openid, get_cookie_openid, get_user_unionid
 from flashsale.clickcount.models import Clicks, ClickCount
@@ -209,14 +208,14 @@ class MamaStatsView(WeixinAuthMixin, View):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
 
-        service = WeixinUserService(settings.WEIXIN_APPID, openId=openid, unionId=unionid)
-        wx_user = service._wx_user
+        # service = WeixinUserService(settings.WEIXIN_APPID, openId=openid, unionId=unionid)
+        # wx_user = service._wx_user
 
-        if not wx_user.isValid():
-            response = render_to_response("remind.html", {"openid": openid}, context_instance=RequestContext(request))
-            self.set_cookie_openid_and_unionid(response, openid, unionid)
-            return response
+        wx_users = Customer.objects.filter(unionid=unionid, status=Customer.NORMAL)
+        if not wx_users.exists():
+            return HttpResponse(u'<html><body>你还不是小鹿妈妈,请先<a href="/m/register/">申请</a></body></html>')
 
+        wx_user = wx_users[0]
         target_date = datetime.date.today()
         yesterday = target_date - datetime.timedelta(days=1)
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
@@ -230,7 +229,7 @@ class MamaStatsView(WeixinAuthMixin, View):
             xlmm, state = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.mobile != mobile:
                 xlmm.mobile = mobile
-                xlmm.weikefu = xlmm.weikefu or wx_user.nickname
+                xlmm.weikefu = xlmm.weikefu or wx_user.nick
                 update_model_fields(xlmm, update_fields=['mobile', 'weikefu'])
 
             if xlmm.status == XiaoluMama.FROZEN:
@@ -312,12 +311,11 @@ class MamaIncomeDetailView(WeixinAuthMixin, View):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
 
-        service = WeixinUserService(settings.WEIXIN_APPID, openId=openid, unionId=unionid)
-        wx_user = service._wx_user
+        wx_users = Customer.objects.filter(unionid=unionid, status=Customer.NORMAL)
+        if not wx_users.exists():
+            return HttpResponse(u'<html><body>你还不是小鹿妈妈,请先<a href="/m/register/">申请</a></body></html>')
 
-        if not wx_user.isValid():
-            return render_to_response("remind.html", {"openid": openid},
-                                      context_instance=RequestContext(request))
+        wx_user = wx_users[0]
         unionid = unionid or wx_user.unionid
         daystr = content.get("day", None)
         today = datetime.date.today()
