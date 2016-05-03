@@ -1,0 +1,58 @@
+[
+  {
+    "fields": {
+      "username": "jie.lin",
+      "first_name": "\u6770",
+      "last_name": "\u6797",
+      "is_active": true,
+      "is_superuser": true,
+      "is_staff": true,
+      "last_login": "2016-04-30T13:36:03",
+      "groups": [
+        18
+      ],
+      "user_permissions": [
+        4,
+        5,
+        7,
+        8,
+        631,
+        632,
+        633,
+        634,
+        635,
+        636,
+        637,
+        638,
+        639,
+        822,
+        598,
+        599,
+        589,
+        590
+      ],
+      "password": "pbkdf2_sha256$20000$2sI6b2ZEcyhH$KvZuKRAAOK2vykkmHxZ2l2GOSi/6Agys1bzfWmcURA4=",
+      "email": "jie.lin@unilittles.com",
+      "date_joined": "2015-04-20T16:56:24"
+    },
+    "model": "auth.user",
+    "pk": 119
+  },
+  {
+    "fields": {
+      "status": 1,
+      "openid": "",
+      "created": "2015-04-09T11:08:12",
+      "mobile": "13739234188",
+      "unionid": "testlinjie",
+      "modified": "2016-04-20T11:49:55",
+      "phone": "",
+      "email": "",
+      "nick": "jie",
+      "user": 119,
+      "thumbnail": ""
+    },
+    "model": "pay.customer",
+    "pk": 15937
+  }
+]
