@@ -25,8 +25,3 @@ class Command(BaseCommand):
         OrderDetailInBoundDetail.objects.all().delete()
         InBoundDetail.objects.all().delete()
         InBound.objects.all().delete()
-
-        for orderdetail in OrderDetail.objects.filter(orderlist_id=51):
-            orderdetail.arrival_quantity = 0
-            orderdetail.inferior_quantity = 0
-            orderdetail.save()
