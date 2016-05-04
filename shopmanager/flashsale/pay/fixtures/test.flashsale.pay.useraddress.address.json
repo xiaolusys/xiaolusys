@@ -1,0 +1,40 @@
+[
+{
+  "fields": {
+    "status": "normal",
+    "receiver_district": "\u5e90\u9633\u533a",
+    "receiver_city": "\u5408\u80a5\u5e02",
+    "created": "2016-04-25T10:22:03",
+    "default": true,
+    "receiver_mobile": "13739234188",
+    "receiver_zip": "",
+    "modified": "2016-04-26T10:52:40",
+    "receiver_state": "\u5b89\u5fbd\u7701",
+    "receiver_name": "\u6797\u6770",
+    "cus_uid": 783437,
+    "receiver_phone": "",
+    "receiver_address": "\u5927\u540c\u8def"
+  },
+  "model": "pay.useraddress",
+  "pk": 113674
+},
+{
+  "fields": {
+    "status": "normal",
+    "receiver_district": "\u5408\u80a5\u5e02",
+    "receiver_city": "\u5408\u80a5\u5e02",
+    "created": "2016-05-04T14:09:56",
+    "default": false,
+    "receiver_mobile": "13739234158",
+    "receiver_zip": "",
+    "modified": "2016-05-04T14:09:56",
+    "receiver_state": "\u5b89\u5fbd\u7701",
+    "receiver_name": "\u4e34\u754c",
+    "cus_uid": 783437,
+    "receiver_phone": "",
+    "receiver_address": "\u5927\u540c\u8def\u6052\u80dc\u8c6a\u5ead"
+  },
+  "model": "pay.useraddress",
+  "pk": 113936
+}
+]

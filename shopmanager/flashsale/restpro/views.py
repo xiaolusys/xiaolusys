@@ -245,10 +245,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def create_address(self, request):
-        result = {}
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id  # 获取用户id
         content = request.REQUEST
+        default = content.get('default') or ''
         receiver_state = content.get('receiver_state', '').strip()
         receiver_city = content.get('receiver_city', '').strip()
         receiver_district = content.get('receiver_district', '').strip()
@@ -256,13 +256,17 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
         try:
-            UserAddress.objects.get_or_create(cus_uid=customer_id, receiver_name=receiver_name,
-                                              receiver_state=receiver_state, default=False,
-                                              receiver_city=receiver_city, receiver_district=receiver_district,
-                                              receiver_address=receiver_address, receiver_mobile=receiver_mobile)
-            result['ret'] = True
+            address, state = UserAddress.objects.get_or_create(cus_uid=customer_id, receiver_name=receiver_name,
+                                                               receiver_state=receiver_state, default=False,
+                                                               receiver_city=receiver_city,
+                                                               receiver_district=receiver_district,
+                                                               receiver_address=receiver_address,
+                                                               receiver_mobile=receiver_mobile)
+            if default == '1':  # 设置为默认地址
+                address.set_default_address()
+            result = {'ret': True, "msg": "添加成功"}
         except:
-            result['ret'] = False
+            result = {'ret': False, "msg": "添加出错"}
         return Response(result)
 
     @list_route(methods=['get'])
@@ -384,7 +388,8 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
         else:  # 有推荐代理的情况才记录
             from_customer = None
             try:
-                xlmms = XiaoluMama.objects.filter(pk=mm_linkid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
+                xlmms = XiaoluMama.objects.filter(pk=mm_linkid, status=XiaoluMama.EFFECT,
+                                                  charge_status=XiaoluMama.CHARGED)
                 if xlmms.exists():
                     xlmm = xlmms[0]
                     from_customer = Customer.objects.get(unionid=xlmm.openid)
@@ -393,5 +398,6 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
             # 带上参数跳转到下载页面
             if from_customer:
                 download_url = urlparse.urljoin(settings.M_SITE_URL,
-                                                'sale/promotion/appdownload/?from_customer={0}'.format(from_customer.id))
+                                                'sale/promotion/appdownload/?from_customer={0}'.format(
+                                                    from_customer.id))
             return Response({'download_url': download_url})
