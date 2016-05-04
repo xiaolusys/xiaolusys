@@ -78,6 +78,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     Return lessons.
     """
     queryset = Lesson.objects.all()
+    page_size = 10
     serializer_class = lesson_serializers.LessonSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
@@ -122,6 +123,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
     Return instructors.
     """
     queryset = Instructor.objects.all()
+    page_size = 10
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
