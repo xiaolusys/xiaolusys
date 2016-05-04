@@ -206,6 +206,7 @@ class SaleRefundChangeList(ChangeList):
                 refunds = SaleRefund.objects.filter(models.Q(order_id=search_q) |
                                                     models.Q(refund_id=search_q) |
                                                     models.Q(mobile=search_q) |
+                                                    models.Q(sid=search_q) |
                                                     models.Q(trade_id=search_q))
             else:
                 return super(SaleRefundChangeList, self).get_queryset(request)
@@ -223,7 +224,8 @@ from .tasks import notifyTradeRefundTask
 
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = ('refund_no', 'order_no', 'channel', 'title', 'refund_fee',
-                    'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status')
+                    'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status',
+                    'refund_pro_link')
 
     list_filter = (
         'status', 'good_status', 'channel', 'has_good_return', 'has_good_change', Filte_By_Reason, "created",
@@ -239,6 +241,21 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     order_no.allow_tags = True
     order_no.short_description = "交易编号"
+
+    def refund_pro_link(self, obj):
+        html = obj.sid
+
+        if obj.sid:
+            # 如果是退回了(在退回商品中有找到)
+            from shopback.refunds.models import RefundProduct
+            refundpro = RefundProduct.objects.filter(out_sid=obj.sid).first()
+            if refundpro:
+                html = "<a href='/admin/refunds/refundproduct/?out_sid={0}' style='color:green'>{0}></a>".format(obj.sid)
+            else:
+                html = "<a style='color:red'>{0}</a>".format(obj.sid)
+        return html
+    refund_pro_link.allow_tags = True
+    refund_pro_link.short_description = "退回快递单号"
 
     def order_status(self, obj):
         sorder = SaleOrder.objects.get(id=obj.order_id)
