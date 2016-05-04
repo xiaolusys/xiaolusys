@@ -1,0 +1,255 @@
+[
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u4f18\u5c3c\u4e16\u754c",
+    "is_parent": true,
+    "parent_cid": 0
+  },
+  "model": "categorys.productcategory",
+  "pk": 1
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 10,
+    "name": "\u5c0f\u9e7f\u7f8e\u7f8e",
+    "is_parent": true,
+    "parent_cid": 0
+  },
+  "model": "categorys.productcategory",
+  "pk": 4
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 50,
+    "name": "\u7ae5\u88c5",
+    "is_parent": true,
+    "parent_cid": 4
+  },
+  "model": "categorys.productcategory",
+  "pk": 5
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 100,
+    "name": "\u5973\u88c5",
+    "is_parent": true,
+    "parent_cid": 4
+  },
+  "model": "categorys.productcategory",
+  "pk": 8
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 10,
+    "name": "\u4eb2\u5b50\u88c5",
+    "is_parent": true,
+    "parent_cid": 4
+  },
+  "model": "categorys.productcategory",
+  "pk": 9
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u914d\u9970",
+    "is_parent": true,
+    "parent_cid": 4
+  },
+  "model": "categorys.productcategory",
+  "pk": 10
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u79d2\u6740",
+    "is_parent": true,
+    "parent_cid": 4
+  },
+  "model": "categorys.productcategory",
+  "pk": 11
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u5916\u5957",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 12
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u4e0a\u88c5",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 13
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u8fde\u8863\u88d9",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 14
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u5957\u88c5",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 15
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u54c8\u8863",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 16
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u4e0b\u88c5",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 17
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 100,
+    "name": "\u5916\u5957",
+    "is_parent": false,
+    "parent_cid": 8
+  },
+  "model": "categorys.productcategory",
+  "pk": 18
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 100,
+    "name": "\u8fde\u8863\u88d9",
+    "is_parent": false,
+    "parent_cid": 8
+  },
+  "model": "categorys.productcategory",
+  "pk": 19
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 100,
+    "name": "\u4e0a\u88c5",
+    "is_parent": false,
+    "parent_cid": 8
+  },
+  "model": "categorys.productcategory",
+  "pk": 20
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 100,
+    "name": "\u4e0b\u88c5",
+    "is_parent": false,
+    "parent_cid": 8
+  },
+  "model": "categorys.productcategory",
+  "pk": 21
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 100,
+    "name": "\u5957\u88c5",
+    "is_parent": false,
+    "parent_cid": 8
+  },
+  "model": "categorys.productcategory",
+  "pk": 22
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u914d\u9970",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 23
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 100,
+    "name": "\u914d\u9970",
+    "is_parent": false,
+    "parent_cid": 8
+  },
+  "model": "categorys.productcategory",
+  "pk": 24
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u4eb2\u5b50\u88c5",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 25
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 0,
+    "name": "\u5185\u8863",
+    "is_parent": false,
+    "parent_cid": 5
+  },
+  "model": "categorys.productcategory",
+  "pk": 26
+},
+{
+  "fields": {
+    "status": "normal",
+    "sort_order": 100,
+    "name": "\u5185\u8863",
+    "is_parent": false,
+    "parent_cid": 8
+  },
+  "model": "categorys.productcategory",
+  "pk": 27
+}
+]

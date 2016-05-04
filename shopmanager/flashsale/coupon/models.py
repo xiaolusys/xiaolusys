@@ -113,12 +113,12 @@ class CouponTemplate(BaseModel):
         return self.extras['release']['use_min_payment']
 
     @property
-    def bing_category_ids(self):
+    def bind_category_ids(self):
         """ 绑定产品类目 """
         return self.extras['scopes']['category_ids']
 
     @property
-    def bing_product_ids(self):
+    def bind_product_ids(self):
         """ 绑定产品产品 """
         return self.extras['scopes']['product_ids']
 
@@ -140,6 +140,12 @@ class CouponTemplate(BaseModel):
             raise AssertionError(u"无效优惠券")
         return self
 
+    def template_valid(self):
+        """ 模板是否有效 """
+        if self.status in (CouponTemplate.SENDING, CouponTemplate.FINISHED):
+            return True
+        return False
+
     def use_fee_desc(self):
         """ 满单额描述 """
         return "满{0}可用".format(self.use_min_payment)
@@ -160,11 +166,11 @@ class CouponTemplate(BaseModel):
         now = datetime.datetime.now()
         if self.release_start_time <= now <= self.use_deadline:
             return  # 在正常时间内
-        raise AssertionError(u'%s至%s可以使用' % (self.start_use_time, self.deadline))
+        raise AssertionError(u'%s至%s可以使用' % (self.start_use_time, self.use_deadline))
 
     def check_category(self, product_ids=None):
         """ 可用分类检查 """
-        category_ids = self.bing_category_ids
+        category_ids = self.bind_category_ids
         if not category_ids:  # 没有设置分类限制信息　则为全部分类可以使用
             return
         from shopback.items.models import Product
@@ -182,7 +188,7 @@ class CouponTemplate(BaseModel):
 
     def check_bind_pros(self, product_ids=None):
         """ 检查绑定的产品 """
-        tpl_product_ids = self.bing_product_ids  # 设置的绑定的产品
+        tpl_product_ids = self.bind_product_ids  # 设置的绑定的产品
         tpl_bind_pros = tpl_product_ids.strip().split(',') if tpl_product_ids else []  # 绑定的产品list
         if not tpl_bind_pros != []:  # 如果优惠券没有绑定产品
             self.check_category(product_ids)  # 没有限制产品则检查分类限制
@@ -344,7 +350,7 @@ class UserCoupon(BaseModel):
         tpl = self.self_template()
         return tpl.use_min_payment
 
-    def use_fee_des(self):
+    def coupon_use_fee_des(self):
         """ 满单额描述 """
         min_payment = self.min_payment()
         return u"满%s可用" % min_payment
@@ -366,7 +372,7 @@ class UserCoupon(BaseModel):
             raise AssertionError(u"优惠券已冻结")
         elif coupon.status == UserCoupon.PAST:
             raise AssertionError(u"优惠券已过期")
-        if not (now <= coupon.deadline):
+        if not (now <= coupon.expires_time):
             raise AssertionError(u"使用日期错误")
         return coupon
 
