@@ -176,12 +176,11 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address = content.get('receiver_address', '').strip()
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
-        default = content.get('default', None)
-        if default is not None:
-            try:
-                default = bool(int(default))
-            except:
-                default = None
+        default = content.get('default') or ''
+        if default == 'true':
+            default = True
+        else:
+            default = False
         try:
             new_address, state = UserAddress.objects.get_or_create(
                 cus_uid=customer.id,
@@ -192,14 +191,16 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_address=receiver_address,
                 receiver_mobile=receiver_mobile
             )
-            if state:
-                new_address.default = UserAddress.objects.get(pk=pk).default
+            if state:  # 创建成功在将原来的地址改为删除状态 (保留地址)
+                new_address.default = UserAddress.objects.get(pk=pk).default  # 赋值原来的默认地址选择
                 UserAddress.objects.filter(pk=pk).update(status=UserAddress.DELETE)
-            if default is not None:
-                new_address.default = default
-            return Response({'ret': True, 'code': 0, 'info': '更新成功'})
+            else:  # 如果找到了一模一样的  更新该地址 到 正常状态
+                UserAddress.objects.filter(pk=new_address.id).update(status=UserAddress.NORMAL)
+            if default:  # 选择为默认地址
+                new_address.set_default_address()  # 如果是选择设置默认地址则设置默认地址
+            return Response({'ret': True, 'code': 0, 'info': '更新成功', "msg": '更新成功'})
         except:
-            return Response({'ret': False, 'code': 1, 'info': '更新失败'})
+            return Response({'ret': False, 'code': 1, 'info': '更新失败', "msg": '更新失败'})
 
     @detail_route(methods=["post"])
     def delete_address(self, request, pk=None):
@@ -207,9 +208,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.status = UserAddress.DELETE
             instance.save()
-            return Response({'ret': True})
+            return Response({'ret': True, "msg": "删除成功", "code": 0})
         except:
-            return Response({'ret': False})
+            return Response({'ret': False, "msg": "删除出错", "code": 1})
 
     '''
     @detail_route(methods=['post'])
@@ -262,11 +263,11 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                                                                receiver_district=receiver_district,
                                                                receiver_address=receiver_address,
                                                                receiver_mobile=receiver_mobile)
-            if default == '1':  # 设置为默认地址
+            if default == 'true':  # 设置为默认地址
                 address.set_default_address()
-            result = {'ret': True, "msg": "添加成功"}
+            result = {'ret': True, "msg": "添加成功", 'code': 0}
         except:
-            result = {'ret': False, "msg": "添加出错"}
+            result = {'ret': False, "msg": "添加出错", "code": 1}
         return Response(result)
 
     @list_route(methods=['get'])
