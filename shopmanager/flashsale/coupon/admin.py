@@ -64,13 +64,13 @@ class UserCouponAdmin(admin.ModelAdmin):
 
         (u'其他信息:', {
             'classes': ('expand',),
-            'fields': (('coupon_no', 'trade_tid'),
+            'fields': (('coupon_no', 'trade_tid', 'uniq_id'),
                        ('coupon_type', 'ufrom'),
                        ('extras', ))
         }),
     )
 
-    list_display = ('id', 'title', "customer_id", "uniq_id", 'finished_time', 'expires_time')
+    list_display = ('id', 'title', "customer_id", 'status', "uniq_id", 'finished_time', 'expires_time')
 
     list_filter = ('coupon_type', )
     search_fields = ['=id', '=template_id']

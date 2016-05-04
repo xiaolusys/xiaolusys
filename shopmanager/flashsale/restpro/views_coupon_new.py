@@ -54,7 +54,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
-        return self.queryset.filter(customer=customer.id)
+        return self.queryset.filter(customer_id=customer.id)
 
     def list_unpast_coupon(self, queryset, status=UserCoupon.UNUSED):
         """ 过滤券池状态 """
@@ -98,10 +98,13 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                 msg = None
                 coupon_ids = []
                 for template_id in template_ids:
-                    coupon, code, msg = UserCoupon.objects.create_user_coupon(buyer_id=customer.id,
-                                                                              template_id=template_id)
-                    if coupon:  # 添加返回的coupon
-                        coupon_ids.append(coupon.id)
+                    try:
+                        coupon, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer.id,
+                                                                                    template_id=template_id, ufrom='wx')
+                        if coupon:  # 添加返回的coupon
+                            coupon_ids.append(coupon.id)
+                    except:
+                        return Response({"code": 9, "res": "您已领取", "coupons": ""})
                 queryset = self.queryset.filter(id__in=coupon_ids)
                 serializer = self.get_serializer(queryset, many=True)
                 if code == 0:
@@ -190,7 +193,9 @@ class CouponTemplateViewSet(viewsets.ModelViewSet):
 
     def get_useful_template_query(self):
         # 点击方式领取的　有效的　在预置天数内的优惠券
-        tpls = self.queryset.filter(coupon_type=CouponTemplate.TYPE_NORMAL, valid=True)
+        tpls = self.queryset.filter(coupon_type=CouponTemplate.TYPE_NORMAL,
+                                    status__gte=CouponTemplate.SENDING,
+                                    status__lte=CouponTemplate.FINISHED)
         now = datetime.datetime.now()
         tpls = tpls.filter(release_start_time__lte=now, release_end_time__gte=now)  # 开始发放中的优惠券模板
         return tpls
