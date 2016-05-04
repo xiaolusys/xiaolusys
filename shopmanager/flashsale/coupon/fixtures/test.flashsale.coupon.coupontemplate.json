@@ -1,28 +1,207 @@
 [
-{
-  "fields": {
-    "release_fee": 0.0,
-    "release_end_time": "2018-03-24T12:00:00",
-    "release_start_time": "2016-03-24T12:00:00",
-    "limit_num": 1,
-    "nums": 10000,
-    "title": "\u4ee3\u7406\u4e13\u4eab\u6ee130\u51cf30",
-    "start_use_time": "2015-08-01T12:00:00",
-    "created": "2015-09-05T12:04:43",
-    "target_user": 1,
-    "modified": "2016-04-06T21:28:06",
-    "value": 30.0,
-    "way_type": 0,
-    "post_img": "",
-    "valid": true,
-    "deadline": "2017-08-01T12:00:00",
-    "use_pro_category": "",
-    "bind_pros": "",
-    "use_notice": "",
-    "use_fee": 0.0,
-    "type": 0
+  {
+    "fields": {
+      "status": 1,
+      "release_end_time": "2016-05-08T00:00:00",
+      "release_start_time": "2016-05-03T00:00:00",
+      "description": "\u666e\u901a\u4f18\u60e0\u5238 description",
+      "coupon_type": 1,
+      "title": "test \u666e\u901a\u4f18\u60e0\u5238",
+      "scope_type": 1,
+      "is_flextime": false,
+      "created": "2016-05-03T11:46:10",
+      "target_user": 1,
+      "modified": "2016-05-03T19:04:07",
+      "value": 2.0,
+      "prepare_release_num": 100,
+      "extras": {
+        "release": {
+          "use_after_release_days": 0,
+          "release_min_payment": 50,
+          "use_min_payment": 1,
+          "limit_after_release_days": 30,
+          "share_times_limit": 20
+        },
+        "scopes": {
+          "product_ids": "1,2,3,41385,38840",
+          "category_ids": "12,14"
+        },
+        "randoms": {
+          "max_val": 1,
+          "min_val": 0
+        },
+        "templates": {"post_img": ""}
+      },
+      "has_released_count": 1,
+      "is_random_val": false,
+      "use_deadline": "2016-05-13T00:00:00",
+      "has_used_count": 0
+    },
+    "model": "coupon.coupontemplate",
+    "pk": 1
   },
-  "model": "pay.coupontemplate",
-  "pk": 1
-}
+  {
+    "fields": {
+      "status": 1,
+      "release_end_time": "2016-05-08T00:00:00",
+      "release_start_time": "2016-05-03T00:00:00",
+      "description": "\u4e0b\u5355\u7ea2\u5305 description",
+      "coupon_type": 5,
+      "title": "test \u4e0b\u5355\u7ea2\u5305",
+      "scope_type": 1,
+      "is_flextime": true,
+      "created": "2016-05-03T11:46:10",
+      "target_user": 1,
+      "modified": "2016-05-03T19:05:01",
+      "value": 2.0,
+      "prepare_release_num": 100,
+      "extras": {
+        "release": {
+          "use_after_release_days": 0,
+          "release_min_payment": 50,
+          "use_min_payment": 500,
+          "limit_after_release_days": 30,
+          "share_times_limit": 20
+        },
+        "scopes": {
+          "product_ids": "",
+          "category_ids": ""
+        },
+        "randoms": {
+          "max_val": 1,
+          "min_val": 0
+        },
+        "templates": {"post_img": ""}
+      },
+      "has_released_count": 1,
+      "is_random_val": false,
+      "use_deadline": "2016-05-13T00:00:00",
+      "has_used_count": 0
+    },
+    "model": "coupon.coupontemplate",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "status": 1,
+      "release_end_time": "2016-05-08T00:00:00",
+      "release_start_time": "2016-05-03T00:00:00",
+      "description": "\u8ba2\u5355\u5206\u4eab description",
+      "coupon_type": 2,
+      "title": "test \u8ba2\u5355\u5206\u4eab",
+      "scope_type": 1,
+      "is_flextime": true,
+      "created": "2016-05-03T11:46:10",
+      "target_user": 1,
+      "modified": "2016-05-03T16:23:49",
+      "value": 2.0,
+      "prepare_release_num": 100,
+      "extras": {
+        "release": {
+          "use_after_release_days": 0,
+          "release_min_payment": 50,
+          "use_min_payment": 500,
+          "limit_after_release_days": 30,
+          "share_times_limit": 20
+        },
+        "scopes": {
+          "product_ids": "",
+          "category_ids": ""
+        },
+        "randoms": {
+          "max_val": 8,
+          "min_val": 4
+        },
+        "templates": {"post_img": ""}
+      },
+      "has_released_count": 2,
+      "is_random_val": true,
+      "use_deadline": "2016-05-13T00:00:00",
+      "has_used_count": 0
+    },
+    "model": "coupon.coupontemplate",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "status": 1,
+      "release_end_time": "2016-05-08T00:00:00",
+      "release_start_time": "2016-05-03T00:00:00",
+      "description": "\u63a8\u8350\u4e13\u4eab description",
+      "coupon_type": 3,
+      "title": "test \u63a8\u8350\u4e13\u4eab",
+      "scope_type": 1,
+      "is_flextime": true,
+      "created": "2016-05-03T11:46:11",
+      "target_user": 2,
+      "modified": "2016-05-03T11:46:11",
+      "value": 4.0,
+      "prepare_release_num": 100,
+      "extras": {
+        "release": {
+          "use_after_release_days": 0,
+          "release_min_payment": 50,
+          "use_min_payment": 500,
+          "limit_after_release_days": 30,
+          "share_times_limit": 20
+        },
+        "scopes": {
+          "product_ids": "",
+          "category_ids": ""
+        },
+        "randoms": {
+          "max_val": 8,
+          "min_val": 4
+        },
+        "templates": {"post_img": ""}
+      },
+      "has_released_count": 1,
+      "is_random_val": false,
+      "use_deadline": "2016-05-13T00:00:00",
+      "has_used_count": 0
+    },
+    "model": "coupon.coupontemplate",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "status": 1,
+      "release_end_time": "2016-05-08T00:00:00",
+      "release_start_time": "2016-05-03T00:00:00",
+      "description": "\u552e\u540e\u8865\u507f description",
+      "coupon_type": 4,
+      "title": "test \u552e\u540e\u8865\u507f",
+      "scope_type": 1,
+      "is_flextime": false,
+      "created": "2016-05-03T11:46:12",
+      "target_user": 2,
+      "modified": "2016-05-03T11:46:12",
+      "value": 4.0,
+      "prepare_release_num": 100,
+      "extras": {
+        "release": {
+          "use_after_release_days": 0,
+          "release_min_payment": 50,
+          "use_min_payment": 500,
+          "limit_after_release_days": 30,
+          "share_times_limit": 20
+        },
+        "scopes": {
+          "product_ids": "",
+          "category_ids": ""
+        },
+        "randoms": {
+          "max_val": 1,
+          "min_val": 0
+        },
+        "templates": {"post_img": ""}
+      },
+      "has_released_count": 1,
+      "is_random_val": false,
+      "use_deadline": "2016-05-13T00:00:00",
+      "has_used_count": 0
+    },
+    "model": "coupon.coupontemplate",
+    "pk": 5
+  }
 ]

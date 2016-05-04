@@ -170,9 +170,7 @@ class UserCouponManager(BaseManager):
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
         # 唯一键约束 是: template_id_customer_id_order_coupon_id_(number_of_tpl)  一个模板 多次分享 不同的分享id 不同的用户
         uniq_id = make_uniq_id(tpl, customer.id, trade_id=trade_id)
-        print ('-------------------------')
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
-        print(extras)
         cou = UserCoupon.objects.create(template_id=int(template_id),
                                         title=tpl.title,
                                         coupon_type=tpl.coupon_type,

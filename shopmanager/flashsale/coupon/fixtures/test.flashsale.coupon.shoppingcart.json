@@ -1,0 +1,42 @@
+[
+{
+  "fields": {
+    "status": 0,
+    "sku_id": "155560",
+    "title": "\u751c\u7f8e\u82b1\u6735\u68c9\u5e03\u8fde\u8863\u88d9/08\u6b3e",
+    "price": 49.9,
+    "buyer_nick": "VcsKI5",
+    "modified": "2016-05-04T11:06:10",
+    "created": "2016-05-04T11:04:42",
+    "num": 1,
+    "remain_time": "2016-05-04T11:26:10",
+    "total_fee": 49.9,
+    "item_id": "38838",
+    "sku_name": "140",
+    "pic_path": "http://image.xiaolu.so/MG_1460360512694\u751c\u7f8e\u82b1\u6735\u68c9\u5e03\u8fde\u8863\u88d95.jpg",
+    "buyer_id": 783437
+  },
+  "model": "pay.shoppingcart",
+  "pk": 422897
+},
+{
+  "fields": {
+    "status": 0,
+    "sku_id": "155570",
+    "title": "\u751c\u7f8e\u82b1\u6735\u68c9\u5e03\u8fde\u8863\u88d9/20\u6b3e",
+    "price": 49.9,
+    "buyer_nick": "VcsKI5",
+    "modified": "2016-05-04T11:06:10",
+    "created": "2016-05-04T11:06:09",
+    "num": 1,
+    "remain_time": "2016-05-04T11:26:10",
+    "total_fee": 49.9,
+    "item_id": "38840",
+    "sku_name": "160",
+    "pic_path": "http://image.xiaolu.so/MG_1460360474812\u751c\u7f8e\u82b1\u6735\u68c9\u5e03\u8fde\u8863\u88d94.jpg",
+    "buyer_id": 783437
+  },
+  "model": "pay.shoppingcart",
+  "pk": 422898
+}
+]
