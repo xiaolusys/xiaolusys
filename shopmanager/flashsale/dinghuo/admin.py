@@ -547,38 +547,23 @@ class InBoundAdmin(admin.ModelAdmin):
         }
     ), )
 
-    list_display = ('id', 'show_id', 'supplier', 'express_no', 'sent_from',
-                    'show_images', 'memo', 'show_orderlists', 'created', 'modified', 'status')
+    list_display = ('id', 'show_id', 'supplier', 'express_no',
+                    'memo', 'show_orderlists', 'created', 'modified', 'status')
 
     list_filter = ('status', 'created')
 
     def show_id(self, obj):
-        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">详情</a>' % {'id': obj.id}
+        return '<a href="/sale/dinghuo/inbound/%(id)d" target="_blank">详情</a>' % {'id': obj.id}
     show_id.allow_tags = True
     show_id.short_description = u'详情'
 
     def show_orderlists(self, obj):
         tmp = []
         for orderlist_id in obj.orderlist_ids:
-            tmp.append('<a href="/sale/dinghuo/changedetail/%(id)d/" target="_blank">%(id)d</a>' % {'id': orderlist_id})
+            tmp.append('<a href="/sale/dinghuo/changedetail/%(id)d/" target="_blank">%(id)d</a>' % {'id': int(orderlist_id)})
         return ','.join(tmp)
-
     show_orderlists.allow_tags = True
     show_orderlists.short_description = u'关联订货单'
-
-    def show_images(self, obj):
-        tpl = """
-        <a href="%(url)s" target="_blank">
-        <img src="%(url)s?imageMogr2/thumbnail/160/crop/160x160/format/jpg" style="width:100px;height:100px">
-        </a>
-        """
-        images = []
-        for url in obj.images:
-            images.append(tpl % {'url': url})
-        return ''.join(images)
-
-    show_images.allow_tags = True
-    show_images.short_description = u'图片'
 
 
 class InBoundDetailAdmin(admin.ModelAdmin):

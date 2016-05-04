@@ -345,16 +345,16 @@ class SaleInventoryStat(models.Model):
 
 class InBound(models.Model):
     INVALID = 0
-    NORMAL = 1
-    PENDING = 2
+    PENDING = 1
+    COMPLETED = 2
 
     SUPPLIER = 1
     REFUND = 2
 
     STATUS_CHOICES = (
         (INVALID, u'作废'),
-        (NORMAL, u'正常'),
-        (PENDING, u'待处理')
+        (PENDING, u'待处理'),
+        (COMPLETED, u'完成')
     )
     supplier = models.ForeignKey(SaleSupplier, null=True, blank=True,
                                  related_name='inbounds', verbose_name=u'供应商')
@@ -367,7 +367,7 @@ class InBound(models.Model):
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
-    status = models.SmallIntegerField(default=NORMAL, choices=STATUS_CHOICES, verbose_name=u'状态')
+    status = models.SmallIntegerField(default=PENDING, choices=STATUS_CHOICES, verbose_name=u'状态')
     images = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'图片')
     orderlist_ids = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'订货单ID')
 

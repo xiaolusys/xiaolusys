@@ -1,0 +1,664 @@
+{% load custom_filter %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>修改入仓单</title>
+        <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+        <style>
+
+         .typeahead:focus {
+             border: 2px solid #0097cf;
+         }
+
+         .tt-query {
+             -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+             -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+             box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+         }
+
+         .tt-hint {
+             color: #999
+         }
+
+         .tt-menu {
+             margin: 14px 0;
+             padding: 8px 0;
+             background-color: #fff;
+             border: 1px solid #ccc;
+             border: 1px solid rgba(0, 0, 0, 0.2);
+             -webkit-border-radius: 8px;
+             -moz-border-radius: 8px;
+             border-radius: 8px;
+             -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+             -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+             box-shadow: 0 5px 10px rgba(0,0,0,.2);
+         }
+
+         .tt-suggestion {
+             padding: 3px 20px;
+             line-height: 24px;
+         }
+
+         .tt-suggestion:hover {
+             cursor: pointer;
+             color: #fff;
+             background-color: #0097cf;
+         }
+
+         .tt-suggestion.tt-cursor {
+             color: #fff;
+             background-color: #0097cf;
+         }
+
+         .tt-suggestion p {
+             margin: 0;
+         }
+
+         input.total-arrival-quantity, input.total-inferior-quantity{
+             width: 80px;
+         }
+         #panel-1, #panel-2 {
+             width: 80%;
+             margin: 20px auto
+         }
+         #tips {
+             width: 100%;
+             display: block;
+         }
+         #form-2 input.error[type="number"]{
+             border-color: #ff0000;
+         }
+
+         #memo {
+             width: 100%;
+             background-color: #b4eeb4;
+         }
+         #action {
+             width: 100%;
+             margin: 0;
+         }
+
+         #action > .row {
+             margin: 15px 0;
+         }
+         #action .btn-group > a {
+         }
+         i.glyphicon:hover {
+             color: #ff4500;
+         }
+
+         .candidate {
+             color: #66CC33;
+             font-size: 18px;
+         }
+        </style>
+    </head>
+    <body>
+        <div id="tips"></div>
+        <div class="panel panel-default" id="panel-1">
+            <div class="panel-heading">
+                <p>
+                    {{supplier_name}}({{supplier_id}})
+                </p>
+                <p>
+                    <strong>当前状态:</strong>
+                    <span id="inbound-status"></span>
+                </p>
+            </div>
+            <div class="panel-body">
+                <form id="form-1">
+                    <table class="table table-striped" style="width:100%">
+                        <tr>
+                            <th width="200px">商品名</th>
+                            <th>商品ID</th>
+                            <th>编码</th>
+                            <th>所属仓库</th>
+                            <th width="125px">图片</th>
+                            <th>SKUID</th>
+                            <th>尺寸</th>
+                            <th>条码</th>
+                            <th>正品</th>
+                            <th>次品</th>
+                            <th>库位</th>
+                            <th width="50px">操作</th>
+                        </tr>
+                        {% for product in products %}
+                        {% for sku in product.skus %}
+                        <tr class="sku" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}">
+                            {% if forloop.first %}
+                            <td rowspan="{{product.skus|length}}">{{product.name}}</td>
+                            <td rowspan="{{product.skus|length}}">
+                                <a href="/items/product/district/{{product.id}}/" target="_blank" title="商品库位">
+                                    {{product.id}}
+                                </a>
+                            </td>
+                            <td rowspan="{{product.skus|length}}">
+                                <a href="/admin/items/product/?outer_id={{product.outer_id}}" target="_blank" title="库存商品列表">
+                                    {{product.outer_id}}
+                                </a>
+                            </td>
+                            <td rowspan="{{product.skus|length}}">
+                                <select class="ware-select form-control" data-product-id="{{product.id}}">
+                                    {% for warehouse in warehouses %}
+                                    <option value="{{warehouse.value}}"{% if product.ware_by == warehouse.value %} selected{% endif %}>{{warehouse.text}}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td rowspan="{{product.skus|length}}">
+                                <div class="portfolio-box">
+                                    <a href="{{product.product_link}}" target="_blank">
+                                        <img src="{{product.pic_path}}?imageView2/0/w/120" data-pic-path="{{product.pic_path}}" width="120px">
+                                    </a>
+                                </div>
+                            </td>
+                            {% endif %}
+                            <td>
+                                <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank">{{sku.id}}</a>
+                            </td>
+                            <td>{{sku.properties_name}}</td>
+                            <td>{{sku.barcode}}</td>
+                            <td>
+                                <input type="number" class="arrival-quantity form-control"
+                                       style="width:80px" min="0" value="{{sku.arrival_quantity}}">
+                            </td>
+                            <td>
+                                <input type="number" class="inferior-quantity form-control"
+                                       style="width:80px" min="0" value="{{sku.inferior_quantity}}">
+                            </td>
+                            <td>
+                                <input class="district form-control" style="width:100px" value="{{sku.district|default:''}}">
+                            </td>
+                            <td>
+                                <i class="glyphicon glyphicon-copy" data-clipboard-text="{{product.outer_id}} {{product.name}} {{sku.properties_name}}"></i>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endfor %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><strong>总计:</strong></td>
+                            <td>
+                                <input type="number" class="total-arrival-quantity form-control" readonly>
+                            </td>
+                            <td>
+                                <input type="number" class="total-inferior-quantity form-control" readonly>
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                    <div class="container" id="action">
+                        <div class="row">
+                            <textarea class="form-control" id="memo" rows="5" readonly>{{inbound.memo|safe}}</textarea>
+                        </div>
+                        <div class="row input-group">
+                            <div class="col-md-9" style="padding:0">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="添加备注" id="memo-input">
+                                    <span class="input-group-btn">
+                                        <a href="javascript:;" class="btn btn-info" id="add-memo-btn">添加</a>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 btn-group">
+                                <a class="btn btn-danger" href="javascript:;" id="set-invalid">作废</a>
+                                <a class="btn btn-success" hef="javascript:;" id="edit">修改</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+        <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+        <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}underscore/underscore.string.min.js"></script>
+        <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script src="{{ STATIC_URL }}typeahead.bundle.min.js"></script>
+        <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
+        <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+        <script src="/static/wap/js/template.js"></script>
+        {% verbatim %}
+        <script id="orderlists" type="text/html">
+            <div class="panel panel-default" id="panel-2">
+                <div class="panel-heading">订货单列表</div>
+                <div class="panel-body">
+                    <form id="form-2">
+                        <table class="table table-striped" style="width:auto">
+                            <tr>
+                                <th width="200px">订货单</th>
+                                <th width="200px">商品名</th>
+                                <th width="80px">商品ID</th>
+                                <th width="110px">编码</th>
+                                <th width="80px">图片</th>
+                                <th width="80px">SKUID</th>
+                                <th width="60px">尺寸</th>
+                                <th width="80px">待入库数</th>
+                                <th width="85px">正品</th>
+                                <th width="85px">次品</th>
+                            </tr>
+                            {{each orderlists as orderlist}}
+                            <tr class="intro" data-orderlist-id="{{orderlist.id}}">
+                                <td>
+                                    <p><a href="/sale/dinghuo/changedetail/{{orderlist.id}}/" target="_blank">{{orderlist.id}}</a></p>
+                                    <p>负责人: {{orderlist.buyer_name}}</p>
+                                    <p>创建时间: {{orderlist.created}}</p>
+                                    <p>状态: {{orderlist.status}}</p>
+                                    <p>
+                                        <a href="javascript:;" class="unfold-btn">展开</a>
+                                    </p>
+                                </td>
+                            </tr>
+                            {{each orderlist.products as product i}}
+                            {{each product.skus as sku j}}
+                            <tr class="sku" data-orderlist-id="{{orderlist.id}}" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}" data-orderdetail-id="{{sku.orderdetail_id}}">
+                                {{if i == 0 && j == 0}}
+                                <td rowspan="{{orderlist.len_of_skus}}">
+                                    <p><a href="/sale/dinghuo/changedetail/{{orderlist.id}}/" target="_blank">{{orderlist.id}}</a></p>
+                                    <p>负责人: {{orderlist.buyer_name}}</p>
+                                    <p>创建时间: {{orderlist.created}}</p>
+                                    <p>状态: {{orderlist.status}}</p>
+                                    <p>
+                                        <a href="javascript:;" class="fold-btn">收起</a>
+                                    </p>
+                                </td>
+                                {{/if}}
+                                {{if j == 0}}
+                                <td rowspan="{{product.skus.length}}">
+                                    {{product.name}}
+                                </td>
+                                <td rowspan="{{product.skus.length}}">
+                                    {{product.id}}
+                                </td>
+                                <td rowspan="{{product.skus.length}}">
+                                    {{product.outer_id}}
+                                </td>
+                                <td rowspan="{{product.skus.length}}">
+                                    <div class="portfolio-box">
+                                        <a href="{{product.product_link}}" target="_blank">
+                                            <img src="{{product.pic_path}}?imageView2/0/w/120" data-pic-path="{{product.pic_path}}" width="120px">
+                                        </a>
+                                    </div>
+                                </td>
+                                {{/if}}
+                                <td>
+                                    <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank">{{sku.id}}</a>
+                                </td>
+                                <td>
+                                    <span class="properties-name">
+                                        {{sku.properties_name}}
+                                    </span>
+                                </td>
+                                <td>{{sku.plan_quantity}}</td>
+                                <td>
+                                    <input type="number" class="arrival-quantity form-control" style="width:80px" min="0">
+                                </td>
+                                <td>
+                                    <input type="number" class="inferior-quantity form-control" style="width:80px" min="0">
+                                </td>
+                            </tr>
+                            {{/each}}
+                            {{/each}}
+                            {{/each}}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td><strong>总计:</strong></td>
+                                <td><input type="number" class="total-arrival-quantity form-control" style="width:80px" readonly></td>
+                                <td><input type="number" class="total-inferior-quantity form-control" style="width:80px" readonly></td>
+                            </tr>
+                        </table>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-5">
+                                </div>
+                                <div class="col-md-1">
+                                    <a class="btn btn-primary" href="javascript:;" id="allocate">确认分配</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </script>
+        {% endverbatim %}
+        <script>
+         var TR_SELECTOR_TPL = _.template('tr.sku[data-sku-id="<%= skuId %>"] input[type="number"]');
+         var IMAGE_PREVIEW_TPL = _.template('<img src="<%= pic_path %>" width=800 height=800>');
+         var SUGGEST_DISTRICT_TPL = _.template('<p><small>建议库位:</small><span class="bg-success"><%= district %></span></p>')
+         var INVALID = 0;
+         var PENDING = 1;
+         var COMPLETED = 2;
+
+         var STATUS_MAPPING = [
+             '作废',
+             '待处理',
+             '完成'
+         ];
+
+         var districtsEngine = new Bloodhound({
+             datumTokenizer: Bloodhound.tokenizers.whitespace,
+             queryTokenizer: Bloodhound.tokenizers.whitespace,
+             prefetch: '/sale/dinghuo/inbound/districts'
+         });
+         districtsEngine.initialize();
+
+         var inbound = {{inbound|jsonify}};
+
+         function getInboundSkus(){
+             var inboundSkus = {};
+             $('tr.sku', '#form-1').each(function(){
+                 var $this = $(this);
+                 var skuId = $this.attr('data-sku-id');
+                 var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
+                 var inferiorQuantity = parseInt($this.find('.inferior-quantity').val()) || 0;
+                 var district = $this.find('.district').last().val() || '';
+
+                 inboundSkus[skuId] = {
+                     arrival_quantity: arrivalQuantity,
+                     inferior_quantity: inferiorQuantity,
+                     district: district
+                 }
+             });
+             return inboundSkus;
+         }
+
+         function tip(text, type){
+             $('#tips').noty({
+                 text: text,
+                 type: type,
+                 theme: 'bootstrapTheme',
+                 closeWith: ['button', 'click'],
+                 maxVisible: 20,
+                 modal: false
+             });
+         }
+
+         function quantityChangeHandler(formId){
+             function wrapper(){
+                 var totalArrivalQuantity = 0;
+                 var totalInferiorQuantity = 0;
+
+                 $('tr.sku', formId).each(function(){
+                     var $this = $(this);
+                     var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
+                     var inferiorQuantity = parseInt($this.find('.inferior-quantity').val()) || 0;
+                     totalArrivalQuantity += arrivalQuantity;
+                     totalInferiorQuantity += inferiorQuantity;
+                 });
+                 $('.total-arrival-quantity', formId).val(totalArrivalQuantity);
+                 $('.total-inferior-quantity', formId).val(totalInferiorQuantity);
+             }
+             return wrapper;
+         }
+
+         function updateInboundStatus(status){
+             $('#inbound-status').html(STATUS_MAPPING[status]);
+         }
+
+         $(function(){
+             $.noty.defaults = $.extend($.noty.defaults, {
+                 animation: {
+                     open: 'animated bounceInLeft',
+                     close: 'animated bounceOutRight',
+                     easing: 'swing',
+                     speed: 500
+                 }
+             });
+             _.mixin(_.string.exports());
+
+             $('#set-invalid').click(function(){
+                 swal({
+                     title: '警告',
+                     text: '作废后无法恢复',
+                     type: 'warning',
+                     showCancelButton: true,
+                     confirmButtonText: '确认',
+                     cancelButtonText: '取消'
+                 }, function(){
+                     $.ajax({
+                         url: '/sale/dinghuo/inbound/' + inbound.id + '/set_invalid',
+                         type: 'post',
+                         dataType: 'json',
+                         success: function(result){
+                             if(result.error){
+                                 tip(result.error, 'error');
+                             }
+                             else{
+                                 tip('作废成功', 'information');
+                                 updateInboundStatus(INVALID);
+                             }
+                         }
+                     });
+                 });
+             });
+
+             $('#edit').click(function(){
+                 var callback = function(){
+                     var inboundSkus = getInboundSkus();
+                     $.ajax({
+                         url: '/sale/dinghuo/inbound/' + inbound.id,
+                         type: 'put',
+                         dataType: 'json',
+                         data: {inbound_skus: JSON.stringify(inboundSkus), memo: $('#memo').val()},
+                         success: function(result){
+                             if(result.error){
+                                 tip(result.error, 'error');
+                             }
+                             else{
+                                 tip('修改成功', 'information');
+                                 updateInboundStatus(PENDING);
+                                 var $panel2 = $('#panel-2');
+                                 if($panel2)
+                                     $panel2.remove();
+                                 if(result.orderlists && result.orderlists.length){
+                                     $('#panel-1').after(template('orderlists', {orderlists: result.orderlists}));
+                                     $('.portfolio-box img', '#form-2').popover({
+                                         html: true,
+                                         trigger: 'hover',
+                                         container: 'body',
+                                         content: function(){
+                                             return IMAGE_PREVIEW_TPL({pic_path: $(this).attr('data-pic-path')});
+                                         }
+                                     });
+                                     quantityChangeHandler('#form-2')();
+                                     $('#form-2 input[type="number"]').change(quantityChangeHandler('#form-2'));
+
+                                     var skuTpl = _.template('tr.sku[data-orderlist-id="<%= id %>"]');
+                                     var introTpl = _.template('tr.intro[data-orderlist-id="<%= id %>"]');
+                                     $('tr.sku', '#form-2').hide();
+                                     $('.unfold-btn', '#form-2').click(function(){
+                                         var orderlistId = $(this).closest('tr').attr('data-orderlist-id');
+                                         $(introTpl({id: orderlistId}), '#form-2').hide();
+                                         $(skuTpl({id: orderlistId}), '#form-2').show();
+                                     });
+
+                                     $('.fold-btn', '#form-2').click(function(){
+                                         var orderlistId = $(this).closest('tr').attr('data-orderlist-id');
+                                         $(introTpl({id: orderlistId}), '#form-2').show();
+                                         $(skuTpl({id: orderlistId}), '#form-2').hide();
+                                     });
+
+                                     $('.properties-name', '#form-2').removeClass('candidate');
+                                     _.each(_.keys(inboundSkus), function(skuId){
+                                         var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+                                         $(tpl({skuId: skuId}), '#form-2').find('.properties-name').addClass('candidate');
+                                     });
+                                 }
+                             }
+                         }
+                     });
+                 };
+
+                 if(inbound.status == INVALID){
+                     tip('作废入仓单不能修改', 'error');
+                     return;
+                 }
+                 else if(inbound.status == PENDING){
+                     callback();
+                 }
+                 else{
+                     swal({
+                         title: '警告',
+                         text: '修改入仓单后需要重新分配',
+                         type: 'warning',
+                         showCancelButton: true,
+                         confirmButtonText: '确认',
+                         cancelButtonText: '取消'
+                     }, callback);
+                 }
+             });
+
+             $('.portfolio-box img', '#form-1').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: function(){
+                     return IMAGE_PREVIEW_TPL({pic_path: $(this).attr('data-pic-path')});
+                 }
+             });
+
+             $('body').on('click', '#allocate', function(){
+                 var skuData = {};
+                 var inboundData = [];
+
+                 $('tr.sku', '#form-2').each(function(){
+                     var $this = $(this);
+                     var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
+                     var inferiorQuantity = parseInt($this.find('.inferior-quantity').val()) || 0;
+                     if(!(arrivalQuantity || inferiorQuantity))
+                         return;
+                     var skuId = parseInt($this.attr('data-sku-id'));
+                     var orderdetailId = parseInt($this.attr('data-orderdetail-id'));
+
+                     if(_.isEmpty(skuData[skuId])){
+                         skuData[skuId] = {
+                             arrival_quantity: arrivalQuantity,
+                             inferior_quantity: inferiorQuantity
+                         }
+                     }
+                     else{
+                         skuData[skuId].arrival_quantity += arrivalQuantity;
+                         skuData[skuId].inferior_quantity += inferiorQuantity;
+                     }
+                     if(!_.isEmpty(inbound.details[skuId])){
+                         inboundData.push({
+                             orderdetail_id: orderdetailId,
+                             inbounddetail_id: inbound.details[skuId].id,
+                             arrival_quantity: arrivalQuantity,
+                             inferior_quantity: inferiorQuantity
+                         })
+                     }
+                 });
+
+                 var errorSkuIds = _.union(_.difference(_.keys(skuData), _.keys(inbound.details)),
+                                           _.difference(_.keys(inbound.details), _.keys(skuData)));
+                 $('tr.sku input.error', '#form-2').removeClass('error');
+                 if(errorSkuIds && errorSkuIds.length > 0){
+                     _.each(errorSkuIds, function(el){
+                         $(TR_SELECTOR_TPL({skuId: el}), '#form-2').addClass('error');
+                     });
+                 }
+                 else{
+                     $.ajax({
+                         url: '/sale/dinghuo/inbound/allocate',
+                         type: 'post',
+                         dataType: 'json',
+                         data: {data: JSON.stringify(inboundData)},
+                         success: function(result){
+                             if(result.error)
+                                 swal('错误', result.error, 'error');
+                             else{
+                                 swal('分配成功', '', 'success');
+                                 updateInboundStatus(inbound.status);
+                             }
+                         }
+                     });
+                 }
+                 return false;
+             });
+
+             $('#add-memo-btn').click(function(){
+                 var text = $('#memo-input').val();
+                 text = _.trim(text);
+                 if(_.isEmpty(text))
+                     return;
+
+                 $.ajax({
+                     url: '/sale/dinghuo/inbound/add_memo',
+                     type: 'get',
+                     dataType: 'json',
+                     data: {content: text},
+                     success: function(result){
+                         if(!_.isEmpty(result.memo)){
+                             var tmp = [];
+                             var oldText = $('#memo').val();
+                             if(!_.isEmpty(oldText))
+                                 tmp.push(oldText);
+                             tmp.push(result.memo);
+                             $('#memo').val(tmp.join('\n'));
+                         }
+                     }
+                 });
+             });
+             $('i.glyphicon-copy').click(function(){
+                 $('#memo-input').val(($(this).attr('data-clipboard-text') || '') + ' ');
+             });
+
+             quantityChangeHandler('#form-1')();
+             $('input[type="number"]', '#form-1').change(quantityChangeHandler('#form-1'));
+             updateInboundStatus(inbound.status);
+             $('.ware-select', '#form-1').change(function(){
+                 var $this = $(this);
+                 var productId = parseInt($this.attr('data-product-id'));
+                 $.ajax({
+                     url: '/items/product/' + productId + '/?format=json',
+                     dataType: 'json',
+                     type: 'post',
+                     data: {format: 'json', ware_by: $this.val()},
+                     success: function(){
+                         tip('修改仓库成功', 'information');
+                     }
+                 });
+             });
+
+             $('.district', '#form-1').typeahead({
+                 hint: true, highlight: true, minLength: 1
+             }, {name: 'districts', source: districtsEngine});
+
+             $('tr.sku', '#form-1').each(function(){
+                 var $this = $(this);
+                 var productId = parseInt($this.attr('data-product-id'));
+                 if(productId){
+                     var $district = $this.find('input.district').last();
+                     $.ajax({
+                         url: '/sale/dinghuo/inbound/suggest_district',
+                         type: 'get',
+                         dataType: 'json',
+                         data: {product_id: productId},
+                         success: function(result){
+                             if(result.district)
+                                 $district.after(SUGGEST_DISTRICT_TPL({district: result.district}));
+                         }
+                     });
+                 }
+             });
+         });
+        </script>
+    </body>
+</html>

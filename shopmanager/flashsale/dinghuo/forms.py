@@ -36,3 +36,23 @@ class EditInBoundForm(InBoundListForm):
 class AdvanceDingHuoForm(BaseForm):
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=True)
+
+
+class InBoundForm(BaseForm):
+    inbound_id = forms.IntegerField(required=False, initial=0)
+    supplier_id = forms.IntegerField(required=False, initial=0)
+    orderlist_id = forms.IntegerField(required=False, initial=0)
+    express_no = forms.CharField(required=False, initial='')
+
+
+class MatchOrderListsForm(BaseForm):
+    inbound_skus = forms.CharField(required=False, initial='{}')
+
+
+class CreateInBoundForm(BaseForm):
+    inbound_skus = forms.CharField(required=False, initial='{}')
+    express_no = forms.CharField(required=False, initial='')
+    orderlist_id = forms.CharField(required=False, initial=0)
+    supplier_id = forms.IntegerField()
+    inbound_id = forms.IntegerField(required=False, initial=0)
+    memo = forms.CharField(required=False, initial='')
