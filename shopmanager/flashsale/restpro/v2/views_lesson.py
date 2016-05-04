@@ -19,6 +19,9 @@ from flashsale.pay.models import Customer
 from flashsale.restpro import permissions as perms
 from . import lesson_serializers
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
 
@@ -51,7 +54,7 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     queryset = LessonTopic.objects.all()
     serializer_class = lesson_serializers.LessonTopicSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
@@ -77,7 +80,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = lesson_serializers.LessonSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
@@ -87,11 +90,12 @@ class LessonViewSet(viewsets.ModelViewSet):
         if lesson_id:
             return self.queryset.filter(id=lesson_id)
         
+        logger.warn("self.queryset: %s" % self.queryset)
         return self.queryset
     
     def list(self, request, *args, **kwargs):
         query_set = self.get_queryset(request)
-        
+        logger.warn("query_set: %s" % query_set)
         datalist = self.paginate_queryset(query_set)
         customer_id = get_customer_id(request.user)
         #customer_id = 0 # debug
@@ -120,11 +124,13 @@ class InstructorViewSet(viewsets.ModelViewSet):
     queryset = Instructor.objects.all()
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
+        logger.warn("self.queryset: %s" % self.queryset)
         topics = self.paginate_queryset(self.queryset)
+        logger.warn("topics: %s" % topics)
         serializer = lesson_serializers.InstructorSerializer(topics, many=True)
         return self.get_paginated_response(serializer.data)
         
@@ -149,7 +155,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     queryset = LessonAttendRecord.objects.all()
     serializer_class = lesson_serializers.LessonAttendRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
