@@ -1,7 +1,7 @@
 # coding=utf-8
 import os, urlparse
 import datetime
-
+import decimal
 from django.shortcuts import get_object_or_404
 from django.forms import model_to_dict
 from django.db.models import Sum, Count
@@ -485,13 +485,17 @@ class CashOutViewSet(viewsets.ModelViewSet):
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         return customer, xlmm
 
-    def verify_cashout(self, cash_type, customer, xlmm):
+    def verify_cashout(self, cash_type, cashout_amount, customer, xlmm):
 
-        if cash_type is None:  # 参数错误
+        if (cash_type is None) and (cashout_amount is None):  # 参数错误(没有参数)
             return 0, {"code": 1, "msg": '暂未开通'}
-        value = self.cashout_type.get(cash_type)
+        if cash_type:
+            value = self.cashout_type.get(cash_type)
+        elif cashout_amount:
+            value = int(decimal.Decimal(cashout_amount) * 100)
+        else:
+            return 0, {"code": 1, "msg": '提现金额不能为0'}
         could_cash_out, active_value_num = self.get_mamafortune(xlmm.id)
-
         if active_value_num < 100:
             return 0, {"code": 4, 'msg': '活跃值不足'}  # 活跃值不够
         if self.queryset.filter(status=CashOut.PENDING, xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
@@ -503,9 +507,10 @@ class CashOutViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """代理提现"""
         cash_type = request.REQUEST.get('choice', None)
+        cashout_amount = request.REQUEST.get('cashout_amount', None)
         customer, xlmm = self.get_customer_and_xlmm(request)
 
-        value, msg = self.verify_cashout(cash_type, customer, xlmm)
+        value, msg = self.verify_cashout(cash_type, cashout_amount, customer, xlmm)
         if value <= 0:
             return Response(msg)
         # 满足提现请求　创建提现记录
@@ -513,14 +518,12 @@ class CashOutViewSet(viewsets.ModelViewSet):
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
         return Response(msg)
 
-    @list_route(methods=['get'])
+    @list_route(methods=['post'])
     def cashout_to_budget(self, request):
         """ 代理提现到用户余额 """
-        if True:
-            return Response({"code": 1, "msg": "暂未开放"})
-        cash_type = request.REQUEST.get('choice', None)
+        cashout_amount = request.REQUEST.get('cashout_amount', None)
         customer, xlmm = self.get_customer_and_xlmm(request)
-        value, msg = self.verify_cashout(cash_type, customer, xlmm)
+        value, msg = self.verify_cashout(None, cashout_amount, customer, xlmm)
         if value <= 0:
             return Response(msg)
         # 创建Cashout
