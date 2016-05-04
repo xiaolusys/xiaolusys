@@ -1,3 +1,4 @@
+import datetime
 # coding=utf-8
 
 def gen_ordercarry_unikey(carry_type, order_id):
@@ -31,3 +32,20 @@ def gen_uniquevisitor_unikey(openid, date_field):
 
 def gen_dailystats_unikey(mama_id, date_field):
     return "-".join([str(mama_id), str(date_field)])
+
+
+def gen_lessonattendrecord_unikey(lesson_id, unionid):
+    return '-'.join([str(lesson_id), unionid])
+
+
+def gen_topicattendrecord_unikey(topic_id, unionid):
+    """
+    uni_key = topic_id + unionid + year + week
+    """
+    today = datetime.date.today()
+    year = today[0]
+    week = today[1]
+
+    return '-'.join([str(topic_id), str(unionid), str(year), str(week)])
+    
+

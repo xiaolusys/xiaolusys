@@ -521,3 +521,40 @@ class DailyStatsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DailyStats, DailyStatsAdmin)
+
+
+from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, TopicAttendRecord
+
+class LessonTopicAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')
+    search_fields = ('title',)
+    list_filter = ('lesson_type','status',)
+admin.site.register(LessonTopic, LessonTopicAdmin)
+
+
+class InstructorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'title', 'introduction', 'num_lesson', 'num_attender', 'status', 'modified', 'created')
+    search_fields = ('name', 'introduction', )
+    list_filter = ('status',)
+admin.site.register(Instructor, InstructorAdmin)
+
+
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ('title', 'instructor_name', 'num_attender', 'num_score', 'start_time', 'status', 'modified', 'created')
+    search_fields = ('title', 'instructor_name', )
+    list_filter = ('status',)
+admin.site.register(Lesson, LessonAdmin)
+
+
+class LessonAttendRecordAdmin(admin.ModelAdmin):
+    list_display = ('lesson_id', 'title', 'student_nick', 'num_score', 'status', 'modified', 'created')
+    search_fields = ('title', )
+    list_filter = ('status',)
+admin.site.register(LessonAttendRecord, LessonAttendRecordAdmin)
+
+class TopicAttendRecordAdmin(admin.ModelAdmin):
+    list_display = ('topic_id', 'title', 'student_nick', 'lesson_attend_record_id', 'status', 'modified', 'created')
+    search_fields = ('title', )
+    list_filter = ('status',)
+admin.site.register(TopicAttendRecord, TopicAttendRecordAdmin)
+    

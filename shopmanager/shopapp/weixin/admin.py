@@ -14,6 +14,7 @@ from core.admin import ApproxAdmin
 from core.filters import DateFieldListFilter
 from shopback.items.models import Product
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter
+from .models_base import WeixinUserInfo
 from shopapp.weixin.models import (WeiXinAccount,
                                    WeixinUnionID,
                                    UserGroup,
@@ -56,6 +57,12 @@ class WeixinUnionIDAdmin(ApproxAdmin):
 
 
 admin.site.register(WeixinUnionID, WeixinUnionIDAdmin)
+
+class WeixinUserInfoAdmin(admin.ModelAdmin):
+    list_display = ('unionid', 'nick', 'thumbnail', 'modified', 'created')
+    search_fields = ('unionid', 'nick')
+
+admin.site.register(WeixinUserInfo, WeixinUserInfoAdmin)
 
 
 class UserChangeList(ChangeList):
