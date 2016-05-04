@@ -154,7 +154,7 @@ admin.site.register(Register, RegisterAdmin)
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'nick', 'mobile', 'phone', 'created', 'unionid', 'status')
+    list_display = ('id', 'user', 'nick', 'mobile', 'phone', 'unionid', 'created', 'modified', 'status')
     list_display_links = ('id', 'nick',)
 
     list_filter = ('status',)

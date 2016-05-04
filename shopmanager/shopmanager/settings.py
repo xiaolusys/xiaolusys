@@ -541,5 +541,10 @@ if not DEBUG:
 
 try:
     from local_settings import *
+    if DEBUG:
+        INSTALLED_APPS += ('debug_toolbar',)
 except ImportError, err:
     pass
+
+
+
