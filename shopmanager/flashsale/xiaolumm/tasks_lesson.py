@@ -64,7 +64,7 @@ def task_lessonattendrecord_create_topicattendrecord(lesson_attend_record):
 @task()
 def task_topicattendrecord_validate_lessonattendrecord(lesson_attend_record_id):
     record = LessonAttendRecord.objects.get(id=lesson_attend_record_id)
-    record.status = LessonAttendRecord.EFFECT
+    record.status = LessonAttendRecord.STATUS_EFFECT
     record.save(update_fields=['status'])
 
 
@@ -79,7 +79,7 @@ def task_update_topic_attender_num(topic_id):
 @task()
 def task_update_lesson_attender_num(lesson_id):
     num_attender = LessonAttendRecord.objects(lesson_id=lesson_id).count()
-    effect_num_attender = LessonAttendRecord.objects(lesson_id=lesson_id, status=LessonAttendRecord.EFFECT).count()
+    effect_num_attender = LessonAttendRecord.objects(lesson_id=lesson_id, status=LessonAttendRecord.STATUS_EFFECT).count()
     lesson = Lesson.objects.get(id=lesson_id)
     lesson.num_attender = num_attender
     lesson.effect_num_attender = effect_num_attender

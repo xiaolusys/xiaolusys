@@ -44,39 +44,6 @@ def get_mama_id(user):
     return mama_id
 
 
-def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field, exclude_statuses=None):
-    qset = queryset.filter(mama_id=mama_id,date_field__gte=from_date,date_field__lte=end_date)
-
-    if exclude_statuses:
-        for ex in exclude_statuses:
-            qset = qset.exclude(status=ex)
-    
-    qset = qset.values('date_field').annotate(today_carry=Sum(sum_field))
-    sum_dict = {}
-    for entry in qset:
-        key = entry["date_field"]
-        sum_dict[key] = entry["today_carry"]
-    return sum_dict
-
-
-def add_day_carry(datalist, queryset, sum_field, scale=0.01, exclude_statuses=None):
-    """
-    计算求和字段按
-    照日期分组
-    添加到<today_carry>字段　的　值
-    """
-    mama_id = datalist[0].mama_id
-    end_date = datalist[0].date_field
-    from_date = datalist[-1].date_field
-    ### search database to group dates and get carry_num for each group
-    sum_dict = get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field, exclude_statuses=exclude_statuses)
-    
-    for entry in datalist:
-        key = entry.date_field
-        if key in sum_dict:
-            entry.today_carry = float('%.2f' % (sum_dict[key] * scale))
-
-
 class LessonTopicViewSet(viewsets.ModelViewSet):
     """
     Return lesson topics.
@@ -84,14 +51,13 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     queryset = LessonTopic.objects.all()
     serializer_class = lesson_serializers.LessonTopicSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         topics = self.paginate_queryset(self.queryset)
         serializer = lesson_serializers.LessonTopicSerializer(topics, many=True)
         res = self.get_paginated_response(serializer.data)
-        res['Access-Control-Allow-Origin'] = '*'
         return res
         
     def create(self, request, *args, **kwargs):
@@ -111,7 +77,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = lesson_serializers.LessonSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
@@ -127,10 +93,10 @@ class LessonViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset(request)
         
         datalist = self.paginate_queryset(query_set)
-        #customer_id = get_customer_id(request.user)
-        customer_id = 0 # debug
+        customer_id = get_customer_id(request.user)
+        #customer_id = 0 # debug
         for entry in datalist:
-            entry.customer_id_last_digit = customer_id % 10
+            entry.customer_idx = customer_id % 5
             
         serializer = lesson_serializers.LessonSerializer(datalist, many=True)
         res = self.get_paginated_response(serializer.data)
@@ -205,7 +171,6 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
         topics = self.paginate_queryset(query_set)
         serializer = lesson_serializers.LessonAttendRecordSerializer(topics, many=True)
         res = self.get_paginated_response(serializer.data)
-        res['Access-Control-Allow-Origin'] = '*'
         return res
         
     def create(self, request, *args, **kwargs):
@@ -230,7 +195,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         # 2. get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
-        userinfo = {"unionid":"o29cQs9QlfWpL0v0ZV_b2nyTOM-4", "nickname":"zifei", "headimgurl":"xxxx"}
+        #userinfo = {"unionid":"o29cQs9QlfWpL0v0ZV_b2nyTOM-4", "nickname":"zifei", "headimgurl":"xxxx"}
         if not self.valid_openid(unionid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
             userinfo = self.get_auth_userinfo(request)
@@ -249,7 +214,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
             from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
             task_create_lessonattendrecord.delay(lesson_id, userinfo)
 
-        response = redirect('/rest/lesson/attendrecord?unionid=%s' % unionid)
+        response = redirect('/rest/lesson/lessonattendrecord?unionid=%s' % unionid)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
 
         return response

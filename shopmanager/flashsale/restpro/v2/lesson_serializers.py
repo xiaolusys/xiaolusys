@@ -22,12 +22,12 @@ class LessonSerializer(serializers.ModelSerializer):
     is_started = serializers.IntegerField(read_only=True)
     
     class Meta:
-        extra_kwargs = {'customer_id_last_digit': {'read_only': True}}
+        extra_kwargs = {'customer_idx': {'read_only': True}}
         model = Lesson
         fields = ('lesson_topic_id', 'title', 'description', 'content_link', 'instructor_id',
                   'instructor_name', 'instructor_title', 'instructor_image', 'num_attender',
                   'num_score', 'start_time_display', 'qrcode_links', 'status', 'status_display',
-                  'is_started', 'customer_id_last_digit',)
+                  'is_started', 'customer_idx',)
 
 class InstructorSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)

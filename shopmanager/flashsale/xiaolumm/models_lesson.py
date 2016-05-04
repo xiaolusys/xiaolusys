@@ -22,8 +22,14 @@ def get_choice_name(choices, val):
 
 
 class LessonTopic(BaseModel):
-    STATUS_TYPES = ((0, u'有效'), (1, u'取消'))
-    LESSON_TYPES = ((0, u'课程'), (1, u'实战'), (2, u'知识'))
+    STATUS_EFFECT = 1
+    STATUS_CANCELED = 2
+    STATUS_TYPES = ((STATUS_EFFECT, u'有效'), (STATUS_CANCELED, u'取消'))
+
+    LESSON_COURSE = 0
+    LESSON_PRACTICE = 1
+    LESSON_KNOWLEDGE = 2
+    LESSON_TYPES = ((LESSON_COURSE, u'课程'), (LESSON_PRACTICE, u'实战'), (LESSON_KNOWLEDGE, u'知识'))
 
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
     description = models.TextField(max_length=512, blank=True, verbose_name=u'课程描述')
@@ -32,7 +38,7 @@ class LessonTopic(BaseModel):
     content_link = models.CharField(max_length=256, blank=True, verbose_name=u'内容链接')
 
     lesson_type = models.IntegerField(default=0, choices=LESSON_TYPES, verbose_name=u'类型')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
+    status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
 
     @property
     def lesson_type_display(self):
@@ -53,7 +59,9 @@ class LessonTopic(BaseModel):
 
     
 class Instructor(BaseModel):
-    STATUS_TYPES = ((0, u'有效'), (1, u'取消'))
+    STATUS_EFFECT = 1
+    STATUS_CANCELED = 2
+    STATUS_TYPES = ((STATUS_EFFECT, u'有效'), (STATUS_CANCELED, u'取消'))
 
     name = models.CharField(max_length=32, blank=True, verbose_name=u'讲师昵称')
     title = models.CharField(max_length=64, blank=True, verbose_name=u'讲师头衔')
@@ -63,7 +71,7 @@ class Instructor(BaseModel):
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'Mama ID')
     num_lesson = models.IntegerField(default=0, verbose_name=u'总课时')
     num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
+    status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
     
     class Meta:
         db_table = 'flashsale_xlmm_instructor'
@@ -76,7 +84,10 @@ class Instructor(BaseModel):
 
 
 class Lesson(BaseModel):
-    STATUS_TYPES = ((0, u'有效'), (1, u'已完成'), (2, u'取消'))
+    STATUS_EFFECT = 1
+    STATUS_FINISHED = 2
+    STATUS_CANCELED = 3
+    STATUS_TYPES = ((STATUS_EFFECT, u'有效'), (STATUS_FINISHED, u'已完成'), (STATUS_CANCELED, u'取消'))
     
     lesson_topic_id = models.IntegerField(default=0, db_index=True, verbose_name=u'课程主题ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
@@ -99,7 +110,7 @@ class Lesson(BaseModel):
     # uni_key: lesson_topic_id + instructor_id + start_time
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
+    status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
 
     @property
     def status_display(self):
@@ -117,7 +128,7 @@ class Lesson(BaseModel):
 
     @property
     def is_started(self):
-        if datetime.datetime.now() > self.start_time and self.status == 0:
+        if datetime.datetime.now() > self.start_time and self.status == Lesson.STATUS_EFFECT:
             return 1
         return 0
 
@@ -129,14 +140,14 @@ class Lesson(BaseModel):
             base_carry = 110
         return base_carry
         
-    def customer_id_last_digit(self):
+    def customer_idx(self):
         return None
 
     def is_canceled(self):
-        return self.status == 2
+        return self.status == Lesson.STATUS_CANCELED
 
     def is_confirmed(self):
-        return self.status == 1
+        return self.status == Lesson.STATUS_FINISHED
     
     class Meta:
         db_table = 'flashsale_xlmm_lesson'
@@ -164,9 +175,9 @@ post_save.connect(lesson_update_instructor_payment,
 
 
 class LessonAttendRecord(BaseModel):
-    EFFECT = 0
-    CANCELED = 1 
-    STATUS_TYPES = ((EFFECT, u'有效'), (CANCELED, u'无效'))
+    STATUS_EFFECT = 1
+    STATUS_CANCELED = 2 
+    STATUS_TYPES = ((STATUS_EFFECT, u'有效'), (STATUS_CANCELED, u'无效'))
     
     lesson_id = models.IntegerField(default=0, db_index=True, verbose_name=u'课程ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
@@ -180,7 +191,7 @@ class LessonAttendRecord(BaseModel):
     # uni_key = lesson_id + student_unionid
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u"唯一ID")
 
-    status = models.IntegerField(default=1, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')
+    status = models.IntegerField(default=2, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')
     
     class Meta:
         db_table = 'flashsale_xlmm_lesson_attend_record'
@@ -193,7 +204,7 @@ class LessonAttendRecord(BaseModel):
 
     @property
     def status_display(self):
-        if self.status == LessonAttendRecord.EFFECT:
+        if self.status == LessonAttendRecord.STATUS_EFFECT:
             return u'签到成功'
         return u'重复学员'
 
@@ -228,7 +239,9 @@ post_save.connect(update_lesson_attender_num,
 
                   
 class TopicAttendRecord(BaseModel):
-    STATUS_TYPES = ((1, u'EFFECT'), (2, u'CANCELED'))
+    STATUS_EFFECT = 1
+    STATUS_CANCELED = 2
+    STATUS_TYPES = ((STATUS_EFFECT, u'EFFECT'), (STATUS_CANCELED, u'CANCELED'))
 
 
     topic_id = models.IntegerField(default=0, db_index=True, verbose_name=u'主题ID')
@@ -245,7 +258,7 @@ class TopicAttendRecord(BaseModel):
     # TopicAttendRecord must be generated by a LessonAttendRecord
     lesson_attend_record_id = models.IntegerField(default=0, verbose_name=u'课程参加记录ID')
     
-    status = models.IntegerField(default=2, choices=STATUS_TYPES, verbose_name=u'状态')
+    status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
     
     class Meta:
         db_table = 'flashsale_xlmm_topic_attend_record'
