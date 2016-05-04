@@ -564,12 +564,35 @@ def task_release_coupon_push(customer_id):
 
 from core.options import get_systemoa_user
 
+
 def close_refund(refund):
     """ 关闭退款单 """
 
     order = SaleOrder.objects.get(id=refund.order_id)
     if order.status not in [SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]:
         return  # 判断订单状态是否在　确认签收　和　交易成功　状态　否则　不去做关闭退款单操作
+
+    old_status = refund.get_status_display()
+    refund.status = SaleRefund.REFUND_CLOSED
+    refund.save()  # 注意这里会触发model中的post_save信号
+
+    from core.options import log_action
+    msg = old_status + '修改为退款关闭状态(定时任务)'
+    log_action(get_systemoa_user().id, refund, CHANGE, msg)
+    # log_action(56, refund, CHANGE, msg)  # 本地
+    return True
+
+
+def close_15_refund(refund):
+    """ 2016-5-4  提取 十五天之前 同意申请状态的退货单  如果交易 确认签收 交易完成 或者已经发货  关闭该退货单 """
+
+    if refund.status != SaleRefund.REFUND_WAIT_RETURN_GOODS:
+        return
+    order = SaleOrder.objects.get(id=refund.order_id)
+    if order.status not in [SaleOrder.TRADE_BUYER_SIGNED,
+                            SaleOrder.TRADE_FINISHED,
+                            SaleOrder.WAIT_BUYER_CONFIRM_GOODS]:
+        return  # 判断订单状态是否在　确认签收　和　交易成功　已发货 状态　否则　不去做关闭退款单操作
 
     old_status = refund.get_status_display()
     refund.status = SaleRefund.REFUND_CLOSED
@@ -597,6 +620,12 @@ def task_close_refund(days=None):
                                                created__lte=time_point)  # 这里不考虑退货状态
     # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
     res = map(close_refund, aggree_refunds)
+
+    # 2016-5-4  提取 十五天之前 同意申请状态的退货单  如果交易 确认签收 交易完成 或者已经发货  关闭该退货单
+    fifth_days_ago = datetime.datetime.now() - datetime.timedelta(days=15)
+    refunds = SaleRefund.objects.filter(status=SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                        created__lte=fifth_days_ago)  # 这里不考虑退货状态
+    res = map(close_15_refund, refunds)
 
 
 @task
