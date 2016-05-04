@@ -37,7 +37,8 @@ class InstructorSerializer(serializers.ModelSerializer):
 
 class LessonAttendRecordSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)
-    
+    signup_time = serializers.CharField(read_only=True)
+    signup_date = serializers.CharField(read_only=True)
     class Meta:
         model = LessonAttendRecord
 
