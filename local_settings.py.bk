@@ -9,7 +9,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 12 * 60 * 60             
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-
+###################LOCAL DB SETTINGS ##############################
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
@@ -26,7 +26,6 @@ DATABASES = {
         }
     }
 }
-
 
 if DEBUG:
     STATICFILES_DIRS = (
@@ -61,7 +60,29 @@ CACHES = {
 }
 BROKER_URL = 'redis://192.168.1.102:6379/2'
 
-ORMCACHE_ENABLE = True
+##################################################################
+INTERNAL_IPS = ('127.0.0.1',)
+DEBUG_TOOLBAR_PANELS = [
+    'debug_toolbar.panels.versions.VersionsPanel',
+    'debug_toolbar.panels.timer.TimerPanel',
+    # 'debug_toolbar.panels.settings.SettingsPanel',
+    # 'debug_toolbar.panels.headers.HeadersPanel',
+    'debug_toolbar.panels.request.RequestPanel',
+    'debug_toolbar.panels.sql.SQLPanel',
+    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+    # 'debug_toolbar.panels.templates.TemplatesPanel',
+    'debug_toolbar.panels.cache.CachePanel',
+    'debug_toolbar.panels.signals.SignalsPanel',
+    # 'debug_toolbar.panels.logging.LoggingPanel',
+    # 'debug_toolbar.panels.redirects.RedirectsPanel',
+]
+MIDDLEWARE_CLASSES = (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    ) + MIDDLEWARE_CLASSES
+
+#################################### EXTRA CONFIG ########################################
+ORMCACHE_ENABLE = False
+# CELERY_ALWAYS_EAGER = True
 
 import raven
 RAVEN_CONFIG = {
@@ -241,7 +262,7 @@ LOGGING = {
             'formatter': 'simple'
         },
         'sentry': {
-            'level': 'ERROR',
+            'level': 'WARN',
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler'
         },
         'console':{

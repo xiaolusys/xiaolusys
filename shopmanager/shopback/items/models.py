@@ -1272,7 +1272,6 @@ class ProductScanStorage(models.Model):
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
 
     wave_no = models.CharField(max_length=32, blank=True, verbose_name=u'批次号')
-
     status = models.IntegerField(null=False, default=WAIT, choices=SCAN_STATUS, verbose_name=u'状态')
 
     class Meta:

@@ -224,7 +224,7 @@ LOGOUT_URL = '/accounts/logout/'
 TAOBAO_PAGE_SIZE = 50  # the page_size of  per request
 
 from task_settings import *  # celery config
-
+from rest_framework.renderers import JSONRenderer
 REST_FRAMEWORK = {
     #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
@@ -541,5 +541,10 @@ if not DEBUG:
 
 try:
     from local_settings import *
+    if DEBUG:
+        INSTALLED_APPS += ('debug_toolbar',)
 except ImportError, err:
     pass
+
+
+

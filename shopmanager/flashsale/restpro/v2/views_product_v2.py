@@ -180,10 +180,13 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if pagin_query is not None:
             object_list = self.objets_from_cache(pagin_query)
             serializer = self.get_serializer(object_list, many=True)
-            return self.get_paginated_response(serializer.data)
+            response = self.get_paginated_response(serializer.data)
+            response.data.update(downshelf_deadline=datetime.datetime.combine(cur_date, datetime.datetime.min.time())
+                                                    + datetime.timedelta(seconds= 38 * 60 * 60))
+            return response
 
         object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
-        serializer = self.get_serializer(object_list, many=True)
+        serializer  = self.get_serializer(object_list, many=True)
         return Response(serializer.data)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
