@@ -114,8 +114,19 @@ class LessonViewSet(viewsets.ModelViewSet):
     #permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
+    def get_queryset(self, request):
+        content = request.GET
+
+        lesson_id = content.get("lesson_id")
+        if lesson_id:
+            return self.queryset.filter(id=lesson_id)
+        
+        return self.queryset
+    
     def list(self, request, *args, **kwargs):
-        datalist = self.paginate_queryset(self.queryset)
+        query_set = self.get_queryset(request)
+        
+        datalist = self.paginate_queryset(query_set)
         #customer_id = get_customer_id(request.user)
         customer_id = 0 # debug
         for entry in datalist:
@@ -193,7 +204,9 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset(request)
         topics = self.paginate_queryset(query_set)
         serializer = lesson_serializers.LessonAttendRecordSerializer(topics, many=True)
-        return self.get_paginated_response(serializer.data)
+        res = self.get_paginated_response(serializer.data)
+        res['Access-Control-Allow-Origin'] = '*'
+        return res
         
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
