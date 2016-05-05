@@ -122,7 +122,7 @@ class SaleProductList(generics.ListCreateAPIView):
                                               context={'request': request}).data
             queryset = queryset.filter(sale_supplier_id=supplier_id)
             if status:
-                queryset = queryset.filter(sale_supplier_id=supplier_id, status=status)
+                queryset = queryset.filter(status=status)
         page = self.paginate_queryset(queryset)
         resp_data = self.get_serializer(page, many=True).data
         result_data = {'request_data': request.GET.dict(),
