@@ -79,7 +79,7 @@ def task_update_topic_attender_num(topic_id):
 
 @task()
 def task_update_lesson_attender_num(lesson_id):
-    num_attender = LessonAttendRecord.objects(lesson_id=lesson_id).count()
+    num_attender = LessonAttendRecord.objects.filter(lesson_id=lesson_id).count()
     effect_num_attender = LessonAttendRecord.objects(lesson_id=lesson_id, status=LessonAttendRecord.STATUS_EFFECT).count()
     lesson = Lesson.objects.get(id=lesson_id)
     lesson.num_attender = num_attender
