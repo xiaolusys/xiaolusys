@@ -124,6 +124,8 @@ class InstructorViewSet(viewsets.ModelViewSet):
     Return instructors.
     """
     queryset = Instructor.objects.all()
+    page_size = 10
+    page_query_param = 'page'
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
@@ -132,6 +134,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         logger.warn("self.queryset: %s" % self.queryset)
         topics = self.paginate_queryset(self.queryset)
+        topics = None
         logger.warn("topics: %s" % topics)
         serializer = lesson_serializers.InstructorSerializer(topics, many=True)
         return self.get_paginated_response(serializer.data)
@@ -215,7 +218,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
                 return redirect(redirect_url)
 
             # now we have userinfo
-            #logger.warn("snsauth: %s" % userinfo)
+            logger.warn("snsauth: %s" % userinfo)
             from flashsale.promotion.tasks_activity import task_userinfo_update_application
             task_userinfo_update_application.delay(userinfo)
 
