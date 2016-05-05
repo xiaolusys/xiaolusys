@@ -18,7 +18,7 @@ publish:
     file: Dockerfile
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
     when:
-      branch: staging
+      branch: alpha
   docker:
     username: $$DOCKER_USERNAME
     password: $$DOCKER_PASSWORD
@@ -48,7 +48,7 @@ deploy:
     host: staging.xiaolumm.com
     user: root
     when:
-      branch: staging
+      branch: alpha
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn-staging
