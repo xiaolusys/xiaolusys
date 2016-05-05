@@ -16,6 +16,7 @@ from flashsale.clickcount.models import ClickCount
 from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
 from .models_fans import XlmmFans, FansNumberRecord
+from .models_lesson import LessonTopic,Instructor,Lesson,LessonAttendRecord,TopicAttendRecord
 from . import ccp_schema
 from . import constants
 from .models_fortune import MamaFortune

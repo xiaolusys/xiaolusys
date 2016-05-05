@@ -18,3 +18,19 @@ docker login --username=己美网络 registry.aliyuncs.com
 # 配置nginx site.conf 添加当前域名
 # 配置xiaolusys oneapm-ci-agent 
 
+
+#docker run -d --name=postgres_container postgres
+#docker run -d --name=sentry --volume=/tmp/sentry:/data -p 80:9000 -e DATABASE_URL=postgres://postgres:@postgresdb/postgres -e CACHE_URL=redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/10 --link=postgres_container:postgresdb slafs/sentry
+#docker run -d --name=sentry --volume=/tmp/sentry:/data -p 80:9000 -e DATABASE_URL=postgres://postgres:@postgresdb/postgres --link=postgres_container:postgresdb slafs/sentry
+#docker run -d --name=sentry --volume=/tmp/sentry:/data -p 80:9000 --env-file=environment --link=postgres_container:postgresdb slafs/sentry
+#docker run -d --name=sentry --volume=/tmp/sentry:/data -p 80:9000 --env-file=environment --link=postgres_container:postgresdb slafs/sentry
+#docker exec -it  --link=postgres_container:postgresdb sentry /bin/bash
+#docker exec -it --link=postgres_container:postgresdb sentry /bin/bash
+#docker run -it --rm --env-file=environment --link=postgres_container:postgresdb slafs/sentry createuser
+#docker run -it --rm --env-file=environment --link=postgres_container:postgres slafs/sentry createuser
+#docker run -it --rm --env-file=environment --link=postgres_container:postgres slafs/sentry init
+#docker run -it --rm --env-file=/root/environment --link=postgres_container:postgres slafs/sentry init
+#docker run -it --rm --env-file=/root/environment --link=postgres_container:postgres slafs/sentry upgrade
+#docker run -it --rm --env-file=/root/environment --link=postgres_container:postgres slafs/sentry upgrade
+#docker run -it --rm --env-file=/root/environment --link=postgres_container:postgres slafs/sentry upgrade
+#docker run -d --name=sentry --volume=/tmp/sentry:/data -p 80:9000 --env-file=environment --link=postgres_container:postgresdb slafs/sentry

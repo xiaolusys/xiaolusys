@@ -67,7 +67,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     seven_old_buyer_num = 0
     total_old_order_num = 0
 
-    stats_mobiles = SaleTrade.objects.filter(pay_time__range=(df,dt)).values('receiver_mobile').distinct()
+    stats_mobiles = SaleTrade.objects.filter(pay_time__range=(df,dt)).values_list('receiver_mobile',flat=True).distinct()
     for mobile in stats_mobiles:
         day_ago_stats = SaleTrade.objects.filter(pay_time__lte=df, receiver_mobile=mobile)
         if day_ago_stats.exists():
@@ -85,7 +85,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     dstat.total_visiter_num = total_user_num
     dstat.total_new_visiter_num = total_user_num - total_old_visiter_num
 
-    dstat.total_payment = total_payment
+    dstat.total_payment = total_payment * 100
     dstat.total_order_num = total_order_num
     dstat.total_new_order_num = total_order_num - total_old_order_num
 
@@ -150,10 +150,10 @@ def calc_mama_carry_cost_by_day(date):
     carrylog_cash_out = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.CASH_OUT)  # 提现
     carrys_dict = dict(carry_res)
     return [
-            carrys_dict.get(CarryRecord.CR_ORDER) or 0,
-            carrys_dict.get(CarryRecord.CR_CLICK) or 0,
+            carrys_dict.get(CarryRecord.CR_ORDER) / 100 or 0,
+            carrys_dict.get(CarryRecord.CR_CLICK) / 100 or 0,
             0, 0,
-            carrys_dict.get(CarryRecord.CR_RECOMMEND) or 0,
+            carrys_dict.get(CarryRecord.CR_RECOMMEND) / 100 or 0,
             carrylog_order_buy, carrylog_refund_return, carrylog_cash_out,
             0, 0, 0, 0
             ]
