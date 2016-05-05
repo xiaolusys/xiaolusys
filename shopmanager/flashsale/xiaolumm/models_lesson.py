@@ -128,7 +128,8 @@ class Lesson(BaseModel):
 
     @property
     def is_started(self):
-        if datetime.datetime.now() > self.start_time and self.status == Lesson.STATUS_EFFECT:
+        qrcode_release_time = self.start_time - datetime.timedelta(minutes=30)
+        if datetime.datetime.now() > qrcode_release_time and self.status == Lesson.STATUS_EFFECT:
             return 1
         return 0
 
