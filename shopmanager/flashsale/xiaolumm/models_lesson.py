@@ -224,9 +224,8 @@ class LessonAttendRecord(BaseModel):
 
     
 def lessonattendrecord_create_topicattendrecord(sender, instance, created, **kwargs):
-    if created:
-        from flashsale.xiaolumm.tasks_lesson import task_lessonattendrecord_create_topicattendrecord
-        task_lessonattendrecord_create_topicattendrecord.delay(instance)
+    from flashsale.xiaolumm.tasks_lesson import task_lessonattendrecord_create_topicattendrecord
+    task_lessonattendrecord_create_topicattendrecord.delay(instance)
 
 post_save.connect(lessonattendrecord_create_topicattendrecord,
                   sender=LessonAttendRecord, dispatch_uid='post_save_lessonattendrecord_topicattendrecord')
