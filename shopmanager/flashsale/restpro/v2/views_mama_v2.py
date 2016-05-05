@@ -121,6 +121,11 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
 class CarryRecordViewSet(viewsets.ModelViewSet):
     """
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = CarryRecord.objects.all()
     serializer_class = serializers.CarryRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -161,6 +166,11 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     return mama's order list (including web/app direct orders, and referal's orders).
     with parameter "?carry_type=direct", will return only direct orders.
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = OrderCarry.objects.all()
     page_size = 10
     serializer_class = serializers.OrderCarrySerializer
@@ -204,6 +214,11 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
 class ClickCarryViewSet(viewsets.ModelViewSet):
     """
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = ClickCarry.objects.all()
     serializer_class = serializers.ClickCarrySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -231,6 +246,11 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
 class AwardCarryViewSet(viewsets.ModelViewSet):
     """
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = AwardCarry.objects.all()
     serializer_class = serializers.AwardCarrySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -258,6 +278,11 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
 class ActiveValueViewSet(viewsets.ModelViewSet):
     """
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = ActiveValue.objects.all()
     serializer_class = serializers.ActiveValueSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -296,6 +321,11 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
 class ReferalRelationshipViewSet(viewsets.ModelViewSet):
     """
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = ReferalRelationship.objects.all()
     serializer_class = serializers.ReferalRelationshipSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -322,6 +352,11 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
 class GroupRelationshipViewSet(viewsets.ModelViewSet):
     """
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = GroupRelationship.objects.all()
     serializer_class = serializers.GroupRelationshipSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -349,6 +384,10 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     given from=0 (or omit), we return today's visitors;
     given from=2 , we return all the visitors for 2 days ago.
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
     
     queryset = UniqueVisitor.objects.all()
     serializer_class = serializers.UniqueVisitorSerializer
@@ -386,6 +425,11 @@ from flashsale.xiaolumm.models_fans import XlmmFans
 class XlmmFansViewSet(viewsets.ModelViewSet):
     """
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = XlmmFans.objects.all()
     serializer_class = serializers.XlmmFansSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -442,6 +486,11 @@ class OrderCarryVisitorView(APIView):
     given from=2 and days=5, we find out all 5 days' data, starting
     from 2 days ago, backing to 7 days ago.
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = UniqueVisitor.objects.all()
     page_size = 10
     serializer_class = serializers.UniqueVisitorSerializer
@@ -493,6 +542,11 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
     from=x: starts from x days before
     days=n: needs n days' data
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = DailyStats.objects.all()
     serializer_class = serializers.DailyStatsSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -536,6 +590,11 @@ class ModelProductViewSet(viewsets.ModelViewSet):
     2) /rest/v2/mama/modelproducts?category=1
        returns all model_products with category=1
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = ModelProduct.objects.all()
     serializer_class = ModelProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
