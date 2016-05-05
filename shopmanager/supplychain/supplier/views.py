@@ -105,7 +105,6 @@ class SaleProductList(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
 
         queryset = self.filter_queryset(self.queryset.order_by(*self.ordering))
-        page = self.paginate_queryset(queryset)
         sale_category = SaleCategory.objects.all()
         sale_category = SaleCategorySerializer(sale_category, many=True).data
 
@@ -120,7 +119,8 @@ class SaleProductList(generics.ListCreateAPIView):
                 supplier.save()
             supplier = SaleSupplierSerializer(supplier,
                                               context={'request': request}).data
-
+            queryset = queryset.filter(sale_supplier_id=supplier_id)
+        page = self.paginate_queryset(queryset)
         resp_data = self.get_serializer(page, many=True).data
         result_data = {'request_data': request.GET.dict(),
                        'supplier': supplier,
