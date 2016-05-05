@@ -97,6 +97,9 @@ def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_id=None)
 
     elif tpl.coupon_type == CouponTemplate.TYPE_COMPENSATE and refund_id:  # 售后补偿 5
         uniqs.append(str(refund_id))
+
+    elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE and share_id:  # 活动分享 6
+        uniqs.append(str(share_id))
     else:
         raise Exception('Template type is tpl.coupon_type : %s !' % tpl.coupon_type)
     return '_'.join(uniqs)
@@ -127,8 +130,6 @@ class UserCouponManager(BaseManager):
             return coupons, code, tpl_n_msg
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
-
-        # 唯一键约束 是: template_id_customer_id_order_coupon_id_(number_of_tpl)  一个模板 多次分享 不同的分享id 不同的用户
         uniq_id = make_uniq_id(tpl, customer.id)
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.create(template_id=int(template_id),
@@ -168,7 +169,6 @@ class UserCouponManager(BaseManager):
             return coupons, code, tpl_n_msg
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
-        # 唯一键约束 是: template_id_customer_id_order_coupon_id_(number_of_tpl)  一个模板 多次分享 不同的分享id 不同的用户
         uniq_id = make_uniq_id(tpl, customer.id, trade_id=trade_id)
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.create(template_id=int(template_id),
@@ -208,7 +208,6 @@ class UserCouponManager(BaseManager):
             return coupons, code, tpl_n_msg
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
-        # 唯一键约束 是: template_id_customer_id_order_coupon_id_(number_of_tpl)  一个模板 多次分享 不同的分享id 不同的用户
         uniq_id = make_uniq_id(tpl, customer.id, trade_id=trade_id)
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.create(template_id=int(template_id),
@@ -249,7 +248,6 @@ class UserCouponManager(BaseManager):
             return coupons, code, tpl_n_msg
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
-        # 唯一键约束 是: template_id_customer_id_order_coupon_id_(number_of_tpl)  一个模板 多次分享 不同的分享id 不同的用户
         uniq_id = make_uniq_id(tpl, customer.id, refund_id=refund_id)
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.create(template_id=int(template_id),
@@ -298,15 +296,70 @@ class UserCouponManager(BaseManager):
 
         batch_coupon = user_coupons.filter(order_coupon_id=share_coupon.id).first()
         if batch_coupon:  # 如果该批次号已经领取过了 则返回优惠券(订单分享的订单仅能领取一个优惠券)
-            return user_coupons, 0, u'已经领取'
-        if not share_coupon.release_count < share_coupon.limit_share_count:  # 该批次的领取
-            return user_coupons, 0, u'该分享已领完'
+            return batch_coupon, 0, u'已经领取'
+        if not share_coupon.release_count < share_coupon.limit_share_count:  # 该批次的领取 完了
+            return batch_coupon, 0, u'该分享已领完'  # batch_coupon = None
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
-
-        # 唯一键约束 是: template_id_customer_id_order_coupon_id_(number_of_tpl)  一个模板 多次分享 不同的分享id 不同的用户
         uniq_id = make_uniq_id(tpl, customer.id, share_id=share_coupon.id)
+        extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
+        cou = UserCoupon.objects.create(template_id=int(template_id),
+                                        title=tpl.title,
+                                        coupon_type=tpl.coupon_type,
+                                        customer_id=int(buyer_id),
+                                        share_user_id=share_coupon.share_customer,
+                                        order_coupon_id=share_coupon.id,
+                                        value=value,
+                                        start_use_time=start_use_time,
+                                        expires_time=expires_time,
+                                        ufrom=ufrom,
+                                        uniq_id=uniq_id,
+                                        extras=extras)
+        # update the release num
+        tasks.task_update_tpl_released_coupon_nums.delay(tpl)
+        # update the share_coupon.release_count
+        tasks.task_update_share_coupon_release_count.delay(share_coupon)
+        return cou, 0, u"领取成功"
 
+    def create_active_share_coupon(self, buyer_id, template_id, share_uniq_id=None, ufrom=None, **kwargs):
+        """
+        创建订单分享优惠券
+        # 如果是分享类型 判断批次领取
+        share_uniq_id: 活动id + customer (一个用户 一个活动只能参加一次)
+        """
+        from flashsale.coupon.models import UserCoupon, CouponTemplate, OrderShareCoupon
+
+        ufrom = ufrom or ''
+        share_uniq_id = share_uniq_id or ''
+        if not (buyer_id and template_id):
+            return None, 7, u'没有发放'
+        share_coupon = OrderShareCoupon.objects.filter(uniq_id=share_uniq_id).first()
+        if not share_coupon:  # 如果分享类型没有uniq_id号码则不予领取优惠券
+            return None, 1, u"没有领取到呢"
+
+        tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
+        if not tpl:  # 没有找到模板或者没有
+            return tpl, code, tpl_msg
+
+        AssertionError(tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE)  # 模板类型不是 活动分享 类型 则抛出异常
+        customer, code, cu_msg = check_target_user(buyer_id, tpl)  # 用户身份检查
+        if not customer:
+            return customer, code, cu_msg
+
+        coupons, code, tpl_n_msg = check_template_release_nums(tpl, template_id)  # 优惠券存量检查
+        if coupons is None:
+            return coupons, code, tpl_n_msg
+
+        user_coupons = coupons.filter(customer_id=int(buyer_id))
+
+        batch_coupon = user_coupons.filter(order_coupon_id=share_coupon.id).first()
+        if batch_coupon:  # 如果该批次号已经领取过了 则返回优惠券(订单分享的订单仅能领取一个优惠券)
+            return batch_coupon, 0, u'已经领取'
+        if not share_coupon.release_count < share_coupon.limit_share_count:  # 该批次的领取 完了
+            return batch_coupon, 0, u'该分享已领完'  # batch_coupon = None
+
+        value, start_use_time, expires_time = calculate_value_and_time(tpl)
+        uniq_id = make_uniq_id(tpl, customer.id, share_id=share_coupon.id)
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.create(template_id=int(template_id),
                                         title=tpl.title,
