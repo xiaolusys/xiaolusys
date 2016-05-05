@@ -113,6 +113,7 @@ class SaleProductList(generics.ListCreateAPIView):
         if supplier_id:
             supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
             progress = request.GET.get('progress', '')
+            status = request.GET.get('status', '')
             if (progress and progress != supplier.progress and
                     progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
                 supplier.progress = progress
@@ -120,6 +121,8 @@ class SaleProductList(generics.ListCreateAPIView):
             supplier = SaleSupplierSerializer(supplier,
                                               context={'request': request}).data
             queryset = queryset.filter(sale_supplier_id=supplier_id)
+            if status:
+                queryset = queryset.filter(sale_supplier_id=supplier_id, status=status)
         page = self.paginate_queryset(queryset)
         resp_data = self.get_serializer(page, many=True).data
         result_data = {'request_data': request.GET.dict(),
