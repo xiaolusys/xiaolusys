@@ -132,4 +132,5 @@ def task_lesson_update_instructor_payment(lesson):
         if ac.status != status:
             ac.status = status
             ac.save(update_fields=['status'])
-    
+
+
