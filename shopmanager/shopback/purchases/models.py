@@ -94,7 +94,7 @@ class Purchase(models.Model):
 
     prepay_cent = models.FloatField(default=0.0, verbose_name='预付比例')
 
-    attach_files = models.FileField(blank=True, upload_to=os.path.join(settings.DOWNLOAD_ROOT, 'purchase'))
+    attach_files = models.FileField(blank=True, upload_to='file/purchase/')
 
     class Meta:
         db_table = 'shop_purchases_purchase'
@@ -417,7 +417,7 @@ class PurchaseStorage(models.Model):
 
     is_pod = models.BooleanField(default=False, verbose_name='需付款提货')
 
-    attach_files = models.FileField(blank=True, upload_to=os.path.join(settings.DOWNLOAD_ROOT, 'storage'))
+    attach_files = models.FileField(blank=True, upload_to='file/storage/')
 
     class Meta:
         db_table = 'shop_purchases_storage'
