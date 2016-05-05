@@ -2,7 +2,7 @@
 __author__ = 'jishu_linjie'
 import json
 from django.test import TestCase
-from flashsale.xiaolumm.models import CashOut,MamaFortune
+from flashsale.xiaolumm.models import CashOut, MamaFortune
 from flashsale.pay.models_user import BudgetLog
 
 
@@ -25,7 +25,7 @@ class MamaCahoutTestCase(TestCase):
         mama_ft = MamaFortune.objects.filter(mama_id=1461).first()
         if mama_ft:
             mama_ft.active_value_num = 100
-            mama_ft.carry_confirmed  = 28000
+            mama_ft.carry_confirmed = 28000
             mama_ft.carry_pending = 1000
             mama_ft.order_num = 2
             mama_ft.fans_num = 1
@@ -49,8 +49,7 @@ class MamaCahoutTestCase(TestCase):
         complte_count = 0  # 审核的只有1条(默认0条)
         cashout = data['results'][0]
         self.assertEqual(cashout['xlmm'], 1461)
-        self.assertEqual(cashout['status'] , CashOut.COMPLETED)
-
+        self.assertEqual(cashout['status'], CashOut.COMPLETED)
 
     def testCashoutChoiceCreate(self):
         """ 兼容测试 选择提现金额测试 """
@@ -85,5 +84,4 @@ class MamaCahoutTestCase(TestCase):
         assert budget.flow_amount == 150
         assert budget.budget_type == BudgetLog.BUDGET_IN
         assert budget.budget_log_type == BudgetLog.BG_MAMA_CASH
-
-
+        # 断言 是代理提现类型
