@@ -100,15 +100,14 @@ class LessonViewSet(viewsets.ModelViewSet):
         if lesson_id:
             return self.queryset.filter(id=lesson_id)
         
-        logger.warn("self.queryset: %s" % self.queryset)
         return self.queryset
     
     def list(self, request, *args, **kwargs):
         query_set = self.get_queryset(request)
         datalist = self.paginate_queryset(query_set)
 
-        customer_id = get_customer_id(request.user)
-        #customer_id = 0 # debug
+        #customer_id = get_customer_id(request.user)
+        customer_id = 0 # debug
         for entry in datalist:
             entry.customer_idx = customer_id % 5
 
@@ -144,10 +143,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
-        logger.warn("self.queryset: %s" % self.queryset)
         topics = self.paginate_queryset(self.queryset)
-        topics = None
-        logger.warn("topics: %s" % topics)
         serializer = lesson_serializers.InstructorSerializer(topics, many=True)
         return self.get_paginated_response(serializer.data)
         
