@@ -115,7 +115,6 @@ def task_lesson_update_instructor_payment(lesson):
         return
     
     carry_type = 3 # 授课奖金
-    carry_num = lesson.carry_num()
     carry_description = util_description.get_awardcarry_description(carry_type)
     contributor_nick = 'lesson-%s' % lesson.id
     date_field = lesson.start_time.date()
