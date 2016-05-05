@@ -106,8 +106,8 @@ class LessonViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset(request)
         datalist = self.paginate_queryset(query_set)
 
-        #customer_id = get_customer_id(request.user)
-        customer_id = 0 # debug
+        customer_id = get_customer_id(request.user)
+        #customer_id = 0 # debug
         for entry in datalist:
             entry.customer_idx = customer_id % 5
 
