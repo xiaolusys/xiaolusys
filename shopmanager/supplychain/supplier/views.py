@@ -105,7 +105,6 @@ class SaleProductList(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
 
         queryset = self.filter_queryset(self.queryset.order_by(*self.ordering))
-        page = self.paginate_queryset(queryset)
         sale_category = SaleCategory.objects.all()
         sale_category = SaleCategorySerializer(sale_category, many=True).data
 
@@ -114,13 +113,17 @@ class SaleProductList(generics.ListCreateAPIView):
         if supplier_id:
             supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
             progress = request.GET.get('progress', '')
+            status = request.GET.get('status', '')
             if (progress and progress != supplier.progress and
                     progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
                 supplier.progress = progress
                 supplier.save()
             supplier = SaleSupplierSerializer(supplier,
                                               context={'request': request}).data
-
+            queryset = queryset.filter(sale_supplier_id=supplier_id)
+            if status:
+                queryset = queryset.filter(status=status)
+        page = self.paginate_queryset(queryset)
         resp_data = self.get_serializer(page, many=True).data
         result_data = {'request_data': request.GET.dict(),
                        'supplier': supplier,
