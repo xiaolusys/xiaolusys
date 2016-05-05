@@ -2311,6 +2311,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 orderdetail = record.orderdetail
                 if record.arrival_quantity:
                     orderdetail.arrival_quantity -= record.arrival_quantity
+                    orderdetail.save()
                     log_action(request.user.id, orderdetail, CHANGE, u'作废入仓单%d: 更新入库数%+d' % (inbound.id, record.arrival_quantity))
 
                     sku = inbounddetail.sku
@@ -2319,6 +2320,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     log_action(request.user.id, sku, CHANGE, u'作废入仓单%d: 更新库存%+d' % (inbound.id, 0 - record.arrival_quantity))
                 if record.inferior_quantity:
                     orderdetail.inferior_quantity -= record.inferior_quantity
+                    orderdetail.save()
                     log_action(request.user.id, orderdetail, CHANGE, u'作废入仓单%d: 更新次品数%+d' % (inbound.id, record.inferior_quantity))
                 orderlist_ids.add(orderdetail.orderlist_id)
                 record.status = OrderDetailInBoundDetail.INVALID
@@ -2356,6 +2358,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 orderdetail = record.orderdetail
                 if record.arrival_quantity:
                     orderdetail.arrival_quantity -= record.arrival_quantity
+                    orderdetail.save()
                     log_action(request.user.id, orderdetail, CHANGE, u'修改入仓单%d: 更新入库数%+d' % (inbound.id, record.arrival_quantity))
 
                     sku = inbounddetail.sku
@@ -2364,6 +2367,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     log_action(request.user.id, sku, CHANGE, u'修改入仓单%d: 更新库存%+d' % (inbound.id, 0 - record.arrival_quantity))
                 if record.inferior_quantity:
                     orderdetail.inferior -= record.inferior_quantity
+                    orderdetail.save()
                     log_action(request.user.id, orderdetail, CHANGE, u'修改入仓单%d: 更新次品数%+d' % (inbound.id, record.inferior_quantity))
                 orderlist_ids.add(orderdetail.orderlist_id)
                 record.status = OrderDetailInBoundDetail.INVALID
