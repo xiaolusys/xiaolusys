@@ -57,9 +57,6 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    paginate_by = 10
-    page_query_param = 'page'
-
     def list(self, request, *args, **kwargs):
         topics = self.paginate_queryset(self.queryset)
         serializer = lesson_serializers.LessonTopicSerializer(topics, many=True)
@@ -85,9 +82,6 @@ class LessonViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-
-    # paginate_by = 10
-    # page_query_param = 'page'
 
     def get_queryset(self, request):
         content = request.GET
@@ -135,9 +129,6 @@ class InstructorViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    # paginate_by = 10
-    # page_query_param = 'page'
-
     def list(self, request, *args, **kwargs):
         logger.warn("self.queryset: %s" % self.queryset)
         topics = self.paginate_queryset(self.queryset)
@@ -168,9 +159,6 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-
-    paginate_by = 10
-    page_query_param = 'page'
 
     def get_queryset(self, request):
         content = request.GET
