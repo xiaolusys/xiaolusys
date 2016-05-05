@@ -138,7 +138,6 @@ class InstructorViewSet(viewsets.ModelViewSet):
     max_paginate_by = 100
 
     queryset = Instructor.objects.all()
-    page_query_param = 'page'
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
