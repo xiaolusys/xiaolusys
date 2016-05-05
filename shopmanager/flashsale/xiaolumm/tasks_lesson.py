@@ -57,7 +57,8 @@ def task_lessonattendrecord_create_topicattendrecord(lesson_attend_record):
     records = TopicAttendRecord.objects.filter(uni_key=uni_key)
     if records.count() <= 0:
         t = TopicAttendRecord(topic_id=topic_id,title=lesson.title,student_unionid=unionid,
-                              student_nick=lesson.student_nick,student_image=lesson.student_image,
+                              student_nick=lesson_attend_record.student_nick,
+                              student_image=lesson_attend_record.student_image,
                               uni_key=uni_key,lesson_attend_record_id=lesson_attend_record.id)
         t.save()
 
