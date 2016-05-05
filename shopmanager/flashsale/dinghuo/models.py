@@ -387,7 +387,7 @@ class InBoundDetail(models.Model):
 
     inbound = models.ForeignKey(InBound, related_name='details', verbose_name=u'入库单')
     product = models.ForeignKey(Product, null=True, blank=True,
-                                related_name='inbound_details', verbose_name=u'入库颜色')
+                                related_name='inbound_details', verbose_name=u'入库商品')
     sku = models.ForeignKey(ProductSku, null=True, blank=True,
                             related_name='inbound_details', verbose_name=u'入库规格')
 

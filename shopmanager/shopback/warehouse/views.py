@@ -48,11 +48,11 @@ class PackagOrderRevertView(APIView):
     def post(self, request, *args, **kwargs):
         content = request.REQUEST
         package_order_ids = content.get('package_order_ids')
-        package_order = PackageOrder.objects.get(pid=package_order_ids.split(','), is_locked=False)
-        package_order.is_express_print = False
-        package_order.is_picking_print = False
-        package_order.out_sid = ''
-        package_order.save()
+        for package_order in PackageOrder.objects.filter(pid__in=package_order_ids.split(','), is_locked=True):
+            package_order.is_express_print = False
+            package_order.is_picking_print = False
+            package_order.out_sid = ''
+            package_order.save()
         return Response({'isSuccess': True})
 
     get = post
