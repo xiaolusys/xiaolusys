@@ -1458,7 +1458,7 @@ class PackageOrder(models.Model):
         buyer_id, address_id, ware_by_id, order = id.split('-')
         package_order.buyer_id = int(buyer_id)
         package_order.user_address_id = int(address_id)
-        package_order.ware_by_id = int(ware_by_id)
+        package_order.ware_by = int(ware_by_id)
         package_order.copy_order_info(sale_trade)
         package_order.sku_num = 1
         package_order.save()
