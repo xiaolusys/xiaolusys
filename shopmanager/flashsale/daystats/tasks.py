@@ -150,13 +150,13 @@ def calc_mama_carry_cost_by_day(date):
     carrylog_cash_out = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.CASH_OUT)  # 提现
     carrys_dict = dict(carry_res)
     return [
-            carrys_dict.get(CarryRecord.CR_ORDER) / 100 or 0,
-            carrys_dict.get(CarryRecord.CR_CLICK) / 100 or 0,
-            0, 0,
-            carrys_dict.get(CarryRecord.CR_RECOMMEND) / 100 or 0,
-            carrylog_order_buy, carrylog_refund_return, carrylog_cash_out,
-            0, 0, 0, 0
-            ]
+        (carrys_dict.get(CarryRecord.CR_ORDER) or 0) / 100,
+        (carrys_dict.get(CarryRecord.CR_CLICK) or 0) / 100,
+        0, 0,
+        (carrys_dict.get(CarryRecord.CR_RECOMMEND) or 0) / 100,
+        carrylog_order_buy, carrylog_refund_return, carrylog_cash_out,
+        0, 0, 0, 0
+    ]
 
 
 @task()
