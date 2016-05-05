@@ -15,6 +15,8 @@ from .models import (SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS, TRADE_TYPE,
                      COD_STATUS, SHIPPING_TYPE_CHOICE, PRIORITY_TYPE,
                      SYS_ORDER_STATUS, TAOBAO_ORDER_STATUS, GIFT_TYPE)
 
+def default_dirtytrade_tid():
+    return 'DD%d' % int(time.time() * 10 ** 5)
 
 class DirtyMergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
@@ -65,7 +67,7 @@ class DirtyMergeTrade(models.Model):
     WARE_CHOICES = ((WARE_NONE, u'未选仓'), (WARE_SH, u'上海仓'), (WARE_GZ, u'广州仓'))
 
     tid = models.CharField(max_length=32,
-                           default='DD%d' % int(time.time() * 10 ** 5),
+                           default=default_dirtytrade_tid,
                            verbose_name=u'原单ID')
     user = models.ForeignKey(User,
                              related_name='dirty_merge_trades',
@@ -258,6 +260,9 @@ class DirtyMergeTrade(models.Model):
         verbose_name_plural = u'脏订单列表'
 
 
+def default_dirtyorder_oid():
+    return 'DO%d' % int(time.time() * 10 ** 5)
+
 class DirtyMergeOrder(models.Model):
     NO_REFUND = pcfg.NO_REFUND
     REFUND_WAIT_SELLER_AGREE = pcfg.REFUND_WAIT_SELLER_AGREE
@@ -284,7 +289,7 @@ class DirtyMergeOrder(models.Model):
     SYS_ORDER_STATUS = ((NORMAL, u'有效'), (DELETE, u'无效'),)
 
     oid = models.CharField(max_length=32,
-                           default='DO%d' % int(time.time() * 10 ** 5),
+                           default=default_dirtyorder_oid,
                            verbose_name=u'原单ID')
     merge_trade = models.ForeignKey(DirtyMergeTrade,
                                     related_name='merge_orders',

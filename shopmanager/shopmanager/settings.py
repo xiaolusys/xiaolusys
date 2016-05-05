@@ -224,7 +224,7 @@ LOGOUT_URL = '/accounts/logout/'
 TAOBAO_PAGE_SIZE = 50  # the page_size of  per request
 
 from task_settings import *  # celery config
-from rest_framework.renderers import JSONRenderer
+
 REST_FRAMEWORK = {
     #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
@@ -468,6 +468,12 @@ if not DEBUG:
     QINIU_PRIVATE_DOMAIN = '7xrpt3.com2.z0.glb.qiniucdn.com'
     QINIU_PUBLIC_BUCKET = 'xiaolumama'
     QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
+    ############### REMOTE MEDIA STORAGE ################
+    QINIU_BUCKET_NAME   = 'mediaroom'
+    QINIU_BUCKET_DOMAIN = '7xogkj.com1.z0.glb.clouddn.com'
+    QINIU_SECURE_URL    = 0
+    DEFAULT_FILE_STORAGE = 'qiniustorage.backends.QiniuStorage'
+    MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN
 
     LOGGER_HANDLERS = [
         ('shopback', 'sentry'),

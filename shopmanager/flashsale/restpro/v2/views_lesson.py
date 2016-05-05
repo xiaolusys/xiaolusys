@@ -57,6 +57,9 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
+    paginate_by = 10
+    page_query_param = 'page'
+
     def list(self, request, *args, **kwargs):
         topics = self.paginate_queryset(self.queryset)
         serializer = lesson_serializers.LessonTopicSerializer(topics, many=True)
@@ -78,11 +81,13 @@ class LessonViewSet(viewsets.ModelViewSet):
     Return lessons.
     """
     queryset = Lesson.objects.all()
-    page_size = 10
     serializer_class = lesson_serializers.LessonSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    # paginate_by = 10
+    # page_query_param = 'page'
 
     def get_queryset(self, request):
         content = request.GET
@@ -98,15 +103,17 @@ class LessonViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset(request)
         logger.warn("query_set: %s" % query_set)
         datalist = self.paginate_queryset(query_set)
+
         customer_id = get_customer_id(request.user)
         #customer_id = 0 # debug
         for entry in datalist:
             entry.customer_idx = customer_id % 5
-            
+
         serializer = lesson_serializers.LessonSerializer(datalist, many=True)
         res = self.get_paginated_response(serializer.data)
         res['Access-Control-Allow-Origin'] = '*'
         return res
+
         
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -117,17 +124,19 @@ class LessonViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-
+from rest_framework.pagination import PageNumberPagination
 class InstructorViewSet(viewsets.ModelViewSet):
     """
     Return instructors.
     """
     queryset = Instructor.objects.all()
-    page_size = 10
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    # paginate_by = 10
+    # page_query_param = 'page'
 
     def list(self, request, *args, **kwargs):
         logger.warn("self.queryset: %s" % self.queryset)
@@ -159,6 +168,9 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    paginate_by = 10
+    page_query_param = 'page'
 
     def get_queryset(self, request):
         content = request.GET
