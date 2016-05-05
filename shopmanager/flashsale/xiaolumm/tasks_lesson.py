@@ -9,7 +9,8 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_lesson import LessonAttendRecord, Lesson
+from flashsale.xiaolumm.models_lesson import LessonAttendRecord, LessonTopic, Lesson, Instructor, TopicAttendRecord
+from flashsale.xiaolumm.models_fortune import AwardCarry
 from flashsale.xiaolumm import util_unikey
 
 import sys
