@@ -42,7 +42,8 @@ def gen_topicattendrecord_unikey(topic_id, unionid):
     """
     uni_key = topic_id + unionid + year + week
     """
-    today = datetime.date.today()
+    today = datetime.date.today().isocalendar()
+
     year = today[0]
     week = today[1]
 
