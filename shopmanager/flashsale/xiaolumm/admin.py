@@ -540,7 +540,7 @@ admin.site.register(Instructor, InstructorAdmin)
 
 
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('title', 'instructor_name', 'num_attender', 'num_score', 'start_time', 'status', 'modified', 'created')
+    list_display = ('title', 'instructor_name', 'num_attender', 'effect_num_attender', 'num_score', 'start_time', 'status', 'modified', 'created')
     search_fields = ('title', 'instructor_name', )
     list_filter = ('status',)
 admin.site.register(Lesson, LessonAdmin)
