@@ -51,6 +51,11 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     """
     Return lesson topics.
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = LessonTopic.objects.all()
     serializer_class = lesson_serializers.LessonTopicSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -77,6 +82,11 @@ class LessonViewSet(viewsets.ModelViewSet):
     """
     Return lessons.
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = Lesson.objects.all()
     serializer_class = lesson_serializers.LessonSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -95,7 +105,6 @@ class LessonViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         query_set = self.get_queryset(request)
-        logger.warn("query_set: %s" % query_set)
         datalist = self.paginate_queryset(query_set)
 
         customer_id = get_customer_id(request.user)
@@ -105,7 +114,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         serializer = lesson_serializers.LessonSerializer(datalist, many=True)
         res = self.get_paginated_response(serializer.data)
-        res['Access-Control-Allow-Origin'] = '*'
+        #res['Access-Control-Allow-Origin'] = '*'
         return res
 
         
@@ -123,8 +132,12 @@ class InstructorViewSet(viewsets.ModelViewSet):
     """
     Return instructors.
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = Instructor.objects.all()
-    page_size = 10
     page_query_param = 'page'
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -157,6 +170,11 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     lesson_id: lesson id
     unionid: user's unionid
     """
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
     queryset = LessonAttendRecord.objects.all()
     serializer_class = lesson_serializers.LessonAttendRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
