@@ -1,0 +1,24 @@
+[
+{
+  "fields": {
+    "today_visitor_num": 0,
+    "history_confirmed": 0,
+    "active_value_num": 100,
+    "created": "2016-03-22T14:50:46",
+    "carry_confirmed": 280,
+    "carry_cashout": 0,
+    "history_pending": 0,
+    "carry_pending": 10,
+    "modified": "2016-03-30T10:43:04",
+    "history_last_day": "2016-03-23",
+    "invite_num": 0,
+    "mama_name": "",
+    "order_num": 2,
+    "mama_level": 0,
+    "mama_id": 1461,
+    "fans_num": 1
+  },
+  "model": "xiaolumm.mamafortune",
+  "pk": 4688
+}
+]

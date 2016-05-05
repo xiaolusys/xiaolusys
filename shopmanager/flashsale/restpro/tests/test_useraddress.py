@@ -29,7 +29,7 @@ class UserAddressTestCase(TestCase):
 
     def testCreateUserAddress(self):
         address = {
-            "default": '1',
+            "default": 'true',
             "receiver_state": "安徽省",
             "receiver_city": "安庆市",
             "receiver_district": "桐城县",
