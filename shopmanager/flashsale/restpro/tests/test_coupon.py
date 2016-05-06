@@ -106,10 +106,14 @@ class OrderShareCouponTestCase(TestCase):
         "test.flashsale.coupon.customer.json",
         "test.flashsale.coupon.saletrade.json",
         "test.flashsale.coupon.coupontemplate.json",
+        "test.flashsale.coupon.ordersharecoupon.json",
         # "test.flashsale.coupon.xlampleorder.json",
     ]
+    url_user_coupons = '/rest/v2/usercoupons'  # 用户优惠券
     url_create_order_share = '/rest/v2/sharecoupon/create_order_share'
     url_create_active_share = '/rest/v2/sharecoupon/create_active_share'
+    url_pick_order_share_coupon = '/rest/v2/sharecoupon/pick_order_share_coupon'
+    url_pick_active_share_coupon = '/rest/v2/sharecoupon/pick_active_share_coupon'
 
     def setUp(self):
         self.username = 'o29cQs-ONn2PxIYYducFkQcmkpGc'
@@ -149,3 +153,16 @@ class OrderShareCouponTestCase(TestCase):
         self.assertEqual(order_share.platform_info, {u'wx': 1})
         self.assertEqual(data['code'], 0)
 
+    def testPickOrderShareCoupon(self):
+        data = {"uniq_id": "xd16040657050c243dc15", "ufrom": "wx"}  # 正确的tid
+        response = self.client.post(self.url_pick_order_share_coupon, data, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['code'], 0)
+        # 获取当前用户优惠券 并查看类型
+        response = self.client.get(self.url_user_coupons, {}, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        coupon = data['results'][0]
+        self.assertEqual(coupon['status'], UserCoupon.UNUSED)
+        self.assertEqual(coupon['coupon_type'], UserCoupon.TYPE_ORDER_SHARE)
