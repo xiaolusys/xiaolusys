@@ -348,8 +348,6 @@ if os.environ.get('TARGET') in ('production', 'django18'):
     WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
 
 
-if os.environ.get('TARGET') in ('staging','django18'):
-    CELERY_ALWAYS_EAGER = True
 
 if not DEBUG:
     TEMPLATE_DEBUG = DEBUG
@@ -545,6 +543,11 @@ if not DEBUG:
         },
         'loggers': dict([comb_logger(handler, LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
     }
+
+    
+if os.environ.get('TARGET') in ('staging','django18', 'alpha'):
+    CELERY_ALWAYS_EAGER = True
+    M_STATIC_URL = '/static/wap/'
 
 try:
     from local_settings import *
