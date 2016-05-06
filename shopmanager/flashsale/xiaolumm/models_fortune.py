@@ -109,8 +109,9 @@ class MamaFortune(BaseModel):
 
     def mama_event_link(self):
         """ 活动页面链接 """
-        activity_link = '/pages/featuredEvent.html'
-        return urlparse.urljoin(settings.M_SITE_URL, activity_link)
+        activity_link = 'pages/featuredEvent.html'
+        
+        return settings.M_SITE_URL + settings.M_STATIC_URL + activity_link
 
 
 class DailyStats(BaseModel):
