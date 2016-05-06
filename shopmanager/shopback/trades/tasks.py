@@ -1002,6 +1002,8 @@ def task_update_package_order(instance):
                 else:
                     PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
                     package_order.set_redo_sign(save_data=False)
+                    if package_order.sys_status == PackageOrder.PKG_NEW_CREATED:
+                        package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
                     package_order.reset_sku_item_num(save_data=True)
             else:
                 logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
