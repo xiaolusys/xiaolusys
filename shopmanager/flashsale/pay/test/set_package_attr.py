@@ -114,3 +114,10 @@ def set_package_merge_order_id():
         for item in package.sku_items:
             tid = item.sale_order.sale_trade.tid
             MergeTrade.objects()
+
+
+if __name__=='__main__':
+    p = PackageOrder.objects.filter(sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS).first()
+    print p.pid
+    p.reset_to_new_create()
+    print p.__dict__

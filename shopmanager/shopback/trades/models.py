@@ -263,7 +263,7 @@ class MergeTrade(models.Model):
 
     reason_code = models.CharField(max_length=100, blank=True, verbose_name=u'问题编号')  # 1,2,3 问题单原因编码集合
     status = models.CharField(max_length=32, choices=TAOBAO_TRADE_STATUS,
-                              db_index=True,blank=True, verbose_name=u'订单状态')
+                              db_index=True, blank=True, verbose_name=u'订单状态')
 
     is_picking_print = models.BooleanField(default=False, verbose_name=u'发货单')
     is_express_print = models.BooleanField(default=False, verbose_name=u'物流单')
@@ -1441,6 +1441,22 @@ class PackageOrder(models.Model):
             self.redo_sign = True
             if save_data:
                 self.save()
+
+    def reset_to_new_create(self):
+        from flashsale.pay.models import FLASH_SELLER_ID
+        new_p = PackageOrder()
+        need_attrs = ['pid', 'id', 'buyer_id', 'user_address_id', 'ware_by', 'tid', 'receiver_name', 'receiver_state',
+                      'receiver_city', 'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile',
+                      'receiver_phone', 'buyer_nick']
+        # all_attrs = PackageOrder.get_deferred_fields()
+        all_attrs = [i.column for i in PackageOrder._meta.fields]
+        for attr in all_attrs:
+            if attr not in need_attrs:
+                val = getattr(new_p, attr)
+                setattr(self, attr, val)
+        self.seller_id = User.objects.get(uid=FLASH_SELLER_ID).id
+        self.sku_num = 0
+        self.save()
 
     def reset_sku_item_num(self, save_data=True):
         sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
