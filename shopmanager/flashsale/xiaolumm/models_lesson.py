@@ -134,11 +134,11 @@ class Lesson(BaseModel):
         return 0
 
     def carry(self):
-        base_carry = 70
+        base_carry = 6000 # 6000 cents == 60RMB
         if self.effect_num_attender >= 300:
-            base_carry = 90
+            base_carry = 8000
         if self.effect_num_attender >= 400:
-            base_carry = 110
+            base_carry = 10000
         return base_carry
         
     def customer_idx(self):
