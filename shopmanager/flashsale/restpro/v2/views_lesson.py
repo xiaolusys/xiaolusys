@@ -125,7 +125,18 @@ class LessonViewSet(viewsets.ModelViewSet):
         #res['Access-Control-Allow-Origin'] = '*'
         return res
 
-        
+    @list_route(methods=['get'])
+    def get_lesson_info(self, request):
+        lesson_id = request.GET.get("lesson_id")
+        lesson = self.queryset.filter(id=lesson_id).first()
+        if lesson:
+            serializer = lesson_serializers.LessonSerializer(lesson)
+            res = Response(serializer.data)
+        else:
+            res = Response({"code": 1, "msg": "no data"})
+        #res['Access-Control-Allow-Origin'] = '*'
+        return res
+
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
