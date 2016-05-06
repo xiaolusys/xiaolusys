@@ -94,7 +94,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         template_ids = content.get("template_id") or ''
         if not template_ids:  # 参数有误
-            return Response({"code": 3, "res": "优惠券不存在", "coupons": ""})
+            return Response({"code": 7, "res": "优惠券不存在", "coupons": ""})
         try:
             template_ids = [int(i) for i in template_ids.split(',')]
             customer = Customer.objects.get(user=request.user)
@@ -211,7 +211,7 @@ class CouponTemplateViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        return Response()
+        return Response({})
 
 
 def get_order_or_active_share_template(coupon_type):
@@ -318,15 +318,15 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         ufrom = content.get("ufrom") or ''
         customer = get_customer(request)
         if customer is None:
-            return Response({"code": 3, "msg": "用户不存在", "coupon_id": ''})
+            return Response({"code": 9, "msg": "用户不存在", "coupon_id": ''})
         if not uniq_id:
-            return Response({"code": 1, "msg": "参数错误", "coupon_id": ''})
+            return Response({"code": 10, "msg": "参数错误", "coupon_id": ''})
         coupon_share = self.queryset.filter(uniq_id=uniq_id).first()
         if coupon_share is None:
-            return Response({"code": 2, "msg": "领取完了哦", "coupon_id": ''})
+            return Response({"code": 8, "msg": "领取完了哦", "coupon_id": ''})
         else:
             if not coupon_share.release_count < coupon_share.limit_share_count:  # 领取次数必须小于最大领取限制
-                return Response({"code": 2, "msg": "领取完了", "coupon_id": ''})
+                return Response({"code": 8, "msg": "领取完了", "coupon_id": ''})
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
 
@@ -344,16 +344,16 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         ufrom = content.get("ufrom") or ''
         customer = get_customer(request)
         if customer is None:
-            return Response({"code": 3, "msg": "用户不存在", "coupon_id": ''})
+            return Response({"code": 9, "msg": "用户不存在", "coupon_id": ''})
         if not uniq_id:
-            return Response({"code": 1, "msg": "参数错误", "coupon_id": ''})
+            return Response({"code": 10, "msg": "参数错误", "coupon_id": ''})
         coupon_share = self.queryset.filter(uniq_id=uniq_id).first()
         if coupon_share is None:
-            return Response({"code": 2, "msg": "领取完了哦", "coupon_id": ''})
+            return Response({"code": 8, "msg": "领取完了哦", "coupon_id": ''})
         else:
             print coupon_share.release_count, coupon_share.limit_share_count
             if not coupon_share.release_count < coupon_share.limit_share_count:  # 领取次数必须小于最大领取限制
-                return Response({"code": 2, "msg": "领取完了", "coupon_id": ''})
+                return Response({"code": 8, "msg": "领取完了", "coupon_id": ''})
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
 
