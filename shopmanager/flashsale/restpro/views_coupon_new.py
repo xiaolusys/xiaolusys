@@ -311,9 +311,55 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
         return Response({"code": 0, "msg": "分享成功", "share_link": share_link})
 
-    @list_route(methods=['get'])
-    def pick_shore_coupon(self, request):
+    @list_route(methods=['post'])
+    def pick_order_share_coupon(self, request):
         content = request.REQUEST
         uniq_id = content.get("uniq_id") or ''
+        ufrom = content.get("ufrom") or ''
+        customer = get_customer(request)
+        if customer is None:
+            return Response({"code": 3, "msg": "用户不存在", "coupon_id": ''})
         if not uniq_id:
-            return Response({})
+            return Response({"code": 1, "msg": "参数错误", "coupon_id": ''})
+        coupon_share = self.queryset.filter(uniq_id=uniq_id).first()
+        if coupon_share is None:
+            return Response({"code": 2, "msg": "领取完了哦", "coupon_id": ''})
+        else:
+            if not coupon_share.release_count < coupon_share.limit_share_count:  # 领取次数必须小于最大领取限制
+                return Response({"code": 2, "msg": "领取完了", "coupon_id": ''})
+        if not ufrom:
+            logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
+
+        template_id = coupon_share.template_id
+        coupon, code, msg = UserCoupon.objects.create_order_share_coupon(customer.id, template_id, uniq_id, ufrom)
+        if code != 0:
+            return Response({"code": code, "msg": msg, "coupon_id": ''})
+        else:
+            return Response({"code": code, "msg": msg, "coupon_id": coupon.id})
+
+    @list_route(methods=['post'])
+    def pick_active_share_coupon(self, request):
+        content = request.REQUEST
+        uniq_id = content.get("uniq_id") or ''
+        ufrom = content.get("ufrom") or ''
+        customer = get_customer(request)
+        if customer is None:
+            return Response({"code": 3, "msg": "用户不存在", "coupon_id": ''})
+        if not uniq_id:
+            return Response({"code": 1, "msg": "参数错误", "coupon_id": ''})
+        coupon_share = self.queryset.filter(uniq_id=uniq_id).first()
+        if coupon_share is None:
+            return Response({"code": 2, "msg": "领取完了哦", "coupon_id": ''})
+        else:
+            print coupon_share.release_count, coupon_share.limit_share_count
+            if not coupon_share.release_count < coupon_share.limit_share_count:  # 领取次数必须小于最大领取限制
+                return Response({"code": 2, "msg": "领取完了", "coupon_id": ''})
+        if not ufrom:
+            logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
+
+        template_id = coupon_share.template_id
+        coupon, code, msg = UserCoupon.objects.create_active_share_coupon(customer.id, template_id, uniq_id, ufrom)
+        if code != 0:
+            return Response({"code": code, "msg": msg, "coupon_id": ''})
+        else:
+            return Response({"code": code, "msg": msg, "coupon_id": coupon.id})
