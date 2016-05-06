@@ -1226,7 +1226,8 @@ def change_package_logistic_and_outsid(request):
         logistic_regex = re.compile(logistic.reg_mail_no)
         if not is_qrcode and not logistic_regex.match(out_sid):
             raise Exception(u'快递单号不合规则')
-        if package_order.sys_status in (PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+        if package_order.sys_status in (PackageOrder.WAIT_PREPARE_SEND_STATUS,
+                                        PackageOrder.WAIT_CHECK_BARCODE_STATUS,
                                         PackageOrder.WAIT_SCAN_WEIGHT_STATUS):
 
             package_order.logistics_company = logistic
