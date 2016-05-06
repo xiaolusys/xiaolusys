@@ -157,15 +157,10 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
 
     #     @cache_response(timeout=CACHE_VIEW_TIMEOUT,key_func='calc_porter_cache_key')
     def list(self, request, *args, **kwargs):
-
-        today = datetime.datetime.today()
-        queryset = self.get_queryset()
-        queryset = queryset.filter(
-            start_time__lte=today,
-            end_time__gte=today,
-            is_active=True,
-        ).order_by('-order_val')
-
+        now = datetime.datetime.now()
+        queryset = self.queryset.filter(is_active=True,end_time__gte=now)\
+                                .exclude(act_type=ActivityEntry.ACT_MAMA)\
+                                .order_by('-order_val', '-modified')
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -184,6 +179,16 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
             qrcode_link = rev_url.format(**kwargs)
         return urlparse.urljoin(settings.M_SITE_URL, qrcode_link)
 
+
+    @list_route(methods=['get'])
+    def get_all_events(self, request, *args, **kwargs):
+        now = datetime.datetime.now()
+        queryset = self.queryset.filter(is_active=True,end_time__gte=now)\
+                                .order_by('-order_val', '-modified')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+        
     @detail_route(methods=['get'])
     def get_share_params(self, request, *args, **kwargs):
         """ 获取活动分享参数 """
