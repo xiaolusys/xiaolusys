@@ -298,7 +298,7 @@ class UserCouponManager(BaseManager):
         if batch_coupon:  # 如果该批次号已经领取过了 则返回优惠券(订单分享的订单仅能领取一个优惠券)
             return batch_coupon, 0, u'已经领取'
         if not share_coupon.release_count < share_coupon.limit_share_count:  # 该批次的领取 完了
-            return batch_coupon, 0, u'该分享已领完'  # batch_coupon = None
+            return None, 8, u'该分享已领完'  # batch_coupon = None
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
         uniq_id = make_uniq_id(tpl, customer.id, share_id=share_coupon.id)
@@ -356,7 +356,7 @@ class UserCouponManager(BaseManager):
         if batch_coupon:  # 如果该批次号已经领取过了 则返回优惠券(订单分享的订单仅能领取一个优惠券)
             return batch_coupon, 0, u'已经领取'
         if not share_coupon.release_count < share_coupon.limit_share_count:  # 该批次的领取 完了
-            return batch_coupon, 0, u'该分享已领完'  # batch_coupon = None
+            return None, 8, u'该分享已领完'  # batch_coupon = None
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
         uniq_id = make_uniq_id(tpl, customer.id, share_id=share_coupon.id)
