@@ -14,12 +14,42 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import APIException
 
 from shopback.items.models import Product
-from flashsale.coupon.models import UserCoupon, OrderShareCoupon, CouponTemplate
+from flashsale.coupon.models import UserCoupon, OrderShareCoupon, CouponTemplate, TmpShareCoupon
 from flashsale.pay.models import Customer, ShoppingCart, SaleTrade
 from flashsale.pay.tasks import task_release_coupon_push
 from flashsale.promotion.models_freesample import XLSampleOrder
 
 logger = logging.getLogger(__name__)
+
+
+def release_tmp_share_coupon(customer):
+    """
+    查看临时优惠券中的优惠券是否存在未发的发放
+    """
+    if not customer:
+        return True
+    tmp_share_coupons = TmpShareCoupon.objects.filter(mobile=customer.mobile, status=False)
+    share_coupon_ids = tmp_share_coupons.values('share_coupon_id')
+    now = datetime.datetime.now()
+    share_coupons = OrderShareCoupon.objects.filter(
+        uniq_id__in=share_coupon_ids,
+        share_start_time__lte=now,  # 开始分享时间 小于 现在时间
+        share_end_time__gte=now,  # 结束分享时间 大于 现在时间
+    )
+    for share_coupon in share_coupons:  # 遍历分享 查看优惠券模板 按照模板发放优惠券
+        # 在分享时间内的发放
+        try:
+            tpl = CouponTemplate.objects.filter(id=share_coupon.template_id).first()
+            if tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE:
+                UserCoupon.objects.create_order_share_coupon(customer.id, tpl.id, share_coupon.uniq_id, ufrom=u'tmp')
+
+            elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE:
+                UserCoupon.objects.create_active_share_coupon(customer.id, tpl.id, share_coupon.uniq_id, ufrom=u'tmp')
+        except:
+            continue
+    # 更新状态到已经领取
+    tmp_share_coupons.update(status=True)
+    return True
 
 
 class UserCouponsViewSet(viewsets.ModelViewSet):
@@ -67,6 +97,15 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
+        """
+        获取优惠券:
+        step 1 : 查看临时优惠券中的优惠券是否存在未发的发放 release_tmp_share_coupon
+        step 2 : 给当前的优惠券数据
+        """
+
+        customer = get_customer(request)
+        release_tmp_share_coupon(customer)  # 查看临时优惠券 有则发放
+
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = self.list_unpast_coupon(queryset, status=UserCoupon.UNUSED)
         queryset = queryset.order_by('-created')  # 时间排序
@@ -187,6 +226,20 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def get_share_coupon(self, request):
+        """
+        获取某个分享 中领取的 优惠券
+        """
+        content = request.REQUEST
+        uniq_id = content.get('uniq_id') or ''
+        coupon_share = OrderShareCoupon.objects.filter(uniq_id=uniq_id).first()
+        if coupon_share:
+            queryset = self.queryset.filter(order_coupon_id=coupon_share.id)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        return Response([])
 
 
 class CouponTemplateViewSet(viewsets.ModelViewSet):
@@ -363,3 +416,51 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
             return Response({"code": code, "msg": msg, "coupon_id": ''})
         else:
             return Response({"code": code, "msg": msg, "coupon_id": coupon.id})
+
+
+def check_uniq_id(uniq_id):
+    """ 检查分享的uniq_id 有效 """
+    now = datetime.datetime.now()
+    orders_share = OrderShareCoupon.objects.filter(
+        uniq_id=uniq_id,
+        share_start_time__lte=now,  # 开始分享时间 小于 现在时间
+        share_end_time__gte=now,  # 结束分享时间 大于 现在时间
+    ).first()
+    if orders_share:
+        return True
+    return False
+
+
+class TmpShareCouponViewset(viewsets.ModelViewSet):
+    queryset = OrderShareCoupon.objects.all()
+    serializers = serializers.OrderShareCouponSerialize
+
+    def list(self, request, *args, **kwargs):
+        raise APIException("METHOD NOT ALLOWED !")
+
+    def update(self, request, *args, **kwargs):
+        raise APIException("METHOD NOT ALLOWED !")
+
+    def perform_update(self, serializer):
+        raise APIException("METHOD NOT ALLOWED !")
+
+    def partial_update(self, request, *args, **kwargs):
+        raise APIException("METHOD NOT ALLOWED !")
+
+    def create(self, request, *args, **kwargs):
+        """
+        提交临时优惠券
+        """
+        content = request.REQUEST
+        mobile = content.get('mobile') or ''
+        uniq_id = content.get("uniq_id") or ''
+        if not (mobile and uniq_id):
+            return Response({"code": 1, "msg": "参数出错"})
+        if not check_uniq_id(uniq_id):
+            return Response({"code": 2, "msg": "领取出错"})
+        try:
+            tmp_shre, state = TmpShareCoupon.objects.get_or_create(mobile=mobile, share_coupon_id=uniq_id)
+        except:
+            logger.warn("when release tmp share coupon the mobile is %s, uniq_id is %s" % (mobile, uniq_id))
+            return Response({"code": 3, "msg": "领取出错了"})
+        return Response({"code": 0, "msg": "领取成功"})
