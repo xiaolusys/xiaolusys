@@ -53,13 +53,15 @@ class AppDownloadRecord(BaseModel):
     WAP = 'wap'
     QQSPA = 'qqspa'
     APP = 'app'
+    LESSON = 'lesson'
 
-    UFROM = ((WAP, u'微信'),
-             (WAP, u'朋友圈'),
-             (WAP, u'新浪微博'),
+    UFROM = ((WXAPP, u'微信'),
+             (PYQ, u'朋友圈'),
+             (SINAWB, u'新浪微博'),
              (WAP, u'WAP'),
-             (WAP, u'QQ空间'),
-             (WAP, u'小鹿美美app'))
+             (QQSPA, u'QQ空间'),
+             (APP, u'小鹿美美app'),
+             (LESSON, u'小鹿大学'),)
 
     UNUSE = False
     USED = True
