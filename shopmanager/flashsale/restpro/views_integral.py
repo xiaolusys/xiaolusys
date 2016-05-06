@@ -8,7 +8,7 @@ from rest_framework import renderers
 from django.shortcuts import get_object_or_404
 from flashsale.pay.models import Customer
 from rest_framework.response import Response
-
+from rest_framework.decorators import detail_route, list_route
 from flashsale.pay.models_coupon import IntegralLog, Integral
 
 
@@ -32,6 +32,15 @@ class UserIntegralViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def get_owner_integral(self, request):
+        integral = self.get_owner_queryset(request).first()
+        if integral:
+            integral_value = integral.integral_value
+            return Response({"code": 0, "integral_value": integral_value})
+        else:
+            return Response({"code": 1, "integral_value": 0})
 
 
 class UserIntegralLogViewSet(viewsets.ModelViewSet):
