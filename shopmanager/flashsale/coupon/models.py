@@ -9,6 +9,8 @@ from django.db import models
 from flashsale.pay.options import uniqid
 from core.models import BaseModel
 from core.fields import JSONCharMyField
+from flashsale.coupon.managers import UserCouponManager
+from  managers import OrderShareCouponManager
 
 
 def default_template_extras():
@@ -100,6 +102,14 @@ class CouponTemplate(BaseModel):
 
     def __unicode__(self):
         return '<%s,%s>' % (self.id, self.title)
+
+    @property
+    def share_times_limit(self):
+        return self.extras['release']['share_times_limit']
+
+    @property
+    def post_img(self):
+        return self.extras['templates']['post_img']
 
     @property
     def limit_after_release_days(self):
@@ -207,7 +217,10 @@ class CouponTemplate(BaseModel):
 
 
 def default_share_extras():
-    return {'user_info': {'id': None, 'nick': '', 'thumbnail': ''}}
+    return {
+        'user_info': {'id': None, 'nick': '', 'thumbnail': ''},
+        "templates": {"post_img": '', "description": ''}
+    }
 
 
 class OrderShareCoupon(BaseModel):
@@ -240,6 +253,7 @@ class OrderShareCoupon(BaseModel):
     status = models.IntegerField(default=SENDING, db_index=True, choices=STATUS_CHOICES, verbose_name=u"状态")
     extras = JSONCharMyField(max_length=1024, default=default_share_extras, blank=True, null=True,
                              verbose_name=u"附加信息")
+    objects = OrderShareCouponManager()
 
     class Meta:
         db_table = "flashsale_coupon_share_batch"
@@ -260,8 +274,15 @@ class OrderShareCoupon(BaseModel):
         """分享者的头像"""
         return self.extras['user_info']['thumbnail']
 
+    @property
+    def post_img(self):
+        """分享者的头像"""
+        return self.extras['templates']['post_img']
 
-from flashsale.coupon.managers import UserCouponManager
+    @property
+    def description(self):
+        """分享者的头像"""
+        return self.extras['templates']['description']
 
 
 def default_coupon_no():
