@@ -47,6 +47,15 @@ def get_mama_id(user):
     return mama_id
 
 
+def get_xiaolu_university_activity_entry():
+    xiaolu_university_activity_id = 6
+    records = ActivityEntry.objects.filter(id=xiaolu_university_activity_id)
+    if records.count() > 0:
+        return records[0]
+    return None
+    
+    
+
 class LessonTopicViewSet(viewsets.ModelViewSet):
     """
     Return lesson topics.
@@ -173,7 +182,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     queryset = LessonAttendRecord.objects.all()
     serializer_class = lesson_serializers.LessonAttendRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    #permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
@@ -187,7 +196,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
         unionid = content.get("unionid")
         if unionid:
             filter_params["student_unionid"] = unionid
-        
+
         return self.queryset.filter(**filter_params)
 
     def list(self, request, *args, **kwargs):
@@ -195,6 +204,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
         topics = self.paginate_queryset(query_set)
         serializer = lesson_serializers.LessonAttendRecordSerializer(topics, many=True)
         res = self.get_paginated_response(serializer.data)
+        #res['Access-Control-Allow-Origin'] = '*'
         return res
         
     def create(self, request, *args, **kwargs):
@@ -210,6 +220,9 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
 from core.weixin.mixins import WeixinAuthMixin
 
 class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
+    """
+    Lesson signup.
+    """
     authentication_classes = (authentication.SessionAuthentication,)
     renderer_classes = (renderers.JSONRenderer,)
 
@@ -238,7 +251,10 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
             from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
             task_create_lessonattendrecord.delay(lesson_id, userinfo)
 
-        response = redirect('/rest/lesson/lessonattendrecord?unionid=%s' % unionid)
+        activity_entry = get_xiaolu_university_activity_entry()
+        key = "signup"
+        html = "%s?lesson_id=%s&unionid=%s" % (activity_entry.get_html(key), lesson_id, unionid)
+        response = redirect(html)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
 
         return response
