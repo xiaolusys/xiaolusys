@@ -4,12 +4,12 @@
     <head>
         <meta charset="utf-8">
         <title>入仓后台</title>
-        <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}chosen_v1.5.1/chosen.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
+        <link href="{{ STATIC_URL }}bootstrap-select/bootstrap-select.min.css" rel="stylesheet">
         <style>
          #form-1 {
              width:80%;
@@ -95,7 +95,15 @@
          i.glyphicon:hover {
              color: #ff4500;
          }
-         .candidate {
+
+         #form-4 tr.sku:not(.candidate) input[type="number"] {
+             display: none;
+         }
+         #form-4 tr.sku:not(.candidate) img {
+             display: none;
+         }
+
+         .candidate span.properties-name {
              color: #66CC33;
              font-size: 18px;
          }
@@ -159,7 +167,7 @@
                         </div>
                         <div class="col-md-1 form-group">
                             <label class="control-label">正品数</label>
-                            <input type="number" class="form-control" id="arrival-quantity" min="0">
+                            <input type="number" class="form-control" id="arrival-quantity" min="0" value="1">
                         </div>
                         <div class="col-md-1 form-group">
                             <label class="control-label">次品数</label>
@@ -182,13 +190,16 @@
                         <button type="button" class="close" data-dismiss="modal" arial-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        <ul>
+                        <ul class="clearfix">
                             {% for product in products %}
-                            <li class="radio" style="display:inline-block;width:46%;">
+                            <li class="radio col-md-6">
                                 <label>
                                     <img src="{{product.pic_path}}?imageView2/0/w/120" style="display:block" data-pic-path="{{product.pic_path}}" width="120px">
                                     <input type="radio" name="pics" value="{{product.id}}">
-                                    {{product.name}}
+                                    {{product.name}}({{product.saleproduct_id}})
+                                    {% for sku in product.skus %}
+                                    {{sku.properties_name}}
+                                    {% endfor %}
                                 </label>
                             </li>
                             {% endfor %}
@@ -213,7 +224,7 @@
         <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
         <script src="{{ STATIC_URL }}chosen_v1.5.1/chosen.jquery.js"></script>
         <script src="/static/wap/js/template.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+        <script src="/static/bootstrap-select/bootstrap-select.min.js"></script>
         {% verbatim %}
         <script id="skus" type="text/html">
             {{each skus as sku i}}
@@ -228,7 +239,7 @@
                     <th>编码</th>
                     <th width="120px">所属仓库</th>
                     <th>图片</th>
-                    <th>SKUID</th>
+                    <th>SkuId</th>
                     <th>尺寸</th>
                     <th>条码</th>
                     <th>正品</th>
@@ -267,10 +278,14 @@
                     </td>
                     {{/if}}
                     <td>
-                        <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank" title="SKU历史记录">{{sku.id}}</a>
+                        <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank" title="Sku历史记录">{{sku.id}}</a>
                     </td>
                     <td>{{sku.properties_name}}</td>
-                    <td>{{sku.barcode}}</td>
+                    <td>
+                        <a href="/admin/items/productsku/{{sku.id}}" target="_blank" title="Sku明细">
+                            {{sku.barcode}}
+                        </a>
+                    </td>
                     <td>
                         <input type="number" class="arrival-quantity form-control"
                                style="width:80px" min="0" value="{{sku.arrival_quantity}}">
@@ -317,13 +332,13 @@
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="添加备注" id="memo-input">
                             <span class="input-group-btn">
-                                <a href="javascript:;" class="btn btn-info" id="add-memo-btn">添加</a>
+                                <a href="javascript:;" class="btn btn-default" id="add-memo-btn">添加</a>
                             </span>
                         </div>
                     </div>
                     <div class="col-md-3 btn-group">
-                        <button class="btn btn-success" id="create-inbound">创建入仓单</button>
-                        <a class="btn btn-danger" id="set-invalid">作废入仓单</a>
+                        <a class="btn btn-danger" id="set-invalid">作废</a>
+                        <button class="btn btn-success" id="create-inbound">创建</button>
                     </div>
                 </div>
             </div>
@@ -444,9 +459,7 @@
              {value: 1, text: '上海仓'},
              {value: 2, text: '广州仓'}
          ];
-         var TR_SELECTOR_TPL = _.template('tr.sku[data-sku-id="<%= skuId %>"] input[type="number"]');
          var IMAGE_PREVIEW_TPL = _.template('<img src="<%= pic_path %>" width=800 height=800>');
-         var SUGGEST_DISTRICT_TPL = _.template('<p><small>建议库位:</small><span class="bg-success"><%= district %></span></p>')
 
          var orderlistIds = {{orderlist_ids|jsonify}};
          var expressNos = {{express_nos|jsonify}};
@@ -565,6 +578,18 @@
                      hint: true, highlight: true, minLength: 1
                  }, {name: 'districts', source: districtsEngine});
 
+                 $('.district', '#form-3').bind('typeahead:change', function(ev, suggestion){
+                     var tpl = _.template('tr.sku[data-product-id="<%= id %>"]');
+                     var $tr = $(this).closest('tr');
+                     var productId = parseInt($tr.attr('data-product-id'));
+                     var skuId = parseInt($tr.attr('data-sku-id'));
+                     $(tpl({id: productId}), '#form-3').each(function(){
+                         if(_.isEmpty($(this).find('.district').last().val())){
+                             $(this).find('.district').val(suggestion);
+                         }
+                     });
+                 });
+
                  $('tr.sku', '#form-3').each(function(){
                      var $this = $(this);
                      var productId = parseInt($this.attr('data-product-id'));
@@ -576,8 +601,9 @@
                              dataType: 'json',
                              data: {product_id: productId},
                              success: function(result){
+                                 var tpl = _.template('<p><small>建议库位:</small><span class="bg-success"><%= district %></span></p>');
                                  if(result.district)
-                                     $district.after(SUGGEST_DISTRICT_TPL({district: result.district}));
+                                     $district.after(tpl({district: result.district}));
                              }
                          });
                      }
@@ -592,6 +618,17 @@
                  var sku = skusDict[skuId];
                  var product = productsDict[inboundSku.productId];
 
+                 var arrivalQuantity = inboundSku.arrivalQuantity;
+                 var inferiorQuantity = inboundSku.inferiorQuantity;
+                 var district = sku.district;
+
+                 var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+                 var $tr = $(tpl({skuId: sku.id}), '#form-3');
+                 if($tr.length > 0){
+                     arrivalQuantity = $tr.find('.arrival-quantity').val();
+                     inferiorQuantity = $tr.find('.inferior-quantity').val();
+                     district = $tr.find('.district').last().val() || '';
+                 }
                  var inboundProduct = {
                      id: product.id,
                      name: product.name,
@@ -607,15 +644,22 @@
                      inboundProduct = inboundProducts[product.id];
                  inboundProduct.skus[skuId] = {
                      id: inboundSku.skuId,
-                     arrival_quantity: inboundSku.arrivalQuantity,
-                     inferior_quantity: inboundSku.inferiorQuantity,
+                     arrival_quantity: arrivalQuantity,
+                     inferior_quantity: inferiorQuantity,
                      barcode: sku.barcode,
                      properties_name: sku.properties_name,
-                     district: sku.district
+                     district: district,
+                     weight: inboundSku.weight
                  }
              }
              var newInboundProducts = [];
-             _.each(_.sortBy(_.values(inboundProducts), function(x){return x.id;}), function(y){
+             _.each(_.sortBy(_.values(inboundProducts), function(x){
+                 if(_.isEmpty(x.skus))
+                     return 0;
+                 return _.min(_.map(x.skus, function(sku){
+                     return sku.weight;
+                 }));
+             }), function(y){
                  y.skus = _.sortBy(_.values(y.skus), function(z){return z.id});
                  newInboundProducts.push(y);
              });
@@ -676,6 +720,15 @@
              });
 
              $('#form-2').submit(function(){
+                 function getSkuWeight(){
+                     var inboundSkus = _.values(inboundSkusDict);
+                     if(_.isEmpty(inboundSkus))
+                         return 0;
+                     return _.max(_.map(inboundSkus, function(inboundSku){
+                         return inboundSku.weight;
+                     })) + 1;
+                 }
+
                  var productId = parseInt($('#product-id').val());
                  var skuId = parseInt($('#sku-id').val());
                  var arrivalQuantity = parseInt($('#arrival-quantity').val()) || 0;
@@ -686,13 +739,22 @@
 
                  var inboundSkuDict = inboundSkusDict[skuId] || {
                      productId: productId,
-                     skuId: skuId,
-                     arrivalQuantity: 0,
-                     inferiorQuantity: 0
+                     skuId: skuId
                  }
-                 inboundSkuDict.arrivalQuantity += arrivalQuantity;
-                 inboundSkuDict.inferiorQuantity += inferiorQuantity;
-                 inboundSkusDict[skuId] = inboundSkuDict
+                 var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+                 var $tr = $(tpl({skuId: skuId}), '#form-3');
+                 if($tr.length > 0){
+                     var oldArrivalQuantity = parseInt($tr.find('.arrival-quantity').val()) || 0;
+                     var oldInferiorQuantity = parseInt($tr.find('.inferior-quantity').val()) || 0;
+                     $tr.find('.arrival-quantity').val(oldArrivalQuantity + arrivalQuantity);
+                     $tr.find('.inferior-quantity').val(oldInferiorQuantity + inferiorQuantity);
+                 }
+                 else{
+                     inboundSkuDict.arrivalQuantity = arrivalQuantity;
+                     inboundSkuDict.inferiorQuantity = inferiorQuantity;
+                 }
+                 inboundSkuDict.weight = getSkuWeight();
+                 inboundSkusDict[skuId] = inboundSkuDict;
                  setupForm3();
                  return false;
              });
@@ -731,6 +793,7 @@
                                  $('#create-inbound').attr('disabled', 'disabled');
                                  $('#add-sku').attr('disabled', 'disabled');
                                  $('i.glyphicon', '#form-3').unbind();
+                                 $('#memo').val(result.inbound.memo);
                              }
                              else
                                  inbound = {};
@@ -765,10 +828,10 @@
                                  $(introTpl({id: orderlistId}), '#form-4').show();
                                  $(skuTpl({id: orderlistId}), '#form-4').hide();
                              });
-                             $('.properties-name', '#form-4').removeClass('candidate');
+                             $('tr.candidate', '#form-4').removeClass('candidate');
                              _.each(_.keys(inboundSkus), function(skuId){
                                  var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
-                                 $(tpl({skuId: skuId}), '#form-4').find('.properties-name').addClass('candidate');
+                                 $(tpl({skuId: skuId}), '#form-4').addClass('candidate');
                              });
                          }
                      });
@@ -842,7 +905,8 @@
                  $('tr.sku input.error', '#form-4').removeClass('error');
                  if(errorSkuIds && errorSkuIds.length > 0){
                      _.each(errorSkuIds, function(el){
-                         $(TR_SELECTOR_TPL({skuId: el}), '#form-4').addClass('error');
+                         var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"] input[type="number"]');
+                         $(tpl({skuId: el}), '#form-4').addClass('error');
                      });
                      swal('错误', '填写数量与入仓单不一致', 'error');
                  }
@@ -859,6 +923,7 @@
                              else{
                                  swal('分配成功', '', 'success');
                                  $('#allocate').attr('disabled', 'disabled');
+                                 window.location = '/sale/dinghuo/inbound/' + result.inbound.id;
                              }
                          }
                      });

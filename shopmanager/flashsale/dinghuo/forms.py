@@ -56,3 +56,14 @@ class CreateInBoundForm(BaseForm):
     supplier_id = forms.IntegerField()
     inbound_id = forms.IntegerField(required=False, initial=0)
     memo = forms.CharField(required=False, initial='')
+
+
+class SaveMemoForm(BaseForm):
+    inbound_id = forms.IntegerField()
+    memo = forms.CharField(required=False)
+    inbound_skus = forms.CharField(required=False)
+
+
+class SaveDistrictsForm(BaseForm):
+    inbound_id = forms.IntegerField()
+    inbound_skus = forms.CharField(required=False)

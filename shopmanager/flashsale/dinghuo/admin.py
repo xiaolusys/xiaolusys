@@ -575,7 +575,7 @@ class InBoundDetailAdmin(admin.ModelAdmin):
     ), )
     list_display = ('id', 'show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'created', 'modified', 'status')
     def show_inbound(self, obj):
-        return '<a href="/sale/dinghuo/dinghuo_orderlist/list_for_inbound?inbound_id=%(id)d" target="_blank">%(id)d</a>' % {
+        return '<a href="/sale/dinghuo/inbound/%(id)d" target="_blank">%(id)d</a>' % {
             'id': obj.inbound_id}
 
     show_inbound.allow_tags = True

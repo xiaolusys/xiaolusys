@@ -878,6 +878,17 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         '^(?P<pno>[a-zA-Z0-9=]+)-(?P<dno>[a-zA-Z0-9]+)?$')
 
     @classmethod
+    def get_username(cls, user):
+        last_name = user.last_name
+        first_name = user.first_name
+        if len(last_name) > 1:
+            names = [first_name, last_name]
+        else:
+            names = [last_name, first_name]
+        return ''.join(filter(None, names)) or user.username
+
+
+    @classmethod
     def update_orderlist(cls, request, orderlist_ids, op_logs):
         orderlist_status_dict = dict(OrderList.ORDER_PRODUCT_STATUS)
         for orderlist in OrderList.objects.filter(id__in=list(orderlist_ids)):
@@ -925,8 +936,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @classmethod
     def update_inbound(cls, request, inbound, inbound_skus_dict, op_logs):
-        username = '%s%s' % (request.user.last_name, request.user.first_name)
-        username = username or request.user.username
+        username = cls.get_username(request.user)
         now = datetime.datetime.now()
 
         # 过滤无效输入
@@ -970,8 +980,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @list_route(methods=['get'])
     def do_memo(self, request):
-        username = '%s%s' % (request.user.last_name, request.user.first_name)
-        username = username or request.user.username
+        username = self.get_username(request.user)
         now = datetime.datetime.now()
         content = request.GET.get('content') or ''
         if not content:
@@ -1810,7 +1819,19 @@ class InBoundViewSet(viewsets.GenericViewSet):
         {'value': 0, 'text': '未选仓'},
         {'value': 1, 'text': '上海仓'},
         {'value': 2, 'text': '广州仓'}
-    ];
+    ]
+
+    @classmethod
+    def get_username(cls, user):
+        last_name = user.last_name
+        first_name = user.first_name
+        if len(last_name) > 1:
+            names = [first_name, last_name]
+        else:
+            names = [last_name, first_name]
+        return ''.join(filter(None, names)) or user.username
+
+
     @classmethod
     def update_orderlist(cls, request, orderlist_ids):
         orderlist_status_dict = dict(OrderList.ORDER_PRODUCT_STATUS)
@@ -1855,6 +1876,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
     @list_route(methods=['post'])
     def allocate(self, request):
+        from shopback.items.tasks import releaseProductTradesTask
+
         data = json.loads(request.POST.get('data') or '[]')
         orderlist_ids = set()
         inbound = None
@@ -1877,10 +1900,12 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if not inbound:
             return Response({'error': '找不到入仓单'})
 
+        outer_ids = set()
         inbounddetails_dict = {}
         for sku_id, sku_dict in skus_dict.iteritems():
             sku = ProductSku.objects.select_related('product').get(id=sku_id)
             product = sku.product
+            outer_ids.add(product.outer_id)
             inbounddetail = InBoundDetail(
                 inbound=inbound,
                 product=product,
@@ -1933,7 +1958,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
             inbound.save()
         if orderlist_ids:
             self.update_orderlist(request, list(orderlist_ids))
-        return Response({})
+        if outer_ids:
+            releaseProductTradesTask.delay(list(outer_ids))
+        return Response({'inbound': {'id': inbound.id}})
 
     @list_route(methods=['post'])
     def create_inbound(self, request):
@@ -1950,8 +1977,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         orderlist_id = form.cleaned_data.get('orderlist_id')
 
         now = datetime.datetime.now()
-        username = '%s%s' % (request.user.last_name, request.user.first_name)
-        username = username or request.user.username
+        username = self.get_username(request.user)
         tmp = ['-->%s %s: 创建入仓单' % (now.strftime('%m月%d %H:%M'), username)]
         if form.cleaned_data['memo']:
             tmp.append(form.cleaned_data['memo'])
@@ -1998,12 +2024,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     district_no=dno).first()
                 if not deposite_district:
                     continue
-                ProductLocation.objects.filter(product_id=sku.product.id,
-                                               sku_id=sku.id).delete()
-                ProductLocation.objects.get_or_create(
-                    product_id=sku.product.id,
-                    sku_id=sku.id,
-                    district=deposite_district)
+                ProductLocation.objects.filter(product_id=sku.product.id, sku_id=sku.id).delete()
+                self.update_product_location(sku.product.id, deposite_district)
 
         orderlists = self._find_orderlists(inbound_skus.keys())
         log_action(request.user.id, inbound, ADDITION, '创建')
@@ -2011,7 +2033,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
             'orderlists': orderlists,
             'inbound': {
                 'id': inbound.id,
-                'details': inbounddetails_dict
+                'details': inbounddetails_dict,
+                'memo': inbound.memo
             }
         })
 
@@ -2174,7 +2197,10 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'id': inbound.id,
                 'details': inbounddetails_dict,
                 'memo': inbound.memo,
-                'status': inbound.status
+                'status': inbound.status,
+                'created': inbound.created.strftime('%y年%m月%d %H:%M:%S'),
+                'creator': self.get_username(inbound.creator),
+                'orderlist_ids': inbound.orderlist_ids
             }
         }
         return Response(result, template_name='dinghuo/edit_inbound.html')
@@ -2282,7 +2308,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
             products = []
             for product_dict in sorted(products_dict.values(),
-                                       key=lambda x: x['weight']):
+                                       key=itemgetter('saleproduct_id', 'id')):
                 skus_dict = product_dict['skus']
                 product_dict['skus'] = [skus_dict[k]
                                         for k in sorted(skus_dict.keys())]
@@ -2351,11 +2377,17 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if inbound.status == InBound.INVALID:
             return Response({'error': '作废入仓单不能修改'})
 
+        records_dict = {}
         orderlist_ids = set()
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
             for record in inbounddetail.records.filter(status=OrderDetailInBoundDetail.NORMAL):
                 inbounddetail = record.inbounddetail
                 orderdetail = record.orderdetail
+
+                records_dict[orderdetail.id] = {
+                    'arrival_quantity': record.arrival_quantity,
+                    'inferior_quantity': record.inferior_quantity
+                }
                 if record.arrival_quantity:
                     orderdetail.arrival_quantity -= record.arrival_quantity
                     orderdetail.save()
@@ -2372,6 +2404,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 orderlist_ids.add(orderdetail.orderlist_id)
                 record.status = OrderDetailInBoundDetail.INVALID
                 record.save()
+
+
         self.update_orderlist(request, list(orderlist_ids))
 
         inbound_skus_dict = {int(k):v for k,v in inbound_skus.iteritems()}
@@ -2398,12 +2432,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     district_no=dno).first()
                 if not deposite_district:
                     continue
-                ProductLocation.objects.filter(product_id=product_id,
-                                               sku_id=sku_id).delete()
-                ProductLocation.objects.get_or_create(
-                    product_id=product_id,
-                    sku_id=sku_id,
-                    district=deposite_district)
+                ProductLocation.objects.filter(product_id=product_id, sku_id=sku_id).delete()
+                self.update_product_location(product_id, deposite_district)
 
             if inbounddetail.arrival_quantity == arrival_quantity and \
                 inbounddetail.inferior_quantity == inferior_quantity:
@@ -2418,12 +2448,14 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound.save()
 
         orderlists = self._find_orderlists(inbound_skus.keys())
-        return Response({'orderlists': orderlists})
+        return Response({
+            'orderlists': orderlists,
+            'records': records_dict
+        })
 
     @list_route(methods=['get'])
     def add_memo(self, request):
-        username = '%s%s' % (request.user.last_name, request.user.first_name)
-        username = username or request.user.username
+        username = self.get_username(request.user)
         now = datetime.datetime.now()
         content = request.GET.get('content') or ''
         if not content:
@@ -2466,3 +2498,50 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if stats:
             district, _ = max(stats.items(), key=lambda x: x[1])
         return Response({'district': district})
+
+    @classmethod
+    def update_product_location(cls, product_id, deposite_district):
+        for sku in ProductSku.objects.filter(product_id=product_id, status=ProductSku.NORMAL):
+            ProductLocation.objects.get_or_create(
+                product_id=product_id,
+                sku_id=sku.id,
+                district=deposite_district
+            )
+
+    @list_route(methods=['post'])
+    def save_memo(self, request):
+        form = forms.SaveMemoForm(request.POST)
+        if not form.is_valid():
+            return Response({'error': '参数错误'})
+
+        if form.cleaned_data['memo']:
+            inbound = InBound.objects.get(id=form.cleaned_data['inbound_id'])
+            inbound.memo = form.cleaned_data['memo']
+            inbound.save()
+        return Response({})
+
+    @list_route(methods=['post'])
+    def save_districts(self, request):
+        form = forms.SaveDistrictsForm(request.POST)
+        if not form.is_valid():
+            return Response({'error': '参数错误'})
+
+        inbound_skus_dict = form.cleaned_data.get('inbound_skus') or '{}'
+        inbound_skus_dict = {int(k): v for k, v in json.loads(inbound_skus_dict).iteritems()}
+
+        for sku in ProductSku.objects.filter(id__in=inbound_skus_dict.keys()):
+            inbound_sku_dict = inbound_skus_dict[sku.id]
+            district = inbound_sku_dict['district']
+            m = self.DISTRICT_REGEX.match(district)
+            if m:
+                tmp = m.groupdict()
+                pno = tmp.get('pno') or ''
+                dno = tmp.get('dno') or ''
+                deposite_district = DepositeDistrict.objects.filter(
+                    parent_no=pno,
+                    district_no=dno).first()
+                if not deposite_district:
+                    continue
+                ProductLocation.objects.filter(product_id=sku.product_id, sku_id=sku.id).delete()
+                self.update_product_location(sku.product_id, deposite_district)
+        return Response({})

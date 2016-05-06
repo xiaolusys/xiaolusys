@@ -432,7 +432,11 @@
                             <img src="{{ order.pic_path }}?imageView2/0/w/60/format/jpg" title="{{ order.product_name }}" width="60px" height="60px" class="img-circle">
                         </a>
                     </td>
-                    <td>{{ order.product_chicun }}</td>
+                    <td>
+                        <a href="/admin/dinghuo/orderdetailinbounddetail/?orderdetail_id={{order.id}}&status=1" target="_blank">
+                            {{ order.product_chicun }}
+                        </a>
+                    </td>
                     <td align="center">
                         {% if flagofstatus or flagofquestion or flag_of_sample %}
                             <a onclick="plusQuantity({{ order.id }})">
