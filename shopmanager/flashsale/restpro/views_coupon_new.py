@@ -1,7 +1,9 @@
 # coding=utf-8
+import logging
 import datetime
+import urlparse
+from django.conf import settings
 from django.shortcuts import get_object_or_404
-
 from rest_framework import viewsets
 from flashsale.coupon import serializers
 from rest_framework import authentication
@@ -13,8 +15,11 @@ from rest_framework.exceptions import APIException
 
 from shopback.items.models import Product
 from flashsale.coupon.models import UserCoupon, OrderShareCoupon, CouponTemplate
-from flashsale.pay.models import Customer, ShoppingCart
+from flashsale.pay.models import Customer, ShoppingCart, SaleTrade
 from flashsale.pay.tasks import task_release_coupon_push
+from flashsale.promotion.models_freesample import XLSampleOrder
+
+logger = logging.getLogger(__name__)
 
 
 class UserCouponsViewSet(viewsets.ModelViewSet):
@@ -64,7 +69,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = self.list_unpast_coupon(queryset, status=UserCoupon.UNUSED)
-        queryset = queryset.order_by('created')[::-1]  # 时间排序
+        queryset = queryset.order_by('-created')  # 时间排序
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -76,7 +81,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     def list_past_coupon(self, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = self.list_unpast_coupon(queryset, status=UserCoupon.PAST)
-        queryset = queryset.order_by('created')[::-1]  # 时间排序
+        queryset = queryset.order_by('-created')  # 时间排序
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -207,3 +212,108 @@ class CouponTemplateViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         return Response()
+
+
+def get_order_or_active_share_template(coupon_type):
+    """
+    获取订单分享模板
+    获取活动分享模板
+    """
+    now = datetime.datetime.now()
+    tpl = CouponTemplate.objects.filter(
+        coupon_type=coupon_type,
+        status=CouponTemplate.SENDING,
+    ).order_by('-created').first()  # 最新建的一个
+    if tpl:
+        if not tpl.release_start_time <= now <= tpl.release_end_time:
+            raise Exception('优惠券模板设置错误:%s' % tpl.id)
+    return tpl
+
+
+def get_customer(request):
+    """ get customer """
+    try:
+        customer = Customer.objects.get(user=request.user)
+    except Customer.DoesNotExist:
+        return None
+    return customer
+
+
+class OrderShareCouponViewSet(viewsets.ModelViewSet):
+    queryset = OrderShareCoupon.objects.all()
+    serializers = serializers.OrderShareCouponSerialize
+    authentication_classes = (authentication.SessionAuthentication,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def create(self, request, *args, **kwargs):
+        raise APIException('method not allowed')
+
+    def check_order_valid(self, uniq_id, buyer_id):
+        """ 判断订单是该用户的 """
+        return SaleTrade.objects.filter(tid=uniq_id, buyer_id=buyer_id).first()
+
+    def check_customer_active(self, customer_id):
+        """ 检查用户活动的有效性 """
+        return XLSampleOrder.objects.filter(customer_id=customer_id).first()
+
+    @list_route(methods=['post'])
+    def create_order_share(self, request, *args, **kwargs):
+        """
+        创建订单分享
+        返回分享链接
+        """
+        customer = get_customer(request)
+        if customer is None:
+            return Response({"code": 2, "msg": "用户不存在", "share_link": ''})
+        content = request.REQUEST
+        uniq_id = content.get('uniq_id') or ''  # 订单分享创建
+        ufrom = content.get("ufrom") or ''
+        if not uniq_id:
+            return Response({"code": 1, "msg": "参数有误", "share_link": ''})
+        if self.check_order_valid(uniq_id, customer.id) is None:
+            return Response({"code": 4, "msg": "订单不存在", "share_link": ''})
+
+        tpl = get_order_or_active_share_template(CouponTemplate.TYPE_ORDER_SHARE)  # 获取有效的分享模板
+        if not tpl:
+            return Response({"code": 3, "msg": "分享出错", "share_link": ''})
+        if not ufrom:
+            logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
+        state, order_share = OrderShareCoupon.objects.create_coupon_share(tpl, customer, uniq_id, ufrom)
+        share_link = '/pages/odsharecoupon.html?uniq_id={0}'.format(order_share.uniq_id)
+        share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
+        return Response({"code": 0, "msg": "分享成功", "share_link": share_link})
+
+    @list_route(methods=['post'])
+    def create_active_share(self, request, *args, **kwargs):
+        """
+        创建活动分享
+        返回分享链接
+        """
+        customer = get_customer(request)
+        if customer is None:
+            return Response({"code": 2, "msg": "用户不存在", "share_link": ''})
+        content = request.REQUEST
+        uniq_id = content.get('uniq_id') or ''  # 活动分享创建
+        ufrom = content.get("ufrom") or ''
+        if not uniq_id:
+            return Response({"code": 1, "msg": "参数有误", "share_link": ''})
+        # if self.check_customer_active(customer.id) is None:  # 检查参与活动的有效性
+        # return Response({"code": 3, "msg": "分享出错", "share_link": ''})
+
+        tpl = get_order_or_active_share_template(CouponTemplate.TYPE_ACTIVE_SHARE)  # 获取有效的分享模板
+        if not tpl:
+            return Response({"code": 3, "msg": "分享出错", "share_link": ''})
+        if not ufrom:
+            logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
+        state, active_share = OrderShareCoupon.objects.create_coupon_share(tpl, customer, uniq_id, ufrom)
+        share_link = '/pages/acsharecoupon.html?uniq_id={0}'.format(active_share.uniq_id)
+        share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
+        return Response({"code": 0, "msg": "分享成功", "share_link": share_link})
+
+    @list_route(methods=['get'])
+    def pick_shore_coupon(self, request):
+        content = request.REQUEST
+        uniq_id = content.get("uniq_id") or ''
+        if not uniq_id:
+            return Response({})
