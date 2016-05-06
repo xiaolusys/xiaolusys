@@ -1,7 +1,8 @@
 # coding=utf-8
 import json
 from django.test import TestCase
-from flashsale.coupon.models import UserCoupon
+from flashsale.coupon.models import UserCoupon, OrderShareCoupon
+from flashsale.promotion.models_freesample import XLSampleApply
 
 
 class UserCouponTestCase(TestCase):
@@ -75,7 +76,7 @@ class UserCouponTestCase(TestCase):
         response = self.client.post(url, post_cart, ACCPET='application/json')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        assert (data['res'] == 0)
+        assert (data['res'] == 1)
 
 
 class CouponTemplate(TestCase):
@@ -98,3 +99,53 @@ class CouponTemplate(TestCase):
         self.assertEqual(len(data), 1)
         for template in data:
             assert (template['status'] in [1, 2])
+
+
+class OrderShareCouponTestCase(TestCase):
+    fixtures = [
+        "test.flashsale.coupon.customer.json",
+        "test.flashsale.coupon.saletrade.json",
+        "test.flashsale.coupon.coupontemplate.json",
+        # "test.flashsale.coupon.xlampleorder.json",
+    ]
+    url_create_order_share = '/rest/v2/sharecoupon/create_order_share'
+    url_create_active_share = '/rest/v2/sharecoupon/create_active_share'
+
+    def setUp(self):
+        self.username = 'o29cQs-ONn2PxIYYducFkQcmkpGc'
+        self.password = '123456'
+        self.client.login(username=self.username, password=self.password)
+
+    def testCreateOrderShareCouponCode1(self):
+        data = {}
+        response = self.client.post(self.url_create_order_share, data, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['code'], 1)
+
+    def testCreateOrderShareCouponCheckTrade(self):
+        data = {"uniq_id": "xd160426571f12d01282b"}  # 验证订单
+        response = self.client.post(self.url_create_order_share, data, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['code'], 4)
+
+    def testCreateOrderShareCoupon(self):
+        data = {"uniq_id": "xd16040657050c243dc16", "ufrom": "wx"}  # 正确的tid
+        response = self.client.post(self.url_create_order_share, data, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        order_share = OrderShareCoupon.objects.all().order_by('-created').first()
+        self.assertEqual(order_share.platform_info, {u'wx': 1})
+        self.assertEqual(data['code'], 0)
+
+    def testCreateActiveShare(self):
+        """ 测试活动分享  """
+        data = {"uniq_id": "3_9", "ufrom": "wx"}  # 正确的 活动 和 用户
+        response = self.client.post(self.url_create_active_share, data, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        order_share = OrderShareCoupon.objects.all().order_by('-created').first()
+        self.assertEqual(order_share.platform_info, {u'wx': 1})
+        self.assertEqual(data['code'], 0)
+
