@@ -235,7 +235,7 @@ class GoodShelf(PayBaseModel):
 
     def get_current_activitys(self):
         now = datetime.datetime.now()
-        return ActivityEntry.get_effect_activitys(now)
+        return ActivityEntry.get_landing_effect_activitys(now)
 
     def get_brands(self):
         return BrandEntry.get_brand()
@@ -246,10 +246,12 @@ class ActivityEntry(PayBaseModel):
 
     ACT_COUPON = 'coupon'
     ACT_WEBVIEW = 'webview'
+    ACT_MAMA = 'mama'
 
     ACT_CHOICES = (
         (ACT_COUPON, u'优惠券活动'),
-        (ACT_WEBVIEW, u'商城活动页')
+        (ACT_WEBVIEW, u'商城活动页'),
+        (ACT_MAMA, u'妈妈活动'),
     )
 
     title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'活动名称')
@@ -286,10 +288,11 @@ class ActivityEntry(PayBaseModel):
     def get_default_activity(cls):
         acts = cls.objects.filter(is_active=True,
                                   end_time__gte=datetime.datetime.now()) \
-            .order_by('-order_val', '-modified')
+            .exclude(act_type=ActivityEntry.ACT_MAMA).order_by('-order_val', '-modified')
         if acts.exists():
             return acts[0]
         return None
+
 
     @classmethod
     def get_effect_activitys(cls, active_time):
@@ -297,6 +300,17 @@ class ActivityEntry(PayBaseModel):
         acts = cls.objects.filter(is_active=True,
                                   end_time__gte=active_time) \
             .order_by('-order_val', '-modified')
+        if acts.exists():
+            return acts
+        return cls.objects.none()
+
+    
+    @classmethod
+    def get_landing_effect_activitys(cls, active_time):
+        """ 根据时间获取活动列表app首页展示 """
+        acts = cls.objects.filter(is_active=True,
+                                  end_time__gte=active_time) \
+            .exclude(act_type=ActivityEntry.ACT_MAMA).order_by('-order_val', '-modified')
         if acts.exists():
             return acts
         return cls.objects.none()
