@@ -7,12 +7,14 @@ from flashsale.promotion.models_freesample import XLSampleApply
 
 class UserCouponTestCase(TestCase):
     fixtures = [
+        "test.flashsale.coupon.tmpsharecoupon.json",
+        "test.flashsale.coupon.ordersharecoupon.json",
         "test.flashsale.coupon.coupontemplate.json",
         "test.flashsale.coupon.customer.json",
         "test.flashsale.coupon.usercoupon.json",
         "test.flashsale.coupon.product.json",
         "test.flashsale.coupon.productcategory.json",
-        "test.flashsale.coupon.shoppingcart.json"
+        "test.flashsale.coupon.shoppingcart.json",
     ]
     url_user_coupons = '/rest/v2/usercoupons'  # 用户优惠券
     url_user_past_coupons = '/rest/v2/usercoupons/list_past_coupon'  # 用户过期优惠券
@@ -29,6 +31,7 @@ class UserCouponTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         results = data['results']
+        self.assertEqual(len(results), 2)
         for user_coupon in results:
             self.assertEqual(user_coupon['status'], UserCoupon.UNUSED)
 
@@ -166,3 +169,36 @@ class OrderShareCouponTestCase(TestCase):
         coupon = data['results'][0]
         self.assertEqual(coupon['status'], UserCoupon.UNUSED)
         self.assertEqual(coupon['coupon_type'], UserCoupon.TYPE_ORDER_SHARE)
+
+
+class TmpShareCouponTestCase(TestCase):
+    fixtures = [
+        "test.flashsale.coupon.tmpsharecoupon.json",
+        "test.flashsale.coupon.ordersharecoupon.json",
+    ]
+
+    url_create_temp = "/rest/v2/tmpsharecoupon"
+
+    def setUp(self):
+        pass
+
+    def testCreateTempShareCoupon1(self):
+        data = {}
+        response = self.client.post(self.url_create_temp, data, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['code'], 1)
+
+    def testCreateTempShareCoupon2(self):
+        data = {"mobile": "13739234188", "uniq_id": "dadfqw"}
+        response = self.client.post(self.url_create_temp, data, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['code'], 2)
+
+    def testCreateTmpCoupon(self):
+        data = {"mobile": "13739234188", "uniq_id": "xd16040657050c243dc15"}
+        response = self.client.post(self.url_create_temp, data, ACCPET='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['code'], 0)
