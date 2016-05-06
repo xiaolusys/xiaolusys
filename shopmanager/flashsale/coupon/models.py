@@ -276,12 +276,12 @@ class OrderShareCoupon(BaseModel):
 
     @property
     def post_img(self):
-        """分享者的头像"""
+        """模板的图片链接"""
         return self.extras['templates']['post_img']
 
     @property
     def description(self):
-        """分享者的头像"""
+        """模板的描述"""
         return self.extras['templates']['description']
 
 
