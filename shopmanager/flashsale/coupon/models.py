@@ -5,7 +5,9 @@
 用户：负责记录用户优惠券持有状态,使用价值等信息
 """
 import datetime
+
 from django.db import models
+
 from flashsale.pay.options import uniqid
 from core.models import BaseModel
 from core.fields import JSONCharMyField
@@ -369,6 +371,10 @@ class UserCoupon(BaseModel):
         tpl = CouponTemplate.objects.get(id=self.template_id)
         return tpl
 
+    def share_record(self):
+        """ 优惠券来自与那个分享(如果是从分享来的话) """
+        return OrderShareCoupon.objects.filter(id=self.order_coupon_id).first()
+
     def is_valid_template(self):
         """ 模板有效性 """
         tpl = self.self_template()
@@ -416,9 +422,12 @@ class UserCoupon(BaseModel):
 
     def use_coupon(self):
         """ 使用优惠券 """
-        self.coupon_basic_check()  # 基础检查
-        self.status = self.USED
-        self.save()
+        from flashsale.coupon.tasks import task_update_coupon_use_count
+        coupon = self.__class__.objects.get(id=self.id)
+        coupon.coupon_basic_check()  # 基础检查
+        coupon.status = self.USED
+        coupon.save()
+        task_update_coupon_use_count.delay(coupon)
 
     def freeze_coupon(self):
         """ 冻结优惠券 """
