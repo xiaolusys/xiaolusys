@@ -65,6 +65,7 @@ class ProductStock(object):
         product_sku = ProductSku.objects.get(id=orderdetail.chichu_id)
         product_sku.quantity += num
         product_sku.save()
+        orderdetail.SAVE()
         # p = ProductSku.objects.get(id=orderdetail.chichu_id)
         # p.quantity =
 
