@@ -133,6 +133,10 @@ class Lesson(BaseModel):
             return 1
         return 0
 
+    @property
+    def m_static_url(self):
+        return settings.M_STATIC_URL
+
     def carry(self):
         base_carry = 6000 # 6000 cents == 60RMB
         if self.effect_num_attender >= 300:

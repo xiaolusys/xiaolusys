@@ -20,6 +20,7 @@ class LessonSerializer(serializers.ModelSerializer):
     start_time_display = serializers.CharField(read_only=True)
     status_display = serializers.CharField(read_only=True)
     is_started = serializers.IntegerField(read_only=True)
+    m_static_url = serializers.CharField(read_only=True)
     
     class Meta:
         extra_kwargs = {'customer_idx': {'read_only': True}}
@@ -27,7 +28,7 @@ class LessonSerializer(serializers.ModelSerializer):
         fields = ('id', 'lesson_topic_id', 'title', 'description', 'content_link', 'instructor_id',
                   'instructor_name', 'instructor_title', 'instructor_image', 'num_attender',
                   'num_score', 'start_time_display', 'qrcode_links', 'status', 'status_display',
-                  'is_started', 'customer_idx',)
+                  'is_started', 'customer_idx', 'm_static_url')
 
 class InstructorSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)
