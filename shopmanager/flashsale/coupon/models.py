@@ -321,12 +321,14 @@ class UserCoupon(BaseModel):
     QQ_SPA = u'qq_spa'
     SINA = u'sina'
     WAP = u'wap'
+    TMP = u'tmp'
     PLATFORM = ((WX, u"微信好友"),
                 (PYQ, u"朋友圈"),
                 (QQ, u"QQ好友"),
                 (QQ_SPA, u"QQ空间"),
                 (SINA, u"新浪微博"),
-                (WAP, u'wap'))
+                (WAP, u'wap'),
+                (TMP, u'临时表'))
 
     template_id = models.IntegerField(db_index=True, verbose_name=u"优惠券id")
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
@@ -437,10 +439,11 @@ class UserCoupon(BaseModel):
 
 class TmpShareCoupon(BaseModel):
     mobile = models.CharField(max_length=11, db_index=True, verbose_name=u'手机号')
-    share_coupon_id = models.CharField(db_index=True, max_length=32, verbose_name=u"分享批次id")
+    share_coupon_id = models.CharField(db_index=True, max_length=32, verbose_name=u"分享uniq_id")
     status = models.BooleanField(default=False, db_index=True, verbose_name=u'是否领取')
 
     class Meta:
+        unique_together = ('mobile', 'share_coupon_id')  # 一个分享 一个手机号只能领取一次
         db_table = "flashsale_user_tmp_coupon"
         app_label = 'coupon'
         verbose_name = u"特卖/优惠券/用户临时优惠券表"
