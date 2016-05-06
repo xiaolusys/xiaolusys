@@ -319,6 +319,10 @@ FLASHSALE_COUPON_ROUTES = {
         'queue': 'coupon',
         'routing_key': 'coupon.task_update_share_coupon_release_count',
     },
+    'flashsale.coupon.tasks.task_update_coupon_use_count': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_update_coupon_use_count',
+    },
 }
 
 CELERY_ROUTES = {
