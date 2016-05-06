@@ -485,9 +485,11 @@ class FetchAndCreateProduct(APIView):
                 is_exists = 1
                 sproduct = sproducts[0]
                 return Response({'code': 2, 'error_response': '该选品已存在, 不能重复添加'})
+            """
             m = self.SUPPLIER_SKU_PATTERN.match(supplier_sku)
             if not m:
                 return Response({'code': 2, 'error_response': '供应商货号只能包含字母, 数字, 下划线(_), 横杠(-), 井号(#)'})
+            """
 
         if not sproduct:
             sproduct, state = SaleProduct.objects.get_or_create(
@@ -724,7 +726,8 @@ class ScheduleDetailAPIView(APIView):
                 'model_id': 0,
                 'preview_url': '',
                 'outer_id': '',
-                'is_verify': True
+                'is_verify': True,
+                'note': ''
             }
 
         product_outer_ids = []
@@ -741,6 +744,8 @@ class ScheduleDetailAPIView(APIView):
             if product.outer_id and product.outer_id[-1] == '1':
                 sale_product['model_id'] = product.model_id
                 sale_product['outer_id'] = product.outer_id[:-1]
+                if hasattr(product, 'details'):
+                    sale_product['note'] = product.details.note
                 if product.model_id:
                     try:
                         model_product = ModelProduct.objects.get(
@@ -1442,3 +1447,31 @@ class SaleProductScheduleDateView(APIView):
                 sale_dates.add(schedule.sale_time)
         sale_date_strs = [x.strftime('%y年%m月%d') for x in sorted(list(sale_dates))]
         return Response({'select_dates': sale_date_strs})
+
+
+
+class SaleProductNoteView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request):
+        saleproduct_id = int(request.GET['saleproduct_id'])
+        note = ''
+        product = Product.objects.filter(status=Product.NORMAL,
+                                         sale_product=saleproduct_id,
+                                         outer_id__iendswith='1'
+                                         ).first()
+        if product and hasattr(product, 'details'):
+            note = product.details.note
+        return Response({'note': note})
+
+    def post(self, request):
+        saleproduct_id = int(request.POST['saleproduct_id'])
+        note = request.POST.get('note') or ''
+        if not note:
+            return Response({})
+        for product in Product.objects.filter(status=Product.NORMAL,
+                                              sale_product=saleproduct_id):
+            if hasattr(product, 'details'):
+                product.details.note = note
+                product.details.save()
+        return Response({})

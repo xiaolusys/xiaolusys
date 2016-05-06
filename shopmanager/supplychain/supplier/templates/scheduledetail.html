@@ -128,6 +128,12 @@
                 {{value}}
             </a>
         </script>
+        <script id="name-tpl" type="text/html">
+            {{name}}<br>
+            <a href="javascript:;" class="product-name" data-sale-product-id="{{sale_product_id}}">
+                备注
+            </a>
+        </script>
         {% endverbatim %}
         <div class="modal fade" id="modal-collect-num" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg">
@@ -141,8 +147,8 @@
                         <table id="collect-nums" class="display"></table>
                     </div>
                 </div>
-            </div><!-- modal-dialog -->
-        </div><!-- modal -->
+            </div>
+        </div>
         <div class="modal fade" id="modal-remain-num" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -155,8 +161,21 @@
                         <table id="remain-nums" class="display"></table>
                     </div>
                 </div>
-            </div><!-- modal-dialog -->
-        </div><!-- modal -->
+            </div>
+        </div>
+        <div class="modal fade" id="modal-note" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <textarea id="note" rows="20" style="width:100%"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="save-note">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <script>
          function parseUrlParams(myUrl) {
              var vars = [], hash;
@@ -252,7 +271,10 @@
                          return type == 'display' && data ?
                                 template('sale-product-tpl', {sale_product_id: full.sale_product_id, value: data}) : data;
                      }},
-                     {data: 'name', width: '350px', title: '款式名'},
+                     {data: 'name', width: '350px', title: '款式名', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('name-tpl', {sale_product_id: full.sale_product_id, name: data}) : data;
+                     }},
                      {data: 'level_1_category_name', title: '一级分类'},
                      {data: 'level_2_category_name', title: '二级分类'},
                      {data: 'supplier_id', width: '180px', title: '供应商', render: function(data, type, full, meta){
@@ -420,6 +442,22 @@
                  });
              }
 
+             function onNoteClick(){
+                 var $this = $(this);
+                 var sale_product_id = parseInt($this.attr('data-sale-product-id'));
+                 $('#modal-note').data('sale_product_id', sale_product_id);
+                 $.ajax({
+                     url: '/supplychain/supplier/saleproduct_note',
+                     type: 'get',
+                     dataType: 'json',
+                     data: {saleproduct_id: sale_product_id},
+                     success: function(result){
+                         $('#note').val(result.note);
+                         $('#modal-note').modal('show');
+                     }
+                 });
+             }
+
              mainEditor.on('postEdit', function(e, json, data){
                  var schedule_detail_id = json.data[0].schedule_detail_id - 0;
                  //重新绑定事件
@@ -442,6 +480,7 @@
                      trigger: 'hover',
                      content: '取的是各款中的最小值, 双击可以批量修改'
                  });
+                 $('a.product-name').click(onNoteClick);
              });
              $('#main-table').on('dblclick', 'tbody td.editable', function(el){
                  mainEditor.inline(this);
@@ -452,6 +491,20 @@
              $('#modal-remain-num').on('hidden.bs.modal', function(e){
                  if(remainNumIsDirty)
                      window.location.reload();
+             });
+
+             $('#save-note').click(function(){
+                 var note = $('#note').val() || '';
+                 var sale_product_id = $('#modal-note').data('sale_product_id');
+                 $.ajax({
+                     url: '/supplychain/supplier/saleproduct_note/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {saleproduct_id: sale_product_id, note: note},
+                     success: function(result){
+                         $('#modal-note').modal('hide');
+                     }
+                 });
              });
          });
         </script>
