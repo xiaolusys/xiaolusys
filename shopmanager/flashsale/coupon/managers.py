@@ -323,7 +323,7 @@ class UserCouponManager(BaseManager):
 
     def create_active_share_coupon(self, buyer_id, template_id, share_uniq_id=None, ufrom=None, **kwargs):
         """
-        创建订单分享优惠券
+        创建活动分享优惠券
         # 如果是分享类型 判断批次领取
         share_uniq_id: 活动id + customer (一个用户 一个活动只能参加一次)
         """
