@@ -1469,13 +1469,15 @@ class PackageOrder(models.Model):
             self.save()
 
     @staticmethod
-    def create(id, sale_trade):
+    def create(id, sale_trade, sys_status=None):
         package_order = PackageOrder(id=id)
         buyer_id, address_id, ware_by_id, order = id.split('-')
         package_order.buyer_id = int(buyer_id)
         package_order.user_address_id = int(address_id)
         package_order.ware_by = int(ware_by_id)
         package_order.copy_order_info(sale_trade)
+        if sys_status:
+            package_order.sys_status = sys_status
         package_order.sku_num = 1
         package_order.save()
         return package_order

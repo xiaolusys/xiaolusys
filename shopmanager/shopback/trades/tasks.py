@@ -997,7 +997,8 @@ def task_update_package_order(instance):
                 package_order = PackageOrder.objects.filter(id=package_order_id).first()
                 new_create = not package_order
                 if new_create:
-                    package_order = PackageOrder.create(package_order_id, sale_trade)
+                    package_order = PackageOrder.create(package_order_id, sale_trade,
+                                                        sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
                     PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order.id)
                 else:
                     PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
