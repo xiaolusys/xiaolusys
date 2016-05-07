@@ -1900,6 +1900,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if not inbound:
             return Response({'error': '找不到入仓单'})
 
+        if inbound.status != InBound.PENDING:
+            return Response({'error': '只能分配待处理入仓单'})
+
         outer_ids = set()
         inbounddetails_dict = {}
         for sku_id, sku_dict in skus_dict.iteritems():
@@ -2398,7 +2401,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     sku.save()
                     log_action(request.user.id, sku, CHANGE, u'修改入仓单%d: 更新库存%+d' % (inbound.id, 0 - record.arrival_quantity))
                 if record.inferior_quantity:
-                    orderdetail.inferior -= record.inferior_quantity
+                    orderdetail.inferior_quantity -= record.inferior_quantity
                     orderdetail.save()
                     log_action(request.user.id, orderdetail, CHANGE, u'修改入仓单%d: 更新次品数%+d' % (inbound.id, record.inferior_quantity))
                 orderlist_ids.add(orderdetail.orderlist_id)

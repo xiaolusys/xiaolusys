@@ -139,21 +139,21 @@
                             <th width="200px">商品名</th>
                             <th>商品ID</th>
                             <th>编码</th>
-                            <th width="120px">所属仓库</th>
-                            <th width="125px">图片</th>
+                            <th>所属仓库</th>
+                            <th>图片</th>
                             <th>SkuID</th>
                             <th>尺寸</th>
                             <th>条码</th>
                             <th>正品</th>
                             <th>次品</th>
                             <th>库位</th>
-                            <th width="50px">操作</th>
+                            <th>操作</th>
                         </tr>
                         {% for product in products %}
                         {% for sku in product.skus %}
                         <tr class="sku" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}">
                             {% if forloop.first %}
-                            <td rowspan="{{product.skus|length}}">{{product.name}}</td>
+                            <td rowspan="{{product.skus|length}}" style="min-width:150px">{{product.name}}</td>
                             <td rowspan="{{product.skus|length}}">
                                 <a href="/items/product/district/{{product.id}}/" target="_blank" title="商品库位">
                                     {{product.id}}
@@ -164,7 +164,7 @@
                                     {{product.outer_id}}
                                 </a>
                             </td>
-                            <td rowspan="{{product.skus|length}}">
+                            <td rowspan="{{product.skus|length}}" style="min-width:115px">
                                 <select class="ware-select form-control" data-product-id="{{product.id}}">
                                     {% for warehouse in warehouses %}
                                     <option value="{{warehouse.value}}"{% if product.ware_by == warehouse.value %} selected{% endif %}>{{warehouse.text}}</option>
@@ -465,10 +465,10 @@
                          dataType: 'json',
                          success: function(result){
                              if(result.error){
-                                 tip(result.error, 'error');
+                                 swal('错误', result.error, 'error');
                              }
                              else{
-                                 tip('作废成功', 'information');
+                                 swal('成功', '', 'success');
                                  updateInboundStatus(INVALID);
                              }
                          }
@@ -721,7 +721,7 @@
                              swal('错误', result.error, 'error');
                          }
                          else{
-                             swal('成功', '备注已更新', 'success');
+                             swal('成功', '备注和库位已更新', 'success');
                          }
                      }
                  });

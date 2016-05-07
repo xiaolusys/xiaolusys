@@ -73,7 +73,28 @@
         <table>
             <tr id="order">
                 <td style="width:24%">
-                    <h2>订单</h2>
+                    <h2>后台订单</h2>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-ss-delay">1</em></p>
+                    <p>超过十五天未关闭</p>
+                </td>
+                <td style="width:19%;">
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-delay">1</em></p>
+                    <p>超过三天未关闭</p>
+                </td>
+                <td style="width:19%">
+                    <p><em class="n-total">1</em></p>
+                    <p>总计</p>
+                </td>
+            </tr>
+            <tr id="saleorder">
+                <td style="width:24%">
+                    <h2>用户订单</h2>
                 </td>
                 <td style="width:19%">
                     <p><em class="n-ss-delay">1</em></p>
@@ -221,6 +242,7 @@
          }
          $(function(){
              _.delay(reload, 10, 1, '#order');
+             _.delay(reload, 10, 5, '#saleorder');
              _.delay(reload, 10, 2, '#refund');
              _.delay(reload, 10, 3, '#return');
              _.delay(reload, 10, 4, '#dinghuo');
