@@ -323,6 +323,18 @@ FLASHSALE_COUPON_ROUTES = {
         'queue': 'coupon',
         'routing_key': 'coupon.task_update_coupon_use_count',
     },
+    'flashsale.coupon.tasks.task_release_coupon_for_order': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_release_coupon_for_order',
+    },
+    'flashsale.coupon.tasks.task_freeze_coupon_by_refund': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_freeze_coupon_by_refund',
+    },
+    'flashsale.coupon.tasks.task_release_mama_link_coupon': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_release_mama_link_coupon',
+    },
 }
 
 CELERY_ROUTES = {
@@ -756,7 +768,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时更新用户优惠券状态': {
-        'task': 'flashsale.pay.tasks.task_Update_CouponPoll_Status',
+        'task': 'flashsale.coupon.tasks.task_update_user_coupon_status_2_past',
         'schedule': crontab(minute="15", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
