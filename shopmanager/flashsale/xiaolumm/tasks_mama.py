@@ -275,6 +275,7 @@ def task_order_trigger(sale_order):
 
     #carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level, payment=payment)
     carry_amount = carry_scheme.calculate_carry(agency_level, payment)
-
+    logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
+    
     task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
                                  carry_scheme.name, via_app)
