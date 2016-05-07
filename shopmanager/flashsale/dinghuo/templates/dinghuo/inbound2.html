@@ -197,6 +197,7 @@
                                     <img src="{{product.pic_path}}?imageView2/0/w/120" style="display:block" data-pic-path="{{product.pic_path}}" width="120px">
                                     <input type="radio" name="pics" value="{{product.id}}">
                                     {{product.name}}({{product.saleproduct_id}})
+                                    <br>
                                     {% for sku in product.skus %}
                                     {{sku.properties_name}}
                                     {% endfor %}
@@ -234,10 +235,10 @@
         <script id="inbound" type="text/html">
             <table class="table table-striped" style="width:85%;">
                 <tr>
-                    <th width="200px">商品名</th>
+                    <th>商品名</th>
                     <th>商品ID</th>
                     <th>编码</th>
-                    <th width="120px">所属仓库</th>
+                    <th>所属仓库</th>
                     <th>图片</th>
                     <th>SkuId</th>
                     <th>尺寸</th>
@@ -245,13 +246,13 @@
                     <th>正品</th>
                     <th>次品</th>
                     <th>库位</th>
-                    <th width="70px">操作</th>
+                    <th>操作</th>
                 </tr>
                 {{each products as product i}}
                 {{each product.skus as sku j}}
                 <tr class="sku" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}">
                     {{if j == 0}}
-                    <td rowspan="{{product.skus.length}}">{{product.name}}</td>
+                    <td rowspan="{{product.skus.length}}" style="min-width:150px">{{product.name}}</td>
                     <td rowspan="{{product.skus.length}}">
                         <a href="/items/product/district/{{product.id}}/" target="_blank" title="商品库位">
                             {{product.id}}
@@ -262,7 +263,7 @@
                             {{product.outer_id}}
                         </a>
                     </td>
-                    <td rowspan="{{product.skus.length}}">
+                    <td rowspan="{{product.skus.length}}" style="min-width:115px">
                         <select class="ware-select form-control" data-product-id="{{product.id}}">
                             {{each warehouses as warehouse}}
                             <option value="{{warehouse.value}}"{{if product.ware_by == warehouse.value }} selected{{/if}}>{{warehouse.text}}</option>
