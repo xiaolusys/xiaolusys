@@ -260,7 +260,7 @@ def task_order_trigger(sale_order):
     if not mm_linkid_mama:
         return
 
-    payment = sale_order.payment * 100
+    payment = sale_order.payment 
 
     from shopback.items.models import Product
     products = Product.objects.filter(id=sale_order.item_id)
