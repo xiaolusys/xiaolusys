@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import jsonfield.fields
+import flashsale.pay.models
 
 
 class Migration(migrations.Migration):
@@ -15,6 +17,11 @@ class Migration(migrations.Migration):
             model_name='saleorder',
             name='buyer_id',
             field=models.BigIntegerField(default=0, verbose_name='\u4e70\u5bb6ID', db_index=True),
+        ),
+        migrations.AddField(
+            model_name='saleorder',
+            name='extras',
+            field=jsonfield.fields.JSONField(default=flashsale.pay.models.default_extras, verbose_name='\u9644\u52a0\u4fe1\u606f', blank=True),
         ),
         migrations.AlterField(
             model_name='activityentry',

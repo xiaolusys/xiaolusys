@@ -63,6 +63,9 @@ class SaleOrderAdmin(admin.ModelAdmin):
     show_trade.allow_tags = True
     show_trade.short_description = '订单ID'
 
+    def get_readonly_fields(self, request, obj=None):
+        return  self.readonly_fields + ('sale_trade', 'oid' , 'buyer_id')
+
 admin.site.register(SaleOrder, SaleOrderAdmin)
 
 

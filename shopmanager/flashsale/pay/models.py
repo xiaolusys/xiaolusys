@@ -465,6 +465,9 @@ signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 def default_oid():
     return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
 
+def default_extras():
+    return {'logistics':{},
+            }
 
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
@@ -540,6 +543,7 @@ class SaleOrder(PayBaseModel):
 
     status = models.IntegerField(choices=ORDER_STATUS, default=TRADE_NO_CREATE_PAY,
                                  db_index=True, blank=True, verbose_name=u'订单状态')
+    extras = JSONCharMyField(blank=True, default=default_extras, verbose_name=u'附加信息')
 
     def __unicode__(self):
         return '<%s>' % (self.id)
