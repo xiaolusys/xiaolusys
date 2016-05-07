@@ -72,8 +72,8 @@ class UserCouponAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'title', "customer_id", 'status', "uniq_id", 'finished_time', 'expires_time')
 
-    list_filter = ('coupon_type', )
-    search_fields = ['=id', '=template_id']
+    list_filter = ('coupon_type', 'status', 'expires_time', 'finished_time')
+    search_fields = ['=id', '=template_id', '=customer_id']
     date_hierarchy = 'created'
 
 
