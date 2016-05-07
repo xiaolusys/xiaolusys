@@ -107,9 +107,9 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         lesson_id = content.get("lesson_id")
         if lesson_id:
-            return self.queryset.filter(id=lesson_id, status=Lesson.STATUS_EFFECT)
+            return self.queryset.filter(id=lesson_id)
         
-        return self.queryset
+        return self.queryset.filter(status=Lesson.STATUS_EFFECT)
     
     def list(self, request, *args, **kwargs):
         query_set = self.get_queryset(request)
