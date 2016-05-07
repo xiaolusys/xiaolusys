@@ -1,5 +1,5 @@
 # coding=utf-8
-
+import datetime
 from celery.task import task
 from django.db.models import F
 
@@ -32,6 +32,8 @@ def task_update_coupon_use_count(coupon):
     1. count the CouponTemplate 'has_used_count' field when use coupon
     2. count the OrderShareCoupon 'has_used_count' field when use coupon
     """
+    coupon.finished_time = datetime.datetime.now()  # save the finished time
+    coupon.save(update_fields=['finished_time'])
     tpl = coupon.self_template()
     tpl.has_used_count = F('has_used_count') + 1
     tpl.save(update_fields=['has_used_count'])

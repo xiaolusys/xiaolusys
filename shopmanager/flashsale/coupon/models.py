@@ -12,7 +12,7 @@ from flashsale.pay.options import uniqid
 from core.models import BaseModel
 from core.fields import JSONCharMyField
 from flashsale.coupon.managers import UserCouponManager
-from  managers import OrderShareCouponManager
+from managers import OrderShareCouponManager
 
 
 def default_template_extras():
@@ -423,6 +423,7 @@ class UserCoupon(BaseModel):
     def use_coupon(self):
         """ 使用优惠券 """
         from flashsale.coupon.tasks import task_update_coupon_use_count
+
         coupon = self.__class__.objects.get(id=self.id)
         coupon.coupon_basic_check()  # 基础检查
         coupon.status = self.USED
