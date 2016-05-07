@@ -65,7 +65,8 @@ class ProductStock(object):
         product_sku = ProductSku.objects.get(id=orderdetail.chichu_id)
         product_sku.quantity += num
         product_sku.save()
-        orderdetail.save()
+        from flashsale.dinghuo.models import OrderDetail
+        OrderDetail.objects.get(id=orderdetail.id).save()
         # p = ProductSku.objects.get(id=orderdetail.chichu_id)
         # p.quantity =
 
