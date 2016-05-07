@@ -44,7 +44,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
     mama_id = parent_mama_id
     order_id = order_carry.order_id
     order_value = order_carry.order_value
-    carry_num = order_carry.carry_num * 0.1  # 10 percent carry
+    carry_num = order_carry.carry_num * 0.2  # 20 percent carry
 
     sku_name = order_carry.sku_name
     sku_img = order_carry.sku_img
@@ -274,7 +274,11 @@ def task_order_trigger(sale_order):
     agency_level = mm_linkid_mama.agencylevel
 
     #carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level, payment=payment)
-    carry_amount = carry_scheme.calculate_carry(agency_level, payment)
+    carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100
+
+    if via_app:
+        carry_amount = int(carry_amount * 1.2) # 20 percent boost for app orders
+        
     logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
     
     task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
