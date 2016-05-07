@@ -53,6 +53,16 @@ def check_template_release_nums(tpl, template_id):
     return coupons, 0, u"优惠券有存量"
 
 
+def check_saletrade(trade_id):
+    """ 检查交易 """
+    from flashsale.pay.models import SaleTrade
+
+    trade = SaleTrade.objects.filter(id=trade_id).first()
+    if trade is None:  # 没有该订单存在
+        return None, 8, u'绑定订单不存在'
+    return trade, 0, u"订单id正确"
+
+
 def calculate_value_and_time(tpl):
     """
     计算发放优惠券价值和开始使用时间和结束时间
@@ -65,13 +75,13 @@ def calculate_value_and_time(tpl):
     start_use_time = datetime.datetime.now()
     if tpl.is_flextime:  # 如果是弹性时间
         # 断言设置弹性时间的时候 仅仅设置一个 定制日期  否则报错
-        AssertionError(tpl.limit_after_release_days == 0 or tpl.use_after_release_days == 0)
+        assert (tpl.limit_after_release_days == 0 or tpl.use_after_release_days == 0)
         if tpl.limit_after_release_days:  # 发放后多少天内可用 days 使用时间即 领取时间 过期时间为领取时间+ days
             expires_time = start_use_time + datetime.timedelta(days=tpl.limit_after_release_days)
         if tpl.use_after_release_days:  # 发放多少天后可用 即开始时间 为 模板开始发放的时间+use_after_release_days
             start_use_time = start_use_time + datetime.timedelta(days=tpl.use_after_release_days)
             expires_time = tpl.use_deadline
-        AssertionError(start_use_time < expires_time)  # 断言开始时间 < 结束时间
+        assert (start_use_time < expires_time)  # 断言开始时间 < 结束时间
 
     return value, start_use_time, expires_time
 
@@ -156,6 +166,11 @@ class UserCouponManager(BaseManager):
         trade_id = trade_id or ''
         if not (buyer_id and template_id and trade_id):
             return None, 7, u'没有发放'
+
+        trade, code, trade_msg = check_saletrade(trade_id=trade_id)  # 交易id检查
+        if trade is None:
+            return None, code, trade_msg
+
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
@@ -176,6 +191,7 @@ class UserCouponManager(BaseManager):
                                         coupon_type=tpl.coupon_type,
                                         customer_id=int(buyer_id),
                                         value=value,
+                                        trade_tid=trade.tid,
                                         start_use_time=start_use_time,
                                         expires_time=expires_time,
                                         ufrom=ufrom,
@@ -190,16 +206,15 @@ class UserCouponManager(BaseManager):
         创建下单优惠券
         """
         from flashsale.coupon.models import UserCoupon, CouponTemplate
-        from flashsale.pay.models import SaleTrade
 
         ufrom = ufrom or ''
         trade_id = trade_id or ''
         if not (buyer_id and template_id and trade_id):
             return None, 7, u'没有发放'
 
-        trade = SaleTrade.objects.filter(id=trade_id).first()
-        if trade is None:  # 没有该订单存在
-            return None, 8, u'绑定订单不存在'
+        trade, code, trade_msg = check_saletrade(trade_id=trade_id)  # 交易id检查
+        if trade is None:
+            return None, code, trade_msg
 
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
@@ -237,15 +252,15 @@ class UserCouponManager(BaseManager):
         这里计算领取数量(默认能领取多张 填写 uniq_id的张数内容)
         """
         from flashsale.coupon.models import UserCoupon, CouponTemplate
-        from flashsale.pay.models import SaleTrade
 
         ufrom = ufrom or ''
         trade_id = trade_id or ''
         if not (buyer_id and template_id and trade_id):
             return None, 7, u'没有发放'
-        trade = SaleTrade.objects.filter(id=trade_id).first()
-        if trade is None:  # 没有该订单存在
-            return None, 8, u'绑定订单不存在'
+
+        trade, code, trade_msg = check_saletrade(trade_id=trade_id)  # 交易id检查
+        if trade is None:
+            return None, code, trade_msg
 
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
