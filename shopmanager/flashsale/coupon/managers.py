@@ -76,9 +76,9 @@ def calculate_value_and_time(tpl):
     return value, start_use_time, expires_time
 
 
-def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_id=None):
+def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id=None):
     """
-    生成 uniq_id: template.id + template.coupon_type + customer_id +
+    生成 uniq_id: template.id + template.coupon_type + customer_id + X
     """
     from flashsale.coupon.models import CouponTemplate
 
@@ -95,8 +95,8 @@ def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_id=None)
     elif tpl.coupon_type == CouponTemplate.TYPE_MAMA_INVITE and trade_id:  # 推荐专享 4
         uniqs.append(str(trade_id))  # 一个专属链接可以有多个订单
 
-    elif tpl.coupon_type == CouponTemplate.TYPE_COMPENSATE and refund_id:  # 售后补偿 5
-        uniqs.append(str(refund_id))
+    elif tpl.coupon_type == CouponTemplate.TYPE_COMPENSATE and refund_trade_id:  # 售后补偿 5
+        uniqs.append(str(refund_trade_id))
 
     elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE and share_id:  # 活动分享 6
         uniqs.append(str(share_id))
@@ -190,11 +190,17 @@ class UserCouponManager(BaseManager):
         创建下单优惠券
         """
         from flashsale.coupon.models import UserCoupon, CouponTemplate
+        from flashsale.pay.models import SaleTrade
 
         ufrom = ufrom or ''
         trade_id = trade_id or ''
         if not (buyer_id and template_id and trade_id):
             return None, 7, u'没有发放'
+
+        trade = SaleTrade.objects.filter(id=trade_id).first()
+        if trade is None:  # 没有该订单存在
+            return None, 8, u'绑定订单不存在'
+
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
@@ -215,6 +221,7 @@ class UserCouponManager(BaseManager):
                                         coupon_type=tpl.coupon_type,
                                         customer_id=int(buyer_id),
                                         value=value,
+                                        trade_tid=trade.tid,
                                         start_use_time=start_use_time,
                                         expires_time=expires_time,
                                         ufrom=ufrom,
@@ -224,17 +231,22 @@ class UserCouponManager(BaseManager):
         tasks.task_update_tpl_released_coupon_nums.delay(tpl)
         return cou, 0, u"领取成功"
 
-    def create_refund_post_coupon(self, buyer_id, template_id, refund_id=None, ufrom=None, **kwargs):
+    def create_refund_post_coupon(self, buyer_id, template_id, trade_id=None, ufrom=None, **kwargs):
         """
         创建退货补贴邮费优惠券
         这里计算领取数量(默认能领取多张 填写 uniq_id的张数内容)
         """
         from flashsale.coupon.models import UserCoupon, CouponTemplate
+        from flashsale.pay.models import SaleTrade
 
         ufrom = ufrom or ''
-        refund_id = refund_id or ''
-        if not (buyer_id and template_id and refund_id):
+        trade_id = trade_id or ''
+        if not (buyer_id and template_id and trade_id):
             return None, 7, u'没有发放'
+        trade = SaleTrade.objects.filter(id=trade_id).first()
+        if trade is None:  # 没有该订单存在
+            return None, 8, u'绑定订单不存在'
+
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
@@ -248,12 +260,13 @@ class UserCouponManager(BaseManager):
             return coupons, code, tpl_n_msg
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
-        uniq_id = make_uniq_id(tpl, customer.id, refund_id=refund_id)
+        uniq_id = make_uniq_id(tpl, customer.id, refund_trade_id=trade_id)
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.create(template_id=int(template_id),
                                         title=tpl.title,
                                         coupon_type=tpl.coupon_type,
                                         customer_id=int(buyer_id),
+                                        trade_tid=trade.tid,
                                         value=value,
                                         start_use_time=start_use_time,
                                         expires_time=expires_time,
