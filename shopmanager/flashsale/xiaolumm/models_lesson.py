@@ -110,7 +110,7 @@ class Lesson(BaseModel):
     # uni_key: lesson_topic_id + instructor_id + start_time
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     
-    status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
+    status = models.IntegerField(db_index=True, default=1, choices=STATUS_TYPES, verbose_name=u'状态')
 
     @property
     def status_display(self):
