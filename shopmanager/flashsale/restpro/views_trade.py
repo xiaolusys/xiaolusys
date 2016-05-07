@@ -729,9 +729,19 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         update_model_fields(sale_trade, update_fields=['charge'])
         return charge
 
+    def get_mama_referal_params(self, request):
+        form = request.REQUEST
+        mama_linkid = form.get('mm_linkid', None)
+        ufrom = form.get('ufrom', '0')
+        if not mama_linkid:
+            cookies = request.COOKIES
+            mama_linkid = cookies.get('mm_linkid', 0)
+            ufrom = cookies.get('ufrom', '')
+        return {'mama_linkid':mama_linkid, 'ufrom':ufrom}
+
     @rest_exception(errmsg=u'特卖订单创建异常')
     @transaction.atomic
-    def create_Saletrade(self, form, address, customer):
+    def create_Saletrade(self, request, form, address, customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
@@ -769,11 +779,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'charge': '',
                 'status': SaleTrade.WAIT_BUYER_PAY,
                 'openid': buyer_openid,
-                'extras_info': {'mm_linkid': form.get('mm_linkid', '0'),
-                                'ufrom': form.get('ufrom', ''),
-                                'coupon': form.get('coupon_id', ''),
-                                'pay_extras': pay_extras}
+                'extras_info': {'coupon': form.get('coupon_id', ''),
+                                'pay_extras': pay_extras }
             })
+            params['extras_info'].update(self.get_mama_referal_params(request))
         for k, v in params.iteritems():
             hasattr(sale_trade, k) and setattr(sale_trade, k, v)
         sale_trade.save()
@@ -944,7 +953,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')
 
-        sale_trade, state = self.create_Saletrade(CONTENT, address, customer)
+        sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer)
         if state:
             self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         # 使用优惠券，并修改状态
@@ -1022,7 +1031,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             lock_success = Product.objects.lockQuantity(product_sku, sku_num)
             if not lock_success:
                 raise exceptions.APIException(u'商品库存不足')
-            sale_trade, state = self.create_Saletrade(CONTENT, address, customer)
+            sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer)
             if state:
                 self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
         except exceptions.APIException, exc:

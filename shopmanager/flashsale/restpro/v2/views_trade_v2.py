@@ -5,6 +5,7 @@ import pingpp
 import urlparse
 
 from django.db import models
+from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -203,7 +204,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         channel       = sale_trade.channel
         
         urows = UserBudget.objects.filter(user=buyer, amount__gte=payment)
-        logger.info('budget charge:saletrade=%s, updaterows=%d'%(sale_trade, urows))
+        logger.info('budget charge:uid=%s, tid=%s, payment=%.2f'%(sale_trade.buyer_id, sale_trade.tid, payment))
         if not urows.exists():
             raise Exception(u'小鹿钱包余额不足')
         
@@ -258,9 +259,19 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sale_trade.charge = charge.id
         update_model_fields(sale_trade,update_fields=['charge'])
         return charge
-    
+
+    def get_mama_referal_params(self, request):
+        form = request.REQUEST
+        mama_linkid = form.get('mm_linkid', None)
+        ufrom = form.get('ufrom', '0')
+        if not mama_linkid:
+            cookies = request.COOKIES
+            mama_linkid = cookies.get('mm_linkid', 0)
+            ufrom = cookies.get('ufrom', '')
+        return {'mama_linkid': mama_linkid, 'ufrom': ufrom}
+
     @transaction.atomic
-    def create_Saletrade(self,form,address,customer):
+    def create_Saletrade(self, request, form, address, customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
@@ -301,11 +312,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'charge':'',
                 'status':SaleTrade.WAIT_BUYER_PAY,
                 'openid':buyer_openid,
-                'extras_info':{'mm_linkid':form.get('mm_linkid','0'),
-                               'ufrom':form.get('ufrom',''),
-                               'coupon': coupon_id,
+                'extras_info':{'coupon': coupon_id,
                                'pay_extras':pay_extras}
                 })
+            params['extras_info'].update(self.get_mama_referal_params(request))
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)
         sale_trade.save()
@@ -616,7 +626,33 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             response_charge = self.pingpp_charge(instance)
         log_action(request.user.id, instance, CHANGE, u'重新支付')
         return Response({'code':0,'info':'success','charge':response_charge})
-    
+
+    @detail_route(methods=['post'])
+    def charge(self, request, *args, **kwargs):
+        """ 待支付订单支付 """
+        _errmsg = {SaleTrade.WAIT_SELLER_SEND_GOODS: u'订单无需重复付款',
+                   SaleTrade.TRADE_CLOSED_BY_SYS: u'订单已关闭或超时',
+                   'default': u'订单不在可支付状态'}
+
+        instance = self.get_object()
+        if instance.status != SaleTrade.WAIT_BUYER_PAY:
+            return Response({'code': 1, 'info': _errmsg.get(instance.status, _errmsg.get('default'))})
+
+        if not instance.is_payable():
+            return Response({'code': 2, 'info': _errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS)})
+
+        if instance.channel == SaleTrade.WALLET:
+            # 小鹿钱包支付
+            response_charge = self.wallet_charge(instance)
+        elif instance.channel == SaleTrade.BUDGET:
+            # 小鹿钱包
+            response_charge = self.budget_charge(instance)
+        else:
+            # pingpp 支付
+            response_charge = self.pingpp_charge(instance)
+        log_action(request.user.id, instance, CHANGE, u'重新支付')
+        return Response({'code': 0, 'info': 'success', 'charge': response_charge})
+
     def perform_destroy(self, instance):
         # 订单不在 待付款的 或者不在创建状态
         instance.close_trade()
@@ -627,4 +663,55 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, instance, CHANGE, u'通过接口程序－取消订单')
         return Response(data={"ok": True})
     
-    
+class SaleOrderViewSet(viewsets.ModelViewSet):
+    """
+    ###特卖订单明细REST API接口：
+    """
+    queryset = SaleOrder.objects.all()
+    serializer_class = serializers.SaleOrderSerializer  # Create your views here.
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_queryset(self, trade_id=None, *args, **kwargs):
+        """
+        获取订单明细QS
+        """
+        assert self.queryset is not None, (
+            "'%s' should either include a `queryset` attribute, "
+            "or override the `get_queryset()` method."
+            % self.__class__.__name__
+        )
+
+        queryset = self.queryset.filter(sale_trade=trade_id)
+        if isinstance(queryset, QuerySet):
+            # Ensure queryset is re-evaluated on each request.
+            queryset = queryset.all()
+        return queryset
+
+    def list(self, request, trade_id, *args, **kwargs):
+        """
+        获取用户订单列表
+        """
+        queryset = self.filter_queryset(self.get_queryset(trade_id=trade_id))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=['post'])
+    def confirm_sign(self, request, pk=None, *args, **kwargs):
+        instance = self.queryset.get(id=pk)
+        instance.confirm_sign_order()
+        log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
+        return Response({"ok": True})
+
+    @detail_route(methods=['post'])
+    def remind_send(self, request, pk=None, *args, **kwargs):
+        instance = self.queryset.get(id=pk)
+        instance.confirm_sign_order()
+        log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
+        return Response({"ok": True})

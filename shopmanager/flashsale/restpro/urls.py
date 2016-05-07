@@ -153,7 +153,9 @@ v2_router.register(r'modelproducts', views_mama_v2.ModelProductViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += ([
-
+    url(r'^trades/(?P<trade_id>[0-9]+)/orders/details$',
+        views_trade.SaleOrderViewSet.as_view({'get': 'details'}),
+        name='saleorder-details'),
 ])
 
 

@@ -506,11 +506,15 @@ class ClickLogView(WeixinAuthMixin, View):
         # print 'next_page:', next_page
         # logger.error('next_page %s-path:%s' % (next_page, content))
         if not self.is_from_weixin(request):
+            ufrom  = 'web'
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             if next_page:
-                share_url = '{site_url}{next}&ufrom={ufrom}'.format(site_url=settings.M_SITE_URL,
-                                                                    next=next_page, ufrom='web')
-            return redirect(share_url)
+                share_url = urljoin(settings.M_SITE_URL,
+                                    '{next}&ufrom={ufrom}'.format(next=next_page, ufrom=ufrom))
+            response = redirect(share_url)
+            response.set_cookie('mm_linkid', linkid)
+            response.set_cookie('ufrom', ufrom)
+            return response
 
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
         openid, unionid = self.get_openid_and_unionid(request)
@@ -522,21 +526,23 @@ class ClickLogView(WeixinAuthMixin, View):
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WXPAY_APPID),
               ctasks.task_Update_User_Click.s())()
 
+        ufrom = 'wx'
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
         xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
         if xlmms.exists():
-            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id, ufrom='wx')
+            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id, ufrom=ufrom)
         else:
-            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='wx')
+            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom=ufrom)
         if next_page:
             next_page = urllib.unquote(next_page)
-            share_url = '{site_url}{next}&ufrom={ufrom}'.format(site_url=settings.M_SITE_URL,
-                                                                next=next_page,
-                                                                ufrom='wx')
+            share_url = urljoin(settings.M_SITE_URL,
+                                '{next}&ufrom={ufrom}'.format(next=next_page, ufrom=ufrom))
 
         response = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
+        response.set_cookie('mm_linkid',linkid)
+        response.set_cookie('ufrom', ufrom)
         return response
 
 

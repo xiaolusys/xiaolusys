@@ -145,7 +145,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
 
 @task(max_retries=3, default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id, charge_time=None):
-    from shopback.items.models import ProductSku
+    """ 订单确认付款,并更新状态 """
     strade = SaleTrade.objects.get(id=sale_trade_id)
     strade.charge_confirm(charge_time=charge_time)
     saleservice = FlashSaleService(strade)
