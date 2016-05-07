@@ -26,7 +26,7 @@ class CouponTemplateAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'title', 'value', 'is_random_val', 'coupon_type', 'scope_type', 'has_released_count', 'has_used_count',
-        'status')
+        'status', 'release_start_time', 'release_end_time', 'use_deadline')
 
     list_filter = ('coupon_type', 'scope_type', )
     search_fields = ['=id', ]
