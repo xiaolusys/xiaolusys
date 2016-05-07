@@ -272,7 +272,9 @@ def task_order_trigger(sale_order):
 
     carry_scheme = mm_linkid_mama.get_Mama_Order_Rebeta_Scheme(product)
     agency_level = mm_linkid_mama.agencylevel
-    carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level, payment=payment)
+
+    #carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level, payment=payment)
+    carry_amount = carry_scheme.calculate_carry(agency_level, payment)
 
     task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
                                  carry_scheme.name, via_app)
