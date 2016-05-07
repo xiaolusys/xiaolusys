@@ -508,6 +508,8 @@ class SaleOrder(PayBaseModel):
     sale_trade = models.ForeignKey(SaleTrade, related_name='sale_orders',
                                    verbose_name=u'所属订单')
 
+    buyer_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'买家ID')
+
     item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     price = models.FloatField(default=0.0, verbose_name=u'商品单价')
@@ -541,6 +543,12 @@ class SaleOrder(PayBaseModel):
 
     def __unicode__(self):
         return '<%s>' % (self.id)
+
+    def save(self, *args, **kwargs):
+        # if saleorder not set buyer_id, set saletrade buyer_id to it
+        if not self.buyer_id:
+            self.buyer_id = self.sale_trade.buyer_id
+        return super(SaleOrder, self).save(*args, **kwargs)
 
     @property
     def refund(self):

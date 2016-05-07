@@ -662,10 +662,29 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         log_action(request.user.id, instance, CHANGE, u'通过接口程序－取消订单')
         return Response(data={"ok": True})
-    
+
+from flashsale.restpro.views_refund import refund_Handler
+
 class SaleOrderViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单明细REST API接口：
+     - {path}/confirm_sign[.formt]:pingpp创建订单接口
+     - {path}/remind_send[.formt]:pingpp创建订单接口
+     - {path}/undisplay[.formt]:pingpp创建订单接口
+     - {path}/apply_refund[.formt]:申请退款接口
+        > -`id`:sale order id
+        > -`reason`:退货原因
+        > -`num`:退货数量
+        > -`sum_price` 申请金额
+        > -`description`: 申请描述
+        > -`proof_pic`: 佐证图片（字符串格式网址链接，多个使用＇，＇隔开）
+        - - 修改退款单
+        > -`id`: sale order id
+        > -`modify`:   1
+        > -`reason`:   退货原因
+        > -`num`:  退货数量
+        > -`sum_price`:    申请金额
+        > -`description`:  申请描述
     """
     queryset = SaleOrder.objects.all()
     serializer_class = serializers.SaleOrderSerializer  # Create your views here.
@@ -673,27 +692,20 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    def get_queryset(self, trade_id=None, *args, **kwargs):
-        """
-        获取订单明细QS
-        """
-        assert self.queryset is not None, (
-            "'%s' should either include a `queryset` attribute, "
-            "or override the `get_queryset()` method."
-            % self.__class__.__name__
-        )
+    def get_customer(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        return customer
 
-        queryset = self.queryset.filter(sale_trade=trade_id)
-        if isinstance(queryset, QuerySet):
-            # Ensure queryset is re-evaluated on each request.
-            queryset = queryset.all()
-        return queryset
+    def get_owner_queryset(self, request):
+        queryset = self.get_queryset()
+        customer = self.get_customer(request)
+        return queryset.filter(buyer_id=customer.id)
 
-    def list(self, request, trade_id, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         """
         获取用户订单列表
         """
-        queryset = self.filter_queryset(self.get_queryset(trade_id=trade_id))
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -704,14 +716,40 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def confirm_sign(self, request, pk=None, *args, **kwargs):
-        instance = self.queryset.get(id=pk)
+        """ 确认签收 """
+        instance = self.get_object()
         instance.confirm_sign_order()
-        log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
-        return Response({"ok": True})
+        logger.info('user(:%s) confirm sign order(:s)'%(self.get_customer(request), instance.oid))
+
+        return Response({"code":0,"info": "success"})
 
     @detail_route(methods=['post'])
     def remind_send(self, request, pk=None, *args, **kwargs):
-        instance = self.queryset.get(id=pk)
-        instance.confirm_sign_order()
-        log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
-        return Response({"ok": True})
+        """ 提现发货 """
+        instance = self.get_object()
+        # TODO
+        return Response({"code":0,"info": "success"})
+
+    @detail_route(methods=['post'])
+    def undisplay(self, request, pk=None, *args, **kwargs):
+        """ 不显示订单 """
+        instance = self.get_object()
+        # TODO
+        return Response({"code":0,"info": "success"})
+
+    @detail_route(methods=['post'])
+    def apply_refund(self, request, pk=None, *args, **kwargs):
+        """ 申请退款 """
+        instance = self.get_object()
+
+        # 如果Order已经付款 refund_type = BUYER_NOT_RECEIVED
+        # 如果Order 仅仅签收状态才可以退货  refund_type = BUYER_RECEIVED
+        second_kill = instance.second_kill_title()
+        if second_kill:
+            raise exceptions.APIException(u'秒杀商品暂不支持退单，请见谅！')
+        elif instance.status not in (SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.WAIT_SELLER_SEND_GOODS):
+            raise exceptions.APIException(u'订单状态不予退款或退货')
+
+        res = refund_Handler(request)
+        logger.warn('user(:%s) apply refund order(:s)' % (self.get_customer(request), instance.oid))
+        return Response({"code":0,"info": "success"})
