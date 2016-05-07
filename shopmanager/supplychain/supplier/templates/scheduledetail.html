@@ -130,8 +130,9 @@
         </script>
         <script id="name-tpl" type="text/html">
             {{name}}<br>
+            <span class="note" data-sale-product-id="{{sale_product_id}}">{{note}}</span>
             <a href="javascript:;" class="product-name" data-sale-product-id="{{sale_product_id}}">
-                备注
+                修改
             </a>
         </script>
         {% endverbatim %}
@@ -273,7 +274,7 @@
                      }},
                      {data: 'name', width: '350px', title: '款式名', render: function(data, type, full, meta){
                          return type == 'display' && data ?
-                                template('name-tpl', {sale_product_id: full.sale_product_id, name: data}) : data;
+                                template('name-tpl', {sale_product_id: full.sale_product_id, name: data, note: full.note}) : data;
                      }},
                      {data: 'level_1_category_name', title: '一级分类'},
                      {data: 'level_2_category_name', title: '二级分类'},
@@ -502,6 +503,8 @@
                      dataType: 'json',
                      data: {saleproduct_id: sale_product_id, note: note},
                      success: function(result){
+                         var tpl = _.template('span.note[data-sale-product-id="<%= saleProductId %>"]');
+                         $(tpl({saleProductId: sale_product_id})).html(note);
                          $('#modal-note').modal('hide');
                      }
                  });
