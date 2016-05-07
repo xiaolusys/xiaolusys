@@ -1016,6 +1016,7 @@ class ScheduleDetailAPIView(APIView):
                 product_detail, _ = Productdetail.objects.get_or_create(
                     product=product)
                 item['order_weight'] = product_detail.order_weight
+                item['note'] = product_detail.note
 
             for sku in product.prod_skus.filter(status='normal'):
                 collect_num += (sku.quantity or 0)
