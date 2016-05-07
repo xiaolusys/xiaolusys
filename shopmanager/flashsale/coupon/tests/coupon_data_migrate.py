@@ -119,7 +119,10 @@ def migrate_usercoupon_data():
     """ 用户优惠券数据迁移 """
     old_usercoupons = OUC.objects.all()  # 测试使用10条
     for old_coupon in old_usercoupons:
-        old_tpl = old_coupon.cp_id.template  # 使用的老优惠券模板
+        try:
+            old_tpl = old_coupon.cp_id.template  # 使用的老优惠券模板
+        except:
+            continue
         tpl = CouponTemplate.objects.get(id=old_tpl.id)
         # 查找现有的优惠券 如果存在则修改 否则添加
         customer_id = old_coupon.customer
@@ -140,7 +143,6 @@ def migrate_usercoupon_data():
                     try:
                         cou, code, msg = UserCoupon.objects.create_normal_coupon(customer_id, tpl.id)
                         if isinstance(cou, UserCoupon):
-                            print "发放成功:%s-%s" % (cou.get_coupon_type_display(), cou.id)
                             cou.trade_tid = trade_tid
                             cou.save(update_fields=['trade_tid'])
                     except:
@@ -149,25 +151,19 @@ def migrate_usercoupon_data():
                         print(tpl, old_coupon, customer_id, sale_trade)
                         continue
                 if old_coupon.status == OUC.USED:  # 使用了
-                    print "%s ->使用了" % old_coupon.id
                     if isinstance(cou, UserCoupon):
                         cou.use_coupon()
                 elif old_coupon.status == OUC.FREEZE:  # 冻结
-                    print "%s ->冻结了" % old_coupon.id
                     if isinstance(cou, UserCoupon):
                         cou.freeze_coupon()
         else:
             try:
                 cou, code, msg = UserCoupon.objects.create_normal_coupon(customer_id, tpl.id)
                 if old_coupon.status == OUC.USED:  # 使用了
-                    print "%s ->使用了" % old_coupon.id
                     if isinstance(cou, UserCoupon):
-                        print "发放成功:%s-%s" % (cou.get_coupon_type_display(), cou.id)
                         cou.use_coupon()
                 elif old_coupon.status == OUC.FREEZE:  # 冻结
-                    print "%s ->冻结了" % old_coupon.id
                     if isinstance(cou, UserCoupon):
-                        print "发放成功:%s-%s" % (cou.get_coupon_type_display(), cou.id)
                         cou.freeze_coupon()
             except Exception, exc:
                 logger.warn('template is %s, customer is %s, old_coupon is %s , except msg :%s' % (
