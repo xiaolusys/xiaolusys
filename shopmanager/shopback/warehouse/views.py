@@ -71,8 +71,9 @@ class PackagOrderExpressView(APIView):
 
         PackageOrder.objects.filter(pid=package_order_id).update(out_sid=out_sid, is_qrcode=is_qrcode,
                                                                  qrcode_msg=qrcode_msg)
+        package_order = PackageOrder.objects.get(pid=package_order_id)
         from shopback.trades.models import MergeOrder
-        for package_sku_item in PackageSkuItem.objects.filter(package_order_id=package_order_id):
+        for package_sku_item in PackageSkuItem.objects.filter(package_order_id=package_order.id, assign_status=1):
             MergeOrder.objects.filter(sale_order_id=package_sku_item.sale_order_id).update(sys_status=MergeOrder.DELETE)
         return Response({'isSuccess': True})
 
