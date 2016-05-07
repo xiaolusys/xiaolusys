@@ -277,7 +277,7 @@ def task_order_trigger(sale_order):
     carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100
 
     if via_app:
-        carry_amount = int(carry_amount * 1.2) # 20 percent boost for app orders
+        carry_amount = int(carry_amount * 1.1) # 10 percent boost for app orders
         
     logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
     

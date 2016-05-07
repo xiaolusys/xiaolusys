@@ -230,7 +230,7 @@ post_save.connect(carryrecord_update_mamafortune,
 
 
 class OrderCarry(BaseModel):
-    CARRY_TYPES = ((1, u'Web直接订单'), (2, u'App订单+20%'), (3, u'下属订单+20%'),)
+    CARRY_TYPES = ((1, u'Web直接订单'), (2, u'App订单+10%'), (3, u'下属订单+20%'),)
     STATUS_TYPES = ((0, u'待付款'), (1, u'待确定'), (2, u'已确定'), (3, u'买家取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
