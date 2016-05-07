@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect
 
 from core.options import log_action, User, ADDITION, CHANGE
 from core.filters import DateFieldListFilter
+from core.admin import ApproxAdmin
 from .service import FlashSaleService
 from .models import (SaleTrade,
                      SaleOrder,
@@ -48,14 +49,14 @@ class SaleOrderInline(admin.TabularInline):
         return tuple(readonly_fields)
 
 
-class SaleOrderAdmin(admin.ModelAdmin):
+class SaleOrderAdmin(ApproxAdmin):
     list_display = ('id', 'show_trade', 'oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'pay_time',
                     'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
     list_display_links = ('oid',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('sign_time', DateFieldListFilter))
-    search_fields = ['=oid', '=sale_trade__tid', '=outer_id']
+    search_fields = ['=id', '=oid', '=sale_trade__tid', '=sale_trade__receiver_mobile', '=outer_id']
 
     def show_trade(self, obj):
         return '<a href="/admin/pay/saletrade/?id=%(trade_id)d">%(trade_id)d</a>' % {'trade_id': obj.sale_trade_id}
@@ -69,7 +70,7 @@ class SaleOrderAdmin(admin.ModelAdmin):
 admin.site.register(SaleOrder, SaleOrderAdmin)
 
 
-class SaleTradeAdmin(admin.ModelAdmin):
+class SaleTradeAdmin(ApproxAdmin):
     list_display = (
         'id', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
     list_display_links = ('id', 'tid', 'buyer_id')
@@ -144,7 +145,7 @@ class TradeChargeAdmin(admin.ModelAdmin):
 admin.site.register(TradeCharge, TradeChargeAdmin)
 
 
-class RegisterAdmin(admin.ModelAdmin):
+class RegisterAdmin(ApproxAdmin):
     list_display = ('id', 'cus_uid', 'vmobile', 'created', 'modified')
     list_display_links = ('id', 'cus_uid')
     # list_editable = ('update_time','task_type' ,'is_success','status')
@@ -156,7 +157,7 @@ class RegisterAdmin(admin.ModelAdmin):
 admin.site.register(Register, RegisterAdmin)
 
 
-class CustomerAdmin(admin.ModelAdmin):
+class CustomerAdmin(ApproxAdmin):
     list_display = ('id', 'user', 'nick', 'mobile', 'phone', 'unionid', 'created', 'modified', 'status')
     list_display_links = ('id', 'nick',)
 
@@ -170,7 +171,7 @@ class CustomerAdmin(admin.ModelAdmin):
 admin.site.register(Customer, CustomerAdmin)
 
 
-class DistrictAdmin(admin.ModelAdmin):
+class DistrictAdmin(ApproxAdmin):
     list_display = ('id', 'name', 'full_name', 'parent_id', 'grade', 'sort_order')
     search_fields = ['=id', '=parent_id', '^name']
 
@@ -225,7 +226,7 @@ from .filters import Filte_By_Reason
 from .tasks import notifyTradeRefundTask
 
 
-class SaleRefundAdmin(admin.ModelAdmin):
+class SaleRefundAdmin(ApproxAdmin):
     list_display = ('refund_no', 'order_no', 'channel', 'title', 'refund_fee',
                     'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status',
                     'refund_pro_link')
@@ -548,7 +549,7 @@ class BrandProductInline(admin.TabularInline):
 
 
 
-class ModelProductAdmin(admin.ModelAdmin):
+class ModelProductAdmin(ApproxAdmin):
     list_display = ('id', 'name', 'buy_limit', 'per_limit', 'sale_time', 'status')
 
     list_filter = (('sale_time', DateFieldListFilter), 'status',
@@ -620,7 +621,7 @@ class BrandEntryAdmin(admin.ModelAdmin):
 admin.site.register(BrandEntry, BrandEntryAdmin)
 
 
-class BrandProductAdmin(admin.ModelAdmin):
+class BrandProductAdmin(ApproxAdmin):
     list_display = ('id','brand_name', 'product_name', 'product_img', 'product_id', 'start_time', 'end_time')
 
     list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))

@@ -495,7 +495,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             return Response({'code':5, 'info':u'付款方式有误'})
         
-        sale_trade,state = self.create_Saletrade(CONTENT, address, customer)
+        sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
         if state:
             self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         
@@ -575,7 +575,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             lock_success =  Product.objects.lockQuantity(product_sku,sku_num)
             if not lock_success:
                 raise exceptions.APIException(u'商品库存不足')
-            sale_trade,state = self.create_Saletrade(CONTENT, address, customer)
+            sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
             if state:
                 self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
         except exceptions.APIException,exc:

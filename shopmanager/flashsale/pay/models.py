@@ -466,8 +466,7 @@ def default_oid():
     return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
 
 def default_extras():
-    return {'logistics':{},
-            }
+    return { }
 
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
