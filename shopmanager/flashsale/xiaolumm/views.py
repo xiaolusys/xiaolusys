@@ -512,8 +512,6 @@ class ClickLogView(WeixinAuthMixin, View):
                 share_url = urljoin(settings.M_SITE_URL,
                                     '{next}&ufrom={ufrom}'.format(next=next_page, ufrom=ufrom))
             response = redirect(share_url)
-            response.set_cookie('mm_linkid', linkid)
-            response.set_cookie('ufrom', ufrom)
             return response
 
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
@@ -541,8 +539,6 @@ class ClickLogView(WeixinAuthMixin, View):
 
         response = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
-        response.set_cookie('mm_linkid',linkid)
-        response.set_cookie('ufrom', ufrom)
         return response
 
 
