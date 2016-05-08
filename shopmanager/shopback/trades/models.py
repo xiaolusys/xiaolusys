@@ -922,6 +922,13 @@ def refresh_trade_status(sender, instance, *args, **kwargs):
         １，如果订单明细创建时间和付款时间空则使用该笔交易的时间;
         ２，更新有变动交易的字段：[order_num,prod_num,has_refund,has_out_stock,has_rule_match,sys_status];
     """
+    if instance.sys_status==MergeOrder.DELETE:
+        status_list = [m['sys_status'] for m in MergeOrder.objects.filter(merge_trade_id=instance.merge_trade_id).values('sys_status')]
+        if MergeOrder.NORMAL not in status_list:
+            merge_trade = instance.merge_trade
+            merge_trade.sys_status = MergeTrade.INVALID_STATUS
+            merge_trade.save()
+        return
     merge_trade = instance.merge_trade
     update_params = {}
     if not (instance.pay_time and instance.created):
