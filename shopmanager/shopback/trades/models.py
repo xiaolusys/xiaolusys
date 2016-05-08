@@ -1601,7 +1601,7 @@ class PackageSkuItem(BaseModel):
     oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'原单ID')
     num = models.IntegerField(default=0, verbose_name=u'数量')
     package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹码')
-    # package_order_pid = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹ID')
+    package_order_pid = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹ID')
 
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
                                   db_index=True, verbose_name=u'所属仓库')
