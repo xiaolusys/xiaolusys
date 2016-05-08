@@ -268,7 +268,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             cookies = request.COOKIES
             mama_linkid = cookies.get('mm_linkid', 0)
             ufrom = cookies.get('ufrom', '')
-        return {'mama_linkid': mama_linkid, 'ufrom': ufrom}
+        return {'mm_linkid': mama_linkid, 'ufrom': ufrom}
 
     @transaction.atomic
     def create_Saletrade(self, request, form, address, customer):
