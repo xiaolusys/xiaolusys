@@ -32,6 +32,8 @@ class XiaoluMamaManager(BaseManager):
         mm_linkid = 0
         if 'mm_linkid' in extra:
             mm_linkid = int(extra['mm_linkid'] or '0')
+        elif 'mama_linkid' in extra:
+            mm_linkid = int(extra['mama_linkid'] or '0')
         qs = self.filter(id=mm_linkid)
         if qs.exists():
             return qs[0]
