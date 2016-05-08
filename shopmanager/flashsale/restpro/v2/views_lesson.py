@@ -48,7 +48,7 @@ def get_mama_id(user):
 
 
 def get_xiaolu_university_activity_entry():
-    xiaolu_university_activity_id = 6
+    xiaolu_university_activity_id = 7
     records = ActivityEntry.objects.filter(id=xiaolu_university_activity_id)
     if records.count() > 0:
         return records[0]

@@ -277,9 +277,12 @@ def task_order_trigger(sale_order):
     carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100
 
     if via_app:
-        carry_amount = int(carry_amount * 1.1) # 10 percent boost for app orders
+        if self_mama:
+            carry_amount = int(carry_amount * 1.08) # 8 percent boost for app orders
+        else:
+            carry_amount = int(carry_amount * 1.1) # 10 percent boost for app orders
         
-    logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
+    #logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
     
     task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
                                  carry_scheme.name, via_app)
