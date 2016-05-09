@@ -105,7 +105,7 @@ class PackageScanCheckView(APIView):
 
     def get_item_from_package(self, package):
         order_items = []
-        for order in package.package_sku_items:
+        for order in package.package_sku_items.filter(assign_status=1):
             product_sku = order.product_sku
             product = order.product_sku.product
             barcode = product_sku and product_sku.BARCODE or product.BARCODE
