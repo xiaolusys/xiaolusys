@@ -72,7 +72,7 @@ def task_freeze_coupon_by_refund(salerefund):
     """
     - SaleRefund refund signal to drive this task.
     """
-    from flashsale.coupon.models import CouponTemplate, UserCoupon
+    from flashsale.coupon.models import UserCoupon
 
     trade_tid = salerefund.get_tid()
     cous = UserCoupon.objects.filter(trade_tid=trade_tid,
