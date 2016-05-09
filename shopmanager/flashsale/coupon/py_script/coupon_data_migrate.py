@@ -92,6 +92,7 @@ def migrate_template_data():
                 'templates': {'post_img': old_tpl.post_img}  # 优惠券模板
             }
             template = CouponTemplate(
+                id=old_tpl.id,
                 title=old_tpl.title,
                 description=old_tpl.use_notice,
                 value=old_tpl.value,
