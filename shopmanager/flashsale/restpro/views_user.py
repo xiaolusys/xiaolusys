@@ -872,8 +872,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         debug_secret = content.get("debug_secret") or ''
         if debug_secret != "xlmm@16888&a":
-            return Response({"code": 1, "msg": "开启失败"})
-        return Response({"code": 0, "msg": "开启成功"})
+            return Response({"rcode": 1, "msg": "开启失败"})
+        return Response({"rcode": 0, "msg": "开启成功"})
 
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
