@@ -327,7 +327,7 @@ class DistrictSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'url', 'parent_id', 'name', 'grade', 'sort_order')
 
 
-from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
+from flashsale.pay.models_coupon import IntegralLog, Integral
 
 
 class UserIntegralSerializer(serializers.HyperlinkedModelSerializer):
@@ -347,19 +347,6 @@ class UserIntegralLogSerializer(serializers.HyperlinkedModelSerializer):
         'id', 'integral_user', 'mobile', 'order_info', 'log_value', 'log_status', 'log_type', 'in_out', 'created',
         'modified')
 
-
-class UserCouponSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Coupon
-        fields = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified', 'status')
-
-
-class UserCouponPoolSerializer(serializers.ModelSerializer):
-    coupon_title = serializers.CharField(source='get_coupon_type_display', read_only=True)
-
-    class Meta:
-        model = CouponPool
-        fields = ('id', 'deadline', 'coupon_value', 'coupon_type', 'coupon_status', 'coupon_title')
 
 
 class TradeWuliuSerializer(serializers.ModelSerializer):
