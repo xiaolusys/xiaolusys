@@ -152,7 +152,7 @@ def migrate_usercoupon_data():
                         continue
                 if old_coupon.status == OUC.USED:  # 使用了
                     if isinstance(cou, UserCoupon):
-                        cou.use_coupon()
+                        cou.use_coupon(trade.tid)
                 elif old_coupon.status == OUC.FREEZE:  # 冻结
                     if isinstance(cou, UserCoupon):
                         cou.freeze_coupon()
@@ -161,10 +161,11 @@ def migrate_usercoupon_data():
                 cou, code, msg = UserCoupon.objects.create_normal_coupon(customer_id, tpl.id)
                 if old_coupon.status == OUC.USED:  # 使用了
                     if isinstance(cou, UserCoupon):
-                        cou.use_coupon()
+                        logger.warn(u"migrate_usercoupon_data:  cou:%s code:%s msg:%s" % (cou, code, msg))
                 elif old_coupon.status == OUC.FREEZE:  # 冻结
                     if isinstance(cou, UserCoupon):
                         cou.freeze_coupon()
             except Exception, exc:
-                logger.warn('template is %s, customer is %s, old_coupon is %s , except msg :%s' % (
-                    tpl.id, customer_id, old_coupon.id, exc.message))
+                logger.warn(
+                    u'migrate_usercoupon_data: template is %s, customer is %s, old_coupon is %s , except msg :%s' % (
+                        tpl.id, customer_id, old_coupon.id, exc.message))
