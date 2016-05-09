@@ -1306,15 +1306,66 @@ admin.site.register(PackageOrder, PackageOrderAdmin)
 class PackageSkuItemAdmin(admin.ModelAdmin):
     # TODO@HY self.sale_order.sale_trade.buyer_nick写法多次查询数据库，以后可以优化性能
     list_display = (
-        'id', 'sale_order_id', 'oid', 'package_order_id', 'assign_status', 'sys_status', 'pay_time', 'assign_time',
-        'title', 'ware_by', 'sku_id', 'outer_id', 'outer_sku_id', 'num', 'price', 'total_fee', 'payment',
-        'discount_fee', 'adjust_fee')
+        'id', 'sale_order_link_to', 'oid', 'package_order_id', 'package_order_link_to', 'assign_status', 'sys_status',
+        'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id', 'sku_link_to', 'num', 'price',
+        'total_fee', 'payment', 'discount_fee', 'adjust_fee')
 
-    search_fields = ['id', 'sale_order_id', 'package_order_id']
+    search_fields = ['id', 'sale_order_id', 'package_order_pid', 'package_order_id']
     list_filter = ('assign_status', 'status', 'ware_by')
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
+
+    PACKAGE_ORDER_LINK = (
+        '<a href="%(package_order_url)s" target="_blank">'
+        '%(package_order_pid)s</a>')
+
+    def package_order_link_to(self, obj):
+        if obj.package_order_pid:
+            return self.PRODUCT_LINK % {
+                'package_order_url': '/admin/trades/package_order/%d/' % obj.package_order_pid,
+                'package_order_pid': self.package_order_pid
+            }
+        return ''
+
+    package_order_link_to.allow_tags = True
+    package_order_link_to.short_description = u'包裹'
+
+    SALE_ORDER_LINK = (
+        '<a href="%(sale_order_url)s" target="_blank">'
+        '%(sale_order_id)s</a>')
+
+    def sale_order_link_to(self, obj):
+        return self.SALE_ORDER_LINK % {
+            'sale_order_url': '/admin/pay/saleorder/%d/' % obj.sale_order_id,
+            'sale_order_id': obj.sale_order_id
+        }
+    sale_order_link_to.allow_tags = True
+    sale_order_link_to.short_description = u'sku交易单'
+
+    SKU_PREVIEW_TPL = (
+        '<a href="%(sku_url)s" target="_blank">'
+        '%(skucode)s</a>')
+
+    def sku_link_to(self, obj):
+        return self.SKU_PREVIEW_TPL % {
+            'sku_url': '/admin/items/productsku/%s/' % obj.sku_id,
+            'skucode': obj.product_sku.BARCODE
+        }
+    sku_link_to.allow_tags = True
+    sku_link_to.short_description = u'sku条码'
+
+    PRODUCT_LINK = (
+        '<a href="%(product_url)s" target="_blank">'
+        '%(product_title)s</a>')
+
+    def product_title_link_to(self, obj):
+        return self.PRODUCT_LINK %{
+            'product_url':'/admin/items/product/%d/' % obj.product_sku.product.id,
+            'product_title':obj.title
+        }
+    product_title_link_to.allow_tags = True
+    product_title_link_to.short_description = u'商品名称'
 
 
 admin.site.register(PackageSkuItem, PackageSkuItemAdmin)

@@ -21,8 +21,8 @@ class ProductSkuStats(models.Model):
 
     STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
 
-    sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'商品SKU记录ID')
-    product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品记录ID')
+    sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'SKUID')
+    product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
 
     assign_num = models.IntegerField(default=0, verbose_name=u'分配数')  # 未出库包裹单中已分配的sku数量
     inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
@@ -82,6 +82,13 @@ class ProductSkuStats(models.Model):
         from shopback.items.models import ProductSku
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
+
+    @property
+    def product_sku(self):
+        if not hasattr(self, '_product_sku_'):
+            from shopback.items.models import ProductSku
+            self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
+        return self._product_sku_
 
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):

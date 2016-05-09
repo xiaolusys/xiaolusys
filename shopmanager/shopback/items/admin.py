@@ -31,7 +31,7 @@ from shopback.items.filters import ChargerFilter, DateScheduleFilter, GroupNameF
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter, update_model_fields
 from flashsale.pay.models_custom import Productdetail
 from flashsale.pay.forms import ProductdetailForm
-from shopback.items.models import  ProductSkuStats, ProductSkuSaleStats
+from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
 
 from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
@@ -1208,9 +1208,47 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 
 class ProductSkuStatsAdmin(admin.ModelAdmin):
-    list_display = ('sku_id', 'properties_name','realtime_quantity', 'post_num', 'assign_num', 'inferior_num', 'sold_num' ,'realtime_lock_num_display','created')
+    list_display = ('sku_id', 'skucode', 'product_title', 'properties_name_alias', 'now_quantity', 'old_quantity', 'post_num',
+                    'assign_num', 'inferior_num', 'sold_num', 'realtime_lock_num_display', 'created')
     search_fields = ['=sku_id', '=product_id']
     list_per_page = 25
+
+    SKU_PREVIEW_TPL = (
+        '<a href="%(sku_url)s" target="_blank">'
+        '%(skucode)s</a>')
+
+    def skucode(self, obj):
+        return self.SKU_PREVIEW_TPL % {
+            'sku_url': '/admin/items/productsku/%s/' % str(obj.sku_id),
+            'skucode': obj.product_sku.BARCODE
+        }
+    skucode.allow_tags = True
+    skucode.short_description = u'sku条码'
+
+    PRODUCT_LINK = (
+        '<a href="%(product_url)s" target="_blank">'
+        '%(product_title)s</a>')
+
+    def product_title(self, obj):
+        return self.PRODUCT_LINK %{
+            'product_url':'/admin/items/product/%d/' % obj.product_sku.product.id,
+            'product_title':obj.product_sku.product.title()
+        }
+    product_title.allow_tags = True
+    product_title.short_description = u'商品名称'
+
+    def now_quantity(self, obj):
+        return obj.realtime_quantity
+    now_quantity.short_description = u'实时库存'
+
+    def old_quantity(self,obj):
+        return obj.product_sku.quantity
+    old_quantity.short_description = u'老系统实时库存'
+
+    def properties_name_alias(self, obj):
+        return obj.properties_name
+    properties_name_alias.short_description = u'规格'
+
 
 admin.site.register(ProductSkuStats, ProductSkuStatsAdmin)
 
@@ -1219,6 +1257,7 @@ class ProductSkuSaleStatsAdmin(admin.ModelAdmin):
     list_display = ('sku_id', 'properties_name', 'init_waitassign_num', 'num', 'sale_start_time', 'sale_end_time')
     search_fields = ['=sku_id']
     list_per_page = 25
+
 
 admin.site.register(ProductSkuSaleStats, ProductSkuSaleStatsAdmin)
 

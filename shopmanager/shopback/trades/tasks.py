@@ -999,9 +999,11 @@ def task_update_package_order(instance):
                 if new_create:
                     package_order = PackageOrder.create(package_order_id, sale_trade,
                                                         sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
-                    PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order.id)
+                    PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order.id,
+                                                                         package_order_pid=package_order.pid)
                 else:
-                    PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id)
+                    PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id,
+                                                                         package_order_pid=package_order.pid)
                     package_order.set_redo_sign(save_data=False)
                     if package_order.sys_status == PackageOrder.PKG_NEW_CREATED:
                         package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS

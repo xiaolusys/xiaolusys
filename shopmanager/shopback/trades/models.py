@@ -1248,9 +1248,9 @@ class PackageOrder(models.Model):
     # PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
     # PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
     #                           (PKG_CONFIRM, u'已确定'))
-    pid = models.AutoField(verbose_name=u'包裹主键', primary_key=True)
-    id = models.CharField(max_length=100, verbose_name=u'包裹ID', unique=True)
-    tid = models.CharField(max_length=32, verbose_name=u'原单ID')
+    pid = models.AutoField(verbose_name=u'包裹单号', primary_key=True)
+    id = models.CharField(max_length=100, verbose_name=u'包裹码', unique=True)
+    tid = models.CharField(max_length=32, verbose_name=u'参考交易单号')
     ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     type = models.CharField(max_length=32, choices=TRADE_TYPE, db_index=True, default=pcfg.SALE_TYPE,
                             blank=True, verbose_name=u'订单类型')
@@ -1454,7 +1454,7 @@ class PackageOrder(models.Model):
         new_p = PackageOrder()
         need_attrs = ['pid', 'id', 'buyer_id', 'user_address_id', 'ware_by', 'tid', 'receiver_name', 'receiver_state',
                       'receiver_city', 'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile',
-                      'receiver_phone', 'buyer_nick']
+                      'receiver_phone', 'buyer_nick', 'logistics_company_id']
         # all_attrs = PackageOrder.get_deferred_fields()
         all_attrs = [i.column for i in PackageOrder._meta.fields]
         for attr in all_attrs:
@@ -1597,11 +1597,11 @@ class PackageSkuItem(BaseModel):
         (FINISHED, u'已出货'),
         (CANCELED, u'已取消')
     )
-    sale_order_id = models.IntegerField(unique=True, verbose_name=u'SaleOrder ID')
-    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'原单ID')
+    sale_order_id = models.IntegerField(unique=True, verbose_name=u'SKU订单编码')
+    oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'SKU交易单号')
     num = models.IntegerField(default=0, verbose_name=u'数量')
     package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹码')
-    # package_order_pid = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹ID')
+    package_order_pid = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单号')
 
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
                                   db_index=True, verbose_name=u'所属仓库')
