@@ -404,7 +404,6 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         if coupon_share is None:
             return Response({"code": 8, "msg": "领取完了哦", "coupon_id": ''})
         else:
-            print coupon_share.release_count, coupon_share.limit_share_count
             if not coupon_share.release_count < coupon_share.limit_share_count:  # 领取次数必须小于最大领取限制
                 return Response({"code": 8, "msg": "领取完了", "coupon_id": ''})
         if not ufrom:
