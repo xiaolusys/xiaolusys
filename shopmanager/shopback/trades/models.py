@@ -1395,6 +1395,7 @@ class PackageOrder(models.Model):
             psku = ProductSku.objects.get(id=sku_item.sku_id)
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
+            sale_order.sale_trade.set_out_sid(sku_item.package_order.out_sid, sku_item.package_order.logistics_company_id)
 
     @property
     def buyer(self):
@@ -1601,7 +1602,7 @@ class PackageSkuItem(BaseModel):
     oid = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'SKU交易单号')
     num = models.IntegerField(default=0, verbose_name=u'数量')
     package_order_id = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹码')
-    package_order_pid = models.CharField(max_length=100, blank=True, db_index=True, null=True, verbose_name=u'包裹单号')
+    package_order_pid = models.IntegerField(db_index=True, null=True, verbose_name=u'包裹单号')
 
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
                                   db_index=True, verbose_name=u'所属仓库')

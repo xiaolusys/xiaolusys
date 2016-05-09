@@ -297,6 +297,20 @@ class SaleTrade(BaseModel):
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
 
+    def set_out_sid(self, out_sid=None, logistics_company_id=None):
+        if not self.out_sid:
+            if out_sid:
+                self.out_sid = out_sid
+                self.logistics_company_id = logistics_company_id
+                self.save()
+            else:
+                from shopback.trades.models import PackageSkuItem
+                for sale_order in self.sale_orders.all():
+                    psi = PackageSkuItem.objects.filter(sale_order_id=sale_order.id, assign_status=2).exclude(
+                        package_order_id=None).first()
+                    if psi:
+                        self.set_out_sid(psi.package_order.out_sid, psi.package_order.logistics_company_id)
+
     def confirm_payment(self):
         from django_statsd.clients import statsd
         statsd.incr('xiaolumm.postpay_count')
@@ -465,8 +479,10 @@ signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 def default_oid():
     return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
 
+
 def default_extras():
-    return { }
+    return {}
+
 
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
