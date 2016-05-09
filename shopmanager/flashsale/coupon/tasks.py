@@ -2,7 +2,6 @@
 import datetime
 from celery.task import task
 from django.db.models import F
-from flashsale.coupon.models import CouponTemplate, UserCoupon
 from flashsale.xiaolumm.models import XiaoluMama
 
 
@@ -53,6 +52,8 @@ def task_release_coupon_for_order(saletrade):
     """
     - SaleTrade pay confirm single to drive this task.
     """
+    from flashsale.coupon.models import CouponTemplate, UserCoupon
+
     extras_info = saletrade.extras_info
     ufrom = extras_info.get('ufrom')
     tpl = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
@@ -71,6 +72,8 @@ def task_freeze_coupon_by_refund(salerefund):
     """
     - SaleRefund refund signal to drive this task.
     """
+    from flashsale.coupon.models import CouponTemplate, UserCoupon
+
     trade_tid = salerefund.get_tid()
     cous = UserCoupon.objects.filter(trade_tid=trade_tid,
                                      status=UserCoupon.UNUSED)
@@ -100,6 +103,8 @@ def task_release_mama_link_coupon(saletrade):
     customer = mama.get_mama_customer()
     if not customer:
         return
+    from flashsale.coupon.models import CouponTemplate, UserCoupon
+
     tpl = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
                                         coupon_type=CouponTemplate.TYPE_MAMA_INVITE).first()
     UserCoupon.objects.create_mama_invite_coupon(
@@ -114,6 +119,8 @@ def task_release_mama_link_coupon(saletrade):
 @task()
 def task_change_coupon_status_used(saletrade):
     coupon_id = saletrade.extras_info.get('coupon')
+    from flashsale.coupon.models import UserCoupon
+
     usercoupon = UserCoupon.objects.filter(id=coupon_id, customer_id=saletrade.buyer_id).first()
     if not usercoupon:
         return
@@ -125,6 +132,8 @@ def task_update_user_coupon_status_2_past():
     """
     - timing to update the user coupon to past.
     """
+    from flashsale.coupon.models import UserCoupon
+
     today = datetime.datetime.today()
     cous = UserCoupon.objects.filter(
         expires_time__lte=today,
