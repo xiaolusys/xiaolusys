@@ -454,3 +454,84 @@ class ChangeDetailExportView(View):
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment;filename=%s' % filename
         return response
+
+
+
+class DinghuoStatsExportView(View):
+
+    @classmethod
+    def get_status(cls, status):
+        status_mapping = dict(OrderList.ORDER_PRODUCT_STATUS)
+        status_display = status_mapping.get(status) or status
+        buyer_status_display = '已完成' if status in \
+          [OrderList.COMPLETED, OrderList.TO_BE_PAID, OrderList.CLOSED] else '未完成'
+        return status_display, buyer_status_display
+
+    def get(self, request):
+        from common.utils import get_admin_name
+
+        start_date = datetime.datetime.strptime(request.GET['start_date'], '%Y%m%d').date()
+        end_date = datetime.datetime.strptime(request.GET['end_date'], '%Y%m%d').date()
+
+        data = []
+        for orderlist in OrderList.objects.filter(created__gte=start_date, created__lte=end_date).exclude(status=OrderList.ZUOFEI).order_by('id'):
+            username = get_admin_name(orderlist.buyer)
+            interval = (orderlist.updated - datetime.datetime.combine(orderlist.created, datetime.time.min)).days
+            created_str = orderlist.created.strftime('%Y-%m-%d')
+            updated_str = orderlist.updated.strftime('%Y-%m-%d %H:%M:%S')
+            amount = orderlist.order_amount
+
+            supplier_name = ''
+            if orderlist.supplier_id and orderlist.supplier:
+                supplier_name = orderlist.supplier.supplier_name
+
+            num = 0
+            product_ids = set()
+            for orderdetail in orderlist.order_list.all():
+                product_ids.add(orderdetail.product_id)
+                num += orderdetail.buy_quantity
+            status, buyer_status = self.get_status(orderlist.status)
+
+            data.append((
+                orderlist.id,
+                username,
+                status,
+                buyer_status,
+                created_str,
+                updated_str,
+                interval,
+                supplier_name,
+                len(product_ids),
+                num,
+                amount
+            ))
+
+        buff = StringIO()
+        workbook = xlsxwriter.Workbook(buff)
+        worksheet = workbook.add_worksheet()
+        worksheet.write('A1', '订货单ID')
+        worksheet.write('B1', '负责人')
+        worksheet.write('C1', '状态')
+        worksheet.write('D1', '是否完成')
+        worksheet.write('E1', '创建日期')
+        worksheet.write('F1', '更新时间')
+        worksheet.write('G1', '间隔天数')
+        worksheet.write('H1', '供应商名')
+        worksheet.write('I1', '款数')
+        worksheet.write('J1', '件数')
+        worksheet.write('K1', '总金额')
+
+        i = 1
+        for row in data:
+            for j, cell in enumerate(row):
+                worksheet.write(i, j, cell)
+            i += 1
+        workbook.close()
+
+        filename = '%s-%s.xlsx' % (start_date.strftime('%y年%m月%d'), end_date.strftime('%y年%m月%d'))
+        response = HttpResponse(
+            buff.getvalue(),
+            content_type=
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment;filename=%s' % filename
+        return response
