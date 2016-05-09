@@ -1,7 +1,4 @@
 # -*- coding:utf8 -*-
-from django.db import models
-from django.db.models import Q, Sum
-
 from core.managers import BaseManager
 
 
@@ -33,3 +30,4 @@ class ShopProductCategoryManager(BaseManager):
         """ 女装产品 """
         pro_category = constants.FEMALE_CID_LIST
         return self.get_queryset().filter(pro_category__in=pro_category).order_by("-position")
+

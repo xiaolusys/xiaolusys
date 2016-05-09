@@ -1,0 +1,27 @@
+[
+{
+  "fields": {
+    "status": 0,
+    "has_used_count": 0,
+    "limit_share_count": 7,
+    "created": "2016-05-03T11:52:46",
+    "release_count": 2,
+    "modified": "2016-05-03T16:23:03",
+    "uniq_id": "xd16040657050c243dc15",
+    "platform_info": {},
+    "extras": {
+      "user_info": {
+        "nick": "",
+        "id": null,
+        "thumbnail": ""
+      }
+    },
+    "share_end_time": "2020-05-07T11:52:46",
+    "share_start_time": "2016-05-03T11:52:46",
+    "share_customer": 1,
+    "template_id": 3
+  },
+  "model": "coupon.ordersharecoupon",
+  "pk": 1
+}
+]

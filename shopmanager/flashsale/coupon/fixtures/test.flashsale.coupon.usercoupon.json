@@ -1,0 +1,152 @@
+[
+  {
+    "fields": {
+      "status": 0,
+      "finished_time": null,
+      "order_coupon_id": 1,
+      "coupon_type": 2,
+      "title": "test \u8ba2\u5355\u5206\u4eab",
+      "trade_tid": "",
+      "start_use_time": "2016-05-03T18:34:41",
+      "created": "2016-05-03T18:34:41",
+      "modified": "2016-05-03T18:34:41",
+      "value": 5.7,
+      "share_user_id": 1,
+      "extras": {
+        "user_info": {
+          "nick": "jie",
+          "id": 15937,
+          "thumbnail": ""
+        }
+      },
+      "expires_time": "2016-06-02T18:34:41",
+      "coupon_no": "yhq16050357287ec152498",
+      "uniq_id": "3_2_15937_1",
+      "ufrom": "wx",
+      "customer_id": 15937,
+      "template_id": 3
+    },
+    "model": "coupon.usercoupon",
+    "pk": 7
+  },
+  {
+    "fields": {
+      "status": 0,
+      "finished_time": null,
+      "order_coupon_id": null,
+      "coupon_type": 3,
+      "title": "test \u63a8\u8350\u4e13\u4eab",
+      "trade_tid": null,
+      "start_use_time": "2016-05-03T19:02:33",
+      "created": "2016-05-03T19:02:33",
+      "modified": "2016-05-03T19:02:33",
+      "value": 4.0,
+      "share_user_id": null,
+      "extras": {
+        "user_info": {
+          "nick": "\u98ce\u4e91@\u5c0f\u9e7f\u7f8e\u7f8e",
+          "id": 9,
+          "thumbnail": "http://wx.qlogo.cn/mmopen/yYI4pIsF7XHHA4HE1mEHecuTDPD7xpQ97RydwlujTHqUic4mahHrvysxnky7J1ic1gbswKrH5eF9ttwIYrf4P9FjdAib5HzSVZH/0"
+        }
+      },
+      "expires_time": "2016-06-02T19:02:33",
+      "coupon_no": "yhq16050357288549d5ebc",
+      "uniq_id": "4_3_9_333451",
+      "ufrom": "wx",
+      "customer_id": 9,
+      "template_id": 4
+    },
+    "model": "coupon.usercoupon",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "status": 3,
+      "finished_time": null,
+      "order_coupon_id": null,
+      "coupon_type": 5,
+      "title": "test \u4e0b\u5355\u7ea2\u5305",
+      "trade_tid": "",
+      "start_use_time": "2016-05-03T19:05:03",
+      "created": "2016-05-03T19:05:03",
+      "modified": "2016-05-03T21:40:27",
+      "value": 2.0,
+      "share_user_id": null,
+      "extras": {
+        "user_info": {
+          "nick": "jie",
+          "id": 15937,
+          "thumbnail": ""
+        }
+      },
+      "expires_time": "2016-06-02T19:05:03",
+      "coupon_no": "yhq160503572885dfaf7bb",
+      "uniq_id": "2_5_15937_333451",
+      "ufrom": "wx",
+      "customer_id": 783437,
+      "template_id": 2
+    },
+    "model": "coupon.usercoupon",
+    "pk": 11
+  },
+  {
+    "fields": {
+      "status": 0,
+      "finished_time": null,
+      "order_coupon_id": null,
+      "coupon_type": 4,
+      "title": "test \u552e\u540e\u8865\u507f",
+      "trade_tid": null,
+      "start_use_time": "2016-05-03T19:05:17",
+      "created": "2016-05-03T19:05:17",
+      "modified": "2016-05-03T19:05:17",
+      "value": 4.0,
+      "share_user_id": null,
+      "extras": {
+        "user_info": {
+          "nick": "\u695a\u695a",
+          "id": 10822,
+          "thumbnail": "http://wx.qlogo.cn/mmopen/JcDicrZBlREgDGy8k7zQJPB9MicicFan8JftBPTWrDH3aBysaF1vGicGauxc6JZGcbTxeQeicntG8FrQFXfQ5ziadbF9JGRZS5c89j/0"
+        }
+      },
+      "expires_time": "2016-05-13T00:00:00",
+      "coupon_no": "yhq160503572885edd32d4",
+      "uniq_id": "5_4_10822_42886",
+      "ufrom": "",
+      "customer_id": 10822,
+      "template_id": 5
+    },
+    "model": "coupon.usercoupon",
+    "pk": 13
+  },
+  {
+    "fields": {
+      "status": 0,
+      "finished_time": null,
+      "order_coupon_id": null,
+      "coupon_type": 1,
+      "title": "test \u666e\u901a\u4f18\u60e0\u5238",
+      "trade_tid": null,
+      "start_use_time": "2016-05-03T21:55:02",
+      "created": "2016-05-03T21:55:02",
+      "modified": "2016-05-03T21:55:02",
+      "value": 2.0,
+      "share_user_id": null,
+      "extras": {
+        "user_info": {
+          "nick": "VcsKI5",
+          "id": 783437,
+          "thumbnail": ""
+        }
+      },
+      "expires_time": "2016-05-13T00:00:00",
+      "coupon_no": "yhq1605035728adb6ed547",
+      "uniq_id": "1_1_783437",
+      "ufrom": "wx",
+      "customer_id": 783437,
+      "template_id": 1
+    },
+    "model": "coupon.usercoupon",
+    "pk": 15
+  }
+]

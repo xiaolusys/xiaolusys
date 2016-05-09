@@ -13,6 +13,7 @@ from . import views_product
 from . import views_trade
 from . import views_share
 from . import views_coupon
+from . import views_coupon_new
 from . import views_integral
 from . import views_portal
 from flashsale.pay.views_login import weixin_login, weixin_test, weixin_auth_and_redirect
@@ -50,8 +51,8 @@ router.register(r'address', views.UserAddressViewSet)
 router.register(r'districts', views.DistrictViewSet)
 router.register(r'integral', views_integral.UserIntegralViewSet)
 router.register(r'integrallog', views_integral.UserIntegralLogViewSet)
-router.register(r'usercoupons', views_coupon.UserCouponsViewSet)
-router.register(r'cpntmpl', views_coupon.CouponTemplateViewSet)
+router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
+router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
 
 router.register(r'share', views_share.CustomShareViewSet)
 router.register(r'saleproduct', views_praise.SaleProductViewSet)
@@ -151,6 +152,12 @@ v2_router.register(r'visitor', views_mama_v2.UniqueVisitorViewSet)
 v2_router.register(r'fans', views_mama_v2.XlmmFansViewSet)
 v2_router.register(r'dailystats', views_mama_v2.DailyStatsViewSet)
 v2_router.register(r'modelproducts', views_mama_v2.ModelProductViewSet)
+
+v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
+v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
+v2_router.register(r'sharecoupon', views_coupon_new.OrderShareCouponViewSet)
+v2_router.register(r'tmpsharecoupon', views_coupon_new.TmpShareCouponViewset)
+
 
 v2_router_urls = v2_router.urls
 v2_router_urls += ([

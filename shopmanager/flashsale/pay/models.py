@@ -22,7 +22,7 @@ from flashsale.pay.models_faqs import FaqMainCategory, FaqsDetailCategory, SaleF
 from flashsale.pay import managers
 from flashsale.pay import constants as CONST
 
-from .signals import signal_saletrade_pay_confirm
+from .signals import signal_saletrade_pay_confirm, signal_saletrade_refund_post
 from .options import uniqid
 from core.fields import JSONCharMyField
 from common.utils import update_model_fields
@@ -414,39 +414,11 @@ def record_supplier_args(sender, obj, **kwargs):
 
 signal_saletrade_pay_confirm.connect(record_supplier_args, sender=SaleTrade)
 
-
-def trade_payment_used_coupon(sender, obj, **kwargs):
-    """ 交易支付后修改优惠券状态为使用 """
-    try:
-        coupon_id = obj.extras_info.get('coupon')
-        if coupon_id:
-            coupon = UserCoupon.objects.get(id=coupon_id, customer=str(obj.buyer_id))
-            if coupon.status == UserCoupon.UNUSED:
-                coupon.sale_trade = obj.id
-                coupon.status = UserCoupon.USED
-                coupon.save()
-    except Exception, exc:
-        logger.error('trade_payment_used_coupon error:%s' % exc.message, exc_info=True)
-
-
-signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
-
-
-def push_msg_mama(sender, obj, **kwargs):
-    from flashsale.xiaolumm.tasks_mama_push import task_push_mama_order_msg
-    """专属链接有人下单后则推送消息给代理"""
-    task_push_mama_order_msg.s(obj).delay()
-
-
-signal_saletrade_pay_confirm.connect(push_msg_mama, sender=SaleTrade)
-
 from shopback.categorys.models import CategorySaleStat
 
 
 def category_trade_stat(sender, obj, **kwargs):
-    """
-        记录不同类别产品的销售数量和销售金额
-    """
+    """记录不同类别产品的销售数量和销售金额"""
     orders = obj.sale_orders.all()
     for order in orders:
         try:
@@ -467,13 +439,40 @@ def category_trade_stat(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 
 
+def push_msg_mama(sender, obj, **kwargs):
+    """专属链接有人下单后则推送消息给代理"""
+    from flashsale.xiaolumm.tasks_mama_push import task_push_mama_order_msg
+    task_push_mama_order_msg.s(obj).delay()
+
+
+def trade_payment_used_coupon(sender, obj, **kwargs):
+    """ 交易支付后修改优惠券状态为使用 """
+    from flashsale.coupon.tasks import task_change_coupon_status_used
+    task_change_coupon_status_used(obj)  # execute immediately not delay
+
+
 def release_mamalink_coupon(sender, obj, **kwargs):
-    from flashsale.pay.tasks import task_ReleaseMamaLinkCoupon
+    """用户下单成功后给专属链接代理 发放优惠券"""
+    from flashsale.coupon.tasks import task_release_mama_link_coupon
+    task_release_mama_link_coupon.delay(obj)
 
-    task_ReleaseMamaLinkCoupon.delay(obj)
+
+def release_coupon_buy_way(sender, obj, **kwargs):
+    """购买成功触发购买成功发放的优惠券"""
+    from flashsale.coupon.tasks import task_release_coupon_for_order
+    task_release_coupon_for_order.delay(obj)
 
 
+def freeze_coupon_by_refund(sender, obj, **kwargs):
+    """用户退款冻结绑定的优惠券"""
+    from flashsale.coupon.tasks import task_freeze_coupon_by_refund
+    task_freeze_coupon_by_refund.delay(obj)
+
+signal_saletrade_pay_confirm.connect(push_msg_mama, sender=SaleTrade)
+signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
+signal_saletrade_pay_confirm.connect(release_coupon_buy_way, sender=SaleTrade)
 signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
+signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)
 
 
 def default_oid():
