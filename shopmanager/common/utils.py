@@ -143,3 +143,13 @@ def get_timestr(dt, now=datetime.datetime.now()):
         return '%d秒前' % (now - dt).seconds
     else:
         return '刚刚'
+
+
+def get_admin_name(user):
+    last_name = user.last_name
+    first_name = user.first_name
+    if len(last_name) > 1:
+        names = [first_name, last_name]
+    else:
+        names = [last_name, first_name]
+    return ''.join(filter(None, names)) or user.username

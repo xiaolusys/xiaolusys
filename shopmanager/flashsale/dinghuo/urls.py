@@ -8,7 +8,7 @@ from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView, P
     DingHuoOrderListViewSet, InBoundViewSet
 
 from django.views.decorators.csrf import csrf_exempt
-from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, ChangeDetailExportView
+from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, ChangeDetailExportView, DinghuoStatsExportView
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView, StatsDinghuoView
 from .view_daily_work import (DailyDingHuoView, DailyDingHuoView2, ShowPicView, DailyDingHuoOptimizeView,
                               SkuAPIView, AddDingHuoView, InstantDingHuoViewSet)
@@ -46,7 +46,8 @@ urlpatterns = [
     url(r'^changedetail/(?P<order_detail_id>\d+)/$', csrf_exempt(staff_member_required(ChangeDetailView.as_view())),
         name="changedetail"),
     url(r'^changedetail/(?P<order_detail_id>\d+)/export/$',
-        csrf_exempt(staff_member_required(ChangeDetailExportView.as_view())), name="changedetail"),
+        csrf_exempt(staff_member_required(ChangeDetailExportView.as_view())), name="changedetail_export"),
+    url(r'^changedetail/export/$', csrf_exempt(staff_member_required(DinghuoStatsExportView.as_view())), name="changedetails_export"),
     url(r'^daily/', staff_member_required(DailyDingHuoStatsView.as_view()), name="daily_ding_huo_stats"),  # 大货每天统计
     url(r'^changearrivalquantity/$', views.changearrivalquantity, name="changearrivalquantity"),
     url(r'^statsbypid/(?P<product_id>\d+)/$', staff_member_required(StatsByProductIdView.as_view()), name="statsbypid"),
