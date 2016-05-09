@@ -121,10 +121,13 @@ def task_change_coupon_status_used(saletrade):
     coupon_id = saletrade.extras_info.get('coupon')
     from flashsale.coupon.models import UserCoupon
 
-    usercoupon = UserCoupon.objects.filter(id=coupon_id, customer_id=saletrade.buyer_id).first()
+    usercoupon = UserCoupon.objects.filter(id=coupon_id,
+                                           customer_id=saletrade.buyer_id,
+                                           status=UserCoupon.UNUSED
+                                           ).first()
     if not usercoupon:
         return
-    usercoupon.use_coupon()
+    usercoupon.use_coupon(saletrade.tid)
 
 
 @task()
