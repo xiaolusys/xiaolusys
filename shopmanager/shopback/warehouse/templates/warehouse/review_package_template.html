@@ -164,6 +164,14 @@
 				<br><br>
 
 			</div>
+			<div class="row-through">
+				<div id="id_warehouse_content" class="accordion-inner1">
+					<label class="simple-label">仓库:</label>
+					<input type="hidden" id="id_ware_by" value="{{ trade.ware_by }}"/>
+					<span id="text_ware_by" class="ware-by-label">{{ trade.get_ware_by_display }}</span>
+					<button id="id-chg-warehouse-no-btn" class="btn-mini btn-success">修改仓库</button>
+				</div>
+			</div>
 			<div>
 				<div  class="trade_info"><label class="simple-label">快递公司: </label>
 					<span id="id_logistic_name" class="logistic-label">{{ trade.logistics_company.name }}</span></div>
@@ -237,7 +245,29 @@
 			}
 		};
 		
-
+		var change_ware_by = function(evt){
+			var trade_id      = $('#id_review_trade').val();
+			var ware_by_id      = $('#id_ware_by').val();
+			var dest_ware_by_id = 2;
+			if (ware_by_id=="1"){
+				dest_ware_by_id = 2;
+				}
+			else{
+				dest_ware_by_id = 1;
+			}
+			$.post('/trades/change_ware_by/',
+				{'package_order_pid':trade_id,'ware_by':dest_ware_by_id},
+				function(data){
+					if (data.code == 0){
+						$('#id_ware_by').html(data.response_content.id_ware_by);
+						$('#text_ware_by').html(data.response_content.ware_by);
+					}else{
+						alert('仓库修改失败:'+data.response_error);
+					}
+				},
+				'json');
+		};
+		$('#id-chg-warehouse-no-btn').click(change_ware_by);
 		$('#id-chg-express-no-btn').click(change_logistic);
 		$('#id_logistics').change(function(e){
 			var company_code  = $(this,"option:selected").val();
