@@ -91,7 +91,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         for i in xrange(0, 30):
             ldate = dt - datetime.timedelta(days=i)
             product_qs = model_qs.filter(sale_time=ldate)
-            if product_qs.count() > 0:
+            if product_qs.exists():
                 break
         return ldate
 
@@ -101,7 +101,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         for i in xrange(0, 30):
             ldate = dt - datetime.timedelta(days=i)
             product_qs = model_qs.filter(sale_time=ldate)
-            if product_qs.count() > 0:
+            if product_qs.exists():
                 break
         return ldate
 
@@ -125,8 +125,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         tnow = datetime.datetime.now()
         tlast = tnow + datetime.timedelta(days=1)
         if tnow.hour < 10:
-            return self.get_latest_right_date(tnow.date())
-        return self.get_latest_right_date(tlast.date())
+            return self.get_preview_right_date(tnow.date())
+        return self.get_preview_right_date(tlast.date())
 
     def get_priview_date(self, request):
         """ 获取明日上架日期 """

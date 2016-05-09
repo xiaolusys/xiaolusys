@@ -55,6 +55,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     - payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
     - {path}/waitpay[.formt]:获取待支付订单；
     - {path}/waitsend[.formt]:获取待发货订单；
+    - {path}/confirm_sign[.formt]: 确认收货
+    - {path}/remind_send[.formt]: 提醒发货
+    - {path}/undisplay[.formt]: 删除订单记录
     - {path}/{pk}/charge[.formt]:支付待支付订单;
     - {path}/{pk}/details[.formt]:获取订单及明细；
     - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
@@ -89,7 +92,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(buyer_id=customer.id).order_by('-created')
+        return self.queryset.filter(buyer_id=customer.id,
+                                    status__lt=SaleTrade.TRADE_CLOSED_BY_SYS).order_by('-created')
     
     def get_xlmm(self,request):
         customer = get_object_or_404(Customer,user=request.user)
@@ -398,10 +402,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment,**kwargs):
         """ payment（单位分）按原始支付金额计算优惠信息 """
-        coupon       = get_object_or_404(UserCoupon, 
-                                         id=coupon_id, 
-                                         customer=str(buyer_id),
-                                         status=UserCoupon.UNUSED)
+        coupon = get_object_or_404(UserCoupon,
+                                     id=coupon_id,
+                                     customer=str(buyer_id),
+                                     status=UserCoupon.UNUSED)
         coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
         coupon_pool = coupon.cp_id
         
@@ -600,32 +604,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)
         return Response(response_charge)
-    
-    @detail_route(methods=['post'])
-    def charge(self, request, *args, **kwargs):
-        """ 待支付订单支付 """
-        _errmsg = {SaleTrade.WAIT_SELLER_SEND_GOODS:u'订单无需重复付款',
-                   SaleTrade.TRADE_CLOSED_BY_SYS:u'订单已关闭或超时',
-                   'default':u'订单不在可支付状态'}
-        
-        instance = self.get_object()
-        if instance.status != SaleTrade.WAIT_BUYER_PAY:
-            return Response({'code':1,'info':_errmsg.get(instance.status,_errmsg.get('default'))})
-        
-        if not instance.is_payable():
-            return Response({'code':2,'info':_errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS)})
-        
-        if instance.channel == SaleTrade.WALLET:
-            #小鹿钱包支付
-            response_charge = self.wallet_charge(instance)
-        elif instance.channel == SaleTrade.BUDGET:
-            #小鹿钱包
-            response_charge = self.budget_charge(instance)
-        else:
-            #pingpp 支付
-            response_charge = self.pingpp_charge(instance)
-        log_action(request.user.id, instance, CHANGE, u'重新支付')
-        return Response({'code':0,'info':'success','charge':response_charge})
 
     @detail_route(methods=['post'])
     def charge(self, request, *args, **kwargs):
@@ -660,18 +638,48 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        log_action(request.user.id, instance, CHANGE, u'通过接口程序－取消订单')
+        log_action(request.user.id, instance, CHANGE, u'取消订单')
         return Response(data={"ok": True})
+
+    @detail_route(methods=['post'])
+    def confirm_sign(self, request, *args, **kwargs):
+        """ 确认签收 """
+        instance = self.get_object()
+        wait_sign_orders = instance.sale_orders.filtre(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+        if not wait_sign_orders.exists():
+            return Response({"code": 1, "info": "没有可签收订单"})
+
+        for order in wait_sign_orders:
+            order.confirm_sign_order()
+            logger.info('user(:%s) confirm sign order(:s)' % (self.get_customer(request), order.oid))
+
+        return Response({"code": 0, "info": "签收成功"})
+
+    @detail_route(methods=['post'])
+    def remind_send(self, request,  *args, **kwargs):
+        """ 提醒发货 """
+        instance = self.get_object()
+        # TODO
+        return Response({"code": 0, "info": "已通知尽快发货"})
+
+    @detail_route(methods=['post'])
+    def undisplay(self, request, *args, **kwargs):
+        """ 不显示订单 """
+        instance = self.get_object()
+        # TODO
+        return Response({"code": 0, "info": "订单已删除"})
+
+
 
 from flashsale.restpro.views_refund import refund_Handler
 
 class SaleOrderViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单明细REST API接口：
-     - {path}/confirm_sign[.formt]:pingpp创建订单接口
-     - {path}/remind_send[.formt]:pingpp创建订单接口
-     - {path}/undisplay[.formt]:pingpp创建订单接口
-     - {path}/apply_refund[.formt]:申请退款接口
+     - {path}/confirm_sign[.formt]: 确认收货
+     - {path}/remind_send[.formt]: 提醒发货
+     - {path}/undisplay[.formt]: 删除订单记录
+     - {path}/apply_refund[.formt]:申请退款
         > -`id`:sale order id
         > -`reason`:退货原因
         > -`num`:退货数量
@@ -721,21 +729,21 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         instance.confirm_sign_order()
         logger.info('user(:%s) confirm sign order(:s)'%(self.get_customer(request), instance.oid))
 
-        return Response({"code":0,"info": "success"})
+        return Response({"code":0,"info": "签收成功"})
 
     @detail_route(methods=['post'])
     def remind_send(self, request, pk=None, *args, **kwargs):
-        """ 提现发货 """
+        """ 提醒发货 """
         instance = self.get_object()
         # TODO
-        return Response({"code":0,"info": "success"})
+        return Response({"code":0,"info": "已通知尽快发货"})
 
     @detail_route(methods=['post'])
     def undisplay(self, request, pk=None, *args, **kwargs):
         """ 不显示订单 """
         instance = self.get_object()
         # TODO
-        return Response({"code":0,"info": "success"})
+        return Response({"code":0,"info": "订单已删除"})
 
     @detail_route(methods=['post'])
     def apply_refund(self, request, pk=None, *args, **kwargs):

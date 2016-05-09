@@ -328,7 +328,7 @@ class SaleProductAdmin(ApproxAdmin):
             obj.id, obj.outer_id or '')
 
         if obj.status in (SaleProduct.SELECTED, SaleProduct.PASSED, SaleProduct.PURCHASE,
-                          SaleProduct.SCHEDULE) and obj.outer_id:
+                          SaleProduct.SCHEDULE) and obj.outer_id and obj.sale_supplier:
             # test_link += u'<br><br><a href="/supplychain/supply/sample/add_sample/?outer_id={0}&title={1}&pic_url={2}&sale_supplier={3}&sale_price={4}&std_sale_price={5}" class="btn" target="_blank" >{6}</a>'
             #
             # test_link = test_link.format(obj.outer_id, obj.title, obj.pic_url, obj.sale_supplier, obj.sale_price,
