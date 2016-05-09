@@ -804,7 +804,8 @@ def push_Pending_Carry_To_Cash(obj, *args, **kwargs):
 signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash, sender=XiaoluMama)
 
 from flashsale.pay.signals import signal_saletrade_pay_confirm
-from flashsale.pay.models import SaleTrade, SaleOrder, UserCoupon
+from flashsale.pay.models import SaleTrade, SaleOrder
+from flashsale.coupon.models import UserCoupon
 
 
 def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
@@ -831,8 +832,7 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
                 sale_order.save()
             # obj.sale_orders.update(status=SaleOrder.TRADE_FINISHED)
             # 发放30元优惠券
-            coupon = UserCoupon()
-            res = coupon.release_by_template(buyer_id=obj.buyer_id, template_id=39)
+            res = UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=39)
 
 
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress, sender=SaleTrade)
