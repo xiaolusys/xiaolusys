@@ -308,7 +308,7 @@ class SaleTrade(BaseModel):
                 for sale_order in self.sale_orders.all():
                     psi = PackageSkuItem.objects.filter(sale_order_id=sale_order.id, assign_status=2).exclude(
                         package_order_id=None).first()
-                    if psi:
+                    if psi and psi.package_order.out_sid:
                         self.set_out_sid(psi.package_order.out_sid, psi.package_order.logistics_company_id)
 
     def confirm_payment(self):
