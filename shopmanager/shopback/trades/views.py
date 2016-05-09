@@ -1255,6 +1255,17 @@ def change_package_logistic_and_outsid(request):
     return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
 
+def change_package_ware_by(request):
+    CONTENT = request.REQUEST
+    package_order_pid = CONTENT.get('package_order_pid')
+    ware_by = int(CONTENT.get('ware_by'))
+    p = PackageOrder.objects.get(pid=package_order_pid)
+    p.ware_by = ware_by
+    p.save()
+    ret_params = {'code': 0,
+                  'response_content': {'ware_by': p.get_ware_by_display(), 'ware_by_id': p.ware_by}}
+    return HttpResponse(json.dumps(ret_params), content_type="application/json")
+
 ############################### 退换货订单 #################################
 class ExchangeOrderView(APIView):
     """ docstring for class ExchangeOrderView """
