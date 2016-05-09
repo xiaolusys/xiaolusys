@@ -93,9 +93,26 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     def list_unpast_coupon(self, queryset, status=UserCoupon.UNUSED):
         """ 过滤券池状态 """
-        queryset = queryset.filter(status=status)
+        if status in [str(UserCoupon.PAST), str(UserCoupon.USED)]:
+            queryset = queryset.filter(status=status)
+            if queryset.count() > 10:
+                queryset = queryset.order_by("-created")[:10]
+        else:
+            queryset = queryset.filter(status=status)
         return queryset
 
+    @list_route(methods=['get'])
+    def get_user_coupons(self, request):
+        content = request.REQUEST
+        status = content.get("status") or None
+        customer = get_customer(request)
+        release_tmp_share_coupon(customer)  # 查看临时优惠券 有则发放
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        queryset = self.list_unpast_coupon(queryset, status=status)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
     def list(self, request, *args, **kwargs):
         """
         获取优惠券:
