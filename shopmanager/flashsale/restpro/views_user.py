@@ -867,6 +867,13 @@ class CustomerViewSet(viewsets.ModelViewSet):
                                                        reverse('v1:user-budget-bang', kwargs={'pk': customer.id})),
                          'auth_msg': '将图片二维码图片保存本地后，打开微信扫一扫从相册选取二维码图片'})
 
+    @list_route(methods=['post'])
+    def open_debug_for_app(self, request):
+        content = request.REQUEST
+        debug_secret = content.get("debug_secret") or ''
+        if debug_secret != "xlmm@16888&a":
+            return Response({"code": 1, "msg": "开启失败"})
+        return Response({"code": 0, "msg": "开启成功"})
 
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
