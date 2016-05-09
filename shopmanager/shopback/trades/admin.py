@@ -1322,7 +1322,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
 
     def package_order_link_to(self, obj):
         if obj.package_order_pid:
-            return self.PRODUCT_LINK % {
+            return self.PACKAGE_ORDER_LINK % {
                 'package_order_url': '/admin/trades/package_order/%d/' % obj.package_order_pid,
                 'package_order_pid': obj.package_order_pid
             }
