@@ -88,7 +88,7 @@ def task_release_mama_link_coupon(saletrade):
     - when a customer buy a trade with the mama link url then release a coupon for that mama.
     """
     extras_info = saletrade.extras_info
-    mama_id = extras_info.get('mm_linkid')
+    mama_id = extras_info.get('mm_linkid') or None
     ufrom = extras_info.get('ufrom')
 
     order = saletrade.sale_orders.all().first()
@@ -118,7 +118,7 @@ def task_release_mama_link_coupon(saletrade):
 
 @task()
 def task_change_coupon_status_used(saletrade):
-    coupon_id = saletrade.extras_info.get('coupon')
+    coupon_id = saletrade.extras_info.get('coupon') or None
     from flashsale.coupon.models import UserCoupon
 
     usercoupon = UserCoupon.objects.filter(id=coupon_id,
