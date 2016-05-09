@@ -28,8 +28,8 @@ from flashsale.pay.models import (
     BudgetLog,
     ShoppingCart,
     UserAddress,
-    UserCoupon,
 )
+from flashsale.coupon.models import UserCoupon
 
 from flashsale.restpro import permissions as perms
 from flashsale.restpro import serializers 
@@ -160,15 +160,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 支付前参数检查,如优惠券状态检查 """
         coupon_id = sale_trade.extras_info.get('coupon')
         if coupon_id:
-            coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(sale_trade.buyer_id))
-            if coupon.status == UserCoupon.USED and coupon.sale_trade != sale_trade.id:
-                raise Exception('优惠券已在其它订单上使用')
-            if coupon.status == UserCoupon.FREEZE :
-                raise Exception('优惠券已失效')
-            if coupon.status == UserCoupon.UNUSED:
-                coupon.status = UserCoupon.USED
-                coupon.sale_trade = sale_trade.id
-                coupon.save()
+            user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
+            user_coupon.coupon_basic_check()  # 优惠券基础检查
+            user_coupon.use_coupon(sale_trade.tid)  # 使用优惠券
 
     def wallet_charge(self, sale_trade):
         """ 妈妈钱包支付实现 """
@@ -399,17 +393,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 extra_list.append(pdict)
                 already_exists_pids.append(pdict['pid'])
         return extra_list
-    
-    def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment,**kwargs):
+
+    def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment, **kwargs):
         """ payment（单位分）按原始支付金额计算优惠信息 """
-        coupon = get_object_or_404(UserCoupon,
-                                     id=coupon_id,
-                                     customer=str(buyer_id),
-                                     status=UserCoupon.UNUSED)
-        coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
-        coupon_pool = coupon.cp_id
-        
-        return round(coupon_pool.template.value * 100)
+        user_coupon = get_object_or_404(UserCoupon, id=coupon_id, customer_id=buyer_id, status=UserCoupon.UNUSED)
+        user_coupon.check_user_coupon(product_ids=item_ids, use_fee=payment / 100.0)
+        return round(user_coupon.value * 100)
     
     def calc_extra_discount(self, pay_extras, **kwargs):
         """　优惠信息(分) """
@@ -544,20 +533,18 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
             raise exceptions.ParseError(u'商品已被抢光啦！')
         
-        coupon_id = CONTENT.get('coupon_id','')
+        coupon_id = CONTENT.get('coupon_id', '')
+        user_coupon = None
         if coupon_id:
             # 对应用户的未使用的优惠券
-            coupon       = get_object_or_404(UserCoupon, id=coupon_id, 
-                                             customer=str(customer.id),
-                                             status=UserCoupon.UNUSED)
+            user_coupon = get_object_or_404(UserCoupon, id=coupon_id,
+                                            customer_id=customer.id, status=UserCoupon.UNUSED)
             try:  # 优惠券条件检查
                 check_use_fee = (bn_totalfee - bn_discount) / 100.0
-                coupon.check_usercoupon(product_ids=[product.id, ], use_fee=check_use_fee)
-                # coupon.cp_id.template.usefee_check((bn_totalfee - bn_discount) / 100.0)  # 检查消费金额是否满足
-                coupon_pool = coupon.cp_id
+                user_coupon.check_user_coupon(product_ids=[product.id, ], use_fee=check_use_fee)  # 检查消费金额是否满足
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
-            bn_discount += round(coupon_pool.template.value * 100)
+            bn_discount += round(user_coupon.value * 100)
 
         bn_discount += self.calc_extra_discount(pay_extras)
         bn_discount = min(bn_discount, bn_totalfee)
@@ -588,12 +575,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.error(exc.message,exc_info=True)
             Product.objects.releaseLockQuantity(product_sku, sku_num)
             raise exceptions.APIException(u'订单生成异常')
-        #使用优惠券，并修改状态
-        if coupon_id and coupon:
-            coupon.status = UserCoupon.USED
-            coupon.sale_trade = sale_trade.id
-            coupon.save()
-        
+
+        if coupon_id and user_coupon:  # 使用优惠券，并修改状态
+            user_coupon.use_coupon(sale_trade.tid)
+
         if channel == SaleTrade.WALLET:
             #妈妈钱包支付
             response_charge = self.wallet_charge(sale_trade)

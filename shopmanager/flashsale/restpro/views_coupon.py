@@ -127,7 +127,6 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["post"])
     def choose_coupon(self, request, pk=None):
-
         coupon_id = pk  # 获取order_id
         queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
         coupon = queryset.get(id=pk)
