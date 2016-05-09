@@ -1011,6 +1011,8 @@ def task_assign_stock_to_package_sku_item(stat):
     """ """
     print 'task_assign_stock_to_package_sku_item:'
     print stat.sku_id
+    logger.warn("task_assign_stock_to_package_sku_item" + str(datetime.datetime.now()) + ":sku_id" + str(stat.sku_id)
+                + str(stat.__dict__))
     from shopback.trades.models import PackageSkuItem
     available_num = stat.realtime_quantity - stat.assign_num
     print available_num
