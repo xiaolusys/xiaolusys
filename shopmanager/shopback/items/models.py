@@ -648,7 +648,7 @@ class ProductSku(models.Model):
     #inbound_quantity = models.IntegerField(default=0, verbose_name='入仓库存数')  #
     #post_num = models.IntegerField(default=0, verbose_name='已发货数')  #
     #sold_num = models.IntegerField(default=0, verbose_name='已被购买数')  #
-    #realtime_lock_num = models.IntegerField(default=0, verbose_name='实时锁定数')  #
+    #realtime_lock_num = models.IntegerField(default=0, verbose_name='实时f锁定数')  #
 
     cost = models.FloatField(default=0, verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0, verbose_name='标准进价')
