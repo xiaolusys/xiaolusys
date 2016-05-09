@@ -227,7 +227,7 @@ from .tasks import notifyTradeRefundTask
 
 
 class SaleRefundAdmin(ApproxAdmin):
-    list_display = ('refund_no', 'order_no', 'channel', 'title', 'refund_fee',
+    list_display = ('refund_no', 'order_no', 'channel', 'title', 'sku_id', 'refund_fee',
                     'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status',
                     'refund_pro_link')
 

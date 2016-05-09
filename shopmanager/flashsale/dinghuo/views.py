@@ -809,6 +809,8 @@ class PendingDingHuoViewSet(viewsets.GenericViewSet):
     template_name = 'dinghuo/pending_dinghuo.html'
 
     def list(self, request, *args, **kwargs):
+        from common.utils import get_admin_name
+
         if not re.search(r'application/json', request.META['HTTP_ACCEPT']):
             return Response()
 
@@ -819,9 +821,13 @@ class PendingDingHuoViewSet(viewsets.GenericViewSet):
         for order_list in models.OrderList.objects \
                 .exclude(status__in=[models.OrderList.COMPLETED, models.OrderList.ZUOFEI, models.OrderList.CLOSED]) \
                 .order_by('-updated'):
+            buyer_name = ''
+            if order_list.buyer_id and order_list.buyer:
+                buyer_name = get_admin_name(order_list.buyer)
+
             items.append({
                 'id': order_list.id,
-                'receiver': order_list.receiver,
+                'receiver': buyer_name,
                 'order_amount': round(order_list.order_amount, 2),
                 'supplier_name': order_list.supplier_name,
                 'supplier_shop': order_list.supplier_shop,
