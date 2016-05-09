@@ -6,7 +6,6 @@ from django.db.models.signals import post_save
 import logging
 import datetime
 from django.db.models import ObjectDoesNotExist
-from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate
 
 from django.db.models import F
 from common.modelutils import update_model_fields
