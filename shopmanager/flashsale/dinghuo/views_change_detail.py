@@ -136,10 +136,42 @@ class ChangeDetailView(View):
         for order in order_details:
             order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
             order.save()
+            product = Product.objects.get(id=order.product_id)
             order_dict = model_to_dict(order)
-            order_dict['pic_path'] = Product.objects.get(
-                id=order.product_id).pic_path
+            order_dict['pic_path'] = product.pic_path
+            product_sku = ProductSku.objects.get(id=order.chichu_id)
+            order_dict['wait_post_num'] = product_sku.wait_post_num
+            order_dict['supplier_outer_id'] = ''
+            if product.sale_product:
+                try:
+                    saleproduct = SaleProduct.objects.get(
+                        id=product.sale_product)
+                    order_dict['product_link'] = saleproduct.product_link or ''
+                    order_dict['supplier_outer_id'] = saleproduct.supplier_sku or ''
+                except:
+                    pass
             order_list_list.append(order_dict)
+
+        def _sort(x):
+            _M = {
+                'XS': 1001,
+                'S': 1002,
+                'M': 1003,
+                'L': 1004,
+                'XL': 1005,
+                'XXL': 1006,
+                '3XL': 1007,
+                '4XL': 1008,
+                u'均码': 9999
+            }
+            chicun = x.get('product_chicun') or ''
+            try:
+                w = float(chicun)
+            except:
+                w = _M.get(chicun) or chicun
+            return x.get('product_id') or 0, w
+        order_list_list = sorted(order_list_list, key=_sort)
+
         if order_list.status == "草稿":
             flag_of_status = True
         else:

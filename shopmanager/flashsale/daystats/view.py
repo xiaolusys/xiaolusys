@@ -124,8 +124,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         elif type_ == 5:
             q = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                         refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,
-                                         pay_time__gt=datetime.datetime(2016, 4, 1)).exclude(outer_id__startswith='RMB')
+                                         refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER).exclude(outer_id__startswith='RMB')
             n_total = q.only('id').count()
             n_delay = q.filter(pay_time__lte=threshold).only('id').count()
             n_s_delay = q.filter(pay_time__lte=threshold2).only('id').count()
