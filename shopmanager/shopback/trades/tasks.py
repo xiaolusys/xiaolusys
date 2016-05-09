@@ -1022,11 +1022,11 @@ def task_update_package_order(instance):
     elif instance.assign_status == PackageSkuItem.CANCELED:
         if instance.package_order_id:
             package_order = PackageOrder.objects.get(id=instance.package_order_id)
-            if package_order.package_sku_items.filter(assign_status_set=PackageSkuItem.ASSIGNED).exists():
+            if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                 package_order.set_redo_sign(save_data=False)
+                package_order.reset_sku_item_num(save_data=True)
             else:
                 package_order.reset_to_new_create()
-            package_order.reset_sku_item_num(save_data=True)
 
     elif instance.assign_status == PackageSkuItem.FINISHED:
         sku_items = PackageSkuItem.objects.filter(package_order_id=instance.package_order_id)
