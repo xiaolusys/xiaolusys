@@ -1324,7 +1324,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         if obj.package_order_pid:
             return self.PRODUCT_LINK % {
                 'package_order_url': '/admin/trades/package_order/%d/' % obj.package_order_pid,
-                'package_order_pid': self.package_order_pid
+                'package_order_pid': obj.package_order_pid
             }
         return ''
 
