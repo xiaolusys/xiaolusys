@@ -951,7 +951,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
 
         if coupon_id and user_coupon:   # 使用优惠券，并修改状态
-            user_coupon.use_coupon()
+            user_coupon.use_coupon(sale_trade.tid)
 
         if channel == SaleTrade.WALLET:
             # 妈妈钱包支付
@@ -1031,7 +1031,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(u'订单生成异常')
 
         if coupon_id and user_coupon: # 使用优惠券，并修改状态
-            user_coupon.use_coupon()
+            user_coupon.use_coupon(sale_trade.tid)
 
         if channel == SaleTrade.WALLET:
             # 妈妈钱包支付
