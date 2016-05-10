@@ -1046,9 +1046,9 @@ class MergeOrderChangeList(ChangeList):
 
 
 class MergeOrderAdmin(ApproxAdmin):
-    list_display = ('id', 'oid', 'merge_trade_link', 'outer_id', 'outer_sku_id', 'sku_properties_name', 'price', 'num',
+    list_display = ('id', 'package_sku_item_link_to', 'merge_trade_link', 'outer_id', 'outer_sku_id', 'sku_properties_name', 'price', 'num',
                     'payment', 'gift_type', 'pay_time', 'refund_status', 'trade_status_link', 'sys_status')
-    list_display_links = ('oid', 'id')
+    list_display_links = ('id')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     # date_hierarchy = 'created'
@@ -1082,6 +1082,18 @@ class MergeOrderAdmin(ApproxAdmin):
 
     trade_status_link.allow_tags = True
     trade_status_link.short_description = "交易状态"
+
+    PACKAGE_SKU_ITEM_LINK = (
+        '<a href="%(pki_url)s" target="_blank">'
+        '%(oid)s</a>')
+
+    def package_sku_item_link_to(self, obj):
+        return self.PACKAGE_SKU_ITEM_LINK % {
+            'pki_url': '/admin/trades/packageskuitem/?oid=%s' % obj.oid,
+            'oid': obj.oid
+        }
+    package_sku_item_link_to.allow_tags = True
+    package_sku_item_link_to.short_description = u'SKU交易单号'
 
     def get_changelist(self, request, **kwargs):
         return MergeOrderChangeList
