@@ -591,7 +591,6 @@ def task_close_refund(days=None):
 
 @task
 def task_saleorder_update_package_sku_item(sale_order):
-    logger.error('debug update skuitem:%s'%sale_order)
     from shopback.trades.models import PackageSkuItem
     from shopback.items.models import ProductSku
     items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
