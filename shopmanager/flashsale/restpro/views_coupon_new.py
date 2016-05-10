@@ -98,7 +98,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             if queryset.count() > 10:
                 queryset = queryset.order_by("-created")[:10]
         else:
-            queryset = queryset.filter(status=status)
+            now = datetime.datetime.now()
+            queryset = queryset.filter(status=status, expires_time__gte=now)
         return queryset
 
     @list_route(methods=['get'])
@@ -109,6 +110,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         release_tmp_share_coupon(customer)  # 查看临时优惠券 有则发放
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = self.list_unpast_coupon(queryset, status=status)
+        queryset = queryset.order_by('-created')
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

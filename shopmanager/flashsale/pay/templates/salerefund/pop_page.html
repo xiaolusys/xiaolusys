@@ -30,7 +30,11 @@
         {% else %}
             <span>{{ refund.channel }} </span>
         {% endifequal %}
-
+        {% if  refund.has_budget_paid %}
+            <span style="background:#FF00DC ;margin-left: 10px">使用余额</span>
+        {% else %}
+            <span></span>
+        {% endif %}
         <br><br/>
         <span class="label label-info" style="padding: 1px">付款时间：</span>&nbsp&nbsp{{ refund.pay_time }}<br>
         <span class="label label-info" style="padding: 1px">订单状态：</span>&nbsp&nbsp{{ refund.order_status }}<br>
