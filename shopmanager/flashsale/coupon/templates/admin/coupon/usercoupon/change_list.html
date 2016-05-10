@@ -8,16 +8,16 @@
     <ul class="object-tools">
       {% block object-tools-items %}
         <li>
-          <a href="/mm/rsrc/" class="historylink" target="_blank">
+          <a href="/coupon/rsrc/" class="historylink" target="_blank">
              发放补邮费优惠券
           </a>
         </li>
-        <!--
+
         <li>
           <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
             {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
           </a>
-        </li>-->
+        </li>
       {% endblock %}
     </ul>
   {% endif %}

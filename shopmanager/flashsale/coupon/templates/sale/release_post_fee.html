@@ -41,29 +41,18 @@
     </div>
 
     <div style="margin-top: 30px">
-        <button type="button" class="btn btn-info" onclick="release_coupon_action(5)">
-            发邮费优惠券 (￥5)
-        </button>
-        <button type="button" class="btn btn-warning" onclick="release_coupon_action(10)"
-                style="margin-left: 20px;margin-right: 20px">
-            发邮费优惠券(￥10)
-        </button>
-    </div>
-    <div style="margin-top: 30px">
-        <button type="button" class="btn btn-danger" onclick="release_coupon_action(15)">
-            发邮费优惠券(￥15)
-        </button>
-        <button type="button" class="btn btn-danger" onclick="release_coupon_action(20)"
-                style="margin-left: 20px;">
-            发邮费优惠券(￥20)
-        </button>
+        {% for template in templates %}
+            <button type="button" class="btn btn-info" style="margin-top: 30px;" onclick="release_coupon_action({{ template.id }})">
+                {{ template.title }}
+            </button>
+        {% endfor %}
     </div>
 </div>
 
 
 <br/>
 
-
+<!--
 <div class="col-xs-6" style="background: white;margin-top: 150px;margin-bottom: 10%">
     <h1>漏发优惠券.发放</h1>
 
@@ -79,7 +68,7 @@
         <span class="input-group-addon" id="release-omissive-coupon">点击发放</span>
     </div>
 </div>
-
+-->
 
 </body>
 
@@ -88,7 +77,7 @@
         $("#go_search").click(function () {
             var trade_tid = $('#trade_tid').val();
             var data = {"trade_tid": trade_tid};
-            var url = "/mm/rsrc/";
+            var url = "/coupon/rsrc/";
             $.ajax({
                 "url": url,
                 "data": data,
@@ -143,32 +132,16 @@
         return str;
     };
 
-    function release_coupon_action(cou_type) {
-        var POST_COUPON = {
-            typ_5: 'POST_FEE_5',
-            typ_10: 'POST_FEE_10',
-            typ_15: 'POST_FEE_15',
-            typ_20: 'POST_FEE_20'
-        };
+    function release_coupon_action(template_id) {
         var btn = $(".post_fee");
         if (btn.hasClass('loading')) {
             return
         }
         btn.addClass('loading');
-        var coupon_type = POST_COUPON.typ_5;
-        if (cou_type == 10) {
-            coupon_type = POST_COUPON.typ_10;
-        }
-        else if (cou_type == 15) {
-            coupon_type = POST_COUPON.typ_15;
-        }
-        else if (cou_type == 20) {
-            coupon_type = POST_COUPON.typ_20;
-        }
-        var coupon_url = "/mm/rsrc/";
+        var coupon_url = "/coupon/rsrc/";
         var memo = $("#trade_memo").val();
         var trade_tid = $("#target_trade_tid").html();
-        var data = {"trade_tid": trade_tid, "template": coupon_type, "memo": memo};
+        var data = {"trade_tid": trade_tid, "template_id": template_id, "memo": memo};
         console.log('data:', data);
         $.ajax({
             url: coupon_url,
