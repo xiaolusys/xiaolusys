@@ -1680,6 +1680,19 @@ class PackageSkuItem(BaseModel):
         elif self.assign_status == PackageSkuItem.CANCELED:
             self.cancel_time == datetime.datetime.now()
 
+    def reset_assign_status(self):
+        PackageSkuItem.objects.filter(id=self.id).update(assign_status=0)
+        package_order = self.package_order
+        if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
+            package_order.set_redo_sign(save_data=False)
+            package_order.reset_sku_item_num(save_data=True)
+        else:
+            package_order.reset_to_new_create()
+        p = PackageSkuItem.objects.get(id=self.id)
+        p.package_order_id = None
+        p.package_order_pid = None
+        p.save()
+
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
 

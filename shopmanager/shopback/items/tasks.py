@@ -1029,6 +1029,14 @@ def task_assign_stock_to_package_sku_item(stat):
 
 
 @task()
+def task_relase_package_sku_item(stat):
+    sku_id = stat.sku_id
+    from shopback.trades.models import PackageSkuItem
+    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=1).order_by('-id').first()
+    if pki:
+        pki.reset_assign_status()
+
+@task()
 def task_productsku_update_productskustats(sku_id, product_id):
     from shopback.items.models_stats import ProductSkuStats
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
