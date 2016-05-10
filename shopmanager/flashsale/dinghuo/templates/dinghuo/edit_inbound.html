@@ -6,7 +6,6 @@
         <title>修改入仓单</title>
         <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
-        <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
         <style>
 
@@ -257,7 +256,7 @@
         <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
         <script src="/static/wap/js/template.js"></script>
         {% verbatim %}
-        <script id="orderlists" type="text/html">
+        <script id="orderlists-tpl" type="text/html">
             <div class="panel panel-default" id="panel-2">
                 <div class="panel-heading">订货单列表</div>
                 <div class="panel-body">
@@ -271,7 +270,8 @@
                                 <th width="80px">图片</th>
                                 <th width="80px">SKUID</th>
                                 <th width="60px">尺寸</th>
-                                <th width="80px">待入库数</th>
+                                <th width="60px">购买数</th>
+                                <th width="60px">待入库数</th>
                                 <th width="85px">正品</th>
                                 <th width="85px">次品</th>
                             </tr>
@@ -327,6 +327,7 @@
                                         {{sku.properties_name}}
                                     </span>
                                 </td>
+                                <td>{{sku.buy_quantity}}</td>
                                 <td>{{sku.plan_quantity}}</td>
                                 <td>
                                     <input type="number" class="arrival-quantity form-control" style="width:80px" min="0">
@@ -339,6 +340,7 @@
                             {{/each}}
                             {{/each}}
                             <tr>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -363,6 +365,11 @@
                     </form>
                 </div>
             </div>
+        </script>
+        <script id="package-sku-quantity-tpl" type="text/html">
+            <p style="margin:0;">
+                待分配:<span class="{{class_name}}" data-sku-id="{{sku_id}}" style="color:#66cc33">{{n}}</span>
+            </p>
         </script>
         {% endverbatim %}
         <script>
@@ -495,7 +502,7 @@
                                  if($panel2)
                                      $panel2.remove();
                                  if(result.orderlists && result.orderlists.length){
-                                     $('#panel-1').after(template('orderlists', {orderlists: result.orderlists}));
+                                     $('#panel-1').after(template('orderlists-tpl', {orderlists: result.orderlists}));
                                      _.each(result.records || {}, function(record, orderdetailId){
                                          var tpl = _.template('tr.sku[data-orderdetail-id="<%= orderdetailId %>"]');
                                          var $tr = $(tpl({orderdetailId: orderdetailId}), '#form-2');
@@ -533,8 +540,32 @@
 
                                      $('tr.sku', '#form-2').removeClass('candidate');
                                      _.each(_.keys(inboundSkus), function(skuId){
+                                         var inboundSku = inboundSkus[skuId];
                                          var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
-                                         $(tpl({skuId: skuId}), '#form-2').addClass('candidate');
+                                         var $row = $(tpl({skuId: skuId}), '#form-2');
+                                         $row.addClass('candidate');
+                                         $row.find('.arrival-quantity').after(template('package-sku-quantity-tpl',
+                                                                                       {class_name: 'package-arrival-quantity', n: inboundSku.arrival_quantity, sku_id: skuId}));
+                                         $row.find('.inferior-quantity').after(template('package-sku-quantity-tpl',
+                                                                                       {class_name: 'package-inferior-quantity', n: inboundSku.inferior_quantity, sku_id: skuId}));
+
+                                         $row.find('.arrival-quantity').change(function(){
+                                             var n = 0;
+                                             var prefix = tpl({skuId: skuId});
+                                             $(prefix + ' .arrival-quantity', '#form-2').each(function(){
+                                                 n += parseInt($(this).val()) || 0;
+                                             });
+                                             $(prefix + ' .package-arrival-quantity', '#form-2').html(inboundSku.arrival_quantity - n);
+                                         });
+
+                                         $row.find('.inferior-quantity').change(function(){
+                                             var n = 0;
+                                             var prefix = tpl({skuId: skuId});
+                                             $(prefix + ' .inferior-quantity', '#form-2').each(function(){
+                                                 n += parseInt($(this).val()) || 0;
+                                             });
+                                             $(prefix + ' .package-inferior-quantity', '#form-2').html(inboundSku.inferior_quantity - n);
+                                         });
                                      });
                                  }
                              }
@@ -690,23 +721,7 @@
                  });
              });
 
-             $('tr.sku', '#form-1').each(function(){
-                 var $this = $(this);
-                 var productId = parseInt($this.attr('data-product-id'));
-                 if(productId){
-                     var $district = $this.find('input.district').last();
-                     $.ajax({
-                         url: '/sale/dinghuo/inbound/suggest_district',
-                         type: 'get',
-                         dataType: 'json',
-                         data: {product_id: productId},
-                         success: function(result){
-                             if(result.district)
-                                 $district.after(SUGGEST_DISTRICT_TPL({district: result.district}));
-                         }
-                     });
-                 }
-             });
+
              $('#save').click(function(){
                  $.ajax({
                      url: '/sale/dinghuo/inbound/save_memo',

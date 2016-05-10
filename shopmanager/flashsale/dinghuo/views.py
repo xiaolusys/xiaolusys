@@ -2086,6 +2086,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             products_dict = orderlist_dict['products']
             skus_dict = products_dict.setdefault(product_id, {})
             skus_dict[sku_id] = {
+                'buy_quantity': orderdetail.buy_quantity,
                 'plan_quantity': orderdetail.buy_quantity - min(orderdetail.arrival_quantity, orderdetail.buy_quantity),
                 'orderdetail_id': orderdetail.id
             }
@@ -2317,7 +2318,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
             products = []
             for product_dict in sorted(products_dict.values(),
-                                       key=itemgetter('saleproduct_id', 'id')):
+                                       key=itemgetter('id')):
                 skus_dict = product_dict['skus']
                 product_dict['skus'] = [skus_dict[k]
                                         for k in sorted(skus_dict.keys())]
