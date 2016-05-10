@@ -633,7 +633,7 @@
                  var $tr = $(this).closest('tr');
                  var productId = parseInt($tr.attr('data-product-id'));
                  var skuId = parseInt($tr.attr('data-sku-id'));
-                 $(tpl({id: productId}), '#form-3').each(function(){
+                 $(tpl({id: productId}), '#form-2').each(function(){
                      if(_.isEmpty($(this).find('.district').last().val())){
                          $(this).find('.district').val(suggestion);
                      }
