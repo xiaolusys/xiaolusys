@@ -1309,7 +1309,7 @@ class PackageOrder(models.Model):
     buyer_message = models.TextField(max_length=1000, blank=True, verbose_name=u'买家留言')
     seller_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'卖家备注')
     sys_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'系统备注')
-    seller_flag = models.IntegerField(null=True, verbose_name=u'淘宝旗帜')
+    seller_flag = models.IntegerField(null=True, default=0, verbose_name=u'淘宝旗帜')
 
     GIFT_TYPE = (
         (pcfg.REAL_ORDER_GIT_TYPE, u'实付'),
