@@ -809,6 +809,8 @@ class PendingDingHuoViewSet(viewsets.GenericViewSet):
     template_name = 'dinghuo/pending_dinghuo.html'
 
     def list(self, request, *args, **kwargs):
+        from common.utils import get_admin_name
+
         if not re.search(r'application/json', request.META['HTTP_ACCEPT']):
             return Response()
 
@@ -819,9 +821,13 @@ class PendingDingHuoViewSet(viewsets.GenericViewSet):
         for order_list in models.OrderList.objects \
                 .exclude(status__in=[models.OrderList.COMPLETED, models.OrderList.ZUOFEI, models.OrderList.CLOSED]) \
                 .order_by('-updated'):
+            buyer_name = ''
+            if order_list.buyer_id and order_list.buyer:
+                buyer_name = get_admin_name(order_list.buyer)
+
             items.append({
                 'id': order_list.id,
-                'receiver': order_list.receiver,
+                'receiver': buyer_name,
                 'order_amount': round(order_list.order_amount, 2),
                 'supplier_name': order_list.supplier_name,
                 'supplier_shop': order_list.supplier_shop,
@@ -2080,6 +2086,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             products_dict = orderlist_dict['products']
             skus_dict = products_dict.setdefault(product_id, {})
             skus_dict[sku_id] = {
+                'buy_quantity': orderdetail.buy_quantity,
                 'plan_quantity': orderdetail.buy_quantity - min(orderdetail.arrival_quantity, orderdetail.buy_quantity),
                 'orderdetail_id': orderdetail.id
             }
@@ -2311,7 +2318,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
             products = []
             for product_dict in sorted(products_dict.values(),
-                                       key=itemgetter('saleproduct_id', 'id')):
+                                       key=itemgetter('id')):
                 skus_dict = product_dict['skus']
                 product_dict['skus'] = [skus_dict[k]
                                         for k in sorted(skus_dict.keys())]
