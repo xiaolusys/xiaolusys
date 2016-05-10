@@ -112,7 +112,6 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['get'])
     def list(self, request, *args, **kwargs):
         """
         获取优惠券:

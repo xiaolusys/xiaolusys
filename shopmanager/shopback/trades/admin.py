@@ -1048,7 +1048,7 @@ class MergeOrderChangeList(ChangeList):
 class MergeOrderAdmin(ApproxAdmin):
     list_display = ('id', 'package_sku_item_link_to', 'merge_trade_link', 'outer_id', 'outer_sku_id', 'sku_properties_name', 'price', 'num',
                     'payment', 'gift_type', 'pay_time', 'refund_status', 'trade_status_link', 'sys_status')
-    list_display_links = ('id')
+    list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     # date_hierarchy = 'created'
