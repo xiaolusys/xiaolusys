@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+import logging
 import hashlib
 import os, urlparse
 from django.conf import settings
@@ -26,6 +27,8 @@ from django.forms import model_to_dict
 import json
 
 from qiniu import Auth
+
+logger = logging.getLogger(__name__)
 
 
 class SaleRefundViewSet(viewsets.ModelViewSet):
@@ -382,7 +385,10 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
     def get_app_download_link(self, request):
         """ 返回有效的app下载地址 """
         cotent = request.REQUEST
-        mm_linkid = cotent.get('mm_linkid', None)
+        mm_linkid = cotent.get('mm_linkid') or None
+        if mm_linkid is None:
+            cookies = request.COOKIES
+            mm_linkid = cookies.get("mm_linkid")
         download_url = urlparse.urljoin(settings.M_SITE_URL, 'sale/promotion/appdownload/')  # 如果没有找到
         if mm_linkid is None:
             return Response({'download_url': download_url})
