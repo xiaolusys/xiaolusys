@@ -11,7 +11,10 @@ def task_update_tpl_released_coupon_nums(template):
     template : CouponTemplate instance
     has_released_count ++ when the CouponTemplate release success.
     """
-    template.has_released_count = F('has_released_count') + 1
+    from flashsale.coupon.models import UserCoupon
+
+    count = UserCoupon.objects.filter(template_id=template.id).count()
+    template.has_released_count = count
     template.save(update_fields=['has_released_count'])
     return
 
@@ -22,7 +25,10 @@ def task_update_share_coupon_release_count(share_coupon):
     share_coupon : OrderShareCoupon instance
     release_count ++ when the OrderShareCoupon release success
     """
-    share_coupon.release_count = F('release_count') + 1
+    from flashsale.coupon.models import UserCoupon
+
+    count = UserCoupon.objects.filter(order_coupon_id=share_coupon.id).count()
+    share_coupon.release_count = count
     share_coupon.save(update_fields=['release_count'])
     return
 
@@ -33,16 +39,21 @@ def task_update_coupon_use_count(coupon, trade_tid):
     1. count the CouponTemplate 'has_used_count' field when use coupon
     2. count the OrderShareCoupon 'has_used_count' field when use coupon
     """
+    from flashsale.coupon.models import UserCoupon
+
     coupon.finished_time = datetime.datetime.now()  # save the finished time
     coupon.trade_tid = trade_tid  # save the trade tid with trade be binding
     coupon.save(update_fields=['finished_time'])
     tpl = coupon.self_template()
-    tpl.has_used_count = F('has_used_count') + 1
+    coupons = UserCoupon.objects.all()
+    tpl_used_count = coupons.filter(template_id=tpl.id, status=UserCoupon.USED).count()
+    tpl.has_used_count = tpl_used_count
     tpl.save(update_fields=['has_used_count'])
 
     share = coupon.share_record()
     if share:
-        share.has_used_count = F('has_used_count') + 1
+        share_used_count = coupons.filter(order_coupon_id=share.id, status=UserCoupon.USED).count()
+        share.has_used_count = share_used_count
         share.save(update_fields=['has_used_count'])
     return
 
