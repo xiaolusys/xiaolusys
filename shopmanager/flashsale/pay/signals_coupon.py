@@ -166,6 +166,5 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
         update_model_fields(instance.sale_trade, update_fields=['status'])
         log_action(sysoa_user.id, instance.sale_trade, CHANGE, u"充值修改该订单交易状态")
 
-
 # 2016-5-7 取消充值信号触发
 # post_save.connect(xlmm_Recharge, sender=SaleOrder)

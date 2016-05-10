@@ -45,6 +45,7 @@ def task_update_coupon_use_count(coupon, trade_tid):
     coupon.trade_tid = trade_tid  # save the trade tid with trade be binding
     coupon.save(update_fields=['finished_time'])
     tpl = coupon.self_template()
+
     coupons = UserCoupon.objects.all()
     tpl_used_count = coupons.filter(template_id=tpl.id, status=UserCoupon.USED).count()
     tpl.has_used_count = tpl_used_count
