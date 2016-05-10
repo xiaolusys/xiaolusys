@@ -446,6 +446,7 @@ class UserCoupon(BaseModel):
         self.status = self.UNUSED
         self.save()
 
+
     def get_pool_status(self):
         """ 临时使用(ios接口兼容使用) """
         if self.status == UserCoupon.UNUSED:
@@ -467,4 +468,3 @@ class TmpShareCoupon(BaseModel):
 
     def __unicode__(self):
         return "<%s,%s>" % (self.id, self.mobile)
-

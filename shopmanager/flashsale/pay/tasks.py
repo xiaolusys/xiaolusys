@@ -9,8 +9,10 @@ from celery.task import task
 from celery.task.sets import subtask
 
 from core.options import log_action, ADDITION, CHANGE
+from shopback.items.models import ProductSku
 from shopback.users.models import User
 from shopapp.weixin.models import WeiXinUser, WeixinUnionID
+from flashsale.dinghuo.models import OrderList, OrderDetail
 from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer
 from common.utils import update_model_fields
 from .service import FlashSaleService
@@ -26,7 +28,9 @@ logger = logging.getLogger('celery.handler')
 def task_Update_Sale_Customer(unionid, openid=None, app_key=None):
     """ 更新特卖用户　微信授权信息 """
     if openid and app_key:
-        WeixinUnionID.objects.get_or_create(openid=openid, app_key=app_key, unionid=unionid)
+        WeixinUnionID.objects.get_or_create(openid=openid,
+                                            app_key=app_key,
+                                            unionid=unionid)
 
     try:
         profile, state = Customer.objects.get_or_create(unionid=unionid)
@@ -37,7 +41,9 @@ def task_Update_Sale_Customer(unionid, openid=None, app_key=None):
             profile.nick = wxuser.nickname or profile.nick
             profile.mobile = profile.mobile.strip() or wxuser.mobile
             profile.thumbnail = wxuser.headimgurl or profile.thumbnail
-            update_model_fields(profile, update_fields=['nick', 'mobile', 'openid', 'thumbnail'])
+            update_model_fields(
+                profile,
+                update_fields=['nick', 'mobile', 'openid', 'thumbnail'])
 
     except Exception, exc:
         logger.debug(exc.message, exc_info=True)
@@ -51,10 +57,13 @@ def task_Refresh_Sale_Customer(user_params, app_key=None):
         return
 
     if openid and app_key:
-        WeixinUnionID.objects.get_or_create(openid=openid, app_key=app_key, unionid=unionid)
+        WeixinUnionID.objects.get_or_create(openid=openid,
+                                            app_key=app_key,
+                                            unionid=unionid)
 
     try:
-        profiles = Customer.objects.filter(unionid=unionid, status=Customer.NORMAL)
+        profiles = Customer.objects.filter(unionid=unionid,
+                                           status=Customer.NORMAL)
         if not profiles.exists():
             return
         profile = profiles[0]
@@ -65,7 +74,8 @@ def task_Refresh_Sale_Customer(user_params, app_key=None):
         profile.nick = user_params.get('nickname') or profile.nick
         # profile.openid = profile.openid or user_params.get('openid') #not save weixin app auth openid
         profile.thumbnail = user_params.get('headimgurl') or profile.thumbnail
-        update_model_fields(profile, update_fields=['nick', 'mobile', 'thumbnail'])
+        update_model_fields(profile,
+                            update_fields=['nick', 'mobile', 'thumbnail'])
 
     except Exception, exc:
         logger.debug(exc.message, exc_info=True)
@@ -82,11 +92,14 @@ def task_Merge_Sale_Customer(user, code):
     if not openid or not unionid:
         return
 
-    WeixinUnionID.objects.get_or_create(openid=openid, app_key=app_key, unionid=unionid)
+    WeixinUnionID.objects.get_or_create(openid=openid,
+                                        app_key=app_key,
+                                        unionid=unionid)
     try:
         profile, state = Customer.objects.get_or_create(user=user)
-        wxuser = WeiXinUser.objects.get(models.Q(openid=openid) | models.Q(unionid=unionid))
-        profile.nick   = wxuser.nickname
+        wxuser = WeiXinUser.objects.get(models.Q(openid=openid) | models.Q(
+            unionid=unionid))
+        profile.nick = wxuser.nickname
         profile.mobile = profile.mobile or wxuser.mobile
         profile.openid = profile.openid.strip() or openid
         profile.unionid = profile.unionid.strip() or unionid
@@ -114,19 +127,17 @@ from shopback.trades.models import MergeTrade, MergeOrder
 
 @task()
 def task_Push_SaleTrade_Finished(pre_days=10):
-    """ 
+    """
     定时将待确认状态小鹿特卖订单更新成已完成：
     1，查找明细订单对应的MergeOrder;
     2，根据MergeOrder父订单状态更新Saleorder状态；
     3，根据SaleTrade的所有SaleOrder状态更新SaleTrade状态;
     """
     day_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
-    strades = SaleTrade.objects.filter(
-        status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,
-                    SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
-                    SaleTrade.TRADE_BUYER_SIGNED),
-        pay_time__lte=day_date
-    )
+    strades = SaleTrade.objects.filter(status__in=(
+        SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+        SaleTrade.TRADE_BUYER_SIGNED),
+                                       pay_time__lte=day_date)
     for strade in strades:
         for sorder in strade.normal_orders:
             if sorder.is_finishable():
@@ -137,7 +148,8 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             strade.save()
 
         normal_orders = strade.normal_orders
-        finish_orders = strade.sale_orders.filter(status=SaleOrder.TRADE_FINISHED)
+        finish_orders = strade.sale_orders.filter(
+            status=SaleOrder.TRADE_FINISHED)
         if normal_orders.count() == finish_orders.count():
             strade.status = SaleTrade.TRADE_FINISHED
             strade.save()
@@ -161,12 +173,15 @@ def notifyTradePayTask(notify):
         charge = notify['id']
         paid = notify['paid']
 
-        tcharge, state = TradeCharge.objects.get_or_create(order_no=order_no, charge=charge)
+        tcharge, state = TradeCharge.objects.get_or_create(order_no=order_no,
+                                                           charge=charge)
         if not paid or tcharge.paid == True:
             return
 
-        update_fields = set(['paid', 'refunded', 'channel', 'amount', 'currency', 'transaction_no',
-                             'amount_refunded', 'failure_code', 'failure_msg', 'time_paid', 'time_expire'])
+        update_fields = set(
+            ['paid', 'refunded', 'channel', 'amount', 'currency',
+             'transaction_no', 'amount_refunded', 'failure_code', 'failure_msg',
+             'time_paid', 'time_expire'])
 
         for k, v in notify.iteritems():
             if k not in update_fields:
@@ -203,8 +218,9 @@ def notifyTradeRefundTask(notify):
         seller = getOrCreateSaleSeller()
         srefund = SaleRefund.objects.get(refund_id=refund_id)
 
-        log_action(seller.user.id, srefund, CHANGE,
-                   u'%s(金额:%s)' % ([u'退款失败', u'退款成功'][notify['succeed'] and 1 or 0], notify['amount']))
+        log_action(seller.user.id, srefund, CHANGE, u'%s(金额:%s)' %
+                   ([u'退款失败', u'退款成功'][notify['succeed'] and 1 or 0],
+                    notify['amount']))
 
         if not notify['succeed']:
             srefund.feedback += notify.get('failure_msg', '') or ''
@@ -277,11 +293,13 @@ def pull_Paid_SaleTrade(pre_day=1, interval=1):
     while has_next:
         if starting_after:
             resp = pingpp.Charge.all(limit=page_size,
-                                     created={'gte': pre_date, 'lte': post_date},
+                                     created={'gte': pre_date,
+                                              'lte': post_date},
                                      starting_after=starting_after)
         else:
             resp = pingpp.Charge.all(limit=page_size,
-                                     created={'gte': pre_date, 'lte': post_date})
+                                     created={'gte': pre_date,
+                                              'lte': post_date})
         e = None
         for e in resp['data']:
             # notifyTradePayTask.s(e)()
@@ -299,9 +317,11 @@ def pull_Paid_SaleTrade(pre_day=1, interval=1):
 def push_SaleTrade_To_MergeTrade():
     """ 更新特卖订单到订单列表 """
 
-    saletrades = SaleTrade.objects.filter(status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+    saletrades = SaleTrade.objects.filter(
+        status=SaleTrade.WAIT_SELLER_SEND_GOODS)
     for strade in saletrades:
-        mtrades = MergeTrade.objects.filter(tid=strade.tid, type=MergeTrade.SALE_TYPE)
+        mtrades = MergeTrade.objects.filter(tid=strade.tid,
+                                            type=MergeTrade.SALE_TYPE)
         if mtrades.count() > 0 and mtrades[0].modified >= strade.modified:
             continue
         saleservice = FlashSaleService(strade)
@@ -313,28 +333,28 @@ from flashsale.pay.models import Envelop
 
 @task
 def task_Pull_Red_Envelope(pre_day=7):
-    """更新红包 
+    """更新红包
     {
-      "status": "SENDING", 
-      "body": "\u4e00\u4efd\u8015\u8018\uff0c\u4e00\u4efd\u6536\u83b7\uff0c\u8c22\u8c22\u4f60\u7684\u52aa\u529b\uff01", 
-      "object": "red_envelope", 
-      "description": "\u5c0f\u9e7f\u5988\u5988\u7f16\u53f7:2540,\u63d0\u73b0\u524d:12160", 
-      "order_no": "4348", 
+      "status": "SENDING",
+      "body": "\u4e00\u4efd\u8015\u8018\uff0c\u4e00\u4efd\u6536\u83b7\uff0c\u8c22\u8c22\u4f60\u7684\u52aa\u529b\uff01",
+      "object": "red_envelope",
+      "description": "\u5c0f\u9e7f\u5988\u5988\u7f16\u53f7:2540,\u63d0\u73b0\u524d:12160",
+      "order_no": "4348",
       "extra": {
-        "nick_name": "\u4e0a\u6d77\u5df1\u7f8e\u7f51\u7edc\u79d1\u6280", 
+        "nick_name": "\u4e0a\u6d77\u5df1\u7f8e\u7f51\u7edc\u79d1\u6280",
         "send_name": "\u5c0f\u9e7f\u7f8e\u7f8e"
-      }, 
-      "app": "app_LOOajDn9u9WDjfHa", 
-      "livemode": true, 
-      "paid": true, 
-      "created": 1434975877, 
-      "transaction_no": "100000000020150622316876646289", 
-      "currency": "cny", 
-      "amount": 5000, 
-      "received": null, 
-      "recipient": "our5huB4NHz2D7XTkdWTcurQXsYc", 
-      "id": "red_9ujLmDSqPG8Ov5ab1C9WXLuH", 
-      "channel": "wx_pub", 
+      },
+      "app": "app_LOOajDn9u9WDjfHa",
+      "livemode": true,
+      "paid": true,
+      "created": 1434975877,
+      "transaction_no": "100000000020150622316876646289",
+      "currency": "cny",
+      "amount": 5000,
+      "received": null,
+      "recipient": "our5huB4NHz2D7XTkdWTcurQXsYc",
+      "id": "red_9ujLmDSqPG8Ov5ab1C9WXLuH",
+      "channel": "wx_pub",
       "subject": "\u94b1\u5305\u63d0\u73b0"
     }
     """
@@ -349,11 +369,13 @@ def task_Pull_Red_Envelope(pre_day=7):
     while has_next:
         if starting_after:
             resp = pingpp.RedEnvelope.all(limit=page_size,
-                                          created={'gte': pre_date, 'lte': today},
+                                          created={'gte': pre_date,
+                                                   'lte': today},
                                           starting_after=starting_after)
         else:
             resp = pingpp.RedEnvelope.all(limit=page_size,
-                                          created={'gte': pre_date, 'lte': today})
+                                          created={'gte': pre_date,
+                                                   'lte': today})
         e = None
         for e in resp['data']:
             envelop = Envelop.objects.get(id=e['order_no'])
@@ -364,6 +386,51 @@ def task_Pull_Red_Envelope(pre_day=7):
         has_next = resp['has_more']
         if not has_next:
             break
+
+
+from models_coupon_new import CouponsPool, CouponTemplate, UserCoupon
+from django.db import transaction
+
+
+@task
+@transaction.atomic
+def task_Update_CouponPoll_Status():
+    """ 定时更新券池中的优惠券到过期过期状态　"""
+    today = datetime.datetime.today()
+    # 定时更新优惠券的状态:　超过模板定义截至时间的优惠券 将其状态修改为过期无效状态
+    deadline_time = datetime.datetime(today.year, today.month, today.day, 0, 0,
+                                      0)
+    # 未发放的 已经发放的   截止日期在今天之前的　排除邮费和代理优惠券
+    cous = CouponsPool.objects.filter(
+        template__deadline__lte=deadline_time,
+        status__in=(CouponsPool.RELEASE, CouponsPool.UNRELEASE)).exclude(
+            template__type__in=
+            (CouponTemplate.RMB118, CouponTemplate.POST_FEE_5,
+             CouponTemplate.POST_FEE_10, CouponTemplate.POST_FEE_15,
+             CouponTemplate.POST_FEE_20))
+    cous.update(status=CouponsPool.PAST)  # 更新为过期优惠券
+
+
+@task()
+def task_ReleaseMamaLinkCoupon(saletrade):
+    """
+    发放优惠券
+    规则：　当代理的专属链接有用户下单后则给该代理发放优惠券
+    """
+    extras_info = saletrade.extras_info
+    mama_id = extras_info.get('mm_linkid')
+    if not mama_id:
+        return
+    now = datetime.datetime.now()
+    tpls = CouponTemplate.objects.filter(valid=True,
+                                         way_type=CouponTemplate.XMM_LINK)
+    tpls = tpls.filter(release_start_time__lte=now, release_end_time__gte=now)
+    for tpl in tpls:
+        if saletrade.payment >= tpl.release_fee:  # 订单满足发放费用发放
+            coupon = UserCoupon()
+            coupon.release_for_mama(mama_id=mama_id,
+                                    template_id=tpl.id,
+                                    trade_id=saletrade.id)
 
 
 from django.db.models import Q
@@ -390,13 +457,14 @@ def task_Record_Mama_Fans(instance, created):
         return
     # 获取对应openid
     WXPAY_APPID = settings.WXPAY_APPID
-    weixin_user = WeixinUnionID.objects.filter(app_key=WXPAY_APPID, unionid=instance.unionid)
+    weixin_user = WeixinUnionID.objects.filter(app_key=WXPAY_APPID,
+                                               unionid=instance.unionid)
     openid = ''
     if weixin_user.exists():
         openid = weixin_user[0].openid
     mobile = instance.mobile
-    downloads = AppDownloadRecord.objects.filter(Q(openid=openid) |
-                                                 Q(mobile=mobile)).filter(status=False)  # 没有成为用户的记录
+    downloads = AppDownloadRecord.objects.filter(Q(openid=openid) | Q(
+        mobile=mobile)).filter(status=False)  # 没有成为用户的记录
     if downloads.exists():
         download = downloads[0]
         # 存在记录则计算当前用户到下载记录的妈妈粉丝上
@@ -406,11 +474,13 @@ def task_Record_Mama_Fans(instance, created):
         ins_xlmm = instance.getXiaolumm()
         if ins_xlmm:  # 如果当前用户是小鹿妈妈则返回，不记录小鹿妈妈自己为自己的粉丝
             return
-        fans = XlmmFans.objects.filter(xlmm_cusid=from_customer.id, fans_cusid=instance.id)
+        fans = XlmmFans.objects.filter(xlmm_cusid=from_customer.id,
+                                       fans_cusid=instance.id)
         if fans.exists():  # 存在粉丝记录返回
             return
         else:
-            XlmmFans.objects.createFansRecord(str(from_customer.id), str(instance.id))
+            XlmmFans.objects.createFansRecord(
+                str(from_customer.id), str(instance.id))
             download.status = True
             download.save()
 
@@ -437,7 +507,8 @@ def task_budgetlog_update_userbudget(budget_log):
     customers = Customer.objects.filter(id=customer_id)
     try:
         if not customers.exists():
-            logger.warn('customer %s　not exists when create user budget!' % customer_id)
+            logger.warn('customer %s　not exists when create user budget!' %
+                        customer_id)
         budgets = UserBudget.objects.filter(user=customer_id)
         if not budgets.exists():  # 不存在钱包记录　添加钱包记录
             budget = UserBudget(user=customers[0],
@@ -454,6 +525,7 @@ def task_budgetlog_update_userbudget(budget_log):
             budget.save()
     except Exception, exc:
         raise task_budgetlog_update_userbudget.retry(exc=exc)
+
 
 from extrafunc.renewremind.tasks import send_message
 from shopapp.smsmgr.models import SMSActivity
@@ -479,9 +551,10 @@ def make_refund_message(refund):
 
     if sms_activitys.exists():
         sms_activity = sms_activitys[0]
-        message = sms_activity.text_tmpl.format(refund.title,  # 标题
-                                                refund.refund_fee,  # 退款费用
-                                                refund.get_status_display())  # 退款状态
+        message = sms_activity.text_tmpl.format(
+            refund.title,  # 标题
+            refund.refund_fee,  # 退款费用
+            refund.get_status_display())  # 退款状态
         return message
     else:
         return None
@@ -497,7 +570,10 @@ def send_refund_msg(refund):
         mobile = refund.mobile
     message = make_refund_message(refund)
     if message:
-        send_message(mobile=mobile, message=message, taskName=refund.get_status_display())
+        send_message(mobile=mobile,
+                     message=message,
+                     taskName=refund.get_status_display())
+
 
 from flashsale.push.push_refund import push_refund_app_msg
 
@@ -523,6 +599,7 @@ def task_release_coupon_push(customer_id):
     user_coupon_release_push(customer_id)
     return
 
+
 from core.options import get_systemoa_user
 
 
@@ -530,7 +607,8 @@ def close_refund(refund):
     """ 关闭退款单 """
 
     order = SaleOrder.objects.get(id=refund.order_id)
-    if order.status not in [SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED]:
+    if order.status not in [SaleOrder.TRADE_BUYER_SIGNED,
+                            SaleOrder.TRADE_FINISHED]:
         return  # 判断订单状态是否在　确认签收　和　交易成功　状态　否则　不去做关闭退款单操作
 
     old_status = refund.get_status_display()
@@ -574,18 +652,19 @@ def task_close_refund(days=None):
     if days is None:
         days = 30
     time_point = datetime.datetime.now() - datetime.timedelta(days=days)
-    aggree_refunds = SaleRefund.objects.filter(status__in=[SaleRefund.NO_REFUND,
-                                                           SaleRefund.REFUND_WAIT_SELLER_AGREE,
-                                                           SaleRefund.REFUND_WAIT_RETURN_GOODS,
-                                                           SaleRefund.REFUND_REFUSE_BUYER],
-                                               created__lte=time_point)  # 这里不考虑退货状态
+    aggree_refunds = SaleRefund.objects.filter(
+        status__in=[SaleRefund.NO_REFUND, SaleRefund.REFUND_WAIT_SELLER_AGREE,
+                    SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                    SaleRefund.REFUND_REFUSE_BUYER],
+        created__lte=time_point)  # 这里不考虑退货状态
     # good_status=SaleRefund.BUYER_RECEIVED)  # 已经发货没有退货的退款单
     res = map(close_refund, aggree_refunds)
 
     # 2016-5-4  提取 十五天之前 同意申请状态的退货单  如果交易 确认签收 交易完成 或者已经发货  关闭该退货单
     fifth_days_ago = datetime.datetime.now() - datetime.timedelta(days=15)
-    refunds = SaleRefund.objects.filter(status=SaleRefund.REFUND_WAIT_RETURN_GOODS,
-                                        created__lte=fifth_days_ago)  # 这里不考虑退货状态
+    refunds = SaleRefund.objects.filter(
+        status=SaleRefund.REFUND_WAIT_RETURN_GOODS,
+        created__lte=fifth_days_ago)  # 这里不考虑退货状态
     res = map(close_15_refund, refunds)
 
 
@@ -600,8 +679,9 @@ def task_saleorder_update_package_sku_item(sale_order):
             return
         ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
         sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
-        attrs = ['num', 'oid', 'package_order_id', 'title', 'price', 'sku_id', 'num', 'total_fee',
-                'payment', 'discount_fee', 'refund_status', 'pay_time', 'status']
+        attrs = ['num', 'oid', 'package_order_id', 'title', 'price', 'sku_id',
+                 'num', 'total_fee', 'payment', 'discount_fee', 'refund_status',
+                 'pay_time', 'status']
         for attr in attrs:
             if hasattr(sale_order, attr):
                 val = getattr(sale_order, attr)
@@ -658,17 +738,81 @@ def tasks_set_user_address_id(sale_trade):
             receiver_mobile=sale_trade.receiver_mobile,
             status='normal').order_by('-id').first()
     if not ua:
-        ua = UserAddress.objects.filter(
-            cus_uid=sale_trade.buyer_id,
-            status='normal').order_by('-id').first()
+        ua = UserAddress.objects.filter(cus_uid=sale_trade.buyer_id,
+                                        status='normal').order_by('-id').first()
     if ua:
         SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)
 
 
 @task()
 def tasks_update_sale_trade_status(sale_trade):
-    sale_order_status = [s['status'] for s in
-                             SaleOrder.objects.filter(sale_trade_id=sale_trade.id).values('status')]
+    sale_order_status = [s['status']
+                         for s in SaleOrder.objects.filter(
+                             sale_trade_id=sale_trade.id).values('status')]
     if SaleOrder.WAIT_SELLER_SEND_GOODS not in sale_order_status:
         sale_trade.status = SaleTrade.WAIT_BUYER_CONFIRM_GOODS
         sale_trade.save()
+
+
+@task()
+def task_update_orderlist(sku_id):
+    orderdetail = OrderDetail.objects.select_related('orderlist')\
+      .filter(chichu_id=sku_id).exclude(orderlist__status=OrderList.ZUOFEI).order_by('-id').first()
+    if not orderdetail:
+        return
+
+    sale_stats = SaleOrder.objects.filter(
+        sku_id=sku_id,
+        status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+        refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,
+        pay_time__gt=datetime.datetime(2016, 4, 1)).exclude(
+            outer_id__startswith='RMB').values('sku_id').annotate(
+                sale_quantity=Sum('num'))
+
+    if not sale_stats:
+        sale_quantity = 0
+    else:
+        sale_quantity = sale_stats[0]['sale_quantity']
+
+    if sale_quantity == orderdetail.buy_quantity:
+        return
+
+    orderlist = orderdetail.orderlist
+    sku = ProductSku.objects.select_related('product').get(id=int(sku_id))
+    now = datetime.datetime.now()
+    buy_quantity = orderdetail.buy_quantity
+    delta = buy_quantity - sale_quantity
+
+    if orderlist.status == OrderList.SUBMITTING:
+        orderdetail.buy_quantity = sale_quantity
+        orderdetail.save()
+        log_action(1, orderdetail, CHANGE, u'更新产品数量至%d(原%d)' % (sale_quantity,  buy_quantity))
+        if delta:
+            msg = '%s %s多拍%d件, 数量更新至%d(原%d)' % \
+              (sku.product.name, sku.properties_name or sku.properties_alias, abs(delta), sale_quantity, buy_quantity)
+        else:
+            msg = '%s %s少拍%d件, 数量更新至%d(原%d)' % \
+              (sku.product.name, sku.properties_name or sku.properties_alias, abs(delta), sale_quantity, buy_quantity)
+        orderlist.note += '\n-->%s: %s' % (now.strftime('%m月%d %H:%M'), msg)
+
+        n = 0
+        amount = .0
+        for orderdetail in orderlist.order_list.all():
+            n += orderdetail.buy_quantity
+            amount += float(orderdetail.buy_unitprice) * orderdetail.buy_quantity
+        orderlist.order_amount = amount
+        orderlist.save()
+        if n <= 0:
+            orderlist.note += '\n-->%s: 作废' % now.strftime('%m月%d %H:%M')
+            orderlist.status = OrderList.ZUOFEI
+            log_action(1, orderlist, CHANGE, u'作废')
+            orderlist.save()
+    else:
+        if delta:
+            msg = '%s %s多拍%d件, 现%d(原%d)' % \
+              (sku.product.name, sku.properties_name or sku.properties_alias, abs(delta), sale_quantity, buy_quantity)
+        else:
+            msg = '%s %s少拍%d件, 现%d(原%d)' % \
+              (sku.product.name, sku.properties_name or sku.properties_alias, abs(delta), sale_quantity, buy_quantity)
+        orderlist.note += '\n-->%s: %s' % (now.strftime('%m月%d %H:%M'), msg)
+        orderlist.save()

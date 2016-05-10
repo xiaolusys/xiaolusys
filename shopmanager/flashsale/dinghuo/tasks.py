@@ -1325,9 +1325,14 @@ def create_orderlist(supplier):
                             'cost']))
                     orderdetail.save()
 
+        amount = .0
+        for orderdetail in old_orderlist.order_list.all():
+            amount += float(orderdetail.buy_unitprice) * orderdetail.buy_quantity
+
+        old_orderlist.order_amount = amount
         old_orderlist.note += '\n-->%s:自动合并订货单' % now.strftime('%m月%d %H:%M')
         old_orderlist.save()
-        log_action(1, old_orderlist, CHANGE, '自动生成订货单')
+        log_action(1, old_orderlist, CHANGE, '自动合并订货单')
 
     old_orderlist = None
     rows = OrderList.objects.filter(
