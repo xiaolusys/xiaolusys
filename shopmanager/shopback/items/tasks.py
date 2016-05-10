@@ -23,7 +23,7 @@ from auth import apis
 from common.utils import format_datetime, parse_datetime, get_yesterday_interval_time
 import logging
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 PURCHASE_STOCK_PERCENT = 0.5
 UPDATE_WAIT_POST_DAYS = 20
@@ -958,12 +958,13 @@ def get_product_logsign(product):
                                                     product.remain_num, product.lock_num)
 
 
-@task(max_retries=3, default_retry_delay=60)
+@task()
 def task_Auto_Upload_Shelf():
     """ 自动上架商品　"""
     logger = logging.getLogger('celery.handler')
     from core.options import log_action, CHANGE
     from django.contrib.auth.models import User as DjangoUser
+
     systemoa, state = DjangoUser.objects.get_or_create(username="systemoa", is_active=True)  # 系统用户
     today = datetime.date.today()  # 上架日期
     queryset = Product.objects.filter(sale_time=today, status=Product.NORMAL)  # 今天的正常状态的产品
@@ -979,10 +980,10 @@ def task_Auto_Upload_Shelf():
         log_sign = get_product_logsign(product)  # 生成日志信息
         log_action(systemoa.id, product, CHANGE, u'系统自动上架商品:%s' % log_sign)  # 保存操作日志
         count += 1
-    logger.error("{0}系统自动上架{1}个产品,未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
+    logger.warn("{0}系统自动上架{1}个产品,未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
 
-@task(max_retries=3, default_retry_delay=60)
+@task()
 def task_Auto_Download_Shelf():
     """ 自动下架商品 """
     logger = logging.getLogger('celery.handler')
@@ -1003,7 +1004,7 @@ def task_Auto_Download_Shelf():
         count += 1
         log_sign = get_product_logsign(product)  # 生成日志信息
         log_action(systemoa.id, product, CHANGE, u'系统自动下架商品:%s' % log_sign)  # 保存操作日志
-    logger.error("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
+    logger.warn("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
 
 
 @task()

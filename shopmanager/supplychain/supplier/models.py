@@ -215,7 +215,7 @@ class SaleSupplier(models.Model):
         ]
 
     def __unicode__(self):
-        return self.supplier_name
+        return u'<%s,%s>'%(self.id,self.supplier_name)
 
     def is_active(self):
         """ 是否有效 """
@@ -351,7 +351,7 @@ class SaleProduct(models.Model):
         ]
 
     def __unicode__(self):
-        return self.title
+        return u'<%s,%s>'%(self.id, self.title)
 
 from django.db.models.signals import pre_save, post_save
 from common.modelutils import update_model_fields

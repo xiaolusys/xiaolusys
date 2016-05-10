@@ -233,7 +233,7 @@ def get_self_mama(unionid):
 
 @task()
 def task_order_trigger(sale_order):
-    print "%s, saleorder_pk: %s" % (get_cur_info(), sale_order.id)
+    logger.info("%s, saleorder_pk: %s" % (get_cur_info(), sale_order.id))
 
     customer_id = sale_order.sale_trade.buyer_id
     customer = Customer.objects.get(id=customer_id)
