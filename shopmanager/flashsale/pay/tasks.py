@@ -591,6 +591,7 @@ def task_close_refund(days=None):
 
 @task
 def task_saleorder_update_package_sku_item(sale_order):
+    logger.error('debug update skuitem:%s'%sale_order)
     from shopback.trades.models import PackageSkuItem
     from shopback.items.models import ProductSku
     items = PackageSkuItem.objects.filter(sale_order_id=sale_order.id)
@@ -635,6 +636,7 @@ def task_saleorder_update_package_sku_item(sale_order):
         sku_item.assign_status = assign_status
         sku_item.set_assign_status_time()
         sku_item.save()
+
 
 @task()
 def tasks_set_user_address_id(sale_trade):
