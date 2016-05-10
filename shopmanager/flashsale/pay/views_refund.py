@@ -201,7 +201,14 @@ class RefundPopPageView(APIView):
         sale_order = get_object_or_404(SaleOrder, pk=sale_refund.order_id)
         merge_trade = get_object_or_404(MergeTrade, tid=strade.tid)
         refund_dict = model_to_dict(sale_refund)
-        refund_dict['has_budget_paid'] = strade.has_budget_paid
+
+        refund_dict['refundd_message'] = ""
+        if strade.has_budget_paid:  # 如果使用余额
+            refund_dict['refundd_message'] = "[1]退回小鹿钱包 {0}元 其中余额{1}".format(strade.payment,
+                                                                             strade.payment - strade.pay_cash)
+        else:
+            refund_dict['refundd_message'] = "[2]退回{0} {1}元".format(strade.get_channel_display(), strade.payment)
+
         refund_dict['tid'] = strade.tid
         refund_dict['channel'] = strade.get_channel_display()
         refund_dict['pic'] = sale_order.pic_path
