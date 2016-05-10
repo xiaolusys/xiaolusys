@@ -27,6 +27,9 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 BROKER_URL = 'amqp://user1:passwd1@10.132.179.237:5672/vhost1'
 
 CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"  # "amqp"
+
+# CELERYD_HIJACK_ROOT_LOGGER = True
+
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它
 # CELERY_CREATE_MISSING_QUEUES = True
 # 每个worker最多执行40个任务就会被销毁，可防止内存泄露

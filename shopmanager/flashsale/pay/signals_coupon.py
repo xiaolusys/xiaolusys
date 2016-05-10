@@ -27,6 +27,7 @@ def get_IntegralLog(buyer_id, orid):
 
 
 def add_Order_Integral(sender, instance, created, **kwargs):
+
     # 记录要对应到商品上
     # 根据订单的状态来处理积分的状态
     order_created = instance.created  # Order创建时间
@@ -40,7 +41,7 @@ def add_Order_Integral(sender, instance, created, **kwargs):
     cus = Customer.objects.get(id=trade.buyer_id)  # 由交易的buyer_id找
     buyer_id = trade.buyer_id  # 用户ID
     orid = instance.id  # order id
-    if instance.outer_id == 'RMB100' or instance.outer_id == 'RMB118' or instance.outer_id == 'RMB125':  # 代理费不需要生成积分
+    if instance.outer_id.startswith('RMB'):  # 代理费不需要生成积分
         return
     if order_created >= INTEGRAL_START_TIME and instance.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
         # 生成时间必须是大于活动开始时间  AND  必须是已经付款的才有积分记录   # SaleOrder.WAIT_SELLER_SEND_GOODS  # 已经付款
@@ -165,5 +166,61 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
         update_model_fields(instance.sale_trade, update_fields=['status'])
         log_action(sysoa_user.id, instance.sale_trade, CHANGE, u"充值修改该订单交易状态")
 
+
 # 2016-5-7 取消充值信号触发
 # post_save.connect(xlmm_Recharge, sender=SaleOrder)
+
+from flashsale.pay.signals import signal_saletrade_pay_confirm, signal_saletrade_refund_post
+
+
+def release_Coupon_Buy_Way(sender, obj, **kwargs):
+    """
+    更具优惠券模板中有效且是购买发放模式的模板　
+    判断当前时间是否是在　模板定义的预置时间到结束时间
+    如果是在该时间内　则发放对应的优惠券
+    """
+    order = obj.sale_orders.all()[0] if obj.sale_orders.exists() else False  # 这里充值的交易只有一个订单
+    if order and order.item_id in ['22030', '14362', '2731']:  # 列表中填写 充值产品id
+        return  # 如果是充值产品 则不发放优惠券
+
+    now = datetime.datetime.now()
+    tpls = CouponTemplate.objects.filter(valid=True, way_type=CouponTemplate.BUY_WAY)  # 有效的并且是购买方式发放的优惠券模板
+    tpls = tpls.exclude(type=CouponTemplate.NEW_YEAR)  # 排除特殊条件的优惠券
+    tpls = tpls.filter(release_start_time__lte=now, release_end_time__gte=now)  # 在发放时间内的模板
+
+    for tpl in tpls:
+        # 在允许发送情况下　准备发放优惠券
+        # 获取该用户的该模板的优惠券
+        coups = UserCoupon.objects.filter(customer=obj.buyer_id, cp_id__template__id=tpl.id)
+        free_coupons = coups.filter(status=UserCoupon.FREEZE)
+        if free_coupons.exists():
+            one_freeze_coupon = free_coupons[0]
+            one_freeze_coupon.status = UserCoupon.UNUSED  # 从冻结状态 改为 未使用
+            one_freeze_coupon.sale_trade = obj.id  # 绑定当前的交易id
+            one_freeze_coupon.save()
+            break  # 如果该用户存在冻结的该模板类型优惠券　则将该优惠券解冻并退出所有模板发放（一次购买仅解冻一个优惠券或发放一次该优惠券）
+        # 发放优惠券
+        try:
+            trade_id = obj.id  # 交易id
+            buyer_id = obj.buyer_id  # 用户
+            kwargs = {"trade_id": trade_id, "buyer_id": buyer_id, "template_id": tpl.id}
+            if obj.payment >= tpl.release_fee:  # 消费费用大于模板定义费用则发放
+                coupon = UserCoupon()
+                coupon.release_by_template(**kwargs)
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+
+
+signal_saletrade_pay_confirm.connect(release_Coupon_Buy_Way, sender=SaleTrade)
+
+
+def freeze_coupon_by_refund(sender, obj, **kwargs):
+    # 退款信号
+    if obj.trade_id:
+        coup = UserCoupon.objects.filter(sale_trade=obj.trade_id)
+        # 存在则将优惠券状态 该为 冻结
+        coup.update(status=UserCoupon.FREEZE)
+
+
+signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)
+
