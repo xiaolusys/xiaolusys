@@ -1,6 +1,6 @@
 # coding=utf-8
 from rest_framework import serializers
-from flashsale.coupon.models import CouponTemplate, UserCoupon, OrderShareCoupon
+from flashsale.coupon.models import CouponTemplate, UserCoupon, OrderShareCoupon, TmpShareCoupon
 
 
 class CouponTemplateSerialize(serializers.ModelSerializer):
@@ -32,3 +32,8 @@ class UserCouponSerialize(serializers.ModelSerializer):
 class OrderShareCouponSerialize(serializers.ModelSerializer):
     class Meta:
         model = OrderShareCoupon
+
+
+class TmpShareCouponSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = TmpShareCoupon

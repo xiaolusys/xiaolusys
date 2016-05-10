@@ -312,10 +312,13 @@ def get_customer(request):
 
 class OrderShareCouponViewSet(viewsets.ModelViewSet):
     queryset = OrderShareCoupon.objects.all()
-    serializers = serializers.OrderShareCouponSerialize
+    serializer_class = serializers.OrderShareCouponSerialize
     authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def list(self, request, *args, **kwargs):
+        raise APIException("METHOD NOT ALLOWED!!!")
 
     def create(self, request, *args, **kwargs):
         raise APIException('method not allowed')
@@ -449,8 +452,8 @@ def check_uniq_id(uniq_id):
 
 
 class TmpShareCouponViewset(viewsets.ModelViewSet):
-    queryset = OrderShareCoupon.objects.all()
-    serializers = serializers.OrderShareCouponSerialize
+    queryset = TmpShareCoupon.objects.all()
+    serializer_class = serializers.TmpShareCouponSerialize
 
     def list(self, request, *args, **kwargs):
         raise APIException("METHOD NOT ALLOWED !")
