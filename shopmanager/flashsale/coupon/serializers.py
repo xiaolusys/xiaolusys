@@ -15,6 +15,7 @@ class UserCouponSerialize(serializers.ModelSerializer):
     use_fee_des = serializers.CharField(source='coupon_use_fee_des', read_only=True)
     pros_desc = serializers.CharField(source='scope_type_desc', read_only=True)
     start_time = serializers.DateTimeField(source='start_use_time', read_only=True)
+    pool_status = serializers.IntegerField(source='get_pool_status', read_only=True)
     customer = serializers.IntegerField(source='customer_id', read_only=True)
     coupon_type_display = serializers.CharField(source='get_coupon_type_display', read_only=True)
     deadline = serializers.DateTimeField(source='expires_time', read_only=True)
@@ -24,7 +25,7 @@ class UserCouponSerialize(serializers.ModelSerializer):
         fields = (
             'id', "template_id", 'coupon_type', "coupon_type_display", "title", 'customer', "coupon_no", "coupon_value",
             "valid", "deadline", "start_use_time", "status", "created",
-            "use_fee", "use_fee_des", "pros_desc", "start_time"
+            "use_fee", "use_fee_des", "pros_desc", "start_time", 'pool_status'
         )
 
 

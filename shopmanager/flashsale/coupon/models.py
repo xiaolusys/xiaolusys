@@ -446,6 +446,12 @@ class UserCoupon(BaseModel):
         self.status = self.UNUSED
         self.save()
 
+    def get_pool_status(self):
+        """ 临时使用(ios接口兼容使用) """
+        if self.status == UserCoupon.UNUSED:
+            return 1
+        return 2
+
 
 class TmpShareCoupon(BaseModel):
     mobile = models.CharField(max_length=11, db_index=True, verbose_name=u'手机号')
