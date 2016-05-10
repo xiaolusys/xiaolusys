@@ -201,6 +201,7 @@ class RefundPopPageView(APIView):
         sale_order = get_object_or_404(SaleOrder, pk=sale_refund.order_id)
         merge_trade = get_object_or_404(MergeTrade, tid=strade.tid)
         refund_dict = model_to_dict(sale_refund)
+        refund_dict['has_budget_paid'] = strade.has_budget_paid
         refund_dict['tid'] = strade.tid
         refund_dict['channel'] = strade.get_channel_display()
         refund_dict['pic'] = sale_order.pic_path
