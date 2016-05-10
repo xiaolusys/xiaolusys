@@ -50,9 +50,9 @@ class SaleOrderInline(admin.TabularInline):
 
 
 class SaleOrderAdmin(ApproxAdmin):
-    list_display = ('id', 'show_trade', 'oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'pay_time',
+    list_display = ('id', 'show_trade', 'package_sku_item_link_to', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'pay_time',
                     'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
-    list_display_links = ('oid',)
+    list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('sign_time', DateFieldListFilter))
@@ -65,7 +65,20 @@ class SaleOrderAdmin(ApproxAdmin):
     show_trade.short_description = '订单ID'
 
     def get_readonly_fields(self, request, obj=None):
-        return  self.readonly_fields + ('sale_trade', 'oid' , 'buyer_id')
+        return self.readonly_fields + ('sale_trade', 'oid' , 'buyer_id')
+
+    PACKAGE_SKU_ITEM_LINK = (
+        '<a href="%(pki_url)s" target="_blank">'
+        '%(oid)s</a>')
+
+    def package_sku_item_link_to(self, obj):
+        return self.PACKAGE_SKU_ITEM_LINK % {
+            'pki_url': '/admin/trades/packageskuitem/?oid=%s' % obj.oid,
+            'oid': obj.oid
+        }
+    package_sku_item_link_to.allow_tags = True
+    package_sku_item_link_to.short_description = u'SKU交易单号'
+
 
 admin.site.register(SaleOrder, SaleOrderAdmin)
 
@@ -227,7 +240,7 @@ from .tasks import notifyTradeRefundTask
 
 
 class SaleRefundAdmin(ApproxAdmin):
-    list_display = ('refund_no', 'order_no', 'channel', 'title', 'refund_fee',
+    list_display = ('refund_no', 'order_no', 'pki_link_to', 'channel', 'title', 'refund_fee',
                     'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status',
                     'refund_pro_link')
 
@@ -473,6 +486,18 @@ class SaleRefundAdmin(ApproxAdmin):
 
     export_Refund_Product_Action.short_description = u"导出订单信息"
     actions = ['export_Refund_Product_Action', ]
+
+    PKI_LINK = (
+        '<a href="%(pki_url)s" target="_blank">'
+        '%(order_id)s</a>')
+
+    def pki_link_to(self, obj):
+        return self.PKI_LINK % {
+            'pki_url': '/admin/trades/packageskuitem/?sale_order_id=%s' % obj.order_id,
+            'order_id': obj.order_id
+        }
+    pki_link_to.allow_tags = True
+    pki_link_to.short_description = u'交易单ID'
 
     class Media:
         css = {"all": ()}
