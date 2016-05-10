@@ -94,10 +94,11 @@ class ProductSkuStats(models.Model):
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     if instance.realtime_quantity > instance.assign_num:
         from shopback.items.tasks import task_assign_stock_to_package_sku_item
+        from shopback.items.tasks import task_relase_package_sku_item
         task_assign_stock_to_package_sku_item.delay(instance)
     elif instance.realtime_quantity < instance.assign_num:
         logger.error('assign_num error: sku assign_num bigger than quantity:' + str(instance.id))
-
+        task_relase_package_sku_item.delay(instance)
 
 post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats,
                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
