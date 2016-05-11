@@ -23,6 +23,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from flashsale.dinghuo.models import OrderDetail, OrderList
+from flashsale.pay.models import SaleOrder
 from flashsale.pay.models_custom import ModelProduct, Productdetail
 from core.options import log_action, ADDITION, CHANGE
 
@@ -1476,3 +1477,22 @@ class SaleProductNoteView(APIView):
                 product.details.note = note
                 product.details.save()
         return Response({})
+
+class SaleProductSaleQuantityView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request):
+        saleproduct_id = int(request.GET['saleproduct_id'])
+
+        product_ids = []
+        for product in Product.objects.filter(sale_product=saleproduct_id).only('id'):
+            product_ids.append(product.id)
+
+        product_ids = [str(x) for x in product_ids]
+        pay_dates_dict = {}
+        for saleorder in SaleOrder.objects.filter(item_id__in=product_ids, status__gte=SaleOrder.WAIT_SELLER_SEND_GOODS):
+            if not saleorder.pay_time:
+                continue
+            date_str = saleorder.pay_time.strftime('%y年%m月%d')
+            pay_dates_dict[date_str] = pay_dates_dict.setdefault(date_str, 0) + saleorder.num
+        return Response({'sale_dates': pay_dates_dict})
