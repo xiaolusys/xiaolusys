@@ -12,6 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.encoding import force_unicode
+from core.utils.modelutils import get_class_fields
 from bitfield import BitField
 from bitfield.forms import BitFieldCheckboxSelectMultiple
 from django.conf import settings
@@ -1302,6 +1303,9 @@ class PackageOrderAdmin(admin.ModelAdmin):
 
     actions = ['push_package_to_scan']
 
+    def get_actions(self, request):
+        return [i for i in super(PackageOrderAdmin, self).get_actions(request) if i != 'delete_selected']
+
     class Media:
         css = {"all": ("admin/css/forms.css", "css/admin/dialog.css", "css/admin/checkorder.css")}
         #         js = ("jquery/jquery-1.8.13.min.js","script/admin/adminpopup.js","script/trades/new_checkTrade.js",
@@ -1327,10 +1331,13 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
-
+    readonly_fields = get_class_fields(PackageSkuItem)
     PACKAGE_ORDER_LINK = (
         '<a href="%(package_order_url)s" target="_blank">'
         '%(package_order_pid)s</a>')
+
+    def get_actions(self, request):
+        return [i for i in super(PackageSkuItemAdmin, self).get_actions(request) if i != 'delete_selected']
 
     def package_order_link_to(self, obj):
         if obj.package_order_pid:
