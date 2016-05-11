@@ -240,6 +240,10 @@ MAMA_RELATIONSHIP_ROUTES = {
         'queue': 'relationship',
         'routing_key': 'relationship.task_create_lessonattendrecord',
     },
+    'flashsale.xiaolumm.tasks_lesson.task_create_instructor_application': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_create_instructor_application',
+    },
     'flashsale.xiaolumm.tasks_lesson.task_lessonattendrecord_create_topicattendrecord': {
         'queue': 'relationship',
         'routing_key': 'relationship.task_lessonattendrecord_create_topicattendrecord',
