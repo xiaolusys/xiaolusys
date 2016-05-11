@@ -13,7 +13,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from django.db.models.signals import post_save
-
+from core.utils.modelutils import get_class_fields
 from shopback.items.models import (Item, Product, ProductSku, ProductLocation,
                                    ItemNumTaskLog, SkuProperty, ProductDaySale,
                                    ProductScanStorage, ImageWaterMark)
@@ -1208,9 +1208,12 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 
 class ProductSkuStatsAdmin(admin.ModelAdmin):
-    list_display = ('sku_id', 'skucode', 'product_title', 'properties_name_alias', 'now_quantity', 'old_quantity', 'post_num',
-                    'assign_num', 'inferior_num', 'sold_num', 'realtime_lock_num_display', 'created')
+    list_display = (
+    'sku_id', 'skucode', 'product_title', 'properties_name_alias', 'now_quantity', 'old_quantity', 'post_num',
+    'assign_num', 'inferior_num', 'sold_num', '_wait_post_num', '_wait_assign_num', 'realtime_lock_num_display',
+    'district_link', 'created')
     search_fields = ['=sku_id', '=product_id']
+    readonly_fields = get_class_fields(ProductSkuStats)
     list_per_page = 25
 
     SKU_PREVIEW_TPL = (
@@ -1222,6 +1225,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
             'sku_url': '/admin/items/productsku/%s/' % str(obj.sku_id),
             'skucode': obj.product_sku.BARCODE
         }
+
     skucode.allow_tags = True
     skucode.short_description = u'sku条码'
 
@@ -1230,24 +1234,51 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         '%(product_title)s</a>')
 
     def product_title(self, obj):
-        return self.PRODUCT_LINK %{
-            'product_url':'/admin/items/product/%d/' % obj.product_sku.product.id,
-            'product_title':obj.product_sku.product.title()
+        return self.PRODUCT_LINK % {
+            'product_url': '/admin/items/product/%d/' % obj.product_sku.product.id,
+            'product_title': obj.product_sku.product.title()
         }
+
     product_title.allow_tags = True
     product_title.short_description = u'商品名称'
 
     def now_quantity(self, obj):
         return obj.realtime_quantity
+
     now_quantity.short_description = u'实时库存'
 
-    def old_quantity(self,obj):
+    def old_quantity(self, obj):
         return obj.product_sku.quantity
+
     old_quantity.short_description = u'老系统实时库存'
 
     def properties_name_alias(self, obj):
         return obj.properties_name
+
     properties_name_alias.short_description = u'规格'
+
+    def _wait_post_num(self, obj):
+        return obj.wait_post_num
+
+    _wait_post_num.short_description = u'待发数'
+
+    def _wait_assign_num(self, obj):
+        return obj.wait_assign_num
+
+    _wait_assign_num.short_description = u'待分配数'
+
+    def district_link(self, obj):
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' % (
+            obj.product_sku.id, obj.product_sku.get_districts_code() or u'--')
+
+    district_link.allow_tags = True
+    district_link.short_description = "库位"
+    actions = []
+
+    def get_actions(self, request):
+        actions = super(ProductSkuStatsAdmin, self).get_actions(request)
+        new_action = [i for i in actions if i != 'delete_selected']
+        return new_action
 
 
 admin.site.register(ProductSkuStats, ProductSkuStatsAdmin)
