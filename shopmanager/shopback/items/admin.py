@@ -1209,7 +1209,7 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = ('sku_id', 'skucode', 'product_title', 'properties_name_alias', 'now_quantity', 'old_quantity', 'post_num',
-                    'assign_num', 'inferior_num', 'sold_num', 'realtime_lock_num_display', 'created')
+                    'assign_num', 'inferior_num', 'sold_num', '_wait_post_num', '_wait_assign_num', 'realtime_lock_num_display', 'district_link', 'created')
     search_fields = ['=sku_id', '=product_id']
     list_per_page = 25
 
@@ -1249,6 +1249,20 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         return obj.properties_name
     properties_name_alias.short_description = u'规格'
 
+    def _wait_post_num(self, obj):
+        return obj.wait_post_num
+    _wait_post_num.short_description = u'待发数'
+
+    def _wait_assign_num(self, obj):
+        return obj.wait_assign_num
+    _wait_assign_num.short_description = u'待分配数'
+
+    def district_link(self, obj):
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' % (
+            obj.product_sku.id, obj.product_sku.get_districts_code() or u'--')
+
+    district_link.allow_tags = True
+    district_link.short_description = "库位"
 
 admin.site.register(ProductSkuStats, ProductSkuStatsAdmin)
 
