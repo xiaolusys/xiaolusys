@@ -240,7 +240,7 @@ from .tasks import notifyTradeRefundTask
 
 
 class SaleRefundAdmin(ApproxAdmin):
-    list_display = ('refund_no', 'order_no', 'channel', 'title', 'sku_id', 'refund_fee',
+    list_display = ('refund_no', 'order_no', 'package_sku_item_link_to', 'channel', 'title', 'sku_id', 'refund_fee',
                     'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status',
                     'refund_pro_link')
 
@@ -250,6 +250,18 @@ class SaleRefundAdmin(ApproxAdmin):
 
     search_fields = ['=refund_no', '=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20
+
+    PACKAGE_SKU_ITEM_LINK = (
+        '<a href="%(pki_url)s" target="_blank">'
+        '%(oid)s</a>')
+
+    def package_sku_item_link_to(self, obj):
+        return self.PACKAGE_SKU_ITEM_LINK % {
+            'pki_url': '/admin/trades/packageskuitem/?sale_order_id=%s' % obj.order_id,
+            'oid': obj.order_id
+        }
+    package_sku_item_link_to.allow_tags = True
+    package_sku_item_link_to.short_description = u'SKU交易单号'
 
     def order_no(self, obj):
         strade = SaleTrade.objects.get(id=obj.trade_id)
