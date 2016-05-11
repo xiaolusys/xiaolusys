@@ -40,7 +40,8 @@ urlpatterns = [
     url(r'^schedule_batch_set/$', views_addsupplier.ScheduleBatchSetView.as_view()),
     url(r'^category_mapping/$', views.CategoryMappingView.as_view()),
     url(r'^saleproduct_schedule_date/$', views.SaleProductScheduleDateView.as_view()),
-    url(r'^saleproduct_note/$', views.SaleProductNoteView.as_view())
+    url(r'^saleproduct_note/$', views.SaleProductNoteView.as_view()),
+    url(r'^saleproduct_sale_date/$', views.SaleProductSaleQuantityView.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

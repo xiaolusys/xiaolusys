@@ -450,12 +450,24 @@ class SaleProductAdmin(ApproxAdmin):
     # 选择上架时间
     def sale_time_select(self, obj):
         # 只有通过　和排期状态的才可以修改该时间
+        tpl1 = """
+        <input type="text" id="{0}" style="width:70px" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>
+        <p class="schedule_date" id="{0}"></p>
+        <p class="sale_date" id="{0}"></p>
+        """
+
+        tpl2 = """
+        <input type="text" id="{0}" style="width:70px" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>
+        <p class="schedule_date" id="{0}"></p>
+        <p class="sale_date" id="{0}"></p>
+        """
+
         if obj.status in (SaleProduct.PURCHASE,SaleProduct.PASSED,SaleProduct.SCHEDULE):
             if obj.sale_time is None:
-                s ='<input type="text" id="{0}" style="width:70px" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>'.format(obj.id)
+                s =tpl1.format(obj.id)
             else:
                 sale_time = obj.sale_time.strftime("%y-%m-%d")
-                s ='<input type="text" id="{0}" style="width:70px" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id, sale_time)
+                s =tpl2.format(obj.id, sale_time)
         else:
             s = "非可排期状态"
         return s

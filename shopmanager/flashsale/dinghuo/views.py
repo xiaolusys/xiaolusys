@@ -2555,3 +2555,36 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 ProductLocation.objects.filter(product_id=sku.product_id, sku_id=sku.id).delete()
                 self.update_product_location(sku.product_id, deposite_district)
         return Response({})
+
+    @list_route(methods=['post'])
+    def create_problem_inbound(self, request):
+        form = forms.CreateInBoundForm(request.POST)
+        if not form.is_valid():
+            return Response({'orderlists': []})
+
+        supplier_id = form.cleaned_data['supplier_id']
+        orderlist_id = form.cleaned_data.get('orderlist_id')
+        now = datetime.datetime.now()
+        username = self.get_username(request.user)
+        tmp = ['-->%s %s: 创建入仓单' % (now.strftime('%m月%d %H:%M'), username)]
+        if form.cleaned_data['memo']:
+            tmp.append(form.cleaned_data['memo'])
+
+        inbound = InBound(
+            supplier_id=supplier_id,
+            creator_id=request.user.id,
+            express_no=form.cleaned_data['express_no'],
+            memo='\n'.join(tmp)
+        )
+        if orderlist_id:
+            inbound.orderlist_ids = [orderlist_id]
+        inbound.save()
+
+        log_action(request.user.id, inbound, ADDITION, '创建')
+        return Response({
+            'inbound': {
+                'id': inbound.id,
+                'details': {},
+                'memo': inbound.memo
+            }
+        })
