@@ -99,7 +99,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         ldate = dt
         model_qs = self.get_queryset()
         for i in xrange(0, 30):
-            ldate = dt - datetime.timedelta(days=i)
+            ldate = dt + datetime.timedelta(days=i)
             product_qs = model_qs.filter(sale_time=ldate)
             if product_qs.exists():
                 break
@@ -144,7 +144,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     def order_queryset(self, request, queryset, order_by=None):
         """ 对集合列表进行排序 """
-        # BUGS
         order_by = order_by or request.REQUEST.get('order_by')
         if order_by == self.INDEX_ORDER_BY:
             queryset = queryset.extra(select={'is_saleout': 'remain_num - lock_num <= 0'},
@@ -177,7 +176,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return deadline
 
     def get_pagination_response_by_date(self, request, cur_date, only_upshelf=True):
-
+        today = datetime.date.today()
         queryset = self.filter_queryset(self.get_queryset())
         tal_queryset = self.get_custom_qs(queryset).filter(
             Q(sale_time=cur_date) | Q(details__is_recommend=True)
@@ -190,7 +189,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             object_list = self.objets_from_cache(pagin_query)
             serializer = self.get_serializer(object_list, many=True)
             response = self.get_paginated_response(serializer.data)
-            response.data.update(downshelf_deadline=self.get_downshelf_deadline(object_list, cur_date))
+            if cur_date <= today:
+                response.data.update(downshelf_deadline=self.get_downshelf_deadline(object_list, cur_date))
+            else:
+                response.data.update(upshelf_starttime=datetime.datetime.combine(cur_date, datetime.datetime.min.time())\
+                    + datetime.timedelta(seconds= 10 * 60 * 60))
             return response
 
         object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
