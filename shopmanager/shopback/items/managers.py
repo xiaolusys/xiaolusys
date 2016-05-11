@@ -2,7 +2,7 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
-
+from django.db.models import Sum
 from shopback import paramconfig as pcfg
 from core.ormcache.managers import CacheManager
 
@@ -273,22 +273,37 @@ class ProductManager(CacheManager):
         return outer_id.strip(), outer_sku_id.strip()
 
     def updateProductWaitPostNum(self, product):
-
-        from shopback.trades.models import MergeTrade
-
-        outer_id = product.outer_id
+        """
+            更新商品待发数
+            如果在新库存系统中有售卖
+        :param product:
+        :return:
+        """
+        from shopback.items.models import ProductSkuStats
         prod_skus = product.pskus
-        if prod_skus.count() > 0:
+        sku_ids = [k.id for k in prod_skus]
+        sold_num_total = ProductSkuStats.objects.filter(sku_id__in=sku_ids).aggregate(Sum('sold_num'))
+        if sold_num_total > 0:
             for sku in prod_skus:
-                outer_sku_id = sku.outer_id
-                wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id, outer_sku_id)
-                sku.wait_post_num = wait_post_num
-                sku.save()
+                stat = ProductSkuStats.objects.get(sku_id=sku.id)
+                sku.wait_post_num = stat.wait_post_num
+                sku.save(update_fields=['wait_post_num'])
         else:
-            outer_sku_id = ''
-            wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id, outer_sku_id)
-            product.wait_post_num = wait_post_num
-            product.save()
+            from shopback.trades.models import MergeTrade
+            outer_id = product.outer_id
+            prod_skus = product.pskus
+            if prod_skus.count() > 0:
+                for sku in prod_skus:
+                    outer_sku_id = sku.outer_id
+                    wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id, outer_sku_id)
+                    sku.wait_post_num = wait_post_num
+                    sku.save()
+            else:
+                outer_sku_id = ''
+                wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id, outer_sku_id)
+                product.wait_post_num = wait_post_num
+                product.save()
+
 
     def isQuantityLockable(self, sku, num):
 
