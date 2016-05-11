@@ -6,6 +6,8 @@ from django.conf import settings
 
 import datetime, urlparse
 
+from core.fields import JSONCharMyField
+
 
 def get_choice_name(choices, val):
     """
@@ -43,6 +45,17 @@ def get_choice_name(choices, val):
 MAMA_FORTUNE_HISTORY_LAST_DAY = datetime.date(2016, 03, 24)
 
 
+def default_mama_extras():
+    """ other mama information """
+    return {
+        "qrcode_url":
+            {
+                "home_page_qrcode_url": "",
+                "app_download_qrcode_url": ""
+            }
+    }
+
+
 class MamaFortune(BaseModel):
     MAMA_LEVELS = ((0, u'新手妈妈'), (1, u'金牌妈妈'), (2, u'钻石妈妈'), (3, u'皇冠妈妈'), (4, u'金冠妈妈'))
     mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'小鹿妈妈id')
@@ -63,6 +76,8 @@ class MamaFortune(BaseModel):
 
     active_value_num = models.IntegerField(default=0, verbose_name=u'活跃值')
     today_visitor_num = models.IntegerField(default=0, verbose_name=u'今日访客数')
+    extras = JSONCharMyField(max_length=1024, default=default_mama_extras, blank=True,
+                             null=True, verbose_name=u"附加信息")
 
     class Meta:
         db_table = 'flashsale_xlmm_fortune'
@@ -112,6 +127,27 @@ class MamaFortune(BaseModel):
         activity_link = 'pages/featuredEvent.html'
         
         return settings.M_SITE_URL + settings.M_STATIC_URL + activity_link
+
+    @property
+    def home_page_qrcode_url(self):
+        return self.extras['qrcode_url']['home_page_qrcode_url']
+
+    @property
+    def app_download_qrcode_url(self):
+        return self.extras['qrcode_url']['app_download_qrcode_url']
+
+    def update_extras_qrcode_url(self, **kwargs):
+        """ 更新附加里面的二维码链接信息 """
+        extras = self.extras
+        change_flag = False
+        for k, v in kwargs.items():
+            qrcode_url = extras['qrcode_url']
+            if qrcode_url.has_key(k) and qrcode_url.get(k) != v:  # 如果当前的和传过来的参数不等则更新
+                qrcode_url.update({k: v})
+                change_flag = True
+        if change_flag:
+            self.extras = extras
+            self.save()
 
 
 class DailyStats(BaseModel):

@@ -1,4 +1,5 @@
 # coding=utf-8
+import logging
 import os, urlparse
 import datetime
 import decimal
@@ -27,6 +28,8 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models_fortune import MamaFortune
 from flashsale.pay.models import BudgetLog
+from flashsale.xiaolumm.models_fortune import MamaFortune
+logger = logging.getLogger(__name__)
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
@@ -157,6 +160,41 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         customers = Customer.objects.filter(id__in=fans_cusids)
         data = customers.values('id', 'nick', 'thumbnail')
         return Response(data)
+
+    def get_share_link(self, share_link, params):
+        link = urlparse.urljoin(settings.M_SITE_URL, share_link)
+        return link.format(**params)
+
+    @list_route(methods=['get'])
+    def get_mm_app_download_link(self, request):
+        """ 妈妈的app下载链接 """
+        from core.upload.xqrcode import push_qrcode_to_remote
+
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = customer.getXiaolumm()
+        qrcode_url = ''
+        mama_fortune = None
+        if xlmm:  # 如果有代理妈妈
+            logger.warn("get_mm_app_download_link: customer id %s cant find a valid mama" % customer.id)
+            mama_fortune = MamaFortune.objects.filter(mama_id=xlmm.id).first()
+            if mama_fortune:
+                qrcode_url = mama_fortune.app_download_qrcode_url
+            else:
+                logger.warn("get_mm_app_download_link: mm id %s cant find mama_fortune" % xlmm.id)
+
+
+        params = {'from_customer': customer.id}
+
+        share_link = "/sale/promotion/appdownload/?from_customer={from_customer}"
+        share_link = self.get_share_link(share_link, params)
+        file_name = os.path.join('qrcode/mm_appdownload', 'from_customer_{from_customer}.jpg'.format(**params))
+
+        if not qrcode_url:  # 如果没有则生成链接上传到七牛 并且更新到字段
+            qrcode_url = push_qrcode_to_remote(file_name, share_link)
+            if mama_fortune:
+                kwargs = {"app_download_qrcode_url": qrcode_url}
+                mama_fortune.update_extras_qrcode_url(**kwargs)
+        return Response({"code": 0, "qrcode_url": qrcode_url})
 
 
 class CarryLogViewSet(viewsets.ModelViewSet):
