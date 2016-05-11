@@ -200,9 +200,13 @@ MAMA_RELATIONSHIP_ROUTES = {
         'queue': 'relationship',
         'routing_key': 'relationship.task_update_group_relationship',
     },
-    'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_login_update_fans': {
+    'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_login_activate_appdownloadrecord': {
         'queue': 'relationship',
-        'routing_key': 'relationship.task_login_update_fans',
+        'routing_key': 'relationship.task_login_activate_appdownloadrecord',
+    },
+    'flashsale.promotion.tasks_activity.task_appdownloadrecord_update_fans': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_appdownloadrecord_update_fans',
     },
     'flashsale.promotion.tasks_activity.task_activate_application': {
         'queue': 'relationship',
