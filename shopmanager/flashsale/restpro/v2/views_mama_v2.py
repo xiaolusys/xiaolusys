@@ -127,6 +127,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         mama_id = get_mama_id(request.user)
         qrcode_url = ''
         mama_fortune = None
+        logger.warn("get_mama_app_download_link : mm-fortune %s" % mama_fortune)
         if mama_id:  # 如果有代理妈妈
             mama_fortune = self.queryset.filter(mama_id=mama_id).first()
             if mama_fortune:
@@ -140,6 +141,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
             params = {'from_customer': customer_id}
             share_link = "/sale/promotion/appdownload/?from_customer={from_customer}"
             share_link = urlparse.urljoin(settings.M_SITE_URL, share_link).format(**params)
+            logger.warn("get_mm_app_download_link:share_link%s" % share_link)
             file_name = os.path.join('qrcode/mm_appdownload', 'from_customer_{from_customer}.jpg'.format(**params))
             qrcode_url = push_qrcode_to_remote(file_name, share_link)
             if mama_fortune:
