@@ -327,7 +327,12 @@
                      }}
                  ],
                  buttons: [],
-                 initComplete: function(){
+                 initComplete: function(settings, json){
+                     var suppliers_dict = {};
+                     _.each(json.data, function(row){
+                         suppliers_dict[row.supplier_id] = row.supplier_name;
+                     });
+
                      this.api().columns([3,4,13,16]).every(function(){
                          var column = this;
                          var select = $('<select class="form-control" style="width:90px"><option value=""></option></select>')
@@ -340,6 +345,20 @@
                              select.append('<option value="'+d+'">'+d+'</option>');
                          });
                      });
+
+                     var column = this.api().column(5);
+                     var n = _.keys(suppliers_dict).length;
+                     $(column.header()).append('(' + n + ')');
+                     var select = $('<select class="form-control" style="width:90px;height:auto;word-wrap:break-word"><option value=""></option></select>')
+                         .appendTo($(column.header()))
+                         .on('change', function(){
+                             var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                             column.search( val ? '^'+val+'$' : '', true, false ).draw();
+                         });
+                     column.data().unique().sort().each(function(d, j){
+                         select.append('<option value="'+d+'">'+suppliers_dict[d]+'</option>');
+                     });
+
                  }
              });
              var collectNumTable = $('#collect-nums').DataTable({
