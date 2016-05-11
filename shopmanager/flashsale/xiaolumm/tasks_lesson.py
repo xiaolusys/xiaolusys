@@ -43,7 +43,20 @@ def task_create_lessonattendrecord(lesson_id, userinfo):
             ar = LessonAttendRecord(lesson_id=lesson_id, title=title, student_unionid=student_unionid,
                                     student_nick=student_nick, student_image=student_image, uni_key=uni_key)
             ar.save()
-        
+
+@task()
+def task_create_instructor_application(userinfo):
+    unionid = userinfo.get("unionid")
+    nick = userinfo.get("nickname")
+    image = userinfo.get("headimgurl")
+
+    title = u'特聘讲师'
+    instructors = Instructor.objects.filter(mama_id=mama_id)
+    if instructors.count() <= 0:
+        instructor = Instructor(name=nick,title=title,image=image,mama_id=mama_id)
+        instructor.save()
+    
+    
     
 @task()
 def task_lessonattendrecord_create_topicattendrecord(lesson_attend_record):
