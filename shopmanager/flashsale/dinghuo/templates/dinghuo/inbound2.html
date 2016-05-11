@@ -124,6 +124,9 @@
          #pic-modal li {
              height: 300px;
          }
+         #pics li {
+             height: 290px;
+         }
         </style>
     </head>
     <body>
@@ -162,8 +165,28 @@
                         <button class="btn btn-primary" data-toggle="modal" data-target="#pic-modal">图片列表</button>
                     </div>
                     <div style="clear:both"></div>
-                    <div class="row" id="pics">
-                        <ul></ul>
+                    <div class="row">
+                        <div class="col-md-6" id="pics">
+                            <ul></ul>
+                        </div>
+                        <div class="col-md-6" style="padding-left:30px">
+                            <div class="row" style="margin-top:20px">
+                                <textarea class="form-control" id="memo" rows="5" readonly></textarea>
+                            </div>
+                            <div class="row" style="margin-top:10px">
+                                <div class="col-md-10" style="padding:0">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="添加备注" id="memo-input">
+                                        <span class="input-group-btn">
+                                            <a href="javascript:;" class="btn btn-default" id="add-memo-btn">添加</a>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 btn-group">
+                                    <a href="javascript:;" class="btn btn-success" id="create-problem-inbound">创建</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <form id="form-2">
@@ -312,17 +335,7 @@
             </table>
             <div class="container" id="action">
                 <div class="row">
-                    <textarea class="form-control" id="memo" rows="5" readonly></textarea>
-                </div>
-                <div class="row input-group">
-                    <div class="col-md-9" style="padding:0">
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="添加备注" id="memo-input">
-                            <span class="input-group-btn">
-                                <a href="javascript:;" class="btn btn-default" id="add-memo-btn">添加</a>
-                            </span>
-                        </div>
-                    </div>
+                    <div class="col-md-6"></div>
                     <div class="col-md-3 btn-group">
                         <a class="btn btn-danger" id="set-invalid">作废</a>
                         <button class="btn btn-success" id="create-inbound">创建</button>
@@ -444,7 +457,7 @@
         </script>
         <script id="pics-tpl" type="text/html">
             {{each products as product i}}
-            <li class="col-md-2">
+            <li class="col-md-3">
                 <div class="portfolio-box">
                     <a href="{{product.product_link}}" target="_blank">
                         <img src="{{product.pic_path}}?imageView2/0/w/120" data-pic-path="{{product.pic_path}}" width="120px">
@@ -769,7 +782,7 @@
                              if(!_.isEmpty(result.inbound)){
                                  inbound = result.inbound;
                                  $('#create-inbound').attr('disabled', 'disabled');
-                                 $('#add-sku').attr('disabled', 'disabled');
+                                 $('#create-problem-inbound').attr('disabled', 'disabled');
                                  $('i.glyphicon', '#form-2').unbind();
                                  $('#memo').val(result.inbound.memo);
                              }
@@ -1020,6 +1033,27 @@
 
              $('#reset-skus').click(function(){
                  $('#pic-modal :checked').prop('checked', false);
+             });
+
+             $('#create-problem-inbound').click(function(){
+                 var data = _.extend({memo: $('#memo').val()}, getForm1Data());
+                 $.ajax({
+                     url: '/sale/dinghuo/inbound/create_problem_inbound',
+                     type: 'post',
+                     dataType: 'json',
+                     data: data,
+                     success: function(result){
+                         if(!_.isEmpty(result.inbound)){
+                             inbound = result.inbound;
+                             $('#create-inbound').attr('disabled', 'disabled');
+                             $('#create-problem-inbound').attr('disabled', 'disabled');
+                             $('i.glyphicon', '#form-2').unbind();
+                             $('#memo').val(result.inbound.memo);
+                         }
+                         else
+                             inbound = {};
+                     }
+                 });
              });
          });
         </script>
