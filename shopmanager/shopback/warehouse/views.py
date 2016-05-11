@@ -310,3 +310,14 @@ class PackageReviewView(APIView):
             many=True).data
         return Response({"object": {'package_order': package_order,
                                     'logistics': logistics}})
+
+
+class PackageClearRedoView(APIView):
+    def post(self, request, *args, **kwargs):
+        content = request.REQUEST
+        package_order_pid = content.get('package_order_pid')
+        package_order = PackageOrder.objects.get(pid=package_order_pid)
+        package_order.redo_sign = False
+        package_order.save(update_fields=['redo_sign'])
+        return Response({'isSuccess': True})
+    get = post
