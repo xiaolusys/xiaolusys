@@ -43,9 +43,7 @@ def get_mama_id(user):
     mama_id = None
     if customers.count() > 0:
         customer = customers[0]
-        print "customer", customer
         xlmm = customer.getXiaolumm()
-        print "xlmm is :", xlmm
         if xlmm:
             mama_id = xlmm.id
     #mama_id = 5 # debug test
