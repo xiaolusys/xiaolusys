@@ -493,7 +493,7 @@ from django.db.models import Sum
 def task_budgetlog_update_userbudget(budget_log):
     customer_id = budget_log.customer_id
     bglogs = BudgetLog.objects.filter(customer_id=customer_id,
-                                      status=BudgetLog.CONFIRMED)
+                                      status__in=[BudgetLog.CONFIRMED, BudgetLog.PENDING])
     records = bglogs.values('budget_type').annotate(total=Sum('flow_amount'))
 
     in_amount, out_amount = 0, 0
