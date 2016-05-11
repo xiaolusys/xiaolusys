@@ -54,7 +54,7 @@ class ProductSkuStats(models.Model):
 
     @property
     def wait_post_num(self):
-        return self.sold_num + self.return_quantity - self.post_num - self.rg_quantity
+        return self.sold_num - self.post_num
 
     @property
     def wait_assign_num(self):
