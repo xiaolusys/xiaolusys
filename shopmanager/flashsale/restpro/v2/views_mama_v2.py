@@ -1,6 +1,7 @@
 # coding=utf-8
 import logging
 import os, urlparse
+import time
 import datetime
 
 from django.conf import settings
@@ -138,11 +139,11 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
             logger.warn("get_mm_app_download_link: request.user %s cant find mama_id" % request.user)
         if not qrcode_url:  # 如果没有则生成链接上传到七牛 并且更新到字段
             customer_id = get_customer_id(request.user)
-            params = {'from_customer': customer_id}
+            params = {'from_customer': customer_id, "time_str": int(time.time())}
             share_link = "/sale/promotion/appdownload/?from_customer={from_customer}"
             share_link = urlparse.urljoin(settings.M_SITE_URL, share_link).format(**params)
             logger.warn("get_mm_app_download_link:share_link%s" % share_link)
-            file_name = os.path.join('qrcode/mm_appdownload', 'from_customer_{from_customer}.jpg'.format(**params))
+            file_name = os.path.join('qrcode/mm_appdownload', 'from_customer_{from_customer}_{time_str}.jpg'.format(**params))
             qrcode_url = push_qrcode_to_remote(file_name, share_link)
             if mama_fortune:
                 kwargs = {"app_download_qrcode_url": qrcode_url}
