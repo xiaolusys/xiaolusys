@@ -84,6 +84,17 @@ class AppDownloadRecord(BaseModel):
     def __unicode__(self):
         return str(self.from_customer)
 
+    def is_activated(self):
+        return self.status == AppDownloadRecord.USED
+    
+
+def appdownloadrecord_update_fans(sender, instance, created, *args, **kwargs):
+    from flashsale.promotion.task_activity import task_appdownloadrecord_update_fans
+    task_appdownloadrecord_update_fans.delay(instance)
+    
+post_save.connect(appdownloadrecord_update_fans, sender=AppDownloadRecord, dispatch_uid="appdownloadrecord_update_fans")
+
+
 
 class XLSampleApply(CacheModel):
     """ 试用申请 """

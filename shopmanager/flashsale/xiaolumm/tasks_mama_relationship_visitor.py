@@ -114,16 +114,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 
 
 @task()
-def task_login_update_fans(user):
-    """
-    All fans logic/relationship starts from here. Any other fans logic should be canceled.
-    
-    If AppDownloadRecord has multiple record for the same openid, we use the latest one.
-    1) Only XiaoluMama can have fans;
-    2) If I am a XiaoluMama, I should not be a fan of any other XiaoluMama;
-    3) I should not be a fan of myself.
-    """
-
+def task_login_activate_appdownloadrecord(user):
     customers = Customer.objects.filter(user=user)
     if not customers.exists():
         return
@@ -140,49 +131,18 @@ def task_login_update_fans(user):
     records = None
     if unionid:
         records = AppDownloadRecord.objects.filter(unionid=unionid, status=AppDownloadRecord.UNUSE).order_by('-created')
-    if (not records or records.count() <= 0) and mobile:
-        records = AppDownloadRecord.objects.filter(mobile=mobile, status=AppDownloadRecord.UNUSE).order_by('-created')
-    if not records or records.count() <= 0:
-        return
-
-    record = records[0]
-    from_customer = record.from_customer
-    referal_customer_id = from_customer
-
-    customer1 = None
-    try:
-        customer1 = Customer.objects.get(id=from_customer)
-    except Customer.DoesNotExist:
-        # We simply return if no from_customer exists.
+        record = records[0]
+        record.status = AppDownloadRecord.USED
+        record.save()
+        logger.warn("task_login_activate_appdownloadrecord|customer_id:%s, record_id:%s" % (customer.id, record.id))
         return
     
-    from_mama = customer1.getXiaolumm()
+    if mobile and len(mobile) == 11:
+        records = AppDownloadRecord.objects.filter(mobile=mobile, status=AppDownloadRecord.UNUSE).order_by('-created')
+        record = records[0]
+        record.status = AppDownloadRecord.USED
+        record.save()
+        logger.warn("task_login_activate_appdownloadrecord|customer_id:%s, record_id:%s" % (customer.id, record.id))
 
-    mama_id, mama_customer_id = None, None
-    if from_mama:
-        mama_id = from_mama.id
-        mama_customer_id = from_customer
-    else:
-        # if my parent is not xiaolumama, then find out indirect xiaolumama
-        fan_records = XlmmFans.objects.filter(fans_cusid=from_customer)
-        if fan_records.count() <= 0:
-            return
-        fan_record = fan_records[0]
-        mama_id = fan_record.xlmm
-        mama_customer_id = fan_record.xlmm_cusid
-
-    fans = XlmmFans.objects.filter(fans_cusid=customer.id)
-    if fans.count() > 0:
-        return
-
-    if mama_customer_id == customer.id:
-        # self canot be self's fan
-        return
-
-    logger.warn("task_login_update_fans|mama_id:%s,mama_customer_id:%s,referal_customer_id:%s,fan_customer_id:%s, fan_nick:%s" % (mama_id, mama_customer_id, referal_customer_id, customer.id, customer.nick))
-    fan = XlmmFans(xlmm=mama_id, xlmm_cusid=mama_customer_id, refreal_cusid=referal_customer_id, fans_cusid=customer.id,
-                   fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
-    fan.save()
-
-    records.update(status=AppDownloadRecord.USED)
+    
  
