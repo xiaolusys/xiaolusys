@@ -401,10 +401,10 @@
             <th>SKU ID</th>
             <th>商品编码</th>
             <th>供应商编码</th>
-            <th>商品名称</th>
+            <th style="min-width:100px">商品名称</th>
             <th>图片</th>
             <th>规格</th>
-            <th>购买数量</th>
+            <th style="min-width:60px">购买数量</th>
             <th>买入价格</th>
             <th>单项价格</th>
             <th>已入库数</th>
@@ -487,9 +487,8 @@
             </tbody>
             <tfoot>
             <tr>
-                <td colspan="5"></td>
+                <td colspan="6"></td>
                 <td width="100px"><input id="total_quantity_num" type="text" value="0" readonly/></td>
-                <td></td>
                 <td width="100px"><input id="total_amount_num" type="text" value="0" readonly/></td>
                 <td width="100px"><input id="total_arrival_num" type="text" value="0" readonly/></td>
                 <td width="100px"><input id="total_inferior_num" type="text" value="0" readonly/></td>
@@ -579,7 +578,7 @@
                     continue;
                 }
 
-                quantity_num = row.cells[5].innerText;
+                quantity_num = row.cells[6].innerText;
                 amount_num = row.cells[7].innerText;
                 arrival_num = row.cells[8].innerText;
                 inferior_num = row.cells[9].innerText;
