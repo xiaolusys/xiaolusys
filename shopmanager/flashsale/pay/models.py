@@ -331,6 +331,11 @@ class SaleTrade(BaseModel):
         # 付款后订单被关闭，则加上锁定数
         if trade_close:
             self.increase_lock_skunum()
+        # 如果使用余额支付,付款成功后则扣除
+        if self.has_budget_paid:
+            user_budget = UserBudget.objects.get(id=self.buyer_id)
+            user_budget.charge_confirm(self.id)
+
         self.confirm_payment()
 
     @transaction.atomic
@@ -437,7 +442,6 @@ def category_trade_stat(sender, obj, **kwargs):
 
 
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
-
 
 def push_msg_mama(sender, obj, **kwargs):
     """专属链接有人下单后则推送消息给代理"""

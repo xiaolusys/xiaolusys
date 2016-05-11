@@ -168,21 +168,29 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_child_qs(self, queryset):
         return self.get_custom_qs(queryset).filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='1'))
 
-    def get_pagination_response_by_date(self, request, cur_date):
+    def get_downshelf_deadline(self, obj_list, cur_date):
+        deadline = datetime.datetime.combine(cur_date, datetime.datetime.min.time())\
+                    + datetime.timedelta(seconds= 38 * 60 * 60)
+        for obj in obj_list:
+            if obj.offshelf_time and obj.offshelf_time > deadline:
+                deadline = obj.offshelf_time
+        return deadline
+
+    def get_pagination_response_by_date(self, request, cur_date, only_upshelf=True):
 
         queryset = self.filter_queryset(self.get_queryset())
         tal_queryset = self.get_custom_qs(queryset).filter(
-            Q(sale_time=cur_date) | Q(details__is_recommend=True),
-            shelf_status=Product.UP_SHELF
+            Q(sale_time=cur_date) | Q(details__is_recommend=True)
         )
+        if only_upshelf:
+            tal_queryset = tal_queryset.filter(shelf_status=Product.UP_SHELF)
         queryset = self.order_queryset(request, tal_queryset, order_by=self.INDEX_ORDER_BY)
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
             object_list = self.objets_from_cache(pagin_query)
             serializer = self.get_serializer(object_list, many=True)
             response = self.get_paginated_response(serializer.data)
-            response.data.update(downshelf_deadline=datetime.datetime.combine(cur_date, datetime.datetime.min.time())
-                                                    + datetime.timedelta(seconds= 38 * 60 * 60))
+            response.data.update(downshelf_deadline=self.get_downshelf_deadline(object_list, cur_date))
             return response
 
         object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
@@ -195,21 +203,21 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         from django_statsd.clients import statsd
         statsd.incr('xiaolumm.home_page')
         today_dt = self.get_today_date()
-        return self.get_pagination_response_by_date(request, today_dt)
+        return self.get_pagination_response_by_date(request, today_dt, only_upshelf=True)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def yesterday(self, request, *args, **kwargs):
         """ 昨日特卖列表分页接口 """
         yesterday_dt = self.get_yesterday_date()
-        return self.get_pagination_response_by_date(request, yesterday_dt)
+        return self.get_pagination_response_by_date(request, yesterday_dt, only_upshelf=False)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def tomorrow(self, request, *args, **kwargs):
         """ 昨日特卖列表分页接口 """
         tomorrow_dt = self.get_tomorrow_date()
-        return self.get_pagination_response_by_date(request, tomorrow_dt)
+        return self.get_pagination_response_by_date(request, tomorrow_dt, only_upshelf=False)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
