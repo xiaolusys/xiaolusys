@@ -70,6 +70,8 @@ def task_release_coupon_for_order(saletrade):
     ufrom = extras_info.get('ufrom')
     tpl = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
                                         coupon_type=CouponTemplate.TYPE_ORDER_BENEFIT).first()
+    if not tpl:
+        return
     UserCoupon.objects.create_mama_invite_coupon(
         buyer_id=saletrade.buyer_id,
         template_id=tpl.id,
