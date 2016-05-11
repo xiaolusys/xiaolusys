@@ -72,7 +72,7 @@ class Instructor(BaseModel):
     mama_id = models.IntegerField(default=0, unique=True, verbose_name=u'Mama ID')
     num_lesson = models.IntegerField(default=0, verbose_name=u'总课时')
     num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
-    status = models.IntegerField(default=Instructor.STATUS_PENDING, choices=STATUS_TYPES, verbose_name=u'状态')
+    status = models.IntegerField(default=STATUS_PENDING, choices=STATUS_TYPES, verbose_name=u'状态')
     
     class Meta:
         db_table = 'flashsale_xlmm_instructor'
