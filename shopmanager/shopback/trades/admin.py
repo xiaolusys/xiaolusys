@@ -1303,9 +1303,6 @@ class PackageOrderAdmin(admin.ModelAdmin):
 
     actions = ['push_package_to_scan']
 
-    def get_actions(self, request):
-        return [i for i in super(PackageOrderAdmin, self).get_actions(request) if i != 'delete_selected']
-
     class Media:
         css = {"all": ("admin/css/forms.css", "css/admin/dialog.css", "css/admin/checkorder.css")}
         #         js = ("jquery/jquery-1.8.13.min.js","script/admin/adminpopup.js","script/trades/new_checkTrade.js",
