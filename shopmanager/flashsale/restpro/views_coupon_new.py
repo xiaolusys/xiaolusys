@@ -237,7 +237,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         template_id = content.get('template_id') or 0
         queryset = self.get_owner_queryset(request)
         queryset = queryset.filter(template_id=template_id)
-        queryset = queryset.order_by('created')[::-1]  # 时间排序
+        queryset = queryset.order_by('-created')  # 时间排序
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

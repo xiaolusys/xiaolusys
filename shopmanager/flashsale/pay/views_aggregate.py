@@ -67,7 +67,7 @@ class ModelProductView(View):
         content_img = None
         if model_change.count() > 0:
             target_model = model_change[0]
-            all_product = Product.objects.filter(model_id=model_change[0].id, status=Product.NORMAL)
+            all_product = Product.objects.filter(model_id=model_change[0].id, status__in=(Product.NORMAL,Product.REMAIN))
             content_img = model_change[0].content_imgs.split()
         return render_to_response("pay/aggregate_product2already.html",
                                   {"target_model": target_model, "all_product": all_product,
