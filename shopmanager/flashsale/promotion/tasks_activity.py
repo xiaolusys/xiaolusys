@@ -229,3 +229,66 @@ def task_sampleapply_update_appdownloadrecord(application):
             # if the appdownloadrecord only have mobile, it's the chance to update it's unionid.
             record.unionid = application.user_unionid
             record.save()
+
+
+@task()
+def task_appdownloadrecord_update_fans(record):
+    """
+    All fans logic/relationship starts from here. Any other fans logic should be canceled.
+    
+    1) Only XiaoluMama can have fans;
+    2) If I am a XiaoluMama, I should not be a fan of any other XiaoluMama;
+    3) I should not be a fan of myself.
+    """
+
+    if not record.is_activated():
+        return
+    
+    customer_unionid = record.unionid
+    customer_mobile = record.mobile
+    customer = None
+    if customer_unionid:
+        customers = Customer.objects.filter(unionid=customer_unionid)
+        if customers.count() > 0:
+            customer = customers[0]
+    elif customer_mobile:
+        customers = Customer.objects.filter(mobile=customer_mobile)
+        if customers.count() > 0:
+            customer = customers[0]
+    if not customer:
+        return
+    
+    referal_customer_id = record.from_customer
+    customers = Customer.objects.filter(id=referal_customer_id)
+    if customers.count() <= 0:
+        return
+    referal_customer = customers[0]
+
+    
+    from_mama = referal_customer.getXiaolumm()
+    mama_id, mama_customer_id = None, None
+    if from_mama:
+        mama_id = from_mama.id
+        mama_customer_id = from_customer
+    else:
+        # if my parent is not xiaolumama, then find out indirect xiaolumama
+        fan_records = XlmmFans.objects.filter(fans_cusid=referal_customer_id)
+        if fan_records.count() <= 0:
+            return
+        fan_record = fan_records[0]
+        mama_id = fan_record.xlmm
+        mama_customer_id = fan_record.xlmm_cusid
+
+    fans = XlmmFans.objects.filter(fans_cusid=customer.id)
+    if fans.count() > 0:
+        return
+
+    if mama_customer_id == customer.id:
+        # self canot be self's fan
+        return
+
+    logger.warn("task_login_update_fans|mama_id:%s,mama_customer_id:%s,referal_customer_id:%s,fan_customer_id:%s, fan_nick:%s" % (mama_id, mama_customer_id, referal_customer_id, customer.id, customer.nick))
+    fan = XlmmFans(xlmm=mama_id, xlmm_cusid=mama_customer_id, refreal_cusid=referal_customer_id, fans_cusid=customer.id,
+                   fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
+    fan.save()
+    
