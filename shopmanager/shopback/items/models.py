@@ -253,7 +253,7 @@ class Product(models.Model):
         return self.shelf_status == self.UP_SHELF
 
     def new_good(self):
-        """ 返回特卖商品是否新品 """
+        """ 返回特卖商品是否即将开售 """
         return self.sale_time and self.sale_time >= datetime.date.today()
 
     def is_sale_out(self):
