@@ -119,7 +119,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_latest_right_date(self, dt):
         ldate = dt
-        model_qs = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
+        model_qs = self.get_queryset().filter(status=Product.NORMAL)
         for i in xrange(0, 30):
             ldate = dt - datetime.timedelta(days=i)
             product_qs = model_qs.filter(sale_time=ldate)
@@ -129,7 +129,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_preview_right_date(self, dt):
         ldate = dt
-        model_qs = self.get_queryset()
+        model_qs = self.get_queryset().filter(status=Product.NORMAL)
         for i in xrange(0, 30):
             ldate = dt + datetime.timedelta(days=i)
             product_qs = model_qs.filter(sale_time=ldate)
@@ -210,11 +210,16 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_pagination_response_by_date(self, request, cur_date, only_upshelf=True):
         today = datetime.date.today()
         queryset = self.filter_queryset(self.get_queryset())
-        tal_queryset = self.get_custom_qs(queryset).filter(
-            Q(sale_time=cur_date) | Q(details__is_recommend=True)
-        )
+        tal_queryset = self.get_custom_qs(queryset)
         if only_upshelf:
-            tal_queryset = tal_queryset.filter(shelf_status=Product.UP_SHELF)
+            tal_queryset = tal_queryset.filter(
+                Q(sale_time=cur_date) | Q(details__is_recommend=True),
+                shelf_status=Product.UP_SHELF
+            )
+        else:
+            tal_queryset = tal_queryset.filter(
+                sale_time=cur_date
+            )
         queryset = self.order_queryset(request, tal_queryset, order_by=self.INDEX_ORDER_BY)
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
