@@ -43,7 +43,9 @@ def get_mama_id(user):
     mama_id = None
     if customers.count() > 0:
         customer = customers[0]
+        print "customer", customer
         xlmm = customer.getXiaolumm()
+        print "xlmm is :", xlmm
         if xlmm:
             mama_id = xlmm.id
     #mama_id = 5 # debug test
@@ -119,16 +121,11 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-    def get_share_link(self, share_link, params):
-        link = urlparse.urljoin(settings.M_SITE_URL, share_link)
-        return link.format(**params)
-
     @list_route(methods=['get'])
     def get_mama_app_download_link(self, request):
         """ 妈妈的app下载链接 """
         from core.upload.xqrcode import push_qrcode_to_remote
 
-        customer_id = get_customer_id(request.user)
         mama_id = get_mama_id(request.user)
         qrcode_url = ''
         mama_fortune = None
@@ -138,13 +135,14 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
                 qrcode_url = mama_fortune.app_download_qrcode_url
             else:
                 logger.warn("get_mm_app_download_link: mm id %s cant find mama_fortune" % mama_id)
-
-        params = {'from_customer': customer_id}
-        share_link = "/sale/promotion/appdownload/?from_customer={from_customer}"
-        share_link = self.get_share_link(share_link, params)
-        file_name = os.path.join('qrcode/mm_appdownload', 'from_customer_{from_customer}.jpg'.format(**params))
-
+        else:
+            logger.warn("get_mm_app_download_link: request.user %s cant find mama_id" % request.user)
         if not qrcode_url:  # 如果没有则生成链接上传到七牛 并且更新到字段
+            customer_id = get_customer_id(request.user)
+            params = {'from_customer': customer_id}
+            share_link = "/sale/promotion/appdownload/?from_customer={from_customer}"
+            share_link = urlparse.urljoin(settings.M_SITE_URL, share_link).format(**params)
+            file_name = os.path.join('qrcode/mm_appdownload', 'from_customer_{from_customer}.jpg'.format(**params))
             qrcode_url = push_qrcode_to_remote(file_name, share_link)
             if mama_fortune:
                 kwargs = {"app_download_qrcode_url": qrcode_url}
