@@ -1259,12 +1259,10 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     def _wait_post_num(self, obj):
         return obj.wait_post_num
-
     _wait_post_num.short_description = u'待发数'
 
     def _wait_assign_num(self, obj):
         return obj.wait_assign_num
-
     _wait_assign_num.short_description = u'待分配数'
 
     def district_link(self, obj):
