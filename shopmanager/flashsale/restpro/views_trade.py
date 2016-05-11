@@ -408,7 +408,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not has_deposite and coupon_id:
             try:
                 user_coupon = get_object_or_404(UserCoupon, id=coupon_id,
-                                                customer_ud=customer.id, status=UserCoupon.UNUSED)
+                                                customer_id=customer.id, status=UserCoupon.UNUSED)
 
                 check_use_fee = total_fee - discount_fee
                 user_coupon.check_user_coupon(product_ids=[product.id, ], use_fee=check_use_fee)
@@ -924,7 +924,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                                 customer_id=customer.id, status=UserCoupon.UNUSED)
                 try:  # 优惠券条件检查
                     check_use_fee = (cart_total_fee - cart_discount) / 100.0
-                    user_coupon.check_usercoupon(product_ids=item_ids, use_fee=check_use_fee)
+                    user_coupon.check_user_coupon(product_ids=item_ids, use_fee=check_use_fee)
                 except Exception, exc:
                     raise exceptions.APIException(exc.message)
                 cart_discount += round(user_coupon.value * 100)
