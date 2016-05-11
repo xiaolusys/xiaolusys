@@ -1363,6 +1363,9 @@ class PackageOrder(models.Model):
         verbose_name = u'包裹单'
         verbose_name_plural = u'包裹列表'
 
+    def is_sent(self):
+        return self.sys_status in [PackageOrder.FINISHED_STATUS, PackageOrder.WAIT_CUSTOMER_RECEIVE]
+
     def copy_order_info(self, sale_trade):
         """从package_order或者sale_trade复制信息"""
         attrs = ['tid', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district',
@@ -1683,11 +1686,12 @@ class PackageSkuItem(BaseModel):
     def reset_assign_status(self):
         PackageSkuItem.objects.filter(id=self.id).update(assign_status=0)
         package_order = self.package_order
-        if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
-            package_order.set_redo_sign(save_data=False)
-            package_order.reset_sku_item_num(save_data=True)
-        else:
-            package_order.reset_to_new_create()
+        if not package_order.is_sent():
+            if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
+                package_order.set_redo_sign(save_data=False)
+                package_order.reset_sku_item_num(save_data=True)
+            else:
+                package_order.reset_to_new_create()
         p = PackageSkuItem.objects.get(id=self.id)
         p.package_order_id = None
         p.package_order_pid = None
