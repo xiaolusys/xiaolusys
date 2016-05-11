@@ -1,4 +1,5 @@
 # coding=utf-8
+import logging
 import os, urlparse
 import datetime
 
@@ -25,6 +26,7 @@ from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveVa
 from flashsale.pay.models_custom import ModelProduct
 
 from django_statsd.clients import statsd
+logger = logging.getLogger(__name__)
 
 
 def get_customer_id(user):
@@ -116,6 +118,34 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
+
+    @list_route(methods=['get'])
+    def get_mama_app_download_link(self, request):
+        """ 妈妈的app下载链接 """
+        from core.upload.xqrcode import push_qrcode_to_remote
+
+        mama_id = get_mama_id(request.user)
+        qrcode_url = ''
+        mama_fortune = None
+        if mama_id:  # 如果有代理妈妈
+            mama_fortune = self.queryset.filter(mama_id=mama_id).first()
+            if mama_fortune:
+                qrcode_url = mama_fortune.app_download_qrcode_url
+            else:
+                logger.warn("get_mm_app_download_link: mm id %s cant find mama_fortune" % mama_id)
+        else:
+            logger.warn("get_mm_app_download_link: request.user %s cant find mama_id" % request.user)
+        if not qrcode_url:  # 如果没有则生成链接上传到七牛 并且更新到字段
+            customer_id = get_customer_id(request.user)
+            params = {'from_customer': customer_id}
+            share_link = "/sale/promotion/appdownload/?from_customer={from_customer}"
+            share_link = urlparse.urljoin(settings.M_SITE_URL, share_link).format(**params)
+            file_name = os.path.join('qrcode/mm_appdownload', 'from_customer_{from_customer}.jpg'.format(**params))
+            qrcode_url = push_qrcode_to_remote(file_name, share_link)
+            if mama_fortune:
+                kwargs = {"app_download_qrcode_url": qrcode_url}
+                mama_fortune.update_extras_qrcode_url(**kwargs)
+        return Response({"code": 0, "qrcode_url": qrcode_url})
 
 
 class CarryRecordViewSet(viewsets.ModelViewSet):

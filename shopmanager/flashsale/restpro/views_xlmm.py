@@ -1,4 +1,5 @@
 # coding=utf-8
+import logging
 import os, urlparse
 import datetime
 import decimal
@@ -27,6 +28,8 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models_fortune import MamaFortune
 from flashsale.pay.models import BudgetLog
+from flashsale.xiaolumm.models_fortune import MamaFortune
+logger = logging.getLogger(__name__)
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
