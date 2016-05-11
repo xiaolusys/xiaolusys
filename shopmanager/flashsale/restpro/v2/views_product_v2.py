@@ -24,8 +24,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
-from flashsale.pay.models import GoodShelf, ModelProduct
-from flashsale.pay.models_custom import Productdetail, ActivityEntry, BrandProduct
+from flashsale.pay.models_custom import GoodShelf, ModelProduct, Productdetail, ActivityEntry, BrandProduct
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
@@ -37,6 +36,39 @@ from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.pay.models_shops import CustomerShops, CuShopPros
 
 CACHE_VIEW_TIMEOUT = 30
+
+class ModelProductViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+        ##特卖商品API：
+        > ### [.format]: 获取今日推荐商品列表;
+          - `page`:页码（０开始）
+          - `page_size`：每页数量初始为10
+    """
+    queryset = ModelProduct.objects.all()
+    serializer_class = serializers.ModelProductSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    paginate_by = 10
+    page_query_param = 'page'
+
+    def calc_items_cache_key(self, view_instance, view_method,
+                             request, args, kwargs):
+        key_vals = ['order_by', 'id', 'pk', 'model_id', 'days', 'page', 'page_size']
+        key_maps = kwargs or {}
+        for k, v in request.GET.copy().iteritems():
+            if k in key_vals and v.strip():
+                key_maps[k] = v
+
+        return hashlib.sha1(u'.'.join([
+            view_instance.__module__,
+            view_instance.__class__.__name__,
+            view_method.__name__,
+            json.dumps(key_maps, sort_keys=True).encode('utf-8')
+        ])).hexdigest()
+
+
+
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -189,11 +221,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             object_list = self.objets_from_cache(pagin_query)
             serializer = self.get_serializer(object_list, many=True)
             response = self.get_paginated_response(serializer.data)
-            if cur_date <= today:
-                response.data.update(downshelf_deadline=self.get_downshelf_deadline(object_list, cur_date))
-            else:
-                response.data.update(upshelf_starttime=datetime.datetime.combine(cur_date, datetime.datetime.min.time())\
-                    + datetime.timedelta(seconds= 10 * 60 * 60))
+            response.data.update({
+                'downshelf_deadline':self.get_downshelf_deadline(object_list, cur_date),
+                'upshelf_starttime':datetime.datetime.combine(cur_date, datetime.datetime.min.time())\
+                                + datetime.timedelta(seconds= 10 * 60 * 60)
+            })
             return response
 
         object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
