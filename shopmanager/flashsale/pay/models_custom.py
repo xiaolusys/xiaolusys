@@ -8,10 +8,12 @@ from common.utils import update_model_fields
 from core.fields import JSONCharMyField
 from .base import PayBaseModel
 
-from shopback.items.models import Product
+from shopback.items.models import Product, ContrastContent
 from .signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
 
+import logging
+logger = logging.getLogger(__name__)
 
 class Productdetail(PayBaseModel):
     WASH_INSTRUCTION = '''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''
@@ -131,6 +133,14 @@ class ModelProduct(PayBaseModel):
         return self.head_imgs and self.head_imgs.split()[0] or ''
 
     head_img_url = property(head_img)
+
+    @property
+    def content_images(self):
+        return self.content_imgs.split()
+
+    @property
+    def head_images(self):
+        return self.head_imgs.split()
 
     @property
     def is_single_spec(self):
@@ -264,14 +274,10 @@ class ModelProduct(PayBaseModel):
         }
 
     @property
-    def content_images(self):
-        return self.content_imgs.split()
-
-    @property
     def detail_content(self):
         return {
             'name': self.name,
-            'head_img': self.head_img_url,
+            'head_imgs': self.head_images,
             'content_imgs': self.content_images,
             'is_single_spec': self.is_single_spec,
             'is_sale_out': self.is_sale_out,
@@ -296,13 +302,32 @@ class ModelProduct(PayBaseModel):
 
         return product_list
 
+    def format_contrast2table(self, origin_contrast):
+        result_data = {}
+        constants_maps = ContrastContent.contrast_maps()
+        for k1, v1 in origin_contrast.items():
+            temp_list = []
+            for k2, v2 in v1.items():
+                cname = constants_maps.get(k2, k2)
+                temp_list.append([cname,v2])
+            result_data[k1] = temp_list
+        return result_data
+
     @property
     def comparison(self):
+        p_tables = []
+        uni_set  = set()
+        try:
+            for p in self.products:
+                contrast_origin = p.contrast.contrast_detail
+                uni_key = ''.join(sorted(contrast_origin.keys()))
+                if uni_key not in uni_set:
+                    uni_set.add(uni_key)
+                    p_tables.append(self.format_contrast2table(contrast_origin))
+        except Exception, exc:
+            logger.error(exc.message,exc_info=True)
         return {
-            'tables': [
-                {'name': '儿童尺码对照表', 'table': []},
-                {'name': '成人尺码对照表', 'table': []}
-            ]
+            'tables': p_tables
         }
 
     @property

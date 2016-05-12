@@ -32,7 +32,7 @@ from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
 
 from . import constants, managers
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 APPROVE_STATUS = (
     (pcfg.ONSALE_STATUS, u'在售'),
@@ -1322,16 +1322,21 @@ class ProductSkuContrast(models.Model):
         verbose_name = u'对照内容表'
         verbose_name_plural = u'对照内容表'
 
-    @property
-    def get_correspond_content(self):
+    @classmethod
+    def format_contrast(cls, origin_contrast):
         result_data = {}
-        for k1, v1 in self.contrast_detail.items():
+        constants_maps = ContrastContent.contrast_maps()
+        for k1, v1 in origin_contrast.items():
             temp_dict = {}
             for k2, v2 in v1.items():
-                content = ContrastContent.objects.get(cid=k2)
-                temp_dict[content.name] = v2
+                content = constants_maps.get(k2, k2)
+                temp_dict[content] = v2
             result_data[k1] = temp_dict
         return result_data
+
+    @property
+    def get_correspond_content(self):
+        return ProductSkuContrast.format_contrast(self.contrast_detail)
 
     def __unicode__(self):
         return '<%s,%s>' % (self.product_id, self.contrast_detail)
@@ -1364,6 +1369,20 @@ class ContrastContent(models.Model):
 
     def __unicode__(self):
         return '<%s,%s>' % (self.cid, self.name)
+
+    @classmethod
+    def contrast_maps(cls):
+        # TODO ,如果内容字典修改,需要更新cache
+        from django.core.cache import cache
+        cache_key  = hash('%s.%s'%(__name__, cls.__name__))
+        cache_contrast = cache.get(cache_key)
+        if not cache_contrast:
+            contrasts = cls.objects.filter(status=cls.NORMAL).values_list('cid', 'name')
+            cache_contrast = dict(contrasts)
+            cache.set(cache_key, dict(contrasts), 24 * 60 * 60)
+            logger.warn('contrast dictionary cache not hit: key=%s'% cache_key)
+        return cache_contrast
+
 
 
 class ImageWaterMark(models.Model):
