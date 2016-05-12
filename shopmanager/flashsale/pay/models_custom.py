@@ -264,7 +264,7 @@ class ModelProduct(PayBaseModel):
         return {
             'type':'color',
             'product_id':product.id,
-            'name':product.name,
+            'name':product.property_name,
             'product_img': product.head_img_url,
             'outer_id': product.outer_id,
             'std_sale_price':product.std_sale_price,
@@ -291,6 +291,7 @@ class ModelProduct(PayBaseModel):
             'offshelf_time': self.offshelf_time,
             'properties':self.properties,
             'watermark_op': '',
+            'item_marks': ['包邮']
         }
 
     @property
@@ -333,8 +334,8 @@ class ModelProduct(PayBaseModel):
     @property
     def extras(self):
         return {
-            'buy_limit': True,
-            'per_limit': 3,
+            'is_product_buy_limit': True,
+            'per_limit_buy_num': 3,
         }
 
 

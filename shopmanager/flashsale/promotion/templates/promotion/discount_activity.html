@@ -52,7 +52,7 @@
     height:22%;
     margin-bottom:10px;
 }
-.share-btn,.share-origin,.share-sn{
+.share-btn, .share-origin, .share-sn, .login-btn{
     position: absolute;
     top: 0;
     left: 50%;
@@ -64,6 +64,9 @@
 }
 .share-sn{
     top:4%;
+}
+.login-btn{
+	top:6%;
 }
 </style>
 {% endblock %}
@@ -81,13 +84,16 @@
 
 <div class="page-content">
     <div class="row" style="display:block;width:100%;">
-    <div class="share-btn btn btn-default ">分享到朋友圈</div>
+    <div class="share-btn btn btn-primary ">分享到朋友圈</div>
     </div >
     <div class="row" style="display:block;width:100%;">
     <div class="share-origin btn btn-success ">调用原生分享控件</div>
     </div>
     <div class="row" style="display:block;width:100%;">
     <div class="share-sn btn btn-info row">获取原生设备SN码</div>
+    </div>
+	<div class="row" style="display:block;width:100%;">
+    <div class="login-btn btn btn-warning row">调用app登陆页面</div>
     </div>
 	<!-- 优惠券 -->
 	<div class="coupon" template_id="35,37" onclick="Action_release(this)">
@@ -249,6 +255,26 @@ $(document).ready(function(){
         }else{
             if (window.AndroidBridge) {
                 var data = window.AndroidBridge.getNativeMobileSNCode();
+                alert('sn code:' + data);
+            }
+        }
+    });
+
+    $('.login-btn').click(function(){
+        var os = OSTest();
+        console.log('os share:',os)
+        if (os == 'iOS'){
+            setupWebViewJavascriptBridge(function(bridge) {
+                bridge.callHandler('callNativeLoginActivity',
+					{'pageUrl':'http://m.xiaolumeimei.com/sale/promotion/activity/'},
+					function(response) {
+						alert('sn code:' + response);
+					}
+                );
+            })
+        }else{
+            if (window.AndroidBridge) {
+                var data = window.AndroidBridge.callNativeLoginActivity('http://m.xiaolumeimei.com/sale/promotion/activity/');
                 alert('sn code:' + data);
             }
         }
