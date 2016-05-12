@@ -661,7 +661,8 @@ class SaleOrder(PayBaseModel):
                self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
 
     def is_confirmed(self):
-        return self.status == SaleOrder.TRADE_FINISHED and \
+        return self.status >= SaleOrder.WAIT_BUYER_CONFIRM_GOODS and \
+               self.status <= SaleOrder.TRADE_FINISHED and \
                self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
 
     def is_canceled(self):

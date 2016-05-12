@@ -32,6 +32,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
 class InstructorSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)
+    apply_date = serializers.CharField(read_only=True)
     
     class Meta:
         model = Instructor

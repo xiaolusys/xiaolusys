@@ -91,9 +91,7 @@ class FansNumberRecord(BaseModel):
 
 
 from django.contrib.auth.signals import user_logged_in
-
-
-def login_update_fans(sender, request, user, *args, **kwargs):
+def login_activate_appdownloadrecord(sender, request, user, *args, **kwargs):
     """
     Only check whether this user has download-relationship, if he/she has
     and that download-relationship record is not used yet, we confirm he/she is 
@@ -104,8 +102,8 @@ def login_update_fans(sender, request, user, *args, **kwargs):
     login from the user.
     """
 
-    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_update_fans
-    task_login_update_fans.delay(user)
+    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_activate_appdownloadrecord
+    task_login_activate_appdownloadrecord.delay(user)
 
 
-user_logged_in.connect(login_update_fans, dispatch_uid='user_login_update_direct_fans')
+user_logged_in.connect(login_activate_appdownloadrecord, dispatch_uid='login_activate_appdownloadrecord')

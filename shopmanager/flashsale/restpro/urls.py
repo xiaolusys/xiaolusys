@@ -190,5 +190,5 @@ urlpatterns = patterns('',
     url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
     url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
     url(r'^lesson/', include(lesson_router.urls, namespace='lesson')),
-    url(r'^lesson/snsauth/(?P<lesson_id>\d+)', views_lesson.WeixinSNSAuthJoinView.as_view()),                       
+    url(r'^lesson/snsauth/', views_lesson.WeixinSNSAuthJoinView.as_view()),                       
 )
