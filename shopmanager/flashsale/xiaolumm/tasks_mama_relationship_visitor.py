@@ -131,18 +131,20 @@ def task_login_activate_appdownloadrecord(user):
     records = None
     if unionid:
         records = AppDownloadRecord.objects.filter(unionid=unionid, status=AppDownloadRecord.UNUSE).order_by('-created')
-        record = records[0]
-        record.status = AppDownloadRecord.USED
-        record.save()
-        logger.warn("task_login_activate_appdownloadrecord|customer_id:%s, record_id:%s" % (customer.id, record.id))
-        return
+        record = records.first()
+        if record:
+            record.status = AppDownloadRecord.USED
+            record.save()
+            logger.warn("task_login_activate_appdownloadrecord|customer_id:%s, record_id:%s" % (customer.id, record.id))
+            return
     
     if mobile and len(mobile) == 11:
         records = AppDownloadRecord.objects.filter(mobile=mobile, status=AppDownloadRecord.UNUSE).order_by('-created')
-        record = records[0]
-        record.status = AppDownloadRecord.USED
-        record.save()
-        logger.warn("task_login_activate_appdownloadrecord|customer_id:%s, record_id:%s" % (customer.id, record.id))
+        record = records.first()
+        if record:
+            record.status = AppDownloadRecord.USED
+            record.save()
+            logger.warn("task_login_activate_appdownloadrecord|customer_id:%s, record_id:%s" % (customer.id, record.id))
 
     
  
