@@ -89,7 +89,7 @@ class AppDownloadRecord(BaseModel):
     
 
 def appdownloadrecord_update_fans(sender, instance, created, *args, **kwargs):
-    from flashsale.promotion.task_activity import task_appdownloadrecord_update_fans
+    from flashsale.promotion.tasks_activity import task_appdownloadrecord_update_fans
     task_appdownloadrecord_update_fans.delay(instance)
     
 post_save.connect(appdownloadrecord_update_fans, sender=AppDownloadRecord, dispatch_uid="appdownloadrecord_update_fans")
