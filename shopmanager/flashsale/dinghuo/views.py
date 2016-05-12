@@ -1884,6 +1884,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
     def allocate(self, request):
         from shopback.items.tasks import releaseProductTradesTask
 
+        now = datetime.datetime.now()
         data = json.loads(request.POST.get('data') or '[]')
         orderlist_ids = set()
         inbound = None
@@ -1949,6 +1950,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             sku = inbounddetail.sku
             if item['arrival_quantity']:
                 orderdetail.arrival_quantity += item['arrival_quantity']
+                orderdetail.arrival_time = now
                 orderdetail.save()
                 log_action(request.user.id, orderdetail, CHANGE, u'分配入仓单%d: 更新入库数%+d' % (inbound.id, item['arrival_quantity']))
                 sku.quantity += item['arrival_quantity']
