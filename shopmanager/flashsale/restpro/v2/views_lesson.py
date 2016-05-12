@@ -245,7 +245,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         # 2. get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
-        usreinfo = None
+        userinfo = None
         #userinfo = {"unionid":"o29cQs9QlfWpL0v0ZV_b2nyTOM-4", "nickname":"zifei", "headimgurl":"xxxx"}
         if not self.valid_openid(unionid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
