@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0005_auto_20160507_1544'),
+        ('xiaolumm', 'add_extras_field_for_mamafortune'),
     ]
 
     operations = [
