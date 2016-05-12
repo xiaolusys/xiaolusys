@@ -339,7 +339,7 @@ class ModelProduct(PayBaseModel):
 
 
 def create_Model_Product(sender, obj, **kwargs):
-    pro = obj.item_product()
+    pro = obj.item_product
     if isinstance(pro, Product):
         sal_p, supplier = pro.pro_sale_supplier()
         if supplier is not None:
