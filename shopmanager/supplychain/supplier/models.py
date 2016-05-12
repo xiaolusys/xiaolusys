@@ -79,6 +79,7 @@ class SaleCategory(models.Model):
                                          {}).get('name') or ''
         return level_1_category_name, level_2_category_name
 
+
 class SaleSupplier(models.Model):
     CHARGED = 'charged'
     UNCHARGE = 'uncharge'
@@ -146,12 +147,12 @@ class SaleSupplier(models.Model):
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
 
-    WARE_NONE  = 0
-    WARE_SH    = 1
-    WARE_GZ    = 2
-    WARE_CHOICES = ((WARE_NONE,u'未选仓'),
-                    (WARE_SH,u'上海仓'),
-                    (WARE_GZ,u'广州仓'))
+    WARE_NONE = 0
+    WARE_SH = 1
+    WARE_GZ = 2
+    WARE_CHOICES = ((WARE_NONE, u'未选仓'),
+                    (WARE_SH, u'上海仓'),
+                    (WARE_GZ, u'广州仓'))
 
     supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
@@ -164,18 +165,19 @@ class SaleSupplier(models.Model):
                                 default=MANUAL, verbose_name=u'来自平台')
 
     category = models.ForeignKey(SaleCategory, null=True,
-                                    related_name='category_suppliers', verbose_name=u'类别')
+                                 related_name='category_suppliers', verbose_name=u'类别')
 
-    level = models.IntegerField(db_index=True,default=LEVEL_NORMAL,choices=LEVEL_CHOICES,verbose_name=u'等级')
-    speciality  = models.CharField(max_length=256, blank=True, verbose_name=u'产品特长')
-    total_select_num  = models.IntegerField(default=0,verbose_name=u'总选款数量')
-    total_sale_num    = models.FloatField(default=0.0,verbose_name=u'总销售件数')
-    total_sale_amount = models.FloatField(default=0.0,verbose_name=u'总销售额')
-    total_refund_num  = models.IntegerField(default=0,verbose_name=u'总退款件数')
-    total_refund_amount = models.FloatField(default=0.0,verbose_name=u'总退款额')
-    avg_post_days     = models.FloatField(default=0,verbose_name=u'平均发货天数')
-    last_select_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'最后选款日期')
-    last_schedule_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'最后上架日期')
+    level = models.IntegerField(db_index=True, default=LEVEL_NORMAL, choices=LEVEL_CHOICES, verbose_name=u'等级')
+    speciality = models.CharField(max_length=256, blank=True, verbose_name=u'产品特长')
+    total_select_num = models.IntegerField(default=0, verbose_name=u'总选款数量')
+    total_sale_num = models.FloatField(default=0.0, verbose_name=u'总销售件数')
+    total_sale_amount = models.FloatField(default=0.0, verbose_name=u'总销售额')
+    total_refund_num = models.IntegerField(default=0, verbose_name=u'总退款件数')
+    total_refund_amount = models.FloatField(default=0.0, verbose_name=u'总退款额')
+    avg_post_days = models.FloatField(default=0, verbose_name=u'平均发货天数')
+    return_goods_limit_days = models.IntegerField(default=20, verbose_name=u'退货截止时间')
+    last_select_time = models.DateTimeField(db_index=True, null=True, blank=True, verbose_name=u'最后选款日期')
+    last_schedule_time = models.DateTimeField(db_index=True, null=True, blank=True, verbose_name=u'最后上架日期')
 
     contact = models.CharField(max_length=32, blank=False, verbose_name=u'联系人')
     phone = models.CharField(max_length=32, blank=True, verbose_name=u'电话')
@@ -201,7 +203,7 @@ class SaleSupplier(models.Model):
     supplier_type = models.IntegerField(choices=SUPPLIER_TYPE, blank=True, default=0, verbose_name=u"供应商类型")
     supplier_zone = models.IntegerField(default=0, db_index=True, verbose_name=u'供应商所属区域')
     buyer = models.ForeignKey(User, null=True, related_name='buyers', verbose_name=u'买手')
-    ware_by = models.SmallIntegerField(default=WARE_SH,choices=WARE_CHOICES,verbose_name=u'所属仓库')
+    ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'所属仓库')
 
     objects = SaleSupplierManager()
 
@@ -215,11 +217,11 @@ class SaleSupplier(models.Model):
         ]
 
     def __unicode__(self):
-        return u'<%s,%s>'%(self.id,self.supplier_name)
+        return u'<%s,%s>' % (self.id, self.supplier_name)
 
     def is_active(self):
         """ 是否有效 """
-        return self.status != self.FROZEN and self.progress not in (self.REJECTED,self.IGNORED)
+        return self.status != self.FROZEN and self.progress not in (self.REJECTED, self.IGNORED)
 
 
 class SupplierCharge(models.Model):
@@ -232,7 +234,7 @@ class SupplierCharge(models.Model):
     )
 
     supplier_id = models.IntegerField(default=0, verbose_name=u'供应商ID')
-    employee = models.ForeignKey(User,related_name='employee_suppliers', verbose_name=u'接管人')
+    employee = models.ForeignKey(User, related_name='employee_suppliers', verbose_name=u'接管人')
 
     status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES,
                               default=EFFECT, verbose_name=u'状态')
@@ -242,7 +244,7 @@ class SupplierCharge(models.Model):
 
     class Meta:
         db_table = 'supplychain_supply_charge'
-        unique_together = ( "supplier_id", "employee")
+        unique_together = ("supplier_id", "employee")
         app_label = 'supplier'
         verbose_name = u'特卖/接管商家'
         verbose_name_plural = u'特卖/接管商家列表'
@@ -252,7 +254,6 @@ class SupplierCharge(models.Model):
 
 
 class SupplierZone(models.Model):
-
     name = models.CharField(max_length=128, unique=True, verbose_name=u'区域名称')
 
     class Meta:
@@ -322,7 +323,7 @@ class SaleProduct(models.Model):
     std_sale_price = models.FloatField(default=0, verbose_name=u'吊牌价')
     product_material = models.CharField(max_length=16, blank=True, verbose_name=u'商品材质')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
-    is_changed = models.BooleanField(default=False,db_index=True, verbose_name=u'排期改动')
+    is_changed = models.BooleanField(default=False, db_index=True, verbose_name=u'排期改动')
 
     status = models.CharField(max_length=16, blank=True,
                               choices=STATUS_CHOICES, default=WAIT, verbose_name=u'状态')
@@ -338,7 +339,6 @@ class SaleProduct(models.Model):
     supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
     remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
 
-
     class Meta:
         db_table = 'supplychain_supply_product'
         unique_together = ("outer_id", "platform")
@@ -351,10 +351,12 @@ class SaleProduct(models.Model):
         ]
 
     def __unicode__(self):
-        return u'<%s,%s>'%(self.id, self.title)
+        return u'<%s,%s>' % (self.id, self.title)
+
 
 from django.db.models.signals import pre_save, post_save
 from common.modelutils import update_model_fields
+
 
 def update_saleproduct_supplier(sender, instance, **kwargs):
     """
@@ -362,37 +364,41 @@ def update_saleproduct_supplier(sender, instance, **kwargs):
     """
     if sender == SaleProduct:
         sale_supplier = instance.sale_supplier
-        if (not sale_supplier or  (sale_supplier.last_select_time and
-            instance.created < sale_supplier.last_select_time)):
+        if (not sale_supplier or (sale_supplier.last_select_time and
+                                          instance.created < sale_supplier.last_select_time)):
             return
         sale_supplier.last_select_time = instance.created
-        update_model_fields(sale_supplier,update_fields=['last_select_time'])
+        update_model_fields(sale_supplier, update_fields=['last_select_time'])
     elif sender == SaleProductManageDetail:
         sale_products = SaleProduct.objects.filter(id=instance.sale_product_id)
         if not sale_products.exists():
             return
         sale_supplier = sale_products[0].sale_supplier
-        sale_manage   = instance.schedule_manage
+        sale_manage = instance.schedule_manage
         if (not sale_supplier or (sale_supplier.last_schedule_time and
-            sale_manage.sale_time < sale_supplier.last_schedule_time.date())):
+                                          sale_manage.sale_time < sale_supplier.last_schedule_time.date())):
             return
         sale_supplier.last_schedule_time = sale_manage.sale_time
-        update_model_fields(sale_supplier,update_fields=['last_schedule_time'])
+        update_model_fields(sale_supplier, update_fields=['last_schedule_time'])
+
 
 post_save.connect(update_saleproduct_supplier, SaleProduct)
+
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
     try:
         product = SaleProduct.objects.get(id=instance.id)
-        #如果上架时间修改，则重置is_verify
+        # 如果上架时间修改，则重置is_verify
         if (product.status == SaleProduct.SCHEDULE and
-            (product.sale_time != instance.sale_time or product.status != instance.status)):
+                (product.sale_time != instance.sale_time or product.status != instance.status)):
             instance.is_changed = True
-            update_model_fields(instance,update_fields=['is_changed'])
+            update_model_fields(instance, update_fields=['is_changed'])
     except SaleProduct.DoesNotExist:
         pass
 
+
 pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
+
 
 class SaleProductManage(models.Model):
     sale_time = models.DateField(db_index=True, unique=True, verbose_name=u'排期日期')
@@ -422,6 +428,7 @@ class SaleProductManage(models.Model):
     def child_detail(self):
         return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL,
                                            sale_category__contains=u'童装')
+
     def __unicode__(self):
         return '<%s,%s>' % (self.sale_time, self.responsible_person_name)
 
@@ -477,6 +484,7 @@ class SaleProductManageDetail(models.Model):
             ('eliminate_product', u'淘汰排期商品'),
             ('reset_head_img', u'重置头图')
         ]
+
     def __unicode__(self):
         return '<%s,%s>' % (self.id, self.sale_product_id)
 
@@ -531,7 +539,8 @@ class SaleProductSku(models.Model):
 
 
 class SaleProductPicRatingMemo(models.Model):
-    schedule_detail = models.ForeignKey(SaleProductManageDetail, related_name='_pic_rating_memos', verbose_name=u'作图评分备注')
+    schedule_detail = models.ForeignKey(SaleProductManageDetail, related_name='_pic_rating_memos',
+                                        verbose_name=u'作图评分备注')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注', default='[]')
     user = models.ForeignKey(User, related_name='pic_rating_admin', verbose_name=u'评分人')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
