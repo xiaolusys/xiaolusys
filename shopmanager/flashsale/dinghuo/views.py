@@ -2065,7 +2065,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 self.update_product_location(sku.product.id, deposite_district)
 
         orderlists = self._find_orderlists(inbound_skus.keys())
-        inbound.assign_to_order_detail(orderlist_id, [o['orderlist_id'] for o in orderlists])
+        assign_dict = inbound.assign_to_order_detail(orderlist_id, [o['orderlist_id'] for o in orderlists])
         log_action(request.user.id, inbound, ADDITION, '创建')
         return Response({
             'orderlists': orderlists,
@@ -2073,7 +2073,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'id': inbound.id,
                 'details': inbounddetails_dict,
                 'memo': inbound.memo
-            }
+            },
+            'assign_dict': assign_dict
         })
 
     @classmethod
