@@ -269,7 +269,7 @@ def task_appdownloadrecord_update_fans(record):
     mama_id, mama_customer_id = None, None
     if from_mama:
         mama_id = from_mama.id
-        mama_customer_id = from_customer
+        mama_customer_id = referal_customer_id
     else:
         # if my parent is not xiaolumama, then find out indirect xiaolumama
         fan_records = XlmmFans.objects.filter(fans_cusid=referal_customer_id)
