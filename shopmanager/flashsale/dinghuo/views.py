@@ -555,6 +555,32 @@ def changearrivalquantity(request):
     return HttpResponse(result)
 
 
+@csrf_exempt
+def change_inbound_quantity(request):
+    """
+    修改入仓单正次品数量
+    1、增加后为负数不予添加
+    """
+    post = request.POST
+    inbound_id = post.get("inbound_id", "").strip()
+    order_list_id = post.get("order_list_id", "").strip()
+    order_detail_id = post.get("order_detail_id", "").strip()
+    change_num = int(post.get("num", 1))
+    inbound = InBound.objects.get(id=inbound_id)
+    order_list = OrderDetail.objects.get(id=order_detail_id)
+    order_detail = OrderDetail.objects.get(id=order_detail_id)
+    inbound_detail = inbound.details.filter(sku_id=order_detail.chichu_id).first()
+    inbound_detail.arrival_quantity -= change_num
+    inbound_detail.inferior_quantity += change_num
+    inbound_detail.save()
+    order_detail.arrival_quantity -= change_num
+    order_detail.inferior_quantity += change_num
+    order_detail.save()
+    log_action(request.user.id, order_detail, CHANGE,
+               u'审核入仓单SKU{0}次品{1}件'.format(order_detail.chichu_id, change_num))
+    return HttpResponse("{isSuccess:true}")
+
+
 class DailyDingHuoStatsView(View):
 
     def get(self, request):
@@ -2039,6 +2065,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 self.update_product_location(sku.product.id, deposite_district)
 
         orderlists = self._find_orderlists(inbound_skus.keys())
+        inbound.assign_to_order_detail(orderlist_id, [o['orderlist_id'] for o in orderlists])
         log_action(request.user.id, inbound, ADDITION, '创建')
         return Response({
             'orderlists': orderlists,
@@ -2138,6 +2165,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     sku_dict.update(skus_dict[sku_id])
                     product_dict.setdefault('skus', []).append(sku_dict)
                 orderlist_products.append(product_dict)
+            orderlist_dict['orderlist_id'] = orderlist_id
             orderlist_dict['products'] = orderlist_products
             orderlist_dict['len_of_skus'] = len_of_skus
             orderlists.append(orderlist_dict)

@@ -152,6 +152,14 @@ class OrderDetail(models.Model):
     def __unicode__(self):
         return self.product_id
 
+    @property
+    def not_arrival_quantity(self):
+        """
+            未到数量
+        :return:
+        """
+        return self.buy_quantity - self.arrival_quantity - self.inferior_quantity
+
 
 def update_productskustats_inbound_quantity(sender, instance, created, **kwargs):
     # Note: chichu_id is actually the id of related ProductSku record.
@@ -375,6 +383,28 @@ class InBound(models.Model):
     def __unicode__(self):
         return str(self.id)
 
+    def assign_to_order_detail(self, orderlist_id, orderlist_ids):
+        inbound_skus = dict([(inbound_detail.sku_id, inbound_detail.num) for inbound_detail in self.details])
+        orderlist_ids.remove(orderlist_id)
+        order_details_first = OrderDetail.objects.filter(orderlist_id=orderlist_id,
+                                                   chichu_id__in=inbound_skus.keys()).order_by('created')
+        order_details = OrderDetail.objects.filter(orderlist_id__in=list(orderlist_ids),
+                                                   chichu_id__in=inbound_skus.keys()).order_by('created')
+        order_details = list(order_details)
+        order_details = list(order_details_first) + order_details
+        assign_dict = {}
+        for order_detail in order_details:
+            if order_detail.not_arrival_quantity < inbound_skus.get(order_detail.chichu_id, 0):
+                order_detail.arrival_quantity += order_detail.not_arrival_quantity
+                inbound_skus[order_detail.chichu_id] -= order_detail.not_arrival_quantity
+                assign_dict[order_detail.id] = order_detail.not_arrival_quantity
+                # order_detail.save()
+            else:
+                order_detail.arrival_quantity += inbound_skus.get(order_detail.chichu_id, 0)
+                inbound_skus[order_detail.chichu_id] = 0
+                assign_dict[order_detail.id] = inbound_skus.get(order_detail.chichu_id, 0)
+        return assign_dict
+
     class Meta:
         db_table = 'flashsale_dinghuo_inbound'
         app_label = 'dinghuo'
@@ -416,7 +446,7 @@ class InBoundDetail(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'入仓单明细'
         verbose_name_plural = u'入仓单明细列表'
-
+        
 
 class OrderDetailInBoundDetail(models.Model):
     INVALID = 0
