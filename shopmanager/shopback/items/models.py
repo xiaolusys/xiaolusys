@@ -324,6 +324,11 @@ class Product(models.Model):
     def title(self):
         return self.name
 
+    @property
+    def property_name(self):
+        keys = self.name.split('/')
+        return len(keys) > 1 and keys[1] or keys[0]
+
     def pro_sale_supplier(self):
         """ 返回产品的选品和供应商　"""
         try:

@@ -264,7 +264,7 @@ class ModelProduct(PayBaseModel):
         return {
             'type':'color',
             'product_id':product.id,
-            'name':product.name,
+            'name':product.property_name,
             'product_img': product.head_img_url,
             'outer_id': product.outer_id,
             'std_sale_price':product.std_sale_price,
