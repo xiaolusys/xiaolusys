@@ -395,12 +395,14 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
         else:  # 有推荐代理的情况才记录
             from_customer = None
             try:
-                xlmms = XiaoluMama.objects.filter(pk=mm_linkid, status=XiaoluMama.EFFECT,
+                xlmms = XiaoluMama.objects.filter(pk=mm_linkid,
+                                                  status=XiaoluMama.EFFECT,
                                                   charge_status=XiaoluMama.CHARGED)
                 if xlmms.exists():
                     xlmm = xlmms[0]
                     from_customer = Customer.objects.get(unionid=xlmm.openid)
-            except:
+            except Customer.DoesNotExists:
+                logger.warn('appdownload customer not exist:')
                 return Response({'download_url': download_url})
             # 带上参数跳转到下载页面
             if from_customer:

@@ -78,6 +78,7 @@ class Productdetail(PayBaseModel):
     def head_images(self):
         return self.head_imgs.split()
 
+    @property
     def content_images(self):
         return self.content_imgs.split()
 
@@ -105,13 +106,9 @@ class ModelProduct(PayBaseModel):
 
     sale_time = models.DateField(null=True, blank=True, db_index=True, verbose_name=u'上架日期')
 
-    # Newly added 5 fields for XiaoluMama selection site. --zifei 03-28
-    # uni_key = models.CharField(max_length=64, blank=True, unique=True, verbose_name=u'唯一ID')
-    # std_sale_price = models.FloatField(default=0,verbose_name=u'吊牌价')
-    # agent_price    = models.FloatField(default=0,verbose_name=u'出售价')
-    # category       = models.IntegerField(default=0,verbose_name=u'内部分类')
-    # shelf_status   = models.IntegerField(choices=Product.SHELF_CHOICES,db_index=True,
-    #                                     default=Product.DOWN_SHELF,verbose_name=u'上架状态')
+    # category_id = models.IntegerField(default=0, db_index=True, verbose_name=u'分类ID')
+    # lowest_agent_price = models.IntegerField(default=5, verbose_name=u'最低出售价')
+    # lowest_std_sale_price = models.IntegerField(default=5, verbose_name=u'最低吊牌价')
 
     status = models.CharField(max_length=16, db_index=True,
                               choices=STATUS_CHOICES,
@@ -135,7 +132,9 @@ class ModelProduct(PayBaseModel):
 
     head_img_url = property(head_img)
 
+    @property
     def is_single_spec(self):
+        """ 是否单颜色 """
         if self.id <= 0:
             return True
         products = Product.objects.filter(model_id=self.id, status=Product.NORMAL)
@@ -143,23 +142,175 @@ class ModelProduct(PayBaseModel):
             return False
         return True
 
+    @property
     def is_sale_out(self):
+        """ 是否卖光 """
         all_sale_out = True
-        products = Product.objects.filter(model_id=self.id, status=Product.NORMAL)
-        for product in products:
+        for product in self.products:
             all_sale_out &= product.is_sale_out()
         return all_sale_out
 
-    def item_product(self):
-        pros = Product.objects.filter(model_id=self.id, status=pcfg.NORMAL)
-        if pros.exists():
-            pro = pros[0]
-            return pro
-        else:
-            return None
+    @property
+    def is_recommend(self):
+        """ 是否推荐 """
+        product = self.item_product
+        if not product or not product.detail:
+            return False
+        return product.detail.is_recommend
 
+    @property
+    def sale_time(self):
+        """  上架时间 """
+        product = self.item_product
+        if not product or not product.detail:
+            return False
+        return product.sale_time
+
+    @property
+    def category(self):
+        """  上架时间 """
+        product = self.item_product
+        if not product or not product.category:
+            return {}
+        return {'id': product.category_id}
+
+    @property
+    def offshelf_time(self):
+        """ 下架时间 """
+        product = self.item_product
+        if not product or not product.detail:
+            return False
+        return product.offshelf_time
+
+    @property
+    def is_saleopen(self):
+        """ 是否新售 """
+        product = self.item_product
+        if not product or not product.detail:
+            return False
+        return product.sale_open()
+
+    @property
+    def is_newsales(self):
+        """ 是否新售 """
+        product = self.item_product
+        if not product or not product.detail:
+            return False
+        return product.new_good()
+
+    @property
+    def item_product(self):
+        if not hasattr(self, '__first_product__'):
+            product = self.products.first()
+            if not product or not product.detail:
+                return None
+            self.__first_product__ = product
+        return self.__first_product__
+
+    @property
+    def lowest_agent_price(self):
+        """ 最低售价 """
+        lowest_price = 0
+        for product in self.products:
+            lowest_price = min(lowest_price, product.lowest_price())
+        return lowest_price
+
+    @property
+    def lowest_std_sale_price(self):
+        """ 最低吊牌价 """
+        product = self.item_product
+        return product and product.std_sale_price or 0
+
+    @property
+    def properties(self):
+        """ 商品属性 """
+        product = self.item_product
+        if not product:
+            return {}
+        detail = product.detail
+        return {
+            "material": detail.material,
+            "wash_instructions": detail.wash_instructions,
+            "note": detail.note,
+            "color": detail.color
+        }
+
+    @property
+    def products(self):
+        return Product.objects.filter(model_id=self.id, status=pcfg.NORMAL)
+
+    def product_simplejson(self, product):
+        sku_list = []
+        for sku in product.normal_skus:
+            sku_list.append({
+                'type':'size',
+                'sku_id':sku.id,
+                'name':sku.name,
+                'free_num':sku.free_num,
+                'is_saleout':self.is_sale_out,
+                'std_sale_price':sku.std_sale_price,
+                'agent_price':sku.agent_price,
+            })
+        return {
+            'type':'color',
+            'product_id':product.id,
+            'name':product.name,
+            'product_img': product.head_img_url,
+            'outer_id': product.outer_id,
+            'std_sale_price':product.std_sale_price,
+            'agent_price':product.agent_price,
+            'lowest_price': product.lowest_price(),
+            'sku_items': sku_list
+        }
+
+    @property
     def content_images(self):
         return self.content_imgs.split()
+
+    @property
+    def detail_content(self):
+        return {
+            'name': self.name,
+            'head_img': self.head_img_url,
+            'content_imgs': self.content_images,
+            'is_single_spec': self.is_single_spec,
+            'is_sale_out': self.is_sale_out,
+            'is_recommend':self.is_recommend,
+            'is_saleopen': self.is_saleopen,
+            'is_newsales': self.is_newsales,
+            'lowest_agent_price': self.lowest_agent_price,
+            'lowest_std_sale_price': self.lowest_std_sale_price,
+            'category': self.category,
+            'sale_time': self.sale_time,
+            'offshelf_time': self.offshelf_time,
+            'properties':self.properties,
+            'watermark_op': '',
+        }
+
+    @property
+    def sku_info(self):
+        product_list = []
+        products = self.products
+        for p in products:
+            product_list.append(self.product_simplejson(p))
+
+        return product_list
+
+    @property
+    def comparison(self):
+        return {
+            'tables': [
+                {'name': '儿童尺码对照表', 'table': []},
+                {'name': '成人尺码对照表', 'table': []}
+            ]
+        }
+
+    @property
+    def extras(self):
+        return {
+            'buy_limit': True,
+            'per_limit': 3,
+        }
 
 
 def create_Model_Product(sender, obj, **kwargs):
@@ -293,7 +444,6 @@ class ActivityEntry(PayBaseModel):
             return acts[0]
         return None
 
-
     @classmethod
     def get_effect_activitys(cls, active_time):
         """ 根据时间获取活动列表 """
@@ -304,7 +454,6 @@ class ActivityEntry(PayBaseModel):
             return acts
         return cls.objects.none()
 
-    
     @classmethod
     def get_landing_effect_activitys(cls, active_time):
         """ 根据时间获取活动列表app首页展示 """
@@ -375,7 +524,7 @@ class BrandEntry(PayBaseModel):
     def get_effect_brands(cls, btime):
         """ 根据时间获取活动列表 """
         brands = cls.objects.filter(is_active=True,
-                                  end_time__gte=btime) \
+                                    end_time__gte=btime) \
             .order_by('-order_val', '-modified')
         if brands.exists():
             return brands
@@ -391,7 +540,7 @@ class BrandProduct(PayBaseModel):
 
     product_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品id')
     product_name = models.CharField(max_length=64, blank=True, verbose_name=u'商品名称')
-    product_img  = models.CharField(max_length=256, blank=True, verbose_name=u'商品图片')
+    product_img = models.CharField(max_length=256, blank=True, verbose_name=u'商品图片')
 
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
@@ -410,7 +559,7 @@ class BrandProduct(PayBaseModel):
             self.brand_name = self.brand.brand_name
         if not self.product_name:
             self.product_name = self.prodouct.name
-            self.product_img  = self.prodouct.head_img()
+            self.product_img = self.prodouct.head_img()
         return super(BrandProduct, self).save(*args, **kwargs)
 
     @property
@@ -425,4 +574,4 @@ class BrandProduct(PayBaseModel):
 
     def product_std_sale_price(self):
         """ 商品吊牌价 """
-        return  self.prodouct.std_sale_price
+        return self.prodouct.std_sale_price

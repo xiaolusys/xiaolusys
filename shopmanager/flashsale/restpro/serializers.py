@@ -604,3 +604,9 @@ class SaleFaqerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleFaq
         fields = ('id', 'main_category', 'detail_category', 'question', 'answer')
+
+
+class ModelProductV2Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelProduct
+        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras') #

@@ -135,5 +135,6 @@ class UserIntegralLogSerializer(serializers.ModelSerializer):
 class ModelProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModelProduct
-        fields = ('id', 'name', 'head_imgs', 'content_imgs',
-                  'sale_time')  # , 'std_sale_price', 'agent_price', 'shelf_status', 'status')
+        fields = ('id', 'name', 'head_imgs', 'content_imgs', 'sale_time')
+        # , 'std_sale_price', 'agent_price', 'shelf_status', 'status')
+

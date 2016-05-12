@@ -37,7 +37,7 @@ from flashsale.pay.models_shops import CustomerShops, CuShopPros
 
 CACHE_VIEW_TIMEOUT = 30
 
-class ModelProductViewSet(viewsets.ReadOnlyModelViewSet):
+class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     """
         ##特卖商品API：
         > ### [.format]: 获取今日推荐商品列表;
@@ -45,11 +45,11 @@ class ModelProductViewSet(viewsets.ReadOnlyModelViewSet):
           - `page_size`：每页数量初始为10
     """
     queryset = ModelProduct.objects.all()
-    serializer_class = serializers.ModelProductSerializer
+    serializer_class = serializers.ModelProductV2Serializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    paginate_by = 10
+    paginate_by = 1
     page_query_param = 'page'
 
     def calc_items_cache_key(self, view_instance, view_method,
@@ -66,8 +66,6 @@ class ModelProductViewSet(viewsets.ReadOnlyModelViewSet):
             view_method.__name__,
             json.dumps(key_maps, sort_keys=True).encode('utf-8')
         ])).hexdigest()
-
-
 
 
 

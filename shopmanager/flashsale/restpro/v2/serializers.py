@@ -1,8 +1,6 @@
 # coding=utf-8
 from rest_framework import serializers
 
-from flashsale.pay.models_custom import ActivityEntry, BrandEntry ,BrandProduct
-
 from flashsale.xiaolumm.models_fortune import (
     MamaFortune,
     CarryRecord,

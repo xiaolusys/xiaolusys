@@ -137,6 +137,7 @@ from flashsale.restpro.v2 import views_trade_v2, views_product_v2
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'carts', views_trade.ShoppingCartViewSet)
 v2_router.register(r'products', views_product_v2.ProductViewSet)
+v2_router.register(r'modelproducts', views_product_v2.ModelProductV2ViewSet)
 v2_router.register(r'trades', views_trade_v2.SaleTradeViewSet)
 v2_router.register(r'orders', views_trade_v2.SaleOrderViewSet)
 v2_router.register(r'address', views.UserAddressViewSet)
@@ -151,7 +152,7 @@ v2_router.register(r'group', views_mama_v2.GroupRelationshipViewSet)
 v2_router.register(r'visitor', views_mama_v2.UniqueVisitorViewSet)
 v2_router.register(r'fans', views_mama_v2.XlmmFansViewSet)
 v2_router.register(r'dailystats', views_mama_v2.DailyStatsViewSet)
-v2_router.register(r'modelproducts', views_mama_v2.ModelProductViewSet)
+
 
 v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
 v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
