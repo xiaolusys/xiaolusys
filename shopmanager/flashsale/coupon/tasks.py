@@ -121,6 +121,8 @@ def task_release_mama_link_coupon(saletrade):
 
     tpl = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
                                         coupon_type=CouponTemplate.TYPE_MAMA_INVITE).first()
+    if not tpl:
+        return 
     UserCoupon.objects.create_mama_invite_coupon(
         buyer_id=customer.id,
         template_id=tpl.id,
