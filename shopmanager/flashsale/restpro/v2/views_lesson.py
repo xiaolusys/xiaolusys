@@ -245,6 +245,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         # 2. get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
+        usreinfo = None
         #userinfo = {"unionid":"o29cQs9QlfWpL0v0ZV_b2nyTOM-4", "nickname":"zifei", "headimgurl":"xxxx"}
         if not self.valid_openid(unionid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
@@ -261,6 +262,9 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
             from flashsale.promotion.tasks_activity import task_userinfo_update_application
             task_userinfo_update_application.delay(userinfo)
 
+        if not userinfo:
+            userinfo = self.get_auth_userinfo(request)
+        
         activity_entry = get_xiaolu_university_activity_entry()
         html = settings.M_SITE_URL
         content = request.GET
