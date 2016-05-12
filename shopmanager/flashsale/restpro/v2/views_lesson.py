@@ -159,14 +159,16 @@ class InstructorViewSet(viewsets.ModelViewSet):
     queryset = Instructor.objects.all()
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    #permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         topics = self.paginate_queryset(self.queryset)
         serializer = lesson_serializers.InstructorSerializer(topics, many=True)
-        return self.get_paginated_response(serializer.data)
-        
+        res = self.get_paginated_response(serializer.data)
+        res['Access-Control-Allow-Origin'] = '*'
+        return res
+    
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
@@ -237,7 +239,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
     authentication_classes = (authentication.SessionAuthentication,)
     renderer_classes = (renderers.JSONRenderer,)
 
-    def get(self, request, lesson_id, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         # 1. check whether event_id is valid
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
         # 2. get openid from cookie
@@ -255,17 +257,28 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
                 return redirect(redirect_url)
 
             # now we have userinfo
-            logger.warn("snsauth: %s" % userinfo)
+            # logger.warn("snsauth: %s" % userinfo)
             from flashsale.promotion.tasks_activity import task_userinfo_update_application
             task_userinfo_update_application.delay(userinfo)
 
-            from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
-            task_create_lessonattendrecord.delay(lesson_id, userinfo)
-
         activity_entry = get_xiaolu_university_activity_entry()
-        key = "signup"
-        html = "%s?lesson_id=%s&unionid=%s" % (activity_entry.get_html(key), lesson_id, unionid)
+        html = settings.M_SITE_URL
+        content = request.GET
+        key = content.get("key")
+        if key == "signup":
+            lesson_id = content.get("lesson_id")
+            if lesson_id:
+                from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
+                task_create_lessonattendrecord.delay(lesson_id, userinfo)
+                html = "%s?lesson_id=%s&unionid=%s" % (activity_entry.get_html(key), lesson_id, unionid)
+            
+        if key == "apply":
+            from flashsale.xiaolumm.tasks_lesson import task_create_instructor_application
+            task_create_instructor_application.delay(userinfo)
+            html = "%s?unionid=%s" % (activity_entry.get_html(key), unionid)
+        
         response = redirect(html)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
-
+        
         return response
+

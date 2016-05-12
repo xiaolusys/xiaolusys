@@ -60,18 +60,19 @@ class LessonTopic(BaseModel):
     
 class Instructor(BaseModel):
     STATUS_EFFECT = 1
-    STATUS_CANCELED = 2
-    STATUS_TYPES = ((STATUS_EFFECT, u'有效'), (STATUS_CANCELED, u'取消'))
+    STATUS_PENDING = 2
+    STATUS_DISABLED = 3
+    STATUS_TYPES = ((STATUS_EFFECT, u'审核合格'), (STATUS_PENDING, u'待审核'), (STATUS_DISABLED, u'取消'))
 
     name = models.CharField(max_length=32, blank=True, verbose_name=u'讲师昵称')
     title = models.CharField(max_length=64, blank=True, verbose_name=u'讲师头衔')
     image = models.CharField(max_length=256, blank=True, verbose_name=u'讲师头像')
     introduction = models.TextField(max_length=512, blank=True, verbose_name=u'讲师简介')
 
-    mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'Mama ID')
+    mama_id = models.IntegerField(default=0, unique=True, verbose_name=u'Mama ID')
     num_lesson = models.IntegerField(default=0, verbose_name=u'总课时')
     num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
-    status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
+    status = models.IntegerField(default=STATUS_PENDING, choices=STATUS_TYPES, verbose_name=u'状态')
     
     class Meta:
         db_table = 'flashsale_xlmm_instructor'
@@ -82,6 +83,14 @@ class Instructor(BaseModel):
     def __unicode__(self):
         return "%s:%s" % (self.name, self.title)
 
+    @property
+    def status_display(self):
+        return get_choice_name(Instructor.STATUS_TYPES, self.status)
+
+    @property
+    def apply_date(self):
+        return self.created.date()
+    
 
 class Lesson(BaseModel):
     STATUS_EFFECT = 1
