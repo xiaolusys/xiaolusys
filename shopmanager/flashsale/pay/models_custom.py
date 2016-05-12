@@ -291,6 +291,7 @@ class ModelProduct(PayBaseModel):
             'offshelf_time': self.offshelf_time,
             'properties':self.properties,
             'watermark_op': '',
+            'item_marks': ['包邮']
         }
 
     @property
@@ -333,8 +334,8 @@ class ModelProduct(PayBaseModel):
     @property
     def extras(self):
         return {
-            'buy_limit': True,
-            'per_limit': 3,
+            'is_product_buy_limit': True,
+            'per_limit_buy_num': 3,
         }
 
 
