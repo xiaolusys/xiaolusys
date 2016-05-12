@@ -231,6 +231,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
 
 
 from core.weixin.mixins import WeixinAuthMixin
+from shopapp.weixin.models_base import WeixinUserInfo
 
 class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
     """
@@ -240,31 +241,26 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
     renderer_classes = (renderers.JSONRenderer,)
 
     def get(self, request, *args, **kwargs):
-        # 1. check whether event_id is valid
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
-        # 2. get openid from cookie
+        
+        # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
-        userinfo = None
-        #userinfo = {"unionid":"o29cQs9QlfWpL0v0ZV_b2nyTOM-4", "nickname":"zifei", "headimgurl":"xxxx"}
-        if not self.valid_openid(unionid):
-            # 3. get openid from 'debug' or from using 'code' (if code exists)
+        userinfo = {}
+        userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
+        record = userinfo_records.first()
+        if record:
+            userinfo.update({"unionid":record.unionid, "nickname":record.nick, "headimgurl":record.thumbnail})
+        else:
+            # get openid from 'debug' or from using 'code' (if code exists)
             userinfo = self.get_auth_userinfo(request)
             unionid = userinfo.get("unionid")
 
             if not self.valid_openid(unionid):
-                # 4. if we still dont have openid, we have to do oauth
+                # if we still dont have openid, we have to do oauth
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
 
-            # now we have userinfo
-            # logger.warn("snsauth: %s" % userinfo)
-            from flashsale.promotion.tasks_activity import task_userinfo_update_application
-            task_userinfo_update_application.delay(userinfo)
-
-        if not userinfo:
-            userinfo = self.get_auth_userinfo(request)
-        
         activity_entry = get_xiaolu_university_activity_entry()
         html = settings.M_SITE_URL
         content = request.GET

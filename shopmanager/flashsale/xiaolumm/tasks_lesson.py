@@ -50,6 +50,13 @@ def task_create_instructor_application(userinfo):
     nick = userinfo.get("nickname")
     image = userinfo.get("headimgurl")
 
+    mamas = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
+    mama = mamas.first()
+    if not mama:
+        return
+
+    mama_id = mama.id
+                                     
     title = u'特聘讲师'
     instructors = Instructor.objects.filter(mama_id=mama_id)
     if instructors.count() <= 0:
