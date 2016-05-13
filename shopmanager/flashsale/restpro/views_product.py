@@ -466,31 +466,21 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
-    def promote_preview(self, request, *args, **kwargs):
-        """ 获取历史推荐商品列表 预览页面"""
+    def promote_preview_paging(self, request, *args, **kwargs):
+        """ 获取预览商品列表 预览页面"""
         previous_dt = self.get_priview_date(request)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=previous_dt)
+        queryset = self.get_custom_qs(queryset.filter(sale_time=previous_dt))
         queryset = self.order_queryset(request, queryset)
-        female_list = self.objets_from_cache(
-            self.get_female_qs(queryset),
-            value_keys=['pk', 'is_saleout']
-        )
-        child_list = self.objets_from_cache(
-            self.get_child_qs(queryset),
-            value_keys=['pk', 'is_saleout']
-        )
+        pagin_query = self.paginate_queryset(queryset)
+        if pagin_query is not None:
+            object_list = self.objets_from_cache(pagin_query)
+            serializer = self.get_serializer(object_list, many=True)
+            return self.get_paginated_response(serializer.data)
 
-        response_date = {
-            'female_list': serializers.ProductPreviewSerializer(
-                female_list,
-                many=True,
-                context={'request': request}).data,
-            'child_list': serializers.ProductPreviewSerializer(
-                child_list,
-                many=True,
-                context={'request': request}).data}
-        return Response(response_date)
+        object_list = self.objets_from_cache(queryset, value_keys=['pk', 'is_saleout'])
+        serializer = self.get_serializer(object_list, many=True)
+        return Response(serializer.data)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
@@ -766,9 +756,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = BrandProduct.objects.filter(brand_id=brand_id)
         resultset = Product.objects.none()
         for brand in queryset:
-            print "product id %d"%brand.product_id
             resultset = resultset | (Product.objects.filter(id=brand.product_id))
-        print resultset.count()
         pagin_query = self.paginate_queryset(resultset)
         if pagin_query is not None:
             object_list = self.objets_from_cache(pagin_query)
