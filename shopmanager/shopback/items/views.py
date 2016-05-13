@@ -34,7 +34,7 @@ from shopback.base.authentication import login_required_ajax
 from auth import apis, staff_requried
 from common.utils import update_model_fields, parse_date, format_date
 from core.options import log_action, ADDITION, CHANGE
-
+from django.views.generic import View
 # 2015-7-27
 from rest_framework import authentication
 from rest_framework import generics
@@ -51,6 +51,7 @@ from . import serializers
 from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseForbidden
+from shopback.items.models import ProductSkuStats
 from . import serializers
 from .renderers import *
 ###########7-27
@@ -1357,3 +1358,9 @@ def as_tuple(obj):
     elif isinstance(obj, tuple):
         return obj
     return (obj,)
+
+
+class StockRedundanciesView(View):
+    def get(self, request):
+        s = ','.join([str(p.id) for p in ProductSkuStats.redundancies()])
+        return HttpResponseRedirect('/admin/items/productskustats?id__in=%s' % s)
