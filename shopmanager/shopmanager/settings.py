@@ -202,6 +202,7 @@ INSTALLED_APPS =(
     # 'test.celery',
     'shopapp.notify',
     # 'shopapp.zhongtong'
+    'statistics',
 )
 
 AUTH_PROFILE_MODULE = 'users.user'
