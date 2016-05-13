@@ -16,6 +16,9 @@ from supplychain.supplier.models import SaleProduct
 from .constants import CHANNEL_CHOICES
 from flashsale.pay import NO_REFUND ,REFUND_CLOSED ,REFUND_REFUSE_BUYER ,REFUND_WAIT_SELLER_AGREE ,REFUND_WAIT_RETURN_GOODS ,REFUND_CONFIRM_GOODS ,REFUND_APPROVE ,REFUND_SUCCESS ,REFUND_STATUS
 
+import logging
+logger = logging.getLogger(__name__)
+
 def default_refund_no():
     return uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d')))
 
@@ -210,15 +213,15 @@ class SaleRefund(PayBaseModel):
             return '退货状态未确定'
         from shopback.warehouse.models import WareHouse
         from flashsale.pay.models import SaleOrder
-        from shopback.trades.models import MergeOrder
+        from shopback.items.models import Product
         sorder = SaleOrder.objects.get(id=self.order_id)
         try:
-            morders = MergeOrder.objects.filter(oid=sorder.oid).order_by('-id')
+            morders = Product.objects.filter(id=sorder.item_id)
             if morders.exists():
                 ware_by = morders[0].merge_trade.ware_by
                 return WareHouse.objects.get(id=ware_by).address
         except WareHouse.DoesNotExist:
-            pass
+            logger.warn('order product ware_by not found:saleorder=%s'%sorder)
         return '退货地址请咨询小鹿美美客服哦'
 
     def get_refund_customer(self):

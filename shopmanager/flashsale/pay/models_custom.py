@@ -140,7 +140,10 @@ class ModelProduct(PayBaseModel):
 
     @property
     def head_images(self):
-        return self.head_imgs.split()
+        head_imgs = []
+        for product in self.products:
+            head_imgs.append(product.PIC_PATH)
+        return head_imgs
 
     @property
     def is_single_spec(self):
@@ -222,7 +225,10 @@ class ModelProduct(PayBaseModel):
         """ 最低售价 """
         lowest_price = 0
         for product in self.products:
-            lowest_price = min(lowest_price, product.lowest_price())
+            if lowest_price == 0:
+                lowest_price = product.lowest_price()
+            else:
+                lowest_price = min(lowest_price, product.lowest_price())
         return lowest_price
 
     @property
