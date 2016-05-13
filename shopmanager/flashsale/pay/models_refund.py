@@ -218,7 +218,7 @@ class SaleRefund(PayBaseModel):
         try:
             morders = Product.objects.filter(id=sorder.item_id)
             if morders.exists():
-                ware_by = morders[0].merge_trade.ware_by
+                ware_by = morders[0].ware_by
                 return WareHouse.objects.get(id=ware_by).address
         except WareHouse.DoesNotExist:
             logger.warn('order product ware_by not found:saleorder=%s'%sorder)
