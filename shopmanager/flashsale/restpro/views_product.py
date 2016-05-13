@@ -464,14 +464,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(object_list, many=True)
         return Response(serializer.data)
 
-    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    @cache_response(timeout=10, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_preview_paging(self, request, *args, **kwargs):
         """ 获取预览商品列表 预览页面"""
         previous_dt = self.get_priview_date(request)
         queryset = self.filter_queryset(self.get_queryset())
         queryset = self.get_custom_qs(queryset.filter(sale_time=previous_dt))
-        queryset = self.order_queryset(request, queryset)
+        queryset = self.order_queryset(request, queryset ,order_by=self.INDEX_ORDER_BY)
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
             object_list = self.objets_from_cache(pagin_query)

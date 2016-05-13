@@ -297,7 +297,7 @@ class ModelProduct(PayBaseModel):
             'offshelf_time': self.offshelf_time,
             'properties':self.properties,
             'watermark_op': '',
-            'item_marks': ['包邮']
+            'item_marks': ['包邮'],
         }
 
     @property
@@ -310,14 +310,23 @@ class ModelProduct(PayBaseModel):
         return product_list
 
     def format_contrast2table(self, origin_contrast):
-        result_data = {}
+        result_data = []
         constants_maps = ContrastContent.contrast_maps()
+        constant_set  = set()
+        for k1, v1 in origin_contrast.items():
+            constant_set.update(v1)
+
+        constant_keys = list(constant_set)
+        result_data.append([u'尺码'])
+        for k in constant_keys:
+            result_data[0].append(constants_maps.get(k, k))
+
         for k1, v1 in origin_contrast.items():
             temp_list = []
-            for k2, v2 in v1.items():
-                cname = constants_maps.get(k2, k2)
-                temp_list.append([cname,v2])
-            result_data[k1] = temp_list
+            for key in constant_keys:
+                val = v1.get(key, '-')
+                temp_list.append(val)
+            result_data.append([k1] + temp_list)
         return result_data
 
     @property
@@ -330,11 +339,19 @@ class ModelProduct(PayBaseModel):
                 uni_key = ''.join(sorted(contrast_origin.keys()))
                 if uni_key not in uni_set:
                     uni_set.add(uni_key)
-                    p_tables.append(self.format_contrast2table(contrast_origin))
+                    p_tables.append({'table':self.format_contrast2table(contrast_origin)})
         except Exception, exc:
             logger.error(exc.message,exc_info=True)
         return {
-            'tables': p_tables
+            'tables': p_tables,
+            'metrics': {
+                'table':[
+                    [u'厚度指数', u'偏薄', u'适中',u'偏厚',u'加厚' ],
+                    [u'弹性指数', u'无弹性', u'微弹性',u'适中', u'强弹性'],
+                    [u'触感指数', u'偏硬', u'柔软', u'适中', u'超柔'],
+                ],
+                'choices':[2,3,2]
+            },
         }
 
     @property
