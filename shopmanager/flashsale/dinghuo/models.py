@@ -384,6 +384,7 @@ class InBound(models.Model):
         return str(self.id)
 
     def assign_to_order_detail(self, orderlist_id, orderlist_ids):
+        return {}
         orderlist_ids = [x for x in orderlist_ids if x != orderlist_id]
         inbound_skus = dict([(inbound_detail.sku_id, inbound_detail.arrival_quantity) for inbound_detail in self.details.all()])
         order_details_first = OrderDetail.objects.filter(orderlist_id=orderlist_id,

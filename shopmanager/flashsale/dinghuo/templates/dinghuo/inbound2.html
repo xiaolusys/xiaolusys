@@ -266,7 +266,6 @@
                                     <input class="district form-control" style="width:100px" value="{{sku.district}}">
                                 </td>
                                 <td>
-                                    <i class="glyphicon glyphicon-copy" data-clipboard-text="{{product.outer_id}} {{product.name}} {{sku.properties_name}}"></i>
                                     <i class="glyphicon glyphicon-remove"></i>
                                 </td>
                             </tr>
@@ -687,30 +686,34 @@
              });
          }
 
-         function buildInboundOrderLists(orderlists, inbound){
-             var i, j, k;
+         function buildInboundOrderLists(orderlists, inboundSkusDict){
+             var i;
              var newOrderLists = [];
 
              _.each(orderlists, function(orderlist){
                  var newOrderList = _.extend(_.clone(orderlist), {products: []});
+                 i = 0;
                  _.each(orderlist.products, function(product){
                      var newProduct = _.extend(_.clone(product), {skus: []});
                      _.each(product.skus, function(sku){
-                         if(inbound.details[sku.id]){
+                         if(inboundSkusDict[sku.id]){
                              newProduct.skus.push(sku);
+                             i += 1;
                          }
                      });
                      if(newProduct.skus.length > 0)
                          newOrderList.products.push(newProduct);
                  });
-                 if(newOrderList.products.length > 0)
+                 if(newOrderList.products.length > 0){
+                     newOrderList.len_of_skus = i;
                      newOrderLists.push(newOrderList);
+                 }
              });
              return newOrderLists;
          }
 
 
-         function setupForm3(orderlists, inbound){
+         function setupForm3(orderlists){
              $('#orderlists').html(template('orderlists-tpl', {orderlists: orderlists}));
              $('.portfolio-box img', '#form-3').popover({
                  html: true,
@@ -739,34 +742,65 @@
              });
              $('tr.candidate', '#form-3').removeClass('candidate');
 
-             _.each(_.keys(inbound.details), function(skuId){
-                 var inboundSku = inbound.details[skuId];
-                 var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+         }
+
+         function fillForm3(orderdetailsDict, inboundSkusDict){
+             var $tr, n;
+             var orderlistIds = [];
+             var orderlistTpl = _.template('[data-orderlist-id="<%= orderlistId %>"]');
+             var orderdetailTpl = _.template('[data-orderdetail-id="<%= orderdetailId %>"]');
+             _.each(_.keys(orderdetailsDict), function(orderdetailId){
+                 $tr = $('tr.sku' + orderdetailTpl({orderdetailId: orderdetailId}));
+                 n = parseInt(orderdetailsDict[orderdetailId]) || 0;
+                 if(n > 0)
+                     $tr.find('.arrival-quantity').val(n);
+                 orderlistIds.push($tr.attr('data-orderlist-id'));
+             });
+
+             _.each(orderlistIds, function(orderlistId){
+                 $('tr.intro' + orderlistTpl({orderlistId: orderlistId})).hide();
+                 $('tr.sku' + orderlistTpl({orderlistId: orderlistId})).show();
+             });
+
+             var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+             function getQuantity(skuId){
+                 var n = 0;
+                 var prefix = tpl({skuId: skuId});
+                 $(prefix + ' .arrival-quantity', '#form-3').each(function(){
+                     n += parseInt($(this).val()) || 0;
+                 });
+                 return n;
+             }
+
+             _.each(_.keys(inboundSkusDict), function(skuId){
+                 var inboundSku = inboundSkusDict[skuId];
+
                  var $row = $(tpl({skuId: skuId}), '#form-3');
                  $row.addClass('candidate');
                  $row.find('.arrival-quantity').after(template('package-sku-quantity-tpl',
-                                                               {class_name: 'package-arrival-quantity', n: inboundSku.arrival_quantity, sku_id: skuId}));
-                 $row.find('.inferior-quantity').after(template('package-sku-quantity-tpl',
-                                                                {class_name: 'package-inferior-quantity', n: inboundSku.inferior_quantity, sku_id: skuId}));
+                                                               {class_name: 'package-arrival-quantity', n: inboundSku.arrival_quantity - getQuantity(skuId), sku_id: skuId}));
                  $row.find('.arrival-quantity').change(function(){
-                     var n = 0;
                      var prefix = tpl({skuId: skuId});
-                     $(prefix + ' .arrival-quantity', '#form-3').each(function(){
-                         n += parseInt($(this).val()) || 0;
-                     });
-                     $(prefix + ' .package-arrival-quantity', '#form-3').html(inboundSku.arrival_quantity - n);
-                 });
-
-                 $row.find('.inferior-quantity').change(function(){
-                     var n = 0;
-                     var prefix = tpl({skuId: skuId});
-                     $(prefix + ' .inferior-quantity', '#form-3').each(function(){
-                         n += parseInt($(this).val()) || 0;
-                     });
-                     $(prefix + ' .package-inferior-quantity', '#form-3').html(inboundSku.inferior_quantity - n);
+                     $(prefix + ' .package-arrival-quantity', '#form-3').html(inboundSku.arrival_quantity - getQuantity(skuId));
                  });
              });
          }
+
+         function getOrderdetailsDict(){
+             var orderdetailsDict = {};
+             $('input.arrival-quantity', '#form-3').each(function(){
+                 var $this = $(this);
+                 var orderdetailId = $this.closest('tr').attr('data-orderdetail-id');
+                 var n = parseInt($this.val()) || 0;
+                 if(n > 0){
+                     orderdetailsDict[orderdetailId] = n;
+                 }
+             });
+             return orderdetailsDict;
+         }
+
+
+
 
 
          $(function(){
@@ -829,19 +863,25 @@
 
 
                              $('#panel-2').after(template('panel-3-tpl', {}));
-                             setupForm3(buildInboundOrderLists(result.orderlists, result.inbound), result.inbound);
+                             setupForm3(buildInboundOrderLists(result.orderlists, result.inbound.details));
+                             fillForm3({}, result.inbound.details);
 
                              $('#orderlists-toggle').click(function(){
+                                 var orderdetailsDict;
                                  var $this = $(this);
                                  if($this.hasClass('matching')){
                                      $this.removeClass('matching').addClass('all');
                                      $this.html('收起');
-                                     setupForm3(orderlists, inbound);
+                                     orderdetailsDict = getOrderdetailsDict();
+                                     setupForm3(orderlists);
+                                     fillForm3(orderdetailsDict, inbound.details);
                                  }
                                  else{
                                      $this.removeClass('all').addClass('matching');
                                      $this.html('展开');
-                                     setupForm3(buildInboundOrderLists(orderlists, inbound), inbound);
+                                     orderdetailsDict = getOrderdetailsDict();
+                                     setupForm3(buildInboundOrderLists(orderlists, inbound.details));
+                                     fillForm3(orderdetailsDict, inbound.details);
                                  }
                              });
                          }
