@@ -1394,6 +1394,7 @@ class PackageOrder(models.Model):
             sku_item.save()
             sale_order = sku_item.sale_order
             sale_order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+            sale_order.consign_time = datetime.datetime.now()
             sale_order.save()
             psku = ProductSku.objects.get(id=sku_item.sku_id)
             psku.update_quantity(sku_item.num, dec_update=True)
