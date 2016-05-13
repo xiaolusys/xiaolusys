@@ -1209,7 +1209,7 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = (
-    'sku_id', 'skucode', 'product_title', 'properties_name_alias', 'now_quantity', 'old_quantity', 'post_num',
+    'sku_id', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias', 'now_quantity', 'old_quantity', 'post_num',
     'assign_num', 'inferior_num', 'sold_num', '_wait_post_num', '_wait_assign_num', 'realtime_lock_num_display',
     'district_link', 'created')
     search_fields = ['=sku_id', '=product_id']
@@ -1232,6 +1232,16 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     PRODUCT_LINK = (
         '<a href="%(product_url)s" target="_blank">'
         '%(product_title)s</a>')
+
+    def product_id_link(self, obj):
+        return ('<a href="%(product_url)s" target="_blank">'
+        '%(product_id)s</a>') % {
+            'product_url': '/admin/items/product/?id=%d' % obj.product_sku.product.id,
+            'product_id': obj.product_sku.product.id
+        }
+
+    product_id_link.allow_tags = True
+    product_id_link.short_description = u'商品ID'
 
     def product_title(self, obj):
         return self.PRODUCT_LINK % {

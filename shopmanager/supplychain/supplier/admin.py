@@ -181,7 +181,7 @@ class SaleSupplierAdmin(ApproxAdmin):
                     'fields': (('level', 'last_select_time', 'last_schedule_time')
                                , ('total_select_num', 'total_sale_num', 'total_sale_amount')
                                , ('total_refund_num', 'total_refund_amount', 'avg_post_days')
-                               , ('speciality',)
+                               , ('return_goods_limit_days', 'speciality')
                                )
                  }))
 

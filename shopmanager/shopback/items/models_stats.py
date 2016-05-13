@@ -111,7 +111,7 @@ class ProductSkuStats(models.Model):
         for sku in has_nouse_stock_skus:
             pro = ProductSku.objects.get(id=sku).product
             if datetime.datetime(pro.sale_time.year, pro.sale_time.month,
-                                 pro.sale_time.day) < datetime.datetime.now() < pro.offshelf_time:
+                                 pro.sale_time.day)     < datetime.datetime.now() < pro.offshelf_time:
                 pass
             else:
                 need_return_skus.append(sku)
