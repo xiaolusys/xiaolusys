@@ -150,6 +150,7 @@ class PackageScanCheckView(APIView):
         package_id = content.get('package_no', '').strip()
         if not package_id:
             return Response(u'单号不能为空')
+        package_id = self.parsePackageNo(package_id)
         try:
             package_order = PackageOrder.objects.get(
                 out_sid=package_id,
