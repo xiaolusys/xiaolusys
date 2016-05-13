@@ -110,10 +110,8 @@ class ProductSkuStats(models.Model):
         need_return_skus = []
         for sku in has_nouse_stock_skus:
             pro = ProductSku.objects.get(id=sku).product
-            if datetime.datetime(pro.sale_time.year, pro.sale_time.month,
-                                 pro.sale_time.day)     < datetime.datetime.now() < pro.offshelf_time:
-                pass
-            else:
+            if pro.sale_time and pro.offshelf_time and not datetime.datetime(pro.sale_time.year, pro.sale_time.month,
+                                 pro.sale_time.day) < datetime.datetime.now() < pro.offshelf_time:
                 need_return_skus.append(sku)
         return ProductSkuStats.objects.filter(sku_id__in=need_return_skus)
 
