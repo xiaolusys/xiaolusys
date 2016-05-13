@@ -157,7 +157,6 @@ function checkTime(i) {
 function Set_posters(suffix) {
     //获取海报
     var posterUrl = GLConfig.baseApiUrl + suffix;
-
     var posterCallBack = function (data) {
         if (!isNone(data.wem_posters)) {
             //设置女装海报链接及图片
@@ -402,49 +401,67 @@ function Create_item_dom(p_obj, close_model) {
     return hereDoc(Item_dom).template(p_obj);
 }
 
-function Set_promotes_product(suffix) {
-    //获取今日推荐商品
-    var promoteUrl = GLConfig.baseApiUrl + suffix;
-    var promoteCallBack = function (data) {
-        console.log("data:",data);
-        $("#loading").hide();
-        if (!isNone(data.female_list)) {
-
-            $('.glist .nvzhuang').empty();
-            //设置女装推荐链接及图片
-            $.each(data.female_list,
+function Set_promotes_product() {
+    //预览商品列表
+    var pageNum  = 1;
+    var nextPage = true;
+    var loading  = false;
+    function get_products(suffix){
+        if (nextPage == null){
+           drawToast("没有更多商品了");
+           return;
+        };
+        if (loading == true){
+            return;
+        }
+        loading = true;
+        var promoteUrl = GLConfig.baseApiUrl + suffix + '&page='+pageNum+'&page_size=10';
+        var promoteCallBack = function (data) {
+            $("#loading").hide();
+            loading = false;
+            // 这里判断　next　的页数　如果大于　pageNum　一样才去加载
+            if (isNone(data.results)) {
+                nextPage = null;
+                return;
+            }
+            pageNum += 1;
+            nextPage = data.next;
+            $('.child_zone').hide();
+            $.each(data.results,
                 function (index, p_obj) {
-                    var item_dom = Create_item_dom(p_obj);
-                    item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id,p_obj.sale_charger);
-                    $('.glist .nvzhuang').append(item_dom);
+                    if (p_obj.category.parent_cid == 8 || p_obj.category.cid == 8) {
+                        var item_dom = Create_item_dom(p_obj);
+                        item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id,p_obj.sale_charger);
+                        $('.glist .nvzhuang').append(item_dom);
+                    }
+                    else {
+                        // 童装dom　show
+                        $('.child_zone').show();
+                        var child_item_dom = Create_item_dom(p_obj);
+                        child_item_dom = preview_verify(p_obj.is_verify, p_obj.id, child_item_dom, p_obj.model_id,p_obj.sale_charger);
+                        $('.glist .chaotong').append(child_item_dom);
+                    }
                 }
             );
-        }
-
-        if (!isNone(data.child_list)) {
-            $('.glist .chaotong').empty();
-            //设置童装推荐链接及图片
-            $.each(data.child_list,
-                function (index, p_obj) {
-                    var item_dom = Create_item_dom(p_obj);
-                    item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id,p_obj.sale_charger);
-                    $('.glist .chaotong').append(item_dom);
-                }
-            );
-        }
-    };
-    // 请求推荐数据
-    $.ajax({
-        type: 'get',
-        url: promoteUrl,
-        data: {},
-        dataType: 'json',
-        beforeSend: function () {
-            $("#loading").show();
-        },
-        success: promoteCallBack
-    });
-
+        };
+        // 请求推荐数据
+        $.ajax({
+            type:'get',
+            url:promoteUrl,
+            data:{},
+            dataType:'json',
+            beforeSend: function () {
+                $("#loading").show();
+            },
+            success:promoteCallBack,
+            error: function (data) {
+                drawToast("数据没有加载成功！");
+                $("#loading").hide();
+                loading = false;
+            }
+        });
+    }
+    return get_products;
 }
 
 function Set_category_product(suffix) {

@@ -31,7 +31,6 @@ class UserCouponTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         results = data['results']
-        self.assertEqual(len(results), 2)
         for user_coupon in results:
             self.assertEqual(user_coupon['status'], UserCoupon.UNUSED)
 
