@@ -4,6 +4,7 @@ import datetime
 
 from django.db import models
 from django.db.models.signals import pre_save, post_save
+from django.db.models import F
 
 logger = logging.getLogger('django.request')
 
@@ -69,11 +70,11 @@ class ProductSkuStats(models.Model):
             sale_state = ProductSkuSaleStats.objects.get(sku_id=self.id, status=ProductSkuSaleStats.ST_EFFECT)
         except ProductSkuSaleStats.DoesNotExist:
             sale_state = None
-        return '%s(c:%s|w:%s|i:%s|s%s)'%(self.realtime_lock_num,
-                                      self.shoppingcart_num,
-                                      self.waitingpay_num,
-                                      sale_state and sale_state.init_waitassign_num or 0,
-                                      sale_state and sale_state.num or 0)
+        return '%s(c:%s|w:%s|i:%s|s%s)' % (self.realtime_lock_num,
+                                           self.shoppingcart_num,
+                                           self.waitingpay_num,
+                                           sale_state and sale_state.init_waitassign_num or 0,
+                                           sale_state and sale_state.num or 0)
 
     realtime_lock_num_display.short_description = u"实时锁定库存"
 
@@ -90,6 +91,32 @@ class ProductSkuStats(models.Model):
             self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
         return self._product_sku_
 
+    @staticmethod
+    def redundancies():
+        """
+            实时库存 - 待发数 >0
+            不在卖
+            供应商退货限定时间内进货
+        :return:
+        """
+        from flashsale.dinghuo.models import OrderDetail
+        from shopback.items.models import ProductSku
+        order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
+            arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
+            'chichu_id').distinct()]
+        has_nouse_stock_skus = [stat['sku_id'] for stat in ProductSkuStats.objects.filter(sku_id__in=order_skus,
+            sold_num__lt=F('history_quantity') + F('inbound_quantity') + F('return_quantity')\
+            - F('rg_quantity')).values('sku_id')]
+        need_return_skus = []
+        for sku in has_nouse_stock_skus:
+            pro = ProductSku.objects.get(id=sku).product
+            if datetime.datetime(pro.sale_time.year, pro.sale_time.month,
+                                 pro.sale_time.day) < datetime.datetime.now() < pro.offshelf_time:
+                pass
+            else:
+                need_return_skus.append(sku)
+        return ProductSkuStats.objects.filter(sku_id__in=need_return_skus)
+
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     if instance.realtime_quantity > instance.assign_num:
@@ -99,6 +126,7 @@ def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
         logger.error('assign_num error: sku assign_num bigger than quantity:' + str(instance.id))
         from shopback.items.tasks import task_relase_package_sku_item
         task_relase_package_sku_item.delay(instance)
+
 
 post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats,
                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
