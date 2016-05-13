@@ -384,8 +384,8 @@ class InBound(models.Model):
         return str(self.id)
 
     def assign_to_order_detail(self, orderlist_id, orderlist_ids):
-        inbound_skus = dict([(inbound_detail.sku_id, inbound_detail.num) for inbound_detail in self.details])
-        orderlist_ids.remove(orderlist_id)
+        orderlist_ids = [x for x in orderlist_ids if x != orderlist_id]
+        inbound_skus = dict([(inbound_detail.sku_id, inbound_detail.arrival_quantity) for inbound_detail in self.details.all()])
         order_details_first = OrderDetail.objects.filter(orderlist_id=orderlist_id,
                                                    chichu_id__in=inbound_skus.keys()).order_by('created')
         order_details = OrderDetail.objects.filter(orderlist_id__in=list(orderlist_ids),
@@ -446,7 +446,7 @@ class InBoundDetail(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'入仓单明细'
         verbose_name_plural = u'入仓单明细列表'
-        
+
 
 class OrderDetailInBoundDetail(models.Model):
     INVALID = 0
