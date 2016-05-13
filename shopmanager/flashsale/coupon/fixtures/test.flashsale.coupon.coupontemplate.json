@@ -36,7 +36,7 @@
     },
     "has_released_count": 1,
     "is_random_val": false,
-    "use_deadline": "2016-05-13T00:00:00",
+    "use_deadline": "2030-05-13T00:00:00",
     "has_used_count": 0
   },
   "model": "coupon.coupontemplate",
@@ -89,7 +89,7 @@
   "fields": {
     "status": 1,
     "release_end_time": "2020-05-20T00:00:00",
-    "release_start_time": "2016-05-03T00:00:00",
+    "release_start_time": "2016-04-03T00:00:00",
     "description": "\u8ba2\u5355\u5206\u4eab description",
     "coupon_type": 2,
     "title": "test \u8ba2\u5355\u5206\u4eab",
@@ -122,7 +122,7 @@
     },
     "has_released_count": 2,
     "is_random_val": true,
-    "use_deadline": "2016-05-13T00:00:00",
+    "use_deadline": "2030-05-13T00:00:00",
     "has_used_count": 0
   },
   "model": "coupon.coupontemplate",
@@ -165,7 +165,7 @@
     },
     "has_released_count": 1,
     "is_random_val": false,
-    "use_deadline": "2016-05-13T00:00:00",
+    "use_deadline": "2030-05-13T00:00:00",
     "has_used_count": 0
   },
   "model": "coupon.coupontemplate",
@@ -208,7 +208,7 @@
     },
     "has_released_count": 1,
     "is_random_val": false,
-    "use_deadline": "2016-05-13T00:00:00",
+    "use_deadline": "2030-05-13T00:00:00",
     "has_used_count": 0
   },
   "model": "coupon.coupontemplate",
@@ -251,7 +251,7 @@
     },
     "has_released_count": 0,
     "is_random_val": true,
-    "use_deadline": "2016-05-31T20:16:16",
+    "use_deadline": "2030-05-31T20:16:16",
     "has_used_count": 0
   },
   "model": "coupon.coupontemplate",
