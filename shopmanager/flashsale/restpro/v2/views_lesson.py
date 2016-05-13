@@ -17,6 +17,7 @@ from rest_framework.views import APIView
 
 from flashsale.pay.models import Customer
 from flashsale.restpro import permissions as perms
+from flashsale.xiaolumm.models import XiaoluMama
 from . import lesson_serializers
 
 import logging
@@ -163,9 +164,25 @@ class InstructorViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
-        topics = self.paginate_queryset(self.queryset)
-        serializer = lesson_serializers.InstructorSerializer(topics, many=True)
+        records = self.paginate_queryset(self.queryset.order_by('status'))
+        serializer = lesson_serializers.InstructorSerializer(records, many=True)
         res = self.get_paginated_response(serializer.data)
+        res['Access-Control-Allow-Origin'] = '*'
+        return res
+
+    @list_route(methods=['get'])
+    def get_instructor(self, request, *args, **kwargs):
+        content = request.GET
+        unionid = content.get('unionid')
+        mamas = XiaoluMama.objects.filter(openid=unionid)
+        mama = mamas.first()
+        if mama:
+            me = self.queryset.filter(mama_id=mama.id).first()
+            serializer = lesson_serializers.InstructorSerializer(me)
+            res = Response(serializer.data)
+        else:
+            res = Response()
+
         res['Access-Control-Allow-Origin'] = '*'
         return res
     
@@ -219,6 +236,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
         res = self.get_paginated_response(serializer.data)
         #res['Access-Control-Allow-Origin'] = '*'
         return res
+
         
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
