@@ -1267,7 +1267,7 @@ class PackageOrderAdmin(admin.ModelAdmin):
                     'consign_time', 'weight', 'redo_sign', 'merge_trade_id')
 
     search_fields = ['pid', 'id', 'out_sid', 'receiver_name', 'receiver_mobile']
-    list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign')
+    list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign', 'is_qrcode', ('weight_time', DateFieldListFilter),)
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50

@@ -6,7 +6,7 @@ from shopback.items.views import (ProductListView,
                                   ProductItemView,
                                   ProductModifyView,
                                   ProductUpdateView,
-    # ProductSkuCreateView,
+                                  StockRedundanciesView,
                                   ProductSkuInstanceView,
                                   ProductSearchView,
                                   ProductDistrictView,
@@ -154,5 +154,6 @@ urlpatterns = patterns('shopback.items.views',
                        url(r'^batch_settime/$', BatchSetTime.as_view(), name='batch_settime'),
                        url(r'^product_schedule/$', ProductScheduleView.as_view(), name='product_schedule'),
                        url(r'^product_schedule/(?P<p>\d+)/$', ProductScheduleView.as_view(), name='product_schedule'),
-                       url(r'^product_schedule_api/$', ProductScheduleAPIView.as_view(), name='product_schedule_api')
+                       url(r'^product_schedule_api/$', ProductScheduleAPIView.as_view(), name='product_schedule_api'),
+                       url(r'redundancies', StockRedundanciesView.as_view(), name='redundancies_view')
                        )
