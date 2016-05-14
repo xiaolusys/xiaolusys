@@ -446,12 +446,19 @@ class UserCoupon(BaseModel):
         self.status = self.UNUSED
         self.save()
 
-
     def get_pool_status(self):
         """ 临时使用(ios接口兼容使用) """
         if self.status == UserCoupon.UNUSED:
             return 1
         return 2
+
+    def release_usercoupon(self):
+        """ 优惠券状态从使用状态改为未使用 """
+        if self.status == UserCoupon.USED:
+            self.status = UserCoupon.UNUSED
+            self.save()
+            return True
+        return False
 
 
 class TmpShareCoupon(BaseModel):

@@ -359,10 +359,12 @@ class SaleTrade(BaseModel):
 
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
-        UserCoupon.objects.filter(
-            sale_trade=self.id,
-            status=UserCoupon.USED
-        ).update(status=UserCoupon.UNUSED)
+        from flashsale.coupon.models import UserCoupon
+        coupon_id = self.extras_info.get("coupon") or None
+        usercoupon = UserCoupon.objects.filter(id=coupon_id).first()
+        if usercoupon is None:
+            return 
+        usercoupon.release_usercoupon()  # 修改该优惠券的状态到未使用
 
     @property
     def unsign_orders(self):
