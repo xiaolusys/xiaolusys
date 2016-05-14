@@ -13,6 +13,8 @@ from core.options import log_action, CHANGE
 
 from django.db.models.signals import post_save
 
+import logging
+logger = logging.getLogger(__name__)
 
 class Register(PayBaseModel):
     MAX_VALID_COUNT = 6
@@ -307,11 +309,14 @@ class UserBudget(PayBaseModel):
 
     def charge_confirm(self, strade_id):
         """ 确认支付 """
-        blog = BudgetLog.objects.get(customer_id=self.user.id,
+
+        blogs = BudgetLog.objects.filter(customer_id=self.user.id,
                                      referal_id=strade_id,
                                      budget_log_type=BudgetLog.BG_CONSUM)
-
-        return blog.push_pending_to_confirm()
+        if not blogs.exists():
+            logger.error('budget payment log not found: customer=%s, trade_id=%s'%(self.user.id,strade_id))
+            return False
+        return blogs[0].push_pending_to_confirm()
 
     def charge_cancel(self, strade_id):
         """ 支付取消 """
