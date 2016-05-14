@@ -128,22 +128,18 @@
         <div id="tips"></div>
         <form id="form-1" class="container">
             <div class="row">
-                <div class="col-md-6 form-group">
+                <div class="col-md-5 form-group">
                     <label class="control-label">快递单号</label>
                     <input class="form-control typeahead" id="express-no"
                            name="express_no" placeholder="输入..." value="{{ express_no|default:'' }}">
                 </div>
-                <div class="col-md-6 form-group">
+                <div class="col-md-5 form-group">
                     <label class="control-label">订货单号</label>
                     <input class="form-control typeahead" id="orderlist-id"
                            name="orderlist_id" placeholder="输入..." value="{{ orderlist_id|default:'' }}">
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <a class="btn btn-default btn-block reset" href="/sale/dinghuo/inbound">重置</a>
-                </div>
-                <div class="col-md-6">
+                <div class="col-md-2 form-group">
+                    <label class="control-label">&nbsp;</label>
                     <button class="btn btn-primary btn-block submit">确定</button>
                 </div>
             </div>
@@ -203,8 +199,8 @@
         <script id="inbound-tpl" type="text/html">
             <div class="panel panel-default" id="panel-2">
                 <div class="panel-heading">入仓草稿</div>
-                <div class="panel-body">
-                    <form id="form-2">
+                <form id="form-2">
+                    <div class="panel-body">
                         <table class="table table-striped" style="width:85%;">
                             <tr>
                                 <th>商品名</th>
@@ -287,17 +283,17 @@
                                 <td></td>
                             </tr>
                         </table>
-                        <div class="container" id="action">
-                            <div class="row">
-                                <div class="col-md-6"></div>
-                                <div class="col-md-3 btn-group">
-                                    <a class="btn btn-danger" id="set-invalid">作废</a>
-                                    <button class="btn btn-success" id="create-inbound">创建</button>
-                                </div>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="row">
+                            <div class="col-md-6"></div>
+                            <div class="col-md-3 btn-group">
+                                <a class="btn btn-danger" id="set-invalid">作废</a>
+                                <button class="btn btn-success" id="create-inbound">创建</button>
                             </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </script>
 
@@ -307,20 +303,20 @@
                     订货单列表
                     <button class="btn btn-primary matching" id="orderlists-toggle">展开</button>
                 </div>
-                <div class="panel-body">
-                    <form id="form-3">
+                <form id="form-3">
+                    <div class="panel-body">
                         <div id="orderlists"></div>
-                        <div class="container">
-                            <div class="row">
-                                <div class="col-md-5"></div>
-                                <div class="col-md-4 btn-group">
-                                    <button class="btn btn-primary" id="allocate">确认分配</button>
-                                    <a class="btn btn-success" href="/sale/dinghuo/inbound">创建新入仓单</a>
-                                </div>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="row">
+                            <div class="col-md-5"></div>
+                            <div class="col-md-4 btn-group">
+                                <button class="btn btn-primary" id="allocate">确认分配</button>
                             </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
+            </div>
         </script>
 
         <script id="orderlists-tpl" type="text/html">
@@ -686,7 +682,7 @@
              });
          }
 
-         function buildInboundOrderLists(orderlists, inboundSkusDict){
+         function buildInboundOrderlists(orderlists, inboundSkusDict){
              var i;
              var newOrderLists = [];
 
@@ -744,19 +740,20 @@
 
          }
 
-         function fillForm3(orderdetailsDict, inboundSkusDict){
+         function fillForm3(orderdetailsDict, inboundSkusDict, unfoldedOrderlistIds){
              var $tr, n;
              var orderlistIds = [];
              var orderlistTpl = _.template('[data-orderlist-id="<%= orderlistId %>"]');
              var orderdetailTpl = _.template('[data-orderdetail-id="<%= orderdetailId %>"]');
              _.each(_.keys(orderdetailsDict), function(orderdetailId){
-                 $tr = $('tr.sku' + orderdetailTpl({orderdetailId: orderdetailId}));
+                 $tr = $('tr.sku' + orderdetailTpl({orderdetailId: orderdetailId}), '#form-3');
                  n = parseInt(orderdetailsDict[orderdetailId]) || 0;
                  if(n > 0)
                      $tr.find('.arrival-quantity').val(n);
                  orderlistIds.push($tr.attr('data-orderlist-id'));
              });
 
+             orderlistIds = _.union(_.uniq(orderlistIds), unfoldedOrderlistIds);
              _.each(orderlistIds, function(orderlistId){
                  $('tr.intro' + orderlistTpl({orderlistId: orderlistId})).hide();
                  $('tr.sku' + orderlistTpl({orderlistId: orderlistId})).show();
@@ -799,8 +796,13 @@
              return orderdetailsDict;
          }
 
-
-
+         function getUnfoldedOrderlistIds(){
+             var orderlistIds = [];
+             $('tr.sku:visible', '#form-3').each(function(){
+                 orderlistIds.push($(this).attr('data-orderlist-id'));
+             });
+             return _.uniq(orderlistIds);
+         }
 
 
          $(function(){
@@ -847,7 +849,7 @@
                              if(!_.isEmpty(result.inbound)){
                                  inbound = result.inbound;
                                  $('#create-inbound').attr('disabled', 'disabled');
-                                 $('#create-problem-inbound').attr('disabled', 'disabled');
+                                 $('#create-draft').attr('disabled', 'disabled');
                                  $('i.glyphicon', '#form-2').unbind();
                                  $('#memo').val(result.inbound.memo);
                              }
@@ -863,25 +865,24 @@
 
 
                              $('#panel-2').after(template('panel-3-tpl', {}));
-                             setupForm3(buildInboundOrderLists(result.orderlists, result.inbound.details));
-                             fillForm3({}, result.inbound.details);
+                             setupForm3(buildInboundOrderlists(result.orderlists, result.inbound.details));
+                             fillForm3(result.allocate_dict, result.inbound.details, []);
 
                              $('#orderlists-toggle').click(function(){
-                                 var orderdetailsDict;
+                                 var orderdetailsDict = getOrderdetailsDict();
+                                 var unfoldedOrderlistIds = getUnfoldedOrderlistIds();
                                  var $this = $(this);
                                  if($this.hasClass('matching')){
                                      $this.removeClass('matching').addClass('all');
                                      $this.html('收起');
-                                     orderdetailsDict = getOrderdetailsDict();
                                      setupForm3(orderlists);
-                                     fillForm3(orderdetailsDict, inbound.details);
+                                     fillForm3(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
                                  }
                                  else{
                                      $this.removeClass('all').addClass('matching');
                                      $this.html('展开');
-                                     orderdetailsDict = getOrderdetailsDict();
-                                     setupForm3(buildInboundOrderLists(orderlists, inbound.details));
-                                     fillForm3(orderdetailsDict, inbound.details);
+                                     setupForm3(buildInboundOrderlists(orderlists, inbound.details));
+                                     fillForm3(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
                                  }
                              });
                          }
@@ -979,6 +980,11 @@
              });
 
              $('#form-1').submit(function(){
+                 var expressNo = _.trim($('#express-no').val());
+                 if(_.isEmpty(expressNo)){
+                     swal('错误', '请填写包裹上的快递单号', 'error');
+                     return false;
+                 }
                  getForm1Data();
                  return true;
              });
