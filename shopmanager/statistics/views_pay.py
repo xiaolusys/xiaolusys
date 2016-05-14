@@ -1,5 +1,4 @@
 # coding=utf-8
-__author__ = 'jie.lin'
 import logging
 import datetime
 from rest_framework import permissions, viewsets
