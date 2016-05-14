@@ -31,6 +31,7 @@ urlpatterns = patterns('',
                        (r'^coupon/', include('flashsale.coupon.urls')),
                        (r'^m/', include('flashsale.xiaolumm.urls')),
                        (r'^sale/', include('flashsale.urls')),
+                       (r'^statistics/', include('statistics.urls')),
                        url(r'^djcelery/', include('djcelery.urls'), name="task_state"),
 
                        (r'^app/', include('shopapp.urls')),
