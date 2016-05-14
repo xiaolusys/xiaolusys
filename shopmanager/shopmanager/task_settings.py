@@ -68,7 +68,7 @@ CELERY_QUEUES = (
     Queue('carryrecord', routing_key='carryrecord.#'),
     Queue('skustats', routing_key='skustats.#'),
     Queue('coupon', routing_key='coupon.#'),
-    Queue('statistics', routing_key='statistics.#'),
+    Queue('stats', routing_key='statistics.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
@@ -350,7 +350,7 @@ FLASHSALE_COUPON_ROUTES = {
 
 STATISTICS_ROUTES = {
     'statistics.tasks.task_statistics_product_sale_num': {
-        'queue': 'statistics',
+        'queue': 'stats',
         'routing_key': 'statistics.task_statistics_product_sale_num',
     },
 }
