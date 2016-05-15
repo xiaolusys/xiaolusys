@@ -182,7 +182,7 @@ class CouponTemplate(BaseModel):
         now = datetime.datetime.now()
         if self.release_start_time <= now <= self.use_deadline:
             return  # 在正常时间内
-        raise AssertionError(u'%s至%s可以使用' % (self.start_use_time, self.use_deadline))
+        raise AssertionError(u'%s至%s开放' % (self.release_start_time, self.release_end_time))
 
     def check_category(self, product_ids=None):
         """ 可用分类检查 """
