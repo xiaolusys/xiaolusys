@@ -660,8 +660,7 @@ class SaleOrder(PayBaseModel):
         return True if self.title.startswith(u'秒杀') else False
 
     def is_pending(self):
-        return self.status < SaleOrder.TRADE_FINISHED and \
-               self.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and \
+        return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and \
                self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
 
     def is_confirmed(self):
