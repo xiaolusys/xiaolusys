@@ -156,12 +156,28 @@ class ModelProduct(PayBaseModel):
         return True
 
     @property
+    def item_product(self):
+        if not hasattr(self, '__first_product__'):
+            product = self.products.first()
+            if not product or not product.detail:
+                return None
+            self.__first_product__ = product
+        return self.__first_product__
+
+    @property
     def is_sale_out(self):
         """ 是否卖光 """
         all_sale_out = True
         for product in self.products:
             all_sale_out &= product.is_sale_out()
         return all_sale_out
+
+    @property
+    def model_code(self):
+        product = self.item_product
+        if not product:
+            return ''
+        return product.outer_id[0:-1]
 
     @property
     def is_recommend(self):
@@ -210,15 +226,6 @@ class ModelProduct(PayBaseModel):
         if not product or not product.detail:
             return False
         return product.new_good()
-
-    @property
-    def item_product(self):
-        if not hasattr(self, '__first_product__'):
-            product = self.products.first()
-            if not product or not product.detail:
-                return None
-            self.__first_product__ = product
-        return self.__first_product__
 
     @property
     def lowest_agent_price(self):
@@ -283,6 +290,7 @@ class ModelProduct(PayBaseModel):
     def detail_content(self):
         return {
             'name': self.name,
+            'model_code': self.model_code,
             'head_imgs': self.head_images,
             'content_imgs': self.content_images,
             'is_single_spec': self.is_single_spec,
