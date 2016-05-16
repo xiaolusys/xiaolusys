@@ -1136,10 +1136,10 @@ def _get_suppliers():
     return new_suppliers
 
 
-def get_suppliers():
+def get_suppliers(pay_time_threshold):
     sale_stats = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,
                                           refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,
-                                          pay_time__gt=datetime.datetime(2016, 4, 1)) \
+                                          pay_time__gt=pay_time_threshold) \
         .exclude(outer_id__startswith='RMB') \
         .values('sku_id').annotate(sale_quantity=Sum('num'), last_pay_time=Max('pay_time'))
 
@@ -1352,7 +1352,7 @@ def create_orderlist(supplier):
 
 @task(max_retries=3, default_retry_delay=5)
 def create_dinghuo():
-    for supplier in get_suppliers():
+    for supplier in get_suppliers(datetime.datetime(2016, 4, 1)):
         create_orderlist(supplier)
 
 
