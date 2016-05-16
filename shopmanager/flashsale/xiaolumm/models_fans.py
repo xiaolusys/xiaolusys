@@ -102,8 +102,9 @@ def login_activate_appdownloadrecord(sender, request, user, *args, **kwargs):
     login from the user.
     """
 
-    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_activate_appdownloadrecord
+    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_activate_appdownloadrecord, task_login_create_appdownloadrecord
     task_login_activate_appdownloadrecord.delay(user)
+    task_login_create_appdownloadrecord.delay(user)
 
 
 user_logged_in.connect(login_activate_appdownloadrecord, dispatch_uid='login_activate_appdownloadrecord')
