@@ -76,6 +76,7 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
         topics = self.paginate_queryset(self.queryset)
         serializer = lesson_serializers.LessonTopicSerializer(topics, many=True)
         res = self.get_paginated_response(serializer.data)
+        #res['Access-Control-Allow-Origin'] = '*'
         return res
         
     def create(self, request, *args, **kwargs):
@@ -167,7 +168,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
         records = self.paginate_queryset(self.queryset.order_by('status'))
         serializer = lesson_serializers.InstructorSerializer(records, many=True)
         res = self.get_paginated_response(serializer.data)
-        res['Access-Control-Allow-Origin'] = '*'
+        #res['Access-Control-Allow-Origin'] = '*'
         return res
 
     @list_route(methods=['get'])
@@ -183,7 +184,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
         else:
             res = Response()
 
-        res['Access-Control-Allow-Origin'] = '*'
+        #res['Access-Control-Allow-Origin'] = '*'
         return res
     
     def create(self, request, *args, **kwargs):

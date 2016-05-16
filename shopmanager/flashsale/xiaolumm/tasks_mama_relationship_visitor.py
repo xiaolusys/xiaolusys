@@ -148,3 +148,30 @@ def task_login_activate_appdownloadrecord(user):
 
     
  
+@task()
+def task_login_create_appdownloadrecord(user):
+    customer = Customer.objects.filter(user=user).first()
+    if not customer:
+        return
+
+    fan = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+    if not fan:
+        return
+
+    mobile = customer.mobile
+    if len(mobile) != 11:
+        return
+
+    mobile_customer = Customer.objects.filter(mobile=mobile,unionid='').first()
+    if not mobile_customer:
+        return
+
+    from_customer = fan.xlmm_cusid
+    record = AppDownloadRecord(from_customer=from_customer,status=AppDownloadRecord.USED,mobile=mobile)
+    record.save()
+    
+
+    
+    
+
+    

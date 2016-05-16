@@ -253,7 +253,7 @@ def task_appdownloadrecord_update_fans(record):
         if customers.count() > 0:
             customer = customers[0]
     elif customer_mobile:
-        customers = Customer.objects.filter(mobile=customer_mobile)
+        customers = Customer.objects.filter(mobile=customer_mobile,unionid='')
         if customers.count() > 0:
             customer = customers[0]
     if not customer:
