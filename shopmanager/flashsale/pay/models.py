@@ -333,9 +333,11 @@ class SaleTrade(BaseModel):
             self.increase_lock_skunum()
         # 如果使用余额支付,付款成功后则扣除
         if self.has_budget_paid:
-            user_budget = UserBudget.objects.get(id=self.buyer_id)
-            user_budget.charge_confirm(self.id)
-
+            try:
+                user_budget = UserBudget.objects.get(id=self.buyer_id)
+                user_budget.charge_confirm(self.id)
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
         self.confirm_payment()
 
     @transaction.atomic
