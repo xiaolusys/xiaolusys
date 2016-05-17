@@ -809,10 +809,10 @@ def task_update_orderlist(sku_id):
             orderlist.save()
     else:
         if delta:
-            msg = '%s %s多拍%d件, 现%d(原%d)' % \
+            msg = '%s %s多拍%d件, 待发货数现%d(原%d)' % \
               (sku.product.name, sku.properties_name or sku.properties_alias, abs(delta), sale_quantity, buy_quantity)
         else:
-            msg = '%s %s少拍%d件, 现%d(原%d)' % \
+            msg = '%s %s少拍%d件, 待发货数现%d(原%d)' % \
               (sku.product.name, sku.properties_name or sku.properties_alias, abs(delta), sale_quantity, buy_quantity)
         orderlist.note += '\n-->%s: %s' % (now.strftime('%m月%d %H:%M'), msg)
         orderlist.save()

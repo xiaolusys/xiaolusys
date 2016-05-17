@@ -152,6 +152,14 @@ class OrderDetail(models.Model):
     def __unicode__(self):
         return self.product_id
 
+    @property
+    def not_arrival_quantity(self):
+        """
+            未到数量
+        :return:
+        """
+        return self.buy_quantity - self.arrival_quantity - self.inferior_quantity
+
 
 def update_productskustats_inbound_quantity(sender, instance, created, **kwargs):
     # Note: chichu_id is actually the id of related ProductSku record.
@@ -375,6 +383,29 @@ class InBound(models.Model):
     def __unicode__(self):
         return str(self.id)
 
+    def assign_to_order_detail(self, orderlist_id, orderlist_ids):
+        return {}
+        orderlist_ids = [x for x in orderlist_ids if x != orderlist_id]
+        inbound_skus = dict([(inbound_detail.sku_id, inbound_detail.arrival_quantity) for inbound_detail in self.details.all()])
+        order_details_first = OrderDetail.objects.filter(orderlist_id=orderlist_id,
+                                                   chichu_id__in=inbound_skus.keys()).order_by('created')
+        order_details = OrderDetail.objects.filter(orderlist_id__in=list(orderlist_ids),
+                                                   chichu_id__in=inbound_skus.keys()).order_by('created')
+        order_details = list(order_details)
+        order_details = list(order_details_first) + order_details
+        assign_dict = {}
+        for order_detail in order_details:
+            if order_detail.not_arrival_quantity < inbound_skus.get(order_detail.chichu_id, 0):
+                order_detail.arrival_quantity += order_detail.not_arrival_quantity
+                inbound_skus[order_detail.chichu_id] -= order_detail.not_arrival_quantity
+                assign_dict[order_detail.id] = order_detail.not_arrival_quantity
+                # order_detail.save()
+            else:
+                order_detail.arrival_quantity += inbound_skus.get(order_detail.chichu_id, 0)
+                inbound_skus[order_detail.chichu_id] = 0
+                assign_dict[order_detail.id] = inbound_skus.get(order_detail.chichu_id, 0)
+        return assign_dict
+
     class Meta:
         db_table = 'flashsale_dinghuo_inbound'
         app_label = 'dinghuo'
@@ -384,9 +415,12 @@ class InBound(models.Model):
 
 class InBoundDetail(models.Model):
     NORMAL = 1
+    PROBLEM = 2
+
     OUT_ORDERING = 2
     ERR_ORDERING = 3
     ERR_OUT_ORDERING = 4
+
 
     inbound = models.ForeignKey(InBound, related_name='details', verbose_name=u'入库单')
     product = models.ForeignKey(Product, null=True, blank=True,
@@ -403,9 +437,7 @@ class InBoundDetail(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
-    status = models.SmallIntegerField(default=NORMAL,
-                                      choices=((NORMAL, u'正常'), (OUT_ORDERING, u'多订'), (ERR_ORDERING, u'错订'),
-                                               (ERR_OUT_ORDERING, u'多错订')), verbose_name=u'状态')
+    status = models.SmallIntegerField(default=NORMAL, choices=((NORMAL, u'已分配'), (PROBLEM, u'未分配')), verbose_name=u'状态')
     district = models.CharField(max_length=64, blank=True, verbose_name=u'库位')
 
     def __unicode__(self):

@@ -555,6 +555,33 @@ def changearrivalquantity(request):
     return HttpResponse(result)
 
 
+@csrf_exempt
+def change_inbound_quantity(request):
+    """
+    修改入仓单正次品数量
+    1、增加后为负数不予添加
+    """
+    post = request.POST
+    inbound_id = post.get("inbound_id", "").strip()
+    order_list_id = post.get("order_list_id", "").strip()
+    order_detail_id = post.get("order_detail_id", "").strip()
+    change_num = int(post.get("num", 1))
+    inbound = InBound.objects.get(id=inbound_id)
+    order_list = OrderDetail.objects.get(id=order_detail_id)
+    order_detail = OrderDetail.objects.get(id=order_detail_id)
+    inbound_detail = inbound.details.filter(
+        sku_id=order_detail.chichu_id).first()
+    inbound_detail.arrival_quantity -= change_num
+    inbound_detail.inferior_quantity += change_num
+    inbound_detail.save()
+    order_detail.arrival_quantity -= change_num
+    order_detail.inferior_quantity += change_num
+    order_detail.save()
+    log_action(request.user.id, order_detail, CHANGE,
+               u'审核入仓单SKU{0}次品{1}件'.format(order_detail.chichu_id, change_num))
+    return HttpResponse("{isSuccess:true}")
+
+
 class DailyDingHuoStatsView(View):
 
     def get(self, request):
@@ -892,7 +919,6 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         else:
             names = [last_name, first_name]
         return ''.join(filter(None, names)) or user.username
-
 
     @classmethod
     def update_orderlist(cls, request, orderlist_ids, op_logs):
@@ -1822,9 +1848,10 @@ class InBoundViewSet(viewsets.GenericViewSet):
         '^(?P<pno>[a-zA-Z0-9=]+)-(?P<dno>[a-zA-Z0-9]+)?$')
 
     WARE_HOUSES = [
-        {'value': 0, 'text': '未选仓'},
-        {'value': 1, 'text': '上海仓'},
-        {'value': 2, 'text': '广州仓'}
+        {'value': 0,
+         'text': '未选仓'}, {'value': 1,
+                          'text': '上海仓'}, {'value': 2,
+                                           'text': '广州仓'}
     ]
 
     @classmethod
@@ -1836,7 +1863,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
         else:
             names = [last_name, first_name]
         return ''.join(filter(None, names)) or user.username
-
 
     @classmethod
     def update_orderlist(cls, request, orderlist_ids):
@@ -1893,7 +1919,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         for item in data:
             if item.get('inbounddetail_id'):
                 if not inbound:
-                    inbounddetail = InBoundDetail.objects.get(id=item['inbounddetail_id'])
+                    inbounddetail = InBoundDetail.objects.get(
+                        id=item['inbounddetail_id'])
                     inbound = inbounddetail.inbound
             else:
                 sku_id = item['sku_id']
@@ -1910,6 +1937,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if inbound.status != InBound.PENDING:
             return Response({'error': '只能分配待处理入仓单'})
 
+        InBoundDetail.objects.filter(inbound=inbound).update(
+            status=InBoundDetail.PROBLEM)
         outer_ids = set()
         inbounddetails_dict = {}
         for sku_id, sku_dict in skus_dict.iteritems():
@@ -1922,10 +1951,10 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 sku=sku,
                 product_name=product.name,
                 outer_id=product.outer_id,
-                properties_name=sku.properties_name or sku.properties_alias or '',
+                properties_name=sku.properties_name or sku.properties_alias or
+                '',
                 arrival_quantity=sku_dict['arrival_quantity'],
-                inferior_quantity=sku_dict['inferior_quantity']
-            )
+                inferior_quantity=sku_dict['inferior_quantity'])
             inbounddetail.save()
             inbounddetails_dict[sku_id] = inbounddetail
 
@@ -1933,15 +1962,17 @@ class InBoundViewSet(viewsets.GenericViewSet):
             if not item.get('inbounddetail_id'):
                 inbounddetail = inbounddetails_dict[item['sku_id']]
             else:
-                inbounddetail = InBoundDetail.objects.get(id=item['inbounddetail_id'])
+                inbounddetail = InBoundDetail.objects.get(
+                    id=item['inbounddetail_id'])
+            inbounddetail.status = InBoundDetail.NORMAL
+            inbounddetail.save()
             orderdetail = OrderDetail.objects.get(id=item['orderdetail_id'])
 
             record = OrderDetailInBoundDetail(
                 orderdetail=orderdetail,
                 inbounddetail=inbounddetail,
                 arrival_quantity=item['arrival_quantity'],
-                inferior_quantity=item['inferior_quantity']
-            )
+                inferior_quantity=item['inferior_quantity'])
             record.save()
 
             if not inbound:
@@ -1952,26 +1983,79 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 orderdetail.arrival_quantity += item['arrival_quantity']
                 orderdetail.arrival_time = now
                 orderdetail.save()
-                log_action(request.user.id, orderdetail, CHANGE, u'分配入仓单%d: 更新入库数%+d' % (inbound.id, item['arrival_quantity']))
+                log_action(request.user.id, orderdetail, CHANGE,
+                           u'分配入仓单%d: 更新入库数%+d' %
+                           (inbound.id, item['arrival_quantity']))
                 sku.quantity += item['arrival_quantity']
                 sku.save()
-                log_action(request.user.id, sku, CHANGE, u'分配入仓单%d: 更新库存%+d' % (inbound.id, item['arrival_quantity']))
+                log_action(request.user.id, sku, CHANGE, u'分配入仓单%d: 更新库存%+d' %
+                           (inbound.id, item['arrival_quantity']))
 
             if item['inferior_quantity']:
                 orderdetail.inferior_quantity += item['inferior_quantity']
                 orderdetail.save()
-                log_action(request.user.id, orderdetail, CHANGE, u'分配入仓单%d: 更新次品数%+d' % (inbound.id, item['inferior_quantity']))
+                log_action(request.user.id, orderdetail, CHANGE,
+                           u'分配入仓单%d: 更新次品数%+d' %
+                           (inbound.id, item['inferior_quantity']))
             orderlist_ids.add(orderdetail.orderlist_id)
 
         if inbound:
             inbound.orderlist_ids = list(orderlist_ids)
-            inbound.status = InBound.COMPLETED
+            is_completed = True
+            for inbounddetail in inbound.details.all():
+                if inbounddetail.arrival_quantity > 0 and inbounddetail.status == InBoundDetail.PROBLEM:
+                    is_completed = False
+            if is_completed:
+                inbound.status = InBound.COMPLETED
             inbound.save()
         if orderlist_ids:
             self.update_orderlist(request, list(orderlist_ids))
         if outer_ids:
             releaseProductTradesTask.delay(list(outer_ids))
         return Response({'inbound': {'id': inbound.id}})
+
+    @classmethod
+    def _find_allocate_dict(cls, inbound_skus_dict, orderlist_ids, orderlist_id,
+                            express_no):
+        orderlists_with_express_no = []
+        orderlists_without_express_no = []
+
+        for orderlist in OrderList.objects.filter(
+                id__in=[x for x in orderlist_ids if x != orderlist_id
+                       ]).order_by('id'):
+            if express_no and orderlist.express_no:
+                if express_no.strip() in [
+                        x.strip()
+                        for x in cls.EXPRESS_NO_SPLIT_PATTERN.split(
+                            orderlist.express_no.strip())
+                ]:
+                    orderlists_with_express_no.append(orderlist)
+                    continue
+            orderlists_without_express_no.append(orderlist)
+
+        if orderlist_id:
+            orderlists = [OrderList.objects.get(id=orderlist_id)]
+        else:
+            orderlists = []
+        orderlists = orderlists + orderlists_with_express_no + orderlists_without_express_no
+
+        allocate_dict = {}
+        for orderlist in orderlists:
+            for orderdetail in orderlist.order_list.all():
+                sku_id = int(orderdetail.chichu_id)
+                inbound_sku_dict = inbound_skus_dict.get(sku_id)
+                if not inbound_sku_dict:
+                    continue
+
+                delta = min(
+                    max(orderdetail.buy_quantity - orderdetail.arrival_quantity,
+                        0), inbound_sku_dict['arrival_quantity'])
+                if delta > 0:
+                    allocate_dict[orderdetail.id] = delta
+                    inbound_sku_dict['arrival_quantity'] -= delta
+                    if inbound_sku_dict['arrival_quantity'] <= 0:
+                        inbound_skus_dict.pop(sku_id, False)
+        return allocate_dict
 
     @list_route(methods=['post'])
     def create_inbound(self, request):
@@ -1982,10 +2066,11 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound_skus = json.loads(form.cleaned_data['inbound_skus'])
         if not inbound_skus:
             return Response({'orderlists': []})
-        inbound_skus = {int(k):v for k,v in inbound_skus.iteritems()}
+        inbound_skus_dict = {int(k): v for k, v in inbound_skus.iteritems()}
 
         supplier_id = form.cleaned_data['supplier_id']
         orderlist_id = form.cleaned_data.get('orderlist_id')
+        express_no = form.cleaned_data['express_no']
 
         now = datetime.datetime.now()
         username = self.get_username(request.user)
@@ -1993,31 +2078,28 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if form.cleaned_data['memo']:
             tmp.append(form.cleaned_data['memo'])
 
-        inbound = InBound(
-            supplier_id=supplier_id,
-            creator_id=request.user.id,
-            express_no=form.cleaned_data['express_no'],
-            memo='\n'.join(tmp)
-        )
+        inbound = InBound(supplier_id=supplier_id,
+                          creator_id=request.user.id,
+                          express_no=express_no,
+                          memo='\n'.join(tmp))
         if orderlist_id:
             inbound.orderlist_ids = [orderlist_id]
         inbound.save()
 
         inbounddetails_dict = {}
-        for sku in ProductSku.objects.select_related('product').filter(id__in=inbound_skus.keys()):
-            sku_dict = inbound_skus[sku.id]
+        for sku in ProductSku.objects.select_related('product').filter(
+                id__in=inbound_skus_dict.keys()):
+            sku_dict = inbound_skus_dict[sku.id]
             arrival_quantity = sku_dict.get('arrival_quantity') or 0
             inferior_quantity = sku_dict.get('inferior_quantity') or 0
-            inbounddetail = InBoundDetail(
-                inbound=inbound,
-                product=sku.product,
-                sku=sku,
-                product_name=sku.product.name,
-                outer_id=sku.product.outer_id,
-                properties_name=sku.properties_name,
-                arrival_quantity=arrival_quantity,
-                inferior_quantity=inferior_quantity
-            )
+            inbounddetail = InBoundDetail(inbound=inbound,
+                                          product=sku.product,
+                                          sku=sku,
+                                          product_name=sku.product.name,
+                                          outer_id=sku.product.outer_id,
+                                          properties_name=sku.properties_name,
+                                          arrival_quantity=arrival_quantity,
+                                          inferior_quantity=inferior_quantity)
             inbounddetail.save()
             inbounddetails_dict[sku.id] = {
                 'id': inbounddetail.id,
@@ -2035,10 +2117,20 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     district_no=dno).first()
                 if not deposite_district:
                     continue
-                ProductLocation.objects.filter(product_id=sku.product.id, sku_id=sku.id).delete()
+                ProductLocation.objects.filter(product_id=sku.product.id,
+                                               sku_id=sku.id).delete()
                 self.update_product_location(sku.product.id, deposite_district)
+        if 0 in inbound_skus_dict:
+            problem_sku_dict = inbound_skus_dict[0]
+            InBoundDetail(inbound=inbound,
+                          product_name=problem_sku_dict['name'],
+                          arrival_quantity=problem_sku_dict['arrival_quantity'],
+                          status=InBoundDetail.PROBLEM).save()
 
-        orderlists = self._find_orderlists(inbound_skus.keys())
+        orderlists = self._find_orderlists(inbound_skus_dict)
+        allocate_dict = self._find_allocate_dict(
+            inbound_skus_dict, [x['orderlist_id']
+                                for x in orderlists], orderlist_id, express_no)
         log_action(request.user.id, inbound, ADDITION, '创建')
         return Response({
             'orderlists': orderlists,
@@ -2046,15 +2138,16 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'id': inbound.id,
                 'details': inbounddetails_dict,
                 'memo': inbound.memo
-            }
+            },
+            'allocate_dict': allocate_dict
         })
 
     @classmethod
-    def _find_orderlists(cls, inbound_sku_ids):
+    def _find_orderlists(cls, inbound_skus_dict):
         status_mapping = dict(OrderList.ORDER_PRODUCT_STATUS)
         orderlist_ids = set()
         for orderdetail in OrderDetail.objects.filter(
-                chichu_id__in=inbound_sku_ids).exclude(
+                chichu_id__in=inbound_skus_dict.keys()).exclude(
                     orderlist__status__in=[OrderList.COMPLETED,
                                            OrderList.ZUOFEI, OrderList.CLOSED,
                                            OrderList.TO_PAY]):
@@ -2063,11 +2156,13 @@ class InBoundViewSet(viewsets.GenericViewSet):
         product_ids = set()
         sku_ids = set()
         orderlists_dict = {}
-        for orderdetail in OrderDetail.objects.filter(orderlist_id__in=list(orderlist_ids)):
+        for orderdetail in OrderDetail.objects.filter(
+                orderlist_id__in=list(orderlist_ids)).order_by('id'):
             if orderdetail.orderlist_id not in orderlists_dict:
                 orderlist = orderdetail.orderlist
                 if orderlist.buyer_id:
-                    buyer_name = '%s%s' % (orderlist.buyer.last_name, orderlist.buyer.first_name)
+                    buyer_name = '%s%s' % (orderlist.buyer.last_name,
+                                           orderlist.buyer.first_name)
                     buyer_name = buyer_name or orderlist.buyer.username
                     orderlist_dict = {
                         'id': orderlist.id,
@@ -2089,7 +2184,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
             skus_dict = products_dict.setdefault(product_id, {})
             skus_dict[sku_id] = {
                 'buy_quantity': orderdetail.buy_quantity,
-                'plan_quantity': orderdetail.buy_quantity - min(orderdetail.arrival_quantity, orderdetail.buy_quantity),
+                'plan_quantity': orderdetail.buy_quantity - min(
+                    orderdetail.arrival_quantity, orderdetail.buy_quantity),
                 'orderdetail_id': orderdetail.id
             }
 
@@ -2112,11 +2208,12 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'id': sku.id,
                 'properties_name': sku.properties_name or sku.properties_alias,
                 'barcode': sku.barcode,
-                'is_inbound': 1 if sku.id in inbound_sku_ids else 0
+                'is_inbound': 1 if sku.id in inbound_skus_dict.keys() else 0
             }
 
         saleproducts_dict = {}
-        for saleproduct in SaleProduct.objects.filter(id__in=list(saleproduct_ids)):
+        for saleproduct in SaleProduct.objects.filter(
+                id__in=list(saleproduct_ids)):
             saleproducts_dict[saleproduct.id] = {
                 'product_link': saleproduct.product_link
             }
@@ -2130,7 +2227,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
             len_of_skus = 0
             for product_id in sorted(orderlist_products_dict.keys()):
                 product_dict = copy.copy(products_dict[product_id])
-                product_dict.update(saleproducts_dict.get(product_dict['saleproduct_id']) or {})
+                product_dict.update(saleproducts_dict.get(product_dict[
+                    'saleproduct_id']) or {})
                 orderlist_skus_dict = orderlist_products_dict[product_id]
                 for sku_id in sorted(orderlist_skus_dict.keys()):
                     len_of_skus += 1
@@ -2138,11 +2236,11 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     sku_dict.update(skus_dict[sku_id])
                     product_dict.setdefault('skus', []).append(sku_dict)
                 orderlist_products.append(product_dict)
+            orderlist_dict['orderlist_id'] = orderlist_id
             orderlist_dict['products'] = orderlist_products
             orderlist_dict['len_of_skus'] = len_of_skus
             orderlists.append(orderlist_dict)
         return orderlists
-
 
     def retrieve(self, request, pk=None):
         inbound = InBound.objects.get(id=pk)
@@ -2150,9 +2248,17 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
         inbounddetails_dict = {}
         products_dict = {}
+        problem_sku = {}
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
             product = inbounddetail.product
             sku = inbounddetail.sku
+
+            if not (product and sku):
+                problem_sku = {
+                    'name': inbounddetail.product_name,
+                    'arrival_quantity': inbounddetail.arrival_quantity
+                }
+                continue
 
             inbounddetails_dict[sku.id] = {
                 'id': inbounddetail.id,
@@ -2177,7 +2283,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'barcode': sku.barcode,
                 'district': '',
                 'arrival_quantity': inbounddetail.arrival_quantity,
-                'inferior_quantity': inbounddetail.inferior_quantity
+                'inferior_quantity': inbounddetail.inferior_quantity,
+                'status': '已分配'
+                if inbounddetail.status == InBoundDetail.NORMAL else '未分配'
             }
             product_location = ProductLocation.objects.select_related('district')\
               .filter(product_id=product.id, sku_id=sku.id).first()
@@ -2186,7 +2294,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
             product_dict['skus'].append(sku_dict)
 
         saleproducts_dict = {}
-        saleproduct_ids = list(set([x['saleproduct_id'] for x in products_dict.values()]))
+        saleproduct_ids = list(set([x['saleproduct_id']
+                                    for x in products_dict.values()]))
         for saleproduct in SaleProduct.objects.filter(id__in=saleproduct_ids):
             saleproducts_dict[saleproduct.id] = {
                 'product_link': saleproduct.product_link,
@@ -2196,8 +2305,10 @@ class InBoundViewSet(viewsets.GenericViewSet):
         products = []
         for product_id in sorted(products_dict.keys()):
             product_dict = products_dict[product_id]
-            product_dict['skus'] = sorted(product_dict['skus'], key=lambda x: x['id'])
-            product_dict.update(saleproducts_dict.get(product_dict['saleproduct_id']) or {})
+            product_dict['skus'] = sorted(product_dict['skus'],
+                                          key=lambda x: x['id'])
+            product_dict.update(saleproducts_dict.get(product_dict[
+                'saleproduct_id']) or {})
             products.append(product_dict)
 
         result = {
@@ -2205,6 +2316,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             'supplier_name': supplier.supplier_name,
             'products': products,
             'warehouses': self.WARE_HOUSES,
+            'problem_sku': problem_sku,
             'inbound': {
                 'id': inbound.id,
                 'details': inbounddetails_dict,
@@ -2212,11 +2324,11 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'status': inbound.status,
                 'created': inbound.created.strftime('%y年%m月%d %H:%M:%S'),
                 'creator': self.get_username(inbound.creator),
-                'orderlist_ids': inbound.orderlist_ids
+                'orderlist_ids': inbound.orderlist_ids,
+                'express_no': inbound.express_no
             }
         }
         return Response(result, template_name='dinghuo/edit_inbound.html')
-
 
     def list(self, request):
         orderlist_id_dict = {}
@@ -2244,8 +2356,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         form = forms.InBoundForm(request.GET)
         if not form.is_valid():
             return Response(result, template_name='dinghuo/inbound2.html')
-        result.update(form.cleaned_data)
 
+        result.update(form.cleaned_data)
         if form.cleaned_data.get('supplier_id'):
             supplier_orderlist_ids = []
             supplier_id = form.cleaned_data['supplier_id']
@@ -2265,6 +2377,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 else:
                     supplier_orderlist_ids.append(orderlist.id)
 
+            product_ids = set()
             sku_ids = set()
             product_weights_dict = {}
             max_weight = len(supplier_orderlist_ids)
@@ -2272,15 +2385,18 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
             for orderdetail in OrderDetail.objects.filter(
                     orderlist_id__in=supplier_orderlist_ids):
+                if orderdetail.buy_quantity <= orderdetail.arrival_quantity:
+                    continue
                 product_id = int(orderdetail.product_id)
                 product_weights_dict[product_id] = min(
                     product_weights_dict.setdefault(product_id, max_weight),
                     weights[orderdetail.orderlist_id])
+                product_ids.add(product_id)
                 sku_ids.add(int(orderdetail.chichu_id))
 
             products_dict = {}
             for sku in ProductSku.objects.select_related('product').filter(
-                    id__in=list(sku_ids),
+                    product_id__in=list(product_ids),
                     status=ProductSku.NORMAL):
                 product_dict = {
                     'id': sku.product.id,
@@ -2301,6 +2417,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     'barcode': sku.barcode,
                     'district': ''
                 }
+                if sku.id in sku_ids:
+                    sku_dict['is_required'] = 1
                 product_location = ProductLocation.objects.select_related(
                     'district').filter(product_id=sku.product.id,
                                        sku_id=sku.id).first()
@@ -2344,22 +2462,28 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
         orderlist_ids = set()
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
-            for record in inbounddetail.records.filter(status=OrderDetailInBoundDetail.NORMAL):
+            for record in inbounddetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL):
                 inbounddetail = record.inbounddetail
                 orderdetail = record.orderdetail
                 if record.arrival_quantity:
                     orderdetail.arrival_quantity -= record.arrival_quantity
                     orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE, u'作废入仓单%d: 更新入库数%+d' % (inbound.id, record.arrival_quantity))
+                    log_action(request.user.id, orderdetail, CHANGE,
+                               u'作废入仓单%d: 更新入库数%+d' %
+                               (inbound.id, record.arrival_quantity))
 
                     sku = inbounddetail.sku
                     sku.quantity -= record.arrival_quantity
                     sku.save()
-                    log_action(request.user.id, sku, CHANGE, u'作废入仓单%d: 更新库存%+d' % (inbound.id, 0 - record.arrival_quantity))
+                    log_action(request.user.id, sku, CHANGE, u'作废入仓单%d: 更新库存%+d'
+                               % (inbound.id, 0 - record.arrival_quantity))
                 if record.inferior_quantity:
                     orderdetail.inferior_quantity -= record.inferior_quantity
                     orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE, u'作废入仓单%d: 更新次品数%+d' % (inbound.id, record.inferior_quantity))
+                    log_action(request.user.id, orderdetail, CHANGE,
+                               u'作废入仓单%d: 更新次品数%+d' %
+                               (inbound.id, record.inferior_quantity))
                 orderlist_ids.add(orderdetail.orderlist_id)
                 record.status = OrderDetailInBoundDetail.INVALID
                 record.save()
@@ -2379,7 +2503,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if inbound.status != InBound.PENDING:
             return Response({'error': '只有待处理入仓单才可以分配'})
 
-        orderlists = self._find_orderlists(inbound_skus.keys())
+        orderlists = self._find_orderlists(inbound_skus)
         return Response({'orderlists': orderlists})
 
     def update(self, request, pk=None):
@@ -2392,7 +2516,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         records_dict = {}
         orderlist_ids = set()
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
-            for record in inbounddetail.records.filter(status=OrderDetailInBoundDetail.NORMAL):
+            for record in inbounddetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL):
                 inbounddetail = record.inbounddetail
                 orderdetail = record.orderdetail
 
@@ -2403,31 +2528,42 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 if record.arrival_quantity:
                     orderdetail.arrival_quantity -= record.arrival_quantity
                     orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE, u'修改入仓单%d: 更新入库数%+d' % (inbound.id, record.arrival_quantity))
+                    log_action(request.user.id, orderdetail, CHANGE,
+                               u'修改入仓单%d: 更新入库数%+d' %
+                               (inbound.id, record.arrival_quantity))
 
                     sku = inbounddetail.sku
                     sku.quantity -= record.arrival_quantity
                     sku.save()
-                    log_action(request.user.id, sku, CHANGE, u'修改入仓单%d: 更新库存%+d' % (inbound.id, 0 - record.arrival_quantity))
+                    log_action(request.user.id, sku, CHANGE, u'修改入仓单%d: 更新库存%+d'
+                               % (inbound.id, 0 - record.arrival_quantity))
                 if record.inferior_quantity:
                     orderdetail.inferior_quantity -= record.inferior_quantity
                     orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE, u'修改入仓单%d: 更新次品数%+d' % (inbound.id, record.inferior_quantity))
+                    log_action(request.user.id, orderdetail, CHANGE,
+                               u'修改入仓单%d: 更新次品数%+d' %
+                               (inbound.id, record.inferior_quantity))
                 orderlist_ids.add(orderdetail.orderlist_id)
                 record.status = OrderDetailInBoundDetail.INVALID
                 record.save()
 
-
+        InBoundDetail.objects.filter(inbound=inbound).update(status=InBoundDetail.PROBLEM)
         self.update_orderlist(request, list(orderlist_ids))
 
-        inbound_skus_dict = {int(k):v for k,v in inbound_skus.iteritems()}
+        inbound_skus_dict = {int(k): v for k, v in inbound_skus.iteritems()}
         inbounddetails_dict = {}
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
-            inbounddetails_dict[inbounddetail.sku_id] = inbounddetail
+            inbounddetails_dict[inbounddetail.sku_id or 0] = inbounddetail
 
         for sku_id, inbound_sku_dict in inbound_skus_dict.iteritems():
             inbounddetail = inbounddetails_dict.get(sku_id)
             if not inbounddetail:
+                continue
+
+            if not (inbounddetail.sku and inbounddetail.product):
+                inbounddetail.product_name = inbound_sku_dict['name']
+                inbounddetail.arrival_quantity = inbound_sku_dict['arrival_quantity']
+                inbounddetail.save()
                 continue
 
             product_id = inbounddetail.sku.product_id
@@ -2444,7 +2580,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     district_no=dno).first()
                 if not deposite_district:
                     continue
-                ProductLocation.objects.filter(product_id=product_id, sku_id=sku_id).delete()
+                ProductLocation.objects.filter(product_id=product_id,
+                                               sku_id=sku_id).delete()
                 self.update_product_location(product_id, deposite_district)
 
             if inbounddetail.arrival_quantity == arrival_quantity and \
@@ -2459,10 +2596,16 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound.status = InBound.PENDING
         inbound.save()
 
-        orderlists = self._find_orderlists(inbound_skus.keys())
+        orderlists = self._find_orderlists(inbound_skus_dict)
+        orderlist_id = 0 if not inbound.orderlist_ids else int(
+            inbound.orderlist_ids[0])
+        allocate_dict = self._find_allocate_dict(
+            inbound_skus_dict, [x['orderlist_id'] for x in orderlists],
+            orderlist_id, inbound.express_no)
         return Response({
             'orderlists': orderlists,
-            'records': records_dict
+            'records': records_dict,
+            'allocate_dict': allocate_dict
         })
 
     @list_route(methods=['get'])
@@ -2479,7 +2622,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
     def districts(self, request):
         districts = DepositeDistrict.objects.all().order_by('id')
         return Response([str(x) for x in districts])
-
 
     @list_route(methods=['get'])
     def suggest_district(self, request):
@@ -2513,12 +2655,11 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
     @classmethod
     def update_product_location(cls, product_id, deposite_district):
-        for sku in ProductSku.objects.filter(product_id=product_id, status=ProductSku.NORMAL):
-            ProductLocation.objects.get_or_create(
-                product_id=product_id,
-                sku_id=sku.id,
-                district=deposite_district
-            )
+        for sku in ProductSku.objects.filter(product_id=product_id,
+                                             status=ProductSku.NORMAL):
+            ProductLocation.objects.get_or_create(product_id=product_id,
+                                                  sku_id=sku.id,
+                                                  district=deposite_district)
 
     @list_route(methods=['post'])
     def save_memo(self, request):
@@ -2539,7 +2680,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
             return Response({'error': '参数错误'})
 
         inbound_skus_dict = form.cleaned_data.get('inbound_skus') or '{}'
-        inbound_skus_dict = {int(k): v for k, v in json.loads(inbound_skus_dict).iteritems()}
+        inbound_skus_dict = {int(k): v
+                             for k, v in json.loads(
+                                 inbound_skus_dict).iteritems()}
 
         for sku in ProductSku.objects.filter(id__in=inbound_skus_dict.keys()):
             inbound_sku_dict = inbound_skus_dict[sku.id]
@@ -2554,7 +2697,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     district_no=dno).first()
                 if not deposite_district:
                     continue
-                ProductLocation.objects.filter(product_id=sku.product_id, sku_id=sku.id).delete()
+                ProductLocation.objects.filter(product_id=sku.product_id,
+                                               sku_id=sku.id).delete()
                 self.update_product_location(sku.product_id, deposite_district)
         return Response({})
 
@@ -2572,12 +2716,10 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if form.cleaned_data['memo']:
             tmp.append(form.cleaned_data['memo'])
 
-        inbound = InBound(
-            supplier_id=supplier_id,
-            creator_id=request.user.id,
-            express_no=form.cleaned_data['express_no'],
-            memo='\n'.join(tmp)
-        )
+        inbound = InBound(supplier_id=supplier_id,
+                          creator_id=request.user.id,
+                          express_no=form.cleaned_data['express_no'],
+                          memo='\n'.join(tmp))
         if orderlist_id:
             inbound.orderlist_ids = [orderlist_id]
         inbound.save()

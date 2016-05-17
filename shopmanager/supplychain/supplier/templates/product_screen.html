@@ -202,7 +202,12 @@
                 <li class="list-group-item">
                     <div class="row">
                         <div class="col-md-2" style="text-align:left;display:inline;">
-                            <label>备注：</label>
+                            <label>备注：</label><br>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="orderlist_show_memo">订货单详情显示备注
+                                </label>
+                            </div>
                         </div>
                         <div class="col-md-8" style="text-align:left;display:inline;">
                             <textarea rows="3" cols="20" class="form-control" name="memo"></textarea>
@@ -320,7 +325,15 @@
 	     {% endifequal %}
 	  </select></p>
 	  {% endif %}
-	  <p style="margin-top:10px">备注：</p><textarea rows="1" cols="20" class="form-control" id="id-memo-{{ forloop.counter}}" >{{ record.memo }}</textarea>
+	  <p style="margin-top:10px">
+              备注：<br>
+              <div class="checkbox">
+                  <label>
+                      <input type="checkbox" id="id-orderlist-show-memo-{{ forloop.counter }}" name="orderlist_show_memo"{% if record.orderlist_show_memo %} checked{% endif %}>订货单详情显示备注
+                  </label>
+              </div>
+          </p>
+          <textarea rows="1" cols="20" class="form-control" id="id-memo-{{ forloop.counter}}" >{{ record.memo }}</textarea>
 	  <p>
 	      <button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>
 	      <a href="/admin/supplier/saleproduct/{{ record.id }}/" class="glyphicon glyphicon-edit"
@@ -387,6 +400,8 @@
         var memo = $("#id-memo-" + counter).val();
         var selection = $("#id-select-" + counter).val();
 
+        var orderlistShowMemo = $('#id-orderlist-show-memo-' + counter).prop('checked') ? 'on' : ''
+
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
         var data = {
             status: selection,
@@ -397,7 +412,8 @@
             sale_time: sale_time,
             memo: memo,
             supplier_sku: supplierSku,
-            remain_num: remainNum
+            remain_num: remainNum,
+            orderlist_show_memo: orderlistShowMemo
         };
 
         var headers = {
