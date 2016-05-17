@@ -589,7 +589,7 @@ class SaleOrder(PayBaseModel):
         if not self.package_order_id:
             return None
         try:
-            from shopback.items.models import PackageOrder
+            from shopback.trades.models import PackageOrder
             return PackageOrder.objects.get(id=self.package_order_id)
         except:
             return None
