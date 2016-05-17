@@ -688,6 +688,9 @@ def task_saleorder_update_package_sku_item(sale_order):
                 setattr(sku_item, attr, val)
         sku_item.outer_sku_id = sku_item.product_sku.outer_id
         sku_item.outer_id = sku_item.product_sku.product.outer_id
+
+        sku_item.receiver_mobile = sale_order.sale_trade.receiver_mobile
+        sku_item.sale_trade_id = sale_order.sale_trade.tid
         # sku_item.sku_properties_name = sale_order.properties_values
         sku_item.save()
         return
