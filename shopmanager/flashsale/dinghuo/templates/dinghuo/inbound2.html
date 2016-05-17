@@ -618,7 +618,8 @@
 
              var problemSkuName = _.trim($('.problem textarea', '#pics').val());
              var problemSkuQuantity = parseInt($('.problem input[type="number"]', '#pics').val());
-             $('table tr.stats', '#form-2').before(template('problem-sku-tpl', {name: problemSkuName, quantity: problemSkuQuantity}));
+             if(problemSkuName && problemSkuQuantity)
+                 $('table tr.stats', '#form-2').before(template('problem-sku-tpl', {name: problemSkuName, quantity: problemSkuQuantity}));
 
              quantityChangeHandler('#form-2')();
              $('.portfolio-box img', '#form-2').popover({
