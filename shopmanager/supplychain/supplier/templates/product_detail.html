@@ -47,8 +47,15 @@
                         {% endifequal %}
                         <option value="rejected">拒绝</option>
                     </select></p>
-                    <p style="margin-top:10px">备注：</p><textarea rows="1" cols="20" class="form-control"
-                                                                id="id-memo-{{ record.id }}}">{{ record.memo }}</textarea>
+                    <p style="margin-top:10px">
+                        备注：<br>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="orderlist_show_memo"{% if record.orderlist_show_memo %} checked{% endif %}>订货单详情显示备注
+                            </label>
+                        </div>
+                    </p>
+                    <textarea rows="1" cols="20" class="form-control" id="id-memo-{{ record.id }}}">{{ record.memo }}</textarea>
                     <button type="button" class="btn btn-primary" style="margin-top:20px"
                             onclick="screen({{ record.id }}, '{{ record.id }}')" ;>确定
                     </button>
@@ -110,8 +117,15 @@
                                 <option value="passed">通过</option>
                             </select>
                         {% endif %}
-                        <p style="margin-top:10px">备注：</p><textarea rows="3" cols="20" name="memo"
-                                                                    class="form-control"></textarea>
+                        <p style="margin-top:10px">
+                            备注：<br>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="orderlist_show_memo">订货单详情显示备注
+                                </label>
+                            </div>
+                        </p>
+                        <textarea rows="3" cols="20" name="memo" class="form-control"></textarea>
                         <button type="submit" class="btn btn-primary" style="margin-top:20px">创建商品</button>
                     </div>
                 </form>

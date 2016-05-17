@@ -338,6 +338,7 @@ class SaleProduct(models.Model):
     reserve_time = models.DateTimeField(null=True, blank=True, verbose_name=u'预留时间')
     supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
     remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
+    orderlist_show_memo = models.BooleanField(default=False, verbose_name=u'订货详情显示备注')
 
     class Meta:
         db_table = 'supplychain_supply_product'

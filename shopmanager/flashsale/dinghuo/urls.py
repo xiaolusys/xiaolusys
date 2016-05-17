@@ -50,6 +50,7 @@ urlpatterns = [
     url(r'^changedetail/export/$', csrf_exempt(staff_member_required(DinghuoStatsExportView.as_view())), name="changedetails_export"),
     url(r'^daily/', staff_member_required(DailyDingHuoStatsView.as_view()), name="daily_ding_huo_stats"),  # 大货每天统计
     url(r'^changearrivalquantity/$', views.changearrivalquantity, name="changearrivalquantity"),
+    url(r'^change_inbound_quantity/$', views.change_inbound_quantity, name="change_inbound_quantity"),
     url(r'^statsbypid/(?P<product_id>\d+)/$', staff_member_required(StatsByProductIdView.as_view()), name="statsbypid"),
     # 根据商品id统计大货
     url(r'^dailywork/', staff_member_required(DailyWorkView.as_view()), name="dailywork"),  # 爆款

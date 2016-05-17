@@ -49,6 +49,7 @@ class ChangeDetailView(View):
                         id=product.sale_product)
                     order_dict['product_link'] = saleproduct.product_link or ''
                     order_dict['supplier_outer_id'] = saleproduct.supplier_sku or ''
+                    order_dict['memo'] = saleproduct.memo if saleproduct.orderlist_show_memo else ''
                 except:
                     pass
             order_list_list.append(order_dict)
@@ -148,6 +149,7 @@ class ChangeDetailView(View):
                         id=product.sale_product)
                     order_dict['product_link'] = saleproduct.product_link or ''
                     order_dict['supplier_outer_id'] = saleproduct.supplier_sku or ''
+                    order_dict['memo'] = saleproduct.memo if saleproduct.orderlist_show_memo else ''
                 except:
                     pass
             order_list_list.append(order_dict)
@@ -266,10 +268,17 @@ class ChangeDetailExportView(View):
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         items = []
         for o in order_details:
+            sku = ProductSku.objects.get(id=o.chichu_id)
+            product = sku.product
             item = model_to_dict(o)
-            item['pic_path'] = Product.objects.get(id=o.product_id).pic_path
-            item['supplier_outer_id'] = ProductSku.objects.get(
-                id=o.chichu_id).get_supplier_outerid()
+            item['pic_path'] = product.pic_path
+            item['supplier_outer_id'] = sku.get_supplier_outerid()
+            if product.sale_product:
+                try:
+                    saleproduct = SaleProduct.objects.get(id=product.sale_product)
+                    item['memo'] = saleproduct.memo if saleproduct.orderlist_show_memo else ''
+                except:
+                    pass
             items.append(item)
 
         items = [map(unicode,
@@ -303,13 +312,14 @@ class ChangeDetailExportView(View):
         worksheet = workbook.add_worksheet()
         bold = workbook.add_format({'bold': True})
         money = workbook.add_format({'num_format': '0.00'})
+        text_wrap = workbook.add_format({'text_wrap': True})
 
         image_width = 25
         image_height = 125
 
         worksheet.set_column('A:A', 18)
         worksheet.set_column('B:B', 30)
-        worksheet.set_column('E:E', image_width)
+        worksheet.set_column('F:F', image_width)
 
         worksheet.write('A1', '供应商名称:', bold)
         worksheet.write('A2', '供应商账号:', bold)
@@ -364,7 +374,8 @@ class ChangeDetailExportView(View):
                                                                products.values()]):
             sale_products[sale_product.id] = {
                 'product_link': sale_product.product_link,
-                'supplier_sku': sale_product.supplier_sku or ''
+                'supplier_sku': sale_product.supplier_sku or '',
+                'memo': sale_product.memo if sale_product.orderlist_show_memo else ''
             }
 
         """
@@ -386,14 +397,15 @@ class ChangeDetailExportView(View):
 
         worksheet.write('A6', '商品名称', bold)
         worksheet.write('B6', '产品货号', bold)
-        worksheet.write('C6', '颜色', bold)
-        worksheet.write('D6', '规格', bold)
-        worksheet.write('E6', '图片', bold)
-        worksheet.write('F6', '购买数量', bold)
-        worksheet.write('G6', '入库数量', bold)
-        worksheet.write('H6', '次品数量', bold)
-        worksheet.write('I6', '单项价格', bold)
-        worksheet.write('J6', '总价', bold)
+        worksheet.write('C6', '选品备注', bold)
+        worksheet.write('D6', '颜色', bold)
+        worksheet.write('E6', '规格', bold)
+        worksheet.write('F6', '图片', bold)
+        worksheet.write('G6', '购买数量', bold)
+        worksheet.write('H6', '入库数量', bold)
+        worksheet.write('I6', '次品数量', bold)
+        worksheet.write('J6', '单项价格', bold)
+        worksheet.write('K6', '总价', bold)
 
         row = 6
         all_price = decimal.Decimal('0')
@@ -406,11 +418,13 @@ class ChangeDetailExportView(View):
                 'sale_product_id')) or {}
             product_link = sale_product_dict.get('product_link') or ''
             sku_outer_id = sale_product_dict.get('supplier_sku') or ''
+            memo = sale_product_dict.get('memo') or ''
 
             worksheet.write(row, 0, name)
             worksheet.write(row, 1, sku_outer_id.rsplit('-')[0])
-            worksheet.write(row, 2, color)
-            worksheet.write(row, 3, order_detail.product_chicun)
+            worksheet.write(row, 2, memo, text_wrap)
+            worksheet.write(row, 3, color)
+            worksheet.write(row, 4, order_detail.product_chicun)
             if pic_path:
                 opt = {'image_data':
                            io.BytesIO(urllib.urlopen(pic_path).read()),
@@ -419,21 +433,21 @@ class ChangeDetailExportView(View):
                 if product_link:
                     opt['url'] = product_link
                 worksheet.set_row(row, image_height)
-                worksheet.insert_image(row, 4, pic_path, opt)
+                worksheet.insert_image(row, 5, pic_path, opt)
 
-            worksheet.write(row, 5, order_detail.buy_quantity)
-            worksheet.write(row, 6, order_detail.arrival_quantity)
-            worksheet.write(row, 7, order_detail.inferior_quantity)
-            worksheet.write(row, 8, order_detail.buy_unitprice, money)
-            worksheet.write(row, 9, order_detail.total_price, money)
+            worksheet.write(row, 6, order_detail.buy_quantity)
+            worksheet.write(row, 7, order_detail.arrival_quantity)
+            worksheet.write(row, 8, order_detail.inferior_quantity)
+            worksheet.write(row, 9, order_detail.buy_unitprice, money)
+            worksheet.write(row, 10, order_detail.total_price, money)
             all_quantity += order_detail.buy_quantity
             all_price += decimal.Decimal(str(order_detail.total_price))
             row += 1
 
-        worksheet.write(row, 4, '总数:', bold)
-        worksheet.write(row, 5, all_quantity)
-        worksheet.write(row, 8, '总计:', bold)
-        worksheet.write(row, 9, order_list.order_amount, money)
+        worksheet.write(row, 5, '总数:', bold)
+        worksheet.write(row, 6, all_quantity)
+        worksheet.write(row, 9, '总计:', bold)
+        worksheet.write(row, 10, order_list.order_amount, money)
 
         row += 1
 
