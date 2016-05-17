@@ -1644,6 +1644,7 @@ class PackageSkuItem(BaseModel):
     sku_properties_name = models.CharField(max_length=256, blank=True,
                                            verbose_name=u'购买规格')
 
+    pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
     receiver_mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'收货手机')
     sale_trade_id = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'交易单号')
     out_sid = models.CharField(max_length=64, blank=True, verbose_name=u'物流编号')
@@ -1684,6 +1685,34 @@ class PackageSkuItem(BaseModel):
         else:
             return None
 
+    @property
+    def process_time(self):
+        if self.assign_status == PackageSkuItem.FINISHED:
+            return self.finish_time
+        elif self.assign_status == PackageSkuItem.ASSIGNED:
+            return self.assign_time 
+        elif self.assign_status == PackageSkuItem.CANCELED:
+            return self.cancel_time
+        return ''
+
+    @property
+    def package_group_key(self):
+        return '%s-%s-%s' % (self.assign_status,self.ware_by,self.out_sid)
+
+    @property
+    def ware_by_display(self):
+        return '广州/上海%s号仓' % self.ware_by
+
+    @property
+    def assign_status_display(self):
+        if self.status == PackageSkuItem.ASSIGNED:
+            return '验货完毕'
+        if self.status == PackageSkuItem.FINISHED:
+            return '已发货'
+        if self.status == PackageSkuItem.CANCELED:
+            return '已取消'
+        return '奉旨调货中...'
+    
     def set_assign_status_time(self):
         if self.assign_status == PackageSkuItem.FINISHED:
             self.finish_time = datetime.datetime.now()
