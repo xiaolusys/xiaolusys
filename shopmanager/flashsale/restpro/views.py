@@ -401,7 +401,7 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
                 if xlmms.exists():
                     xlmm = xlmms[0]
                     from_customer = Customer.objects.get(unionid=xlmm.openid)
-            except Customer.DoesNotExists:
+            except Customer.DoesNotExist:
                 logger.warn('appdownload customer not exist:')
                 return Response({'download_url': download_url})
             # 带上参数跳转到下载页面
