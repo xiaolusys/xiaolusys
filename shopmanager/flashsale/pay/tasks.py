@@ -284,9 +284,7 @@ def pull_Paid_SaleTrade(pre_day=1, interval=1):
     target = datetime.datetime.now() - datetime.timedelta(days=pre_day)
     pre_date = datetime.datetime(target.year, target.month, target.day)
     post_date = pre_date + datetime.timedelta(days=interval)
-
     pingpp.api_key = settings.PINGPP_APPKEY
-
     page_size = 50
     has_next = True
     starting_after = None
@@ -303,11 +301,12 @@ def pull_Paid_SaleTrade(pre_day=1, interval=1):
         e = None
         for e in resp['data']:
             # notifyTradePayTask.s(e)()
-            notifyTradePayTask(e)
-
+            try:
+                notifyTradePayTask(e)
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
         if e:
             starting_after = e['id']
-
         has_next = resp['has_more']
         if not has_next:
             break

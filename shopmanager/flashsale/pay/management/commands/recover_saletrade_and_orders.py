@@ -122,6 +122,7 @@ def update_address(addr_dict):
     return address
 
 import pingpp
+pingpp.api_key = settings.PINGPP_APPKEY
 
 def update_charge(charge_id):
     resp = pingpp.Charge.retrieve(charge_id)
