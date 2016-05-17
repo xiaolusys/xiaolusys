@@ -74,30 +74,24 @@ def get_or_create_customer(buyer_id):
     t_cursor = cus_conn.cursor()
     t_cursor.execute(
         "select %s from flashsale_customer where id=%d " % (','.join(BUYER_FIELDS), buyer_id))
-
     buyer_tuple = t_cursor.fetchone()
     buyer_dict = dict(zip(BUYER_FIELDS, buyer_tuple))
-
     t_cursor.execute(
         "select %s from auth_user where id=%d " % (','.join(USER_FIELDS), buyer_dict['user_id']))
     user_tuple = t_cursor.fetchone()
     user_dict = dict(zip(USER_FIELDS, user_tuple))
-
     t_cursor.close()
     cus_conn.close()
-
-    buyer = Customer.objects.filter(Q(unionid=buyer_dict['unionid'])|Q(mobile=buyer_dict['mobile'])).first()
+    buyer = Customer.objects.filter(unionid=buyer_dict['unionid']).first()
     if buyer:
         return buyer
-
-    user = User.objects.filter(Q(username=buyer_dict['unionid']) | Q(username=buyer_dict['mobile'])).first()
+    user = User.objects.filter(username=buyer_dict['unionid']).first()
     if not user:
         user = User()
         for k,v in user_dict.items():
             setattr(user,k,v)
         user.id = None
         user.save()
-
     buyer = Customer()
     for k,v in buyer_dict.items():
         setattr(buyer,k,v)
