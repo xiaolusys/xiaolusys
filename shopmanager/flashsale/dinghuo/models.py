@@ -415,9 +415,12 @@ class InBound(models.Model):
 
 class InBoundDetail(models.Model):
     NORMAL = 1
+    PROBLEM = 2
+
     OUT_ORDERING = 2
     ERR_ORDERING = 3
     ERR_OUT_ORDERING = 4
+
 
     inbound = models.ForeignKey(InBound, related_name='details', verbose_name=u'入库单')
     product = models.ForeignKey(Product, null=True, blank=True,
@@ -434,9 +437,7 @@ class InBoundDetail(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
-    status = models.SmallIntegerField(default=NORMAL,
-                                      choices=((NORMAL, u'正常'), (OUT_ORDERING, u'多订'), (ERR_ORDERING, u'错订'),
-                                               (ERR_OUT_ORDERING, u'多错订')), verbose_name=u'状态')
+    status = models.SmallIntegerField(default=NORMAL, choices=((NORMAL, u'已分配'), (PROBLEM, u'未分配')), verbose_name=u'状态')
     district = models.CharField(max_length=64, blank=True, verbose_name=u'库位')
 
     def __unicode__(self):

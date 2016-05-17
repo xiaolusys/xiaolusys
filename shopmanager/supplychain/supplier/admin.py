@@ -198,6 +198,7 @@ class SaleSupplierAdmin(ApproxAdmin):
                 "css/supplier_changelist.css")}
         js = ("js/admin/adminpopup.js", "js/supplier_change_list.js")
 
+    """
     def get_queryset(self, request):
         search_q = request.GET.get('q', '').strip()
         qs = super(SaleSupplierAdmin, self).get_queryset(request)
@@ -210,6 +211,7 @@ class SaleSupplierAdmin(ApproxAdmin):
 
         return qs.filter(
             models.Q(status=SaleSupplier.UNCHARGE) | models.Q(id__in=supplier_ids, status=SaleSupplier.CHARGED))
+    """
 
     def get_readonly_fields(self, request, obj=None):
 

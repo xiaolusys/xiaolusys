@@ -122,6 +122,10 @@
          #pics li .input-group {
              margin-bottom: 5px;
          }
+
+         .product-all-skus .checkbox {
+             display: inline-block;
+         }
         </style>
     </head>
     <body>
@@ -169,15 +173,40 @@
                                 <p>{{product.name}}</p>
                             </div>
                             <div class="col-md-6 skus">
-                                {% for sku in product.skus %}
-                                <div class="input-group">
-                                    <span class="input-group-addon">{{sku.properties_name}}</span>
-                                    <input type="number" class="form-control" data-sku-id="{{sku.id}}" data-product-id="{{product.id}}" style="width:60px" min="0">
+                                <div class="product-required-skus">
+                                    {% for sku in product.skus %}
+                                    {% if sku.is_required %}
+                                    <div class="input-group">
+                                        <span class="input-group-addon">{{sku.properties_name}}</span>
+                                        <input type="number" class="form-control" data-sku-id="{{sku.id}}" data-product-id="{{product.id}}" style="width:60px" min="0">
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
                                 </div>
-                                {% endfor %}
+                                <div class="product-all-skus">
+                                    {% for sku in product.skus %}
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" class="select-product-sku"
+                                                   data-sku-id="{{sku.id}}" data-product-id="{{product.id}}"{% if sku.is_required %} checked{%endif%}>{{sku.properties_name}}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </li>
                         {% endfor %}
+                        <li class="col-md-3 problem">
+                            <div class="col-md-6">
+                                <textarea rows="8" cols="16" placeholder="请填写错误描述..."></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">数量</span>
+                                    <input type="number" class="form-control" style="width:60px" min="0">
+                                </div>
+                            </div>
+                        </li>
                     </ul>
                 </div>
                 <div class="panel-footer" style="text-align:center">
@@ -267,7 +296,7 @@
                             </tr>
                             {{/each}}
                             {{/each}}
-                            <tr>
+                            <tr class="stats">
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -288,7 +317,6 @@
                         <div class="row">
                             <div class="col-md-6"></div>
                             <div class="col-md-3 btn-group">
-                                <a class="btn btn-danger" id="set-invalid">作废</a>
                                 <button class="btn btn-success" id="create-inbound">创建</button>
                             </div>
                         </div>
@@ -297,11 +325,33 @@
             </div>
         </script>
 
+        <script id="problem-sku-tpl" type="text/html">
+            <tr class="problem sku" data-sku-id="0" data-product-id="0">
+                <td>
+                    <textarea class="name" rows="3" cols="20">{{name}}</textarea>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <input type="number" class="arrival-quantity form-control" style="width:80px" min="0" value="{{quantity}}">
+                </td>
+                <td></td>
+                <td>
+                    <i class="glyphicon glyphicon-remove"></i>
+                </td>
+            </tr>
+        </script>
+
         <script id="panel-3-tpl" type="text/html">
             <div class="panel panel-default" id="panel-3">
                 <div class="panel-heading">
-                    订货单列表
-                    <button class="btn btn-primary matching" id="orderlists-toggle">展开</button>
+                    分配至订货单
+                    <button class="btn btn-primary matching" id="orderlists-toggle">展开所有Sku</button>
                 </div>
                 <form id="form-3">
                     <div class="panel-body">
@@ -414,6 +464,12 @@
                 待分配:<span class="{{class_name}}" data-sku-id="{{sku_id}}" style="color:#66cc33">{{n}}</span>
             </p>
         </script>
+        <script id="product-required-sku-tpl" type="text/html">
+            <div class="input-group">
+                <span class="input-group-addon">{{properties_name}}</span>
+                <input type="number" class="form-control" data-sku-id="{{id}}" data-product-id="{{productId}}" style="width:60px" min="0" value="{{value}}">
+            </div>
+        </script>
         {% endverbatim %}
         <script>
          var WARE_HOUSES = [
@@ -498,7 +554,9 @@
                  var arrivalQuantity, inferiorQuantity;
 
                  var $this = $(this);
-                 var skuId = parseInt($this.attr('data-sku-id'));
+                 var skuId = parseInt($this.attr('data-sku-id')) || 0;
+                 if(skuId <= 0)
+                     return;
                  var productId = parseInt($this.attr('data-product-id'));
                  var $tr = $(_.template('tr.sku[data-sku-id="<%= skuId %>"]')({skuId: skuId}), '#form-2');
                  var district = '';
@@ -537,12 +595,14 @@
                  var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
                  var inferiorQuantity = parseInt($this.find('.inferior-quantity').val()) || 0;
                  var district = $this.find('.district').last().val() || '';
+                 var name = $this.find('.name').val() || '';
 
                  if(!arrivalQuantity && !inferiorQuantity)
                      return;
                  inboundSkusDict[skuId] = {
                      productId: productId,
                      skuId: skuId,
+                     name: name,
                      arrival_quantity: arrivalQuantity,
                      inferior_quantity: inferiorQuantity,
                      district: district
@@ -554,10 +614,12 @@
 
          function setupForm2(inboundProducts){
              $('#panel-2').remove();
-             if(_.isEmpty(inboundProducts)){
-                 return;
-             }
              $('#panel-1').after(template('inbound-tpl', {products: inboundProducts, warehouses: WARE_HOUSES}));
+
+             var problemSkuName = _.trim($('.problem textarea', '#pics').val());
+             var problemSkuQuantity = parseInt($('.problem input[type="number"]', '#pics').val());
+             $('table tr.stats', '#form-2').before(template('problem-sku-tpl', {name: problemSkuName, quantity: problemSkuQuantity}));
+
              quantityChangeHandler('#form-2')();
              $('.portfolio-box img', '#form-2').popover({
                  html: true,
@@ -587,9 +649,15 @@
 
              $('.glyphicon-remove', '#form-2').click(function(){
                  var $tr = $(this).closest('tr');
-                 var skuId = parseInt($tr.attr('data-sku-id'));
-                 var tpl = _.template('input[type="number"][data-sku-id="<%= skuId %>"]');
-                 $(tpl({skuId: skuId}), '#pics').val(0);
+                 var skuId = parseInt($tr.attr('data-sku-id')) || 0;
+                 if(skuId > 0){
+                     var tpl = _.template('input[type="number"][data-sku-id="<%= skuId %>"]');
+                     $(tpl({skuId: skuId}), '#pics').val(0);
+                 }
+                 else{
+                     $('.problem textarea', '#pics').val('');
+                     $('.problem input[type="number"]').val('');
+                 }
                  var inboundProducts = buildInboundProducts(getPicSkusDict());
                  setupForm2(inboundProducts);
              });
@@ -720,7 +788,7 @@
                      return tpl({pic_path: $(this).attr('data-pic-path')});
                  }
              });
-             quantityChangeHandler('#form-3')();
+
              $('#form-3 input[type="number"]').change(quantityChangeHandler('#form-3'));
              var skuTpl = _.template('tr.sku[data-orderlist-id="<%= id %>"]');
              var introTpl = _.template('tr.intro[data-orderlist-id="<%= id %>"]');
@@ -781,6 +849,7 @@
                      $(prefix + ' .package-arrival-quantity', '#form-3').html(inboundSku.arrival_quantity - getQuantity(skuId));
                  });
              });
+             quantityChangeHandler('#form-3')();
          }
 
          function getOrderdetailsDict(){
@@ -874,13 +943,13 @@
                                  var $this = $(this);
                                  if($this.hasClass('matching')){
                                      $this.removeClass('matching').addClass('all');
-                                     $this.html('收起');
+                                     $this.html('隐藏无关Sku');
                                      setupForm3(orderlists);
                                      fillForm3(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
                                  }
                                  else{
                                      $this.removeClass('all').addClass('matching');
-                                     $this.html('展开');
+                                     $this.html('展开所有Sku');
                                      setupForm3(buildInboundOrderlists(orderlists, inbound.details));
                                      fillForm3(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
                                  }
@@ -913,6 +982,9 @@
                      var skuId = parseInt($this.attr('data-sku-id'));
                      var orderdetailId = parseInt($this.attr('data-orderdetail-id'));
 
+                     if(skuId <= 0)
+                         return;
+
                      if(_.isEmpty(skuData[skuId])){
                          skuData[skuId] = {
                              arrival_quantity: arrivalQuantity,
@@ -943,7 +1015,8 @@
                      }
                  });
 
-                 var errorSkuIds = _.difference(_.keys(inbound.details), _.keys(skuData));
+                 //var errorSkuIds = _.difference(_.keys(inbound.details), _.keys(skuData));
+                 var errorSkuIds = [];
                  _.each(_.intersection(_.keys(skuData), _.keys(inbound.details)), function(skuId){
                      if(skuData[skuId].arrival_quantity != inbound.details[skuId].arrival_quantity ||
                         skuData[skuId].inferior_quantity != inbound.details[skuId].inferior_quantity){
@@ -1063,6 +1136,29 @@
              });
              $('#pics').on('hidden.bs.collapse', function(){
                  $('#pics-toggle').html('展开');
+             });
+
+             $('.product-all-skus :checkbox').change(function(){
+                 var $skus = $(this).closest('.skus');
+                 var productSkus = [];
+                 var tpl = _.template('input[data-sku-id="<%= skuId %>"]');
+                 $skus.find('.product-all-skus').find(':checked').each(function(){
+                     var skuId = parseInt($(this).attr('data-sku-id'));
+                     var productId = parseInt($(this).attr('data-product-id'));
+                     skuDict = skusDict[skuId];
+                     productSkus.push({
+                         id: skuId,
+                         productId: productId,
+                         properties_name: skuDict.properties_name,
+                         value: $(tpl({skuId: skuId}), $skus).val()
+                     });
+                 });
+
+                 var $productRequiredSkus = $skus.find('.product-required-skus');
+                 $productRequiredSkus.html('');
+                 _.each(productSkus, function(productSku){
+                     $productRequiredSkus.append(template('product-required-sku-tpl', productSku));
+                 });
              });
          });
         </script>

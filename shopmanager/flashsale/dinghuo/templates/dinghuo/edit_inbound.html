@@ -147,6 +147,7 @@
                             <th>SkuID</th>
                             <th>尺寸</th>
                             <th>条码</th>
+                            <th>状态</th>
                             <th>正品</th>
                             <th>次品</th>
                             <th>库位</th>
@@ -190,6 +191,8 @@
                                 <a href="/admin/items/productsku/{{sku.id}}" target="_blank" title="Sku明细">
                                     {{sku.barcode}}
                                 </a>
+                            </td>
+                            <td>{{sku.status}}</td>
                             <td>
                                 <input type="number" class="arrival-quantity form-control"
                                        style="width:80px" min="0" value="{{sku.arrival_quantity}}">
@@ -207,7 +210,29 @@
                         </tr>
                         {% endfor %}
                         {% endfor %}
+                        {% if problem_sku %}
+                        <tr class="problem sku" data-sku-id="0" data-product-id="0">
+                            <td>
+                                <textarea class="name" rows="3" cols="20">{{problem_sku.name}}</textarea>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <input type="number" class="arrival-quantity form-control" style="width:80px" min="0" value="{{problem_sku.arrival_quantity}}">
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        {% endif %}
                         <tr>
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -262,8 +287,8 @@
         <script id="panel-2-tpl" type="text/html">
             <div class="panel panel-default" id="panel-2">
                 <div class="panel-heading">
-                    订货单列表
-                    <button class="btn btn-primary matching" id="orderlists-toggle">展开</button>
+                    分配至订货单
+                    <button class="btn btn-primary matching" id="orderlists-toggle">展开所有Sku</button>
                 </div>
                 <form id="form-2">
                     <div class="panel-body">
@@ -413,11 +438,13 @@
                  var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
                  var inferiorQuantity = parseInt($this.find('.inferior-quantity').val()) || 0;
                  var district = $this.find('.district').last().val() || '';
+                 var name = $this.find('.name').val() || '';
 
                  inboundSkusDict[skuId] = {
                      arrival_quantity: arrivalQuantity,
                      inferior_quantity: inferiorQuantity,
-                     district: district
+                     district: district,
+                     name: name
                  }
              });
              return inboundSkusDict;
@@ -466,7 +493,6 @@
                      return IMAGE_PREVIEW_TPL({pic_path: $(this).attr('data-pic-path')});
                  }
              });
-             quantityChangeHandler('#form-2')();
              $('#form-2 input[type="number"]').change(quantityChangeHandler('#form-2'));
 
              var skuTpl = _.template('tr.sku[data-orderlist-id="<%= id %>"]');
@@ -542,6 +568,7 @@
                      $(prefix + ' .package-inferior-quantity', '#form-2').html(inboundSku.inferior_quantity - getQuantity(skuId, 'inferior-quantity'));
                  });
              });
+             quantityChangeHandler('#form-2')();
          }
 
          function getOrderdetailsDict(){
@@ -659,6 +686,13 @@
                                              inferiorQuantity: record.inferior_quantity
                                          };
                                      });
+                                     if(_.isEmpty(orderdetailsDict)){
+                                         _.each(result.allocate_dict, function(arrivalQuantity, orderdetailId){
+                                             orderdetailsDict[orderdetailId] = {
+                                                 arrivalQuantity: arrivalQuantity
+                                             }
+                                         });
+                                     }
                                      setupForm2(buildInboundOrderlists(result.orderlists, inbound.details));
                                      fillForm2(orderdetailsDict, inbound.details, []);
 
@@ -668,13 +702,13 @@
                                          var $this = $(this);
                                          if($this.hasClass('matching')){
                                              $this.removeClass('matching').addClass('all');
-                                             $this.html('收起');
+                                             $this.html('隐藏无关Sku');
                                              setupForm2(result.orderlists);
                                              fillForm2(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
                                          }
                                          else{
                                              $this.removeClass('all').addClass('matching');
-                                             $this.html('展开');
+                                             $this.html('展开所有Sku');
                                              setupForm2(buildInboundOrderlists(result.orderlists, inbound.details));
                                              fillForm2(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
                                          }
@@ -746,8 +780,7 @@
                      }
                  });
 
-                 var errorSkuIds = _.union(_.difference(_.keys(skuData), _.keys(inbound.details)),
-                                           _.difference(_.keys(inbound.details), _.keys(skuData)));
+                 var errorSkuIds = _.difference(_.keys(skuData), _.keys(inbound.details));
                  $('tr.sku input.error', '#form-2').removeClass('error');
                  if(errorSkuIds && errorSkuIds.length > 0){
                      _.each(errorSkuIds, function(el){
@@ -766,7 +799,7 @@
                              else{
                                  swal('分配成功', '', 'success');
                                  updateInboundStatus(inbound.status);
-                                 window.location = '/admin/dinghuo/inbound/';
+                                 window.location = '/admin/dinghuo/inbound/?id='+inbound.id;
                              }
                          }
                      });
