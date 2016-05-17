@@ -48,7 +48,7 @@ class ChangeDetailView(View):
                     saleproduct = SaleProduct.objects.get(
                         id=product.sale_product)
                     order_dict['product_link'] = saleproduct.product_link or ''
-                    order_dict['supplier_outer_id'] = saleproduct.supplier_sku or ''
+                    order_dict['supplier_outer_id'] = saleproduct.supplier_sku or '#'
                     order_dict['memo'] = saleproduct.memo if saleproduct.orderlist_show_memo else ''
                 except:
                     pass
@@ -148,7 +148,7 @@ class ChangeDetailView(View):
                     saleproduct = SaleProduct.objects.get(
                         id=product.sale_product)
                     order_dict['product_link'] = saleproduct.product_link or ''
-                    order_dict['supplier_outer_id'] = saleproduct.supplier_sku or ''
+                    order_dict['supplier_outer_id'] = saleproduct.supplier_sku or '#'
                     order_dict['memo'] = saleproduct.memo if saleproduct.orderlist_show_memo else ''
                 except:
                     pass
