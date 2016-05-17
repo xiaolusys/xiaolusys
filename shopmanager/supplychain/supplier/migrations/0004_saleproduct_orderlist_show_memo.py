@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplier', '0002_buyergroup'),
+        ('supplier', '0003_salesupplier_return_goods_limit_days'),
     ]
 
     operations = [
