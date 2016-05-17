@@ -681,7 +681,7 @@ def task_saleorder_update_package_sku_item(sale_order):
         sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
         attrs = ['num', 'oid', 'package_order_id', 'title', 'price', 'sku_id',
                  'num', 'total_fee', 'payment', 'discount_fee', 'refund_status',
-                 'pay_time', 'status']
+                 'pay_time', 'status', 'pic_path']
         for attr in attrs:
             if hasattr(sale_order, attr):
                 val = getattr(sale_order, attr)
