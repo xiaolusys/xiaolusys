@@ -129,7 +129,7 @@ router_urls += format_suffix_patterns([
 ])
 
 # 2016-3-2 v2
-from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login
+from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login, views_packageskuitem
 from flashsale.restpro.v2 import views_trade_v2, views_product_v2
 
 
@@ -190,5 +190,6 @@ urlpatterns = patterns('',
     url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
     url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
     url(r'^lesson/', include(lesson_router.urls, namespace='lesson')),
-    url(r'^lesson/snsauth/', views_lesson.WeixinSNSAuthJoinView.as_view()),                       
+    url(r'^lesson/snsauth/', views_lesson.WeixinSNSAuthJoinView.as_view()),
+    url(r'^packageskuitem', views_packageskuitem.PackageSkuItemView.as_view()),
 )
