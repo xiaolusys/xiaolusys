@@ -5,6 +5,10 @@ from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon
 
 
 class CouponTemplateTestCase(TestCase):
+    fixtures = [
+        'test.flashsale.coupon.customer.json',
+        ''
+    ]
     def setUp(self):
         release_start_time = datetime.date.today()
         release_end_time = datetime.date.today() + datetime.timedelta(days=5)
