@@ -6,15 +6,15 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db.models import Q
 
-from flashsale.pay.models import SaleRefund
+from flashsale.pay.models import SaleRefund, SaleTrade, SaleOrder
 import logging
 
 logger = logging.getLogger(__name__)
 
-TMPDB_HOST = 'staging.xiaolumm.com'
+TMPDB_HOST = 'sale.huyi.so'
 TMPDB_PORT = 30001
 TMPDB_USER = 'qiyue'
-TMPDB_PWD = 'youni_2014qy'
+TMPDB_PWD = 'youni_2016qy'
 
 REFUND_FIELDS = ['created', 'modified', 'id', 'refund_no', 'trade_id', 'order_id', 'buyer_id', 'refund_id', 'charge',
                  'channel', 'item_id', 'title', 'ware_by', 'sku_id', 'sku_name', 'refund_num', 'buyer_nick', 'mobile',
@@ -43,6 +43,16 @@ def get_refund_list():
     refund_dict_list = []
     for trade in refund_tuples:
         refund_dict = dict(zip( REFUND_FIELDS, trade))
+
+        t_cursor.execute(
+            "select oid from flashsale_order where id=%d " % (refund_dict.pop('order_id')))
+        sorders = t_cursor.fetchone()
+
+        t_cursor.execute(
+            "select tid from flashsale_trade where id=%d " % (refund_dict.pop('trade_id')))
+        strades = t_cursor.fetchone()
+        print sorders,strades
+        refund_dict.update(tid=strades[0], oid=sorders[0])
         refund_dict_list.append(refund_dict)
 
     t_cursor.close()
@@ -58,14 +68,19 @@ class Command(BaseCommand):
         logger.debug('trade dict:%s' % refund_list[0])
 
         for refund_dict in refund_list:
-            srefund = SaleRefund.objects.filter(trade_id=refund_dict['trade_id'],
-                                                order_id=refund_dict['order_id']).first()
+            strade = SaleTrade.objects.get(tid=refund_dict['tid'])
+            sorder = SaleOrder.objects.get(oid=refund_dict['oid'])
+            srefund = SaleRefund.objects.filter(trade_id=strade.id,
+                                                order_id=sorder.id).first()
             if srefund:
                 continue
 
             srefund = SaleRefund()
             for k,v in refund_dict.items():
                 setattr(srefund,k,v)
+
+            srefund.trade_id = strade.id
+            srefund.order_id = sorder.id
             srefund.id = None
             srefund.save()
 
