@@ -1452,6 +1452,8 @@ class PackageOrder(models.Model):
         """
         if self.sys_status not in [PackageOrder.WAIT_PREPARE_SEND_STATUS,
                                    PackageOrder.PKG_NEW_CREATED] and self.is_picking_print:
+            if self.sys_status == PackageOrder.WAIT_SCAN_WEIGHT_STATUS:
+                self.sys_status = PackageOrder.WAIT_CHECK_BARCODE_STATUS
             self.redo_sign = True
             if save_data:
                 self.save()
