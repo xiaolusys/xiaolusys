@@ -10,11 +10,12 @@ Item:淘宝平台商品，
 import collections
 import datetime
 import json
-import logging
+import urlparse
 import re
 
 from django.db import models
 from django.db.models import Sum, Avg, F
+from django.conf import settings
 from django.db.models.signals import pre_save, post_save
 from django.forms.models import model_to_dict
 
@@ -32,6 +33,7 @@ from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
 
 from . import constants, managers
 
+import logging
 logger = logging.getLogger(__name__)
 
 APPROVE_STATUS = (
@@ -290,6 +292,10 @@ class Product(models.Model):
         if not self.is_watermark:
             return ''
         return image_watermark_cache.latest_qs or ''
+
+    def get_weburl(self):
+        return urlparse.urljoin(settings.M_SITE_URL,
+                                constants.MALL_PRODUCT_TEMPLATE_URL.format(self.model_id))
 
     def head_img(self):
         """ 获取商品款式 """
