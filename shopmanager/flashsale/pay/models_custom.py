@@ -429,10 +429,10 @@ class GoodShelf(PayBaseModel):
         return [
             {'id': 5, 'name': u'童装专区',
              'cat_img': 'http://7xogkj.com2.z0.glb.qiniucdn.com/category/child.png',
-             'cat_link': 'http://m.xiaolumeimei.com/chaotong.html?'},
+             'cat_link': '/mall/#/product/list/child'},
             {'id': 8, 'name': u'女装专区',
              'cat_img': 'http://7xogkj.com2.z0.glb.qiniucdn.com/category/lady.png',
-             'cat_link': 'http://m.xiaolumeimei.com/nvzhuang.html?'},
+             'cat_link': '/mall/#/product/list/lady'},
         ]
 
     def get_posters(self):
