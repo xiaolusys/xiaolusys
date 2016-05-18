@@ -259,19 +259,18 @@ def task_deliver_goods_later():
     try:
         import datetime
         today = datetime.date.today()
-        all_trade = MergeTrade.objects.filter(
-            sys_status__in=(MergeTrade.WAIT_PREPARE_SEND_STATUS,
-                            MergeTrade.WAIT_AUDIT_STATUS,
-                            MergeTrade.WAIT_CHECK_BARCODE_STATUS,
-                            MergeTrade.WAIT_SCAN_WEIGHT_STATUS,
-                            MergeTrade.REGULAR_REMAIN_STATUS)). \
-            filter(status=MergeTrade.WAIT_SELLER_SEND_GOODS)
-        all_trade = all_trade.filter(pay_time__gte=today - datetime.timedelta(days=5),
+        from flashsale.pay.models import SaleOrder
+        all_orders = SaleOrder.objects.filter(
+                status=SaleOrder.WAIT_SELLER_SEND_GOODS
+            )
+        all_orders = all_orders.filter(pay_time__gte=today - datetime.timedelta(days=5),
                                      pay_time__lt=today - datetime.timedelta(days=4))
-        for trade in all_trade:
-            already_send = SendLaterTrade.objects.filter(trade_id=trade.id, success=True)
+        for order in all_orders:
+            sale_trade = order.sale_trade
+            order_id = '%s%s'%(order.pay_time.strftime('%Y%m%d') ,sale_trade.id)
+            already_send = SendLaterTrade.objects.filter(trade_id=order_id, success=True)
             if already_send.count() == 0:
-                func2send_message(trade)
+                func2send_message(order)
     except Exception, exc:
         logger.error(exc.message or 'empty error', exc_info=True)
 
@@ -279,21 +278,19 @@ def task_deliver_goods_later():
 import random
 
 
-def func2send_message(trade):
+def func2send_message(sale_order):
     # 选择默认短信平台商，如果没有，任务退出
     try:
         platform = SMSPlatform.objects.get(is_default=True)
     except:
         return
     try:
+        trade = sale_order.sale_trade
         mobile = trade.receiver_mobile
         if not mobile or len(mobile) != 11:
             return
-        from shopback.trades.models import MergeOrder
-        all_order = trade.merge_orders.all().filter(sys_status=MergeOrder.NORMAL)
-        if all_order.count() == 0:
-            return
-        title = all_order[0].title.split("/")[0][0:6]
+
+        title = sale_order.title.split("/")[0][0:6]
 
         # content = random.choice([POST_CONTENT_SEND_LATER]).format(
         content = POST_CONTENT_SEND_LATER.format(title.encode('utf-8'))
@@ -326,7 +323,8 @@ def func2send_message(trade):
         success = False
 
         # 创建一条短信发送记录
-        sms_record = manager.create_record(params['mobile'], params['taskName'], SMS_NOTIFY_GOODS_LATER,
+        sms_record = manager.create_record(params['mobile'], params['taskName'],
+                                           SMS_NOTIFY_GOODS_LATER,
                                            params['content'])
         # 发送短信接口
         try:
