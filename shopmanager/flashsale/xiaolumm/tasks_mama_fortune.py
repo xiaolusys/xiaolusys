@@ -68,7 +68,7 @@ def task_cashout_update_mamafortune(mama_id):
                                               approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).first()
     pstr,astr = None,None
     if pending_record:
-        pstr = "%|%s" % (pending_record.id, pending_record.value)
+        pstr = "%s|%s" % (pending_record.id, pending_record.value)
     if appr_comp_record:
         astr = "%|%s" % (appr_comp_record.id, appr_comp_record.value)
     logger.warn("%s - mama_id: %s, pending: %s, appr_comp: %s" % (mama_id, pstr, astr))
