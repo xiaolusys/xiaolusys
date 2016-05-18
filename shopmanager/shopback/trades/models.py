@@ -1707,11 +1707,11 @@ class PackageSkuItem(BaseModel):
 
     @property
     def assign_status_display(self):
-        if self.status == PackageSkuItem.ASSIGNED:
+        if self.assign_status == PackageSkuItem.ASSIGNED:
             return '验货完毕'
-        if self.status == PackageSkuItem.FINISHED:
+        if self.assign_status == PackageSkuItem.FINISHED:
             return '已发货'
-        if self.status == PackageSkuItem.CANCELED:
+        if self.assign_status == PackageSkuItem.CANCELED:
             return '已取消'
         return '奉旨调货中...'
     
