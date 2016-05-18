@@ -71,7 +71,7 @@ def task_cashout_update_mamafortune(mama_id):
         pstr = "%s|%s" % (pending_record.id, pending_record.value)
     if appr_comp_record:
         astr = "%s|%s" % (appr_comp_record.id, appr_comp_record.value)
-    logger.warn("%s - mama_id: %s, pending: %s, appr_comp: %s" % (mama_id, pstr, astr))
+    logger.warn("%s - mama_id: %s, pending: %s, appr_comp: %s" % (get_cur_info(), mama_id, pstr, astr))
                                               
     pending_res = CashOut.objects.filter(xlmm=mama_id,status=CashOut.PENDING).aggregate(total=Sum('value'))
     pending_cash = pending_res['total'] or 0
