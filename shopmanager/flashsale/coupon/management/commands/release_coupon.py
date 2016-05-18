@@ -41,8 +41,7 @@ class Command(BaseCommand):
                   "the sale trade pay date is %s - %s." % (template, date_from, date_to)
 
             if isinstance(date_from, datetime.date) and isinstance(date_to, datetime.date):
-                packages = PackageSkuItem.objects.filter(assign_time__gte=date_from,
-                                                         assign_time__lt=date_to,
+                packages = PackageSkuItem.objects.filter(assign_time__range=(date_from, date_to),
                                                          assign_status=PackageSkuItem.FINISHED)
                 print "sku 包裹数量为%s" % packages.count()
                 count = 0

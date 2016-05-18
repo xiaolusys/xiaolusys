@@ -43,7 +43,7 @@ deploy:
       - docker rm -f celery 
       - docker run --name=celery -e TARGET=production --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program celery worker -A shopmanager --loglevel=ERROR -c 8 -Q default,peroid,async,notify,coupon,stats
       - docker rm -f celery-flower
-      - docker run --name=celery-flower -e TARGET=production -d -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest celery flower -A shopmanager --loglevel=ERROR
+      - docker run --name=celery-flower -e TARGET=production -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:5555:5555 -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest celery flower -A shopmanager --loglevel=ERROR
       - docker rm -f celerybeat
       - docker run --name=celerybeat -e TARGET=production -d registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py celery beat --loglevel=ERROR
   ssh:
