@@ -361,7 +361,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         for k, v in CONTENT.iteritems():
             params[k] = v
         timestamp = params.get('timestamp')
-        if not timestamp or time.time() - int(timestamp) > 3600:
+        if not timestamp or time.time() - int(timestamp) > 6 * 60 * 60:
+            logger.error('wxapp sign timeout: %s' % params)
             return False
         origin_sign = params.pop('sign')
         new_sign = gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)

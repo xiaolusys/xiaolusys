@@ -1,4 +1,7 @@
 # coding=utf-8
+import urlparse
+from django.conf import settings
+
 from flashsale.pay.models_custom import BrandEntry, BrandProduct
 from shopback.items.models import Product, ProductSku, ProductCategory
 from flashsale.pay.models import (
@@ -19,6 +22,7 @@ from flashsale.pay.models import (
 from shopback.trades.models import TradeWuliu
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
+from . import constants
 
 
 class RegisterSerializer(serializers.HyperlinkedModelSerializer):
@@ -161,13 +165,14 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     is_saleopen = serializers.BooleanField(source='sale_open', read_only=True)
     is_newgood = serializers.BooleanField(source='new_good', read_only=True)
     watermark_op = serializers.CharField(read_only=True)
+    web_url = serializers.CharField(source='get_weburl', read_only=True)
 
     class Meta:
         model = Product
         fields = ('id', 'url', 'name', 'outer_id', 'category', 'pic_path', 'remain_num', 'is_saleout', 'head_img',
                   'is_saleopen', 'is_newgood', 'std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 'memo',
                   'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id",
-                  'watermark_op')
+                  'watermark_op', 'web_url')
 
 
 class ProductSimpleSerializer(serializers.ModelSerializer):
