@@ -1037,7 +1037,7 @@
                          url: '/sale/dinghuo/inbound/allocate',
                          type: 'post',
                          dataType: 'json',
-                         data: {data: JSON.stringify(inboundData)},
+                         data: {data: JSON.stringify(inboundData), inbound_id: inbound.id},
                          success: function(result){
                              if(result.error){
                                  swal('错误', result.error, 'error');
