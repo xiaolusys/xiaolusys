@@ -13,7 +13,7 @@ class PackageSkuItemSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = PackageSkuItem
-        fields = ('title', 'pic_path', 'assign_status_display', 'ware_by_display', 'out_sid',
+        fields = ('title', 'pic_path', 'num', 'payment', 'assign_status_display', 'ware_by_display', 'out_sid',
                   'logistics_company_name', 'process_time', 'package_group_key')
 
 
