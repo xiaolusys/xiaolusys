@@ -17,6 +17,7 @@ class PackageSkuItemSerializer(serializers.ModelSerializer):
                   'logistics_company_name', 'logistics_company_code', 'process_time', 'package_group_key')
 
 
+
         
 
 
