@@ -17,8 +17,8 @@ class ProductSkuStats(models.Model):
     class Meta:
         db_table = 'shop_items_productskustats'
         app_label = 'items'
-        verbose_name = u'库存/商品统计数据'
-        verbose_name_plural = u'库存/商品统计数据列表'
+        verbose_name = u'SKU库存'
+        verbose_name_plural = u'SKU库存列表'
 
     STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
 
@@ -33,7 +33,7 @@ class ProductSkuStats(models.Model):
     return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货数')  #
     rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商货数')  #
     post_num = models.IntegerField(default=0, verbose_name=u'已发货数')  #
-    sold_num = models.IntegerField(default=0, verbose_name=u'已被购买数')  #
+    sold_num = models.IntegerField(default=0, verbose_name=u'购买数')  #
 
     shoppingcart_num = models.IntegerField(default=0, verbose_name=u'加入购物车数')  #
     waitingpay_num = models.IntegerField(default=0, verbose_name=u'等待付款数')  #
@@ -60,6 +60,10 @@ class ProductSkuStats(models.Model):
     @property
     def wait_assign_num(self):
         return self.sold_num - self.assign_num - self.post_num - self.rg_quantity
+
+    @property
+    def wait_order_num(self):
+        return self.sold_num - self.post_num - self.realtime_quantity
 
     @property
     def realtime_lock_num(self):

@@ -1672,8 +1672,8 @@ class PackageSkuItem(BaseModel):
     class Meta:
         db_table = 'flashsale_package_sku_item'
         app_label = 'trades'
-        verbose_name = u'sku包裹单'
-        verbose_name_plural = u'sku包裹单列表'
+        verbose_name = u'包裹sku项'
+        verbose_name_plural = u'包裹sku项列表'
 
     @property
     def sale_order(self):

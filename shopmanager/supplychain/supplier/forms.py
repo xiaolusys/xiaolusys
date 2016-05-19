@@ -20,7 +20,7 @@ class SaleSupplierForm(forms.ModelForm):
         super(SaleSupplierForm, self).__init__(*args, **kwargs)
         self.fields['supplier_zone'].choices = func_supplier_zone_list()
 
-    supplier_zone = forms.ChoiceField(label=u'供应商区域', required=True)
+        supplier_zone = forms.ChoiceField(label=u'供应商区域', required=True)
 
     supplier_name = forms.CharField(label=u'供应商', required=True)
     contact = forms.CharField(label=u'联系人',

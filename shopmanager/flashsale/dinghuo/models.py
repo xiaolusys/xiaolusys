@@ -1,7 +1,9 @@
 # -*- coding:utf-8 -*-
+import datetime
 from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import post_save
+from django.db.models import Sum
 from django.contrib.auth.models import User
 
 from core.fields import JSONCharMyField
@@ -285,27 +287,35 @@ class ReturnGoods(models.Model):
     VERIFY_RG = 1
     OBSOLETE_RG = 2
     DELIVER_RG = 3
+    REFUND_RG = 31
     SUCCEED_RG = 4
     FAILED_RG = 5
     MEMO_DEFAULT = u'\u6536\u4ef6\u4eba:\r\n\u624b\u673a/\u7535\u8bdd:\r\n\u6536\u4ef6\u5730\u5740:'
-    RG_STATUS = ((CREATE_RG, u"创建退货单"), (VERIFY_RG, u"审核通过"),
-                 (OBSOLETE_RG, u"作废退货单"), (DELIVER_RG, u"已发货退货单"),
+    RG_STATUS = ((CREATE_RG, u"新建"), (VERIFY_RG, u"已审核"), (OBSOLETE_RG, u"已作废"),
+                 (DELIVER_RG, u"已发货"), (REFUND_RG, u"待验退款"),
                  (SUCCEED_RG, u"退货成功"), (FAILED_RG, u"退货失败"))
-
-    product_id = models.BigIntegerField(db_index=True, verbose_name=u"退货商品id")
+    product_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u"退货商品id")
     supplier_id = models.IntegerField(db_index=True, verbose_name=u"供应商id")
-    return_num = models.IntegerField(default=0, verbose_name=u"退货数量")
-    sum_amount = models.FloatField(default=0.0, verbose_name=u"退货总金额")
-    noter = models.CharField(max_length=32, verbose_name=u"退货单录入人")
+    # supplier = models.ForeignKey(SaleSupplier, null=True, verbose_name=u"供应商")
+    return_num = models.IntegerField(default=0, verbose_name=u"退件总数")
+    sum_amount = models.FloatField(default=0.0, verbose_name=u"退款总额")
+    confirm_pic_url = models.URLField(blank=True, verbose_name=u"付款截图")
+    upload_time = models.DateTimeField(null=True, verbose_name=u"上传截图时间")
+    refund_fee = models.FloatField(default=0.0, verbose_name=u"客户退款额")
+    confirm_refund = models.BooleanField(default=False, verbose_name=u"退款额确认")
+    refund_confirmer_id = models.IntegerField(default=None, null=True, verbose_name=u"退款额确认人")
+    transactor_id = models.IntegerField(default=None, null=True, db_index=True, verbose_name=u"处理人id")
+    transaction_number = models.CharField(default='', max_length=64, verbose_name=u"交易单号")
+    noter = models.CharField(max_length=32, verbose_name=u"录入人")
     consigner = models.CharField(max_length=32, blank=True, verbose_name=u"发货人")
-    consign_time = models.DateTimeField(blank=True,
-                                        null=True,
-                                        verbose_name=u'发货时间')
-    sid = models.CharField(max_length=64, blank=True, verbose_name=u"发货物流单号")
-    status = models.IntegerField(default=0,
-                                 choices=RG_STATUS,
-                                 db_index=True,
-                                 verbose_name=u"退货状态")
+
+    consign_time = models.DateTimeField(blank=True, null=True, verbose_name=u'发货时间')
+    sid = models.CharField(max_length=64, null=True, blank=True, verbose_name=u"发货物流单号")
+    logistics_company_id = models.BigIntegerField(null=True, verbose_name='物流公司ID')
+    # logistics_company = models.ForeignKey(LogisticsCompany, null=True, blank=True, verbose_name=u'物流公司')
+    status = models.IntegerField(default=0, choices=RG_STATUS, db_index=True, verbose_name=u"状态")
+    REFUND_STATUS = ((0, u"未付"), (1, u"已完成"), (2, u"部分支付"), (3,u"已关闭"))
+    refund_status = models.IntegerField(default=0, choices=REFUND_STATUS, db_index=True, verbose_name=u"退款状态")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
     modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     memo = models.TextField(max_length=512,
@@ -316,11 +326,137 @@ class ReturnGoods(models.Model):
     class Meta:
         db_table = 'flashsale_dinghuo_returngoods'
         app_label = 'dinghuo'
-        verbose_name = u'商品库存退货表'
-        verbose_name_plural = u'商品库存退货列表'
+        verbose_name = u'仓库退货单'
+        verbose_name_plural = u'仓库退货单列表'
+
+    @property
+    def supplier(self):
+        if not hasattr(self, '_supplier_'):
+            self._supplier_ = SaleSupplier.objects.get(id=self.supplier_id)
+        return self._supplier_
+
+    @property
+    def sku_ids(self):
+        if not hasattr(self, '_sku_ids_'):
+            self._sku_ids_ = [i['skuid'] for i in self.rg_details.values('skuid')]
+        return self._sku_ids_
+    @property
+    def product_skus(self):
+        if not hasattr(self, '_product_skus_'):
+            self._product_skus_ = ProductSku.objects.filter(id__in=self.sku_ids)
+        return self._product_skus_
+
+    @property
+    def products(self):
+        if not hasattr(self, '_products_'):
+            self._products_ = Product.objects.filter(prod_skus__id__in=self.sku_ids).distinct()
+        return self._products_
+
+    @property
+    def logistics_company(self):
+        if not hasattr(self, '_logistics_company_'):
+            from shopback.logistics.models import LogisticsCompany
+            self._logistics_company_ = LogisticsCompany.objects.get(id=self.logistics_company_id)
+        return self._logistics_company_
+
+    def products_item_sku(self):
+        products = self.products
+        for sku in self.product_skus:
+            for product in products:
+                if sku.product_id == product.id:
+                    if not hasattr(product, 'detail_skus'):
+                        product.detail_skus = []
+                    product.detail_skus.append(sku)
+                    break
+                    continue
+        for product in products:
+            product.detail_sku_ids = [sku.id for sku in product.detail_skus]
+        for detail in self.rg_details.all():
+            for product in products:
+                if detail.skuid in product.detail_sku_ids:
+                    if not hasattr(product, 'detail_items'):
+                        product.detail_items = []
+                    product.detail_items.append(detail)
+            product.detail_length = len(product.detail_sku_ids)
+        return products
+    
+    @staticmethod
+    def generate(sku_dict, noter):
+        product_sku_dict = dict([(p.id, p) for p in ProductSku.objects.filter(id__in=sku_dict.keys())])
+        supplier = {}
+        for sku_id in product_sku_dict:
+            if sku_dict[sku_id] > 0:
+                sku = product_sku_dict[sku_id]
+                detail = RGDetail(
+                    skuid=sku_id,
+                    num=sku_dict[sku_id],
+                    price=sku.cost,
+                )
+                supplier_id = sku.product.sale_product_item.sale_supplier_id
+                if supplier_id not in supplier:
+                    supplier[supplier_id] = []
+                supplier[supplier_id].append(detail)
+        res = []
+        for supplier_id in supplier:
+            rg_details = supplier[supplier_id]
+            rg = ReturnGoods(supplier_id=supplier_id,
+                             noter=noter,
+                             return_num=sum([d.num for d in rg_details]),
+                             sum_amount=sum([d.num * d.price for d in rg_details])
+                             )
+            rg.save()
+            details = []
+            for detail in supplier[supplier_id]:
+                detail.return_goods = rg
+                detail.return_goods_id = rg.id
+                details.append(detail)
+            RGDetail.objects.bulk_create(details)
+            res.append(rg)
+        return res
+
+    def set_stat(self):
+        rg_details = self.rg_details.all()
+        self.return_num = sum([d.num for d in rg_details])
+        self.sum_amount = sum([d.num * d.price for d in rg_details])
+
+    def has_sent(self):
+        return self.status >= ReturnGoods.DELIVER_RG
+
+    def has_refund(self):
+        return self.status in [ReturnGoods.REFUND_RG, ReturnGoods.SUCCEED_RG]
+
+    def set_transactor(self, transactor):
+        self.transactor_id = User.objects.get(user_name=transactor).id
+        self.save()
+
+    def delivery_by(self, logistics_no, logistics_company_id, consigner):
+        self.sid = logistics_no
+        self.logistics_company_id = logistics_company_id
+        self.consigner = consigner
+        self.consign_time = datetime.datetime.now()
+        self.status = ReturnGoods.DELIVER_RG
+        self.save()
+
+    def supply_notify_refund(self):
+        """
+            供应商说他已经退款了
+        :return:
+        """
+        self.status = ReturnGoods.REFUND_RG
+        self.save()
+
+    def set_confirm_refund_status(self, refund_status=u'已完成'):
+        self.refund_status = dict([(r[1], r[0]) for r in ReturnGoods.REFUND_STATUS]).get(refund_status, 0)
+        if self.refund_status == 1:
+            self.status = ReturnGoods.REFUND_RG
+        self.save()
+
+    def set_fail_closed(self):
+        self.status = ReturnGoods.FAILED_RG
+        self.save()
 
     def __unicode__(self):
-        return u'<%s,%s>' % (self.supplier_id, self.product_id)
+        return u'<%s,%s>' % (self.supplier_id, self.id)
 
 
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
@@ -371,12 +507,14 @@ class RGDetail(models.Model):
         self.return_goods.sum_amount = total_amount
         self.return_goods.save()
 
+    @property
+    def product_sku(self):
+        return ProductSku.objects.get(id=self.skuid)
 
-def syncRGdTreturn(sender, instance, **kwargs):
+def sync_rgd_return(sender, instance, created, **kwargs):
     instance.sync_rg_field()
 
-
-post_save.connect(syncRGdTreturn, sender=RGDetail)
+post_save.connect(sync_rgd_return, sender=RGDetail, dispatch_uid='post_save_sync_rgd_return')
 
 
 class SaleInventoryStat(models.Model):

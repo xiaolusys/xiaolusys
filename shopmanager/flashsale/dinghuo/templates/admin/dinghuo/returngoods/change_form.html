@@ -1,0 +1,380 @@
+{% extends "admin/base_site_v2.html" %}
+{% load i18n admin_static admin_list %}
+{% load url from future %}
+{% load admin_urls %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+<link href="{{ STATIC_URL }}bootstrap-3.3.4-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+<link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
+{% if cl.formset %}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+{% endif %}
+{% if cl.formset or action_form %}
+{% url 'admin:jsi18n' as jsi18nurl %}
+<script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
+
+{% endif %}
+{{ media.css }}
+{% if not actions_on_top and not actions_on_bottom %}
+<style>
+    #changelist table thead th:first-child {width: inherit}
+</style>
+{% endif %}
+{% endblock %}
+
+{% block bodyclass %}change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; {{ app_label|capfirst|escape }}
+    &rsaquo; {{ opts.verbose_name }}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="form-row row-through">
+        <b>操作说明：</b><br/>
+        采购从商品库存页面利用冗余库存新建退货单。<br/>
+        采购审核退货单，确认件数/退回价格/备注无误，即可通过。(目前暂时供应商收件人放在备注中，注意确认)<br/>
+        审核完毕后开始发货,退货单进入已经发货状态。<br/>
+        供应商收到退货后进行退款，提供退货凭据。<br/>
+        采购点击退货完成，录入退货凭证。退货单退货成功。<br/>
+        退货成功同时，在财务的入账列表里新增记录，财务自行确认。（目前暂时未实现）<br/>
+    </div>
+    <fieldset class="module aligned ">
+        <div class="form-row row-through">
+            <div>
+                <label class="required" for="id_returngoods_id">退货单ID:</label>
+                <label class="simple-label">{{original.id}}</label>
+                <label class="required" for="supplier">供应商:</label>
+                <label class="simple-label">{{original.supplier.supplier_name}}</label>
+                <label class="required" for="id_return_num">退货数量:</label>
+                <label class="simple-label" id="id_return_num" name="return_num">{{original.return_num}}</label>
+                <label class="required" for="id_sum_amount">退货总金额:</label>
+                <label class="simple-label" id="id_sum_amount" name="sum_amount">{{original.sum_amount}}元</label>
+                <label class="required" for="id_noter">退货单录入人:</label>
+                <label class="simple-label" id="id_noter" name="noter">{{original.noter}}</label>
+            </div>
+        </div>
+        <div class="form-row row-through">
+            <div>
+                <label class="required" for="id_status">状态:</label>
+                <label class="simple-label" for="id_status">{{original.get_status_display}}</label>
+                {%if original.status == 0%}
+                <input type="button" class="btn-mini btn-success" id="id_btn_check" value="审核通过" />&nbsp;&nbsp;
+                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
+                {%elif original.status == 1%}
+                <button type="button" class="btn-mini btn-primary" data-toggle="modal" data-target="#myModal">
+                  已经发货
+                </button>
+                <!--%elif original.status == 3%-->
+                <!--<input type="button" class="btn-mini btn-success" id="id_btn_refund" value="已经退款"/>-->
+                {%elif original.status == 3%}
+                <input type="button" class="btn-mini btn-success" id="id_btn_success" value="退货成功"/>&nbsp;&nbsp;
+                <input type="button" class="btn-mini btn-success" id="id_btn_error" value="退货失败"/>&nbsp;&nbsp;
+                {%endif%}
+            </div>
+        </div>
+        <div class="form-row">
+            <div>
+                <label class="required" for="id_status">退货单详情:</label>
+                <div class="results">
+                    <table>
+                        <thead>
+                        <td>商品ID</td>
+                        <td>商品名称</td>
+                        <td>商品图片</td>
+                        <td>SKU ID</td>
+                        <td>SKU编码</td>
+                        <td>尺码</td>
+                        <td>库位</td>
+                        <td>退货数量</td>
+                        <td>单件退回价格</td>
+                        <td>操作</td>
+                        </thead>
+                        {%for products_item in original.products_item_sku%}
+                        {%for detail in products_item.detail_items%}
+                        <tr>
+
+                        {%if forloop.first%}
+                        <td rowspan={{products_item.detail_length}}>{{products_item.id}}</td>
+                        <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
+                        <td rowspan="{{products_item.detail_length}}">
+                            <div class="portfolio-box">
+                                <a href="{{products_item.product_link}}" target="_blank">
+                                    <img src="{{products_item.pic_path}}?imageView2/0/w/120" data-pic-path="{{products_item.pic_path}}" width="120px">
+                                </a>
+                            </div>
+                        </td>
+                        {%endif%}
+                        <td>{{detail.skuid}}</td>
+                        <td>{{detail.product_sku.BARCODE}}</td>
+                        <td>{{detail.product_sku.properties_name}}</td>
+                        <td>{{detail.product_sku.get_districts_code}}</td>
+                        <td id="td_num_{{detail.skuid}}"><label id="label_num_{{detail.skuid}}" class="show_sku_{{detail.skuid}}">{{detail.num}}</label>
+                            <input id="text_num_{{detail.skuid}}" class="edit_sku_{{detail.skuid}}" type="text" value="{{detail.num}}" style="display: none;width:42px"></td>
+                        <td id="td_price_{{detail.skuid}}"><label id="label_price_{{detail.skuid}}" class="show_sku_{{detail.skuid}}">{{detail.price}}</label>
+                            <input id="text_price_{{detail.skuid}}" class="edit_sku_{{detail.skuid}}" type="text" value="{{detail.price}}" style="display: none;width:42px"></td>
+                        <td>{%if original.status == 0%}
+                            <input type="button" class="btn-mini btn_modify" id="btn_modify_{{detail.skuid}}" value="修改"/>&nbsp;&nbsp;
+                            <input type="button" class="btn-mini btn_delete" id="btn_delete_{{detail.skuid}}" value="删除"/>{%endif%}
+                        </td>
+                        </tr>
+                        {%endfor%}
+                        {%endfor%}
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="form-row field-memo">
+            <div>
+                <label for="id_memo">备注:</label>
+                <textarea class="vLargeTextField" cols="40" id="id_memo" maxlength="512" name="memo" rows="10">{{original.memo}}</textarea>
+                {%if original.status == 0%}<input type="button" class="btn-mini btn-success" id="btn_edit_note" value="修改备注"/>{%endif%}
+            </div>
+        </div>
+        <!--<div class="dropdown">-->
+          <!--<button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
+            <!--{{original.transactor.username}}-->
+            <!--<span class="caret"></span>-->
+          <!--</button>-->
+          <!--<ul class="dropdown-menu" aria-labelledby="dLabel">-->
+            <!--<li>1</li>-->
+            <!--<li>2</li>-->
+            <!--<li>3</li>-->
+          <!--</ul>-->
+        <!--</div>-->
+        <div class="form-row field-memo">
+            <div>
+                <label for="id_transactor">负责人:</label>
+                <label class="simple-label" id="id_transactor">{{original.transactor.username}}</label>
+
+                <!--<input type="button" class="btn-mini" id="btn_change_transactor" value="修改"/>-->
+            </div>
+        </div>
+        {%if original.has_sent %}
+        <div class="form-row field-consigner">
+                <label for="id_consigner">发货人:</label>
+                <label class="simple-label" id="id_consigner" name="consigner">{{original.consigner}}</label>
+                <label for="label_sid">发货物流单号:</label>
+                <label class="simple-label" id="label_sid" name="sid">{{original.sid}}</label>
+                <label for="label_logistics_company">发货物流公司:</label>
+                <label class="simple-label" id="label_logistics_company" name="sid">{{original.logistics_company.name}}</label>
+                <label for="id_consign_time">发货时间:</label>
+                <label class="simple-label" id="id_consign_time" style="width:200px">{{original.consign_time|date:"Y-m-d H:i:s"}}</label>
+        </div>
+        {%endif%}
+        {%if original.has_refund%}
+        <div class="form-row field-memo">
+            <div>
+                <label for="id_refund_picture">付款证明图:</label>
+                <img id="id_refund_picture" src="id_refund_picture" alt="收款证明图"/>
+            </div>
+        </div>
+        {%endif%}
+        {%if original.has_refund%}
+        <div class="form-row field-memo">
+            <div>
+                <label for="id_refund_fee">收款额:</label>
+                <label class="simple-label" id="id_refund_fee">{{original.refund_fee}}</label>
+                <label for="id_transcation">交易单号:</label>
+                <label class="simple-label" id="id_transcation">{{original.transcation_id}}</label>
+                <label for="id_refund_confirmer">收款确认人</label>
+                <input type="button" class="btn-mini" id="btn_change_refund" value="修改"/>
+                <label class="simple-label" id="id_refund_confirmer">{{original.refund_fee}}</label>
+            </div>
+        </div>
+        {%endif%}
+    </fieldset>
+</div>
+<!-- Modal -->
+<div class="modal send" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">物流信息</h4>
+      </div>
+      <div class="modal-body">
+        <label for="id_logistics_no">物流单号</label>
+        <input type="text" id="id_logistics_no" value=""/>
+        <label for="id_logistics_company">物流公司</label>
+        <input type="text" id="id_logistics_company" value="韵达快递"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="btn_return_goods_send">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+    var id = {{original.id|default_if_none:"0"}};
+    function post_data_to_server(act, dom, id) {
+        // todo@hy 复制林杰的代码 待修改
+        if (dom.hasClass("loading")) {
+            return
+        }
+        dom.addClass("loading");
+        var url = "/sale/dinghuo/tuihuo/change_status/";
+        var data = {"act_str": act, "id": id};
+        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+        function callback(res) {
+            dom.removeClass("loading");
+            if (res == "True") {
+                //刷新当前页面
+                window.location.reload();
+            }
+        }
+    }
+    function modify_return_goods_sku(sku, id, num, price){
+        var url = "/sale/dinghuo/returngoods/modify_return_goods_sku/";
+        var data = {"sku_id": sku, "num":num, "price":price, "id": id};
+        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+        function callback(res) {
+            if (res == "True") {
+                window.location.reload();
+            }
+        }
+    }
+    function delete_return_goods_sku(sku, id){
+        var url = "/sale/dinghuo/returngoods/delete_return_goods_sku/";
+        var data = {"sku_id": sku, "id": id};
+        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+        function callback(res) {
+            if (res == "True") {
+                window.location.reload();
+            }
+        }
+    }
+    function set_refund(evt){
+        var dom = $("#btn_return_refund");
+        var url = "/sale/dinghuo/returngoods/set_refund/";
+        var data = {"id": id};
+        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+        function callback(res) {
+            if (res == "True") {
+                window.location.reload();
+            }
+        }
+    }
+    function set_return_goods_sku_send(dom, id, logistic_company, logistic_no){
+        var url = "/sale/dinghuo/returngoods/set_return_goods_sku_send/";
+        var data = {"id": id, "logistic_company":logistic_company,
+            "logistic_no": logistic_no
+        };
+        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+        function callback(res) {
+            if (res == "True") {
+                window.location.reload();
+            }
+        }
+    }
+    function send_return_goods(evt){
+        var dom = $("#btn_return_goods_send");
+        var logistic_company = $("#id_logistics_company").val();
+        var logistic_no = $("#id_logistics_no").val();
+        set_return_goods_sku_send(dom, id, logistic_company, logistic_no)
+    }
+    var return_check  = function(evt){
+        post_data_to_server("ok", $('#id_btn_check'), id);
+    }
+    var return_destory  = function(evt){
+        post_data_to_server("no", $('#id_btn_destroy'), id);
+    }
+    var return_send  = function(evt){
+        post_data_to_server("send", $('#id_btn_send'), id);
+    }
+    var return_success  = function(evt){
+        post_data_to_server("send_ok", $('#id_btn_success'), id);
+    }
+    var return_error = function(evt){
+        post_data_to_server("send_fail", $('#id_btn_error'), id);
+    }
+    var edit_note = function(evt){
+        var dom = $('#btn_edit_note');
+        if (dom.hasClass("loading")) {
+            return
+        }
+        var memo = $("#id_memo").val();
+        dom.addClass("loading");
+        var url = "/sale/dinghuo/returngoods/update_memo/";
+        var data = {"memo": memo, "id": id};
+        $.ajax({
+            "url": url,
+            "data": data,
+            "type": "post",
+            "success": callback
+            });
+            function callback(res) {
+                dom.removeClass("loading");
+                if (res == "True") {
+                    //刷新当前页面
+                    window.location.reload();
+                }
+            }
+        }
+
+    var edit_sku = function(evt){
+        var dom = evt.target;
+        var sku_id = dom.id.substring("btn_modify_".length,dom.id.length);
+        if ($("#"+dom.id).val()=="确认"){
+            num = $("#text_num_"+sku_id).val();
+            price = $("#text_price_"+sku_id).val();
+            modify_return_goods_sku(sku_id, id, num, price);
+        }
+        else{
+            $(".edit_sku_"+sku_id).show();
+            $(".show_sku_"+sku_id).hide();
+            $("#"+dom.id).val("确认");
+        }
+    }
+    var delete_sku = function(evt){
+        var dom = evt.target;
+        if ($("#"+dom.id).hasClass("loading")) {
+            return
+        }
+        $("#"+dom.id).addClass("loading");
+        var sku_id = dom.id.substring("btn_delete_".length,dom.id.length);
+        if(confirm("确认这个sku不需要退货吗？")){
+            delete_return_goods_sku(sku_id, id);
+        }
+    }
+    function showDialog(manager){
+        this.dialog = new goog.ui.Dialog();
+        this.orderManager = manager;
+        this.trade_id = null;
+        this.clickPos = null;
+    }
+
+
+    $(document).ready(function () {
+        $('#id_btn_check').click(return_check);
+        $('#id_btn_destroy').click(return_destory);
+        //$('#id_btn_send').click(return_send);
+        $('#btn_return_goods_send').click(send_return_goods);
+        //$('#id_btn_refund').click(set_refund);
+        $('#id_btn_success').click(return_success);
+        $('#id_btn_error').click(return_error);
+        $('#btn_edit_note').click(edit_note);
+        $('.btn_modify').click(edit_sku);
+        $('.btn_delete').click(delete_sku);
+        $('#set_return_goods_sku_send').click(set_return_goods_sku_send);
+    });
+
+</script>
+{% endblock %}
+
+
