@@ -1715,7 +1715,7 @@ class PackageSkuItem(BaseModel):
             return '已发货'
         if self.assign_status == PackageSkuItem.CANCELED:
             return '已取消'
-        return '奉旨调货中...'
+        return '外贸厂调货中...'
     
     def set_assign_status_time(self):
         if self.assign_status == PackageSkuItem.FINISHED:
