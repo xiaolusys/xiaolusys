@@ -1,23 +1,43 @@
 from django.contrib import admin
-from statistics.models import StatisticSaleNum
+from statistics.models import SaleOrderStatsRecord, SaleStats
 
 
-class StatisticSaleNumAdmin(admin.ModelAdmin):
+class SaleStatsAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'upper_grade',
-        'target_id',
-        'pay_date',
-        'uniq_id',
+        'parent_id',
+        'current_id',
+        'date_field',
+        'name',
+        'pic_path',
+        'num',
+        'payment',
+        'uni_key',
         'record_type',
-        'sale_num',
-        'sale_value',
-        'stock_out_num',
-        'before_post_ref_num',
-        'after_post_ref_num',
+        'status'
     )
 
-    list_filter = ('record_type', 'pay_date')
+    list_filter = ('record_type', 'date_field', 'status')
 
 
-admin.site.register(StatisticSaleNum, StatisticSaleNumAdmin)
+admin.site.register(SaleStats, SaleStatsAdmin)
+
+
+class SaleOrderStatsRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'oid',
+        'outer_id',
+        'sku_id',
+        'name',
+        'pic_path',
+        'num',
+        'payment',
+        'pay_time',
+        'date_field',
+        'status',
+        'return_goods'
+    )
+
+
+admin.site.register(SaleOrderStatsRecord, SaleOrderStatsRecordAdmin)
