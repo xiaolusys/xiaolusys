@@ -28,7 +28,7 @@ class SaleOrderStatsRecord(BaseModel):
 
     oid = models.CharField(max_length=40, unique=True, verbose_name=u'sale_order_oid')
     outer_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'外部编码')
-    sku_id = models.CharField(max_length=32, blank=True, verbose_name=u'规格外部编码')  # 实际保存的是 outer_sku_id
+    sku_id = models.CharField(max_length=32, blank=True, verbose_name=u'规格外部编码')  # 实际保存的是 outer_id + '/'+outer_sku_id
     name = models.CharField(max_length=64, verbose_name=u'商品SKU描述')  # title + sku_name
     pic_path = models.CharField(max_length=256, verbose_name=u'图片')
     num = models.IntegerField(default=0, verbose_name=u'数量')

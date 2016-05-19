@@ -276,7 +276,6 @@ def task_update_parent_sale_stats(sale_stats):
     parent_id = sale_stats.parent_id
     if not parent_id and sale_stats.record_type != SaleStats.TYPE_TOTAL:
         logger.error('task_update_parent_sale_stats: current id  is %s' % sale_stats.current_id)
-        print "current_id :", sale_stats.current_id, sale_stats.get_record_type_display()
         return
 
     stats = SaleStats.objects.filter(
