@@ -476,7 +476,9 @@
                         {% endif %}
                     </td>
                     <td width="70px">
-                        {{ order.wait_post_num }}
+                        <a href="/admin/dinghuo/orderdetail/{{order.id}}/" target="_blank">
+                            {{ order.wait_post_num }}
+                        </a>
                     </td>
                     <td width="90px">
                         <input type="number" class="form-control" min="0" value="0" name="arrived_num"

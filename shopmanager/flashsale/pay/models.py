@@ -675,6 +675,39 @@ class SaleOrder(PayBaseModel):
     def is_deposit(self):
         return self.outer_id.startswith('RMB')
 
+    def stats_not_pay(self):
+        return self.status == SaleOrder.TRADE_NO_CREATE_PAY or \
+               self.status == SaleOrder.WAIT_BUYER_PAY
+
+    def stats_paid(self):
+        return SaleOrder.WAIT_SELLER_SEND_GOODS <= self.status <= SaleOrder.TRADE_FINISHED and \
+               self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
+
+    def stats_cancel(self):
+        out_stock = False
+        refund = SaleRefund.objects.filter(id=self.refund_id).first()
+        if refund:
+            if refund.good_status == SaleRefund.SELLER_OUT_STOCK:
+                out_stock = True
+        return not out_stock and self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and \
+               (self.refund_status == SaleRefund.REFUND_WAIT_SELLER_AGREE or
+                self.refund_status == SaleRefund.REFUND_APPROVE)
+
+    def stats_out_stock(self):
+        out_stock = False
+        refund = SaleRefund.objects.filter(id=self.refund_id).first()
+        if refund:
+            if refund.good_status == SaleRefund.SELLER_OUT_STOCK:
+                out_stock = True
+        return out_stock and self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and \
+               (self.refund_status == SaleRefund.REFUND_WAIT_SELLER_AGREE or
+                self.refund_status == SaleRefund.REFUND_APPROVE)
+
+    def stats_return_goods(self):
+        return (SaleOrder.WAIT_BUYER_CONFIRM_GOODS <= self.status <= SaleOrder.TRADE_FINISHED) and (
+            self.refund_status == SaleRefund.REFUND_WAIT_SELLER_AGREE or
+            self.refund_status == SaleRefund.REFUND_APPROVE)
+
 
 def order_trigger(sender, instance, created, **kwargs):
     """
@@ -720,6 +753,14 @@ def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
 
 post_save.connect(saleorder_update_saletrade_status, sender=SaleOrder,
                   dispatch_uid='post_save_saleorder_update_saletrade_status')
+
+
+def saleorder_update_stats_record(sender, instance, *args, **kwargs):
+    from statistics.tasks import task_update_sale_order_stats_record
+    task_update_sale_order_stats_record.delay(instance)
+
+post_save.connect(saleorder_update_stats_record, sender=SaleOrder,
+                  dispatch_uid='post_save_saleorder_update_stats_record')
 
 
 class TradeCharge(PayBaseModel):
