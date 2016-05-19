@@ -167,6 +167,10 @@ def task_login_create_appdownloadrecord(user):
         return
 
     from_customer = fan.xlmm_cusid
+    record = AppDownloadRecord.objects.filter(from_customer=from_customer,mobile=mobile).first()
+    if record:
+        return
+    
     record = AppDownloadRecord(from_customer=from_customer,status=AppDownloadRecord.USED,mobile=mobile)
     logger.warn("task_login_create_appdownloadrecord|from_customer:%s, mobile:%s" % (from_customer, mobile))
     record.save()
