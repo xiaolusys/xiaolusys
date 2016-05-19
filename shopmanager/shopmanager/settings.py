@@ -549,6 +549,7 @@ if not DEBUG:
     
 if os.environ.get('TARGET') in ('staging','django18', 'alpha'):
     CELERY_ALWAYS_EAGER = True
+    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
     M_STATIC_URL = '/static/wap/'
 
 try:
