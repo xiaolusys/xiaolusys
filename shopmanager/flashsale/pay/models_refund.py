@@ -63,11 +63,13 @@ class SaleRefund(PayBaseModel):
     BUYER_NOT_RECEIVED = 0
     BUYER_RECEIVED = 1
     BUYER_RETURNED_GOODS = 2
+    SELLER_OUT_STOCK = 3
 
     GOOD_STATUS_CHOICES = (
         (BUYER_NOT_RECEIVED, '买家未收到货'),
         (BUYER_RECEIVED, '买家已收到货'),
         (BUYER_RETURNED_GOODS, '买家已退货'),
+        (SELLER_OUT_STOCK, '卖家缺货'),
     )
 
     id = models.AutoField(primary_key=True, verbose_name='ID')
