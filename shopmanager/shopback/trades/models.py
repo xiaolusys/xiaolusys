@@ -1391,6 +1391,7 @@ class PackageOrder(models.Model):
         for sku_item in package_sku_items:
             sku_item.out_sid = self.out_sid
             sku_item.logistics_company_name = self.logistics_company.name
+            sku_item.logistics_company_code = self.logistics_company.code
             sku_item.assign_status = PackageSkuItem.FINISHED
             sku_item.set_assign_status_time()
             sku_item.save()
@@ -1649,8 +1650,9 @@ class PackageSkuItem(BaseModel):
     pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
     receiver_mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'收货手机')
     sale_trade_id = models.CharField(max_length=40, null=True, db_index=True, verbose_name=u'交易单号')
-    out_sid = models.CharField(max_length=64, blank=True, verbose_name=u'物流编号')
+    out_sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流编号')
     logistics_company_name = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司')
+    logistics_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司代码')
 
     
     class Meta:
