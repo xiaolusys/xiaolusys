@@ -42,11 +42,14 @@ def task_statistics_product_sale_num(sale_time_left, sale_time_right, category):
     )
 
     data = {}
+
+    order_time_right = datetime.datetime.strptime(sale_time_right, '%Y-%m-%d') + datetime.timedelta(days=3)
+
     item_id_annotate = SaleOrder.objects.filter(status__gte=2,
                                                 status__lte=5,
                                                 refund_status=0).filter(
         created__gte=sale_time_left,
-        created__lte=sale_time_right).values('item_id').annotate(pro_sale_num=Sum('num'))  # 没有退款的订单 按照产品id分组
+        created__lte=order_time_right).values('item_id').annotate(pro_sale_num=Sum('num'))  # 没有退款的订单 按照产品id分组
 
     for product in products_info:
         order_sales = item_id_annotate.filter(item_id=product.id)
