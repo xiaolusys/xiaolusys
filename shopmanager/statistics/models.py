@@ -33,7 +33,7 @@ class SaleOrderStatsRecord(BaseModel):
     pic_path = models.CharField(max_length=256, verbose_name=u'图片')
     num = models.IntegerField(default=0, verbose_name=u'数量')
     payment = models.FloatField(default=0, verbose_name=u'实付款')
-    pay_time = models.DateTimeField(verbose_name=u'付款时间')
+    pay_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'付款时间')
     date_field = models.DateField(db_index=True, null=True, blank=True, verbose_name=u'日期')
     status = models.IntegerField(choices=STATUS, db_index=True, verbose_name=u'状态')
     return_goods = models.IntegerField(default=NO_RETURN, choices=RETURN_CHOICES, verbose_name=u'退货标记')
