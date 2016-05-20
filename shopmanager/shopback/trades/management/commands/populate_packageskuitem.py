@@ -21,8 +21,8 @@ class Command(BaseCommand):
                 update_fields.append('receiver_mobile')
                 item.sale_trade_id = sale_order.sale_trade.tid
                 update_fields.append('sale_trade_id')
-            package_order = PackageOrder.objects.filter(pid=item.package_order_pid)
-            if package_order:
+            package_order = PackageOrder.objects.filter(pid=item.package_order_pid).first()
+            if package_order and package_order.out_sid:
                 item.out_sid = package_order.out_sid
                 update_fields.append('out_sid')
                 item.logistics_company_name = package_order.logistics_company.name

@@ -15,22 +15,14 @@ class Command(BaseCommand):
         for item in items:
             id = item.sale_order_id
             sale_order = SaleOrder.objects.filter(id=id).first()
-            update_fields = []
+            params = {}
             if sale_order:
                 if not item.oid:
-                    item.oid = sale_order.oid
-                    update_fields.append('oid')
-                item.receiver_mobile = sale_order.sale_trade.receiver_mobile
-                update_fields.append('receiver_mobile')
-                item.sale_trade_id = sale_order.sale_trade.tid
-                update_fields.append('sale_trade_id')
-            package_order = PackageOrder.objects.filter(pid=item.package_order_pid)
-            if package_order:
-                item.out_sid = package_order.out_sid
-                update_fields.append('out_sid')
-                item.logistics_company_name = package_order.logistics_company.name
-                update_fields.append('logistics_company_name')
-                item.logistics_company_code = package_order.logistics_company.code
-                update_fields.append('logistics_company_code')
-            if update_fields:
-                item.save(update_fields=update_fields)
+                    params.update({'oid':sale_order.oid})
+                params.update({'receiver_mobile':sale_order.sale_trade.receiver_mobile, 'sale_trade_id':sale_order.sale_trade.tid})
+            package_order = PackageOrder.objects.filter(pid=item.package_order_pid).first()
+            if package_order and package_order.out_sid:
+                params.update({'out_sid':package_order.out_sid, 'logistics_company_name':package_order.logistics_company.name, 'logistics_company_code':package_order.logistics_company.code})
+
+            PackageSkuItem.objects.filter(id=item.id).update(**params)
+
