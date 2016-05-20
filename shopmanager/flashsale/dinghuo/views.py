@@ -1906,8 +1906,74 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 msg = u'更新状态为 %s' % orderlist_status_dict[status]
                 log_action(request.user.id, orderlist, CHANGE, msg)
 
+
     @list_route(methods=['post'])
     def allocate(self, request):
+        from shopback.items.tasks import releaseProductTradesTask
+
+        now = datetime.datetime.now()
+        data = json.loads(request.POST.get('data') or '[]')
+        inbound_id = int(request.POST['inbound_id'])
+        inbound = InBound.objects.get(id=inbound_id)
+
+        skus_dict = {}
+        for item in data:
+            sku_id = item['sku_id']
+            sku_dict = skus_dict.setdefault(sku_id, {
+                'arrival_quantity': 0
+            })
+            sku_dict['arrival_quantity'] += item['arrival_quantity']
+
+
+        # 检查分配数量和入仓数量是否一致
+        for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
+            sku_id = inbounddetail.sku_id
+            if sku_id not in skus_dict:
+                continue
+            if inbounddetail.arrival_quantity != skus_dict[sku_id]['arrival_quantity']:
+                return Response({'error': '分配数量和入仓数量不一致'})
+
+        # 创建分配记录, 修改ProductSku的quantity
+        orderlist_ids = set()
+        outer_ids = set()
+        for item in data:
+            inbounddetail = InBoundDetail.objects.get(id=item['inbounddetail_id'])
+            orderdetail = OrderDetail.objects.get(id=item['orderdetail_id'])
+            sku = inbounddetail.sku
+            arrival_quantity = item['arrival_quantity']
+            if arrival_quantity == 0:
+                continue
+
+            orderlist_ids.add(orderdetail.orderlist_id)
+            outer_ids.add(sku.product.outer_id)
+
+            record = OrderDetailInBoundDetail(
+                orderdetail=orderdetail,
+                inbounddetail=inbounddetail,
+                arrival_quantity=arrival_quantity,
+                inferior_quantity=0
+            )
+            record.save()
+
+            if item['arrival_quantity'] > 0:
+                sku.quantity += item['arrival_quantity']
+                sku.save()
+                log_action(request.user.id, sku, CHANGE, u'分配入仓单%d: 更新库存%+d' %
+                           (inbound.id, item['arrival_quantity']))
+
+        orderlist_ids = sorted(orderlist_ids)
+        inbound.orderlist_ids = orderlist_ids
+        inbound.save()
+
+        if orderlist_ids:
+            self.update_orderlist(request, orderlist_ids)
+        if outer_ids:
+            releaseProductTradesTask.delay(list(outer_ids))
+        return Response({'inbound': {'id': inbound.id}})
+
+
+    @list_route(methods=['post'])
+    def reallocate(self, request):
         from shopback.items.tasks import releaseProductTradesTask
 
         now = datetime.datetime.now()
@@ -1925,117 +1991,45 @@ class InBoundViewSet(viewsets.GenericViewSet):
             sku_dict['arrival_quantity'] += item['arrival_quantity']
             sku_dict['inferior_quantity'] += item['inferior_quantity']
 
-        orderlist_ids = set()
-        inbounddetails_dict = {}
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
-            inbounddetails_dict[inbounddetail.sku_id] = inbounddetail
-            for record in inbounddetail.records.filter(
-                    status=OrderDetailInBoundDetail.NORMAL):
-                inbounddetail = record.inbounddetail
-                orderdetail = record.orderdetail
-                if record.arrival_quantity:
-                    orderdetail.arrival_quantity -= record.arrival_quantity
-                    orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE,
-                               u'修改入仓单%d: 更新入库数%+d' %
-                               (inbound.id, record.arrival_quantity))
+            sku_id = inbounddetail.sku_id
+            if sku_id not in skus_dict:
+                continue
+            arrival_quantity = skus_dict[sku_id]['arrival_quantity']
+            inferior_quantity = skus_dict[sku_id]['inferior_quantity']
 
-                    sku = inbounddetail.sku
-                    sku.quantity -= record.arrival_quantity
-                    sku.save()
-                    log_action(request.user.id, sku, CHANGE, u'修改入仓单%d: 更新库存%+d'
-                               % (inbound.id, 0 - record.arrival_quantity))
-                if record.inferior_quantity:
-                    orderdetail.inferior_quantity -= record.inferior_quantity
-                    orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE,
-                               u'修改入仓单%d: 更新次品数%+d' %
-                               (inbound.id, record.inferior_quantity))
-                orderlist_ids.add(orderdetail.orderlist_id)
-                record.status = OrderDetailInBoundDetail.INVALID
-                record.save()
+            if (inbounddetail.arrival_quantity + inbounddetail.inferior_quantity) != (arrival_quantity + inferior_quantity):
+                return Response({'error': '分配数量和入仓数量不一致'})
 
-        InBoundDetail.objects.filter(inbound=inbound).update(
-            status=InBoundDetail.PROBLEM)
-        self.update_orderlist(request, list(orderlist_ids))
-
+        # 更新分配记录, 修改ProductSku的quantity
         orderlist_ids = set()
         outer_ids = set()
-        for sku_id, sku_dict in skus_dict.iteritems():
-            if sku_id in inbounddetails_dict:
-                continue
-            sku = ProductSku.objects.select_related('product').get(id=sku_id)
-            product = sku.product
-            outer_ids.add(product.outer_id)
-            inbounddetail = InBoundDetail(
-                inbound=inbound,
-                product=product,
-                sku=sku,
-                product_name=product.name,
-                outer_id=product.outer_id,
-                properties_name=sku.properties_name or sku.properties_alias or
-                '',
-                arrival_quantity=sku_dict['arrival_quantity'],
-                inferior_quantity=sku_dict['inferior_quantity'])
-            inbounddetail.save()
-            inbounddetails_dict[sku_id] = inbounddetail
-
         for item in data:
-            if not item.get('inbounddetail_id'):
-                inbounddetail = inbounddetails_dict[item['sku_id']]
-            else:
-                inbounddetail = InBoundDetail.objects.get(
-                    id=item['inbounddetail_id'])
-
-            sku_dict = skus_dict.get(inbounddetail.sku.id) or {}
-            inbounddetail.arrival_quantity = sku_dict.get('arrival_quantity') or 0
-            inbounddetail.inferior_quantity = sku_dict.get('inferior_quantity') or 0
-            inbounddetail.status = InBoundDetail.NORMAL
-            inbounddetail.save()
+            inbounddetail = InBoundDetail.objects.get(id=item['inbounddetail_id'])
             orderdetail = OrderDetail.objects.get(id=item['orderdetail_id'])
-
-            record = OrderDetailInBoundDetail(
-                orderdetail=orderdetail,
-                inbounddetail=inbounddetail,
-                arrival_quantity=item['arrival_quantity'],
-                inferior_quantity=item['inferior_quantity'])
-            record.save()
-
-            if not inbound:
-                inbound = inbounddetail.inbound
-
             sku = inbounddetail.sku
-            if item['arrival_quantity']:
-                orderdetail.arrival_quantity += item['arrival_quantity']
-                orderdetail.arrival_time = now
-                orderdetail.save()
-                log_action(request.user.id, orderdetail, CHANGE,
-                           u'分配入仓单%d: 更新入库数%+d' %
-                           (inbound.id, item['arrival_quantity']))
-                sku.quantity += item['arrival_quantity']
+
+            record = OrderDetailInBoundDetail.objects.get(inbounddetail=inbounddetail, orderdetail=orderdetail)
+            arrival_quantity = item['arrival_quantity']
+            inferior_quantity = item['inferior_quantity']
+            if arrival_quantity == 0 and inferior_quantity == 0:
+                continue
+
+            orderlist_ids.add(orderdetail.orderlist_id)
+            outer_ids.add(sku.product.outer_id)
+
+            delta = record.arrival_quantity - arrival_quantity
+            if delta != 0:
+                sku.quantity += delta
                 sku.save()
                 log_action(request.user.id, sku, CHANGE, u'分配入仓单%d: 更新库存%+d' %
-                           (inbound.id, item['arrival_quantity']))
+                           (inbound.id, delta))
 
-            if item['inferior_quantity']:
-                orderdetail.inferior_quantity += item['inferior_quantity']
-                orderdetail.save()
-                log_action(request.user.id, orderdetail, CHANGE,
-                           u'分配入仓单%d: 更新次品数%+d' %
-                           (inbound.id, item['inferior_quantity']))
-            orderlist_ids.add(orderdetail.orderlist_id)
-
-        if inbound:
-            inbound.orderlist_ids = list(orderlist_ids)
-            is_completed = True
-            for inbounddetail in inbound.details.all():
-                if inbounddetail.arrival_quantity > 0 and inbounddetail.status == InBoundDetail.PROBLEM:
-                    is_completed = False
-            if is_completed:
-                inbound.status = InBound.COMPLETED
-            inbound.save()
+            record.arrival_quantity = arrival_quantity
+            record.inferior_quantity = inferior_quantity
+            record.save()
         if orderlist_ids:
-            self.update_orderlist(request, list(orderlist_ids))
+            self.update_orderlist(request, sorted(orderlist_ids))
         if outer_ids:
             releaseProductTradesTask.delay(list(outer_ids))
         return Response({'inbound': {'id': inbound.id}})
@@ -2179,18 +2173,19 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 orderlist_id__in=orderlist_ids).order_by('id'):
             if orderdetail.orderlist_id not in orderlists_dict:
                 orderlist = orderdetail.orderlist
+                buyer_name = '未知'
                 if orderlist.buyer_id:
                     buyer_name = '%s%s' % (orderlist.buyer.last_name,
                                            orderlist.buyer.first_name)
                     buyer_name = buyer_name or orderlist.buyer.username
-                    orderlist_dict = {
-                        'id': orderlist.id,
-                        'buyer_name': buyer_name,
-                        'created': orderlist.created.strftime('%y年%m月%d'),
-                        'status': status_mapping.get(orderlist.status) or '未知',
-                        'products': {}
-                    }
-                    orderlists_dict[orderlist.id] = orderlist_dict
+                orderlist_dict = {
+                    'id': orderlist.id,
+                    'buyer_name': buyer_name,
+                    'created': orderlist.created.strftime('%y年%m月%d'),
+                    'status': status_mapping.get(orderlist.status) or '未知',
+                    'products': {}
+                }
+                orderlists_dict[orderlist.id] = orderlist_dict
             else:
                 orderlist_dict = orderlists_dict[orderlist.id]
 
@@ -2371,7 +2366,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'status': inbound.status,
                 'created': inbound.created.strftime('%y年%m月%d %H:%M:%S'),
                 'creator': self.get_username(inbound.creator),
-                'orderlist_ids': inbound.orderlist_ids,
+                'orderlist_ids': sorted(inbound.orderlist_ids),
                 'express_no': inbound.express_no
             }
         }
@@ -2502,40 +2497,34 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def set_invalid(self, request, pk=None):
+        from shopback.items.tasks import releaseProductTradesTask
         inbound = InBound.objects.get(id=pk)
-
         if inbound.status == InBound.INVALID:
             return Response({'error': '已经作废'})
 
         orderlist_ids = set()
+        outer_ids = set()
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
-            for record in inbounddetail.records.filter(
-                    status=OrderDetailInBoundDetail.NORMAL):
+            for record in inbounddetail.records.filter(status=OrderDetailInBoundDetail.NORMAL):
                 inbounddetail = record.inbounddetail
                 orderdetail = record.orderdetail
-                if record.arrival_quantity:
-                    orderdetail.arrival_quantity -= record.arrival_quantity
-                    orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE,
-                               u'作废入仓单%d: 更新入库数%+d' %
-                               (inbound.id, record.arrival_quantity))
+                sku = inbounddetail.sku
 
-                    sku = inbounddetail.sku
+                orderlist_ids.add(orderdetail.orderlist_id)
+                outer_ids.add(sku.product.outer_id)
+
+                if record.arrival_quantity > 0:
                     sku.quantity -= record.arrival_quantity
                     sku.save()
                     log_action(request.user.id, sku, CHANGE, u'作废入仓单%d: 更新库存%+d'
                                % (inbound.id, 0 - record.arrival_quantity))
-                if record.inferior_quantity:
-                    orderdetail.inferior_quantity -= record.inferior_quantity
-                    orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE,
-                               u'作废入仓单%d: 更新次品数%+d' %
-                               (inbound.id, record.inferior_quantity))
-                orderlist_ids.add(orderdetail.orderlist_id)
                 record.status = OrderDetailInBoundDetail.INVALID
                 record.save()
 
-        self.update_orderlist(request, list(orderlist_ids))
+        if orderlist_ids:
+            self.update_orderlist(request, list(orderlist_ids))
+        if outer_ids:
+            releaseProductTradesTask.delay(list(outer_ids))
         inbound.status = InBound.INVALID
         inbound.save()
         log_action(request.user.id, inbound, CHANGE, u'作废')
@@ -2552,108 +2541,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
         orderlists = self._find_orderlists(inbound_skus.keys())
         return Response({'orderlists': orderlists})
-
-    def update(self, request, pk=None):
-        inbound_skus = json.loads(request.data['inbound_skus'])
-        inbound = InBound.objects.get(id=pk)
-
-        if inbound.status == InBound.INVALID:
-            return Response({'error': '作废入仓单不能修改'})
-
-        records_dict = {}
-        orderlist_ids = set()
-        for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
-            for record in inbounddetail.records.filter(
-                    status=OrderDetailInBoundDetail.NORMAL):
-                inbounddetail = record.inbounddetail
-                orderdetail = record.orderdetail
-
-                records_dict[orderdetail.id] = {
-                    'arrival_quantity': record.arrival_quantity,
-                    'inferior_quantity': record.inferior_quantity
-                }
-                if record.arrival_quantity:
-                    orderdetail.arrival_quantity -= record.arrival_quantity
-                    orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE,
-                               u'修改入仓单%d: 更新入库数%+d' %
-                               (inbound.id, record.arrival_quantity))
-
-                    sku = inbounddetail.sku
-                    sku.quantity -= record.arrival_quantity
-                    sku.save()
-                    log_action(request.user.id, sku, CHANGE, u'修改入仓单%d: 更新库存%+d'
-                               % (inbound.id, 0 - record.arrival_quantity))
-                if record.inferior_quantity:
-                    orderdetail.inferior_quantity -= record.inferior_quantity
-                    orderdetail.save()
-                    log_action(request.user.id, orderdetail, CHANGE,
-                               u'修改入仓单%d: 更新次品数%+d' %
-                               (inbound.id, record.inferior_quantity))
-                orderlist_ids.add(orderdetail.orderlist_id)
-                record.status = OrderDetailInBoundDetail.INVALID
-                record.save()
-
-        InBoundDetail.objects.filter(inbound=inbound).update(status=InBoundDetail.PROBLEM)
-        self.update_orderlist(request, list(orderlist_ids))
-
-        inbound_skus_dict = {int(k): v for k, v in inbound_skus.iteritems()}
-        inbounddetails_dict = {}
-        for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
-            inbounddetails_dict[inbounddetail.sku_id or 0] = inbounddetail
-
-        for sku_id, inbound_sku_dict in inbound_skus_dict.iteritems():
-            inbounddetail = inbounddetails_dict.get(sku_id)
-            if not inbounddetail:
-                continue
-
-            if not (inbounddetail.sku and inbounddetail.product):
-                inbounddetail.product_name = inbound_sku_dict['name']
-                inbounddetail.arrival_quantity = inbound_sku_dict['arrival_quantity']
-                inbounddetail.save()
-                continue
-
-            product_id = inbounddetail.sku.product_id
-            arrival_quantity = inbound_sku_dict['arrival_quantity']
-            inferior_quantity = inbound_sku_dict['inferior_quantity']
-            district = inbound_sku_dict['district']
-            m = self.DISTRICT_REGEX.match(district)
-            if m:
-                tmp = m.groupdict()
-                pno = tmp.get('pno') or ''
-                dno = tmp.get('dno') or ''
-                deposite_district = DepositeDistrict.objects.filter(
-                    parent_no=pno,
-                    district_no=dno).first()
-                if not deposite_district:
-                    continue
-                ProductLocation.objects.filter(product_id=product_id,
-                                               sku_id=sku_id).delete()
-                self.update_product_location(product_id, deposite_district)
-
-            if inbounddetail.arrival_quantity == arrival_quantity and \
-                inbounddetail.inferior_quantity == inferior_quantity:
-                continue
-            inbounddetail.arrival_quantity = arrival_quantity
-            inbounddetail.inferior_quantity = inferior_quantity
-            inbounddetail.save()
-
-        memo = request.data.get('memo') or ''
-        inbound.memo = memo
-        inbound.status = InBound.PENDING
-        inbound.save()
-
-        orderlists = self._find_orderlists(inbound_skus.keys())
-        orderlist_id = 0 if not inbound.orderlist_ids else int(
-            inbound.orderlist_ids[0])
-        allocate_dict = self._find_allocate_dict(
-            inbound_skus_dict, [x['orderlist_id'] for x in orderlists],
-            orderlist_id, inbound.express_no)
-        return Response({
-            'orderlists': orderlists,
-            'records': records_dict,
-            'allocate_dict': allocate_dict
-        })
 
     @list_route(methods=['get'])
     def add_memo(self, request):

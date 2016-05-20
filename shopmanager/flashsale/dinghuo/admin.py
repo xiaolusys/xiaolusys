@@ -559,7 +559,7 @@ class InBoundAdmin(admin.ModelAdmin):
 
     def show_orderlists(self, obj):
         tmp = []
-        for orderlist_id in obj.orderlist_ids:
+        for orderlist_id in sorted(obj.orderlist_ids):
             tmp.append('<a href="/sale/dinghuo/changedetail/%(id)d/" target="_blank">%(id)d</a>' % {'id': int(orderlist_id)})
         return ','.join(tmp)
     show_orderlists.allow_tags = True

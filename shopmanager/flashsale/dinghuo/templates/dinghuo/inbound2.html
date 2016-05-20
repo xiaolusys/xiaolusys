@@ -925,8 +925,11 @@
                              }
                              else
                                  inbound = {};
-                             if(result.orderlists.length == 0)
+                             if(result.orderlists.length == 0){
+                                 window.location = '/sale/dinghuo/inbound/' + result.inbound.id;
                                  return;
+                             }
+
                              orderlists = result.orderlists;
 
                              var $panel3 = $('#panel-3');
@@ -1004,15 +1007,6 @@
                              arrival_quantity: arrivalQuantity,
                              inferior_quantity: inferiorQuantity
                          })
-                     }
-                     else{
-                         inboundData.push({
-                             sku_id: skuId,
-                             orderdetail_id: orderdetailId,
-                             inbounddetail_id: 0,
-                             arrival_quantity: arrivalQuantity,
-                             inferior_quantity: inferiorQuantity
-                         });
                      }
                  });
 

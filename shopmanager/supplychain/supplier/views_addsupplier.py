@@ -345,6 +345,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             sale_product_rebeta_schema = '返利计划：%s' % schema_set.pop()
 
         order_weights = filter(None, order_weights)
+        avg_order_weight = 0
         if order_weights:
             avg_order_weight = round(sum(order_weights) / len(order_weights), 2)
         if avg_order_weight:
