@@ -286,7 +286,7 @@ if os.environ.get('TARGET') in ('staging',):
     BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/8'
     import raven
     RAVEN_CONFIG = {
-        'dsn': 'http://4d0d1c129af94f35b2ca16f1993865cf:725c7627bb4f49858bb315a3e2e16988@sentry.xiaolumm.com/3',
+        'dsn': 'http://2d63e1b731cd4e53a32b0bc096fd3566:a38d367f2c644d81b353dabfbb941070@sentry.xiaolumm.com/4',
         # If you are using git, you can also automatically configure the
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
@@ -332,7 +332,7 @@ if os.environ.get('TARGET') in ('production', 'django18'):
 
     import raven
     RAVEN_CONFIG = {
-        'dsn': 'http://da7007ee84ad4004bb12bf866f665f48:85828683495d423b8917e044c9fbcd1d@sentry.xiaolumm.com/2',
+        'dsn': 'http://1e0aad4415454d5c9bbc22ac02a14b2e:42d9a07d79a2462fbc76eb543ac25fbf@sentry.xiaolumm.com/5',
         # If you are using git, you can also automatically configure the
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
