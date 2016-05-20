@@ -1724,7 +1724,7 @@ class PackageSkuItem(BaseModel):
 
     @property
     def ware_by_display(self):
-        return '广州/上海%s号仓' % self.ware_by
+        return '%s号仓' % self.ware_by
 
     @property
     def assign_status_display(self):
