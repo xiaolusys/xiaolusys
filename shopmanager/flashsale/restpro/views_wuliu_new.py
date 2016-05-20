@@ -170,7 +170,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
         else:  # 更新物流
             self.get_third_apidata_by_packetid(packetid, company_code)
             res = self.packet_data(queryset)
-            return Response(res)
+            return Response(res) 
 
     def create(self, request, *args, **kwargs):
         """ 创建本地物流信息存储 """
