@@ -230,6 +230,7 @@ LOGGER_HANDLERS = [
     ('xhtml2pdf','sentry,console'),
     ('restapi.errors','sentry,console'),
     ('weixin.proxy','sentry,console'),
+    ('django.db.backends','console'),
 ]
 
 LOGGER_TEMPLATE = {
