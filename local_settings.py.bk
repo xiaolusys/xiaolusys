@@ -87,7 +87,7 @@ CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 import raven
 RAVEN_CONFIG = {
-    'dsn': 'http://2d9b723937cd498daca947d5facf6bd0:4ba446bae19a46c4abcb273bef851197@sentry.xiaolumm.com/1',
+    'dsn': 'http://7f041a7308f842a682d621f7ae3c81a9:c74fbc9e12f14835bb671a82e1f6dc53@sentry.xiaolumm.com/3',
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': raven.fetch_git_sha( os.path.dirname(PROJECT_ROOT)),
