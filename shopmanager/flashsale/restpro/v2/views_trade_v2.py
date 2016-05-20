@@ -268,7 +268,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             ufrom = cookies.get('ufrom', '')
         return {'mm_linkid': mama_linkid, 'ufrom': ufrom}
 
-    @transaction.atomic
+
     def create_Saletrade(self, request, form, address, customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
@@ -310,6 +310,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'charge':'',
                 'status':SaleTrade.WAIT_BUYER_PAY,
                 'openid':buyer_openid,
+                'logistics_company_id': form.get('logistics_company_id') or None,
                 'extras_info':{'coupon': coupon_id,
                                'pay_extras':pay_extras}
                 })
@@ -487,10 +488,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         channel  = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             return Response({'code':5, 'info':u'付款方式有误'})
-        
-        sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
-        if state:
-            self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+
+        with transaction.atomic():
+            sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
+            if state:
+                self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         
         try:
             if channel == SaleTrade.WALLET:
@@ -566,9 +568,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             lock_success =  Product.objects.lockQuantity(product_sku,sku_num)
             if not lock_success:
                 raise exceptions.APIException(u'商品库存不足')
-            sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
-            if state:
-                self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
+            with transaction.atomic():
+                sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
+                if state:
+                    self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
         except exceptions.APIException,exc:
             raise exc
         except Exception,exc:
@@ -653,7 +656,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         # TODO
         return Response({"code": 0, "info": "订单已删除"})
-
 
 
 from flashsale.restpro.views_refund import refund_Handler

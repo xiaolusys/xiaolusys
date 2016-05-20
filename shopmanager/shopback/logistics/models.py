@@ -3,14 +3,18 @@ __author__ = 'meixqhi'
 import json
 import time
 import random
+import hashlib
+
 from django.db import models
 from django.db.models import Sum
 from core.models import BaseModel
+from django.core.cache import cache
+
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo
 from common.utils import parse_datetime
 from auth import apis
-from shopback import paramconfig as pcfg
+from . import constants
 import logging
 from shopback import paramconfig as pcfg
 
@@ -118,6 +122,21 @@ class LogisticsCompany(models.Model):
     @classmethod
     def normal_companys(cls):
         return cls.objects.filter(status=True)
+
+    @classmethod
+    def get_logisticscompanys_by_warehouse(cls,ware_by, **kwags):
+        # TODO 如过物流记录更新需要更新cache
+        cache_key = hashlib.sha1('%s%s-%s'%(__file__,cls.__class__,ware_by)).hexdigest()
+        cache_logistics = cache.get(cache_key)
+        if not cache_logistics:
+            if ware_by == constants.WARE_SH:
+                cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','STO','YUNDA_QR'))
+            elif ware_by == constants.WARE_GZ:
+                cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB', 'YUNDA_QR'))
+            else:
+                cache_logistics = LogisticsCompany.objects.filter(code__in=('POSTB','STO','YUNDA_QR'))
+            cache.set(cache_key,cache_logistics, 24 * 60 * 60)
+        return cache_logistics
 
     @classmethod
     def getNoPostCompany(cls):

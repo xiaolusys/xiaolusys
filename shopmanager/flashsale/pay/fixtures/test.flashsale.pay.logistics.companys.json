@@ -1,0 +1,62 @@
+[
+{
+  "fields": {
+    "status": true,
+    "code": "YUNDA_QR",
+    "name": "\u97f5\u8fbe\u70ed\u654f",
+    "district": "",
+    "priority": 1000,
+    "reg_mail_no": "^(10|11|12|13|15|16|17|19|18|31|32|50|55|58|80|88|66)[0-9]{11}$"
+  },
+  "model": "logistics.logisticscompany",
+  "pk": -2
+},
+{
+  "fields": {
+    "status": true,
+    "code": "STO",
+    "name": "\u7533\u901a\u5feb\u9012",
+    "district": "\u7518\u8083\u7701,\u9752\u6d77\u7701,\u9655\u897f\u7701,\u5e7f\u897f,\u5b81\u590f,\u5b81\u590f\u56de\u65cf\u81ea\u6cbb\u533a,\u5185\u8499\u53e4,\u65b0\u7586",
+    "priority": 1000,
+    "reg_mail_no": "^(268|888|588|688|368|468|568|668|768|868|968)[0-9]{9}$|^(11|22|33|268|888|588|688|368|468|568|668|768|868|968)[0-9]{10}$|^(STO)[0-9]{10}$|^(33)[0-9]{11}$|^(44)[0-9]{11}$|^(55)[0-9]{11}$|^(66)[0-9]{11}$|^(77)[0-9]{11}$|^(88)[0-9]{11}$|^(99)[0-9]{11}$"
+  },
+  "model": "logistics.logisticscompany",
+  "pk": 100
+},
+{
+  "fields": {
+    "status": true,
+    "code": "ZTO",
+    "name": "\u4e2d\u901a\u5feb\u9012",
+    "district": "",
+    "priority": 0,
+    "reg_mail_no": "^((779|359|528|751|358|618|680|778|768|688|689|618|828|988|118|888|571|518|010|628|205|880|717|718|728|738|761|762|763|701|757|719)[0-9]{9})$|^((2008|2010|8050|7518)[0-9]{8})$|^((36)[0-9]{10})$"
+  },
+  "model": "logistics.logisticscompany",
+  "pk": 500
+},
+{
+  "fields": {
+    "status": true,
+    "code": "SF",
+    "name": "\u987a\u4e30\u901f\u8fd0",
+    "district": "\u9999\u6e2f,\u9999\u6e2f\u7279\u522b\u884c\u653f\u533a,\u53f0\u6e7e,\u53f0\u6e7e\u7701,\u6fb3\u95e8\u7279\u522b\u884c\u653f\u533a",
+    "priority": 0,
+    "reg_mail_no": "^[0-9]{12}$"
+  },
+  "model": "logistics.logisticscompany",
+  "pk": 505
+},
+{
+  "fields": {
+    "status": true,
+    "code": "POSTB",
+    "name": "\u90ae\u653f\u5c0f\u5305",
+    "district": "",
+    "priority": 0,
+    "reg_mail_no": "^[GA]{2}[0-9]{9}([2-5][0-9]|[1][1-9]|[6][0-5])$|^[9][0-9]{12}$"
+  },
+  "model": "logistics.logisticscompany",
+  "pk": 200734
+}
+]

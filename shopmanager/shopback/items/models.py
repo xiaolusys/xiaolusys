@@ -12,6 +12,7 @@ import datetime
 import json
 import urlparse
 import re
+import hashlib
 
 from django.db import models
 from django.db.models import Sum, Avg, F
@@ -1385,7 +1386,7 @@ class ContrastContent(models.Model):
     def contrast_maps(cls):
         # TODO ,如果内容字典修改,需要更新cache
         from django.core.cache import cache
-        cache_key  = hash('%s.%s'%(__name__, cls.__name__))
+        cache_key  = hashlib.sha1('%s.%s'%(__name__, cls.__name__)).hexdigest()
         cache_contrast = cache.get(cache_key)
         if not cache_contrast:
             contrasts = cls.objects.filter(status=cls.NORMAL).values_list('cid', 'name')

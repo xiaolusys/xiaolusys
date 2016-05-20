@@ -41,6 +41,8 @@ from . import constants as CONS
 import logging
 import decimal
 
+from shopback.logistics.models import LogisticsCompany
+
 logger = logging.getLogger(__name__)
 
 import re
@@ -286,6 +288,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         return extras
 
+    def get_logistics_by_shoppingcart(self, queryset):
+        ware_by = None
+        for sc in queryset:
+            product = Product.objects.filter(id=sc.item_id).first()
+            if product and ware_by is None:
+                ware_by = product.ware_by
+                continue
+            if product:
+                ware_by &= product.ware_by
+        return ware_by or Product.WARE_NONE
+
     @list_route(methods=['get', 'post'])
     def carts_payinfo(self, request, format=None, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
@@ -349,6 +362,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             weixin_payable = False
             alipay_payable = False
 
+        ware_by = self.get_logistics_by_shoppingcart(queryset)
+        logistics = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)
+
         budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
         response = {'uuid': genTradeUniqueid(),
                     'total_fee': round(total_fee, 2),
@@ -366,6 +382,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'cart_ids': ','.join([str(c) for c in cart_ids]),
                     'cart_list': serializer.data,
                     'coupon_message': coupon_message,
+                    'logistics_companys':logistics.values('id','name','code')
                     }
         response.update({'pay_extras': self.get_payextras(request, response)})
         return Response(response)
@@ -734,14 +751,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             ufrom = cookies.get('ufrom', '')
         return {'mm_linkid':mama_linkid, 'ufrom':ufrom}
 
-    @rest_exception(errmsg=u'特卖订单创建异常')
-    @transaction.atomic
     def create_Saletrade(self, request, form, address, customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
-        sale_trade, state = SaleTrade.objects.get_or_create(tid=tuuid,
-                                                            buyer_id=customer.id)
+        sale_trade, state = SaleTrade.objects.get_or_create(tid=tuuid,buyer_id=customer.id)
         assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY, SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
         channel = form.get('channel')
         params = {
@@ -774,6 +788,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'charge': '',
                 'status': SaleTrade.WAIT_BUYER_PAY,
                 'openid': buyer_openid,
+                'logistics_company_id': form.get('logistics_company_id') or None,
                 'extras_info': {'coupon': form.get('coupon_id', ''),
                                 'pay_extras': pay_extras }
             })
@@ -787,7 +802,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             statsd.incr('xiaolumm.prepay_amount', sale_trade.payment)
         return sale_trade, state
 
-    @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_Saleorder_By_Shopcart(self, saletrade, cart_qs):
         """ 根据购物车创建订单明细方法 """
         total_fee = saletrade.total_fee
@@ -946,9 +960,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')
 
-        sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer)
-        if state:
-            self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+        with transaction.atomic():
+            sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer)
+            if state:
+                self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
 
         if coupon_id and user_coupon:   # 使用优惠券，并修改状态
             user_coupon.use_coupon(sale_trade.tid)
@@ -1020,9 +1035,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             lock_success = Product.objects.lockQuantity(product_sku, sku_num)
             if not lock_success:
                 raise exceptions.APIException(u'商品库存不足')
-            sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer)
-            if state:
-                self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
+            with transaction.atomic():
+                sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer)
+                if state:
+                    self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
         except exceptions.APIException, exc:
             raise exc
         except Exception, exc:
