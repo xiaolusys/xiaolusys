@@ -1691,13 +1691,18 @@ class PackageSkuItem(BaseModel):
 
     @property
     def process_time(self):
+        res_time = None
+        
         if self.assign_status == PackageSkuItem.FINISHED:
-            return self.finish_time
+            res_time =  self.finish_time
         elif self.assign_status == PackageSkuItem.ASSIGNED:
-            return self.assign_time 
+            res_time = self.assign_time 
         elif self.assign_status == PackageSkuItem.CANCELED:
-            return self.cancel_time
-        return ''
+            res_time = self.cancel_time
+        if res_time:
+            return res_time
+        
+        return self.created
 
     @property
     def package_group_key(self):
