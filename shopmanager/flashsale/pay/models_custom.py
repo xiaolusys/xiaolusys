@@ -278,7 +278,7 @@ class ModelProduct(PayBaseModel):
             'type':'color',
             'product_id':product.id,
             'name':product.property_name,
-            'product_img': product.head_img_url,
+            'product_img': product.pic_path,
             'outer_id': product.outer_id,
             'std_sale_price':product.std_sale_price,
             'agent_price':product.agent_price,
@@ -384,7 +384,7 @@ signal_record_supplier_models.connect(create_Model_Product, sender=ModelProduct)
 DEFAULT_WEN_POSTER = [
     {
         "subject": ['2折起', '小鹿美美  女装专场'],
-        "item_link": "http://m.xiaolumeimei.com/nvzhuang.html",
+        "item_link": "/mall/#/product/list/lady",
         "app_link": "com.jimei.xlmm://app/v1/products/ladylist",
         "pic_link": ""
     }
@@ -393,7 +393,7 @@ DEFAULT_WEN_POSTER = [
 DEFAULT_CHD_POSTER = [
     {
         "subject": ['2折起', '小鹿美美  童装专场'],
-        "item_link": "http://m.xiaolumeimei.com/chaotong.html",
+        "item_link": "/mall/#/product/list/child",
         "app_link": "com.jimei.xlmm://app/v1/products/childlist",
         "pic_link": ""
     }

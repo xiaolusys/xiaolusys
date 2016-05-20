@@ -24,3 +24,5 @@ environment:
 select * from information_schema.innodb_trx;
 
 
+docker run --volume /var/lib/drone:/var/lib/drone --volume /var/run/docker.sock:/var/run/docker.sock --env-file /etc/drone/dronerc \
+ --restart=always --publish=8000:8000 -d --name=drone drone/drone:0.4
