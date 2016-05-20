@@ -412,6 +412,10 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_release_coupon_push',
     },  # 用户领取优惠券推送消息
+    'shopapp.smsmgr.tasks.task_notify_package_post': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_notify_package_post',
+    },  # 包裹发货发送短信通知
     #######################################################
     'flashsale.clickcount.tasks.task_Create_Click_Record': {
         'queue': 'frency',
@@ -629,12 +633,6 @@ SHOP_APP_SCHEDULE = {
         'task': 'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
         'schedule': crontab(minute="*/30"),
         'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时发货短信通知客户': {  # 更新库存
-        'task': 'shopapp.smsmgr.tasks.notifyPacketPostTask',
-        'schedule': crontab(minute="30", hour="9,19"),  #
-        'args': (1,),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时韵达录单任务': {
