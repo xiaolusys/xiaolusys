@@ -1,199 +1,255 @@
 # -*- coding:utf8 -*-
+import random
+import logging
 import datetime
 from celery.task import task
-from celery.task.sets import subtask
-from django.conf import settings
-from django.db.models import Q, F
+from django.db.models import F
 from django.template import Context, Template
-from shopback.items.models import Product, ProductSku
-from shopback.trades.models import MergeTrade
-from shopapp.smsmgr.models import SMSPlatform, SMSRecord, SMSActivity, SMS_NOTIFY_POST, SMS_NOTIFY_BIRTH, \
-    SMS_NOTIFY_VERIFY_CODE, SMS_NOTIFY_GOODS_LATER
+from common.utils import update_model_fields, single_instance_task
+from flashsale.pay.models_user import Register
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
-from common.utils import update_model_fields, single_instance_task
-import logging
+from shopback.trades.models import SendLaterTrade
+from shopapp.smsmgr.models import SMSPlatform, SMSActivity, SMS_NOTIFY_POST, SMS_NOTIFY_VERIFY_CODE, \
+    SMS_NOTIFY_GOODS_LATER, SMS_NOTIFY_DELAY_POST
 
-logger = logging.getLogger('celery.handler')
-
-POST_NOTIFY_TITLE = '订单发货客户提示'
-
-# POST_CONTENT_SEND_LATER = "亲爱的小鹿美美用户您好:亲在{0}购买的{1}产品,因供应商换季非常时期未按时发货给亲带来不便,小鹿美美深表歉意,请耐心等待,如有疑问请联系(优尼世界公众号-我的--我的客服)会为您解答疑问,小鹿美美在此祝您生活愉快."
-# POST_CONTENT_SEND_LATER1 = "尊敬的大人，您订购的{0}在入库检查时发现略有瑕疵，小的正在联系工厂紧急调货 ！望大人息怒，如有疑问请联系客服，么么哒~"
-# POST_CONTENT_SEND_LATER2 = "阁下所购宝物{0}由于成色原因暂未通过质检要求，本府已连夜派兵紧急调货！未能如期交货，望阁下海涵，如有疑问请联系客服，么么哒~"
-# POST_CONTENT_SEND_LATER3 = "启奏圣上：您所托宝贝{0}在入库检查时发现尺码略有偏差，本店已联系厂家换货，还望圣上饶恕！如有疑问请联系小鹿客服，么么哒~"
-
-# POST_CONTENT_SEND_LATER1 = "亲爱的顾客，您订购的{0}在入库检查时发现尺码略有偏差，本店正在加紧调货，如有疑问请联系我们平台客服，么么哒～"
-# POST_CONTENT_SEND_LATER2 = "亲爱的顾客，您订购的{0}由于商品成色原因未通过质检要求，本店正在加紧调货，如有疑问请联系我们平台客服，么么哒～"
-# POST_CONTENT_SEND_LATER3 = "亲爱的顾客，您订购的{0}在入库检查时发现包装部分污损，本店正在加紧调货，如有疑问请联系我们平台客服，么么哒～"
-
-POST_CONTENT_SEND_LATER = '(小鹿美美)亲，您订购的{0}因订购人数众多库存紧，我们正在紧急调货中，我们会以最快的速度帮您补发，请亲再耐心等几天哦，么么哒'
+logger = logging.getLogger(__name__)
 
 
-def get_smsg_from_trade(trade):
-    """ 获取商品客户提示 """
-
-    sms_tmpl = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_POST, status=True)
-    if sms_tmpl.count() == 0:
-        return ''
-
-    ms = set()
-    for o in trade.inuse_orders:
-        outer_sku_id = o.outer_sku_id
-        outer_id = o.outer_id
-        prod_sku = None
-        prod = None
-        try:
-            prod = Product.objects.get(outer_id=outer_id)
-            if outer_sku_id:
-                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id, product=prod)
-        except:
-            pass
-        # 同一规格提示只能出现一次
-        if prod_sku and prod_sku.buyer_prompt.strip():
-            ms.add(prod_sku.buyer_prompt.strip())
-        # 同一商品提示只能出现一次
-        elif prod and prod.buyer_prompt.strip():
-            ms.add(prod.buyer_prompt.strip())
-
-    dt = datetime.datetime.now()
-    tmpl = Template(sms_tmpl[0].text_tmpl)
-    trade_dict = {'tid': trade.tid,
-                  'buyer_nick': trade.buyer_nick,
-                  'seller_nick': trade.user.nick,
-                  'weight': trade.weight,
-                  'logistic_name': trade.logistics_company.name.replace(u'热敏', u'快递'),
-                  'out_sid': trade.out_sid}
-    c = Context({'trade': trade_dict, 'prompt_msg': ','.join(ms), 'today_date': dt})
-
-    return tmpl.render(c)
-
-
-@task
-def notifyBuyerPacketPostTask(trade_id, platform_code):
-    """ 短信通知收货人，包裹发出信息 """
-    try:
-        trade = MergeTrade.objects.get(id=trade_id)
-        if trade.is_send_sms:
-            return
-
-        platform = SMSPlatform.objects.get(code=platform_code)
-
-        content = get_smsg_from_trade(trade)
-        if not content:
-            return
-
-        params = {}
-        params['content'] = content
-        params['userid'] = platform.user_id
-        params['account'] = platform.account
-        params['password'] = platform.password
-        params['mobile'] = trade.receiver_mobile
-        params['taskName'] = POST_NOTIFY_TITLE
-        params['mobilenumber'] = 1
-        params['countnumber'] = 1
-        params['telephonenumber'] = 0
-
-        params['action'] = 'send'
-        params['checkcontent'] = '0'
-
-        sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform_code, None)
-        if not sms_manager:
-            raise Exception('未找到短信服务商接口实现')
-
-        manager = sms_manager()
-        success = False
-
-        # 创建一条短信发送记录
-        sms_record = manager.create_record(params['mobile'], params['taskName'], SMS_NOTIFY_POST, params['content'])
-        # 发送短信接口
-        try:
-            success, task_id, succnums, response = manager.batch_send(**params)
-        except Exception, exc:
-            sms_record.status = pcfg.SMS_ERROR
-            sms_record.memo = exc.message
-            logger.error(exc.message, exc_info=True)
-        else:
-            sms_record.task_id = task_id
-            sms_record.succnums = succnums
-            sms_record.retmsg = response
-            sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
-        sms_record.save()
-
-        if success:
-            SMSPlatform.objects.filter(code=platform_code).update(sendnums=F('sendnums') + int(succnums))
-            trade.is_send_sms = True
-            update_model_fields(trade, update_fields=['is_send_sms'])
+def call_send_a_sms(manager, params, sms_notify_type):
+    """ 调用短信发送
+    :param sms_notify_type: sms_notify_type
+    :param params: params
+    :param manager: manager
+    """
+    success = False
+    succnums = 0
+    sms_record = manager.create_record(  # 创建一条短信发送记录
+        params['mobile'],
+        params['taskName'],
+        sms_notify_type,
+        params['content']
+    )
+    try:  # 调用发送短信接口
+        success, task_id, succnums, response = manager.batch_send(**params)
     except Exception, exc:
-        logger.error(exc.message or 'empty error', exc_info=True)
+        sms_record.status = pcfg.SMS_ERROR
+        sms_record.memo = exc.message
+        logger.error(exc.message, exc_info=True)
+    else:
+        sms_record.task_id = task_id
+        sms_record.succnums = succnums
+        sms_record.retmsg = response
+        sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
+    sms_record.save()
+    return succnums, success
+
+
+def gen_package_post_sms_content(package_order, package_sku_item, delay_days):
+    """
+    :param delay_days: now - package_sku_item.pay_time
+    :param package_sku_item: PackageSkuItem instance
+    :param package_order: PackageOrder instance
+    通过包裹单 和 短信模板 生成一条 短信内容信息
+    """
+    # 查找短信模板
+    if not package_order.logistics_company:
+        raise Exception(u'gen_package_post_sms_content:'
+                        u'logistics_company not found, package_order id is %s' % package_order.id)
+    if delay_days <= 3:
+        sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_POST, status=True)
+        # 报！女王大人，前方{{logistics_company_name}}快递护卫队发来捷报，说已成功发出您的{{title}}衣，物流单号{{out_sid}}，
+        # 现正火速送往您处，相信不日便可抵达。女王大人，请一定要保持电话通畅哦~【小鹿美美】
+    else:
+        sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_DELAY_POST, status=True)
+        # 公主大人，小鹿子有事禀报：您订的{{title}}衣，因外贸厂热销，供货紧缺，耽搁了{{later_days}}天。
+        # 小鹿子现已责令{{logistics_company_name}}快递小哥快马加鞭送货。因此事造成的延误，恳请公主大人原谅！【小鹿美美】
+    text_tmpls = [tpl.text_tmpl for tpl in sms_tpls]
+    if not text_tmpls:
+        logger.warn(u'gen_package_post_sms_content:'
+                    u'sms template not found, package_order id is %s .' % package_order.id)
+        return
+    tpl_text = random.sample(text_tmpls, 1)[0]  # 随机选取一个模板
+    if not tpl_text:
+        return None
+
+    logistics_company_full_name = package_order.logistics_company.name
+    logistics_company_name = logistics_company_full_name[0:2] if logistics_company_full_name else ''
+
+    package_order_dict = {
+        'logistics_company_name': logistics_company_name,
+        'title': package_sku_item.title.split("/")[0],
+        'out_sid': package_order.out_sid,
+        'later_days': delay_days
+    }
+    template = Template(tpl_text)
+    context = Context(package_order_dict)
+    return template.render(context)
 
 
 @single_instance_task(60 * 60, prefix='shopapp.smsmgr.tasks.')
-def notifyPacketPostTask(days):
-    # 选择默认短信平台商，如果没有，任务退出
-    try:
-        platform = SMSPlatform.objects.get(is_default=True)
-    except:
+def task_notify_package_post(package_order):
+    """
+    :param package_order: PackageOrder instance
+    功能: 用户的订单发货了, 发送发货的短信通知 , package_order 称重的时候触发此任务执行.
+    """
+    platform = SMSPlatform.objects.filter(is_default=True).order_by('-id').first()  # step1: 选择默认短信平台商
+    if not platform:
+        logger.error(u"task_notify_package_post: SMSPlatform object not found !")
         return
-
-    dt = datetime.datetime.now()
-    df = dt - datetime.timedelta(days=days)
-    wait_sms_trades = MergeTrade.objects.filter(type__in=(pcfg.FENXIAO_TYPE,
-                                                          pcfg.TAOBAO_TYPE,
-                                                          pcfg.COD_TYPE,
-                                                          pcfg.WX_TYPE,
-                                                          pcfg.SALE_TYPE),
-                                                sys_status=pcfg.FINISHED_STATUS, is_send_sms=False, weight_time__gte=df,
-                                                weight_time__lte=dt,
-                                                is_express_print=True).exclude(receiver_mobile='')  #
-
-    for trade in wait_sms_trades:
-        subtask(notifyBuyerPacketPostTask).delay(trade.id, platform.code)
-
-
-@task
-def getupMorningLockTask():
-    # 选择默认短信平台商，如果没有，任务退出
-    try:
-        platform = SMSPlatform.objects.get(is_default=True)
-    except:
-        return
+    if package_order.is_send_sms or len(str(package_order.receiver_mobile).strip()) != 11:
+        return  # 已经发过短信 或者 手机号不正确
 
     sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code, None)
-    sms_tmpl = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_BIRTH, status=True)
-    sms_ins = sms_tmpl[0]
+    if not sms_manager:
+        raise Exception(u'未找到短信服务商接口实现')
 
-    status = sms_ins.text_tmpl[0]
+    package_sku_item = package_order.package_sku_items.first()
+    if not package_sku_item:
+        logger.warn(u'gen_package_post_sms_content:'
+                    u'package_sku_item not found, package_order id is %s .' % package_order.id)
+    now = datetime.datetime.now()
+    delay_days = (now - package_sku_item.pay_time).days
+    task_name = u"发货短信提示" if delay_days <= 3 else u'延迟发货通知'
+    sms_notify_type = SMS_NOTIFY_POST if delay_days <= 3 else SMS_NOTIFY_DELAY_POST
 
-    params = {}
-    params['content'] = sms_ins.text_tmpl[1:-1]
-    params['userid'] = platform.user_id
-    params['account'] = platform.account
-    params['password'] = platform.password
-    params['mobile'] = '15941103294'  # 13917170476
-    params['taskName'] = '起床了'
-    params['mobilenumber'] = 1
-    params['countnumber'] = 1
-    params['telephonenumber'] = 0
-
-    params['action'] = 'send'
-    params['checkcontent'] = '0'
-
+    content = gen_package_post_sms_content(package_order, package_sku_item, delay_days)
+    if not content:
+        return
     manager = sms_manager()
+    params = {
+        'content': content,
+        'userid': platform.user_id,
+        'account': platform.account,
+        'password': platform.password,
+        'mobile': package_order.receiver_mobile,
+        'taskName': task_name,
+        'mobilenumber': 1,
+        'countnumber': 1,
+        'telephonenumber': 0,
+        'action': 'send',
+        'checkcontent': '0'
+    }
+    succnums, success = call_send_a_sms(manager, params, sms_notify_type)  # 调用短信发送
+    if success:
+        SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums') + int(succnums))
+        package_order.is_send_sms = True
+        update_model_fields(package_order, update_fields=['is_send_sms'])
+    return
 
-    manager.batch_send(**params)
+
+def gen_later_not_post_sms_content(sale_order, trade):
+    """
+    :param trade: SaleOrder.SaleTrade
+    :type sale_order: object SaleOrder
+    生成 SaleOrder 的延迟没有发货 短信内容
+    """
+    sms_tpls = SMSActivity.objects.filter(
+        sms_type=SMS_NOTIFY_GOODS_LATER,
+        status=True
+    )
+    # 报！女王大人，因您购买的{{title}}衣实在太美，在半路被氪星人劫持。经小鹿子和蝙蝠侠的奋勇拼搏，终于成功夺回，现责
+    # 令{{logistics_company_name}}快递小哥快马加鞭送货。因此事造成了{{later_days}}天延误，恳请女王大人原谅！【小鹿美美】
+    text_tmpls = [tpl.text_tmpl for tpl in sms_tpls]
+    if not text_tmpls:
+        logger.warn(u'send_later_post_notify:'
+                    u'sms template not found, sale_order id is %s .' % sale_order.id)
+        return
+    tpl_text = random.sample(text_tmpls, 1)[0]  # 随机选取一个模板
+    if not tpl_text:
+        return
+    if not trade.logistics_company:
+        logistics_company_name = u''
+    else:
+        logistics_company_name = trade.logistics_company.name[0:2]
+    now = datetime.datetime.now()
+    later_days = (now - trade.pay_time).days
+    template = Template(tpl_text)
+
+    sale_order_dict = {
+        'logistics_company_name': logistics_company_name,
+        'title': sale_order.title.split("/")[0],
+        'later_days': later_days,
+    }
+    context = Context(sale_order_dict)
+    return template.render(context)
 
 
-from flashsale.pay.models_user import Register
+def send_later_not_post_notify(sale_order):
+    """
+    :param sale_order: SaleOrder instance
+    发送 还没有发货 短信通知
+    """
+    platform = SMSPlatform.objects.filter(is_default=True).order_by('-id').first()  # step1: 选择默认短信平台商
+    if not platform:
+        logger.error(u"send_later_post_notify: SMSPlatform object not found !")
+        return
+    try:
+        trade = sale_order.sale_trade
+        already_send = SendLaterTrade.objects.filter(trade_id=trade.id, success=True).first()
+        if already_send:
+            return  # 如果已经发送过了 则 return
+        mobile = trade.receiver_mobile
+        if len(str(trade.receiver_mobile).strip()) != 11:
+            return  # 已经发过短信 或者 手机号不正确
+        sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code, None)
+        if not sms_manager:
+            raise Exception(u'未找到短信服务商接口实现')
+        content = gen_later_not_post_sms_content(sale_order, trade)
+        if not content:
+            return
+        manager = sms_manager()
+        params = {
+            'content': content,
+            'userid': platform.user_id,
+            'account': platform.account,
+            'password': platform.password,
+            'mobile': mobile,
+            'taskName': "小鹿美美延迟未发货通知",
+            'mobilenumber': 1,
+            'countnumber': 1,
+            'telephonenumber': 0,
+            'action': 'send',
+            'checkcontent': '0'
+        }
+        succnums, success = call_send_a_sms(manager, params, SMS_NOTIFY_GOODS_LATER)  # 调用短信发送
+        if success:
+            SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums') + int(succnums))
+            # 记录是否发送
+            send_success = SendLaterTrade(trade_id=trade.id, success=True)
+            send_success.save()
+    except Exception, exc:
+        logger.error(exc.message or u'send_later_post_notify: sale id is :%s' % sale_order.id, exc_info=True)
 
 
-@task
+@task()
+def task_deliver_goods_later():
+    """ 付款五天未发货通知 """
+    if True:  # 不发送该 短信通知 即 超 时 没有发货的订单不会提醒用户短信
+        return
+    from flashsale.pay.models import SaleOrder
+    today = datetime.date.today()
+    all_orders = SaleOrder.objects.filter(  # 已付款  在 前 5 天 到 4 天之间的 sale_order
+        status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+        pay_time__gte=today - datetime.timedelta(days=5),
+        pay_time__lt=today - datetime.timedelta(days=4)
+    )
+
+    for order in all_orders:
+        trade = order.sale_trade
+        already_send = SendLaterTrade.objects.filter(trade_id=trade.id, success=True).first()
+        if already_send:  # 如果已经发送过了 则 return
+            return
+        send_later_not_post_notify(order)
+
+
+@task()
 def task_register_code(mobile, send_type="1"):
     """ 短信验证码 """
     # 选择默认短信平台商，如果没有，任务退出
-    try:
-        platform = SMSPlatform.objects.get(is_default=True)
-    except:
+    platform = SMSPlatform.objects.filter(is_default=True).order_by('-id').first()
+    if not platform:
+        logger.error(u"task_notify_package_post: SMSPlatform object not found !")
         return
     try:
         register_v = Register.objects.filter(vmobile=mobile).order_by('-modified')[0]
@@ -205,19 +261,19 @@ def task_register_code(mobile, send_type="1"):
             content = u"验证码：" + register_v.verify_code + "，请在手机验证页面输入校验。如非本人操作请忽略。【小鹿美美】"
         if not content:
             return
-        params = {}
-        params['content'] = content
-        params['userid'] = platform.user_id
-        params['account'] = platform.account
-        params['password'] = platform.password
-        params['mobile'] = mobile
-        params['taskName'] = "小鹿美美验证码"
-        params['mobilenumber'] = 1
-        params['countnumber'] = 1
-        params['telephonenumber'] = 0
-
-        params['action'] = 'send'
-        params['checkcontent'] = '0'
+        params = {
+            'content': content,
+            'userid': platform.user_id,
+            'account': platform.account,
+            'password': platform.password,
+            'mobile': mobile,
+            'taskName': "小鹿美美验证码",
+            'mobilenumber': 1,
+            'countnumber': 1,
+            'telephonenumber': 0,
+            'action': 'send',
+            'checkcontent': '0'
+        }
 
         sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code, None)
         if not sms_manager:
@@ -246,104 +302,5 @@ def task_register_code(mobile, send_type="1"):
             SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums') + int(succnums))
             register_v.verify_count += 1
             register_v.save()
-    except Exception, exc:
-        logger.error(exc.message or 'empty error', exc_info=True)
-
-
-from shopback.trades.models import SendLaterTrade
-
-
-@task
-def task_deliver_goods_later():
-    """ 付款五天未发货通知 """
-    try:
-        import datetime
-        today = datetime.date.today()
-        from flashsale.pay.models import SaleOrder
-        all_orders = SaleOrder.objects.filter(
-                status=SaleOrder.WAIT_SELLER_SEND_GOODS
-            )
-        all_orders = all_orders.filter(pay_time__gte=today - datetime.timedelta(days=5),
-                                     pay_time__lt=today - datetime.timedelta(days=4))
-        for order in all_orders:
-            sale_trade = order.sale_trade
-            order_id = '%s%s'%(order.pay_time.strftime('%Y%m%d') ,sale_trade.id)
-            already_send = SendLaterTrade.objects.filter(trade_id=order_id, success=True)
-            if already_send.count() == 0:
-                func2send_message(order)
-    except Exception, exc:
-        logger.error(exc.message or 'empty error', exc_info=True)
-
-
-import random
-
-
-def func2send_message(sale_order):
-    # 选择默认短信平台商，如果没有，任务退出
-    try:
-        platform = SMSPlatform.objects.get(is_default=True)
-    except:
-        return
-    try:
-        trade = sale_order.sale_trade
-        mobile = trade.receiver_mobile
-        if not mobile or len(mobile) != 11:
-            return
-
-        title = sale_order.title.split("/")[0][0:6]
-
-        # content = random.choice([POST_CONTENT_SEND_LATER]).format(
-        content = POST_CONTENT_SEND_LATER.format(title.encode('utf-8'))
-        sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_GOODS_LATER, status=True)
-        if sms_tpls.exists():
-            sms_tpl = sms_tpls[0]
-            content = sms_tpl.text_tmpl or POST_CONTENT_SEND_LATER
-            content = content.format(title.encode('utf-8'))
-        if not content:
-            return
-        params = {}
-        params['content'] = content
-        params['userid'] = platform.user_id
-        params['account'] = platform.account
-        params['password'] = platform.password
-        params['mobile'] = mobile
-        params['taskName'] = "小鹿美美五天发货通知"
-        params['mobilenumber'] = 1
-        params['countnumber'] = 1
-        params['telephonenumber'] = 0
-
-        params['action'] = 'send'
-        params['checkcontent'] = '0'
-
-        sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code, None)
-        if not sms_manager:
-            raise Exception('未找到短信服务商接口实现')
-
-        manager = sms_manager()
-        success = False
-
-        # 创建一条短信发送记录
-        sms_record = manager.create_record(params['mobile'], params['taskName'],
-                                           SMS_NOTIFY_GOODS_LATER,
-                                           params['content'])
-        # 发送短信接口
-        try:
-            success, task_id, succnums, response = manager.batch_send(**params)
-        except Exception, exc:
-            sms_record.status = pcfg.SMS_ERROR
-            sms_record.memo = exc.message
-            logger.error(exc.message, exc_info=True)
-        else:
-            sms_record.task_id = task_id
-            sms_record.succnums = succnums
-            sms_record.retmsg = response
-            sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
-        sms_record.save()
-
-        if success:
-            SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums') + int(succnums))
-            # 记录是否发送
-            send_success = SendLaterTrade(trade_id=trade.id, success=True)
-            send_success.save()
     except Exception, exc:
         logger.error(exc.message or 'empty error', exc_info=True)

@@ -14,7 +14,7 @@ from shopback.warehouse.renderers import ReviewOrderRenderer, BrowsableAPIRender
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
-
+from shopapp.smsmgr.tasks import task_notify_package_post
 
 logger = logging.getLogger('django.request')
 
@@ -246,6 +246,7 @@ class PackageScanWeightView(APIView):
         package.weighter = request.user.username
         package.save()
         package.finish_scan_weight()
+        task_notify_package_post.delay(package)
         return Response({'isSuccess': True})
 
 

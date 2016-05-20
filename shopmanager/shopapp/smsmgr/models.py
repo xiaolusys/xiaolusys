@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 SMS_NOTIFY_POST = 'notify'  # 发货告知
+SMS_NOTIFY_DELAY_POST = 's_delay'  # 延迟了 几天发货 发货时候发送短信
 SMS_NOTIFY_ACTIVITY = 'activity'  # 活动宣传
 SMS_NOTIFY_PAYCALL = 'paycall'  # 付款提醒
 SMS_NOTIFY_TOCITY = 'tocity'  # 同城提醒
@@ -26,17 +27,21 @@ SMS_RECORD_STATUS = (
     (pcfg.SMS_CANCLE, '任务取消'),
 )
 
-SMS_NOITFY_TYPE = (
-    (SMS_NOTIFY_PAYCALL, u'付款提醒'),
-    (SMS_NOTIFY_POST, u'发货通知'),
-    (SMS_NOTIFY_TOCITY, u'同城提醒'),
-    (SMS_NOTIFY_SIGN, u'签收提醒'),
-    (SMS_NOTIFY_BIRTH, u'生日祝福'),
-    (SMS_NOTIFY_ACTIVITY, u'活动宣传'),
-    (SMS_NOTIFY_VERIFY_CODE, u'验证码'),
-    (SMS_NOTIFY_GOODS_LATER, u'五天未发货'),
-    (SMS_NOTIFY_GOODS_LACK, u'缺货通知'),
-)
+
+def choice_sms_notify_type():
+    sms_notify_type = (
+        (SMS_NOTIFY_PAYCALL, u'付款提醒'),
+        (SMS_NOTIFY_POST, u'发货通知'),
+        (SMS_NOTIFY_DELAY_POST, u'延迟发货通知'),
+        (SMS_NOTIFY_TOCITY, u'同城提醒'),
+        (SMS_NOTIFY_SIGN, u'签收提醒'),
+        (SMS_NOTIFY_BIRTH, u'生日祝福'),
+        (SMS_NOTIFY_ACTIVITY, u'活动宣传'),
+        (SMS_NOTIFY_VERIFY_CODE, u'验证码'),
+        (SMS_NOTIFY_GOODS_LATER, u'五天未发货'),
+        (SMS_NOTIFY_GOODS_LACK, u'缺货通知'),
+    )
+    return sms_notify_type
 
 
 class SMSPlatform(models.Model):
@@ -68,7 +73,7 @@ class SMSRecord(models.Model):
 
     platform = models.ForeignKey(SMSPlatform, null=True, default=None, related_name='sms_records', verbose_name='短信服务商')
 
-    task_type = models.CharField(max_length=10, choices=SMS_NOITFY_TYPE, verbose_name='类型')
+    task_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), verbose_name='类型')
 
     task_id = models.CharField(null=True, blank=True, default='', max_length=128, verbose_name='服务商返回任务ID')
     task_name = models.CharField(null=True, blank=True, default='', max_length=256, verbose_name='任务标题')
@@ -104,7 +109,7 @@ class SMSRecord(models.Model):
 class SMSActivity(models.Model):
     """ 活动短信模板 """
 
-    sms_type = models.CharField(max_length=10, choices=SMS_NOITFY_TYPE, verbose_name='类型')
+    sms_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), verbose_name='类型')
     text_tmpl = models.CharField(max_length=512, blank=True, null=True, verbose_name='内容')
     status = models.BooleanField(default=True, verbose_name="使用")
 
