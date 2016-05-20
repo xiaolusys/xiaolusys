@@ -81,6 +81,18 @@ class WuliuViewSet(viewsets.ModelViewSet):
         SaveWuliu_only.delay(tid, content)  # 异步任务，存储物 流信息到数据库
         return
 
+    def get_third_apidata_by_packetid(self, packetid, company_code):
+        """ 使用包裹id访问第三方api 获取物流参数 并保存到本地数据库　"""
+
+        # 快递编码(快递公司编码)
+        exType = company_code if company_code is not None else self.default_post
+        data = {'id': self.BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': packetid, 'key': self.apikey,
+                'uid': self.uid}
+        req = urllib2.urlopen(self.BADU_KD100_URL, urllib.urlencode(data), timeout=30)
+        content = json.loads(req.read())
+        SaveWuliu_only.delay('', content)  # 异步任务，存储物 流信息到数据库
+        return
+
     def packet_data(self, queryset):
         res = {u'data': [], u'errcode': u'', u'id': u'', u'message': u'', u'name': u'', u'order': u'', u'status': None}
         for query in queryset:
@@ -126,6 +138,39 @@ class WuliuViewSet(viewsets.ModelViewSet):
                 self.get_third_apidata(trade)
                 res = self.packet_data(queryset)
                 return Response(res)
+
+    @list_route(methods=['get'])
+    def get_wuliu_by_packetid(self, request):
+        content = request.REQUEST
+        packetid = content.get("packetid", None)
+        company_code = content.get("company_code", None)
+        if packetid is None:  # 参数缺失
+            return Response([])
+
+        queryset = self.queryset.filter(out_sid=packetid).order_by(
+            "-time")  # 这里要按照物流信息时间倒序
+        if queryset.exists():
+            last_wuliu = queryset[0]
+            last_time = last_wuliu.created  # 数据库中最新的记录时间
+            now = datetime.datetime.now()  # 现在时间
+            gap_time = (now - last_time).seconds
+            if gap_time <= self.gap_time or (last_wuliu.status in (pacg.RP_ALREADY_SIGN_STATUS,
+                                                                   pacg.RP_REFUSE_SIGN_STATUS,
+                                                                   pacg.RP_CANNOT_SEND_STATUS,
+                                                                   pacg.RP_INVALID__STATUS,
+                                                                   pacg.RP_OVER_TIME_STATUS,
+                                                                   pacg.RP_FAILED_SIGN_STATUS)):
+                # 属性定义的请求间隙 或者是物流信息是　已经签收了 疑难单　无效单　签收失败则不更新展示数据库中的数据
+                res = self.packet_data(queryset)
+                return Response(res)
+            else:  # 更新物流
+                self.get_third_apidata_by_packetid(packetid, company_code)
+                res = self.packet_data(queryset)
+                return Response(res)
+        else:  # 更新物流
+            self.get_third_apidata_by_packetid(packetid, company_code)
+            res = self.packet_data(queryset)
+            return Response(res)
 
     def create(self, request, *args, **kwargs):
         """ 创建本地物流信息存储 """
