@@ -1475,6 +1475,21 @@ class PackageOrder(models.Model):
         self.sku_num = 0
         self.save()
 
+    def set_package_address(package_order):
+        from flashsale.pay.models_addr import UserAddress
+        ua = UserAddress.objects.get(id=package_order.user_address_id)
+        if get_package_address_dict(package_order) != get_user_address_dict(ua):
+            package_order.buyer_id = ua.cus_uid
+            package_order.receiver_name = ua.receiver_name
+            package_order.receiver_state = ua.receiver_state
+            package_order.receiver_city = ua.receiver_city
+            package_order.receiver_district = ua.receiver_district
+            package_order.receiver_address = ua.receiver_address
+            package_order.receiver_zip = ua.receiver_zip
+            package_order.receiver_phone = ua.receiver_phone
+            package_order.save()
+            return package_order
+
     def reset_sku_item_num(self, save_data=True):
         sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
                                                   sys_status__in=[PackageSkuItem.ASSIGNED,
@@ -1776,3 +1791,19 @@ def update_package_order(sender, instance, created, **kwargs):
 
 post_save.connect(update_package_order, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_package_order')
+
+
+def get_package_address_dict(package_order):
+    res = {}
+    attrs = ['buyer_id','receiver_name','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','receiver_phone']
+    for attr in attrs:
+        res[attr] = getattr(package_order,attr)
+    return res
+
+def get_user_address_dict(ua):
+    res = {}
+    attrs = ['receiver_name','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','receiver_phone']
+    for attr in attrs:
+        res[attr] = getattr(ua, attr)
+    res['buyer_id'] = ua.cus_uid
+    return res
