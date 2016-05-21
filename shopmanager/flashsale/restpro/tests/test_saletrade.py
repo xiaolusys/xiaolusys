@@ -59,7 +59,6 @@ class SaletradeTestCase(TestCase):
         self.assertGreater(data['total_fee'],0)
         self.assertGreater(data['total_payment'], 0)
         self.assertEqual(len(data['cart_list']), cart_num)
-        self.assertGreater(len(data['logistics_companys']),0)
         return data
 
     def getUserAddress(self):
