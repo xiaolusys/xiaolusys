@@ -3,7 +3,7 @@ import re
 import json
 import datetime
 import urllib
-from urlparse import urljoin
+import urlparse
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404, HttpResponseRedirect
@@ -17,7 +17,6 @@ from celery import chain
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-
 from django_statsd.clients import statsd
 
 from core.weixin.mixins import WeixinAuthMixin
@@ -43,7 +42,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
-WEB_SHARE_URL = "{site_url}/index.html?mm_linkid={mm_linkid}&ufrom={ufrom}"
+WEB_SHARE_URL = "{site_url}/mall/?mm_linkid={mm_linkid}&ufrom={ufrom}"
 
 
 # SHOPURL = "http://m.xiaolumeimei.com/mm/plist/"
@@ -494,6 +493,27 @@ class StatsView(View):
                                    "target_date": target_date, "next_day": next_day},
                                   context_instance=RequestContext(request))
 
+def get_share_url(next_page=None, mm_linkid=None, ufrom=None):
+    """ 获取分享链接 """
+    if next_page:
+        next_page = urllib.unquote(next_page)
+        url_ps = urlparse.urlparse(next_page)
+        query_dict = urlparse.parse_qs(url_ps.query)
+        if mm_linkid:
+            query_dict.update(mm_linkid=mm_linkid)
+        if ufrom:
+            query_dict.update(ufrom=ufrom)
+        query_string = urllib.urlencode(query_dict)
+        share_url = urlparse.urljoin(settings.M_SITE_URL,
+                    '{path}?{query}#{fragement}'.format(
+                        path=url_ps.path,
+                        query=query_string,
+                        fragement=url_ps.fragment
+                    ))
+    else:
+        share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL,
+                                     mm_linkid=mm_linkid, ufrom=ufrom)
+    return share_url
 
 class ClickLogView(WeixinAuthMixin, View):
     """ 微信授权参数检查 """
@@ -506,11 +526,7 @@ class ClickLogView(WeixinAuthMixin, View):
         # print 'next_page:', next_page
         # logger.error('next_page %s-path:%s' % (next_page, content))
         if not self.is_from_weixin(request):
-            ufrom  = 'web'
-            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
-            if next_page:
-                share_url = urljoin(settings.M_SITE_URL,
-                                    '{next}&ufrom={ufrom}'.format(next=next_page, ufrom=ufrom))
+            share_url = get_share_url(next_page=next_page, mm_linkid=linkid, ufrom='web')
             response = redirect(share_url)
             return response
 
@@ -524,19 +540,12 @@ class ClickLogView(WeixinAuthMixin, View):
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WXPAY_APPID),
               ctasks.task_Update_User_Click.s())()
 
-        ufrom = 'wx'
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
         xlmms = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
-        if xlmms.exists():
-            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id, ufrom=ufrom)
-        else:
-            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom=ufrom)
-        if next_page:
-            next_page = urllib.unquote(next_page)
-            share_url = urljoin(settings.M_SITE_URL,
-                                '{next}&ufrom={ufrom}'.format(next=next_page, ufrom=ufrom))
+        mm_linkid = xlmms.exists() and xlmms[0].id or linkid
 
+        share_url = get_share_url(next_page=next_page, mm_linkid=mm_linkid, ufrom='wx')
         response = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
@@ -550,18 +559,14 @@ class ClickChannelLogView(WeixinAuthMixin, View):
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             return redirect(share_url)
-        logger.debug('debug channel 1:%s' % linkid)
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
         openid, unionid = self.get_openid_and_unionid(request)
-        logger.debug('debug channel 2:%s,%s,%s' % (linkid, openid, unionid))
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
-        logger.debug('debug channel 3:%s,%s,%s' % (linkid, openid, unionid))
         click_time = datetime.datetime.now()
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WXPAY_APPID),
               ctasks.task_Update_User_Click.s())()
-        logger.debug('debug channel 4:%s,%s,%s' % (linkid, openid, unionid))
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
         xlmms = XiaoluMama.objects.filter(openid=unionid)
@@ -569,7 +574,6 @@ class ClickChannelLogView(WeixinAuthMixin, View):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id, ufrom='wx')
         else:
             share_url = settings.M_SITE_URL
-        logger.debug('debug channel 5:%s,%s,%s' % (linkid, openid, share_url))
         response = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response

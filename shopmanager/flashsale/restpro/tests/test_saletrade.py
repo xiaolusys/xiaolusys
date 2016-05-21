@@ -12,7 +12,6 @@ class SaletradeTestCase(TestCase):
                 'test.shopback.items.product.json',
                 'test.flashsale.pay.shoppingcart.json',
                 'test.flashsale.pay.useraddress.json',
-                'test.flashsale.pay.logistics.companys.json',
                 ]
     def setUp(self):
         self.username = 'xiaolu'
@@ -90,7 +89,6 @@ class SaletradeTestCase(TestCase):
             'buyer_message':'',
             'addr_id':addr['id'],
             'channel':channel,
-            'logistic_company_id':'-2',
             'csrfmiddlewaretoken':'OoVZZqTFa4d0c1oNhwPyI1ikmYrdGyZF',
             'mm_linkid':'1',
             'ufrom':'web',
@@ -122,7 +120,6 @@ class SaletradeTestCase(TestCase):
             'buyer_message': '',
             'addr_id': addr['id'],
             'channel': channel,
-            'logistic_company_id': '-2',
             'csrfmiddlewaretoken': 'OoVZZqTFa4d0c1oNhwPyI1ikmYrdGyZF',
             'mm_linkid': '1',
             'ufrom': 'web',

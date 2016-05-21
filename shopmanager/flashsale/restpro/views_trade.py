@@ -288,17 +288,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         return extras
 
-    def get_logistics_by_shoppingcart(self, queryset):
-        ware_by = None
-        for sc in queryset:
-            product = Product.objects.filter(id=sc.item_id).first()
-            if product and ware_by is None:
-                ware_by = product.ware_by
-                continue
-            if product:
-                ware_by &= product.ware_by
-        return ware_by or Product.WARE_NONE
-
     @list_route(methods=['get', 'post'])
     def carts_payinfo(self, request, format=None, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
@@ -362,9 +351,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             weixin_payable = False
             alipay_payable = False
 
-        ware_by = self.get_logistics_by_shoppingcart(queryset)
-        logistics = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)
-
         budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
         response = {'uuid': genTradeUniqueid(),
                     'total_fee': round(total_fee, 2),
@@ -382,7 +368,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'cart_ids': ','.join([str(c) for c in cart_ids]),
                     'cart_list': serializer.data,
                     'coupon_message': coupon_message,
-                    'logistics_companys':logistics.values('id','name','code')
                     }
         response.update({'pay_extras': self.get_payextras(request, response)})
         return Response(response)
@@ -431,7 +416,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 user_coupon.check_user_coupon(product_ids=[product.id, ], use_fee=check_use_fee)
                 discount_fee += user_coupon.value
             except Exception, exc:
-                # raise exceptions.APIException(exc.message)
                 coupon_message = exc.message  # 返回优惠券的校验提示信息
             if coupon_message == '':
                 coupon_ticket = coupon_serializers.UserCouponSerialize(user_coupon).data
@@ -788,7 +772,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'charge': '',
                 'status': SaleTrade.WAIT_BUYER_PAY,
                 'openid': buyer_openid,
-                'logistics_company_id': form.get('logistics_company_id') or None,
                 'extras_info': {'coupon': form.get('coupon_id', ''),
                                 'pay_extras': pay_extras }
             })
