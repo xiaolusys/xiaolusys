@@ -588,10 +588,12 @@
                  return n;
              }
 
-             _.each(_.keys(inboundSkusDict), function(skuId){
+             _.each(_.keys(orderdetailsDict), function(orderdetailId){
+                 var orderdetailTpl = _.template('tr.sku[data-orderdetail-id="<%= orderdetailId %>"]');
+                 var skuTpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+                 var $row = $(orderdetailTpl({orderdetailId: orderdetailId}), '#form-2');
+                 var skuId = parseInt($row.attr('data-sku-id'));
                  var inboundSku = inboundSkusDict[skuId];
-                 var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
-                 var $row = $(tpl({skuId: skuId}), '#form-2');
                  $row.addClass('candidate');
                  $row.find('.arrival-quantity').after(template('package-sku-quantity-tpl',
                                                                {class_name: 'package-arrival-quantity',
@@ -601,13 +603,13 @@
                                                                  n: getQuantity(skuId, 'inferior-quantity') - inboundSku.inferior_quantity, sku_id: skuId}));
 
                  $row.find('.arrival-quantity').change(function(){
-                     var prefix = tpl({skuId: skuId});
+                     var prefix = skuTpl({skuId: skuId});
                      var n = getQuantity(skuId, 'arrival-quantity') - inboundSku.arrival_quantity;
                      $(prefix + ' .package-arrival-quantity', '#form-2').html(n > 0 ? '+' + n : n);
                  });
 
                  $row.find('.inferior-quantity').change(function(){
-                     var prefix = tpl({skuId: skuId});
+                     var prefix = skuTpl({skuId: skuId});
                      var n = getQuantity(skuId, 'inferior-quantity') - inboundSku.inferior_quantity;
                      $(prefix + ' .package-inferior-quantity', '#form-2').html(n > 0 ? '+' + n : n);
                  });
@@ -640,7 +642,7 @@
              return _.uniq(orderlistIds);
          }
 
-         function buildInboundOrderlists(orderlists, inboundSkusDict){
+         function buildInboundOrderlists(orderlists, orderdetailsDict){
              var i;
              var newOrderLists = [];
 
@@ -650,7 +652,7 @@
                  _.each(orderlist.products, function(product){
                      var newProduct = _.extend(_.clone(product), {skus: []});
                      _.each(product.skus, function(sku){
-                         if(inboundSkusDict[sku.id]){
+                         if(orderdetailsDict[sku.orderdetail_id]){
                              newProduct.skus.push(sku);
                              i += 1;
                          }
@@ -706,7 +708,7 @@
 
 
              $('#panel-1').after(template('panel-2-tpl', {}));
-             setupForm2(buildInboundOrderlists(orderlists, inbound.details));
+             setupForm2(buildInboundOrderlists(orderlists, orderdetailsDict));
              fillForm2(orderdetailsDict, inbound.details, []);
 
              $('#orderlists-toggle').click(function(){
@@ -722,7 +724,7 @@
                  else{
                      $this.removeClass('all').addClass('matching');
                      $this.html('展开所有Sku');
-                     setupForm2(buildInboundOrderlists(orderlists, inbound.details));
+                     setupForm2(buildInboundOrderlists(orderlists, orderdetailsDict));
                      fillForm2(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
                  }
              });
@@ -768,15 +770,6 @@
                              inferior_quantity: inferiorQuantity
                          })
                      }
-                     else{
-                         inboundData.push({
-                             sku_id: skuId,
-                             orderdetail_id: orderdetailId,
-                             inbounddetail_id: 0,
-                             arrival_quantity: arrivalQuantity,
-                             inferior_quantity: inferiorQuantity
-                         });
-                     }
                  });
 
                  var errorSkuIds = _.difference(_.keys(skuData), _.keys(inbound.details));
@@ -788,7 +781,7 @@
                  }
                  else{
                      $.ajax({
-                         url: '/sale/dinghuo/inbound/allocate',
+                         url: '/sale/dinghuo/inbound/reallocate',
                          type: 'post',
                          dataType: 'json',
                          data: {data: JSON.stringify(inboundData), inbound_id: inbound.id},

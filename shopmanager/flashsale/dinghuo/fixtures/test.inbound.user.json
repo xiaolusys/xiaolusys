@@ -1,0 +1,46 @@
+[
+{
+    "fields": {
+        "username": "enjun.wang",
+        "first_name": "\u6069\u4fca",
+        "last_name": "\u738b",
+        "is_active": true,
+        "is_superuser": true,
+        "is_staff": true,
+        "last_login": "2016-05-21T14:35:44",
+        "groups": [
+            18
+        ],
+        "user_permissions": [],
+        "password": "pbkdf2_sha256$20000$fmghBpvRGpsG$iGsSEj/7MMAcChbF/s5UcOrLNPGg65dCoNRVpZ26q6w=",
+        "email": "",
+        "date_joined": "2015-12-24T09:47:00"
+    },
+    "model": "auth.user",
+    "pk": 684827
+},
+{
+    "fields": {
+        "username": "xuedi.sun",
+        "first_name": "\u96ea\u5730",
+        "last_name": "\u5b59",
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": true,
+        "last_login": "2016-04-18T08:35:33",
+        "groups": [
+            15,
+            22
+        ],
+        "user_permissions": [
+            586,
+            587
+        ],
+        "password": "pbkdf2_sha256$20000$HB2UuZTNay2g$J+5Bic1qdTx4hOk+gOeeXATYe0YkzgXEkn7oGSk3IIM=",
+        "email": "",
+        "date_joined": "2016-03-14T10:09:13"
+    },
+    "model": "auth.user",
+    "pk": 862337
+}
+]

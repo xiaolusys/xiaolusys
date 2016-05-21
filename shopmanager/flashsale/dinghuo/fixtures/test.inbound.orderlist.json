@@ -1,0 +1,80 @@
+[
+{
+    "fields": {
+        "status": "\u5ba1\u6838",
+        "updated": "2016-05-21T20:45:34",
+        "buyer_name": "",
+        "costofems": 0,
+        "express_company": "",
+        "receiver": "",
+        "p_district": "1",
+        "pay_status": "",
+        "order_amount": 2149.0,
+        "note": "-->04\u670824 10:15:\u81ea\u52a8\u751f\u6210\u8ba2\u8d27\u5355\r\n-->04\u670824 15:09shirley.zhang:\u8ba2\u5355\u53f7\uff1a1541408755804574\r\n-->04\u670826 10:54xuqin.wu:\u6b64\u5305\u88f9\u5171\u5230\u8d2762\u4ef6\uff0c\u4e2d\u56fd\u98ce\u7acb\u9886\u8fde\u8863\u88d9/\u7c89\u8272140\u672a\u5230\uff0c\u4e2d\u56fd\u98ce\u7acb\u9886\u8fde\u8863\u88d9/\u767d\u8272140\u672a\u5230\uff0c\u5e05\u6c14\u649e\u8272T\u6064\u5957\u88c5/\u85cf\u9752\u8272140\u5c11\u5230\u4e00\u4ef6\uff0c\u85cf\u9752\u8272140\u6536\u5230\u4e00\u4ef6\uff0c\u6ca1\u6cd5\u5165\u5e93\r\n-->04\u670826 11:55xuqin.wu:\u4e2d\u56fd\u98ce\u7acb\u9886\u8fde\u8863\u88d9/\u84dd\u8272150/150\u6b21\u54c1\u5404\u4e00\u4ef6\uff0c\u5370\u5237\u4e0d\u826f\r\n-->04\u670826 11:55xuqin.wu:.\r\n-->04\u670826 12:04shirley.zhang:2149\u5143\r\n-->04\u670826 12:59xuqin.wu:\u97e9\u7248\u5361\u901a\u5370\u82b1\u80cc\u5e26\u88d9/\u725b\u4ed4\u84dd120 /130/140/150\u6b21\u54c1\u5404\u4e00\u4ef6\uff0c\u7834\u6d1e\uff0c\u51714\u4ef6\r\n-->04\u670826 12:59xuqin.wu:.\n-->05\u670821 20:45enjun.wang: \u6709\u6b21\u54c1\u53c8\u7f3a\u8d27\n-->05\u670821 20:45enjun.wang: \u5ba1\u6838",
+        "supplier": null,
+        "last_pay_date": "2016-04-24",
+        "created": "2016-04-24",
+        "reach_standard": false,
+        "supplier_shop": "",
+        "supplier_name": "",
+        "buyer": 862337,
+        "express_no": "",
+        "created_by": 2,
+        "is_postpay": false
+    },
+    "model": "dinghuo.orderlist",
+    "pk": 16713
+},
+{
+    "fields": {
+        "status": "\u5ba1\u6838",
+        "updated": "2016-05-21T20:47:00",
+        "buyer_name": "",
+        "costofems": 0,
+        "express_company": "",
+        "receiver": "",
+        "p_district": "1",
+        "pay_status": "",
+        "order_amount": 1768.0,
+        "note": "-->04\u670825 13:03:\u81ea\u52a8\u751f\u6210\u8ba2\u8d27\u5355\n-->04\u670825 15:34xuedi.sun:1544743609084574\n-->04\u670826 11:11deyan.chen:\u6b64\u5305\u88f9\u5171\u5230\u8d2738\u4ef6\uff0c{\u4e2d\u56fd\u98ce\u7acb\u9886\u8fde\u8863\u88d9/\u7c89\u8272130\u4e24\u4ef6\uff0c140\u4e03\u4ef6\uff0c\u84dd\u8272160\u4e24\u4ef6\uff0c\u767d\u8272140\u4e24\u4ef6\uff0c\u5e05\u6c14\u649e\u8272T\u6064\u5957\u88c5/\u85cf\u9752\u8272160\u56db\u4ef6}\uff0c\u6ca1\u5230\u517117\u4ef6\n-->04\u670826 12:02deyan.chen:\u6b21\u54c1\u4e2d\u56fd\u98ce\u7acb\u9886\u8fde\u8863\u88d9/\u84dd\u8272150\u4e00\u4ef6\uff0c\u6709\u6c61\u6e0d\uff0c\u97e9\u7248\u5361\u901a\u5370\u82b1\u80cc\u5e26\u88d9/\u725b\u4ed4\u84dd5\u4ef6\u6709\u7834\u6d1e\n-->04\u670826 12:02deyan.chen:.\n-->05\u670821 20:45enjun.wang: \u6709\u6b21\u54c1\u53c8\u7f3a\u8d27\n-->05\u670821 20:47enjun.wang: \u5ba1\u6838",
+        "supplier": null,
+        "last_pay_date": "2016-04-25",
+        "created": "2016-04-25",
+        "reach_standard": false,
+        "supplier_shop": "",
+        "supplier_name": "",
+        "buyer": 862337,
+        "express_no": "",
+        "created_by": 2,
+        "is_postpay": false
+    },
+    "model": "dinghuo.orderlist",
+    "pk": 16748
+},
+{
+    "fields": {
+        "status": "\u5ba1\u6838",
+        "updated": "2016-05-21T20:45:19",
+        "buyer_name": "",
+        "costofems": 0,
+        "express_company": "",
+        "receiver": "",
+        "p_district": "1",
+        "pay_status": "",
+        "order_amount": 669.0,
+        "note": "-->05\u670809 22:30:\u81ea\u52a8\u751f\u6210\u8ba2\u8d27\u5355\n-->05\u670821 20:45enjun.wang: \u5ba1\u6838",
+        "supplier": null,
+        "last_pay_date": "2016-04-25",
+        "created": "2016-05-09",
+        "reach_standard": false,
+        "supplier_shop": "",
+        "supplier_name": "",
+        "buyer": 862337,
+        "express_no": "",
+        "created_by": 2,
+        "is_postpay": false
+    },
+    "model": "dinghuo.orderlist",
+    "pk": 16831
+}
+]
