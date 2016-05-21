@@ -1156,7 +1156,7 @@ def get_suppliers(pay_time_threshold):
     dinghuo_skus_dict = {}
     dinghuo_stats = OrderDetail.objects.select_related('orderlist').filter(
         chichu_id__in=map(str, sale_skus_dict.keys())) \
-        .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED]) \
+        .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED, OrderList.TO_PAY]) \
         .values('chichu_id') \
         .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
                   inferior_quantity=Sum('inferior_quantity'))

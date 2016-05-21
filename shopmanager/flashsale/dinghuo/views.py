@@ -1963,6 +1963,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
         orderlist_ids = sorted(orderlist_ids)
         inbound.orderlist_ids = orderlist_ids
+        inbound.status = InBound.COMPLETED
         inbound.save()
 
         if orderlist_ids:
