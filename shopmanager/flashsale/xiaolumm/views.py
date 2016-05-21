@@ -498,7 +498,7 @@ def get_share_url(next_page=None, mm_linkid=None, ufrom=None):
     if next_page:
         next_page = urllib.unquote(next_page)
         url_ps = urlparse.urlparse(next_page)
-        query_dict = urlparse.parse_qs(url_ps.query)
+        query_dict = dict(urlparse.parse_qsl(url_ps.query))
         if mm_linkid:
             query_dict.update(mm_linkid=mm_linkid)
         if ufrom:
