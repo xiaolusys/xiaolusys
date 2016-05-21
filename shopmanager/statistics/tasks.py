@@ -128,6 +128,7 @@ def task_update_sale_order_stats_record(sale_order):
 def calculate_sku_sale_stats(sku_id=None, date_field=None):
     """ 计算sku的数量 信息 """
     from statistics.models import SaleOrderStatsRecord
+
     records = SaleOrderStatsRecord.objects.filter(sku_id=sku_id,
                                                   date_field=date_field)
     return records.values('status').annotate(total_num=Sum('num'),
@@ -240,7 +241,10 @@ def get_model_name_and_picpath(model_id):
 
 
 def get_bd_id(supplier_id):
-    charger = SupplierCharge.objects.filter(supplier_id=supplier_id).first()
+    charger = SupplierCharge.objects.filter(
+        supplier_id=supplier_id,
+        status=SupplierCharge.EFFECT
+    ).order_by("-id").first()  # 有效状态的最新的接管人
     if charger:
         return charger.employee.id  # User ID
     return None

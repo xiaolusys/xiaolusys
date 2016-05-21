@@ -680,33 +680,52 @@ class SaleOrder(PayBaseModel):
                self.status == SaleOrder.WAIT_BUYER_PAY
 
     def stats_paid(self):
-        return SaleOrder.WAIT_SELLER_SEND_GOODS <= self.status <= SaleOrder.TRADE_FINISHED and \
-               self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
+        """ 统计付款的 """
+        return SaleOrder.WAIT_SELLER_SEND_GOODS <= self.status \
+               <= SaleOrder.TRADE_FINISHED and self.refund_status <= SaleRefund.REFUND_REFUSE_BUYER
 
     def stats_cancel(self):
-        out_stock = False
+        """ 发货前退单 """
         refund = SaleRefund.objects.filter(id=self.refund_id).first()
-        if refund:
-            if refund.good_status == SaleRefund.SELLER_OUT_STOCK:
-                out_stock = True
-        return not out_stock and self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and \
-               (self.refund_status == SaleRefund.REFUND_WAIT_SELLER_AGREE or
-                self.refund_status == SaleRefund.REFUND_APPROVE)
+        if refund and refund.good_status == SaleRefund.BUYER_NOT_RECEIVED:  # 买家没有收到货(卖家没有发货 == 发货前)
+            return self.status not in [  # 不在以下状态认为是 有 付过款
+                                         SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
+                                         SaleOrder.WAIT_BUYER_PAY,  # 待付款
+                                         SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
+                                         ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
+                                                                            SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
+                                                                            SaleRefund.NO_REFUND,  # 没有退款
+                                                                            SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
+        return False
 
     def stats_out_stock(self):
-        out_stock = False
+        """ 缺货退款 """
         refund = SaleRefund.objects.filter(id=self.refund_id).first()
-        if refund:
-            if refund.good_status == SaleRefund.SELLER_OUT_STOCK:
-                out_stock = True
-        return out_stock and self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and \
-               (self.refund_status == SaleRefund.REFUND_WAIT_SELLER_AGREE or
-                self.refund_status == SaleRefund.REFUND_APPROVE)
+        if refund and refund.good_status == SaleRefund.SELLER_OUT_STOCK:  # 退款单 为  缺货退款单
+            return self.status not in [  # 不在以下状态认为是 有 付过款
+                                         SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
+                                         SaleOrder.WAIT_BUYER_PAY,  # 待付款
+                                         SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
+                                         ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
+                                                                            SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
+                                                                            SaleRefund.NO_REFUND,  # 没有退款
+                                                                            SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
+        return False
 
     def stats_return_goods(self):
-        return (SaleOrder.WAIT_BUYER_CONFIRM_GOODS <= self.status <= SaleOrder.TRADE_FINISHED) and (
-            self.refund_status == SaleRefund.REFUND_WAIT_SELLER_AGREE or
-            self.refund_status == SaleRefund.REFUND_APPROVE)
+        """ 退货退款 """
+        refund = SaleRefund.objects.filter(id=self.refund_id).first()
+        if refund and refund.good_status in [SaleRefund.BUYER_RECEIVED,
+                                             SaleRefund.BUYER_RETURNED_GOODS]:  # (买家收到货/卖家已经退货 == 发货后)
+            return self.status not in [  # 不在以下状态认为是 有 付过款
+                                         SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
+                                         SaleOrder.WAIT_BUYER_PAY,  # 待付款
+                                         SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
+                                         ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
+                                                                            SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
+                                                                            SaleRefund.NO_REFUND,  # 没有退款
+                                                                            SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
+        return False
 
 
 def order_trigger(sender, instance, created, **kwargs):
