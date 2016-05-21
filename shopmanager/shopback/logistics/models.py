@@ -20,7 +20,6 @@ from shopback import paramconfig as pcfg
 
 POST_STATE = (u'甘肃', u'青海', u'陕西', u'广西', u'宁夏', u'贵州', u'内蒙', u'西藏', u'新疆', u'云南')
 
-POST_STATE = (u'甘肃', u'青海', u'陕西', u'广西', u'宁夏', u'贵州', u'内蒙', u'西藏', u'新疆', u'云南')
 logger = logging.getLogger('django.request')
 
 LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
@@ -100,6 +99,10 @@ class DestCompany(models.Model):
 
 class LogisticsCompany(models.Model):
     NOPOST = 'HANDSALE'
+
+    WARE_SH = constants.WARE_SH
+    WARE_GZ = constants.WARE_GZ
+    WARE_NONE = constants.WARE_NONE
 
     id = models.BigIntegerField(primary_key=True, verbose_name='ID')
     code = models.CharField(max_length=64, unique=True, blank=True, verbose_name='快递编码')

@@ -21,7 +21,8 @@ from flashsale.pay.models import SaleTrade, Customer
 from . import permissions as perms
 from . import serializers
 
-from flashsale.pay.models import SaleRefund, District, UserAddress, SaleOrder
+from flashsale.pay.models import SaleRefund, District, UserAddress, SaleOrder, SaleTrade
+from flashsale.pay.tasks import tasks_set_user_address_id
 from flashsale.xiaolumm.models import XiaoluMama
 from django.forms import model_to_dict
 import json
@@ -179,6 +180,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address = content.get('receiver_address', '').strip()
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
+        referal_trade_id = content.get('referal_trade_id','').strip()
+        logistic_company_code = content.get('logistic_company_code', '').strip()
         default = content.get('default') or ''
         if default == 'true':
             default = True
@@ -201,8 +204,27 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 UserAddress.objects.filter(pk=new_address.id).update(status=UserAddress.NORMAL)
             if default:  # 选择为默认地址
                 new_address.set_default_address()  # 如果是选择设置默认地址则设置默认地址
-            return Response({'ret': True, 'code': 0, 'info': '更新成功', "msg": '更新成功'})
-        except:
+            new_address.set_logistic_company(logistic_company_code)
+            if referal_trade_id:
+                strade = SaleTrade.objects.filter(id=referal_trade_id, status=SaleTrade.WAIT_SELLER_SEND_GOODS).first()
+                if strade:
+                    update_fields = ['receiver_name','receiver_state','receiver_city',
+                                     'receiver_district','receiver_address','receiver_mobile']
+                    for name in update_fields:
+                        setattr(strade, name ,getattr(new_address, name))
+                    strade.user_address_id = new_address.id
+
+                    if new_address.logistic_company_code:
+                        from shopback.logistics.models import LogisticsCompany
+                        logistic = LogisticsCompany.objects.filter(code=logistic_company_code).first()
+                        strade.logistics_company = logistic
+                    strade.save(update_fields=update_fields + ['user_address_id','logistics_company'])
+
+                    tasks_set_user_address_id.delay(strade)
+
+            return Response({'ret': True, 'code': 0, 'info': '更新成功', 'result':{'address_id':new_address.id}, "msg": '更新成功'})
+        except Exception,exc:
+            logger.error(exc.message, exc_info=True)
             return Response({'ret': False, 'code': 1, 'info': '更新失败', "msg": '更新失败'})
 
     @detail_route(methods=["post"])
@@ -259,19 +281,30 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address = content.get('receiver_address', '').strip()
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
+        logistic_company_code = content.get('logistic_company_code', '').strip()
         try:
-            address, state = UserAddress.objects.get_or_create(cus_uid=customer_id, receiver_name=receiver_name,
-                                                               receiver_state=receiver_state, default=False,
-                                                               receiver_city=receiver_city,
-                                                               receiver_district=receiver_district,
-                                                               receiver_address=receiver_address,
-                                                               receiver_mobile=receiver_mobile)
+            address, state = UserAddress.objects.get_or_create(
+                cus_uid=customer_id, receiver_name=receiver_name,
+                receiver_state=receiver_state, default=False,
+                receiver_city=receiver_city,
+                receiver_district=receiver_district,
+                receiver_address=receiver_address,
+                receiver_mobile=receiver_mobile)
             if default == 'true':  # 设置为默认地址
                 address.set_default_address()
-            result = {'ret': True, "msg": "添加成功", 'code': 0}
-        except:
+            address.set_logistic_company(logistic_company_code)
+
+            result = {'ret': True, "msg": "添加成功", 'result':{'address_id':address.id}, 'code': 0}
+        except Exception,exc:
+            logger.error(exc.message, exc_info=True)
             result = {'ret': False, "msg": "添加出错", "code": 1}
         return Response(result)
+
+    @list_route(methods=['get'])
+    def get_logistic_companys(self, request):
+        from shopback.logistics.models import LogisticsCompany
+        logistic_companys = LogisticsCompany.get_logisticscompanys_by_warehouse(LogisticsCompany.WARE_NONE)
+        return Response(logistic_companys.values('id','code','name'))
 
     @list_route(methods=['get'])
     def get_one_address(self, request):

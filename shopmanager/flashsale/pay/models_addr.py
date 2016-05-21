@@ -68,6 +68,7 @@ class UserAddress(BaseModel):
     receiver_phone = models.CharField(max_length=20, blank=True, verbose_name=u'电话')
 
     default = models.BooleanField(default=False, verbose_name=u'默认地址')
+    logistic_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'优先快递编码')
 
     status = models.CharField(max_length=8, blank=True, db_index=True, default=NORMAL,
                               choices=STATUS_CHOICES, verbose_name=u'状态')
@@ -92,6 +93,11 @@ class UserAddress(BaseModel):
         current_address.update(default=False)  # 全部更新为非默认
         self.default = True
         self.save()  # 保存当前的为默认地址
+        return True
+
+    def set_logistic_company(self, company_code):
+        self.logistic_company_code = company_code
+        self.save(update_fields=['logistic_company_code'])
         return True
 
     def clean_strip(self):

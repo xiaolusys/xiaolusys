@@ -82,7 +82,7 @@
     "total_fee": 109.8,
     "receiver_state": "\u5e7f\u4e1c",
     "receiver_name": "\u674e\u4e39",
-    "buyer_id": 1
+    "buyer_id": 783437
   },
   "model": "pay.saletrade",
   "pk": 333231
@@ -175,7 +175,7 @@
     "total_fee": 49.9,
     "pic_path": "http://image.xiaolu.so/MG_1461578903271_1.jpg",
     "outer_id": "913291060033",
-    "buyer_id": 1
+    "buyer_id": 783437
   },
   "model": "pay.saleorder",
   "pk": 369488
@@ -206,7 +206,7 @@
     "total_fee": 59.9,
     "pic_path": "http://image.xiaolu.so/MG_14613338635352.jpg",
     "outer_id": "821290970011",
-    "buyer_id": 1
+    "buyer_id": 783437
   },
   "model": "pay.saleorder",
   "pk": 369489

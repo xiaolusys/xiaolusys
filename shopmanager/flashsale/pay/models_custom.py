@@ -399,6 +399,11 @@ DEFAULT_CHD_POSTER = [
     }
 ]
 
+def default_wen_poster():
+    return json.dumps(DEFAULT_WEN_POSTER, indent=2)
+
+def default_chd_poster():
+    return json.dumps(DEFAULT_WEN_POSTER, indent=2)
 
 class GoodShelf(PayBaseModel):
     DEFAULT_WEN_POSTER = DEFAULT_WEN_POSTER
@@ -407,10 +412,10 @@ class GoodShelf(PayBaseModel):
     title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'海报名称')
 
     wem_posters = JSONCharMyField(max_length=10240, blank=True,
-                                  default=json.dumps(DEFAULT_WEN_POSTER, indent=2),
+                                  default=default_wen_poster,
                                   verbose_name=u'女装海报')
     chd_posters = JSONCharMyField(max_length=10240, blank=True,
-                                  default=json.dumps(DEFAULT_CHD_POSTER, indent=2),
+                                  default=default_chd_poster,
                                   verbose_name=u'童装海报')
 
     is_active = models.BooleanField(default=True, verbose_name=u'上线')

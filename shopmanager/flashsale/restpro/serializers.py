@@ -321,7 +321,7 @@ class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
         model = UserAddress
         fields = ('id', 'url', 'cus_uid', 'receiver_name', 'receiver_state', 'receiver_city',
                   'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile',
-                  'receiver_phone', 'default', 'status', 'created')
+                  'receiver_phone', 'logistic_company_code', 'default', 'status', 'created')
 
 
 class DistrictSerializer(serializers.HyperlinkedModelSerializer):
