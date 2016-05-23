@@ -306,7 +306,8 @@ def task_update_parent_sale_stats(sale_stats):
             if total_num > 0:
                 # print "total num :", total_num, sale_stats.get_record_type_display()
                 grand_parent_id, name, pic_path = get_parent_id_name_and_pic_path(record_type, parent_id, date_field)
-                if record_type == SaleStats.TYPE_SUPPLIER and grand_parent_id is None:  # 供应商级别更新bd级别的 bd没有找到 则return
+                # 供应商级别更新bd级别的 bd没有找到 则return
+                if sale_stats.record_type == SaleStats.TYPE_SUPPLIER and grand_parent_id is None:
                     logger.error(u'task_update_parent_sale_stats: '
                                  u' bd user not found , the supplier is %s' % sale_stats.current_id)
                     return
@@ -405,14 +406,17 @@ def task_update_week_stats_record(date_stats):
                                               status=status)
         sum_dic = date_stats.values('num', 'payment').aggregate(t_num=Sum('num'), t_payment=Sum('payment'))
         num = sum_dic.get('t_num') or 0
-        payment = sum_dic.get('payment') or 0
-
+        payment = sum_dic.get('t_payment') or 0
+        if num == 0 and payment == 0:  # 都为0 则不更新
+            continue
         stats = SaleStats.objects.filter(uni_key=uni_key).first()
         if stats:  # 有 周报记录
             update_fields = []
             if num != stats.num:
+                stats.num = num
                 update_fields.append('num')
             if payment != stats.payment:
+                stats.payment = payment
                 update_fields.append('payment')
             if update_fields:
                 stats.save(update_fields=update_fields)
@@ -431,22 +435,16 @@ def task_update_week_stats_record(date_stats):
             continue
 
 
-@task()
-def task_update_month_stats_record(week_stats):
+def update_month_stats_record(year, month):
     """
-    :type week_stats: SaleStats instance witch record_type is TYPE_WEEK
+    :type month: int month
+    :type year: int year
     """
-    if week_stats.record_type != SaleStats.TYPE_WEEK:
-        return
-
-    # 查询月报记录是否存在
-    # 有 则 判断是否有数字变化 有变化则更新  记录不存在 则创建记录 写入数据
-    current_tag = 'week'
-    date_field = week_stats.date_field  # 该 周报记录的日期数值 该周的第一天
-    time_left = datetime.date(date_field.year, date_field.month, 1)  # 该日期的月份的第一天
+    current_tag = 'month'
+    date_field_uni = str(year) + str(month)  # 年月
+    time_left = datetime.date(year, month, 1)
     month_days = calendar.monthrange(time_left.year, time_left.month)[1]  # 该 月份 天数
-    time_right = datetime.date(time_left.year, time_left.month, month_days)  # 截止日期
-    date_field_uni = date_field.strftime('%Y%m')  # 年月
+    time_right = datetime.date(year, month, month_days)
     for s in SaleStats.STATUS:
         status = s[0]
         uni_key = make_sale_stat_uni_key(date_field=date_field_uni, current_id=current_tag,
@@ -458,14 +456,17 @@ def task_update_month_stats_record(week_stats):
                                               status=status)
         sum_dic = date_stats.values('num', 'payment').aggregate(t_num=Sum('num'), t_payment=Sum('payment'))
         num = sum_dic.get('t_num') or 0
-        payment = sum_dic.get('payment') or 0
-
+        payment = sum_dic.get('t_payment') or 0
+        if num == 0 and payment == 0:
+            continue
         stats = SaleStats.objects.filter(uni_key=uni_key).first()
         if stats:  # 有 周报记录
             update_fields = []
             if num != stats.num:
+                stats.num = num
                 update_fields.append('num')
             if payment != stats.payment:
+                stats.payment = payment
                 update_fields.append('payment')
             if update_fields:
                 stats.save(update_fields=update_fields)
@@ -482,6 +483,30 @@ def task_update_month_stats_record(week_stats):
             )
             stats.save()
             continue
+
+
+@task()
+def task_update_month_stats_record(week_stats):
+    """
+    :type week_stats: SaleStats instance witch record_type is TYPE_WEEK
+    """
+    if week_stats.record_type != SaleStats.TYPE_WEEK:
+        return
+
+    # 查询月报记录是否存在
+    # 有 则 判断是否有数字变化 有变化则更新  记录不存在 则创建记录 写入数据
+    date_field = week_stats.date_field  # 该 周报记录的日期数值  注意这里并不是 第一天
+    # 一个日期 判断是 一个月的最后一周
+    sixed_date_field = date_field + datetime.timedelta(days=6)
+
+    if sixed_date_field.year == date_field.year and sixed_date_field.month == date_field.month:  # 同年 同月 仅需要更新一次
+        update_month_stats_record(date_field.year, date_field.month)
+    if sixed_date_field.year == date_field.year and sixed_date_field.month > date_field.month:  # 夸月度 两个月度都更新
+        update_month_stats_record(date_field.year, date_field.month)
+        update_month_stats_record(date_field.year, sixed_date_field.month)
+    if sixed_date_field.year > date_field.year:  # 夸年
+        update_month_stats_record(date_field.year, sixed_date_field.month)
+        update_month_stats_record(sixed_date_field.year, 1)  # 更新1月份的
 
 
 @task()
@@ -528,14 +553,18 @@ def task_update_quarter_stats_record(month_stats):
                                               status=status)
         sum_dic = date_stats.values('num', 'payment').aggregate(t_num=Sum('num'), t_payment=Sum('payment'))
         num = sum_dic.get('t_num') or 0
-        payment = sum_dic.get('payment') or 0
+        payment = sum_dic.get('t_payment') or 0
+        if num == 0 and payment == 0:
+            continue
 
         stats = SaleStats.objects.filter(uni_key=uni_key).first()
         if stats:  # 有 周报记录
             update_fields = []
             if num != stats.num:
+                stats.num = num
                 update_fields.append('num')
             if payment != stats.payment:
+                stats.payment = payment
                 update_fields.append('payment')
             if update_fields:
                 stats.save(update_fields=update_fields)
