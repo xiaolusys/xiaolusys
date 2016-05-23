@@ -7,7 +7,9 @@ from optparse import make_option
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+
 from flashsale.dinghuo.models import InBound, InBoundDetail, OrderList, OrderDetail, OrderDetailInBoundDetail
+from flashsale.dinghuo.views import InBoundViewSet
 from shopback.items.models import ProductSku
 from shopback.items.models_stats import ProductSkuStats
 
@@ -18,6 +20,7 @@ class Command(BaseCommand):
         make_option('-s', '--stats', dest='is_stats', action='store_true', default=False),
         make_option('-o', '--orderlistids', dest='orderlist_ids', action='store', default=''),
         make_option('-p', '--print', dest='is_print', action='store_true', default=False),
+        make_option('-t', '--test', dest='is_test', action='store_true', default=False)
     )
 
     @classmethod
@@ -27,7 +30,65 @@ class Command(BaseCommand):
         InBound.objects.all().delete()
 
     @classmethod
+    def test(cls):
+        status_mapping = dict(OrderList.ORDER_PRODUCT_STATUS)
+        product_ids = set()
+        sku_ids = set()
+        orderlists_dict = {}
+        orderlist_ids = (16713,16748,16831)
+
+        for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
+            buyer_name = '未知'
+            if orderlist.buyer_id:
+                buyer_name = '%s%s' % (orderlist.buyer.last_name,
+                                       orderlist.buyer.first_name)
+                buyer_name = buyer_name or orderlist.buyer.username
+
+            orderlists_dict[orderlist.id] = {
+                'id': orderlist.id,
+                'buyer_name': buyer_name,
+                'created': orderlist.created.strftime('%y年%m月%d'),
+                'status': status_mapping.get(orderlist.status) or '未知',
+                'products': {}
+            }
+
+
+        for orderdetail in OrderDetail.objects.filter(
+                orderlist_id__in=orderlist_ids).order_by('id'):
+
+            orderlist_dict = orderlists_dict[orderdetail.orderlist_id]
+            product_id = int(orderdetail.product_id)
+            sku_id = int(orderdetail.chichu_id)
+            product_ids.add(product_id)
+            sku_ids.add(sku_id)
+
+            products_dict = orderlist_dict['products']
+            skus_dict = products_dict.setdefault(product_id, {})
+
+            skus_dict[sku_id] = {
+                'buy_quantity': orderdetail.buy_quantity,
+                'plan_quantity': orderdetail.buy_quantity - min(
+                    orderdetail.arrival_quantity, orderdetail.buy_quantity),
+                'orderdetail_id': orderdetail.id
+            }
+        print orderlists_dict[16748]['products'][40243].keys()
+
+        inbound_skus_dict = {
+            162255: {'arrival_quantity': 1},
+            162258: {'arrival_quantity': 1},
+            162262: {'arrival_quantity': 1},
+            162263: {'arrival_quantity': 5},
+            162264: {'arrival_quantity': 10}
+        }
+        allocate_dict =  InBoundViewSet._find_allocate_dict(inbound_skus_dict, orderlist_ids, 16831, '')
+        for orderdetail in OrderDetail.objects.filter(id__in=allocate_dict.keys()):
+            print orderdetail.chichu_id, orderdetail.id, allocate_dict[orderdetail.id]
+
+
+    @classmethod
     def init(cls):
+        now = datetime.datetime.now()
+
         for orderlist in OrderList.objects.exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED]):
             orderdetail_dicts = []
             for orderdetail in orderlist.order_list.all().order_by('id'):
@@ -49,7 +110,8 @@ class Command(BaseCommand):
                     supplier=orderlist.supplier,
                     creator_id=1,
                     express_no=orderlist.express_no,
-                    orderlist_ids=[orderlist.id]
+                    orderlist_ids=[orderlist.id],
+                    memo='-->%s: 创建入仓单' % now.strftime('%m月%d %H:%M')
                 )
                 inbound.save()
                 for orderdetail_dict in orderdetail_dicts:
@@ -195,6 +257,7 @@ class Command(BaseCommand):
         is_stats = kwargs['is_stats']
         orderlist_ids = filter(lambda x: x.isdigit(), kwargs['orderlist_ids'].split(','))
         is_print = kwargs['is_print']
+        is_test = kwargs['is_test']
         if is_del:
             self.delete_all()
         if is_init:
@@ -205,3 +268,6 @@ class Command(BaseCommand):
                 self.pretty_print([int(x) for x in orderlist_ids])
         if is_stats:
             self.dinghuo_stats()
+
+        if is_test:
+            self.test()
