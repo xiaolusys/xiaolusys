@@ -1476,19 +1476,18 @@ class PackageOrder(models.Model):
         self.save()
 
     def set_package_address(package_order):
-        from flashsale.pay.models_addr import UserAddress
-        ua = UserAddress.objects.get(id=package_order.user_address_id)
-        if get_package_address_dict(package_order) != get_user_address_dict(ua):
-            package_order.buyer_id = ua.cus_uid
-            package_order.receiver_name = ua.receiver_name
-            package_order.receiver_state = ua.receiver_state
-            package_order.receiver_city = ua.receiver_city
-            package_order.receiver_district = ua.receiver_district
-            package_order.receiver_address = ua.receiver_address
-            package_order.receiver_zip = ua.receiver_zip
-            package_order.receiver_phone = ua.receiver_phone
-            package_order.save()
-            return package_order
+        item = package_order.package_sku_items.first()
+        st = SaleTrade.objects.get(tid=item.sale_trade_id)
+        package_order.buyer_id = st.buyer_id
+        package_order.receiver_name = st.receiver_name
+        package_order.receiver_state = st.receiver_state
+        package_order.receiver_city = st.receiver_city
+        package_order.receiver_district = st.receiver_district
+        package_order.receiver_address = st.receiver_address
+        package_order.receiver_zip = st.receiver_zip
+        package_order.receiver_phone = st.receiver_phone
+        package_order.save()
+        return package_order
 
     def reset_sku_item_num(self, save_data=True):
         sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
