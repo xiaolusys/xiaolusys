@@ -27,7 +27,7 @@ from . import serializers
 from core.options import log_action, ADDITION, CHANGE
 
 
-class CustomShareViewSet(viewsets.ModelViewSet):
+class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ### 特卖分享API：
     
@@ -40,7 +40,7 @@ class CustomShareViewSet(viewsets.ModelViewSet):
     queryset = CustomShare.objects.filter(status=True)
     serializer_class = serializers.CustomShareSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     _xlmm = None
@@ -51,11 +51,13 @@ class CustomShareViewSet(viewsets.ModelViewSet):
     def get_xlmm(self, request):
         if self._xlmm:
             return self._xlmm
-        customer = get_object_or_404(Customer, user=request.user)
-        if not customer.unionid.strip():
+        if not request.user or request.user.is_anonymous():
+            return None
+        customer = Customer.objects.filter(user_id=request.user.id).first()
+        if not customer or not customer.unionid.strip():
             return None
         xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
-        self._xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
+        self._xlmm = xiaolumms.first()
         return self._xlmm
 
     def is_request_from_weixin(self, request):
