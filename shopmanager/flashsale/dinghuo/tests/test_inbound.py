@@ -106,19 +106,18 @@ class InBoundTestCase(TestCase):
                 record['arrival_quantity'] -= inferior_quantity
                 record['inferior_quantity'] = inferior_quantity
                 data[sku_id]['inferior_quantity'] -= inferior_quantity
-                orderdetails_dict = {
+                orderdetails_dict[orderdetail_id] = {
                     'arrival_quantity': orderdetail.arrival_quantity - inferior_quantity,
                     'inferior_quantity': orderdetail.inferior_quantity + inferior_quantity
                 }
             else:
                 record['inferior_quantity'] = 0
-                orderdetails_dict = {
+                orderdetails_dict[orderdetail_id] = {
                     'arrival_quantity': orderdetail.arrival_quantity,
                     'inferior_quantity': orderdetail.inferior_quantity
                 }
 
 
-        """
         r = self.client.post('/sale/dinghuo/inbound/reallocate',
                              {'data': json.dumps(records),
                               'inbound_id': result['inbound']['id']},
@@ -134,10 +133,6 @@ class InBoundTestCase(TestCase):
             orderdetail = OrderDetail.objects.get(id=orderdetail_id)
             self.assertEqual(orderdetail.arrival_quantity, orderdetail_dict['arrival_quantity'])
             self.assertEqual(orderdetail.inferior_quantity, orderdetail_dict['inferior_quantity'])
-        """
-
-
-
 
     def test_create(self):
         data = {

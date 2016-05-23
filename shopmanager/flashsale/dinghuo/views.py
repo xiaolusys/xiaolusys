@@ -2177,26 +2177,25 @@ class InBoundViewSet(viewsets.GenericViewSet):
         product_ids = set()
         sku_ids = set()
         orderlists_dict = {}
+
+        for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
+            buyer_name = '未知'
+            if orderlist.buyer_id:
+                buyer_name = '%s%s' % (orderlist.buyer.last_name,
+                                       orderlist.buyer.first_name)
+                buyer_name = buyer_name or orderlist.buyer.username
+
+            orderlists_dict[orderlist.id] = {
+                'id': orderlist.id,
+                'buyer_name': buyer_name,
+                'created': orderlist.created.strftime('%y年%m月%d'),
+                'status': status_mapping.get(orderlist.status) or '未知',
+                'products': {}
+            }
+
         for orderdetail in OrderDetail.objects.filter(
                 orderlist_id__in=orderlist_ids).order_by('id'):
-            if orderdetail.orderlist_id not in orderlists_dict:
-                orderlist = orderdetail.orderlist
-                buyer_name = '未知'
-                if orderlist.buyer_id:
-                    buyer_name = '%s%s' % (orderlist.buyer.last_name,
-                                           orderlist.buyer.first_name)
-                    buyer_name = buyer_name or orderlist.buyer.username
-                orderlist_dict = {
-                    'id': orderlist.id,
-                    'buyer_name': buyer_name,
-                    'created': orderlist.created.strftime('%y年%m月%d'),
-                    'status': status_mapping.get(orderlist.status) or '未知',
-                    'products': {}
-                }
-                orderlists_dict[orderlist.id] = orderlist_dict
-            else:
-                orderlist_dict = orderlists_dict[orderlist.id]
-
+            orderlist_dict = orderlists_dict[orderdetail.orderlist_id]
             product_id = int(orderdetail.product_id)
             sku_id = int(orderdetail.chichu_id)
             product_ids.add(product_id)
@@ -2204,12 +2203,14 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
             products_dict = orderlist_dict['products']
             skus_dict = products_dict.setdefault(product_id, {})
+
             skus_dict[sku_id] = {
                 'buy_quantity': orderdetail.buy_quantity,
                 'plan_quantity': orderdetail.buy_quantity - min(
                     orderdetail.arrival_quantity, orderdetail.buy_quantity),
                 'orderdetail_id': orderdetail.id
             }
+
 
         saleproduct_ids = set()
         products_dict = {}
@@ -2222,7 +2223,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'pic_path': product.pic_path,
                 'ware_by': product.ware_by
             }
-            saleproduct_ids.add(product.id)
+            saleproduct_ids.add(product.sale_product)
 
         skus_dict = {}
         for sku in ProductSku.objects.filter(id__in=list(sku_ids)):

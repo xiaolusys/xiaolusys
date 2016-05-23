@@ -688,6 +688,7 @@
                      confirmButtonText: '确认',
                      cancelButtonText: '取消'
                  }, function(){
+                     $('#set-invalid').attr('disabled', true);
                      $.ajax({
                          url: '/sale/dinghuo/inbound/' + inbound.id + '/set_invalid',
                          type: 'post',

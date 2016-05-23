@@ -904,6 +904,11 @@
              $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
 
              $('body').on('submit', '#form-2', function(){
+                 $('#create-inbound').attr('disabled', 'disabled');
+                 $('#create-draft').attr('disabled', 'disabled');
+                 $('i.glyphicon', '#form-2').unbind();
+
+
                  var callback = function(){
                      var inboundSkusDict = getInboundSkusDict();
                      if(_.isEmpty(inboundSkusDict))
@@ -918,9 +923,6 @@
                          success: function(result){
                              if(!_.isEmpty(result.inbound)){
                                  inbound = result.inbound;
-                                 $('#create-inbound').attr('disabled', 'disabled');
-                                 $('#create-draft').attr('disabled', 'disabled');
-                                 $('i.glyphicon', '#form-2').unbind();
                                  $('#memo').val(result.inbound.memo);
                              }
                              else
