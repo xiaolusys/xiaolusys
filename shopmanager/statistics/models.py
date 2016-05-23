@@ -47,6 +47,7 @@ class SaleOrderStatsRecord(BaseModel):
 
 def update_salestats(sender, instance, created, **kwargs):
     from statistics.tasks import task_statsrecord_update_salestats
+
     task_statsrecord_update_salestats.delay(instance)
 
 
@@ -60,6 +61,10 @@ class SaleStats(BaseModel):
     TYPE_SUPPLIER = 13
     TYPE_BD = 14
     TYPE_TOTAL = 16
+    TYPE_SNAPSHOT = 17
+    TYPE_WEEK = 18
+    TYPE_MONTH = 19
+    TYPE_QUARTER = 20
 
     RECORD_TYPES = (
         (TYPE_SKU, u'SKU级'),
@@ -67,7 +72,11 @@ class SaleStats(BaseModel):
         (TYPE_MODEL, u'款式级'),
         (TYPE_SUPPLIER, u'供应商级'),
         (TYPE_BD, u'买手BD级'),
-        (TYPE_TOTAL, u'总计级'),
+        (TYPE_TOTAL, u'日期级'),
+        (TYPE_SNAPSHOT, u'日期级快照'),
+        (TYPE_WEEK, u'周报告'),
+        (TYPE_MONTH, u'月报告'),
+        (TYPE_QUARTER, u'季度报告'),
     )
 
     NOT_PAY = 0
@@ -106,10 +115,21 @@ class SaleStats(BaseModel):
         verbose_name_plural = u'销量统计列表'
 
 
+from statistics.tasks import task_create_snapshot_record, task_update_parent_sale_stats,\
+    task_update_week_stats_record, task_update_month_stats_record, task_update_quarter_stats_record
+
+
 def update_parent_sale_stats(sender, instance, created, **kwargs):
-    if instance.record_type >= SaleStats.TYPE_TOTAL:  # 总计级别的变化不去触发信号
+    if instance.record_type == SaleStats.TYPE_TOTAL:  # 日期 级别的变化 触发之前一天的快照信息 并且触发 周报更新
+        task_create_snapshot_record.delay(instance)
+        task_update_week_stats_record.delay(instance)
         return
-    from statistics.tasks import task_update_parent_sale_stats
+    if instance.record_type == SaleStats.TYPE_WEEK:  # 周报级别变化 触发 月报 更新
+        task_update_month_stats_record.delay(instance)
+        return
+    if instance.record_type == SaleStats.TYPE_MONTH:  # 月报级别变化 触发 季报告 更新
+        task_update_quarter_stats_record.delay(instance)
+        return
     task_update_parent_sale_stats.delay(instance)
 
 

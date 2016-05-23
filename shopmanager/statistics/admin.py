@@ -1,4 +1,5 @@
 from django.contrib import admin
+from core.utils.modelutils import get_class_fields
 from statistics.models import SaleOrderStatsRecord, SaleStats
 
 
@@ -16,7 +17,8 @@ class SaleStatsAdmin(admin.ModelAdmin):
         'record_type',
         'status'
     )
-
+    list_per_page = 50
+    readonly_fields = get_class_fields(SaleStats)
     list_filter = ('record_type', 'date_field', 'status')
 
 
@@ -38,6 +40,8 @@ class SaleOrderStatsRecordAdmin(admin.ModelAdmin):
         'status',
         'return_goods'
     )
-
+    list_per_page = 50
+    list_filter = ('pay_time', 'status')
+    readonly_fields = get_class_fields(SaleOrderStatsRecord)
 
 admin.site.register(SaleOrderStatsRecord, SaleOrderStatsRecordAdmin)
