@@ -975,6 +975,8 @@
 
 
              $('body').on('submit', '#form-3', function(){
+                 $('#allocate').attr('disabled', true);
+
                  var inboundData = [];
                  var skuData = {};
                  $('tr.sku', '#form-3').each(function(index, el){

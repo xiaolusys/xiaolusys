@@ -1906,7 +1906,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 msg = u'更新状态为 %s' % orderlist_status_dict[status]
                 log_action(request.user.id, orderlist, CHANGE, msg)
 
-
     @list_route(methods=['post'])
     def allocate(self, request):
         from shopback.items.tasks import releaseProductTradesTask
@@ -1919,25 +1918,25 @@ class InBoundViewSet(viewsets.GenericViewSet):
         skus_dict = {}
         for item in data:
             sku_id = item['sku_id']
-            sku_dict = skus_dict.setdefault(sku_id, {
-                'arrival_quantity': 0
-            })
+            sku_dict = skus_dict.setdefault(sku_id, {'arrival_quantity': 0})
             sku_dict['arrival_quantity'] += item['arrival_quantity']
-
 
         # 检查分配数量和入仓数量是否一致
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
             sku_id = inbounddetail.sku_id
             if sku_id not in skus_dict:
                 continue
-            if inbounddetail.arrival_quantity != skus_dict[sku_id]['arrival_quantity']:
+            if inbounddetail.arrival_quantity != skus_dict[sku_id][
+                    'arrival_quantity']:
                 return Response({'error': '分配数量和入仓数量不一致'})
 
         # 创建分配记录, 修改ProductSku的quantity
         orderlist_ids = set()
         outer_ids = set()
+        records = []
         for item in data:
-            inbounddetail = InBoundDetail.objects.get(id=item['inbounddetail_id'])
+            inbounddetail = InBoundDetail.objects.get(
+                id=item['inbounddetail_id'])
             orderdetail = OrderDetail.objects.get(id=item['orderdetail_id'])
             sku = inbounddetail.sku
             arrival_quantity = item['arrival_quantity']
@@ -1947,13 +1946,18 @@ class InBoundViewSet(viewsets.GenericViewSet):
             orderlist_ids.add(orderdetail.orderlist_id)
             outer_ids.add(sku.product.outer_id)
 
-            record = OrderDetailInBoundDetail(
-                orderdetail=orderdetail,
-                inbounddetail=inbounddetail,
-                arrival_quantity=arrival_quantity,
-                inferior_quantity=0
-            )
+            record = OrderDetailInBoundDetail(orderdetail=orderdetail,
+                                              inbounddetail=inbounddetail,
+                                              arrival_quantity=arrival_quantity,
+                                              inferior_quantity=0)
             record.save()
+
+            records.append({
+                'sku_id': sku.id,
+                'orderdetail_id': orderdetail.id,
+                'inbounddetail_id': inbounddetail.id,
+                'arrival_quantity': record.arrival_quantity
+            })
 
             if item['arrival_quantity'] > 0:
                 sku.quantity += item['arrival_quantity']
@@ -1970,8 +1974,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             self.update_orderlist(request, orderlist_ids)
         if outer_ids:
             releaseProductTradesTask.delay(list(outer_ids))
-        return Response({'inbound': {'id': inbound.id}})
-
+        return Response({'inbound': {'id': inbound.id}, 'records': records})
 
     @list_route(methods=['post'])
     def reallocate(self, request):
@@ -1999,18 +2002,23 @@ class InBoundViewSet(viewsets.GenericViewSet):
             arrival_quantity = skus_dict[sku_id]['arrival_quantity']
             inferior_quantity = skus_dict[sku_id]['inferior_quantity']
 
-            if (inbounddetail.arrival_quantity + inbounddetail.inferior_quantity) != (arrival_quantity + inferior_quantity):
+            if (inbounddetail.arrival_quantity +
+                    inbounddetail.inferior_quantity) != (
+                        arrival_quantity + inferior_quantity):
                 return Response({'error': '分配数量和入仓数量不一致'})
 
         # 更新分配记录, 修改ProductSku的quantity
         orderlist_ids = set()
         outer_ids = set()
         for item in data:
-            inbounddetail = InBoundDetail.objects.get(id=item['inbounddetail_id'])
+            inbounddetail = InBoundDetail.objects.get(
+                id=item['inbounddetail_id'])
             orderdetail = OrderDetail.objects.get(id=item['orderdetail_id'])
             sku = inbounddetail.sku
 
-            record = OrderDetailInBoundDetail.objects.get(inbounddetail=inbounddetail, orderdetail=orderdetail)
+            record = OrderDetailInBoundDetail.objects.get(
+                inbounddetail=inbounddetail,
+                orderdetail=orderdetail)
             arrival_quantity = item['arrival_quantity']
             inferior_quantity = item['inferior_quantity']
             if arrival_quantity == 0 and inferior_quantity == 0:
@@ -2019,12 +2027,12 @@ class InBoundViewSet(viewsets.GenericViewSet):
             orderlist_ids.add(orderdetail.orderlist_id)
             outer_ids.add(sku.product.outer_id)
 
-            delta = record.arrival_quantity - arrival_quantity
+            delta = arrival_quantity - record.arrival_quantity
             if delta != 0:
                 sku.quantity += delta
                 sku.save()
-                log_action(request.user.id, sku, CHANGE, u'分配入仓单%d: 更新库存%+d' %
-                           (inbound.id, delta))
+                log_action(request.user.id, sku, CHANGE,
+                           u'分配入仓单%d: 更新库存%+d' % (inbound.id, delta))
 
             record.arrival_quantity = arrival_quantity
             record.inferior_quantity = inferior_quantity
@@ -2163,7 +2171,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
             'allocate_dict': allocate_dict
         })
 
-
     @classmethod
     def _build_orderlists(cls, orderlist_ids):
         status_mapping = dict(OrderList.ORDER_PRODUCT_STATUS)
@@ -2203,7 +2210,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     orderdetail.arrival_quantity, orderdetail.buy_quantity),
                 'orderdetail_id': orderdetail.id
             }
-
 
         saleproduct_ids = set()
         products_dict = {}
@@ -2269,7 +2275,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
             orderlist_ids.add(orderdetail.orderlist_id)
         return cls._build_orderlists(list(orderlist_ids))
 
-
     def retrieve(self, request, pk=None):
         inbound = InBound.objects.get(id=pk)
         supplier = SaleSupplier.objects.get(id=inbound.supplier_id)
@@ -2291,7 +2296,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 }
                 continue
 
-            for record in inbounddetail.records.filter(status=OrderDetailInBoundDetail.NORMAL):
+            for record in inbounddetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL):
                 orderdetail = record.orderdetail
                 orderlist_ids.add(orderdetail.orderlist_id)
                 orderdetails_dict[orderdetail.id] = {
@@ -2506,7 +2512,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         orderlist_ids = set()
         outer_ids = set()
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
-            for record in inbounddetail.records.filter(status=OrderDetailInBoundDetail.NORMAL):
+            for record in inbounddetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL):
                 inbounddetail = record.inbounddetail
                 orderdetail = record.orderdetail
                 sku = inbounddetail.sku
@@ -2673,5 +2680,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbounddetail_id = int(request.POST['inbounddetail_id'])
         quantity = int(request.POST['quantity'])
         name = request.POST.get('name')
-        InBoundDetail.objects.filter(id=inbounddetail_id).update(product_name=name, arrival_quantity=quantity)
+        InBoundDetail.objects.filter(
+            id=inbounddetail_id).update(product_name=name,
+                                        arrival_quantity=quantity)
         return Response({})

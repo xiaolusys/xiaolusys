@@ -739,6 +739,8 @@
              });
 
              $('body').on('click', '#allocate', function(){
+                 $('#allocate').attr('disabled', true);
+
                  var skuData = {};
                  var inboundData = [];
 
