@@ -115,7 +115,7 @@ class SaleStats(BaseModel):
         verbose_name_plural = u'销量统计列表'
 
 
-from statistics.tasks import task_create_snapshot_record, task_update_parent_sale_stats,\
+from statistics.tasks import task_create_snapshot_record, task_update_parent_sale_stats, \
     task_update_week_stats_record, task_update_month_stats_record, task_update_quarter_stats_record
 
 
@@ -130,7 +130,8 @@ def update_parent_sale_stats(sender, instance, created, **kwargs):
     if instance.record_type == SaleStats.TYPE_MONTH:  # 月报级别变化 触发 季报告 更新
         task_update_quarter_stats_record.delay(instance)
         return
-    task_update_parent_sale_stats.delay(instance)
+    if instance.record_type < SaleStats.TYPE_TOTAL:  # 小于日期级别的才去更新日期级别 以下的更新
+        task_update_parent_sale_stats.delay(instance)
 
 
 post_save.connect(update_parent_sale_stats, sender=SaleStats, dispatch_uid='post_save_update_parent_sale_stats')
