@@ -39,6 +39,28 @@ class PINGPPChargeView(View):
         #         if float(form['payment']) < total_fee:
         #             raise Exception(u'订单提交金额与商品价格差异')
         openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+        receiver_name=form.get('receiver_name')
+        receiver_state=form.get('receiver_state')
+        receiver_city=form.get('receiver_city')
+        receiver_district=form.get('receiver_district')
+        receiver_address=form.get('receiver_address')
+        receiver_zip=form.get('receiver_zip')
+        receiver_phone=form.get('receiver_phone', '')
+        receiver_mobile=form.get('receiver_mobile')
+        user_address_id=form.get('user_address_id')
+        new_address, state = UserAddress.objects.get_or_create(
+                cus_uid=customer.id,
+                receiver_name=receiver_name,
+                receiver_state=receiver_state,
+                receiver_city=receiver_city,
+                receiver_district=receiver_district,
+                receiver_address=receiver_address,
+                receiver_mobile=receiver_mobile
+            )
+        if user_address_id != new_address.id:
+            logger.error("error user address id: now_id" + str(user_address_id) + '|rignt_id' +
+                         str(new_address.id) + "when sale trade tid:" + form.get('uuid', ''))
+            user_address_id = new_address.id
         sale_trade = SaleTrade.objects.create(
             tid=form.get('uuid'),
             buyer_id=customer.id,
