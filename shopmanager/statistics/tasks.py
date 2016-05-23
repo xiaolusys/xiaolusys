@@ -306,7 +306,8 @@ def task_update_parent_sale_stats(sale_stats):
             if total_num > 0:
                 # print "total num :", total_num, sale_stats.get_record_type_display()
                 grand_parent_id, name, pic_path = get_parent_id_name_and_pic_path(record_type, parent_id, date_field)
-                if record_type == SaleStats.TYPE_SUPPLIER and grand_parent_id is None:  # 供应商级别更新bd级别的 bd没有找到 则return
+                # 供应商级别更新bd级别的 bd没有找到 则return
+                if sale_stats.record_type == SaleStats.TYPE_SUPPLIER and grand_parent_id is None:
                     logger.error(u'task_update_parent_sale_stats: '
                                  u' bd user not found , the supplier is %s' % sale_stats.current_id)
                     return
