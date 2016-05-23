@@ -494,23 +494,20 @@ def task_budgetlog_update_userbudget(budget_log):
     bglogs = BudgetLog.objects.filter(customer_id=customer_id,
                                       status__in=[BudgetLog.CONFIRMED, BudgetLog.PENDING])
     records = bglogs.values('budget_type', 'status').annotate(total=Sum('flow_amount'))
-
     in_amount, out_amount = 0, 0
     for entry in records:
-        # 收入不包含待确定的状态
         if entry["budget_type"] == BudgetLog.BUDGET_IN and entry['status'] == BudgetLog.CONFIRMED:
-            in_amount = entry["total"]
-        if entry["budget_type"] == BudgetLog.BUDGET_OUT:
-            out_amount = entry["total"]
-
-    cash = in_amount - out_amount  # 总收入－总支出
+            in_amount += entry["total"]
+        if entry["budget_type"] == BudgetLog.BUDGET_OUT and entry['status'] == BudgetLog.CONFIRMED:
+            out_amount += entry["total"]
+    cash = in_amount - out_amount
     customers = Customer.objects.filter(id=customer_id)
     try:
         if not customers.exists():
             logger.warn('customer %s　not exists when create user budget!' %
                         customer_id)
         budgets = UserBudget.objects.filter(user=customer_id)
-        if not budgets.exists():  # 不存在钱包记录　添加钱包记录
+        if not budgets.exists():
             budget = UserBudget(user=customers[0],
                                 amount=cash,
                                 total_income=in_amount,

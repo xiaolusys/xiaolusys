@@ -141,6 +141,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             }
             ```
         - /get_one_addres： 得到要修改的那一个地址的信息（get请求） data{"id":}
+        - /get_default_address： 获取默认地址信息（get请求） {'code':0,'info':{'id':xxx}}
         - /{id}/update: 修改地址（post）
             ```
             data: {
@@ -309,6 +310,15 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         from shopback.logistics.models import LogisticsCompany
         logistic_companys = LogisticsCompany.get_logisticscompanys_by_warehouse(LogisticsCompany.WARE_NONE)
         return Response(logistic_companys.values('id','code','name'))
+
+    @list_route(methods=['get'])
+    def get_default_address(self, request):
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        address = queryset.first()
+        if address:
+            serializer = self.get_serializer(address)
+            return Response({"msg":"","code": 0, "info":serializer.data})
+        return Response({"msg": "没有地址信息", "code": 1, "info":""})
 
     @list_route(methods=['get'])
     def get_one_address(self, request):

@@ -310,13 +310,12 @@ class UserBudget(PayBaseModel):
     def charge_confirm(self, strade_id):
         """ 确认支付 """
 
-        blogs = BudgetLog.objects.filter(customer_id=self.user.id,
-                                     referal_id=strade_id,
-                                     budget_log_type=BudgetLog.BG_CONSUM)
-        if not blogs.exists():
+        blogs = BudgetLog.objects.filter(customer_id=self.user.id,referal_id=strade_id,budget_log_type=BudgetLog.BG_CONSUM)
+        blog = blogs.first()
+        if not blog:
             logger.error('budget payment log not found: customer=%s, trade_id=%s'%(self.user.id,strade_id))
             return False
-        blog = blogs[0]
+
         #如果订单超时关闭又支付成功,则余额支付状态页需要改回
         if blog.status ==  BudgetLog.CANCELED:
             blog.status = BudgetLog.PENDING

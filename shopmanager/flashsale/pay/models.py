@@ -334,7 +334,7 @@ class SaleTrade(BaseModel):
         # 如果使用余额支付,付款成功后则扣除
         if self.has_budget_paid:
             try:
-                user_budget = UserBudget.objects.get(id=self.buyer_id)
+                user_budget = UserBudget.objects.get(user_id=self.buyer_id)
                 user_budget.charge_confirm(self.id)
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
