@@ -1,3 +1,4 @@
+# coding=utf-8
 from django.core.management.base import BaseCommand
 from statistics.tasks import task_update_sale_order_stats_record
 
@@ -18,6 +19,6 @@ class Command(BaseCommand):
             print "date_from :%s date_to :%s" % (date_from, date_to)
             from flashsale.pay.models import SaleOrder
             # orders = SaleOrder.objects.filter(created__gte='2016-4-15 00:00:00', created__lte='2016-4-16 23:59:59')
-            orders = SaleOrder.objects.filter(created__gte=date_from, created__lte=date_to)
+            orders = SaleOrder.objects.filter(created__gte=date_from, created__lte=date_to).order_by('pay_time')
             for order in orders:
                 task_update_sale_order_stats_record(order)

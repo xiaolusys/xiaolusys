@@ -207,8 +207,10 @@ class Customer(BaseModel):
     def get_coupon_num(self):
         """ 当前用户的优惠券数量 """
         from flashsale.coupon.models import UserCoupon
-
+        # 过滤截止时间大于现在的优惠券
+        now = datetime.datetime.now()
         return UserCoupon.objects.filter(customer_id=self.pk,
+                                         expires_time__gte=now,
                                          status=UserCoupon.UNUSED).count()  # 未使用优惠券数量
 
     def get_waitpay_num(self):
