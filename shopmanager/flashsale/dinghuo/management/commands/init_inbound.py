@@ -87,6 +87,8 @@ class Command(BaseCommand):
 
     @classmethod
     def init(cls):
+        now = datetime.datetime.now()
+
         for orderlist in OrderList.objects.exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED]):
             orderdetail_dicts = []
             for orderdetail in orderlist.order_list.all().order_by('id'):
@@ -108,7 +110,8 @@ class Command(BaseCommand):
                     supplier=orderlist.supplier,
                     creator_id=1,
                     express_no=orderlist.express_no,
-                    orderlist_ids=[orderlist.id]
+                    orderlist_ids=[orderlist.id],
+                    memo='-->%s: 创建入仓单' % now.strftime('%m月%d %H:%M')
                 )
                 inbound.save()
                 for orderdetail_dict in orderdetail_dicts:
