@@ -137,6 +137,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 "receiver_address": receiver_address,
                 "receiver_name": receiver_name,
                 "receiver_mobile": receiver_mobile,
+                "logistic_company_code":logistic_company_code,
             }
             ```
         - /get_one_addres： 得到要修改的那一个地址的信息（get请求） data{"id":}
@@ -150,8 +151,11 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 "receiver_address": receiver_address,
                 "receiver_name": receiver_name,
                 "receiver_mobile": receiver_mobile,
+                "logistic_company_code":logistic_company_code,
+                "referal_trade_id":referal_trade_id,
             }
             ```
+        - /get_logistic_companys: 获取可选快递列表
     """
     queryset = UserAddress.objects.all()
     serializer_class = serializers.UserAddressSerializer  # Create your views here.
