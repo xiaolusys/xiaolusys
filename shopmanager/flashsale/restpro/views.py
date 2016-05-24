@@ -447,7 +447,7 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
                                                   charge_status=XiaoluMama.CHARGED)
                 if xlmms.exists():
                     xlmm = xlmms[0]
-                    from_customer = Customer.objects.get(unionid=xlmm.openid)
+                    from_customer = Customer.objects.get(unionid=xlmm.openid, status=Customer.NORMAL)
             except Customer.DoesNotExist:
                 logger.warn('appdownload customer not exist:')
                 return Response({'download_url': download_url})
