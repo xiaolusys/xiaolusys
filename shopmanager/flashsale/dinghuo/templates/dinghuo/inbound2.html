@@ -1011,7 +1011,7 @@
                          })
                      }
                  });
-
+                 //ToDo: should optimize
                  //var errorSkuIds = _.difference(_.keys(inbound.details), _.keys(skuData));
                  var errorSkuIds = [];
                  _.each(_.intersection(_.keys(skuData), _.keys(inbound.details)), function(skuId){
