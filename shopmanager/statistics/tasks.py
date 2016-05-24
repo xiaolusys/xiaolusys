@@ -169,6 +169,7 @@ def task_statsrecord_update_salestats(stats_record):
     current_id = stats_record.sku_id
 
     date_field = stats_record.date_field
+    # 统计sku类型的数据 销量 和 销售额内容
     stats = calculate_sku_sale_stats(current_id, date_field)
 
     data = gen_status_data_map(stats)
@@ -289,9 +290,11 @@ def task_update_parent_sale_stats(sale_stats):
         logger.error(u'task_update_parent_sale_stats: record_type not cover, current id  is %s' % sale_stats.current_id)
         return
 
-    stats = SaleStats.objects.filter(
-        parent_id=parent_id, date_field=sale_stats.date_field,
-    ).values('status').annotate(total_num=Sum('num'), total_payment=Sum('payment'))  # 同等级的数据计算
+    stats = SaleStats.objects.filter(parent_id=parent_id,
+                                     date_field=sale_stats.date_field,
+                                     record_type=sale_stats.record_type
+                                     ).values('status').annotate(total_num=Sum('num'),
+                                                                 total_payment=Sum('payment'))  # 同等级的数据计算
 
     data = gen_status_data_map(stats)
 
@@ -313,6 +316,11 @@ def task_update_parent_sale_stats(sale_stats):
                 if sale_stats.record_type == SaleStats.TYPE_SUPPLIER and grand_parent_id is None:
                     logger.error(u'task_update_parent_sale_stats: '
                                  u' bd user not found , the supplier is %s' % sale_stats.current_id)
+                    return
+                # 更新款式级别的父级别 即 供应商级别 供应商为空的时候返回
+                if sale_stats.record_type == SaleStats.TYPE_MODEL and parent_id is None:
+                    logger.error(u'task_update_parent_sale_stats: '
+                                 u' model supplier not found, the model is %s' % sale_stats.current_id)
                     return
                 st = SaleStats(
                     parent_id=grand_parent_id,
@@ -351,7 +359,8 @@ def task_create_snapshot_record(sale_stats):
     current_id = sale_stats.current_id  # 应该是日期类型 的字符串
     yesterday_date_field = sale_stats.date_field - datetime.timedelta(days=1)  # 昨天的时间
     if str(sale_stats.date_field) != current_id:
-        logger.error(u'task_create_snapshot_record: sale stats id is %s' % sale_stats.id)
+        logger.error(u'task_create_snapshot_record: sale stats id is %s .'
+                     u' %s != %s' % (sale_stats.id, sale_stats.date_field, current_id))
         return
     # 昨天的 snapshot 标记
     snapshot_tag = 'snapshot'
