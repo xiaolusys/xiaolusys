@@ -585,6 +585,8 @@ class InBoundAdmin(admin.ModelAdmin):
 
     list_filter = ('status', 'created')
 
+    search_fields = ('supplier__supplier_name', 'express_no')
+
     def show_id(self, obj):
         return '<a href="/sale/dinghuo/inbound/%(id)d" target="_blank">详情</a>' % {'id': obj.id}
     show_id.allow_tags = True
