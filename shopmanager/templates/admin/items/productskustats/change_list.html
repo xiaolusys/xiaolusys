@@ -55,16 +55,14 @@
 {% block content %}
     <div id="content-main">
         {% block object-tools %}
-            {% if has_add_permission %}
-                <ul class="object-tools">
-                    {% block object-tools-items %}
-                        <li>
-                            <a href="/items/redundancies/" target="_blank">冗余库存列表
-                            </a>
-                        </li>
-                    {% endblock %}
-                </ul>
-            {% endif %}
+            <ul class="object-tools">
+                {% block object-tools-items %}
+                    <li>
+                        <a href="/items/redundancies/" target="_blank">冗余库存列表
+                        </a>
+                    </li>
+                {% endblock %}
+            </ul>
         {% endblock %}
         {% if cl.formset.errors %}
             <p class="errornote">

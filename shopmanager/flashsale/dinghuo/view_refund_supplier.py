@@ -4,15 +4,17 @@
 库存：shopback items models Product collect_num: 库存数
 退货：flashsale dinghuo models_stats SupplyChainStatsOrder refund_num :退货数量 ,该产品的昨天的退货数量
 """
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework import permissions
 import logging
+import json
 import datetime
 from core.options import log_action, ADDITION, CHANGE
 from tasks import calcu_refund_info_by_pro_v2
-
+from shopback.logistics.models import LogisticsCompany
 logger = logging.getLogger('django.request')
 
 from shopback.items.models import Product
@@ -127,6 +129,81 @@ def change_duihuo_status(request):
         rg.save()
         log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
     return HttpResponse(True)
+
+def change_return_goods_memo(request):
+    content = request.REQUEST
+    id = content.get("id", None)
+    memo = content.get("memo", '')
+    return_goods = get_object_or_404(ReturnGoods, id=id)
+    return_goods.memo = memo
+    return_goods.save()
+    return HttpResponse(True)
+
+def modify_return_goods_sku(request):
+    content = request.REQUEST
+    id = int(content.get("id", None))
+    sku_id = content.get("sku_id", None)
+    num = int(content.get("num", 0))
+    price = float(content.get("price", 0))
+    return_goods = get_object_or_404(ReturnGoods, id=id)
+    rg_detail = return_goods.rg_details.get(skuid=sku_id)
+    rg_detail.num = num
+    rg_detail.price = price
+    rg_detail.save()
+    return HttpResponse(True)
+
+
+def delete_return_goods_sku(request):
+    content = request.REQUEST
+    id = int(content.get("id", None))
+    sku_id = content.get("sku_id", None)
+    return_goods = get_object_or_404(ReturnGoods, id=id)
+    rg_detail = return_goods.rg_details.get(skuid=sku_id)
+    rg_detail.delete()
+    return HttpResponse(True)
+
+
+def set_return_goods_sku_send(request):
+    content = request.REQUEST
+    id = int(content.get("id", None))
+    logistic_company_name = content.get("logistic_company", None)
+    logistic_company = get_object_or_404(LogisticsCompany, name=logistic_company_name)
+    logistic_no = content.get("logistic_no", None)
+    consigner = request.user.username
+    return_goods = get_object_or_404(ReturnGoods, id=id)
+    if return_goods.status == ReturnGoods.VERIFY_RG:
+        return_goods.delivery_by(logistic_no, logistic_company.id, consigner)
+        return HttpResponse(True)
+    else:
+        res = {"success": False, 'desc': u'只有已审核的退货可以执行发货'}
+        return HttpResponse(json.dump(res))
+
+
+def set_transactor(request):
+    content = request.REQUEST
+    id = int(content.get("id", None))
+    username = content.get("username", None)
+    return_goods = get_object_or_404(ReturnGoods, id=id)
+    return_goods.set_transactor(username)
+    return HttpResponse(True)
+
+def set_refund(request):
+    content = request.REQUEST
+    id = int(content.get("id", None))
+    return_goods = get_object_or_404(ReturnGoods, id=id)
+    return_goods.supply_notify_refund()
+    return HttpResponse(True)
+
+def set_return_goods_failed(request):
+    content = request.REQUEST
+    id = int(content.get("id", None))
+    return_goods = get_object_or_404(ReturnGoods, id=id)
+    if return_goods.status == ReturnGoods.REFUND_RG:
+        return_goods.set_fail_closed()
+        return HttpResponse(True)
+    else:
+        res = {"success": False, 'desc': u'只有已审核的退货可以执行发货'}
+        return HttpResponse(json.dump(res))
 
 
 def change_sum_price(request):

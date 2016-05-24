@@ -876,7 +876,7 @@ class ProductAdmin(ApproxAdmin):
             rg.save()
         self.message_user(request, u'创建成功')
 
-    create_refund_good.short_description = u"生成退货商品信息"
+    create_refund_good.short_description = u"生成退货单"
 
     actions = ['sync_items_stock', 'invalid_product_action',
                'sync_purchase_items_stock', 'weixin_product_action',
@@ -1209,16 +1209,27 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = (
-    'sku_id', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias', 'now_quantity', 'old_quantity', 'post_num',
-    'assign_num', 'inferior_num', 'sold_num', '_wait_post_num', '_wait_assign_num', 'realtime_lock_num_display',
-    'district_link', 'created')
+    'sku_id', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
+    'now_quantity', 'old_quantity', 'sold_num', 'post_num', '_wait_post_num', 'inferior_num', 'assign_num',
+    '_wait_assign_num', 'realtime_lock_num_display', 'district_link', 'created')
     search_fields = ['=sku_id', '=product_id']
     readonly_fields = get_class_fields(ProductSkuStats)
-    list_per_page = 25
-
+    list_select_related = True
+    list_per_page = 100
     SKU_PREVIEW_TPL = (
         '<a href="%(sku_url)s" target="_blank">'
         '%(skucode)s</a>')
+
+    def gen_return_goods(self, request, queryset):
+        sku_dict = {}
+        for stat in queryset:
+            sku_dict[stat.sku_id] = stat.history_quantity + stat.inbound_quantity + stat.return_quantity\
+                - stat.rg_quantity - stat.sold_num
+        returns = ReturnGoods.generate(sku_dict, request.user.username)
+        return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
+
+    gen_return_goods.allow_tags = True
+    gen_return_goods.short_description = u'生成退货单'
 
     def skucode(self, obj):
         return self.SKU_PREVIEW_TPL % {
@@ -1283,13 +1294,12 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     district_link.allow_tags = True
     district_link.short_description = "库位"
-    actions = []
+    actions = ['gen_return_goods']
 
     def get_actions(self, request):
         actions = super(ProductSkuStatsAdmin, self).get_actions(request)
-        new_action = [i for i in actions if i != 'delete_selected']
-        return new_action
-
+        actions.pop('delete_selected')
+        return actions
 
 admin.site.register(ProductSkuStats, ProductSkuStatsAdmin)
 

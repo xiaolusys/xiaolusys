@@ -32,20 +32,6 @@ function verify_no(dom) {
     });
 }
 
-function already_send(dom) {
-    var dom = $(dom);
-    console.log("already send running");
-    var id = $(dom).attr('cid');
-    console.log(id, "id");
-    layer.confirm('您确定已经将该退货单核实　并　发货给供应商？', {
-        btn: ['确定', '取消'] //按钮
-    }, function () {
-        post_data_to_server("send", dom, id);
-    }, function () {
-    });
-}
-
-
 function send_ok(dom) {
     var dom = $(dom);
     console.log("already send running");

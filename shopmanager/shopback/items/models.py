@@ -269,6 +269,10 @@ class Product(models.Model):
         return self.shelf_status == self.UP_SHELF
 
     @property
+    def sale_product_item(self):
+        return SaleProduct.objects.filter(id=self.sale_product).first()
+
+    @property
     def is_out_stock(self):
         if self.collect_num < 0 or self.wait_post_num < 0:
             self.collect_num = self.collect_num > 0 and self.collect_num or 0

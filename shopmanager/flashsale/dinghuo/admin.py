@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail
 from django.http import HttpResponseRedirect
-
+from functools import partial, reduce, update_wrapper
 from core.options import log_action, CHANGE
 from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
@@ -413,45 +413,83 @@ from flashsale.pay.models import SaleRefund
 
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
-    list_display = ('id', "show_pic", "show_detail_num", "deal_sum_amount", "status_contrl",
-                    "consign_time", "sid", "noter", "consigner", 'show_memo', 'show_reason')
-    search_fields = ['id', "product_id", "supplier_id",
+    list_display = ('id', "supplier_link", "product_desc", "show_detail_num", "sum_amount",
+                    "status", "status_contrl", "noter", "created",
+                    "consign_time", "sid",  "consigner", 'show_memo', 'show_reason'
+                    )
+    search_fields = ['id', "supplier_id",
                      "noter", "consigner", "sid"]
-    list_filter = ["noter", "consigner", "created", "modify", "status"]
+    list_filter = ["status", "noter", "consigner", "created", "modify", ]
     readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
-    list_display_links = ['show_detail_num', ]
-    list_per_page = 10
-
+    list_display_links = ['id',]
+    list_per_page = 25
+    # change_form_template = "admin/dinghuo/returngoods/change_form.html"
     def queryset(self, request):
+        ReturnGoodsAdmin.change_view()
         qs = super(ReturnGoodsAdmin, self).queryset(request)
         if request.user.is_superuser:
             return qs
         else:
             return qs.exclude(status=ReturnGoods.OBSOLETE_RG)
 
-    def show_pic(self, obj):
-        product_id = obj.product_id
-        pro = Product.objects.get(id=product_id)
-        try:
-            suplier = SaleSupplier.objects.get(id=obj.supplier_id)
-            supplier_name = suplier.supplier_name
-            mobile = suplier.mobile
-            address = suplier.address
-        except SaleSupplier.DoesNotExist:
-            supplier_name = u"none"
-            mobile = u"none"
-            address = u"none"
-        js_str = u"'%s','%s','%s'" % (
-            supplier_name or u"none", mobile or u"none", address or u"none")
-        html = u'<img src="{0}" style="width:62px;height:100px"><a style="display:inline" onclick="supplier_admin({4})">供应商：{3}</a>' \
-               u'<br><a target="_blank" href="/admin/items/product/?id={2}">{1}</a>'.format(pro.pic_path, pro.name,
-                                                                                            product_id,
-                                                                                            obj.supplier_id, js_str)
-        return html
+    def get_urls(self):
+        from django.conf.urls import url
 
-    show_pic.allow_tags = True
-    show_pic.short_description = u"产品图/名"
+        def wrap(view):
+            def wrapper(*args, **kwargs):
+                return self.admin_site.admin_view(view)(*args, **kwargs)
+            return update_wrapper(wrapper, view)
+
+        info = self.model._meta.app_label, self.model._meta.model_name
+
+        urlpatterns = [
+            url(r'^$', wrap(self.changelist_view), name='%s_%s_changelist' % info),
+            url(r'^add/$', wrap(self.add_view), name='%s_%s_add' % info),
+            url(r'^(.+)/history/$', wrap(self.history_view), name='%s_%s_history' % info),
+            url(r'^(.+)/delete/$', wrap(self.delete_view), name='%s_%s_delete' % info),
+            url(r'^(.+)/$', wrap(self.change_view), name='%s_%s_change' % info),
+        ]
+        return urlpatterns
+
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = {'title': u'仓库退货单'}
+        return self.changeform_view(request, object_id, form_url, extra_context)
+
+    def supplier_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">'
+                '%(show_text)s</a>') % {
+                'url': '/admin/supplier/salesupplier/%d/' % obj.supplier_id,
+                'show_text': obj.supplier.supplier_name
+            }
+    supplier_link.allow_tags = True
+    supplier_link.short_description = u"供应商"
+
+    def product_desc(self, obj):
+        return '<br/>'.join([p.title() for p in obj.products])
+    # def show_pic(self, obj):
+    #     product_id = obj.product_id
+    #     pro = Product.objects.get(id=product_id)
+    #     try:
+    #         suplier = SaleSupplier.objects.get(id=obj.supplier_id)
+    #         supplier_name = suplier.supplier_name
+    #         mobile = suplier.mobile
+    #         address = suplier.address
+    #     except SaleSupplier.DoesNotExist:
+    #         supplier_name = u"none"
+    #         mobile = u"none"
+    #         address = u"none"
+    #     js_str = u"'%s','%s','%s'" % (
+    #         supplier_name or u"none", mobile or u"none", address or u"none")
+    #     html = u'<img src="{0}" style="width:62px;height:100px"><a style="display:inline" onclick="supplier_admin({4})">供应商：{3}</a>' \
+    #            u'<br><a target="_blank" href="/admin/items/product/?id={2}">{1}</a>'.format(pro.pic_path, pro.name,
+    #                                                                                         product_id,
+    #                                                                                         obj.supplier_id, js_str)
+    #     return html
+
+    product_desc.allow_tags = True
+    product_desc.short_description = u"包含商品"
 
     def show_reason(self, obj):
         html = u''
@@ -468,46 +506,41 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
 
     def show_detail_num(self, obj):
         dts = obj.rg_details.all()
-        html = u'总：{0}<br><br>'.format(obj.return_num)
+        html = ''
         for dt in dts:
             skuid = dt.skuid
             num = dt.num
-            inferior_num = dt.inferior_num
-            sub_html = u'{0} :{1} / {2}<br><br>'.format(skuid, num, inferior_num)
+            price = dt.price
+            sub_html = u'{0}  {1} - {2}<br>'.format(skuid, num, price)
             html = html + sub_html
         return html
 
     show_detail_num.allow_tags = True
     show_detail_num.short_description = u"数量信息"
 
-    def deal_sum_amount(self, obj):
-        html = u'<a onclick="change_sum_price({0},{2})">{1}</a>'.format(obj.id, obj.sum_amount, obj.return_num)
-        return html
-
-    deal_sum_amount.allow_tags = True
-    deal_sum_amount.short_description = u"退款总金额"
+    # def deal_sum_amount(self, obj):
+    #     html = u'<a onclick="change_sum_price({0},{2})">{1}</a>'.format(obj.id, obj.sum_amount, obj.return_num)
+    #     return html
+    #
+    # deal_sum_amount.allow_tags = True
+    # deal_sum_amount.short_description = u"退款总额"
 
     def status_contrl(self, obj):
-        cu_status = obj.get_status_display()
         if obj.status == ReturnGoods.CREATE_RG:
             # 如果是创建状态则　显示　审核通过　作废退货　两个按钮
-            html = u'{1}-点击-><a cid="{0}" onclick="verify_ok(this)" style="margin-right:20px;">审核通过</a>　<br><br>或　' \
-                   u'<a cid="{0}" onclick="verify_no(this)">作废退货</a>'.format(obj.id, cu_status)
-            return html
-        elif obj.status == ReturnGoods.VERIFY_RG:
-            # 如果是审核通过　　显示　已经发货退货单的按钮
-            html = u'{1}-点击-><a cid="{0}" onclick="already_send(this)">已经发货</a>'.format(obj.id, cu_status)
+            html = u'<a cid="{0}" onclick="verify_ok(this)" style="margin-right:0px;">审核通过</a><br/>' \
+                   u'<a cid="{0}" onclick="verify_no(this)">作废退货</a>'.format(obj.id,)
             return html
         elif obj.status == ReturnGoods.DELIVER_RG:
             # 如果是已经发货　　显示　退货成功　退货失败　两个按钮
-            html = u'{1}-点击-><a cid="{0}" onclick="send_ok(this)" style="margin-right:20px;">退货成功</a>　<br><br>或　' \
-                   u'<a cid="{0}" onclick="send_fail(this)">退货失败</a>'.format(obj.id, cu_status)
+            html = u'<a cid="{0}" onclick="send_ok(this)" style="margin-right:0px;">退货成功</a><br/>' \
+                   u'<a cid="{0}" onclick="send_fail(this)">退货失败</a>'.format(obj.id,)
             return html
         else:
             return obj.get_status_display()
 
     status_contrl.allow_tags = True
-    status_contrl.short_description = u"退货状态控制"
+    status_contrl.short_description = u"操作"
 
     def show_memo(self, obj):
         memo = u'{0}'.format(str(obj.memo).replace('\r', '<br><br>'))

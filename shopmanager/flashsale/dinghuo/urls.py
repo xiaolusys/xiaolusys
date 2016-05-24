@@ -14,7 +14,8 @@ from .view_daily_work import (DailyDingHuoView, DailyDingHuoView2, ShowPicView, 
                               SkuAPIView, AddDingHuoView, InstantDingHuoViewSet)
 from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
-from .view_refund_supplier import StatisRefundSupView, change_duihuo_status, change_sum_price
+from .view_refund_supplier import StatisRefundSupView, change_duihuo_status, change_sum_price, change_return_goods_memo\
+,modify_return_goods_sku, delete_return_goods_sku, set_return_goods_sku_send, set_transactor, set_refund
 import views_wuliu
 import views_sale_status
 import views_product
@@ -74,6 +75,13 @@ urlpatterns = [
     url(r'^daystats_ding_huo/$', StatsDinghuoView.as_view(), name="start_ding_huo"),  # 每日订货统计
     url(r'^tuihuo/$', StatisRefundSupView.as_view(), name="tuihuo"),  # 退货统计　
     url(r'^tuihuo/change_status/$', staff_member_required(change_duihuo_status), name="change_tuihuo_status"),
+    url(r'^returngoods/update_memo/$', staff_member_required(change_return_goods_memo), name="update_memo"),
+    url(r'^returngoods/modify_return_goods_sku/$', staff_member_required(modify_return_goods_sku), name="modify_return_goods_sku"),
+    url(r'^returngoods/delete_return_goods_sku/$', staff_member_required(delete_return_goods_sku), name="delete_return_goods_sku"),
+    url(r'^returngoods/set_return_goods_sku_send/$', staff_member_required(set_return_goods_sku_send), name="set_return_goods_sku_send"),
+    url(r'^returngoods/set_transactor/$', staff_member_required(set_transactor), name="set_transactor"),
+    url(r'^returngoods/set_refund/$', staff_member_required(set_refund), name="set_refund"),
+
     # 退货状态修改　
     url(r'^tuihuo/change_sum_amount/$', staff_member_required(change_sum_price), name="change_tuihuo_amount"),  # 退货金额修改
     url(r'^change_kucun/$', staff_member_required(views_sale_status.ChangeKunView.as_view()), name="change_kucun"),
@@ -91,3 +99,4 @@ urlpatterns = [
 ]
 
 urlpatterns += router.urls
+
