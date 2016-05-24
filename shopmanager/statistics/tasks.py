@@ -215,6 +215,7 @@ def get_model_id(product_outer_id):
     product = Product.objects.filter(outer_id=product_outer_id).first()
     if product:
         return product.model_id
+    logger.warn(u'get_model_id not found the product_outer_id is %s' % product_outer_id)
     return None
 
 
@@ -224,6 +225,7 @@ def get_supplier_id(model_id):
         sal_p, supplier = product.pro_sale_supplier()
         if supplier:
             return supplier.id
+    logger.warn(u'get_supplier_id not found the supplier, the model_id is %s' % model_id)
     return None
 
 
@@ -248,6 +250,7 @@ def get_bd_id(supplier_id):
     ).order_by("-id").first()  # 有效状态的最新的接管人
     if charger:
         return charger.employee.id  # User ID
+    logger.warn(u'get_bd_id not found the bd, the supplier_id is %s' % supplier_id)
     return None
 
 
