@@ -10,6 +10,23 @@
 <link href="{{ STATIC_URL }}bootstrap-3.3.4-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
+<style type="text/css">
+    .block-transactor {
+        height:300px;
+    }
+    .dropdown-menu {
+        margin-left:96px;
+    }
+    .dropdown-menu li {
+        list-style-type:none;
+    }
+    .xiaolu-hide {
+        display: none !important;
+    }
+    .margin-left-192 {
+        margin-left:192px !important    ;
+    }
+</style>
 {% if cl.formset %}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
 {% endif %}
@@ -30,6 +47,7 @@
 
 {% if not is_popup %}
 {% block breadcrumbs %}
+
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
     &rsaquo; {{ app_label|capfirst|escape }}
@@ -107,7 +125,7 @@
                         <tr>
 
                         {%if forloop.first%}
-                        <td rowspan={{products_item.detail_length}}>{{products_item.id}}</td>
+                        <td rowspan={{products_item.detail_length}}><a href="/admin/items/product?id={{products_item.id}}" target="_blank">{{products_item.id}}</a></td>
                         <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
                         <td rowspan="{{products_item.detail_length}}">
                             <div class="portfolio-box">
@@ -117,7 +135,7 @@
                             </div>
                         </td>
                         {%endif%}
-                        <td>{{detail.skuid}}</td>
+                        <td><a href="/admin/items/productsku?id={{detail.skuid}}" target="_blank">{{detail.skuid}}</a></td>
                         <td>{{detail.product_sku.BARCODE}}</td>
                         <td>{{detail.product_sku.properties_name}}</td>
                         <td>{{detail.product_sku.get_districts_code}}</td>
@@ -143,22 +161,39 @@
                 {%if original.status == 0%}<input type="button" class="btn-mini btn-success" id="btn_edit_note" value="修改备注"/>{%endif%}
             </div>
         </div>
-        <!--<div class="dropdown">-->
-          <!--<button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
-            <!--{{original.transactor.username}}-->
-            <!--<span class="caret"></span>-->
-          <!--</button>-->
-          <!--<ul class="dropdown-menu" aria-labelledby="dLabel">-->
-            <!--<li>1</li>-->
-            <!--<li>2</li>-->
-            <!--<li>3</li>-->
-          <!--</ul>-->
-        <!--</div>-->
-        <div class="form-row field-memo">
+        <div class="form-row field-memo block-transactor">
             <div>
                 <label for="id_transactor">负责人:</label>
-                <label class="simple-label" id="id_transactor">{{original.transactor.username}}</label>
-
+                <label class="simple-label transactor_text">{{original.transactor.username}}</label>
+                <button class="btn-small modify-transactor">修改</button>
+                <div class="dropdown xiaolu-hide">
+                  <button id="dLabel" class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{original.transactor.username}}
+                    <span class="caret"></span>
+                  </button>
+                  <button class="btn-small commit-transactor" style="margin-left:20px;">确认</button>
+                  <ul class="dropdown-menu" aria-labelledby="dLabel" style="margin-left:96px;">
+                    {%for u in transactors%}
+                      <li><a href="#">{{u.username}}</a></li>
+                    {%endfor%}
+                  </ul>
+                </div>
+                    <!--{{original.transactor.username}}-->
+                <!--<div class="dropdown">-->
+                    <!--<a href="#" class="dropdown-toggle" data-toggle="dropdown">-->
+                       <!--Java-->
+                       <!--<b class="caret"></b>-->
+                    <!--</a>-->
+                    <!--<ul class="dropdown-menu">-->
+                       <!--<li><a href="#">jmeter</a></li>-->
+                       <!--<li><a href="#">EJB</a></li>-->
+                       <!--<li><a href="#">Jasper Report</a></li>-->
+                       <!--<li class="divider"></li>-->
+                       <!--<li><a href="#">分离的链接</a></li>-->
+                       <!--<li class="divider"></li>-->
+                       <!--<li><a href="#">另一个分离的链接</a></li>-->
+                    <!--</ul>-->
+                 <!--</div>-->
                 <!--<input type="button" class="btn-mini" id="btn_change_transactor" value="修改"/>-->
             </div>
         </div>
@@ -218,7 +253,6 @@
     </div>
   </div>
 </div>
-
 
 <script type="text/javascript">
     var id = {{original.id|default_if_none:"0"}};
@@ -359,6 +393,48 @@
         this.clickPos = null;
     }
 
+    var modifyTransactor = function() {
+        $('.transactor_text').addClass('xiaolu-hide');
+        $('.modify-transactor').addClass('xiaolu-hide');
+        $('.dropdown').removeClass('xiaolu-hide');
+    }
+
+     var saveTransactor = function(evt){
+        $('.transactor_text').removeClass('xiaolu-hide');
+        $('.open .dropdown-menu').addClass('margin-left-192');
+        var transactor = evt.target.text;
+        console.log(transactor);
+        $('.dropdown').data('transactor', transactor);
+     }
+
+    var commitTransactor = function(){
+        $('.transactor_text').removeClass('xiaolu-hide');
+        $('.modify-transactor').removeClass('xiaolu-hide');
+        $('.dropdown').addClass('xiaolu-hide');
+        var dom = $('.dropdown-menu');
+        if (dom.hasClass("loading")) {
+            return
+        }
+        var transactor = $('.dropdown').data('transactor');
+        console.log(transactor);
+        dom.addClass("loading");
+        var url = "/sale/dinghuo/returngoods/set_transactor/";
+        var data = {"transactor": transactor, "id": id};
+        $.ajax({
+            "url": url,
+            "data": data,
+            "type": "post",
+            "success": callback
+            });
+            function callback(res) {
+                dom.removeClass("loading");
+                if (res == "True") {
+                    //刷新当前页面
+                    window.location.reload();
+                }
+            }
+    }
+
 
     $(document).ready(function () {
         $('#id_btn_check').click(return_check);
@@ -372,9 +448,10 @@
         $('.btn_modify').click(edit_sku);
         $('.btn_delete').click(delete_sku);
         $('#set_return_goods_sku_send').click(set_return_goods_sku_send);
+        $('.modify-transactor').click(modifyTransactor);
+        $('.dropdown-menu li').click(saveTransactor);
+        $('.commit-transactor').click(commitTransactor);
     });
 
 </script>
 {% endblock %}
-
-
