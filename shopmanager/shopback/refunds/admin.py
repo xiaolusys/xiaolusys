@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User as DjangoUser
 from shopback.refunds.models import Refund, RefundProduct
 from shopback.trades.models import MergeTrade
+from flashsale.pay.models import SaleTrade
 from shopback.items.models import Product, ProductSku
 import datetime, time
 
@@ -118,11 +119,13 @@ class RefundProductAdmin(admin.ModelAdmin):
     show_Product_Price.short_description = u"出售价格"
 
     def trade_id_display(self, obj):
+
         mt = MergeTrade.objects.get(tid=obj.trade_id)
+        st = SaleTrade.objects.get(tid=mt.tid)
         trade = u'{0}<br><br>' \
                 u'<a href="/admin/trades/mergetrade/?q={0}" target="_blank">订单</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' \
                 u'<a href="/admin/pay/salerefund/?q={1}" target="_blank">退款单</a>'.format(obj.trade_id,
-                                                                                         mt.receiver_mobile)
+                                                                                         st.receiver_mobile)
         return trade
 
     trade_id_display.allow_tags = True
