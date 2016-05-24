@@ -414,12 +414,12 @@ from flashsale.pay.models import SaleRefund
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
     list_display = ('id', "supplier_link", "product_desc", "show_detail_num", "sum_amount",
-                    "status", "status_contrl", "noter", "created",
+                    "status", "status_contrl", "noter",  "transactor_name", "created",
                     "consign_time", "sid",  "consigner", 'show_memo', 'show_reason'
                     )
     search_fields = ['id', "supplier_id",
                      "noter", "consigner", "sid"]
-    list_filter = ["status", "noter", "consigner", "created", "modify", ]
+    list_filter = ["status", "noter", "consigner", "transactor_id", "created", "modify", ]
     readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
     list_display_links = ['id',]
@@ -452,10 +452,13 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
         ]
         return urlpatterns
 
-
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        extra_context = {'title': u'仓库退货单'}
+        extra_context = {'title': u'仓库退货单', 'transactors': ReturnGoods.transactors()}
         return self.changeform_view(request, object_id, form_url, extra_context)
+
+    def transactor_name(self, obj):
+        return obj.transactor.username
+    transactor_name.short_description = u"负责人"
 
     def supplier_link(self, obj):
         return ('<a href="%(url)s" target="_blank">'

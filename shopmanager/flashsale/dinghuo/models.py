@@ -360,6 +360,12 @@ class ReturnGoods(models.Model):
             self._logistics_company_ = LogisticsCompany.objects.get(id=self.logistics_company_id)
         return self._logistics_company_
 
+    @property
+    def transactor(self):
+        if not hasattr(self, '_transactor_'):
+            self._transactor_ = User.objects.get(id=self.transactor_id)
+        return self._transactor_
+
     def products_item_sku(self):
         products = self.products
         for sku in self.product_skus:
@@ -427,7 +433,7 @@ class ReturnGoods(models.Model):
         return self.status in [ReturnGoods.REFUND_RG, ReturnGoods.SUCCEED_RG]
 
     def set_transactor(self, transactor):
-        self.transactor_id = User.objects.get(user_name=transactor).id
+        self.transactor_id = User.objects.get(username=transactor).id
         self.save()
 
     def delivery_by(self, logistics_no, logistics_company_id, consigner):
@@ -455,6 +461,12 @@ class ReturnGoods(models.Model):
     def set_fail_closed(self):
         self.status = ReturnGoods.FAILED_RG
         self.save()
+
+    @staticmethod
+    def transactors():
+        return User.objects.filter(is_staff=True,
+                                        groups__name__in=(u'小鹿买手资料员', u'小鹿采购管理员', u'小鹿采购员', u'管理员', u'小鹿管理员')). \
+                distinct().order_by('id')
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.supplier_id, self.id)
