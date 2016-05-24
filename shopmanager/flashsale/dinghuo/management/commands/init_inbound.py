@@ -20,7 +20,8 @@ class Command(BaseCommand):
         make_option('-s', '--stats', dest='is_stats', action='store_true', default=False),
         make_option('-o', '--orderlistids', dest='orderlist_ids', action='store', default=''),
         make_option('-p', '--print', dest='is_print', action='store_true', default=False),
-        make_option('-t', '--test', dest='is_test', action='store_true', default=False)
+        make_option('-t', '--test', dest='is_test', action='store_true', default=False),
+        make_option('-r', '--reset', dest='is_reset', action='store_true', default=False)
     )
 
     @classmethod
@@ -111,6 +112,7 @@ class Command(BaseCommand):
                     creator_id=1,
                     express_no=orderlist.express_no,
                     orderlist_ids=[orderlist.id],
+                    status=InBound.COMPLETED,
                     memo='-->%s: 创建入仓单' % now.strftime('%m月%d %H:%M')
                 )
                 inbound.save()
@@ -250,6 +252,9 @@ class Command(BaseCommand):
                 })
         print json.dumps(skus_dict)
 
+    @classmethod
+    def reset(cls):
+        print InBound.objects.filter(id__lte=115).update(status=InBound.COMPLETED)
 
     def handle(self, *args, **kwargs):
         is_del = kwargs['is_del']
@@ -258,6 +263,7 @@ class Command(BaseCommand):
         orderlist_ids = filter(lambda x: x.isdigit(), kwargs['orderlist_ids'].split(','))
         is_print = kwargs['is_print']
         is_test = kwargs['is_test']
+        is_reset = kwargs['is_reset']
         if is_del:
             self.delete_all()
         if is_init:
@@ -271,3 +277,6 @@ class Command(BaseCommand):
 
         if is_test:
             self.test()
+
+        if is_reset:
+            self.reset()

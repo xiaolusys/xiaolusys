@@ -977,8 +977,6 @@
 
 
              $('body').on('submit', '#form-3', function(){
-                 $('#allocate').attr('disabled', true);
-
                  var inboundData = [];
                  var skuData = {};
                  $('tr.sku', '#form-3').each(function(index, el){
@@ -1031,6 +1029,7 @@
                      swal('错误', '填写数量与入仓单不一致', 'error');
                  }
                  else{
+                     $('#allocate').attr('disabled', true);
                      $.ajax({
                          url: '/sale/dinghuo/inbound/allocate',
                          type: 'post',

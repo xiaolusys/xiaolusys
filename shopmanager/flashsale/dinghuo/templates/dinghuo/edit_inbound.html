@@ -188,7 +188,7 @@
                             </td>
                             <td>{{sku.properties_name}}</td>
                             <td>
-                                <a href="/admin/items/productsku/{{sku.id}}" target="_blank" title="Sku明细">
+                                <a href="/admin/items/productskustats/?sku_id={{sku.id}}" target="_blank" title="Sku明细">
                                     {{sku.barcode}}
                                 </a>
                             </td>
@@ -740,8 +740,6 @@
              });
 
              $('body').on('click', '#allocate', function(){
-                 $('#allocate').attr('disabled', true);
-
                  var skuData = {};
                  var inboundData = [];
 
@@ -783,6 +781,7 @@
                      });
                  }
                  else{
+                     $('#allocate').attr('disabled', true);
                      $.ajax({
                          url: '/sale/dinghuo/inbound/reallocate',
                          type: 'post',

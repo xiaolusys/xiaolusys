@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import datetime
+
 from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import post_save
@@ -379,7 +380,7 @@ class ReturnGoods(models.Model):
                     product.detail_items.append(detail)
             product.detail_length = len(product.detail_sku_ids)
         return products
-    
+
     @staticmethod
     def generate(sku_dict, noter):
         product_sku_dict = dict([(p.id, p) for p in ProductSku.objects.filter(id__in=sku_dict.keys())])
@@ -719,6 +720,7 @@ def update_inbound_record(sender, instance, created, **kwargs):
     orderdetail.inferior_quantity = orderdetail.records.filter(
         status=OrderDetailInBoundDetail.NORMAL).aggregate(
             n=Sum('inferior_quantity')).get('n') or 0
+    orderdetail.arrival_time = datetime.datetime.now()
     orderdetail.save()
     inbounddetail = instance.inbounddetail
     inbounddetail.arrival_quantity = inbounddetail.records.aggregate(
