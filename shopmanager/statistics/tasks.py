@@ -358,7 +358,7 @@ def task_create_snapshot_record(sale_stats):
         return
     current_id = sale_stats.current_id  # 应该是日期类型 的字符串
     yesterday_date_field = sale_stats.date_field - datetime.timedelta(days=1)  # 昨天的时间
-    if str(sale_stats.date_field) != current_id:
+    if str(sale_stats.date_field) != str(current_id):
         logger.error(u'task_create_snapshot_record: sale stats id is %s .'
                      u' %s != %s' % (sale_stats.id, sale_stats.date_field, current_id))
         return
