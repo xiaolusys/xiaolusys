@@ -745,13 +745,16 @@ def tasks_set_user_address_id(sale_trade):
 
 
 @task()
-def tasks_update_sale_trade_status(sale_trade):
+def tasks_update_sale_trade_status(sale_trade_id):
+    logger.warn('tasks_update_sale_trade_status check:' + str(sale_trade_id))
     sale_order_status = [s['status']
                          for s in SaleOrder.objects.filter(
-                             sale_trade_id=sale_trade.id).values('status')]
-    if SaleOrder.WAIT_SELLER_SEND_GOODS not in sale_order_status:
-        sale_trade.status = SaleTrade.WAIT_BUYER_CONFIRM_GOODS
-        sale_trade.save()
+                             sale_trade_id=sale_trade_id).values('status')]
+    sale_order_status = list(set(sale_order_status))
+    if SaleOrder.WAIT_SELLER_SEND_GOODS not in sale_order_status and (SaleOrder.WAIT_BUYER_CONFIRM_GOODS in sale_order_status\
+            or SaleOrder.TRADE_BUYER_SIGNED in sale_order_status or SaleOrder.TRADE_FINISHED in sale_order_status):
+        logger.warn('tasks_update_sale_trade_status right now:' + str(sale_trade_id))
+        SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
 
 
 @task()

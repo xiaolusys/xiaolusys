@@ -788,7 +788,7 @@ def saleorder_update_saletrade_status(sender, instance, *args, **kwargs):
     if instance.status == SaleOrder.WAIT_BUYER_CONFIRM_GOODS and \
                     instance.sale_trade.status < SaleTrade.WAIT_BUYER_CONFIRM_GOODS:
         from flashsale.pay.tasks import tasks_update_sale_trade_status
-        tasks_update_sale_trade_status.delay(instance.sale_trade)
+        tasks_update_sale_trade_status.delay(instance.sale_trade_id)
 
 
 post_save.connect(saleorder_update_saletrade_status, sender=SaleOrder,
