@@ -217,7 +217,7 @@
 {
   "fields": {
     "status": 1,
-    "release_end_time": "2016-05-25T20:16:05",
+    "release_end_time": "2030-05-25T20:16:05",
     "release_start_time": "2016-05-05T20:16:04",
     "description": "test \u6d3b\u52a8\u5206\u4eab",
     "coupon_type": 6,
