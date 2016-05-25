@@ -4,7 +4,7 @@ import datetime
 from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import post_save
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.contrib.auth.models import User
 
 from core.fields import JSONCharMyField
@@ -443,6 +443,8 @@ class ReturnGoods(models.Model):
         self.consign_time = datetime.datetime.now()
         self.status = ReturnGoods.DELIVER_RG
         self.save()
+        for d in self.rg_details.all():
+            ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity')-d.num)
 
     def supply_notify_refund(self):
         """
