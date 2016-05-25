@@ -94,7 +94,7 @@ class ProductStockStat(BaseModel):
     parent_id = models.CharField(max_length=32, db_index=True, blank=True, null=True, verbose_name=u'上一级id')
     current_id = models.CharField(max_length=32, db_index=True, blank=True, null=True, verbose_name=u'级别对应instance_id')
     date_field = models.DateField(db_index=True, verbose_name=u'日期')
-    name = models.CharField(max_length=64, null=True, verbose_name=u'描述')  # title + sku_name
+    name = models.CharField(max_length=64, null=True, verbose_name=u'描述')
     pic_path = models.CharField(max_length=256, null=True, verbose_name=u'图片')
     quantity = models.IntegerField(default=0, verbose_name=u'库存数量')
     sku_inferior_num = models.IntegerField(default=0, verbose_name=U'次品数量')
@@ -103,5 +103,11 @@ class ProductStockStat(BaseModel):
     record_type = models.IntegerField(choices=record_type_choices(), db_index=True, verbose_name=u'记录类型')
 
     # uni_key = date_field + current_id + record_type
+    class Meta:
+        db_table = 'statistics_product_stock_stat'
+        app_label = 'statistics'
+        verbose_name = u'库存统计表'
+        verbose_name_plural = u'库存统计列表'
+
     def __unicode__(self):
         return u'<%s-%s>' % (self.id, self.uni_key)

@@ -1,7 +1,7 @@
 # coding=utf-8
 from django.contrib import admin
 from core.utils.modelutils import get_class_fields
-from statistics.models import SaleOrderStatsRecord, SaleStats
+from statistics.models import SaleOrderStatsRecord, SaleStats, ProductStockStat
 from statistics import constants
 
 
@@ -77,3 +77,23 @@ class SaleOrderStatsRecordAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SaleOrderStatsRecord, SaleOrderStatsRecordAdmin)
+
+
+class ProductStockStatAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'parent_id',
+        'current_id',
+        'date_field',
+        'name',
+        'pic_path',
+        'quantity',
+        'sku_inferior_num',
+        'amount',
+        'uni_key',
+        'record_type'
+    )
+    list_per_page = 50
+
+
+admin.site.register(ProductStockStat, ProductStockStatAdmin)
