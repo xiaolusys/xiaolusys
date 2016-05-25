@@ -910,7 +910,7 @@ class ShoppingCart(BaseModel):
     def is_repayable(self):
         """ can repay able """
         pro_sku = ProductSku.objects.filter(id=self.sku_id).first()
-        if pro_sku:
+        if pro_sku and pro_sku.product.is_onshelf():
             return pro_sku.sale_out
         return False
 

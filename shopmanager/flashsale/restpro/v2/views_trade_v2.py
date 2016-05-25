@@ -277,7 +277,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         budget_cash = resp['channels'][0]['budget_cash']
         if budget_cash > 0 and resp['total_payment'] > 0:
             budgets = CONS.PAY_EXTRAS.get(CONS.ETS_BUDGET)
-            budgets.update(value=min(resp['budget_cash'], resp['total_payment']))
+            budgets.update(value=min(budget_cash, resp['total_payment']))
             extras.append(budgets)
         return extras
 
@@ -309,14 +309,14 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         customer = self.get_customer(request)
         channel_list = []
         budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
-        channel_list.append({'id': 'budget', 'payable': budget_payable ,'msg':'', 'budget_cash':budget_cash})
+        channel_list.append({'id': 'budget', 'name':u'小鹿钱包', 'payable': budget_payable ,'msg':'', 'budget_cash':budget_cash})
         if is_in_wap :
             if is_in_weixin:
-                channel_list.append({'id': 'wx_pub', 'payable': True ,'msg':''})
-            channel_list.append({'id': 'alipay_wap', 'payable': True, 'msg': ''})
+                channel_list.append({'id': 'wx_pub', 'name':u'微信支付', 'payable': True ,'msg':''})
+            channel_list.append({'id': 'alipay_wap', 'name':u'支付宝', 'payable': True, 'msg': ''})
         else:
-            channel_list.append({'id': 'wx', 'payable':True, 'msg':''})
-            channel_list.append({'id': 'alipay', 'payable': True, 'msg': ''})
+            channel_list.append({'id': 'wx', 'name':u'微信支付', 'payable':True, 'msg':''})
+            channel_list.append({'id': 'alipay', 'name':u'支付宝', 'payable': True, 'msg': ''})
 
         return channel_list
 
@@ -325,10 +325,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         """ 根据购物车ID列表获取支付信息 """
         content = request.GET
         cartid_str = content.get('cart_ids', '')
-
         cart_ids = [int(i) for i in cartid_str.split(',') if i.isdigit()]
         queryset = self.get_owner_queryset(request).filter(id__in=cart_ids)
-        if len(cart_ids) != queryset.count():
+        if not cart_ids or len(cart_ids) != queryset.count():
             raise exceptions.APIException(u'购物车已失效请重新加入')
 
         total_fee = 0
