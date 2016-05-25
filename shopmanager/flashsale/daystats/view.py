@@ -85,15 +85,10 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         threshold2 = now - datetime.timedelta(days=5)
         threshold3 = now - datetime.timedelta(days=15)
         if type_ == 1:
-            q = MergeOrder.objects.filter(
-                merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
-                                       pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
-                merge_trade__sys_status__in=
-                [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
-                 pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
-                 pcfg.REGULAR_REMAIN_STATUS],
-                sys_status=pcfg.IN_EFFECT)
-
+            from shopback.trades.models import PackageSkuItem
+            q = PackageSkuItem.objects.filter(
+                assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]
+            )
             n_total = q.only('id').count()
             n_delay = q.filter(pay_time__lte=threshold).only('id').count()
             n_s_delay = q.filter(pay_time__lte=threshold2).only('id').count()
