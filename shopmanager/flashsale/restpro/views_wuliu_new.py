@@ -8,7 +8,7 @@ from shopback.trades.models import TradeWuliu
 from shopback.items.models import Product
 import datetime
 from . import serializers
-from flashsale.restpro.tasks import SaveWuliu_only
+from flashsale.restpro.tasks import SaveWuliu_only, SaveWuliu_by_packetid
 from rest_framework import viewsets
 from rest_framework import renderers
 from django.shortcuts import get_object_or_404
@@ -90,7 +90,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
                 'uid': self.uid}
         req = urllib2.urlopen(self.BADU_KD100_URL, urllib.urlencode(data), timeout=30)
         content = json.loads(req.read())
-        SaveWuliu_only.delay('', content)  # 异步任务，存储物 流信息到数据库
+        SaveWuliu_by_packetid.delay(packetid, content)  # 异步任务，存储物 流信息到数据库
         return
 
     def packet_data(self, queryset):

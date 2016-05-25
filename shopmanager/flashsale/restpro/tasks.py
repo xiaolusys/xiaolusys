@@ -140,6 +140,28 @@ def SaveWuliu_only(tid, content):
                                       content=da['content'], time=da['time'])
 
 
+@task(max_retries=3, default_retry_delay=5)
+def SaveWuliu_by_packetid(packetid, content):
+    """
+        用户点击物流信息，进行物流信息存入数据库。
+    """
+    wulius = TradeWuliu.objects.filter(out_sid=packetid).order_by("-time")
+    datalen = len(content['data'])
+    data = content['data']
+    alread_count = wulius.count()
+    if alread_count >= datalen:  # 已有记录条数大于等于接口给予条数只是更新状态到最后一条记录中
+        if wulius.exists():
+            wuliu = wulius[0]
+            wuliu.status = int(content['status'])
+            wuliu.save()
+    else:  # 如果接口数据大于已经存储的条数　则创建　多出来的条目　
+        if wulius.exists():
+            wulius.delete()  # 删除旧数据
+        for da in data:  # 保存新数据
+            TradeWuliu.objects.create(tid='', status=content['status'], logistics_company=content['name'],
+                                      out_sid=content['order'], errcode=content['errcode'],
+                                      content=da['content'], time=da['time'])
+
 from flashsale.pay.models_shops import CustomerShops, CuShopPros
 from views_cushops import save_pro_info
 import logging
