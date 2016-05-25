@@ -295,10 +295,14 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def get_selectable_logistics(self, ware_by, default_company_code=''):
         logistics = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)
         logistics = logistics.values('id','code','name')
-        lg_dict_list = []
+        lg_dict_list = [{'id':'0', 'code':'', 'name':u'自动分配', 'is_priority':True}]
+        has_use_default = False
         for lg in logistics:
             lg['is_priority'] = lg['code'] == default_company_code
+            has_use_default |= lg['is_priority']
             lg_dict_list.append(lg)
+        if has_use_default:
+            lg_dict_list[0]['is_priority'] = False
         return lg_dict_list
 
     def get_charge_channels(self, request, total_payment):
