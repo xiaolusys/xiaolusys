@@ -13,6 +13,8 @@
 <style type="text/css">
     .form-row {
         overflow:inherit;
+        width:90%;
+        float:left;
     }
     .dropdown-menu {
         margin-left:192px !important;
@@ -25,6 +27,9 @@
     }
     .margin-left-192 {
         margin-left:192px !important;
+    }
+    .table_return_goods td{
+        width:100px;
     }
 </style>
 {% if cl.formset %}
@@ -60,22 +65,20 @@
 
 {% block content %}
 <div id="content-main">
-    <div class="form-row row-through">
-        <b>操作说明：</b><br/>
-        采购从商品库存页面利用冗余库存新建退货单。<br/>
-        采购审核退货单，确认件数/退回价格/备注无误，即可通过。(目前暂时供应商收件人放在备注中，注意确认)<br/>
-        审核完毕后开始发货,退货单进入已经发货状态。<br/>
-        供应商收到退货后进行退款，提供退货凭据。<br/>
-        采购点击退货完成，录入退货凭证。退货单退货成功。<br/>
-        退货成功同时，在财务的入账列表里新增记录，财务自行确认。（目前暂时未实现）<br/>
-    </div>
+    <b>操作说明：</b><br/>
+            采购从商品库存页面利用冗余库存新建退货单。<br/>
+            采购审核退货单，确认件数/退回价格/备注无误，即可通过。(目前暂时供应商收件人放在备注中，注意确认)<br/>
+            审核完毕后开始发货,退货单进入已经发货状态。<br/>
+            供应商收到退货后进行退款，提供退货凭据。<br/>
+            采购点击退货完成，录入退货凭证。退货单退货成功。<br/>
+            退货成功同时，在财务的入账列表里新增记录，财务自行确认。（目前暂时未实现）<br/>
     <fieldset class="module aligned ">
         <div class="form-row row-through">
             <div>
                 <label class="required" for="id_returngoods_id">退货单ID:</label>
-                <label class="simple-label">{{original.id}}</label>
+                <label class="simple-label" id="id_returngoods_id">{{original.id}}</label>
                 <label class="required" for="supplier">供应商:</label>
-                <label class="simple-label">{{original.supplier.supplier_name}}</label>
+                <label class="simple-label" id="supplier">{{original.supplier.supplier_name}}</label>
                 <label class="required" for="id_return_num">退货数量:</label>
                 <label class="simple-label" id="id_return_num" name="return_num">{{original.return_num}}</label>
                 <label class="required" for="id_sum_amount">退货总金额:</label>
@@ -87,7 +90,7 @@
         <div class="form-row row-through">
             <div>
                 <label class="required" for="id_status">状态:</label>
-                <label class="simple-label" for="id_status">{{original.get_status_display}}</label>
+                <label class="simple-label" id="id_status">{{original.get_status_display}}</label>
                 {%if original.status == 0%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_check" value="审核通过" />&nbsp;&nbsp;
                 <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
@@ -103,12 +106,12 @@
                 {%endif%}
             </div>
         </div>
-        <div class="form-row">
+        <div class="form-row row-through">
             <div>
-                <label class="required" for="id_status">退货单详情:</label>
+                <div><label class="required" for="id_status">退货单详情:</label></div>
                 <div class="results">
                     <table>
-                        <thead>
+                        <thead class="table_return_goods">
                         <td>商品ID</td>
                         <td>商品名称</td>
                         <td>商品图片</td>
