@@ -182,9 +182,9 @@ def set_return_goods_sku_send(request):
 def set_transactor(request):
     content = request.REQUEST
     id = int(content.get("id", None))
-    username = content.get("username", None)
+    transactor = content.get("transactor", None)
     return_goods = get_object_or_404(ReturnGoods, id=id)
-    return_goods.set_transactor(username)
+    return_goods.set_transactor(transactor)
     return HttpResponse(True)
 
 def set_refund(request):

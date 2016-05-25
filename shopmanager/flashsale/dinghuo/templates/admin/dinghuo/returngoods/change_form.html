@@ -11,11 +11,11 @@
 <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
 <style type="text/css">
-    .block-transactor {
-        height:300px;
+    .form-row {
+        overflow:inherit;
     }
     .dropdown-menu {
-        margin-left:96px;
+        margin-left:192px !important;
     }
     .dropdown-menu li {
         list-style-type:none;
@@ -24,7 +24,7 @@
         display: none !important;
     }
     .margin-left-192 {
-        margin-left:192px !important    ;
+        margin-left:192px !important;
     }
 </style>
 {% if cl.formset %}
@@ -161,18 +161,18 @@
                 {%if original.status == 0%}<input type="button" class="btn-mini btn-success" id="btn_edit_note" value="修改备注"/>{%endif%}
             </div>
         </div>
-        <div class="form-row field-memo block-transactor">
+        <div class="form-row field-memo">
             <div>
                 <label for="id_transactor">负责人:</label>
                 <label class="simple-label transactor_text">{{original.transactor.username}}</label>
                 <button class="btn-small modify-transactor">修改</button>
-                <div class="dropdown xiaolu-hide">
+                <div class="dropdown xiaolu-hide clearfix">
                   <button id="dLabel" class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     {{original.transactor.username}}
                     <span class="caret"></span>
                   </button>
                   <button class="btn-small commit-transactor" style="margin-left:20px;">确认</button>
-                  <ul class="dropdown-menu" aria-labelledby="dLabel" style="margin-left:96px;">
+                  <ul class="dropdown-menu" aria-labelledby="dLabel">
                     {%for u in transactors%}
                       <li><a href="#">{{u.username}}</a></li>
                     {%endfor%}
@@ -198,7 +198,7 @@
             </div>
         </div>
         {%if original.has_sent %}
-        <div class="form-row field-consigner">
+        <div class="form-row field-consigner clearfix">
                 <label for="id_consigner">发货人:</label>
                 <label class="simple-label" id="id_consigner" name="consigner">{{original.consigner}}</label>
                 <label for="label_sid">发货物流单号:</label>
@@ -394,21 +394,18 @@
     }
 
     var modifyTransactor = function() {
-        $('.transactor_text').addClass('xiaolu-hide');
         $('.modify-transactor').addClass('xiaolu-hide');
         $('.dropdown').removeClass('xiaolu-hide');
     }
 
      var saveTransactor = function(evt){
-        $('.transactor_text').removeClass('xiaolu-hide');
-        $('.open .dropdown-menu').addClass('margin-left-192');
         var transactor = evt.target.text;
         console.log(transactor);
         $('.dropdown').data('transactor', transactor);
+        $('.transactor_text').text(transactor);
      }
 
     var commitTransactor = function(){
-        $('.transactor_text').removeClass('xiaolu-hide');
         $('.modify-transactor').removeClass('xiaolu-hide');
         $('.dropdown').addClass('xiaolu-hide');
         var dom = $('.dropdown-menu');
