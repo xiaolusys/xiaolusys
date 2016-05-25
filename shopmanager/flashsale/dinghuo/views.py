@@ -4,6 +4,7 @@ import datetime
 import json
 from operator import itemgetter
 import re
+import sys
 import time
 
 from django.contrib.auth.models import User
@@ -2044,6 +2045,85 @@ class InBoundViewSet(viewsets.GenericViewSet):
         return Response({'inbound': {'id': inbound.id}})
 
     @classmethod
+    def _find_optimized_allocate_dict(cls, inbound_skus_dict, orderlist_ids,
+                                      orderlist_id, express_no):
+        import numpy as np
+
+        boxes = []
+        orderlists = []
+        orderlist_ids_with_express_no = []
+        for orderlist in OrderList.objects.filter(
+                id__in=orderlist_ids).order_by('id'):
+            orderlists.append(orderlist)
+            orderlist_express_nos =  [x.strip()
+                        for x in cls.EXPRESS_NO_SPLIT_PATTERN.split(
+                            orderlist.express_no.strip())
+                    ]
+            if express_no and orderlist.express_no and express_no.strip() in orderlist_express_nos:
+                orderlist_ids_with_express_no.append(orderlist_id)
+
+            orderlist_skus_dict = {}
+            for orderdetail in orderlist.order_list.all():
+                orderlist_skus_dict[int(orderdetail.chichu_id)] = max(
+                    orderdetail.buy_quantity - orderdetail.arrival_quantity, 0)
+
+            row = []
+            for sku_id in sorted(inbound_skus_dict.keys()):
+                row.append(orderlist_skus_dict.get(sku_id) or 0)
+            boxes.append(row)
+
+        boxes = np.matrix(boxes)
+        package = np.matrix([inbound_skus_dict[k]['arrival_quantity']
+                             for k in sorted(inbound_skus_dict.keys())])
+        orderlist_ids = sorted(orderlist_ids)
+        n = len(orderlist_ids)
+        z = sys.maxint
+        solution = 0
+        for i in range(1, 1 << n):
+            x = np.matrix([int(j) for j in ('{0:0%db}' % n).format(i)])
+            tmp = np.dot(boxes.T, x.T) - package.T
+            tmp = np.abs(tmp).sum()
+            if z > tmp:
+                z = tmp
+                solution = i
+
+        matched_orderlist_ids = []
+        for i, j in enumerate(('{0:0%db}' % n).format(solution)):
+            if int(j) > 0:
+                matched_orderlist_ids.append(orderlist_ids[i])
+        if orderlist_id and orderlist_id not in matched_orderlist_ids:
+            matched_orderlist_ids.append(orderlist_id)
+
+
+        tail_orderlist_ids = []
+        for orderlist in orderlists:
+            if orderlist.id in matched_orderlist_ids:
+                continue
+            if orderlist.id in orderlist_ids_with_express_no:
+                matched_orderlist_ids.append(orderlist.id)
+            else:
+                tail_orderlist_ids.append(orderlist.id)
+        orderlists = sorted(orderlists, key=lambda x: (matched_orderlist_ids + tail_orderlist_ids).index(x.id))
+
+        allocate_dict = {}
+        for orderlist in orderlists:
+            for orderdetail in orderlist.order_list.all():
+                sku_id = int(orderdetail.chichu_id)
+                inbound_sku_dict = inbound_skus_dict.get(sku_id)
+                if not inbound_sku_dict:
+                    continue
+
+                delta = min(
+                    max(orderdetail.buy_quantity - orderdetail.arrival_quantity,
+                        0), inbound_sku_dict['arrival_quantity'])
+                if delta > 0:
+                    allocate_dict[orderdetail.id] = delta
+                    inbound_sku_dict['arrival_quantity'] -= delta
+                    if inbound_sku_dict['arrival_quantity'] <= 0:
+                        inbound_skus_dict.pop(sku_id, False)
+        return allocate_dict
+
+    @classmethod
     def _find_allocate_dict(cls, inbound_skus_dict, orderlist_ids, orderlist_id,
                             express_no):
         orderlists_with_express_no = []
@@ -2157,9 +2237,16 @@ class InBoundViewSet(viewsets.GenericViewSet):
                           status=InBoundDetail.PROBLEM).save()
 
         orderlists = self._find_orderlists(inbound_skus.keys())
+        allocate_dict = self._find_optimized_allocate_dict(inbound_skus_dict,
+                                           [x['orderlist_id']
+                                            for x in orderlists], orderlist_id, express_no)
+
+        """
         allocate_dict = self._find_allocate_dict(
             inbound_skus_dict, [x['orderlist_id']
                                 for x in orderlists], orderlist_id, express_no)
+        """
+
         log_action(request.user.id, inbound, ADDITION, '创建')
         return Response({
             'orderlists': orderlists,
@@ -2210,7 +2297,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     orderdetail.arrival_quantity, orderdetail.buy_quantity),
                 'orderdetail_id': orderdetail.id
             }
-
 
         saleproduct_ids = set()
         products_dict = {}
