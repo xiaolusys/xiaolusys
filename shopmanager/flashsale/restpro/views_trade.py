@@ -88,13 +88,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         """列出购物车中所有的状态为正常的数据"""
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        data = []
-        for a in queryset:
-            temp_dict = model_to_dict(a)
-            pro = Product.objects.filter(id=a.item_id)
-            temp_dict["std_sale_price"] = pro[0].std_sale_price if pro else 0
-            data.append(temp_dict)
-        return Response(data)
+        serializers = self.get_serializer(queryset, many=True)
+        return Response(serializers.data)
 
     def create(self, request, *args, **kwargs):
         """创建购物车数据"""
@@ -154,6 +149,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             new_shop_cart.buyer_nick = customer_user[0].nick if customer_user[0].nick else ""
             new_shop_cart.price = sku.agent_price
             new_shop_cart.num = 1
+            new_shop_cart.std_sale_price = sku.std_sale_price
             new_shop_cart.total_fee = sku.agent_price * int(sku_num) if sku.agent_price else 0
             new_shop_cart.sku_name = sku.properties_alias if len(sku.properties_alias) > 0 else sku.properties_name
             new_shop_cart.pic_path = sku.product.pic_path

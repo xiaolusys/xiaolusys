@@ -1,6 +1,6 @@
 # coding:utf-8
 import re
-import json
+import datetime
 import pingpp
 import urlparse
 
@@ -49,6 +49,7 @@ logger = logging.getLogger(__name__)
 
 UUID_RE = re.compile('^[a-z]{2}[0-9]{6}[a-z0-9-]{10,14}$')
 
+
 class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单REST API接口：
@@ -59,7 +60,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     - {path}/remind_send[.formt]: 提醒发货
     - {path}/undisplay[.formt]: 删除订单记录
     - {path}/{pk}/charge[.formt]:支付待支付订单;
-    - {path}/{pk}/details[.formt]:获取订单及明细；
     - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
     > - cart_ids：购物车明细ID，如 `100,101,...` 
     > - addr_id:客户地址ID
@@ -112,15 +112,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
-    @detail_route(methods=['get'])
-    def details(self, request, pk, *args, **kwargs):
+
+    def retrieve(self, request, *args, **kwargs):
         """ 获取用户订单及订单明细列表 """
-        strade   = self.get_object()
-        strade_dict = serializers.SaleTradeSerializer(strade,context={'request': request}).data
-#         orders_serializer = serializers.SaleOrderSerializer(strade.sale_orders.all(), many=True)
-#         strade_dict['orders'] = orders_serializer.data
-        return Response(strade_dict)
+        instance   = self.get_object()
+        serializer = serializers.SaleTradeDetailSerializer(instance,context={'request': request})
+        return Response(serializer.data)
     
     @list_route(methods=['get'])
     def waitpay(self, request, *args, **kwargs):

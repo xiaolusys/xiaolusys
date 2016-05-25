@@ -267,7 +267,7 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
         model = SaleOrder
         fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
-                  'refund_status', 'refund_status_display', "refund_id", 'kill_title')
+                  'refund_status', 'refund_status_display', "refund_id", 'kill_title', 'is_seckill')
 
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
@@ -288,6 +288,23 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
                   'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city',
                   'receiver_district', 'receiver_address', 'receiver_mobile', 'receiver_phone')
+
+
+class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='v2:saletrade-detail')
+    orders = SaleOrderSerializer(source='sale_orders', many=True, read_only=True)
+    channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
+    trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
+    logistics_company = LogisticsCompanySerializer(read_only=True)
+    status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = SaleTrade
+        fields = ('id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
+                  'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display',
+                  'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
+                  'logistics_company', 'user_adress')
 
 
 from flashsale.pay.models import District, UserAddress

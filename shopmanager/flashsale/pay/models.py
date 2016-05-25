@@ -229,6 +229,20 @@ class SaleTrade(BaseModel):
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
 
+    @property
+    def user_adress(self):
+        return {
+            'id': self.user_address_id,
+            'receiver_name':self.receiver_name,
+            'receiver_state':self.receiver_state,
+            'receiver_city':self.receiver_city,
+            'receiver_district':self.receiver_district,
+            'receiver_address':self.receiver_address,
+            'receiver_mobile':self.receiver_mobile,
+            'receiver_phone':self.receiver_phone
+        }
+
+
     def get_cash_payment(self):
         """ 实际需支付金额 """
         if not self.has_budget_paid:
@@ -655,9 +669,12 @@ class SaleOrder(PayBaseModel):
     #         return True
     #     return False
 
+    def is_seckill(self):
+        return True if self.title.startswith(u'秒杀') else False
+
     def second_kill_title(self):
         """ 判断是否秒杀标题　"""
-        return True if self.title.startswith(u'秒杀') else False
+        return self.is_seckill()
 
     def is_pending(self):
         return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and \
@@ -831,6 +848,7 @@ class ShoppingCart(BaseModel):
     item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     price = models.FloatField(default=0.0, verbose_name=u'单价')
+    std_sale_price = models.FloatField(default=0.0, verbose_name=u'标准售价')
 
     sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'规格ID')
     num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
@@ -868,9 +886,9 @@ class ShoppingCart(BaseModel):
             sku = get_object_or_404(ProductSku, pk=self.sku_id)
             Product.objects.releaseLockQuantity(sku, self.num)
 
-    def std_sale_price(self):
-        sku = ProductSku.objects.get(id=self.sku_id)
-        return sku.std_sale_price
+    # def std_sale_price(self):
+    #     sku = ProductSku.objects.get(id=self.sku_id)
+    #     return sku.std_sale_price
 
     def is_deposite(self):
         product = Product.objects.get(id=self.item_id)
