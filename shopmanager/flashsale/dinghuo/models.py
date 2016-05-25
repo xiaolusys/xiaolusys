@@ -477,7 +477,7 @@ class ReturnGoods(models.Model):
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
     from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
     if instance.created >= PRODUCT_SKU_STATS_COMMIT_TIME and instance.status in [
-            ReturnGoods.VERIFY_RG, ReturnGoods.DELIVER_RG,
+            ReturnGoods.REFUND_RG, ReturnGoods.DELIVER_RG,
             ReturnGoods.SUCCEED_RG
     ]:
         from flashsale.dinghuo.tasks import task_update_product_sku_stat_rg_quantity
