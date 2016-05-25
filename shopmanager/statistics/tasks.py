@@ -9,6 +9,7 @@ from shopback.items.models import Product
 from flashsale.pay.models_custom import ModelProduct
 from supplychain.supplier.models import SupplierCharge, SaleSupplier
 from flashsale.pay.models import SaleOrder
+from statistics import constants
 
 from statistics.models import SaleStats
 
@@ -85,15 +86,15 @@ def task_update_sale_order_stats_record(sale_order):
     date_field = sale_order.pay_time.date() if sale_order.pay_time else sale_order.created.date()
 
     if sale_order.stats_not_pay():
-        status = SaleOrderStatsRecord.NOT_PAY
+        status = constants.NOT_PAY
     elif sale_order.stats_paid():
-        status = SaleOrderStatsRecord.PAID
+        status = constants.PAID
     elif sale_order.stats_cancel():
-        status = SaleOrderStatsRecord.CANCEL
+        status = constants.CANCEL
     elif sale_order.stats_out_stock():
-        status = SaleOrderStatsRecord.OUT_STOCK
+        status = constants.OUT_STOCK
     elif sale_order.stats_return_goods():
-        status = SaleOrderStatsRecord.RETURN_GOODS
+        status = constants.RETURN_GOODS
     else:
         return
     record = SaleOrderStatsRecord.objects.filter(oid=sale_order.oid).first()
@@ -110,8 +111,8 @@ def task_update_sale_order_stats_record(sale_order):
             date_field=date_field,
             status=status
         )
-        if status == SaleOrderStatsRecord.RETURN_GOODS:
-            record.return_goods = SaleOrderStatsRecord.HAS_RETURN
+        if status == constants.RETURN_GOODS:
+            record.return_goods = constants.HAS_RETURN
         record.save()
     else:
         if record.status != status:
@@ -120,8 +121,8 @@ def task_update_sale_order_stats_record(sale_order):
             if record.date_field != date_field:
                 record.date_field = date_field
                 update_fields.append('date_field')
-            if status == SaleOrderStatsRecord.RETURN_GOODS:
-                record.return_goods = SaleOrderStatsRecord.HAS_RETURN
+            if status == constants.RETURN_GOODS:
+                record.return_goods = constants.HAS_RETURN
                 update_fields.append('return_goods')
             record.save(update_fields=update_fields)
 
@@ -143,7 +144,7 @@ def make_sale_stat_uni_key(date_field, current_id, record_type, status):
 
 def gen_status_data_map(stats):
     data = {}
-    for k in SaleStats.STATUS:
+    for k in constants.STATUS:
         key = k[0]
         data[key] = {"total_num": 0, "total_payment": 0}
     for s in stats:
@@ -155,7 +156,7 @@ def gen_status_data_map(stats):
 
 def find_parent_record_type(stats):
     current_type = stats.record_type
-    for stats_type in SaleStats.RECORD_TYPES:
+    for stats_type in constants.RECORD_TYPES:
         if stats_type[0] > current_type:
             return stats_type[0]
     return None
@@ -176,7 +177,7 @@ def task_statsrecord_update_salestats(stats_record):
     for status, v in data.items():
         total_num = v['total_num']
         total_payment = v['total_payment']
-        uni_key = make_sale_stat_uni_key(date_field, current_id, SaleStats.TYPE_SKU, status)
+        uni_key = make_sale_stat_uni_key(date_field, current_id, constants.TYPE_SKU, status)
         old_stat = SaleStats.objects.filter(uni_key=uni_key).first()
         if not old_stat:
             if total_num > 0:
@@ -187,7 +188,7 @@ def task_statsrecord_update_salestats(stats_record):
                     name=stats_record.name,
                     pic_path=stats_record.pic_path,
                     uni_key=uni_key,
-                    record_type=SaleStats.TYPE_SKU,
+                    record_type=constants.TYPE_SKU,
                     status=status,
                     num=total_num,
                     payment=total_payment
@@ -263,21 +264,21 @@ def get_bd_name_and_pic_path(bd_id):
 
 
 def get_parent_id_name_and_pic_path(record_type, target_id, date_field=None):
-    if record_type == SaleStats.TYPE_COLOR:
+    if record_type == constants.TYPE_COLOR:
         model_id = get_model_id(target_id)
         name, pic_path = get_product_name_pic_path(target_id)
         return model_id, name, pic_path
 
-    if record_type == SaleStats.TYPE_MODEL:
+    if record_type == constants.TYPE_MODEL:
         supplier_id = get_supplier_id(target_id)
         name, pic_path = get_model_name_and_picpath(target_id)
         return supplier_id, name, pic_path
 
-    if record_type == SaleStats.TYPE_SUPPLIER:
+    if record_type == constants.TYPE_SUPPLIER:
         bd_id = get_bd_id(target_id)
         name, pic_path = get_supplier_name_and_pic_path(target_id)
         return bd_id, name, pic_path
-    if record_type == SaleStats.TYPE_BD:
+    if record_type == constants.TYPE_BD:
         name, pic_path = get_bd_name_and_pic_path(target_id)
         return date_field, name, pic_path
     return None, None, None
@@ -286,7 +287,7 @@ def get_parent_id_name_and_pic_path(record_type, target_id, date_field=None):
 @task()
 def task_update_parent_sale_stats(sale_stats):
     parent_id = sale_stats.parent_id
-    if not parent_id and sale_stats.record_type > SaleStats.TYPE_TOTAL:  # # 没有父级别id 并且 大于 日期 总计 级别的报错
+    if not parent_id and sale_stats.record_type > constants.TYPE_TOTAL:  # # 没有父级别id 并且 大于 日期 总计 级别的报错
         logger.error(u'task_update_parent_sale_stats: record_type not cover, current id  is %s' % sale_stats.current_id)
         return
 
@@ -313,12 +314,12 @@ def task_update_parent_sale_stats(sale_stats):
                 # print "total num :", total_num, sale_stats.get_record_type_display()
                 grand_parent_id, name, pic_path = get_parent_id_name_and_pic_path(record_type, parent_id, date_field)
                 # 供应商级别更新bd级别的 bd没有找到 则return
-                if sale_stats.record_type == SaleStats.TYPE_SUPPLIER and grand_parent_id is None:
+                if sale_stats.record_type == constants.TYPE_SUPPLIER and grand_parent_id is None:
                     logger.error(u'task_update_parent_sale_stats: '
                                  u' bd user not found , the supplier is %s' % sale_stats.current_id)
                     return
                 # 更新款式级别的父级别 即 供应商级别 供应商为空的时候返回
-                if sale_stats.record_type == SaleStats.TYPE_MODEL and parent_id is None:
+                if sale_stats.record_type == constants.TYPE_MODEL and parent_id is None:
                     logger.error(u'task_update_parent_sale_stats: '
                                  u' model supplier not found, the model is %s' % sale_stats.current_id)
                     return
@@ -354,7 +355,7 @@ def task_create_snapshot_record(sale_stats):
     :type sale_stats: SaleStats record_type is TYPE_TOTAL  instance
     为日期级别的记录 创建 快照记录
     """
-    if sale_stats.record_type != SaleStats.TYPE_TOTAL:
+    if sale_stats.record_type != constants.TYPE_TOTAL:
         return
     current_id = sale_stats.current_id  # 应该是日期类型 的字符串
     yesterday_date_field = sale_stats.date_field - datetime.timedelta(days=1)  # 昨天的时间
@@ -364,18 +365,18 @@ def task_create_snapshot_record(sale_stats):
         return
     # 昨天的 snapshot 标记
     snapshot_tag = 'snapshot'
-    for s in SaleStats.STATUS:
+    for s in constants.STATUS:
         status = s[0]
         uni_key = make_sale_stat_uni_key(yesterday_date_field,
                                          snapshot_tag,
-                                         SaleStats.TYPE_SNAPSHOT,
+                                         constants.TYPE_SNAPSHOT,
                                          status)
         # 查找昨天的快照是否存在
         yesterday_snapshot = SaleStats.objects.filter(uni_key=uni_key).first()
         if yesterday_snapshot:  # 已经做过快照 返回
             continue
         stats = SaleStats.objects.filter(date_field=yesterday_date_field,
-                                         record_type=SaleStats.TYPE_TOTAL,
+                                         record_type=constants.TYPE_TOTAL,
                                          status=status).first()
         if not stats:  # 昨天的记录没有找到 无法为 昨天的记录做 快照 返回
             continue
@@ -385,7 +386,7 @@ def task_create_snapshot_record(sale_stats):
             num=stats.num,
             payment=stats.payment,
             uni_key=uni_key,
-            record_type=SaleStats.TYPE_SNAPSHOT,
+            record_type=constants.TYPE_SNAPSHOT,
             status=status
         )
         yesterday_snapshot.save()  # 保存快照信息
@@ -397,7 +398,7 @@ def task_update_week_stats_record(date_stats):
     :type date_stats: SaleStats instance witch record_type is TYPE_TOTAL
     日期 级别 数据 统计的 变化 更新 周报记录更新
     """
-    if date_stats.record_type != SaleStats.TYPE_TOTAL:
+    if date_stats.record_type != constants.TYPE_TOTAL:
         return
     # 查询周报记录是否存在
     # 有 则 判断是否有数字变化 有变化则更新  记录不存在 则创建记录 写入数据
@@ -407,12 +408,12 @@ def task_update_week_stats_record(date_stats):
     time_end = time_left + datetime.timedelta(days=7)  # 该 周的 截止时间
     date_field_uni = date_field.strftime('%Y%W')  # 年周
 
-    for s in SaleStats.STATUS:
+    for s in constants.STATUS:
         status = s[0]
         uni_key = make_sale_stat_uni_key(date_field=date_field_uni, current_id=current_tag,
-                                         record_type=SaleStats.TYPE_WEEK, status=status)
+                                         record_type=constants.TYPE_WEEK, status=status)
         # 计算该 周 的 每天 的 日期级别 统计  该状态 总和
-        date_stats = SaleStats.objects.filter(record_type=SaleStats.TYPE_TOTAL,
+        date_stats = SaleStats.objects.filter(record_type=constants.TYPE_TOTAL,
                                               date_field__gte=time_left,
                                               date_field__lte=time_end,
                                               status=status)
@@ -440,7 +441,7 @@ def task_update_week_stats_record(date_stats):
                 num=num,
                 payment=payment,
                 uni_key=uni_key,
-                record_type=SaleStats.TYPE_WEEK,
+                record_type=constants.TYPE_WEEK,
                 status=status
             )
             stats.save()
@@ -457,12 +458,12 @@ def update_month_stats_record(year, month):
     time_left = datetime.date(year, month, 1)
     month_days = calendar.monthrange(time_left.year, time_left.month)[1]  # 该 月份 天数
     time_right = datetime.date(year, month, month_days)
-    for s in SaleStats.STATUS:
+    for s in constants.STATUS:
         status = s[0]
         uni_key = make_sale_stat_uni_key(date_field=date_field_uni, current_id=current_tag,
-                                         record_type=SaleStats.TYPE_MONTH, status=status)
+                                         record_type=constants.TYPE_MONTH, status=status)
         # 计算该 月 的 每天 的 统计 总和
-        date_stats = SaleStats.objects.filter(record_type=SaleStats.TYPE_TOTAL,
+        date_stats = SaleStats.objects.filter(record_type=constants.TYPE_TOTAL,
                                               date_field__gte=time_left,
                                               date_field__lte=time_right,
                                               status=status)
@@ -490,7 +491,7 @@ def update_month_stats_record(year, month):
                 num=num,
                 payment=payment,
                 uni_key=uni_key,
-                record_type=SaleStats.TYPE_MONTH,
+                record_type=constants.TYPE_MONTH,
                 status=status
             )
             stats.save()
@@ -502,7 +503,7 @@ def task_update_month_stats_record(week_stats):
     """
     :type week_stats: SaleStats instance witch record_type is TYPE_WEEK
     """
-    if week_stats.record_type != SaleStats.TYPE_WEEK:
+    if week_stats.record_type != constants.TYPE_WEEK:
         return
 
     # 查询月报记录是否存在
@@ -526,7 +527,7 @@ def task_update_quarter_stats_record(month_stats):
     """
     :type month_stats: SaleStats instance witch record_type is TYPE_MONTH
     """
-    if month_stats.record_type != SaleStats.TYPE_MONTH:
+    if month_stats.record_type != constants.TYPE_MONTH:
         return
 
     # 查询季度报告记录是否存在
@@ -554,12 +555,12 @@ def task_update_quarter_stats_record(month_stats):
         logger.error(u'task_update_quarter_stats_record: month out of range')
         return
     date_field_uni = month_stats.date_field.strftime('%Y') + str(quarter_num)  # 年季度
-    for s in SaleStats.STATUS:
+    for s in constants.STATUS:
         status = s[0]
         uni_key = make_sale_stat_uni_key(date_field=date_field_uni, current_id=current_tag,
-                                         record_type=SaleStats.TYPE_QUARTER, status=status)
+                                         record_type=constants.TYPE_QUARTER, status=status)
         # 计算该 月 的 每天 的 统计 总和
-        date_stats = SaleStats.objects.filter(record_type=SaleStats.TYPE_TOTAL,
+        date_stats = SaleStats.objects.filter(record_type=constants.TYPE_TOTAL,
                                               date_field__gte=time_left,
                                               date_field__lte=time_right,
                                               status=status)
@@ -588,7 +589,7 @@ def task_update_quarter_stats_record(month_stats):
                 num=num,
                 payment=payment,
                 uni_key=uni_key,
-                record_type=SaleStats.TYPE_QUARTER,
+                record_type=constants.TYPE_QUARTER,
                 status=status
             )
             stats.save()

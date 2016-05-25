@@ -2,6 +2,7 @@
 from django.contrib import admin
 from core.utils.modelutils import get_class_fields
 from statistics.models import SaleOrderStatsRecord, SaleStats
+from statistics import constants
 
 
 class SaleStatsAdmin(admin.ModelAdmin):
@@ -29,9 +30,9 @@ class SaleStatsAdmin(admin.ModelAdmin):
               "statistics/js/level-statistics.js")
 
     def pic_display(self, obj):
-        if obj.record_type < SaleStats.TYPE_SUPPLIER:
+        if obj.record_type < constants.TYPE_SUPPLIER:
             return '<a onclick="displayPic(\'{0}\')">查看图片</a>'.format(obj.pic_path)
-        elif obj.record_type == SaleStats.TYPE_SUPPLIER:
+        elif obj.record_type == constants.TYPE_SUPPLIER:
             return '<a target="_blank" href="{0}">供应商网址</a>'.format(obj.pic_path)
         else:
             return obj.pic_path
