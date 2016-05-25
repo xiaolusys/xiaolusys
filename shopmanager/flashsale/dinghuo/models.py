@@ -378,13 +378,13 @@ class ReturnGoods(models.Model):
                     continue
         for product in products:
             product.detail_sku_ids = [sku.id for sku in product.detail_skus]
+            product.detail_length = len(product.detail_sku_ids)
         for detail in self.rg_details.all():
             for product in products:
                 if detail.skuid in product.detail_sku_ids:
                     if not hasattr(product, 'detail_items'):
                         product.detail_items = []
                     product.detail_items.append(detail)
-            product.detail_length = len(product.detail_sku_ids)
         return products
 
     @staticmethod
