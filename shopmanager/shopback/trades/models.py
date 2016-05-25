@@ -1639,7 +1639,7 @@ class PackageSkuItem(BaseModel):
                                   verbose_name=u'系统状态')
     refund_status = models.IntegerField(choices=pay.REFUND_STATUS,
                                         default=pay.NO_REFUND,
-                                        blank=True, verbose_name='退款状态')
+                                        blank=True, verbose_name=u'退款状态')
 
     cid = models.BigIntegerField(null=True, verbose_name=u'商品分类')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
