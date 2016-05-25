@@ -1010,13 +1010,12 @@ def task_Auto_Download_Shelf():
 @task()
 def task_assign_stock_to_package_sku_item(stat):
     """ """
-    print 'task_assign_stock_to_package_sku_item:'
-    print stat.sku_id
+
     logger.warn("task_assign_stock_to_package_sku_item" + str(datetime.datetime.now()) + ":sku_id" + str(stat.sku_id)
                 + str(stat.__dict__))
     from shopback.trades.models import PackageSkuItem
     available_num = stat.realtime_quantity - stat.assign_num
-    print available_num
+
     if available_num > 0:
         package_sku_items = PackageSkuItem.objects.filter(sku_id=stat.sku_id,
                                                           assign_status=PackageSkuItem.NOT_ASSIGNED,

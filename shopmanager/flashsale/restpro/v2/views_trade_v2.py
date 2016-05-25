@@ -42,7 +42,7 @@ from common.utils import update_model_fields
 from flashsale.restpro import constants as CONS
 
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog
-from flashsale.pay.tasks import confirmTradeChargeTask
+from flashsale.pay.tasks import confirmTradeChargeTask, tasks_set_address_priority_logistics_code
 
 import logging
 logger = logging.getLogger(__name__)
@@ -295,7 +295,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def get_selectable_logistics(self, ware_by, default_company_code=''):
         logistics = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)
         logistics = logistics.values('id','code','name')
-        lg_dict_list = [{'id':'0', 'code':'', 'name':u'自动分配', 'is_priority':True}]
+        lg_dict_list = [{'id':'', 'code':'', 'name':u'自动分配', 'is_priority':True}]
         has_use_default = False
         for lg in logistics:
             lg['is_priority'] = lg['code'] == default_company_code
@@ -658,6 +658,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_zip':address.receiver_zip,
             'receiver_phone':address.receiver_phone,
             'receiver_mobile':address.receiver_mobile,
+            'user_address_id':address.id
             }
         if state:
             buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
@@ -669,6 +670,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             couponids  = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras)
             if couponids:
                 coupon_id = couponids.groupdict().get('couponid','')
+            logistics_company_id = form.get('logistics_company_id','').strip()
+            if not logistics_company_id or logistics_company_id == '0':
+                logistics_company_id = None
+            else:
+                tasks_set_address_priority_logistics_code.delay(address.id, logistics_company_id)
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -679,11 +685,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'post_fee':float(form.get('post_fee')),
                 'discount_fee':float(form.get('discount_fee')),
                 'charge':'',
+                'logistics_company_id': logistics_company_id or None,
                 'status':SaleTrade.WAIT_BUYER_PAY,
                 'openid':buyer_openid,
-                'extras_info':{'coupon': coupon_id,
-                               'pay_extras':pay_extras}
-                })
+                'extras_info':{
+                    'coupon': coupon_id,
+                    'pay_extras':pay_extras
+                }
+            })
             params['extras_info'].update(self.get_mama_referal_params(request))
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)

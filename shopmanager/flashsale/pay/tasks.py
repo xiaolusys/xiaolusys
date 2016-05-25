@@ -13,7 +13,7 @@ from shopback.items.models import ProductSku
 from shopback.users.models import User
 from shopapp.weixin.models import WeiXinUser, WeixinUnionID
 from flashsale.dinghuo.models import OrderList, OrderDetail
-from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer
+from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress
 from common.utils import update_model_fields
 from .service import FlashSaleService
 from .options import get_user_unionid
@@ -719,7 +719,7 @@ def task_saleorder_update_package_sku_item(sale_order):
 
 @task()
 def tasks_set_user_address_id(sale_trade):
-    from flashsale.pay.models_addr import UserAddress
+
     ua = UserAddress.objects.filter(
         cus_uid=sale_trade.buyer_id,
         receiver_name=sale_trade.receiver_name,
@@ -742,6 +742,18 @@ def tasks_set_user_address_id(sale_trade):
                                         status='normal').order_by('-id').first()
     if ua:
         SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)
+
+@task()
+def tasks_set_address_priority_logistics_code(address_id, logistics_company_id):
+
+    from shopback.logistics.models import LogisticsCompany
+    user_address = UserAddress.objects.filter(id=address_id).first()
+    logistics_company = LogisticsCompany.objects.filter(id=logistics_company_id).first()
+    if not user_address or not logistics_company:
+        logger.warn('not update address logistics_code:address_id=%s, logistics_company=%s'%(address_id, logistics_company_id))
+        return
+    user_address.set_logistic_company(logistics_company.code)
+
 
 
 @task()
