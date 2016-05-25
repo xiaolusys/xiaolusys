@@ -135,12 +135,11 @@ from flashsale.restpro.v2 import views_trade_v2, views_product_v2
 
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
-v2_router.register(r'carts', views_trade.ShoppingCartViewSet)
+v2_router.register(r'carts', views_trade_v2.ShoppingCartViewSet)
 v2_router.register(r'products', views_product_v2.ProductViewSet)
 v2_router.register(r'modelproducts', views_product_v2.ModelProductV2ViewSet)
 v2_router.register(r'trades', views_trade_v2.SaleTradeViewSet)
 v2_router.register(r'orders', views_trade_v2.SaleOrderViewSet)
-v2_router.register(r'address', views.UserAddressViewSet)
 v2_router.register(r'fortune', views_mama_v2.MamaFortuneViewSet)
 v2_router.register(r'carry', views_mama_v2.CarryRecordViewSet)
 v2_router.register(r'ordercarry', views_mama_v2.OrderCarryViewSet)

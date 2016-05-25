@@ -41,9 +41,11 @@ TIME_FOR_PAYMENT = 25 * 60
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
 
+def gen_uuid_trade_tid():
+    return uniqid('%s%s' % (SaleTrade.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
 
 def genTradeUniqueid():
-    return uniqid('%s%s' % (SaleTrade.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
+    return gen_uuid_trade_tid()
 
 
 class SaleTrade(BaseModel):
@@ -231,6 +233,7 @@ class SaleTrade(BaseModel):
 
     @property
     def user_adress(self):
+        user_addr = UserAddress.objects.filter(id=self.user_address_id).first()
         return {
             'id': self.user_address_id,
             'receiver_name':self.receiver_name,
@@ -239,7 +242,8 @@ class SaleTrade(BaseModel):
             'receiver_district':self.receiver_district,
             'receiver_address':self.receiver_address,
             'receiver_mobile':self.receiver_mobile,
-            'receiver_phone':self.receiver_phone
+            'receiver_phone':self.receiver_phone,
+            'default':user_addr and user_addr.default or ''
         }
 
 
@@ -902,6 +906,13 @@ class ShoppingCart(BaseModel):
     def calc_discount_fee(self, xlmm=None):
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return product_sku.calc_discount_fee(xlmm)
+
+    def is_repayable(self):
+        """ can repay able """
+        pro_sku = ProductSku.objects.filter(id=self.sku_id).first()
+        if pro_sku:
+            return pro_sku.sale_out
+        return False
 
 
 from signals_coupon import *

@@ -253,6 +253,11 @@ class Customer(BaseModel):
         else:
             return self.nick
 
+    def get_default_address(self):
+        from flashsale.pay.models import UserAddress
+        queryset = UserAddress.objects.filter(cus_uid=self.id, status=UserAddress.NORMAL).order_by('-default')
+        return queryset.first()
+
 # 2016-4-9 有登陆检查后注释不执行
 # def triger_record_xlmm_fans(sender, instance, created, **kwargs):
 #     """ 记录粉丝妈妈粉丝信息 """

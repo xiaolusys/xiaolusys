@@ -317,8 +317,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         address = queryset.first()
         if address:
             serializer = self.get_serializer(address)
-            return Response({"msg":"","code": 0, "info":serializer.data})
-        return Response({"msg": "没有地址信息", "code": 1, "info":""})
+            return Response(serializer.data)
+        return Response({})
 
     @list_route(methods=['get'])
     def get_one_address(self, request):
