@@ -70,8 +70,9 @@ class InBoundTestCase(TestCase):
 
         for sku_id, inbound_item in data.iteritems():
             sku = ProductSku.objects.get(id=sku_id)
-            self.assertEqual(sku.quantity, skus_dict[sku_id] +
-                             inbound_item['arrival_quantity'])
+            self.assertEqual(
+                sku.quantity,
+                skus_dict[sku_id] + inbound_item['arrival_quantity'])
 
         for orderdetail_id, n in orderdetails_dict.iteritems():
             orderdetail = OrderDetail.objects.get(id=orderdetail_id)
@@ -90,25 +91,29 @@ class InBoundTestCase(TestCase):
         for sku_id, inbound_item in data.iteritems():
             inferior_quantities_dict[sku_id] = inbound_item['inferior_quantity']
 
-        for record in sorted(records, key=lambda x: x['orderdetail_id'], reverse=True):
+        for record in sorted(records,
+                             key=lambda x: x['orderdetail_id'],
+                             reverse=True):
             sku_id = record['sku_id']
             orderdetail_id = record['orderdetail_id']
 
             sku = ProductSku.objects.get(id=sku_id)
             orderdetail = OrderDetail.objects.get(id=orderdetail_id)
 
-
             skus_dict[sku.id] = sku.quantity
             inferior_quantity = data[sku_id]['inferior_quantity']
 
             if inferior_quantity > 0:
-                inferior_quantity = min(record['arrival_quantity'], inferior_quantity)
+                inferior_quantity = min(record['arrival_quantity'],
+                                        inferior_quantity)
                 record['arrival_quantity'] -= inferior_quantity
                 record['inferior_quantity'] = inferior_quantity
                 data[sku_id]['inferior_quantity'] -= inferior_quantity
                 orderdetails_dict[orderdetail_id] = {
-                    'arrival_quantity': orderdetail.arrival_quantity - inferior_quantity,
-                    'inferior_quantity': orderdetail.inferior_quantity + inferior_quantity
+                    'arrival_quantity':
+                    orderdetail.arrival_quantity - inferior_quantity,
+                    'inferior_quantity':
+                    orderdetail.inferior_quantity + inferior_quantity
                 }
             else:
                 record['inferior_quantity'] = 0
@@ -116,7 +121,6 @@ class InBoundTestCase(TestCase):
                     'arrival_quantity': orderdetail.arrival_quantity,
                     'inferior_quantity': orderdetail.inferior_quantity
                 }
-
 
         r = self.client.post('/sale/dinghuo/inbound/reallocate',
                              {'data': json.dumps(records),
@@ -127,12 +131,15 @@ class InBoundTestCase(TestCase):
 
         for sku_id, inbound_item in data.iteritems():
             sku = ProductSku.objects.get(id=sku_id)
-            self.assertEqual(sku.quantity, skus_dict[sku_id] - inferior_quantities_dict[sku.id])
+            self.assertEqual(sku.quantity, skus_dict[sku_id] -
+                             inferior_quantities_dict[sku.id])
 
         for orderdetail_id, orderdetail_dict in orderdetails_dict.iteritems():
             orderdetail = OrderDetail.objects.get(id=orderdetail_id)
-            self.assertEqual(orderdetail.arrival_quantity, orderdetail_dict['arrival_quantity'])
-            self.assertEqual(orderdetail.inferior_quantity, orderdetail_dict['inferior_quantity'])
+            self.assertEqual(orderdetail.arrival_quantity,
+                             orderdetail_dict['arrival_quantity'])
+            self.assertEqual(orderdetail.inferior_quantity,
+                             orderdetail_dict['inferior_quantity'])
 
     def test_create(self):
         data = {
@@ -186,3 +193,39 @@ class InBoundTestCase(TestCase):
             }
         }
         self._reallocate(inbound_data)
+
+    def test_optimized_allocate(self):
+        inbound_skus_dict = {
+            162255: {
+                "arrival_quantity": 1
+            },
+            162258: {
+                "arrival_quantity": 5
+            },
+            162259: {
+                "arrival_quantity": 10
+            },
+            162262: {
+                "arrival_quantity": 1
+            },
+            162264: {
+                "arrival_quantity": 1
+            },
+            162305: {
+                "arrival_quantity": 1
+            },
+            162345: {
+                "arrival_quantity": 1
+            },
+            162397: {
+                "arrival_quantity": 1
+            },
+            162407: {
+                "arrival_quantity": 1
+            }
+        }
+
+        allocate_dict = InBoundViewSet._find_optimized_allocate_dict(inbound_skus_dict, [16713, 16748, 16831], 16713, '')
+        for orderdetail in OrderDetail.objects.filter(orderlist_id=16831):
+            self.assertIn(orderdetail.id, allocate_dict)
+            self.assertEqual(max(orderdetail.buy_quantity - orderdetail.arrival_quantity, 0), allocate_dict[orderdetail.id])

@@ -32,6 +32,7 @@ xhtml2pdf==0.0.6
 reportlab==2.5
 pingpp==2.0.1
 qiniu==7.0.5
+numpy==1.11.0
 
 #geraldo
 #reportlab==2.5
@@ -53,6 +54,3 @@ django-chartit==0.1
 #django-celery==3.0.10
 #kombu==2.4.7
 pyExcelerator==0.6.4.1
-
-
- 
