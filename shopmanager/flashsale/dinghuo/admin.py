@@ -10,7 +10,7 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
     PayToPackStats
 import time
-from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter
+from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter, InBoundCreatorFilter
 from flashsale.dinghuo import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 from django.db import models
@@ -583,12 +583,17 @@ class InBoundAdmin(admin.ModelAdmin):
         }
     ), )
 
-    list_display = ('id', 'show_id', 'supplier', 'express_no',
+    list_display = ('id', 'show_id', 'show_creator', 'supplier', 'express_no',
                     'memo', 'show_orderlists', 'created', 'modified', 'status')
 
-    list_filter = ('status', 'created')
+    list_filter = ('status', 'created', InBoundCreatorFilter)
 
     search_fields = ('supplier__supplier_name', 'express_no')
+
+    def show_creator(self, obj):
+        from flashsale.dinghuo.views import InBoundViewSet
+        return InBoundViewSet.get_username(obj.creator)
+    show_creator.short_description = u'创建人'
 
     def show_id(self, obj):
         return '<a href="/sale/dinghuo/inbound/%(id)d" target="_blank">详情</a>' % {'id': obj.id}

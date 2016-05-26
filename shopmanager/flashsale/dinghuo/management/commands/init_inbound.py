@@ -44,8 +44,8 @@ class Command(BaseCommand):
                                                 action='store_true',
                                                 default=False),
         make_option('-r',
-                    '--reset',
-                    dest='is_reset',
+                    '--repair',
+                    dest='is_repair',
                     action='store_true',
                     default=False), make_option('-c',
                                                 '--check',
@@ -117,7 +117,7 @@ class Command(BaseCommand):
                 orderdetail.id]
 
     @classmethod
-    def check(cls):
+    def _check(cls):
         for orderlist in OrderList.objects.exclude(
                 status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
                             OrderList.CLOSED]):
@@ -327,9 +327,77 @@ class Command(BaseCommand):
         print json.dumps(skus_dict)
 
     @classmethod
-    def reset(cls):
-        print InBound.objects.filter(id__lte=115).update(
-            status=InBound.COMPLETED)
+    def repair(cls):
+        now = datetime.datetime.now()
+        for orderlist in OrderList.objects.exclude(
+                status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
+                            OrderList.CLOSED]):
+            orderdetail_dicts = []
+            for orderdetail in orderlist.order_list.all().order_by('id'):
+                if orderdetail.arrival_quantity == 0 and orderdetail.inferior_quantity == 0:
+                    continue
+                inbound_arrival_quantity = orderdetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL).aggregate(
+                        n=Sum('arrival_quantity')).get('n') or 0
+                inbound_inferior_quantity = orderdetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL).aggregate(
+                        n=Sum('inferior_quantity')).get('n') or 0
+                if orderdetail.arrival_quantity == inbound_arrival_quantity and orderdetail.inferior_quantity == inbound_inferior_quantity:
+                    continue
+
+                matched_record = None
+                for record in orderdetail.records.filter(
+                        status=OrderDetailInBoundDetail.NORMAL).order_by('id'):
+                    if record.arrival_quantity + record.inferior_quantity == orderdetail.arrival_quantity + orderdetail.inferior_quantity:
+                        matched_record = record
+                        break
+                if matched_record:
+                    matched_record.arrival_quantity = orderdetail.arrival_quantity
+                    matched_record.inferior_quantity = orderdetail.inferior_quantity
+                    matched_record.save()
+                else:
+                    sku = ProductSku.objects.get(id=orderdetail.chichu_id)
+                    orderdetail_dicts.append({
+                        'id': orderdetail.id,
+                        'product_id': sku.product.id,
+                        'sku_id': sku.id,
+                        'product_name': sku.product.name,
+                        'outer_id': sku.product.outer_id,
+                        'properties_name': sku.properties_name or
+                        sku.properties_alias,
+                        'arrival_quantity': orderdetail.arrival_quantity -
+                        inbound_arrival_quantity,
+                        'inferior_quantity': orderdetail.inferior_quantity -
+                        inbound_inferior_quantity
+                    })
+            if orderdetail_dicts:
+                inbound = InBound(
+                    supplier=orderlist.supplier,
+                    creator_id=1,
+                    express_no=orderlist.express_no,
+                    orderlist_ids=[orderlist.id],
+                    status=InBound.COMPLETED,
+                    memo='-->%s: 创建入仓单' % now.strftime('%m月%d %H:%M'))
+                inbound.save()
+                for orderdetail_dict in orderdetail_dicts:
+                    inbounddetail = InBoundDetail(
+                        inbound=inbound,
+                        product_id=orderdetail_dict['product_id'],
+                        sku_id=orderdetail_dict['sku_id'],
+                        product_name=orderdetail_dict['product_name'],
+                        properties_name=orderdetail_dict['properties_name'],
+                        arrival_quantity=orderdetail_dict['arrival_quantity'],
+                        inferior_quantity=orderdetail_dict['inferior_quantity'],
+                        status=InBoundDetail.NORMAL)
+                    inbounddetail.save()
+
+                    record = OrderDetailInBoundDetail(
+                        orderdetail_id=orderdetail_dict['id'],
+                        inbounddetail=inbounddetail,
+                        arrival_quantity=orderdetail_dict['arrival_quantity'],
+                        inferior_quantity=orderdetail_dict['inferior_quantity'])
+                    record.save()
+
 
     def handle(self, *args, **kwargs):
         is_del = kwargs['is_del']
@@ -339,7 +407,7 @@ class Command(BaseCommand):
                                kwargs['orderlist_ids'].split(','))
         is_print = kwargs['is_print']
         is_test = kwargs['is_test']
-        is_reset = kwargs['is_reset']
+        is_repair = kwargs['is_repair']
         is_check = kwargs['is_check']
         if is_del:
             self.delete_all()
@@ -351,9 +419,9 @@ class Command(BaseCommand):
                 self.pretty_print([int(x) for x in orderlist_ids])
         if is_stats:
             self.dinghuo_stats()
-
         if is_test:
             self.test()
-
-        if is_reset:
-            self.reset()
+        if is_repair:
+            self.repair()
+        if is_check:
+            self._check()
