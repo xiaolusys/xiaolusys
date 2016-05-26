@@ -232,6 +232,24 @@ class SaleRefund(PayBaseModel):
         customer = Customer.objects.get(id=self.buyer_id)
         return customer
 
+    def refund_status_shaft(self):
+        """状态轴"""
+        if self.status in (SaleRefund.NO_REFUND, SaleRefund.REFUND_WAIT_SELLER_AGREE):
+            return [{"status_display": self.get_status_display(), "time": self.modified}]
+        if self.good_status in (SaleRefund.SELLER_OUT_STOCK, SaleRefund.BUYER_NOT_RECEIVED):  # 退款(没有发货)
+            data = [{"status_display": u'申请退款', "time": self.created}]
+            if self.status == SaleRefund.REFUND_SUCCESS:  # 退款成功
+                data.append({"status_display": u'等待返款', "time": self.modified})
+            data.append({"status_display": self.get_status_display(), "time": self.modified})
+        else:  # 发货后退款
+            data = [{"status_display": u'申请退款', "time": self.created}]
+            if self.status in (SaleRefund.REFUND_CONFIRM_GOODS,  # 退货途中
+                               SaleRefund.REFUND_APPROVE,  # 等待返款
+                               SaleRefund.REFUND_SUCCESS):  # 退款成功
+                data.append({"status_display": u'同意申请', "time": self.modified})
+            data.append({"status_display": self.get_status_display(), "time": self.modified})
+        return data
+
 
 def buyeridPatch():
     from flashsale.pay.models import SaleTrade
