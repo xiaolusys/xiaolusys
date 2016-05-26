@@ -6,23 +6,52 @@ from optparse import make_option
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-
+from django.db.models import Sum
 
 from flashsale.dinghuo.models import InBound, InBoundDetail, OrderList, OrderDetail, OrderDetailInBoundDetail
 from flashsale.dinghuo.views import InBoundViewSet
 from shopback.items.models import ProductSku
 from shopback.items.models_stats import ProductSkuStats
 
+
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option('-d', '--delete',  dest='is_del', action='store_true', default=False),
-        make_option('-i', '--init', dest='is_init', action='store_true', default=False),
-        make_option('-s', '--stats', dest='is_stats', action='store_true', default=False),
-        make_option('-o', '--orderlistids', dest='orderlist_ids', action='store', default=''),
-        make_option('-p', '--print', dest='is_print', action='store_true', default=False),
-        make_option('-t', '--test', dest='is_test', action='store_true', default=False),
-        make_option('-r', '--reset', dest='is_reset', action='store_true', default=False)
-    )
+        make_option('-d',
+                    '--delete',
+                    dest='is_del',
+                    action='store_true',
+                    default=False), make_option('-i',
+                                                '--init',
+                                                dest='is_init',
+                                                action='store_true',
+                                                default=False),
+        make_option('-s',
+                    '--stats',
+                    dest='is_stats',
+                    action='store_true',
+                    default=False), make_option('-o',
+                                                '--orderlistids',
+                                                dest='orderlist_ids',
+                                                action='store',
+                                                default=''),
+        make_option('-p',
+                    '--print',
+                    dest='is_print',
+                    action='store_true',
+                    default=False), make_option('-t',
+                                                '--test',
+                                                dest='is_test',
+                                                action='store_true',
+                                                default=False),
+        make_option('-r',
+                    '--reset',
+                    dest='is_reset',
+                    action='store_true',
+                    default=False), make_option('-c',
+                                                '--check',
+                                                dest='is_check',
+                                                action='store_true',
+                                                default=False))
 
     @classmethod
     def delete_all(cls):
@@ -36,7 +65,7 @@ class Command(BaseCommand):
         product_ids = set()
         sku_ids = set()
         orderlists_dict = {}
-        orderlist_ids = (16713,16748,16831)
+        orderlist_ids = (16713, 16748, 16831)
 
         for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
             buyer_name = '未知'
@@ -52,7 +81,6 @@ class Command(BaseCommand):
                 'status': status_mapping.get(orderlist.status) or '未知',
                 'products': {}
             }
-
 
         for orderdetail in OrderDetail.objects.filter(
                 orderlist_id__in=orderlist_ids).order_by('id'):
@@ -81,16 +109,39 @@ class Command(BaseCommand):
             162263: {'arrival_quantity': 5},
             162264: {'arrival_quantity': 10}
         }
-        allocate_dict =  InBoundViewSet._find_allocate_dict(inbound_skus_dict, orderlist_ids, 16831, '')
-        for orderdetail in OrderDetail.objects.filter(id__in=allocate_dict.keys()):
-            print orderdetail.chichu_id, orderdetail.id, allocate_dict[orderdetail.id]
+        allocate_dict = InBoundViewSet._find_allocate_dict(
+            inbound_skus_dict, orderlist_ids, 16831, '')
+        for orderdetail in OrderDetail.objects.filter(
+                id__in=allocate_dict.keys()):
+            print orderdetail.chichu_id, orderdetail.id, allocate_dict[
+                orderdetail.id]
 
+    @classmethod
+    def check(cls):
+        for orderlist in OrderList.objects.exclude(
+                status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
+                            OrderList.CLOSED]):
+            for orderdetail in orderlist.order_list.all().order_by('id'):
+                if orderdetail.arrival_quantity == 0 and orderdetail.inferior_quantity == 0:
+                    continue
+                inbound_arrival_quantity = orderdetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL).aggregate(
+                        n=Sum('arrival_quantity')).get('n') or 0
+                inbound_inferior_quantity = orderdetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL).aggregate(
+                        n=Sum('inferior_quantity')).get('n') or 0
+
+                if orderdetail.arrival_quantity != inbound_arrival_quantity or orderdetail.inferior_quantity != inbound_inferior_quantity:
+                    print orderdetail.orderlist_id, orderdetail.id, inbound_arrival_quantity, orderdetail.arrival_quantity
+                    print orderdetail.orderlist_id, orderdetail.id, inbound_inferior_quantity, orderdetail.inferior_quantity
 
     @classmethod
     def init(cls):
         now = datetime.datetime.now()
 
-        for orderlist in OrderList.objects.exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED]):
+        for orderlist in OrderList.objects.exclude(
+                status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
+                            OrderList.CLOSED]):
             orderdetail_dicts = []
             for orderdetail in orderlist.order_list.all().order_by('id'):
                 if orderdetail.arrival_quantity == 0 and orderdetail.inferior_quantity == 0:
@@ -102,7 +153,8 @@ class Command(BaseCommand):
                     'sku_id': sku.id,
                     'product_name': sku.product.name,
                     'outer_id': sku.product.outer_id,
-                    'properties_name': sku.properties_name or sku.properties_alias,
+                    'properties_name': sku.properties_name or
+                    sku.properties_alias,
                     'arrival_quantity': orderdetail.arrival_quantity,
                     'inferior_quantity': orderdetail.inferior_quantity
                 })
@@ -113,8 +165,7 @@ class Command(BaseCommand):
                     express_no=orderlist.express_no,
                     orderlist_ids=[orderlist.id],
                     status=InBound.COMPLETED,
-                    memo='-->%s: 创建入仓单' % now.strftime('%m月%d %H:%M')
-                )
+                    memo='-->%s: 创建入仓单' % now.strftime('%m月%d %H:%M'))
                 inbound.save()
                 for orderdetail_dict in orderdetail_dicts:
                     inbounddetail = InBoundDetail(
@@ -125,16 +176,14 @@ class Command(BaseCommand):
                         properties_name=orderdetail_dict['properties_name'],
                         arrival_quantity=orderdetail_dict['arrival_quantity'],
                         inferior_quantity=orderdetail_dict['inferior_quantity'],
-                        status=InBoundDetail.NORMAL
-                    )
+                        status=InBoundDetail.NORMAL)
                     inbounddetail.save()
 
                     record = OrderDetailInBoundDetail(
                         orderdetail_id=orderdetail_dict['id'],
                         inbounddetail=inbounddetail,
                         arrival_quantity=orderdetail_dict['arrival_quantity'],
-                        inferior_quantity=orderdetail_dict['inferior_quantity']
-                    )
+                        inferior_quantity=orderdetail_dict['inferior_quantity'])
                     record.save()
 
     @classmethod
@@ -152,11 +201,13 @@ class Command(BaseCommand):
         for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
             user_ids.add(orderlist.buyer_id)
 
-        for orderdetail in OrderDetail.objects.filter(orderlist_id__in=orderlist_ids):
+        for orderdetail in OrderDetail.objects.filter(
+                orderlist_id__in=orderlist_ids):
             sku_ids.add(int(orderdetail.chichu_id))
             orderdetail_ids.append(orderdetail.id)
 
-            for record in orderdetail.records.filter(status=OrderDetailInBoundDetail.NORMAL):
+            for record in orderdetail.records.filter(
+                    status=OrderDetailInBoundDetail.NORMAL):
                 record_ids.append(record.id)
                 inbounddetail_ids.add(record.inbounddetail.id)
                 inbound_ids.add(record.inbounddetail.inbound_id)
@@ -166,10 +217,10 @@ class Command(BaseCommand):
 
         product_ids = set()
         for sku in ProductSku.objects.filter(id__in=list(sku_ids)):
-            sku.quantity = ProductSkuStats.objects.get(sku_id=sku.id).realtime_quantity
+            sku.quantity = ProductSkuStats.objects.get(
+                sku_id=sku.id).realtime_quantity
             sku.save()
             product_ids.add(sku.product.id)
-
 
         product_ids = [str(x) for x in product_ids]
         sku_ids = [str(x) for x in sku_ids]
@@ -180,23 +231,43 @@ class Command(BaseCommand):
         record_ids = [str(x) for x in record_ids]
         user_ids = [str(x) for x in user_ids] + ['684827']
 
-        print 'python manage.py dumpdata categorys.ProductCategory --indent 4 > %s\n' % (fixture_dir + 'test.inbound.productcategory.json')
-        print tpl % {'model_name': 'items.Product', 'pks': ','.join(sorted(product_ids)), 'path': fixture_dir + 'test.inbound.product.json'}
-        print tpl % {'model_name': 'items.ProductSku', 'pks': ','.join(sorted(sku_ids)), 'path': fixture_dir + 'test.inbound.productsku.json'}
-        print tpl % {'model_name': 'dinghuo.OrderList', 'pks': ','.join(sorted(orderlist_ids)), 'path': fixture_dir + 'test.inbound.orderlist.json'}
-        print tpl % {'model_name': 'dinghuo.OrderDetail', 'pks': ','.join(sorted(orderdetail_ids)), 'path': fixture_dir + 'test.inbound.orderdetail.json'}
+        print 'python manage.py dumpdata categorys.ProductCategory --indent 4 > %s\n' % (
+            fixture_dir + 'test.inbound.productcategory.json')
+        print tpl % {'model_name': 'items.Product',
+                     'pks': ','.join(sorted(product_ids)),
+                     'path': fixture_dir + 'test.inbound.product.json'}
+        print tpl % {'model_name': 'items.ProductSku',
+                     'pks': ','.join(sorted(sku_ids)),
+                     'path': fixture_dir + 'test.inbound.productsku.json'}
+        print tpl % {'model_name': 'dinghuo.OrderList',
+                     'pks': ','.join(sorted(orderlist_ids)),
+                     'path': fixture_dir + 'test.inbound.orderlist.json'}
+        print tpl % {'model_name': 'dinghuo.OrderDetail',
+                     'pks': ','.join(sorted(orderdetail_ids)),
+                     'path': fixture_dir + 'test.inbound.orderdetail.json'}
         if inbound_ids:
-            print tpl % {'model_name': 'dinghuo.InBound', 'pks': ','.join(sorted(inbound_ids)), 'path': fixture_dir + 'test.inbound.inbound.json'}
+            print tpl % {'model_name': 'dinghuo.InBound',
+                         'pks': ','.join(sorted(inbound_ids)),
+                         'path': fixture_dir + 'test.inbound.inbound.json'}
         if inbounddetail_ids:
-            print tpl % {'model_name': 'dinghuo.InBoundDetail', 'pks': ','.join(sorted(inbounddetail_ids)), 'path': fixture_dir + 'test.inbound.inbounddetail.json'}
+            print tpl % {'model_name': 'dinghuo.InBoundDetail',
+                         'pks': ','.join(sorted(inbounddetail_ids)),
+                         'path':
+                         fixture_dir + 'test.inbound.inbounddetail.json'}
         if record_ids:
-            print tpl % {'model_name': 'dinghuo.OrderDetailInBoundDetail', 'pks': ','.join(sorted(record_ids)), 'path': fixture_dir + 'test.inbound.record.json'}
-        print tpl % {'model_name': 'auth.User', 'pks': ','.join(sorted(user_ids)), 'path': fixture_dir + 'test.inbound.user.json'}
+            print tpl % {'model_name': 'dinghuo.OrderDetailInBoundDetail',
+                         'pks': ','.join(sorted(record_ids)),
+                         'path': fixture_dir + 'test.inbound.record.json'}
+        print tpl % {'model_name': 'auth.User',
+                     'pks': ','.join(sorted(user_ids)),
+                     'path': fixture_dir + 'test.inbound.user.json'}
 
     @classmethod
     def dinghuo_stats(cls):
         suppliers_dict = {}
-        for orderlist in OrderList.objects.exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED, OrderList.TO_PAY]):
+        for orderlist in OrderList.objects.exclude(
+                status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
+                            OrderList.CLOSED, OrderList.TO_PAY]):
             if not orderlist.supplier:
                 continue
             supplier_dict = suppliers_dict.setdefault(orderlist.supplier.id, {
@@ -209,7 +280,6 @@ class Command(BaseCommand):
         for supplier_id in sorted(suppliers_dict.keys()):
             cls.supplier_info(suppliers_dict[supplier_id])
 
-
     @classmethod
     def supplier_info(cls, supplier_dict):
         orderlist_ids = supplier_dict['orderlist_ids']
@@ -220,14 +290,17 @@ class Command(BaseCommand):
                 if orderdetail.arrival_quantity >= orderdetail.buy_quantity:
                     continue
                 unclosed_orderlist_ids.add(orderdetail.orderlist_id)
-                skus_dict.setdefault(orderdetail.chichu_id, {})[orderdetail.orderlist_id] = orderdetail.buy_quantity - orderdetail.arrival_quantity
+                skus_dict.setdefault(orderdetail.chichu_id, {})[
+                    orderdetail.orderlist_id] = orderdetail.buy_quantity - orderdetail.arrival_quantity
         if not skus_dict:
             return False
 
         flag = all((len(x) == 1 for x in skus_dict.values()))
         if flag:
             return False
-        print '%d %s %s' % (supplier_dict['id'], supplier_dict['name'], ','.join(map(str, sorted(supplier_dict['orderlist_ids']))))
+        print '%d %s %s' % (
+            supplier_dict['id'], supplier_dict['name'],
+            ','.join(map(str, sorted(supplier_dict['orderlist_ids']))))
         n = 0
         for v in skus_dict.values():
             if len(v) > 1:
@@ -248,22 +321,26 @@ class Command(BaseCommand):
                     'buy_quantity': orderdetail.buy_quantity,
                     'arrival_quantity': orderdetail.arrival_quantity,
                     'inferior_quantity': orderdetail.inferior_quantity,
-                    'left_quantity': orderdetail.buy_quantity - min(orderdetail.buy_quantity, orderdetail.arrival_quantity)
+                    'left_quantity': orderdetail.buy_quantity - min(
+                        orderdetail.buy_quantity, orderdetail.arrival_quantity)
                 })
         print json.dumps(skus_dict)
 
     @classmethod
     def reset(cls):
-        print InBound.objects.filter(id__lte=115).update(status=InBound.COMPLETED)
+        print InBound.objects.filter(id__lte=115).update(
+            status=InBound.COMPLETED)
 
     def handle(self, *args, **kwargs):
         is_del = kwargs['is_del']
         is_init = kwargs['is_init']
         is_stats = kwargs['is_stats']
-        orderlist_ids = filter(lambda x: x.isdigit(), kwargs['orderlist_ids'].split(','))
+        orderlist_ids = filter(lambda x: x.isdigit(),
+                               kwargs['orderlist_ids'].split(','))
         is_print = kwargs['is_print']
         is_test = kwargs['is_test']
         is_reset = kwargs['is_reset']
+        is_check = kwargs['is_check']
         if is_del:
             self.delete_all()
         if is_init:
