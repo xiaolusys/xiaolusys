@@ -317,6 +317,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     return_address = serializers.CharField(source='get_return_address', read_only=True)
+    status_shaft = JSONParseField(source='refund_status_shaft', read_only=True)
     proof_pic = JSONParseField()
     amount_flow = JSONParseField()
 
@@ -326,7 +327,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
                   'sku_id', 'sku_name', 'refund_num', 'buyer_nick', 'mobile', 'phone', 'proof_pic',
                   'total_fee', 'payment', 'created', 'modified', 'company_name', 'sid', 'reason', 'pic_path',
                   'desc', 'feedback', 'has_good_return', 'has_good_change', 'good_status', 'status', 'refund_fee',
-                  "return_address", "status_display", "amount_flow")
+                  "return_address", "status_display", "amount_flow", "status_shaft")
 
 
 #####################################################################################
