@@ -12,6 +12,7 @@ from httpproxy.views import HttpProxy
 admin.autodiscover()
 
 urlpatterns = patterns('',
+                       (r'^admin/doc/', include('django.contrib.admindocs.urls')),
                        (r'^accounts/', include('auth.accounts.urls')),
                        (r'^category/', include('shopback.categorys.urls')),
                        (r'^fenxiao/', include('shopback.fenxiao.urls')),

@@ -2,7 +2,7 @@
 import datetime
 
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.db.models.signals import post_save
 from django.db.models import Sum, F
 from django.contrib.auth.models import User
@@ -389,6 +389,12 @@ class ReturnGoods(models.Model):
 
     @staticmethod
     def generate(sku_dict, noter):
+        """
+            产生sku
+        :param sku_dict:
+        :param noter:
+        :return:
+        """
         product_sku_dict = dict([(p.id, p) for p in ProductSku.objects.filter(id__in=sku_dict.keys())])
         supplier = {}
         for sku_id in product_sku_dict:
@@ -405,21 +411,49 @@ class ReturnGoods(models.Model):
                 supplier[supplier_id].append(detail)
         res = []
         for supplier_id in supplier:
-            rg_details = supplier[supplier_id]
-            rg = ReturnGoods(supplier_id=supplier_id,
-                             noter=noter,
-                             return_num=sum([d.num for d in rg_details]),
-                             sum_amount=sum([d.num * d.price for d in rg_details])
-                             )
-            rg.save()
-            details = []
-            for detail in supplier[supplier_id]:
-                detail.return_goods = rg
-                detail.return_goods_id = rg.id
-                details.append(detail)
-            RGDetail.objects.bulk_create(details)
-            res.append(rg)
+            if ReturnGoods.can_return(supplier_id):
+                rg_details = supplier[supplier_id]
+                rg = ReturnGoods(supplier_id=supplier_id,
+                                 noter=noter,
+                                 return_num=sum([d.num for d in rg_details]),
+                                 sum_amount=sum([d.num * d.price for d in rg_details])
+                                 )
+                rg.transactor_id = ReturnGoods.get_user_by_supplier(supplier_id)
+                rg.save()
+                details = []
+                for detail in supplier[supplier_id]:
+                    detail.return_goods = rg
+                    detail.return_goods_id = rg.id
+                    details.append(detail)
+                RGDetail.objects.bulk_create(details)
+                res.append(rg)
         return res
+
+    @staticmethod
+    def can_return(supplier_id):
+        """
+            近七天内没有有效退货单
+        :param supplier_id:
+        :return:
+        """
+        return not ReturnGoods.objects.filter(created__gt=datetime.datetime.now()-datetime.timedelta(days=7),
+                                          supplier_id=supplier_id, status__in=[ReturnGoods.CREATE_RG, ReturnGoods.VERIFY_RG,
+                                                                               ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
+                                                                               ReturnGoods.SUCCEED_RG]).exists()
+
+    @staticmethod
+    def get_user_by_supplier(supplier_id):
+        r = OrderList.objects.filter(supplier_id=supplier_id).values('buyer_id').annotate(s=Count('buyer_id'))
+        def get_max_from_list(l):
+            max_i = 0
+            buyer_id = None
+            for i in l:
+                if i['s']>max_i:
+                    max_i = i['s']
+                    buyer_id = i['buyer_id']
+            return buyer_id
+        return get_max_from_list(r)
+
 
     def set_stat(self):
         rg_details = self.rg_details.all()
