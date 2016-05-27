@@ -1319,7 +1319,7 @@ admin.site.register(PackageOrder, PackageOrderAdmin)
 class PackageSkuItemAdmin(admin.ModelAdmin):
     # TODO@HY self.sale_order.sale_trade.buyer_nick写法多次查询数据库，以后可以优化性能
     list_display = (
-        'id', 'sale_order_link_to', 'oid', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'logistics_company_name',
+        'id', 'sale_order_link_to', 'oid', 'sale_trade_id_link', 'receiver_mobile', 'out_sid', 'logistics_company_name',
         'package_order_link_to', 'package_sku_item_link_to', 'assign_status', 'sys_status',
         'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id', 'sku_link_to', 'num', 'price',
         'total_fee', 'payment', 'discount_fee', 'adjust_fee')
@@ -1340,7 +1340,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     def package_order_link_to(self, obj):
         if obj.package_order_pid:
             return self.PACKAGE_ORDER_LINK % {
-                'package_order_url': '/admin/trades/packageskuitem/?package_order_pid=%d' % obj.package_order_pid,
+                'package_order_url': '/admin/trades/packageorder/%d/' % obj.package_order_pid,
                 'package_order_pid': obj.package_order_id
             }
         return ''
@@ -1348,11 +1348,19 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     package_order_link_to.allow_tags = True
     package_order_link_to.short_description = u'包裹SKU'
 
+    def sale_trade_id_link(self, obj):
+        return '/admin/pay/saletrade/?tid=%(tid)s/' % {
+            'tid': obj.sale_trade_id
+        }
+
+    sale_trade_id_link.allow_tags = True
+    sale_trade_id_link.short_description = u'交易单号'
+
 
     def package_sku_item_link_to(self, obj):
         if obj.package_order_pid:
             return self.PACKAGE_ORDER_LINK % {
-                'package_order_url': '/admin/trades/packageorder/%d/' % obj.package_order_pid,
+                'package_order_url': '/admin/trades/packageskuitem/?package_order_pid=%d' % obj.package_order_pid,
                 'package_order_pid': obj.package_order_pid
             }
         return ''

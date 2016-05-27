@@ -419,6 +419,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
                     )
     search_fields = ['id', "supplier_id",
                      "noter", "consigner", "sid"]
+
     list_filter = ["status", "noter", "consigner", "transactor_id", "created", "modify", ]
     readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
@@ -552,7 +553,13 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
     show_memo.allow_tags = True
     show_memo.short_description = u"备注信息"
 
-    class Media:
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['rg_details__skuid']:
+            return True
+        return super(ReturnGoodsAdmin, self).lookup_allowed(lookup, value)
+
+    class Meta:
+        # related_fkey_lookups = ['rg_details__skuid']
         css = {"all": (
         "css/admin_css.css", "css/return_goods.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
         )}
