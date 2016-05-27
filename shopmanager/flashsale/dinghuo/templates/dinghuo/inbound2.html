@@ -947,7 +947,7 @@
                                  _.each(result.error_districts, function(el){
                                      $(tpl({skuId: el.sku_id}), '#form-2').find('.district').last().after(template('error-district-tpl', {productId: el.product_id, districts: el.districts.join(',')}));
                                  });
-                                 swal('错误', '库位冲突', 'error');
+                                 tip('库位冲突', 'error');
                                  $('#create-inbound').attr('disabled', false);
                                  $('#create-draft').attr('disabled', false);
                                  return;
