@@ -275,7 +275,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
         # 余额
         budget_cash = resp['channels'][0]['budget_cash']
-        if budget_cash > 0 and resp['total_payment'] > 0:
+        if budget_cash > 0 and budget_cash < resp['total_payment']:
             budgets = CONS.PAY_EXTRAS.get(CONS.ETS_BUDGET)
             budgets.update(value=min(budget_cash, resp['total_payment']))
             extras.append(budgets)
