@@ -6,6 +6,7 @@ import datetime
 import decimal
 import io
 import logging
+import json
 import xlsxwriter
 import urllib
 
@@ -223,6 +224,10 @@ class AutoNewOrder(View):
 
 @csrf_exempt
 def change_inferior_num(request):
+    if not request.user.has_perm('dinghuo.change_orderdetail_quantity'):
+        return HttpResponse(json.dumps({'error': True, 'msg': "权限不足"}), content_type='application/json')
+
+
     post = request.POST
     flag = post['flag']
     order_detail_id = post["order_detail_id"].strip()
