@@ -268,11 +268,15 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return False, 0
 
     def get_payextras(self, request, resp):
+
+        content = request.REQUEST
+        is_in_wap = content.get('device', 'wap') == 'wap'
         extras = []
         # 优惠券
         extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_COUPON))
         # APP减两元
-        extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
+        if not is_in_wap:
+            extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
         # 余额
         budget_cash = resp['channels'][0]['budget_cash']
         if budget_cash > 0 and budget_cash < resp['total_payment']:
