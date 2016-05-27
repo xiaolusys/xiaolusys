@@ -688,7 +688,7 @@ def task_saleorder_update_package_sku_item(sale_order):
 
         sku_item.receiver_mobile = sale_order.sale_trade.receiver_mobile
         sku_item.sale_trade_id = sale_order.sale_trade.tid
-        # sku_item.sku_properties_name = sale_order.properties_values
+        sku_item.sku_properties_name = sale_order.sku_name
         sku_item.save()
         return
 

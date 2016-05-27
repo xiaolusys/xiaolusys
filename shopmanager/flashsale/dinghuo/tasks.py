@@ -1404,3 +1404,38 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
     if stat.rg_quantity != total:
         stat.rg_quantity = total
         stat.save(update_fields=['rg_quantity'])
+
+
+
+from flashsale.dinghuo.models_purchase import PurchaseRecord
+
+def copy_fields(from_obj, to_obj, fields):
+    """
+    util function
+    """
+    for field in fields:
+        if hasattr(to_obj, field) and hasattr(from_obj, field):
+            value = getattr(to_obj, field)
+            setattr(from_obj, field, value)
+
+    
+@task()
+def task_packageskuitem_update_purchaserecord(psi):
+    status = PurchaseRecord.EFFECT
+    if psi.is_booking_needed():
+        status = PurchaseRecord.EFFECT
+    else:
+        status = PurchaseRecord.CANCEL
+    
+    from . import util_unikey
+    uni_key = util_unikey.gen_purchase_record_unikey(psi)
+    pr = PurchaseRecord.objects.filter(uni_key=uni_key).first()
+    if not pr:
+        fields = ['oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'num']
+        pr = PurchaseRecord(package_sku_item_id=psi.id,uni_key=uni_key,status=status)
+        copy_fields(psi, pr, fields)
+        pr.save()
+    else:
+        if pr.status != status:
+            pr.status = status
+            pr.save(update_fields=['status'])

@@ -82,6 +82,7 @@ class JoinView(WeixinAuthMixin, APIView):
         content = request.GET
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
+        mama_id = content.get("mama_id","")
 
         # the following is for debug
         # if ufrom == 'app':
@@ -97,6 +98,7 @@ class JoinView(WeixinAuthMixin, APIView):
         else:
             response = redirect(reverse('web_join_activity', args=(event_id,)))
 
+        response.set_cookie("mm_linkid", mama_id)
         response.set_cookie("event_id", event_id)
         response.set_cookie("from_customer", from_customer)
         response.set_cookie("ufrom", ufrom)
