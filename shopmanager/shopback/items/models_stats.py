@@ -22,8 +22,10 @@ class ProductSkuStats(models.Model):
 
     STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
 
-    sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'SKUID')
-    product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
+    #sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'SKUID')
+    #product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
+    sku = models.ForeignKey('ProductSku', verbose_name=u'SKU')
+    product = models.ForeignKey('Product', verbose_name=u'商品')
 
     assign_num = models.IntegerField(default=0, verbose_name=u'分配数')  # 未出库包裹单中已分配的sku数量
     inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
@@ -59,11 +61,12 @@ class ProductSkuStats(models.Model):
 
     @property
     def wait_assign_num(self):
-        return self.sold_num - self.assign_num - self.post_num - self.rg_quantity
+        return self.sold_num - self.assign_num - self.post_num
 
     @property
     def wait_order_num(self):
-        return self.sold_num - self.post_num - self.realtime_quantity
+        res = self.sold_num - self.post_num - self.realtime_quantity
+        return res if res > 0 else 0
 
     @property
     def realtime_lock_num(self):
@@ -90,10 +93,11 @@ class ProductSkuStats(models.Model):
 
     @property
     def product_sku(self):
-        if not hasattr(self, '_product_sku_'):
-            from shopback.items.models import ProductSku
-            self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
-        return self._product_sku_
+        return self.sku
+        # if not hasattr(self, '_product_sku_'):
+        #     from shopback.items.models import ProductSku
+        #     self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
+        # return self._product_sku_
 
     @staticmethod
     def redundancies():

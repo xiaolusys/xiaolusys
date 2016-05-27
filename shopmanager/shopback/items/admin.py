@@ -20,6 +20,7 @@ from shopback.items.models import (Item, Product, ProductSku, ProductLocation,
 from shopback.trades.models import MergeTrade, MergeOrder
 from shopback.users.models import User
 from shopback.categorys.models import ProductCategory
+from django.db.models import F
 # from shopback.purchases import getProductWaitReceiveNum
 from shopback import paramconfig as pcfg
 from core.options import log_action, ADDITION, CHANGE
@@ -1209,22 +1210,114 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = (
-    'sku_id', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
-    'now_quantity', 'old_quantity', 'sold_num', 'post_num', '_wait_post_num', 'inferior_num', 'assign_num',
-    '_wait_assign_num', 'realtime_lock_num_display', 'district_link', 'created')
-    search_fields = ['=sku_id', '=product_id']
-    readonly_fields = get_class_fields(ProductSkuStats)
+        'sku_link', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
+        'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'inferior_num',
+        'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
+        'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
+        # 'realtime_lock_num_display',
+        'district_link', 'created')
+    list_display_links = ['sku_link']
+    search_fields = ['sku__id', 'product__id', 'product__name']
+    readonly_fields = [u'id', 'assign_num', 'inferior_num', 'history_quantity',
+                       'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
+                       'waitingpay_num', 'created', 'modified', 'status']
     list_select_related = True
-    list_per_page = 100
+    list_per_page = 50
+    list_filter = []
+
     SKU_PREVIEW_TPL = (
         '<a href="%(sku_url)s" target="_blank">'
         '%(skucode)s</a>')
 
+    def sku_link(self, obj):
+        return obj.sku_id
+
+    sku_link.short_description = u'SKU'
+
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['product__name']:
+            return True
+        return super(ProductSkuStatsAdmin, self).lookup_allowed(lookup, value)
+
+    def get_changelist(self, request, **kwargs):
+        """
+        Returns the ChangeList class for use on the changelist page.
+        """
+        orderingdict = {'now_quantity': (F('post_num') + F('rg_quantity')
+                                         - F('history_quantity') - F('inbound_quantity') - F('return_quantity'),
+                                         F('history_quantity') + F('inbound_quantity') + F('return_quantity') - F(
+                                             'post_num') - F('rg_quantity'))}
+        from django.contrib.admin.views.main import ChangeList, ORDER_VAR
+        class StatsOrderChangeList(ChangeList):
+            def get_ordering(self, request, queryset):
+                """
+                Returns the list of ordering fields for the change list.
+                First we check the get_ordering() method in model admin, then we check
+                the object's default ordering. Then, any manually-specified ordering
+                from the query string overrides anything. Finally, a deterministic
+                order is guaranteed by ensuring the primary key is used as the last
+                ordering field.
+                """
+                params = self.params
+                ordering = list(self.model_admin.get_ordering(request)
+                                or self._get_default_ordering())
+                if ORDER_VAR in params:
+                    # Clear ordering and used params
+                    ordering = []
+                    order_params = params[ORDER_VAR].split('.')
+                    for p in order_params:
+                        try:
+                            none, pfx, idx = p.rpartition('-')
+                            field_name = self.list_display[int(idx)]
+                            order_field = self.get_ordering_field(field_name)
+                            if not order_field:
+                                continue  # No 'admin_order_field', skip it
+                            # reverse order if order_field has already "-" as prefix
+                            if order_field in orderingdict:
+                                if pfx =='-':
+                                    ordering.append(orderingdict[order_field][0])
+                                else:
+                                    ordering.append(orderingdict[order_field][1])
+                            elif order_field.startswith('-') and pfx == "-":
+                                ordering.append(order_field[1:])
+                            else:
+                                ordering.append(pfx + order_field)
+                        except (IndexError, ValueError):
+                            continue  # Invalid ordering specified, skip it.
+
+                # Add the given query's ordering fields, if any.
+                ordering.extend(queryset.query.order_by)
+
+                # Ensure that the primary key is systematically present in the list of
+                # ordering fields so we can guarantee a deterministic order across all
+                # database backends.
+                pk_name = self.lookup_opts.pk.name
+                if not (set(ordering) & {'pk', '-pk', pk_name, '-' + pk_name}):
+                    # The two sets do not intersect, meaning the pk isn't present. So
+                    # we add it.
+                    ordering.append('-pk')
+
+                return ordering
+
+        return StatsOrderChangeList
+
+    # def get_queryset(self, request):
+    #     """
+    #     Returns a QuerySet of all model instances that can be edited by the
+    #     admin site. This is used by changelist_view.
+    #     """
+    #     qs = self.model._default_manager.get_queryset()
+    #     # TODO: this should be handled by some parameter to the ChangeList.
+    #     ordering = self.get_ordering(request)
+    #     if ordering:
+    #         qs = qs.order_by(*ordering)
+    #     return qs
+
     def gen_return_goods(self, request, queryset):
         sku_dict = {}
         for stat in queryset:
-            sku_dict[stat.sku_id] = stat.history_quantity + stat.inbound_quantity + stat.return_quantity\
-                - stat.rg_quantity - stat.sold_num
+            sku_dict[stat.sku_id] = stat.history_quantity + stat.inbound_quantity + stat.return_quantity \
+                                    - stat.rg_quantity - stat.sold_num
         returns = ReturnGoods.generate(sku_dict, request.user.username)
         return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
 
@@ -1234,7 +1327,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     def skucode(self, obj):
         return self.SKU_PREVIEW_TPL % {
             'sku_url': '/admin/items/productsku/%s/' % str(obj.sku_id),
-            'skucode': obj.product_sku.BARCODE
+            'skucode': obj.sku.BARCODE
         }
 
     skucode.allow_tags = True
@@ -1246,18 +1339,80 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     def product_id_link(self, obj):
         return ('<a href="%(product_url)s" target="_blank">'
-        '%(product_id)s</a>') % {
-            'product_url': '/admin/items/product/?id=%d' % obj.product_sku.product.id,
-            'product_id': obj.product_sku.product.id
-        }
+                '%(product_id)s</a>') % {
+                   'product_url': '/admin/items/product/?id=%d' % obj.product_sku.product.id,
+                   'product_id': obj.product_sku.product.id
+               }
 
     product_id_link.allow_tags = True
     product_id_link.short_description = u'商品ID'
 
+    def sold_num_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/pay/saleorder/?status__in=2,3,4,5&sku_id=%s' % obj.sku_id,
+            'num': obj.sold_num
+        }
+
+    sold_num_link.allow_tags = True
+    sold_num_link.short_description = u'购买数'
+    sold_num_link.admin_order_field = 'sold_num'
+
+    def post_num_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/trades/packageskuitem/?assign_status=2&sku_id=%s' % obj.sku_id,
+            'num': obj.post_num
+        }
+
+    post_num_link.allow_tags = True
+    post_num_link.short_description = u'已发数'
+    post_num_link.admin_order_field = 'post_num'
+
+    def assign_num_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/trades/packageskuitem/?assign_status=1&sku_id=%s' % obj.sku_id,
+            'num': obj.post_num
+        }
+
+    assign_num_link.allow_tags = True
+    assign_num_link.short_description = u'分配数'
+    assign_num_link.admin_order_field = 'assign_num'
+
+    def inbound_quantity_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/dinghuo/orderdetail/?chichu_id=%s' % obj.sku_id,
+            'num': obj.inbound_quantity
+        }
+
+    inbound_quantity_link.allow_tags = True
+    inbound_quantity_link.short_description = u'订货数'
+    inbound_quantity_link.admin_order_field = 'inbound_quantity'
+
+    def return_quantity_link(self, obj):
+        return obj.return_quantity
+        # return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+        #     'url': '/admin/dinghuo/orderdetail/?chichu_id=1&sku_id=%(sku)s',
+        #     'sku': obj.sku_id,
+        #     'num': obj.return_quantity
+        # }
+
+    # return_quantity_link.allow_tags = True
+    return_quantity_link.short_description = u'用户退货数'
+    return_quantity_link.admin_order_field = 'return_quantity'
+
+    def rg_quantity_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/dinghuo/returngoods/?rg_details__skuid=%s' % obj.sku_id,
+            'num': obj.rg_quantity
+        }
+
+    rg_quantity_link.allow_tags = True
+    rg_quantity_link.short_description = u'仓库退货数'
+    rg_quantity_link.admin_order_field = 'rg_quantity'
+
     def product_title(self, obj):
         return self.PRODUCT_LINK % {
             'product_url': '/admin/items/product/%d/' % obj.product_sku.product.id,
-            'product_title': obj.product_sku.product.title()
+            'product_title': obj.product.name
         }
 
     product_title.allow_tags = True
@@ -1267,6 +1422,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         return obj.realtime_quantity
 
     now_quantity.short_description = u'实时库存'
+    now_quantity.admin_order_field = 'now_quantity'
 
     def old_quantity(self, obj):
         return obj.product_sku.quantity
@@ -1284,9 +1440,22 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     _wait_post_num.short_description = u'待发数'
 
     def _wait_assign_num(self, obj):
-        return obj.wait_assign_num
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/trades/packageskuitem/?assign_status=0',
+            'num': obj.wait_assign_num
+        }
 
+    _wait_assign_num.allow_tags = True
     _wait_assign_num.short_description = u'待分配数'
+
+    def _wait_order_num(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/dinghuo/orderdetail/?chichu_id=1&sku_id=%s' % obj.sku_id,
+            'num': obj.wait_order_num
+        }
+
+    _wait_order_num.allow_tags = True
+    _wait_order_num.short_description = u'待订货数'
 
     def district_link(self, obj):
         return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' % (
@@ -1300,6 +1469,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         actions = super(ProductSkuStatsAdmin, self).get_actions(request)
         actions.pop('delete_selected')
         return actions
+
 
 admin.site.register(ProductSkuStats, ProductSkuStatsAdmin)
 
