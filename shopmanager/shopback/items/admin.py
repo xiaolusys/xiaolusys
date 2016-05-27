@@ -1370,7 +1370,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     def assign_num_link(self, obj):
         return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
             'url': '/admin/trades/packageskuitem/?assign_status=1&sku_id=%s' % obj.sku_id,
-            'num': obj.post_num
+            'num': obj.assign_num
         }
 
     assign_num_link.allow_tags = True
@@ -1441,7 +1441,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     def _wait_assign_num(self, obj):
         return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
-            'url': '/admin/trades/packageskuitem/?assign_status=0',
+            'url': '/admin/trades/packageskuitem/?assign_status=0&sku_id=%s' % obj.sku_id,
             'num': obj.wait_assign_num
         }
 
