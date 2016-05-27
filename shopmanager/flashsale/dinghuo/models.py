@@ -183,6 +183,7 @@ class OrderDetail(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'订货明细表'
         verbose_name_plural = u'订货明细表'
+        permissions = [('change_orderdetail_quantity', u'修改订货明细数量')]
 
     def __unicode__(self):
         return self.product_id

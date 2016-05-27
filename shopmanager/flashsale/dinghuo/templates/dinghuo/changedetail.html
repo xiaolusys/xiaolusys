@@ -74,6 +74,11 @@
                     if (res == "OK") {
                         p.text(parseInt(p.text()) - 1);
                     }
+                    else{
+                        if(res.error){
+                            swal('错误', res.msg, 'error');
+                        }
+                    }
                 };
                 $.ajax({url: url, data: data, type: "post", success: callback});
             } else {
@@ -91,7 +96,11 @@
                 var dataObj = eval("(" + res + ")");
                 if (dataObj.flag) {
                     p1.html(dataObj.num)
-                } else {
+                }
+                else if(dataObj.error){
+                    swal('错误', dataObj.msg, 'error');
+                }
+                else {
                     swal("提示", "超过购买总数或者没有填写数量，或者添加后库存为负数", "warning");
                 }
             };
@@ -112,6 +121,11 @@
             }
             var url = "/sale/dinghuo/change_inferior_num/";
             var callback = function (res) {
+                if(res.error){
+                    swal('错误', res.msg, 'error');
+                    return;
+                }
+
                 if (res == "OK" && flag == "0") {
                     inferior_num.html(num - 1);
                     arrival_num.html(num_of_arrival + 1);

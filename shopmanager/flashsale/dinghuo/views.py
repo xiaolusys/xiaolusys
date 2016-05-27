@@ -367,6 +367,9 @@ def minusordertail(req):
 
 @csrf_exempt
 def minusarrived(req):
+    if not req.user.has_perm('dinghuo.change_orderdetail_quantity'):
+        return HttpResponse(json.dumps({'error': True, 'msg': "权限不足"}), content_type='application/json')
+
     post = req.POST
     orderdetailid = post["orderdetailid"]
     orderdetail = OrderDetail.objects.get(id=orderdetailid)
@@ -526,6 +529,9 @@ def changearrivalquantity(request):
     修改入库存数量
     1、增加后为负数不予添加
     """
+    if not request.user.has_perm('dinghuo.change_orderdetail_quantity'):
+        return HttpResponse('{error: true, msg: "权限不足"}')
+
     post = request.POST
     order_detail_id = post.get("orderdetailid", "").strip()
     arrived_num = post.get("arrived_num", "0").strip()  # 获取即将入库的数量
