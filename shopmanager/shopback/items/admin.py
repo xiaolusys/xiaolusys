@@ -1218,7 +1218,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         'district_link', 'created')
     list_display_links = ['sku_link']
     search_fields = ['sku__id', 'product__id', 'product__name']
-    readonly_fields = [u'id', 'assign_num', 'inferior_num', 'history_quantity',
+    readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'inferior_num', 'history_quantity',
                        'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
                        'waitingpay_num', 'created', 'modified', 'status']
     list_select_related = True

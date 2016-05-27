@@ -566,6 +566,9 @@ def sync_rgd_return(sender, instance, created, **kwargs):
 post_save.connect(sync_rgd_return, sender=RGDetail, dispatch_uid='post_save_sync_rgd_return')
 
 
+class UnReturnList(models.Model):
+    pass
+
 class SaleInventoryStat(models.Model):
     """
     （只统计小鹿特卖商品）统计当天的订货表的新增采购数，未到货总数，到货数，发出件数，总库存数
@@ -785,3 +788,5 @@ def update_inbound_record(sender, instance, created, **kwargs):
 post_save.connect(update_inbound_record,
                   sender=OrderDetailInBoundDetail,
                   dispatch_uid='update_inbound_record')
+
+
