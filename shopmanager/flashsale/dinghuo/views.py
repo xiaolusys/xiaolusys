@@ -2183,6 +2183,28 @@ class InBoundViewSet(viewsets.GenericViewSet):
             return Response({'orderlists': []})
         inbound_skus_dict = {int(k): v for k, v in inbound_skus.iteritems()}
 
+        # verify districts
+        districts_dict = {}
+        for sku_id, inbound_sku_dict in inbound_skus_dict.iteritems():
+            for product_location in ProductLocation.objects.select_related('district').filter(product_id=inbound_sku_dict['productId'], sku_id=sku_id):
+                districts_dict.setdefault(sku_id, []).append(str(product_location.district))
+        error_districts_dict = {}
+        for sku_id, inbound_sku_dict in inbound_skus_dict.iteritems():
+            district = inbound_sku_dict.get('district')
+            if not district:
+                continue
+            districts = districts_dict.get(sku_id)
+            if not districts:
+                continue
+            if len(districts) > 1:
+                error_districts_dict[sku_id] = districts
+            elif district != districts[0]:
+                error_districts_dict[sku_id] = districts
+        if error_districts_dict:
+            error_districts = [{'product_id': inbound_skus_dict[sku_id]['productId'], 'sku_id': sku_id,
+                                'districts': districts} for sku_id,districts in error_districts_dict.iteritems()]
+            return Response({'error_districts': error_districts})
+
         supplier_id = form.cleaned_data['supplier_id']
         orderlist_id = form.cleaned_data.get('orderlist_id')
         express_no = form.cleaned_data['express_no']
@@ -2364,7 +2386,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 chichu_id__in=sku_ids).exclude(
                     orderlist__status__in=[OrderList.COMPLETED,
                                            OrderList.ZUOFEI, OrderList.CLOSED,
-                                           OrderList.TO_PAY]):
+                                           OrderList.TO_PAY, OrderList.SUBMITTING]):
             orderlist_ids.add(orderdetail.orderlist_id)
         return cls._build_orderlists(list(orderlist_ids))
 
@@ -2471,6 +2493,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             }
         }
         return Response(result, template_name='dinghuo/edit_inbound.html')
+
 
     def list(self, request):
         orderlist_id_dict = {}
@@ -2692,6 +2715,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
     def update_product_location(cls, product_id, deposite_district):
         for sku in ProductSku.objects.filter(product_id=product_id,
                                              status=ProductSku.NORMAL):
+            if ProductLocation.objects.filter(product_id=product_id, sku_id=sku.id):
+                continue
             ProductLocation.objects.get_or_create(product_id=product_id,
                                                   sku_id=sku.id,
                                                   district=deposite_district)
