@@ -99,71 +99,67 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """创建购物车数据"""
         queryset = self.filter_queryset(self.get_owner_queryset(request))
+        customer = self.get_customer(request)
+        if not customer:
+            return Response({"code": 7, "info": u"用户未找到"})  # 登录过期
+
         data = request.data
-        customer_user = Customer.objects.filter(user=request.user)
-
-        if customer_user.count() == 0:
-            return Response({"result": "0"})  # 登录过期
-        customer = customer_user[0]
         product_id = data.get("item_id", None)
-        buyer_id = customer.id
         sku_id = data.get("sku_id", None)
-        if not (product_id and sku_id):
-            raise exceptions.APIException(u'参数错误')
+        sku_num = data.get('num','1')
+        if not (product_id and sku_id) or not sku_num.isdigit():
+            return Response({"code": 1, "info": u"参数错误"})
 
-        product = get_object_or_404(Product, pk=product_id)
-        if product.detail and product.detail.is_seckill:
-            raise exceptions.APIException(u'秒杀商品不能加购物车')
+        product = Product.objects.filter(id=product_id).first()
+        if not product or (product.detail and product.detail.is_seckill):
+            return Response({"code": 2, "info": u'秒杀商品不能加购物车'})
 
         if not product.is_onshelf():
-            raise exceptions.APIException(u'商品已下架')
+            return Response({"code": 3, "info": u'商品已下架'})
 
-        cart_id = data.get("cart_id", None)
-        if cart_id:
-            s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
-                                                 status=ShoppingCart.CANCEL, buyer_id=customer.id)
-            s_temp.delete()
-        sku_num = 1
-        sku = get_object_or_404(ProductSku, pk=sku_id)
+        # cart_id = data.get("cart_id", None)
+        # if cart_id:
+        #     s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
+        #                                          status=ShoppingCart.CANCEL, buyer_id=customer.id)
+        #     s_temp.delete()
+        sku_num = int(sku_num)
+        sku = ProductSku.objects.filter(id=sku_id).first()
         # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, sku_num)
         if not lockable:
-            raise exceptions.APIException(u'该商品已限购')
+            return Response({"code": 4, "info": u'该商品已限购'})
 
         if not Product.objects.lockQuantity(sku, sku_num):
-            raise exceptions.APIException(u'商品库存不足')
+            return Response({"code": 5, "info": u'商品库存不足'})
 
-        if product_id and buyer_id and sku_id:
-            shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id,
-                                                    status=ShoppingCart.NORMAL)
-            if shop_cart.count() > 0:
-                shop_cart_temp = shop_cart[0]
-                shop_cart_temp.num += int(sku_num) if sku_num else 0
-                shop_cart_temp.total_fee = decimal.Decimal(shop_cart_temp.total_fee) + decimal.Decimal(sku.agent_price)
-                shop_cart_temp.save()
-                return Response({"result": "1", "code": 1, "info": "购物车已存在"})  # 购物车已经有了
+        shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=customer.id,
+                                                sku_id=sku_id, status=ShoppingCart.NORMAL).first()
+        if shop_cart:
+            shop_cart_temp = shop_cart
+            shop_cart_temp.num = sku_num
+            shop_cart_temp.total_fee = sku_num * decimal.Decimal(sku.agent_price)
+            shop_cart_temp.save()
+            return Response({"code": 0, "info": u"已加入购物车"})  # 购物车已经有了
 
-            new_shop_cart = ShoppingCart()
-            new_shop_cart.buyer_id = buyer_id
-            for k, v in data.iteritems():
-                if v:
-                    hasattr(new_shop_cart, k) and setattr(new_shop_cart, k, v)
-            new_shop_cart.buyer_nick = customer_user[0].nick if customer_user[0].nick else ""
-            new_shop_cart.price = sku.agent_price
-            new_shop_cart.num = 1
-            new_shop_cart.std_sale_price = sku.std_sale_price
-            new_shop_cart.total_fee = sku.agent_price * int(sku_num) if sku.agent_price else 0
-            new_shop_cart.sku_name = sku.name
-            new_shop_cart.pic_path = sku.product.pic_path
-            new_shop_cart.title = sku.product.name
-            new_shop_cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
-            new_shop_cart.save()
-            for cart in queryset:
-                cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
-                cart.save(update_fields=['remain_time'])
-            return Response({"result": "2", "code": 0, "info": "添加成功"})  # 购物车没有
-        else:
-            return Response({"result": "error", "code": 3, "info": "参数异常"})  # 未知错误
+        new_shop_cart = ShoppingCart()
+        new_shop_cart.buyer_id = customer.id
+        new_shop_cart.item_id = product_id
+        new_shop_cart.sku_id  = sku_id
+        new_shop_cart.buyer_nick = customer.nick
+        new_shop_cart.price = sku.agent_price
+        new_shop_cart.num = sku_num
+        new_shop_cart.std_sale_price = sku.std_sale_price
+        new_shop_cart.total_fee = sku.agent_price * int(sku_num) if sku.agent_price else 0
+        new_shop_cart.sku_name = sku.name
+        new_shop_cart.pic_path = product.pic_path
+        new_shop_cart.title = product.name
+        new_shop_cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
+        new_shop_cart.save()
+        for cart in queryset:
+            cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
+            cart.save(update_fields=['remain_time'])
+        return Response({"code": 0, "info": u"添加成功"})  # 购物车没有
+
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)

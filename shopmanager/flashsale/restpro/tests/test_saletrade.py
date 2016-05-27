@@ -48,7 +48,7 @@ class SaletradeTestCase(TestCase):
         return data
 
     def addShoppingCart_V2(self):
-        pdata = {'num': 1, 'item_id': 40874, 'sku_id': 164886}
+        pdata = {'num': 3, 'item_id': 40874, 'sku_id': 164886}
         response = self.client.post('/rest/v2/carts',
                                     pdata,
                                     ACCEPT='application/json; q=0.01')
@@ -64,6 +64,7 @@ class SaletradeTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertGreater(len(data), 0)
+        self.assertEqual(data[0]['num'], 3)
         return data
 
     def getCartPayinfo_V2(self, cart_ids=''):
