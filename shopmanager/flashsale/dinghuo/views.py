@@ -2184,9 +2184,11 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound_skus_dict = {int(k): v for k, v in inbound_skus.iteritems()}
 
         # verify districts
+        for sku in ProductSku.objects.filter(id__in=inbound_skus_dict.keys()):
+            inbound_skus_dict[sku.id]['product_id'] = sku.product_id
         districts_dict = {}
         for sku_id, inbound_sku_dict in inbound_skus_dict.iteritems():
-            for product_location in ProductLocation.objects.select_related('district').filter(product_id=inbound_sku_dict['productId'], sku_id=sku_id):
+            for product_location in ProductLocation.objects.select_related('district').filter(product_id=inbound_sku_dict['product_id'], sku_id=sku_id):
                 districts_dict.setdefault(sku_id, []).append(str(product_location.district))
         error_districts_dict = {}
         for sku_id, inbound_sku_dict in inbound_skus_dict.iteritems():
