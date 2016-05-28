@@ -332,6 +332,7 @@
                             <div class="col-md-6"></div>
                             <div class="col-md-3 btn-group">
                                 <button class="btn btn-success" id="create-inbound">创建</button>
+                                <a class="btn btn-primary" id="save-inbound" style="display:none">保存</a>
                             </div>
                         </div>
                     </div>
@@ -923,6 +924,51 @@
 
              $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
 
+
+             $('body').on('click', '#save-inbound', function(){
+                 $('.error-district', '#form-2').remove();
+                 var data = _.extend(getForm1Data(), {inbound_skus: JSON.stringify(getInboundSkusDict()), inbound_id: inbound.id});
+                 $.ajax({
+                     url: '/sale/dinghuo/inbound/save_inbound',
+                     type: 'post',
+                     dataType: 'json',
+                     data: data,
+                     success: function(result){
+                         var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+                         if(!_.isEmpty(result.error_districts)){
+                             _.each(result.error_districts, function(el){
+                                 $(tpl({skuId: el.sku_id}), '#form-2').find('.district').last().after(template('error-district-tpl', {productId: el.product_id, districts: el.districts.join(',')}));
+                             });
+                             swal('错误', '库位冲突', 'error');
+                             return;
+                         }
+                         if(!_.isEmpty(result.inbound))
+                             inbound = result.inbound;
+                         orderlists = result.orderlists;
+                         setupForm3(buildInboundOrderlists(result.orderlists, result.inbound.details));
+                         fillForm3(result.allocate_dict, result.inbound.details, []);
+                         $('#orderlists-toggle').click(function(){
+                             var orderdetailsDict = getOrderdetailsDict();
+                             var unfoldedOrderlistIds = getUnfoldedOrderlistIds();
+                             var $this = $(this);
+                             if($this.hasClass('matching')){
+                                 $this.removeClass('matching').addClass('all');
+                                 $this.html('隐藏无关Sku');
+                                 setupForm3(orderlists);
+                                 fillForm3(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
+                             }
+                             else{
+                                 $this.removeClass('all').addClass('matching');
+                                 $this.html('展开所有Sku');
+                                 setupForm3(buildInboundOrderlists(orderlists, inbound.details));
+                                 fillForm3(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
+                             }
+                         });
+                     }
+                 });
+
+             });
+
              $('body').on('submit', '#form-2', function(){
                  $('#create-inbound').attr('disabled', true);
                  $('#create-draft').attr('disabled', true);
@@ -962,9 +1008,10 @@
                                  window.location = '/sale/dinghuo/inbound/' + result.inbound.id;
                                  return;
                              }
+                             $('#create-inbound').hide();
+                             $('#save-inbound').show();
 
                              orderlists = result.orderlists;
-
                              var $panel3 = $('#panel-3');
                              if($panel3)
                                  $panel3.remove();
@@ -1038,7 +1085,7 @@
                              inbounddetail_id: inbound.details[skuId].id,
                              arrival_quantity: arrivalQuantity,
                              inferior_quantity: inferiorQuantity
-                         })
+                         });
                      }
                  });
                  //ToDo: should optimize
