@@ -148,6 +148,9 @@
                             <input id="text_price_{{detail.skuid}}" class="edit_sku_{{detail.skuid}}" type="text" value="{{detail.price}}" style="display: none;width:42px"></td>
                         <td>{%if original.status == 0%}
                             <input type="button" class="btn-mini btn_modify" id="btn_modify_{{detail.skuid}}" value="修改"/>&nbsp;&nbsp;
+                            <input type="button" class="btn-mini btn_delete" id="btn_delete_{{detail.skuid}}" value="删除"/>
+                            {%elif original.status == 1%}
+                            <input type="button" class="btn-mini btn_modify" id="btn_modify_{{detail.skuid}}" value="修改"/>&nbsp;&nbsp;
                             <input type="button" class="btn-mini btn_delete" id="btn_delete_{{detail.skuid}}" value="删除"/>{%endif%}
                         </td>
                         </tr>
