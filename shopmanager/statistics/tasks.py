@@ -464,7 +464,6 @@ def task_update_agg_sale_stats(sale_stats, time_from, time_to, upper_timely_type
     timely_type 类型为TIMELY_TYPE_DATE_DETAIL record_type <= TYPE_BD 的记录 更新到周 月 季度 年
     :type sale_stats: SaleStats date detail sale stats
     """
-    print sale_stats.id, time_from, time_to, upper_timely_type, tag
     record_type = sale_stats.record_type
     if sale_stats.record_type > constants.TYPE_AGG:  # 买手上级别不从本task 更新
         logger.warn(u'task_update_detail_agg_sale_stats ale_stats id %s do not update parent!' % sale_stats.id)
