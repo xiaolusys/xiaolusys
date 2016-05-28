@@ -57,6 +57,12 @@ class CreateInBoundForm(BaseForm):
     inbound_id = forms.IntegerField(required=False, initial=0)
     memo = forms.CharField(required=False, initial='')
 
+class SaveInBoundForm(BaseForm):
+    inbound_skus = forms.CharField(required=False, initial='{}')
+    inbound_id = forms.IntegerField()
+    express_no = forms.CharField(required=False, initial='')
+    orderlist_id = forms.CharField(required=False, initial=0)
+
 
 class SaveMemoForm(BaseForm):
     inbound_id = forms.IntegerField()
