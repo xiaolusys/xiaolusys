@@ -1350,7 +1350,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
 
     def sale_trade_id_link(self, obj):
         return '<a href="%(url)s" target="_blank"> %(text)s</a>' %{
-            'url': '/admin/pay/saletrade/?tid=%s/' % obj.sale_trade_id,
+            'url': '/admin/pay/saletrade/?tid=%s' % obj.sale_trade_id,
             'text': obj.sale_trade_id
         }
 
