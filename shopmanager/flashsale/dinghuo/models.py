@@ -566,8 +566,8 @@ def sync_rgd_return(sender, instance, created, **kwargs):
 post_save.connect(sync_rgd_return, sender=RGDetail, dispatch_uid='post_save_sync_rgd_return')
 
 
-class UnReturnList(models.Model):
-    pass
+# class UnReturnList(models.Model):
+#     pass
 
 class SaleInventoryStat(models.Model):
     """
