@@ -369,22 +369,24 @@ STATISTICS_ROUTES = {
         'queue': 'statistics',
         'routing_key': 'statistics.task_update_parent_sale_stats',
     },
-    'statistics.tasks.task_create_snapshot_record': {
+
+    'statistics.tasks.task_update_agg_stats_record': {
         'queue': 'statistics',
-        'routing_key': 'statistics.task_create_snapshot_record',
+        'routing_key': 'statistics.task_update_agg_stats_record',
     },
-    'statistics.tasks.task_update_week_stats_record': {
-        'queue': 'statistics',
-        'routing_key': 'statistics.task_update_week_stats_record',
-    },
-    'statistics.tasks.task_update_month_stats_record': {
-        'queue': 'statistics',
-        'routing_key': 'statistics.task_update_month_stats_record',
-    },
-    'statistics.tasks.task_update_quarter_stats_record': {
-        'queue': 'statistics',
-        'routing_key': 'statistics.task_update_quarter_stats_record',
-    },
+    #
+    # 'statistics.tasks.task_update_week_stats_record': {
+    #     'queue': 'statistics',
+    #     'routing_key': 'statistics.task_update_week_stats_record',
+    # },
+    # 'statistics.tasks.task_update_month_stats_record': {
+    #     'queue': 'statistics',
+    #     'routing_key': 'statistics.task_update_month_stats_record',
+    # },
+    # 'statistics.tasks.task_update_quarter_stats_record': {
+    #     'queue': 'statistics',
+    #     'routing_key': 'statistics.task_update_quarter_stats_record',
+    # },
 }
 CELERY_ROUTES = {
     'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {

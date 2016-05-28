@@ -17,6 +17,10 @@ def record_type_choices():  # 统计记录类型选择
     return constants.RECORD_TYPES
 
 
+def timely_type_choices():  # 统计时间 维度类型
+    return constants.TIMELY_TYPES
+
+
 class SaleOrderStatsRecord(BaseModel):
     oid = models.CharField(max_length=40, unique=True, verbose_name=u'sale_order_oid')
     outer_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'外部编码')
@@ -40,6 +44,7 @@ class SaleOrderStatsRecord(BaseModel):
 
 def update_salestats(sender, instance, created, **kwargs):
     from statistics.tasks import task_statsrecord_update_salestats
+
     task_statsrecord_update_salestats.delay(instance)
 
 
@@ -55,6 +60,8 @@ class SaleStats(BaseModel):
     num = models.IntegerField(default=0, verbose_name=u'销售数量')
     payment = models.FloatField(default=0, verbose_name=u'销售金额')
     uni_key = models.CharField(max_length=64, unique=True, verbose_name=u'唯一标识')
+    timely_type = models.IntegerField(default=constants.TIMELY_TYPE_DATE_DETAIL,
+                                      choices=timely_type_choices(), db_index=True, verbose_name=u'时间维度类型')
     record_type = models.IntegerField(choices=record_type_choices(), db_index=True, verbose_name=u'记录类型')
     status = models.IntegerField(choices=stat_status_choices(), db_index=True, verbose_name=u'状态')
 
@@ -70,21 +77,24 @@ class SaleStats(BaseModel):
 
 
 def update_parent_sale_stats(sender, instance, created, **kwargs):
-    from statistics.tasks import task_create_snapshot_record, task_update_parent_sale_stats, \
-        task_update_week_stats_record, task_update_month_stats_record, task_update_quarter_stats_record
+    from statistics.tasks import task_update_parent_sale_stats, \
+        task_update_agg_stats_record, task_update_daily_agg_sale_stats, task_update_detail_agg_sale_stats
 
-    if instance.record_type == constants.TYPE_TOTAL:  # 日期 级别的变化 触发之前一天的快照信息 并且触发 周报更新
-        task_create_snapshot_record.delay(instance)
-        task_update_week_stats_record.delay(instance)
-        return
-    if instance.record_type == constants.TYPE_WEEK:  # 周报级别变化 触发 月报 更新
-        task_update_month_stats_record.delay(instance)
-        return
-    if instance.record_type == constants.TYPE_MONTH:  # 月报级别变化 触发 季报告 更新
-        task_update_quarter_stats_record.delay(instance)
-        return
-    if instance.record_type < constants.TYPE_TOTAL:  # 小于日期级别的才去更新日期级别 以下的更新
-        task_update_parent_sale_stats.delay(instance)
+    if instance.record_type <= constants.TYPE_BD and instance.timely_type < constants.TIMELY_TYPE_YEAR_DETAIL:
+        # 小于买手级别的 日报细分 都要更新 周\月\季度\年度细分
+        print "细分 %s" % instance.get_timely_type_display()
+        task_update_detail_agg_sale_stats.delay(instance)
+
+    if instance.timely_type == constants.TIMELY_TYPE_DATE_DETAIL:  # 日报细分类型 才更新 父级别 和 日报告
+        task_update_parent_sale_stats.delay(instance)  # 更新 父级别
+        if instance.record_type == constants.TYPE_BD:  # 更新 BD 的时候才去更新每天的聚合
+            task_update_daily_agg_sale_stats.delay(instance)
+            # 更新  记录类型 -> 周细分->月细分->季度细分->年度细分
+    else:
+        if instance.record_type == constants.TYPE_AGG:
+            # 日期聚合-> 周聚合->月聚合->季度聚合->年度聚合
+            task_update_agg_stats_record.delay(instance)
+            return
 
 
 post_save.connect(update_parent_sale_stats, sender=SaleStats, dispatch_uid='post_save_update_parent_sale_stats')

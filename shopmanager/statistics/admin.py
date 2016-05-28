@@ -16,12 +16,13 @@ class SaleStatsAdmin(admin.ModelAdmin):
         'num',
         'payment',
         'uni_key',
+        'timely_type',
         'record_type',
         'status'
     )
     list_per_page = 50
     readonly_fields = get_class_fields(SaleStats)
-    list_filter = ('record_type', 'date_field', 'status')
+    list_filter = ('record_type', 'date_field', 'status', 'timely_type')
     search_fields = ['id', 'parent_id', 'current_id', 'name', 'uni_key']
 
     class Media:
@@ -61,7 +62,7 @@ class SaleOrderStatsRecordAdmin(admin.ModelAdmin):
     list_per_page = 50
     list_filter = ('pay_time', 'status')
     search_fields = ['id', 'oid', 'sku_id', 'name']
-    readonly_fields = get_class_fields(SaleOrderStatsRecord)
+    # readonly_fields = get_class_fields(SaleOrderStatsRecord)
 
     def pic_display(self, obj):
         html = '<a onclick="displayPic(\'{0}\')">点击看图</a>'.format(obj.pic_path)
