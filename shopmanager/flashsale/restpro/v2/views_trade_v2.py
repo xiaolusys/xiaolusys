@@ -197,7 +197,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         """关闭购物车中的某一个数据，调用关闭接口"""
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({"code": 0, "info": "OK"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"code": 0, "info": u"删除成功"}, status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
         instance.close_cart()
@@ -211,23 +211,23 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, 1)
         if not lockable:
-            raise exceptions.APIException(u'商品数量限购')
+            return Response({"code": 1, "info": u'商品数量限购'})
         lock_success = Product.objects.lockQuantity(sku, 1)
         if not lock_success:
-            raise exceptions.APIException(u'商品库存不足')
+            return Response({"code": 2, "info": u'商品库存不足'})
         cart = ShoppingCart.objects.filter(id=pk).first()
         cart.num = models.F('num') + 1
         cart.total_fee = models.F('num') * cart_item.price
         cart.save(update_fields=['num','total_fee'])
 
-        return Response({"code":0, "status": 1})
+        return Response({"code":0, "info": ""})
 
     @detail_route(methods=['post'])
     @transaction.atomic
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
-            raise exceptions.APIException(u'至少购买一件')
+            return Response({"code": 1, "info": u'至少购买一件'})
 
         cart = ShoppingCart.objects.filter(id=pk).first()
         cart.num = models.F('num') - 1
@@ -236,7 +236,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         sku = ProductSku.objects.filter(pk=cart_item.sku_id).first()
         Product.objects.releaseLockQuantity(sku, 1)
-        return Response({"code": 0 ,"status": 1})
+        return Response({"code": 0 ,"info": u"修改成功"})
 
     @list_route(methods=['post'])
     def sku_num_enough(self, request, *args, **kwargs):
@@ -244,16 +244,16 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         sku_id = request.REQUEST.get('sku_id', '')
         sku_num = request.REQUEST.get('sku_num', '')
         if not sku_id.isdigit() or not sku_num.isdigit():
-            raise exceptions.APIException(u'规格ID或数量有误')
+            return Response({"code": 1 ,"info": u'规格ID或数量有误'})
         sku_num = int(sku_num)
         # customer = get_object_or_404(Customer, user=request.user)
         sku = get_object_or_404(ProductSku, pk=sku_id)
         # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, sku_num)
         if not lockable:
-            raise exceptions.APIException(u'商品数量限购')
+            return Response({"code": 2 ,"info": u'商品数量限购'})
         if sku.free_num < sku_num:
-            raise exceptions.APIException(u'库存不足赶快下单')
+            return Response({"code": 3, "info": u'库存不足赶快下单'})
         return Response({"code": 0, "sku_id": sku_id, "sku_num": sku_num})
 
     def get_budget_info(self, customer, payment):
