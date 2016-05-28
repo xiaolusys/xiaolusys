@@ -2421,9 +2421,10 @@ class InBoundViewSet(viewsets.GenericViewSet):
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
             product = inbounddetail.product
             sku = inbounddetail.sku
-            inbound_skus_dict[sku.id] = {
-                'arrival_quantity': inbounddetail.arrival_quantity
-            }
+            if sku:
+                inbound_skus_dict[sku.id] = {
+                    'arrival_quantity': inbounddetail.arrival_quantity
+                }
             if not (product and sku):
                 problem_sku = {
                     'inbounddetail_id': inbounddetail.id,
