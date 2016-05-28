@@ -589,12 +589,12 @@ class BrandProductInline(admin.TabularInline):
 class ModelProductAdmin(ApproxAdmin):
     list_display = ('id', 'name', 'buy_limit', 'per_limit', 'sale_time', 'status')
 
-    list_filter = (('sale_time', DateFieldListFilter), 'status',
+    list_filter = ( 'status',
                    ('created', DateFieldListFilter))
     # -------------- 页面布局 --------------
     fieldsets = (('基本信息:', {'classes': ('expand',),
                             'fields': (('name',), ('head_imgs', 'content_imgs')
-                                       , ('buy_limit', 'per_limit', 'sale_time', 'status'))}),)
+                                       , ('buy_limit', 'per_limit', 'status'))}),)
     search_fields = ['name', '=id']
     list_per_page = 50
 

@@ -106,7 +106,7 @@ class ModelProduct(PayBaseModel):
     buy_limit = models.BooleanField(default=False, verbose_name=u'是否限购')
     per_limit = models.IntegerField(default=5, verbose_name=u'限购数量')
 
-    sale_time = models.DateField(null=True, blank=True, db_index=True, verbose_name=u'上架日期')
+    # sale_time = models.DateField(null=True, blank=True, db_index=True, verbose_name=u'上架日期')
 
     # category_id = models.IntegerField(default=0, db_index=True, verbose_name=u'分类ID')
     # lowest_agent_price = models.IntegerField(default=5, verbose_name=u'最低出售价')
@@ -192,12 +192,12 @@ class ModelProduct(PayBaseModel):
         """  上架时间 """
         product = self.item_product
         if not product or not product.detail:
-            return False
+            return None
         return product.sale_time
 
     @property
     def category(self):
-        """  上架时间 """
+        """  分类 """
         product = self.item_product
         if not product or not product.category:
             return {}
