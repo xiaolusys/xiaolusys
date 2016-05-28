@@ -15,8 +15,8 @@ REALPAY = 2
 PAY_EXTRAS = {
     ETS_APPCUT: {'pid': 1, 'type': DISCOUNT, 'value': 2, 'name': 'APP支付减2元'},
     ETS_COUPON: {'pid': 2, 'type': DISCOUNT, 'use_coupon_allowed': 1, 'value': 2, 'name': '优惠券'},
-    # 1,能使用优惠券,0,不能使用,value:2兼容v1版本接口
-    ETS_BUDGET: {'pid': 3, 'type': BUDGET, 'value': 0, 'name': '余额支付'},
+    # 1,能使用优惠券,0,不能使用,value:2兼容v1版本接口0
+    ETS_BUDGET: {'pid': 3, 'type': BUDGET, 'value': 0, 'name': '余额支付' ,'use_budget_allowed':1 ,'channel':'budget'},
 }
 
 SHARE_LINK = ""

@@ -274,10 +274,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not is_in_wap:
             extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
         # 余额
-        budget_cash = resp['channels'][0]['budget_cash']
-        if budget_cash > 0 and budget_cash < resp['total_payment']:
+        total_payment  = resp['total_payment']
+        customer    = self.get_customer(request)
+        budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
+        if budget_cash > 0 and resp['total_payment'] > 0:
             budgets = CONS.PAY_EXTRAS.get(CONS.ETS_BUDGET)
-            budgets.update(value=min(budget_cash, resp['total_payment']))
+            budgets.update(value=budget_cash, use_budget_allowed=budget_payable and 1 or 0)
             extras.append(budgets)
         return extras
 
@@ -312,8 +314,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         customer = self.get_customer(request)
         channel_list = []
-        budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
-        channel_list.append({'id': 'budget', 'name':u'小鹿钱包', 'payable': budget_payable ,'msg':'', 'budget_cash':budget_cash})
+        # budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
+        # channel_list.append({'id': 'budget', 'name':u'小鹿钱包', 'payable': budget_payable ,'msg':'', 'budget_cash':budget_cash})
         if is_in_wap :
             if is_in_weixin:
                 channel_list.append({'id': 'wx_pub', 'name':u'微信支付', 'payable': True ,'msg':''})
@@ -861,8 +863,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 return Response({'code':4, 'info':u'付款金额异常'})
             
         addr_id  = CONTENT.get('addr_id')
-        address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
-        
+        address  = UserAddress.objects.filter(id=addr_id,cus_uid=customer.id).first()
+        if not address:
+            return Response({'code': 7, 'info': u'请选择地址信息'})
+
         channel  = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             return Response({'code':5, 'info':u'付款方式有误'})
