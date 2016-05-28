@@ -869,6 +869,7 @@ class ShoppingCart(BaseModel):
 
     class Meta:
         db_table = 'flashsale_shoppingcart'
+        index_together = [('buyer_id', 'item_id', 'sku_id')]
         app_label = 'pay'
         verbose_name = u'特卖/购物车'
         verbose_name_plural = u'特卖/购物车'

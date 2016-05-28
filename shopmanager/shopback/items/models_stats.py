@@ -24,7 +24,7 @@ class ProductSkuStats(models.Model):
 
     #sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'SKUID')
     #product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
-    sku = models.ForeignKey('ProductSku', verbose_name=u'SKU')
+    sku = models.OneToOneField('ProductSku', null=True, verbose_name=u'SKU')
     product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
 
     assign_num = models.IntegerField(default=0, verbose_name=u'分配数')  # 未出库包裹单中已分配的sku数量
