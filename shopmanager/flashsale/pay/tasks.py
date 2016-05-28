@@ -719,8 +719,7 @@ def task_saleorder_update_package_sku_item(sale_order):
 
 @task()
 def tasks_set_user_address_id(sale_trade):
-
-    ua = UserAddress.objects.filter(
+    ua, state = UserAddress.objects.get_or_create(
         cus_uid=sale_trade.buyer_id,
         receiver_name=sale_trade.receiver_name,
         receiver_state=sale_trade.receiver_state,
@@ -729,19 +728,11 @@ def tasks_set_user_address_id(sale_trade):
         receiver_address=sale_trade.receiver_address,
         receiver_zip=sale_trade.receiver_zip,
         receiver_mobile=sale_trade.receiver_mobile,
-        receiver_phone=sale_trade.receiver_phone,
-        status='normal').first()
-    if not ua:
-        ua = UserAddress.objects.filter(
-            cus_uid=sale_trade.buyer_id,
-            receiver_name=sale_trade.receiver_name,
-            receiver_mobile=sale_trade.receiver_mobile,
-            status='normal').order_by('-id').first()
-    if not ua:
-        ua = UserAddress.objects.filter(cus_uid=sale_trade.buyer_id,
-                                        status='normal').order_by('-id').first()
-    if ua:
-        SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)
+        receiver_phone=sale_trade.receiver_phone)
+    if ua.status != 'normal':
+        ua.status = 'normal'
+        ua.save()
+    SaleTrade.objects.filter(id=sale_trade.id).update(user_address_id=ua.id)
 
 @task()
 def tasks_set_address_priority_logistics_code(address_id, logistics_company_id):
