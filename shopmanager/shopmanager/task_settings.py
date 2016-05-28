@@ -370,23 +370,10 @@ STATISTICS_ROUTES = {
         'routing_key': 'statistics.task_update_parent_sale_stats',
     },
 
-    'statistics.tasks.task_update_agg_stats_record': {
+    'statistics.tasks.task_update_agg_sale_stats': {
         'queue': 'statistics',
-        'routing_key': 'statistics.task_update_agg_stats_record',
-    },
-    #
-    # 'statistics.tasks.task_update_week_stats_record': {
-    #     'queue': 'statistics',
-    #     'routing_key': 'statistics.task_update_week_stats_record',
-    # },
-    # 'statistics.tasks.task_update_month_stats_record': {
-    #     'queue': 'statistics',
-    #     'routing_key': 'statistics.task_update_month_stats_record',
-    # },
-    # 'statistics.tasks.task_update_quarter_stats_record': {
-    #     'queue': 'statistics',
-    #     'routing_key': 'statistics.task_update_quarter_stats_record',
-    # },
+        'routing_key': 'statistics.task_update_agg_sale_stats',
+    }
 }
 CELERY_ROUTES = {
     'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {

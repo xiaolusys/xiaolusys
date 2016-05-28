@@ -60,7 +60,7 @@ class SaleStats(BaseModel):
     num = models.IntegerField(default=0, verbose_name=u'销售数量')
     payment = models.FloatField(default=0, verbose_name=u'销售金额')
     uni_key = models.CharField(max_length=64, unique=True, verbose_name=u'唯一标识')
-    timely_type = models.IntegerField(default=constants.TIMELY_TYPE_DATE_DETAIL,
+    timely_type = models.IntegerField(default=constants.TIMELY_TYPE_DATE,
                                       choices=timely_type_choices(), db_index=True, verbose_name=u'时间维度类型')
     record_type = models.IntegerField(choices=record_type_choices(), db_index=True, verbose_name=u'记录类型')
     status = models.IntegerField(choices=stat_status_choices(), db_index=True, verbose_name=u'状态')
@@ -77,24 +77,24 @@ class SaleStats(BaseModel):
 
 
 def update_parent_sale_stats(sender, instance, created, **kwargs):
-    from statistics.tasks import task_update_parent_sale_stats, \
-        task_update_agg_stats_record, task_update_daily_agg_sale_stats, task_update_detail_agg_sale_stats
+    from statistics.tasks import task_update_parent_sale_stats, task_update_agg_sale_stats
+    from tasks import gen_date_ftt_info, find_upper_timely_type
 
-    if instance.record_type <= constants.TYPE_BD and instance.timely_type < constants.TIMELY_TYPE_YEAR_DETAIL:
-        # 小于买手级别的 日报细分 都要更新 周\月\季度\年度细分
-        print "细分 %s" % instance.get_timely_type_display()
-        task_update_detail_agg_sale_stats.delay(instance)
+    if instance.record_type <= constants.TYPE_AGG:  #
+        # 小于买手级别的  都要更新 周\月\季度\年度细分
+        if instance.timely_type == constants.TIMELY_TYPE_DATE:  # 每天的总计更新 触发 周 和 月的更新
+            time_from_1, time_to_1, tag_1 = gen_date_ftt_info(instance.date_field, constants.TIMELY_TYPE_WEEK)
+            task_update_agg_sale_stats.delay(instance, time_from_1, time_to_1, constants.TIMELY_TYPE_WEEK, tag_1)
+            time_from_2, time_to_2, tag_2 = gen_date_ftt_info(instance.date_field, constants.TIMELY_TYPE_MONTH)
+            task_update_agg_sale_stats.delay(instance, time_from_2, time_to_2, constants.TIMELY_TYPE_MONTH, tag_2)
 
-    if instance.timely_type == constants.TIMELY_TYPE_DATE_DETAIL:  # 日报细分类型 才更新 父级别 和 日报告
+        elif instance.timely_type >= constants.TIMELY_TYPE_MONTH:  # 月更新触发 上级的所有更新
+            upper_timely_type = find_upper_timely_type(instance.timely_type)  # 上级的时间维度 例如 周记录 更新的上一个时间维度 是 月份
+            time_from, time_to, tag = gen_date_ftt_info(instance.date_field, upper_timely_type)
+            task_update_agg_sale_stats.delay(instance, time_from, time_to, upper_timely_type, tag)
+
+    if instance.timely_type == constants.TIMELY_TYPE_DATE:  # 日报细分类型 才更新 父级别 和 日报告
         task_update_parent_sale_stats.delay(instance)  # 更新 父级别
-        if instance.record_type == constants.TYPE_BD:  # 更新 BD 的时候才去更新每天的聚合
-            task_update_daily_agg_sale_stats.delay(instance)
-            # 更新  记录类型 -> 周细分->月细分->季度细分->年度细分
-    else:
-        if instance.record_type == constants.TYPE_AGG:
-            # 日期聚合-> 周聚合->月聚合->季度聚合->年度聚合
-            task_update_agg_stats_record.delay(instance)
-            return
 
 
 post_save.connect(update_parent_sale_stats, sender=SaleStats, dispatch_uid='post_save_update_parent_sale_stats')
