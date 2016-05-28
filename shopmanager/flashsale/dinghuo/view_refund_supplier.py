@@ -160,6 +160,7 @@ def delete_return_goods_sku(request):
     return_goods = get_object_or_404(ReturnGoods, id=id)
     rg_detail = return_goods.rg_details.get(skuid=sku_id)
     rg_detail.delete()
+    return_goods.set_stat()
     return HttpResponse(True)
 
 

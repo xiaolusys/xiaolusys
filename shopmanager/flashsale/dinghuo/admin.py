@@ -417,22 +417,28 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
                     "status", "status_contrl", "noter",  "transactor_name", "created",
                     "consign_time", "sid",  "consigner", 'show_memo', 'show_reason'
                     )
-    search_fields = ['id', "supplier_id",
-                     "noter", "consigner", "sid"]
+    search_fields = ['id', "supplier__id", "supplier__supplier_name", "transaction_number",
+                     "noter", "consigner", "transactor_id", "sid"]
 
     list_filter = ["status", "noter", "consigner", "transactor_id", "created", "modify", ]
     readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
     list_display_links = ['id',]
+    list_select_related = True
     list_per_page = 25
     # change_form_template = "admin/dinghuo/returngoods/change_form.html"
-    def queryset(self, request):
-        ReturnGoodsAdmin.change_view()
-        qs = super(ReturnGoodsAdmin, self).queryset(request)
-        if request.user.is_superuser:
-            return qs
-        else:
-            return qs.exclude(status=ReturnGoods.OBSOLETE_RG)
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['supplier__supplier_name']:
+            return True
+        return super(ReturnGoodsAdmin, self).lookup_allowed(lookup, value)
+
+    # def queryset(self, request):
+    #     ReturnGoodsAdmin.change_view()
+    #     qs = super(ReturnGoodsAdmin, self).queryset(request)
+    #     if request.user.is_superuser:
+    #         return qs
+    #     else:
+    #         return qs.exclude(status=ReturnGoods.OBSOLETE_RG)
 
     def get_urls(self):
         from django.conf.urls import url

@@ -1349,8 +1349,9 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     package_order_link_to.short_description = u'包裹SKU'
 
     def sale_trade_id_link(self, obj):
-        return '/admin/pay/saletrade/?tid=%(tid)s/' % {
-            'tid': obj.sale_trade_id
+        return '<a href="%(url)s" target="_blank"> %(text)s</a>' %{
+            'url': '/admin/pay/saletrade/?tid=%s/' % obj.sale_trade_id,
+            'text': obj.sale_trade_id
         }
 
     sale_trade_id_link.allow_tags = True

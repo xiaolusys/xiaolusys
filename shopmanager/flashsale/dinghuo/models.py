@@ -297,8 +297,8 @@ class ReturnGoods(models.Model):
                  (DELIVER_RG, u"已发货"), (REFUND_RG, u"待验退款"),
                  (SUCCEED_RG, u"退货成功"), (FAILED_RG, u"退货失败"))
     product_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u"退货商品id")
-    supplier_id = models.IntegerField(db_index=True, verbose_name=u"供应商id")
-    # supplier = models.ForeignKey(SaleSupplier, null=True, verbose_name=u"供应商")
+    # supplier_id = models.IntegerField(db_index=True, verbose_name=u"供应商id")
+    supplier = models.ForeignKey(SaleSupplier, null=True, verbose_name=u"供应商")
     return_num = models.IntegerField(default=0, verbose_name=u"退件总数")
     sum_amount = models.FloatField(default=0.0, verbose_name=u"退款总额")
     confirm_pic_url = models.URLField(blank=True, verbose_name=u"付款截图")
@@ -307,6 +307,9 @@ class ReturnGoods(models.Model):
     confirm_refund = models.BooleanField(default=False, verbose_name=u"退款额确认")
     refund_confirmer_id = models.IntegerField(default=None, null=True, verbose_name=u"退款额确认人")
     transactor_id = models.IntegerField(default=None, null=True, db_index=True, verbose_name=u"处理人id")
+    # transactor_id = models.IntegerField(choices=[(i.id, i.username) for i in return_goods_transcations()], default=None,
+    #                                     null=True, db_index=True, verbose_name=u"处理人id")
+    # transactor = models.ForeignKey(User, choices=ReturnGoods.transactors, null=True, verbose_name=u"处理人id")
     transaction_number = models.CharField(default='', max_length=64, verbose_name=u"交易单号")
     noter = models.CharField(max_length=32, verbose_name=u"录入人")
     consigner = models.CharField(max_length=32, blank=True, verbose_name=u"发货人")
@@ -330,12 +333,6 @@ class ReturnGoods(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'仓库退货单'
         verbose_name_plural = u'仓库退货单列表'
-
-    @property
-    def supplier(self):
-        if not hasattr(self, '_supplier_'):
-            self._supplier_ = SaleSupplier.objects.get(id=self.supplier_id)
-        return self._supplier_
 
     @property
     def sku_ids(self):
@@ -455,11 +452,17 @@ class ReturnGoods(models.Model):
             return buyer_id
         return get_max_from_list(r)
 
-
     def set_stat(self):
-        rg_details = self.rg_details.all()
-        self.return_num = sum([d.num for d in rg_details])
-        self.sum_amount = sum([d.num * d.price for d in rg_details])
+        rgds = self.rg_details.all()
+        total_num = 0
+        total_amount = 0
+        for rgd in rgds:
+            sum_num = rgd.num + rgd.inferior_num
+            total_num += sum_num
+            total_amount += sum_num * rgd.price
+        self.return_num = total_num
+        self.sum_amount = total_amount
+        self.save()
 
     def has_sent(self):
         return self.status >= ReturnGoods.DELIVER_RG
@@ -562,7 +565,7 @@ class RGDetail(models.Model):
         return ProductSku.objects.get(id=self.skuid)
 
 def sync_rgd_return(sender, instance, created, **kwargs):
-    instance.sync_rg_field()
+    instance.return_goods.set_stat()
 
 post_save.connect(sync_rgd_return, sender=RGDetail, dispatch_uid='post_save_sync_rgd_return')
 
