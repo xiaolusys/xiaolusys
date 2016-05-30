@@ -118,11 +118,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not product.is_onshelf():
             return Response({"code": 3, "info": u'商品已下架'})
 
-        # cart_id = data.get("cart_id", None)
-        # if cart_id:
-        #     s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
-        #                                          status=ShoppingCart.CANCEL, buyer_id=customer.id)
-        #     s_temp.delete()
+        cart_id = data.get("cart_id", None)
+        if cart_id:
+            s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
+                                                 status=ShoppingCart.CANCEL, buyer_id=customer.id)
+            s_temp.delete()
+
         sku_num = int(sku_num)
         sku = ProductSku.objects.filter(id=sku_id).first()
         # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
