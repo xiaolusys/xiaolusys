@@ -245,7 +245,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         sku_id = request.REQUEST.get('sku_id', '')
         sku_num = request.REQUEST.get('sku_num', '')
         if not sku_id.isdigit() or not sku_num.isdigit():
-            return Response({"code": 1 ,"info": u'规格ID或数量有误'})
+            return Response({"code": 1 ,"info": u'参数错误'})
         sku_num = int(sku_num)
         # customer = get_object_or_404(Customer, user=request.user)
         sku = get_object_or_404(ProductSku, pk=sku_id)
@@ -254,8 +254,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not lockable:
             return Response({"code": 2 ,"info": u'商品数量限购'})
         if sku.free_num < sku_num:
-            return Response({"code": 3, "info": u'库存不足赶快下单'})
-        return Response({"code": 0, "sku_id": sku_id, "sku_num": sku_num})
+            return Response({"code": 3, "info": u'库存不足'})
+        return Response({"code": 0, 'info':u'库存剩下不多了', "sku_id": sku_id, "sku_num": sku_num})
 
     def get_budget_info(self, customer, payment):
         user_budgets = UserBudget.objects.filter(user=customer)
