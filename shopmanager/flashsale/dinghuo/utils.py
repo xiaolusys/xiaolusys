@@ -30,10 +30,13 @@ def get_supplier(sku_id):
     product = product_sku.product
 
     from supplychain.supplier.models import SaleProduct
-    sale_product = SaleProduct.objects.get(id=product.sale_product)
-    supplier = sale_product.sale_supplier
-
-    return supplier
+    try:
+        sale_product = SaleProduct.objects.get(id=product.sale_product)
+        supplier = sale_product.sale_supplier
+        return supplier
+    except SaleProduct.DoesNotExist:
+        pass
+    return None
 
 def get_unit_price(sku_id):
     from shopback.items.models import ProductSku
