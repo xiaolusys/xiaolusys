@@ -144,7 +144,7 @@ class UserCouponManager(BaseManager):
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.filter(uniq_id=uniq_id).first()
         if cou:
-            return cou, 0, u'已经领取'
+            return cou, 9, u'已经领取'
         cou = UserCoupon.objects.create(template_id=int(template_id),
                                         title=tpl.title,
                                         coupon_type=tpl.coupon_type,
