@@ -41,8 +41,12 @@ def get_unit_price(sku_id):
     product = product_sku.product
 
     from supplychain.supplier.models import SaleProduct
-    sale_product = SaleProduct.objects.get(id=product.sale_product)
-    return sale_product.sale_price
+    try:
+        sale_product = SaleProduct.objects.get(id=product.sale_product)
+        return sale_product.sale_price
+    except SaleProduct.DoesNotExist:
+        pass
+    return 0
 
 
 def copy_fields(to_obj, from_obj, fields):
