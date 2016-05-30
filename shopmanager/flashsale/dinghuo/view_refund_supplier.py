@@ -414,17 +414,29 @@ def export_return_goods(request):
     worksheet.set_column('B:B', 30)
     worksheet.set_column('C:C', 30)
     worksheet.set_column('E:E', image_width)
-    worksheet.merge_range('A1:E6', rg.memo, merge_format)
-    worksheet.write('A7', '商品名称', bold_format)
-    worksheet.write('B7', '产品货号', bold_format)
-    worksheet.write('C7', '颜色', bold_format)
-    worksheet.write('D7', '规格', bold_format)
-    worksheet.write('E7', '图片', bold_format)
-    worksheet.write('F7', '数量', bold_format)
-    worksheet.write('G7', '单项价格', bold_format)
-    worksheet.write('H7', '总价', bold_format)
 
-    row = 7
+    worksheet.write('A1', '供应商名称:', bold_format)
+    supplier_name = ''
+    if rg.supplier:
+        supplier_name = rg.supplier.supplier_name
+    worksheet.merge_range('B1:E1', supplier_name)
+    worksheet.write('A2', '收件人:', bold_format)
+    worksheet.merge_range('B2:E2', '')
+    worksheet.write('A3', '手机/电话:', bold_format)
+    worksheet.merge_range('B3:E3', '')
+    worksheet.write('A4', '收件地址:', bold_format)
+    worksheet.merge_range('B4:E4', '')
+
+    worksheet.write('A6', '商品名称', bold_format)
+    worksheet.write('B6', '产品货号', bold_format)
+    worksheet.write('C6', '颜色', bold_format)
+    worksheet.write('D6', '规格', bold_format)
+    worksheet.write('E6', '图片', bold_format)
+    worksheet.write('F6', '数量', bold_format)
+    worksheet.write('G6', '单项价格', bold_format)
+    worksheet.write('H6', '总价', bold_format)
+
+    row = 6
     all_price = decimal.Decimal('0')
     all_quantity = 0
 
