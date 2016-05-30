@@ -805,5 +805,3 @@ def update_inbound_record(sender, instance, created, **kwargs):
 post_save.connect(update_inbound_record,
                   sender=OrderDetailInBoundDetail,
                   dispatch_uid='update_inbound_record')
-
-

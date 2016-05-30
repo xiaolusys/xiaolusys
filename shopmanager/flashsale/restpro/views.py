@@ -22,8 +22,10 @@ from . import permissions as perms
 from . import serializers
 
 from flashsale.pay.models import SaleRefund, District, UserAddress, SaleOrder, SaleTrade
+from flashsale.pay.models_addr import UserAddressChange
 from flashsale.pay.tasks import tasks_set_user_address_id
 from flashsale.xiaolumm.models import XiaoluMama
+from shopback.trades.models import PackageSkuItem
 from django.forms import model_to_dict
 import json
 
@@ -185,6 +187,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address = content.get('receiver_address', '').strip()
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
+        receiver_phone = content.get('receiver_phone', '').strip()
         referal_trade_id = content.get('referal_trade_id','').strip()
         logistic_company_code = content.get('logistic_company_code', '').strip()
         default = content.get('default') or ''
@@ -200,7 +203,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_city=receiver_city,
                 receiver_district=receiver_district,
                 receiver_address=receiver_address,
-                receiver_mobile=receiver_mobile
+                receiver_mobile=receiver_mobile,
+                receiver_phone=receiver_phone,
             )
             if state:  # 创建成功在将原来的地址改为删除状态 (保留地址)
                 new_address.default = UserAddress.objects.get(pk=pk).default  # 赋值原来的默认地址选择
@@ -213,20 +217,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             if referal_trade_id:
                 strade = SaleTrade.objects.filter(id=referal_trade_id, status=SaleTrade.WAIT_SELLER_SEND_GOODS).first()
                 if strade:
-                    update_fields = ['receiver_name','receiver_state','receiver_city',
-                                     'receiver_district','receiver_address','receiver_mobile']
-                    for name in update_fields:
-                        setattr(strade, name ,getattr(new_address, name))
-                    strade.user_address_id = new_address.id
-
-                    if new_address.logistic_company_code:
-                        from shopback.logistics.models import LogisticsCompany
-                        logistic = LogisticsCompany.objects.filter(code=logistic_company_code).first()
-                        strade.logistics_company = logistic
-                    strade.save(update_fields=update_fields + ['user_address_id','logistics_company'])
-
-                    tasks_set_user_address_id.delay(strade)
-
+                    user_address_change = UserAddressChange.add(strade.id, strade.user_address_id, new_address.id)
+                    user_address_change.excute()
             return Response({'ret': True, 'code': 0, 'info': '更新成功', 'result':{'address_id':new_address.id}, "msg": '更新成功'})
         except Exception,exc:
             logger.error(exc.message, exc_info=True)
