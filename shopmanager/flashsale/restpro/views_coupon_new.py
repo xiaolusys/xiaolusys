@@ -156,8 +156,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             template_ids = [int(i) for i in template_ids.split(',')]
             customer = Customer.objects.get(user=request.user)
             if template_ids:  # 根据模板id发放
-                code = None
-                msg = None
+                code = 7
+                msg = u'没有发放'
                 coupon_ids = []
                 for template_id in template_ids:
                     try:
