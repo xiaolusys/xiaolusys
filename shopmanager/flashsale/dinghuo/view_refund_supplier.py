@@ -412,6 +412,7 @@ def export_return_goods(request):
 
     worksheet.set_column('A:A', 18)
     worksheet.set_column('B:B', 30)
+    worksheet.set_column('C:C', 30)
     worksheet.set_column('E:E', image_width)
     worksheet.merge_range('A1:E6', rg.memo, merge_format)
     worksheet.write('A7', '商品名称', bold_format)
