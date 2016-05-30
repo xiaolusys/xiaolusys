@@ -2494,21 +2494,20 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'saleproduct_id']) or {})
             products.append(product_dict)
 
-        orderlists = self._build_orderlists(list(orderlist_ids))
-
+        #orderlists = self._build_orderlists(list(orderlist_ids))
         # Todo: 待分配入仓单详情页可以再分配
-        """
         if orderlist_ids:
+            template_name = 'dinghuo/edit_inbound.html'
             orderlists = self._build_orderlists(list(orderlist_ids))
         else:
+            template_name = 'dinghuo/inbound_draft.html'
             orderlists = self._find_orderlists(inbound_skus_dict.keys())
             orderlist_id = inbound.orderlist_ids[
                 0] if inbound.orderlist_ids else 0
             allocate_dict = self._find_optimized_allocate_dict(
                 inbound_skus_dict, [x['orderlist_id'] for x in orderlists],
                 orderlist_id, inbound.express_no)
-            orderdetails_dict = {x: {'arrival_quantity': y} for x,y in allocate_dict.iteritems()}
-        """
+            orderdetails_dict = {x: {'arrival_quantity': y, 'inferior_quantity': 0} for x,y in allocate_dict.iteritems()}
 
         result = {
             'supplier_id': supplier.id,
@@ -2529,7 +2528,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'express_no': inbound.express_no
             }
         }
-        return Response(result, template_name='dinghuo/edit_inbound.html')
+        return Response(result, template_name=template_name)
 
     def list(self, request):
         orderlist_id_dict = {}

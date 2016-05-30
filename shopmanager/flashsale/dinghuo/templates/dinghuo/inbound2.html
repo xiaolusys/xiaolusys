@@ -970,12 +970,10 @@
              });
 
              $('body').on('submit', '#form-2', function(){
-                 $('#create-inbound').attr('disabled', true);
-                 $('#create-draft').attr('disabled', true);
-                 $('i.glyphicon', '#form-2').unbind();
-
-
                  var callback = function(){
+                     $('#create-inbound').attr('disabled', true);
+                     $('#create-draft').attr('disabled', true);
+
                      $('.error-district', '#form-2').remove();
                      var inboundSkusDict = getInboundSkusDict();
                      if(_.isEmpty(inboundSkusDict))
@@ -987,6 +985,10 @@
                          type: 'post',
                          dataType: 'json',
                          data: data,
+                         complete: function(){
+                             $('#create-inbound').attr('disabled', false);
+                             $('#create-draft').attr('disabled', false);
+                         },
                          success: function(result){
                              var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
                              if(!_.isEmpty(result.error_districts)){
