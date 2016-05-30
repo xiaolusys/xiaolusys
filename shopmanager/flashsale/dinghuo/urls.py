@@ -15,7 +15,7 @@ from .view_daily_work import (DailyDingHuoView, DailyDingHuoView2, ShowPicView, 
 from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
 from .view_refund_supplier import StatisRefundSupView, change_duihuo_status, change_sum_price, change_return_goods_memo\
-,modify_return_goods_sku, delete_return_goods_sku, set_return_goods_sku_send, set_transactor, set_refund
+,modify_return_goods_sku, delete_return_goods_sku, set_return_goods_sku_send, set_transactor, set_refund, export_return_goods
 import views_wuliu
 import views_sale_status
 import views_product
@@ -81,6 +81,7 @@ urlpatterns = [
     url(r'^returngoods/set_return_goods_sku_send/$', staff_member_required(set_return_goods_sku_send), name="set_return_goods_sku_send"),
     url(r'^returngoods/set_transactor/$', staff_member_required(set_transactor), name="set_transactor"),
     url(r'^returngoods/set_refund/$', staff_member_required(set_refund), name="set_refund"),
+    url(r'^returngoods/export/$', staff_member_required(export_return_goods), name="export_return_goods"),
 
     # 退货状态修改　
     url(r'^tuihuo/change_sum_amount/$', staff_member_required(change_sum_price), name="change_tuihuo_amount"),  # 退货金额修改
@@ -99,4 +100,3 @@ urlpatterns = [
 ]
 
 urlpatterns += router.urls
-
