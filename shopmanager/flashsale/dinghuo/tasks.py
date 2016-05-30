@@ -1644,10 +1644,15 @@ def task_check_with_purchase_order(ol):
     res = OrderDetail.objects.filter(orderlist=ol).aggregate(total=Sum('buy_quantity'))
     total = res['total'] or 0
 
+    mobile = '18616787808'
+    
+    if not ol.supplier:
+        content = 'no supplier, order_list id: %s' % ol.id
+        send_msg(mobile, content)
+        return
+    
     supplier_id = ol.supplier.id
     po = PurchaseOrder.objects.filter(supplier_id=supplier_id).order_by('-created').first()
-
-    mobile = '18616787808'
 
     if not po:
         content = 'supplier_id:%s, no book_num, %s' % (supplier_id, total)
