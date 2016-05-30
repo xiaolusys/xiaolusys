@@ -142,6 +142,9 @@ class UserCouponManager(BaseManager):
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
         uniq_id = make_uniq_id(tpl, customer.id)
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
+        cou = UserCoupon.objects.filter(uniq_id=uniq_id).first()
+        if cou:
+            return cou, 0, u'已经领取'
         cou = UserCoupon.objects.create(template_id=int(template_id),
                                         title=tpl.title,
                                         coupon_type=tpl.coupon_type,
