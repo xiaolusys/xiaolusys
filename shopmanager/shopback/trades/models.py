@@ -1724,7 +1724,7 @@ class PackageSkuItem(BaseModel):
 
     @property
     def ware_by_display(self):
-        return '广州/上海%s号仓' % self.ware_by
+        return '%s号仓' % self.ware_by
 
     @property
     def assign_status_display(self):
@@ -1734,7 +1734,20 @@ class PackageSkuItem(BaseModel):
             return '已发货'
         if self.assign_status == PackageSkuItem.CANCELED:
             return '已取消'
-        return '外贸厂调货中...'
+        return '订单已送达外贸厂快速调货...'
+
+    @property
+    def num_of_purchase_try(self):
+        return 1
+    
+    def is_booking_needed(self):
+        return self.assign_status == PackageSkuItem.NOT_ASSIGNED
+
+    def is_booking_assigned(self):
+        # self.assigned_purchase_order_id
+        if self.assign_status == PackageSkuItem.ASSIGNED:
+            return True
+        return False
     
     def set_assign_status_time(self):
         if self.assign_status == PackageSkuItem.FINISHED:
@@ -1792,6 +1805,15 @@ post_save.connect(update_package_order, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_package_order')
 
 
+def update_purchase_record(sender, instance, created, **kwargs):
+    from flashsale.dinghuo.tasks import task_packageskuitem_update_purchaserecord
+    task_packageskuitem_update_purchaserecord.delay(instance)
+    
+post_save.connect(update_purchase_record, sender=PackageSkuItem,
+                  dispatch_uid='post_save_update_purchase_record')
+
+
+
 def get_package_address_dict(package_order):
     res = {}
     attrs = ['buyer_id','receiver_name','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','receiver_phone']
@@ -1806,3 +1828,4 @@ def get_user_address_dict(ua):
         res[attr] = getattr(ua, attr)
     res['buyer_id'] = ua.cus_uid
     return res
+

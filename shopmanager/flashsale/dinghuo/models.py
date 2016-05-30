@@ -143,7 +143,20 @@ class OrderList(models.Model):
     def __unicode__(self):
         return '<%s,%s>' % (str(self.id or ''), self.buyer_name)
 
+    
+def check_with_purchase_order(sender, instance, created, **kwargs):
+    if not created:
+        return
+    
+    from flashsale.dinghuo.tasks import task_check_with_purchase_order
+    task_check_with_purchase_order.delay(instance)
 
+post_save.connect(
+    check_with_purchase_order,
+    sender=OrderList,
+    dispatch_uid='post_save_check_with_purchase_order')
+
+    
 class OrderDetail(models.Model):
     id = models.AutoField(primary_key=True)
     orderlist = models.ForeignKey(OrderList,
