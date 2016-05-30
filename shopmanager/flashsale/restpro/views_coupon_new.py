@@ -166,7 +166,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                         if coupon:  # 添加返回的coupon
                             coupon_ids.append(coupon.id)
                     except:
-                        return Response({"code": 9, "res": "您已领取", "coupons": ""})
+                        continue
+                    return Response({"code": 9, "res": "您已领取", "coupons": ""})
                 queryset = self.queryset.filter(id__in=coupon_ids)
                 serializer = self.get_serializer(queryset, many=True)
                 if code == 0:
