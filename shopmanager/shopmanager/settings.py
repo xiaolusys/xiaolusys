@@ -303,6 +303,12 @@ if os.environ.get('TARGET') in ('staging',):
     WXAPP_ID     = "wx25fcb32689872499"
     WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
 
+    ################### PING++ SETTINGS ##################
+
+    PINGPP_CLENTIP = "121.199.168.159"
+    PINGPP_APPID = "app_LOOajDn9u9WDjfHa"
+    PINGPP_APPKEY = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT"
+
 if os.environ.get('TARGET') in ('production', 'django18'):
     DEBUG = False
     DATABASES = {
@@ -350,7 +356,11 @@ if os.environ.get('TARGET') in ('production', 'django18'):
     WXAPP_ID = "wx25fcb32689872499"
     WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
 
+    ################### PING++ SETTINGS ##################
 
+    PINGPP_CLENTIP = "121.199.168.159"
+    PINGPP_APPID = "app_LOOajDn9u9WDjfHa"
+    PINGPP_APPKEY = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC"
 
 if not DEBUG:
     TEMPLATE_DEBUG = DEBUG
@@ -447,13 +457,6 @@ if not DEBUG:
     JD_AUTHRIZE_TOKEN_URL = 'https://auth.360buy.com/oauth/token'
     JD_REDIRECT_URI = '/app/jd/login/auth/'
     JD_API_ENDPOINT = 'http://%s/routerjson' % JD_API_HOSTNAME
-
-    ################### PING++ SETTINGS ##################
-
-    PINGPP_CLENTIP = "121.199.168.159"
-    PINGPP_APPID = "app_LOOajDn9u9WDjfHa"
-    # PINGPP_APPKEY = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT"
-    PINGPP_APPKEY = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC"
 
     ################### Ntalker SETTINGS ##################
 
