@@ -70,7 +70,7 @@ def gen_purchase_record_unikey(psi):
 def gen_purchase_order_unikey(pr):
     supplier = get_supplier(pr.sku_id)
     if not supplier:
-        return 'Intentional-NULL-supplier-id"
+        return 'Intentional-NULL-supplier-id'
     
     from flashsale.dinghuo.models_purchase import PurchaseOrder
     cnt = PurchaseOrder.objects.filter(supplier_id=supplier.id).exclude(status=PurchaseOrder.OPEN).count()
