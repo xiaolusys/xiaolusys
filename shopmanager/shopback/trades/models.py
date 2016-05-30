@@ -1736,6 +1736,10 @@ class PackageSkuItem(BaseModel):
             return '已取消'
         return '订单已送达外贸厂快速调货...'
 
+    @property
+    def num_of_purchase_try(self):
+        return 1
+    
     def is_booking_needed(self):
         return self.assign_status == PackageSkuItem.NOT_ASSIGNED
 

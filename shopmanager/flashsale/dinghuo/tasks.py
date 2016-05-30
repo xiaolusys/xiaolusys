@@ -1407,35 +1407,256 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
 
 
 
-from flashsale.dinghuo.models_purchase import PurchaseRecord
 
-def copy_fields(from_obj, to_obj, fields):
-    """
-    util function
-    """
-    for field in fields:
-        if hasattr(to_obj, field) and hasattr(from_obj, field):
-            value = getattr(to_obj, field)
-            setattr(from_obj, field, value)
+        
+
+from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangement, PurchaseDetail, PurchaseOrder
+from . import utils
+    
 
     
 @task()
 def task_packageskuitem_update_purchaserecord(psi):
+    #print "debug: %s" % utils.get_cur_info()
+    
     status = PurchaseRecord.EFFECT
     if psi.is_booking_needed():
         status = PurchaseRecord.EFFECT
     else:
         status = PurchaseRecord.CANCEL
     
-    from . import util_unikey
-    uni_key = util_unikey.gen_purchase_record_unikey(psi)
+    uni_key = utils.gen_purchase_record_unikey(psi)
     pr = PurchaseRecord.objects.filter(uni_key=uni_key).first()
     if not pr:
-        fields = ['oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'num']
-        pr = PurchaseRecord(package_sku_item_id=psi.id,uni_key=uni_key,status=status)
-        copy_fields(psi, pr, fields)
+        fields = ['oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
+        pr = PurchaseRecord(package_sku_item_id=psi.id,uni_key=uni_key,request_num=psi.num,status=status)
+        utils.copy_fields(pr, psi, fields)
         pr.save()
     else:
         if pr.status != status:
             pr.status = status
-            pr.save(update_fields=['status'])
+            pr.save(update_fields=['status','modified'])
+
+
+@task()
+def task_purchasearrangement_update_purchaserecord_book_num(pa):
+    #print "debug: %s" % utils.get_cur_info()
+    
+    res = PurchaseArrangement.objects.filter(purchase_record_unikey=pa.purchase_record_unikey,
+                                             purchase_order_status__lte=PurchaseOrder.BOOKED).aggregate(total=Sum('num'))
+    book_num = res['total'] or 0
+    pr = PurchaseRecord.objects.filter(uni_key=pa.purchase_record_unikey).first()
+    if pr and pr.book_num != book_num:
+        pr.book_num = book_num
+        pr.save(update_fields=['book_num','modified'])
+
+@task()
+def task_purchase_detail_update_purchase_order(pd):
+    #print "debug: %s" % utils.get_cur_info()
+    res = PurchaseDetail.objects.filter(purchase_order_unikey=pd.purchase_order_unikey).\
+          aggregate(b_num=Sum('book_num'),n_num=Sum('need_num'),a_num=Sum('arrival_num'))
+    book_num = res['b_num'] or 0
+    need_num = res['n_num'] or 0
+    arrival_num = res['a_num'] or 0
+
+    po = PurchaseOrder.objects.filter(uni_key=pd.purchase_order_unikey).first()
+    if not po:
+        supplier = utils.get_supplier(pd.sku_id)
+        po = PurchaseOrder(uni_key=pd.purchase_order_unikey,supplier_id=supplier.id,supplier_name=supplier.supplier_name,
+                           book_num=book_num,need_num=need_num,arrival_num=arrival_num)
+        po.save()
+    else:
+        if po.book_num != book_num or po.need_num != need_num or po.arrival_num != arrival_num:
+            po.book_num = book_num
+            po.need_num = need_num
+            po.arrival_num = arrival_num
+            po.save(update_fields=['book_num', 'need_num', 'arrival_num', 'modified'])
+            
+
+@task()
+def task_purchasearrangement_update_purchasedetail(pa):
+    #print "debug: %s" % utils.get_cur_info()
+    
+    res = PurchaseArrangement.objects.filter(purchase_order_unikey=pa.purchase_order_unikey,
+                                            sku_id=pa.sku_id, status=PurchaseRecord.EFFECT).aggregate(total=Sum('num'))
+
+    total = res['total'] or 0
+
+    uni_key = utils.gen_purchase_detail_unikey(pa)
+    pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
+    if not pd:
+        unit_price = int(utils.get_unit_price(pa.sku_id) * 100)
+        pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey, unit_price=unit_price,book_num=total,need_num=total)
+        fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
+        utils.copy_fields(pd, pa, fields)
+        pd.save()
+    else:
+        if pd.is_open():
+            if pd.book_num != total:
+                pd.book_num = total
+                pd.need_num = total
+                pd.save(update_fields=['book_num','need_num', 'modified'])
+            return
+        elif pd.is_booked():
+            if pd.need_num != total:
+                pd.need_num = total
+                pd.extra_num = pd.book_num - pd.need_num
+                pd.save(update_fields=['need_num', 'extra_num','modified'])
+
+@task()
+def task_start_booking(pr):
+    #print "debug: %s" % utils.get_cur_info()
+
+    if not pr.need_booking():
+        return
+
+    pd = PurchaseDetail.objects.filter(sku_id=pr.sku_id, extra_num__gte=pr.need_num, status=PurchaseOrder.BOOKED).first()
+    if pd:
+        purchase_order_unikey = pd.purchase_order_unikey
+    else:
+        # 2. create new purchase order
+        purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
+
+    uni_key = utils.gen_purchase_arrangement_unikey(purchase_order_unikey, pr.uni_key)
+    pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
+    if not pa:
+        fields = ['package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
+        pa = PurchaseArrangement(uni_key=uni_key, purchase_order_unikey=purchase_order_unikey, purchase_record_unikey=pr.uni_key, num=pr.need_num)
+        utils.copy_fields(pa, pr, fields)
+        pa.save()
+    else:
+        # We have to note that logically pa wont be an old-canceled record.
+        pa.num = pa.num + pr.need_num
+        pa.save(update_fields=['num', 'modified'])
+    
+
+@task()
+def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
+    #print "debug: %s" % utils.get_cur_info()
+    
+    if not pr.is_overbooked():
+        return
+    
+    pa = PurchaseArrangement.objects.filter(sku_id=pr.sku_id, purchase_order_status=PurchaseOrder.OPEN, status=PurchaseRecord.EFFECT).first()
+    if not pa:
+        logger.error("severe logical error: overbooking|sku_id:%s, package_sku_item_id:%s, oid:%s, request_num:%s, book_num:%s" %
+                     (pr.sku_id, pr.package_sku_item_id, pr.oid, pr.request_num, pr.book_num))
+    else:
+        num = min(pr.book_num - pr.request_num, pa.num)
+        pa.num = pa.num - num
+        pa.save(update_fields=['num', 'modified'])
+
+
+    
+@task()
+def task_purchaserecord_sync_purchasearrangement_status(pr):
+    #print "debug: %s" % utils.get_cur_info()
+    
+    if not pr.is_booked():
+        return
+
+    records = PurchaseArrangement.objects.filter(purchase_record_unikey=pr.uni_key)
+    for record in records:
+        if record.status != pr.status:
+            record.status = pr.status
+            record.save(update_fields=['status', 'modified'])
+    
+
+@task()
+def task_check_arrangement(pd):
+    #print "debug: %s" % utils.get_cur_info()
+    
+    if not pd.has_extra():
+        return
+
+    pa = PurchaseArrangement.objects.filter(sku_id=pd.sku_id, status=PurchaseRecord.EFFECT,purchase_order_status=PurchaseOrder.OPEN).first()
+    if pa:
+        # add 
+        num = min(pd.extra_num, pa.num)
+        uni_key = utils.gen_purchase_arrangement_unikey(pd.purchase_order_unikey, pa.purchase_record_unikey)
+        pa_existing = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
+        if not pa_existing:
+            pa_new = PurchaseArrangement(uni_key=uni_key,purchase_order_unikey=pd.purchase_order_unikey, purchase_order_status=pd.status, num=num)
+            fields = ['package_sku_item_id', 'oid', 'purchase_record_unikey', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
+            utils.copy_fields(pa_new, pa, fields)
+            pa_new.save()
+        else:
+            pa_existing.num += num
+            pa_existing.save(update_fields=['num','modified'])
+    
+
+
+from shopapp.smsmgr.models import SMSPlatform, SMS_NOTIFY_VERIFY_CODE
+from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
+
+def send_msg(mobile, content):
+    platform = SMSPlatform.objects.filter(is_default=True).order_by('-id').first()
+    if not platform:
+        logger.error(u"send_msg: SMSPlatform object not found !")
+        return
+    try:
+        params = {
+            'content': content,
+            'userid': platform.user_id,
+            'account': platform.account,
+            'password': platform.password,
+            'mobile': mobile,
+            'taskName': "小鹿美美验证码",
+            'mobilenumber': 1,
+            'countnumber': 1,
+            'telephonenumber': 0,
+            'action': 'send',
+            'checkcontent': '0'
+        }
+
+        sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code, None)
+        if not sms_manager:
+            raise Exception('未找到短信服务商接口实现')
+
+        manager = sms_manager()
+        success = False
+
+        # 创建一条短信发送记录
+        sms_record = manager.create_record(params['mobile'], params['taskName'], SMS_NOTIFY_VERIFY_CODE,
+                                           params['content'])
+        # 发送短信接口
+        try:
+            success, task_id, succnums, response = manager.batch_send(**params)
+        except Exception, exc:
+            sms_record.status = pcfg.SMS_ERROR
+            sms_record.memo = exc.message
+            logger.error(exc.message, exc_info=True)
+        else:
+            sms_record.task_id = task_id
+            sms_record.succnums = succnums
+            sms_record.retmsg = response
+            sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
+        sms_record.save()
+        if success:
+            SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums') + int(succnums))
+    except Exception, exc:
+        logger.error(exc.message or 'empty error', exc_info=True)
+
+
+
+@task()
+def task_check_with_purchase_order(ol):
+    res = OrderDetail.objects.filter(orderlist=ol).aggregate(total=Sum('buy_quantity'))
+    total = res['total'] or 0
+
+    supplier_id = ol.supplier.id
+    po = PurchaseOrder.objects.filter(supplier_id=supplier_id).order_by('-created').first()
+
+    mobile = '18616787808'
+
+    if not po:
+        content = 'supplier_id:%s, no book_num, %s' % (supplier_id, total)
+        send_msg(mobile, content)
+        return
+
+    if po.book_num != total:
+        content = 'supplier_id:%s, book_num:%s-%s' % (supplier_id, po.book_num, total)
+        send_msg(mobile, content)
+    
+    po.status = PurchaseOrder.BOOKED
+    po.save()
