@@ -499,7 +499,7 @@ def export_return_goods(request):
 
 
     workbook.close()
-    filename = '1.xlsx'
+    filename = '%s-%d.xlsx' % (rg.created.strftime('%Y%m%d'), rg.id)
     response = HttpResponse(
         buff.getvalue(),
         content_type=
