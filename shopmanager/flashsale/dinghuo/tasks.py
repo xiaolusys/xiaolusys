@@ -1462,6 +1462,9 @@ def task_purchase_detail_update_purchase_order(pd):
     po = PurchaseOrder.objects.filter(uni_key=pd.purchase_order_unikey).first()
     if not po:
         supplier = utils.get_supplier(pd.sku_id)
+        if not supplier:
+            logger.error("supplier does not exist|sku_id:%s" % pd.sku_id)
+            return
         po = PurchaseOrder(uni_key=pd.purchase_order_unikey,supplier_id=supplier.id,supplier_name=supplier.supplier_name,
                            book_num=book_num,need_num=need_num,arrival_num=arrival_num)
         po.save()
