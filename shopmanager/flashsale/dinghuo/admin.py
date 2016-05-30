@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
 from django.contrib.auth.models import User
-from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail
+from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, UnReturnSku
 from django.http import HttpResponseRedirect
 from functools import partial, reduce, update_wrapper
 from core.options import log_action, CHANGE
@@ -574,6 +574,22 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
+
+
+class UnReturnSkuAdmin(admin):
+    list_display = ('product__name', "sale_product__name", "supplier__supplier_name", "sku__id", "reason", "creater",
+                    "created", "modified", "status")
+    search_fields = ['product__name', "supplier__id", "supplier__supplier_name", "product__id",
+                     "sku__id"]
+
+    list_filter = ["status", "creater", "reason"]
+    readonly_fields = ('product', 'sale_product', 'sku', 'supplier')
+    inlines = [RGDetailInline, ]
+    list_display_links = ['id',]
+    list_select_related = True
+    list_per_page = 50
+
+admin.site.register(UnReturnSku, UnReturnSkuAdmin)
 
 from .models import SaleInventoryStat
 

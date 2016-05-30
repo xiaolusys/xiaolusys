@@ -8,7 +8,7 @@ from django.db.models import Sum, F
 from django.contrib.auth.models import User
 
 from core.fields import JSONCharMyField
-
+from core.models import BaseModel
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier
@@ -409,7 +409,8 @@ class ReturnGoods(models.Model):
         product_sku_dict = dict([(p.id, p) for p in ProductSku.objects.filter(id__in=sku_dict.keys())])
         supplier = {}
         for sku_id in product_sku_dict:
-            if sku_dict[sku_id] > 0:
+            if sku_dict[sku_id] > 0 and \
+                    ReturnGoods.can_return(sku=sku_id):
                 sku = product_sku_dict[sku_id]
                 detail = RGDetail(
                     skuid=sku_id,
@@ -422,7 +423,7 @@ class ReturnGoods(models.Model):
                 supplier[supplier_id].append(detail)
         res = []
         for supplier_id in supplier:
-            if ReturnGoods.can_return(supplier_id):
+            if ReturnGoods.can_return(supplier_id=supplier_id):
                 rg_details = supplier[supplier_id]
                 rg = ReturnGoods(supplier_id=supplier_id,
                                  noter=noter,
@@ -441,16 +442,21 @@ class ReturnGoods(models.Model):
         return res
 
     @staticmethod
-    def can_return(supplier_id):
+    def can_return(supplier_id=None, sku=None):
         """
             近七天内没有有效退货单
+            且
+            不在不可退货商品列表中
         :param supplier_id:
         :return:
         """
-        return not ReturnGoods.objects.filter(created__gt=datetime.datetime.now()-datetime.timedelta(days=7),
+        if supplier_id:
+            return not ReturnGoods.objects.filter(created__gt=datetime.datetime.now()-datetime.timedelta(days=7),
                                           supplier_id=supplier_id, status__in=[ReturnGoods.CREATE_RG, ReturnGoods.VERIFY_RG,
                                                                                ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
                                                                                ReturnGoods.SUCCEED_RG]).exists()
+        if sku_id:
+            return not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
 
     @staticmethod
     def get_user_by_supplier(supplier_id):
@@ -583,8 +589,22 @@ def sync_rgd_return(sender, instance, created, **kwargs):
 post_save.connect(sync_rgd_return, sender=RGDetail, dispatch_uid='post_save_sync_rgd_return')
 
 
-# class UnReturnList(models.Model):
-#     pass
+class UnReturnSku(BaseModel):
+    supplier = models.ForeignKey(SaleSupplier, null=True, verbose_name=u"供应商")
+    sale_product = models.ForeignKey(SaleSupplier, null=True, verbose_name=u"供应商")
+    product = models.ForeignKey(Product, null=True, verbose_name=u"商品")
+    sku = models.ForeignKey(ProductSku, null=True, verbose_name=u"sku")
+    creater = models.ForeignKey(User, verbose_name=u'创建人')
+    EFFECT = 1
+    INVALIED = 2
+    status = models.IntegerField(choices=((EFFECT, u'有效'), (INVALIED, u'无效')), default=0, verbose_name=u'状态')
+    reason = models.IntegerField(choices=((1, u'保护商品'), (2, u'商家不许退货'), (3, u'其它原因')),
+                                 default=2, verbose_name=u'不可退货原因')
+    class Meta:
+        db_table = 'flashsale_dinghuo_unreturn_sku'
+        app_label = 'dinghuo'
+        verbose_name = u'不可退货商品明细表'
+        verbose_name_plural = u'商品库存退货明细列表'
 
 class SaleInventoryStat(models.Model):
     """
