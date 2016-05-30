@@ -59,6 +59,7 @@ def is_from_weixin(request):
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     ###特卖购物车REST API接口：
+    * 请求GET类型的api直接返回数据,如果正常http状态码code==200,有异常http状态码code >= 500
     - payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
     - {prefix}/{{pk}}/delete_carts[.formt]: 删除;
     - {prefix}/{{pk}}/plus_product_carts[.formt]: 增加一件;
@@ -197,7 +198,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         """关闭购物车中的某一个数据，调用关闭接口"""
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({"code": 0, "info": u"删除成功"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"code": 0, "info": u"删除成功"})
 
     def perform_destroy(self, instance):
         instance.close_cart()
