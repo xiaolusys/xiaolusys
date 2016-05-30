@@ -34,6 +34,10 @@
 </style>
 {% if cl.formset %}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+  -rw-rw-r-- 1 aladdin aladdin  3379 12月 26 09:26 data_grape.html
+  -rw-rw-r-- 1 aladdin aladdin  8216 12月 26 09:26 data_of_point.html
+  -rw-rw-r-- 1 aladdin aladdin  3142 12月 26 09:26 data_of_product.html
+  -rw-rw-r-- 1 aladdin aladdin  5740 12月 26 09:26
 {% endif %}
 {% if cl.formset or action_form %}
 {% url 'admin:jsi18n' as jsi18nurl %}
@@ -85,6 +89,9 @@
                 <label class="simple-label" id="id_sum_amount" name="sum_amount">{{original.sum_amount}}元</label>
                 <label class="required" for="id_noter">退货单录入人:</label>
                 <label class="simple-label" id="id_noter" name="noter">{{original.noter}}</label>
+                <a href="/sale/dinghuo/returngoods/export/?rg_id={{original.id}}" target="_blank">
+                    <span class="label label-success">导出excel</span>
+                </a>
             </div>
         </div>
         <div class="form-row row-through">

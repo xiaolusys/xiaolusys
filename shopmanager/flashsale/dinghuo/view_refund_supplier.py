@@ -4,6 +4,12 @@
 库存：shopback items models Product collect_num: 库存数
 退货：flashsale dinghuo models_stats SupplyChainStatsOrder refund_num :退货数量 ,该产品的昨天的退货数量
 """
+from cStringIO import StringIO
+import decimal
+import io
+import urllib
+import xlsxwriter
+
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -12,6 +18,7 @@ from rest_framework import permissions
 import logging
 import json
 import datetime
+import common.utils
 from core.options import log_action, ADDITION, CHANGE
 from tasks import calcu_refund_info_by_pro_v2
 from shopback.logistics.models import LogisticsCompany
@@ -43,10 +50,14 @@ class StatisRefundSupView(APIView):
 
     def get(self, request, format=None):
         content = request.REQUEST
-        date_from = (content.get('date_from', datetime.datetime.today() - datetime.timedelta(days=7)))
+        date_from = (
+            content.get('date_from',
+                        datetime.datetime.today() - datetime.timedelta(days=7)))
         date_to = (content.get('date_to', datetime.datetime.today()))
         task_id = calcu_refund_info_by_pro_v2.delay(date_from, date_to)
-        return Response({"task_id": task_id, "date_from": date_from, "date_to": date_to})
+        return Response({"task_id": task_id,
+                         "date_from": date_from,
+                         "date_to": date_to})
 
     def post(self, request, format=None):
         content = request.REQUEST
@@ -78,8 +89,11 @@ class StatisRefundSupView(APIView):
                     inferior_num = int(da['sku_inferior_num'])
                     return_num = return_num + sku_return_num  # 累计产品的退货数量
                     sum_amount = sum_amount + price * sku_return_num
-                    rg_d = RGDetail.objects.create(skuid=sku_id, return_goods_id=rg.id, num=sku_return_num,
-                                                   inferior_num=inferior_num, price=price)
+                    rg_d = RGDetail.objects.create(skuid=sku_id,
+                                                   return_goods_id=rg.id,
+                                                   num=sku_return_num,
+                                                   inferior_num=inferior_num,
+                                                   price=price)
                     log_action(request.user.id, rg_d, ADDITION, u'创建退货单')
             rg.return_num = return_num
             rg.sum_amount = sum_amount
@@ -110,25 +124,31 @@ def change_duihuo_status(request):
         rg.status = ReturnGoods.VERIFY_RG
         rg.save()
         change_product_inventory(rg, request.user.username, request.user.id)
-        log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
+        log_action(user_id, rg, CHANGE,
+                   change_status_des.format(rg.get_status_display()))
         # 减少库存
     elif act_str == "no":  # 作废
         rg.status = ReturnGoods.OBSOLETE_RG
         rg.save()
-        log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
+        log_action(user_id, rg, CHANGE,
+                   change_status_des.format(rg.get_status_display()))
     elif act_str == "send":  # 已经发货
         rg.status = ReturnGoods.DELIVER_RG
         rg.save()
-        log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
+        log_action(user_id, rg, CHANGE,
+                   change_status_des.format(rg.get_status_display()))
     elif act_str == "send_ok":  # 已经发货
         rg.status = ReturnGoods.SUCCEED_RG
         rg.save()
-        log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
+        log_action(user_id, rg, CHANGE,
+                   change_status_des.format(rg.get_status_display()))
     elif act_str == "send_fail":  # 已经发货
         rg.status = ReturnGoods.FAILED_RG
         rg.save()
-        log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
+        log_action(user_id, rg, CHANGE,
+                   change_status_des.format(rg.get_status_display()))
     return HttpResponse(True)
+
 
 def change_return_goods_memo(request):
     content = request.REQUEST
@@ -138,6 +158,7 @@ def change_return_goods_memo(request):
     return_goods.memo = memo
     return_goods.save()
     return HttpResponse(True)
+
 
 def modify_return_goods_sku(request):
     content = request.REQUEST
@@ -168,7 +189,8 @@ def set_return_goods_sku_send(request):
     content = request.REQUEST
     id = int(content.get("id", None))
     logistic_company_name = content.get("logistic_company", None)
-    logistic_company = get_object_or_404(LogisticsCompany, name=logistic_company_name)
+    logistic_company = get_object_or_404(LogisticsCompany,
+                                         name=logistic_company_name)
     logistic_no = content.get("logistic_no", None)
     consigner = request.user.username
     return_goods = get_object_or_404(ReturnGoods, id=id)
@@ -188,12 +210,14 @@ def set_transactor(request):
     return_goods.set_transactor(transactor)
     return HttpResponse(True)
 
+
 def set_refund(request):
     content = request.REQUEST
     id = int(content.get("id", None))
     return_goods = get_object_or_404(ReturnGoods, id=id)
     return_goods.supply_notify_refund()
     return HttpResponse(True)
+
 
 def set_return_goods_failed(request):
     content = request.REQUEST
@@ -256,7 +280,8 @@ def acrion_invenctory_num(product, psk, rd, actor_id):
     else:
         psk.quantity = 0
         update_model_fields(psk, update_fields=['quantity'])  # 更新字段方法
-    action_desc = u"仓库审核退货单通过->将原来库存{0}更新为{1}".format(psk_quantity, psk.quantity)
+    action_desc = u"仓库审核退货单通过->将原来库存{0}更新为{1}".format(psk_quantity,
+                                                      psk.quantity)
     log_action(actor_id, psk, CHANGE, action_desc)
 
     # 减少库存商品的数量
@@ -268,10 +293,11 @@ def acrion_invenctory_num(product, psk, rd, actor_id):
     else:
         product_af.collect_num = 0
         update_model_fields(product_af, update_fields=['collect_num'])  # 更新字段方法
-    pro_action_desc = u"仓库审核退货单通过->将原来库存{0}更新为{1}".format(pro_collect_num, product_af.collect_num)
+    pro_action_desc = u"仓库审核退货单通过->将原来库存{0}更新为{1}".format(
+        pro_collect_num, product_af.collect_num)
     log_action(actor_id, product_af, CHANGE, pro_action_desc)
 
-    # 减少库存 减去次品数　
+    # 减少库存 减去次品数
     sku_inferior_num = psk.sku_inferior_num
     if sku_inferior_num >= rd.inferior_num:
         psk.sku_inferior_num = F("sku_inferior_num") - rd.inferior_num
@@ -279,7 +305,8 @@ def acrion_invenctory_num(product, psk, rd, actor_id):
     else:
         psk.sku_inferior_num = 0
         update_model_fields(psk, update_fields=['sku_inferior_num'])  # 更新字段方法
-    action_desc = u"仓库审核退货单通过->将原来次品数量{0}更新为{1}".format(sku_inferior_num, psk.sku_inferior_num)
+    action_desc = u"仓库审核退货单通过->将原来次品数量{0}更新为{1}".format(sku_inferior_num,
+                                                        psk.sku_inferior_num)
     log_action(actor_id, psk, CHANGE, action_desc)
 
 
@@ -295,16 +322,23 @@ def acrion_product_num(outer_id, sku_out_id, num, can_reuse):
             before_num = psk.quantity
             psk.quantity = F('quantity') + num  # 增加历史库存数
             update_model_fields(psk, update_fields=['quantity'])  # 更新字段方法
-            log_action(actioner, psk, CHANGE, u"更新历史{0}+{1}退货商品到产品库存中".format(before_num, psk.quantity))
+            log_action(actioner, psk, CHANGE,
+                       u"更新历史{0}+{1}退货商品到产品库存中".format(before_num,
+                                                       psk.quantity))
             before_pro_num = pro.collect_num
             pro.collect_num = F('collect_num') + num
             update_model_fields(pro, update_fields=['collect_num'])  # 更新字段方法
-            log_action(actioner, pro, CHANGE, u"更新历史{0}+{1}退货商品到产品库存中".format(before_pro_num, psk.quantity))
+            log_action(actioner, pro, CHANGE,
+                       u"更新历史{0}+{1}退货商品到产品库存中".format(before_pro_num,
+                                                       psk.quantity))
         else:
             before_num = psk.sku_inferior_num
             psk.sku_inferior_num = F('sku_inferior_num') + num  # 增加历史库存数
-            update_model_fields(psk, update_fields=['sku_inferior_num'])  # 更新字段方法
-            log_action(actioner, psk, CHANGE, u"更新历史{0}+{1}退货次品到产品库存次品中".format(before_num, psk.sku_inferior_num))
+            update_model_fields(psk,
+                                update_fields=['sku_inferior_num'])  # 更新字段方法
+            log_action(actioner, psk, CHANGE,
+                       u"更新历史{0}+{1}退货次品到产品库存次品中".format(before_num,
+                                                         psk.sku_inferior_num))
         print "usual :", outer_id, sku_out_id, num
     except ProductSku.DoesNotExist:
         print "exption :ProductSku mutil", outer_id, sku_out_id, num
@@ -323,7 +357,9 @@ def update_refundpro_to_product(can_reuse=False):
     actioner = 19  # 操作用户的id systemoa 641
     rep_dic = {}
     # can_reuse=False　不可以二次销售的　次品       #　can_reuse=True 可以二次销售的　正品
-    re_prods = RefundProduct.objects.filter(is_finish=False, can_reuse=can_reuse, created__lte=endtime)
+    re_prods = RefundProduct.objects.filter(is_finish=False,
+                                            can_reuse=can_reuse,
+                                            created__lte=endtime)
 
     for rp in re_prods:
         if rep_dic.has_key(rp.outer_id):
@@ -335,7 +371,8 @@ def update_refundpro_to_product(can_reuse=False):
             rep_dic[rp.outer_id] = {rp.outer_sku_id: rp.num}
         rp.is_finish = True
         update_model_fields(rp, update_fields=['is_finish'])  # 更新字段方法
-        log_action(actioner, rp, CHANGE, u"更新历史退货商品到产品库存时　修改成处理完成")  # systemoa 添加log action
+        log_action(actioner, rp, CHANGE,
+                   u"更新历史退货商品到产品库存时　修改成处理完成")  # systemoa 添加log action
 
     for pr in rep_dic.items():
         outer_id = pr[0]
@@ -344,3 +381,128 @@ def update_refundpro_to_product(can_reuse=False):
             num = sku[1]
             # 修改该商品的该sku库存
             acrion_product_num(outer_id, sku_out_id, num, can_reuse)
+
+
+def export_return_goods(request):
+    def _parse_name(product_name):
+        name, color = ('-',) * 2
+        parts = product_name.rsplit('/', 1)
+        if len(parts) > 1:
+            name, color = parts[:2]
+        elif len(parts) == 1:
+            name = parts[0]
+        return name, color
+
+    rg_id = int(request.GET['rg_id'])
+    rg = ReturnGoods.objects.get(id=rg_id)
+
+    image_width = 25
+    image_height = 125
+    buff = StringIO()
+    workbook = xlsxwriter.Workbook(buff)
+    worksheet = workbook.add_worksheet()
+
+    merge_format = workbook.add_format({
+        'border': 1,
+        'align': 'center',
+        'valign': 'vcenter'
+    })
+    bold_format = workbook.add_format({'bold': True})
+    money_format = workbook.add_format({'num_format': '0.00'})
+
+    worksheet.set_column('A:A', 18)
+    worksheet.set_column('B:B', 30)
+    worksheet.set_column('E:E', image_width)
+    worksheet.merge_range('A1:E6', rg.memo, merge_format)
+    worksheet.write('A7', '商品名称', bold_format)
+    worksheet.write('B7', '产品货号', bold_format)
+    worksheet.write('C7', '颜色', bold_format)
+    worksheet.write('D7', '规格', bold_format)
+    worksheet.write('E7', '图片', bold_format)
+    worksheet.write('F7', '数量', bold_format)
+    worksheet.write('G7', '单项价格', bold_format)
+    worksheet.write('H7', '总价', bold_format)
+
+    row = 7
+    all_price = decimal.Decimal('0')
+    all_quantity = 0
+
+    saleproduct_ids = set()
+    for product in rg.products:
+        saleproduct_ids.add(product.sale_product)
+
+    saleproducts_dict = {}
+    for saleproduct in SaleProduct.objects.filter(id__in=list(saleproduct_ids)):
+        saleproducts_dict[saleproduct.id] = {
+            'supplier_sku': saleproduct.supplier_sku,
+            'product_link': saleproduct.product_link
+        }
+
+    warehouse_stats = dict.fromkeys([Product.WARE_SH, Product.WARE_GZ], 0)
+    for product in rg.products_item_sku():
+        for detail_item in product.detail_items:
+            num = detail_item.num
+            if num <= 0:
+                continue
+
+            sku = detail_item.product_sku
+            name, color = _parse_name(product.name)
+            properties_name = sku.properties_name or sku.properties_alias
+            pic_path = product.pic_path.strip()
+            if pic_path:
+                pic_path = common.utils.url_utf8_quote(pic_path.encode('utf-8'))
+                pic_path = '%s?imageMogr2/thumbnail/560/crop/560x480/format/jpg' % pic_path
+            cost = detail_item.price
+            saleproduct_dict = saleproducts_dict.get(product.sale_product) or {}
+            supplier_sku = saleproduct_dict.get('supplier_sku') or ''
+            product_link = saleproduct_dict.get('product_link') or ''
+
+            if product.ware_by in [Product.WARE_SH, Product.WARE_GZ]:
+                warehouse_stats[product.ware_by] += 1
+
+            all_quantity += num
+            all_price += decimal.Decimal(str(num * cost))
+
+            worksheet.write(row, 0, name)
+            worksheet.write(row, 1, supplier_sku)
+            worksheet.write(row, 2, color)
+            worksheet.write(row, 3, properties_name)
+            if pic_path:
+                opt = {'image_data':
+                           io.BytesIO(urllib.urlopen(pic_path).read()),
+                       'x_scale': 0.25,
+                       'y_scale': 0.25}
+                if product_link:
+                    opt['url'] = product_link
+                worksheet.set_row(row, image_height)
+                worksheet.insert_image(row, 4, pic_path, opt)
+            worksheet.write(row, 5, num)
+            worksheet.write(row, 6, round(cost, 2))
+            worksheet.write(row, 7, round(cost * num, 2))
+            row += 1
+
+    worksheet.write(row, 4, '总数:', bold_format)
+    worksheet.write(row, 5, all_quantity)
+    worksheet.write(row, 6, '总计:', bold_format)
+    worksheet.write(row, 7, all_price, money_format)
+
+    row += 1
+    worksheet.write(row, 0, '寄件地址:', bold_format)
+    ware = max(warehouse_stats.items(), key=lambda x: x[1])[0]
+    if ware == Product.WARE_SH:
+        warehouse = '上海市佘山镇吉业路245号5号楼'
+    else:
+        warehouse = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼'
+    worksheet.merge_range(row, 1, row, 5, warehouse)
+    worksheet.write(row + 1, 0, '支付宝账号:', bold_format)
+    worksheet.merge_range(row + 1, 1, row + 1, 5, '暂无')
+
+
+    workbook.close()
+    filename = '1.xlsx'
+    response = HttpResponse(
+        buff.getvalue(),
+        content_type=
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment;filename=%s' % filename
+    return response

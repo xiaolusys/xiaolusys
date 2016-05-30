@@ -944,6 +944,7 @@
                          }
                          if(!_.isEmpty(result.inbound))
                              inbound = result.inbound;
+                         swal('保存成功', '', 'success');
                          orderlists = result.orderlists;
                          setupForm3(buildInboundOrderlists(result.orderlists, result.inbound.details));
                          fillForm3(result.allocate_dict, result.inbound.details, []);
