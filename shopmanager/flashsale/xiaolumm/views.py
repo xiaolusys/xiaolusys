@@ -42,7 +42,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
-WEB_SHARE_URL = "{site_url}/mall/?mm_linkid={mm_linkid}&ufrom={ufrom}"
+WEB_SHARE_URL = "{site_url}/mall/#/?mm_linkid={mm_linkid}&ufrom={ufrom}"
 
 
 # SHOPURL = "http://m.xiaolumeimei.com/mm/plist/"
@@ -504,10 +504,14 @@ def get_share_url(next_page=None, mm_linkid=None, ufrom=None):
         if ufrom:
             query_dict.update(ufrom=ufrom)
         query_string = urllib.urlencode(query_dict)
+        fragment = url_ps.fragment
+        if fragment.find('?') >= 0:
+            fragment += '&' + query_string
+        else:
+            fragment += '?' + query_string
         share_url = urlparse.urljoin(settings.M_SITE_URL,
-                    '{path}?{query}#{fragement}'.format(
+                    '{path}#{fragement}'.format(
                         path=url_ps.path,
-                        query=query_string,
                         fragement=url_ps.fragment
                     ))
     else:
