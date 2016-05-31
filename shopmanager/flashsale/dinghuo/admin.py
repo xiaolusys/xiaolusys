@@ -575,21 +575,26 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
 
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
 
-
-class UnReturnSkuAdmin(admin):
+class UnReturnSkuAdmin(admin.ModelAdmin):
     list_display = ('product__name', "sale_product__name", "supplier__supplier_name", "sku__id", "reason", "creater",
                     "created", "modified", "status")
     search_fields = ['product__name', "supplier__id", "supplier__supplier_name", "product__id",
                      "sku__id"]
 
     list_filter = ["status", "creater", "reason"]
-    readonly_fields = ('product', 'sale_product', 'sku', 'supplier')
-    inlines = [RGDetailInline, ]
-    list_display_links = ['id',]
+    #readonly_fields = ('product', 'sale_product', 'sku', 'supplier')
+    #inlines = [RGDetailInline, ]
+    #list_display_links = ['id',]
     list_select_related = True
     list_per_page = 50
 
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['product___name', 'sale_product__name', 'supplier__supplier_name', 'sku__id']:
+            return True
+        return super(UnReturnSkuAdmin, self).lookup_allowed(lookup, value)
+
 admin.site.register(UnReturnSku, UnReturnSkuAdmin)
+
 
 from .models import SaleInventoryStat
 

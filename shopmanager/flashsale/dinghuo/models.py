@@ -11,7 +11,7 @@ from core.fields import JSONCharMyField
 from core.models import BaseModel
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
-from supplychain.supplier.models import SaleSupplier
+from supplychain.supplier.models import SaleSupplier, SaleProduct
 
 
 class OrderList(models.Model):
@@ -590,13 +590,13 @@ post_save.connect(sync_rgd_return, sender=RGDetail, dispatch_uid='post_save_sync
 
 
 class UnReturnSku(BaseModel):
+    EFFECT = 1
+    INVALIED = 2
     supplier = models.ForeignKey(SaleSupplier, null=True, verbose_name=u"供应商")
-    sale_product = models.ForeignKey(SaleSupplier, null=True, verbose_name=u"供应商")
+    sale_product = models.ForeignKey(SaleProduct, null=True, verbose_name=u"供应商")
     product = models.ForeignKey(Product, null=True, verbose_name=u"商品")
     sku = models.ForeignKey(ProductSku, null=True, verbose_name=u"sku")
     creater = models.ForeignKey(User, verbose_name=u'创建人')
-    EFFECT = 1
-    INVALIED = 2
     status = models.IntegerField(choices=((EFFECT, u'有效'), (INVALIED, u'无效')), default=0, verbose_name=u'状态')
     reason = models.IntegerField(choices=((1, u'保护商品'), (2, u'商家不许退货'), (3, u'其它原因')),
                                  default=2, verbose_name=u'不可退货原因')
