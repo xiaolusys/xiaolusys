@@ -1406,7 +1406,6 @@ class PackageOrder(models.Model):
             sale_order.sale_trade.set_out_sid(sku_item.package_order.out_sid,
                                               sku_item.package_order.logistics_company_id)
 
-
     @property
     def buyer(self):
         if not hasattr(self, '_buyer_'):
@@ -1451,8 +1450,10 @@ class PackageOrder(models.Model):
         return self._seller_
 
     @staticmethod
-    def get_ids_by_sale_trade(sale_trade_id):
-        return [item['package_order_pid'] for item in PackageSkuItem.objects.filter(sale_trade_id=sale_trade_id).values('package_order_pid')]
+    def get_ids_by_sale_trade(sale_trade_tid):
+        return [item['package_order_pid'] for item in
+                PackageSkuItem.objects.filter(sale_trade_id=sale_trade_tid).exclude(package_order_pid=None).values(
+                    'package_order_pid')]
 
     def set_redo_sign(self, action='', save_data=True):
         """
@@ -1493,37 +1494,48 @@ class PackageOrder(models.Model):
 
     def set_package_address(package_order):
         item = package_order.package_sku_items.first()
-        st = SaleTrade.objects.get(tid=item.sale_trade_id)
-        package_order.buyer_id = st.buyer_id
-        package_order.receiver_name = st.receiver_name
-        package_order.receiver_state = st.receiver_state
-        package_order.receiver_city = st.receiver_city
-        package_order.receiver_district = st.receiver_district
-        package_order.receiver_address = st.receiver_address
-        package_order.receiver_zip = st.receiver_zip
-        package_order.receiver_phone = st.receiver_phone
-        package_order.save()
-        return package_order
+        if item:
+            st = SaleTrade.objects.get(tid=item.sale_trade_id)
+            package_order.buyer_id = st.buyer_id
+            package_order.receiver_name = st.receiver_name
+            package_order.receiver_state = st.receiver_state
+            package_order.receiver_city = st.receiver_city
+            package_order.receiver_district = st.receiver_district
+            package_order.receiver_address = st.receiver_address
+            package_order.receiver_zip = st.receiver_zip
+            package_order.receiver_phone = st.receiver_phone
+            package_order.save()
+            return package_order
 
-    def set_logistics_company(self, value):
-
-        def task_get_logistics_company(package_order):
+    def set_logistics_company(self):
+        old_logistics_company_id = None
+        if self.logistics_company_id:
+            old_logistics_company_id = self.logistics_company_id
+        package_sku_item = self.package_sku_items.order_by('-id').first()
+        if package_sku_item.sale_trade.logistics_company:
+            self.logistics_company_id = package_sku_item.sale_trade.logistics_company.id
+        elif old_logistics_company_id:
             from shopback.logistics.models import LogisticsCompanyProcessor
             from shopback.warehouse import WARE_GZ
-            # 如果订单属于广州仓，则默认发韵达
             try:
-                if package_order.ware_by == WARE_GZ:
-                    package_order.logistics_company = LogisticsCompanyProcessor.getGZLogisticCompany(
-                        package_order.receiver_state, package_order.receiver_city, package_order.receiver_district,
-                        package_order.shipping_type, package_order.receiver_address)
+                if self.ware_by == WARE_GZ:
+                    self.logistics_company_id = LogisticsCompanyProcessor.getGZLogisticCompany(
+                        self.receiver_state, self.receiver_city, self.receiver_district,
+                        self.shipping_type, self.receiver_address).id
                 else:
-                    package_order.logistics_company = LogisticsCompanyProcessor.getSHLogisticCompany(
-                        package_order.receiver_state, package_order.receiver_city, package_order.receiver_district,
-                        package_order.shipping_type, package_order.receiver_address)
+                    self.logistics_company_id = LogisticsCompanyProcessor.getSHLogisticCompany(
+                        self.receiver_state, self.receiver_city, self.receiver_district,
+                        self.shipping_type, self.receiver_address).id
             except:
                 from shopback.logistics.models import LogisticsCompany
-                package_order.logistics_company = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
-            update_model_fields(package_order, update_fields=['logistics_company', 'ware_by'])
+                self.logistics_company_id = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0].id
+            if old_logistics_company_id != self.logistics_company_id:
+                if self.is_express_print and old_logistics_company_id:
+                    self.is_express_print = False
+                    self.redo_sign = True
+                    self.save(update_fields=['logistics_company_id', 'is_express_print', 'redo_sign'])
+                else:
+                    self.save(update_fields=['logistics_company_id'])
 
     def reset_sku_item_num(self, save_data=True):
         sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
@@ -1541,11 +1553,11 @@ class PackageOrder(models.Model):
         :return:
         """
         if not self.is_sent():
-            self.set_package_address()
-            self.set_logistcs_comapany()
             if self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                 self.set_redo_sign(save_data=False, action='is_picking_print')
                 self.reset_sku_item_num(save_data=True)
+                self.set_package_address()
+                self.set_logistics_company()
             else:
                 self.reset_to_new_create()
 
@@ -1599,7 +1611,7 @@ class PackageOrder(models.Model):
 
 def check_package_order_status(sender, instance, created, **kwargs):
     from shopback.logistics.tasks import task_get_logistics_company
-    if created:
+    if instance.sys_status == PackageOrder.WAIT_PREPARE_SEND_STATUS and not instance.logistics_company:
         task_get_logistics_company.delay(instance)
 
 
@@ -1841,13 +1853,12 @@ class PackageSkuItem(BaseModel):
         p.save()
 
     def reset_assign_package(self):
-        if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGN_STATUS]:
-            old_package = self.package_order
+        if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
             self.clear_order_info()
 
     @staticmethod
-    def reset_trade_package(sale_trade_id):
-        for item in PackageSkuItem.objects.filter(sale_trade_id):
+    def reset_trade_package(sale_trade_tid):
+        for item in PackageSkuItem.objects.filter(sale_trade_id=sale_trade_tid):
             item.reset_assign_package()
 
     def is_finished(self):
@@ -1890,7 +1901,6 @@ def update_purchase_record(sender, instance, created, **kwargs):
 
 post_save.connect(update_purchase_record, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_purchase_record')
-
 
 
 def get_package_address_dict(package_order):

@@ -606,6 +606,7 @@ class UnReturnSku(BaseModel):
         verbose_name = u'不可退货商品明细表'
         verbose_name_plural = u'不可退货商品明细列表'
 
+
 class SaleInventoryStat(models.Model):
     """
     （只统计小鹿特卖商品）统计当天的订货表的新增采购数，未到货总数，到货数，发出件数，总库存数

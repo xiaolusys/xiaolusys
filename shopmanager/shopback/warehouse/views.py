@@ -159,6 +159,10 @@ class PackageScanCheckView(APIView):
             return Response(u'单号未找到')
         except PackageOrder.MultipleObjectsReturned:
             return Response(u'单号返回多个订单')
+        if not package_order.is_picking_print:
+            return Response(u'需重打发货单')
+        if not package_order.is_express_print:
+            return Response(u'需重打物流单')
         package_order.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS
         package_order.scanner = request.user.username
         package_order.save()
@@ -240,6 +244,10 @@ class PackageScanWeightView(APIView):
             return Response(u'运单号未找到订单')
         except PackageOrder.MultipleObjectsReturned:
             return Response(u'结果返回多个订单')
+        if not package.is_picking_print:
+            return Response(u'需重打发货单')
+        if not package.is_express_print:
+            return Response(u'需重打物流单')
         package.weight = package_weight
         package.sys_status = pcfg.FINISHED_STATUS
         package.weight_time = datetime.datetime.now()
