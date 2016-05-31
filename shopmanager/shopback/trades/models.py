@@ -1512,6 +1512,8 @@ class PackageOrder(models.Model):
         if self.logistics_company_id:
             old_logistics_company_id = self.logistics_company_id
         package_sku_item = self.package_sku_items.order_by('-id').first()
+        if not package_sku_item:
+            return 
         if package_sku_item.sale_trade.logistics_company:
             self.logistics_company_id = package_sku_item.sale_trade.logistics_company.id
         elif old_logistics_company_id:
