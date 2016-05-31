@@ -1526,7 +1526,10 @@ def task_start_booking(pr):
         fields = ['package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
         pa = PurchaseArrangement(uni_key=uni_key, purchase_order_unikey=purchase_order_unikey, purchase_record_unikey=pr.uni_key, num=pr.need_num)
         utils.copy_fields(pa, pr, fields)
-        pa.save()
+        try:
+            pa.save()
+        except IntegrityError as exc:
+            logger.warn("%s | IntegrityError, uni_key:%s" % (utils.get_cur_info(), uni_key))
     else:
         # We have to note that logically pa wont be an old-canceled record.
         pa.num = pa.num + pr.need_num
