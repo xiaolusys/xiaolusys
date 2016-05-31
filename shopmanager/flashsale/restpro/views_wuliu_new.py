@@ -16,6 +16,41 @@ from flashsale.pay.models import Customer, SaleTrade
 from rest_framework.decorators import list_route
 from shopback import paramconfig as pacg
 
+BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"  # 访问第三方接口
+apikey = '47deda738666430bab15306c2878dd3a'
+uid = '39400'
+default_post = 'yunda'
+
+BAIDU_POST_CODE_EXCHANGE = {
+    'YUNDA': 'yunda', 'YUNDA_QR': 'yunda', 'STO': 'shentong', 'EMS': 'ems', 'ZTO': 'zhongtong', 'ZJS': 'zhaijisong',
+    'SF': 'shunfeng', 'YTO': 'yuantong', 'HTKY': 'huitongkuaidi', 'TTKDEX': 'tiantian',
+    'QFKD': 'quanfengkuaidi',
+}
+
+def get_third_apidata(trade):
+    """ 访问第三方api 获取物流参数 并保存到本地数据库　"""
+    tid = trade.tid
+    # 快递编码(快递公司编码)
+    exType = trade.logistics_company.code if trade.logistics_company is not None else default_post
+    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': trade.out_sid, 'key': apikey,
+            'uid': uid}
+    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
+    content = json.loads(req.read())
+    SaveWuliu_only.delay(tid, content)  # 异步任务，存储物 流信息到数据库
+    return
+
+
+def get_third_apidata_by_packetid(packetid, company_code):
+    """ 使用包裹id访问第三方api 获取物流参数 并保存到本地数据库　"""
+
+    # 快递编码(快递公司编码)
+    exType = company_code if company_code is not None else default_post
+    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': packetid, 'key': apikey,
+            'uid': uid}
+    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
+    content = json.loads(req.read())
+    SaveWuliu_by_packetid.delay(packetid, content)  # 异步任务，存储物 流信息到数据库
+    return
 
 class WuliuViewSet(viewsets.ModelViewSet):
     """
@@ -27,16 +62,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     gap_time = 7200  # 查询间隔时间
-    BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"  # 访问第三方接口
-    apikey = '47deda738666430bab15306c2878dd3a'
-    uid = '39400'
-    default_post = 'yunda'
 
-    BAIDU_POST_CODE_EXCHANGE = {
-        'YUNDA': 'yunda', 'YUNDA_QR': 'yunda', 'STO': 'shentong', 'EMS': 'ems', 'ZTO': 'zhongtong', 'ZJS': 'zhaijisong',
-        'SF': 'shunfeng', 'YTO': 'yuantong', 'HTKY': 'huitongkuaidi', 'TTKDEX': 'tiantian',
-        'QFKD': 'quanfengkuaidi',
-    }
 
     def get_trade(self, tid):
         trade = get_object_or_404(SaleTrade, tid=tid)
@@ -69,29 +95,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         return Response()
 
-    def get_third_apidata(self, trade):
-        """ 访问第三方api 获取物流参数 并保存到本地数据库　"""
-        tid = trade.tid
-        # 快递编码(快递公司编码)
-        exType = trade.logistics_company.code if trade.logistics_company is not None else self.default_post
-        data = {'id': self.BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': trade.out_sid, 'key': self.apikey,
-                'uid': self.uid}
-        req = urllib2.urlopen(self.BADU_KD100_URL, urllib.urlencode(data), timeout=30)
-        content = json.loads(req.read())
-        SaveWuliu_only.delay(tid, content)  # 异步任务，存储物 流信息到数据库
-        return
 
-    def get_third_apidata_by_packetid(self, packetid, company_code):
-        """ 使用包裹id访问第三方api 获取物流参数 并保存到本地数据库　"""
-
-        # 快递编码(快递公司编码)
-        exType = company_code if company_code is not None else self.default_post
-        data = {'id': self.BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': packetid, 'key': self.apikey,
-                'uid': self.uid}
-        req = urllib2.urlopen(self.BADU_KD100_URL, urllib.urlencode(data), timeout=30)
-        content = json.loads(req.read())
-        SaveWuliu_by_packetid.delay(packetid, content)  # 异步任务，存储物 流信息到数据库
-        return
 
     def packet_data(self, queryset):
         res = {u'data': [], u'errcode': u'', u'id': u'', u'message': u'', u'name': u'', u'order': u'', u'status': None}
