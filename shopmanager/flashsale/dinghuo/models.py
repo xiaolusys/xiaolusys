@@ -455,7 +455,7 @@ class ReturnGoods(models.Model):
                                           supplier_id=supplier_id, status__in=[ReturnGoods.CREATE_RG, ReturnGoods.VERIFY_RG,
                                                                                ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
                                                                                ReturnGoods.SUCCEED_RG]).exists()
-        if sku_id:
+        if sku:
             return not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
 
     @staticmethod
@@ -604,7 +604,7 @@ class UnReturnSku(BaseModel):
         db_table = 'flashsale_dinghuo_unreturn_sku'
         app_label = 'dinghuo'
         verbose_name = u'不可退货商品明细表'
-        verbose_name_plural = u'商品库存退货明细列表'
+        verbose_name_plural = u'不可退货商品明细列表'
 
 class SaleInventoryStat(models.Model):
     """

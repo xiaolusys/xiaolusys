@@ -128,7 +128,7 @@
                         <td>库位</td>
                         <td>退货数量</td>
                         <td>单件退回价格</td>
-                        <td>操作</td>
+                        <td style="min-width:180px">操作</td>
                         </thead>
                         {%for products_item in original.products_item_sku%}
                         {%for detail in products_item.detail_items%}
@@ -155,10 +155,13 @@
                             <input id="text_price_{{detail.skuid}}" class="edit_sku_{{detail.skuid}}" type="text" value="{{detail.price}}" style="display: none;width:42px"></td>
                         <td>{%if original.status == 0%}
                             <input type="button" class="btn-mini btn_modify" id="btn_modify_{{detail.skuid}}" value="修改"/>&nbsp;&nbsp;
-                            <input type="button" class="btn-mini btn_delete" id="btn_delete_{{detail.skuid}}" value="删除"/>
+                            <input type="button" class="btn-mini btn_delete" id="btn_delete_{{detail.skuid}}" value="删除"/>&nbsp;&nbsp;
+                            <input type="button" class="btn-mini btn_mark_unreturn" id="btn_mark_unreturn_{{detail.skuid}}" value="不可退货"/>
                             {%elif original.status == 1%}
                             <input type="button" class="btn-mini btn_modify" id="btn_modify_{{detail.skuid}}" value="修改"/>&nbsp;&nbsp;
-                            <input type="button" class="btn-mini btn_delete" id="btn_delete_{{detail.skuid}}" value="删除"/>{%endif%}
+                            <input type="button" class="btn-mini btn_delete" id="btn_delete_{{detail.skuid}}" value="删除"/>&nbsp;&nbsp;
+                            <input type="button" class="btn-mini btn_mark_unreturn" id="btn_mark_unreturn_{{detail.skuid}}" value="不可退货"/>
+                            {%endif%}
                         </td>
                         </tr>
                         {%endfor%}
@@ -306,6 +309,18 @@
             }
         }
     }
+
+    function mark_unreturn_sku(sku_id, id){
+        $.ajax({
+            url: '/sale/dinghuo/returngoods/mark_unreturn/',
+            type: 'post',
+            dataType: 'json',
+            data: {sku_id: sku_id, id: id},
+            complete: function(){
+                window.location.reload();
+            }
+        });
+    }
     function set_refund(evt){
         var dom = $("#btn_return_refund");
         var url = "/sale/dinghuo/returngoods/set_refund/";
@@ -399,6 +414,19 @@
             delete_return_goods_sku(sku_id, id);
         }
     }
+
+    var mark_unreturn = function(evt){
+        var dom = evt.target;
+        if($('#'+dom.id).hasClass('loading')){
+            return;
+        }
+        $('#'+dom.id).addClass('loading');
+        var sku_id = dom.id.substring('btn_mark_unreturn_'.length, dom.id.length);
+        if(confirm('确认设为不可退货')){
+            mark_unreturn_sku(sku_id, id);
+        }
+    }
+
     function showDialog(manager){
         this.dialog = new goog.ui.Dialog();
         this.orderManager = manager;
@@ -457,6 +485,7 @@
         $('#btn_edit_note').click(edit_note);
         $('.btn_modify').click(edit_sku);
         $('.btn_delete').click(delete_sku);
+        $('.btn_mark_unreturn').click(mark_unreturn);
         $('#set_return_goods_sku_send').click(set_return_goods_sku_send);
         $('.modify-transactor').click(modifyTransactor);
         $('.dropdown-menu li').click(saveTransactor);
