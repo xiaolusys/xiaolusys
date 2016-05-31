@@ -9,7 +9,8 @@ import logging
 
 import json
 import urllib, urllib2
-from shopback.trades.models import TradeWuliu
+from shopback.trades.models import TradeWuliu, PackageSkuItem
+
 
 BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"
 BAIDU_POST_CODE_EXCHANGE = {
@@ -161,6 +162,30 @@ def SaveWuliu_by_packetid(packetid, content):
             TradeWuliu.objects.create(tid='', status=content['status'], logistics_company=content['name'],
                                       out_sid=content['order'], errcode=content['errcode'],
                                       content=da['content'], time=da['time'])
+
+@task()
+def update_all_logistics():
+    from flashsale.restpro.views_wuliu_new import get_third_apidata_by_packetid
+    sale_trades = SaleTrade.objects.filter(status__in= [SaleTrade.WAIT_SELLER_SEND_GOODS,
+                                                      SaleTrade.WAIT_BUYER_CONFIRM_GOODS])
+    #print 'update_all_logistics %d'%(sale_trades.count())
+    num = 0
+    for t in sale_trades:
+        #print 'get trade_id %s'%(t.tid)
+        if t.tid:
+            psi_queryset = PackageSkuItem.objects.filter(sale_trade_id=t.tid)
+            #print 'psi_queryset count %d'%(psi_queryset.count())
+            if psi_queryset.count() == 0:
+                continue
+            temp_sid = ''
+            for psi in psi_queryset:
+                #print 'get logistics %s %s'%(psi.out_sid, psi.logistics_company_code)
+                if psi.out_sid and psi.logistics_company_code and temp_sid != psi.out_sid:
+                    num = num+1
+                    get_third_apidata_by_packetid(psi.out_sid, psi.logistics_company_code)
+                    temp_sid = psi.out_sid
+    logger = logging.getLogger(__name__)
+    logger.warn('update_all_logistics trades counts=%d, update counts=%d' % (sale_trades.count(), num))
 
 from flashsale.pay.models_shops import CustomerShops, CuShopPros
 from views_cushops import save_pro_info
