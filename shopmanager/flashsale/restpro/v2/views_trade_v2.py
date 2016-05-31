@@ -576,20 +576,21 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         payment       = round(sale_trade.payment * 100) 
         strade_id     = sale_trade.id
         channel       = sale_trade.channel
-        
-        urows = UserBudget.objects.filter(user=buyer, amount__gte=payment)
-        logger.info('budget charge:uid=%s, tid=%s, payment=%.2f'%(sale_trade.buyer_id, sale_trade.tid, payment))
-        if not urows.exists():
-            raise Exception(u'小鹿钱包余额不足')
-        
-        BudgetLog.objects.create(customer_id=buyer.id,
-                                referal_id=strade_id,
-                                flow_amount=payment,
-                                budget_log_type=BudgetLog.BG_CONSUM,
-                                budget_type=BudgetLog.BUDGET_OUT,
-                                status=BudgetLog.CONFIRMED)
-        #确认付款后保存
-        confirmTradeChargeTask.delay(strade_id)
+
+        if payment > 0:
+            user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
+            logger.info('budget charge:uid=%s, tid=%s, payment=%.2f'%(sale_trade.buyer_id, sale_trade.tid, payment))
+            if not user_budget:
+                raise Exception(u'小鹿钱包余额不足')
+
+            BudgetLog.objects.create(customer_id=buyer.id,
+                                    referal_id=strade_id,
+                                    flow_amount=payment,
+                                    budget_log_type=BudgetLog.BG_CONSUM,
+                                    budget_type=BudgetLog.BUDGET_OUT,
+                                    status=BudgetLog.CONFIRMED)
+            #确认付款后保存
+            confirmTradeChargeTask.delay(strade_id)
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
     def pingpp_charge(self, sale_trade, **kwargs):
