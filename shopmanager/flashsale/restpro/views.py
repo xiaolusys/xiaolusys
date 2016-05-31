@@ -189,7 +189,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_mobile = content.get('receiver_mobile', '').strip()
         receiver_phone = content.get('receiver_phone', '').strip()
         referal_trade_id = content.get('referal_trade_id','').strip()
-        logistic_company_code = content.get('logistic_company_code', '').strip()
+        # logistic_company_code = content.get('logistic_company_code', '').strip()
         default = content.get('default') or ''
         if default == 'true':
             default = True
@@ -213,12 +213,27 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 UserAddress.objects.filter(pk=new_address.id).update(status=UserAddress.NORMAL)
             if default:  # 选择为默认地址
                 new_address.set_default_address()  # 如果是选择设置默认地址则设置默认地址
-            new_address.set_logistic_company(logistic_company_code)
+
+            # new_address.set_logistic_company(logistic_company_code)
             if referal_trade_id:
                 strade = SaleTrade.objects.filter(id=referal_trade_id, status=SaleTrade.WAIT_SELLER_SEND_GOODS).first()
                 if strade:
                     user_address_change = UserAddressChange.add(strade.id, strade.user_address_id, new_address.id)
                     user_address_change.excute()
+                    update_fields = ['receiver_name','receiver_state','receiver_city',
+                                     'receiver_district','receiver_address','receiver_mobile']
+                    for name in update_fields:
+                        setattr(strade, name ,getattr(new_address, name))
+                    strade.user_address_id = new_address.id
+
+                    if new_address.logistic_company_code:
+                        from shopback.logistics.models import LogisticsCompany
+                        logistic = LogisticsCompany.objects.filter(code=new_address.set_default_address).first()
+                        strade.logistics_company = logistic
+                    strade.save(update_fields=update_fields + ['user_address_id','logistics_company'])
+
+                    tasks_set_user_address_id.delay(strade)
+
             return Response({'ret': True, 'code': 0, 'info': '更新成功', 'result':{'address_id':new_address.id}, "msg": '更新成功'})
         except Exception,exc:
             logger.error(exc.message, exc_info=True)
@@ -299,8 +314,19 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_logistic_companys(self, request):
+
+        ware_by = request.REQUEST.get('ware_by') or '0'
+        ware_by = int(ware_by)
+
+        referal_trade_id = request.REQUEST.get('referal_trade_id')
         from shopback.logistics.models import LogisticsCompany
-        logistic_companys = LogisticsCompany.get_logisticscompanys_by_warehouse(LogisticsCompany.WARE_NONE)
+
+        if referal_trade_id:
+            strade = SaleTrade.objects.filter(id=referal_trade_id).first()
+            if strade:
+                ware_by = strade.get_logistics_by_orders()
+
+        logistic_companys = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)
         return Response(logistic_companys.values('id','code','name'))
 
     @list_route(methods=['get'])

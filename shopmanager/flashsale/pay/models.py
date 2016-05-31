@@ -122,7 +122,6 @@ class SaleTrade(BaseModel):
     )
 
     id = models.AutoField(primary_key=True, verbose_name=u'订单ID')
-
     tid = models.CharField(max_length=40, unique=True,
                            default=genTradeUniqueid,
                            verbose_name=u'原单ID')
@@ -407,6 +406,19 @@ class SaleTrade(BaseModel):
             order.confirm_sign_order()  # 同时修改正常订单到交易完成
         self.status = SaleTrade.TRADE_FINISHED
         self.save()
+
+    def get_logistics_by_orders(self):
+        """ 获取订单所属仓库 """
+        ware_by = None
+        product_ids = self.sale_orders.values_list('item_id',flat=True)
+        for product_id in product_ids:
+            product = Product.objects.filter(id=product_id).first()
+            if product and ware_by is None:
+                ware_by = product.ware_by
+                continue
+            if product:
+                ware_by &= product.ware_by
+        return ware_by or Product.WARE_NONE
 
 
 def set_user_address_id(sender, instance, created, **kwargs):

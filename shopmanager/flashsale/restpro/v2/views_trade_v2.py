@@ -358,9 +358,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         ware_by = self.get_logistics_by_shoppingcart(queryset)
         default_address = customer.get_default_address()
+        default_company_code = default_address and default_address.logistic_company_code or ''
         selectable_logistics = self.get_selectable_logistics(
             ware_by,
-            default_company_code=default_address.logistic_company_code)
+            default_company_code=default_company_code)
 
         cart_serializers = self.get_serializer(queryset, many=True)
 

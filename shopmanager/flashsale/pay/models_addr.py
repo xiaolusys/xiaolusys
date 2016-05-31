@@ -96,6 +96,7 @@ class UserAddress(BaseModel):
         return True
 
     def set_logistic_company(self, company_code):
+        """ 设置物流公司 """
         self.logistic_company_code = company_code
         self.save(update_fields=['logistic_company_code'])
         return True
