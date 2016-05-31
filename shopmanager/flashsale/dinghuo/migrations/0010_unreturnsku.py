@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('supplier', '0004_saleproduct_orderlist_show_memo'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('items', '0007_auto_20160531_1634'),
+        ('items', '0007_auto_20160531_1638'),
         ('dinghuo', '0009_init_purchase_order_series'),
     ]
 
