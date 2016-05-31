@@ -61,7 +61,6 @@ def task_update_referal_relationship(sale_order):
 
 @task()
 def task_update_group_relationship(leader_mama_id, referal_relationship):
-    print "%s, mama_id: %s" % (get_cur_info(), referal_relationship.referal_from_mama_id)
 
     records = GroupRelationship.objects.filter(member_mama_id=referal_relationship.referal_to_mama_id)
     if records.count() <= 0:
@@ -80,7 +79,6 @@ from shopapp.weixin.options import get_unionid_by_openid
 
 @task()
 def task_update_unique_visitor(mama_id, openid, appkey, click_time):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
     if XiaoluMama.objects.filter(pk=mama_id).count() <= 0:
         return
