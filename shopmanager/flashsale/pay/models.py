@@ -357,6 +357,39 @@ class SaleTrade(BaseModel):
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
 
+    def change_sku_item(self, old_sale_order, sku_id, num=1):
+        """
+            更换sku
+        :param old_sale_order:
+        :return:
+        """
+        if old_sale_order.status != SaleOrder.WAIT_SELLER_SEND_GOODS\
+            or old_sale_order.refund_status in [SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                                SaleRefund.REFUND_CONFIRM_GOODS,
+                                                SaleRefund.REFUND_APPROVE,
+                                                SaleRefund.REFUND_SUCCESS]:
+            return
+        old_sale_order.status = SaleOrder.TRADE_CLOSED_BY_SYS
+        old_sale_order.save()
+        new_sale_order = old_sale_order
+        new_sale_order.id = None
+        new_sale_order.oid = '%s-%s' % (new_sale_order.oid, '1')
+        new_sale_order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
+        new_sale_order.sku_id = sku_id
+        sku = ProductSku.objects.get(id=sku_id)
+        product = sku.product
+        new_sale_order.outer_id = product.outer_id
+        new_sale_order.outer_sku_id = sku.outer_id
+        new_sale_order.num = num
+        new_sale_order.sku_name = sku.properties_alias
+        new_sale_order.title = product.name
+        new_sale_order.pic_path = product.pic_path
+        new_sale_order.pay_time = datetime.datetime.now()
+        new_sale_order.refund_id = None
+        new_sale_order.refund_fee = 0
+        new_sale_order.refund_status = SaleRefund.NO_REFUND
+        new_sale_order.save()
+
     @transaction.atomic
     def close_trade(self):
         """ 关闭待付款订单 """
