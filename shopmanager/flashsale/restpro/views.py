@@ -159,6 +159,19 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             }
             ```
         - /get_logistic_companys: 获取可选快递列表
+         ```
+            data:{
+                ＂referal_trade_id": 根据订单获取可选快递（非必需),
+                "ware_by": 指定仓库获取可选快递(非必需)
+            }
+         ```
+        - change_company_code: 设置默认快递(post)
+         ```
+            data:{
+                ＂referal_trade_id": 修改订单默认快递（非必需),
+                "logistic_company_code": 设置默认快递编码(必需)
+            }
+         ```
     """
     queryset = UserAddress.objects.all()
     serializer_class = serializers.UserAddressSerializer  # Create your views here.
@@ -230,7 +243,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                         from shopback.logistics.models import LogisticsCompany
                         logistic = LogisticsCompany.objects.filter(code=new_address.set_default_address).first()
                         strade.logistics_company = logistic
-                    strade.save(update_fields=update_fields + ['user_address_id','logistics_company'])
+                    strade.save(update_fields=update_fields + ['user_address_id'])
 
                     tasks_set_user_address_id.delay(strade)
 
@@ -281,6 +294,28 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             result['ret'] = False
         return Response(result)
 
+    @detail_route(methods=['post'])
+    def change_company_code(self, request, pk, *args, **kwargs):
+        try:
+            company_code = request.REQUEST.get('logistic_company_code', '')
+            referal_trade_id = request.REQUEST.get('referal_trade_id', '')
+            address = self.get_object()
+            address.set_logistic_company(company_code)
+
+            if referal_trade_id:
+                strade = SaleTrade.objects.filter(id=referal_trade_id, status=SaleTrade.WAIT_SELLER_SEND_GOODS).first()
+                if strade:
+                    from shopback.logistics.models import LogisticsCompany
+                    company = LogisticsCompany.objects.filter(code=address.logistic_company_code).first()
+                    strade.logistics_company = company
+                    strade.save(update_fields=['logistics_company'])
+                    tasks_set_user_address_id.delay(strade)
+            result ={'code': 0, 'info':u'修改成功'}
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+            result = {'code': 1, 'info': u'系统异常'}
+        return Response(result)
+
     @list_route(methods=['post'])
     def create_address(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -324,6 +359,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         if referal_trade_id:
             strade = SaleTrade.objects.filter(id=referal_trade_id).first()
             if strade:
+                from shopback.logistics.models import LogisticsCompany
                 ware_by = strade.get_logistics_by_orders()
 
         logistic_companys = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)

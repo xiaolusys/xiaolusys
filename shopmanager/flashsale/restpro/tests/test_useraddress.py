@@ -91,6 +91,18 @@ class UserAddressTestCase(TestCase):
                 v = v and True or False
             self.assertEqual(resp_address.get(k), v)
 
+    def testUpdateAddressCompanyCode(self):
+        address = {
+            "logistic_company_code": "YUNDA_QR",
+            "referal_trade_id": 333231
+        }
+
+        response = self.client.post('/rest/v1/address/113674/change_company_code', address, ACCEPT='application/json;')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)  # 创建的返回结果
+        self.assertEqual(data['code'], 0)  # 添加成功
+
+
 
 
 
