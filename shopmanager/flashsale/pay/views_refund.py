@@ -46,21 +46,16 @@ class RefundApply(APIView):
         return Response({'order': model_to_dict(sale_order)})
 
     def post(self, request, format=None):
-
         content = request.POST
         user = request.user
-
         trade_id = content.get('trade_id')
         order_id = content.get('order_id')
         return_good = content.get('return_good')
-
         customer = get_object_or_404(Customer, user=request.user)
         sale_trade = get_object_or_404(SaleTrade, pk=trade_id, buyer_id=customer.id)
         sale_order = get_object_or_404(SaleOrder, pk=order_id, sale_trade=trade_id, sale_trade__buyer_id=customer.id)
-
         if not sale_order.refundable:
             return HttpResponseForbidden('UNREFUNDABLE')
-
         if sale_order.refund:
             return redirect('refund_confirm', pk=sale_order.refund.id)
 

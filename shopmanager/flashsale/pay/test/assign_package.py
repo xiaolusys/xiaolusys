@@ -91,6 +91,15 @@ def get_all_buyer():
         res.append(buyer_id)
     return res
 
+def set_package():
+    sale_trade = SaleTrade.objects.get(tid=PackageSkuItem.objects.get(id=21790).sale_trade_id)
+    package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,2)
+    package_order = PackageOrder.create(package_order_id, sale_trade,sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
+    instance = PackageSkuItem.objects.get(id=21790)
+    PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order.id,package_order_pid=package_order.pid)
+
+    PackageOrder.create()
+
 if __name__=='__main__':#
     # print_out_res()
     #assign_reset()
