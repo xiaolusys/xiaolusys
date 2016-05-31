@@ -11,7 +11,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
 from shopback.items.models import Product, ProductSku
 from flashsale.pay.models_user import Register, Customer, UserBudget, BudgetLog
-from flashsale.pay.models_addr import District, UserAddress
+from flashsale.pay.models_addr import District, UserAddress, UserAddressChange
 from flashsale.pay.models_custom import Productdetail, GoodShelf, ModelProduct, ActivityEntry, BrandProduct, BrandEntry
 from flashsale.pay.models_refund import SaleRefund
 from flashsale.pay.models_envelope import Envelop

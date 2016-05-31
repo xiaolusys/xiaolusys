@@ -231,22 +231,11 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             if referal_trade_id:
                 strade = SaleTrade.objects.filter(id=referal_trade_id, status=SaleTrade.WAIT_SELLER_SEND_GOODS).first()
                 if strade:
-                    user_address_change = UserAddressChange.add(strade.id, strade.user_address_id, new_address.id)
+                    user_address_change = UserAddressChange.add(strade, new_address)
                     user_address_change.excute()
-                    update_fields = ['receiver_name','receiver_state','receiver_city',
-                                     'receiver_district','receiver_address','receiver_mobile']
-                    for name in update_fields:
-                        setattr(strade, name ,getattr(new_address, name))
-                    strade.user_address_id = new_address.id
-
-                    if new_address.logistic_company_code:
-                        from shopback.logistics.models import LogisticsCompany
-                        logistic = LogisticsCompany.objects.filter(code=new_address.set_default_address).first()
-                        strade.logistics_company = logistic
-                    strade.save(update_fields=update_fields + ['user_address_id'])
-
-                    tasks_set_user_address_id.delay(strade)
-
+                else:
+                    logger.error(u'包裹已经发送', exc_info=True)
+                    return Response({'ret': False, 'code': 1, 'info': '更新失败', "msg": '包裹已经发送'})
             return Response({'ret': True, 'code': 0, 'info': '更新成功', 'result':{'address_id':new_address.id}, "msg": '更新成功'})
         except Exception,exc:
             logger.error(exc.message, exc_info=True)
@@ -310,6 +299,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                     strade.logistics_company = company
                     strade.save(update_fields=['logistics_company'])
                     tasks_set_user_address_id.delay(strade)
+                else:
+                    return Response({'code': 2, 'info': u'订单已经发货'})
             result ={'code': 0, 'info':u'修改成功'}
         except Exception, exc:
             logger.error(exc.message, exc_info=True)

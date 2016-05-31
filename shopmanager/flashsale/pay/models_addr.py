@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
 from django.db import models
 from django.db.models.signals import post_save
-
+import logging
 from .base import PayBaseModel, BaseModel
 from . import managers
 
-
+logger = logging.getLogger('django.request')
 class District(PayBaseModel):
     FIRST_STAGE = 1
     SECOND_STAGE = 2
@@ -77,7 +77,6 @@ class UserAddress(BaseModel):
     normal_objects = managers.NormalUserAddressManager()
 
     class Meta:
-        # db_table = 'flashsale_address'
         db_table = 'flashsale_address'
         app_label = 'pay'
         verbose_name = u'特卖用户/地址'
@@ -114,8 +113,8 @@ class UserAddress(BaseModel):
 
 class UserAddressChange(BaseModel):
     new_id = models.IntegerField(verbose_name=u'新地址ID', db_index=True)
-    sale_trade_id = models.ForeignKey('SaleTrade', db_index=True)
-    status = models.IntegerField(choices=((0, u'初始'), (1, u'完成')), default=0, verbose_name=u'状态')
+    sale_trade = models.ForeignKey('SaleTrade', db_index=True)
+    status = models.IntegerField(choices=((0, u'初始'), (1, u'完成'), (2, u'失败')), default=0, verbose_name=u'状态')
     cus_uid = models.BigIntegerField(db_index=True, verbose_name=u'客户ID')
     old_id = models.IntegerField(verbose_name=u'老地址ID', db_index=True)
     # 原始信息
@@ -131,6 +130,12 @@ class UserAddressChange(BaseModel):
     logistic_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'优先快递编码')
     package_order_ids = models.CharField(max_length=100, blank=True, verbose_name=u'原包裹id')
 
+    class Meta:
+        # db_table = 'flashsale_address_change'
+        app_label = 'pay'
+        verbose_name = u'用户修改地址'
+        verbose_name_plural = u'用户修改地址历史'
+
     @property
     def new_address(self):
         return UserAddress.objects.get(id=self.new_id)
@@ -140,17 +145,19 @@ class UserAddressChange(BaseModel):
         return UserAddress.objects.get(id=self.old_id)
 
     @staticmethod
-    def add(sale_trade, old_address, new_id):
+    def add(sale_trade, new_address):
         from shopback.trades.models import PackageOrder
-        u = UserAddressChange(sale_trade_id=sale_trade.id, old_id=old_address.id, new_id=new_id)
+        old_address = UserAddress.objects.get(id=sale_trade.user_address_id)
+        u = UserAddressChange(sale_trade=sale_trade, cus_uid=sale_trade.buyer_id, old_id=old_address.id, new_id=new_address.id)
         update_fields = ['receiver_name', 'receiver_state', 'receiver_city',
                          'receiver_district', 'receiver_address', 'receiver_mobile',
-                         'receiver_phone', 'out_sid']
+                         'receiver_phone']
         for field in update_fields:
             val = getattr(sale_trade, field)
             setattr(u, field, val)
-            u.logistic_company_code = sale_trade.logistics_company.code
-            pids = PackageOrder.get_ids_by_sale_trade(sale_trade.id)
+            if sale_trade.logistics_company:
+                u.logistic_company_code = sale_trade.logistics_company.code
+            pids = PackageOrder.get_ids_by_sale_trade(sale_trade.tid)
             u.package_order_ids = ','.join([str(i) for i in pids])
         u.save()
         return u
@@ -158,7 +165,6 @@ class UserAddressChange(BaseModel):
     def excute(self):
         if self.status == 0:
             from shopback.trades.models import PackageSkuItem, PackageOrder
-            # if self.new_id == self.old_id:
             new_address = self.new_address
             update_fields = ['receiver_name', 'receiver_state', 'receiver_city',
                              'receiver_district', 'receiver_address', 'receiver_mobile',
@@ -166,11 +172,21 @@ class UserAddressChange(BaseModel):
             strade = self.sale_trade
             for attrname in update_fields:
                 setattr(strade, attrname, getattr(new_address, attrname))
-            self.status = 1
+            try:
+                if new_address.logistic_company_code:
+                    from shopback.logistics.models import LogisticsCompany
+                    logistics_company = LogisticsCompany.objects.get(code=new_address.logistic_company_code)
+                    strade.logistics_company = logistics_company
+                strade.user_address_id = new_address.id
+                strade.save(update_fields=update_fields + ['user_address_id', 'logistics_company'])
+                if self.old_id != self.new_id:
+                    PackageSkuItem.reset_trade_package(strade.tid)
+                for pid in self.package_order_ids.split(','):
+                    if pid:
+                        package = PackageOrder.objects.get(pid=int(pid))
+                        package.refresh()
+                self.status = 1
+            except Exception, ex:
+                logger.error(str(u'用户修改地址出错:') + str(ex))
+                self.status = 2
             self.save(update_fields=['status'])
-            strade.user_address_id = new_address.id
-            strade.save(update_fields=update_fields + ['user_address_id', 'logistics_company'])
-            PackageSkuItem.reset_trade_package(strade.id)
-            for pid in self.package_order_ids:
-                package = PackageOrder.objects.get(pid=pid)
-                package.refresh()

@@ -93,19 +93,4 @@ def updateAllUserUnfinishOrdersLogisticsTask(update_from=None, update_to=None):
 
 @task(max_retries=3, default_retry_delay=6)
 def task_get_logistics_company(package_order):
-    from shopback.logistics.models import LogisticsCompanyProcessor
-    from shopback.warehouse import WARE_GZ
-    # 如果订单属于广州仓，则默认发韵达
-    try:
-        if package_order.ware_by == WARE_GZ:
-            package_order.logistics_company = LogisticsCompanyProcessor.getGZLogisticCompany(
-                package_order.receiver_state, package_order.receiver_city, package_order.receiver_district,
-                package_order.shipping_type, package_order.receiver_address)
-        else:
-            package_order.logistics_company = LogisticsCompanyProcessor.getSHLogisticCompany(
-                package_order.receiver_state, package_order.receiver_city, package_order.receiver_district,
-                package_order.shipping_type, package_order.receiver_address)
-    except:
-        from shopback.logistics.models import LogisticsCompany
-        package_order.logistics_company = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
-    update_model_fields(package_order, update_fields=['logistics_company', 'ware_by'])
+    package_order.set_logistics_company()
