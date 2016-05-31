@@ -661,6 +661,9 @@ class SaleOrder(PayBaseModel):
     def refundable(self):
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
 
+    def do_refund(self):
+        pass
+
     def is_finishable(self):
         """
         1，订单发货后超过14天未确认签收,系统自动变成已完成状态；
