@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
 from django.contrib.auth.models import User
-from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail
+from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, UnReturnSku
 from django.http import HttpResponseRedirect
 from functools import partial, reduce, update_wrapper
 from core.options import log_action, CHANGE
@@ -468,6 +468,9 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
     transactor_name.short_description = u"负责人"
 
     def supplier_link(self, obj):
+        if not obj.supplier:
+            return ''
+
         return ('<a href="%(url)s" target="_blank">'
                 '%(show_text)s</a>') % {
                 'url': '/admin/supplier/salesupplier/%d/' % obj.supplier_id,
@@ -574,6 +577,61 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
+
+class UnReturnSkuAdmin(admin.ModelAdmin):
+    list_display = ('id', 'product_outer_id', "product_name", "sku_properties_name", "supplier_sku", "supplier_name", "reason", "creater_name",
+                    "created", "modified", "status")
+    search_fields = ['product__name', "supplier__id", "supplier__supplier_name", "product__id",
+                     "sku__id"]
+    list_filter = ["status", "reason"]
+    readonly_fields = ('product', 'sale_product', 'sku', 'supplier', 'creater')
+    #inlines = [RGDetailInline, ]
+    #list_display_links = ['id',]
+    #list_select_related = True
+    list_per_page = 50
+
+    def product_outer_id(self, obj):
+        return '<a href="/admin/items/product/?outer_id=%(outer_id)s">%(outer_id)s</a>' % {'outer_id': obj.product.outer_id}
+    product_outer_id.short_description = '商品编码'
+    product_outer_id.allow_tags = True
+
+    def product_name(self, obj):
+        return obj.product.name;
+    product_name.short_description = '商品名称'
+
+    def sku_properties_name(self, obj):
+        return '<a href="/admin/items/productskustats/?sku_id=%(sku_id)d">%(properties_name)s</a>' % {
+            'sku_id': obj.sku.id,
+            'properties_name': obj.sku.properties_name or obj.sku.properties_alias or ''
+        }
+    sku_properties_name.allow_tags = True
+    sku_properties_name.short_description = '规格'
+
+    def supplier_sku(self, obj):
+        return obj.sale_product.supplier_sku
+    supplier_sku.short_description = '货号'
+
+    def supplier_name(self, obj):
+        return obj.supplier.supplier_name
+    supplier_name.short_description = '供应商名称'
+
+    def creater_name(self, obj):
+        user = obj.creater
+        last_name = user.last_name
+        first_name = user.first_name
+        if len(last_name) > 1:
+            names = [first_name, last_name]
+        else:
+            names = [last_name, first_name]
+        return ''.join(filter(None, names)) or user.username
+    creater_name.short_description = '创建人'
+
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['product___name', 'sale_product__name', 'supplier__supplier_name', 'sku__id']:
+            return True
+        return super(UnReturnSkuAdmin, self).lookup_allowed(lookup, value)
+admin.site.register(UnReturnSku, UnReturnSkuAdmin)
+
 
 from .models import SaleInventoryStat
 

@@ -922,8 +922,9 @@ def refresh_trade_status(sender, instance, *args, **kwargs):
         １，如果订单明细创建时间和付款时间空则使用该笔交易的时间;
         ２，更新有变动交易的字段：[order_num,prod_num,has_refund,has_out_stock,has_rule_match,sys_status];
     """
-    if instance.sys_status==MergeOrder.DELETE:
-        status_list = [m['sys_status'] for m in MergeOrder.objects.filter(merge_trade_id=instance.merge_trade_id).values('sys_status')]
+    if instance.sys_status == MergeOrder.DELETE:
+        status_list = [m['sys_status'] for m in
+                       MergeOrder.objects.filter(merge_trade_id=instance.merge_trade_id).values('sys_status')]
         if MergeOrder.NORMAL not in status_list:
             merge_trade = instance.merge_trade
             merge_trade.sys_status = MergeTrade.INVALID_STATUS
@@ -1402,7 +1403,9 @@ class PackageOrder(models.Model):
             psku = ProductSku.objects.get(id=sku_item.sku_id)
             psku.update_quantity(sku_item.num, dec_update=True)
             psku.update_wait_post_num(sku_item.num, dec_update=True)
-            sale_order.sale_trade.set_out_sid(sku_item.package_order.out_sid, sku_item.package_order.logistics_company_id)
+            sale_order.sale_trade.set_out_sid(sku_item.package_order.out_sid,
+                                              sku_item.package_order.logistics_company_id)
+
 
     @property
     def buyer(self):
@@ -1447,15 +1450,28 @@ class PackageOrder(models.Model):
             self._seller_ = User.objects.get(id=self.seller_id)
         return self._seller_
 
-    def set_redo_sign(self, save_data=True):
+    @staticmethod
+    def get_ids_by_sale_trade(sale_trade_id):
+        return [item['package_order_pid'] for item in PackageSkuItem.objects.filter(sale_trade_id=sale_trade_id).values('package_order_pid')]
+
+    def set_redo_sign(self, action='', save_data=True):
         """
+            在打过单以后
             重设状态到待发货准备
+            指定重打发货单/物流单
+        :param action:
+        :param save_data:
+        :return:
         """
         if self.sys_status not in [PackageOrder.WAIT_PREPARE_SEND_STATUS,
                                    PackageOrder.PKG_NEW_CREATED] and self.is_picking_print:
             if self.sys_status == PackageOrder.WAIT_SCAN_WEIGHT_STATUS:
                 self.sys_status = PackageOrder.WAIT_CHECK_BARCODE_STATUS
             self.redo_sign = True
+            if action == 'reset_picking_print':
+                self.is_picking_print = False
+            elif action == 'reset_express_print':
+                self.is_express_print = False
             if save_data:
                 self.save()
 
@@ -1489,6 +1505,26 @@ class PackageOrder(models.Model):
         package_order.save()
         return package_order
 
+    def set_logistics_company(self, value):
+
+        def task_get_logistics_company(package_order):
+            from shopback.logistics.models import LogisticsCompanyProcessor
+            from shopback.warehouse import WARE_GZ
+            # 如果订单属于广州仓，则默认发韵达
+            try:
+                if package_order.ware_by == WARE_GZ:
+                    package_order.logistics_company = LogisticsCompanyProcessor.getGZLogisticCompany(
+                        package_order.receiver_state, package_order.receiver_city, package_order.receiver_district,
+                        package_order.shipping_type, package_order.receiver_address)
+                else:
+                    package_order.logistics_company = LogisticsCompanyProcessor.getSHLogisticCompany(
+                        package_order.receiver_state, package_order.receiver_city, package_order.receiver_district,
+                        package_order.shipping_type, package_order.receiver_address)
+            except:
+                from shopback.logistics.models import LogisticsCompany
+                package_order.logistics_company = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
+            update_model_fields(package_order, update_fields=['logistics_company', 'ware_by'])
+
     def reset_sku_item_num(self, save_data=True):
         sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
                                                   sys_status__in=[PackageSkuItem.ASSIGNED,
@@ -1498,6 +1534,20 @@ class PackageOrder(models.Model):
             PackageOrder.objects.filter(id=self.id).update(sku_num=sku_num)
         if save_data:
             self.save()
+
+    def refresh(self):
+        """
+            刷新包裹，重新从sale_trade里取一次数据
+        :return:
+        """
+        if not self.is_sent():
+            self.set_package_address()
+            self.set_logistcs_comapany()
+            if self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
+                self.set_redo_sign(save_data=False, action='is_picking_print')
+                self.reset_sku_item_num(save_data=True)
+            else:
+                self.reset_to_new_create()
 
     @staticmethod
     def create(id, sale_trade, sys_status=None):
@@ -1668,7 +1718,6 @@ class PackageSkuItem(BaseModel):
     logistics_company_name = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司')
     logistics_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司代码')
 
-    
     class Meta:
         db_table = 'flashsale_package_sku_item'
         app_label = 'trades'
@@ -1706,21 +1755,21 @@ class PackageSkuItem(BaseModel):
     @property
     def process_time(self):
         res_time = None
-        
+
         if self.assign_status == PackageSkuItem.FINISHED:
-            res_time =  self.finish_time
+            res_time = self.finish_time
         elif self.assign_status == PackageSkuItem.ASSIGNED:
-            res_time = self.assign_time 
+            res_time = self.assign_time
         elif self.assign_status == PackageSkuItem.CANCELED:
             res_time = self.cancel_time
         if res_time:
             return res_time
-        
+
         return self.created
 
     @property
     def package_group_key(self):
-        return '%s-%s-%s' % (self.assign_status,self.ware_by,self.out_sid)
+        return '%s-%s-%s' % (self.assign_status, self.ware_by, self.out_sid)
 
     @property
     def ware_by_display(self):
@@ -1739,7 +1788,7 @@ class PackageSkuItem(BaseModel):
     @property
     def num_of_purchase_try(self):
         return 1
-    
+
     def is_booking_needed(self):
         return self.assign_status == PackageSkuItem.NOT_ASSIGNED
 
@@ -1748,7 +1797,28 @@ class PackageSkuItem(BaseModel):
         if self.assign_status == PackageSkuItem.ASSIGNED:
             return True
         return False
-    
+
+    def clear_order_info(self):
+        if self.assign_status == 2:
+            return
+        self.package_order_id = None
+        self.package_order_pid = None
+        self.logistics_company_code = ''
+        self.logistics_company_name = ''
+        self.receiver_mobile = ''
+        self.out_sid = ''
+        self.save()
+        # values = {
+        #     'package_order_id': None,
+        #     'package_order_pid': None,
+        #     'logistics_company_code': '',
+        #     'logistics_company_name': '',
+        #     'receiver_mobile': '',
+        #     'out_sid': '',
+        # }
+        # PackageSkuItem.objects.filter(id=self.id).update(**values)
+
+>>>>>>> [promotion]hy-change-address
     def set_assign_status_time(self):
         if self.assign_status == PackageSkuItem.FINISHED:
             self.finish_time = datetime.datetime.now()
@@ -1770,6 +1840,16 @@ class PackageSkuItem(BaseModel):
         p.package_order_id = None
         p.package_order_pid = None
         p.save()
+
+    def reset_assign_package(self):
+        if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGN_STATUS]:
+            old_package = self.package_order
+            self.clear_order_info()
+
+    @staticmethod
+    def reset_trade_package(sale_trade_id):
+        for item in PackageSkuItem.objects.filter(sale_trade_id):
+            item.reset_assign_package()
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
@@ -1808,7 +1888,7 @@ post_save.connect(update_package_order, sender=PackageSkuItem,
 def update_purchase_record(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_packageskuitem_update_purchaserecord
     task_packageskuitem_update_purchaserecord.delay(instance)
-    
+
 post_save.connect(update_purchase_record, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_purchase_record')
 
@@ -1816,16 +1896,18 @@ post_save.connect(update_purchase_record, sender=PackageSkuItem,
 
 def get_package_address_dict(package_order):
     res = {}
-    attrs = ['buyer_id','receiver_name','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','receiver_phone']
+    attrs = ['buyer_id', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
+             'receiver_zip', 'receiver_phone']
     for attr in attrs:
-        res[attr] = getattr(package_order,attr)
+        res[attr] = getattr(package_order, attr)
     return res
+
 
 def get_user_address_dict(ua):
     res = {}
-    attrs = ['receiver_name','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','receiver_phone']
+    attrs = ['receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
+             'receiver_zip', 'receiver_phone']
     for attr in attrs:
         res[attr] = getattr(ua, attr)
     res['buyer_id'] = ua.cus_uid
     return res
-

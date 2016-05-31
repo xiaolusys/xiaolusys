@@ -109,3 +109,67 @@ class UserAddress(BaseModel):
                 changed = True
                 setattr(self, attr, val.strip())
         return changed
+
+
+class UserAddressChange(BaseModel):
+    new_id = models.IntegerField(verbose_name=u'新地址ID', db_index=True)
+    sale_trade_id = models.ForeignKey('SaleTrade', db_index=True)
+    status = models.IntegerField(choices=((0, u'初始'), (1, u'完成')), default=0, verbose_name=u'状态')
+    cus_uid = models.BigIntegerField(db_index=True, verbose_name=u'客户ID')
+    old_id = models.IntegerField(verbose_name=u'老地址ID', db_index=True)
+    # 原始信息
+    receiver_name = models.CharField(max_length=25,
+                                     blank=True, verbose_name=u'收货人姓名')
+    receiver_state = models.CharField(max_length=16, blank=True, verbose_name=u'省')
+    receiver_city = models.CharField(max_length=16, blank=True, verbose_name=u'市')
+    receiver_district = models.CharField(max_length=16, blank=True, verbose_name=u'区')
+    receiver_address = models.CharField(max_length=128, blank=True, verbose_name=u'详细地址')
+    receiver_zip = models.CharField(max_length=10, blank=True, verbose_name=u'邮编')
+    receiver_mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'手机')
+    receiver_phone = models.CharField(max_length=20, blank=True, verbose_name=u'电话')
+    logistic_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'优先快递编码')
+    package_order_ids = models.CharField(max_length=100, blank=True, verbose_name=u'原包裹id')
+
+    @property
+    def new_address(self):
+        return UserAddress.objects.get(id=self.new_id)
+
+    @property
+    def old_address(self):
+        return UserAddress.objects.get(id=self.old_id)
+
+    @staticmethod
+    def add(sale_trade, old_address, new_id):
+        from shopback.trades.models import PackageOrder
+        u = UserAddressChange(sale_trade_id=sale_trade.id, old_id=old_address.id, new_id=new_id)
+        update_fields = ['receiver_name', 'receiver_state', 'receiver_city',
+                         'receiver_district', 'receiver_address', 'receiver_mobile',
+                         'receiver_phone', 'out_sid']
+        for field in update_fields:
+            val = getattr(sale_trade, field)
+            setattr(u, field, val)
+            u.logistic_company_code = sale_trade.logistics_company.code
+            pids = PackageOrder.get_ids_by_sale_trade(sale_trade.id)
+            u.package_order_ids = ','.join([str(i) for i in pids])
+        u.save()
+        return u
+
+    def excute(self):
+        if self.status == 0:
+            from shopback.trades.models import PackageSkuItem, PackageOrder
+            # if self.new_id == self.old_id:
+            new_address = self.new_address
+            update_fields = ['receiver_name', 'receiver_state', 'receiver_city',
+                             'receiver_district', 'receiver_address', 'receiver_mobile',
+                             'receiver_phone']
+            strade = self.sale_trade
+            for attrname in update_fields:
+                setattr(strade, attrname, getattr(new_address, attrname))
+            self.status = 1
+            self.save(update_fields=['status'])
+            strade.user_address_id = new_address.id
+            strade.save(update_fields=update_fields + ['user_address_id', 'logistics_company'])
+            PackageSkuItem.reset_trade_package(strade.id)
+            for pid in self.package_order_ids:
+                package = PackageOrder.objects.get(pid=pid)
+                package.refresh()

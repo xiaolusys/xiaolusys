@@ -24,9 +24,9 @@ from tasks import calcu_refund_info_by_pro_v2
 from shopback.logistics.models import LogisticsCompany
 logger = logging.getLogger('django.request')
 
-from shopback.items.models import Product
+from shopback.items.models import Product, ProductSku
 from supplychain.supplier.models import SaleProduct
-from flashsale.dinghuo.models import RGDetail, ReturnGoods
+from flashsale.dinghuo.models import RGDetail, ReturnGoods, UnReturnSku
 
 
 def get_sale_product(sale_product):
@@ -519,3 +519,35 @@ def export_return_goods(request):
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment;filename=%s' % filename
     return response
+
+def mark_unreturn(request):
+    id_ = int(request.POST['id'])
+    sku_id = int(request.POST['sku_id'])
+    rg = get_object_or_404(ReturnGoods, id=id_)
+    rg_detail = rg.rg_details.get(skuid=sku_id)
+    rg_detail.delete()
+    rg.set_stat()
+
+    rows = UnReturnSku.objects.filter(sku_id=sku_id)
+    if rows:
+        row = rows[0]
+        row.status = UnReturnSku.EFFECT
+        row.save()
+        for row in rows:
+            row.delete()
+    else:
+        sku = ProductSku.objects.get(id=sku_id)
+        saleproduct_id = sku.product.sale_product
+        saleproduct = SaleProduct.objects.get(id=saleproduct_id)
+        supplier = saleproduct.sale_supplier
+
+        unreturn_sku = UnReturnSku(
+            supplier=supplier,
+            sale_product=saleproduct,
+            product=sku.product,
+            sku=sku,
+            creater=request.user,
+            status=UnReturnSku.EFFECT
+        )
+        unreturn_sku.save()
+    return HttpResponse(True)

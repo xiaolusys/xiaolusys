@@ -1262,9 +1262,9 @@ admin.site.register(TradeWuliu, WuliuAdmin)
 
 class PackageOrderAdmin(admin.ModelAdmin):
     list_display = ('pid', 'id', 'sys_status', 'type', 'out_sid', 'receiver_name', 'receiver_mobile',
-                    'payment', 'operator', 'is_charged', 'is_picking_print', 'is_express_print',
+                    'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
                     'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
-                    'consign_time', 'weight', 'redo_sign', 'merge_trade_id')
+                    'consign_time', 'weight', 'merge_trade_id')
 
     search_fields = ['pid', 'id', 'out_sid', 'receiver_name', 'receiver_mobile']
     list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign', 'is_qrcode', ('weight_time', DateFieldListFilter),)

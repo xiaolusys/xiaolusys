@@ -41,7 +41,7 @@ from django.forms.models import model_to_dict
 from flashsale.dinghuo import functions2view
 
 from flashsale.dinghuo.models import ReturnGoods, RGDetail
-from supplychain.supplier.models import SaleProduct
+from supplychain.supplier.models import SaleProduct, SaleSupplier
 
 import logging
 
@@ -1231,8 +1231,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     def sku_link(self, obj):
         return obj.sku_id
-
-    sku_link.short_description = u'SKU'
+    sku_link.short_description = 'SKU'
 
     def lookup_allowed(self, lookup, value):
         if lookup in ['product__name']:
@@ -1314,15 +1313,52 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     #     return qs
 
     def gen_return_goods(self, request, queryset):
+        from flashsale.dinghuo.admin import ReturnGoodsAdmin
+
         sku_dict = {}
+        sku_num = queryset.count()
         for stat in queryset:
             sku_dict[stat.sku_id] = stat.history_quantity + stat.inbound_quantity + stat.return_quantity \
                                     - stat.rg_quantity - stat.sold_num
         returns = ReturnGoods.generate(sku_dict, request.user.username)
+        self.message_user(request, '本次对%d个SKU执行了退货, 生成了%d个退货单' % (sku_num, len(returns)))
         return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
 
     gen_return_goods.allow_tags = True
     gen_return_goods.short_description = u'生成退货单'
+
+    def mark_unreturn(self, request, queryset):
+        from flashsale.dinghuo.models import UnReturnSku
+
+        for productsku_stat in queryset:
+            product = productsku_stat.product
+            saleproduct = SaleProduct.objects.get(id=product.sale_product)
+
+            # 清理数据
+            rows = UnReturnSku.objects.filter(product=product, sku=productsku_stat.sku)
+            if rows:
+                row = rows[0]
+                row.supplier = saleproduct.sale_supplier
+                row.sale_product = saleproduct
+                row.status = UnReturnSku.EFFECT
+                row.creater = request.user
+                row.save()
+
+                for row in rows[1:]:
+                    row.delete()
+            else:
+                unreturn_sku = UnReturnSku(
+                    supplier = saleproduct.sale_supplier,
+                    sale_product = saleproduct,
+                    product = product,
+                    sku = productsku_stat.sku,
+                    creater = request.user,
+                    status = UnReturnSku.EFFECT
+                )
+                unreturn_sku.save()
+        return HttpResponseRedirect(request.get_full_path())
+    mark_unreturn.short_description = u'标记不可退货'
+
 
     def skucode(self, obj):
         return self.SKU_PREVIEW_TPL % {
@@ -1463,7 +1499,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     district_link.allow_tags = True
     district_link.short_description = "库位"
-    actions = ['gen_return_goods']
+    actions = ['gen_return_goods', 'mark_unreturn']
 
     def get_actions(self, request):
         actions = super(ProductSkuStatsAdmin, self).get_actions(request)
