@@ -77,7 +77,7 @@ class UserAddressTestCase(TestCase):
             "referal_trade_id": 333231
         }
 
-        response = self.client.post('/rest/v1/address/113674/update', address, ACCEPT='application/json;')
+        response = self.client.post('/rest/v1/address/111452/update', address, ACCEPT='application/json;')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)  # 创建的返回结果
         self.assertEqual(data['ret'], True)  # 添加成功
@@ -97,7 +97,7 @@ class UserAddressTestCase(TestCase):
             "referal_trade_id": 333231
         }
 
-        response = self.client.post('/rest/v1/address/113674/change_company_code', address, ACCEPT='application/json;')
+        response = self.client.post('/rest/v1/address/111452/change_company_code', address, ACCEPT='application/json;')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)  # 创建的返回结果
         self.assertEqual(data['code'], 0)  # 添加成功

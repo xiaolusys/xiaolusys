@@ -1,4 +1,22 @@
-[
+[{
+  "fields": {
+    "status": "delete",
+    "receiver_district": "\u5929\u6cb3\u533a",
+    "receiver_city": "\u5e02\u8f96\u533a",
+    "created": "2016-05-05T10:34:32",
+    "default": false,
+    "receiver_mobile": "13888888888",
+    "receiver_zip": "",
+    "modified": "2016-05-07T10:26:26",
+    "receiver_state": "\u5e7f\u4e1c",
+    "receiver_name": "\u674e\u4e39",
+    "cus_uid": 783437,
+    "receiver_phone": "",
+    "receiver_address": "\u5929\u5b89\u95e899\u5f041\u53f7"
+  },
+  "model": "pay.useraddress",
+  "pk": 111452
+},
 {
   "fields": {
     "status": "normal",

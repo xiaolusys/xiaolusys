@@ -285,12 +285,12 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def change_company_code(self, request, pk, *args, **kwargs):
-        try:
-            company_code = request.REQUEST.get('logistic_company_code', '')
-            referal_trade_id = request.REQUEST.get('referal_trade_id', '')
-            address = self.get_object()
-            address.set_logistic_company(company_code)
 
+        company_code = request.REQUEST.get('logistic_company_code', '')
+        referal_trade_id = request.REQUEST.get('referal_trade_id', '')
+        address = self.get_object()
+        try:
+            address.set_logistic_company(company_code)
             if referal_trade_id:
                 strade = SaleTrade.objects.filter(id=referal_trade_id, status=SaleTrade.WAIT_SELLER_SEND_GOODS).first()
                 if strade:
@@ -298,12 +298,12 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                     company = LogisticsCompany.objects.filter(code=address.logistic_company_code).first()
                     strade.logistics_company = company
                     strade.save(update_fields=['logistics_company'])
-                    tasks_set_user_address_id.delay(strade)
+                    # tasks_set_user_address_id.delay(strade)
                 else:
                     return Response({'code': 2, 'info': u'订单已经发货'})
-            result ={'code': 0, 'info':u'修改成功'}
+            result = {'code': 0, 'info': u'修改成功'}
         except Exception, exc:
-            logger.error(exc.message, exc_info=True)
+            logger.error(exc.message or 'change company code error', exc_info=True)
             result = {'code': 1, 'info': u'系统异常'}
         return Response(result)
 
