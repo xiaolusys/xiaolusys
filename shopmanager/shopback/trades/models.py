@@ -1818,7 +1818,6 @@ class PackageSkuItem(BaseModel):
         # }
         # PackageSkuItem.objects.filter(id=self.id).update(**values)
 
->>>>>>> [promotion]hy-change-address
     def set_assign_status_time(self):
         if self.assign_status == PackageSkuItem.FINISHED:
             self.finish_time = datetime.datetime.now()
