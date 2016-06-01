@@ -512,7 +512,7 @@ def get_share_url(next_page=None, mm_linkid=None, ufrom=None):
         share_url = urlparse.urljoin(settings.M_SITE_URL,
                     '{path}#{fragement}'.format(
                         path=url_ps.path,
-                        fragement=url_ps.fragment
+                        fragement=fragment
                     ))
     else:
         share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL,
