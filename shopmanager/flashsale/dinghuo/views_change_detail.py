@@ -426,7 +426,7 @@ class ChangeDetailExportView(View):
             memo = sale_product_dict.get('memo') or ''
 
             worksheet.write(row, 0, name)
-            worksheet.write(row, 1, sku_outer_id.rsplit('-')[0])
+            worksheet.write(row, 1, sku_outer_id)
             worksheet.write(row, 2, memo, text_wrap)
             worksheet.write(row, 3, color)
             worksheet.write(row, 4, order_detail.product_chicun)

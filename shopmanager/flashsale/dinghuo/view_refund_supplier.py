@@ -508,7 +508,7 @@ def export_return_goods(request):
         warehouse = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼'
     worksheet.merge_range(row, 1, row, 5, warehouse)
     worksheet.write(row + 1, 0, '支付宝账号:', bold_format)
-    worksheet.merge_range(row + 1, 1, row + 1, 5, '暂无')
+    worksheet.merge_range(row + 1, 1, row + 1, 5, 'xiaoxiaoshijie@unilittles.com')
 
 
     workbook.close()
