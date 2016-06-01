@@ -1508,6 +1508,12 @@ class PackageOrder(models.Model):
             return package_order
 
     def set_logistics_company(self):
+        """
+            如果已经有物流单号，设置公司和重打
+            如果没有物流单号，直接改上sale_trade的物流公司
+            如果sale_trade里没有指定，那自己设
+        :return:
+        """
         old_logistics_company_id = None
         if self.logistics_company_id:
             old_logistics_company_id = self.logistics_company_id
@@ -1516,7 +1522,14 @@ class PackageOrder(models.Model):
             return
         if package_sku_item.sale_trade.logistics_company:
             self.logistics_company_id = package_sku_item.sale_trade.logistics_company.id
-        elif old_logistics_company_id:
+            if old_logistics_company_id != self.logistics_company_id:
+                if self.is_express_print:
+                    self.is_express_print = False
+                    self.redo_sign = True
+                    self.save(update_fields=['logistics_company_id', 'is_express_print', 'redo_sign'])
+                else:
+                    self.save(update_fields=['logistics_company_id'])
+        elif not old_logistics_company_id:
             from shopback.logistics.models import LogisticsCompanyProcessor
             from shopback.warehouse import WARE_GZ
             try:
@@ -1531,13 +1544,8 @@ class PackageOrder(models.Model):
             except:
                 from shopback.logistics.models import LogisticsCompany
                 self.logistics_company_id = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0].id
-            if old_logistics_company_id != self.logistics_company_id:
-                if self.is_express_print and old_logistics_company_id:
-                    self.is_express_print = False
-                    self.redo_sign = True
-                    self.save(update_fields=['logistics_company_id', 'is_express_print', 'redo_sign'])
-                else:
-                    self.save(update_fields=['logistics_company_id'])
+            self.save(update_fields=['logistics_company_id'])
+
 
     def reset_sku_item_num(self, save_data=True):
         sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
