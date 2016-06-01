@@ -135,11 +135,11 @@ class WuliuViewSet(viewsets.ModelViewSet):
                     res = self.packet_data(queryset)
                     return Response(res)
                 else:  # 更新物流
-                    self.get_third_apidata(trade)
+                    get_third_apidata(trade)
                     res = self.packet_data(queryset)
                     return Response(res)
             else:  # 更新物流
-                self.get_third_apidata(trade)
+                get_third_apidata(trade)
                 res = self.packet_data(queryset)
                 return Response(res)
 
@@ -168,11 +168,11 @@ class WuliuViewSet(viewsets.ModelViewSet):
                 res = self.packet_data(queryset)
                 return Response(res)
             else:  # 更新物流
-                self.get_third_apidata_by_packetid(packetid, company_code)
+                get_third_apidata_by_packetid(packetid, company_code)
                 res = self.packet_data(queryset)
                 return Response(res)
         else:  # 更新物流
-            self.get_third_apidata_by_packetid(packetid, company_code)
+            get_third_apidata_by_packetid(packetid, company_code)
             res = self.packet_data(queryset)
             return Response(res) 
 
