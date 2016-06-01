@@ -42,7 +42,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
-WEB_SHARE_URL = "{site_url}/mall/#/?mm_linkid={mm_linkid}&ufrom={ufrom}"
+WEB_SHARE_URL = "{site_url}/mall/index.html#/?mm_linkid={mm_linkid}&ufrom={ufrom}"
 
 
 # SHOPURL = "http://m.xiaolumeimei.com/mm/plist/"
