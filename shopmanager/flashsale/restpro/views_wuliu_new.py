@@ -8,7 +8,7 @@ from shopback.trades.models import TradeWuliu
 from shopback.items.models import Product
 import datetime
 from . import serializers
-from flashsale.restpro.tasks import SaveWuliu_only, SaveWuliu_by_packetid
+from flashsale.restpro.tasks import SaveWuliu_only, SaveWuliu_by_packetid, get_third_apidata, get_third_apidata_by_packetid
 from rest_framework import viewsets
 from rest_framework import renderers
 from django.shortcuts import get_object_or_404
@@ -16,41 +16,7 @@ from flashsale.pay.models import Customer, SaleTrade
 from rest_framework.decorators import list_route
 from shopback import paramconfig as pacg
 
-BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"  # 访问第三方接口
-apikey = '47deda738666430bab15306c2878dd3a'
-uid = '39400'
-default_post = 'yunda'
 
-BAIDU_POST_CODE_EXCHANGE = {
-    'YUNDA': 'yunda', 'YUNDA_QR': 'yunda', 'STO': 'shentong', 'EMS': 'ems', 'ZTO': 'zhongtong', 'ZJS': 'zhaijisong',
-    'SF': 'shunfeng', 'YTO': 'yuantong', 'HTKY': 'huitongkuaidi', 'TTKDEX': 'tiantian',
-    'QFKD': 'quanfengkuaidi',
-}
-
-def get_third_apidata(trade):
-    """ 访问第三方api 获取物流参数 并保存到本地数据库　"""
-    tid = trade.tid
-    # 快递编码(快递公司编码)
-    exType = trade.logistics_company.code if trade.logistics_company is not None else default_post
-    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': trade.out_sid, 'key': apikey,
-            'uid': uid}
-    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
-    content = json.loads(req.read())
-    SaveWuliu_only.delay(tid, content)  # 异步任务，存储物 流信息到数据库
-    return
-
-
-def get_third_apidata_by_packetid(packetid, company_code):
-    """ 使用包裹id访问第三方api 获取物流参数 并保存到本地数据库　"""
-
-    # 快递编码(快递公司编码)
-    exType = company_code if company_code is not None else default_post
-    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': packetid, 'key': apikey,
-            'uid': uid}
-    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
-    content = json.loads(req.read())
-    SaveWuliu_by_packetid.delay(packetid, content)  # 异步任务，存储物 流信息到数据库
-    return
 
 class WuliuViewSet(viewsets.ModelViewSet):
     """
@@ -135,11 +101,11 @@ class WuliuViewSet(viewsets.ModelViewSet):
                     res = self.packet_data(queryset)
                     return Response(res)
                 else:  # 更新物流
-                    get_third_apidata(trade)
+                    get_third_apidata.delay(trade)
                     res = self.packet_data(queryset)
                     return Response(res)
             else:  # 更新物流
-                get_third_apidata(trade)
+                get_third_apidata.delay(trade)
                 res = self.packet_data(queryset)
                 return Response(res)
 
@@ -168,11 +134,11 @@ class WuliuViewSet(viewsets.ModelViewSet):
                 res = self.packet_data(queryset)
                 return Response(res)
             else:  # 更新物流
-                get_third_apidata_by_packetid(packetid, company_code)
+                get_third_apidata_by_packetid.delay(packetid, company_code)
                 res = self.packet_data(queryset)
                 return Response(res)
         else:  # 更新物流
-            get_third_apidata_by_packetid(packetid, company_code)
+            get_third_apidata_by_packetid.delay(packetid, company_code)
             res = self.packet_data(queryset)
             return Response(res) 
 
