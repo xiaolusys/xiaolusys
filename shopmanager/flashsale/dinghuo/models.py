@@ -476,6 +476,7 @@ class ReturnGoods(models.Model):
         return get_max_from_list(r)
 
     def set_stat(self):
+        self.rg_details.filter(num=0).delete()
         rgds = self.rg_details.all()
         total_num = 0
         total_amount = 0
@@ -507,11 +508,24 @@ class ReturnGoods(models.Model):
         for d in self.rg_details.all():
             ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity')-d.num)
 
-    def supply_notify_refund(self):
+    def supply_notify_refund(self, receive_method, amount, note, pic=None):
         """
             供应商说他已经退款了
         :return:
         """
+        from flashsale.finance.models import Bill
+        bill = Bill(type=Bill.PAY,
+                          status=0,
+                          creater=self.transactor,
+                          bill_method=receive_method,
+                          pay_method=4,
+                          plan_amount=amount,
+                          note=note,
+                          supplier_id=self.supplier_id)
+        if pic:
+            bill.attachment = pic
+        bill.save()
+        bill.relate_to([self])
         self.status = ReturnGoods.REFUND_RG
         self.save()
 
@@ -530,6 +544,17 @@ class ReturnGoods(models.Model):
         return User.objects.filter(is_staff=True,
                                         groups__name__in=(u'小鹿买手资料员', u'小鹿采购管理员', u'小鹿采购员', u'管理员', u'小鹿管理员')). \
                 distinct().order_by('id')
+
+    def add_sku(self, skuid, num, price=None):
+        if self.status in [RGDetail.CREATE_RG, RGDetail.VERIFY_RG]:
+            rgd = RGDetail()
+            rgd.return_goods = self
+            rgd.skuid = skuid
+            rgd.num = num
+            rgd.price = price
+            rgd.save()
+        else:
+            raise Exception(u'已发货的退货单不可更改')
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.supplier_id, self.id)
