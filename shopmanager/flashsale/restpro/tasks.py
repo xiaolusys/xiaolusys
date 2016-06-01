@@ -117,6 +117,42 @@ def task_schedule_cart():
     """
     close_timeout_carts_and_orders()
 
+BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"  # 访问第三方接口
+apikey = '47deda738666430bab15306c2878dd3a'
+uid = '39400'
+default_post = 'yunda'
+
+BAIDU_POST_CODE_EXCHANGE = {
+    'YUNDA': 'yunda', 'YUNDA_QR': 'yunda', 'STO': 'shentong', 'EMS': 'ems', 'ZTO': 'zhongtong', 'ZJS': 'zhaijisong',
+    'SF': 'shunfeng', 'YTO': 'yuantong', 'HTKY': 'huitongkuaidi', 'TTKDEX': 'tiantian',
+    'QFKD': 'quanfengkuaidi',
+}
+
+@task()
+def get_third_apidata(trade):
+    """ 访问第三方api 获取物流参数 并保存到本地数据库　"""
+    tid = trade.tid
+    # 快递编码(快递公司编码)
+    exType = trade.logistics_company.code if trade.logistics_company is not None else default_post
+    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': trade.out_sid, 'key': apikey,
+            'uid': uid}
+    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
+    content = json.loads(req.read())
+    SaveWuliu_only.delay(tid, content)  # 异步任务，存储物 流信息到数据库
+    return
+
+@task()
+def get_third_apidata_by_packetid(packetid, company_code):
+    """ 使用包裹id访问第三方api 获取物流参数 并保存到本地数据库　"""
+
+    # 快递编码(快递公司编码)
+    exType = company_code if company_code is not None else default_post
+    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': packetid, 'key': apikey,
+            'uid': uid}
+    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
+    content = json.loads(req.read())
+    SaveWuliu_by_packetid.delay(packetid, content)  # 异步任务，存储物 流信息到数据库
+    return
 
 @task(max_retries=3, default_retry_delay=5)
 def SaveWuliu_only(tid, content):
@@ -182,7 +218,7 @@ def update_all_logistics():
                 #print 'get logistics %s %s'%(psi.out_sid, psi.logistics_company_code)
                 if psi.out_sid and psi.logistics_company_code and temp_sid != psi.out_sid:
                     num = num+1
-                    get_third_apidata_by_packetid(psi.out_sid, psi.logistics_company_code)
+                    get_third_apidata_by_packetid.delay(psi.out_sid, psi.logistics_company_code)
                     temp_sid = psi.out_sid
     logger = logging.getLogger(__name__)
     logger.warn('update_all_logistics trades counts=%d, update counts=%d' % (sale_trades.count(), num))

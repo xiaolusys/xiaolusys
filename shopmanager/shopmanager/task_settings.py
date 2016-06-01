@@ -919,7 +919,7 @@ SHOP_APP_SCHEDULE = {
 
     u'定时更新全部未收到货包裹的物流信息': {
         'task': 'flashsale.restpro.tasks.update_all_logistics',
-        'schedule': crontab(hour="*/6"),
+        'schedule': crontab(hour="6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
