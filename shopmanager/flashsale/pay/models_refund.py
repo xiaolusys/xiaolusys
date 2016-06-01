@@ -148,6 +148,63 @@ class SaleRefund(PayBaseModel):
         sorder = SaleOrder.objects.get(id=self.order_id)
         return sorder.oid
 
+    @staticmethod
+    def create(sale_order, refund_info, return_goods_info={}):
+        if not sale_order.refundable:
+            return False
+        if sale_order.refund:
+            return False
+        sale_trade = sale_order.sale_trade
+        return_good = refund_info.get('return_good')
+        params = {
+            'reason': refund_info.get('reason'),
+            'refund_fee': refund_info.get('refund_fee'),
+            'desc': refund_info.get('desc'),
+            'trade_id': sale_trade.id,
+            'order_id': sale_order.id,
+            'buyer_id': sale_trade.buyer_id,
+            'buyer_nick': sale_trade.buyer_nick,
+            'item_id': sale_order.item_id,
+            'title': sale_order.title,
+            'sku_id': sale_order.sku_id,
+            'sku_name': sale_order.sku_name,
+            'total_fee': sale_order.total_fee,
+            'payment': sale_order.payment,
+            'mobile': sale_trade.receiver_mobile,
+            'phone': sale_trade.receiver_phone,
+            'charge': sale_trade.charge,
+            'channel': sale_trade.channel
+        }
+        if return_good:
+            params.update({'refund_num': return_goods_info.get('refund_num'),
+                           'company_name': return_goods_info.get('company_name'),
+                           'sid': return_goods_info.get('sid'),
+                           'has_good_return': True,
+                           'good_status': SaleRefund.BUYER_RECEIVED,
+                           'status': SaleRefund.REFUND_WAIT_SELLER_AGREE
+                           })
+
+        else:
+            good_status = SaleRefund.BUYER_NOT_RECEIVED
+            good_receive = refund_info.get('good_receive', '')
+            if good_receive.lower() == 'y':
+                good_status = SaleRefund.BUYER_RECEIVED
+
+            params.update({'has_good_return': False,
+                           'good_status': good_status,
+                           'status': SaleRefund.REFUND_WAIT_SELLER_AGREE
+                           })
+
+        sale_refund = SaleRefund.objects.create(**params)
+
+        sale_order.refund_id = sale_refund.id
+        sale_order.refund_fee = sale_refund.refund_fee
+        sale_order.refund_status = sale_refund.status
+        sale_order.save()
+        from flashsale.pay.tasks import pushTradeRefundTask
+        pushTradeRefundTask.delay(sale_refund.id)
+        return True
+
     def refund_Confirm(self):
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
