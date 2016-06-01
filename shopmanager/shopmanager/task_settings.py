@@ -366,6 +366,10 @@ FLASHSALE_COUPON_ROUTES = {
         'queue': 'coupon',
         'routing_key': 'coupon.task_release_mama_link_coupon',
     },
+    'flashsale.coupon.tasks.task_release_coupon_for_register': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_release_coupon_for_register',
+    },
 }
 
 STATISTICS_ROUTES = {

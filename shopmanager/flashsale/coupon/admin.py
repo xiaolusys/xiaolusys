@@ -19,7 +19,7 @@ class CouponTemplateAdmin(admin.ModelAdmin):
         }),
         (u'其他信息:', {
             'classes': ('expand',),
-            'fields': (('coupon_type', 'target_user', 'scope_type'),
+            'fields': (('coupon_type', 'target_user', 'scope_type', 'is_flextime'),
                        'extras')
         }),
     )
