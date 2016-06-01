@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.db import models
+from django.db.models import Sum
 from core.models import BaseModel
 from django.db.models.signals import post_save
 from statistics import constants
@@ -68,6 +69,39 @@ class SaleStats(BaseModel):
     # uni_key = date_field + current_id + record_type + status
     def __unicode__(self):
         return u'<%s-%s>' % (self.id, self.uni_key)
+
+    def get_status_queryset(self):
+        return self.__class__.objects.filter(parent_id=self.parent_id, current_id=self.current_id,
+                                             date_field=self.date_field, record_type=self.record_type,
+                                             timely_type=self.timely_type)
+
+    @property
+    def paid_num(self):
+        if self.status == constants.PAID:
+            return self.num
+        paid_stats = self.get_status_queryset().filter(status=constants.PAID).first()
+        return paid_stats.num if paid_stats else 0
+
+    @property
+    def cancel_num(self):
+        if self.status == constants.CANCEL:
+            return self.num
+        cancel_stats = self.get_status_queryset().filter(status=constants.CANCEL).first()
+        return cancel_stats.num if cancel_stats else 0
+
+    @property
+    def out_stock_num(self):
+        if self.status == constants.OUT_STOCK:
+            return self.num
+        out_stock_stats = self.get_status_queryset().filter(status=constants.OUT_STOCK).first()
+        return out_stock_stats.num if out_stock_stats else 0
+
+    @property
+    def return_goods_num(self):
+        if self.status == constants.RETURN_GOODS:
+            return self.num
+        return_goods_stats = self.get_status_queryset().filter(status=constants.RETURN_GOODS).first()
+        return return_goods_stats.num if return_goods_stats else 0
 
     class Meta:
         db_table = 'statistics_sale_stats'
