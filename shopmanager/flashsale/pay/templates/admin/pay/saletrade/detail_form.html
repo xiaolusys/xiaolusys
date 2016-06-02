@@ -1,0 +1,80 @@
+{% extends "admin/base_site_v2.html" %}
+{% load i18n admin_static admin_list %}
+{% load url from future %}
+{% load admin_urls %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+<link href="{{ STATIC_URL }}bootstrap-3.3.4-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+<link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
+<style type="text/css">
+    .form-row {
+        overflow:inherit;
+        width:90%;
+        float:left;
+    }
+    .dropdown-menu {
+        margin-left:192px !important;
+    }
+    .dropdown-menu li {
+        list-style-type:none;
+    }
+    .xiaolu-hide {
+        display: none !important;
+    }
+    .margin-left-192 {
+        margin-left:192px !important;
+    }
+    .table_return_goods td{
+        width:100px;
+    }
+</style>
+{% if cl.formset %}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+  -rw-rw-r-- 1 aladdin aladdin  3379 12月 26 09:26 data_grape.html
+  -rw-rw-r-- 1 aladdin aladdin  8216 12月 26 09:26 data_of_point.html
+  -rw-rw-r-- 1 aladdin aladdin  3142 12月 26 09:26 data_of_product.html
+  -rw-rw-r-- 1 aladdin aladdin  5740 12月 26 09:26
+{% endif %}
+{% if cl.formset or action_form %}
+{% url 'admin:jsi18n' as jsi18nurl %}
+<script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
+
+{% endif %}
+{{ media.css }}
+{% if not actions_on_top and not actions_on_bottom %}
+<style>
+    #changelist table thead th:first-child {width: inherit}
+</style>
+{% endif %}
+{% endblock %}
+
+{% block bodyclass %}change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; {{ app_label|capfirst|escape }}
+    &rsaquo; {{ opts.verbose_name }}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    订单基本信息:
+    <table>
+        {%for sale_order in original.sale_orders.all%}
+            <tr><td>{{sale_order.id}}</td></tr>
+        {%endfor%}
+    </table>
+</div>
+
+{% endblock %}

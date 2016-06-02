@@ -5,6 +5,7 @@ from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, Product
 from django.http import HttpResponseRedirect
 from functools import partial, reduce, update_wrapper
 from core.options import log_action, CHANGE
+from core.admin import BaseModelAdmin
 from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
@@ -412,7 +413,7 @@ from supplychain.supplier.models import SaleSupplier
 from flashsale.pay.models import SaleRefund
 
 
-class ReturnGoodsAdmin(admin.ModelAdmin):
+class ReturnGoodsAdmin(BaseModelAdmin):
     list_display = ('id', "supplier_link", "product_desc", "show_detail_num", "sum_amount",
                     "status", "status_contrl", "noter",  "transactor_name", "created",
                     "consign_time", "sid",  "consigner", 'show_memo', 'show_reason'
@@ -421,7 +422,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
                      "noter", "consigner", "transactor_id", "sid"]
 
     list_filter = ["status", "noter", "consigner", "transactor_id", "created", "modify", ]
-    readonly_fields = ('status',)
+    readonly_fields = ('status', 'supplier')
     inlines = [RGDetailInline, ]
     list_display_links = ['id',]
     list_select_related = True
@@ -440,28 +441,14 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
     #     else:
     #         return qs.exclude(status=ReturnGoods.OBSOLETE_RG)
 
-    def get_urls(self):
-        from django.conf.urls import url
-
-        def wrap(view):
-            def wrapper(*args, **kwargs):
-                return self.admin_site.admin_view(view)(*args, **kwargs)
-            return update_wrapper(wrapper, view)
-
-        info = self.model._meta.app_label, self.model._meta.model_name
-
-        urlpatterns = [
-            url(r'^$', wrap(self.changelist_view), name='%s_%s_changelist' % info),
-            url(r'^add/$', wrap(self.add_view), name='%s_%s_add' % info),
-            url(r'^(.+)/history/$', wrap(self.history_view), name='%s_%s_history' % info),
-            url(r'^(.+)/delete/$', wrap(self.delete_view), name='%s_%s_delete' % info),
-            url(r'^(.+)/$', wrap(self.change_view), name='%s_%s_change' % info),
-        ]
-        return urlpatterns
-
-    def change_view(self, request, object_id, form_url='', extra_context=None):
+    def detail_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = {'title': u'仓库退货单', 'transactors': ReturnGoods.transactors()}
-        return self.changeform_view(request, object_id, form_url, extra_context)
+        return self.detailform_view(request, object_id, form_url, extra_context)
+
+
+    # def change_view(self, request, object_id, form_url='', extra_context=None):
+    #     extra_context = {'title': u'仓库退货单', 'transactors': ReturnGoods.transactors()}
+    #     return self.changeform_view(request, object_id, form_url, extra_context)
 
     def transactor_name(self, obj):
         return obj.transactor.username
