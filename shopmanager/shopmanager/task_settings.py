@@ -1,6 +1,19 @@
 # -*- coding:utf-8 -*-
 import djcelery
 
+########################################################################################################################
+#说明:新增queue或定时任务需要注意的地方
+#新增queue
+#1.CELERY_IMPORTS 增加task实现所在路径
+#2.CELERY_QUEUES 增加queue
+#3.参考SKU_STATS_ROUTES增加queue专有的route比如your_ROUTES,
+#4.并且调用CELERY_ROUTES.update(your_ROUTES)
+#
+#新增定时任务
+#1.CELERY_IMPORTS 增加task实现所在路径
+#2.在xx_APP_SCHEDULE里面增加定时任务配置
+########################################################################################################################
+
 djcelery.setup_loader()
 
 CELERY_IMPORTS = (
@@ -18,6 +31,7 @@ CELERY_IMPORTS = (
     'flashsale.pay.tasks_stats',
     'shopback.items.tasks_stats',
     'statistics.tasks',
+    'flashsale.restpro.tasks',
 )
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -70,6 +84,7 @@ CELERY_QUEUES = (
     Queue('skustats', routing_key='skustats.#'),
     Queue('coupon', routing_key='coupon.#'),
     Queue('statistics', routing_key='statistics.#'),
+    Queue('logistics', routing_key='logistics.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
@@ -376,6 +391,28 @@ STATISTICS_ROUTES = {
         'routing_key': 'statistics.task_update_agg_sale_stats',
     }
 }
+
+LOGISTICS_ROUTES = {
+    'flashsale.restpro.tasks.get_third_apidata': {
+        'queue': 'logistics',
+        'routing_key': 'logistics.get_third_apidata',
+    },
+    'flashsale.restpro.tasks.get_third_apidata_by_packetid': {
+        'queue': 'logistics',
+        'routing_key': 'logistics.get_third_apidata_by_packetid',
+    },
+    'flashsale.restpro.tasks.SaveWuliu_only': {
+        'queue': 'logistics',
+        'routing_key': 'logistics.SaveWuliu_only',
+    },  # 更新物流信息
+    'flashsale.restpro.tasks.SaveWuliu_by_packetid': {
+        'queue': 'logistics',
+        'routing_key': 'logistics.SaveWuliu_by_packetid',
+    },
+
+
+}
+
 CELERY_ROUTES = {
     'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
         'queue': 'peroid',
@@ -439,10 +476,6 @@ CELERY_ROUTES = {
         'queue': 'frency',
         'routing_key': 'frency.update_weixin_userinfo',
     },  # 更新微信用户信息
-    'flashsale.restpro.tasks.SaveWuliu_only': {
-        'queue': 'frency',
-        'routing_key': 'frency.SaveWuliu_only',
-    },  # 更新物流信息
     'shopapp.smsmgr.tasks.task_register_code': {
         'queue': 'frency',
         'routing_key': 'frency.task_register_code',
@@ -514,6 +547,7 @@ CELERY_ROUTES.update(MAMA_CARRYRECORD_ROUTES)
 CELERY_ROUTES.update(SKU_STATS_ROUTES)
 CELERY_ROUTES.update(FLASHSALE_COUPON_ROUTES)
 CELERY_ROUTES.update(STATISTICS_ROUTES)
+CELERY_ROUTES.update(LOGISTICS_ROUTES)
 
 API_REQUEST_INTERVAL_TIME = 10  # (seconds)
 API_TIME_OUT_SLEEP = 60  # (seconds)
@@ -921,7 +955,7 @@ SHOP_APP_SCHEDULE = {
 
     u'定时更新全部未收到货包裹的物流信息': {
         'task': 'flashsale.restpro.tasks.update_all_logistics',
-        'schedule': crontab(hour="6"),
+        'schedule': crontab(minute="0", hour="6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
