@@ -49,7 +49,7 @@ function getLinkParam(url,name){
 }
 
 function getUrlParam(name) {
-    var local_link = window.location.search;
+    var local_link = window.location.href;
     return getLinkParam(local_link,name);
 }
 
