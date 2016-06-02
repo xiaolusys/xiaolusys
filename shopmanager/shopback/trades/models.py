@@ -1492,20 +1492,21 @@ class PackageOrder(models.Model):
         self.sku_num = 0
         self.save()
 
-    def set_package_address(package_order):
-        item = package_order.package_sku_items.first()
+    def set_package_address(self):
+        item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).first()
         if item:
             st = SaleTrade.objects.get(tid=item.sale_trade_id)
-            package_order.buyer_id = st.buyer_id
-            package_order.receiver_name = st.receiver_name
-            package_order.receiver_state = st.receiver_state
-            package_order.receiver_city = st.receiver_city
-            package_order.receiver_district = st.receiver_district
-            package_order.receiver_address = st.receiver_address
-            package_order.receiver_zip = st.receiver_zip
-            package_order.receiver_phone = st.receiver_phone
-            package_order.save()
-            return package_order
+            self.buyer_id = st.buyer_id
+            self.receiver_name = st.receiver_name
+            self.receiver_state = st.receiver_state
+            self.receiver_city = st.receiver_city
+            self.receiver_district = st.receiver_district
+            self.receiver_address = st.receiver_address
+            self.receiver_zip = st.receiver_zip
+            self.receiver_phone = st.receiver_phone
+            self.receiver_mobile = st.receiver_mobile
+            self.save()
+            return self
 
     def set_logistics_company(self):
         """
