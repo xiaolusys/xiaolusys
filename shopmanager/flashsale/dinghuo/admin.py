@@ -414,7 +414,7 @@ from flashsale.pay.models import SaleRefund
 
 
 class ReturnGoodsAdmin(BaseModelAdmin):
-    list_display = ('id', "supplier_link", "product_desc", "show_detail_num", "sum_amount",
+    list_display = ('id_link', "supplier_link", "product_desc", "show_detail_num", "sum_amount",
                     "status", "status_contrl", "noter",  "transactor_name", "created",
                     "consign_time", "sid",  "consigner", 'show_memo', 'show_reason'
                     )
@@ -424,7 +424,7 @@ class ReturnGoodsAdmin(BaseModelAdmin):
     list_filter = ["status", "noter", "consigner", "transactor_id", "created", "modify", ]
     readonly_fields = ('status', 'supplier')
     inlines = [RGDetailInline, ]
-    list_display_links = ['id',]
+    list_display_links = []
     list_select_related = True
     list_per_page = 25
     # change_form_template = "admin/dinghuo/returngoods/change_form.html"
@@ -433,13 +433,14 @@ class ReturnGoodsAdmin(BaseModelAdmin):
             return True
         return super(ReturnGoodsAdmin, self).lookup_allowed(lookup, value)
 
-    # def queryset(self, request):
-    #     ReturnGoodsAdmin.change_view()
-    #     qs = super(ReturnGoodsAdmin, self).queryset(request)
-    #     if request.user.is_superuser:
-    #         return qs
-    #     else:
-    #         return qs.exclude(status=ReturnGoods.OBSOLETE_RG)
+    def id_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">'
+                '%(show_text)s</a>') % {
+                'url': '/admin/dinghuo/returngoods/%d/' % obj.id,
+                'show_text': str(obj.id)
+            }
+    id_link.allow_tags = True
+    id_link.short_description = u"ID"
 
     def detail_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = {'title': u'仓库退货单', 'transactors': ReturnGoods.transactors()}
