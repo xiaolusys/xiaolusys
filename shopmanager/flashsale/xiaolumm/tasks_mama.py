@@ -237,7 +237,9 @@ def task_order_trigger(sale_order):
 
     customer_id = sale_order.sale_trade.buyer_id
     customer = Customer.objects.get(id=customer_id)
-    self_mama = get_self_mama(customer.unionid)
+    self_mama = None
+    if customer.unionid:
+        self_mama = get_self_mama(customer.unionid) 
 
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
 
