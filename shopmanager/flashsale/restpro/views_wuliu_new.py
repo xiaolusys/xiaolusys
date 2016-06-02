@@ -31,7 +31,10 @@ class WuliuViewSet(viewsets.ModelViewSet):
 
 
     def get_trade(self, tid):
-        trade = get_object_or_404(SaleTrade, tid=tid)
+        try:
+            trade = get_object_or_404(SaleTrade, tid=tid)
+        except:
+            trade = get_object_or_404(SaleTrade, id=tid)
         return trade
 
     def get_status_message(self, trade):
@@ -46,7 +49,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
                     return res
             res['message'] = "付款成功"
             return res
-        elif trade.status in (SaleTrade.TRADE_CLOSED_BY_SYS, SaleTrade.TRADE_NO_CREATE_PAY):
+        elif trade.status in (SaleTrade.TRADE_CLOSED_BY_SYS, SaleTrade.TRADE_NO_CREATE_PAY, SaleTrade.WAIT_BUYER_PAY):
             res['message'] = "暂无更新"
             return res
         return None
