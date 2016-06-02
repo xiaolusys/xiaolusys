@@ -9,7 +9,8 @@ from django.http import HttpResponseRedirect
 
 from core.options import log_action, User, ADDITION, CHANGE
 from core.filters import DateFieldListFilter
-from core.admin import ApproxAdmin
+from core.admin import ApproxAdmin, BaseModelAdmin
+from core.managers import ApproxCountQuerySet
 from .service import FlashSaleService
 from .models import (SaleTrade,
                      SaleOrder,
@@ -83,10 +84,10 @@ class SaleOrderAdmin(ApproxAdmin):
 admin.site.register(SaleOrder, SaleOrderAdmin)
 
 
-class SaleTradeAdmin(ApproxAdmin):
+class SaleTradeAdmin(BaseModelAdmin):
     list_display = (
-        'id', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
-    list_display_links = ('id', 'tid', 'buyer_id')
+        'id_link', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
+    list_display_links = ('tid', 'buyer_id')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (
@@ -119,6 +120,28 @@ class SaleTradeAdmin(ApproxAdmin):
         models.CharField: {'widget': TextInput(attrs={'size': '16'})},
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 35})},
     }
+
+    def queryset(self, request):
+        qs = super(ApproxAdmin, self).queryset(request)
+        return qs._clone(klass=ApproxCountQuerySet)
+
+    def save_model(self, request, obj, form, change):
+        if hasattr(obj, 'creator') and not getattr(obj, 'creator'):
+            obj.creator = request.user.username
+        obj.save()
+
+    def detail_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = {'title': u'特卖订单详情'}
+        return self.detailform_view(request, object_id, form_url, extra_context)
+
+    def id_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">'
+                '%(show_text)s</a>') % {
+                'url': '/admin/pay/saletrade/%d/' % obj.id,
+                'show_text': str(obj.id)
+            }
+    id_link.allow_tags = True
+    id_link.short_description = u"ID"
 
     def get_readonly_fields(self, request, obj=None):
 

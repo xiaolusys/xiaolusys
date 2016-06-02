@@ -478,3 +478,6 @@ def refunding_state(request, state_id):
                 # print rec
 
     return render(request, 'pay/order_flash.html', {'info': rec, 'time': real_today, 'yesterday': today})
+
+def change_sku_item(request):
+    return
