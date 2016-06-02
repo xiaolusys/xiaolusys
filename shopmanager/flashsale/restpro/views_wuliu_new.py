@@ -49,8 +49,11 @@ class WuliuViewSet(viewsets.ModelViewSet):
                     return res
             res['message'] = "付款成功"
             return res
-        elif trade.status in (SaleTrade.TRADE_CLOSED_BY_SYS, SaleTrade.TRADE_NO_CREATE_PAY, SaleTrade.WAIT_BUYER_PAY):
-            res['message'] = "暂无更新"
+        elif trade.status in (SaleTrade.TRADE_CLOSED_BY_SYS,
+                              SaleTrade.TRADE_NO_CREATE_PAY,
+                              SaleTrade.WAIT_BUYER_PAY,
+                              SaleTrade.TRADE_CLOSED):
+            res['message'] = trade.get_status_display()
             return res
         return None
 
