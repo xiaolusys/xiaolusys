@@ -746,7 +746,7 @@ class SaleOrder(PayBaseModel):
 
     def stats_not_pay(self):
         return self.status == SaleOrder.TRADE_NO_CREATE_PAY or \
-               self.status == SaleOrder.WAIT_BUYER_PAY
+               self.status == SaleOrder.WAIT_BUYER_PAY or self.status == SaleOrder.TRADE_CLOSED_BY_SYS
 
     def stats_paid(self):
         """ 统计付款的 """
