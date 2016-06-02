@@ -17,6 +17,7 @@ CELERY_IMPORTS = (
     'flashsale.promotion.tasks_activity',
     'flashsale.pay.tasks_stats',
     'shopback.items.tasks_stats',
+    'statistics.tasks',
 )
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -512,6 +513,7 @@ CELERY_ROUTES.update(MAMA_CARRY_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRYRECORD_ROUTES)
 CELERY_ROUTES.update(SKU_STATS_ROUTES)
 CELERY_ROUTES.update(FLASHSALE_COUPON_ROUTES)
+CELERY_ROUTES.update(STATISTICS_ROUTES)
 
 API_REQUEST_INTERVAL_TIME = 10  # (seconds)
 API_TIME_OUT_SLEEP = 60  # (seconds)
