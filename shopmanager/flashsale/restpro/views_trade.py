@@ -734,9 +734,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def create_Saletrade(self, request, form, address, customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
-        assert UUID_RE.match(tuuid), u'订单UUID异常'
-        sale_trade, state = SaleTrade.objects.get_or_create(tid=tuuid,buyer_id=customer.id)
-        assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY, SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
+        sale_trade = SaleTrade(tid=tuuid,buyer_id=customer.id)
         channel = form.get('channel')
         params = {
             'channel': channel,
@@ -750,36 +748,38 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_mobile': address.receiver_mobile,
             'user_address_id': address.id
         }
-        if state:
-            buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
-            buyer_openid = buyer_openid or customer.openid
-            payment = float(form.get('payment'))
-            pay_extras = form.get('pay_extras', '')
-            budget_payment = self.calc_extra_budget(pay_extras)
-            params.update({
-                'buyer_nick': customer.nick,
-                'buyer_message': form.get('buyer_message', ''),
-                'payment': payment,
-                'pay_cash': max(0, (payment * 100 - budget_payment) / 100.0),
-                'has_budget_paid': budget_payment > 0,
-                'total_fee': float(form.get('total_fee')),
-                'post_fee': float(form.get('post_fee')),
-                'discount_fee': float(form.get('discount_fee')),
-                'charge': '',
-                'status': SaleTrade.WAIT_BUYER_PAY,
-                'openid': buyer_openid,
-                'extras_info': {'coupon': form.get('coupon_id', ''),
-                                'pay_extras': pay_extras }
-            })
-            params['extras_info'].update(self.get_mama_referal_params(request))
+
+        buyer_openid = options.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+        buyer_openid = buyer_openid or customer.openid
+        payment = float(form.get('payment'))
+        pay_extras = form.get('pay_extras', '')
+        budget_payment = self.calc_extra_budget(pay_extras)
+        params.update({
+            'buyer_nick': customer.nick,
+            'buyer_message': form.get('buyer_message', ''),
+            'payment': payment,
+            'pay_cash': max(0, (payment * 100 - budget_payment) / 100.0),
+            'has_budget_paid': budget_payment > 0,
+            'total_fee': float(form.get('total_fee')),
+            'post_fee': float(form.get('post_fee')),
+            'discount_fee': float(form.get('discount_fee')),
+            'charge': '',
+            'status': SaleTrade.WAIT_BUYER_PAY,
+            'openid': buyer_openid,
+            'extras_info': {'coupon': form.get('coupon_id', ''),
+                            'pay_extras': pay_extras }
+        })
+        params['extras_info'].update(self.get_mama_referal_params(request))
+
         for k, v in params.iteritems():
             hasattr(sale_trade, k) and setattr(sale_trade, k, v)
         sale_trade.save()
-        if state:
-            from django_statsd.clients import statsd
-            statsd.incr('xiaolumm.prepay_count')
-            statsd.incr('xiaolumm.prepay_amount', sale_trade.payment)
-        return sale_trade, state
+        # record prepay stats
+        from django_statsd.clients import statsd
+        statsd.incr('xiaolumm.prepay_count')
+        statsd.incr('xiaolumm.prepay_amount', sale_trade.payment)
+
+        return sale_trade, True
 
     def create_Saleorder_By_Shopcart(self, saletrade, cart_qs):
         """ 根据购物车创建订单明细方法 """
@@ -878,59 +878,61 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 购物车订单支付接口 """
         CONTENT = request.REQUEST
         tuuid = CONTENT.get('uuid')
+        if not UUID_RE.match(tuuid):
+            logger.error('invalid uuid: %s' % CONTENT)
+            raise exceptions.ParseError(u'支付参数异常')
+
         coupon_id, coupon = CONTENT.get('coupon_id', ''), None
         customer = get_object_or_404(Customer, user=request.user)
-        try:
-            SaleTrade.objects.get(tid=tuuid, buyer_id=customer.id)
-        except SaleTrade.DoesNotExist:
-            cart_ids = [i for i in CONTENT.get('cart_ids', '').split(',')]
-            cart_qs = ShoppingCart.objects.filter(
-                id__in=[i for i in cart_ids if i.isdigit()],
-                buyer_id=customer.id
-            )
 
-            # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
-            if cart_qs.count() != len(cart_ids):
-                logger.warn('debug cart v1:content_type=%s,params=%s,cart_qs=%s' % (
-                request.META.get('CONTENT_TYPE', ''), request.REQUEST, cart_qs.count()))
-                raise exceptions.ParseError(u'购物车已结算待支付')
-            xlmm = self.get_xlmm(request)
-            total_fee = round(float(CONTENT.get('total_fee', '0')) * 100)
-            payment = round(float(CONTENT.get('payment', '0')) * 100)
-            post_fee = round(float(CONTENT.get('post_fee', '0')) * 100)
-            discount_fee = round(float(CONTENT.get('discount_fee', '0')) * 100)
-            pay_extras = CONTENT.get('pay_extras')
-            cart_total_fee = 0
-            cart_discount = 0
+        cart_ids = [i for i in CONTENT.get('cart_ids', '').split(',')]
+        cart_qs = ShoppingCart.objects.filter(
+            id__in=[i for i in cart_ids if i.isdigit()],
+            buyer_id=customer.id
+        )
 
-            item_ids = []
-            for cart in cart_qs:
-                if not cart.is_good_enough():
-                    raise exceptions.ParseError(u'抱歉,商品已被抢光')
-                cart_total_fee += cart.price * cart.num * 100
-                cart_discount += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
-                item_ids.append(cart.item_id)
+        # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
+        if cart_qs.count() != len(cart_ids):
+            logger.warn('debug cart v1:content_type=%s,params=%s,cart_qs=%s' % (
+            request.META.get('CONTENT_TYPE', ''), request.REQUEST, cart_qs.count()))
+            raise exceptions.ParseError(u'购物车已结算待支付')
+        xlmm = self.get_xlmm(request)
+        total_fee = round(float(CONTENT.get('total_fee', '0')) * 100)
+        payment = round(float(CONTENT.get('payment', '0')) * 100)
+        post_fee = round(float(CONTENT.get('post_fee', '0')) * 100)
+        discount_fee = round(float(CONTENT.get('discount_fee', '0')) * 100)
+        pay_extras = CONTENT.get('pay_extras')
+        cart_total_fee = 0
+        cart_discount = 0
 
-            if coupon_id:
-                # 对应用户的未使用的优惠券
-                user_coupon = get_object_or_404(UserCoupon, id=coupon_id,
-                                                customer_id=customer.id, status=UserCoupon.UNUSED)
-                try:  # 优惠券条件检查
-                    check_use_fee = (cart_total_fee - cart_discount) / 100.0
-                    user_coupon.check_user_coupon(product_ids=item_ids, use_fee=check_use_fee)
-                except Exception, exc:
-                    raise exceptions.APIException(exc.message)
-                cart_discount += round(user_coupon.value * 100)
+        item_ids = []
+        for cart in cart_qs:
+            if not cart.is_good_enough():
+                raise exceptions.ParseError(u'抱歉,商品已被抢光')
+            cart_total_fee += cart.price * cart.num * 100
+            cart_discount += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
+            item_ids.append(cart.item_id)
 
-            cart_discount += self.calc_extra_discount(pay_extras)
-            cart_discount = min(cart_discount, cart_total_fee)
-            if discount_fee > cart_discount:
-                raise exceptions.ParseError(u'优惠金额异常')
+        if coupon_id:
+            # 对应用户的未使用的优惠券
+            user_coupon = get_object_or_404(UserCoupon, id=coupon_id,
+                                            customer_id=customer.id, status=UserCoupon.UNUSED)
+            try:  # 优惠券条件检查
+                check_use_fee = (cart_total_fee - cart_discount) / 100.0
+                user_coupon.check_user_coupon(product_ids=item_ids, use_fee=check_use_fee)
+            except Exception, exc:
+                raise exceptions.APIException(exc.message)
+            cart_discount += round(user_coupon.value * 100)
 
-            cart_payment = cart_total_fee + post_fee - cart_discount
-            if (post_fee < 0 or payment < 0 or abs(payment - cart_payment) > 10
-                or abs(total_fee - cart_total_fee) > 10):
-                raise exceptions.ParseError(u'付款金额异常')
+        cart_discount += self.calc_extra_discount(pay_extras)
+        cart_discount = min(cart_discount, cart_total_fee)
+        if discount_fee > cart_discount:
+            raise exceptions.ParseError(u'优惠金额异常')
+
+        cart_payment = cart_total_fee + post_fee - cart_discount
+        if (post_fee < 0 or payment < 0 or abs(payment - cart_payment) > 10
+            or abs(total_fee - cart_total_fee) > 10):
+            raise exceptions.ParseError(u'付款金额异常')
 
         addr_id = CONTENT.get('addr_id')
         address = get_object_or_404(UserAddress, id=addr_id, cus_uid=customer.id)
@@ -939,23 +941,32 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')
 
-        with transaction.atomic():
-            sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer)
-            if state:
-                self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+        try:
+            with transaction.atomic():
+                sale_trade, state = self.create_Saletrade(request, CONTENT, address, customer)
+                if state:
+                    self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+        except Exception, exc:
+            logger.error('cart create saletrade:uuid=%s,channel=%s,err=%s' % (tuuid, channel, exc.message),
+                        exc_info=True)
+            raise exceptions.ParseError(u'订单创建异常')
 
-        if coupon_id and user_coupon:   # 使用优惠券，并修改状态
-            user_coupon.use_coupon(sale_trade.tid)
+        try:
+            if coupon_id and user_coupon:   # 使用优惠券，并修改状态
+                user_coupon.use_coupon(sale_trade.tid)
 
-        if channel == SaleTrade.WALLET:
-            # 妈妈钱包支付
-            response_charge = self.wallet_charge(sale_trade)
-        elif channel == SaleTrade.BUDGET:
-            # 小鹿钱包
-            response_charge = self.budget_charge(sale_trade)
-        else:
-            # pingpp 支付
-            response_charge = self.pingpp_charge(sale_trade)
+            if channel == SaleTrade.WALLET:
+                # 妈妈钱包支付
+                response_charge = self.wallet_charge(sale_trade)
+            elif channel == SaleTrade.BUDGET:
+                # 小鹿钱包
+                response_charge = self.budget_charge(sale_trade)
+            else:
+                # pingpp 支付
+                response_charge = self.pingpp_charge(sale_trade)
+        except Exception, exc:
+            logger.error('cart charge:uuid=%s,channel=%s,err=%s' % (tuuid, channel, exc.message), exc_info=True)
+            raise exceptions.ParseError(u'订单创建异常')
 
         return Response(response_charge)
 
@@ -963,6 +974,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
         CONTENT = request.REQUEST
+        tuuid = CONTENT.get('uuid')
+        if not UUID_RE.match(tuuid):
+            logger.error('invalid uuid: %s' % CONTENT)
+            raise exceptions.ParseError(u'支付参数异常')
+
         item_id = CONTENT.get('item_id')
         sku_id = CONTENT.get('sku_id')
         sku_num = int(CONTENT.get('num', '1'))

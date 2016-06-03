@@ -651,7 +651,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
         sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
-        assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
+        # assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
         channel = form.get('channel')
         params = {
             'channel':channel,
@@ -703,7 +703,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)
         sale_trade.save()
-
+        # record prepay stats
         from django_statsd.clients import statsd
         statsd.incr('xiaolumm.prepay_count')
         statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
@@ -876,11 +876,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             return Response({'code':5, 'info':u'付款方式有误'})
 
-        with transaction.atomic():
-            sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
-            if state:
-                self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
-        
+        try:
+            with transaction.atomic():
+                sale_trade,state = self.create_Saletrade(request, CONTENT, address, customer)
+                if state:
+                    self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+        except Exception, exc:
+            logger.error('cart create saletrade:uuid=%s,channel=%s,err=%s' % (tuuid, channel, exc.message), exc_info=True)
+            return Response({'code': 8, 'info': u'订单创建异常'})
+
         try:
             if channel == SaleTrade.WALLET:
                 # 妈妈钱包支付 2016-4-23 关闭代理钱包支付功能
@@ -893,7 +897,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
         except Exception,exc:
-            logger.warn('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
+            logger.error('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
             return Response({'code':6, 'info':exc.message or '未知支付异常'})
 
         return Response({'code':0, 'info':u'支付成功', 'channel':channel, 'charge':response_charge})
