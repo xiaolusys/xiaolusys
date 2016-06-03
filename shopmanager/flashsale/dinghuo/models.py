@@ -117,6 +117,7 @@ class OrderList(models.Model):
                                db_index=True,
                                verbose_name=u'订货日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+    completed_time = models.DateTimeField(blank=True, null=True, verbose_name=u'完成时间')
     note = models.TextField(default="", blank=True, verbose_name=u'备注信息')
     created_by = models.SmallIntegerField(
         choices=((CREATED_BY_PERSON, '人工'), (CREATED_BY_MACHINE, '自动')),
@@ -143,11 +144,11 @@ class OrderList(models.Model):
     def __unicode__(self):
         return '<%s,%s>' % (str(self.id or ''), self.buyer_name)
 
-    
+
 def check_with_purchase_order(sender, instance, created, **kwargs):
     if not created:
         return
-    
+
     from flashsale.dinghuo.tasks import task_check_with_purchase_order
     task_check_with_purchase_order.delay(instance)
 
@@ -156,7 +157,7 @@ post_save.connect(
     sender=OrderList,
     dispatch_uid='post_save_check_with_purchase_order')
 
-    
+
 class OrderDetail(models.Model):
     id = models.AutoField(primary_key=True)
     orderlist = models.ForeignKey(OrderList,
