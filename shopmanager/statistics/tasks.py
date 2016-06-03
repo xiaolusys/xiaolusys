@@ -11,7 +11,7 @@ from supplychain.supplier.models import SupplierCharge, SaleSupplier
 from flashsale.pay.models import SaleOrder
 from statistics import constants
 
-from statistics.models import SaleStats
+from statistics.models import SaleStats, ProductStockStat
 
 logger = logging.getLogger(__name__)
 
@@ -520,3 +520,185 @@ def task_update_agg_sale_stats(sale_stats, time_from, time_to, upper_timely_type
             update_fields.append('payment')
         if update_fields:
             old_stat.save(update_fields=update_fields)
+
+
+@task()
+def task_update_product_sku_stats(product_sku_stats):
+    """
+    :param product_sku_stats: ProductSkuStats instance
+    when the instance attr change save to stats .
+    """
+    if not (product_sku_stats.product and product_sku_stats.sku):
+        logger.error(u'task_update_product_sku_stats %s product product or sku is None' % product_sku_stats.id)
+        return
+    sku = product_sku_stats.sku
+    sku_outer_id = product_sku_stats.sku.outer_id
+    product = product_sku_stats.product
+    product_id = product.outer_id
+    date_field = product_sku_stats.product.sale_time
+    if not date_field:
+        logger.error(u'task_update_product_sku_stats %s product sale time is None' % product_sku_stats.id)
+        return
+    quantity = product_sku_stats.realtime_quantity  # ProductSkuStats realtime_quantity
+    inferior_num = product_sku_stats.inferior_num
+    amount = product_sku_stats.sku.cost * quantity
+    name = product.name + sku.properties_name
+    uni_key = make_sale_stat_uni_key(date_field,
+                                     sku_outer_id,
+                                     constants.TYPE_SKU,
+                                     constants.TIMELY_TYPE_DATE, '')
+
+    psk_stat = ProductStockStat.objects.filter(uni_key=uni_key).first()
+    if psk_stat:
+        update_fields = []
+        if psk_stat.quantity != quantity:
+            update_fields.append('realtime_quantity')
+        if psk_stat.inferior_num != inferior_num:
+            update_fields.append('inferior_num')
+        if psk_stat.amount != amount:
+            update_fields.append('amount')
+        if update_fields:
+            psk_stat.save(update_fields=update_fields)
+    else:
+        psk_stat = ProductStockStat(
+            parent_id=product_id,
+            current_id=sku_outer_id,
+            date_field=date_field,
+            name=name,
+            pic_path=product.pic_path,
+            quantity=quantity,
+            inferior_num=inferior_num,
+            amount=amount,
+            uni_key=uni_key,
+            record_type=constants.TYPE_SKU,
+            timely_type=constants.TIMELY_TYPE_DATE
+        )
+        psk_stat.save()
+
+
+@task()
+def task_update_parent_stock_stats(stock_stats):
+    parent_id = stock_stats.parent_id
+    if stock_stats.record_type >= constants.TYPE_AGG:  # 买手上级别不从本task 更新
+        logger.warn(u'task_update_parent_sale_stats ale_stats id %s do not update parent!' % stock_stats.id)
+        return
+    if not parent_id:  # # 没有父级别id
+        logger.error(u'task_update_parent_sale_stats: parent_id is None, current id  is %s' % stock_stats.current_id)
+        return
+    if stock_stats.timely_type != constants.TIMELY_TYPE_DATE:
+        logger.warn(u'task_update_parent_sale_stats ale_stats id %s timely_type is %s!' % (
+            stock_stats.id, stock_stats.get_timely_type_display()))
+        return
+
+    same_stock_statss = ProductStockStat.objects.filter(parent_id=parent_id,
+                                                        date_field=stock_stats.date_field,
+                                                        record_type=stock_stats.record_type,
+                                                        timely_type=constants.TIMELY_TYPE_DATE)  # 同等级的数据计算
+    sum_dic = same_stock_statss.values(
+        'quantity',
+        'inferior_num',
+        'amount'
+    ).aggregate(
+        t_quantity=Sum('quantity'),
+        t_inferior_num=Sum('inferior_num'),
+        t_amount=Sum('amount')
+    )
+
+    quantity = sum_dic.get('t_quantity') or 0
+    inferior_num = sum_dic.get('t_inferior_num') or 0
+    amount = sum_dic.get('t_amount') or 0
+    record_type = find_parent_record_type(stock_stats)
+    date_field = stock_stats.date_field
+
+    uni_key = make_sale_stat_uni_key(date_field, parent_id, record_type, constants.TIMELY_TYPE_DATE, '')
+    psk_stat = ProductStockStat.objects.filter(uni_key=uni_key).first()
+    if psk_stat:
+        update_fields = []
+        if psk_stat.quantity != quantity:
+            update_fields.append('realtime_quantity')
+        if psk_stat.inferior_num != inferior_num:
+            update_fields.append('inferior_num')
+        if psk_stat.amount != amount:
+            update_fields.append('amount')
+        if update_fields:
+            psk_stat.save(update_fields=update_fields)
+    else:
+        grand_parent_id, name, pic_path = get_parent_id_name_and_pic_path(record_type, parent_id, date_field)
+        psk_stat = ProductStockStat(
+            parent_id=grand_parent_id,
+            current_id=parent_id,
+            date_field=date_field,
+            name=name,
+            pic_path=pic_path,
+            quantity=quantity,
+            inferior_num=inferior_num,
+            amount=amount,
+            uni_key=uni_key,
+            record_type=record_type,
+            timely_type=constants.TIMELY_TYPE_DATE
+        )
+        psk_stat.save()
+
+
+@task()
+def task_update_agg_stock_stats(stock_stats, time_from, time_to, upper_timely_type, tag):
+    record_type = stock_stats.record_type
+    if stock_stats.record_type > constants.TYPE_AGG:  # 总计上级别不从本task 更新
+        logger.warn(u'task_update_agg_stock_stats ale_stats id %s do not update agg!' % stock_stats.id)
+        return
+    if stock_stats.timely_type >= constants.TIMELY_TYPE_YEAR:
+        logger.warn(u'task_update_agg_stock_stats ale_stats id %s timely_type is %s '
+                    u'no upper timely_type!' % (stock_stats.id, stock_stats.get_timely_type_display()))
+        return
+    # 日期细分类型 record_type 等于 instance.record_type 的 分组聚合
+    current_id = stock_stats.current_id
+    same_stock_statss = ProductStockStat.objects.filter(date_field__gte=time_from,
+                                                        date_field__lte=time_to,
+                                                        record_type=record_type,
+                                                        timely_type=constants.TIMELY_TYPE_DATE)
+    if record_type == constants.TYPE_AGG:  # 如果是总计类型
+        current_id = tag
+        sum_dic = same_stock_statss.values('quantity', 'inferior_num', 'amount').aggregate(
+            t_quantity=Sum('quantity'),
+            t_inferior_num=Sum('inferior_num'),
+            t_amount=Sum('amount'))
+    else:  # 指定对象的周　月　季度　年报
+        sum_dic = same_stock_statss.filter(current_id=current_id).values('quantity',
+                                                                         'inferior_num',
+                                                                         'amount').aggregate(
+            t_quantity=Sum('quantity'),
+            t_inferior_num=Sum('inferior_num'),
+            t_amount=Sum('amount'))
+
+    quantity = sum_dic.get('t_quantity') or 0
+    inferior_num = sum_dic.get('t_inferior_num') or 0
+    amount = sum_dic.get('t_amount') or 0
+
+    # 生成时间上一个维度的uni_key
+    uni_key = make_sale_stat_uni_key(time_from, current_id, record_type, upper_timely_type, '')
+    psk_stat = ProductStockStat.objects.filter(uni_key=uni_key).first()
+    if psk_stat:
+        update_fields = []
+        if psk_stat.quantity != quantity:
+            update_fields.append('realtime_quantity')
+        if psk_stat.inferior_num != inferior_num:
+            update_fields.append('inferior_num')
+        if psk_stat.amount != amount:
+            update_fields.append('amount')
+        if update_fields:
+            psk_stat.save(update_fields=update_fields)
+    else:
+        psk_stat = ProductStockStat(
+            parent_id=stock_stats.parent_id,
+            current_id=current_id,
+            date_field=time_from,
+            name=stock_stats.name,
+            pic_path=stock_stats.pic_path,
+            quantity=quantity,
+            inferior_num=inferior_num,
+            amount=amount,
+            uni_key=uni_key,
+            record_type=record_type,
+            timely_type=upper_timely_type
+        )
+        psk_stat.save()

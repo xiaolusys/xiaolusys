@@ -89,12 +89,15 @@ class ProductStockStatAdmin(admin.ModelAdmin):
         'name',
         'pic_path',
         'quantity',
-        'sku_inferior_num',
+        'inferior_num',
         'amount',
         'uni_key',
-        'record_type'
+        'record_type',
+        'timely_type'
     )
     list_per_page = 50
+    list_filter = ('record_type', 'date_field', 'timely_type')
+    search_fields = ['id', 'parent_id', 'current_id', 'name', 'uni_key']
 
 
 admin.site.register(ProductStockStat, ProductStockStatAdmin)

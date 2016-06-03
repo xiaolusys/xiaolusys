@@ -141,12 +141,14 @@ class ProductStockStat(BaseModel):
     name = models.CharField(max_length=64, null=True, verbose_name=u'描述')
     pic_path = models.CharField(max_length=256, null=True, verbose_name=u'图片')
     quantity = models.IntegerField(default=0, verbose_name=u'库存数量')
-    sku_inferior_num = models.IntegerField(default=0, verbose_name=U'次品数量')
+    inferior_num = models.IntegerField(default=0, verbose_name=U'次品数量')
     amount = models.FloatField(default=0, verbose_name=u'库存金额')
     uni_key = models.CharField(max_length=64, unique=True, verbose_name=u'唯一标识')
     record_type = models.IntegerField(choices=record_type_choices(), db_index=True, verbose_name=u'记录类型')
+    timely_type = models.IntegerField(default=constants.TIMELY_TYPE_DATE,
+                                      choices=timely_type_choices(), db_index=True, verbose_name=u'时间维度类型')
 
-    # uni_key = date_field + current_id + record_type
+    # uni_key = date_field + current_id + record_type + timely_type
     class Meta:
         db_table = 'statistics_product_stock_stat'
         app_label = 'statistics'
@@ -155,3 +157,28 @@ class ProductStockStat(BaseModel):
 
     def __unicode__(self):
         return u'<%s-%s>' % (self.id, self.uni_key)
+
+
+def update_parent_stock_stats(sender, instance, created, **kwargs):
+    from statistics.tasks import task_update_parent_stock_stats, task_update_agg_stock_stats
+    from tasks import gen_date_ftt_info, find_upper_timely_type
+
+    if instance.record_type <= constants.TYPE_AGG:  #
+        # 小于买手级别的  都要更新 周\月\季度\年度细分
+        if instance.timely_type == constants.TIMELY_TYPE_DATE:  # 每天的总计更新 触发 周 和 月的更新
+            time_from_1, time_to_1, tag_1 = gen_date_ftt_info(instance.date_field, constants.TIMELY_TYPE_WEEK)
+            task_update_agg_stock_stats.delay(instance, time_from_1, time_to_1, constants.TIMELY_TYPE_WEEK, tag_1)
+            time_from_2, time_to_2, tag_2 = gen_date_ftt_info(instance.date_field, constants.TIMELY_TYPE_MONTH)
+            task_update_agg_stock_stats.delay(instance, time_from_2, time_to_2, constants.TIMELY_TYPE_MONTH, tag_2)
+
+        elif instance.timely_type >= constants.TIMELY_TYPE_MONTH:  # 月更新触发 上级的所有更新
+            upper_timely_type = find_upper_timely_type(instance.timely_type)  # 上级的时间维度 例如 周记录 更新的上一个时间维度 是 月份
+            time_from, time_to, tag = gen_date_ftt_info(instance.date_field, upper_timely_type)
+            task_update_agg_stock_stats.delay(instance, time_from, time_to, upper_timely_type, tag)
+
+    if instance.timely_type == constants.TIMELY_TYPE_DATE:  # 日报细分类型 才更新 父级别 和 日报告
+        task_update_parent_stock_stats.delay(instance)  # 更新 父级别
+
+
+post_save.connect(update_parent_stock_stats, sender=ProductStockStat,
+                  dispatch_uid='post_save_update_parent_stock_stats')

@@ -393,6 +393,18 @@ STATISTICS_ROUTES = {
     'statistics.tasks.task_update_agg_sale_stats': {
         'queue': 'statistics',
         'routing_key': 'statistics.task_update_agg_sale_stats',
+    },
+    'statistics.tasks.task_update_product_sku_stats': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_update_product_sku_stats',
+    },
+    'statistics.tasks.task_update_parent_stock_stats': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_update_parent_stock_stats',
+    },
+    'statistics.tasks.task_update_agg_stock_stats': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_update_agg_stock_stats',
     }
 }
 

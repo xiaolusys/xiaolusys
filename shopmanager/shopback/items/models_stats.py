@@ -138,6 +138,18 @@ post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats,
                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
 
 
+def product_sku_stats_agg(sender, instance, created, **kwargs):
+    # import elasticsearch
+    """ 统计实时库存的变化到统计app中"""
+    try:
+        from statistics.tasks import task_update_product_sku_stats
+        task_update_product_sku_stats.delay(instance)
+    except Exception, exc:
+        logger.error(exc.message)
+
+post_save.connect(product_sku_stats_agg, sender=ProductSkuStats, dispatch_uid='post_save_product_sku_stats')
+
+
 class ProductSkuSaleStats(models.Model):
     class Meta:
         db_table = 'shop_items_productskusalestats'
