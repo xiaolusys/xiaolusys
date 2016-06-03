@@ -274,6 +274,13 @@ class SaleTrade(BaseModel):
         """
         return self.channel == SaleTrade.WX or self.channel == SaleTrade.ALIPAY
 
+    def is_effect(self):
+        return self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS,
+                               SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                               SaleTrade.TRADE_BUYER_SIGNED,
+                               SaleTrade.TRADE_FINISHED,
+                               ]
+
     def is_payable(self):
         now = datetime.datetime.now()
         return self.status == self.WAIT_BUYER_PAY and (now - self.created).seconds < TIME_FOR_PAYMENT
@@ -455,7 +462,7 @@ class SaleTrade(BaseModel):
 
 
 def set_user_address_id(sender, instance, created, **kwargs):
-    if not instance.user_address_id:
+    if instance.is_effect() and not instance.user_address_id:
         from flashsale.pay.tasks import tasks_set_user_address_id
         tasks_set_user_address_id.delay(instance)
 
