@@ -158,14 +158,14 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 "referal_trade_id":referal_trade_id,
             }
             ```
-        - /get_logistic_companys: 获取可选快递列表
+        - /get_logistic_companys: 获取可选快递列表(get)
          ```
             data:{
                 ＂referal_trade_id": 根据订单获取可选快递（非必需),
                 "ware_by": 指定仓库获取可选快递(非必需)
             }
          ```
-        - change_company_code: 设置默认快递(post)
+        - /{addressid}/change_company_code: 设置默认快递(post)
          ```
             data:{
                 ＂referal_trade_id": 修改订单默认快递（非必需),
