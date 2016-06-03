@@ -624,6 +624,16 @@ def task_update_parent_stock_stats(stock_stats):
             psk_stat.save(update_fields=update_fields)
     else:
         grand_parent_id, name, pic_path = get_parent_id_name_and_pic_path(record_type, parent_id, date_field)
+        # 供应商级别更新bd级别的 bd没有找到 则return
+        if stock_stats.record_type == constants.TYPE_SUPPLIER and grand_parent_id is None:
+            logger.warn(u'task_update_parent_stock_stats: '
+                        u' bd user not found , the supplier is %s' % stock_stats.current_id)
+            return
+        # 更新款式级别的父级别 即 供应商级别 供应商为空的时候返回
+        if stock_stats.record_type == constants.TYPE_MODEL and parent_id is None:
+            logger.warn(u'task_update_parent_stock_stats: '
+                        u' model supplier not found, the model is %s' % stock_stats.current_id)
+            return
         psk_stat = ProductStockStat(
             parent_id=grand_parent_id,
             current_id=parent_id,
