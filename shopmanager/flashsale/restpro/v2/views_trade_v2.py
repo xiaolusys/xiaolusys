@@ -650,7 +650,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
-        sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid, buyer_id=customer.id)
+        sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
         assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
         channel = form.get('channel')
         params = {
@@ -665,48 +665,50 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_mobile':address.receiver_mobile,
             'user_address_id':address.id
             }
-        if state:
-            buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
-            buyer_openid = buyer_openid or customer.openid
-            payment      = float(form.get('payment'))
-            pay_extras   = form.get('pay_extras','')
-            budget_payment = self.calc_extra_budget(pay_extras)
-            coupon_id  = form.get('coupon_id','')
-            couponids  = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras)
-            if couponids:
-                coupon_id = couponids.groupdict().get('couponid','')
-            logistics_company_id = form.get('logistics_company_id','').strip()
-            if not logistics_company_id or logistics_company_id == '0':
-                logistics_company_id = None
-            else:
-                tasks_set_address_priority_logistics_code.delay(address.id, logistics_company_id)
-            params.update({
-                'buyer_nick':customer.nick,
-                'buyer_message':form.get('buyer_message',''),
-                'payment':payment,
-                'pay_cash':max(0, round(payment * 100 - budget_payment) / 100.0),
-                'has_budget_paid':budget_payment > 0,
-                'total_fee':float(form.get('total_fee')),
-                'post_fee':float(form.get('post_fee')),
-                'discount_fee':float(form.get('discount_fee')),
-                'charge':'',
-                'logistics_company_id': logistics_company_id or None,
-                'status':SaleTrade.WAIT_BUYER_PAY,
-                'openid':buyer_openid,
-                'extras_info':{
-                    'coupon': coupon_id,
-                    'pay_extras':pay_extras
-                }
-            })
-            params['extras_info'].update(self.get_mama_referal_params(request))
+
+        buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
+        buyer_openid = buyer_openid or customer.openid
+        payment      = float(form.get('payment'))
+        pay_extras   = form.get('pay_extras','')
+        budget_payment = self.calc_extra_budget(pay_extras)
+        coupon_id  = form.get('coupon_id','')
+        couponids  = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras)
+        if couponids:
+            coupon_id = couponids.groupdict().get('couponid','')
+        logistics_company_id = form.get('logistics_company_id','').strip()
+        if not logistics_company_id or logistics_company_id == '0':
+            logistics_company_id = None
+        else:
+            tasks_set_address_priority_logistics_code.delay(address.id, logistics_company_id)
+        params.update({
+            'buyer_nick':customer.nick,
+            'buyer_message':form.get('buyer_message',''),
+            'payment':payment,
+            'pay_cash':max(0, round(payment * 100 - budget_payment) / 100.0),
+            'has_budget_paid':budget_payment > 0,
+            'total_fee':float(form.get('total_fee')),
+            'post_fee':float(form.get('post_fee')),
+            'discount_fee':float(form.get('discount_fee')),
+            'charge':'',
+            'logistics_company_id': logistics_company_id or None,
+            'status':SaleTrade.WAIT_BUYER_PAY,
+            'openid':buyer_openid,
+            'extras_info':{
+                'coupon': coupon_id,
+                'pay_extras':pay_extras
+            }
+        })
+        params['extras_info'].update(self.get_mama_referal_params(request))
+
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)
         sale_trade.save()
-        if state:
-            from django_statsd.clients import statsd
-            statsd.incr('xiaolumm.prepay_count')
-            statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
-        return sale_trade,state
+
+        from django_statsd.clients import statsd
+        statsd.incr('xiaolumm.prepay_count')
+        statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
+
+        return sale_trade,True
     
     def create_Saleorder_By_Shopcart(self,saletrade,cart_qs):
         """ 根据购物车创建订单明细方法 """
@@ -817,55 +819,54 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         CONTENT  = request.REQUEST
         tuuid    = CONTENT.get('uuid')
         customer = get_object_or_404(Customer,user=request.user)
-        try:
-            SaleTrade.objects.get(tid=tuuid,buyer_id=customer.id)
-        except SaleTrade.DoesNotExist:
-            cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
-            cart_qs = ShoppingCart.objects.filter(
-                id__in=[i for i in cart_ids if i.isdigit()], 
-                buyer_id=customer.id
-            )
-            #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
-            if cart_qs.count() != len(cart_ids):
-                logger.warn('debug cart v1:content_type=%s,params=%s,cart_qs=%s' % (request.META.get('CONTENT_TYPE', ''), request.REQUEST, cart_qs.count()))
-                return Response({'code':1, 'info':u'购物车已结算'})
-            xlmm            = self.get_xlmm(request)
-            total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
-            payment         = round(float(CONTENT.get('payment','0')) * 100)
-            post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)
-            discount_fee    = round(float(CONTENT.get('discount_fee','0')) * 100)
-            pay_extras      = CONTENT.get('pay_extras')
-            cart_total_fee  = 0
-            cart_discount   = 0
 
-            item_ids = []
-            for cart in cart_qs:
-                if not cart.is_good_enough():
-                    return Response({'code':2, 'info':u'商品已被抢光了'})
-                cart_total_fee += cart.price * cart.num * 100
-                cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
-                item_ids.append(cart.item_id)
-                
-            extra_params = {'item_ids': item_ids,
-                            'buyer_id':customer.id,
-                            'payment':cart_total_fee - cart_discount}
-            try:
-                cart_discount += self.calc_extra_discount(pay_extras,**extra_params)
-            except Exception, exc:
-                logger.warn('cart payment:uuid=%s,extra_params=%s'%(tuuid,extra_params),exc_info=True)
-                return Response({'code':3,'info':exc.message})
-            
-            cart_discount = min(cart_discount, cart_total_fee)
-            if discount_fee > cart_discount:
-                logger.warn('cart discount err:params=%s'%(request.REQUEST))
-                return Response({'code':4, 'info':u'优惠金额异常'})
-            
-            cart_payment = cart_total_fee + post_fee - cart_discount
-            if (post_fee < 0 or payment < 0  or abs(payment - cart_payment) > 10 
-                or abs(total_fee - cart_total_fee) > 10):
-                logger.warn('cart payment err:params=%s'%(request.REQUEST))
-                return Response({'code':4, 'info':u'付款金额异常'})
-            
+        cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
+        cart_qs = ShoppingCart.objects.filter(
+            id__in=[i for i in cart_ids if i.isdigit()],
+            buyer_id=customer.id
+        )
+        #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
+        if cart_qs.count() != len(cart_ids):
+            logger.warn('debug cart v1:content_type=%s,params=%s,cart_qs=%s' %
+                        (request.META.get('CONTENT_TYPE', ''), request.REQUEST, cart_qs.count()))
+            return Response({'code':1, 'info':u'购物车已结算'})
+        xlmm            = self.get_xlmm(request)
+        total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
+        payment         = round(float(CONTENT.get('payment','0')) * 100)
+        post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)
+        discount_fee    = round(float(CONTENT.get('discount_fee','0')) * 100)
+        pay_extras      = CONTENT.get('pay_extras')
+        cart_total_fee  = 0
+        cart_discount   = 0
+
+        item_ids = []
+        for cart in cart_qs:
+            if not cart.is_good_enough():
+                return Response({'code':2, 'info':u'商品已被抢光了'})
+            cart_total_fee += cart.price * cart.num * 100
+            cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
+            item_ids.append(cart.item_id)
+
+        extra_params = {'item_ids': item_ids,
+                        'buyer_id':customer.id,
+                        'payment':cart_total_fee - cart_discount}
+        try:
+            cart_discount += self.calc_extra_discount(pay_extras,**extra_params)
+        except Exception, exc:
+            logger.warn('cart payment:uuid=%s,extra_params=%s'%(tuuid,extra_params),exc_info=True)
+            return Response({'code':3,'info':exc.message})
+
+        cart_discount = min(cart_discount, cart_total_fee)
+        if discount_fee > cart_discount:
+            logger.warn('cart discount err:params=%s'%(request.REQUEST))
+            return Response({'code':4, 'info':u'优惠金额异常'})
+
+        cart_payment = cart_total_fee + post_fee - cart_discount
+        if (post_fee < 0 or payment < 0  or abs(payment - cart_payment) > 10
+            or abs(total_fee - cart_total_fee) > 10):
+            logger.warn('cart payment err:params=%s'%(request.REQUEST))
+            return Response({'code':4, 'info':u'付款金额异常'})
+
         addr_id  = CONTENT.get('addr_id')
         address  = UserAddress.objects.filter(id=addr_id,cus_uid=customer.id).first()
         if not address:
@@ -945,7 +946,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')
-        address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
+        address = UserAddress.objects.filter(id=addr_id, cus_uid=customer.id).first()
+        if not address:
+            return Response({'code': 7, 'info': u'请选择地址信息'})
+
         channel  = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')

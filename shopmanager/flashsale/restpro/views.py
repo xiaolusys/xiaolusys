@@ -1,6 +1,8 @@
 # -*- coding:utf8 -*-
+import re
 import logging
 import hashlib
+import json
 import os, urlparse
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -20,6 +22,7 @@ from flashsale.pay.models import SaleTrade, Customer
 
 from . import permissions as perms
 from . import serializers
+from core.utils import regex
 
 from flashsale.pay.models import SaleRefund, District, UserAddress, SaleOrder, SaleTrade
 from flashsale.pay.models_addr import UserAddressChange
@@ -27,7 +30,7 @@ from flashsale.pay.tasks import tasks_set_user_address_id
 from flashsale.xiaolumm.models import XiaoluMama
 from shopback.trades.models import PackageSkuItem
 from django.forms import model_to_dict
-import json
+
 
 from qiniu import Auth
 
@@ -203,6 +206,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_phone = content.get('receiver_phone', '').strip()
         referal_trade_id = content.get('referal_trade_id','').strip()
         # logistic_company_code = content.get('logistic_company_code', '').strip()
+        if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
+                or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
+            return Response({'ret': False, "msg": "地址信息不全", "info":"地址信息不全", 'code': 2})
+
         default = content.get('default') or ''
         if default == 'true':
             default = True
@@ -235,7 +242,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                     user_address_change.excute()
                 else:
                     logger.error(u'包裹已经发送', exc_info=True)
-                    return Response({'ret': False, 'code': 1, 'info': '更新失败', "msg": '包裹已经发送'})
+                    return Response({'ret': False, 'code': 3, 'info': '更新失败', "msg": '包裹已经发送'})
             return Response({'ret': True, 'code': 0, 'info': '更新成功', 'result':{'address_id':new_address.id}, "msg": '更新成功'})
         except Exception,exc:
             logger.error(exc.message, exc_info=True)
@@ -320,6 +327,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_name = content.get('receiver_name', '').strip()
         receiver_mobile = content.get('receiver_mobile', '').strip()
         logistic_company_code = content.get('logistic_company_code', '').strip()
+        if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
+                or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
+            return Response({'ret': False, "msg": "地址信息不全", 'code': 2})
         try:
             address, state = UserAddress.objects.get_or_create(
                 cus_uid=customer_id, receiver_name=receiver_name,
