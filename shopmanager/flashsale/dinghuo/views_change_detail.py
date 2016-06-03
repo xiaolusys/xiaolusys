@@ -122,6 +122,7 @@ class ChangeDetailView(View):
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
             if status == OrderList.COMPLETED:
+                order_list.completed_time = datetime.datetime.now()
                 if order_list.is_postpay:
                     order_list.status = OrderList.TO_PAY
                 else:

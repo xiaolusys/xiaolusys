@@ -1906,6 +1906,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     status = OrderList.APPROVAL
             if status:
                 orderlist.status = status
+                if status == OrderList.CLOSED:
+                    orderlist.completed_time = datetime.datetime.now()
                 if orderlist.note:
                     orderlist.note += '\n'
                 orderlist.note += '-->%s%s: %s' % (
