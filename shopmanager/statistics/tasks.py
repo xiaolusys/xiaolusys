@@ -576,6 +576,40 @@ def task_update_product_sku_stats(product_sku_stats):
         psk_stat.save()
 
 
+def create_stock_snapshot_record(stock_stats):
+    """
+    :type stock_stats: ProductStockStat record_type is TYPE_TOTAL  instance
+    为日期级别的记录 创建 快照记录
+    """
+    yesterday_date_field = stock_stats.date_field - datetime.timedelta(days=1)  # 昨天的时间
+    snapshot_tag = 'snapshot-%s' % str(yesterday_date_field)  # 昨天的 snapshot 标记
+    uni_key = make_sale_stat_uni_key(yesterday_date_field,
+                                     snapshot_tag,
+                                     constants.TYPE_SNAPSHOT,
+                                     constants.TYPE_AGG,
+                                     '')
+    # 查找昨天的快照是否存在
+    yesterday_snapshot = ProductStockStat.objects.filter(uni_key=uni_key).first()
+    if yesterday_snapshot:  # 已经做过快照 返回
+        return
+    stock_stats = ProductStockStat.objects.filter(date_field=yesterday_date_field,
+                                                  record_type=constants.TYPE_AGG,
+                                                  timely_type=constants.TIMELY_TYPE_DATE).first()
+    if not stock_stats:  # 昨天的记录(聚合类型 日期维度)没有找到 无法为 昨天的记录做 快照 返回
+        return
+    yesterday_snapshot = ProductStockStat(
+        inferior_num=stock_stats.inferior_num,
+        current_id=snapshot_tag,
+        date_field=yesterday_date_field,
+        quantity=stock_stats.quantity,
+        payment=stock_stats.payment,
+        uni_key=uni_key,
+        record_type=constants.TYPE_SNAPSHOT,
+        timely_type=constants.TIMELY_TYPE_DATE
+    )
+    yesterday_snapshot.save()  # 保存快照信息
+
+
 @task()
 def task_update_parent_stock_stats(stock_stats):
     parent_id = stock_stats.parent_id
@@ -648,6 +682,9 @@ def task_update_parent_stock_stats(stock_stats):
             timely_type=constants.TIMELY_TYPE_DATE
         )
         psk_stat.save()
+    if stock_stats.record_type == constants.TYPE_BD:
+        # 买手级别的统计更新才去触发 快照更新
+        create_stock_snapshot_record(stock_stats)
 
 
 @task()
@@ -712,3 +749,4 @@ def task_update_agg_stock_stats(stock_stats, time_from, time_to, upper_timely_ty
             timely_type=upper_timely_type
         )
         psk_stat.save()
+
