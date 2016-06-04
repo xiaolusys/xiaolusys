@@ -89,19 +89,19 @@
         </div>
         <div class="field-box field-buyer_nick">
             <label class="inline" for="id_buyer_nick">交易状态:</label>
-            <label class="inline" for="id_buyer_nick" id = "status">{{original.status}}</label>
+            <label class="inline" for="id_buyer_nick" id = "status">{{original.get_status_display}}</label>
         </label>
         </div>
         </div>
         <div class="form-row field-tid field-buyer_nick field-channel field-status">
         <div class="field-box field-buyer_nick">
             <label class="inline" for="id_buyer_nick">交易类型:</label>
-            <label class="inline" for="id_buyer_nick" id = "trade_type">{{original.trade_type}}</label>
+            <label class="inline" for="id_buyer_nick" id = "trade_type">{{original.get_trade_type_display}}</label>
         </label>
         </div>
         <div class="field-box field-buyer_nick">
             <label class="inline" for="id_buyer_nick">订单类型:</label>
-            <label class="inline" for="id_buyer_nick" id = "order_type">{{original.order_type}}</label>
+            <label class="inline" for="id_buyer_nick" id = "order_type">{{original.get_order_type_display}}</label>
         </label>
         </div>
         <div class="field-box field-buyer_nick">
@@ -313,13 +313,12 @@
                         <td ><label id = refund_status> {{sale_order.get_refund_status_display}}</label></td>
                         <td ><label id = order_status>{{sale_order.get_status_display}}</label></td>
                         <td>{{sale_order.item_id}}&nbsp;&nbsp;&nbsp;</td>
-                        <td>{% if sale_order.ifsent == 1%}
+                        <td>{% if sale_order.is_sent == 1%}
                             <button type="button"  data-toggle="modal" data-target="#myModal" id = {{sale_order.id}} class = "change123">换货</button>
-                            {%elif sale_order.ifsent == 0%}
+                            {%elif sale_order.is_sent == 0%}
                             <button disabled="true" type="button"  data-toggle="modal" data-target="#myModal" id = {{sale_order.id}} class = "change123">换货</button>
                             {%endif%}
                         </td>
-
 
                     </tr>
 
@@ -355,97 +354,6 @@
 
 
 $(document).ready(function(){
-
-
-var statusw = " ";
-var tradew = " ";
-var order = " ";
-var refund_statusw = " ";
-var order_statusw = " ";
-
-var status = $("label#status").text();
-var trade_type = $("label#trade_type").text();
-var order_type = $("label#order_type").text();
-var refund_status = $("label#refund_status").text();
-var order_status = $("label#order_status").text();
-console.log(refund_status);
-switch(status){
-case "0": statusw = "订单创建";
-break;
-case "1": statusw = "待付款";
-break;
-case "2": statusw = "已付款";
-break;
-case "3": statusw = "已发货";
-break;
-case "4": statusw = "确认签收";
-break;
-case "5": statusw = "交易成功";
-break;
-case "6": statusw = "退款关闭";
-break;
-case "7": statusw = "交易关闭";
-break;
-}
-$("label#status").html(statusw);
-
-switch(trade_type){
-case "0": tradew = "在线支付";
-break;
-case "1": tradew = "货到付款";
-break;
-}
-$("label#trade_type").html(tradew);
-
-switch(order_type){
-case "0": orderw = "特卖订单";
-break;
-case "1": orderw = "预定制";
-break;
-case "2": orderw = "押金订单";
-break;
-}
-$("label#order_type").html(orderw);
-
-switch(refund_status){
-case " 0":refund_statusw = "没有退款"
-break;
-case " 1":refund_statusw = "退款关闭"
-break;
-case " 2":refund_statusw = "拒绝退款"
-break;
-case " 3":refund_statusw = "申请退款"
-break;
-case " 4":refund_statusw = "同意申请"
-break;
-case " 5":refund_statusw = "退货途中"
-break;
-case " 6":refund_statusw = "等待返款"
-break;
-case " 7":refund_statusw = "退款成功"
-break;
-}
-//$("label#refund_status").html(refund_statusw);
-console.log(order_status);
-switch(order_status){
-case "0":order_statusw = "订单创建"
-break;
-case "1":order_statusw = "待付款"
-break;
-case "2":order_statusw = "已付款"
-break;
-case "3":order_statusw = "已发货"
-break;
-case "4":order_statusw = "确认签收"
-break;
-case "5":order_statusw = "交易成功"
-break;
-case "6":order_statusw = "退款关闭"
-break;
-case "7":order_statusw = "交易关闭"
-break;
-}
-//$("label#order_status").html(order_statusw);
 
 $(".change123").click(function(evt){
 var dom=evt.target;

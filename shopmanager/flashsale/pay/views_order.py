@@ -494,9 +494,6 @@ def change_sku_item(request):
     print SKU
     print num
     sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
-    #SaleTrade.change_sku_item(sale_order,SKU)
+    SaleTrade.change_sku_item(sale_order,SKU,num)
     return HttpResponse(True)
-    #if sale_order.status == SaleOrder.TRADE_CLOSED_BY_SYS:
-    #    return HttpResponse(True)
-    #else:
-    #    return HttpResponse(False)
+

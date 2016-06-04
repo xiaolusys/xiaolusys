@@ -641,11 +641,15 @@ class SaleOrder(PayBaseModel):
     def __unicode__(self):
         return '<%s>' % (self.id)
 
-    def ifsent(self):
-        if self.status <= 2:
-            return 1
-        else:
+    def is_sent(self):
+        if self.status != SaleOrder.WAIT_SELLER_SEND_GOODS\
+            or self.refund_status in [SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                                SaleRefund.REFUND_CONFIRM_GOODS,
+                                                SaleRefund.REFUND_APPROVE,
+                                                SaleRefund.REFUND_SUCCESS]:
             return 0
+        else:
+            return 1
 
     def save(self, *args, **kwargs):
         # if saleorder not set buyer_id, set saletrade buyer_id to it
