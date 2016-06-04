@@ -749,3 +749,4 @@ def task_update_agg_stock_stats(stock_stats, time_from, time_to, upper_timely_ty
             timely_type=upper_timely_type
         )
         psk_stat.save()
+
