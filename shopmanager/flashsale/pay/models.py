@@ -364,7 +364,8 @@ class SaleTrade(BaseModel):
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
 
-    def change_sku_item(self, old_sale_order, sku_id, num=1):
+    @staticmethod
+    def change_sku_item(old_sale_order, sku_id, num=1):
         """
             更换sku
         :param old_sale_order:
@@ -375,7 +376,7 @@ class SaleTrade(BaseModel):
                                                 SaleRefund.REFUND_CONFIRM_GOODS,
                                                 SaleRefund.REFUND_APPROVE,
                                                 SaleRefund.REFUND_SUCCESS]:
-            return
+            raise Exception(u'已发货或退款的商品不能执行换货')
         old_sale_order.status = SaleOrder.TRADE_CLOSED_BY_SYS
         old_sale_order.save()
         new_sale_order = old_sale_order
@@ -639,6 +640,12 @@ class SaleOrder(PayBaseModel):
 
     def __unicode__(self):
         return '<%s>' % (self.id)
+
+    def ifsent(self):
+        if self.status <= 2:
+            return 1
+        else:
+            return 0
 
     def save(self, *args, **kwargs):
         # if saleorder not set buyer_id, set saletrade buyer_id to it

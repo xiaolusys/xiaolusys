@@ -92,5 +92,5 @@ urlpatterns = (
     url(r'^refund_pop_page/$', csrf_exempt(RefundPopPageView.as_view())),
     url(r'^change_model_name_api/$', ModelChangeAPIView.as_view()),
     url(r'^post_poster/$', csrf_exempt(PostGoodShelf.as_view())),
-    url(r'^change_sku_item', csrf_exempt(change_sku_item), name="change_sku_item"),
+    url(r'^change_sku_item/$', csrf_exempt(change_sku_item), name="change_sku_item"),
 )

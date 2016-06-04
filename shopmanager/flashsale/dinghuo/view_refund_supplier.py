@@ -192,7 +192,7 @@ def set_return_goods_sku_send(request):
     logistic_company = get_object_or_404(LogisticsCompany,
                                          name=logistic_company_name)
     logistic_no = content.get("logistic_no", None)
-    consigner = request.user.username
+    consigner = request.user.usernamereturn (200,True)
     return_goods = get_object_or_404(ReturnGoods, id=id)
     if return_goods.status == ReturnGoods.VERIFY_RG:
         return_goods.delivery_by(logistic_no, logistic_company.id, consigner)

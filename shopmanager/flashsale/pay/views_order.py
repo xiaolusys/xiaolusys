@@ -15,6 +15,10 @@ import datetime
 from  django.db.models import Q
 from shopback.logistics import getLogisticTrace
 
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+
+
 ISOTIMEFORMAT = '%Y-%m-%d '
 today = datetime.date.today()
 real_today = datetime.date.today().strftime("%Y-%m-%d ")
@@ -479,5 +483,35 @@ def refunding_state(request, state_id):
 
     return render(request, 'pay/order_flash.html', {'info': rec, 'time': real_today, 'yesterday': today})
 
+def set_return_goods_sku_send(request):
+    content = request.REQUEST
+    id = int(content.get("id", None))
+    logistic_company_name = content.get("logistic_company", None)
+    logistic_company = get_object_or_404(LogisticsCompany,
+                                         name=logistic_company_name)
+    logistic_no = content.get("logistic_no", None)
+    consigner = request.user.username
+    return_goods = get_object_or_404(ReturnGoods, id=id)
+    if return_goods.status == ReturnGoods.VERIFY_RG:
+        return_goods.delivery_by(logistic_no, logistic_company.id, consigner)
+        return HttpResponse(True)
+    else:
+        res = {"success": False, 'desc': u'只有已审核的退货可以执行发货'}
+        return HttpResponse(json.dump(res))
+
+
 def change_sku_item(request):
-    return
+    content = request.REQUEST
+    sale_order_id = int(content.get("sale_order_id", None))
+    SKU = int(content.get("SKU",None))
+    num = int(content.get("num",None))
+    print sale_order_id
+    print SKU
+    print num
+    sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
+    #SaleTrade.change_sku_item(sale_order,SKU)
+    return HttpResponse(True)
+    #if sale_order.status == SaleOrder.TRADE_CLOSED_BY_SYS:
+    #    return HttpResponse(True)
+    #else:
+    #    return HttpResponse(False)
