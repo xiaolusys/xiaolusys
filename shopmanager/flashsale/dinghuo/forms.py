@@ -73,3 +73,12 @@ class SaveMemoForm(BaseForm):
 class SaveDistrictsForm(BaseForm):
     inbound_id = forms.IntegerField()
     inbound_skus = forms.CharField(required=False)
+
+
+
+class ReturnGoodsCreateBill(BaseForm):
+    rg_id = forms.IntegerField()
+    receive_method = forms.IntegerField()
+    amount = forms.FloatField()
+    note = forms.CharField(required=False)
+    attachment = forms.CharField(required=False)

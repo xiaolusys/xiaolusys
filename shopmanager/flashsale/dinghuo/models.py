@@ -6,6 +6,7 @@ from django.db.models import Sum, Count
 from django.db.models.signals import post_save
 from django.db.models import Sum, F
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 
 from core.fields import JSONCharMyField
 from core.models import BaseModel
@@ -517,8 +518,7 @@ class ReturnGoods(models.Model):
         bill = Bill(type=Bill.PAY,
                           status=0,
                           creater=self.transactor,
-                          bill_method=receive_method,
-                          pay_method=4,
+                          pay_method=receive_method,
                           plan_amount=amount,
                           note=note,
                           supplier_id=self.supplier_id)
@@ -528,6 +528,7 @@ class ReturnGoods(models.Model):
         bill.relate_to([self])
         self.status = ReturnGoods.REFUND_RG
         self.save()
+        return bill
 
     def set_confirm_refund_status(self, refund_status=u'已完成'):
         self.refund_status = dict([(r[1], r[0]) for r in ReturnGoods.REFUND_STATUS]).get(refund_status, 0)
@@ -555,6 +556,19 @@ class ReturnGoods(models.Model):
             rgd.save()
         else:
             raise Exception(u'已发货的退货单不可更改')
+
+    @property
+    def pay_choices(self):
+        from flashsale.finance.models import Bill
+        return [{'value': x, 'text': y} for x, y in Bill.PAY_CHOICES]
+
+    @property
+    def bill(self):
+        from flashsale.finance.models import BillRelation
+        bill_relation = BillRelation.objects.filter(type=3, object_id=self.id).order_by('-id').first()
+        if not bill_relation:
+            return None
+        return bill_relation.bill
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.supplier_id, self.id)

@@ -38,7 +38,7 @@ class Bill(BaseModel):
     receive_name = models.CharField(max_length=16, null=True, verbose_name=u'收款账号')
     pay_account = models.TextField(null=True, verbose_name=u'付款账号')
     transcation_no = models.CharField(max_length=100, null=True, verbose_name=u'交易单号')
-    attachment = models.FileField(null=True, verbose_name=u'附件')
+    attachment = models.CharField(max_length=128, blank=True, verbose_name=u'附件')
     delete_reason = models.CharField(max_length=100, null=True, verbose_name=u'作废理由')
     note = models.CharField(max_length=100, verbose_name=u'备注')
     # -----------冗余备查询字段--------------
