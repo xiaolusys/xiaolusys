@@ -130,17 +130,18 @@ def refund_Handler(request):
 
     if modify == 2:  # 修改该物流信息
         modify_refund(customer, company, oid, sid)
+        return {"code": 0, "info": "操作成功!"}
     elif modify == 3:  # 修改数量返回退款金额
         order, refund_type = refund_Status(order_id=oid)
         apply_fee = apply_fee_handler(num=num, order=order)
-        return {"apply_fee": apply_fee}
+        return {"apply_fee": apply_fee, "code": 0, "info": "操作成功 !"}
     else:
         # 验证处理订单的状态即退款状态
         order, refund_type = refund_Status(order_id=oid)
         refund_fee = apply_fee_handler(num=num, order=order)  # 计算退款费用
         common_Handler(customer=customer, reason=reason, num=num, refund_fee=refund_fee, desc=desc,
                        refund_type=refund_type, order=order, modify=modify, proof_pic=proof_p)
-    return {"res": "ok"}
+        return {"res": "ok", "code": 0, "info": "操作成功"}
 
 
 def refund_Status(order_id=None):

@@ -1,8 +1,11 @@
 # coding=utf-8
+import logging
 import datetime
 from celery.task import task
 from django.db.models import F
 from flashsale.xiaolumm.models import XiaoluMama
+
+logger = logging.getLogger(__name__)
 
 
 @task()
@@ -122,7 +125,7 @@ def task_release_mama_link_coupon(saletrade):
     tpl = CouponTemplate.objects.filter(status=CouponTemplate.SENDING,
                                         coupon_type=CouponTemplate.TYPE_MAMA_INVITE).first()
     if not tpl:
-        return 
+        return
     UserCoupon.objects.create_mama_invite_coupon(
         buyer_id=customer.id,
         template_id=tpl.id,
@@ -159,3 +162,27 @@ def task_update_user_coupon_status_2_past():
         status__in=[UserCoupon.UNUSED, UserCoupon.FREEZE]
     )
     cous.update(status=UserCoupon.PAST)  # 更新为过期优惠券
+
+
+@task()
+def task_release_coupon_for_register(instance):
+    """
+     - release coupon for register a new Customer instance ( when post save created a Customer instance run this task)
+    """
+    from flashsale.pay.models_user import Customer
+
+    if not isinstance(instance, Customer):
+        return
+    from flashsale.coupon.models import UserCoupon
+
+    tpl_ids = [54, 55, 56, 57, 58, 59, 60]
+    for tpl_id in tpl_ids:
+        try:
+            UserCoupon.objects.create_normal_coupon(
+                buyer_id=instance.id,
+                template_id=tpl_id,
+            )
+        except:
+            logger.error(u'task_release_coupon_for_register for customer id %s' % instance.id)
+            continue
+    return

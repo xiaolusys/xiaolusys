@@ -366,6 +366,10 @@ FLASHSALE_COUPON_ROUTES = {
         'queue': 'coupon',
         'routing_key': 'coupon.task_release_mama_link_coupon',
     },
+    'flashsale.coupon.tasks.task_release_coupon_for_register': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_release_coupon_for_register',
+    },
 }
 
 STATISTICS_ROUTES = {
@@ -389,6 +393,18 @@ STATISTICS_ROUTES = {
     'statistics.tasks.task_update_agg_sale_stats': {
         'queue': 'statistics',
         'routing_key': 'statistics.task_update_agg_sale_stats',
+    },
+    'statistics.tasks.task_update_product_sku_stats': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_update_product_sku_stats',
+    },
+    'statistics.tasks.task_update_parent_stock_stats': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_update_parent_stock_stats',
+    },
+    'statistics.tasks.task_update_agg_stock_stats': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_update_agg_stock_stats',
     }
 }
 
