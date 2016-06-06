@@ -277,6 +277,7 @@
          <th>商品ID
          </th>
      <th>修改</th>
+     <th>退款</th>
      </tr></thead>
     <tbody>
                     {%for sale_order in original.sale_orders.all%}
@@ -317,7 +318,7 @@
                             <button type="button"  data-toggle="modal" data-target="#myModal" id = {{sale_order.id}} class = "change123">换货</button>
                             {%endif%}
                         </td>
-
+                        <td><button class="refund" id = {{sale_order.id}},{{sale_order.payment}}>退款</button></td>
                     </tr>
 
                 {%endfor%}
@@ -328,6 +329,31 @@
 
 </div>
 <script>
+
+    function refund_fee(evt){
+        var dom = evt.target;
+        console.log(dom.id);
+         feeid = dom.id.split(",")
+        var url = "/mm/refund_fee/";
+        var data = {"sale_order_id": feeid[0],"refund_fee":feeid[1]};
+        console.log(data);
+        $.ajax({
+            url: url,
+            data: data,
+            "type": "post",
+            success: function(res){
+                if (res == "True") {
+                    window.location.reload();
+                }
+                if (res == "False") {
+                    alert("退款失败");
+                }
+            },
+            error: function(){
+
+            }
+        });
+    }
 
     function set_return_goods_sku_send( sale_order_id, SKU, num){
         var url = "/mm/change_sku_item/";
@@ -355,12 +381,11 @@ $(document).ready(function(){
 
 $(".change123").click(function(evt){
 var dom=evt.target;
-console.log(dom.id);
 $("label#sale_order_id").html(dom.id);
-
 });
 });
 $('#btn_return_goods_send').click(send_return_goods);
 
+$(".refund").click(refund_fee);
 </script>
 {% endblock %}
