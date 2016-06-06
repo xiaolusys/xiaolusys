@@ -24,9 +24,11 @@ from tasks import calcu_refund_info_by_pro_v2
 from shopback.logistics.models import LogisticsCompany
 logger = logging.getLogger('django.request')
 
+from flashsale.dinghuo.models import RGDetail, ReturnGoods, UnReturnSku
 from shopback.items.models import Product, ProductSku
 from supplychain.supplier.models import SaleProduct
-from flashsale.dinghuo.models import RGDetail, ReturnGoods, UnReturnSku
+
+from . import forms
 
 
 def get_sale_product(sale_product):
@@ -384,6 +386,7 @@ def update_refundpro_to_product(can_reuse=False):
 
 
 def export_return_goods(request):
+
     def _parse_name(product_name):
         name, color = ('-',) * 2
         parts = product_name.rsplit('/', 1)
@@ -482,7 +485,7 @@ def export_return_goods(request):
             worksheet.write(row, 3, properties_name)
             if pic_path:
                 opt = {'image_data':
-                           io.BytesIO(urllib.urlopen(pic_path).read()),
+                       io.BytesIO(urllib.urlopen(pic_path).read()),
                        'x_scale': 0.25,
                        'y_scale': 0.25}
                 if product_link:
@@ -508,8 +511,8 @@ def export_return_goods(request):
         warehouse = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼'
     worksheet.merge_range(row, 1, row, 5, warehouse)
     worksheet.write(row + 1, 0, '支付宝账号:', bold_format)
-    worksheet.merge_range(row + 1, 1, row + 1, 5, 'xiaoxiaoshijie@unilittles.com')
-
+    worksheet.merge_range(row + 1, 1, row + 1, 5,
+                          'xiaoxiaoshijie@unilittles.com')
 
     workbook.close()
     filename = '%s-%d.xlsx' % (rg.created.strftime('%Y%m%d'), rg.id)
@@ -519,6 +522,7 @@ def export_return_goods(request):
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment;filename=%s' % filename
     return response
+
 
 def mark_unreturn(request):
     id_ = int(request.POST['id'])
@@ -541,13 +545,28 @@ def mark_unreturn(request):
         saleproduct = SaleProduct.objects.get(id=saleproduct_id)
         supplier = saleproduct.sale_supplier
 
-        unreturn_sku = UnReturnSku(
-            supplier=supplier,
-            sale_product=saleproduct,
-            product=sku.product,
-            sku=sku,
-            creater=request.user,
-            status=UnReturnSku.EFFECT
-        )
+        unreturn_sku = UnReturnSku(supplier=supplier,
+                                   sale_product=saleproduct,
+                                   product=sku.product,
+                                   sku=sku,
+                                   creater=request.user,
+                                   status=UnReturnSku.EFFECT)
         unreturn_sku.save()
     return HttpResponse(True)
+
+
+def returngoods_create_bill(request):
+    form = forms.ReturnGoodsCreateBill(request.POST)
+    if not form.is_valid():
+        return HttpResponse(
+            json.dumps({'msg': '参数错误',
+                        'code': 1}),
+            content_type='application/json')
+
+    rg = ReturnGoods.objects.get(id=form.cleaned_data['rg_id'])
+    bill = rg.supply_notify_refund(
+        form.cleaned_data['receive_method'], form.cleaned_data['amount'],
+        form.cleaned_data['note'], form.cleaned_data['attachment'])
+    return HttpResponse(
+        json.dumps({'code': 0, 'bill_id': bill.id}),
+        content_type='application/json')

@@ -186,6 +186,7 @@ INSTALLED_APPS =(
     # 'flashsale.supplier',
     'flashsale.complain',
     'flashsale.pay',
+    'flashsale.finance',
     'flashsale.xiaolumm',
     'flashsale.dinghuo',
     'flashsale.clickcount',

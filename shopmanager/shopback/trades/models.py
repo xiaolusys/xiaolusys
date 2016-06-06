@@ -21,7 +21,6 @@ from common.utils import (parse_datetime,
                           update_model_fields)
 from flashsale.pay.models import SaleTrade
 from flashsale import pay
-# from flashsale import pay
 import logging
 from shopback.warehouse import WARE_SH, WARE_CHOICES
 

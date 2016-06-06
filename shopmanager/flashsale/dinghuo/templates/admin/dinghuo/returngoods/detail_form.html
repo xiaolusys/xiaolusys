@@ -10,6 +10,8 @@
 <link href="{{ STATIC_URL }}bootstrap-3.3.4-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
+<link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
 <style type="text/css">
     .form-row {
         overflow:inherit;
@@ -34,10 +36,6 @@
 </style>
 {% if cl.formset %}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
-  -rw-rw-r-- 1 aladdin aladdin  3379 12月 26 09:26 data_grape.html
-  -rw-rw-r-- 1 aladdin aladdin  8216 12月 26 09:26 data_of_point.html
-  -rw-rw-r-- 1 aladdin aladdin  3142 12月 26 09:26 data_of_product.html
-  -rw-rw-r-- 1 aladdin aladdin  5740 12月 26 09:26
 {% endif %}
 {% if cl.formset or action_form %}
 {% url 'admin:jsi18n' as jsi18nurl %}
@@ -108,7 +106,7 @@
                 <!--%elif original.status == 3%-->
                 <!--<input type="button" class="btn-mini btn-success" id="id_btn_refund" value="已经退款"/>-->
                 {%elif original.status == 3%}
-                <input type="button" class="btn-mini btn-success" id="id_btn_success" value="退货成功"/>&nbsp;&nbsp;
+                <input type="button" class="btn-mini btn-success" id="id_btn_success" value="已经收款"/>&nbsp;&nbsp;
                 <input type="button" class="btn-mini btn-success" id="id_btn_error" value="退货失败"/>&nbsp;&nbsp;
                 {%endif%}
             </div>
@@ -225,11 +223,19 @@
                 <label class="simple-label" id="id_consign_time" style="width:200px">{{original.consign_time|date:"Y-m-d H:i:s"}}</label>
         </div>
         {%endif%}
-        {%if original.has_refund%}
+        {%if original.bill and original.bill.attachment %}
         <div class="form-row field-memo">
             <div>
                 <label for="id_refund_picture">付款证明图:</label>
-                <img id="id_refund_picture" src="id_refund_picture" alt="收款证明图"/>
+                <img id="id_refund_picture" src="{{original.bill.attachment}}?imageMogr2/thumbnail/220/crop/220x220/format/jpg" width="220px" height="220px" alt="收款证明图"/>
+            </div>
+        </div>
+        {%endif%}
+        {%if original.bill %}
+        <div class="form-row field-memo">
+            <div>
+                <label for="id_refund_picture">收款单:</label>
+                <a href="/admin/finance/bill/{{original.bill.id}}/" target="_blank">{{original.bill.id}}</a>
             </div>
         </div>
         {%endif%}
@@ -269,7 +275,56 @@
     </div>
   </div>
 </div>
-
+<div class="modal" id="bill-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">创建收款信息</h4>
+            </div>
+            <div class="modal-body">
+                <form id="bill-form" style="position:relative">
+                    <input type="hidden" name="rg_id" value="{{original.id}}">
+                    <div class="form-group">
+                        <label class="control-label">收款方式:</label>
+                        <select class="form-control" name="receive_method">
+                            <option value="">未选</option>
+                            {% for pay_choice in original.pay_choices %}
+                            <option value="{{pay_choice.value}}">{{pay_choice.text}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">金额:</label>
+                        <input type="number" name="amount" class="form-control" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">说明:</label>
+                        <textarea class="form-control" rows="3" name="note"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">附件:</label>
+                        <input type="hidden" id="pickfiles">
+                        <ul id="files" class="uploader"></ul>
+                    </div>
+                    <div style="clear:both"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="submit-bill">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+<script src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+<script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+<script src="{{ STATIC_URL }}underscore/underscore.string.min.js"></script>
+<script src="{{ STATIC_URL }}script/qiniu.js"></script>
+<script src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
+<script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js?v=0.1"></script>
+<script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
 <script type="text/javascript">
     var id = {{original.id|default_if_none:"0"}};
     function post_data_to_server(act, dom, id) {
@@ -360,7 +415,8 @@
         post_data_to_server("send", $('#id_btn_send'), id);
     }
     var return_success  = function(evt){
-        post_data_to_server("send_ok", $('#id_btn_success'), id);
+        $('#bill-modal').modal('show');
+        //post_data_to_server("send_ok", $('#id_btn_success'), id);
     }
     var return_error = function(evt){
         post_data_to_server("send_fail", $('#id_btn_error'), id);
@@ -441,7 +497,6 @@
 
      var saveTransactor = function(evt){
         var transactor = evt.target.text;
-        console.log(transactor);
         $('.dropdown').data('transactor', transactor);
         $('.transactor_text').text(transactor);
      }
@@ -454,7 +509,6 @@
             return
         }
         var transactor = $('.dropdown').data('transactor');
-        console.log(transactor);
         dom.addClass("loading");
         var url = "/sale/dinghuo/returngoods/set_transactor/";
         var data = {"transactor": transactor, "id": id};
@@ -474,6 +528,17 @@
     }
 
 
+    function getBillFormData(){
+        var data = {};
+        _.each($('#bill-form').serializeArray(), function(el){
+            data[el.name] = el.value;
+        });
+
+        var files = $('#files').uploader('getData');
+        data.attachment = files.length > 0 ? files[0] : '';
+        return data;
+    }
+
     $(document).ready(function () {
         $('#id_btn_check').click(return_check);
         $('#id_btn_destroy').click(return_destory);
@@ -490,6 +555,44 @@
         $('.modify-transactor').click(modifyTransactor);
         $('.dropdown-menu li').click(saveTransactor);
         $('.commit-transactor').click(commitTransactor);
+
+        $('#files').uploader({
+            fileButton: 'pickfiles',
+            domain: 'http://image.xiaolu.so/',
+            imageOp: 'imageMogr2/thumbnail/220/crop/220x220/format/jpg',
+            maxLength: 1,
+            width: 100,
+            height: 100
+        });
+
+        $('#submit-bill').click(function(){
+            var data = getBillFormData();
+            data.amount = parseFloat(data.amount);
+            data.receive_method = parseInt(data.receive_method);
+            if(!(data.amount && _.isNumber(data.amount))){
+                alert('金额错误');
+                return;
+            }
+            if(!(data.receive_method && _.isNumber(data.receive_method))){
+                alert('收款方式错误');
+                return;
+            }
+
+            $.ajax({
+                url: '/sale/dinghuo/returngoods/create_bill/',
+                type: 'post',
+                dataType: 'json',
+                data: data,
+                success: function(result){
+                    if(result.code){
+                        alert(result.error);
+                        $('#bill-modal').modal('hide');
+                    }
+                    else
+                        window.location.reload();
+                }
+            });
+        });
     });
 
 </script>

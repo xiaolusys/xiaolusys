@@ -6,6 +6,7 @@ from django.db.models import Sum, Count
 from django.db.models.signals import post_save
 from django.db.models import Sum, F
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 
 from core.fields import JSONCharMyField
 from core.models import BaseModel
@@ -476,6 +477,7 @@ class ReturnGoods(models.Model):
         return get_max_from_list(r)
 
     def set_stat(self):
+        self.rg_details.filter(num=0).delete()
         rgds = self.rg_details.all()
         total_num = 0
         total_amount = 0
@@ -507,13 +509,26 @@ class ReturnGoods(models.Model):
         for d in self.rg_details.all():
             ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity')-d.num)
 
-    def supply_notify_refund(self):
+    def supply_notify_refund(self, receive_method, amount, note, pic=None):
         """
             供应商说他已经退款了
         :return:
         """
+        from flashsale.finance.models import Bill
+        bill = Bill(type=Bill.PAY,
+                          status=0,
+                          creater=self.transactor,
+                          pay_method=receive_method,
+                          plan_amount=amount,
+                          note=note,
+                          supplier_id=self.supplier_id)
+        if pic:
+            bill.attachment = pic
+        bill.save()
+        bill.relate_to([self])
         self.status = ReturnGoods.REFUND_RG
         self.save()
+        return bill
 
     def set_confirm_refund_status(self, refund_status=u'已完成'):
         self.refund_status = dict([(r[1], r[0]) for r in ReturnGoods.REFUND_STATUS]).get(refund_status, 0)
@@ -530,6 +545,30 @@ class ReturnGoods(models.Model):
         return User.objects.filter(is_staff=True,
                                         groups__name__in=(u'小鹿买手资料员', u'小鹿采购管理员', u'小鹿采购员', u'管理员', u'小鹿管理员')). \
                 distinct().order_by('id')
+
+    def add_sku(self, skuid, num, price=None):
+        if self.status in [RGDetail.CREATE_RG, RGDetail.VERIFY_RG]:
+            rgd = RGDetail()
+            rgd.return_goods = self
+            rgd.skuid = skuid
+            rgd.num = num
+            rgd.price = price
+            rgd.save()
+        else:
+            raise Exception(u'已发货的退货单不可更改')
+
+    @property
+    def pay_choices(self):
+        from flashsale.finance.models import Bill
+        return [{'value': x, 'text': y} for x, y in Bill.PAY_CHOICES]
+
+    @property
+    def bill(self):
+        from flashsale.finance.models import BillRelation
+        bill_relation = BillRelation.objects.filter(type=3, object_id=self.id).order_by('-id').first()
+        if not bill_relation:
+            return None
+        return bill_relation.bill
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.supplier_id, self.id)
