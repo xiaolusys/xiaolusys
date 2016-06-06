@@ -1,4 +1,5 @@
 # -*- encoding:utf8 -*-
+import json
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, render
@@ -488,12 +489,21 @@ def refunding_state(request, state_id):
 def change_sku_item(request):
     content = request.REQUEST
     sale_order_id = int(content.get("sale_order_id", None))
-    SKU = int(content.get("SKU",None))
-    num = int(content.get("num",None))
-    print sale_order_id
-    print SKU
-    print num
+    sku = content.get("SKU")
+    if not sku:
+        return HttpResponse({False})
+    if not ProductSku.objects.filter(id=sku).exists():
+        return HttpResponse({False})
+    num = content.get("num",None)
+    try:
+        num = int(num)
+    except:
+        return HttpResponse({False})
     sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
-    SaleTrade.change_sku_item(sale_order,SKU,num)
+    sale_trade = sale_order.sale_trade
+    try:
+        sale_trade.change_sku_item(sale_order,sku,num)
+    except Exception, e0:
+        return HttpResponse(json.dumps({'status':1, "desc": str(e0)}))
     return HttpResponse(True)
 

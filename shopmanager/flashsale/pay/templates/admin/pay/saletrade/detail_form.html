@@ -313,10 +313,8 @@
                         <td ><label id = refund_status> {{sale_order.get_refund_status_display}}</label></td>
                         <td ><label id = order_status>{{sale_order.get_status_display}}</label></td>
                         <td>{{sale_order.item_id}}&nbsp;&nbsp;&nbsp;</td>
-                        <td>{% if sale_order.is_sent == 1%}
+                        <td>{%if sale_order.can_change_sku%}
                             <button type="button"  data-toggle="modal" data-target="#myModal" id = {{sale_order.id}} class = "change123">换货</button>
-                            {%elif sale_order.is_sent == 0%}
-                            <button disabled="true" type="button"  data-toggle="modal" data-target="#myModal" id = {{sale_order.id}} class = "change123">换货</button>
                             {%endif%}
                         </td>
 

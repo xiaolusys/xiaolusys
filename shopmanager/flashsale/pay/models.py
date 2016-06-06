@@ -364,27 +364,28 @@ class SaleTrade(BaseModel):
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
 
-    @staticmethod
-    def change_sku_item(old_sale_order, sku_id, num=1):
+    def change_sku_item(self, old_sale_order, sku_id, num=1):
         """
             更换sku
         :param old_sale_order:
         :return:
         """
-        if old_sale_order.status != SaleOrder.WAIT_SELLER_SEND_GOODS\
-            or old_sale_order.refund_status in [SaleRefund.REFUND_WAIT_RETURN_GOODS,
-                                                SaleRefund.REFUND_CONFIRM_GOODS,
-                                                SaleRefund.REFUND_APPROVE,
-                                                SaleRefund.REFUND_SUCCESS]:
+
+        if not old_sale_order.can_change_sku():
             raise Exception(u'已发货或退款的商品不能执行换货')
+        sku = ProductSku.objects.get(id=sku_id)
+        # from shopback.items.models import ProductSkuStats
+        # sku_stock = ProductSkuStats.objects.get(sku_id=sku_id)
+        # if sku_stock.realtime_quantity < num:
+        #     raise Exception(u'换货数必须小于实时库存')
         old_sale_order.status = SaleOrder.TRADE_CLOSED_BY_SYS
         old_sale_order.save()
         new_sale_order = old_sale_order
         new_sale_order.id = None
-        new_sale_order.oid = '%s-%s' % (new_sale_order.oid, '1')
+        cnt = self.sale_orders.count()
+        new_sale_order.oid = '%s-%s' % (old_sale_order.oid, str(cnt))
         new_sale_order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
         new_sale_order.sku_id = sku_id
-        sku = ProductSku.objects.get(id=sku_id)
         product = sku.product
         new_sale_order.outer_id = product.outer_id
         new_sale_order.outer_sku_id = sku.outer_id
@@ -641,15 +642,15 @@ class SaleOrder(PayBaseModel):
     def __unicode__(self):
         return '<%s>' % (self.id)
 
-    def is_sent(self):
+    def can_change_sku(self):
         if self.status != SaleOrder.WAIT_SELLER_SEND_GOODS\
             or self.refund_status in [SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                                 SaleRefund.REFUND_CONFIRM_GOODS,
                                                 SaleRefund.REFUND_APPROVE,
                                                 SaleRefund.REFUND_SUCCESS]:
-            return 0
+            return False
         else:
-            return 1
+            return True
 
     def save(self, *args, **kwargs):
         # if saleorder not set buyer_id, set saletrade buyer_id to it
