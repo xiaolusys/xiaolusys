@@ -386,7 +386,7 @@ signal_record_supplier_models.connect(create_Model_Product, sender=ModelProduct)
 DEFAULT_WEN_POSTER = [
     {
         "subject": ['2折起', '小鹿美美  女装专场'],
-        "item_link": "/mall/#/product/list/lady",
+        "item_link": "/mall/product/list/lady",
         "app_link": "com.jimei.xlmm://app/v1/products/ladylist",
         "pic_link": ""
     }
@@ -395,7 +395,7 @@ DEFAULT_WEN_POSTER = [
 DEFAULT_CHD_POSTER = [
     {
         "subject": ['2折起', '小鹿美美  童装专场'],
-        "item_link": "/mall/#/product/list/child",
+        "item_link": "/mall/product/list/child",
         "app_link": "com.jimei.xlmm://app/v1/products/childlist",
         "pic_link": ""
     }
@@ -436,10 +436,10 @@ class GoodShelf(PayBaseModel):
         return [
             {'id': 5, 'name': u'童装专区',
              'cat_img': 'http://7xogkj.com2.z0.glb.qiniucdn.com/category/child.png',
-             'cat_link': '/mall/#/product/list/child'},
+             'cat_link': '/mall/product/list/child'},
             {'id': 8, 'name': u'女装专区',
              'cat_img': 'http://7xogkj.com2.z0.glb.qiniucdn.com/category/lady.png',
-             'cat_link': '/mall/#/product/list/lady'},
+             'cat_link': '/mall/product/list/lady'},
         ]
 
     def get_posters(self):
