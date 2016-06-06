@@ -687,8 +687,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         order_no = sale_trade.tid
         buyer_openid = sale_trade.openid
         channel = sale_trade.channel
-        payback_url = urlparse.urljoin(settings.M_SITE_URL, kwargs.get('payback_url', '/pages/zhifucg.html'))
-        cancel_url = urlparse.urljoin(settings.M_SITE_URL, kwargs.get('cancel_url', '/pages/daizhifu-dd.html'))
+        payback_url = urlparse.urljoin(settings.M_SITE_URL, kwargs.get('payback_url', CONS.get('PAY_SUCCESS_URL', '')))
+        cancel_url = urlparse.urljoin(settings.M_SITE_URL, kwargs.get('cancel_url', CONS.get('PAY_CANCEL_URL', '')))
         if sale_trade.has_budget_paid:
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
             budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
