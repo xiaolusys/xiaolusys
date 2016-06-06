@@ -1,4 +1,5 @@
 # -*- encoding:utf8 -*-
+import json
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, render
@@ -8,12 +9,16 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 from shopback.items.models import Product, ProductSku, ProductCategory
 from .models import SaleTrade, SaleOrder, genUUID, Customer
+from .models_refund import SaleRefund
 from .tasks import confirmTradeChargeTask
 from flashsale.xiaolumm.models import CarryLog, XiaoluMama
 import time
 import datetime
 from  django.db.models import Q
 from shopback.logistics import getLogisticTrace
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 
 ISOTIMEFORMAT = '%Y-%m-%d '
 today = datetime.date.today()
@@ -479,5 +484,38 @@ def refunding_state(request, state_id):
 
     return render(request, 'pay/order_flash.html', {'info': rec, 'time': real_today, 'yesterday': today})
 
+
 def change_sku_item(request):
-    return
+    content = request.REQUEST
+    sale_order_id = int(content.get("sale_order_id", None))
+    sku = content.get("SKU")
+    if not sku:
+        return HttpResponse({False})
+    if not ProductSku.objects.filter(id=sku).exists():
+        return HttpResponse({False})
+    num = content.get("num", None)
+    try:
+        num = int(num)
+    except:
+        return HttpResponse({False})
+    sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
+    sale_trade = sale_order.sale_trade
+    try:
+        sale_trade.change_sku_item(sale_order, sku, num)
+    except Exception, e0:
+        return HttpResponse(json.dumps({'status': 1, "desc": str(e0)}))
+    return HttpResponse(True)
+
+
+def refund_fee(request):
+    content = request.REQUEST
+    sale_order_id = int(content.get("sale_order_id", None))
+    refund_fee = float(content.get("refund_fee", None))
+    return_goods_info={}
+    sale_order_id = get_object_or_404(SaleOrder, id = sale_order_id)
+    refund_info = {"return_good": False, "refund_fee": refund_fee, "reason": "", "desc": ""}
+    s = SaleRefund.create(sale_order_id, refund_info)
+    if s == True:
+        return  HttpResponse(True)
+    else:
+        return HttpResponse(False)

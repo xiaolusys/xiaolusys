@@ -4,6 +4,7 @@ from django.db import models
 from core.fields import JSONCharMyField
 from .base import PayBaseModel
 
+
 """
 用户  积分 模块
 用户ID：SaleTrade 中的  buyer_id  也即是：models_user 中的  Customer  id '客户ID'

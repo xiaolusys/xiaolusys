@@ -4,6 +4,7 @@ import datetime
 from django.db import models
 from django.db.models import F
 
+
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
 from .base import PayBaseModel

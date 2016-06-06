@@ -11,6 +11,7 @@ import urllib2
 from django.db import connection
 from django.db.models import Max, Sum
 
+
 import common.constants
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList
