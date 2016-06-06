@@ -20,9 +20,9 @@ CHANNEL_CHOICES = (
 ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS = 14
 ORDER_SIGNED_TO_FINISHED_DAYS = 7
 
-MALL_LOGIN_URL = '/pages/denglu.html'
-MAIL_PAY_SUCCESS_URL = '/pages/zhifucg.html'
-MAIL_PAY_CANCEL_URL = '/pages/zhifucg.html'
+MALL_LOGIN_URL = '/mall/user/login'
+MAIL_PAY_SUCCESS_URL = '/mall/ol.html?type=2'
+MAIL_PAY_CANCEL_URL = '/mall/ol.html?type=1'
 
 COUPON_ID_FOR_20160223_AWARD = 22
 
