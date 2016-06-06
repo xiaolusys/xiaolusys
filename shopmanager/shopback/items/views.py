@@ -532,8 +532,34 @@ class ProductSearchView(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer, BrowsableAPIRenderer)
 
+    @classmethod
+    def get_skus_by_outer_id(cls, outer_id):
+        product = Product.objects.filter(outer_id=outer_id).first()
+        if not product:
+            return Response({'code': 1, 'msg': '商品不存在'})
+        skus = []
+        for sku in product.prod_skus.filter(status=ProductSku.NORMAL).order_by('id'):
+            skus.append({
+                'id': sku.id,
+                'properties_name': sku.properties_name or sku.properties_alias
+            })
+        product_dict = {
+            'id': product.id,
+            'name': product.name,
+            'outer_id': product.outer_id,
+            'pic_path': product.pic_path,
+            'skus': skus
+        }
+        return Response({'product': product_dict, 'code': 0})
+
+
     def get(self, request, *args, **kwargs):
         # print Product.objects.all()[1].outer_id
+        outer_id = request.GET.get('outer_id')
+        if outer_id:
+            return self.get_skus_by_outer_id(outer_id)
+
+
         q = request.GET.get('q')
         # print q,"000"
         if not q:

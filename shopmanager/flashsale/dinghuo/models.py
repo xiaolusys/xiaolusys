@@ -142,6 +142,10 @@ class OrderList(models.Model):
     costofems_cash.allow_tags = True
     costofems_cash.short_description = u"快递费用"
 
+    @property
+    def amount(self):
+        return self.order_amount
+
     def __unicode__(self):
         return '<%s,%s>' % (str(self.id or ''), self.buyer_name)
 
@@ -509,13 +513,13 @@ class ReturnGoods(models.Model):
         for d in self.rg_details.all():
             ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity')-d.num)
 
-    def supply_notify_refund(self, receive_method, amount, note, pic=None):
+    def supply_notify_refund(self, bill_type, receive_method, amount, note, pic=None):
         """
             供应商说他已经退款了
         :return:
         """
         from flashsale.finance.models import Bill
-        bill = Bill(type=Bill.PAY,
+        bill = Bill(type=bill_type,
                           status=0,
                           creater=self.transactor,
                           pay_method=receive_method,
@@ -547,13 +551,22 @@ class ReturnGoods(models.Model):
                 distinct().order_by('id')
 
     def add_sku(self, skuid, num, price=None):
-        if self.status in [RGDetail.CREATE_RG, RGDetail.VERIFY_RG]:
-            rgd = RGDetail()
-            rgd.return_goods = self
-            rgd.skuid = skuid
-            rgd.num = num
-            rgd.price = price
-            rgd.save()
+        from shopback.items.models import ProductSku
+        sku = ProductSku.objects.get(id=skuid)
+        if self.status in [self.CREATE_RG, self.VERIFY_RG]:
+            rgd = self.rg_details.filter(skuid=skuid).first()
+            if rgd:
+                rgd.num += num
+                if price:
+                    rgd.price = price
+                rgd.save()
+            else:
+                rgd = RGDetail()
+                rgd.return_goods = self
+                rgd.skuid = skuid
+                rgd.num = num
+                rgd.price = price or sku.cost
+                rgd.save()
         else:
             raise Exception(u'已发货的退货单不可更改')
 
