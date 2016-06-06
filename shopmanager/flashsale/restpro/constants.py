@@ -31,3 +31,5 @@ MAMA_INVITE_AGENTCY_URL = '{site_url}/pages/agency-invitation-res.html'
 
 #商城商品详情页
 MALL_PRODUCT_TEMPLATE_URL = '/mall/#/product/details/{0}'
+
+

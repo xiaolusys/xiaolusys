@@ -11,6 +11,7 @@ from .base import PayBaseModel
 from shopback.items.models import Product, ContrastContent
 from .signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
+from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM
 
 import logging
 logger = logging.getLogger(__name__)
@@ -323,19 +324,19 @@ class ModelProduct(PayBaseModel):
         constant_set  = set()
         for k1, v1 in origin_contrast.items():
             constant_set.update(v1)
-
         constant_keys = list(constant_set)
         result_data.append([u'尺码'])
         for k in constant_keys:
             result_data[0].append(constants_maps.get(k, k))
-
+        tmp_result = []
         for k1, v1 in origin_contrast.items():
             temp_list = []
             for key in constant_keys:
                 val = v1.get(key, '-')
                 temp_list.append(val)
-            result_data.append([k1] + temp_list)
-        return result_data
+            tmp_result.append([k1] + temp_list)
+        tmp_result.sort(key=lambda x:SM.find(x[0][0:2]) if SM.find(x[0][0:2])>-1 else SM.find(x[0][0:1]))
+        return result_data + tmp_result
 
     @property
     def comparison(self):
