@@ -603,8 +603,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         order_no      = sale_trade.tid
         buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
-        payback_url = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('payback_url',CONS.PAY_SUCCESS_URL))
-        cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url',CONS.PAY_CANCEL_URL))
+        payback_url = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('payback_url',CONS.MALL_PAY_SUCCESS_URL))
+        cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url',CONS.MALL_PAY_CANCEL_URL))
         if sale_trade.has_budget_paid:
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
             budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
@@ -902,8 +902,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
         except Exception,exc:
-            logger.error('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
-            return Response({'code':6, 'info':exc.message or '未知支付异常'})
+                logger.error('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
+                return Response({'code':6, 'info':exc.message or '未知支付异常'})
 
         return Response({'code':0, 'info':u'支付成功', 'channel':channel, 'charge':response_charge})
             

@@ -1,5 +1,7 @@
 # coding=utf-8
 
+import urllib
+
 WX = 'wx'
 ALIPAY = 'alipay'
 WX_PUB = 'wx_pub'
@@ -21,8 +23,9 @@ ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS = 14
 ORDER_SIGNED_TO_FINISHED_DAYS = 7
 
 MALL_LOGIN_URL = '/mall/user/login'
-MAIL_PAY_SUCCESS_URL = '/mall/ol.html?type=2'
-MAIL_PAY_CANCEL_URL = '/mall/ol.html?type=1'
+
+MALL_PAY_SUCCESS_URL = urllib.quote('/mall/ol.html?type=2&paid=true')
+MALL_PAY_CANCEL_URL = urllib.quote('/mall/ol.html?type=1&paid=false')
 
 COUPON_ID_FOR_20160223_AWARD = 22
 
