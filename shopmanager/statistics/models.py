@@ -76,6 +76,13 @@ class SaleStats(BaseModel):
                                              timely_type=self.timely_type)
 
     @property
+    def no_pay_num(self):
+        if self.status == constants.NOT_PAY:
+            return self.num
+        no_pay_stats = self.get_status_queryset().filter(status=constants.NOT_PAY).first()
+        return no_pay_stats.num if no_pay_stats else 0
+
+    @property
     def paid_num(self):
         if self.status == constants.PAID:
             return self.num

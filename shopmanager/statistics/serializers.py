@@ -42,4 +42,5 @@ class StatsAllNumSerializer(serializers.ModelSerializer):
                   "paid_num",
                   'cancel_num',
                   'out_stock_num',
-                  'return_goods_num')
+                  'return_goods_num',
+                  'no_pay_num')
