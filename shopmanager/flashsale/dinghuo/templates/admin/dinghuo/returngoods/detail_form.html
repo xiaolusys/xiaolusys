@@ -33,6 +33,12 @@
     .table_return_goods td{
         width:100px;
     }
+    #sku-modal {
+        min-width: 650px;
+    }
+    .popover {
+        max-width: 100%;
+    }
 </style>
 {% if cl.formset %}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
@@ -90,6 +96,11 @@
                 <a href="/sale/dinghuo/returngoods/export/?rg_id={{original.id}}" target="_blank">
                     <span class="label label-success">导出excel</span>
                 </a>
+                {% if original.status == original.CREATE_RG or original.status == original.VERIFY_RG %}
+                <a href="javascript:;" id="add-sku">
+                    <span class="label label-primary">添加Sku</span>
+                </a>
+                {% endif %}
             </div>
         </div>
         <div class="form-row row-through">
@@ -223,11 +234,12 @@
                 <label class="simple-label" id="id_consign_time" style="width:200px">{{original.consign_time|date:"Y-m-d H:i:s"}}</label>
         </div>
         {%endif%}
-        {%if original.bill and original.bill.attachment %}
+        {%if original.confirm_pic_url %}
         <div class="form-row field-memo">
             <div>
                 <label for="id_refund_picture">付款证明图:</label>
-                <img id="id_refund_picture" src="{{original.bill.attachment}}?imageMogr2/thumbnail/220/crop/220x220/format/jpg" width="220px" height="220px" alt="收款证明图"/>
+                <img id="id_refund_picture" src="{{original.confirm_pic_url}}?imageMogr2/thumbnail/220/crop/220x220/format/jpg"
+                     width="220px" height="220px" alt="收款证明图" data-pic-path="{{original.confirm_pic_url}}"/>
             </div>
         </div>
         {%endif%}
@@ -235,7 +247,7 @@
         <div class="form-row field-memo">
             <div>
                 <label for="id_refund_picture">收款单:</label>
-                <a href="/admin/finance/bill/{{original.bill.id}}/" target="_blank">{{original.bill.id}}</a>
+                <a href="/sale/finance/bill/{{original.bill.id}}/" target="_blank">{{original.bill.id}}</a>
             </div>
         </div>
         {%endif%}
@@ -289,9 +301,8 @@
                         <label class="control-label">收款方式:</label>
                         <select class="form-control" name="receive_method">
                             <option value="">未选</option>
-                            {% for pay_choice in original.pay_choices %}
-                            <option value="{{pay_choice.value}}">{{pay_choice.text}}</option>
-                            {% endfor %}
+                            <option value="2">转款</option>
+                            <option value="5">余额抵扣</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -317,6 +328,72 @@
         </div>
     </div>
 </div>
+<div class="modal" id="sku-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">添加Sku</h4>
+            </div>
+            <div class="modal-body">
+                <form id="sku-search-form">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <input class="form-control" name="outer_id" placeholder="商品编码..." style="margin-left:10px">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-default">查询</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="skus">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="submit-sku">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% verbatim %}
+<script id="skus-tpl" type="text/html">
+    <table class="table table-striped">
+        <tr>
+            <th>商品名</th>
+            <th>编码</th>
+            <th>图片</th>
+            <th>尺寸</th>
+            <th>数量</th>
+            <th>价格</th>
+        </tr>
+        <tr>
+            {{each product.skus as sku j}}
+            <tr class="sku" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}">
+                {{if j == 0}}
+                <td rowspan="{{product.skus.length}}" style="min-width:150px">{{product.name}}</td>
+                <td rowspan="{{product.skus.length}}">{{product.outer_id}}</td>
+                <td rowspan="{{product.skus.length}}">
+                    <img src="{{product.pic_path}}?imageMogr2/thumbnail/120/crop/120x120/format/jpg" data-pic-path="{{product.pic_path}}" width="120px">
+                </td>
+                {{/if}}
+                <td>
+                    <a href="/admin/items/productskustats/?sku_id={{sku.id}}" target="_blank" title="库存列表">{{sku.properties_name}}</a>
+                </td>
+                <td>
+                    <input type="number" class="form-control num" min="0" style="min-width:60px">
+                </td>
+                <td>
+                    <input type="number" class="form-control price" min="0" step="0.1" style="min-width:60px">
+                </td>
+            </tr>
+            {{/each}}
+        </tr>
+    </table>
+</script>
+{% endverbatim %}
 <script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
 <script src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
 <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
@@ -325,6 +402,7 @@
 <script src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
 <script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js?v=0.1"></script>
 <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
+<script src="/static/wap/js/template.js"></script>
 <script type="text/javascript">
     var id = {{original.id|default_if_none:"0"}};
     function post_data_to_server(act, dom, id) {
@@ -539,6 +617,14 @@
         return data;
     }
 
+    function getSkuSearchFormData(){
+        var data = {};
+        _.each($('#sku-search-form').serializeArray(), function(el){
+            data[el.name] = $.trim(el.value);
+        });
+        return data;
+    }
+
     $(document).ready(function () {
         $('#id_btn_check').click(return_check);
         $('#id_btn_destroy').click(return_destory);
@@ -593,6 +679,72 @@
                 }
             });
         });
+
+        $('#add-sku').click(function(){
+            $('#sku-modal').modal('show');
+        });
+
+        $('#sku-search-form').submit(function(){
+            $.ajax({
+                url: '/items/query/',
+                type: 'get',
+                dataType: 'json',
+                data: getSkuSearchFormData(),
+                success: function(result){
+                    if(result.code){
+                        alert(result.msg);
+                    }
+                    else
+                        $('#skus').html(template('skus-tpl', result));
+                }
+            });
+            return false;
+        });
+
+        $('#submit-sku').click(function(){
+            var skus = {};
+            $('tr.sku', '#skus').each(function(){
+                var $this = $(this);
+                var skuId = parseInt($this.attr('data-sku-id'));
+                var productId = parseInt($this.attr('data-product-id'));
+                var n = $this.find('input.num').val();
+                var p = $this.find('input.price').val();
+                n = parseInt(n);
+                p = parseFloat(p) || 0;
+                if(n){
+                    skus[skuId] = {
+                        num: n,
+                        price: p
+                    };
+                }
+            });
+            if(!_.isEmpty(skus)){
+                $.ajax({
+                    url: '/sale/dinghuo/returngoods/add_sku/',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {skus: JSON.stringify(skus), rg_id: {{original.id}}},
+                    success: function(result){
+                        if(result.code){
+                            alert(result.msg);
+                        }
+                        else{
+                            window.location.reload();
+                        }
+                    }
+                });
+            }
+        });
+        $('img[data-pic-path]').popover({
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            content: function(){
+                var tpl = _.template('<img src="<%= pic_path %>" width=650 height=650>');
+                return tpl({pic_path: $(this).attr('data-pic-path')});
+            }
+        });
+
     });
 
 </script>

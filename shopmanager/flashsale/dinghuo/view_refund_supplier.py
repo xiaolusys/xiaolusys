@@ -24,6 +24,7 @@ from tasks import calcu_refund_info_by_pro_v2
 from shopback.logistics.models import LogisticsCompany
 logger = logging.getLogger('django.request')
 
+from common.decorators import jsonapi
 from flashsale.dinghuo.models import RGDetail, ReturnGoods, UnReturnSku
 from shopback.items.models import Product, ProductSku
 from supplychain.supplier.models import SaleProduct
@@ -556,6 +557,8 @@ def mark_unreturn(request):
 
 
 def returngoods_create_bill(request):
+    from flashsale.finance.models import Bill
+
     form = forms.ReturnGoodsCreateBill(request.POST)
     if not form.is_valid():
         return HttpResponse(
@@ -564,9 +567,29 @@ def returngoods_create_bill(request):
             content_type='application/json')
 
     rg = ReturnGoods.objects.get(id=form.cleaned_data['rg_id'])
+    rg.real_amount = form.cleaned_data['amount']
+    rg.confirm_pic_url = form.cleaned_data['attachment']
+    rg.save()
     bill = rg.supply_notify_refund(
+        Bill.RECEIVE,
         form.cleaned_data['receive_method'], form.cleaned_data['amount'],
         form.cleaned_data['note'], form.cleaned_data['attachment'])
     return HttpResponse(
         json.dumps({'code': 0, 'bill_id': bill.id}),
         content_type='application/json')
+
+@jsonapi
+def returngoods_add_sku(request):
+    form = forms.ReturnGoodsAddSkuForm(request.POST)
+    if not form.is_valid():
+        raise Exception('参数错误')
+    skus_dict = {int(k): v for k,v in json.loads(form.cleaned_data['skus']).iteritems()}
+    rg_id = form.cleaned_data['rg_id']
+    rg = ReturnGoods.objects.get(id=rg_id)
+
+    for sku_id, sku_dict in skus_dict.iteritems():
+        num = sku_dict.get('num')
+        if not num:
+            continue
+        rg.add_sku(sku_id, num, sku_dict.get('price'))
+    return {'code': 0}

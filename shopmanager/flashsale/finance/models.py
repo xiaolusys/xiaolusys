@@ -10,8 +10,25 @@ class Bill(BaseModel):
     PAY = -1
     DELETE = 0
     RECEIVE = 1
-    type = models.IntegerField(choices=((PAY, u'付款'), (0, u'作废'), (RECEIVE, u"收款")), verbose_name=u'账单类型')
-    status = models.IntegerField(choices=((0, u'待处理'), (1, u'已处理'), (2, u"已完成")), verbose_name=u'账单状态')
+
+
+    TYPE_CHOICES = (
+        (PAY, '付款'),
+        (DELETE, '作废'),
+        (RECEIVE, '收款')
+    )
+
+    STATUS_PENDING = 0
+    STATUS_DEALED = 1
+    STATUS_COMPLETED = 2
+    STATUS_CHOICES = (
+        (STATUS_PENDING, '待处理'),
+        (STATUS_DEALED, '已处理'),
+        (STATUS_COMPLETED, '已完成')
+    )
+
+    type = models.IntegerField(choices=TYPE_CHOICES, verbose_name=u'账单类型')
+    status = models.IntegerField(choices=STATUS_CHOICES, verbose_name=u'账单状态')
     creater = models.ForeignKey(User, verbose_name=u'创建人')
     PC_COD_TYPE = 11  # 货到付款
     PC_PREPAID_TYPE = 12  # 预付款
@@ -73,9 +90,31 @@ class Bill(BaseModel):
                          content_type=ctype,
                          object_id=r.id,
                          type=rtype).save()
-
+    @property
+    def relation_objects(self):
+        objects = []
+        for bill_relation in self.billrelation_set.order_by('id'):
+            object_dict = {
+                'type': dict(BillRelation.TYPE_CHOICES)[bill_relation.type],
+                'object_id': bill_relation.object_id
+            }
+            content_object = bill_relation.get_based_object()
+            if hasattr(content_object, 'bill_relation_dict'):
+                object_dict.update(content_object.bill_relation_dict)
+            objects.append(object_dict)
+        return objects
 
 class BillRelation(BaseModel):
+    TYPE_DINGHUO_PAY = 1
+    TYPE_DINGHUO_RECEIVE = 2
+    TYPE_RETURNGOODS_RECEIVE = 3
+
+    TYPE_CHOICES = (
+        (TYPE_DINGHUO_PAY, u'订货付款'),
+        (TYPE_DINGHUO_RECEIVE, u'订货回款'),
+        (TYPE_RETURNGOODS_RECEIVE, u'退货收款')
+    )
+
     class Meta:
         db_table = 'finance_billrelation'
         app_label = 'finance'
@@ -84,7 +123,7 @@ class BillRelation(BaseModel):
     bill = models.ForeignKey(Bill)
     content_type = models.ForeignKey(ContentType, verbose_name=u'对象类型', db_index=True, blank=True, null=True)
     object_id = models.TextField(verbose_name=u'对象id', blank=True, null=True)
-    type = models.IntegerField(choices=((1, u'订货付款'), (2, u'订货回款'), (3, u'退货收款')))
+    type = models.IntegerField(choices=TYPE_CHOICES)
 
     def get_based_object(self):
         """

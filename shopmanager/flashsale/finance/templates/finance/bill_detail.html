@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>账单详情</title>
+        <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+        <style>
+         .popover{
+             max-width: 100%;
+         }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <p>
+                        <strong>账单类型:</strong>
+                        {{type}}
+                    </p>
+                    <p>
+                        <strong>账单状态:</strong>
+                        {{status}}
+                    </p>
+                    <p>
+                        <strong>创建日期:</strong>
+                        {{created}}
+                    </p>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <label class="control-label col-md-1">供应商:</label>
+                        <div class="col-md-3">
+                            {{supplier_name}}
+                        </div>
+                        <label class="control-label col-md-1">付款类型:</label>
+                        <div class="col-md-3">
+                            {{bill_method}}
+                        </div>
+                        <label class="control-label col-md-1">支付方式:</label>
+                        <div class="col-md-3">{{pay_method}}</div>
+                    </div>
+                    <div class="row">
+                        <label class="control-label col-md-1">计划金额:</label>
+                        <div class="col-md-3">{{plan_amount}}</div>
+                        <label class="control-label col-md-1">实际金额:</label>
+                        <div class="col-md-3">{{amount}}</div>
+                        <label class="control-label col-md-1">交易单号:</label>
+                        <div class="col-md-3">{{transaction_no}}</div>
+                    </div>
+                    {% if attachment %}
+                    <div class="row">
+                        <label class="control-label col-md-1">附件:</label>
+                        <div class="col-md-11">
+                            <img src="{{attachment}}?imageMogr2/thumbnail/120/crop/120x120/format/jpg" data-pic-path="{{attachment}}" width="120px">
+                        </div>
+                    </div>
+                    {% endif %}
+                    <table class="table table-striped" style="margin-top:50px">
+                        <tr>
+                            <th>类型</th>
+                            <th>ID</th>
+                            <th>金额</th>
+                            <th>支付信息</th>
+                        </tr>
+                        {% for obj in relation_objects %}
+                        <tr>
+                            <td>{{obj.type}}</td>
+                            <td>
+                                <a href="{{obj.object_url}}" target="_blank">{{obj.object_id}}</a>
+                            </td>
+                            <td>
+                                {{obj.amount}}
+                            </td>
+                            <td style="max-width:200px">{{obj.payinfo}}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                {% if show_confirm %}
+                <div class="panel-footer" style="text-align:center">
+                    <button class="btn btn-primary" id="confirm">确认</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="modal" id="confirm-dialog" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">财务确认</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="confirm-form">
+                            <div class="form-group">
+                                <label class="control-label">交易单号:</label>
+                                <input class="form-control" name="transaction_no">
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">实际金额:</label>
+                                <input class="form-control" name="amount" type="number" min="0" step="0.1" style="width:120px">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="submit">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+        <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script>
+         $(function(){
+             $('#confirm').click(function(){
+                 $('#confirm-dialog').modal('show');
+             });
+
+
+             $('#submit').click(function(){
+                 var data = {
+                     bill_id: {{id}}
+                 };
+                 $.each($('#confirm-form').serializeArray(), function(i, el){
+                     data[el.name] = el.value;
+                 });
+                 $.ajax({
+                     url: '/sale/finance/confirm_bill/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: data,
+                     success: function(result){
+                         if(result.code)
+                             alert(result.msg);
+                         else
+                            window.location.reload();
+                     }
+                 });
+             });
+             $('img[data-pic-path]').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: function(){
+                     var tpl = _.template('<img src="<%= pic_path %>" width="720px">');
+                     return tpl({pic_path: $(this).attr('data-pic-path')});
+                 }
+             });
+         });
+        </script>
+    </body>
+</html>
