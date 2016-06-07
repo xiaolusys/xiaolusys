@@ -36,6 +36,9 @@
     #sku-modal {
         min-width: 650px;
     }
+    .popover {
+        max-width: 100%;
+    }
 </style>
 {% if cl.formset %}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
@@ -231,11 +234,12 @@
                 <label class="simple-label" id="id_consign_time" style="width:200px">{{original.consign_time|date:"Y-m-d H:i:s"}}</label>
         </div>
         {%endif%}
-        {%if original.bill and original.bill.attachment %}
+        {%if original.confirm_pic_url %}
         <div class="form-row field-memo">
             <div>
                 <label for="id_refund_picture">付款证明图:</label>
-                <img id="id_refund_picture" src="{{original.bill.attachment}}?imageMogr2/thumbnail/220/crop/220x220/format/jpg" width="220px" height="220px" alt="收款证明图"/>
+                <img id="id_refund_picture" src="{{original.confirm_pic_url}}?imageMogr2/thumbnail/220/crop/220x220/format/jpg"
+                     width="220px" height="220px" alt="收款证明图" data-pic-path="{{original.confirm_pic_url}}"/>
             </div>
         </div>
         {%endif%}
@@ -243,7 +247,7 @@
         <div class="form-row field-memo">
             <div>
                 <label for="id_refund_picture">收款单:</label>
-                <a href="/admin/finance/bill/{{original.bill.id}}/" target="_blank">{{original.bill.id}}</a>
+                <a href="/sale/finance/bill/{{original.bill.id}}/" target="_blank">{{original.bill.id}}</a>
             </div>
         </div>
         {%endif%}
@@ -297,9 +301,8 @@
                         <label class="control-label">收款方式:</label>
                         <select class="form-control" name="receive_method">
                             <option value="">未选</option>
-                            {% for pay_choice in original.pay_choices %}
-                            <option value="{{pay_choice.value}}">{{pay_choice.text}}</option>
-                            {% endfor %}
+                            <option value="2">转款</option>
+                            <option value="5">余额抵扣</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -732,6 +735,16 @@
                 });
             }
         });
+        $('img[data-pic-path]').popover({
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            content: function(){
+                var tpl = _.template('<img src="<%= pic_path %>" width=650 height=650>');
+                return tpl({pic_path: $(this).attr('data-pic-path')});
+            }
+        });
+
     });
 
 </script>

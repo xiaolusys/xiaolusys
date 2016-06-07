@@ -94,11 +94,14 @@ class Bill(BaseModel):
     def relation_objects(self):
         objects = []
         for bill_relation in self.billrelation_set.order_by('id'):
-            objects.append({
+            object_dict = {
                 'type': dict(BillRelation.TYPE_CHOICES)[bill_relation.type],
-                'object_id': bill_relation.object_id,
-                'object_url': bill_relation.object_url
-            })
+                'object_id': bill_relation.object_id
+            }
+            content_object = bill_relation.get_based_object()
+            if hasattr(content_object, 'bill_relation_dict'):
+                object_dict.update(content_object.bill_relation_dict)
+            objects.append(object_dict)
         return objects
 
 class BillRelation(BaseModel):
@@ -127,9 +130,3 @@ class BillRelation(BaseModel):
             returns the edited object represented by this log entry
         """
         return self.content_type.get_object_for_this_type(pk=self.object_id)
-    @property
-    def object_url(self):
-        if self.type in [self.TYPE_DINGHUO_PAY, self.TYPE_DINGHUO_RECEIVE]:
-            return '/sale/dinghuo/changedetail/%s/' % self.object_id
-        else:
-            return '/admin/dinghuo/returngoods/%s/' % self.object_id

@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
 import common.utils
@@ -8,6 +9,7 @@ from flashsale.finance.models import Bill
 from common.decorators import jsonapi
 from . import forms
 
+@staff_member_required
 def bill_detail(request, bill_id):
     bill = Bill.objects.get(id=bill_id)
     result = {
@@ -22,11 +24,12 @@ def bill_detail(request, bill_id):
         'amount': bill.amount,
         'transaction_no': bill.transcation_no,
         'relation_objects': bill.relation_objects,
-        'show_confirm': bill.status == Bill.STATUS_PENDING
+        'show_confirm': bill.status == Bill.STATUS_PENDING,
+        'attachment': bill.attachment
     }
     return render(request, 'finance/bill_detail.html', result)
 
-
+@staff_member_required
 @jsonapi
 def confirm_bill(request):
     form = forms.ConfirmBillForm(request.POST)

@@ -567,6 +567,9 @@ def returngoods_create_bill(request):
             content_type='application/json')
 
     rg = ReturnGoods.objects.get(id=form.cleaned_data['rg_id'])
+    rg.real_amount = form.cleaned_data['amount']
+    rg.confirm_pic_url = form.cleaned_data['attachment']
+    rg.save()
     bill = rg.supply_notify_refund(
         Bill.RECEIVE,
         form.cleaned_data['receive_method'], form.cleaned_data['amount'],

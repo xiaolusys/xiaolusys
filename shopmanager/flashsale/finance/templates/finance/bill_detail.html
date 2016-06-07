@@ -7,6 +7,9 @@
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
         <style>
+         .popover{
+             max-width: 100%;
+         }
         </style>
     </head>
     <body>
@@ -47,6 +50,14 @@
                         <label class="control-label col-md-1">交易单号:</label>
                         <div class="col-md-3">{{transaction_no}}</div>
                     </div>
+                    {% if attachment %}
+                    <div class="row">
+                        <label class="control-label col-md-1">附件:</label>
+                        <div class="col-md-11">
+                            <img src="{{attachment}}?imageMogr2/thumbnail/120/crop/120x120/format/jpg" data-pic-path="{{attachment}}" width="120px">
+                        </div>
+                    </div>
+                    {% endif %}
                     <table class="table table-striped" style="margin-top:50px">
                         <tr>
                             <th>类型</th>
@@ -63,7 +74,7 @@
                             <td>
                                 {{obj.amount}}
                             </td>
-                            <td></td>
+                            <td style="max-width:200px">{{obj.payinfo}}</td>
                         </tr>
                         {% endfor %}
                     </table>
@@ -104,6 +115,7 @@
         </div>
         <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
         <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
         <script>
          $(function(){
              $('#confirm').click(function(){
@@ -130,6 +142,15 @@
                             window.location.reload();
                      }
                  });
+             });
+             $('img[data-pic-path]').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: function(){
+                     var tpl = _.template('<img src="<%= pic_path %>" width="720px">');
+                     return tpl({pic_path: $(this).attr('data-pic-path')});
+                 }
              });
          });
         </script>

@@ -586,6 +586,15 @@ class ReturnGoods(models.Model):
     def __unicode__(self):
         return u'<%s,%s>' % (self.supplier_id, self.id)
 
+    @property
+    def bill_relation_dict(self):
+        from django.template.loader import render_to_string
+        from django.utils.safestring import mark_safe
+        return {
+            'payinfo': mark_safe(render_to_string('dinghuo/returngoods_payinfo.html', {'memo': self.memo, 'sum_amount': self.sum_amount})),
+            'object_url': '/admin/dinghuo/returngoods/%d/' % self.id,
+            'amount': self.real_amount
+        }
 
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
     from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
