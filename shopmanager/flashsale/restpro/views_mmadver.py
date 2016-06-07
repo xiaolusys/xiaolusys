@@ -1,5 +1,6 @@
 # coding=utf-8
 import json, os
+import random
 import datetime
 from django.shortcuts import get_object_or_404
 from django.conf import settings
@@ -62,28 +63,40 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         queryset = self.queryset.filter(start_time__gte=yesetoday, start_time__lt=tomorrow)
         return queryset
 
-    def get_mama_link(self, request):
+    def get_mama_link(self, request, model_id=None):
         """
         获取代理专属链接
         """
         customer = Customer.objects.get(user=request.user)
         xlmm = customer.getXiaolumm()
         if xlmm:
-            return os.path.join(settings.M_SITE_URL, "m/{}/".format(xlmm.id))  # 专属链接
+            if model_id:
+                return os.path.join(settings.M_SITE_URL,
+                                    "m/{0}/?next={1}/mall/product/details/{2}".format(xlmm.id,
+                                                                                      settings.M_SITE_URL,
+                                                                                      model_id))  # 专属链接
+            return os.path.join(settings.M_SITE_URL,
+                                "m/{0}/".format(xlmm.id))  # 专属链接
         else:
             return ''
 
     def list(self, request, *args, **kwargs):
         from django_statsd.clients import statsd
+
         statsd.incr('xiaolumm.ninepic_count')
 
         advers = []
         now = datetime.datetime.now()
 
         from flashsale.xiaolumm import util_emoji
+
         for adver in self.get_today_queryset().order_by('-start_time'):
             if now >= adver.start_time:
-                mama_link = self.get_mama_link(request)
+                model_id = None
+                if adver.detail_modelids:
+                    model_ids = adver.detail_modelids.split(',')
+                    model_id = random.choice(model_ids)
+                mama_link = self.get_mama_link(request, model_id=model_id)
 
                 adver.description = util_emoji.match_emoji(adver.description)
 
