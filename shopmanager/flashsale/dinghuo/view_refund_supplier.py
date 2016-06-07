@@ -555,18 +555,18 @@ def mark_unreturn(request):
         unreturn_sku.save()
     return HttpResponse(True)
 
-
+@jsonapi
 def returngoods_create_bill(request):
     from flashsale.finance.models import Bill
 
     form = forms.ReturnGoodsCreateBill(request.POST)
     if not form.is_valid():
-        return HttpResponse(
-            json.dumps({'msg': '参数错误',
-                        'code': 1}),
-            content_type='application/json')
+        return {'code': 1, 'msg': '参数错误'}
 
     rg = ReturnGoods.objects.get(id=form.cleaned_data['rg_id'])
+    if not rg.transactor_id:
+        return {'code': 1, 'msg': '请选择负责人'}
+
     rg.real_amount = form.cleaned_data['amount']
     rg.confirm_pic_url = form.cleaned_data['attachment']
     rg.save()
@@ -574,9 +574,7 @@ def returngoods_create_bill(request):
         Bill.RECEIVE,
         form.cleaned_data['receive_method'], form.cleaned_data['amount'],
         form.cleaned_data['note'], form.cleaned_data['attachment'])
-    return HttpResponse(
-        json.dumps({'code': 0, 'bill_id': bill.id}),
-        content_type='application/json')
+    return {'code': 0, 'bill_id': bill.id}
 
 @jsonapi
 def returngoods_add_sku(request):

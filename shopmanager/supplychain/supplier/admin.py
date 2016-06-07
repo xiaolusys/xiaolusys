@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
+import datetime
 import re
+
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
@@ -20,7 +22,7 @@ from core.filters import DateFieldListFilter
 from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 from models_hots import HotProduct
-from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
+from supplychain.supplier.models import SaleProduct, SaleProductManage, SaleProductManageDetail
 from .models import SupplierZone
 from shopback.items.models import Product
 from django.contrib.auth.models import User
@@ -253,12 +255,31 @@ class SaleSupplierAdmin(ApproxAdmin):
 
     def batch_taotai_action(self, request, queryset):
         """ 批量淘汰 """
+        supplier_ids = []
+        for supplier in queryset:
+            supplier_ids.append(supplier.id)
+        saleproduct_ids = []
+        for saleproduct in SaleProduct.objects.filter(sale_supplier_id__in=supplier_ids).exclude(status=SaleProduct.REJECTED):
+            saleproduct_ids.append(saleproduct.id)
+
+        today = datetime.datetime.now().date()
+        product_ids = []
+        for product in Product.objects.filter(sale_product__in=saleproduct_ids, status=Product.NORMAL, sale_time__gte=today):
+            product_ids.append(product.id)
+        if product_ids:
+            self.message_user(request, '以下商品正在上架')
+            return HttpResponseRedirect('/admin/items/product/?id__in=%s' % ','.join([str(x) for x in product_ids]))
+
         employee = request.user
+        for saleproduct in SaleProduct.objects.filter(id__in=saleproduct_ids):
+            saleproduct.status = SaleProduct.REJECTED
+            saleproduct.save()
+            log_action(employee.id, saleproduct, CHANGE, u'淘汰成功')
+
         for supplier in queryset:
             supplier.progress = SaleSupplier.REJECTED
             supplier.save()
             log_action(employee.id, supplier, CHANGE, u'淘汰成功')
-
         self.message_user(request, u"======= 商家批量淘汰成功 =======")
         return HttpResponseRedirect("./")
 
