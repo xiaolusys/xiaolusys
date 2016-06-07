@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-__author__ = 'timi06'
+__author__ = 'yan.huang'
 from rest_framework import serializers
 from .models import Complain
 

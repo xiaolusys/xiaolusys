@@ -1,9 +1,11 @@
 # coding=utf-8
-__author__ = 'timi06'
+__author__ = 'yan.huang'
 from .models import Complain
 from .serializers import ComplainSerializers
 from rest_framework.response import Response
 from rest_framework import generics, viewsets, permissions, authentication, renderers
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import detail_route, list_route
 
 
 class ComplainsDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -23,6 +25,7 @@ class ComplainViewSet(viewsets.ModelViewSet):
         -  com_title    标题 default 问题反馈
         -  com_content  内容
         -  contact_way  联系方式
+    - reply method: `post`  回复
     """
     queryset = Complain.objects.all()
     serializer_class = ComplainSerializers
@@ -53,3 +56,12 @@ class ComplainViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @detail_route(methods=["post"])
+    def reply(self, request, pk=None):
+        content = request.REQUEST
+        id = content.get('id', '')
+        complain = get_object_or_404(Complain, id=id)
+        reply = content.get('reply', '')
+        complain.respond(request.user.username, reply)
+        return Response({"res": True})
