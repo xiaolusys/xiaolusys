@@ -202,6 +202,8 @@ class CarryLogList(generics.ListAPIView):
 
 class MamaStatsView(WeixinAuthMixin, View):
     def get(self, request):
+        if True:
+            return redirect('/sale/promotion/appdownload/')
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
