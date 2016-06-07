@@ -678,10 +678,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if couponids:
             coupon_id = couponids.groupdict().get('couponid','')
         logistics_company_id = form.get('logistics_company_id','').strip()
-        if not logistics_company_id or logistics_company_id == '0':
-            logistics_company_id = None
-        else:
-            tasks_set_address_priority_logistics_code.delay(address.id, logistics_company_id)
+        logistic_company = None
+        if logistics_company_id and logistics_company_id != '0':
+            if logistics_company_id.isdigit():
+               logistic_company = LogisticsCompany.objects.get(id=logistics_company_id)
+            else:
+                logistic_company = LogisticsCompany.objects.get(code=logistics_company_id)
+            tasks_set_address_priority_logistics_code.delay(address.id, logistic_company.id)
         params.update({
             'buyer_nick':customer.nick,
             'buyer_message':form.get('buyer_message',''),
@@ -692,7 +695,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'post_fee':float(form.get('post_fee')),
             'discount_fee':float(form.get('discount_fee')),
             'charge':'',
-            'logistics_company_id': logistics_company_id or None,
+            'logistics_company_id': logistic_company and logistic_company.id or None,
             'status':SaleTrade.WAIT_BUYER_PAY,
             'openid':buyer_openid,
             'extras_info':{
