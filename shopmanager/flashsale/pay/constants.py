@@ -24,8 +24,8 @@ ORDER_SIGNED_TO_FINISHED_DAYS = 7
 
 MALL_LOGIN_URL = '/mall/user/login'
 
-MALL_PAY_SUCCESS_URL = urllib.quote('/mall/ol.html?type=2&paid=true')
-MALL_PAY_CANCEL_URL = urllib.quote('/mall/ol.html?type=1&paid=false')
+MALL_PAY_SUCCESS_URL = '/mall/ol.html?type=2'
+MALL_PAY_CANCEL_URL = '/mall/ol.html?type=1'
 
 COUPON_ID_FOR_20160223_AWARD = 22
 
