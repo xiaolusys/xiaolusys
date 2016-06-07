@@ -13,7 +13,7 @@ from statistics.models import SaleStats
 
 
 class SaleStatsViewSet(viewsets.ModelViewSet):
-    queryset = SaleStats.objects.all().order_by('date_field')
+    queryset = SaleStats.objects.all()
     serializer_class = serializers.StatsSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
