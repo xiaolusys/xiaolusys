@@ -1,5 +1,5 @@
 # coding:utf-8
-__author__ = 'timi06'
+__author__ = 'yan.huang'
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
 from flashsale.pay.models_user import Customer

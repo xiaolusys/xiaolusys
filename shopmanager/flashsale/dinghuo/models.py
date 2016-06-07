@@ -361,6 +361,7 @@ class ReturnGoods(models.Model):
         if not hasattr(self, '_sku_ids_'):
             self._sku_ids_ = [i['skuid'] for i in self.rg_details.values('skuid')]
         return self._sku_ids_
+
     @property
     def product_skus(self):
         if not hasattr(self, '_product_skus_'):

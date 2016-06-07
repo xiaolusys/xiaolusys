@@ -1,39 +1,35 @@
 # -*- coding:utf-8 -*-
-__author__ = 'timi06'
+__author__ = 'yan.huang'
 from django.db import models
+import datetime
 
 
 class Complain(models.Model):
-    WAIT_AUDIT = 0
-    WAIT_DELIVERY = 1
-    RECEIVER_CONFIRM = 2
-    INVALID = 3
-
-    STATUS_CHOICES = ((WAIT_AUDIT, U'未处理'),
-                      (WAIT_DELIVERY, U'已处理'),
-                      (RECEIVER_CONFIRM, U'已作废'),
-                      (INVALID, U'已删除'),)
-
     SALE_PRO = 0
     ORDER_PRO = 1
     SUGGEST = 2
     SALE_AFTER = 4
     OTHER = 3
-
     TYPE_CHOICES = ((SALE_PRO, U'购物问题'),
                     (ORDER_PRO, U'订单相关'),
                     (SALE_AFTER, U'售后问题'),
                     (SUGGEST, U'意见/建议'),
                     (OTHER, U'其他'),)
-
     com_type = models.IntegerField(choices=TYPE_CHOICES, default=OTHER, verbose_name=u'类型')
     insider_phone = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'投诉人ID')
     com_title = models.CharField(max_length=64, db_index=True, blank=True, default=u'问题反馈', verbose_name=u'标题')
     com_content = models.TextField(max_length=1024, blank=True, verbose_name=u'内容')
     contact_way = models.CharField(max_length=128, blank=True, verbose_name=u'联系方式')
-
     created_time = models.DateField(verbose_name=u'投诉时间', auto_now_add=True, null=True, blank=True)
-    status = models.IntegerField(choices=STATUS_CHOICES, default=WAIT_AUDIT, verbose_name=u'状态')
+    CREATED = 0
+    REPLIED = 1
+    CLOSED = 2
+    INVALID = 3
+    STATUS_CHOICES = ((CREATED, U'未处理'),
+                      (REPLIED, U'已回复'),
+                      (CLOSED, U'已关闭'),
+                      (INVALID, U'已删除'),)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=CREATED, verbose_name=u'状态')
     custom_serviced = models.CharField(max_length=32, blank=True, verbose_name=u'客服号')
     reply = models.CharField(max_length=1024, blank=True, verbose_name=u'回复')
     reply_time = models.DateTimeField(null=True, blank=True, verbose_name=u'回复时间')
@@ -46,3 +42,10 @@ class Complain(models.Model):
 
     def __unicode__(self):
         return u"%s,%s" % (self.id, self.com_title)
+
+    def respond(self, custom_serviced_name, reply):
+        self.custom_serviced_name = custom_serviced_name
+        self.reply = reply
+        self.status = Complain.REPLIED
+        self.reply_time = datetime.datetime.now()
+        return self.save()
