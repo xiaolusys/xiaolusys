@@ -1032,7 +1032,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def confirm_sign(self, request, *args, **kwargs):
         """ 确认签收 """
         instance = self.get_object()
-        wait_sign_orders = instance.sale_orders.filtre(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+        wait_sign_orders = instance.sale_orders.filter(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
         if not wait_sign_orders.exists():
             return Response({"code": 1, "info": "没有可签收订单"})
 
