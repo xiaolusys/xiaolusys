@@ -34,7 +34,7 @@ class SaleRefund(PayBaseModel):
 
     REFUND_STATUS = (
         (NO_REFUND, '没有退款'),
-        (REFUND_WAIT_SELLER_AGREE, '申请退款'),
+        (REFUND_WAIT_SELLER_AGREE, '退款待审'),
         (REFUND_WAIT_RETURN_GOODS, '同意申请'),
         (REFUND_CONFIRM_GOODS, '退货途中'),
         (REFUND_REFUSE_BUYER, '拒绝退款'),
