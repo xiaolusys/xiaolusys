@@ -36,16 +36,18 @@ class Bill(BaseModel):
     PC_OTHER_TYPE = 14  # 其它
     RECEIVE_DIRECT = 4
     RECEIVE_DEDUCTIBLE = 5
+    TAOBAO_PAY = 1
+    TRANSFER_PAY = 2
+    SELF_PAY = 3
     PURCHASE_PAYMENT_TYPE = (
         (PC_COD_TYPE, u'货到付款'),
         (PC_PREPAID_TYPE, u'预付款'),
         (PC_POD_TYPE, u'付款提货'),
         (PC_OTHER_TYPE, u'其它'),
     )
-    bill_method = models.IntegerField(choices=PURCHASE_PAYMENT_TYPE, default=PC_COD_TYPE, verbose_name=u'付款类型')
     plan_amount = models.FloatField(verbose_name=u'计划款额')
     amount = models.FloatField(default=0, verbose_name=u'实收款额')
-    PAY_CHOICES = ((1, u'淘宝代付'), (2, u'转款'), (3, u"自付"),
+    PAY_CHOICES = ((TAOBAO_PAY, u'淘宝代付'), (TRANSFER_PAY, u'转款'), (SELF_PAY, u"自付"),
                    (RECEIVE_DIRECT, u'直退'),
                    (RECEIVE_DEDUCTIBLE, u'余额抵扣'))
     pay_method = models.IntegerField(choices=PAY_CHOICES, verbose_name=u'支付方式')
@@ -70,6 +72,15 @@ class Bill(BaseModel):
     @staticmethod
     def create(relations, num, plan_amount, amount):
         return
+
+    def merge_to(self, bill):
+        for bill_relation in self.billrelation_set.all():
+            BillRelation.objects.get_or_create(
+                bill=bill,
+                content_type=bill_relation.content_type,
+                object_id=bill_relation.object_id,
+                type=bill_relation.type
+            )
 
     def relate_to(self, relations, lack_dict={}):
         from flashsale.dinghuo.models import ReturnGoods, OrderDetail
@@ -103,6 +114,7 @@ class Bill(BaseModel):
                 object_dict.update(content_object.bill_relation_dict)
             objects.append(object_dict)
         return objects
+
 
 class BillRelation(BaseModel):
     TYPE_DINGHUO_PAY = 1
