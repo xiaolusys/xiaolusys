@@ -514,7 +514,7 @@ def refund_fee(request):
     return_goods_info={}
     sale_order_id = get_object_or_404(SaleOrder, id = sale_order_id)
     refund_info = {"return_good": False, "refund_fee": refund_fee, "reason": "", "desc": ""}
-    s = SaleRefund.create(sale_order_id, refund_info)
+    s =SaleRefund.gen_out_stock_refund(sale_order_id)
     if s == True:
         return  HttpResponse(True)
     else:
