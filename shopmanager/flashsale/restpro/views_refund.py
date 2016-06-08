@@ -148,7 +148,7 @@ def refund_Handler(request):
             return {"res": "ok", "code": 0, "info": "操作成功"}
     except Exception, exc:
         logger.error(u'refund_Handler %s' % exc.message)
-        return {"res": "error", "code": 1, "info": "退款单异常"}
+        return {"res": "error", "code": 1, "info": exc.message}
 
 
 def refund_Status(order_id=None):
