@@ -364,6 +364,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             default_company_code=default_company_code)
 
         cart_serializers = self.get_serializer(queryset, many=True)
+        budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
 
         response = {
             'uuid': gen_uuid_trade_tid(),
@@ -371,6 +372,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             'post_fee': round(post_fee, 2),
             'discount_fee': round(discount_fee, 2),
             'total_payment': round(total_payment, 2),
+            'budget_cash':budget_cash,
             'channels': self.get_charge_channels(request, total_payment),
             'cart_ids': ','.join([str(c) for c in cart_ids]),
             'cart_list': cart_serializers.data,
@@ -414,6 +416,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product_sku_dict['product'] = serializers.ProductSerializer(
             product,
             context={'request': request}).data
+        budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
 
         response = {
             'uuid': gen_uuid_trade_tid(),
@@ -421,6 +424,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             'post_fee': round(post_fee, 2),
             'discount_fee': round(discount_fee, 2),
             'total_payment': round(total_payment, 2),
+            'budget_cash': budget_cash,
             'channels': self.get_charge_channels(request, total_payment),
             'sku': product_sku_dict,
             'logistics_companys': selectable_logistics
