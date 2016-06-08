@@ -6,6 +6,7 @@
         <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
         <style>
          .popover{
              max-width: 100%;
@@ -35,10 +36,6 @@
                         <div class="col-md-3">
                             {{supplier_name}}
                         </div>
-                        <label class="control-label col-md-1">付款类型:</label>
-                        <div class="col-md-3">
-                            {{bill_method}}
-                        </div>
                         <label class="control-label col-md-1">支付方式:</label>
                         <div class="col-md-3">{{pay_method}}</div>
                     </div>
@@ -54,7 +51,9 @@
                     <div class="row">
                         <label class="control-label col-md-1">附件:</label>
                         <div class="col-md-11">
-                            <img src="{{attachment}}?imageMogr2/thumbnail/120/crop/120x120/format/jpg" data-pic-path="{{attachment}}" width="120px">
+                            <a href="{{attachment}}" target="_blank">
+                                <img src="{{attachment}}?imageMogr2/thumbnail/480x/format/jpg" data-pic-path="{{attachment}}">
+                            </a>
                         </div>
                     </div>
                     {% endif %}
@@ -79,15 +78,20 @@
                         {% endfor %}
                     </table>
                 </div>
-                {% if show_confirm %}
+                {% if deal %}
                 <div class="panel-footer" style="text-align:center">
-                    <button class="btn btn-primary" id="confirm">确认</button>
+                    <button class="btn btn-primary" id="deal">上传汇款凭证</button>
+                </div>
+                {% endif %}
+                {% if confirm %}
+                <div class="panel-footer" style="text-align:center">
+                    <button class="btn btn-primary" id="confirm">财务确认</button>
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <div class="modal" id="confirm-dialog" tabindex="-1" role="dialog">
+        <div class="modal" id="confirm-modal" tabindex="-1" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -98,11 +102,11 @@
                         <form id="confirm-form">
                             <div class="form-group">
                                 <label class="control-label">交易单号:</label>
-                                <input class="form-control" name="transaction_no">
+                                <input class="form-control" name="transaction_no" value="{{transaction_no}}">
                             </div>
                             <div class="form-group">
                                 <label class="control-label">实际金额:</label>
-                                <input class="form-control" name="amount" type="number" min="0" step="0.1" style="width:120px">
+                                <input class="form-control" name="amount" type="number" min="0" step="0.1" style="width:120px" value="{{plan_amount}}">
                             </div>
                         </form>
                     </div>
@@ -113,13 +117,84 @@
                 </div>
             </div>
         </div>
+        <div class="modal" id="deal-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">汇款凭证</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="deal-form" style="position:relative">
+                            <div class="form-group">
+                                <label class="control-label">收款方式:</label>
+                                <select class="form-control" name="receive_method">
+                                    <option value="">未选</option>
+                                    <option value="2">转款</option>
+                                    <option value="5">余额抵扣</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">金额:</label>
+                                <input type="number" name="amount" class="form-control" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">交易单号</label>
+                                <input name="transaction_no" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">说明:</label>
+                                <textarea class="form-control" rows="3" name="note"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">附件:</label>
+                                <input type="hidden" id="pickfiles">
+                                <ul id="files" class="uploader"></ul>
+                            </div>
+                            <div style="clear:both"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="submit-deal">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+        <script src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
         <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
         <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
         <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}script/qiniu.js"></script>
+        <script src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
+        <script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js?v=0.1"></script>
         <script>
+         function getDealFormData(){
+             var data = {};
+             _.each($('#deal-form').serializeArray(), function(el){
+                 data[el.name] = el.value;
+             });
+             var files = $('#files').uploader('getData');
+             data.attachment = files.length > 0 ? files[0] : '';
+             return data;
+         }
+
          $(function(){
+             $('#files').uploader({
+                 fileButton: 'pickfiles',
+                 domain: 'http://image.xiaolu.so/',
+                 imageOp: 'imageMogr2/thumbnail/220/crop/220x220/format/jpg',
+                 maxLength: 1,
+                 width: 100,
+                 height: 100
+             });
+
              $('#confirm').click(function(){
-                 $('#confirm-dialog').modal('show');
+                 $('#confirm-modal').modal('show');
+             });
+             $('#deal').click(function(){
+                 $('#deal-modal').modal('show');
              });
 
 
@@ -151,6 +226,37 @@
                      var tpl = _.template('<img src="<%= pic_path %>" width="720px">');
                      return tpl({pic_path: $(this).attr('data-pic-path')});
                  }
+             });
+
+
+             $('#submit-deal').click(function(){
+                 var data = getDealFormData();
+                 data.bill_id = {{id}};
+                 data.amount = parseFloat(data.amount);
+                 data.receive_method = parseInt(data.receive_method);
+                 if(!(data.amount && _.isNumber(data.amount))){
+                     alert('金额错误');
+                     return;
+                 }
+                 if(!(data.receive_method && _.isNumber(data.receive_method))){
+                     alert('收款方式错误');
+                     return;
+                 }
+
+                 $.ajax({
+                     url: '/sale/finance/deal/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: data,
+                     success: function(result){
+                         if(result.code){
+                             alert(result.msg);
+                             $('#deal-modal').modal('hide');
+                         }
+                         else
+                             window.location.reload();
+                     }
+                 });
              });
          });
         </script>

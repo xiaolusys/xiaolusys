@@ -514,13 +514,13 @@ class ReturnGoods(models.Model):
         for d in self.rg_details.all():
             ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity')-d.num)
 
-    def supply_notify_refund(self, bill_type, receive_method, amount, note, pic=None):
+    def supply_notify_refund(self, receive_method, amount, note='', pic=None):
         """
             供应商说他已经退款了
         :return:
         """
         from flashsale.finance.models import Bill
-        bill = Bill(type=bill_type,
+        bill = Bill(type=Bill.RECEIVE,
                           status=0,
                           creater=self.transactor,
                           pay_method=receive_method,
@@ -592,10 +592,21 @@ class ReturnGoods(models.Model):
         from django.template.loader import render_to_string
         from django.utils.safestring import mark_safe
         return {
-            'payinfo': mark_safe(render_to_string('dinghuo/returngoods_payinfo.html', {'memo': self.memo, 'sum_amount': self.sum_amount})),
+            #'payinfo': mark_safe(render_to_string('dinghuo/returngoods_payinfo.html', {'memo': self.memo, 'sum_amount': self.sum_amount})),
+            'object_id': self.id,
+            'payinfo': self.memo,
             'object_url': '/admin/dinghuo/returngoods/%d/' % self.id,
-            'amount': self.real_amount
+            'amount': self.sum_amount
         }
+
+    def deal(self, confirm_pic_url):
+        self.confirm_pic_url = confirm_pic_url
+        self.status = self.REFUND_RG
+        self.save()
+
+    def confirm(self):
+        self.status = self.SUCCEED_RG
+        self.save()
 
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
     from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME

@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding: utf-8
 """
 统计一段时期内特卖商品的退货数量，及库存数量，并可创建退货单，退回给供应商
 库存：shopback items models Product collect_num: 库存数
@@ -10,7 +10,9 @@ import io
 import urllib
 import xlsxwriter
 
+from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
+
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
@@ -26,6 +28,7 @@ logger = logging.getLogger('django.request')
 
 from common.decorators import jsonapi
 from flashsale.dinghuo.models import RGDetail, ReturnGoods, UnReturnSku
+from flashsale.finance.models import BillRelation, Bill
 from shopback.items.models import Product, ProductSku
 from supplychain.supplier.models import SaleProduct
 
@@ -188,7 +191,10 @@ def delete_return_goods_sku(request):
     return HttpResponse(True)
 
 
+@jsonapi
 def set_return_goods_sku_send(request):
+    from flashsale.finance.models import Bill
+
     content = request.REQUEST
     id = int(content.get("id", None))
     logistic_company_name = content.get("logistic_company", None)
@@ -197,12 +203,15 @@ def set_return_goods_sku_send(request):
     logistic_no = content.get("logistic_no", None)
     consigner = request.user.username
     return_goods = get_object_or_404(ReturnGoods, id=id)
+    if not return_goods.transactor_id:
+        return {'code': 1, 'msg': '请选择负责人'}
     if return_goods.status == ReturnGoods.VERIFY_RG:
+        return_goods.supply_notify_refund(Bill.TRANSFER_PAY,
+                                          return_goods.sum_amount)
         return_goods.delivery_by(logistic_no, logistic_company.id, consigner)
-        return HttpResponse(True)
+        return {}
     else:
-        res = {"success": False, 'desc': u'只有已审核的退货可以执行发货'}
-        return HttpResponse(json.dump(res))
+        return {'code': 1, 'msg': '只有已审核的退货可以执行发货'}
 
 
 def set_transactor(request):
@@ -555,33 +564,14 @@ def mark_unreturn(request):
         unreturn_sku.save()
     return HttpResponse(True)
 
-@jsonapi
-def returngoods_create_bill(request):
-    from flashsale.finance.models import Bill
-
-    form = forms.ReturnGoodsCreateBill(request.POST)
-    if not form.is_valid():
-        return {'code': 1, 'msg': '参数错误'}
-
-    rg = ReturnGoods.objects.get(id=form.cleaned_data['rg_id'])
-    if not rg.transactor_id:
-        return {'code': 1, 'msg': '请选择负责人'}
-
-    rg.real_amount = form.cleaned_data['amount']
-    rg.confirm_pic_url = form.cleaned_data['attachment']
-    rg.save()
-    bill = rg.supply_notify_refund(
-        Bill.RECEIVE,
-        form.cleaned_data['receive_method'], form.cleaned_data['amount'],
-        form.cleaned_data['note'], form.cleaned_data['attachment'])
-    return {'code': 0, 'bill_id': bill.id}
 
 @jsonapi
 def returngoods_add_sku(request):
     form = forms.ReturnGoodsAddSkuForm(request.POST)
     if not form.is_valid():
         raise Exception('参数错误')
-    skus_dict = {int(k): v for k,v in json.loads(form.cleaned_data['skus']).iteritems()}
+    skus_dict = {int(k): v
+                 for k, v in json.loads(form.cleaned_data['skus']).iteritems()}
     rg_id = form.cleaned_data['rg_id']
     rg = ReturnGoods.objects.get(id=rg_id)
 
@@ -591,3 +581,33 @@ def returngoods_add_sku(request):
             continue
         rg.add_sku(sku_id, num, sku_dict.get('price'))
     return {'code': 0}
+
+
+@jsonapi
+def returngoods_deal(request):
+    form = forms.DealForm(request.POST)
+    if not form.is_valid():
+        return {'code': 1, 'msg': '参数错误'}
+
+    rg = ReturnGoods.objects.get(id=form.cleaned_data['rg_id'])
+    returngoods_type = ContentType.objects.get(app_label='dinghuo',
+                                               model='returngoods')
+    bill_relation = BillRelation.objects.filter(content_type=returngoods_type,
+                                                object_id=rg.id).exclude(
+                                                    bill__type=Bill.DELETE).order_by('-id').first()
+    if not bill_relation:
+        return {'code': 1, 'msg': '找不到账单'}
+    bill = bill_relation.bill
+    for bill_relation in bill.billrelation_set.all():
+        relation_object = bill_relation.get_based_object()
+        if hasattr(relation_object, 'deal'):
+            relation_object.deal(form.cleaned_data['attachment'])
+
+    bill.receive_method = form.cleaned_data['receive_method']
+    bill.plan_amount = form.cleaned_data['amount']
+    bill.note = '\r\n'.join([x for x in [bill.note, form.cleaned_data['note']]])
+    bill.attachment = form.cleaned_data['attachment']
+    bill.status = Bill.STATUS_DEALED
+    bill.transcation_no = form.cleaned_data['transaction_no']
+    bill.save()
+    return {'bill_id': bill.id}

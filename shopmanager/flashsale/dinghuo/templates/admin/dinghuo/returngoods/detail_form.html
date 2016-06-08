@@ -238,8 +238,10 @@
         <div class="form-row field-memo">
             <div>
                 <label for="id_refund_picture">付款证明图:</label>
-                <img id="id_refund_picture" src="{{original.confirm_pic_url}}?imageMogr2/thumbnail/220/crop/220x220/format/jpg"
-                     width="220px" height="220px" alt="收款证明图" data-pic-path="{{original.confirm_pic_url}}"/>
+                <a href="{{original.confirm_pic_url}}" target="_blank">
+                    <img id="id_refund_picture" src="{{original.confirm_pic_url}}?imageMogr2/thumbnail/220x/format/jpg"
+                         width="220px" height="220px" alt="收款证明图" data-pic-path="{{original.confirm_pic_url}}"/>
+                </a>
             </div>
         </div>
         {%endif%}
@@ -308,6 +310,10 @@
                     <div class="form-group">
                         <label class="control-label">金额:</label>
                         <input type="number" name="amount" class="form-control" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">交易单号</label>
+                        <input name="transaction_no" class="form-control">
                     </div>
                     <div class="form-group">
                         <label class="control-label">说明:</label>
@@ -472,7 +478,10 @@
         };
         $.ajax({"url": url, "data": data, "type": "post", "success": callback});
         function callback(res) {
-            if (res == "True") {
+            if (res.code) {
+                alert(res.msg);
+            }
+            else{
                 window.location.reload();
             }
         }
@@ -665,7 +674,7 @@
             }
 
             $.ajax({
-                url: '/sale/dinghuo/returngoods/create_bill/',
+                url: '/sale/dinghuo/returngoods/deal/',
                 type: 'post',
                 dataType: 'json',
                 data: data,
@@ -744,7 +753,6 @@
                 return tpl({pic_path: $(this).attr('data-pic-path')});
             }
         });
-
     });
 
 </script>

@@ -169,7 +169,6 @@ class ordelistAdmin(admin.ModelAdmin):
                 self.message_user(request, u"已成功审核!")
 
         return HttpResponseRedirect(request.get_full_path())
-
     test_order_action.short_description = u"审核(已付款)"
 
     def verify_order_action(self, request, queryset):
@@ -715,13 +714,13 @@ class PurchaseRecordAdmin(admin.ModelAdmin):
    search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id')
 
 admin.site.register(PurchaseRecord, PurchaseRecordAdmin)
-    
+
 
 class PurchaseArrangementAdmin(admin.ModelAdmin):
     list_display = ('id', 'package_sku_item_id', 'oid', 'purchase_order_unikey', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
                     'sku_properties_name', 'num', 'status', 'purchase_order_status', 'initial_book', 'modified', 'created')
 
-    
+
 admin.site.register(PurchaseArrangement, PurchaseArrangementAdmin)
 
 
@@ -729,12 +728,12 @@ class PurchaseDetailAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'purchase_order_unikey', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'book_num', 'need_num',
                     'extra_num', 'status', 'unit_price_display', 'modified', 'created')
 
-    
+
 admin.site.register(PurchaseDetail, PurchaseDetailAdmin)
 
 
 class PurchaseOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'uni_key', 'supplier_id', 'supplier_name', 'book_num', 'need_num', 'arrival_num', 'status',
                     'modified', 'created')
-    
+
 admin.site.register(PurchaseOrder, PurchaseOrderAdmin)
