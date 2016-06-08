@@ -508,13 +508,15 @@ def change_sku_item(request):
 
 
 def refund_fee(request):
+    print 'woca'
     content = request.REQUEST
     sale_order_id = int(content.get("sale_order_id", None))
     refund_fee = float(content.get("refund_fee", None))
     return_goods_info={}
     sale_order_id = get_object_or_404(SaleOrder, id = sale_order_id)
     refund_info = {"return_good": False, "refund_fee": refund_fee, "reason": "", "desc": ""}
-    s = SaleRefund.create(sale_order_id, refund_info)
+    print sale_order_id.status
+    s =SaleRefund.gen_out_stock_refund(sale_order_id)
     if s == True:
         return  HttpResponse(True)
     else:

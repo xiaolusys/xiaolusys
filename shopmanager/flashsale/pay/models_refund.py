@@ -14,13 +14,17 @@ from .base import PayBaseModel
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
 from .constants import CHANNEL_CHOICES
-from flashsale.pay import NO_REFUND ,REFUND_CLOSED ,REFUND_REFUSE_BUYER ,REFUND_WAIT_SELLER_AGREE ,REFUND_WAIT_RETURN_GOODS ,REFUND_CONFIRM_GOODS ,REFUND_APPROVE ,REFUND_SUCCESS ,REFUND_STATUS
+from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
+    REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS, REFUND_STATUS
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 def default_refund_no():
     return uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d')))
+
 
 class SaleRefund(PayBaseModel):
     NO_REFUND = NO_REFUND
@@ -74,7 +78,7 @@ class SaleRefund(PayBaseModel):
 
     id = models.AutoField(primary_key=True, verbose_name='ID')
     refund_no = models.CharField(max_length=32, unique=True,
-                                 default=default_refund_no, 
+                                 default=default_refund_no,
                                  verbose_name='退款编号')
     trade_id = models.IntegerField(verbose_name='交易ID')
     order_id = models.IntegerField(verbose_name='订单ID')
@@ -205,6 +209,39 @@ class SaleRefund(PayBaseModel):
         pushTradeRefundTask.delay(sale_refund.id)
         return True
 
+    @staticmethod
+    def gen_out_stock_refund(sale_order, reason=' ', refund_num=None):
+        if sale_order.status!=sale_order.__class__.WAIT_SELLER_SEND_GOODS:
+            return False
+        sale_trader = sale_order.sale_trade
+        refund_fee = sale_order.payment # 退款费用 = 实付款
+        good_status = SaleRefund.SELLER_OUT_STOCK #
+        s = SaleRefund(
+            trade_id = sale_order.sale_trade.id,
+            order_id = sale_order.id,
+            buyer_id = sale_order.buyer_id,
+            item_id = sale_order.item_id,
+            charge = sale_trader.charge,
+            channel = sale_trader.channel,
+            sku_id = sale_order.sku_id,
+            sku_name = sale_order.sku_name,
+            refund_num = sale_order.num,
+            buyer_nick = sale_trader.buyer_nick,
+            mobile = sale_trader.receiver_mobile,
+            phone = sale_trader.receiver_mobile,
+            total_fee = sale_order.total_fee,
+            payment = sale_order.payment,
+            refund_fee =sale_order.payment,
+            reason = reason,
+            good_status = SaleRefund.SELLER_OUT_STOCK,
+            status = SaleRefund.REFUND_WAIT_SELLER_AGREE,
+        )
+        s.save()
+        sale_order.refund_id = s.id
+        sale_order.refund_fee = s.refund_fee
+        sale_order.refund_status = s.status
+        return True
+
     def refund_Confirm(self):
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
@@ -280,7 +317,7 @@ class SaleRefund(PayBaseModel):
                 ware_by = morders[0].ware_by
                 return WareHouse.objects.get(id=ware_by).address
         except WareHouse.DoesNotExist:
-            logger.warn('order product ware_by not found:saleorder=%s'%sorder)
+            logger.warn('order product ware_by not found:saleorder=%s' % sorder)
         return '退货地址请咨询小鹿美美客服哦'
 
     def get_refund_customer(self):
