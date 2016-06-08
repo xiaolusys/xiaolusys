@@ -25,7 +25,7 @@ from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDe
 import functions
 from shopback.items.models import Product, ProductSku, ProductStock
 from supplychain.supplier.models import SaleProduct, SaleSupplier
-
+from django.shortcuts import get_object_or_404
 
 class ChangeDetailView(View):
     @staticmethod
@@ -221,6 +221,27 @@ class AutoNewOrder(View):
         return render_to_response("dinghuo/shengchengorder.html",
                                   {"orderdraft": all_drafts},
                                   context_instance=RequestContext(request))
+
+
+def update_dinghuo_part_information(request):
+    dinghuo_id = int(request.REQUEST.get("dinghuo_id", None))
+    express_company = request.REQUEST.get("express_company_id",None)
+    express_no = request.REQUEST.get("express_no", None)
+    pay_way = int(request.REQUEST.get("pay_way", None))
+    supplier_name = request.REQUEST.get("supplier_name", None)
+    print dinghuo_id,express_company,express_no, pay_way, supplier_name
+    try:
+        item = OrderList.objects.get(id = dinghuo_id)
+        item.express_company = express_company
+        item.express_no = express_no
+        item.supplier_name = supplier_name
+        item.bill_method = pay_way
+        item.save()
+    except Exception,msg:
+        print msg
+        return  HttpResponse(False)
+    return HttpResponse(True)
+
 
 
 @csrf_exempt

@@ -19,6 +19,10 @@ from shopback.logistics import getLogisticTrace
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+import logging
+from core.options import log_action, ADDITION, CHANGE
+
+logger = logging.getLogger(__name__)
 
 ISOTIMEFORMAT = '%Y-%m-%d '
 today = datetime.date.today()
@@ -509,13 +513,57 @@ def change_sku_item(request):
 
 def refund_fee(request):
     content = request.REQUEST
-    sale_order_id = int(content.get("sale_order_id", None))
+    sale_order = int(content.get("sale_order_id", None))
     refund_fee = float(content.get("refund_fee", None))
-    return_goods_info={}
-    sale_order_id = get_object_or_404(SaleOrder, id = sale_order_id)
+    return_goods_info = {}
+    sale_order = get_object_or_404(SaleOrder, id=sale_order)  # 退款sale_order对象
     refund_info = {"return_good": False, "refund_fee": refund_fee, "reason": "", "desc": ""}
-    s =SaleRefund.gen_out_stock_refund(sale_order_id)
-    if s == True:
-        return  HttpResponse(True)
-    else:
-        return HttpResponse(False)
+
+    if sale_order.status != sale_order.__class__.WAIT_SELLER_SEND_GOODS:  # 状态为已付款
+        logger.error("交易状态不是已付款状态")
+        return HttpResponse("交易状态不是已付款状态")
+
+    sale_trader = sale_order.sale_trade  # 退款sale_trade对象
+    reason = ' '  # 退款理由
+    refund_num = None  # 退款件数
+    # 在saleorder订单状态为已经付款情况下，生成退款单salerefund，把退款单id 退款和退款状态赋值给sale_order中的三个字段
+    try:
+        s = SaleRefund(
+            trade_id=sale_order.sale_trade.id,
+            order_id=sale_order.id,
+            buyer_id=sale_order.buyer_id,
+            item_id=sale_order.item_id,
+            charge=sale_trader.charge,
+            channel=sale_trader.channel,
+            sku_id=sale_order.sku_id,
+            sku_name=sale_order.sku_name,
+            refund_num=sale_order.num,
+            buyer_nick=sale_trader.buyer_nick,
+            mobile=sale_trader.receiver_mobile,
+            phone=sale_trader.receiver_mobile,
+            total_fee=sale_order.total_fee,
+            payment=sale_order.payment,
+            refund_fee=sale_order.payment,
+            title=sale_order.title,
+            reason=reason,
+            good_status=SaleRefund.SELLER_OUT_STOCK,
+            status=SaleRefund.REFUND_WAIT_SELLER_AGREE,
+        )
+        s.save()
+        sale_order.refund_id = s.id
+        sale_order.refund_fee = s.refund_fee
+        sale_order.refund_status = s.status
+        sale_order.save()
+        log_action(request.user, sale_order, CHANGE, 'SaleOrder订单退款')
+        log_action(request.user, s, CHANGE, 'SaleRefund退款单创建')
+        return HttpResponse("退款申请成功!")
+    except Exception, exc:
+        logger.error('gen_out_stock_refund: %s.' % exc.message)
+        return HttpResponse("生成退款单出错！")
+
+    #s = SaleRefund.gen_out_stock_refund(sale_order_id)
+
+    # if s == True:
+    #     return  HttpResponse(True)
+    # else:
+    #     return HttpResponse(s)
