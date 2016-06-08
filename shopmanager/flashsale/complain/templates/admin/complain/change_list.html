@@ -141,12 +141,12 @@ $(document).ready(function () {
               alert("回复失败");
             }
         });
-      function callback(data) {
-          if (data.res == "True") {
+      function callback(res) {
+          if (res.res) {
               window.location.reload();
           }
           else{
-            alert(data.error);
+            alert(res);
           }
       }
     }
