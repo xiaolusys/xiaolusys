@@ -1,4 +1,5 @@
 # coding=utf-8
+import logging
 from flashsale.pay.models_refund import SaleRefund
 from flashsale.pay.models import SaleOrder
 from shopback.refunds.models import REFUND_REASON
@@ -9,6 +10,8 @@ from common.modelutils import update_model_fields
 from flashsale.pay.tasks import pushTradeRefundTask
 from flashsale.pay.signals import signal_saletrade_refund_post
 import math
+
+logger = logging.getLogger(__name__)
 
 
 def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None,
@@ -112,36 +115,40 @@ def apply_fee_handler(num=None, order=None):
 
 
 def refund_Handler(request):
-    content = request.REQUEST
-    modify = int(content.get("modify", 0))
-    company = content.get("company", '')
-    sid = content.get("sid", '')
-    oid = int(content.get("id", 0))
-    customer = request.user.id
-    reason = int(request.data.get("reason", "0"))
-    num = int(request.data.get("num", 0))
-    desc = request.data.get("description", '')
+    try:
+        content = request.REQUEST
+        modify = int(content.get("modify", 0))
+        company = content.get("company", '')
+        sid = content.get("sid", '')
+        oid = int(content.get("id", 0))
+        customer = request.user.id
+        reason = int(request.data.get("reason", "0"))
+        num = int(request.data.get("num", 0))
+        desc = request.data.get("description", '')
 
-    proof_pic = str(request.data.get("proof_pic", ""))
-    pfcl = []
-    if proof_pic != "":
-        pfcl = proof_pic.split(',')
-    proof_p = pfcl
+        proof_pic = str(request.data.get("proof_pic", ""))
+        pfcl = []
+        if proof_pic != "":
+            pfcl = proof_pic.split(',')
+        proof_p = pfcl
 
-    if modify == 2:  # 修改该物流信息
-        modify_refund(customer, company, oid, sid)
-        return {"code": 0, "info": "操作成功!"}
-    elif modify == 3:  # 修改数量返回退款金额
-        order, refund_type = refund_Status(order_id=oid)
-        apply_fee = apply_fee_handler(num=num, order=order)
-        return {"apply_fee": apply_fee, "code": 0, "info": "操作成功 !"}
-    else:
-        # 验证处理订单的状态即退款状态
-        order, refund_type = refund_Status(order_id=oid)
-        refund_fee = apply_fee_handler(num=num, order=order)  # 计算退款费用
-        common_Handler(customer=customer, reason=reason, num=num, refund_fee=refund_fee, desc=desc,
-                       refund_type=refund_type, order=order, modify=modify, proof_pic=proof_p)
-        return {"res": "ok", "code": 0, "info": "操作成功"}
+        if modify == 2:  # 修改该物流信息
+            modify_refund(customer, company, oid, sid)
+            return {"code": 0, "info": "操作成功!"}
+        elif modify == 3:  # 修改数量返回退款金额
+            order, refund_type = refund_Status(order_id=oid)
+            apply_fee = apply_fee_handler(num=num, order=order)
+            return {"apply_fee": apply_fee, "code": 0, "info": "操作成功 !"}
+        else:
+            # 验证处理订单的状态即退款状态
+            order, refund_type = refund_Status(order_id=oid)
+            refund_fee = apply_fee_handler(num=num, order=order)  # 计算退款费用
+            common_Handler(customer=customer, reason=reason, num=num, refund_fee=refund_fee, desc=desc,
+                           refund_type=refund_type, order=order, modify=modify, proof_pic=proof_p)
+            return {"res": "ok", "code": 0, "info": "操作成功"}
+    except Exception, exc:
+        logger.error(u'refund_Handler %s' % exc.message)
+        return {"res": "error", "code": 1, "info": exc.message}
 
 
 def refund_Status(order_id=None):
