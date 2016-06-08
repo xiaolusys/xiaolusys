@@ -240,6 +240,7 @@ class SaleRefund(PayBaseModel):
         sale_order.refund_id = s.id
         sale_order.refund_fee = s.refund_fee
         sale_order.refund_status = s.status
+        sale_order.save()
         return True
 
     def refund_Confirm(self):
