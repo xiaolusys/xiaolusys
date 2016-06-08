@@ -551,12 +551,15 @@ def task_update_product_sku_stats(product_sku_stats):
     psk_stat = ProductStockStat.objects.filter(uni_key=uni_key).first()
     if psk_stat:
         update_fields = []
-        if psk_stat.quantity != quantity:
-            update_fields.append('realtime_quantity')
-        if psk_stat.inferior_num != inferior_num:
-            update_fields.append('inferior_num')
-        if psk_stat.amount != amount:
-            update_fields.append('amount')
+        params = {
+            "quantity": quantity,
+            "inferior_num": inferior_num,
+            "amount": amount
+        }
+        for k, v in params.iteritems():
+            if hasattr(psk_stat, k) and getattr(psk_stat, k) != v:
+                psk_stat.__setattr__(k, v)
+                update_fields.append(k)
         if update_fields:
             psk_stat.save(update_fields=update_fields)
     else:
@@ -647,13 +650,16 @@ def task_update_parent_stock_stats(stock_stats):
     uni_key = make_sale_stat_uni_key(date_field, parent_id, record_type, constants.TIMELY_TYPE_DATE, '')
     psk_stat = ProductStockStat.objects.filter(uni_key=uni_key).first()
     if psk_stat:
+        params = {
+            "quantity": quantity,
+            "inferior_num": inferior_num,
+            "amount": amount
+        }
         update_fields = []
-        if psk_stat.quantity != quantity:
-            update_fields.append('realtime_quantity')
-        if psk_stat.inferior_num != inferior_num:
-            update_fields.append('inferior_num')
-        if psk_stat.amount != amount:
-            update_fields.append('amount')
+        for k, v in params.iteritems():
+            if hasattr(psk_stat, k) and getattr(psk_stat, k) != v:
+                psk_stat.__setattr__(k, v)
+                update_fields.append(k)
         if update_fields:
             psk_stat.save(update_fields=update_fields)
     else:
@@ -725,13 +731,16 @@ def task_update_agg_stock_stats(stock_stats, time_from, time_to, upper_timely_ty
     uni_key = make_sale_stat_uni_key(time_from, current_id, record_type, upper_timely_type, '')
     psk_stat = ProductStockStat.objects.filter(uni_key=uni_key).first()
     if psk_stat:
+        params = {
+            "quantity": quantity,
+            "inferior_num": inferior_num,
+            "amount": amount
+        }
         update_fields = []
-        if psk_stat.quantity != quantity:
-            update_fields.append('realtime_quantity')
-        if psk_stat.inferior_num != inferior_num:
-            update_fields.append('inferior_num')
-        if psk_stat.amount != amount:
-            update_fields.append('amount')
+        for k, v in params.iteritems():
+            if hasattr(psk_stat, k) and getattr(psk_stat, k) != v:
+                psk_stat.__setattr__(k, v)
+                update_fields.append(k)
         if update_fields:
             psk_stat.save(update_fields=update_fields)
     else:
