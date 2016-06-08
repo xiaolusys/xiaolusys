@@ -70,6 +70,18 @@ class OrderList(models.Model):
                         (TTKDEX, u'天天快递'),
                         (QFKD, u'全峰快递'),
                         (DBKD, u'德邦快递'),)
+
+    PC_COD_TYPE = 11  # 货到付款
+    PC_PREPAID_TYPE = 12  # 预付款
+    PC_POD_TYPE = 13  # 付款提货
+    PC_OTHER_TYPE = 14  # 其它
+    PURCHASE_PAYMENT_TYPE = (
+        (PC_COD_TYPE, u'货到付款'),
+        (PC_PREPAID_TYPE, u'预付款'),
+        (PC_POD_TYPE, u'付款提货'),
+        (PC_OTHER_TYPE, u'其它'),
+    )
+
     id = models.AutoField(primary_key=True)
     buyer = models.ForeignKey(User,
                               null=True,
@@ -77,6 +89,7 @@ class OrderList(models.Model):
                               verbose_name=u'负责人')
     buyer_name = models.CharField(default="", max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
+    bill_method = models.IntegerField(choices=PURCHASE_PAYMENT_TYPE, default=PC_COD_TYPE, verbose_name=u'付款类型')
     supplier_name = models.CharField(default="",
                                      blank=True,
                                      max_length=128,
@@ -90,6 +103,7 @@ class OrderList(models.Model):
                                  blank=True,
                                  related_name='dinghuo_orderlist',
                                  verbose_name=u'供应商')
+
 
     express_company = models.CharField(choices=EXPRESS_CONPANYS,
                                        blank=True,
@@ -134,7 +148,7 @@ class OrderList(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'订货表'
         verbose_name_plural = u'订货表'
-        permissions = [("change_order_list_inline", u"修改后台订货信息"),]
+        permissions = [("change_order_list_inline", u"修改后台订货信息"), ]
 
     def costofems_cash(self):
         return self.costofems / 100.0
@@ -156,6 +170,7 @@ def check_with_purchase_order(sender, instance, created, **kwargs):
 
     from flashsale.dinghuo.tasks import task_check_with_purchase_order
     task_check_with_purchase_order.delay(instance)
+
 
 post_save.connect(
     check_with_purchase_order,
@@ -287,8 +302,8 @@ def init_stock_func(sender, product_list, *args, **kwargs):
                 chichu_id=sku_bean.id,
                 orderlist__created__range=
                 (today - datetime.timedelta(days=7), today)).exclude(
-                    orderlist__status=OrderList.ZUOFEI).aggregate(
-                        total_num=Sum('arrival_quantity')).get('total_num') or 0
+                orderlist__status=OrderList.ZUOFEI).aggregate(
+                total_num=Sum('arrival_quantity')).get('total_num') or 0
             pro_sku_beans = ProductSkuDetail.objects.get_or_create(
                 product_sku=sku_bean.id)
             pro_sku_bean = pro_sku_beans[0]
@@ -341,7 +356,7 @@ class ReturnGoods(models.Model):
     logistics_company_id = models.BigIntegerField(null=True, verbose_name='物流公司ID')
     # logistics_company = models.ForeignKey(LogisticsCompany, null=True, blank=True, verbose_name=u'物流公司')
     status = models.IntegerField(default=0, choices=RG_STATUS, db_index=True, verbose_name=u"状态")
-    REFUND_STATUS = ((0, u"未付"), (1, u"已完成"), (2, u"部分支付"), (3,u"已关闭"))
+    REFUND_STATUS = ((0, u"未付"), (1, u"已完成"), (2, u"部分支付"), (3, u"已关闭"))
     refund_status = models.IntegerField(default=0, choices=REFUND_STATUS, db_index=True, verbose_name=u"退款状态")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
     modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
@@ -461,24 +476,27 @@ class ReturnGoods(models.Model):
         :return:
         """
         if supplier_id:
-            return not ReturnGoods.objects.filter(created__gt=datetime.datetime.now()-datetime.timedelta(days=7),
-                                          supplier_id=supplier_id, status__in=[ReturnGoods.CREATE_RG, ReturnGoods.VERIFY_RG,
-                                                                               ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
-                                                                               ReturnGoods.SUCCEED_RG]).exists()
+            return not ReturnGoods.objects.filter(created__gt=datetime.datetime.now() - datetime.timedelta(days=7),
+                                                  supplier_id=supplier_id,
+                                                  status__in=[ReturnGoods.CREATE_RG, ReturnGoods.VERIFY_RG,
+                                                              ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
+                                                              ReturnGoods.SUCCEED_RG]).exists()
         if sku:
             return not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
 
     @staticmethod
     def get_user_by_supplier(supplier_id):
         r = OrderList.objects.filter(supplier_id=supplier_id).values('buyer_id').annotate(s=Count('buyer_id'))
+
         def get_max_from_list(l):
             max_i = 0
             buyer_id = None
             for i in l:
-                if i['s']>max_i:
+                if i['s'] > max_i:
                     max_i = i['s']
                     buyer_id = i['buyer_id']
             return buyer_id
+
         return get_max_from_list(r)
 
     def set_stat(self):
@@ -512,7 +530,7 @@ class ReturnGoods(models.Model):
         self.status = ReturnGoods.DELIVER_RG
         self.save()
         for d in self.rg_details.all():
-            ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity')-d.num)
+            ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity') - d.num)
 
     def supply_notify_refund(self, receive_method, amount, note='', pic=None):
         """
@@ -548,8 +566,8 @@ class ReturnGoods(models.Model):
     @staticmethod
     def transactors():
         return User.objects.filter(is_staff=True,
-                                        groups__name__in=(u'小鹿买手资料员', u'小鹿采购管理员', u'小鹿采购员', u'管理员', u'小鹿管理员')). \
-                distinct().order_by('id')
+                                   groups__name__in=(u'小鹿买手资料员', u'小鹿采购管理员', u'小鹿采购员', u'管理员', u'小鹿管理员')). \
+            distinct().order_by('id')
 
     def add_sku(self, skuid, num, price=None):
         from shopback.items.models import ProductSku
@@ -611,8 +629,8 @@ class ReturnGoods(models.Model):
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
     from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
     if instance.created >= PRODUCT_SKU_STATS_COMMIT_TIME and instance.status in [
-            ReturnGoods.REFUND_RG, ReturnGoods.DELIVER_RG,
-            ReturnGoods.SUCCEED_RG
+        ReturnGoods.REFUND_RG, ReturnGoods.DELIVER_RG,
+        ReturnGoods.SUCCEED_RG
     ]:
         from flashsale.dinghuo.tasks import task_update_product_sku_stat_rg_quantity
         for rg in instance.rg_details.all():
@@ -660,8 +678,10 @@ class RGDetail(models.Model):
     def product_sku(self):
         return ProductSku.objects.get(id=self.skuid)
 
+
 def sync_rgd_return(sender, instance, created, **kwargs):
     instance.return_goods.set_stat()
+
 
 post_save.connect(sync_rgd_return, sender=RGDetail, dispatch_uid='post_save_sync_rgd_return')
 
@@ -677,6 +697,7 @@ class UnReturnSku(BaseModel):
     status = models.IntegerField(choices=((EFFECT, u'有效'), (INVALIED, u'无效')), default=0, verbose_name=u'状态')
     reason = models.IntegerField(choices=((1, u'保护商品'), (2, u'商家不许退货'), (3, u'其它原因')),
                                  default=2, verbose_name=u'不可退货原因')
+
     class Meta:
         db_table = 'flashsale_dinghuo_unreturn_sku'
         app_label = 'dinghuo'
@@ -882,10 +903,10 @@ def update_inbound_record(sender, instance, created, **kwargs):
     orderdetail = instance.orderdetail
     orderdetail.arrival_quantity = orderdetail.records.filter(
         status=OrderDetailInBoundDetail.NORMAL).aggregate(
-            n=Sum('arrival_quantity')).get('n') or 0
+        n=Sum('arrival_quantity')).get('n') or 0
     orderdetail.inferior_quantity = orderdetail.records.filter(
         status=OrderDetailInBoundDetail.NORMAL).aggregate(
-            n=Sum('inferior_quantity')).get('n') or 0
+        n=Sum('inferior_quantity')).get('n') or 0
     orderdetail.arrival_time = datetime.datetime.now()
     orderdetail.save()
     inbounddetail = instance.inbounddetail

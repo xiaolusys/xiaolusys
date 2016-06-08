@@ -318,8 +318,8 @@
                             <button type="button"  data-toggle="modal" data-target="#myModal" id = {{sale_order.id}} class = "change123">换货</button>
                             {%endif%}
                         </td>
-                        <td><button class="refund" id = {{sale_order.id}},{{sale_order.payment}} >退款</button></td>
-                        <td>{%if sale_order.get_refund_status_display == "申请退款"%}
+                        <td><button class="refund" id = {{sale_order.id}},{{sale_order.payment}} >缺货退款</button></td>
+                        <td>{%if sale_order.get_refund_status_display == "退款待审"%}
                            退款申请成功
                             {%endif%}
                         </td>
@@ -349,10 +349,8 @@
                 if (res == "True") {
                     window.location.reload();
                     alert("退款成功");
-
-                }
-                if (res == "False") {
-                    alert("退款失败");
+                }else{
+                alert(res);
                 }
             },
             error: function(){
