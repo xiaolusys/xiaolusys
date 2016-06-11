@@ -5,52 +5,10 @@
 
 {% block extrastyle %}
 {{ block.super }}
-
-<link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}" />
-<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
 <link href="{{ STATIC_URL }}bootstrap-3.3.4-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
 <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
-<style type="text/css">
-    .form-row {
-        overflow:inherit;
-        width:90%;
-        float:left;
-    }
-    .dropdown-menu {
-        margin-left:192px !important;
-    }
-    .dropdown-menu li {
-        list-style-type:none;
-    }
-    .xiaolu-hide {
-        display: none !important;
-    }
-    .margin-left-192 {
-        margin-left:192px !important;
-    }
-    .table_return_goods td{
-        width:100px;
-    }
-</style>
-{% if cl.formset %}
-<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
-  -rw-rw-r-- 1 aladdin aladdin  3379 12月 26 09:26 data_grape.html
-  -rw-rw-r-- 1 aladdin aladdin  8216 12月 26 09:26 data_of_point.html
-  -rw-rw-r-- 1 aladdin aladdin  3142 12月 26 09:26 data_of_product.html
-  -rw-rw-r-- 1 aladdin aladdin  5740 12月 26 09:26
-{% endif %}
-{% if cl.formset or action_form %}
-{% url 'admin:jsi18n' as jsi18nurl %}
-<script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
-
-{% endif %}
-{{ media.css }}
-{% if not actions_on_top and not actions_on_bottom %}
-<style>
-    #changelist table thead th:first-child {width: inherit}
-</style>
-{% endif %}
+<link href="{{ STATIC_URL }}admin/css/forms.css" rel="stylesheet" type="text/css"/>
 {% endblock %}
 
 {% block bodyclass %}change-form{% endblock %}
@@ -70,277 +28,187 @@
 
 {% block content %}
 <div id="content-main">
-    <fieldset class="module aligned expand">
-         <h2>订单基本信息:</h2>
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">原单ID:</label>
-            <label class="inline" for="id_tid">{{original.tid}}</label>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            订单基本信息:
         </div>
-                <div class="field-box field-tid">
-            <label class="inline" for="id_tid"></label>
-            <label class="inline" for="id_tid"></label>
+        <div class="panel-body">
+            <div class="row">
+                <input type= "hidden" id="sale_trade_id" value="{{original.id}}"/>
+                <label class="col-md-1" for="id_tid">原单ID:</label>
+                <label class="col-md-3" id="id_tid">{{original.tid}}</label>
+                <label class="col-md-1" for="id_buyer_nick">买家昵称:</label>
+                <label class="col-md-1" id="id_buyer_nick">{{original.buyer_nick}}</label>
+                <label class="col-md-1" for="label_order_status">交易状态:</label>
+                <label class="col-md-1" id="label_order_status" id="status">{{original.get_status_display}}</label>
+                <label class="col-md-1" for="order_type">订单类型:</label>
+                <label class="col-md-1" id="order_type">{{original.get_order_type_display}}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="label_total_fee">总费用:</label>
+                <label class="col-md-1" id="label_total_fee">{{original.total_fee}} RMB</label>
+                <label class="col-md-1" for="label_discount_fee">优惠折扣:</label>
+                <label class="col-md-1" id="label_discount_fee">{{original.discount_fee}} RMB</label>
+                <label class="col-md-1" for="label_payment">付款金额:</label>
+                <label class="col-md-1" id="label_payment">{{original.payment}} RMB</label>
+                <label class="col-md-1" for="label_post_fee">物流费用:</label>
+                <label class="col-md-1" id="label_post_fee">{{original.post_fee}} RMB</label>
+                <label class="col-md-1" for="label_pay_cash">实付现金:</label>
+                <label class="col-md-1" id="label_pay_cash">{{original.pay_cash}} RMB</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="label_charge_id">支付编号:</label>
+                <label class="col-md-3" id="label_charge_id">{{original.charge}}</label>
+                <label class="col-md-1" for="label_pay_time">付款时间:</label>
+                <label class="col-md-2" id="label_pay_time">{{original.pay_time|default:''}}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="trade_type">交易类型:</label>
+                <label class="col-md-1" id="trade_type">{{original.get_trade_type_display}}</label>
+                <label class="col-md-1" for="buyer_id">买家ID:</label>
+                <label class="col-md-1" id="buyer_id">{{original.buyer_id}}</label>
+                <label class="col-md-1" for="openid">微信OpenID:</label>
+                <label class="col-md-3" id="openid">{{original.openid}}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="buyer_message">买家留言:</label>
+                <textarea class="col-md-5" id="buyer_message">{{original.buyer_message}}</textarea>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="seller_memo">卖家备注:</label>
+                <textarea class="col-md-5" id="seller_memo">{{original.seller_memo}}</textarea>
+                <button id="btn_edit_seller_memo">修改</button>
+            </div>
         </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">买家昵称:</label>
-            <label class="inline" for="id_buyer_nick">{{original.buyer_nick}}
-            </label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">交易状态:</label>
-            <label class="inline" for="id_buyer_nick" id = "status">{{original.get_status_display}}</label>
-        </label>
-        </div>
-        </div>
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">交易类型:</label>
-            <label class="inline" for="id_buyer_nick" id = "trade_type">{{original.get_trade_type_display}}</label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">订单类型:</label>
-            <label class="inline" for="id_buyer_nick" id = "order_type">{{original.get_order_type_display}}</label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">实付现金:</label>
-            <label class="inline" for="id_buyer_nick">{{original.pay_cash}} RMB</label>
-        </label>
-        </div>
-
-        </div>
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">总费用:</label>
-            <label class="inline" for="id_buyer_nick">{{original.total_fee}} RMB</label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">付款金额:</label>
-            <label class="inline" for="id_buyer_nick">{{original.payment}} RMB</label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">物流费用:</label>
-            <label class="inline" for="id_buyer_nick">{{original.post_fee}} RMB</label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">优惠折扣:</label>
-            <label class="inline" for="id_buyer_nick">{{original.discount_fee}} RMB</label>
-        </label>
-        </div>
-        </div>
-
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">支付编号:</label>
-            <label class="inline" for="id_buyer_nick">{{original.charge}}</label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick"></label>
-            <label class="inline" for="id_buyer_nick"></label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">付款日期:</label>
-            <label class="inline" for="id_buyer_nick">{{original.pay_time}}</label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">发货日期:</label>
-            <label class="inline" for="id_buyer_nick">{{original.consign_time}}</label>
-        </label>
-        </div>
-        </div>
-
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">买家ID:</label>
-            <label class="inline" for="id_buyer_nick">
-                {%for sale_order in original.sale_orders.all%}
-                    <tr><td>{{sale_order.buyer_id}}</td></tr>
-                {%endfor%}
-            </label>
-        </label>
-        </div>
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick"></label>
-            <label class="inline" for="id_buyer_nick"></label>
-        </label>
-        </div>
-
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">微信OpenID:</label>
-            <label class="inline" for="id_buyer_nick">{{original.openid}}</label>
-        </label>
-        </div>
-
-        </div>
-
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">买家留言:</label>
-            <label class="inline" for="id_buyer_nick">{{original.buyer_message}}</label>
-        </label>
-        </div>
-
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick"></label>
-            <label class="inline" for="id_buyer_nick"></label>
-        </label>
-        </div>
-
-        <div class="field-box field-buyer_nick">
-            <label class="inline" for="id_buyer_nick">卖家备注:</label>
-            <label class="inline" for="id_buyer_nick">{{original.seller_memo}}</label>
-        </label>
-
-        </div>
-    </fieldset>
-    <fieldset class="module aligned expand">
-         <h2>收货人及物流信息:</h2>
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">收货人姓名:</label>
-            <label class="inline" for="id_tid">{{original.receiver_name}}</label>
-        </div>
-        </div>
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">收货人地址:</label>
-            <label class="inline" for="id_tid">{{original.receiver_state}}{{original.receiver_city}}{{original.receiver_district}}</label>
-        </div>
-        </div>
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">详细地址:</label>
-            <label class="inline" for="id_tid">{{original.receiver_address}}</label>
-        </div>
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">邮编:</label>
-            <label class="inline" for="id_tid">{{original.receiver_zip}}</label>
-        </div>
-        </div>
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">手机:</label>
-            <label class="inline" for="id_tid">{{original.receiver_mobile}}</label>
-        </div>
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">电话:</label>
-            <label class="inline" for="id_tid">{{original.receiver_phone}}</label>
-        </div>
-        </div>
-
-        <div class="form-row field-tid field-buyer_nick field-channel field-status">
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">物流公司:</label>
-            <label class="inline" for="id_tid">{{original.logistics_company}}</label>
-        </div>
-        <div class="field-box field-tid">
-            <label class="inline" for="id_tid">物流编号:</label>
-            <label class="inline" for="id_tid">{{original.out_sid}}</label>
-        </div>
-        </div>
-    </fieldset>
-
-<fieldset class="module">
-   <h2>特卖/订单明细列表</h2>
-   <table border="5">
-     <thead><tr>
-         <th >原单ID
-         </th>
-         <th>商品外部编码
-         </th>
-         <th>商品标题
-         </th>
-         <th>规格外部编码
-         </th>
-         <th>购买规格
-         </th>
-         <th class="required">实付款
-         </th>
-         <th class="required">商品数量
-         </th>
-         <th class="required">优惠金额
-         </th>
-         <th class="required">退款费用
-         </th>
-         <th>退款状态
-         </th>
-         <th>订单状态
-         </th>
-         <th>商品ID
-         </th>
-     <th>修改</th>
-     <th>退款</th>
-     </tr></thead>
-    <tbody>
-                    {%for sale_order in original.sale_orders.all%}
-                    <div class="modal send" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">物流信息</h4>
-      </div>
-      <div class="modal-body">
-          <label id = "sale_order_id"> {{sale_order.id}}</label>
-        <label >SKU</label>
-          <input type="text" id="SKU" value=""/>
-        <label >数量</label>
-          <input type="text" id="num" value=""/>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary" id="btn_return_goods_send">保存</button>
-      </div>
     </div>
-  </div>
-</div>
-                    <tr><td>{{sale_order.oid}}&nbsp;&nbsp;&nbsp;</td>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            收货人及物流信息:
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <label class="col-md-1" for="receiver_name">收货人姓名:</label>
+                <label class="col-md-1" id="receiver_name">{{original.receiver_name}}</label>
+                <label class="col-md-1" for="receiver_mobile">手机:</label>
+                <label class="col-md-1" id="receiver_mobile">{{original.receiver_mobile}}</label>
+                <label class="col-md-1" for="receiver_phone">电话:</label>
+                <label class="col-md-1" id="receiver_phone">{{original.receiver_phone}}</label>
+                <label class="col-md-1" for="receiver_zip">邮编:</label>
+                <label class="col-md-1" id="receiver_zip">{{original.receiver_zip}}</label>
+                <a class="col-md-1" href="/admin.xiaolumm.com/trades/search_trade">短信通知客户</a>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="receiver_address_all">收货人地址:</label>
+                <label class="col-md-3" id="receiver_address_all">{{original.receiver_state}}{{original.receiver_city}}{{original.receiver_district}}</label>
+                <label class="col-md-1" for="receiver_address">详细地址:</label>
+                <label class="col-md-5" id="receiver_address">{{original.receiver_address}}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="logistics_company">物流公司:</label>
+                <label class="col-md-1" id="logistics_company">{{original.logistics_company|default:''}}</label>
+                <label class="col-md-1" for="out_sid">物流编号:</label>
+                <label class="col-md-1" id="out_sid">{{original.out_sid|default:''}}</label>
+                <label class="col-md-1" for="label_consign_time">发货时间:</label>
+                <label class="col-md-2" id="label_consign_time">{{original.consign_time|default:''}}</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            明细列表:
+        </div>
+        <div class="panel-body">
+            <table border="1">
+                <thead>
+                <tr>
+                    <th>原单ID</th>
+                    <th>商品ID</th>
+                    <th>商品外部编码</th>
+                    <th>商品标题</th>
+                    <th>SKUID</th>
+                    <th>SKU条码</th>
+                    <th>规格型号</th>
+                    <th class="required">实付款</th>
+                    <th class="required">商品数量</th>
+                    <th class="required">优惠金额</th>
+                    <th class="required">退款费用</th>
+                    <th>退款状态</th>
+                    <th>订单状态</th>
+                    <th>分配状态</th>
+                    <th>包裹ID</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {%for sale_order in original.sale_orders.all%}
+                <tr>
+                    <td>{{sale_order.oid}}</td>
+                    <td><a href="/admin/items/product?id={{sale_order.item_id}}">{{sale_order.item_id}}</a></td>
                     <td>{{sale_order.outer_id}}&nbsp;&nbsp;&nbsp;</td>
-                        <td >{{sale_order.title}}&nbsp;&nbsp;&nbsp;</td>
-                        <td >{{sale_order.outer_sku_id}}&nbsp;&nbsp;&nbsp;</td>
-                        <td >{{sale_order.sku_name}}&nbsp;&nbsp;&nbsp;</td>
-                        <td >{{sale_order.payment}}&nbsp;&nbsp;&nbsp;</td>
-                        <td>{{sale_order.num}}&nbsp;&nbsp;&nbsp;</td>
-                        <td>{{sale_order.discount_fee}}&nbsp;&nbsp;&nbsp;</td>
-                        <td>{{sale_order.refund_fee}}&nbsp;&nbsp;&nbsp;</td>
-                        <td ><label id = refund_status> {{sale_order.get_refund_status_display}}</label></td>
-                        <td ><label id = order_status>{{sale_order.get_status_display}}</label></td>
-                        <td>{{sale_order.item_id}}&nbsp;&nbsp;&nbsp;</td>
-                        <td>{%if sale_order.can_change_sku%}
-                            <button type="button"  data-toggle="modal" data-target="#myModal" id = {{sale_order.id}} class = "change123">换货</button>
-                            {%endif%}
-                        </td>
-                        <td><button class="refund" id = {{sale_order.id}},{{sale_order.payment}} >缺货退款</button></td>
-                        <td>{%if sale_order.get_refund_status_display == "退款待审"%}
-                           退款申请成功
-                            {%endif%}
-                        </td>
-                    </tr>
-
+                    <td>{{sale_order.title}}&nbsp;&nbsp;&nbsp;</td>
+                    <td><a href="/admin/items/productsku?id={{sale_order.sku_id}}">{{sale_order.sku_id}}</a></td>
+                    <td>{{sale_order.outer_sku_id}}&nbsp;&nbsp;&nbsp;</td>
+                    <td>{{sale_order.sku_name}}&nbsp;&nbsp;&nbsp;</td>
+                    <td>{{sale_order.payment}}&nbsp;&nbsp;&nbsp;</td>
+                    <td>{{sale_order.num}}&nbsp;&nbsp;&nbsp;</td>
+                    <td>{{sale_order.discount_fee}}&nbsp;&nbsp;&nbsp;</td>
+                    <td>{{sale_order.refund_fee}}&nbsp;&nbsp;&nbsp;</td>
+                    <td>{{sale_order.get_refund_status_display}}</td>
+                    <td>{{sale_order.get_status_display}}</td>
+                    <td><a href="/admin/trades/package_sku_item?id={{sale_order.package_sku.id}}">{{sale_order.package_sku.get_assign_status_display}}</a></td>
+                    <td>{{sale_order.package_sku.package_order_id|default:''}}</td>
+                    <td>{%if sale_order.can_change_sku%}
+                        <button type="button" data-toggle="modal"id="change_sku_{{sale_order.id}}"
+                                class="change123">换货
+                        </button>
+                        {%endif%}
+                        {%if sale_order.status == 2 and sale_order.refund_status == 0%}
+                        <button class="refund" id="refund_{{sale_order.id}}_{{sale_order.payment}}">退款</button>
+                        {%endif%}
+                    </td>
+                </tr>
                 {%endfor%}
-     </tbody>
-     </table>
-    </fieldset>
-
-
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="panel-heading">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">更换SKU</h4>
+                <input type="hidden" value="" id="old_sale_id"/>
+                <input type="hidden" value="" id="new_sku_id"/>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <label class="col-md-5" for="sale_order_id">原SKU订单:</label>
+                    <label class="col-md-5" id="sale_order_id"></label>
+                </div>
+                <div class="row">
+                    <label class="col-md-2" >新SKUid：</label>
+                    <input class="col-md-3" type="text" id="SKU" value=""/>
+                    <label class="col-md-2">数量</label>
+                    <input class="col-md-2" type="text" id="num" value="1"/>
+                </div>
+            </div>
+            <div class="modal-footer panel-body">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btn-change-sku-save">保存</button>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
-
     function refund_fee(evt){
         var dom = evt.target;
-        console.log(dom.id);
-         feeid = dom.id.split(",")
+        var feeid = dom.id.split("_")
         var url = "/mm/refund_fee/";
-        var data = {"sale_order_id": feeid[0],"refund_fee":feeid[1]};
-        console.log(data);
+        var data = {"sale_order_id": feeid[1],"refund_fee":feeid[2]};
         $.ajax({
             url: url,
             data: data,
@@ -350,7 +218,7 @@
                     window.location.reload();
                     alert("退款成功");
                 }else{
-                alert(res);
+                    alert(res);
                 }
             },
             error: function(){
@@ -359,7 +227,40 @@
         });
     }
 
-    function set_return_goods_sku_send( sale_order_id, SKU, num){
+    var edit_seller_memo = function(evt){
+        var dom = $('#btn_edit_seller_memo');
+        if (dom.hasClass("loading")) {
+            return
+        }
+        var id = $('#sale_trade_id').val();
+        var memo = $("#seller_memo").val();
+        console.log(id);
+        console.log(memo);
+        dom.addClass("loading");
+        var url = "/mm/update_memo/";
+        var data = {"memo": memo, "id": id};
+
+        $.ajax({
+            "url": url,
+            "data": data,
+            "type": "post",
+            dataType: "json",
+            "success": callback
+            });
+            function callback(res) {
+                dom.removeClass("loading");
+                console.log(res.res);
+                if (res.res) {
+                    //刷新当前页面
+                    window.location.reload();
+                }
+                else{
+                alert("卖家备注添加失败")
+                }
+            }
+        }
+
+    function change_sku_item( sale_order_id, SKU, num){
         var url = "/mm/change_sku_item/";
         var data = {"sale_order_id": sale_order_id, "SKU":SKU ,"num": num
         };
@@ -370,26 +271,30 @@
             }
         }
     }
-    function send_return_goods(evt){
-        var sale_order_id = $("#sale_order_id").text();
+
+
+    var change_sku_save = function(evt){
+        var sale_order_id = $("#old_sale_id").val();
         var SKU = $("#SKU").val();
         var num = $("#num").val();
         console.log(sale_order_id);
         console.log(SKU);
         console.log(num);
-        set_return_goods_sku_send(sale_order_id, SKU, num);
+        change_sku_item(sale_order_id, SKU, num);
     }
 
-
 $(document).ready(function(){
-
-$(".change123").click(function(evt){
-var dom=evt.target;
-$("label#sale_order_id").html(dom.id);
+    $('#btn_edit_seller_memo').click(edit_seller_memo);
+    $(".change123").click(function(evt){
+        $("#myModal").modal("show");
+        var dom = evt.target;
+        sale_order_id = dom.id.substring("change_sku_".length,dom.id.length);
+        $("label#sale_order_id").html(sale_order_id);
+        $("#old_sale_id").val(sale_order_id);
+    });
+    $("#btn-change-sku-save").click(change_sku_save);
+    $(".refund").click(refund_fee);
 });
-});
-$('#btn_return_goods_send').click(send_return_goods);
 
-$(".refund").click(refund_fee);
 </script>
 {% endblock %}

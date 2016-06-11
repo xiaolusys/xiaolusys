@@ -511,6 +511,20 @@ def change_sku_item(request):
     return HttpResponse(True)
 
 
+def update_memo(request):
+    content = request.REQUEST
+    id = content.get("id", None)
+    memo = content.get("memo", '')
+    try:
+        sale_trade = get_object_or_404(SaleTrade, id=id)
+        sale_trade.seller_memo = memo
+        sale_trade.save()
+        log_action(request.user, sale_trade, CHANGE, 'SaleTrade修改备注')
+    except Exception, msg:
+        logger.error(msg)
+        return HttpResponse(json.dumps({"res": False, "data": ["添加备注失败"], "desc": str(msg)}))
+    return HttpResponse(json.dumps({"res": True, "data": [memo], "desc": ""}))
+
 def refund_fee(request):
     content = request.REQUEST
     sale_order = int(content.get("sale_order_id", None))
@@ -556,7 +570,7 @@ def refund_fee(request):
         sale_order.save()
         log_action(request.user, sale_order, CHANGE, 'SaleOrder订单退款')
         log_action(request.user, s, CHANGE, 'SaleRefund退款单创建')
-        return HttpResponse("退款申请成功!")
+        return HttpResponse(True)
     except Exception, exc:
         logger.error('gen_out_stock_refund: %s.' % exc.message)
         return HttpResponse("生成退款单出错！")
