@@ -12,7 +12,7 @@ from .views_address import AddressList, UserAddressDetail, DistrictList
 from .views_refund import RefundApply, RefundConfirm, RefundPopPageView
 from .views_product import productsku_quantity_view, ProductDetailView
 from .views_order import order_flashsale, time_rank, sale_state, refund_state, refunding_state, preorder_flashsale, \
-    nextorder_flashsale, search_flashsale, change_sku_item, refund_fee
+    nextorder_flashsale, search_flashsale, change_sku_item, refund_fee, update_memo
 
 from .views_aggregate import AggregateProductView, ModelProductView, CheckModelExistView, \
     AggregateProductCheckView, ChuanTuAPIView, ModelChangeAPIView
@@ -96,4 +96,6 @@ urlpatterns = (
     url(r'^post_poster/$', csrf_exempt(PostGoodShelf.as_view())),
     url(r'^change_sku_item/$', csrf_exempt(change_sku_item), name="change_sku_item"),
     url(r'^refund_fee/$', csrf_exempt(refund_fee), name = "refund_fee"),
+    url(r'^update_memo/$', csrf_exempt(update_memo), name = "update_memo"),
+
 )
