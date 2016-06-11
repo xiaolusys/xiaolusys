@@ -556,7 +556,7 @@ def refund_fee(request):
         sale_order.save()
         log_action(request.user, sale_order, CHANGE, 'SaleOrder订单退款')
         log_action(request.user, s, CHANGE, 'SaleRefund退款单创建')
-        return HttpResponse("退款申请成功!")
+        return HttpResponse(True)
     except Exception, exc:
         logger.error('gen_out_stock_refund: %s.' % exc.message)
         return HttpResponse("生成退款单出错！")
