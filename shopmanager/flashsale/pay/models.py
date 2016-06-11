@@ -805,6 +805,12 @@ class SaleOrder(PayBaseModel):
                                                                             SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
         return False
 
+    def package_sku(self):
+        if not hasattr(self, '_package_sku_'):
+            from shopback.trades.models import PackageSkuItem
+            self._package_sku_ = PackageSkuItem.objects.get(sale_order_id=self.id)
+        return self._package_sku_
+
 
 def order_trigger(sender, instance, created, **kwargs):
     """
