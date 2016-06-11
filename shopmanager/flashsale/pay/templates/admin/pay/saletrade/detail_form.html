@@ -34,6 +34,7 @@
         </div>
         <div class="panel-body">
             <div class="row">
+                <input type= "hidden" id="sale_trade_id" value="{{original.id}}"/>
                 <label class="col-md-1" for="id_tid">原单ID:</label>
                 <label class="col-md-3" id="id_tid">{{original.tid}}</label>
                 <label class="col-md-1" for="id_buyer_nick">买家昵称:</label>
@@ -94,7 +95,7 @@
                 <label class="col-md-1" id="receiver_phone">{{original.receiver_phone}}</label>
                 <label class="col-md-1" for="receiver_zip">邮编:</label>
                 <label class="col-md-1" id="receiver_zip">{{original.receiver_zip}}</label>
-                <a class="col-md-1" href="/">短信通知客户</a>
+                <a class="col-md-1" href="/admin.xiaolumm.com/trades/search_trade">短信通知客户</a>
             </div>
             <div class="row">
                 <label class="col-md-1" for="receiver_address_all">收货人地址:</label>
@@ -155,8 +156,8 @@
                     <td>{{sale_order.refund_fee}}&nbsp;&nbsp;&nbsp;</td>
                     <td>{{sale_order.get_refund_status_display}}</td>
                     <td>{{sale_order.get_status_display}}</td>
-                    <td><a href="/admin/trades/package_sku_item?id={{sale_order.package_sku.id}}">{{sale_order.package_sku.assign_status}}</a></td>
-                    <td>{{sale_order.package_sku.package_order_id}}</td>
+                    <td><a href="/admin/trades/package_sku_item?id={{sale_order.package_sku.id}}">{{sale_order.package_sku.get_assign_status_display}}</a></td>
+                    <td>{{sale_order.package_sku.package_order_id|default:''}}</td>
                     <td>{%if sale_order.can_change_sku%}
                         <button type="button" data-toggle="modal"id="change_sku_{{sale_order.id}}"
                                 class="change123">换货
@@ -231,22 +232,30 @@
         if (dom.hasClass("loading")) {
             return
         }
-        var memo = $("#buyer_message").val();
+        var id = $('#sale_trade_id').val();
+        var memo = $("#seller_memo").val();
+        console.log(id);
+        console.log(memo);
         dom.addClass("loading");
-        var url = "/sale/dinghuo/returngoods/update_memo/";
-        alert("url还没写好处理下");
+        var url = "/mm/update_memo/";
         var data = {"memo": memo, "id": id};
+
         $.ajax({
             "url": url,
             "data": data,
             "type": "post",
+            dataType: "json",
             "success": callback
             });
             function callback(res) {
                 dom.removeClass("loading");
-                if (res == "True") {
+                console.log(res.res);
+                if (res.res) {
                     //刷新当前页面
                     window.location.reload();
+                }
+                else{
+                alert("卖家备注添加失败")
                 }
             }
         }

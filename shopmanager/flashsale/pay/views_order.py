@@ -511,6 +511,20 @@ def change_sku_item(request):
     return HttpResponse(True)
 
 
+def update_memo(request):
+    content = request.REQUEST
+    id = content.get("id", None)
+    memo = content.get("memo", '')
+    try:
+        sale_trade = get_object_or_404(SaleTrade, id=id)
+        sale_trade.seller_memo = memo
+        sale_trade.save()
+        log_action(request.user, sale_trade, CHANGE, 'SaleTrade修改备注')
+    except Exception, msg:
+        logger.error(msg)
+        return HttpResponse(json.dumps({"res": False, "data": ["添加备注失败"], "desc": str(msg)}))
+    return HttpResponse(json.dumps({"res": True, "data": [memo], "desc": ""}))
+
 def refund_fee(request):
     content = request.REQUEST
     sale_order = int(content.get("sale_order_id", None))
