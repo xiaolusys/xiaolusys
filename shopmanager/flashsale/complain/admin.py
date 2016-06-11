@@ -7,7 +7,7 @@ from .models import Complain
 
 
 class ComplainAdmin(BaseModelAdmin):
-    search_fields = ['id', 'insider_phone']
+    search_fields = ['id', 'user_id']
     list_display = ('id', 'com_type', 'insider_link', 'com_title', 'com_content', 'contact_way', 'created_time',
                     'status', 'custom_serviced', 'reply', 'reply_time_str', 'selfactions')
     list_filter = ['created_time', 'status', 'com_type', 'custom_serviced']
@@ -34,7 +34,7 @@ class ComplainAdmin(BaseModelAdmin):
 
     def insider_link(self, obj):
         return '<a href="/admin/users/customer/?id={user_id}" target="_blank">{user_id}</a>'.format(**{
-            'user_id': obj.insider_phone})
+            'user_id': obj.user_id})
 
     insider_link.allow_tags = True
     insider_link.short_description = u'投诉人'

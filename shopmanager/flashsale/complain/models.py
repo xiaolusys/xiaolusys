@@ -16,7 +16,7 @@ class Complain(models.Model):
                     (SUGGEST, U'意见/建议'),
                     (OTHER, U'其他'),)
     com_type = models.IntegerField(choices=TYPE_CHOICES, default=OTHER, verbose_name=u'类型')
-    insider_phone = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'投诉人ID')
+    user_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'投诉人ID')
     com_title = models.CharField(max_length=64, db_index=True, blank=True, default=u'问题反馈', verbose_name=u'标题')
     com_content = models.TextField(max_length=1024, blank=True, verbose_name=u'内容')
     contact_way = models.CharField(max_length=128, blank=True, verbose_name=u'联系方式')
@@ -35,7 +35,7 @@ class Complain(models.Model):
     reply_time = models.DateTimeField(null=True, blank=True, verbose_name=u'回复时间')
 
     class Meta:
-        ordering = ('created_time', 'insider_phone',)
+        ordering = ('created_time', 'user_id',)
         db_table = 'complain'
         verbose_name = u'问题反馈'
         verbose_name_plural = u'投诉建议表'

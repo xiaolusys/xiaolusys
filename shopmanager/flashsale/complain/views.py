@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from rest_framework import generics, viewsets, permissions, authentication, renderers
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import detail_route, list_route
+from core.utils.modelutils import get_class_fields
+
+from rest_framework import exceptions
 
 
 class ComplainsDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -40,7 +43,7 @@ class ComplainViewSet(viewsets.ModelViewSet):
         com_content = content.get('com_content', '')
         com_type = int(content.get('com_type', 3))
         complain = Complain()
-        complain.insider_phone = str(request.user.id)
+        complain.user_id = str(request.user.id)
         complain.com_title = com_title
         complain.com_content = com_content
         complain.com_type = com_type
@@ -54,6 +57,22 @@ class ComplainViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=["get"])
+    def history_complains(self, request):
+        content = request.REQUEST
+        condition = {}
+        fields = get_class_fields(Complain)
+        for f in fields:
+            if f in content:
+                condition[f] = content.get(f)
+        queryset = Complain.objects.filter(user_id=request.user.id).filter(**condition)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

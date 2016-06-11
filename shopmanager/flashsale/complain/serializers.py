@@ -9,4 +9,4 @@ class ComplainSerializers(serializers.HyperlinkedModelSerializer):
         model = Complain
 
         fields = ('id', 'com_type', 'com_title', 'com_content', 'contact_way', 'created_time',
-                  'custom_serviced', 'reply', 'reply_time')
+                  'user_id', 'custom_serviced', 'reply', 'reply_time')
