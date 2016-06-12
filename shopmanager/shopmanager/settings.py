@@ -135,6 +135,7 @@ INSTALLED_APPS =(
     'shopmanager.statsd',
     'core.ormcache',
     'core',
+    'tagging',
 
     'common',
     'shopback.amounts',

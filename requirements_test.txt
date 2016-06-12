@@ -42,6 +42,7 @@ numpy==1.11.0
 #guppy
 
 django-chartit==0.1
+django-tagging==0.4.3
 
 ##########extra package(not install in the virtualenv)##########
 #sudo apt-get install python-mysqldb

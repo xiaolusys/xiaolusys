@@ -16,7 +16,9 @@ def task_push_ninpic_remind(ninpic):
     当有九张图更新的时候推送
     因为考虑到一天有很多的九张图推送，暂定一天值推送第一次九张图
     """
-    title = ninpic.title
+    title = ninpic.title.strip() if ninpic.title else None
+    if not title:   # 如果标题为空　则　return
+        return
     emoji_message = gen_emoji(title)
     message = match_emoji(emoji_message)
     ninpic.is_pushed = True

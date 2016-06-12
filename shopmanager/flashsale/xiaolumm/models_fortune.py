@@ -267,7 +267,7 @@ post_save.connect(carryrecord_update_mamafortune,
 
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'Web直接订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
-    STATUS_TYPES = ((0, u'待付款'), (1, u'待确定'), (2, u'已确定'), (3, u'买家取消'),)
+    STATUS_TYPES = ((0, u'待付款'), (1, u'预计收益'), (2, u'确认收益'), (3, u'买家取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
@@ -385,7 +385,7 @@ post_save.connect(ordercarry_update_order_number,
 
 class AwardCarry(BaseModel):
     AWARD_TYPES = ((1, u'直荐奖励'), (2, u'团队奖励'), (3, u'授课奖金'),)
-    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
+    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'已取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     carry_num = models.IntegerField(default=0, verbose_name=u'奖励金额')

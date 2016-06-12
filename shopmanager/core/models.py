@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 from django.db import models
 from .ormcache import managers
-
-from .managers import BaseManager
-
+from .managers import BaseManager, BaseTagManager
 
 class BaseModel(models.Model):
     created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'创建日期')
@@ -36,3 +34,18 @@ class CacheModel(BaseModel):
 
     class Meta:
         abstract = True
+
+
+from .fields import TagField
+
+class BaseTagModel(BaseModel):
+
+    tags = TagField(null=True, verbose_name=u'标签')
+
+    objects = BaseTagManager()
+    class Meta:
+        abstract = True
+
+    def __unicode__(self):
+        return str(self.id)
+

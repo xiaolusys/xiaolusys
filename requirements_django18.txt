@@ -52,6 +52,7 @@ XlsxWriter==0.8.4
 django-debug-toolbar==1.4
 django-qiniu-storage==2.3.0
 numpy==1.11.0
+django-tagging==0.4.3
 
 ###################### Extras Requirement #########################
 # apt-get update;apt-get install -y gcc libxml2-dev libxslt1-dev python-dev libmysqld-dev libjpeg-dev python-pip supervisor git

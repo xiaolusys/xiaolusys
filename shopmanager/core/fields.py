@@ -60,3 +60,5 @@ class BigForeignKey(fields.related.ForeignKey):
 
 
 from jsonfield import JSONField as JSONCharMyField
+from tagging.fields import TagField
+
