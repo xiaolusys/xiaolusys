@@ -457,6 +457,10 @@ class XiaoluMama(models.Model):
             return customers[0]
         return None
 
+    @property
+    def mama_fortune(self):
+        return MamaFortune.objects.filter(mama_id=self.id).first()
+
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
