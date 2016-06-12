@@ -1,5 +1,5 @@
 from django.contrib import admin
-from flashsale.mmexam.models import Question, Choice, Result, MamaDressResult, DressProduct
+from flashsale.mmexam.models import Question, Choice, Result, MamaDressResult, DressProduct, Mamaexam
 
 
 class ChoiceInline(admin.TabularInline):
@@ -23,6 +23,17 @@ class Resultdmin(admin.ModelAdmin):
     list_display = ('customer_id', 'daili_user', 'exam_state', 'sheaves', 'exam_date')
 
 
+class Mamaexamdmin(admin.ModelAdmin):
+    list_display = (
+        "sheaves",
+        "start_time",
+        "expire_time",
+        "valid",
+        "extras"
+    )
+
+
+admin.site.register(Mamaexam, Mamaexamdmin)
 admin.site.register(Question, Qestiondmin)
 admin.site.register(Choice, Choicedmin)
 admin.site.register(Result, Resultdmin)
