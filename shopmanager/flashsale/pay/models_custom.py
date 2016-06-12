@@ -4,10 +4,11 @@ import datetime
 from django.db import models
 from django.db.models import F
 
-
+from tagging.fields import TagField
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
-from .base import PayBaseModel
+from core.models import BaseTagModel
+from .base import PayBaseModel, BaseModel
 
 from shopback.items.models import Product, ContrastContent
 from .signals import signal_record_supplier_models
@@ -87,7 +88,7 @@ class Productdetail(PayBaseModel):
         return self.content_imgs.split()
 
 
-class ModelProduct(PayBaseModel):
+class ModelProduct(BaseTagModel):
     NORMAL = '0'
     DELETE = '1'
     STATUS_CHOICES = ((NORMAL, u'正常'),
@@ -551,16 +552,16 @@ class ActivityEntry(PayBaseModel):
         return 16
 
 
-class BrandEntry(PayBaseModel):
-    """ 品牌推广入口 """
+class BrandEntry(BaseModel):
+    """ 专题活动入口 """
 
     id = models.AutoField(primary_key=True)
-    brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
+    brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'专题名称')
 
-    brand_desc = models.TextField(max_length=512, blank=True, verbose_name=u'品牌活动描述')
-    brand_pic = models.CharField(max_length=256, blank=True, verbose_name=u'品牌图片')
-    brand_post = models.CharField(max_length=256, blank=True, verbose_name=u'品牌海报')
-    brand_applink = models.CharField(max_length=256, blank=True, verbose_name=u'品牌APP协议链接')
+    brand_desc = models.TextField(max_length=512, blank=True, verbose_name=u'专题活动描述')
+    brand_pic = models.CharField(max_length=256, blank=True, verbose_name=u'品牌LOGO')
+    brand_post = models.CharField(max_length=256, blank=True, verbose_name=u'专题海报')
+    brand_applink = models.CharField(max_length=256, blank=True, verbose_name=u'专题APP协议链接')
 
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
@@ -571,8 +572,8 @@ class BrandEntry(PayBaseModel):
     class Meta:
         db_table = 'flashsale_brand_entry'
         app_label = 'pay'
-        verbose_name = u'特卖/品牌推广入口'
-        verbose_name_plural = u'特卖/品牌推广入口'
+        verbose_name = u'特卖/推广专题入口'
+        verbose_name_plural = u'特卖/推广专题入口'
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.brand_name)
@@ -595,12 +596,12 @@ class BrandEntry(PayBaseModel):
         return cls.objects.none()
 
 
-class BrandProduct(PayBaseModel):
+class BrandProduct(BaseModel):
     """ 品牌商品信息 """
 
     id = models.AutoField(primary_key=True)
-    brand = models.ForeignKey(BrandEntry, related_name='brand_products', verbose_name=u'品牌编号id')
-    brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'品牌名称')
+    brand = models.ForeignKey(BrandEntry, related_name='brand_products', verbose_name=u'所属专题')
+    brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'专题名称')
 
     product_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品id')
     product_name = models.CharField(max_length=64, blank=True, verbose_name=u'商品名称')
@@ -612,8 +613,8 @@ class BrandProduct(PayBaseModel):
     class Meta:
         db_table = 'flashsale_brand_product'
         app_label = 'pay'
-        verbose_name = u'特卖/品牌商品'
-        verbose_name_plural = u'特卖/品牌商品'
+        verbose_name = u'特卖/专题商品'
+        verbose_name_plural = u'特卖/专题商品列表'
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.brand_name)

@@ -5,6 +5,7 @@ import time
 from django.core.cache import cache
 from django.db import models
 from django.contrib.auth.models import User
+from core.models import  BaseTagModel
 
 import common.utils
 from models_praise import SalePraise
@@ -12,7 +13,7 @@ from models_hots import HotProduct
 
 from .managers import SaleSupplierManager
 from .models_buyer_group import BuyerGroup
-
+from . import constants
 
 class SaleCategory(models.Model):
     NORMAL = 'normal'
@@ -266,7 +267,7 @@ class SupplierZone(models.Model):
         return "{0}".format(self.name)
 
 
-class SaleProduct(models.Model):
+class SaleProduct(BaseTagModel):
     MANUAL = 'manual'
     MANUALINPUT = 'manualinput'
     TAOBAO = 'taobao'
@@ -286,7 +287,8 @@ class SaleProduct(models.Model):
         (XIAOHER, u'小荷特卖'),
         (VIP, u'唯品会'),
         (JHS, u'聚划算'),
-        (BBW, u'贝贝网'),)
+        (BBW, u'贝贝网'),
+    )
 
     WAIT = 'wait'
     SELECTED = 'selected'
@@ -295,13 +297,15 @@ class SaleProduct(models.Model):
     SCHEDULE = 'scheduling'
     IGNORED = 'ignored'
     REJECTED = 'rejected'
-    STATUS_CHOICES = ((WAIT, u'待选'),
-                      (SELECTED, u'入围'),
-                      (PURCHASE, u'取样'),
-                      (PASSED, u'通过'),
-                      (SCHEDULE, u'排期'),
-                      (REJECTED, u'淘汰'),
-                      (IGNORED, u'忽略'),)
+    STATUS_CHOICES = (
+        (WAIT, u'待选'),
+        (SELECTED, u'入围'),
+        (PURCHASE, u'取样'),
+        (PASSED, u'通过'),
+        (SCHEDULE, u'排期'),
+        (REJECTED, u'淘汰'),
+        (IGNORED, u'忽略'),
+    )
 
     outer_id = models.CharField(max_length=64, blank=True,
                                 # default=lambda: 'OO%s' % int(time.time() * 10 ** 3),
@@ -332,8 +336,6 @@ class SaleProduct(models.Model):
     librarian = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'资料员')
     buyer = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'采购员')
 
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     sale_time = models.DateTimeField(null=True, blank=True, verbose_name=u'上架日期')
     reserve_time = models.DateTimeField(null=True, blank=True, verbose_name=u'预留时间')
     supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
@@ -353,6 +355,27 @@ class SaleProduct(models.Model):
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
+
+    def tag_list(self):
+        tag_list = set(self.tags.split())
+        return tag_list
+
+    def set_wap_push(self):
+        tag_set = set(self.tag_list())
+        tag_set.add(constants.WAP_PUSH_TAG)
+        self.tags = ' '.join(tag_set)
+        self.save(update_fields=['tags'])
+
+    def cancel_wap_push(self):
+        tag_set = set(self.tag_list())
+        try:
+            tag_set.remove(constants.WAP_PUSH_TAG)
+        except KeyError:
+            pass
+
+    def is_wap_push(self):
+        return constants.WAP_PUSH_TAG in self.tag_list()
+
 
 
 from django.db.models.signals import pre_save, post_save

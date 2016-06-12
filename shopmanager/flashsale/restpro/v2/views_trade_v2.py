@@ -479,7 +479,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(buyer_id=customer.id,
                                     status__lt=SaleTrade.TRADE_CLOSED_BY_SYS).order_by('-created')
-    
+
+    def get_customer(self, request):
+        if not hasattr(self, '__customer__'):
+            self.__customer__ = Customer.objects.filter(user=request.user).first()
+        return self.__customer__
+
     def get_xlmm(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         if not customer.unionid.strip():
@@ -1040,9 +1045,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if not wait_sign_orders.exists():
             return Response({"code": 1, "info": "没有可签收订单"})
 
+        customer = self.get_customer(request)
         for order in wait_sign_orders:
             order.confirm_sign_order()
-            logger.info('user(:%s) confirm sign order(:s)' % (self.get_customer(request), order.oid))
+            logger.info('user(:%s) confirm sign order(:%s)' % (customer, order.oid))
 
         return Response({"code": 0, "info": "签收成功"})
 
@@ -1086,12 +1092,12 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleOrder.objects.all()
     serializer_class = serializers.SaleOrderSerializer  # Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_customer(self, request):
-        customer = get_object_or_404(Customer, user=request.user)
+        customer = Customer.objects.filter(user=request.user.id).first()
         return customer
 
     def get_owner_queryset(self, request):
@@ -1117,7 +1123,8 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         """ 确认签收 """
         instance = self.get_object()
         instance.confirm_sign_order()
-        logger.info('user(:%s) confirm sign order(:s)'%(self.get_customer(request), instance.oid))
+        customer = self.get_customer(request)
+        logger.info('user(:%s) confirm sign order(:%s)'%(customer, instance.oid))
 
         return Response({"code":0,"info": "签收成功"})
 
@@ -1149,7 +1156,8 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(u'订单状态不予退款或退货')
 
         res = refund_Handler(request)
-        logger.warn('user(:%s) apply refund order(:s)' % (self.get_customer(request), instance.oid))
+        customer = self.get_customer(request)
+        logger.warn('user(:%s) apply refund order(:%s)' % (customer, instance.oid))
         return Response({"code":0,"info": "success"})
 
     def create(self, request, *args, **kwargs):
