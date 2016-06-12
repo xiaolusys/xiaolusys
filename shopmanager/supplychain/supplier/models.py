@@ -356,25 +356,6 @@ class SaleProduct(BaseTagModel):
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
 
-    def tag_list(self):
-        tag_list = set(self.tags.split())
-        return tag_list
-
-    def set_wap_push(self):
-        tag_set = set(self.tag_list())
-        tag_set.add(constants.WAP_PUSH_TAG)
-        self.tags = ' '.join(tag_set)
-        self.save(update_fields=['tags'])
-
-    def cancel_wap_push(self):
-        tag_set = set(self.tag_list())
-        try:
-            tag_set.remove(constants.WAP_PUSH_TAG)
-        except KeyError:
-            pass
-
-    def is_wap_push(self):
-        return constants.WAP_PUSH_TAG in self.tag_list()
 
 
 
