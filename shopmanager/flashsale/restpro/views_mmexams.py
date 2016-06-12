@@ -68,7 +68,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         fans_num = xlmm_fans_num(xlmm)
         invite_num = xlmm_invite_num(xlmm)
 
-        exam_result = Result.objects.filter(customer_id=customer.id, sheaves=exam.sheaves)  # 获取对应考试轮数的考试结果
+        exam_result = Result.objects.filter(customer_id=customer.id, sheaves=exam.sheaves).first()  # 获取对应考试轮数的考试结果
         res_info = collections.defaultdict(exam_date='', total_point=0.0, exam_state=0)
         if exam_result:
             res_info.update(model_to_dict(exam_result, exclude=['customer_id', 'xlmm_id', 'daili_user', 'sheaves']))
