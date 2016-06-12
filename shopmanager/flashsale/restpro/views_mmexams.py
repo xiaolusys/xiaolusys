@@ -85,7 +85,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         return self.queryset.none()
 
     @list_route(methods=['get'])
-    def get_single_choices(self, request):
+    def get_mmexam_question(self, request):
         """
         总题目数量
         分值
@@ -98,8 +98,19 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         """
         content = request.REQUEST
         question_id = content.get('question_id') or None
+        question_types = content.get('question_type') or None
+        question_types_map = {
+            1: Question.SINGLE,
+            2: Question.MANY,
+            3: Question.TUFA
+        }
+        if not question_types:
+            return Response({})
+        if int(question_types) not in question_types_map.keys():
+            return Response({})
         mmexam = get_xlmm_exam()
-        queryset = self.get_current_exams_questions(exam=mmexam).filter(question_types=Question.SINGLE).order_by("id")
+        queryset = self.get_current_exams_questions(exam=mmexam).filter(
+            question_types=question_types_map[int(question_types)]).order_by("id")
 
         point = mmexam.single_point  # 单选题分值
         question_count = queryset.count()  # 总题目数量
@@ -126,8 +137,11 @@ class MmexamsViewSet(viewsets.ModelViewSet):
             return Response(default_questoion)
 
         question = queryset.filter(id=question_id).first()
+        if not question:
+            return Response({})
         next_question = queryset.filter(id__gt=question.id).first()
         previous_question = queryset.filter(id__lt=question.id).first()
+
         if previous_question:
             default_questoion.update({'previous_id': previous_question.id})
         if next_question:
