@@ -1916,7 +1916,7 @@ post_save.connect(update_purchase_record, sender=PackageSkuItem,
 def get_package_address_dict(package_order):
     res = {}
     attrs = ['buyer_id', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
-             'receiver_zip', 'receiver_phone']
+             'receiver_zip', 'receiver_mobile']
     for attr in attrs:
         res[attr] = getattr(package_order, attr)
     return res
@@ -1925,8 +1925,17 @@ def get_package_address_dict(package_order):
 def get_user_address_dict(ua):
     res = {}
     attrs = ['receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
-             'receiver_zip', 'receiver_phone']
+             'receiver_zip', 'receiver_mobile']
     for attr in attrs:
         res[attr] = getattr(ua, attr)
     res['buyer_id'] = ua.cus_uid
+    return res
+
+
+def get_sale_trade_address_dict(sale_trade):
+    res = {}
+    attrs = ['buyer_id', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
+             'receiver_zip', 'receiver_mobile']
+    for attr in attrs:
+        res[attr] = getattr(sale_trade, attr)
     return res
