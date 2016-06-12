@@ -8,10 +8,10 @@ class ChoiceInline(admin.TabularInline):
 
 
 class Qestiondmin(admin.ModelAdmin):
-    list_display = ('id', 'question', 'single_many', 'pub_date', 'real_answer')
+    list_display = ('id', 'question', 'question_types', 'start_time', 'real_answer')
     ordering = ['id']
+    list_filter = ['start_time']
     inlines = [ChoiceInline]
-    list_filter = ['pub_date']
 
 
 class Choicedmin(admin.ModelAdmin):
@@ -20,7 +20,7 @@ class Choicedmin(admin.ModelAdmin):
 
 class Resultdmin(admin.ModelAdmin):
     search_fields = ['daili_user']
-    list_display = ('daili_user', 'exam_state', 'exam_date',)
+    list_display = ('customer_id', 'daili_user', 'exam_state', 'sheaves', 'exam_date')
 
 
 admin.site.register(Question, Qestiondmin)

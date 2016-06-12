@@ -168,3 +168,15 @@ ACTIVES = [
      'choices': [('A', 0), ('B', 10), ('C', 5)]
      }
 ]
+
+MM_EXAM_INFO = {
+    "sheaves_1": {
+        "sheaves": 1,
+        "start_time": '2016-6-10 00:00:00',
+        "expire_time": '2016-6-17 00:00:00',
+        "single_point": 2,
+        "multiple_point": 2,
+        "judge_point": 2,
+        "past_point": 70
+    }
+}

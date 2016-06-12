@@ -9,12 +9,19 @@ from flashsale.xiaolumm.models import XiaoluMama
 class Question(BaseModel):
     SINGLE = 1
     MANY = 2
-    NUM_CHOICES = ((SINGLE, u'单选'),
-                   (MANY, u'多选'),)
+    TUFA = 3
+    NUM_CHOICES = (
+        (SINGLE, u'单选'),
+        (MANY, u'多选'),
+        (TUFA, u'对错题')
+    )
     question = models.CharField(max_length=200, verbose_name=u'问题')
-    pub_date = models.DateTimeField(null=True, auto_now_add=True, verbose_name=u'出卷日期')
+    sheaves = models.IntegerField(default=0, db_index=True, verbose_name=u'考试轮数')
+    start_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'考试开始日期')
+    expire_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'考试截止日期')
     real_answer = models.CharField(max_length=200, verbose_name=u'正确选项(请按照顺序输入)')
-    single_many = models.IntegerField(choices=NUM_CHOICES, verbose_name=u'单选/多选')
+    question_types = models.IntegerField(default=SINGLE, choices=NUM_CHOICES, verbose_name=u'题型')
+    score = models.IntegerField(default=0, verbose_name=u'分值')
 
     def __unicode__(self):
         return self.question
@@ -27,7 +34,7 @@ class Question(BaseModel):
 
 
 class Choice(BaseModel):
-    question = models.ForeignKey(Question)
+    question = models.ForeignKey(Question, related_name='question_choices')
     choice_title = models.CharField(max_length=200, verbose_name=u'选项编号')  # 这是ABCD的编号
     choice_text = models.CharField(max_length=200, verbose_name=u'选项描述')
     choice_score = models.IntegerField(default=0, verbose_name=u'分值')
@@ -47,11 +54,16 @@ class Result(BaseModel):
     FINISHED = 1
     STATUS_CHOICES = ((UNFINISHED, u'未通过'),
                       (FINISHED, u'已通过'),)
-    daili_user = models.CharField(max_length=32, unique=True, verbose_name=u'代理unionid')
+    customer_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'用户id')
+    xlmm_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
+    daili_user = models.CharField(max_length=32, verbose_name=u'代理unionid')
+    sheaves = models.IntegerField(default=0, db_index=True, verbose_name=u'考试轮数')
     exam_date = models.DateTimeField(null=True, auto_now_add=True, verbose_name=u'答题日期')
+    total_point = models.FloatField(default=0.0, verbose_name=u'总分')
     exam_state = models.IntegerField(choices=STATUS_CHOICES, default=UNFINISHED, verbose_name=u"是否通过")
 
     class Meta:
+        # unique_together = ('customer_id', 'sheaves')
         db_table = 'flashsale_mmexam_result'
         app_label = 'mmexam'
         verbose_name = u'代理考试结果'
@@ -70,9 +82,9 @@ class Result(BaseModel):
         xlmms = XiaoluMama.objects.filter(openid=self.daili_user)
         if xlmms.count() == 0:
             return
-        xlmm = xlmms[0]
-        # 发送完成后的信号
-        signal_push_pending_carry_to_cash.send(sender=XiaoluMama, obj=xlmm.id)
+            # xlmm = xlmms[0]
+            # 发送完成后的信号
+            # signal_push_pending_carry_to_cash.send(sender=XiaoluMama, obj=xlmm.id)
 
 
 class MamaDressResult(BaseModel):
@@ -143,6 +155,7 @@ class MamaDressResult(BaseModel):
     def send_envelop(self):
         from flashsale.pay.models import Customer
         from flashsale.pay.models_coupon_new import UserCoupon
+
         customers = Customer.objects.filter(unionid=self.user_unionid, status=Customer.NORMAL)
         if customers.exists():
             customer = customers[0]
