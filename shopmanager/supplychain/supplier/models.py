@@ -476,6 +476,7 @@ class SaleProductManageDetail(models.Model):
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     pic_rating = models.FloatField(blank=True, null=True, verbose_name=u'作图评分')
     is_approved = models.SmallIntegerField(default=0, verbose_name='审核通过')
+    is_promotion = models.BooleanField(default=False, verbose_name=u'推广商品')
 
     class Meta:
         db_table = 'supplychain_supply_schedule_manage_detail'
