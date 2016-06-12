@@ -63,6 +63,8 @@ class MmexamsViewSet(viewsets.ModelViewSet):
             return Response({"code": 1, "info": "暂时没有开放的考试", "exam_info": ''})
         mm_exam = model_to_dict(exam)
         customer = get_customer(request)
+        if not customer:
+            return Response({"code": 2, "info": "请登陆后重试!", "exam_info": ''})
         xlmm = customer.getXiaolumm()
         is_xlmm = 1 if xlmm else 0  # 是否是小鹿妈妈
         fans_num = xlmm_fans_num(xlmm)
