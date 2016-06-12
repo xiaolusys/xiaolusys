@@ -605,7 +605,7 @@ def create_stock_snapshot_record(stock_stats):
         current_id=snapshot_tag,
         date_field=yesterday_date_field,
         quantity=stock_stats.quantity,
-        payment=stock_stats.payment,
+        amount=stock_stats.amount,
         uni_key=uni_key,
         record_type=constants.TYPE_SNAPSHOT,
         timely_type=constants.TIMELY_TYPE_DATE

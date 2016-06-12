@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^checksupplier/$', views_addsupplier.CheckSupplierView.as_view()),
     url(r'^hotpro/$', views_hot.HotProductView.as_view()),
     url(r'^manage_schedule/$', views_addsupplier.ScheduleManageView.as_view()),
+    url(r'^schedule/detail/(?P<pk>[0-9]+)/$', views_addsupplier.SaleProductManageDetailView.as_view()),
     url(r'^schedule_detail/$', views.ScheduleDetailView.as_view()),
     url(r'^schedule_detail_api/$', views.ScheduleDetailAPIView.as_view()),
     url(r'^schedule_export/$', views.ScheduleExportView.as_view()),
@@ -33,6 +34,8 @@ urlpatterns = [
     url(r'^remain_num_api/$', views.RemainNumAPIView.as_view()),
     url(r'^sync_stock_api/$', views.SyncStockAPIView.as_view()),
     url(r'^compare_schedule/$', views_addsupplier.ScheduleCompareView.as_view()),
+
+
     url(r'^sale_product_api/$', views_addsupplier.SaleProductAPIView.as_view()),
     url(r'^approve_schedule_detail_api/$', views.ScheduleDetailApproveAPIView.as_view()),
     url(r'^change_list_fields/$', views_change_fields.SupplierFieldsChange.as_view()),

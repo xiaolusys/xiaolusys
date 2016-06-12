@@ -9,6 +9,10 @@ from shopback.categorys.models import ProductCategory
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
+from rest_framework import viewsets
+from rest_framework.decorators import detail_route, list_route
+from rest_framework import renderers
+from rest_framework import authentication
 
 from django.contrib import messages
 from django.db import transaction
@@ -18,8 +22,14 @@ from django.forms import model_to_dict
 from flashsale.pay.models_custom import Productdetail
 from core.options import log_action, ADDITION, CHANGE
 from shopback import paramconfig as pcfg
-from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage, SaleProductManageDetail, \
-    SupplierZone, SaleProductPicRatingMemo
+from supplychain.supplier.models import (
+    SaleSupplier,
+    SaleCategory,
+    SaleProductManage,
+    SaleProductManageDetail,
+    SupplierZone,
+    SaleProductPicRatingMemo
+)
 from supplychain.supplier.models import SaleProduct
 
 from . import forms
@@ -357,7 +367,9 @@ class SaleProductAPIView(generics.ListCreateAPIView):
 
 
         schedule_ids = set()
-        for schedule_detail in SaleProductManageDetail.objects.filter(sale_product_id=sale_product_id, today_use_status=SaleProductManageDetail.NORMAL):
+        for schedule_detail in SaleProductManageDetail.objects.filter(
+                sale_product_id=sale_product_id,
+                today_use_status=SaleProductManageDetail.NORMAL):
             schedule_ids.add(schedule_detail.schedule_manage_id)
 
         sale_dates = set()
@@ -518,6 +530,30 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             return Response({'result': 'success'})
 
         return Response({"result": u"error"})
+
+
+class SaleProductManageDetailView(generics.ListCreateAPIView):
+    """排期比较"""
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, pk, *args, **kwargs):
+        instance = SaleProductManageDetail.objects.filter(id=pk).first()
+        if not instance:
+            return Response({'code':1, 'info':'not found'})
+        data = request.POST
+        update_fields = []
+        for k,v in data.iteritems():
+            if not hasattr(instance,k):
+                continue
+            if k == 'is_promotion':
+                v = v and True or False
+            update_fields.append(k)
+            setattr(instance, k, v)
+        if update_fields:
+            instance.save(update_fields=update_fields)
+
+        return Response({'code':0, 'info':'success'})
 
 
 class ScheduleBatchSetView(generics.ListCreateAPIView):
