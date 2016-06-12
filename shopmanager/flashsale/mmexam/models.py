@@ -4,6 +4,72 @@ from django.db import models
 from core.models import BaseModel
 from flashsale.xiaolumm.signals import signal_push_pending_carry_to_cash
 from flashsale.xiaolumm.models import XiaoluMama
+from core.fields import JSONCharMyField
+from flashsale.mmexam import constants
+
+
+def default_mamaexam_extras():
+    return {
+        "single_point": 2,  # 单选题分值
+        "multiple_point": 2,  # 多选题分值
+        "judge_point": 2,  # 判断题分值
+        "past_point": 70,  # 考试通过的分数
+        "upper_agencylevel": 12  # 考试通过后代理要升级的等级数
+    }
+
+
+def exam_participant_choice():
+    return constants.EXAM_PARTICIPANT_CHOICE
+
+
+class Mamaexam(BaseModel):
+    sheaves = models.IntegerField(db_index=True, verbose_name=u'考试轮数')
+    start_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'开放时间')
+    expire_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'结束时间')
+    valid = models.BooleanField(db_index=True, default=False, verbose_name=u'是否有效')
+    participant = models.IntegerField(choices=exam_participant_choice(), default=constants.XLMM_EXAM,
+                                      verbose_name=u'目标用户')
+    extras = JSONCharMyField(max_length=512, blank=True, null=True,
+                             default=default_mamaexam_extras,
+                             verbose_name=u"附加信息")
+
+    def __unicode__(self):
+        return '%s' % self.sheaves
+
+    @property
+    def single_point(self):
+        return self.extras['single_point']
+
+    @property
+    def multiple_point(self):
+        return self.extras['multiple_point']
+
+    @property
+    def judge_point(self):
+        return self.extras['judge_point']
+
+    @property
+    def past_point(self):
+        return self.extras['past_point']
+
+    @property
+    def upper_agencylevel(self):
+        return self.extras['upper_agencylevel']
+
+    def get_question_type_point(self, question_type):
+        if question_type == 1:
+            return self.single_point
+        if question_type == 2:
+            return self.multiple_point
+        if question_type == 3:
+            return self.judge_point
+        return 0
+
+    class Meta:
+        db_table = 'flashsale_mmexam_sheaves'
+        app_label = 'mmexam'
+        verbose_name = u'代理考试轮数'
+        verbose_name_plural = u'代理考试题目轮数列表'
 
 
 class Question(BaseModel):
@@ -63,7 +129,7 @@ class Result(BaseModel):
     exam_state = models.IntegerField(choices=STATUS_CHOICES, default=UNFINISHED, verbose_name=u"是否通过")
 
     class Meta:
-        # unique_together = ('customer_id', 'sheaves')
+        unique_together = ('customer_id', 'sheaves')
         db_table = 'flashsale_mmexam_result'
         app_label = 'mmexam'
         verbose_name = u'代理考试结果'

@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework.exceptions import APIException
 from flashsale.pay.models_user import Customer
-from flashsale.mmexam.models import Question, Result
+from flashsale.mmexam.models import Question, Result, Mamaexam
 from flashsale.mmexam import constants
 
 logger = logging.getLogger(__name__)
@@ -35,13 +35,18 @@ def xlmm_invite_num(xlmm):
     return 0
 
 
+def get_xlmm_exam():
+    now = datetime.datetime.now()
+    return Mamaexam.objects.filter(valid=True, start_time__lte=now, expire_time__gte=now,
+                                   participant=constants.XLMM_EXAM).first()
+
+
 class MmexamsViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = serializers.QuestionSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    sheaves = 'sheaves_1'  # 初始化选择的考试轮数
 
     @list_route(methods=['get'])
     def get_start_page_info(self, request):
@@ -53,28 +58,29 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         邀请数量
         考试结果
         """
-        info = constants.MM_EXAM_INFO[self.sheaves]
+        exam = get_xlmm_exam()
+        if not exam:
+            return Response({"code": 1, "info": "暂时没有开放的考试", "exam_info": ''})
+        mm_exam = model_to_dict(exam)
         customer = get_customer(request)
         xlmm = customer.getXiaolumm()
         is_xlmm = 1 if xlmm else 0  # 是否是小鹿妈妈
         fans_num = xlmm_fans_num(xlmm)
         invite_num = xlmm_invite_num(xlmm)
-        exam_result = Result.objects.filter(customer_id=customer.id, sheaves=info['sheaves'])  # 获取对应考试轮数的考试结果
+
+        exam_result = Result.objects.filter(customer_id=customer.id, sheaves=exam.sheaves)  # 获取对应考试轮数的考试结果
         res_info = collections.defaultdict(exam_date='', total_point=0.0, exam_state=0)
         if exam_result:
             res_info.update(model_to_dict(exam_result, exclude=['customer_id', 'xlmm_id', 'daili_user', 'sheaves']))
-        info.update(res_info)
-        info.update({"fans_num": fans_num, "invite_num": invite_num, "is_xlmm": is_xlmm})
-        return Response(info)
+        mm_exam.update(res_info)
+        mm_exam.update({"fans_num": fans_num, "invite_num": invite_num, "is_xlmm": is_xlmm})
+        return Response({"code": 0, "info": "获取用户考试信息成功", "exam_info": mm_exam})
 
-    def get_current_exams_questions(self):
-        now = datetime.datetime.now()
-        info = constants.MM_EXAM_INFO[self.sheaves]
-        start_time = datetime.datetime.strptime(info['start_time'], '%Y-%m-%d %H:%M:%S')
-        expire_time = datetime.datetime.strptime(info['expire_time'], '%Y-%m-%d %H:%M:%S')
-        if not (start_time < now < expire_time):
-            return self.queryset.none()
-        return self.queryset.filter(sheaves=info['sheaves'])
+    def get_current_exams_questions(self, exam):
+
+        if exam:
+            return self.queryset.filter(sheaves=exam.sheaves)
+        return self.queryset.none()
 
     @list_route(methods=['get'])
     def get_single_choices(self, request):
@@ -90,9 +96,10 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         """
         content = request.REQUEST
         question_id = content.get('question_id') or None
-        queryset = self.get_current_exams_questions().filter(question_types=Question.SINGLE).order_by("id")
+        mmexam = get_xlmm_exam()
+        queryset = self.get_current_exams_questions(exam=mmexam).filter(question_types=Question.SINGLE).order_by("id")
 
-        point = constants.MM_EXAM_INFO[self.sheaves]['single_point']  # 单选题分值
+        point = mmexam.single_point  # 单选题分值
         question_count = queryset.count()  # 总题目数量
         total_point = point * question_count  # 总分
         default_questoion = collections.defaultdict(
@@ -134,35 +141,35 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         计算：　题号--> 答案 ＝　分值
         返回: 总分　是否通过
         """
+        default_result = {"result_point": 0, "is_passed": 0}
         customer = get_customer(request)
         if not customer:
-            return Response({"code": 1, "info": "请登陆后重试！"})
-        default_result = {"result_point": 0, "is_passed": 0}
+            return Response({"code": 1, "info": "请登陆后重试！", "exam_result": default_result})
+        mmexam = get_xlmm_exam()
+        if not mmexam:
+            return Response({"code": 3, "info": "没有开放的考试！", "exam_result": default_result})
+        xlmm = customer.getXiaolumm()
+        if not xlmm:
+            return Response({"code": 2, "info": "请申请成为小鹿妈妈后参加考试！", "exam_result": default_result})
         content = request.REQUEST
         question_ids = content.keys()
-        qus_rs = self.queryset.filter(id__in=question_ids).values("id", "real_answer", 'question_types')  # 题库
+        qus_rs = self.queryset.filter(id__in=question_ids,
+                                      sheaves=mmexam.sheaves).values("id",
+                                                                     "real_answer",
+                                                                     'question_types')  # 题库
         result_point = 0.0
-        question_type_map = {
-            1: 'single_point',
-            2: 'multiple_point',
-            3: 'judge_point'
-        }
-        sheaves_info = constants.MM_EXAM_INFO[self.sheaves]
-
         for question_id in question_ids:
             target_qr = qus_rs.filter(id=question_id)
             if target_qr.exists():
                 if set(content[question_id]) == set(target_qr[0]['real_answer']):  # 与正确答案相等　则加分
-                    point = sheaves_info[question_type_map[qus_rs[0]['question_types']]]
+                    question_types = qus_rs[0]['question_types']
+                    point = mmexam.get_question_type_point(question_types)
                     result_point = result_point + point
-        is_passed = 1 if result_point >= sheaves_info['past_point'] else 0  # 如果指定大于指定的分数则通过
-        xlmm = customer.getXiaolumm()
-        if not xlmm:
-            return Response({"code": 2, "info": "请申请成为小鹿妈妈后参加考试！"})
+        is_passed = 1 if result_point >= mmexam.past_point else 0  # 如果指定大于指定的分数则通过
 
         result = Result.objects.filter(
             customer_id=customer.id,
-            sheaves=sheaves_info['sheaves']
+            sheaves=mmexam.sheaves
         ).first()
         update_fields = []
         if result:
@@ -179,12 +186,19 @@ class MmexamsViewSet(viewsets.ModelViewSet):
                 customer_id=customer.id,
                 xlmm_id=xlmm.id,
                 daili_user=xlmm.openid,
-                sheaves=sheaves_info['sheaves'],
+                sheaves=mmexam.sheaves,
                 total_point=result_point
             )
+            if is_passed == 1:
+                result.exam_state == Result.FINISHED
             result.save()
-        default_result.update({"result_point": result_point, "is_passed": is_passed})
-        return Response(default_result)
+        if result.exam_state == Result.FINISHED:  # 考试通过　修改代理等级
+            if xlmm.agencylevel < mmexam.upper_agencylevel:  # 当前等级小于考试通过指定的等级则升级
+                xlmm.agencylevel = mmexam.upper_agencylevel
+                xlmm.save(update_fields=['agencylevel'])
+        return Response({"code": 0, "info": "考试完成！",
+                         "exam_result": {"result_point": result_point,
+                                         "is_passed": is_passed}})
 
     def create(self, request, *args, **kwargs):
         raise APIException('method not allowed')
