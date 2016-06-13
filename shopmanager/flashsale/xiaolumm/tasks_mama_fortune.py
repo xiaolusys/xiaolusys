@@ -63,29 +63,17 @@ CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016, 3, 30, 23, 59, 59)
 
 @task(max_retries=3, default_retry_delay=6)
 def task_cashout_update_mamafortune(mama_id):
-    pending_record = CashOut.objects.filter(xlmm=mama_id,status=CashOut.PENDING).first()
-    appr_comp_record = CashOut.objects.filter(xlmm=mama_id,status__in=(CashOut.APPROVED, CashOut.COMPLETED),
-                                              approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).first()
-    pstr,astr = None,None
-    if pending_record:
-        pstr = "%s|%s" % (pending_record.id, pending_record.value)
-    if appr_comp_record:
-        astr = "%s|%s" % (appr_comp_record.id, appr_comp_record.value)
-    logger.warn("%s - mama_id: %s, pending: %s, appr_comp: %s" % (get_cur_info(), mama_id, pstr, astr))
-                                              
-    pending_res = CashOut.objects.filter(xlmm=mama_id,status=CashOut.PENDING).aggregate(total=Sum('value'))
-    pending_cash = pending_res['total'] or 0
-
-    cashout_res = CashOut.objects.filter(xlmm=mama_id,
-                                         status__in=(CashOut.APPROVED, CashOut.COMPLETED),
-                                         approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME)\
-        .aggregate(total=Sum('value'))
-
-    effect_cashout = cashout_res['total'] or 0
-
-    effect_cashout += pending_cash
+    cashout_sum = CashOut.objects.filter(xlmm=mama_id,approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).values('status').annotate(total=Sum('value'))
+    approved_total,pending_total = 0,0
+    for record in cashout_sum:
+        if record['status'] == CashOut.APPROVED:
+            approved_total  = record['total']
+        if record['status'] == CashOut.PENDING:
+            pending_total = record['total']
     
-    logger.warn("%s - mama_id: %s, effect_cashout: %s" % (get_cur_info(), mama_id, effect_cashout))
+    effect_cashout = approved_total + pending_total
+    
+    logger.warn("%s - mama_id: %s, effect_cashout: %s|pending:%s,approved:%s" % (get_cur_info(), mama_id, effect_cashout, pending_total, approved_total))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]
