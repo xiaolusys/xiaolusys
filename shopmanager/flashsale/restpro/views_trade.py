@@ -464,7 +464,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SaleOrderSerializer  # Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, saletrade_id=None, *args, **kwargs):
         """
@@ -558,7 +558,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SaleTradeSerializer  # Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     filter_fields = ('tid',)
     paginate_by = 15
@@ -1105,7 +1105,7 @@ class WXOrderViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.WXOrderSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     paginate_by = 25
     page_query_param = 'page'

@@ -78,7 +78,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SaleRefundSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -180,7 +180,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserAddressSerializer  # Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -399,7 +399,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
     queryset = District.objects.all()
     serializer_class = serializers.DistrictSerializer  # Create your views here.
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def calc_distirct_cache_key(self, view_instance, view_method,
                                 request, args, kwargs):
@@ -469,7 +469,7 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
     """
     queryset = AppRelease.objects.all()
     serializer_class = serializers.DistrictSerializer
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')

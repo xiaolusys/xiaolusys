@@ -46,7 +46,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.QuestionSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     @list_route(methods=['get'])
     def get_start_page_info(self, request):

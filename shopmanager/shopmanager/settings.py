@@ -346,6 +346,14 @@ if os.environ.get('TARGET') in ('production', 'django18'):
         # release based on the git info.
         'release': raven.fetch_git_sha(os.path.dirname(PROJECT_ROOT)),
     }
+
+    ######################## RESTFRAMEWORK CONFIG ########################
+    REST_FRAMEWORK = REST_FRAMEWORK.update({
+        'DEFAULT_RENDERER_CLASSES': (
+            'rest_framework.renderers.JSONRenderer',
+        ),
+    })
+
     #######################  WAP AND WEIXIN CONFIG ########################
     M_SITE_URL = 'http://m.xiaolumeimei.com'
 

@@ -50,7 +50,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UsersCouponSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -187,7 +187,7 @@ class CouponTemplateViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CouponTemplateSerializer
     authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)  # 这里使用只读的权限
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_useful_template_query(self):
         # 点击方式领取的　有效的　在预置天数内的优惠券

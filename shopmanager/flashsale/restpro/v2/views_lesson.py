@@ -70,7 +70,7 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     serializer_class = lesson_serializers.LessonTopicSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         topics = self.paginate_queryset(self.queryset)
@@ -102,7 +102,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     serializer_class = lesson_serializers.LessonSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     #permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
         content = request.GET
@@ -162,7 +162,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     #permission_classes = (permissions.IsAuthenticated, )
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         records = self.paginate_queryset(self.queryset.order_by('status'))
@@ -214,7 +214,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     serializer_class = lesson_serializers.LessonAttendRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     #permission_classes = (permissions.IsAuthenticated, )
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
         content = request.GET

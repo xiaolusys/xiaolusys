@@ -26,7 +26,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TradeWuliuSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     gap_time = 7200  # 查询间隔时间
 
 

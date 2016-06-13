@@ -677,7 +677,7 @@ class PromotionResult(PromotionResultMixin, APIView):
 
     # permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = ()
-    renderer_classes = (renderers.TemplateHTMLRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.TemplateHTMLRenderer, renderers.BrowsableAPIRenderer,)
     template_name = 'promotion/pmt_result.html'
 
     def get(self, request, *args, **kwargs):

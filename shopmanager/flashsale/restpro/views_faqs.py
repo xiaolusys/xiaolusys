@@ -13,7 +13,7 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SaleFaqCategorySerializer
     authentication_classes = ()
     permission_classes = ()
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         queryset = self.queryset

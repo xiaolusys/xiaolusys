@@ -47,7 +47,7 @@ class XLFreeSampleViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.XLFreeSampleSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     free_samples = (1,)
 
     def list(self, request, *args, **kwargs):
@@ -99,7 +99,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.XLSampleOrderSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     share_link = constants.SHARE_LINK
     PROMOTION_LINKID_PATH = constants.PROMOTION_LINKID_PATH
 
@@ -226,7 +226,7 @@ class InviteReletionshipView(viewsets.mixins.ListModelMixin, viewsets.GenericVie
     serializer_class = None
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def list(self, request, *args, **kwargs):
         return Response([])

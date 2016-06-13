@@ -39,7 +39,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SaleProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_wanter_queryset(self, request):
         """ 选择通过和取样状态的选品　上架时间在未来?天"""
@@ -112,7 +112,7 @@ class HotProductViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.HotProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_wanter_queryset(self, request):
         """ 选择通过和取样状态的选品　上架时间在未来?天"""

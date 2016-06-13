@@ -33,7 +33,7 @@ class PushViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.PushTopicSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = ()
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     @list_route(methods=['post'])
     def set_device(self, request, *args, **kwargs):
