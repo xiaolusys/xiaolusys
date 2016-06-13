@@ -753,6 +753,15 @@ class SaleOrder(PayBaseModel):
     def is_deposit(self):
         return self.outer_id.startswith('RMB')
 
+    @property
+    def item_ware_by(self):
+        """　商品所属仓库 """
+        product = Product.objects.filter(id=self.item_id).first()
+        if product:
+            ware_by = product.ware_by
+            return ware_by
+        return Product.WARE_NONE
+
     def stats_not_pay(self):
         return self.status == SaleOrder.TRADE_NO_CREATE_PAY or \
                self.status == SaleOrder.WAIT_BUYER_PAY or self.status == SaleOrder.TRADE_CLOSED_BY_SYS
