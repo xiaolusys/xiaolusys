@@ -262,7 +262,7 @@ def task_order_trigger(sale_order):
     if not mm_linkid_mama:
         return
 
-    payment = sale_order.payment 
+    payment = sale_order.payment / sale_order.num
 
     from shopback.items.models import Product
     products = Product.objects.filter(id=sale_order.item_id)
@@ -276,7 +276,7 @@ def task_order_trigger(sale_order):
     agency_level = mm_linkid_mama.agencylevel
 
     #carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level, payment=payment)
-    carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100
+    carry_amount = carry_scheme.calculate_carry(agency_level, payment) * 100 * sale_order.num
 
     if via_app:
         if self_mama:
