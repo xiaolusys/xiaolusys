@@ -377,7 +377,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_custom_qs(self, queryset):
-        return queryset.filter(status=Product.NORMAL, outer_id__endswith='1')  # .exclude(details__is_seckill=True)
+        return queryset.filter(status=Product.NORMAL, outer_id__endswith='1').exclude(details__is_seckill=True)
 
     def get_female_qs(self, queryset):
         return self.get_custom_qs(queryset).filter(outer_id__startswith='8')
