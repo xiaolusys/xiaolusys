@@ -2,7 +2,7 @@
 from django.conf.urls import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers
-
+from django.contrib.admin.views.decorators import staff_member_required
 from shopback.warehouse.views import (PackageScanCheckView,
                                       PackageScanWeightView,
                                       PackagOrderExpressView,
@@ -12,10 +12,11 @@ from shopback.warehouse.views import (PackageScanCheckView,
                                       PackagePrintExpressView,
                                       PackagePrintPickingView,
                                       PackageReviewView,
-                                      PackageClearRedoView
-                                      )
-from django.contrib.admin.views.decorators import staff_member_required
+                                      PackageClearRedoView)
+from shopback.warehouse.views_receipt import ReceiptGoodsViewSet
+
 router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'receipt', ReceiptGoodsViewSet)
 
 urlpatterns = patterns('shopback.warehouse.views',
 
@@ -27,8 +28,9 @@ urlpatterns = patterns('shopback.warehouse.views',
                        (r'^print_express/$', csrf_exempt(PackagePrintExpressView.as_view())),
                        (r'^print_picking/$', csrf_exempt(PackagePrintPickingView.as_view())),
                        (r'^print_post/$', csrf_exempt(PackagePrintPostView.as_view())),
-                       (r'^revieworder/(?P<id>\d{1,20})/$', staff_member_required(staff_member_required(PackageReviewView.as_view(
-                       )))),
+                       (r'^revieworder/(?P<id>\d{1,20})/$',
+                        staff_member_required(staff_member_required(PackageReviewView.as_view(
+                        )))),
                        (r'^clear_redo_sign/$', csrf_exempt(PackageClearRedoView.as_view())),
                        )
 urlpatterns += router.urls

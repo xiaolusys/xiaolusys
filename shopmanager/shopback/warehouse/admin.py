@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
-from .models import WareHouse
+from .models import WareHouse, ReceiptGoods
 
 
 class WareHouseAdmin(admin.ModelAdmin):
@@ -12,3 +12,30 @@ class WareHouseAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WareHouse, WareHouseAdmin)
+
+
+class ReceiptGoodsAdmin(admin.ModelAdmin):
+    list_display = (
+        "creator",
+        "receipt_type",
+        "weight",
+        "weight_time",
+        "express_no",
+        "express_company",
+        "created",
+        "modified",
+    )
+    list_filter = (
+        "creator",
+        "receipt_type",
+        "weight_time",
+        "express_company",
+        "created",
+    )
+    search_fields = [
+        "=creator",
+        "=express_no",
+    ]
+
+
+admin.site.register(ReceiptGoods, ReceiptGoodsAdmin)
