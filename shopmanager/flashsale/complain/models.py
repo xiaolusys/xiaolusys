@@ -44,7 +44,7 @@ class Complain(models.Model):
         return u"%s,%s" % (self.id, self.com_title)
 
     def respond(self, custom_serviced_name, reply):
-        self.custom_serviced_name = custom_serviced_name
+        self.custom_serviced = custom_serviced_name
         self.reply = reply
         self.status = Complain.REPLIED
         self.reply_time = datetime.datetime.now()

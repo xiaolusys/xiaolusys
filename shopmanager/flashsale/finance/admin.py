@@ -10,23 +10,25 @@ from core.filters import DateFieldListFilter
 from flashsale.finance.models import Bill, BillRelation
 
 
-
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('show_id','type','status', 'show_relation_objects', 'show_creater','created', 'plan_amount','supplier','amount','pay_method', 'note')
-    search_fields = ['id', "transcation_no"]
-
+    list_display = (
+        'show_id', 'supplier', 'type', 'show_relation_objects', 'plan_amount', 'amount', 'show_creater', 'pay_method',
+        'created', 'status', 'note')
+    search_fields = ['id', "transcation_no", "supplier__id", "supplier__supplier_name"]
     list_filter = ["type", "status", "pay_method", ('created', DateFieldListFilter)]
-    readonly_fields = ('status', 'creater', 'supplier')
+    readonly_fields = ('creater', 'supplier')
     list_select_related = True
     list_per_page = 25
 
     def show_id(self, obj):
         return '<a href="/sale/finance/bill/%d/" target="_blank">%d</a>' % (obj.id, obj.id)
+
     show_id.allow_tags = True
     show_id.short_description = 'ID'
 
     def show_creater(self, obj):
         return common.utils.get_admin_name(obj.creater)
+
     show_creater.short_description = '创建人'
 
     def show_relation_objects(self, obj):
@@ -42,6 +44,7 @@ class BillAdmin(admin.ModelAdmin):
                 'items': sorted(relation_objects_dict[k], key=lambda x: x['object_id'])
             })
         return render_to_string('finance/bill_relation_objects.html', {'relation_objects': relation_objects})
+
     show_relation_objects.allow_tag = True
     show_relation_objects.short_description = '关联信息'
 
@@ -60,11 +63,12 @@ class BillAdmin(admin.ModelAdmin):
                 plan_amount += bill.plan_amount
             elif bill.type == Bill.RECEIVE:
                 plan_amount -= bill.plan_amount
-            if bill.status == Bill.STATUS_PENDING:
-                is_wrong_status =True
+            if bill.status in [Bill.STATUS_COMPLETED]:
+                is_wrong_status = True
             if bill.type == Bill.DELETE:
                 is_wrong_type = True
-            attachment_set.add(bill.attachment)
+            if bill.attachment:
+                attachment_set.add(bill.attachment)
             supplier_ids.add(bill.supplier_id)
             if bill.pay_method not in [Bill.TRANSFER_PAY, Bill.RECEIVE_DIRECT, Bill.RECEIVE_DEDUCTIBLE]:
                 is_wrong_pay_method = True
@@ -120,13 +124,16 @@ class BillAdmin(admin.ModelAdmin):
             bill.save()
 
         self.message_user(request, u'本次合并%d个账单' % n)
+
     action_merge.short_description = u'合并账单'
 
     actions = ['action_merge']
+
     def get_actions(self, request):
         actions = super(BillAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
+
 
 admin.site.register(Bill, BillAdmin)

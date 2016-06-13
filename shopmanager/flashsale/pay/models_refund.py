@@ -16,6 +16,7 @@ from supplychain.supplier.models import SaleProduct
 from .constants import CHANNEL_CHOICES
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS, REFUND_STATUS
+from flashsale.pay.managers import SaleRefundManager
 
 import logging
 from core.options import log_action, ADDITION, CHANGE
@@ -128,6 +129,8 @@ class SaleRefund(PayBaseModel):
 
     status = models.IntegerField(db_index=True, choices=REFUND_STATUS,
                                  default=REFUND_WAIT_SELLER_AGREE, blank=True, verbose_name='退款状态')
+
+    objects = SaleRefundManager()
 
     class Meta:
         db_table = 'flashsale_refund'
