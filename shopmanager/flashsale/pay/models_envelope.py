@@ -99,7 +99,7 @@ class Envelop(PayBaseModel):
             self.send_time = self.send_time or datetime.datetime.now()
             self.status = Envelop.CONFIRM_SEND
 
-        elif status in (self.SEND_FAILED, self.REFUND):
+        elif status in (self.SEND_FAILED, self.REFUND) and self.status == self.WAIT_SEND:
             self.status = Envelop.FAIL
             logger.warn('envelop warn:%s' % envelopd)
         self.save()

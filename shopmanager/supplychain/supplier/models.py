@@ -483,6 +483,7 @@ class SaleProductManageDetail(models.Model):
         app_label = 'supplier'
         verbose_name = u'排期管理明细'
         verbose_name_plural = u'排期管理明细列表'
+        ordering = ['-is_promotion']
         permissions = [
             ("revert_done", u"反完成"),
             ('pic_rating', u'作图评分'),
