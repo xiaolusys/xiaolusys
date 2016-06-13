@@ -1,4 +1,4 @@
-from registry.aliyuncs.com/xiaolu-img/xiaolusys-base:68b751bc9268ecd8acefad51236635acdb0b7e02
+from registry.aliyuncs.com/xiaolu-img/xiaolusys-base:16b74911bc300705ca4f1b34697647a1f4d656c5
 
 run mkdir -p /var/log/taobao;mkdir -p /var/www/deploy/taobao
 add . /var/www/deploy/taobao/taobao-backend
