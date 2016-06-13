@@ -17,7 +17,7 @@ class UserIntegralViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserIntegralSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -48,7 +48,7 @@ class UserIntegralLogViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserIntegralLogSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)

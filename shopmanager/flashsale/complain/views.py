@@ -34,7 +34,7 @@ class ComplainViewSet(viewsets.ModelViewSet):
     serializer_class = ComplainSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def create(self, request, *args, **kwargs):
         """ 创建投诉 """

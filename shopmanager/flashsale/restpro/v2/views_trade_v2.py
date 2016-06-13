@@ -80,7 +80,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ShoppingCartSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -467,7 +467,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SaleTradeSerializer# Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
     filter_fields = ('tid',)
     paginate_by = 15
@@ -1094,7 +1094,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SaleOrderSerializer  # Create your views here.
     authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_customer(self, request):
         customer = Customer.objects.filter(user=request.user.id).first()

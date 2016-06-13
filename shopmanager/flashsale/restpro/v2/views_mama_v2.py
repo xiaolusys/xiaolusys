@@ -91,7 +91,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.MamaFortuneSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
@@ -161,7 +161,7 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CarryRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
@@ -196,6 +196,10 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     """
     return mama's order list (including web/app direct orders, and referal's orders).
     with parameter "?carry_type=direct", will return only direct orders.
+    ### carry_type:
+      - 1 : Web直接订单,
+      - 2 : App订单,
+      - 3 :下属订单,
     """
     paginate_by = 10
     page_query_param = 'page'
@@ -207,7 +211,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.OrderCarrySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request, carry_type, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
@@ -254,7 +258,7 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ClickCarrySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
@@ -286,7 +290,7 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.AwardCarrySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
@@ -318,7 +322,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ActiveValueSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
@@ -361,7 +365,7 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReferalRelationshipSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
@@ -392,7 +396,7 @@ class GroupRelationshipViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.GroupRelationshipSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
@@ -424,7 +428,7 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UniqueVisitorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         content = request.REQUEST
@@ -465,7 +469,7 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.XlmmFansSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         customer_id = get_customer_id(request.user)
@@ -527,7 +531,7 @@ class OrderCarryVisitorView(APIView):
     serializer_class = serializers.UniqueVisitorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get(self, request):
         content = request.REQUEST
@@ -582,7 +586,7 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.DailyStatsSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request, from_date, end_date):
         mama_id = get_mama_id(request.user)
@@ -630,7 +634,7 @@ class ModelProductViewSet(viewsets.ModelViewSet):
     serializer_class = ModelProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, category):
         today_date = datetime.datetime.now().date()

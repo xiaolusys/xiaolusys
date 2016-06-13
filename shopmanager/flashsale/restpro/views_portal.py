@@ -29,7 +29,7 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GoodShelf.objects.filter(is_active=True)
     serializer_class = serializers.PortalSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def calc_porter_cache_key(self, view_instance, view_method,
                               request, args, kwargs):
@@ -80,7 +80,7 @@ class BrandProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = BrandProduct.objects.all()
     serializer_class = serializers.BrandProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def list(self, request, brand_id, *args, **kwargs):
         """
@@ -106,7 +106,7 @@ class BrandEntryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = BrandEntry.objects.all()
     serializer_class = serializers.BrandEntrySerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_queryset(self):
         return self.queryset.filter(is_active=True)

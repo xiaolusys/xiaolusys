@@ -51,7 +51,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GoodShelf.objects.filter(is_active=True)
     serializer_class = serializers.PosterSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def calc_porter_cache_key(self, view_instance, view_method,
                               request, args, kwargs):
@@ -138,7 +138,7 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ActivityEntry.objects.all()
     serializer_class = serializers.ActivityEntrySerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def calc_porter_cache_key(self, view_instance, view_method,
                               request, args, kwargs):
@@ -246,7 +246,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Product.objects.all()
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     paginate_by = 10
     page_query_param = 'page'

@@ -29,7 +29,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CustomerShopsSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_shop(request))
@@ -148,7 +148,7 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CuShopProsSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_shop_pros(self, request):
         """ 用户个人店铺产品信息 """

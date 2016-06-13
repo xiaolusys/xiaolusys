@@ -16,7 +16,7 @@ class ProRefRcdViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ProRefunRcordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
         queryset = self.queryset.filter(contactor=request.user.id)
@@ -48,7 +48,7 @@ class CalcuProRefRcd(viewsets.ModelViewSet):
     serializer_class = serializers.ProRefunRcdSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
         queryset = self.queryset.filter(contactor=request.user.id)

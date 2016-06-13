@@ -55,7 +55,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.XiaoluMamaSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     MM_LINKID_PATH = 'qrcode/xiaolumm'
 
     def get_owner_queryset(self, request):
@@ -207,7 +207,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CarryLogSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -309,7 +309,7 @@ class ClickCountViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ClickCountSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -350,7 +350,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.StatisticsShoppingSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -443,7 +443,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CashOutSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     cashout_type = {"c1": 10000, "c2": 20000}
 
     def get_owner_queryset(self, request):
@@ -576,7 +576,7 @@ class ClickViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ClickSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)

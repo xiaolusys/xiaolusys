@@ -47,7 +47,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ModelProduct.objects.all()
     serializer_class = serializers.ModelProductV2Serializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     paginate_by = 1
     page_query_param = 'page'
@@ -92,7 +92,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Product.objects.all()
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     paginate_by = 10
     page_query_param = 'page'

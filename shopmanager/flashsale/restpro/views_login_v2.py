@@ -78,7 +78,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
     authentication_classes = ()
     permission_classes = ()
 
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def list(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')

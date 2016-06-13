@@ -24,7 +24,7 @@ class XlmmAdvertisViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.XlmmAdvertisSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -55,7 +55,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.NinePicAdverSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_today_queryset(self):
         yesetoday = datetime.date.today() - datetime.timedelta(days=1)

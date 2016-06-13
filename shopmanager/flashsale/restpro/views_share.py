@@ -41,7 +41,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.CustomShareSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     # permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     _xlmm = None
 
