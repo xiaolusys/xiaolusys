@@ -1,6 +1,9 @@
 # -*- coding:utf8 -*-
 from django.utils.encoding import smart_unicode
 from django.db import models
+from core.models import AdminModel
+from shopback.warehouse import constants
+from shopback.logistics.models import LogisticsCompany
 
 
 class WareHouse(models.Model):
@@ -21,3 +24,29 @@ class WareHouse(models.Model):
 
     def __unicode__(self):
         return smart_unicode(self.ware_name)
+
+
+class ReceiptGoods(AdminModel):
+    """ 记录仓库接收到的货物信息 """
+    receipt_type = models.IntegerField(db_index=True, default=constants.RECEIPT_BUYER,
+                                       choices=constants.receipt_type_choice(), verbose_name=u'记录类型')
+    weight = models.FloatField(default=0.0, verbose_name=u'重量')
+    weight_time = models.DateTimeField(null=True, blank=True, verbose_name=u'称重时间')
+    express_no = models.CharField(db_index=True, max_length=64, verbose_name=u'快递号')
+    express_company = models.IntegerField(db_index=True, verbose_name=u'快递公司')
+    status = models.BooleanField(default=False, db_index=True, verbose_name=u'是否拆包')
+    memo = models.TextField(max_length=256, null=True, blank=True, verbose_name=u'备注')
+
+    class Meta:
+        unique_together = ('express_no', "express_company")
+        db_table = 'shop_ware_house_receipt'
+        app_label = 'warehouse'
+        verbose_name = u'仓库收货'
+        verbose_name_plural = u'仓库收货列表'
+
+    def __unicode__(self):
+        return u'%s-%s' % (self.receipt_type, self.express_no)
+
+    def logistic_company(self):
+        """ 物流公司 """
+        return LogisticsCompany.objects.filter(id=self.express_company).first()
