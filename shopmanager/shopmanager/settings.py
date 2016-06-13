@@ -348,7 +348,7 @@ if os.environ.get('TARGET') in ('production', 'django18'):
     }
 
     ######################## RESTFRAMEWORK CONFIG ########################
-    REST_FRAMEWORK = REST_FRAMEWORK.update({
+    REST_FRAMEWORK.update({
         'DEFAULT_RENDERER_CLASSES': (
             'rest_framework.renderers.JSONRenderer',
         ),
