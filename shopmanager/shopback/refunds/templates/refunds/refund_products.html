@@ -181,12 +181,24 @@
 				</div>
 			</div>
 			<hr/>
-			<div id="id-search-panel" class="content-search">
+			<div>
 				<div class="navbar-search product-search">
 					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
 				</div>
 				<div class="navbar-search trade-search">
 					<input type="text" id="id_trade_q" class="search-query"  placeholder="订单搜索" />
+				</div>
+				<div class="navbar-search trade-search">
+					<input type="text" id="package_pid" class="search-query"  placeholder="包裹号搜索" />
+				</div>
+				<div class="navbar-search trade-search">
+					<input type="text" id="buyer_name" class="search-query"  placeholder="姓名搜索" />
+				</div>
+				<div class="navbar-search trade-search">
+					<input type="text" id="phone" class="search-query"  placeholder="手机号搜索" />
+				</div>
+				<div class="navbar-search trade-search">
+					<input type="text" id="good_code" class="search-query"  placeholder="商品编码搜索" />
 				</div>
 			</div>
 			<hr/>
@@ -212,13 +224,14 @@
 						<tr>
 						<th style="width:5px;">序号</th>
 						<th>原单ID</th>
+							<th>商品编码</th>
 						<th>买家昵称</th>
 						<th>单数</th>
 						<th>付款日期</th>
 						<th>收货人</th>
 						<th style="width:200px;">收货地址及电话</th>
-						<th>订单状态</th>
-						<th>系统状态</th>
+						<th>订单编号</th>
+						<th>快递状态</th>
 						<th>操作</th>
 						</tr>
 					</thead>
@@ -254,5 +267,17 @@
 <script type="text/javascript" src="{{ STATIC_URL }}script/refund/refund.js"></script>
 <script type="text/javascript">
 	 new refund.Manager();
+$("#package_pid").on('input',function(e){
+var package_pid = $("#package_pid").val();
+		var url = "/trades/package_sku_item/";
+        $.ajax({"url": url, "data": {"package_pid":$("#package_pid").val()}, "type": "post", dataType: "json", "success": callback});
+        function callback(res) {
+            if (res.res) {
+                console.log("dui");
+            }
+        }
+
+
+});
 </script>
 </html>

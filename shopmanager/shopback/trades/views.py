@@ -26,11 +26,14 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product, ProductSku, ProductDaySale
 from core.options import log_action, ADDITION, CHANGE
 
+from flashsale.pay.models import SaleOrder      #dh
+from shopback.trades.models import PackageOrder, PackageSkuItem         #dh
+
 from shopapp.memorule import ruleMatchSplit
 from shopback.refunds.models import REFUND_STATUS, Refund
 from shopback.signals import rule_signal, change_addr_signal
 from shopback.trades.models_dirty import DirtyMergeOrder
-from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder,
+from shopback.trades.models import (MergeTrade, MergeOrder, PackageOrder,PackageSkuItem,
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
@@ -735,7 +738,6 @@ class OrderPlusView(APIView):
     renderer_classes = (new_BaseJSONRenderer, BrowsableAPIRenderer)
 
     def get(self, request, *args, **kwargs):
-
         q = request.GET.get('q').strip()
         if not q:
             return Response('没有输入查询关键字'.decode('utf8'))
@@ -1600,44 +1602,52 @@ class TradeSearchView(APIView):
     renderer_classes = (new_BaseJSONRenderer, BrowsableAPIRenderer)
 
     def get(self, request, *args, **kwargs):
-
+        trade_list = []
+        print "商品搜索"
         q = request.REQUEST.get('q')
         if not q:
             return Response(u'请输入查询字符串')
 
         if q.isdigit():
-            trades = MergeTrade.objects.filter(Q(id=q) | Q(tid=q) | Q(
-                buyer_nick=q) | Q(receiver_mobile=q))
+            # trades = MergeTrade.objects.filter(Q(id=q) | Q(tid=q) | Q(
+            #     buyer_nick=q) | Q(receiver_mobile=q))
+            # print PackageSkuItem.objects.filter(outer_id = 822289700121).count()
+            trades = PackageSkuItem.objects.filter(Q(receiver_mobile=q) | Q(package_order_pid=q) | Q(outer_id=q))
+            print trades.count()
         else:
-            trades = MergeTrade.objects.filter(Q(buyer_nick=q) | Q(
-                receiver_phone=q))
-        trade_list = []
+            return Response(trade_list)
+
         for trade in trades:
-            trade_dict = {}
-            trade_dict['id'] = trade.id
-            trade_dict['tid'] = trade.tid
-            trade_dict['seller_id'] = trade.user.id if trade.user else ''
-            trade_dict['buyer_nick'] = trade.buyer_nick
-            trade_dict['post_fee'] = trade.post_fee
-            trade_dict['payment'] = trade.payment
-            trade_dict['total_num'] = trade.order_num
-            trade_dict['pay_time'] = trade.pay_time
-            trade_dict['consign_time'] = trade.consign_time
-
-            trade_dict['receiver_name'] = trade.receiver_name
-            trade_dict['receiver_state'] = trade.receiver_state
-            trade_dict['receiver_city'] = trade.receiver_city
-            trade_dict['receiver_district'] = trade.receiver_district
-            trade_dict['receiver_address'] = trade.receiver_address
-            trade_dict['receiver_mobile'] = trade.receiver_mobile
-            trade_dict['receiver_phone'] = trade.receiver_phone
-            trade_dict['receiver_zip'] = trade.receiver_zip
-
-            trade_dict['status'] = dict(TAOBAO_TRADE_STATUS).get(trade.status,
-                                                                 u'其他')
-            trade_dict['sys_status'] = dict(SYS_TRADE_STATUS).get(
-                trade.sys_status, u'其他')
-            trade_list.append(trade_dict)
+            if trade.package_order_pid:
+                trade_dict = {}
+                trade_dict['id'] = trade.id
+                trade_dict['tid'] = trade.oid  # 原单ＩＤ
+                trade_dict['seller_id'] = "未知"
+                trade_dict['outer_id'] = trade.outer_id
+                trade_dict['buyer_nick'] = PackageOrder.objects.get(pid=trade.package_order_pid).buyer_nick  # 购买者昵称
+                trade_dict['post_fee'] = PackageOrder.objects.get(pid=trade.package_order_pid).post_cost  # 物流费用
+                trade_dict['payment'] = trade.payment  # 实付款
+                trade_dict['total_num'] = trade.num  # 单数
+                trade_dict['pay_time'] = trade.pay_time  # 付款日期
+                trade_dict['consign_time'] = '未知'  # 预售日期
+                trade_dict['receiver_name'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_name   # 收货人
+                trade_dict['receiver_state'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_state  # 收货人省
+                trade_dict['receiver_city'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_city  # 收货人市
+                trade_dict['receiver_district'] = PackageOrder.objects.get(
+                    pid=trade.package_order_pid).receiver_district  # 区
+                trade_dict['receiver_address'] = PackageOrder.objects.get(
+                    pid=trade.package_order_pid).receiver_address  # 详细地址
+                trade_dict['receiver_mobile'] = trade.receiver_mobile  # 收货人手机
+                trade_dict['receiver_phone'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_phone  # 收货人电话
+                trade_dict['receiver_zip'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_zip  # 收货人邮编
+                trade_dict['package_order_pid'] = trade.package_order_pid
+                # trade_dict['status'] = dict(TAOBAO_TRADE_STATUS).get(trade.status,
+                #                                                      u'其他') #订单状态
+                trade_dict['status'] = trade.get_assign_status_display()
+                # trade_dict['sys_status'] = dict(SYS_TRADE_STATUS).get(
+                #     trade.sys_status, u'其他')                                #系统状态
+                trade_dict['sys_status'] = trade.get_assign_status_display()
+                trade_list.append(trade_dict)
 
         return Response(trade_list)
 
@@ -1700,7 +1710,48 @@ class TradeSearchView(APIView):
 
         return Response(order_list)
 
-
+# class OrderListView(APIView):
+#     """ docstring for class OrderListView """
+#     permission_classes = (permissions.IsAuthenticated,)
+#     authentication_classes = (authentication.SessionAuthentication,
+#                               authentication.BasicAuthentication,)
+#     renderer_classes = (OrderListRender,
+#                         new_BaseJSONRenderer,
+#                         BrowsableAPIRenderer,)
+#
+#     def get(self, request, id, *args, **kwargs):
+#
+#         order_list = []
+#         try:
+#             trade = MergeTrade.objects.get(id=id)
+#         except:
+#             return HttpResponseNotFound('<h1>订单未找到</h1>')
+#         for order in trade.merge_orders.all():
+#             try:
+#                 prod = Product.objects.get(outer_id=order.outer_id)
+#             except:
+#                 prod = None
+#             order_dict = {}
+#             order_dict['id'] = order.id
+#             order_dict['tid'] = order.merge_trade.tid
+#             order_dict['outer_id'] = order.outer_id
+#             order_dict['outer_sku_id'] = order.outer_sku_id
+#             order_dict['total_fee'] = order.total_fee
+#             order_dict['payment'] = order.payment
+#             order_dict['title'] = prod and prod.name or order.title
+#             order_dict['num'] = order.num
+#             order_dict['sku_properties_name'] = order.sku_properties_name
+#             order_dict['refund_status'] = dict(REFUND_STATUS).get(
+#                 order.refund_status, u'其他')
+#             order_dict['seller_nick'] = order.seller_nick
+#             order_dict['buyer_nick'] = order.buyer_nick
+#             order_dict['receiver_name'] = trade.receiver_name
+#             order_dict['pay_time'] = order.pay_time
+#             order_dict['status'] = dict(TAOBAO_ORDER_STATUS).get(order.status,
+#                                                                  u'其他')
+#             order_list.append(order_dict)
+#
+#         return Response({"object": {'order_list': order_list}})
 ############################### 交易订单商品列表 #################################
 class OrderListView(APIView):
     """ docstring for class OrderListView """
@@ -1715,33 +1766,33 @@ class OrderListView(APIView):
 
         order_list = []
         try:
-            trade = MergeTrade.objects.get(id=id)
+            order = PackageSkuItem.objects.get(id=id)
         except:
             return HttpResponseNotFound('<h1>订单未找到</h1>')
-        for order in trade.merge_orders.all():
-            try:
-                prod = Product.objects.get(outer_id=order.outer_id)
-            except:
-                prod = None
-            order_dict = {}
-            order_dict['id'] = order.id
-            order_dict['tid'] = order.merge_trade.tid
-            order_dict['outer_id'] = order.outer_id
-            order_dict['outer_sku_id'] = order.outer_sku_id
-            order_dict['total_fee'] = order.total_fee
-            order_dict['payment'] = order.payment
-            order_dict['title'] = prod and prod.name or order.title
-            order_dict['num'] = order.num
-            order_dict['sku_properties_name'] = order.sku_properties_name
-            order_dict['refund_status'] = dict(REFUND_STATUS).get(
-                order.refund_status, u'其他')
-            order_dict['seller_nick'] = order.seller_nick
-            order_dict['buyer_nick'] = order.buyer_nick
-            order_dict['receiver_name'] = trade.receiver_name
-            order_dict['pay_time'] = order.pay_time
-            order_dict['status'] = dict(TAOBAO_ORDER_STATUS).get(order.status,
-                                                                 u'其他')
-            order_list.append(order_dict)
+
+        try:
+            prod = Product.objects.get(outer_id=order.outer_id)
+        except:
+            prod = None
+        order_dict = {}
+        order_dict['id'] = order.id     #PackageSkuItem的id
+        order_dict['tid'] = order.oid      #PackageSkuItem的原单id
+        order_dict['outer_id'] = order.outer_id     #PackageSkuItem的商品编码
+        order_dict['outer_sku_id'] = order.outer_sku_id     #PackageSkuItem的规格ＩＤ
+        order_dict['total_fee'] = order.total_fee       #PackageSkuItem的总费用
+        order_dict['payment'] = order.payment       #PackageSkuItem的实付款
+        order_dict['title'] = prod and prod.name or order.title     #PackageSkuItem的商品名字
+        order_dict['num'] = order.num       #PackageSkuItem的件数
+        order_dict['sku_properties_name'] = SaleOrder.objects.get(id = order.sale_order_id).sku_name        #SaleＯrder的sku名字
+        # order_dict['refund_status'] = dict(REFUND_STATUS).get(
+        #     order.refund_status, u'其他')
+        # order_dict['seller_nick'] = order.seller_nick
+        order_dict['refund_status'] = order.get_refund_status_display()     #PackageSkuItem退款状态
+        order_dict['buyer_nick'] = PackageOrder.objects.get(pid=order.package_order_pid).buyer_nick     #PackageOrder的买家昵称
+        order_dict['receiver_name'] = PackageOrder.objects.get(pid = order.package_order_pid).receiver_name     #PackageOrder的收货人
+        order_dict['pay_time'] = order.pay_time     #PackageSkuItem的付款时间
+        order_dict['status'] = order.get_assign_status_display()        #PackageSkuItem的状态
+        order_list.append(order_dict)
 
         return Response({"object": {'order_list': order_list}})
 
@@ -2732,7 +2783,22 @@ def search_trade(request):
     return render(request, 'trades/order_detail.html', {'info': rec1,
                                                         'time': today})
 
-
+def search_package_sku_item(request):
+    package_pid = request.REQUEST.get("package_pid",None)
+    print package_pid
+    try:
+        package_sku_item = PackageSkuItem.objects.get(package_order_pid = package_pid)
+        print package_sku_item.sale_order_id
+        package_sku_item_oid = SaleOrder.objects.get(id = package_sku_item.sale_order_id).oid
+        print package_sku_item_oid
+        package_sku_item = {package_sku_item}
+        shishi = {"a" : 1, "b" : 2}
+        return HttpResponse(json.dumps({"res" : True,"data": [shishi],"desc":""}))
+    except Exception,msg:
+        print "包裹号不存在或包裹号不唯一"
+        print msg
+        return HttpResponse(json.dumps({"res" : False,"data": ["包裹号不存在或包裹号不唯一"],"desc":""}))
+1
 def manybeizhu(request):
     return render(request, 'trades/manybeizhu.html')
 
