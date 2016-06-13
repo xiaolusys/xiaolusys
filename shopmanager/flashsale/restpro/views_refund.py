@@ -102,7 +102,7 @@ def modify_logistic_refund(customer, company, order, sid, refund):
 def apply_fee_handler(num=None, order=None):
     """ 计算退款费用　"""
     if num == 0 or None:  # 提交的退款产品数量为0
-        raise exceptions.APIException(u'退货数量为0')
+        return 0
     if num == order.num:  # 退款数量等于购买数量 全额退款
         apply_fee = order.payment  # 申请费用
     else:
