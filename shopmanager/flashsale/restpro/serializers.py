@@ -270,7 +270,6 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
                   'refund_status', 'refund_status_display', "refund_id", 'kill_title', 'is_seckill')
 
-
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
     orders = SaleOrderSerializer(source='sale_orders', many=True, read_only=True)
@@ -327,7 +326,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
                   'sku_id', 'sku_name', 'refund_num', 'buyer_nick', 'mobile', 'phone', 'proof_pic',
                   'total_fee', 'payment', 'created', 'modified', 'company_name', 'sid', 'reason', 'pic_path',
                   'desc', 'feedback', 'has_good_return', 'has_good_change', 'good_status', 'status', 'refund_fee',
-                  "return_address", "status_display", "amount_flow", "status_shaft")
+                  "return_address", "status_display", "amount_flow", "status_shaft", "refund_channel")
 
 
 #####################################################################################

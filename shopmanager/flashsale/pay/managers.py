@@ -39,26 +39,22 @@ class ShopProductCategoryManager(BaseManager):
 
 
 class SaleRefundManager(BaseManager):
-    def create_or_update_by_order(self,
-                                  good_status,
-                                  sale_order_id=None, reason=None, refund_num=None,
-                                  refund_fee=None, desc=None, proof_pic=None, status=None):
+    def create_or_update_by_order(self, good_status=None, sale_order_id=None
+                                  , reason=None, refund_num=None, refund_fee=None,
+                                   desc=None, proof_pic=None, status=None, refund_channel=None):
         if not sale_order_id:
-            logger.error(u'SaleRefundManager: %s order id not found :' % sale_order_id)
-            return
-        from flashsale.pay.models import SaleOrder, SaleTrade, TradeCharge
+            raise Exception(u'SaleRefundManager: %s order id not found :' % sale_order_id)
 
+        from flashsale.pay.models import SaleOrder, SaleTrade, TradeCharge
         order = SaleOrder.objects.get(id=sale_order_id)
         trade = order.sale_trade
         if trade.channel not in (SaleTrade.BUDGET, SaleTrade.WALLET):  # 如果不是　小鹿钱包或者妈妈钱包支付　就要检查charge
             charge = TradeCharge.objects.filter(order_no=trade.tid, paid=True).first()  # 确认支付的交易charge
             if not charge:  # 没有支付记录
-                logger.error(u'SaleRefundManager: order id %s charge not found' % sale_order_id)
-                return
+                raise Exception(u'SaleRefundManager: order id %s charge not found' % sale_order_id)
 
         refund = self.filter(order_id=sale_order_id).first()
         from shopback.refunds.models import REFUND_REASON
-
         if refund:
             logger.warn(u'SaleRefundManager: refund %s was exists!' % sale_order_id)
             # 如果存在退款单则比较　有改变的字段则更新
@@ -82,7 +78,8 @@ class SaleRefundManager(BaseManager):
                 "good_status": good_status,
                 "status": status,
                 "desc": desc,
-                "proof_pic": proof_pic
+                "proof_pic": proof_pic,
+                "refund_channel":refund_channel,
             }
             for k, v in params.iteritems():
                 if v is None:
@@ -124,7 +121,8 @@ class SaleRefundManager(BaseManager):
                 good_status=good_status,
                 reason=REFUND_REASON[reason][1],
                 desc=desc,
-                proof_pic=proof_pic
+                proof_pic=proof_pic,
+                refund_channel=refund_channel,
             )
             refund.save()
             signal_saletrade_refund_post.send(sender=self.model, obj=refund)

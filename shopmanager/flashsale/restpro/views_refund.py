@@ -23,14 +23,18 @@ def create_refund(user=None, order=None, reason=None, num=None,
     # 退款处理　生成退款单
     if refund_fee > (order.payment / order.num) * num:  # 退款金额不能大于 单价乘以退款数量
         raise exceptions.APIException(u'退货金额大于实付款')
-    refund, state = SaleRefund.objects.create_or_update_by_order(good_status=good_status,
-                                                                 sale_order_id=order.id,
-                                                                 reason=reason,
-                                                                 refund_num=num,
-                                                                 refund_fee=refund_fee,
-                                                                 desc=desc,
-                                                                 refund_channel=refund_channel,
-                                                                 proof_pic=proof_pic)
+
+    refund, state = SaleRefund.objects.create_or_update_by_order(
+        good_status=good_status
+        , sale_order_id=order.id
+        , reason=reason
+        , refund_num=num
+        , refund_fee=refund_fee
+        , desc=desc
+        , refund_channel=refund_channel
+        , proof_pic=proof_pic
+    )
+
     if state:
         log_action(user, refund, ADDITION, u'用户售后增加退货款单信息！')
     order_params = {
@@ -47,6 +51,7 @@ def create_refund(user=None, order=None, reason=None, num=None,
     if order_update_fields:
         order.save(update_fields=order_update_fields)
         log_action(user, order, CHANGE, u'用户售后提交申请时修改order信息！')
+
     pushTradeRefundTask.delay(refund.id)
 
 
@@ -143,7 +148,7 @@ def refund_Handler(request):
         elif order.status == SaleOrder.TRADE_BUYER_SIGNED:  # 确认签收
             good_status = SaleRefund.BUYER_RECEIVED
         else:  # 已经付款　或者　确认签收 才允许退款
-            return {"code": 6, "info": "订单状态异常!", "apply_fee": 0}
+            return {"code": 6, "info": "请签收后申请退款!", "apply_fee": 0}
         refund_fee = apply_fee_handler(num=num, order=order)
         refund = SaleRefund.objects.filter(id=order.refund_id).first()
         if modify == 1:  # 修改该金额
@@ -169,8 +174,9 @@ def refund_Handler(request):
         # 创建退款单
         if refund:
             return {"code": 8, "info": "申请已经提交!", "apply_fee": refund_fee}
-        create_refund(user=user, reason=reason, num=num, refund_fee=refund_fee, desc=desc,good_status=good_status,
-                       order=order, modify=modify, proof_pic=proof_p,refund_channel=refund_channel)
+        create_refund(user=user, reason=reason, num=num, refund_fee=refund_fee, desc=desc, good_status=good_status,
+                       order=order, modify=modify, proof_pic=proof_p, refund_channel=refund_channel)
+
         return {"code": 0, "info": "操作成功", "res": "ok"}
     except Exception, exc:
         logger.error(u'refund_Handler %s' % exc)
