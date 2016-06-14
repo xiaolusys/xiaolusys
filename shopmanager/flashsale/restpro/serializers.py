@@ -278,7 +278,7 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
     logistics_company = LogisticsCompanySerializer(read_only=True)
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    status_display = serializers.CharField(source='status_name', read_only=True)
     order_pic = serializers.CharField(read_only=True)
 
     class Meta:
@@ -297,7 +297,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
     logistics_company = LogisticsCompanySerializer(read_only=True)
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    status_display = serializers.CharField(source='status_name', read_only=True)
     extras = JSONParseField(source='get_extras', read_only=True)
     class Meta:
         model = SaleTrade
