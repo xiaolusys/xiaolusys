@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def create_refund(user=None, order=None, reason=None, num=None,
                   refund_fee=None, desc=None, good_status=None,
-                  modify=None, proof_pic=None):
+                  modify=None, proof_pic=None, refund_channel=None):
     if num == 0 or None:  # 提交的退款产品数量为0
         raise exceptions.APIException(u'退货数量为0')
     if num > order.num:
@@ -29,6 +29,7 @@ def create_refund(user=None, order=None, reason=None, num=None,
                                                                  refund_num=num,
                                                                  refund_fee=refund_fee,
                                                                  desc=desc,
+                                                                 refund_channel=refund_channel,
                                                                  proof_pic=proof_pic)
     if state:
         log_action(user, refund, ADDITION, u'用户售后增加退货款单信息！')
@@ -46,7 +47,7 @@ def create_refund(user=None, order=None, reason=None, num=None,
     if order_update_fields:
         order.save(update_fields=order_update_fields)
         log_action(user, order, CHANGE, u'用户售后提交申请时修改order信息！')
-    pushTradeRefundTask(refund.id)
+    pushTradeRefundTask.delay(refund.id)
 
 
 def modify_refund_fee(customer, order, refund, refund_fee,
@@ -120,6 +121,7 @@ def refund_Handler(request):
         oid = int(content.get("id", 0))
         reason = int(request.data.get("reason", "0"))
         num = int(request.data.get("num", 0))
+        refund_channel = request.data.get("refund_channel", "")
         desc = request.data.get("description", '')
         proof_pic = str(request.data.get("proof_pic", ""))
         order = SaleOrder.objects.filter(id=oid).first()  # 获取订单
@@ -167,8 +169,8 @@ def refund_Handler(request):
         # 创建退款单
         if refund:
             return {"code": 8, "info": "申请已经提交!", "apply_fee": refund_fee}
-        create_refund(user=user, reason=reason, num=num, refund_fee=refund_fee, desc=desc,
-                      good_status=good_status, order=order, modify=modify, proof_pic=proof_p)
+        create_refund(user=user, reason=reason, num=num, refund_fee=refund_fee, desc=desc,good_status=good_status,
+                       order=order, modify=modify, proof_pic=proof_p,refund_channel=refund_channel)
         return {"code": 0, "info": "操作成功", "res": "ok"}
     except Exception, exc:
         logger.error(u'refund_Handler %s' % exc)
