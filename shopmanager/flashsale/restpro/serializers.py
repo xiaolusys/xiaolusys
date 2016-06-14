@@ -299,7 +299,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     logistics_company = LogisticsCompanySerializer(read_only=True)
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    extras = serializers.CharField(source='get_extras', read_only=True)
+    extras = JSONParseField(source='get_extras', read_only=True)
     class Meta:
         model = SaleTrade
         fields = ('id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',

@@ -468,7 +468,8 @@ class SaleTrade(BaseModel):
 
         refund_resp_list = []
         for channel in refund_channels:
-            refund_param = _default.get(channel)
+            channel_alias = channel.split('_')[0]
+            refund_param = _default.get(channel_alias)
             refund_resp_list.append({
                 'refund_channel': channel,
                 'name': refund_param['name'],
