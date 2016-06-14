@@ -14,7 +14,7 @@
 			<td>{{ order.pay_time }}</td>
 			<td>{{ order.refund_status }}</td>
 			<td>{{ order.status }}</td>
-			<td><button outer_id="{{ order.outer_id }}" outer_sku_id="{{ order.outer_sku_id }}" tid="{{ order.tid }}" 
+			<td><button outer_id="{{ order.outer_id }}" outer_sku_id="{{ order.outer_sku_id }}" tid="{{ order.tid }}" oid="{{ order.oid }}"
 				title="{{ order.title }}" property="{{ order.sku_properties_name }}" class="order-list-add btn btn-mini btn-primary">添加</button></td>	
 		</tr>
 		{% endfor %}

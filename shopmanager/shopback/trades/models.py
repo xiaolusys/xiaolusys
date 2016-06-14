@@ -1688,8 +1688,8 @@ class PackageSkuItem(BaseModel):
     FINISHED = 2
     CANCELED = 3
     ASSIGN_STATUS = (
-        (NOT_ASSIGNED, u'待分配'),
-        (ASSIGNED, u'已分配'),
+        (NOT_ASSIGNED, u'未备货'),
+        (ASSIGNED, u'已备货'),
         (FINISHED, u'已出货'),
         (CANCELED, u'已取消')
     )

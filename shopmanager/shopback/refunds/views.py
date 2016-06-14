@@ -254,13 +254,12 @@ class RefundView(APIView):
         return Response(prod_list)
 
     def post(self, request, *args, **kwargs):
-
         content = request.REQUEST
-
         rf = RefundProduct()
         for k, v in content.iteritems():
             if k == 'can_reuse':
                 v = v == "true" and True or False
+                print "nmb", v
             hasattr(rf, k) and setattr(rf, k, v)
         rf.save()
         # 创建一条退货款单记录
@@ -270,7 +269,7 @@ class RefundView(APIView):
 
         # return rf
         return Response(serializers.RefundProductSerializer(rf).data)
-
+        #return Response(True)
 
 @csrf_exempt
 @staff_member_required
@@ -342,6 +341,7 @@ from unrelate_product_handler import update_Product_Collect_Num_By_Delete
 @staff_member_required
 def delete_trade_order(request, id):
     user_id = request.user.id
+    print id
     try:
         refund_prod = RefundProduct.objects.get(id=id)
     except:
