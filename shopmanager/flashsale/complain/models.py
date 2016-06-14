@@ -10,11 +10,11 @@ class Complain(models.Model):
     SUGGEST = 2
     SALE_AFTER = 4
     OTHER = 3
-    TYPE_CHOICES = ((SALE_PRO, U'购物问题'),
-                    (ORDER_PRO, U'订单相关'),
+    TYPE_CHOICES = ((SALE_PRO, U'未分类'),
+                    (ORDER_PRO, U'订单/配送'),
                     (SALE_AFTER, U'售后问题'),
-                    (SUGGEST, U'意见/建议'),
-                    (OTHER, U'其他'),)
+                    (SUGGEST, U'产品建议'),
+                    (OTHER, U'其他问题'),)
     com_type = models.IntegerField(choices=TYPE_CHOICES, default=OTHER, verbose_name=u'类型')
     user_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'投诉人ID')
     com_title = models.CharField(max_length=64, db_index=True, blank=True, default=u'问题反馈', verbose_name=u'标题')
