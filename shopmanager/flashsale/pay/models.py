@@ -217,7 +217,11 @@ class SaleTrade(BaseModel):
 
     @property
     def status_name(self):
-        return self.get_status_display()
+        if self.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
+            first_order = self.sale_orders.first()
+            if first_order.refund_status > 0:
+                return u'退款中'
+        return super(SaleTrade, self).get_status_display()
 
     @property
     def body_describe(self):
@@ -688,11 +692,8 @@ class SaleOrder(PayBaseModel):
 
     @property
     def refund(self):
-        try:
-            refund = SaleRefund.objects.get(trade_id=self.sale_trade.id, order_id=self.id)
-            return refund
-        except:
-            return None
+        refund = SaleRefund.objects.get(trade_id=self.sale_trade.id, order_id=self.id).first()
+        return refund
 
     @property
     def package_order(self):
