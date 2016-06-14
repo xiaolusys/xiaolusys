@@ -254,7 +254,7 @@ class RefundPopPageView(APIView):
                     if strade.channel == SaleTrade.WALLET:
                         obj.refund_wallet_approve()
 
-                    elif strade.channel == SaleTrade.BUDGET or strade.has_budget_paid:
+                    elif obj.is_fastrefund():
                         obj.refund_fast_approve()
 
                     elif obj.refund_fee > 0 and obj.charge:  # 有支付编号

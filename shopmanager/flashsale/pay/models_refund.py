@@ -158,6 +158,10 @@ class SaleRefund(PayBaseModel):
         """　是否极速退款 """
         return self.refund_channel == constants.BUDGET or self.sale_trade.is_budget_paid()
 
+    def is_postrefund(self):
+        """　发货后退款 """
+        return self.good_status in (self.BUYER_RECEIVED, self.BUYER_RETURNED_GOODS)
+
     @property
     def sale_trade(self):
         from flashsale.pay.models import SaleTrade
@@ -267,7 +271,7 @@ class SaleRefund(PayBaseModel):
         """　极速退款审核确认 """
         from flashsale.pay.models import BudgetLog
         strade = self.sale_trade
-        sorder = self.sale_trade()
+        sorder = self.sale_order()
 
         obj = self
         payment = int(obj.refund_fee * 100)

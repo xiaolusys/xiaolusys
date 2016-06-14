@@ -271,6 +271,9 @@ def pushTradeRefundTask(refund_id):
         else:
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
         refund.save()
+        # 极速退款,如果是发货前申请
+        if sale_refund.is_fastrefund() and not sale_refund.is_postrefund():
+            sale_refund.refund_fast_approve()
     except Exception, exc:
         raise pushTradeRefundTask.retry(exc=exc)
 
