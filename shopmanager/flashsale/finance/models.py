@@ -51,15 +51,15 @@ class Bill(BaseModel):
                    (RECEIVE_DIRECT, u'直退'),
                    (RECEIVE_DEDUCTIBLE, u'余额抵扣'))
     pay_method = models.IntegerField(choices=PAY_CHOICES, verbose_name=u'支付方式')
-    pay_taobao_link = models.TextField(null=True, verbose_name=u'淘宝链接')
+    pay_taobao_link = models.TextField(null=True, blank=True, verbose_name=u'淘宝链接')
     # receive_method = models.IntegerField(choices=((1, u'直退'), (2, u'余额抵扣')), verbose_name=u'收款方式')
-    receive_account = models.CharField(max_length=50, null=True, verbose_name=u'收款账号')
-    receive_name = models.CharField(max_length=16, null=True, verbose_name=u'收款账号')
-    pay_account = models.TextField(null=True, verbose_name=u'付款账号')
-    transcation_no = models.CharField(max_length=100, null=True, verbose_name=u'交易单号')
+    receive_account = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'收款账号')
+    receive_name = models.CharField(max_length=16, null=True, blank=True, verbose_name=u'收款人姓名')
+    pay_account = models.TextField(null=True, blank=True, verbose_name=u'付款账号')
+    transcation_no = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'交易单号')
     attachment = models.CharField(max_length=128, blank=True, verbose_name=u'附件')
-    delete_reason = models.CharField(max_length=100, null=True, verbose_name=u'作废理由')
-    note = models.CharField(max_length=100, verbose_name=u'备注')
+    delete_reason = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'作废理由')
+    note = models.CharField(max_length=100, blank=True, verbose_name=u'备注')
     # -----------冗余备查询字段--------------
     supplier = models.ForeignKey(SaleSupplier, null=True, verbose_name=u'供应商')
 
