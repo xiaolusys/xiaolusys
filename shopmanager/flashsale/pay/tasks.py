@@ -228,7 +228,7 @@ def notifyTradeRefundTask(notify):
             logger.warn('refund fail:%s' % notify)
             return
 
-        srefund.refund_Confirm()
+        srefund.refund_confirm()
 
         strade = SaleTrade.objects.get(id=srefund.trade_id)
         if strade.is_Deposite_Order():
