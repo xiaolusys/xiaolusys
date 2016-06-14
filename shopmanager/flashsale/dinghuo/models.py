@@ -821,6 +821,21 @@ class InBound(models.Model):
         verbose_name_plural = u'入仓单列表'
 
 
+def update_warehouse_receipt_status(sender, instance, created, **kwargs):
+    """
+    update the warehouse receipt status to opened!
+    """
+    if created:
+        from shopback.warehouse.models import ReceiptGoods
+        receipt = ReceiptGoods.objects.filter(express_no=instance.express_no).first()
+        if receipt:
+            receipt.status = True
+            receipt.save()
+
+post_save.connect(update_warehouse_receipt_status, sender=InBound,
+                  dispatch_uid='post_save_update_warehouse_receipt_status')
+
+
 class InBoundDetail(models.Model):
     NORMAL = 1
     PROBLEM = 2
