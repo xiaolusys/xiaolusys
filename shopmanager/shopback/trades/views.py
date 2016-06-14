@@ -1603,7 +1603,6 @@ class TradeSearchView(APIView):
 
     def get(self, request, *args, **kwargs):
         trade_list = []
-        print "商品搜索"
         q = request.REQUEST.get('q')
         if not q:
             return Response(u'请输入查询字符串')
@@ -1613,33 +1612,32 @@ class TradeSearchView(APIView):
             #     buyer_nick=q) | Q(receiver_mobile=q))
             # print PackageSkuItem.objects.filter(outer_id = 822289700121).count()
             trades = PackageSkuItem.objects.filter(Q(receiver_mobile=q) | Q(package_order_pid=q) | Q(outer_id=q))
-            print trades.count()
         else:
             return Response(trade_list)
 
         for trade in trades:
             if trade.package_order_pid:
+                package_order = PackageOrder.objects.get(pid=trade.package_order_pid)
                 trade_dict = {}
                 trade_dict['id'] = trade.id
-                trade_dict['tid'] = trade.oid  # 原单ＩＤ
+                trade_dict['tid'] = trade.sale_trade_id  # 原单ＩＤ
+                trade_dict['oid'] = trade.oid
                 trade_dict['seller_id'] = "未知"
                 trade_dict['outer_id'] = trade.outer_id
-                trade_dict['buyer_nick'] = PackageOrder.objects.get(pid=trade.package_order_pid).buyer_nick  # 购买者昵称
-                trade_dict['post_fee'] = PackageOrder.objects.get(pid=trade.package_order_pid).post_cost  # 物流费用
+                trade_dict['buyer_nick'] = package_order.buyer_nick  # 购买者昵称
+                trade_dict['post_fee'] = package_order.post_cost  # 物流费用
                 trade_dict['payment'] = trade.payment  # 实付款
                 trade_dict['total_num'] = trade.num  # 单数
                 trade_dict['pay_time'] = trade.pay_time  # 付款日期
                 trade_dict['consign_time'] = '未知'  # 预售日期
-                trade_dict['receiver_name'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_name   # 收货人
-                trade_dict['receiver_state'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_state  # 收货人省
-                trade_dict['receiver_city'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_city  # 收货人市
-                trade_dict['receiver_district'] = PackageOrder.objects.get(
-                    pid=trade.package_order_pid).receiver_district  # 区
-                trade_dict['receiver_address'] = PackageOrder.objects.get(
-                    pid=trade.package_order_pid).receiver_address  # 详细地址
+                trade_dict['receiver_name'] = package_order.receiver_name   # 收货人
+                trade_dict['receiver_state'] = package_order.receiver_state  # 收货人省
+                trade_dict['receiver_city'] = package_order.receiver_city  # 收货人市
+                trade_dict['receiver_district'] = package_order.receiver_district  # 区
+                trade_dict['receiver_address'] = package_order.receiver_address  # 详细地址
                 trade_dict['receiver_mobile'] = trade.receiver_mobile  # 收货人手机
-                trade_dict['receiver_phone'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_phone  # 收货人电话
-                trade_dict['receiver_zip'] = PackageOrder.objects.get(pid=trade.package_order_pid).receiver_zip  # 收货人邮编
+                trade_dict['receiver_phone'] = package_order.receiver_phone  # 收货人电话
+                trade_dict['receiver_zip'] = package_order.receiver_zip  # 收货人邮编
                 trade_dict['package_order_pid'] = trade.package_order_pid
                 # trade_dict['status'] = dict(TAOBAO_TRADE_STATUS).get(trade.status,
                 #                                                      u'其他') #订单状态
@@ -1648,7 +1646,7 @@ class TradeSearchView(APIView):
                 #     trade.sys_status, u'其他')                                #系统状态
                 trade_dict['sys_status'] = trade.get_assign_status_display()
                 trade_list.append(trade_dict)
-
+        print trade_list
         return Response(trade_list)
 
     def post(self, request, *args, **kwargs):
@@ -1776,7 +1774,8 @@ class OrderListView(APIView):
             prod = None
         order_dict = {}
         order_dict['id'] = order.id     #PackageSkuItem的id
-        order_dict['tid'] = order.oid      #PackageSkuItem的原单id
+        order_dict['tid'] = order.sale_trade_id      #PackageSkuItem的原单id
+        order_dict['oid'] = order.oid
         order_dict['outer_id'] = order.outer_id     #PackageSkuItem的商品编码
         order_dict['outer_sku_id'] = order.outer_sku_id     #PackageSkuItem的规格ＩＤ
         order_dict['total_fee'] = order.total_fee       #PackageSkuItem的总费用

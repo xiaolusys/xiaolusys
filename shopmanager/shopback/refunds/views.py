@@ -254,12 +254,7 @@ class RefundView(APIView):
         return Response(prod_list)
 
     def post(self, request, *args, **kwargs):
-        print "zuile"
         content = request.REQUEST
-        print type(content)
-        for k,v in content.iteritems():
-            print k,v
-
         rf = RefundProduct()
         for k, v in content.iteritems():
             if k == 'can_reuse':
