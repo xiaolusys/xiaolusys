@@ -47,11 +47,11 @@ class SaleRefundTestCase(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data['code'], 0)
         refund = self.getRefundInfo(trade_id, order_id)
-        self.assertEqual(refund['status'], 3)
         self.assertEqual(refund['refund_num'], pdata['num'])
         self.assertNotEqual(refund['reason'],'')
         self.assertEqual(refund['desc'], pdata['description'])
         self.assertEqual(refund['proof_pic'][0], pdata['proof_pic'])
+        self.assertEqual(refund['status'], 7)
 
     def testCreateFastRefund(self):
         trade_id, order_id = 332233, 368347

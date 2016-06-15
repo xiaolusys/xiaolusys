@@ -3,7 +3,7 @@
   "fields": {
     "consign_time": "2016-04-26T14:48:35",
     "pay_cash": 107.8,
-    "has_budget_paid": false,
+    "has_budget_paid": true,
     "pay_time": "2016-04-24T20:33:56",
     "receiver_address": "\u9ad8\u90ae\u9547\u9ec4\u6e21\u6751\u59d4\u4f1a",
     "logistics_company": 100,
