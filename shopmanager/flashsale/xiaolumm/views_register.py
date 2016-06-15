@@ -30,6 +30,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.models import WeiXinUser
 from shopback.items.models import Product
 from shopapp.weixin.options import get_openid_by_unionid
+import re
 import logging
 
 logger = logging.getLogger('django.request')
@@ -47,7 +48,9 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         mama_id: 推荐人的专属id
         """
         content = request.REQUEST
-        mama_id = content.get('mama_id', 1)
+        mama_id = content.get('mama_id')
+        mama_id = re.match("\d+",mama_id).group()
+        
         deposite_url = "/m/register/deposite/?mama_id={0}".format(mama_id)
         # 加上装饰器之后已经登陆并注册状态（customer unionid）
         # 必须注册之后才可以成为小鹿代理　　这里使用特卖公众账号授权
