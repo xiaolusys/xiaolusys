@@ -319,11 +319,16 @@
                 <strong>金额:</strong> {{ orderlist.order_amount }}
             </div>
             <div class="alert alert-success" role="alert" style="margin-top: -15px">
+                <strong>供应商汇款帐号:</strong> {{ orderlist.supplier.account_no }}
+            </div>
+            <div class="alert alert-success" role="alert" style="margin-top: -15px">
                 <strong>付款方式:</strong>
                 <select class="form-control" id="pay_way" disabled=True>
             <option value={{ orderlist.bill_method }}>{{ orderlist.get_bill_method_display }}</option>
             <option value = 11 >货到付款</option><option value=12 >预付款</option><option value=13 >付款提货</option><option value=14 >其它</option>
                     </select>
+
+
             </div>
             <div class="alert alert-success" role="alert" style="margin-top: -15px">
                 <strong>订货时间:</strong> {{ orderlist.created }}
