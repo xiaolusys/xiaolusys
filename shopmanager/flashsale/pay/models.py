@@ -1,9 +1,11 @@
 # -*- coding:utf-8 -*-
 import uuid
 import datetime
+import urlparse
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save
+from django.conf import settings
 from django.db import transaction
 
 from .base import PayBaseModel, BaseModel
@@ -25,8 +27,8 @@ from flashsale.pay import constants as CONST
 from .signals import signal_saletrade_pay_confirm, signal_saletrade_refund_post
 from .options import uniqid
 from core.fields import JSONCharMyField
-from common.utils import update_model_fields
 from shopback.users.models import User
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -226,7 +228,7 @@ class SaleTrade(BaseModel):
                 return u'退款中'
             elif is_complete_refunding and self.status == SaleTrade.TRADE_BUYER_SIGNED:
                 return u'退货中'
-        return super(SaleTrade, self).get_status_display()
+        return self.get_status_display()
 
     @property
     def body_describe(self):
@@ -1030,6 +1032,11 @@ class ShoppingCart(BaseModel):
         if pro_sku and pro_sku.product.is_onshelf():
             return pro_sku.sale_out
         return False
+
+    def get_item_weburl(self):
+        product = Product.objects.filter(id=self.item_id).first()
+        return urlparse.urljoin(settings.M_SITE_URL,
+                                Product.MALL_PRODUCT_TEMPLATE_URL.format(product.model_id))
 
 
 from signals_coupon import *
