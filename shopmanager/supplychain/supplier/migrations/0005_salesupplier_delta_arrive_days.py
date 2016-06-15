@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import tagging.fields
 
 
 class Migration(migrations.Migration):
@@ -13,8 +12,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='saleproduct',
-            name='tags',
-            field=tagging.fields.TagField(max_length=255, null=True, verbose_name='\u6807\u7b7e', blank=True),
+            model_name='salesupplier',
+            name='delta_arrive_days',
+            field=models.IntegerField(default=3, verbose_name='\u9884\u8ba1\u5230\u8d27\u5929\u6570'),
         ),
     ]

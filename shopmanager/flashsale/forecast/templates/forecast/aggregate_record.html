@@ -1,0 +1,46 @@
+<div class="panel panel-default">
+<div class="panel-heading clearfix">
+    <span>{{aggregate_order.supplier.supplier_name}}</span>
+    <div class="pull-right">
+        <div class="label label-danger inline">到货次品，少发</div>
+        <span class="label-badge label-danger ">2</span></div>
+</div>
+<div class="panel-body">
+    <ul class="list-group horizental clearfix">
+        <li class="list-group-item col-xs-4">
+
+            <ul class="list-group vertical">
+                {% for order in aggregate_order.purchase_orders %}
+                <li class="list-group-item">
+                    <a href="/admin/dinghuo/orderlist/{{order.id}}/" target="_blank"><span>{{order.id}}-订货单-{{order.created|slice:":10"}}</span></a>
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li class="list-group-item col-xs-4">
+            <ul class="list-group vertical">
+                {% for forecast in aggregate_order.forecast_inbounds %}
+                <li class="list-group-item">
+                   <a href="/admin/forecast/forecastinbound/{{forecast.id}}/" target="_blank"><span>{{forecast.id}}-预测单-{{ forecast.forecast_arrive_time|slice:":10" }}</span></a>
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li class="list-group-item col-xs-4">
+            <ul class="list-group vertical">
+                {% for inbound in aggregate_order.real_inbounds %}
+                <li class="list-group-item">
+                    <a href="#"><span>{{inbound.id}}-到货单-{{inbound.created|slice:":10"}}</span></a>
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
+</div>
+<div class="panel-footer">
+    <div class="btn btn-info">查看未发货订单</div>
+    <div class="btn btn-info">支付预付款</div>
+    <div class="btn btn-info pull-right">退库存</div>
+    <div class="btn btn-info pull-right">开始结算</div>
+</div>
+</div>

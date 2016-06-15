@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+{% load custom_filter %}
+
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>入仓单详情</title>
+        <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+        <style>
+         #panel-1 {
+             width: 80%;
+             margin: 20px auto;
+         }
+        </style>
+    </head>
+    <body>
+        <div class="panel panel-default" id="panel-1">
+            <div class="panel-heading">
+                <p>
+                    {{inbound.supplier.name}}({{inbound.supplier.id}})
+                </p>
+                <p>
+                    <strong>快递单号: </strong>
+                    <span>{{inbound.express_no}}</span>
+                </p>
+                <p>
+                    <strong>当前状态:</strong>
+                    <span>{{inbound.status}}</span>
+                </p>
+                <p>
+                    <strong>负责人:</strong>
+                    <span>{{inbound.creator}}</span>
+                </p>
+                <p>
+                    <strong>创建时间:</strong>
+                    <span>{{inbound.created}}</span>
+                </p>
+                <p>
+                    <strong>关联预测到货单:</strong>
+                    <span>{{inbound.forecast_inbound_id}}</span>
+                </p>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped" style="width:100%">
+                    <tr>
+                        <th width="200px">商品名</th>
+                        <th>商品ID</th>
+                        <th>编码</th>
+                        <th>所属仓库</th>
+                        <th>图片</th>
+                        <th>SkuID</th>
+                        <th>尺寸</th>
+                        <th>条码</th>
+                        <th>正品</th>
+                        <th>次品</th>
+                    </tr>
+                    {% for product in products %}
+                    {% for sku in product.skus %}
+                    {% if forloop.first %}
+                    <td rowspan="{{product.skus|length}}" style="min-width:150px">{{product.name}}</td>
+                    <td rowspan="{{product.skus|length}}">
+                        {{product.id}}
+                    </td>
+                    <td rowspan="{{product.skus|length}}">
+                        {{product.outer_id}}
+                    </td>
+                    <td rowspan="{{product.skus|length}}">
+                        <select class="ware-select form-control" data-product-id="{{product.id}}">
+                            {% for warehouse in warehouses %}
+                            <option value="{{warehouse.value}}"{% if product.ware_by == warehouse.value %} selected{% endif %}>{{warehouse.text}}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td rowspan="{{product.skus|length}}">
+                        <a href="{{product.product_link}}" target="_blank">
+                            <img src="{{product.pic_path}}?imageView2/0/w/120" data-pic-path="{{product.pic_path}}" width="120px">
+                        </a>
+                    </td>
+                    {% endif %}
+                    <td>{{sku.id}}</td>
+                    <td>{{sku.properties_name}}</td>
+                    <td>{{sku.barcode}}</td>
+                    <td>{{sku.arrival_quantity}}</td>
+                    <td>{{sku.inferior_quantity}}</td>
+                    {% endfor %}
+                    {% endfor %}
+                </table>
+            </div>
+         </div>
+         <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+         <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+         <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+         <script src="{{ STATIC_URL }}underscore/underscore.string.min.js"></script>
+         <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+         <script src="{{ STATIC_URL }}typeahead.bundle.min.js"></script>
+         <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
+         <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+         <script src="/static/wap/js/template.js"></script>
+         <script>
+        </script>
+    </body>
+</html>

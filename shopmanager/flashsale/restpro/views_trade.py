@@ -552,13 +552,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     > - post_fee：快递费用
     > - discount_fee：优惠折扣
     > - total_fee：总费用
-    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:conponid:2
+    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:couponid:2
     > - uuid：系统分配唯一ID
     - {path}/buynow_create[.formt]:立即支付订单接口
     > - item_id：商品ID，如 `100,101,...` 
     > - sku_id:规格ID
     > - num:购买数量
-    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:conponid:2
+    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:couponid:2
     > - 其它参数(不包含cart_ids)如上
     """
     queryset = SaleTrade.objects.all()

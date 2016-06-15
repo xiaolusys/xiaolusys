@@ -451,7 +451,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     > - post_fee：快递费用
     > - discount_fee：优惠折扣
     > - total_fee：总费用
-    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:conponid:2
+    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:couponid:2
     > - uuid：系统分配唯一ID
     > - logistics_company_id: 快递公司id
     > - 返回结果：{'code':0,'info':'ok','charge':{...}},请求成功code=0,失败code大于0,错误信息info 
@@ -459,8 +459,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     > - item_id：商品ID，如 `100,101,...` 
     > - sku_id:规格ID
     > - num:购买数量
+<<<<<<< HEAD
     > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:conponid:2
     > - logistics_company_id: 快递公司id
+=======
+    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:couponid:2
+>>>>>>> 3f69b9823e5cf06e71c85118058cd5a5a9e7a1d5
     > - 其它参数(不包含cart_ids)如上
     """
     queryset = SaleTrade.objects.all()

@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+{% load custom_filter %}
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>预测入仓后台</title>
+        <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}bootstrap-select/bootstrap-select.min.css" rel="stylesheet">
+        <style>
+         #form-1 {
+             width:80%;
+             margin-top:10px;
+         }
+
+         .typeahead:focus {
+             border: 2px solid #0097cf;
+         }
+
+         .tt-query {
+             -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+             -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+             box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+         }
+
+         .tt-hint {
+             color: #999
+         }
+
+         .tt-menu {
+             margin: 14px 0;
+             padding: 8px 0;
+             background-color: #fff;
+             border: 1px solid #ccc;
+             border: 1px solid rgba(0, 0, 0, 0.2);
+             -webkit-border-radius: 8px;
+             -moz-border-radius: 8px;
+             border-radius: 8px;
+             -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+             -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+             box-shadow: 0 5px 10px rgba(0,0,0,.2);
+         }
+
+         .tt-suggestion {
+             padding: 3px 20px;
+             line-height: 24px;
+         }
+
+         .tt-suggestion:hover {
+             cursor: pointer;
+             color: #fff;
+             background-color: #0097cf;
+         }
+
+         .tt-suggestion.tt-cursor {
+             color: #fff;
+             background-color: #0097cf;
+         }
+
+         .tt-suggestion p {
+             margin: 0;
+         }
+
+         #panel-1, #panel-2, #panel-3 {
+             width: 80%;
+             margin:20px auto;
+         }
+         #form-3 input.error[type="number"]{
+             border-color: #ff0000;
+         }
+         #tips {
+             width: 100%;
+             display: block;
+         }
+         #memo {
+             width: 100%;
+             background-color: #b4eeb4;
+         }
+         #action {
+             margin: 0;
+         }
+
+         #action > .row {
+             margin: 15px 0;
+         }
+         i.glyphicon:hover {
+             color: #ff4500;
+         }
+
+         #form-3 tr.sku:not(.candidate) input[type="number"] {
+             display: none;
+         }
+         #form-3 tr.sku:not(.candidate) img {
+             display: none;
+         }
+
+         .candidate span.properties-name {
+             color: #66CC33;
+             font-size: 18px;
+         }
+
+         #pics ul {
+             margin-top: 20px;
+             margin-bottom: 10px;
+             list-style: none;
+             -webkit-padding-start: 0px;
+         }
+
+         .package-arrival-quantity, .package-inferior-quantity {
+             color: #66cc33;
+             font-size: 18px;
+         }
+
+         #pics li {
+             height: 290px;
+         }
+         #pics li .skus {
+             overflow-y: auto;
+             height: 290px;
+         }
+
+         #pics li .input-group {
+             margin-bottom: 5px;
+         }
+
+         .product-all-skus .checkbox {
+             display: inline-block;
+         }
+
+        </style>
+    </head>
+    <body>
+    <!-- 搜索模块 start -->
+        <div id="tips"></div>
+        <form id="form-1" class="container">
+            <div class="row">
+                <div class="col-md-5 form-group">
+                    <label class="control-label">快递单号</label>
+                    <input class="form-control typeahead" id="express-no"
+                           name="express_no" placeholder="输入..." value="{{ express_no|default:'' }}">
+                </div>
+                <div class="col-md-5 form-group">
+                    <label class="control-label">订货单号</label>
+                    <input class="form-control typeahead" id="orderlist-id"
+                           name="orderlist_id" placeholder="输入..." value="{{ orderlist_id|default:'' }}">
+                </div>
+                <div class="col-md-2 form-group">
+                    <label class="control-label">&nbsp;</label>
+                    <button class="btn btn-primary btn-block submit">确定</button>
+                </div>
+            </div>
+            <input type="hidden" id="supplier-id" name="supplier_id" value="{{ supplier_id|default:0 }}">
+            <input type="hidden" id="inbound-id" name="inbound_id" value="{{ inbound_id|default:0 }}">
+        </form>
+    <!-- 搜索模块 end -->
+    <!-- 搜索结果展示模块 start -->
+        {% if supplier_id %}
+        <div class="panel panel-default" id="panel-1">
+            <div class="panel-heading">
+                {{ supplier_name }}({{ supplier_id }})
+                <button class="btn btn-primary" data-toggle="collapse" data-target="#pics" aria-expanded="true" aria-controls="pics" id="pics-toggle">
+                    收起
+                </button>
+            </div>
+            <div class="collapse in" id="pics">
+                <div class="panel-body">
+                    <ul>
+                        {% for product in products %}
+                        <li class="col-md-3">
+                            <div class="col-md-6">
+                                <div class="portfolio-box">
+                                    <a href="{{product.product_link}}" target="_blank">
+                                        <img src="{{product.pic_path}}?imageView2/0/w/120" style="display:block" data-pic-path="{{product.pic_path}}" width="120px">
+                                    </a>
+                                </div>
+                                <p>{{product.name}}</p>
+                            </div>
+                            <div class="col-md-6 skus">
+                                <div class="product-required-skus">
+                                    {% for sku in product.skus %}
+                                    {% if sku.is_required %}
+                                    <div class="input-group">
+                                        <span class="input-group-addon">{{sku.properties_name}}</span>
+                                        <input type="number" class="form-control" data-sku-id="{{sku.id}}" data-product-id="{{product.id}}" style="width:60px" min="0">
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="product-all-skus">
+                                    {% for sku in product.skus %}
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" class="select-product-sku"
+                                                   data-sku-id="{{sku.id}}" data-product-id="{{product.id}}"{% if sku.is_required %} checked{%endif%}>{{sku.properties_name}}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                        <li class="col-md-3 problem">
+                            <div class="col-md-6">
+                                <textarea rows="8" cols="16" placeholder="请填写错误描述..."></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">数量</span>
+                                    <input type="number" class="form-control" style="width:60px" min="0">
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="panel-footer" style="text-align:center">
+                    <button class="btn btn-success" id="create-draft">确定</button>
+                </div>
+            </div>
+        </div>
+    <!-- 搜索结果展示模块 end -->
+        {% endif %}
+        <footer class="text-center clearfix font-xxs footer">
+            <p>
+                <a href="/admin/dinghuo/inbound" target="_blank">
+                    入仓列表
+                </a>
+                <a href="http://7xkyoy.com1.z0.glb.clouddn.com/inbound-v2.1.html" target="_blank">
+                    帮助文档
+                </a>
+            </p>
+            <p>Copyright © 2014-2016 小鹿美美，All Rights Reserved</p>
+            <p> 沪ICP备15013901号-1</p>
+        </footer>
+        <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+        <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+        <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}underscore/underscore.string.min.js"></script>
+        <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script src="{{ STATIC_URL }}typeahead.bundle.min.js"></script>
+        <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
+        <script src="/static/wap/js/template.js"></script>
+        <script src="/static/bootstrap-select/bootstrap-select.min.js"></script>
+        {% verbatim %}
+    <!-- 入仓草稿模板 start -->
+        <script id="inbound-tpl" type="text/html">
+            <div class="panel panel-default" id="panel-2">
+                <div class="panel-heading">入仓草稿</div>
+                <form id="form-2">
+                    <div class="panel-body">
+                        <table class="table table-striped" style="width:85%;">
+                            <tr>
+                                <th>商品名</th>
+                                <th>商品ID</th>
+                                <th>编码</th>
+                                <th>所属仓库</th>
+                                <th>图片</th>
+                                <th>SkuId</th>
+                                <th>尺寸</th>
+                                <th>条码</th>
+                                <th>数量</th>
+                                <th>库位</th>
+                                <th>操作</th>
+                            </tr>
+                            {{each products as product i}}
+                            {{each product.skus as sku j}}
+                            <tr class="sku" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}">
+                                {{if j == 0}}
+                                <td rowspan="{{product.skus.length}}" style="min-width:150px">{{product.name}}</td>
+                                <td rowspan="{{product.skus.length}}">
+                                    <a href="/items/product/district/{{product.id}}/" target="_blank" title="商品库位">
+                                        {{product.id}}
+                                    </a>
+                                </td>
+                                <td rowspan="{{product.skus.length}}">
+                                    <a href="/admin/items/product/?outer_id={{product.outer_id}}" target="_blank" title="库存商品列表">
+                                        {{product.outer_id}}
+                                    </a>
+                                </td>
+                                <td rowspan="{{product.skus.length}}" style="min-width:115px">
+                                    <select class="ware-select form-control" data-product-id="{{product.id}}">
+                                        {{each warehouses as warehouse}}
+                                        <option value="{{warehouse.value}}"{{if product.ware_by == warehouse.value }} selected{{/if}}>{{warehouse.text}}</option>
+                                        {{/each}}
+                                    </select>
+                                </td>
+                                <td rowspan="{{product.skus.length}}">
+                                    <div class="portfolio-box">
+                                        <a href="{{product.product_link}}" target="_blank">
+                                            <img src="{{product.pic_path}}?imageView2/0/w/120" data-pic-path="{{product.pic_path}}" width="120px">
+                                        </a>
+                                    </div>
+                                </td>
+                                {{/if}}
+                                <td>
+                                    <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank" title="Sku历史记录">{{sku.id}}</a>
+                                </td>
+                                <td>{{sku.properties_name}}</td>
+                                <td>
+                                    <a href="/admin/items/productsku/{{sku.id}}" target="_blank" title="Sku明细">
+                                        {{sku.barcode}}
+                                    </a>
+                                </td>
+                                <td>
+                                    <input type="number" class="arrival-quantity form-control"
+                                           style="width:80px" min="0" value="{{sku.arrival_quantity}}">
+                                </td>
+                                <td>
+                                    <input class="district form-control" style="width:100px" value="{{sku.district}}">
+                                </td>
+                                <td>
+                                    <i class="glyphicon glyphicon-remove"></i>
+                                </td>
+                            </tr>
+                            {{/each}}
+                            {{/each}}
+                            <tr class="stats">
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td><strong>总计:</strong></td>
+                                <td>
+                                    <input class="total-arrival-quantity form-control" style="width:80px" readonly>
+                                </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="row">
+                            <div class="col-md-6"></div>
+                            <div class="col-md-3 btn-group">
+                                <button class="btn btn-success" id="create-inbound">创建</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </script>
+    <!-- 入仓草稿模板 end -->
+    <!-- 错货模板 start -->
+        <script id="problem-sku-tpl" type="text/html">
+            <tr class="problem sku" data-sku-id="0" data-product-id="0">
+                <td>
+                    <textarea class="name" rows="3" cols="20">{{name}}</textarea>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <input type="number" class="arrival-quantity form-control" style="width:80px" min="0" value="{{quantity}}">
+                </td>
+                <td></td>
+                <td>
+                    <i class="glyphicon glyphicon-remove"></i>
+                </td>
+            </tr>
+        </script>
+    <!-- 错货模板 end -->
+    <!-- 分配订货单面板 start -->
+        <script id="panel-3-tpl" type="text/html">
+            <div class="panel panel-default" id="panel-3">
+                <div class="panel-heading">
+                    分配至订货单
+                    <button class="btn btn-primary matching" id="orderlists-toggle">展开所有Sku</button>
+                </div>
+                <form id="form-3">
+                    <div class="panel-body">
+                        <div id="orderlists"></div>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="row">
+                            <div class="col-md-5"></div>
+                            <div class="col-md-4 btn-group">
+                                <button class="btn btn-primary" id="allocate">确认分配</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </script>
+    <!-- 分配订货单面板 end -->
+    <!-- 分配订单模板 start -->
+        <script id="orderlists-tpl" type="text/html">
+            <table class="table table-striped" style="width:auto">
+                <tr>
+                    <th width="200px">订货单</th>
+                    <th width="200px">商品名</th>
+                    <th width="80px">商品ID</th>
+                    <th width="110px">编码</th>
+                    <th width="80px">图片</th>
+                    <th width="80px">SKUID</th>
+                    <th width="60px">尺寸</th>
+                    <th width="60px">购买数</th>
+                    <th width="60px">待入库数</th>
+                    <th width="85px">数量</th>
+                </tr>
+                {{each orderlists as orderlist}}
+                <tr class="intro" data-orderlist-id="{{orderlist.id}}">
+                    <td>
+                        <p><a href="/sale/dinghuo/changedetail/{{orderlist.id}}/" target="_blank">{{orderlist.id}}</a></p>
+                        <p>负责人: {{orderlist.buyer_name}}</p>
+                        <p>创建时间: {{orderlist.created}}</p>
+                        <p>状态: {{orderlist.status}}</p>
+                        <p>
+                            <a href="javascript:;" class="unfold-btn">展开</a>
+                        </p>
+                    </td>
+                </tr>
+                {{each orderlist.products as product i}}
+                {{each product.skus as sku j}}
+                <tr class="sku" data-orderlist-id="{{orderlist.id}}" data-product-id="{{product.id}}"
+                    data-sku-id="{{sku.id}}" data-orderdetail-id="{{sku.orderdetail_id}}" data-rowspan="{{product.skus.length}}">
+                    {{if i == 0 && j == 0}}
+                    <td rowspan="{{orderlist.len_of_skus}}">
+                        <p><a href="/sale/dinghuo/changedetail/{{orderlist.id}}/" target="_blank">{{orderlist.id}}</a></p>
+                        <p>负责人: {{orderlist.buyer_name}}</p>
+                        <p>创建时间: {{orderlist.created}}</p>
+                        <p>状态: {{orderlist.status}}</p>
+                        <p>
+                            <a href="javascript:;" class="fold-btn">收起</a>
+                        </p>
+                    </td>
+                    {{/if}}
+                    {{if j == 0}}
+                    <td rowspan="{{product.skus.length}}">
+                        {{product.name}}
+                    </td>
+                    <td rowspan="{{product.skus.length}}">
+                        {{product.id}}
+                    </td>
+                    <td rowspan="{{product.skus.length}}">
+                        {{product.outer_id}}
+                    </td>
+                    <td rowspan="{{product.skus.length}}">
+                        <div class="portfolio-box">
+                            <a href="{{product.product_link}}" target="_blank">
+                                <img src="{{product.pic_path}}?imageView2/0/w/120" data-pic-path="{{product.pic_path}}" width="120px">
+                            </a>
+                        </div>
+                    </td>
+                    {{/if}}
+                    <td>
+                        <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank">{{sku.id}}</a>
+                    </td>
+                    <td>
+                        <span class="properties-name">
+                            {{sku.properties_name}}
+                        </span>
+                    </td>
+                    <td>{{sku.buy_quantity}}</td>
+                    <td>{{sku.plan_quantity}}</td>
+                    <td>
+                        <input type="number" class="arrival-quantity form-control" style="width:80px" min="0">
+                    </td>
+                </tr>
+                {{/each}}
+                {{/each}}
+                {{/each}}
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><strong>总计:</strong></td>
+                    <td><input type="number" class="total-arrival-quantity form-control" style="width:80px" readonly></td>
+                </tr>
+            </table>
+        </script>
+    <!-- 分配订单模板 end -->
+        <script id="package-sku-quantity-tpl" type="text/html">
+            <p style="margin:0;text-aligh:center">
+                待分配:<span class="{{class_name}}" data-sku-id="{{sku_id}}" style="color:#66cc33">{{n}}</span>
+            </p>
+        </script>
+        <script id="product-required-sku-tpl" type="text/html">
+            <div class="input-group">
+                <span class="input-group-addon">{{properties_name}}</span>
+                <input type="number" class="form-control" data-sku-id="{{id}}" data-product-id="{{productId}}" style="width:60px" min="0" value="{{value}}">
+            </div>
+        </script>
+        <script id="error-district-tpl" type="text/html">
+            <p style="margin:0;text-aligh:center" class="error-district">
+                已有库位:<span style="color:#cc0000">{{districts}}</span>
+                <a href="/items/product/district/{{productId}}" target="_blank">查看</a>
+            </p>
+        </script>
+        {% endverbatim %}
+        <script>
+         var WARE_HOUSES = [
+             {value: 0, text: '未选仓'},
+             {value: 1, text: '上海仓'},
+             {value: 2, text: '广州仓'}
+         ];
+
+         var orderlists;
+         var orderlistIds = {{orderlist_ids|jsonify}};
+         var expressNos = {{express_nos|jsonify}};
+         var products = {{products|jsonify}};
+         var productsDict = {};
+         var skusDict = {};
+         var inboundSkusDict = {};
+         var inbound = {};
+
+         var districtsEngine = new Bloodhound({
+             datumTokenizer: Bloodhound.tokenizers.whitespace,
+             queryTokenizer: Bloodhound.tokenizers.whitespace,
+             prefetch: '/sale/dinghuo/inbound/districts'
+         });
+         districtsEngine.initialize();
+
+         function init(){
+             var i, j;
+             for(i = 0; i < products.length; ++i){
+                 var product = products[i];
+                 productsDict[product.id] = product;
+                 for(j = 0; j < product.skus.length; ++j)
+                     skusDict[product.skus[j].id] = product.skus[j];
+             }
+         }
+
+         var matcher = function(items, opt){
+             var textField = 'text';
+             if(opt)
+                 textField = opt.textField;
+             return function findMatches(q, cb){
+                 var matches, subStrRegex;
+                 matches = [];
+                 subStrRegex = new RegExp(q, 'i');
+                 $.each(items, function(i, item){
+                     if(subStrRegex.test(item[textField]))
+                         matches.push(item[textField]);
+                 });
+                 cb(matches);
+             };
+         };
+
+         function supplierIdHandler(items){
+             function wrapper(e, suggestion){
+                 var i, id;
+                 for(i=0; i < items.length; ++i){
+                     if(items[i].text == suggestion){
+                         id = items[i].id;
+                         break;
+                     }
+                 }
+                 if(id)
+                     $('#supplier-id').val(id);
+             }
+             return wrapper;
+         }
+
+         function quantityChangeHandler(formId){
+             function wrapper(){
+                 var totalArrivalQuantity = 0;
+                 $('tr.sku', formId).each(function(){
+                     var $this = $(this);
+                     var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
+                     totalArrivalQuantity += arrivalQuantity;
+                 });
+                 $('.total-arrival-quantity', formId).val(totalArrivalQuantity);
+             }
+             return wrapper;
+         }
+
+         function getPicSkusDict(){
+             var picSkusDict = {};
+             $('input[type="number"]', '#pics').each(function(){
+                 var arrivalQuantity, inferiorQuantity;
+
+                 var $this = $(this);
+                 var skuId = parseInt($this.attr('data-sku-id')) || 0;
+                 if(skuId <= 0)
+                     return;
+                 var productId = parseInt($this.attr('data-product-id'));
+                 var $tr = $(_.template('tr.sku[data-sku-id="<%= skuId %>"]')({skuId: skuId}), '#form-2');
+                 var district = '';
+
+                 arrivalQuantity = parseInt($this.val()) || 0;
+                 if(arrivalQuantity <= 0)
+                     return;
+
+                 if($tr.length > 0){
+                     arrivalQuantity = parseInt($tr.find('.arrival-quantity').val()) || 0;
+                     inferiorQuantity = parseInt($tr.find('.inferior-quantity').val()) || 0;
+                     district = $tr.find('.district').last().val() || '';
+                 }
+                 else{
+                     arrivalQuantity = parseInt($this.val()) || 0;
+                     inferiorQuantity = 0;
+                     district = skusDict[skuId].district;
+                 }
+                 picSkusDict[skuId] = {
+                     productId: productId,
+                     skuId: skuId,
+                     arrivalQuantity: arrivalQuantity,
+                     inferiorQuantity: inferiorQuantity,
+                     district: district
+                 }
+             });
+             return picSkusDict;
+         }
+
+         function getInboundSkusDict(){
+             var inboundSkusDict = {};
+             $('tr.sku', '#form-2').each(function(){
+                 var $this = $(this);
+                 var productId = parseInt($this.attr('data-product-id'));
+                 var skuId = parseInt($this.attr('data-sku-id'));
+                 var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
+                 var inferiorQuantity = parseInt($this.find('.inferior-quantity').val()) || 0;
+                 var district = $this.find('.district').last().val() || '';
+                 var name = $this.find('.name').val() || '';
+
+                 if(!arrivalQuantity && !inferiorQuantity)
+                     return;
+                 inboundSkusDict[skuId] = {
+                     productId: productId,
+                     skuId: skuId,
+                     name: name,
+                     arrival_quantity: arrivalQuantity,
+                     inferior_quantity: inferiorQuantity,
+                     district: district
+                 }
+             });
+             return inboundSkusDict;
+         }
+
+
+         function setupForm2(inboundProducts){
+             $('#panel-2').remove();
+             $('#panel-1').after(template('inbound-tpl', {products: inboundProducts, warehouses: WARE_HOUSES}));
+
+             var problemSkuName = _.trim($('.problem textarea', '#pics').val());
+             var problemSkuQuantity = parseInt($('.problem input[type="number"]', '#pics').val());
+             if(problemSkuName && problemSkuQuantity)
+                 $('table tr.stats', '#form-2').before(template('problem-sku-tpl', {name: problemSkuName, quantity: problemSkuQuantity}));
+
+             quantityChangeHandler('#form-2')();
+             $('.portfolio-box img', '#form-2').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: function(){
+                     var tpl = _.template('<img src="<%= pic_path %>" width=800 height=800>');
+                     return tpl({pic_path: $(this).attr('data-pic-path')});
+                 }
+             });
+
+             $('.district', '#form-2').typeahead({
+                 hint: true, highlight: true, minLength: 1
+             }, {name: 'districts', source: districtsEngine});
+
+             $('.district', '#form-2').bind('typeahead:change', function(ev, suggestion){
+                 var tpl = _.template('tr.sku[data-product-id="<%= id %>"]');
+                 var $tr = $(this).closest('tr');
+                 var productId = parseInt($tr.attr('data-product-id'));
+                 var skuId = parseInt($tr.attr('data-sku-id'));
+                 $(tpl({id: productId}), '#form-2').each(function(){
+                     if(_.isEmpty($(this).find('.district').last().val())){
+                         $(this).find('.district').val(suggestion);
+                     }
+                 });
+             });
+
+             $('.glyphicon-remove', '#form-2').click(function(){
+                 var $tr = $(this).closest('tr');
+                 var skuId = parseInt($tr.attr('data-sku-id')) || 0;
+                 if(skuId > 0){
+                     var tpl = _.template('input[type="number"][data-sku-id="<%= skuId %>"]');
+                     $(tpl({skuId: skuId}), '#pics').val(0);
+                 }
+                 else{
+                     $('.problem textarea', '#pics').val('');
+                     $('.problem input[type="number"]').val('');
+                 }
+                 var inboundProducts = buildInboundProducts(getPicSkusDict());
+                 setupForm2(inboundProducts);
+             });
+
+             $('input[type="number"]', '#form-2').change(quantityChangeHandler('#form-2'));
+             $('input.arrival-quantity', '#form-2').change(function(){
+                 var $this = $(this);
+                 var skuId = parseInt($this.closest('tr').attr('data-sku-id'));
+                 var tpl = _.template('input[data-sku-id="<%= skuId %>"]');
+                 var arrivalQuantity = parseInt($this.val()) || 0;
+                 $(tpl({skuId: skuId}), '#pics').val(arrivalQuantity);
+             });
+             $('.ware-select', '#form-2').change(function(){
+                 var $this = $(this);
+                 var productId = parseInt($this.attr('data-product-id'));
+                 $.ajax({
+                     url: '/items/product/' + productId + '/?format=json',
+                     dataType: 'json',
+                     type: 'post',
+                     data: {format: 'json', ware_by: $this.val()},
+                     success: function(){
+                         tip('修改仓库成功', 'information');
+                     }
+                 });
+             });
+         }
+
+
+         function buildInboundProducts(inboundSkusDict){
+             var inboundProducts = {};
+             for(skuId in inboundSkusDict){
+                 var inboundSku = inboundSkusDict[skuId];
+                 var sku = skusDict[skuId];
+                 var product = productsDict[inboundSku.productId];
+
+                 var arrivalQuantity = inboundSku.arrivalQuantity;
+                 var inferiorQuantity = inboundSku.inferiorQuantity;
+                 var district = inboundSku.district;
+
+                 var inboundProduct = {
+                     id: product.id,
+                     name: product.name,
+                     pic_path: product.pic_path,
+                     outer_id: product.outer_id,
+                     ware_by: product.ware_by,
+                     product_link: product.product_link,
+                     skus: {}
+                 }
+                 if(!inboundProducts[product.id])
+                     inboundProducts[product.id] = inboundProduct;
+                 else
+                     inboundProduct = inboundProducts[product.id];
+                 inboundProduct.skus[skuId] = {
+                     id: inboundSku.skuId,
+                     arrival_quantity: arrivalQuantity,
+                     inferior_quantity: inferiorQuantity,
+                     barcode: sku.barcode,
+                     properties_name: sku.properties_name,
+                     district: district
+                 };
+             }
+             var newInboundProducts = [];
+             _.each(_.sortBy(_.values(inboundProducts), function(x){
+                 return x.id;
+             }), function(y){
+                 y.skus = _.sortBy(_.values(y.skus), function(z){return z.id});
+                 newInboundProducts.push(y);
+             });
+             return newInboundProducts;
+         }
+
+         function getForm1Data(){
+             var data = {};
+             supplierIdHandler(expressNos)(null, $('#express-no').val());
+             supplierIdHandler(orderlistIds)(null, $('#orderlist-id').val());
+             _.each($('#form-1').serializeArray(), function(el){
+                 data[el.name] = el.value;
+             });
+             return data;
+         }
+
+         function tip(text, type){
+             $('#tips').noty({
+                 text: text,
+                 type: type,
+                 theme: 'bootstrapTheme',
+                 closeWith: ['button', 'click'],
+                 maxVisible: 20,
+                 modal: false
+             });
+         }
+
+         function buildInboundOrderlists(orderlists, inboundSkusDict){
+             var i;
+             var newOrderLists = [];
+
+             _.each(orderlists, function(orderlist){
+                 var newOrderList = _.extend(_.clone(orderlist), {products: []});
+                 i = 0;
+                 _.each(orderlist.products, function(product){
+                     var newProduct = _.extend(_.clone(product), {skus: []});
+                     _.each(product.skus, function(sku){
+                         if(inboundSkusDict[sku.id]){
+                             newProduct.skus.push(sku);
+                             i += 1;
+                         }
+                     });
+                     if(newProduct.skus.length > 0)
+                         newOrderList.products.push(newProduct);
+                 });
+                 if(newOrderList.products.length > 0){
+                     newOrderList.len_of_skus = i;
+                     newOrderLists.push(newOrderList);
+                 }
+             });
+             return newOrderLists;
+         }
+
+
+         function setupForm3(orderlists){
+             $('#orderlists').html(template('orderlists-tpl', {orderlists: orderlists}));
+             $('.portfolio-box img', '#form-3').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: function(){
+                     var tpl = _.template('<img src="<%= pic_path %>" width=800 height=800>');
+                     return tpl({pic_path: $(this).attr('data-pic-path')});
+                 }
+             });
+
+             $('#form-3 input[type="number"]').change(quantityChangeHandler('#form-3'));
+             var skuTpl = _.template('tr.sku[data-orderlist-id="<%= id %>"]');
+             var introTpl = _.template('tr.intro[data-orderlist-id="<%= id %>"]');
+             $('tr.sku', '#form-3').hide();
+             $('.unfold-btn', '#form-3').click(function(){
+                 var orderlistId = $(this).closest('tr').attr('data-orderlist-id');
+                 $(introTpl({id: orderlistId}), '#form-3').hide();
+                 $(skuTpl({id: orderlistId}), '#form-3').show();
+             });
+
+             $('.fold-btn', '#form-3').click(function(){
+                 var orderlistId = $(this).closest('tr').attr('data-orderlist-id');
+                 $(introTpl({id: orderlistId}), '#form-3').show();
+                 $(skuTpl({id: orderlistId}), '#form-3').hide();
+             });
+             $('tr.candidate', '#form-3').removeClass('candidate');
+
+         }
+
+         function fillForm3(orderdetailsDict, inboundSkusDict, unfoldedOrderlistIds){
+             var $tr, n;
+             var orderlistIds = [];
+             var orderlistTpl = _.template('[data-orderlist-id="<%= orderlistId %>"]');
+             var orderdetailTpl = _.template('[data-orderdetail-id="<%= orderdetailId %>"]');
+             _.each(_.keys(orderdetailsDict), function(orderdetailId){
+                 $tr = $('tr.sku' + orderdetailTpl({orderdetailId: orderdetailId}), '#form-3');
+                 n = parseInt(orderdetailsDict[orderdetailId]) || 0;
+                 if(n > 0)
+                     $tr.find('.arrival-quantity').val(n);
+                 orderlistIds.push($tr.attr('data-orderlist-id'));
+             });
+
+             orderlistIds = _.union(_.uniq(orderlistIds), unfoldedOrderlistIds);
+             _.each(orderlistIds, function(orderlistId){
+                 $('tr.intro' + orderlistTpl({orderlistId: orderlistId})).hide();
+                 $('tr.sku' + orderlistTpl({orderlistId: orderlistId})).show();
+             });
+
+             var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+             function getQuantity(skuId){
+                 var n = 0;
+                 var prefix = tpl({skuId: skuId});
+                 $(prefix + ' .arrival-quantity', '#form-3').each(function(){
+                     n += parseInt($(this).val()) || 0;
+                 });
+                 return n;
+             }
+
+             _.each(_.keys(inboundSkusDict), function(skuId){
+                 var inboundSku = inboundSkusDict[skuId];
+
+                 var $row = $(tpl({skuId: skuId}), '#form-3');
+                 $row.addClass('candidate');
+                 $row.find('.arrival-quantity').after(template('package-sku-quantity-tpl',
+                                                               {class_name: 'package-arrival-quantity', n: inboundSku.arrival_quantity - getQuantity(skuId), sku_id: skuId}));
+                 $row.find('.arrival-quantity').change(function(){
+                     var prefix = tpl({skuId: skuId});
+                     $(prefix + ' .package-arrival-quantity', '#form-3').html(inboundSku.arrival_quantity - getQuantity(skuId));
+                 });
+             });
+             quantityChangeHandler('#form-3')();
+         }
+
+         function getOrderdetailsDict(){
+             var orderdetailsDict = {};
+             $('input.arrival-quantity', '#form-3').each(function(){
+                 var $this = $(this);
+                 var orderdetailId = $this.closest('tr').attr('data-orderdetail-id');
+                 var n = parseInt($this.val()) || 0;
+                 if(n > 0){
+                     orderdetailsDict[orderdetailId] = n;
+                 }
+             });
+             return orderdetailsDict;
+         }
+
+         function getUnfoldedOrderlistIds(){
+             var orderlistIds = [];
+             $('tr.sku:visible', '#form-3').each(function(){
+                 orderlistIds.push($(this).attr('data-orderlist-id'));
+             });
+             return _.uniq(orderlistIds);
+         }
+
+
+         $(function(){
+             $.noty.defaults = $.extend($.noty.defaults, {
+                 animation: {
+                     open: 'animated bounceInLeft',
+                     close: 'animated bounceOutRight',
+                     easing: 'swing',
+                     speed: 500
+                 }
+             });
+             _.mixin(_.string.exports());
+
+             init();
+
+             $('#express-no').typeahead({
+                 hint: true,
+                 highlight: true,
+                 minLength: 1
+             }, {name: 'expressNos', source: matcher(expressNos)}).bind('typeahead:select', supplierIdHandler(expressNos));
+
+
+             $('#orderlist-id').typeahead({
+                 hint: true,
+                 highlight: true,
+                 minLength: 1
+             }, {name: 'orderlistIds', source: matcher(orderlistIds)}).bind('typeahead:select', supplierIdHandler(orderlistIds));
+
+             $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
+
+             $('body').on('submit', '#form-2', function(){
+                 $('#create-inbound').attr('disabled', true);
+                 $('#create-draft').attr('disabled', true);
+                 $('i.glyphicon', '#form-2').unbind();
+
+
+                 var callback = function(){
+                     $('.error-district', '#form-2').remove();
+                     var inboundSkusDict = getInboundSkusDict();
+                     if(_.isEmpty(inboundSkusDict))
+                         return false;
+
+                     var data = _.extend({inbound_skus: JSON.stringify(inboundSkusDict), memo: $('#memo').val()}, getForm1Data());
+                     $.ajax({
+                         url: '/sale/dinghuo/inbound/create_inbound',
+                         type: 'post',
+                         dataType: 'json',
+                         data: data,
+                         success: function(result){
+                             var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"]');
+                             if(!_.isEmpty(result.error_districts)){
+                                 _.each(result.error_districts, function(el){
+                                     $(tpl({skuId: el.sku_id}), '#form-2').find('.district').last().after(template('error-district-tpl', {productId: el.product_id, districts: el.districts.join(',')}));
+                                 });
+                                 tip('库位冲突', 'error');
+                                 $('#create-inbound').attr('disabled', false);
+                                 $('#create-draft').attr('disabled', false);
+                                 return;
+                             }
+                             if(!_.isEmpty(result.inbound)){
+                                 inbound = result.inbound;
+                                 $('#memo').val(result.inbound.memo);
+                             }
+                             else
+                                 inbound = {};
+                             if(result.orderlists.length == 0){
+                                 window.location = '/sale/dinghuo/inbound/' + result.inbound.id;
+                                 return;
+                             }
+
+                             orderlists = result.orderlists;
+
+                             var $panel3 = $('#panel-3');
+                             if($panel3)
+                                 $panel3.remove();
+
+                             $('#panel-2').after(template('panel-3-tpl', {}));
+                             setupForm3(buildInboundOrderlists(result.orderlists, result.inbound.details));
+                             fillForm3(result.allocate_dict, result.inbound.details, []);
+
+                             $('#orderlists-toggle').click(function(){
+                                 var orderdetailsDict = getOrderdetailsDict();
+                                 var unfoldedOrderlistIds = getUnfoldedOrderlistIds();
+                                 var $this = $(this);
+                                 if($this.hasClass('matching')){
+                                     $this.removeClass('matching').addClass('all');
+                                     $this.html('隐藏无关Sku');
+                                     setupForm3(orderlists);
+                                     fillForm3(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
+                                 }
+                                 else{
+                                     $this.removeClass('all').addClass('matching');
+                                     $this.html('展开所有Sku');
+                                     setupForm3(buildInboundOrderlists(orderlists, inbound.details));
+                                     fillForm3(orderdetailsDict, inbound.details, unfoldedOrderlistIds);
+                                 }
+                             });
+                         }
+                     });
+                 };
+
+                 swal({
+                     title: '警告',
+                     text: '入仓单创建后, 无法增删SKU',
+                     type: 'warning',
+                     showCancelButton: true,
+                     confirmButtonText: '确认',
+                     cancelButtonText: '取消'
+                 }, callback);
+                 return false;
+             });
+
+
+             $('body').on('submit', '#form-3', function(){
+                 var inboundData = [];
+                 var skuData = {};
+                 $('tr.sku', '#form-3').each(function(index, el){
+                     var $this = $(this);
+                     var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
+                     var inferiorQuantity = parseInt($this.find('.inferior-quantity').val()) || 0;
+                     if(!(arrivalQuantity || inferiorQuantity))
+                         return;
+                     var skuId = parseInt($this.attr('data-sku-id'));
+                     var orderdetailId = parseInt($this.attr('data-orderdetail-id'));
+
+                     if(skuId <= 0)
+                         return;
+
+                     if(_.isEmpty(skuData[skuId])){
+                         skuData[skuId] = {
+                             arrival_quantity: arrivalQuantity,
+                             inferior_quantity: inferiorQuantity
+                         }
+                     }
+                     else{
+                         skuData[skuId].arrival_quantity += arrivalQuantity;
+                         skuData[skuId].inferior_quantity += inferiorQuantity;
+                     }
+                     if(!_.isEmpty(inbound.details[skuId])){
+                         inboundData.push({
+                             sku_id: skuId,
+                             orderdetail_id: orderdetailId,
+                             inbounddetail_id: inbound.details[skuId].id,
+                             arrival_quantity: arrivalQuantity,
+                             inferior_quantity: inferiorQuantity
+                         })
+                     }
+                 });
+                 //ToDo: should optimize
+                 //var errorSkuIds = _.difference(_.keys(inbound.details), _.keys(skuData));
+                 var errorSkuIds = [];
+                 _.each(_.intersection(_.keys(skuData), _.keys(inbound.details)), function(skuId){
+                     if(skuData[skuId].arrival_quantity != inbound.details[skuId].arrival_quantity ||
+                        skuData[skuId].inferior_quantity != inbound.details[skuId].inferior_quantity){
+                        errorSkuIds.push(skuId);
+                     }
+                 });
+                 $('tr.sku input.error', '#form-3').removeClass('error');
+                 if(errorSkuIds && errorSkuIds.length > 0){
+                     _.each(errorSkuIds, function(el){
+                         var tpl = _.template('tr.sku[data-sku-id="<%= skuId %>"] input[type="number"]');
+                         $(tpl({skuId: el}), '#form-4').addClass('error');
+                     });
+                     swal('错误', '填写数量与入仓单不一致', 'error');
+                 }
+                 else{
+                     $('#allocate').attr('disabled', true);
+                     $.ajax({
+                         url: '/sale/dinghuo/inbound/allocate',
+                         type: 'post',
+                         dataType: 'json',
+                         data: {data: JSON.stringify(inboundData), inbound_id: inbound.id},
+                         success: function(result){
+                             if(result.error){
+                                 swal('错误', result.error, 'error');
+                             }
+                             else{
+                                 swal('分配成功', '', 'success');
+                                 $('#allocate').attr('disabled', 'disabled');
+                                 window.location = '/sale/dinghuo/inbound/' + result.inbound.id;
+                             }
+                         }
+                     });
+                 }
+                 return false;
+             });
+
+             $('#form-1').submit(function(){
+                 var expressNo = _.trim($('#express-no').val());
+                 if(_.isEmpty(expressNo)){
+                     swal('错误', '请填写包裹上的快递单号', 'error');
+                     return false;
+                 }
+                 getForm1Data();
+                 return true;
+             });
+
+             $('body').on('click', '#add-memo-btn', function(){
+                 var text = $('#memo-input').val();
+                 text = _.trim(text);
+                 if(_.isEmpty(text))
+                     return;
+                 $.ajax({
+                     url: '/sale/dinghuo/inbound/add_memo',
+                     type: 'get',
+                     dataType: 'json',
+                     data: {content: text},
+                     success: function(result){
+                         if(!_.isEmpty(result.memo)){
+                             var tmp = [];
+                             var oldText = $('#memo').val();
+                             if(!_.isEmpty(oldText))
+                                 tmp.push(oldText);
+                             tmp.push(result.memo);
+                             $('#memo').val(tmp.join('\n'));
+                         }
+                     }
+                 });
+             });
+
+             $('body').on('click', '#set-invalid', function(){
+                 if(!_.isEmpty(inbound) && inbound.id){
+                     swal({
+                         title: '警告',
+                         text: '作废后无法恢复',
+                         type: 'warning',
+                         showCancelButton: true,
+                         confirmButtonText: '确认',
+                         cancelButtonText: '取消'
+                     }, function(){
+                         $.ajax({
+                             url: '/sale/dinghuo/inbound/' + inbound.id + '/set_invalid',
+                             type: 'post',
+                             dataType: 'json',
+                             success: function(result){
+                                 if(result.error){
+                                     tip(result.error, 'error');
+                                 }
+                                 else{
+                                     tip('作废成功', 'information');
+                                 }
+                             }
+                         });
+                     });
+                 }
+                 else{
+                     tip('还未创建入仓单', 'error');
+                 }
+             });
+
+             $('img').popover({
+                 html: true,
+                 trigger: 'hover',
+                 container: 'body',
+                 content: function(){
+                     var tpl = _.template('<img src="<%= pic_path %>" width=800 height=800>');
+                     return tpl({pic_path: $(this).attr('data-pic-path')});
+                 }
+             });
+
+             $('#create-draft').click(function(){
+                 var inboundProducts = buildInboundProducts(getPicSkusDict());
+                 setupForm2(inboundProducts);
+                 $('#pics').collapse('hide');
+             });
+
+             $('#pics').on('shown.bs.collapse', function(){
+                 $('#pics-toggle').html('收起');
+             });
+             $('#pics').on('hidden.bs.collapse', function(){
+                 $('#pics-toggle').html('展开');
+             });
+
+             $('.product-all-skus :checkbox').change(function(){
+                 var $skus = $(this).closest('.skus');
+                 var productSkus = [];
+                 var tpl = _.template('input[data-sku-id="<%= skuId %>"]');
+                 $skus.find('.product-all-skus').find(':checked').each(function(){
+                     var skuId = parseInt($(this).attr('data-sku-id'));
+                     var productId = parseInt($(this).attr('data-product-id'));
+                     skuDict = skusDict[skuId];
+                     productSkus.push({
+                         id: skuId,
+                         productId: productId,
+                         properties_name: skuDict.properties_name,
+                         value: $(tpl({skuId: skuId}), $skus).val()
+                     });
+                 });
+
+                 var $productRequiredSkus = $skus.find('.product-required-skus');
+                 $productRequiredSkus.html('');
+                 _.each(productSkus, function(productSku){
+                     $productRequiredSkus.append(template('product-required-sku-tpl', productSku));
+                 });
+             });
+         });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+{% load custom_filter %}
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="{{ STATIC_URL }}forecast/css/forecast-multi-select.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" type="text/css"/>
+    <title>订单拆分合并-{{supplier.supplier_name}}</title>
+</head>
+<body>
+<div class="container">
+    <div class="container-head">
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="javascript:window.history.go(-1)">
+                        <i class="glyphicon glyphicon-chevron-left"></i>
+                        {{supplier.supplier_name}}
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div class="container-body">
+        <div class="ms-container" id="ms-my-select">
+            <div class="ms-selectable ">
+                <ul class="ms-list" tabindex="-1">
+                    {% for forecast in forecast_inbounds %}
+                    {% for product in forecast.detail_products %}
+                    <li class="ms-optgroup-container list-group-item selected"
+                        id="{{product.product_id}}-{{forecast.id}}-selectable-li">
+                        <ul class="ms-optgroup list-group clearfix">
+                            <li class="ms-optgroup-label list-group-item"
+                                id="{{product.product_id}}-{{forecast.id}}-selectable-lable">
+                                <div class="row">
+                                    <img class="col-xs-2 inline" src="{{product.product_img}}">
+                                    <a class="switch col-xs-9 inline" data-id="{{product.product_id}}-{{forecast.id}}"
+                                       data-channel="selectable">
+                                        <div class="col-xs-10 inline"><p>{{forecast.id}}-{{product.product_code}}</p>
+                                            <p>{{product.product_name}}</p></div>
+                                        <span class="col-xs-1 inline forecast-num">{{product.product_num}}</span>
+                                        <span class="col-xs-1 inline"><i
+                                                class="glyphicon glyphicon-menu-down"></i></span>
+                                    </a>
+                                    <a class="select-all inline" data-id="{{product.product_id}}-{{forecast.id}}"
+                                       data-select-all="yes"><i class="glyphicon glyphicon-forward"></i></a>
+                                </div>
+                            </li>
+                            <ul class="ms-optgroup-list list-group clearfix">
+                                {% for sku in product.detail_skus %}
+                                <li class="ms-elem-selectable list-group-item clearfix selected hidden"
+                                    id="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}-selectable-li">
+                                    <div class="row">
+                                        <span class="col-xs-6 inline">{{sku.sku_name}}</span>
+                                        <span class="col-xs-1 inline">{{sku.forecast_arrive_num}}</span>
+                                        <div class="col-xs-4 input-group">
+                                            <a class=" input-group-addon btn-minus" data-id="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}"><i
+                                                    class="glyphicon glyphicon-chevron-left"></i></a>
+                                            <input id="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}-selectable-input"
+                                                   type="number"
+                                                   data-id="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}"
+                                                   class=" form-control"
+                                                   min="0" max="{{sku.forecast_arrive_num}}" aria-label="0"
+                                                   value="{{sku.forecast_arrive_num}}" readonly>
+                                            <a class="input-group-addon btn-plus" data-id="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}"><i
+                                                    class="glyphicon glyphicon-chevron-right"></i></a>
+                                            <a class="select-all input-group-addon"
+                                               data-id="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}"
+                                               data-select-all="no">
+                                                <i class="glyphicon glyphicon-fast-forward"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </ul>
+                    </li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+                <div class="custom-header row">
+                    <div class="col-xs-12 btn btn-sm btn-info ">全选</div>
+                </div>
+            </div>
+
+            <div class="ms-selection ">
+                <ul class="ms-list" tabindex="-1">
+                    {% for forecast in forecast_inbounds %}
+                    {% for product in forecast.detail_products %}
+                    <li class="ms-optgroup-container list-group-item hidden"
+                        id="{{product.product_id}}-{{forecast.id}}-selection-li">
+                        <ul class="ms-optgroup list-group clearfix">
+                            <li class="ms-optgroup-label list-group-item clearfix"
+                                id="{{product.product_id}}-{{forecast.id}}-selection-lable">
+                                <div class="row">
+                                    <img class="col-xs-2 inline" src="{{product.product_img}}"/>
+                                    <a class=" switch col-xs-9 inline " data-id="{{product.product_id}}-{{forecast.id}}"
+                                       data-channel="selection">
+                                        <div class="col-xs-10 inline"><p>{{forecast.id}}-{{product.product_code}}</p>
+                                            <p>{{product.product_name}}</p></div>
+                                        <span class="col-xs-1 inline forecast-num">{{product.product_num}}</span>
+                                        <span class="col-xs-1 inline"><i class="glyphicon glyphicon-menu-down"></i></span>
+                                    </a>
+                                    <a class="cancel-all col-xs-1 inline"
+                                       data-id="{{product.product_id}}-{{forecast.id}}" data-cancel-all="yes">
+                                        <i class="glyphicon glyphicon-remove"></i>
+                                    </a>
+                                </div>
+                            </li>
+                            <ul class="ms-optgroup-list list-group clearfix ">
+                                {% for sku in product.detail_skus %}
+                                <li class="ms-elem-selection list-group-item hidden"
+                                    id="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}-selection-li">
+                                    <div class="row">
+                                        <span class="col-xs-8 inline">{{sku.sku_name}}</span>
+                                        <div class="col-xs-3 input-group">
+                                            <input type="number"
+                                                   name="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}-selection-input"
+                                                   data-num="{{sku.forecast_arrive_num}}"
+                                                   class=" form-control" min="0" max="{{sku.forecast_arrive_num}}"
+                                                   aria-label="0" value="0" readonly/>
+                                            <a class="cancel-all input-group-addon"
+                                               data-id="{{sku.sku_id}}-{{product.product_id}}-{{forecast.id}}"
+                                               data-cancel-all="no">
+                                                <i class="glyphicon glyphicon-remove"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </ul>
+                    </li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+                <div class="custom-header">
+                    <div class="col-xs-4 btn btn-sm btn-danger">全部取消</div>
+                    <div class="btn btn-primary btn-sm col-xs-8" onclick="initModal()">
+                        创建新预测单
+                    </div>
+                    <!-- Modal -->
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                        <div class="modal-dialog" aria-hidden="true"  role="document">
+                            <form id="newform" action="./manage/renew_forecast" method="POST">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span></button>
+                                        <h4 class="modal-title" id="myModalLabel">以下商品将从原预测单中删除并添加到预测单</h4>
+                                    </div>
+                                    <div class="modal-body">
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                                        <button type="submit" class="btn btn-primary">确认创建</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-footer"></div>
+</div>
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/js/bootstrap-datepicker.min.js"></script>
+<script src="{{ STATIC_URL }}wap/js/template.js"></script>
+<script>
+var selectableItems = {{forecast_inbounds|jsonify}};
+var supplier = {{supplier|jsonify}};
+var selectedItems = [];
+</script>
+<script src="{{ STATIC_URL }}forecast/js/forecast-multi-select.js"></script>
+{% verbatim %}
+<script id="forecast-new-tpl" type="text/html">
+    <input type="hidden" name="forecast_data" value="{{numData}}">
+    <table class="table table-striped table-condensed table-hover">
+        <thead>
+        <tr class="warning">
+            <td colspan="4"><label>{{supplier.id}}</label> {{supplier.supplier_name}}</td>
+        </tr>
+        <!--<tr>-->
+            <!--<td>商品编码</td>-->
+            <!--<td>商品图片</td>-->
+            <!--<td>商品名称</td>-->
+            <!--<td>商品数量</td>-->
+        <!--</tr>-->
+        </thead>
+        <!--<tbody>-->
+        <!--{{each forecast_details as detail i}}-->
+        <!--<tr class="success" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}">-->
+            <!--{{if j == 0}}-->
+            <!--<td rowspan="{{product.skus.length}}">{{product.name}}</td>-->
+            <!--{{/if}}-->
+        <!--</tr>-->
+        <!--{{/each}}-->
+        <!--</tbody>-->
+        <tfoot>
+        <tr>
+            <td >预测单总商品数量</td>
+            <td>{{totalNum}}</td>
+            <td>拆分新建商品数量</td>
+            <td>{{selectedNum}}</td>
+        </tr>
+        <tr>
+            <td colspan="2">预测到货日期</td>
+            <td colspan="2"><input type="text" name="forecast_arrive_time" id="datepicker" class="datepicker"></td>
+        </tr>
+        </tfoot>
+    </table>
+</script>
+{% endverbatim %}
+</body>
+</html>
