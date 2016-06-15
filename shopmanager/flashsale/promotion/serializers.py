@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from flashsale.promotion.models_freesample import RedEnvelope, AwardWinner
-from flashsale.promotion.models_top10 import TOP10ActivePic
 
 
 class RedEnvelopeSerializer(serializers.ModelSerializer):
@@ -19,6 +18,4 @@ class AwardWinnerSerializer(serializers.ModelSerializer):
         fields = ('customer_img', 'customer_nick', 'invite_num')
 
 
-class Top10PicModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TOP10ActivePic
+
