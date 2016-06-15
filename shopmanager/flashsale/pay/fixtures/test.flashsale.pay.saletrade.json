@@ -99,7 +99,7 @@
     "pay_time": "2016-04-24T20:33:56",
     "title": "\u7ecf\u5178\u767e\u642d\u7834\u6d1e\u725b\u4ed4\u88e4/\u6d45\u84dd\u8272",
     "payment": 48.99,
-    "status": 3,
+    "status": 2,
     "sku_name": "28",
     "price": 49.9,
     "oid": "xo160424571cbd2b68470",
@@ -210,5 +210,26 @@
   },
   "model": "pay.saleorder",
   "pk": 369489
+},
+{
+  "fields": {
+    "amount_refunded": "0",
+    "order_no": "xd160424571cbd0da4bc5",
+    "created": "2016-04-24T20:33:57",
+    "refunded": false,
+    "modified": "2016-04-24T20:33:57",
+    "paid": true,
+    "transaction_no": "2016042421001004520216341417",
+    "currency": "cny",
+    "charge": "ch_80GOeTWzHGG4P44GG0440KeL",
+    "failure_code": "",
+    "time_paid": "2016-04-24T20:33:56",
+    "amount": "10780",
+    "failure_msg": "",
+    "time_expire": "2016-04-25T20:33:47",
+    "channel": "alipay"
+  },
+  "model": "pay.tradecharge",
+  "pk": 218575
 }
 ]

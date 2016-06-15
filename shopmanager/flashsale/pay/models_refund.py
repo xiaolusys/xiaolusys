@@ -3,6 +3,8 @@ import time
 import datetime
 from django.db import models
 from django.db.models import Q, Sum
+from django.conf import settings
+from django.db import transaction
 from django.db.models.signals import post_save
 
 from shopback import paramconfig as pcfg
@@ -17,12 +19,15 @@ from .constants import CHANNEL_CHOICES
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS, REFUND_STATUS
 from flashsale.pay.managers import SaleRefundManager
+from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
+
+from . import constants
+
+import pingpp
+pingpp.api_key = settings.PINGPP_APPKEY
 
 import logging
-from core.options import log_action, ADDITION, CHANGE
-
 logger = logging.getLogger(__name__)
-
 
 def default_refund_no():
     return uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d')))
@@ -42,7 +47,7 @@ class SaleRefund(PayBaseModel):
         (NO_REFUND, '没有退款'),
         (REFUND_WAIT_SELLER_AGREE, '退款待审'),
         (REFUND_WAIT_RETURN_GOODS, '同意申请'),
-        (REFUND_CONFIRM_GOODS, '退货途中'),
+        (REFUND_CONFIRM_GOODS, '退货待收'),
         (REFUND_REFUSE_BUYER, '拒绝退款'),
         (REFUND_APPROVE, '等待返款'),
         (REFUND_CLOSED, '退款关闭'),
@@ -90,6 +95,9 @@ class SaleRefund(PayBaseModel):
     charge = models.CharField(max_length=28, blank=True, db_index=True, verbose_name=u'P++支付编号')
     channel = models.CharField(max_length=16, db_index=True,
                                choices=CHANNEL_CHOICES, blank=True, verbose_name=u'付款方式')
+
+    refund_channel = models.CharField(max_length=16, db_index=True,
+                               choices=CHANNEL_CHOICES, blank=True, verbose_name=u'退款方式')
 
     item_id = models.BigIntegerField(null=True, default=0, verbose_name='商品ID')
     title = models.CharField(max_length=64, blank=True, verbose_name='出售标题')
@@ -146,14 +154,27 @@ class SaleRefund(PayBaseModel):
     def refund_desc(self):
         return u'退款(oid:%s),%s' % (self.order_id, self.reason)
 
-    def get_tid(self):
+    def is_fastrefund(self):
+        """　是否极速退款 """
+        return self.refund_channel == constants.BUDGET or self.sale_trade.is_budget_paid()
+
+    def is_postrefund(self):
+        """　发货后退款 """
+        return self.good_status in (self.BUYER_RECEIVED, self.BUYER_RETURNED_GOODS)
+
+    @property
+    def sale_trade(self):
         from flashsale.pay.models import SaleTrade
-        strade = SaleTrade.objects.get(id=self.trade_id)
+        if not hasattr(self, '__sale_trade__'):
+            self.__sale_trade__ = SaleTrade.objects.filter(id=self.trade_id).first()
+        return self.__sale_trade__
+
+    def get_tid(self):
+        strade = self.sale_trade
         return strade.tid
 
     def get_oid(self):
-        from flashsale.pay.models import SaleOrder
-        sorder = SaleOrder.objects.get(id=self.order_id)
+        sorder = self.sale_order()
         return sorder.oid
 
     # @staticmethod
@@ -198,8 +219,109 @@ class SaleRefund(PayBaseModel):
     #         logger.error('gen_out_stock_refund: %s.' % exc.message)
     #         return "生成退款单出错！"
 
+    @transaction.atomic
+    def refund_wallet_approve(self):
+        """ deprecated 退款至妈妈钱包 """
+        from flashsale.pay.models import Customer
+        from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 
-    def refund_Confirm(self):
+
+        strade = self.sale_trade
+        sorder = self.sale_order
+        customer = Customer.objects.filter(id=strade.buyer_id).first()
+
+        payment = int(self.refund_fee * 100)
+        xlmm  = XiaoluMama.objects.filter(openid=customer.unionid).first()
+        if not xlmm:
+            raise Exception(u'妈妈unoind:%s' % customer.unionid)
+
+        clog = CarryLog.objects.filter(xlmm=xlmm.id,
+                                       order_num=self.order_id,  # 以子订单为准
+                                       log_type=CarryLog.REFUND_RETURN).first()
+        if clog:
+            total_refund = clog.value + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
+            if total_refund > int(sorder.payment * 100):
+                # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
+                raise Exception(u'超过订单实际支付金额!')
+            else:
+                # 如果退款总额不大于该笔子订单的实际支付金额　则予以退款操作
+                clog.value = total_refund
+                clog.save()
+                # 操作记录
+                xlmm.cash=models.F('cash') + payment
+                xlmm.save(update_fields=['cash'])
+                log_action(get_systemoa_user(), self, CHANGE, u'二次退款审核通过:%s' % self.refund_id)
+        # assert clogs.count() == 0, u'订单已经退款！'
+        else:  # 钱包中不存在该笔子订单的历史退款记录　则创建记录
+            if payment > int(sorder.payment * 100):
+                raise Exception(u'超过订单实际支付金额!')
+            CarryLog.objects.create(xlmm=xlmm.id,
+                                    order_num=self.order_id,
+                                    buyer_nick=strade.buyer_nick,
+                                    value=payment,
+                                    log_type=CarryLog.REFUND_RETURN,
+                                    carry_type=CarryLog.CARRY_IN,
+                                    status=CarryLog.CONFIRMED)
+            xlmm.cash = models.F('cash') + payment
+            xlmm.save(update_fields=['cash'])
+        self.refund_confirm()
+
+    @transaction.atomic
+    def refund_fast_approve(self):
+        """　极速退款审核确认 """
+        from flashsale.pay.models import BudgetLog
+        strade = self.sale_trade
+        sorder = self.sale_order()
+
+        obj = self
+        payment = int(obj.refund_fee * 100)
+        blog = BudgetLog.objects.filter(customer_id=strade.buyer_id,
+                                         referal_id=obj.order_id,  # 以子订单为准
+                                         budget_log_type=BudgetLog.BG_REFUND).first()
+        if blog:
+            total_refund = blog.flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
+            if total_refund > int(sorder.payment * 100):
+                # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
+                raise Exception(u'超过订单实际支付金额!')
+            else:  # 如果退款总额不大于该笔子订单的实际支付金额　则予以退款操作
+                blog.flow_amount = total_refund
+                blog.save(update_fields=['flow_amount'])
+        else:
+            if payment > int(sorder.payment * 100):
+                raise Exception(u'超过订单实际支付金额!')
+            BudgetLog.objects.create(
+                customer_id=strade.buyer_id,
+                referal_id=obj.order_id,
+                flow_amount=payment,
+                budget_type=BudgetLog.BUDGET_IN,
+                budget_log_type=BudgetLog.BG_REFUND,
+                status=BudgetLog.CONFIRMED
+            )
+        self.refund_confirm()
+
+    def refund_charge_approve(self):
+        ch = pingpp.Charge.retrieve(self.charge)
+        re = ch.refunds.create(description=self.refund_desc(),
+                               amount=int(self.refund_fee * 100))
+        self.refund_id = re.id
+        self.status = SaleRefund.REFUND_APPROVE
+        self.save(update_fields=['refund_id', 'status'])
+
+    def refund_approve(self):
+
+        from flashsale.pay.models import SaleTrade
+        strade = self.sale_trade
+        if strade.channel == SaleTrade.WALLET:
+            self.refund_wallet_approve()
+
+        elif self.is_fastrefund():
+            self.refund_fast_approve()
+
+        elif self.refund_fee > 0 and self.charge:
+            self.refund_charge_approve()
+
+    def refund_confirm(self):
+        """ 确认退款成功，修改退款状态 """
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
             return
@@ -254,11 +376,9 @@ class SaleRefund(PayBaseModel):
 
     def sale_order(self):
         from flashsale.pay.models import SaleOrder
-        try:
-            order = SaleOrder.objects.get(id=self.order_id)
-        except SaleOrder.DoesNotExist:
-            order = None
-        return order
+        if not hasattr(self, '__sale_order__'):
+            self.__sale_order__ = SaleOrder.objects.filter(id=self.order_id).first()
+        return self.__sale_order__
 
     def get_return_address(self):
         """ 退货地址 """

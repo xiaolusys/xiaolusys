@@ -1,9 +1,11 @@
 # -*- coding:utf-8 -*-
 import uuid
 import datetime
+import urlparse
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save
+from django.conf import settings
 from django.db import transaction
 
 from .base import PayBaseModel, BaseModel
@@ -25,8 +27,8 @@ from flashsale.pay import constants as CONST
 from .signals import signal_saletrade_pay_confirm, signal_saletrade_refund_post
 from .options import uniqid
 from core.fields import JSONCharMyField
-from common.utils import update_model_fields
 from shopback.users.models import User
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -217,6 +219,15 @@ class SaleTrade(BaseModel):
 
     @property
     def status_name(self):
+        if self.status in (SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.TRADE_BUYER_SIGNED):
+            is_complete_refunding = True
+            for sorder in  self.sale_orders.all():
+                if sorder.refund_status < CONST.REFUND_WAIT_SELLER_AGREE:
+                    is_complete_refunding = False
+            if is_complete_refunding and self.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
+                return u'退款中'
+            elif is_complete_refunding and self.status == SaleTrade.TRADE_BUYER_SIGNED:
+                return u'退货中'
         return self.get_status_display()
 
     @property
@@ -304,6 +315,9 @@ class SaleTrade(BaseModel):
 
     def is_wallet_paid(self):
         return self.channel == self.WALLET
+
+    def is_budget_paid(self):
+        return self.channel == SaleTrade.BUDGET or self.has_budget_paid
 
     def release_lock_skunum(self):
         try:
@@ -440,6 +454,41 @@ class SaleTrade(BaseModel):
         if not hasattr(SaleTrade, '_seller'):
             SaleTrade._seller = User.objects.get(uid=FLASH_SELLER_ID)
         return SaleTrade._seller
+
+    def get_extras(self):
+        if not self.status in (SaleTrade.WAIT_SELLER_SEND_GOODS,
+                               SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                               SaleTrade.TRADE_BUYER_SIGNED):
+            return {}
+
+        _default = {
+            self.BUDGET: {'name':u'极速退款', 'desc_name':u'小鹿钱包',
+                       'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，并可立即支付使用，无需等待.'},
+            self.WX: {'name':u'退微信支付', 'desc_name':u'微信钱包或微信银行卡',
+                      'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
+            self.ALIPAY: {'name':u'退支付宝', 'desc_name':u'支付宝账户',
+                      'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
+            'refund_title_choice': (u'申请退款后', u'退货成功后'),
+        }
+
+        is_post_refund = self.status != SaleTrade.WAIT_SELLER_SEND_GOODS
+        refund_title = _default['refund_title_choice'][is_post_refund and 1 or 0]
+        refund_channels =  [self.BUDGET]
+        if self.channel != self.BUDGET and not self.has_budget_paid:
+            refund_channels.append(self.channel)
+
+        refund_resp_list = []
+        for channel in refund_channels:
+            channel_alias = channel.split('_')[0]
+            refund_param = _default.get(channel_alias)
+            refund_resp_list.append({
+                'refund_channel': channel,
+                'name': refund_param['name'],
+                'desc': refund_param['desc_tpl'].format(refund_title=refund_title, desc_name=refund_param['desc_name'])
+            })
+        return {
+            'refund_choices': refund_resp_list
+        }
 
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """
@@ -650,11 +699,8 @@ class SaleOrder(PayBaseModel):
 
     @property
     def refund(self):
-        try:
-            refund = SaleRefund.objects.get(trade_id=self.sale_trade.id, order_id=self.id)
-            return refund
-        except:
-            return None
+        refund = SaleRefund.objects.get(trade_id=self.sale_trade.id, order_id=self.id).first()
+        return refund
 
     @property
     def package_order(self):
@@ -986,6 +1032,11 @@ class ShoppingCart(BaseModel):
         if pro_sku and pro_sku.product.is_onshelf():
             return pro_sku.sale_out
         return False
+
+    def get_item_weburl(self):
+        product = Product.objects.filter(id=self.item_id).first()
+        return urlparse.urljoin(settings.M_SITE_URL,
+                                Product.MALL_PRODUCT_TEMPLATE_URL.format(product.model_id))
 
 
 from signals_coupon import *

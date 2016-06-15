@@ -248,12 +248,12 @@ class LogisticsCompanySerializer(serializers.ModelSerializer):
 class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:shoppingcart-detail')
     status = serializers.ChoiceField(choices=ShoppingCart.STATUS_CHOICE)
-
+    item_weburl = serializers.CharField(source='get_item_weburl', read_only=True)
     class Meta:
         model = ShoppingCart
         fields = ('id', 'url', 'buyer_id', 'buyer_nick', 'item_id', 'title', 'price',
                   'std_sale_price', 'sku_id', 'num', 'total_fee', 'sku_name',
-                  'pic_path', 'created', 'is_repayable', 'status')
+                  'pic_path', 'created', 'is_repayable', 'status', 'item_weburl')
 
 
 class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
@@ -270,7 +270,6 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
                   'refund_status', 'refund_status_display', "refund_id", 'kill_title', 'is_seckill')
 
-
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
     orders = SaleOrderSerializer(source='sale_orders', many=True, read_only=True)
@@ -279,7 +278,7 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
     logistics_company = LogisticsCompanySerializer(read_only=True)
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    status_display = serializers.CharField(source='status_name', read_only=True)
     order_pic = serializers.CharField(read_only=True)
 
     class Meta:
@@ -298,14 +297,14 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
     logistics_company = LogisticsCompanySerializer(read_only=True)
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-
+    status_display = serializers.CharField(source='status_name', read_only=True)
+    extras = JSONParseField(source='get_extras', read_only=True)
     class Meta:
         model = SaleTrade
         fields = ('id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
-                  'logistics_company', 'user_adress')
+                  'logistics_company', 'user_adress', 'extras')
 
 
 from flashsale.pay.models import District, UserAddress
@@ -327,7 +326,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
                   'sku_id', 'sku_name', 'refund_num', 'buyer_nick', 'mobile', 'phone', 'proof_pic',
                   'total_fee', 'payment', 'created', 'modified', 'company_name', 'sid', 'reason', 'pic_path',
                   'desc', 'feedback', 'has_good_return', 'has_good_change', 'good_status', 'status', 'refund_fee',
-                  "return_address", "status_display", "amount_flow", "status_shaft")
+                  "return_address", "status_display", "amount_flow", "status_shaft", "refund_channel")
 
 
 #####################################################################################

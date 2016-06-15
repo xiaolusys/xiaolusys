@@ -153,6 +153,24 @@ class Result(BaseModel):
             # signal_push_pending_carry_to_cash.send(sender=XiaoluMama, obj=xlmm.id)
 
 
+class ExamResultDetail(BaseModel):
+    """ 考试答题明细 """
+    customer_id = models.BigIntegerField(db_index=True, verbose_name=u'用户ID')
+    sheaves = models.IntegerField(default=0, db_index=True, verbose_name=u'考试轮数')
+    question_id = models.BigIntegerField(db_index=True, verbose_name=u'题号')
+    answer = models.CharField(max_length=32, verbose_name=u'用户回答')
+    is_right = models.BooleanField(default=False, verbose_name=u'是否正确')
+    point = models.FloatField(default=0.0, verbose_name=u'分值')
+    uni_key = models.CharField(max_length=64, verbose_name=u'唯一标识')
+    # 唯一id customer_id/question_id　一个用户一个题目　只会有一个记录结果
+
+    class Meta:
+        db_table = 'flashsale_mmexam_result_detail'
+        app_label = 'mmexam'
+        verbose_name = u'代理考试结果明细'
+        verbose_name_plural = u'代理考试结果明细列表'
+
+
 class MamaDressResult(BaseModel):
     """ 穿衣风格测试结果 """
     UNFINISHED = 0

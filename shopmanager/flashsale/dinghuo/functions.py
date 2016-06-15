@@ -88,7 +88,7 @@ def save_draft_from_detail_id(order_list_id, user):
     """根据这个订货单的id获取未完成的订货信息"""
     all_details = OrderDetail.objects.filter(orderlist_id=order_list_id)
     for order_detail in all_details:
-        buy_quantity = order_detail.inferior_quantity + order_detail.non_arrival_quantity
+        buy_quantity = order_detail.non_arrival_quantity
         draft_query = orderdraft.objects.filter(buyer_name=user, product_id=order_detail.product_id,
                                                 chichu_id=order_detail.chichu_id)
         if draft_query.count() == 0 and buy_quantity > 0:
@@ -243,7 +243,7 @@ def get_result_daily():
         ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' OR A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
                        "sum(if(status='5' OR  status='6' OR status='有问题' OR status='验货完成' OR status='已处理',B.arrival_quantity,0)) as arrival_quantity,B.effect_quantity,A.status" \
                        " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created BETWEEN '{0}' AND '{1}') as A " \
-                       "left join (select orderlist_id,outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
+                       "left join (select orderlist_id,outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-non_arrival_quantity) as effect_quantity " \
                        "from suplychain_flashsale_orderdetail) as B on A.id=B.orderlist_id group by outer_id,chichu_id".format(
             shelve_from, query_time)
         sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \

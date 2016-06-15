@@ -227,8 +227,7 @@ LOGOUT_URL = '/accounts/logout/'
 ############################# EXTENSION CONFIG ##############################
 
 TAOBAO_PAGE_SIZE = 50  # the page_size of  per request
-
-from task_settings import *  # celery config
+from .task_settings import *  # celery config
 
 REST_FRAMEWORK = {
     #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
@@ -252,7 +251,6 @@ REST_FRAMEWORK_EXTENSIONS = {
     'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15,
     'DEFAULT_CACHE_KEY_FUNC': 'rest_framework_extensions.utils.default_cache_key_func'
 }
-
 JSONFIELD_ENCODER_CLASS = 'django.core.serializers.json.DjangoJSONEncoder'
 
 if os.environ.get('TARGET') in ('staging',):
@@ -572,6 +570,5 @@ try:
         INSTALLED_APPS += ('debug_toolbar',)
 except ImportError, err:
     pass
-
 
 

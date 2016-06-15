@@ -252,91 +252,17 @@ class RefundPopPageView(APIView):
                     sorder = SaleOrder.objects.get(id=obj.order_id)
                     customer = Customer.objects.get(id=strade.buyer_id)
                     if strade.channel == SaleTrade.WALLET:
-                        payment = int(obj.refund_fee * 100)
-                        xlmm_queryset = XiaoluMama.objects.filter(openid=customer.unionid)
-                        xlmm = xlmm_queryset[0]
-                        clogs = CarryLog.objects.filter(xlmm=xlmm.id,
-                                                        order_num=obj.order_id,  # 以子订单为准
-                                                        log_type=CarryLog.REFUND_RETURN)
-                        if clogs.exists():
-                            total_refund = clogs[0].value + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
-                            if total_refund > int(sorder.payment * 100):
-                                # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
-                                raise Exception(u'超过订单实际支付金额!')
-                            else:  # 如果退款总额不大于该笔子订单的实际支付金额　则予以退款操作
-                                cl = clogs[0]
-                                cl.value = total_refund
-                                cl.save()
-                                log_action(request.user.id, clogs[0], CHANGE, u'二次退款,退款返现:%s' % clogs[0].id)
-                                # 操作记录
-                                xlmm_queryset.update(cash=models.F('cash') + payment)
-                                obj.status = SaleRefund.REFUND_SUCCESS
-                                obj.save()
-                                log_action(request.user.id, obj, CHANGE, u'二次退款审核通过:%s' % obj.refund_id)
-                        # assert clogs.count() == 0, u'订单已经退款！'
-                        else:  # 钱包中不存在该笔子订单的历史退款记录　则创建记录
-                            if payment > int(sorder.payment * 100):
-                                raise Exception(u'超过订单实际支付金额!')
-                            CarryLog.objects.create(xlmm=xlmm.id,
-                                                    order_num=obj.order_id,
-                                                    buyer_nick=strade.buyer_nick,
-                                                    value=payment,
-                                                    log_type=CarryLog.REFUND_RETURN,
-                                                    carry_type=CarryLog.CARRY_IN,
-                                                    status=CarryLog.CONFIRMED)
-                            xlmm_queryset.update(cash=models.F('cash') + payment)
-                            obj.status = SaleRefund.REFUND_SUCCESS
-                            obj.save()
-                            log_action(request.user.id, obj, CHANGE, u'首次退款审核通过:%s' % obj.refund_id)
-                        obj.refund_Confirm()
+                        obj.refund_wallet_approve()
 
-                    elif strade.channel == SaleTrade.BUDGET or strade.has_budget_paid:
-                        payment = int(obj.refund_fee * 100)
-                        blogs = BudgetLog.objects.filter(customer_id=strade.buyer_id,
-                                                         referal_id=obj.order_id,  # 以子订单为准
-                                                         budget_log_type=BudgetLog.BG_REFUND)
-                        if blogs.exists():
-                            total_refund = blogs[0].flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
-                            if total_refund > int(sorder.payment * 100):
-                                # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
-                                raise Exception(u'超过订单实际支付金额!')
-                            else:  # 如果退款总额不大于该笔子订单的实际支付金额　则予以退款操作
-                                cl = blogs[0]
-                                cl.flow_amount = total_refund
-                                cl.save()
-                                log_action(request.user.id, blogs[0], CHANGE, u'二次退款,退款返钱包:%s' % blogs[0].id)
-                                # 操作记录
-                                obj.status = SaleRefund.REFUND_SUCCESS
-                                obj.save()
-                                log_action(request.user.id, obj, CHANGE, u'二次退款审核通过:%s' % obj.refund_id)
-
-                        else:
-                            if payment > int(sorder.payment * 100):
-                                raise Exception(u'超过订单实际支付金额!')
-                            BudgetLog.objects.create(customer_id=strade.buyer_id,
-                                                     referal_id=obj.order_id,
-                                                     flow_amount=payment,
-                                                     budget_type=BudgetLog.BUDGET_IN,
-                                                     budget_log_type=BudgetLog.BG_REFUND,
-                                                     status=BudgetLog.CONFIRMED)
-                            obj.status = SaleRefund.REFUND_SUCCESS
-                            obj.save()
-                            log_action(request.user.id, obj, CHANGE, u'首次退款审核通过:%s' % obj.refund_id)
-                        obj.refund_Confirm()
+                    elif obj.is_fastrefund():
+                        obj.refund_fast_approve()
 
                     elif obj.refund_fee > 0 and obj.charge:  # 有支付编号
-                        import pingpp
+                        obj.refund_charge_approve()
 
-                        pingpp.api_key = settings.PINGPP_APPKEY
-                        ch = pingpp.Charge.retrieve(obj.charge)
-                        re = ch.refunds.create(description=obj.refund_desc(),
-                                               amount=int(obj.refund_fee * 100))
-                        obj.refund_id = re.id
-                        obj.status = SaleRefund.REFUND_APPROVE  # 确认退款等待返款
-                        obj.save()
-                        log_action(request.user.id, obj, CHANGE, u'退款审核通过:%s' % obj.refund_id)
-                    obj.amount_flow = calculate_amount_flow(obj)
-                    obj.save()
+                    log_action(request.user.id, obj, CHANGE, u'退款审核通过:%s' % obj.refund_id)
+                    # obj.amount_flow = calculate_amount_flow(obj)
+                    # obj.save()
                 else:  # 退款单状态不可审核
                     Response({"res": "not_in_status"})
             except Exception, exc:
@@ -360,7 +286,7 @@ class RefundPopPageView(APIView):
         if method == "confirm":  # 确认
             try:
                 if obj.status == SaleRefund.REFUND_APPROVE:
-                    obj.refund_Confirm()
+                    obj.refund_confirm()
                     obj.save()
                     log_action(request.user.id, obj, CHANGE, '确认退款完成:%s' % obj.refund_id)
                 else:

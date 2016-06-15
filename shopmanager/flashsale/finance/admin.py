@@ -50,6 +50,7 @@ class BillAdmin(admin.ModelAdmin):
 
     def action_merge(self, request, queryset):
         attachment_set = set()
+        status_set = set()
         supplier_ids = set()
         bill_ids = []
         is_wrong_pay_method = False
@@ -65,6 +66,7 @@ class BillAdmin(admin.ModelAdmin):
                 plan_amount -= bill.plan_amount
             if bill.status in [Bill.STATUS_COMPLETED]:
                 is_wrong_status = True
+            status_set.add(bill.status)
             if bill.type == Bill.DELETE:
                 is_wrong_type = True
             if bill.attachment:
@@ -112,7 +114,7 @@ class BillAdmin(admin.ModelAdmin):
             supplier_id=supplier_id,
             attachment=attachment,
             creater=request.user,
-            status=0
+            status=min(status_set)
         )
         merged_bill.save()
 

@@ -137,7 +137,7 @@ class ChangeDetailView(View):
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         order_list_list = []
         for order in order_details:
-            order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
+            order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity
             order.save()
             product = Product.objects.get(id=order.product_id)
             order_dict = model_to_dict(order)
@@ -229,7 +229,6 @@ def update_dinghuo_part_information(request):
     express_no = request.REQUEST.get("express_no", None)
     pay_way = int(request.REQUEST.get("pay_way", None))
     supplier_name = request.REQUEST.get("supplier_name", None)
-    print dinghuo_id,express_company,express_no, pay_way, supplier_name
     try:
         item = OrderList.objects.get(id = dinghuo_id)
         item.express_company = express_company
@@ -261,8 +260,7 @@ def change_inferior_num(request):
         OrderDetail.objects.filter(id=order_detail_id).update(
             inferior_quantity=F('inferior_quantity') - 1)
         OrderDetail.objects.filter(id=order_detail_id).update(
-            non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F(
-                'inferior_quantity'))
+            non_arrival_quantity=F('buy_quantity') - F('arrival_quantity'))
         OrderDetail.objects.filter(id=order_detail_id).update(
             arrival_quantity=F('arrival_quantity') + 1)
         ProductStock.add_order_detail(order_detail, 1)
@@ -274,8 +272,7 @@ def change_inferior_num(request):
         OrderDetail.objects.filter(id=order_detail_id).update(
             inferior_quantity=F('inferior_quantity') + 1)
         OrderDetail.objects.filter(id=order_detail_id).update(
-            non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F(
-                'inferior_quantity'))
+            non_arrival_quantity=F('buy_quantity') - F('arrival_quantity'))
         OrderDetail.objects.filter(id=order_detail_id).update(
             arrival_quantity=F('arrival_quantity') - 1)
         ProductStock.add_order_detail(order_detail, -1)

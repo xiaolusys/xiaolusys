@@ -21,7 +21,7 @@ class ReceiptGoodsAdmin(admin.ModelAdmin):
         "weight",
         "weight_time",
         "express_no",
-        "express_company",
+        "express_company_display",
         "created",
         "modified",
     )
@@ -36,6 +36,14 @@ class ReceiptGoodsAdmin(admin.ModelAdmin):
         "=creator",
         "=express_no",
     ]
+
+    def express_company_display(self, obj):
+        if obj.logistic_company():
+            return obj.logistic_company().name
+        return ''
+
+    express_company_display.allow_tags = True
+    express_company_display.short_description = u'快递公司'
 
 
 admin.site.register(ReceiptGoods, ReceiptGoodsAdmin)

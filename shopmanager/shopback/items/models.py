@@ -113,6 +113,7 @@ class Product(models.Model):
 
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
+    MALL_PRODUCT_TEMPLATE_URL = constants.MALL_PRODUCT_TEMPLATE_URL
     NO_PIC_PATH = '/static/img/nopic.jpg'
 
     outer_id = models.CharField(max_length=32, unique=True, null=False,
@@ -300,7 +301,7 @@ class Product(models.Model):
 
     def get_weburl(self):
         return urlparse.urljoin(settings.M_SITE_URL,
-                                constants.MALL_PRODUCT_TEMPLATE_URL.format(self.model_id))
+                                self.MALL_PRODUCT_TEMPLATE_URL.format(self.model_id))
 
     def head_img(self):
         """ 获取商品款式 """

@@ -380,7 +380,7 @@ def minusarrived(req):
     OrderDetail.objects.filter(id=orderdetailid).update(
         arrival_quantity=F('arrival_quantity') - 1)
     OrderDetail.objects.filter(id=orderdetailid).update(non_arrival_quantity=F(
-        'buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
+        'buy_quantity') - F('arrival_quantity'))
     ProductStock.add_order_detail(orderdetail, -1)
     log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}{2}'.format(
         (u'入库减一件'), orderdetail.product_name, orderdetail.product_chicun))
@@ -552,7 +552,7 @@ def changearrivalquantity(request):
         except:
             return HttpResponse(result)
         order.arrival_quantity = order.arrival_quantity + arrived_num
-        order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
+        order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity
         ProductStock.add_order_detail(order, arrived_num)
         order.arrival_time = arrival_time
         order.save()
