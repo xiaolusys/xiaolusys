@@ -267,8 +267,11 @@ def pushTradeRefundTask(refund_id):
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
         refund.save()
 
-        if sale_refund.is_fastrefund() and not sale_refund.is_postrefund():
-            sale_refund.refund_fast_approve()
+        if not sale_refund.is_postrefund():
+            if sale_refund.is_fastrefund():
+                sale_refund.refund_fast_approve()
+            else:
+                sale_refund.refund_charge_approve()
     except Exception, exc:
         logger.error('pushTradeRefundTask：%s'%exc.message, exc_info=True)
         raise pushTradeRefundTask.retry(exc=exc)

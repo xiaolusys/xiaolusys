@@ -257,9 +257,12 @@ class RefundView(APIView):
         content = request.REQUEST
         rf = RefundProduct()
         for k, v in content.iteritems():
+            if k == 'oid':
+                if RefundProduct.objects.filter(oid=v).count() != 0:
+                    return Response(serializers.RefundProductSerializer(rf).data)
             if k == 'can_reuse':
                 v = v == "true" and True or False
-                print "nmb", v
+                # print "nmb", v
             hasattr(rf, k) and setattr(rf, k, v)
         rf.save()
         # 创建一条退货款单记录

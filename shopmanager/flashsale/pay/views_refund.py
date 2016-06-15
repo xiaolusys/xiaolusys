@@ -198,7 +198,7 @@ class RefundPopPageView(APIView):
         refund_dict = model_to_dict(sale_refund)
 
         refund_dict['refundd_message'] = ""
-        if strade.has_budget_paid:  # 如果使用余额
+        if sale_refund.is_fastrefund():  # 如果是极速退款
             refund_dict['refundd_message'] = "[1]退回小鹿钱包 {0}元 其中余额{1}".format(strade.payment,
                                                                              strade.payment - strade.pay_cash)
         else:
@@ -244,6 +244,7 @@ class RefundPopPageView(APIView):
             log_action(request.user.id, obj, CHANGE, '保存状态信息到－退货状态')
 
         if method == "agree":  # 同意退款
+            # TODO 如果退货仓库确认接受且可以二次销售，则直接退款（是否要求退运费），如果不能二次销售则需人工审核
             try:
                 if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,
                                   SaleRefund.REFUND_WAIT_RETURN_GOODS,

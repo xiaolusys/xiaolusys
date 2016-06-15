@@ -51,7 +51,7 @@ class SaleRefundManager(BaseManager):
         if trade.channel not in (SaleTrade.BUDGET, SaleTrade.WALLET):  # 如果不是　小鹿钱包或者妈妈钱包支付　就要检查charge
             charge = TradeCharge.objects.filter(order_no=trade.tid, paid=True).first()  # 确认支付的交易charge
             if not charge:  # 没有支付记录
-                raise Exception(u'SaleRefundManager: order id %s charge not found' % sale_order_id)
+                raise Exception(u'SaleRefundManager: saletrade tid %s charge not found' % trade.tid)
 
         refund = self.filter(order_id=sale_order_id).first()
         from shopback.refunds.models import REFUND_REASON
