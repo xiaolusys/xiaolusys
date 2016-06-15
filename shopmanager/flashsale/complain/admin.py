@@ -1,5 +1,5 @@
+# coding:utf-8
 __author__ = 'yan.huang'
-# -*- coding:utf-8 -*-
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from core.admin import BaseModelAdmin
