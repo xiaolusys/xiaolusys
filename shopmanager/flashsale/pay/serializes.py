@@ -3,7 +3,7 @@ from django.forms import model_to_dict
 from rest_framework import serializers
 
 from shopback.items.models import Product, ProductSku
-from .models import SaleTrade, District, UserAddress, ModelProduct
+from .models import SaleTrade, District, UserAddress, ModelProduct, BrandProduct
 
 
 class DetailInfoField(serializers.Field):
@@ -138,3 +138,8 @@ class ModelProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'head_imgs', 'content_imgs', 'sale_time')
         # , 'std_sale_price', 'agent_price', 'shelf_status', 'status')
 
+
+class BrandProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BrandProduct
+        fields = ('id', 'model_id', 'product_name', 'product_img', 'location_id')

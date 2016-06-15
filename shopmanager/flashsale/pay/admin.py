@@ -547,9 +547,10 @@ admin.site.register(Envelop, EnvelopAdmin)
 
 from flashsale.pay.models_custom import ModelProduct, BrandEntry, BrandProduct
 
+
 class BrandProductInline(admin.TabularInline):
     model = BrandProduct
-    fields = ( 'product_name', 'product_img', 'product_id', 'start_time', 'end_time',  )
+    fields = ('product_name', 'product_img', 'model_id', 'start_time', 'end_time',)
 
 
 
@@ -626,7 +627,7 @@ admin.site.register(BrandEntry, BrandEntryAdmin)
 
 
 class BrandProductAdmin(ApproxAdmin):
-    list_display = ('id','brand_name', 'product_name', 'product_img', 'product_id', 'start_time', 'end_time')
+    list_display = ('id','brand_name', 'product_name', 'product_img', 'model_id', 'start_time', 'end_time')
 
     list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))
     search_fields = ['brand_name']

@@ -16,3 +16,6 @@ class AwardWinnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = AwardWinner
         fields = ('customer_img', 'customer_nick', 'invite_num')
+
+
+
