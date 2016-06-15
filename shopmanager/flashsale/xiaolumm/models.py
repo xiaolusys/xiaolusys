@@ -66,11 +66,19 @@ class XiaoluMama(models.Model):
     INNER_LEVEL = 1
     VIP_LEVEL = 2
     A_LEVEL = 3
-
+    VIP2_LEVEL = 12
+    VIP4_LEVEL = 14
+    VIP6_LEVEL = 16
+    VIP8_LEVEL = 18
+    
     AGENCY_LEVEL = (
         (INNER_LEVEL, u"普通"),
-        (VIP_LEVEL, u"VIP类"),
+        (VIP_LEVEL, "VIP1"),
         (A_LEVEL, u"A类"),
+        (VIP2_LEVEL, "VIP2"),
+        (VIP4_LEVEL, "VIP4"),
+        (VIP6_LEVEL, "VIP6"),
+        (VIP8_LEVEL, "VIP8"),
     )
 
     mobile = models.CharField(max_length=11, db_index=True, blank=False, verbose_name=u"手机")
