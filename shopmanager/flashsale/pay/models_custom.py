@@ -617,6 +617,7 @@ class BrandProduct(BaseModel):
     brand = models.ForeignKey(BrandEntry, related_name='brand_products', verbose_name=u'所属专题')
     brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'专题名称')
 
+    product_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品ID')
     model_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品款式ID')
     product_name = models.CharField(max_length=64, blank=True, verbose_name=u'商品名称')
     product_img = models.CharField(max_length=256, blank=True, verbose_name=u'商品图片')
