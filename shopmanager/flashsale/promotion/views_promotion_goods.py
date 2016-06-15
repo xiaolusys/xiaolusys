@@ -29,19 +29,22 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
     def get_goods_pics_by_promotionid(self, request):
         content = request.REQUEST
         promotion_id = content.get('promotion_id', None)
-        act_pics = self.queryset.filter(id=promotion_id).order_by("location_id")
-        if act_pics:
+        brand_entry = BrandEntry.objects.filter(id=promotion_id).first()
+
+        if brand_entry:
+            act_pics = brand_entry.brand_products.order_by("location_id")
             serializer = self.get_serializer(act_pics, many=True)
             return Response(serializer.data)
         else:
             return Response([])
 
+    @list_route(methods=['get'])
     def get_desc_pics_by_promotionid(self, request):
         content = request.REQUEST
         promotion_id = content.get('promotion_id', None)
-        desc_pics = BrandEntry.filter(id=promotion_id)
+        desc_pics = BrandEntry.objects.filter(id=promotion_id)
         if desc_pics:
-            return Response(desc_pics.extra_pics)
+            return Response(desc_pics.first().extra_pic)
         else:
             return Response([])
 
@@ -55,9 +58,12 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
 
         brand = BrandEntry.objects.filter(id=act_id).first()
         # BrandProduct.objects.filter(brand=brand).delete()
-        brand.brand_products.delete()
-        brand.extra_pic = '[]'
-        brand.save()
+        if brand:
+            brand.brand_products.all().delete()
+            brand.extra_pic = '[]'
+            brand.save()
+        else:
+            return Response({"code": 1, "info": "需要先建立这些商品的推广专题-Pay › 特卖/推广专题入口 "})
 
         extra_pic = []
         for da in data:
@@ -77,9 +83,10 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
                 pics.save()
             else:
                 extra_pic.append(da)
-        if extra_pic.length > 0:
+
+        if len(extra_pic) > 0:
             import json
-            brand.extra_pic = json.dump(extra_pic)
-            print brand.extra_pic
+            brand.extra_pic = json.dumps(extra_pic)
+            # print brand.extra_pic
             brand.save()
         return Response({"code": 0, "info": ""})
