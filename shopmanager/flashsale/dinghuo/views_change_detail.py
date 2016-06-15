@@ -229,7 +229,6 @@ def update_dinghuo_part_information(request):
     express_no = request.REQUEST.get("express_no", None)
     pay_way = int(request.REQUEST.get("pay_way", None))
     supplier_name = request.REQUEST.get("supplier_name", None)
-    print dinghuo_id,express_company,express_no, pay_way, supplier_name
     try:
         item = OrderList.objects.get(id = dinghuo_id)
         item.express_company = express_company

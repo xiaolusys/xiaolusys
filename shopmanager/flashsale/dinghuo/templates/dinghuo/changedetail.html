@@ -291,11 +291,13 @@
             <p class="alert alert-success" role="alert"><strong>供应商地址:{{orderlist.supplier.address}}
             </strong><br/><strong>供应商电话:{{orderlist.supplier.phone}}</strong><br/>
              <strong>供应商手机:{{orderlist.supplier.mobile}}</strong><br/>
-            <strong>供应商其他联系方式：{{zip_code}}</strong></p>
+                <strong>联系人:{{orderlist.supplier.contact}}</strong><br/>
+            <strong>供应商其他联系方式：{{orderlist.supplier.zip_code}}</strong></p>
+
             <p class="alert alert-success" role="alert">
 
                 <strong>商品链接:<input id = "supplier_name" size = 30 type="text" value={{orderlist.supplier_name}} /></strong>
-                <a href="{{ orderlist.supplier_name }}" target="_blank">{{ orderlist.supplier_shop }}</a>
+               <strong> <a href="{{ orderlist.supplier_name }}" target="_blank">{{ orderlist.supplier_name }}</a></strong>
             </p>
         </div>
     </div>
@@ -318,7 +320,7 @@
             </div>
             <div class="alert alert-success" role="alert" style="margin-top: -15px">
                 <strong>付款方式:</strong>
-                <select class="form-control" id="pay_way" >
+                <select class="form-control" id="pay_way" disabled=True>
             <option value={{ orderlist.bill_method }}>{{ orderlist.get_bill_method_display }}</option>
             <option value = 11 >货到付款</option><option value=12 >预付款</option><option value=13 >付款提货</option><option value=14 >其它</option>
                     </select>
