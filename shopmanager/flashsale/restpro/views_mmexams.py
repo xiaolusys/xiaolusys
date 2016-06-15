@@ -3,6 +3,7 @@ import logging
 import datetime
 import collections
 from django.forms import model_to_dict
+from django.db.models import Sum
 from rest_framework import viewsets
 from flashsale.mmexam import serializers
 from rest_framework import authentication
@@ -12,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework.exceptions import APIException
 from flashsale.pay.models_user import Customer
-from flashsale.mmexam.models import Question, Result, Mamaexam
+from flashsale.mmexam.models import Question, Result, Mamaexam, ExamResultDetail
 from flashsale.mmexam import constants
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,15 @@ def get_xlmm_exam():
     now = datetime.datetime.now()
     return Mamaexam.objects.filter(valid=True, start_time__lte=now, expire_time__gte=now,
                                    participant=constants.XLMM_EXAM).first()
+
+
+def computation_practice_point(xlmm):
+    """ 计算实践部分的分数 """
+    fans_num = xlmm_fans_num(xlmm)
+    invite_num = xlmm_invite_num(xlmm)
+    invite_point = 31 if invite_num >= 8 else 0  # 邀请：31分（只有达到成功邀请8人才得到这部分的31分）
+    fans_point = min(14.0, fans_num * 0.7)  # 分享：14分 # 每题　0.7 分最高14分　按分享人数比例计算
+    return invite_point + fans_point  # 实践分数
 
 
 class MmexamsViewSet(viewsets.ModelViewSet):
@@ -154,52 +164,87 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         return Response(default_questoion)
 
     @list_route(methods=['get', 'post'])
-    def computation_result(self, request):
+    def create_answer_detail(self, request):
         """
-        计算：　题号--> 答案 ＝　分值
-        返回: 总分　是否通过
+        添加答题明细
         """
-        default_result = {"result_point": 0, "is_passed": 0}
         customer = get_customer(request)
         if not customer:
-            return Response({"code": 1, "info": "请登陆后重试！", "exam_result": default_result})
+            return Response({"code": 1, "info": "请登陆后重试！"})
         mmexam = get_xlmm_exam()
         if not mmexam:
-            return Response({"code": 3, "info": "没有开放的考试！", "exam_result": default_result})
+            return Response({"code": 2, "info": "没有开放的考试！"})
         xlmm = customer.getXiaolumm()
         if not xlmm:
-            return Response({"code": 2, "info": "请申请成为小鹿妈妈后参加考试！", "exam_result": default_result})
+            return Response({"code": 3, "info": "请申请成为小鹿妈妈后参加考试！"})
         content = request.REQUEST
-        question_ids = content.keys()
-        qus_rs = self.queryset.filter(id__in=question_ids,
-                                      sheaves=mmexam.sheaves).values("id",
-                                                                     "real_answer",
-                                                                     'question_types')  # 题库
-        fans_num = xlmm_fans_num(xlmm)
-        invite_num = xlmm_invite_num(xlmm)
-        invite_point = 31 if invite_num >= 8 else 0  # 邀请：31分（只有达到成功邀请8人才得到这部分的31分）
-        fans_point = min(14.0, fans_num * 0.7)  # 分享：14分 # 每题　0.7 分最高14分　按分享人数比例计算
-        result_point = invite_point + fans_point  # 添加实践分数
-        for question_id in question_ids:
-            target_qr = qus_rs.filter(id=question_id)
-            if target_qr.exists():
-                if set(content[question_id]) == set(target_qr[0]['real_answer']):  # 与正确答案相等　则加分
-                    question_types = qus_rs[0]['question_types']
-                    point = mmexam.get_question_type_point(question_types)
-                    result_point = result_point + point
-        is_passed = 1 if result_point >= mmexam.past_point else 0  # 如果指定大于指定的分数则通过
+        question_id = content.get("question_id") or None
+        answer = content.get("answer") or None
+        if not (question_id and answer):
+            return Response({"code": 4, "info": "回答不能为空！"})
+        question = self.queryset.filter(id=question_id, sheaves=mmexam.sheaves).first()  # 试题
+        if not question:
+            return Response({"code": 5, "info": "题目不存在！"})
+        res_detail = ExamResultDetail.objects.filter(customer_id=customer.id, question_id=question_id).first()
+        is_right = True if set(question.real_answer) == set(answer) else False  # 答案和回答集合相等认为正确
+        point = mmexam.get_question_type_point(question.question_types)
+        if res_detail:
+            detail_update_fields = []
+            if res_detail.answer != answer:
+                res_detail.answer = answer
+                detail_update_fields.append('answer')
+            if res_detail.is_right != is_right:
+                res_detail.is_right = is_right
+                detail_update_fields.append('is_right')
+            if detail_update_fields:
+                res_detail.save(update_fields=detail_update_fields)
+        else:
+            res_detail = ExamResultDetail(customer_id=customer.id,
+                                          sheaves=mmexam.sheaves,
+                                          question_id=question_id,
+                                          answer=answer,
+                                          is_right=is_right,
+                                          point=point,
+                                          uni_key=str(customer.id) + '/' + str(question_id))
+            res_detail.save()
+        return Response({"code": 0, "info": "答题成功！"})
 
-        result = Result.objects.filter(
-            customer_id=customer.id,
-            sheaves=mmexam.sheaves
-        ).first()
+    @list_route(methods=['get', 'post'])
+    def computation_result(self, request):
+        """
+        计算结果：考试结果　最后一题　计算总分 考核是否升级
+        """
+        default_result = {"total_point": 0, "is_passed": 0}
+        customer = get_customer(request)
+        xlmm = customer.getXiaolumm()
+        if not customer:
+            return Response({"code": 1, "info": "请登陆后重试！",
+                             "exam_result": default_result})
+        if not xlmm:
+            return Response({"code": 2, "info": "请申请成为小鹿妈妈后参加考试！",
+                             "exam_result": default_result})
+        content = request.REQUEST
+        sheaves = content.get("sheaves") or None
+        now = datetime.datetime.now()
+        exam = Mamaexam.objects.filter(sheaves=sheaves, valid=True, start_time__lte=now, expire_time__gte=now).first()
+        if not exam:
+            return Response({"code": 2, "info": "考试已经结束！",
+                             "exam_result": default_result})
+        exam_details = ExamResultDetail.objects.filter(customer_id=customer.id, sheaves=sheaves, is_right=True)  # 正确的答题
+        result_point = exam_details.aggregate(s_point=Sum('point')).get('s_point') or 0  # 答题分数
+        practive_point = computation_practice_point(xlmm)  # 实践部分得分
+        total_point = result_point + practive_point
+
+        is_passed = 1 if total_point >= exam.past_point else 0  # 如果 总分数 大于指定的通过的分数则通过
+        result = Result.objects.filter(customer_id=customer.id,
+                                       sheaves=exam.sheaves).first()
         update_fields = []
         if result:
             if is_passed == 1 and result.exam_state != Result.FINISHED:  # 考试通过
                 result.exam_state = Result.FINISHED
                 update_fields.append("exam_state")
-            if result.total_point != result_point:
-                result.total_point = result_point
+            if result.total_point != total_point:
+                result.total_point = total_point
                 update_fields.append("total_point")
             if update_fields:
                 result.save(update_fields=update_fields)
@@ -208,18 +253,18 @@ class MmexamsViewSet(viewsets.ModelViewSet):
                 customer_id=customer.id,
                 xlmm_id=xlmm.id,
                 daili_user=xlmm.openid,
-                sheaves=mmexam.sheaves,
-                total_point=result_point
+                sheaves=exam.sheaves,
+                total_point=total_point
             )
             if is_passed == 1:
                 result.exam_state == Result.FINISHED
             result.save()
         if result.exam_state == Result.FINISHED:  # 考试通过　修改代理等级
-            if xlmm.agencylevel < mmexam.upper_agencylevel:  # 当前等级小于考试通过指定的等级则升级
-                xlmm.agencylevel = mmexam.upper_agencylevel
+            if xlmm.agencylevel < exam.upper_agencylevel:  # 当前等级小于考试通过指定的等级则升级
+                xlmm.agencylevel = exam.upper_agencylevel
                 xlmm.save(update_fields=['agencylevel'])
         return Response({"code": 0, "info": "考试完成！",
-                         "exam_result": {"result_point": result_point,
+                         "exam_result": {"total_point": total_point,
                                          "is_passed": is_passed}})
 
     def create(self, request, *args, **kwargs):
