@@ -19,6 +19,9 @@ from .service import FlashSaleService
 from .options import get_user_unionid
 import logging
 
+import pingpp
+pingpp.api_key = settings.PINGPP_APPKEY
+
 __author__ = 'meixqhi'
 
 logger = logging.getLogger('celery.handler')
@@ -214,45 +217,37 @@ from .options import getOrCreateSaleSeller
 def notifyTradeRefundTask(notify):
     try:
         refund_id = notify['id']
-
         seller = getOrCreateSaleSeller()
         srefund = SaleRefund.objects.get(refund_id=refund_id)
 
         log_action(seller.user.id, srefund, CHANGE, u'%s(金额:%s)' %
-                   ([u'退款失败', u'退款成功'][notify['succeed'] and 1 or 0],
-                    notify['amount']))
-
+                   ([u'退款失败', u'退款成功'][notify['succeed'] and 1 or 0],notify['amount']))
         if not notify['succeed']:
             srefund.feedback += notify.get('failure_msg', '') or ''
             srefund.save()
             logger.warn('refund fail:%s' % notify)
             return
-
         srefund.refund_confirm()
-
         strade = SaleTrade.objects.get(id=srefund.trade_id)
         if strade.is_Deposite_Order():
             return
-
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
-
     except Exception, exc:
+        logger.error('notifyTradeRefundTask：%s' % exc.message, exc_info=True)
         raise notifyTradeRefundTask.retry(exc=exc)
 
 
 @task(max_retries=3, default_retry_delay=30)
 def pushTradeRefundTask(refund_id):
-    # 退款申请
+    """ 发货前申请,　检查是否极速退款 """
     try:
         sale_refund = SaleRefund.objects.get(id=refund_id)
         trade_id = sale_refund.trade_id
 
         strade = SaleTrade.objects.get(id=trade_id)
-
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
-
         from shopback.refunds.models import Refund
 
         seller = getOrCreateSaleSeller()
@@ -271,14 +266,12 @@ def pushTradeRefundTask(refund_id):
         else:
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
         refund.save()
-        # 极速退款,如果是发货前申请
+
         if sale_refund.is_fastrefund() and not sale_refund.is_postrefund():
             sale_refund.refund_fast_approve()
     except Exception, exc:
+        logger.error('pushTradeRefundTask：%s'%exc.message, exc_info=True)
         raise pushTradeRefundTask.retry(exc=exc)
-
-
-import pingpp
 
 
 @task
@@ -287,7 +280,6 @@ def pull_Paid_SaleTrade(pre_day=1, interval=1):
     target = datetime.datetime.now() - datetime.timedelta(days=pre_day)
     pre_date = datetime.datetime(target.year, target.month, target.day)
     post_date = pre_date + datetime.timedelta(days=interval)
-    pingpp.api_key = settings.PINGPP_APPKEY
     page_size = 50
     has_next = True
     starting_after = None
@@ -362,9 +354,6 @@ def task_Pull_Red_Envelope(pre_day=7):
     """
     today = datetime.datetime.now()
     pre_date = today - datetime.timedelta(days=pre_day)
-
-    pingpp.api_key = settings.PINGPP_APPKEY
-
     page_size = 100
     has_next = True
     starting_after = None

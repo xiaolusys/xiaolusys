@@ -217,10 +217,15 @@ class SaleTrade(BaseModel):
 
     @property
     def status_name(self):
-        if self.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
-            first_order = self.sale_orders.first()
-            if first_order.refund_status > 0:
+        if self.status in (SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.TRADE_BUYER_SIGNED):
+            is_complete_refunding = True
+            for sorder in  self.sale_orders.all():
+                if sorder.refund_status < CONST.REFUND_WAIT_SELLER_AGREE:
+                    is_complete_refunding = False
+            if is_complete_refunding and self.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
                 return u'退款中'
+            elif is_complete_refunding and self.status == SaleTrade.TRADE_BUYER_SIGNED:
+                return u'退货中'
         return super(SaleTrade, self).get_status_display()
 
     @property

@@ -8,7 +8,7 @@ from common.modelutils import update_model_fields
 from flashsale.pay.models import SaleOrder
 from flashsale.pay.models_refund import SaleRefund
 from flashsale.pay.models_user import Customer
-from flashsale.pay.tasks import pushTradeRefundTask
+from flashsale.pay import tasks
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ def create_refund(user=None, order=None, reason=None, num=None,
         order.save(update_fields=order_update_fields)
         log_action(user, order, CHANGE, u'用户售后提交申请时修改order信息！')
 
-    pushTradeRefundTask.delay(refund.id)
+    tasks.pushTradeRefundTask.delay(refund.id)
 
 
 def modify_refund_fee(customer, order, refund, refund_fee,
@@ -74,7 +74,7 @@ def modify_refund_fee(customer, order, refund, refund_fee,
     if refund_update_fields:
         update_model_fields(refund, update_fields=refund_update_fields)
         log_action(customer, refund, CHANGE, u'用户售后被拒绝后修改order信息！')
-        pushTradeRefundTask(refund.id)
+        tasks.pushTradeRefundTask.delay(refund.id)
 
     # 修改该订单的
     order_params = {
@@ -179,5 +179,5 @@ def refund_Handler(request):
 
         return {"code": 0, "info": "操作成功", "res": "ok"}
     except Exception, exc:
-        logger.error(u'refund_Handler %s' % exc)
+        logger.error(u'refund_Handler %s' % exc, exc_info=True)
         return {"code": 1, "info": exc.message, "apply_fee": 0}

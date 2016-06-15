@@ -65,6 +65,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         > `id`: sale order id
         > `modify`:   3
         > `num`:  退货数量
+        > refund_channel 退款方式(budget:极速退款, wx:退微信支付, alipay:退支付宝)
         > `:return`:apply_fee 申请金额
     - {prefix}/{{ order_id }}/get_by_order_id/method:get  根据订单id 获取指定的退款单
         -  返回

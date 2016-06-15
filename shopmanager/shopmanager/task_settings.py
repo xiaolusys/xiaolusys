@@ -449,7 +449,7 @@ CELERY_ROUTES = {
     },  # 小鹿特卖平台订单退款消息处理
     'flashsale.pay.tasks.pushTradeRefundTask': {
         'queue': 'notify',
-        'routing_key': 'noitfy.push_refund',
+        'routing_key': 'notify.push_trade_refund',
     },  # 小鹿特卖平台订单退款更新到仓库订单
     'flashsale.pay.tasks.confirmTradeChargeTask': {
         'queue': 'notify',
