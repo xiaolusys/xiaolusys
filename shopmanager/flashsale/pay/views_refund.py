@@ -198,7 +198,7 @@ class RefundPopPageView(APIView):
         refund_dict = model_to_dict(sale_refund)
 
         refund_dict['refundd_message'] = ""
-        if strade.has_budget_paid:  # 如果使用余额
+        if sale_refund.is_fastrefund():  # 如果是极速退款
             refund_dict['refundd_message'] = "[1]退回小鹿钱包 {0}元 其中余额{1}".format(strade.payment,
                                                                              strade.payment - strade.pay_cash)
         else:
