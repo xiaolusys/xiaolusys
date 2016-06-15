@@ -139,6 +139,8 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         question = queryset.filter(id=question_id).first()
         if not question:
             return Response({})
+        ids = map(lambda x: x['id'], queryset.values('id'))  # 取出来id
+        default_questoion.update({'current_no': ids.index(question.id) + 1})  # 更新当前的题号
         next_question = queryset.filter(id__gt=question.id).first()
         previous_question = queryset.filter(id__lt=question.id).first()
 
@@ -173,7 +175,11 @@ class MmexamsViewSet(viewsets.ModelViewSet):
                                       sheaves=mmexam.sheaves).values("id",
                                                                      "real_answer",
                                                                      'question_types')  # 题库
-        result_point = 0.0
+        fans_num = xlmm_fans_num(xlmm)
+        invite_num = xlmm_invite_num(xlmm)
+        invite_point = 31 if invite_num >= 8 else 0  # 邀请：31分（只有达到成功邀请8人才得到这部分的31分）
+        fans_point = min(14.0, fans_num * 0.7)  # 分享：14分 # 每题　0.7 分最高14分　按分享人数比例计算
+        result_point = invite_point + fans_point  # 添加实践分数
         for question_id in question_ids:
             target_qr = qus_rs.filter(id=question_id)
             if target_qr.exists():
