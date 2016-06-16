@@ -1574,22 +1574,11 @@ def task_check_arrangement(pd):
     if not pd.has_extra():
         return
 
-    pa = PurchaseArrangement.objects.filter(sku_id=pd.sku_id, status=PurchaseRecord.EFFECT,purchase_order_status=PurchaseOrder.OPEN).first()
+    pa = PurchaseArrangement.objects.filter(sku_id=pd.sku_id, status=PurchaseRecord.EFFECT,purchase_order_status=PurchaseOrder.OPEN,num__gt=0).first()
     if pa:
-        # add 
         num = min(pd.extra_num, pa.num)
-        uni_key = utils.gen_purchase_arrangement_unikey(pd.purchase_order_unikey, pa.purchase_record_unikey)
-        pa_existing = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
-        if not pa_existing:
-            pa_new = PurchaseArrangement(uni_key=uni_key,purchase_order_unikey=pd.purchase_order_unikey, purchase_order_status=pd.status, num=num)
-            fields = ['package_sku_item_id', 'oid', 'purchase_record_unikey', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
-            utils.copy_fields(pa_new, pa, fields)
-            pa_new.save()
-        else:
-            pa_existing.num += num
-            pa_existing.save(update_fields=['num','modified'])
-    
-
+        pa.num = pa.num - num
+        pa.save()
 
 from shopapp.smsmgr.models import SMSPlatform, SMS_NOTIFY_VERIFY_CODE
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
