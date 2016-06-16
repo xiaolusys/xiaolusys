@@ -94,3 +94,9 @@ urlpatterns = patterns('',
                            name="cashout_bat"),
 
                        )
+
+from flashsale.xiaolumm.views_advertis import NinePicAdverViewSet
+
+router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'ninepic', NinePicAdverViewSet)
+urlpatterns += router.urls
