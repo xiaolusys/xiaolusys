@@ -54,93 +54,23 @@ urlpatterns = patterns('shopback.items.views',
                        url('invalid/$', ProductInvalidConfirmView.as_view(), name='invalid_product'),
                        url('product/district/delete/$', 'delete_product_district', name='delete_district'),
                        (r'^split/$', TemplateView.as_view(template_name="items/split_product_template.html")),
-                       (r'^product/(?P<id>[0-9]+)/$', ProductView.as_view(
-                           #         resource=ProductResource,
-                           #         renderers=(ProductHtmlRenderer,BaseJsonRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^product/(?P<pid>[0-9]+)/(?P<sku_id>[0-9]+)/$', ProductSkuView.as_view(
-                           #         resource=ProductSkuResource,
-                           #         renderers=(BaseJsonRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
+                       (r'^product/(?P<id>[0-9]+)/$', ProductView.as_view()),
+                       (r'^product/(?P<pid>[0-9]+)/(?P<sku_id>[0-9]+)/$', ProductSkuView.as_view()),
 
-                       (r'^product/$', ProductListView.as_view({'get': 'list'}
-                                                               #         resource=ProductListResource,
-                                                               #         renderers=(ProductListHtmlRenderer,JSONRenderer),
-                                                               #         authentication=(UserLoggedInAuthentication,),
-                                                               #         permissions=(IsAuthenticated,)
-                                                               )),
-                       (r'^product/item/(?P<outer_id>[\w^_]+)/$', ProductItemView.as_view(
-                           #         resource=ProductItemResource,
-                           #         renderers=(ProductItemHtmlRenderer,JSONRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^product/modify/(?P<outer_id>[\w^_]+)/$', ProductModifyView.as_view(
-                           #         resource=ProductItemResource,
-                           #         renderers=(JSONRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^product/update/(?P<outer_id>[\w^_]+)/$', ProductUpdateView.as_view(
-                           #         resource=ProductResource,
-                           #         renderers=(ProductUpdateHtmlRenderer,JSONRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^product/sku/(?P<sku_id>[\w^_]+)/$', ProductSkuInstanceView.as_view(
-                           #         resource=ProductSkuResource,
-                           #         renderers=(ProductSkuHtmlRenderer,JSONRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^query/$', ProductSearchView.as_view(
-                           #         resource=ProductResource,
-                           #         renderers=(BaseJsonRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^product/barcode/$', ProductBarCodeView.as_view(
-                           #         resource=ProductResource,
-                           #         renderers=(BaseJsonRenderer,ProductBarcodeHtmlRenderer),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
+                       (r'^product/$', ProductListView.as_view({'get': 'list'})),
+                       (r'^product/item/(?P<outer_id>[\w^_]+)/$', ProductItemView.as_view()),
+                       (r'^product/modify/(?P<outer_id>[\w^_]+)/$', ProductModifyView.as_view()),
+                       (r'^product/update/(?P<outer_id>[\w^_]+)/$', ProductUpdateView.as_view()),
+                       (r'^product/sku/(?P<sku_id>[\w^_]+)/$', ProductSkuInstanceView.as_view()),
+                       (r'^query/$', ProductSearchView.as_view()),
+                       (r'^product/barcode/$', ProductBarCodeView.as_view()),
                        (r'^product/district/(?P<id>[0-9]+)/$', ProductDistrictView.as_view()),
-                       (r'^podorsku/status/$', ProductOrSkuStatusMdView.as_view(
-                           #         resource=ProductResource,
-                           #         renderers=(BaseJsonRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^product/warn/$', ProductWarnMgrView.as_view(
-                           #         resource=ProductResource,
-                           #         renderers=(BaseJsonRenderer,ProductWarnHtmlRenderer),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^product/assign/$', ProductNumAssignView.as_view(
-                           #         resource=ProductResource,
-                           #         renderers=(BaseJsonRenderer,),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
-                       (r'^product/sale/$', StatProductSaleView.as_view(
-                           #         resource=ProductDaySaleResource,
-                           #         renderers=(BaseJsonRenderer,ProductSaleHtmlRenderer),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
+                       (r'^podorsku/status/$', ProductOrSkuStatusMdView.as_view()),
+                       (r'^product/warn/$', ProductWarnMgrView.as_view()),
+                       (r'^product/assign/$', ProductNumAssignView.as_view()),
+                       (r'^product/sale/$', StatProductSaleView.as_view()),
                        (r'^product/sale_async/$', StatProductSaleAsyncView.as_view()),
-                       (r'^product/scan/$', ProductScanView.as_view(
-                           #         resource=ProductScanResource,
-                           #         renderers=(BaseJsonRenderer,ProductScanRenderer),
-                           #         authentication=(UserLoggedInAuthentication,),
-                           #         permissions=(IsAuthenticated,)
-                       )),
+                       (r'^product/scan/$', ProductScanView.as_view()),
                        url(r'^test/$', TemplateView.as_view(
                            template_name="items/product_sku_diff.html"),
                            name='test_diff'),

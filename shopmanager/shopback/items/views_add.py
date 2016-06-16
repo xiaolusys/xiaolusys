@@ -79,8 +79,8 @@ class AddItemView(generics.ListCreateAPIView):
         count = 1
         while True:
             inner_outer_id = outer_id + "%03d" % count
-            test_pros = Product.objects.filter(outer_id__startswith=inner_outer_id)
-            if test_pros.count() == 0 or count > 998:
+            product_ins = Product.objects.filter(outer_id__startswith=inner_outer_id).first()
+            if not product_ins or count > 998:
                 break
             count += 1
         if len(inner_outer_id) > 12:
@@ -95,7 +95,7 @@ class AddItemView(generics.ListCreateAPIView):
         chi_ma_result = {}
         for sku in all_sku:
             for chi_ma in all_chi_ma:
-                temp_chi_ma = ContrastContent.objects.get(name=chi_ma)
+                temp_chi_ma, state = ContrastContent.objects.get_or_create(name=chi_ma)
                 chi_ma_content = content.get(sku + "_" + chi_ma + "_size")
                 if chi_ma_content and len(chi_ma_content) > 0 and chi_ma_content != "0":
                     if sku in chi_ma_result:

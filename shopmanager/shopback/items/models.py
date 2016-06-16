@@ -1358,6 +1358,11 @@ class ProductSkuContrast(models.Model):
     def __unicode__(self):
         return '<%s,%s>' % (self.product_id, self.contrast_detail)
 
+def default_contrast_cid():
+    max_constrast = ContrastContent.objects.order_by('-id').first()
+    if max_constrast:
+        return str( max_constrast.id + 1)
+    return '1'
 
 class ContrastContent(models.Model):
     NORMAL = 'normal'
@@ -1366,8 +1371,8 @@ class ContrastContent(models.Model):
         (NORMAL, u'使用'),
         (DELETE, u'作废')
     )
-    cid = models.CharField(max_length=32, db_index=True, verbose_name=u'对照表内容ID')
-    name = models.CharField(max_length=32, verbose_name=u'对照表内容')
+    cid = models.CharField(max_length=32, default=default_contrast_cid, db_index=True, verbose_name=u'对照表内容ID')
+    name = models.CharField(max_length=32, unique=True, verbose_name=u'对照表内容')
     sid = models.IntegerField(default=0, verbose_name=u'排列顺序')
     status = models.CharField(max_length=32, choices=PRODUCT_CONTRAST_STATUS,
                               db_index=True, default=NORMAL, verbose_name=u'状态')
