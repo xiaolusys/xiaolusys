@@ -517,7 +517,9 @@ class CashOutViewSet(viewsets.ModelViewSet):
         if value <= 0:
             return Response(msg)
         # 满足提现请求　创建提现记录
-        cashout = CashOut.objects.create(xlmm=xlmm.id, value=value)
+        cashout = CashOut(xlmm=xlmm.id, value=value, approve_time=datetime.datetime.now())
+        cashout.save()
+        
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
         return Response(msg)
 
@@ -530,10 +532,11 @@ class CashOutViewSet(viewsets.ModelViewSet):
         if value <= 0:
             return Response(msg)
         # 创建Cashout
-        cashout = CashOut.objects.create(xlmm=xlmm.id,
-                                         value=value,
-                                         approve_time=datetime.datetime.now(),
-                                         status=CashOut.APPROVED)
+        cashout = CashOut(xlmm=xlmm.id,
+                          value=value,
+                          approve_time=datetime.datetime.now(),
+                          status=CashOut.APPROVED)
+        cashout.save()
         log_action(request.user.id, cashout, ADDITION, '代理提现到余额')
 
         BudgetLog.objects.create(customer_id=customer.id,
