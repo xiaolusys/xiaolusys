@@ -32,6 +32,7 @@ CELERY_IMPORTS = (
     'shopback.items.tasks_stats',
     'statistics.tasks',
     'flashsale.restpro.tasks',
+    'flashsale.forecast.apis',
 )
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -76,6 +77,7 @@ CELERY_QUEUES = (
     Queue('peroid', routing_key='peroid.#'),
     Queue('frency', routing_key='frency.#'),
     Queue('async', routing_key='async.#'),
+    Queue('apis', routing_key='apis.#'),
     Queue('mama', routing_key='mama.#'),
     Queue('activevalue', routing_key='activevalue.#'),
     Queue('mamafortune', routing_key='mamafortune.#'),
@@ -90,6 +92,17 @@ CELERY_QUEUES = (
 CELERY_DEFAULT_EXCHANGE = 'default'
 CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
+
+APIS_ROUTES = {
+    'flashsale.forecast.apis.api_create_forecastinbound_by_orderlist': {
+        'queue': 'apis',
+        'routing_key': 'apis.api_create_forecastinbound_by_orderlist',
+    },
+    'flashsale.forecast.apis.api_create_realinbound_by_inbound': {
+        'queue': 'apis',
+        'routing_key': 'apis.api_create_realinbound_by_inbound',
+    },
+}
 
 SKU_STATS_ROUTES = {
     'shopback.trades.tasks.task_packageskuitem_update_productskustats': {
@@ -562,6 +575,7 @@ CELERY_ROUTES.update(SKU_STATS_ROUTES)
 CELERY_ROUTES.update(FLASHSALE_COUPON_ROUTES)
 CELERY_ROUTES.update(STATISTICS_ROUTES)
 CELERY_ROUTES.update(LOGISTICS_ROUTES)
+CELERY_ROUTES.update(APIS_ROUTES)
 
 API_REQUEST_INTERVAL_TIME = 10  # (seconds)
 API_TIME_OUT_SLEEP = 60  # (seconds)

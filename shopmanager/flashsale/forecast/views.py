@@ -162,26 +162,6 @@ class StagingInboundViewSet(viewsets.ReadOnlyModelViewSet):
         return Response('OK')
 
 
-class ForecastManageViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-        预测到货单管理后台
-    """
-    queryset = ForecastInbound.objects.all()
-    serializer_class = serializers.ForecastInboundSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
-    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer,)
-
-    template_name = 'forecast/forecast_manage.html'
-
-    def get_main_queryset(self, request):
-        user_name = request.user.username
-        return self.queryset.filter(creator=user_name)
-
-    def list(self, request, *args, **kwargs):
-        return Response({})
-
-
 class InBoundViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = RealInBound.objects.all()
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)

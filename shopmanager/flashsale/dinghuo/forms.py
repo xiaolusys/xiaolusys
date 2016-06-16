@@ -41,8 +41,8 @@ class AdvanceDingHuoForm(BaseForm):
 class InBoundForm(BaseForm):
     inbound_id = forms.IntegerField(required=False, initial=0)
     supplier_id = forms.IntegerField(required=False, initial=0)
-    orderlist_id = forms.IntegerField(required=False, initial=0)
-    express_no = forms.CharField(required=False, initial='')
+    orderlist_id = forms.IntegerField(required=True, initial=0)
+    express_no = forms.CharField(required=True, initial='')
 
 
 class MatchOrderListsForm(BaseForm):
@@ -55,6 +55,7 @@ class CreateInBoundForm(BaseForm):
     orderlist_id = forms.CharField(required=False, initial=0)
     supplier_id = forms.IntegerField()
     inbound_id = forms.IntegerField(required=False, initial=0)
+    forecast_inbound_id = forms.IntegerField(required=False, initial=0)
     memo = forms.CharField(required=False, initial='')
 
 class SaveInBoundForm(BaseForm):
@@ -62,7 +63,7 @@ class SaveInBoundForm(BaseForm):
     inbound_id = forms.IntegerField()
     express_no = forms.CharField(required=False, initial='')
     orderlist_id = forms.CharField(required=False, initial=0)
-
+    forecast_inbound_id = forms.IntegerField(required=False, initial=0)
 
 class SaveMemoForm(BaseForm):
     inbound_id = forms.IntegerField()

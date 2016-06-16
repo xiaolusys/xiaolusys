@@ -24,7 +24,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     # }),)
 
     list_display = (
-        'id', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser'
+        'id', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter),
                    ('forecast_arrive_time',DateScheduleFilter))
@@ -89,6 +89,7 @@ class RealInBoundAdmin(admin.ModelAdmin):
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter))
     search_fields = ['supplier__name', 'express_no']
 
+    filter_horizontal = ('relate_order_set',)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(RealInBoundAdmin, self).get_form(request, obj=obj, **kwargs)

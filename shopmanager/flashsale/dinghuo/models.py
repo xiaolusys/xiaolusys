@@ -266,10 +266,10 @@ def orderlist_create_forecast_inbound( sender, instance, raw, **kwargs):
     real_orderlist = OrderList.objects.filter(id=instance.id).first()
     if real_orderlist.status == OrderList.SUBMITTING and instance.status == OrderList.APPROVAL:
         # if the orderlist purchase confirm, then create forecast inbound
-        from flashsale.forecast.apis import create_forecastinbound_by_orderlist
+        from flashsale.forecast.apis import api_create_forecastinbound_by_orderlist
         try:
             with transaction.atomic():
-                create_forecastinbound_by_orderlist(instance)
+                api_create_forecastinbound_by_orderlist(instance)
         except Exception,exc:
             logger.error('update forecast inbound:%s'% exc.message, exc_info=True)
 
@@ -828,6 +828,13 @@ class InBound(models.Model):
                                     verbose_name=u'订货单ID',
                                     help_text=u'冗余的订货单关联')
     forecast_inbound_id = models.IntegerField(null=True, db_index=True, verbose_name=u'关联预测单ID')
+
+    class Meta:
+        db_table = 'flashsale_dinghuo_inbound'
+        app_label = 'dinghuo'
+        verbose_name = u'入仓单'
+        verbose_name_plural = u'入仓单列表'
+
     def __unicode__(self):
         return str(self.id)
 
@@ -862,11 +869,11 @@ class InBound(models.Model):
                     order_detail.chichu_id, 0)
         return assign_dict
 
-    class Meta:
-        db_table = 'flashsale_dinghuo_inbound'
-        app_label = 'dinghuo'
-        verbose_name = u'入仓单'
-        verbose_name_plural = u'入仓单列表'
+    def notify_forecast_save_inbound(self):
+        print 'debug notify:', self.forecast_inbound_id, self.supplier
+        from flashsale.forecast.apis import api_create_realinbound_by_inbound
+        api_create_realinbound_by_inbound.delay(self.id)
+
 
 
 def update_warehouse_receipt_status(sender, instance, created, **kwargs):

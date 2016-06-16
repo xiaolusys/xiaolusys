@@ -1982,6 +1982,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound.status = InBound.COMPLETED
         inbound.save()
 
+        inbound.notify_forecast_save_inbound()
+
         if orderlist_ids:
             self.update_orderlist(request, orderlist_ids)
         if outer_ids:
@@ -2229,6 +2231,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         supplier_id = form.cleaned_data['supplier_id']
         orderlist_id = form.cleaned_data.get('orderlist_id')
         express_no = form.cleaned_data['express_no']
+        forecast_inbound_id = form.cleaned_data['forecast_inbound_id'] or None
 
         now = datetime.datetime.now()
         username = self.get_username(request.user)
@@ -2239,6 +2242,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound = InBound(supplier_id=supplier_id,
                           creator_id=request.user.id,
                           express_no=express_no,
+                          forecast_inbound_id=forecast_inbound_id,
                           memo='\n'.join(tmp))
         if orderlist_id:
             inbound.orderlist_ids = [orderlist_id]
@@ -2532,38 +2536,34 @@ class InBoundViewSet(viewsets.GenericViewSet):
         }
         return Response(result, template_name=template_name)
 
+    def get_supplier_over_express_or_orderid(self, express_no, orderlist_id):
+        from flashsale.forecast.models import ForecastInbound
+        forecast_inbound = ForecastInbound.objects.filter(Q(id=orderlist_id)|Q(express_no=express_no),
+                                       status=ForecastInbound.ST_APPROVED).order_by('created').first()
+        if forecast_inbound:
+            return {'forecast_inbound':forecast_inbound, 'supplier': forecast_inbound.supplier}
+
+        order_list = OrderList.objects.filter(Q(id=orderlist_id)|Q(express_no=express_no))\
+                .exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
+                                    OrderList.CLOSED, OrderList.TO_PAY]).first()
+        if order_list:
+            return {'order_list':order_list, 'supplier': order_list.supplier}
+        return {}
+
+
     def list(self, request):
-        orderlist_id_dict = {}
-        express_no_dict = {}
-        for orderlist in OrderList.objects.select_related('supplier').exclude(
-                status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
-                            OrderList.CLOSED, OrderList.TO_PAY]):
-            if not orderlist.supplier_id:
-                continue
-
-            orderlist_id_dict[orderlist.id] = orderlist.supplier_id
-            if orderlist.express_no:
-                for express_no in self.EXPRESS_NO_SPLIT_PATTERN.split(
-                        orderlist.express_no.strip()):
-                    express_no_dict[express_no.strip()] = orderlist.supplier_id
-
-        result = {
-            'orderlist_ids': [{'id': v,
-                               'text': k}
-                              for k, v in orderlist_id_dict.iteritems()],
-            'express_nos': [{'id': v,
-                             'text': k} for k, v in express_no_dict.iteritems()]
-        }
-
+        result = {}
         form = forms.InBoundForm(request.GET)
         if not form.is_valid():
             return Response(result, template_name='dinghuo/inbound2.html')
-
         result.update(form.cleaned_data)
-        if form.cleaned_data.get('supplier_id'):
+        express_no = form.cleaned_data.get('express_no')
+        orderlist_id = form.cleaned_data.get('orderlist_id')
+        result   = self.get_supplier_over_express_or_orderid(express_no, orderlist_id)
+        supplier = result.get('supplier', None)
+        if supplier:
             supplier_orderlist_ids = []
-            supplier_id = form.cleaned_data['supplier_id']
-            supplier = SaleSupplier.objects.get(id=supplier_id)
+            supplier_id = supplier.id
             for orderlist in OrderList.objects.filter(
                     supplier_id=supplier_id).exclude(
                         status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
@@ -2617,8 +2617,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     product_id, {'district': district_stat['district'],
                                  'num': 0})['num'] += district_stat['num']
             saleproduct_districts_dict = {}
-            for saleproduct_id, sibling_product_ids in saleproducts_dict.iteritems(
-            ):
+            for saleproduct_id, sibling_product_ids in saleproducts_dict.iteritems():
                 saleproduct_districts = filter(
                     None, [sibling_products_dict.get(product_id)
                            for product_id in sibling_product_ids])
@@ -2688,8 +2687,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 products.append(product_dict)
 
             result.update({
-                'supplier_id': supplier.id,
-                'supplier_name': supplier.supplier_name,
                 'products': products
             })
         return Response(result, template_name='dinghuo/inbound2.html')
@@ -2927,7 +2924,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
         inbound_id = form.cleaned_data['inbound_id']
         inbound = InBound.objects.get(id=inbound_id)
-
         inbounddetails_dict = {}
         for inbounddetail in InBoundDetail.objects.filter(inbound=inbound):
             inbounddetails_dict[inbounddetail.sku_id] = inbounddetail
@@ -2961,7 +2957,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 ProductLocation.objects.filter(product_id=sku.product.id,
                                                sku_id=sku.id).delete()
                 self.update_product_location(sku.product.id, deposite_district)
-
             new_inbounddetails_dict[sku_id] = {
                 'id': inbounddetail.id,
                 'arrival_quantity': inbounddetail.arrival_quantity,
