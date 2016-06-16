@@ -136,13 +136,20 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         )
         if not queryset.exists():
             return Response(default_questoion)
+        customer = get_customer(request)
         if not question_id:  # 第一题
             question = queryset.first()
+            if not question:
+                return Response({})
             next_question = queryset.filter(id__gt=question.id).first()
             if next_question:
                 default_questoion.update({'next_id': next_question.id})
             serializer = self.get_serializer(question)
             question_content = serializer.data
+
+            is_selected = ExamResultDetail.is_selected(customer.id, question.id) if question else False  # 用户是否选择过
+            is_righted = ExamResultDetail.is_righted(customer.id, question.id) if question else False  # 用户是否选择过
+            question_content.update({"is_selected": is_selected, "is_righted": is_righted})
             default_questoion.update({"question_content": question_content})
             return Response(default_questoion)
 
@@ -160,6 +167,11 @@ class MmexamsViewSet(viewsets.ModelViewSet):
             default_questoion.update({'next_id': next_question.id})
         serializer = self.get_serializer(question)
         question_content = serializer.data
+
+        is_selected = ExamResultDetail.is_selected(customer.id, question.id) if question else False
+        is_righted = ExamResultDetail.is_righted(customer.id, question.id) if question else False  # 用户是否选择过
+        question_content.update({"is_selected": is_selected, "is_righted": is_righted})
+
         default_questoion.update({"question_content": question_content})
         return Response(default_questoion)
 
