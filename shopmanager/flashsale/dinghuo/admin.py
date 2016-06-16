@@ -738,7 +738,7 @@ class PurchaseArrangementAdmin(admin.ModelAdmin):
     list_display = ('id', 'package_sku_item_id', 'oid', 'purchase_order_unikey', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
                     'sku_properties_name', 'num', 'status', 'purchase_order_status', 'initial_book', 'modified', 'created')
 
-
+    search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id', 'purchase_order_unikey') 
 admin.site.register(PurchaseArrangement, PurchaseArrangementAdmin)
 
 
@@ -746,12 +746,12 @@ class PurchaseDetailAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'purchase_order_unikey', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'book_num', 'need_num',
                     'extra_num', 'status', 'unit_price_display', 'modified', 'created')
 
-
+    search_fields = ('outer_id', 'title', 'sku_id', 'purchase_order_unikey')
 admin.site.register(PurchaseDetail, PurchaseDetailAdmin)
 
 
 class PurchaseOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'uni_key', 'supplier_id', 'supplier_name', 'book_num', 'need_num', 'arrival_num', 'status',
                     'modified', 'created')
-
+    search_fields = ('supplier_id', 'supplier_name', 'uni_key')
 admin.site.register(PurchaseOrder, PurchaseOrderAdmin)
