@@ -1494,7 +1494,7 @@ class SaleProductNoteView(APIView):
             if hasattr(product, 'details'):
                 product.details.note = note
                 product.details.save()
-        return Response({})
+        return Response({'note': note})
 
 class SaleProductSaleQuantityView(APIView):
     permission_classes = (permissions.IsAuthenticated, )
