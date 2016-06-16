@@ -165,7 +165,7 @@ class PurchaseRecord(BaseModel):
         return self.book_num > 0
     
     def is_overbooked(self):
-        return self.book_num > self.request_num
+        return self.book_num > self.request_num and self.status == PurchaseRecord.EFFECT
 
 
 def sync_purchase_arrangement(sender, instance, created, **kwargs):

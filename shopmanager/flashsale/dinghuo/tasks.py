@@ -1574,7 +1574,7 @@ def task_check_arrangement(pd):
     if not pd.has_extra():
         return
 
-    pa = PurchaseArrangement.objects.filter(sku_id=pd.sku_id, status=PurchaseRecord.EFFECT,purchase_order_status=PurchaseOrder.OPEN).first()
+    pa = PurchaseArrangement.objects.filter(sku_id=pd.sku_id, status=PurchaseRecord.EFFECT,purchase_order_status=PurchaseOrder.OPEN,num__gt=0).first()
     if pa:
         num = min(pd.extra_num, pa.num)
         pa.num = pa.num - num
