@@ -51,6 +51,13 @@ def computation_practice_point(xlmm):
     return invite_point + fans_point  # 实践分数
 
 
+def get_user_answer(customer_id, question_id):
+    """ 获取用户的回答 """
+    cus_answer = ExamResultDetail.customer_answer(customer_id, question_id)  # 用户回答
+    user_answer_serializer = serializers.ExamResultDetailSerialize(cus_answer)
+    return user_answer_serializer.data
+
+
 class MmexamsViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = serializers.QuestionSerialize
@@ -146,11 +153,8 @@ class MmexamsViewSet(viewsets.ModelViewSet):
                 default_questoion.update({'next_id': next_question.id})
             serializer = self.get_serializer(question)
             question_content = serializer.data
-
-            is_selected = ExamResultDetail.is_selected(customer.id, question.id) if question else False  # 用户是否选择过
-            is_righted = ExamResultDetail.is_righted(customer.id, question.id) if question else False  # 用户是否选择过
-            question_content.update({"is_selected": is_selected, "is_righted": is_righted})
-            default_questoion.update({"question_content": question_content})
+            user_answer = get_user_answer(customer.id, question.id)
+            default_questoion.update({"question_content": question_content, "user_answer": user_answer})
             return Response(default_questoion)
 
         question = queryset.filter(id=question_id).first()
@@ -168,11 +172,8 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(question)
         question_content = serializer.data
 
-        is_selected = ExamResultDetail.is_selected(customer.id, question.id) if question else False
-        is_righted = ExamResultDetail.is_righted(customer.id, question.id) if question else False  # 用户是否选择过
-        question_content.update({"is_selected": is_selected, "is_righted": is_righted})
-
-        default_questoion.update({"question_content": question_content})
+        user_answer = get_user_answer(customer.id, question.id)
+        default_questoion.update({"question_content": question_content, "user_answer": user_answer})
         return Response(default_questoion)
 
     @list_route(methods=['get', 'post'])
