@@ -170,6 +170,18 @@ class ExamResultDetail(BaseModel):
         verbose_name = u'代理考试结果明细'
         verbose_name_plural = u'代理考试结果明细列表'
 
+    @classmethod
+    def is_selected(cls, customer_id, question_id):
+        """ 判断用户是否回答过某道题目 """
+        return True if cls.objects.filter(customer_id=customer_id,
+                                          question_id=question_id).first() else False
+
+    @classmethod
+    def is_righted(cls, customer_id, question_id):
+        """ 判断用户是否回答过某道题目是否正确（没有回答算错误） """
+        d = cls.objects.filter(customer_id=customer_id, question_id=question_id).first()
+        return d.is_right if d else False
+
 
 class MamaDressResult(BaseModel):
     """ 穿衣风格测试结果 """
