@@ -1,6 +1,6 @@
 # coding=utf-8
 from rest_framework import serializers
-from flashsale.mmexam.models import Question, Choice
+from flashsale.mmexam.models import Question, Choice, ExamResultDetail
 
 
 class QuestionChoiceSerialize(serializers.ModelSerializer):
@@ -15,3 +15,7 @@ class QuestionSerialize(serializers.ModelSerializer):
     class Meta:
         model = Question
 
+
+class ExamResultDetailSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = ExamResultDetail
