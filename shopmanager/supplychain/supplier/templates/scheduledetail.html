@@ -512,7 +512,6 @@
                  if(remainNumIsDirty)
                      window.location.reload();
              });
-
              $('#save-note').click(function(){
                  var note = $('#note').val() || '';
                  var sale_product_id = $('#modal-note').data('sale_product_id');
@@ -522,8 +521,8 @@
                      dataType: 'json',
                      data: {saleproduct_id: sale_product_id, note: note},
                      success: function(result){
-                         var tpl = _.template('span.note[data-sale-product-id="<%= saleProductId %>"]');
-                         $(tpl({saleProductId: sale_product_id})).html(note);
+                         var tpl = _.template('p.note[data-sale-product-id="<%= saleProductId %>"]');
+                         $(tpl({saleProductId: sale_product_id})).html(result.note);
                          $('#modal-note').modal('hide');
                      }
                  });

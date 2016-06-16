@@ -61,7 +61,7 @@ def check_sign(request):
     for k, v in CONTENT.iteritems():
         params[k] = v
     timestamp = params.get('timestamp')
-    if not timestamp or time.time() - int(timestamp) > 30:
+    if not timestamp or time.time() - int(timestamp) > 6 * 60 * 60:
         return False
     origin_sign = params.pop('sign')
     new_sign = gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
