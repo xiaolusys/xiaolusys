@@ -1740,6 +1740,8 @@ class PackageSkuItem(BaseModel):
     logistics_company_name = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司')
     logistics_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司代码')
 
+    purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一ID')
+    
     class Meta:
         db_table = 'flashsale_package_sku_item'
         app_label = 'trades'
@@ -1820,6 +1822,14 @@ class PackageSkuItem(BaseModel):
             return True
         return False
 
+    def is_booked(self):
+        """
+        Return True means that this sku is already booked.
+        """
+        if self.purchase_order_unikey:
+            return True
+        return False
+    
     def clear_order_info(self):
         if self.assign_status == 2:
             return

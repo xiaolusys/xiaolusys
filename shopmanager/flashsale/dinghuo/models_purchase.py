@@ -36,21 +36,6 @@ class PurchaseOrder(BaseModel):
         verbose_name_plural = u'v2/订货表'
 
 
-def sync_purchase_detail_status(sender, instance, created, **kwargs):
-    PurchaseDetail.objects.filter(purchase_order_unikey=instance.uni_key).update(status=instance.status)
-    
-    if instance.status == PurchaseOrder.BOOKED:
-        if PurchaseArrangement.objects.filter(initial_book=True).count() == 0:
-            PurchaseArrangement.objects.filter(purchase_order_unikey=instance.uni_key,
-                                               status=1).update(purchase_order_status=instance.status, initial_book=True)
-    else:
-        PurchaseArrangement.objects.filter(purchase_order_unikey=instance.uni_key,
-                                           status=1).update(purchase_order_status=instance.status)
-        
-post_save.connect(sync_purchase_detail_status, sender=PurchaseOrder, dispatch_uid='post_save_sync_purchase_detail_status')
-
-        
-        
 class PurchaseDetail(BaseModel):
     uni_key = models.CharField(max_length=32, unique=True, verbose_name=u'唯一id ') #sku_id+purchase_order_unikey
     purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一ID')
@@ -85,7 +70,12 @@ class PurchaseDetail(BaseModel):
 
     @property
     def unit_price_display(self):
-        return self.unit_price * 0.01
+        return float('%.2f' % (self.unit_price * 0.01))
+
+    @property
+    def total_price_display(self):
+        total = self.unit_price * self.book_num * 0.01
+        return float('%.2f' % total)
     
     def has_extra(self):
         return self.status == PurchaseOrder.BOOKED and self.book_num > self.need_num
@@ -103,7 +93,6 @@ def update_purchase_order(sender, instance, created, **kwargs):
 
 post_save.connect(update_purchase_order, sender=PurchaseDetail, dispatch_uid='post_save_update_purchase_order')
 
-
     
 def check_arrangement(sender, instance, created, **kwargs):
     if not instance.has_extra():
@@ -112,8 +101,15 @@ def check_arrangement(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_check_arrangement
     task_check_arrangement.delay(instance)
     
-
 post_save.connect(check_arrangement, sender=PurchaseDetail, dispatch_uid='post_save_check_arrangement')
+
+
+def update_orderdetail(sender, instance, created, **kwargs):
+    from flashsale.dinghuo.tasks import task_purchasedetail_update_orderdetail
+    task_purchasedetail_update_orderdetail.delay(instance)
+    
+post_save.connect(update_orderdetail, sender=PurchaseDetail, dispatch_uid='post_save_update_orderdetail')
+
 
 
 class PurchaseRecord(BaseModel):

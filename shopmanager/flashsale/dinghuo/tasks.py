@@ -1475,7 +1475,52 @@ def task_purchase_detail_update_purchase_order(pd):
             po.need_num = need_num
             po.arrival_num = arrival_num
             po.save(update_fields=['book_num', 'need_num', 'arrival_num', 'modified'])
+
+
+@task()
+def task_purchasedetail_update_orderdetail(pd):
+    od = OrderDetail.objects.filter(purchase_detail_unikey=pd.uni_key).first()
+    if not od:
+        product = utils.get_product(pd.sku_id)
+        od = OrderDetail(product_id=product.id,outer_id=pd.outer_id,product_name=pd.title,chichu_id=pd.sku_id,product_chicun=pd.sku_properties_name,buy_quantity=pd.book_num,buy_unitprice=pd.unit_price_display,total_price=pd.total_price_display,purchase_detail_unikey=pd.unikey,purchase_order_unikey=pd.purchase_order_unikey)
+        
+        ol = OrderList.objects.filter(purchase_order_unikey=pd.purchase_order_unikey).first()
+        if ol:
+            od.orderlist_id = ol.id
             
+        od.save()
+    else:
+        if od.buy_quantity != pd.book_num:
+            od.buy_quantity = pd.book_num
+            od.save(update_fields=['buy_quantity', 'updated'])
+        
+        
+@task()
+def task_orderdetail_update_orderlist(od):
+    ol = OrderList.objects.filter(purchase_order_unikey=od.purchase_order_unikey).first()
+    if not ol:
+        supplier = utils.get_supplier(od.chichu_id)
+        
+        p_district = OrderList.NEAR
+        if supplier.ware_by == SaleSupplier.WARE_GZ:
+            p_district = OrderList.GUANGDONG
+        ol = OrderList(order_amount=od.total_price,supplier_id=supplier.id,p_district=p_district,created_by=OrderList.CREATED_BY_MACHINE,status=OrderList.SUBMITTING,note=u'-->%s:动态生成订货单' % now.strftime('%m月%d %H:%M'))
+        
+        prev_orderlist = OrderList.objects.filter(supplier_id=supplier.id,created_by=OrderList.CREATED_BY_MACHINE).exclude(status=OrderList.ZUOFEI).order_by('-created').first()
+        if prev_orderlist and prev_orderlist.buyer_id:
+            ol.buyer_id = prev_orderlist.buyer_id
+
+        ol.save()
+    else:
+        od_sum = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).aggregate(total=Sum('total_price'))
+        total = od_sum['total'] or 0
+        if ol.order_amount != total:
+            if ol.is_open():
+                ol.order_amount = od.total_price
+                ol.save(updated_fields=['order_amount', 'updated'])
+            else:
+                logger.error("ZIFEI error: tying to modify booked order_list| ol.id: %s, od: %s" % (ol.id, od.id))
+
 
 @task()
 def task_purchasearrangement_update_purchasedetail(pa):
@@ -1551,7 +1596,6 @@ def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
         pa.num = pa.num - num
         pa.save(update_fields=['num', 'modified'])
 
-
     
 @task()
 def task_purchaserecord_sync_purchasearrangement_status(pr):
@@ -1579,6 +1623,7 @@ def task_check_arrangement(pd):
         num = min(pd.extra_num, pa.num)
         pa.num = pa.num - num
         pa.save()
+
 
 from shopapp.smsmgr.models import SMSPlatform, SMS_NOTIFY_VERIFY_CODE
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
@@ -1632,6 +1677,30 @@ def send_msg(mobile, content):
         logger.error(exc.message or 'empty error', exc_info=True)
 
 
+@task()
+def task_update_purchasedetail_status(po):
+    """
+    invoke when user click button to book purchase_order.
+    """
+    pds = PurchaseDetail.objects.filter(purchase_order_unikey=po.uni_key).update(status=po.status)
+
+@task()
+def task_update_purchasearrangement_status(po):
+    """
+    invoke when user click button to book purchase_order.
+    """
+    pas = PurchaseArrangement.objects.filter(purchase_order_unikey=po.uni_key, status=PurchaseRecord.EFFECT).update(purchase_order_status=po.status)
+
+@task()
+def task_update_purchasearrangement_initial_book(po):
+    """
+    invoke when user click button to book purchase_order.
+    """
+    pas = PurchaseArrangement.objects.filter(purchase_order_unikey=po.uni_key, status=PurchaseRecord.EFFECT).update(purchase_order_status=po.status, initial_book=True)
+    
+    from shopback.trades.models import PackageSkuItem
+    for pa in pas:
+        PackageSkuItem.objects.filter(oid=pa.oid).update(purchase_order_unikey=po.unikey)
 
 @task()
 def task_check_with_purchase_order(ol):
@@ -1659,3 +1728,8 @@ def task_check_with_purchase_order(ol):
     
     po.status = PurchaseOrder.BOOKED
     po.save()
+
+    task_update_purchasearrangement_status.delay(po)
+    task_update_purchasearrangement_initial_book.delay(po)
+
+
