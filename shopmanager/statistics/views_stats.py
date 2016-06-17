@@ -140,6 +140,12 @@ class SaleStatsViewSet(viewsets.ModelViewSet):
         queryset = queryset.filter(current_id=current_id,
                                    record_type=record_type,
                                    timely_type=constants.TIMELY_TYPE_DATE)
+        obsolete_supplier = False
+        if current_id and record_type == str(constants.TYPE_SUPPLIER):
+            stat = queryset.first()
+            if stat:
+                obsolete_supplier = stat.is_obsolete_supplier
+
         current_info = {"current_id": current_id, "record_type": record_type}
         s_num_payments = queryset.values('status').annotate(t_num=Sum('num'), t_payment=Sum('payment'))
 
@@ -161,7 +167,8 @@ class SaleStatsViewSet(viewsets.ModelViewSet):
             "paid_payment": 0.0,
             "cacl_payment": 0.0,
             "ostk_payment": 0.0,
-            "rtg_payment": 0.0
+            "rtg_payment": 0.0,
+            "obsolete_supplier": obsolete_supplier
         }
         for i in s_num_payments:
             default_stats_info[status_map[i['status']] + '_num'] = i["t_num"]
