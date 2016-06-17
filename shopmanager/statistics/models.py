@@ -1,9 +1,12 @@
 # coding=utf-8
+import logging
 from django.db import models
 from django.db.models import Sum
 from core.models import BaseModel
 from django.db.models.signals import post_save
 from statistics import constants
+
+logger = logging.getLogger(__name__)
 
 
 def stat_status_choices():  # 订单状态选择
@@ -109,6 +112,17 @@ class SaleStats(BaseModel):
             return self.num
         return_goods_stats = self.get_status_queryset().filter(status=constants.RETURN_GOODS).first()
         return return_goods_stats.num if return_goods_stats else 0
+
+    @property
+    def is_obsolete_supplier(self):
+        """　判断淘汰的供应商 """
+        if self.record_type == constants.TYPE_SUPPLIER:  # 供应商类型记录
+            from supplychain.supplier.models import SaleSupplier
+
+            supplier = SaleSupplier.objects.filter(id=self.current_id,
+                                                   progress=SaleSupplier.REJECTED).first()
+            return True if supplier else False
+        return False
 
     class Meta:
         db_table = 'statistics_sale_stats'

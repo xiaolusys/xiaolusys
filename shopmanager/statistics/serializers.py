@@ -4,6 +4,8 @@ from statistics.models import SaleStats
 
 
 class StatsSerializer(serializers.ModelSerializer):
+    obsolete_supplier = serializers.BooleanField(source='is_obsolete_supplier', read_only=True)
+
     class Meta:
         model = SaleStats
         fields = ('id',
@@ -19,10 +21,13 @@ class StatsSerializer(serializers.ModelSerializer):
                   'timely_type',
                   'get_timely_type_display',
                   'record_type',
-                  'get_record_type_display')
+                  'get_record_type_display',
+                  'obsolete_supplier')
 
 
 class StatsAllNumSerializer(serializers.ModelSerializer):
+    obsolete_supplier = serializers.BooleanField(source='is_obsolete_supplier', read_only=True)
+
     class Meta:
         model = SaleStats
         fields = ('id',
@@ -43,4 +48,5 @@ class StatsAllNumSerializer(serializers.ModelSerializer):
                   'cancel_num',
                   'out_stock_num',
                   'return_goods_num',
-                  'no_pay_num')
+                  'no_pay_num',
+                  'obsolete_supplier')
