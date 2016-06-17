@@ -27,13 +27,9 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_promotion_product(self, request):
-        current_date = datetime.date.today()
-        content = request.REQUEST
-        preday = content.get('preday') or 3
-        end_date = current_date + datetime.timedelta(days=int(preday))
+        date = request.REQUEST.get('date') or datetime.date.today()
         # 排期日期在未来三天的　需要推广的商品
-        pms = SaleProductManageDetail.objects.filter(schedule_manage__sale_time__gte=current_date,
-                                                     schedule_manage__sale_time__lte=end_date,
+        pms = SaleProductManageDetail.objects.filter(schedule_manage__sale_time=date,
                                                      is_promotion=True).values("sale_product_id",
                                                                                "name",
                                                                                "pic_path")
