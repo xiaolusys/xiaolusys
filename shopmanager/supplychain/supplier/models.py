@@ -161,6 +161,7 @@ class SaleSupplier(models.Model):
     description = models.CharField(max_length=1024, blank=True, verbose_name=u'品牌简介')
     brand_url = models.CharField(max_length=512, blank=True, verbose_name=u'商标图片')
     main_page = models.CharField(max_length=256, blank=True, verbose_name=u'品牌主页')
+    product_link = models.CharField(max_length=256, blank=True, verbose_name=u'商品链接')
 
     platform = models.CharField(max_length=16, blank=True, choices=PLATFORM_CHOICE,
                                 default=MANUAL, verbose_name=u'来自平台')
