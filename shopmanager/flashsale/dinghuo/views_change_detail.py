@@ -236,6 +236,10 @@ def update_dinghuo_part_information(request):
         item.supplier_name = supplier_name
         item.bill_method = pay_way
         item.save()
+        sale_supplier = item.supplier
+        if not sale_supplier.product_link:
+            sale_supplier.product_link = supplier_name
+            sale_supplier.save()
     except Exception,msg:
         print msg
         return  HttpResponse(False)

@@ -84,6 +84,11 @@
           <div id="changelist-filter">
             <h2>{% trans 'Filter' %}</h2>
             {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+            <ul>
+              {%for u in users%}
+              <li>{{u.username}}</li>
+            {%endfor%}
+                </ul>
           </div>
         {% endif %}
       {% endblock %}
@@ -103,3 +108,7 @@
     </div>
   </div>
 {% endblock %}
+<script type="text/javascript">
+    var a = 3;
+    console.log(a);
+</script>

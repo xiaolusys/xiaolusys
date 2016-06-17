@@ -167,7 +167,7 @@ class SaleSupplierAdmin(ApproxAdmin):
     # --------设置页面布局----------------
     fieldsets = ((u'供应商基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('supplier_name', 'supplier_code')
+                    'fields': (('supplier_name', 'product_link', 'supplier_code')
                                , ('main_page', 'category', 'platform')
                                , ('contact', 'fax')
                                , ('phone', 'mobile')

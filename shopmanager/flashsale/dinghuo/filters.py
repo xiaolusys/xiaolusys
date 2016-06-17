@@ -190,3 +190,7 @@ class BuyerNameFilter(SimpleListFilter):
             return queryset
         buyer_id = int(self.value())
         return queryset.filter(buyer_id=buyer_id)
+
+
+# class PurchasePersonFilter(SimpleListFilter):
+
