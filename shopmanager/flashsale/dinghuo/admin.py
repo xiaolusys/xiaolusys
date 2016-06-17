@@ -14,8 +14,10 @@ import time
 from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter, InBoundCreatorFilter
 from flashsale.dinghuo import permissions as perms
 from django.contrib.admin.views.main import ChangeList
-from django.db import models
-import re
+
+from django.http import Http404, HttpResponseRedirect
+
+
 
 
 class orderdetailInline(admin.TabularInline):
@@ -42,7 +44,7 @@ class ordelistAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num',
         'created', 'shenhe', 'is_postpay',
-        'changedetail', 'note_name', 'supplier', 'p_district', 'reach_standard', 'updated', 'last_pay_date',
+        'changedetail', 'note_name', 'supplier', 'express_no', 'p_district', 'reach_standard', 'updated', 'last_pay_date',
         'created_by'
     )
     list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
@@ -413,14 +415,15 @@ from flashsale.pay.models import SaleRefund
 
 
 class ReturnGoodsAdmin(BaseModelAdmin):
-    list_display = ('id_link', "supplier_link", "product_desc", "show_detail_num", "sum_amount",
+    list_display = ('id_link', "supplier_link","show_detail_num", "sum_amount",
                     "status", "status_contrl", "noter",  "transactor_name", "created",
                     "consign_time", "sid",  "consigner", 'show_memo', 'show_reason'
                     )
     search_fields = ['id', "supplier__id", "supplier__supplier_name", "transaction_number",
                      "noter", "consigner", "transactor_id", "sid"]
 
-    list_filter = ["status", "noter", "consigner", "transactor_id", "created", "modify", ]
+    list_filter = ["status", "noter", "consigner", "transactor_id",
+                   ("created", DateFieldListFilter), ("modify", DateFieldListFilter)]
     readonly_fields = ('status', 'supplier')
     inlines = [RGDetailInline, ]
     list_display_links = []
@@ -453,6 +456,7 @@ class ReturnGoodsAdmin(BaseModelAdmin):
     def transactor_name(self, obj):
         return obj.transactor.username
     transactor_name.short_description = u"负责人"
+
 
     def supplier_link(self, obj):
         if not obj.supplier:
@@ -504,19 +508,24 @@ class ReturnGoodsAdmin(BaseModelAdmin):
     show_reason.allow_tags = True
     show_reason.short_description = u"原因"
 
+
     def show_detail_num(self, obj):
+        print "nmb"
+        return_num = 0
         dts = obj.rg_details.all()
         html = ''
         for dt in dts:
             skuid = dt.skuid
             num = dt.num
+            return_num = return_num + num
             price = dt.price
-            sub_html = u'{0}  {1} - {2}<br>'.format(skuid, num, price)
-            html = html + sub_html
+            # sub_html = u'{0}  {1} - {2}<br>'.format(skuid, return_num, price)
+            # html = html + sub_html
+        html = u'{0}<br>'.format(return_num)
         return html
 
     show_detail_num.allow_tags = True
-    show_detail_num.short_description = u"数量信息"
+    show_detail_num.short_description = u"退货数量"
 
     # def deal_sum_amount(self, obj):
     #     html = u'<a onclick="change_sum_price({0},{2})">{1}</a>'.format(obj.id, obj.sum_amount, obj.return_num)
@@ -553,6 +562,7 @@ class ReturnGoodsAdmin(BaseModelAdmin):
         if lookup in ['rg_details__skuid']:
             return True
         return super(ReturnGoodsAdmin, self).lookup_allowed(lookup, value)
+
 
     class Meta:
         # related_fkey_lookups = ['rg_details__skuid']

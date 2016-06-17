@@ -160,6 +160,12 @@ class OrderList(models.Model):
     def amount(self):
         return self.order_amount
 
+    def get_product_list(self):
+        if self.supplier_name:
+            return self.supplier_name
+        else:
+            return  self.supplier.product_link
+
     def __unicode__(self):
         return '<%s,%s>' % (str(self.id or ''), self.buyer_name)
 
