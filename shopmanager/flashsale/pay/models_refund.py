@@ -177,48 +177,6 @@ class SaleRefund(PayBaseModel):
         sorder = self.sale_order()
         return sorder.oid
 
-    # @staticmethod
-    # def gen_out_stock_refund(sale_order, reason=' ', refund_num=None):
-    #     if sale_order.status!=sale_order.__class__.WAIT_SELLER_SEND_GOODS:
-    #         logger.error("交易状态不是已付款状态")
-    #         return "交易状态不是已付款状态"
-    #     sale_trader = sale_order.sale_trade
-    #     refund_fee = sale_order.payment # 退款费用 = 实付款
-    #     good_status = SaleRefund.SELLER_OUT_STOCK  #
-    #     try:
-    #         s = SaleRefund(
-    #             trade_id=sale_order.sale_trade.id,
-    #             order_id=sale_order.id,
-    #             buyer_id=sale_order.buyer_id,
-    #             item_id=sale_order.item_id,
-    #             charge=sale_trader.charge,
-    #             channel=sale_trader.channel,
-    #             sku_id=sale_order.sku_id,
-    #             sku_name=sale_order.sku_name,
-    #             refund_num=sale_order.num,
-    #             buyer_nick=sale_trader.buyer_nick,
-    #             mobile=sale_trader.receiver_mobile,
-    #             phone=sale_trader.receiver_mobile,
-    #             total_fee=sale_order.total_fee,
-    #             payment=sale_order.payment,
-    #             refund_fee=sale_order.payment,
-    #             title=sale_order.title,
-    #             reason=reason,
-    #             good_status=SaleRefund.SELLER_OUT_STOCK,
-    #             status=SaleRefund.REFUND_WAIT_SELLER_AGREE,
-    #         )
-    #         s.save()
-    #         sale_order.refund_id = s.id
-    #         sale_order.refund_fee = s.refund_fee
-    #         sale_order.refund_status = s.status
-    #         sale_order.save()
-    #         log_action(1, sale_order, CHANGE,'123123')
-    #         # 在saleorder订单状态为已经付款情况下，生成退款单salerefund，把退款单id 退款和退款状态赋值给sale_order中的三个字段
-    #         return True
-    #     except Exception, exc:
-    #         logger.error('gen_out_stock_refund: %s.' % exc.message)
-    #         return "生成退款单出错！"
-
     @transaction.atomic
     def refund_wallet_approve(self):
         """ deprecated 退款至妈妈钱包 """
@@ -420,6 +378,20 @@ class SaleRefund(PayBaseModel):
                 data.append({"status_display": u'同意申请', "time": self.modified})
             data.append({"status_display": self.get_status_display(), "time": self.modified})
         return data
+
+    def approve_return_goods(self):
+        """
+        同意退货: 用户提交退款单　如果是退货申请　并且是非质量原因退货　则修改该退款单状态到　同意申请状态　REFUND_WAIT_RETURN_GOODS
+        """
+        # 退款待审核状态 买家收到货　
+        if self.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and self.good_status == SaleRefund.BUYER_RECEIVED:
+            from shopback.refunds.models import REFUND_REASON
+
+            if self.reason in [REFUND_REASON[3][1], REFUND_REASON[4][1]]:  # 质量原因/错发/漏发
+                self.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
+                self.save(update_fields=['status'])
+            return True
+        return False
 
 
 def buyeridPatch():

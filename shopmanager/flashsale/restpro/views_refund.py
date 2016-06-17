@@ -34,6 +34,7 @@ def create_refund(user=None, order=None, reason=None, num=None,
         , refund_channel=refund_channel
         , proof_pic=proof_pic
     )
+    refund.approve_return_goods()  # 处理　同意申请
 
     if state:
         log_action(user, refund, ADDITION, u'用户售后增加退货款单信息！')
@@ -175,7 +176,7 @@ def refund_Handler(request):
         if refund:
             return {"code": 8, "info": "申请已经提交!", "apply_fee": refund_fee}
         create_refund(user=user, reason=reason, num=num, refund_fee=refund_fee, desc=desc, good_status=good_status,
-                       order=order, modify=modify, proof_pic=proof_p, refund_channel=refund_channel)
+                      order=order, modify=modify, proof_pic=proof_p, refund_channel=refund_channel)
 
         return {"code": 0, "info": "操作成功", "res": "ok"}
     except Exception, exc:
