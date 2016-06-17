@@ -80,6 +80,7 @@ class SaleRefundManager(BaseManager):
                 "desc": desc,
                 "proof_pic": proof_pic,
                 "refund_channel":refund_channel,
+                "has_good_return": order.stats_post_goods(),
             }
             for k, v in params.iteritems():
                 if v is None:
@@ -123,6 +124,7 @@ class SaleRefundManager(BaseManager):
                 desc=desc,
                 proof_pic=proof_pic,
                 refund_channel=refund_channel,
+                has_good_return=order.stats_post_goods(),
             )
             refund.save()
             signal_saletrade_refund_post.send(sender=self.model, obj=refund)

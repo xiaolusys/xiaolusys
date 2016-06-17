@@ -808,9 +808,15 @@ class SaleOrder(PayBaseModel):
             return ware_by
         return Product.WARE_NONE
 
+    def stats_post_goods(self):
+        return self.status in (SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                               SaleOrder.TRADE_BUYER_SIGNED,
+                               SaleOrder.TRADE_FINISHED)
+
     def stats_not_pay(self):
-        return self.status == SaleOrder.TRADE_NO_CREATE_PAY or \
-               self.status == SaleOrder.WAIT_BUYER_PAY or self.status == SaleOrder.TRADE_CLOSED_BY_SYS
+        return self.status in (SaleOrder.TRADE_NO_CREATE_PAY ,
+                               SaleOrder.WAIT_BUYER_PAY ,
+                               SaleOrder.TRADE_CLOSED_BY_SYS)
 
     def stats_paid(self):
         """ 统计付款的 """

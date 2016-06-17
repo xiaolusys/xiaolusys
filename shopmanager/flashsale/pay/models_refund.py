@@ -129,8 +129,8 @@ class SaleRefund(PayBaseModel):
     desc = models.TextField(max_length=1000, blank=True, verbose_name='描述')
     feedback = models.TextField(max_length=1000, blank=True, verbose_name='审核意见')
 
-    has_good_return = models.BooleanField(default=False, verbose_name='是否退货')
-    has_good_change = models.BooleanField(default=False, verbose_name='是否换货')
+    has_good_return = models.BooleanField(default=False, verbose_name='有退货')
+    has_good_change = models.BooleanField(default=False, verbose_name='有换货')
 
     good_status = models.IntegerField(db_index=True, choices=GOOD_STATUS_CHOICES,
                                       default=BUYER_RECEIVED, blank=True, verbose_name='退货商品状态')
