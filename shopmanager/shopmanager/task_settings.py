@@ -425,8 +425,6 @@ LOGISTICS_ROUTES = {
         'queue': 'logistics',
         'routing_key': 'logistics.SaveWuliu_by_packetid',
     },
-
-
 }
 
 CELERY_ROUTES = {
@@ -475,6 +473,10 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_notify_package_post',
     },  # 包裹发货发送短信通知
+    'flashsale.pay.tasks.task_budgetlog_update_userbudget': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_budgetlog_update_userbudget',
+    },  # 更新妈妈钱包金额
     #######################################################
     'flashsale.clickcount.tasks.task_Create_Click_Record': {
         'queue': 'frency',
