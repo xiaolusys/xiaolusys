@@ -149,14 +149,15 @@
                     <button class="btn btn-primary btn-block submit">确定</button>
                 </div>
             </div>
-            <input type="hidden" id="supplier-id" name="supplier_id" value="{{ supplier_id|default:0 }}">
-            <input type="hidden" id="inbound-id" name="inbound_id" value="{{ inbound_id|default:0 }}">
+            <input type="hidden" id="forecast-id" name="forecast_inbound_id" value="{{ forecast_inbound.id|default:0 }}">
+            <input type="hidden" id="supplier-id" name="supplier_id" value="{{ supplier.id|default:0 }}">
+            <input type="hidden" id="inbound-id" name="inbound_id" value="{{ order_list.id|default:0 }}">
         </form>
 
-        {% if supplier_id %}
+        {% if supplier %}
         <div class="panel panel-default" id="panel-1">
             <div class="panel-heading">
-                {{ supplier_name }}({{ supplier_id }})
+                {{ supplier.supplier_name }}({{ supplier.id }})
                 <button class="btn btn-primary" data-toggle="collapse" data-target="#pics" aria-expanded="true" aria-controls="pics" id="pics-toggle">
                     收起
                 </button>
@@ -500,8 +501,6 @@
          ];
 
          var orderlists;
-         var orderlistIds = {{orderlist_ids|jsonify}};
-         var expressNos = {{express_nos|jsonify}};
          var products = {{products|jsonify}};
          var productsDict = {};
          var skusDict = {};
@@ -541,7 +540,7 @@
              };
          };
 
-         function supplierIdHandler(items){
+         /* function supplierIdHandler(items){
              function wrapper(e, suggestion){
                  var i, id;
                  for(i=0; i < items.length; ++i){
@@ -554,7 +553,7 @@
                      $('#supplier-id').val(id);
              }
              return wrapper;
-         }
+         } */
 
          function quantityChangeHandler(formId){
              function wrapper(){
@@ -753,8 +752,8 @@
 
          function getForm1Data(){
              var data = {};
-             supplierIdHandler(expressNos)(null, $('#express-no').val());
-             supplierIdHandler(orderlistIds)(null, $('#orderlist-id').val());
+             // supplierIdHandler(expressNos)(null, $('#express-no').val());
+             // supplierIdHandler(orderlistIds)(null, $('#orderlist-id').val());
              _.each($('#form-1').serializeArray(), function(el){
                  data[el.name] = el.value;
              });
@@ -909,7 +908,7 @@
 
              init();
 
-             $('#express-no').typeahead({
+            /* $('#express-no').typeahead({
                  hint: true,
                  highlight: true,
                  minLength: 1
@@ -920,7 +919,8 @@
                  hint: true,
                  highlight: true,
                  minLength: 1
-             }, {name: 'orderlistIds', source: matcher(orderlistIds)}).bind('typeahead:select', supplierIdHandler(orderlistIds));
+             }, {name: 'orderlistIds', source: matcher(orderlistIds)}).bind('typeahead:select', supplierIdHandler(orderlistIds));*/
+
 
              $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
 

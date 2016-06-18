@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplier', '0006_add_field_is_promotion'),
+        ('supplier', '0007_add_field_is_promotion'),
     ]
 
     operations = [

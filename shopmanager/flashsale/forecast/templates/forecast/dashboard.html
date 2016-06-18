@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" rel="stylesheet"
+          type="text/css">
+    <link href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" type="text/css"/>
+    <title>采购管理界面</title>
+    <style>
+    * {
+        padding: 0 0;
+        margin: 0 0;
+    }
+    .inline {
+        display: inline;
+    }
+    ul.vertical {
+        list-style: none;
+        clear: both;
+    }
+    ul.vertical li{
+        display: block;
+        border: none;
+    }
+    ul.horizental, ul.vertical{
+        list-style: none;
+        border: none;
+        margin-bottom:0px;
+    }
+    ul.horizental > li{
+        display: block;
+        float: left;
+        border: none;
+    }
+    ul.horizental > li+li{
+        border-left: 1px solid #eee;
+    }
+    ul.list-group {
+        /* max-height: 120px;*/
+    }
+    .label-badge{
+        display: inline-block;
+        min-width: 10px;
+        padding: 3px 7px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        border-radius: 10px;
+    }
+    .container-body-left{
+        border-top: 1px solid #eee;
+        border-left: 1px solid #eee;
+        padding: 10px 0px;
+    }
+    .panel-heading, .panel-footer{
+        padding: 0px 10px;
+    }
+    .panel-footer .btn {
+        margin: 0 10px;
+
+    }
+    .group-line{
+        padding: 0 20px 0;
+        margin: 20px 0;
+        line-height: 1px;
+        border-left: 250px solid #ddd;
+        border-right: 250px solid #ddd;
+        text-align: center;
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>只为优质供应商服务
+            <small>下单需订，预测需准，提醒必催，到期必结</small>
+        </h1>
+    </div>
+    <div class="container-body">
+        <div class="container-body-left col-xs-2">
+            <ul class="nav nav-pills nav-stacked">
+              <li role="presentation" {% ifequal action "unlogisticed" %}class="active"{% endifequal %} ><a href="/sale/forecast/dashboard?action=unlogisticed">催货提醒</a></li>
+              <li role="presentation" {% ifequal action "unarrived" %}class="active"{% endifequal %}><a href="/sale/forecast/dashboard?action=unarrived">未准时到货</a></li>
+              <li role="presentation" {% ifequal action "unbilling" %}class="active"{% endifequal %}><a href="/sale/forecast/dashboard?action=unbilling">到货等待结算</a></li>
+              <li role="presentation" {% ifequal action "all" %}class="active"{% endifequal %}{% ifequal action "" %}class="active"{% endifequal %}><a href="/sale/forecast/dashboard?action=all">全部待处理</a></li>
+            </ul>
+        </div>
+        <div class="container-body-right  col-xs-10">
+            {% if action == '' or action == 'all' %}
+                {% for aggregate in aggregate_list %}
+                <div class="group-line">{{aggregate.supplier.supplier_name}}</div>
+                {% for aggregate_order in aggregate.aggregate_orders %}
+                    {% include 'forecast/aggregate_record.html' %}
+                {% endfor %}
+                {% endfor %}
+            {% else %}
+                {% for aggregate_order in aggregate_list %}
+                    {% include 'forecast/aggregate_record.html' %}
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+</body>
+</html>

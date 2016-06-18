@@ -1,9 +1,12 @@
 # coding=utf-8
+import logging
 import datetime
 import random
 
 from core.managers import BaseManager
 from flashsale.coupon import tasks
+
+logger = logging.getLogger(__name__)
 
 
 def check_template(template_id):
@@ -130,7 +133,8 @@ class UserCouponManager(BaseManager):
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
-        AssertionError(tpl.coupon_type == CouponTemplate.TYPE_NORMAL)  # 模板类型不是 普通类型 则抛出异常
+        if tpl.coupon_type != CouponTemplate.TYPE_NORMAL:  # 模板类型不是 普通类型 则抛出异常
+            raise AssertionError(u'领取优惠券类型有误!')
         customer, code, cu_msg = check_target_user(buyer_id, tpl)  # 用户身份检查
         if not customer:  # 用户不存在
             return customer, code, cu_msg
@@ -177,7 +181,8 @@ class UserCouponManager(BaseManager):
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
-        AssertionError(tpl.coupon_type == CouponTemplate.TYPE_MAMA_INVITE)  # 模板类型不是 推荐专享 则抛出异常
+        if tpl.coupon_type != CouponTemplate.TYPE_MAMA_INVITE:  # 模板类型不是 推荐专享 则抛出异常
+            raise AssertionError(u'领取优惠券类型有误!')
         customer, code, cu_msg = check_target_user(buyer_id, tpl)  # 用户身份检查
         if not customer:  # 用户不存在
             return customer, code, cu_msg
@@ -222,7 +227,8 @@ class UserCouponManager(BaseManager):
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
-        AssertionError(tpl.coupon_type == CouponTemplate.TYPE_ORDER_BENEFIT)  # 模板类型不是 下单红包 则抛出异常
+        if tpl.coupon_type != CouponTemplate.TYPE_ORDER_BENEFIT:  # 模板类型不是 下单红包 则抛出异常
+            raise AssertionError(u'领取优惠券类型有误!')
         customer, code, cu_msg = check_target_user(buyer_id, tpl)  # 用户身份检查
         if not customer:  # 用户不存在
             return customer, code, cu_msg
@@ -268,7 +274,8 @@ class UserCouponManager(BaseManager):
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
-        AssertionError(tpl.coupon_type == CouponTemplate.TYPE_COMPENSATE)  # 模板类型不是 售后补偿 则抛出异常
+        if tpl.coupon_type != CouponTemplate.TYPE_COMPENSATE:  # 模板类型不是 售后补偿 则抛出异常
+            raise AssertionError(u'领取优惠券类型有误!')
         customer, code, cu_msg = check_target_user(buyer_id, tpl)  # 用户身份检查
         if not customer:  # 用户不存在
             return customer, code, cu_msg
@@ -313,8 +320,8 @@ class UserCouponManager(BaseManager):
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
-
-        AssertionError(tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE)  # 模板类型不是订单分享类型则抛出异常
+        if tpl.coupon_type != CouponTemplate.TYPE_ORDER_SHARE:  # 模板类型不是订单分享类型则抛出异常
+            raise AssertionError(u'领取优惠券类型有误!')
         customer, code, cu_msg = check_target_user(buyer_id, tpl)  # 用户身份检查
         if not customer:
             return customer, code, cu_msg
@@ -371,8 +378,8 @@ class UserCouponManager(BaseManager):
         tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
         if not tpl:  # 没有找到模板或者没有
             return tpl, code, tpl_msg
-
-        AssertionError(tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE)  # 模板类型不是 活动分享 类型 则抛出异常
+        if tpl.coupon_type != CouponTemplate.TYPE_ACTIVE_SHARE:  # 模板类型不是 活动分享 类型 则抛出异常
+            raise AssertionError(u'领取优惠券类型有误!')
         customer, code, cu_msg = check_target_user(buyer_id, tpl)  # 用户身份检查
         if not customer:
             return customer, code, cu_msg

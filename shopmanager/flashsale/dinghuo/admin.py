@@ -37,7 +37,7 @@ class orderdetailInline(admin.TabularInline):
 class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district')
+        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'sys_status')
     }),)
     inlines = [orderdetailInline]
 
@@ -45,7 +45,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num',
         'created', 'shenhe', 'is_postpay',
         'changedetail', 'note_name', 'supplier', 'express_no', 'p_district', 'reach_standard', 'updated', 'last_pay_date',
-        'created_by'
+        'created_by','sys_status'
     )
     list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
                    'last_pay_date', 'created_by')
@@ -280,6 +280,7 @@ admin.site.register(OrderList, ordelistAdmin)
 admin.site.register(OrderDetail, orderdetailAdmin)
 admin.site.register(orderdraft)
 
+from django.contrib.auth.models import User
 
 class myuserAdmin(admin.ModelAdmin):
     fieldsets = ((u'用户信息:', {
@@ -292,6 +293,14 @@ class myuserAdmin(admin.ModelAdmin):
     )
     list_filter = ('group',)
     search_fields = ['user__username']
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(myuserAdmin, self).get_form(request, obj=obj, **kwargs)
+
+        form.base_fields['user'].queryset = form.base_fields['user'].queryset \
+            .filter(is_staff=True)
+
+        return form
 
 
 admin.site.register(MyUser, myuserAdmin)
@@ -510,7 +519,6 @@ class ReturnGoodsAdmin(BaseModelAdmin):
 
 
     def show_detail_num(self, obj):
-        print "nmb"
         return_num = 0
         dts = obj.rg_details.all()
         html = ''

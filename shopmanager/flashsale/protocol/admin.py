@@ -29,7 +29,7 @@ class APPFullPushMessgeAdmin(admin.ModelAdmin):
                  ('内部信息:', {
                      'classes': ('collapse',),
                      'fields': (('cat', 'status', 'regid'),
-                                ('result',))
+                                ('params', 'result',))
 
                  }),)
 

@@ -12,7 +12,6 @@ from . import views_user
 from . import views_product
 from . import views_trade
 from . import views_share
-from . import views_coupon
 from . import views_coupon_new
 from . import views_integral
 from . import views_portal

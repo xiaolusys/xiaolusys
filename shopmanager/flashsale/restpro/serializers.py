@@ -271,7 +271,7 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
                   'refund_status', 'refund_status_display', "refund_id", 'kill_title', 'is_seckill')
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
     orders = SaleOrderSerializer(source='sale_orders', many=True, read_only=True)
     # orders = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-saleorder')
     channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
@@ -283,7 +283,7 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = SaleTrade
-        fields = ('id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
+        fields = ('id', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display', 'order_pic',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
                   'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city',
@@ -291,7 +291,7 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v2:saletrade-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='v2:saletrade-detail')
     orders = SaleOrderSerializer(source='sale_orders', many=True, read_only=True)
     channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
@@ -301,7 +301,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     extras = JSONParseField(source='get_extras', read_only=True)
     class Meta:
         model = SaleTrade
-        fields = ('id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
+        fields = ('id', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
                   'logistics_company', 'user_adress', 'extras')
@@ -376,36 +376,6 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
     class Meta:
         model = TradeWuliu
         exclude = ()
-
-
-from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate
-
-
-class UsersCouponSerializer(serializers.ModelSerializer):
-    coupon_type = serializers.IntegerField(source='cp_id.template.type', read_only=True)
-    coupon_type_display = serializers.CharField(source='cp_id.template.get_type_display', read_only=True)
-    start_time = serializers.CharField(source='cp_id.template.start_use_time', read_only=True)
-    deadline = serializers.CharField(source='cp_id.template.deadline', read_only=True)
-    title = serializers.CharField(source='cp_id.template.title', read_only=True)
-    coupon_no = serializers.CharField(source='cp_id.coupon_no', read_only=True)
-    poll_status = serializers.IntegerField(source='cp_id.status', read_only=True)
-    coupon_value = serializers.FloatField(source='cp_id.template.value', read_only=True)
-    valid = serializers.BooleanField(source='cp_id.template.valid', read_only=True)
-    use_fee = serializers.FloatField(source='cp_id.template.use_fee', read_only=True)
-    use_fee_des = serializers.CharField(source='cp_id.template.use_fee_desc', read_only=True)
-    pros_desc = serializers.CharField(source='cp_id.template.pros_desc', read_only=True)
-
-    class Meta:
-        model = UserCoupon
-        # remove the "cp_id" field, test for browser solwly
-        fields = ("id", "coupon_type", 'title', "customer", 'coupon_no', 'coupon_value', 'valid',
-                  'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee',
-                  'coupon_type_display', 'use_fee_des', 'pros_desc', 'start_time')
-
-
-class CouponTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CouponTemplate
 
 
 from shopapp.weixin.models import WXOrder

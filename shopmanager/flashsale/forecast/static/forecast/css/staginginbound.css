@@ -1,0 +1,123 @@
+.container {
+    margin-top:20px;
+}
+#form-1 {
+     margin-top:10px;
+ }
+
+ .typeahead:focus {
+     border: 2px solid #0097cf;
+ }
+
+ .tt-query {
+     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+ }
+
+ .tt-hint {
+     color: #999
+ }
+
+ .tt-menu {
+     margin: 14px 0;
+     padding: 8px 0;
+     background-color: #fff;
+     border: 1px solid #ccc;
+     border: 1px solid rgba(0, 0, 0, 0.2);
+     -webkit-border-radius: 8px;
+     -moz-border-radius: 8px;
+     border-radius: 8px;
+     -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+     -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+     box-shadow: 0 5px 10px rgba(0,0,0,.2);
+ }
+
+ .tt-suggestion {
+     padding: 3px 20px;
+     line-height: 24px;
+ }
+
+ .tt-suggestion:hover {
+     cursor: pointer;
+     color: #fff;
+     background-color: #0097cf;
+ }
+
+ .tt-suggestion.tt-cursor {
+     color: #fff;
+     background-color: #0097cf;
+ }
+
+ .tt-suggestion p {
+     margin: 0;
+ }
+
+.block {
+     display: block;
+}
+
+ #panel-1, #panel-2, #panel-3 {
+     margin:10px auto;
+ }
+ #form-3 input.error[type="number"]{
+     border-color: #ff0000;
+ }
+ #tips {
+     width: 100%;
+     display: block;
+ }
+ #memo {
+     width: 100%;
+     background-color: #b4eeb4;
+ }
+ #action {
+     margin: 0;
+ }
+
+ #action > .row {
+     margin: 15px 0;
+ }
+ i.glyphicon:hover {
+     color: #ff4500;
+ }
+
+ #form-3 tr.sku:not(.candidate) input[type="number"] {
+     display: none;
+ }
+ #form-3 tr.sku:not(.candidate) img {
+     display: none;
+ }
+
+ .candidate span.properties-name {
+     color: #66CC33;
+     font-size: 18px;
+ }
+
+ #pics ul {
+     margin-top: 20px;
+     margin-bottom: 10px;
+     list-style: none;
+     -webkit-padding-start: 0px;
+ }
+
+ .package-arrival-quantity, .package-inferior-quantity {
+     color: #66cc33;
+     font-size: 18px;
+ }
+
+ #pics li {
+     height: 290px;
+ }
+ #pics li .skus {
+     overflow-y: auto;
+     height: 290px;
+ }
+
+ #pics li .input-group {
+     margin-bottom: 5px;
+ }
+
+ .product-all-skus .checkbox {
+     display: inline-block;
+ }

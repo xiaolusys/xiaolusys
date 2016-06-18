@@ -2,11 +2,13 @@
 import datetime
 
 from django.db import models
-from django.db.models import Sum, Count
-from django.db.models.signals import post_save
-from django.db.models import Sum, F
+from django.db.models import Sum, Count, F
+from django.db.models.signals import post_save, pre_save
 from django.contrib.auth.models import User
+from django.db import transaction
+
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 
 from core.fields import JSONCharMyField
 from core.models import BaseModel
@@ -14,7 +16,9 @@ from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 
-
+import logging
+logger = logging.getLogger(__name__)
+from django.contrib.auth.models import User
 class OrderList(models.Model):
     # 订单状态
     SUBMITTING = u'草稿'  # 提交中
@@ -43,6 +47,20 @@ class OrderList(models.Model):
     TTKDEX = u'TTKDEX'
     QFKD = u'QFKD'
     DBKD = u'DBKD'
+
+    ST_DRAFT = 'draft'
+    ST_APPROVAL = 'approval'
+    ST_BILLING = 'billing'
+    ST_FINISHED = 'finished'
+    ST_CLOSE = 'close'
+
+    STATUS_CHOICES = (
+        (ST_DRAFT, u'草稿'),
+        (ST_APPROVAL, u'已审核'),
+        (ST_BILLING, u'结算中'),
+        (ST_FINISHED, u'已结算'),
+        (ST_CLOSE, u'已取消'),
+    )
 
     CREATED_BY_PERSON = 1
     CREATED_BY_MACHINE = 2
@@ -138,6 +156,12 @@ class OrderList(models.Model):
         choices=((CREATED_BY_PERSON, '人工'), (CREATED_BY_MACHINE, '自动')),
         default=CREATED_BY_PERSON,
         verbose_name=u'创建方式')
+
+    sys_status  = models.CharField(max_length=16,
+                                  db_index=True,
+                                  default=ST_DRAFT,
+                                  verbose_name=u'系统状态',
+                                  choices=STATUS_CHOICES)
     last_pay_date = models.DateField(null=True,
                                      blank=True,
                                      verbose_name=u'最后下单日期')
@@ -167,7 +191,21 @@ class OrderList(models.Model):
             return  self.supplier.product_link
 
     def __unicode__(self):
-        return '<%s,%s>' % (str(self.id or ''), self.buyer_name)
+        return '<%s, %s, %s>' % (str(self.id or ''),
+                                 self.last_pay_date and self.last_pay_date.strftime('%Y-%m-%d') or '------------',
+                                 self.buyer_name)
+
+    def normal_details(self):
+        return self.order_list.all()
+
+    @property
+    def total_detail_num(self):
+        order_nums = self.normal_details().values_list('buy_quantity', flat=True)
+        return order_nums and sum(order_nums) or 0
+
+    @property
+    def status_name(self):
+        return self.get_sys_status_display()
 
 
 def check_with_purchase_order(sender, instance, created, **kwargs):
@@ -235,6 +273,24 @@ class OrderDetail(models.Model):
         :return:
         """
         return self.buy_quantity - self.arrival_quantity - self.inferior_quantity
+
+def orderlist_create_forecast_inbound( sender, instance, raw, **kwargs):
+    real_orderlist = OrderList.objects.filter(id=instance.id).first()
+    if  real_orderlist and \
+        real_orderlist.status == OrderList.SUBMITTING and \
+        instance.status == OrderList.APPROVAL:
+        # if the orderlist purchase confirm, then create forecast inbound
+        from flashsale.forecast.apis import api_create_forecastinbound_by_orderlist
+        try:
+            with transaction.atomic():
+                api_create_forecastinbound_by_orderlist(instance)
+        except Exception,exc:
+            logger.error('update forecast inbound:%s'% exc.message, exc_info=True)
+
+pre_save.connect(
+    orderlist_create_forecast_inbound,
+    sender=OrderList,
+    dispatch_uid='pre_save_orderlist_create_forecast_inbound')
 
 
 def update_productskustats_inbound_quantity(sender, instance, created,
@@ -785,6 +841,13 @@ class InBound(models.Model):
                                     default='[]',
                                     verbose_name=u'订货单ID',
                                     help_text=u'冗余的订货单关联')
+    forecast_inbound_id = models.IntegerField(null=True, db_index=True, verbose_name=u'关联预测单ID')
+
+    class Meta:
+        db_table = 'flashsale_dinghuo_inbound'
+        app_label = 'dinghuo'
+        verbose_name = u'入仓单'
+        verbose_name_plural = u'入仓单列表'
 
     def __unicode__(self):
         return str(self.id)
@@ -820,11 +883,10 @@ class InBound(models.Model):
                     order_detail.chichu_id, 0)
         return assign_dict
 
-    class Meta:
-        db_table = 'flashsale_dinghuo_inbound'
-        app_label = 'dinghuo'
-        verbose_name = u'入仓单'
-        verbose_name_plural = u'入仓单列表'
+    def notify_forecast_save_inbound(self):
+        from flashsale.forecast.apis import api_create_realinbound_by_inbound
+        api_create_realinbound_by_inbound.delay(self.id)
+
 
 
 def update_warehouse_receipt_status(sender, instance, created, **kwargs):
@@ -940,7 +1002,6 @@ def update_inbound_record(sender, instance, created, **kwargs):
     else:
         inbounddetail.status = InBoundDetail.PROBLEM
     inbounddetail.save()
-
 
 post_save.connect(update_inbound_record,
                   sender=OrderDetailInBoundDetail,

@@ -382,51 +382,6 @@ def task_Pull_Red_Envelope(pre_day=7):
             break
 
 
-from models_coupon_new import CouponsPool, CouponTemplate, UserCoupon
-from django.db import transaction
-
-
-@task
-@transaction.atomic
-def task_Update_CouponPoll_Status():
-    """ 定时更新券池中的优惠券到过期过期状态　"""
-    today = datetime.datetime.today()
-    # 定时更新优惠券的状态:　超过模板定义截至时间的优惠券 将其状态修改为过期无效状态
-    deadline_time = datetime.datetime(today.year, today.month, today.day, 0, 0,
-                                      0)
-    # 未发放的 已经发放的   截止日期在今天之前的　排除邮费和代理优惠券
-    cous = CouponsPool.objects.filter(
-        template__deadline__lte=deadline_time,
-        status__in=(CouponsPool.RELEASE, CouponsPool.UNRELEASE)).exclude(
-            template__type__in=
-            (CouponTemplate.RMB118, CouponTemplate.POST_FEE_5,
-             CouponTemplate.POST_FEE_10, CouponTemplate.POST_FEE_15,
-             CouponTemplate.POST_FEE_20))
-    cous.update(status=CouponsPool.PAST)  # 更新为过期优惠券
-
-
-@task()
-def task_ReleaseMamaLinkCoupon(saletrade):
-    """
-    发放优惠券
-    规则：　当代理的专属链接有用户下单后则给该代理发放优惠券
-    """
-    extras_info = saletrade.extras_info
-    mama_id = extras_info.get('mm_linkid')
-    if not mama_id:
-        return
-    now = datetime.datetime.now()
-    tpls = CouponTemplate.objects.filter(valid=True,
-                                         way_type=CouponTemplate.XMM_LINK)
-    tpls = tpls.filter(release_start_time__lte=now, release_end_time__gte=now)
-    for tpl in tpls:
-        if saletrade.payment >= tpl.release_fee:  # 订单满足发放费用发放
-            coupon = UserCoupon()
-            coupon.release_for_mama(mama_id=mama_id,
-                                    template_id=tpl.id,
-                                    trade_id=saletrade.id)
-
-
 from django.db.models import Q
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.promotion.models_freesample import AppDownloadRecord

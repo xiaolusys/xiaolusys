@@ -207,6 +207,8 @@ class SaleSupplier(models.Model):
     buyer = models.ForeignKey(User, null=True, related_name='buyers', verbose_name=u'买手')
     ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'所属仓库')
 
+    delta_arrive_days = models.IntegerField(default=3, verbose_name=u'预计到货天数')
+
     objects = SaleSupplierManager()
 
     class Meta:
@@ -224,6 +226,9 @@ class SaleSupplier(models.Model):
     def is_active(self):
         """ 是否有效 """
         return self.status != self.FROZEN and self.progress not in (self.REJECTED, self.IGNORED)
+
+    def get_delta_arrive_days(self):
+        return self.delta_arrive_days
 
 
 class SupplierCharge(models.Model):
