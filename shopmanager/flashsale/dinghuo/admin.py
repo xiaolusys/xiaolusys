@@ -519,7 +519,6 @@ class ReturnGoodsAdmin(BaseModelAdmin):
 
 
     def show_detail_num(self, obj):
-        print "nmb"
         return_num = 0
         dts = obj.rg_details.all()
         html = ''

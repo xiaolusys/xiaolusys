@@ -276,7 +276,9 @@ class OrderDetail(models.Model):
 
 def orderlist_create_forecast_inbound( sender, instance, raw, **kwargs):
     real_orderlist = OrderList.objects.filter(id=instance.id).first()
-    if real_orderlist.status == OrderList.SUBMITTING and instance.status == OrderList.APPROVAL:
+    if  real_orderlist and \
+        real_orderlist.status == OrderList.SUBMITTING and \
+        instance.status == OrderList.APPROVAL:
         # if the orderlist purchase confirm, then create forecast inbound
         from flashsale.forecast.apis import api_create_forecastinbound_by_orderlist
         try:
@@ -882,7 +884,6 @@ class InBound(models.Model):
         return assign_dict
 
     def notify_forecast_save_inbound(self):
-        print 'debug notify:', self.forecast_inbound_id, self.supplier
         from flashsale.forecast.apis import api_create_realinbound_by_inbound
         api_create_realinbound_by_inbound.delay(self.id)
 
