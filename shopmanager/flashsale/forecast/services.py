@@ -20,9 +20,10 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     """ 通过采购员名称获取订货单 """
     from flashsale.dinghuo.models import OrderList, OrderDetail
     order_list = OrderList.objects.filter(
-        buyer__username=staff_name,
         sys_status__in=[OrderList.ST_APPROVAL, OrderList.ST_BILLING]
     )
+    if staff_name.strip():
+        order_list = order_list.filter(buyer__username=staff_name)
 
     order_dict_list = []
     for order in order_list:
