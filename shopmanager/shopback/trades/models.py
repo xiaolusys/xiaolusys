@@ -1818,7 +1818,7 @@ class PackageSkuItem(BaseModel):
 
     def is_booking_assigned(self):
         # self.assigned_purchase_order_id
-        if self.assign_status == PackageSkuItem.ASSIGNED:
+        if self.assign_status == PackageSkuItem.ASSIGNED or self.assign_status == PackageSkuItem.FINISHED:
             return True
         return False
 

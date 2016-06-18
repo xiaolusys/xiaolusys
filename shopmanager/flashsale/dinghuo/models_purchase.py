@@ -115,9 +115,8 @@ post_save.connect(update_orderdetail, sender=PurchaseDetail, dispatch_uid='post_
 class PurchaseRecord(BaseModel):
     EFFECT = 1
     CANCEL = 2
-    ASSIGN = 3
-    STATUS = ((EFFECT, u'有效'),(CANCEL, u'退货取消'),(ASSIGN, u'匹配取消'))
-    
+    STATUS = ((EFFECT, u'有效'),(CANCEL, u'退货取消'))
+
     package_sku_item_id = models.IntegerField(default=0,db_index=True, verbose_name=u'包裹ID')
     oid =  models.CharField(max_length=32,db_index=True, verbose_name=u'sku交易单号')
 
@@ -135,7 +134,7 @@ class PurchaseRecord(BaseModel):
     book_num = models.IntegerField(default=0, verbose_name=u'订购量')
     
     status =  models.IntegerField(choices=STATUS,default=EFFECT,db_index=True, verbose_name=u'状态')
-
+    note = models.CharField(max_length=128, blank=True, verbose_name=u'备注信息')
     
     class Meta:
         db_table = 'flashsale_dinghuo_purchase_record'

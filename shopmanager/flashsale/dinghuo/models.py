@@ -247,6 +247,7 @@ def update_orderdetail_relationship(sender, instance, created, **kwargs):
 post_save.connect(update_orderdetail_relationship, sender=OrderList, dispatch_uid='post_save_update_orderdetail_relationship')
 
 def update_purchaseorder_status(sender, instance, created, **kwargs):
+    from flashsale.dinghuo.models_purchase import PurchaseOrder
     status = None
     if instance.is_open():
         status = PurchaseOrder.OPEN
@@ -278,7 +279,7 @@ post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='p
 
 class OrderDetail(models.Model):
     id = models.AutoField(primary_key=True)
-    orderlist = models.ForeignKey(OrderList,
+    orderlist = models.ForeignKey(OrderList,null=True,
                                   related_name='order_list',
                                   verbose_name=u'订单编号')
     product_id = models.CharField(db_index=True,

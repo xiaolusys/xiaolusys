@@ -260,9 +260,12 @@ class orderdetailAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
 
     def link_order(self, obj):
-        order_list = obj.orderlist.id
-        link_str = u"<a href='/sale/dinghuo/changedetail/{0}/' target='_blank'>{1}</a>".format(order_list,
+        order_list = obj.orderlist
+        if order_list:
+            link_str = u"<a href='/sale/dinghuo/changedetail/{0}/' target='_blank'>{1}</a>".format(order_list.id,
                                                                                                obj.orderlist.__unicode__())
+        else:
+            link_str = u"<a href='#' target='_blank'>None</a>"
         return link_str
 
     link_order.allow_tags = True

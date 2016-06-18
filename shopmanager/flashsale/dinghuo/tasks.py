@@ -1421,8 +1421,24 @@ def task_packageskuitem_update_purchaserecord(psi):
     #print "debug: %s" % utils.get_cur_info()
     
     status = PurchaseRecord.EFFECT
+    note = None
     if psi.is_booking_needed():
         status = PurchaseRecord.EFFECT
+    elif psi.is_booking_assigned():
+        # Read in detail the following code logic: how we judge the PSI was assigned
+        # by exisiting inventory, or newly created inventory by refundproduct.
+        if pr.status == PurchaseRecord.EFFECT:
+            rp = RefundProduct.objects.filter(sku_id=psi.sku_id,can_use=True).order_by('-created').first()
+            od = OrderDetail.objects.filter(chichu_id=psi.sku_id,arrival_quantity__gt=0).order_by('-arrival_time').first()
+            t = max(rp.created, od.arrival_time)
+            if t < pr.created:
+                # This means the PSI was assigned by existing inventory.
+                status = PurchaseRecord.CANCEL
+                note = 'CANCEL: Exist Inventory|rp:%s-%s,od:%s-%s' % (rp.id, rp.created, od.id, od.arrival_time)
+            elif rp.created > od.arrival_time:
+                # This means the PSI was assigned by refundproduct (which increased inventory).
+                status = PurchaseRecord.CANCEL
+                note = 'CANCEL: New Refund Inventory| rp:%s-%s, od:%s-%s' % (rp.id, rp.created, od.id, od.arrival_time)
     else:
         status = PurchaseRecord.CANCEL
     
@@ -1435,8 +1451,12 @@ def task_packageskuitem_update_purchaserecord(psi):
         pr.save()
     else:
         if pr.status != status:
+            update_fields = ['status', 'modified']
             pr.status = status
-            pr.save(update_fields=['status','modified'])
+            if note:
+                pr.note = note
+                update_fields.append('note')
+            pr.save(update_fields=update_fields)
 
 
 @task()
@@ -1482,7 +1502,7 @@ def task_purchasedetail_update_orderdetail(pd):
     od = OrderDetail.objects.filter(purchase_detail_unikey=pd.uni_key).first()
     if not od:
         product = utils.get_product(pd.sku_id)
-        od = OrderDetail(product_id=product.id,outer_id=pd.outer_id,product_name=pd.title,chichu_id=pd.sku_id,product_chicun=pd.sku_properties_name,buy_quantity=pd.book_num,buy_unitprice=pd.unit_price_display,total_price=pd.total_price_display,purchase_detail_unikey=pd.unikey,purchase_order_unikey=pd.purchase_order_unikey)
+        od = OrderDetail(product_id=product.id,outer_id=pd.outer_id,product_name=pd.title,chichu_id=pd.sku_id,product_chicun=pd.sku_properties_name,buy_quantity=pd.book_num,buy_unitprice=pd.unit_price_display,total_price=pd.total_price_display,purchase_detail_unikey=pd.uni_key,purchase_order_unikey=pd.purchase_order_unikey)
         
         ol = OrderList.objects.filter(purchase_order_unikey=pd.purchase_order_unikey).first()
         if ol:
@@ -1504,7 +1524,8 @@ def task_orderdetail_update_orderlist(od):
         p_district = OrderList.NEAR
         if supplier.ware_by == SaleSupplier.WARE_GZ:
             p_district = OrderList.GUANGDONG
-        ol = OrderList(order_amount=od.total_price,supplier_id=supplier.id,p_district=p_district,created_by=OrderList.CREATED_BY_MACHINE,status=OrderList.SUBMITTING,note=u'-->%s:动态生成订货单' % now.strftime('%m月%d %H:%M'))
+        now = datetime.datetime.now()
+        ol = OrderList(purchase_order_unikey=od.purchase_order_unikey,order_amount=od.total_price,supplier_id=supplier.id,p_district=p_district,created_by=OrderList.CREATED_BY_MACHINE,status=OrderList.SUBMITTING,note=u'-->%s:动态生成订货单' % now.strftime('%m月%d %H:%M'))
         
         prev_orderlist = OrderList.objects.filter(supplier_id=supplier.id,created_by=OrderList.CREATED_BY_MACHINE).exclude(status=OrderList.ZUOFEI).order_by('-created').first()
         if prev_orderlist and prev_orderlist.buyer_id:
@@ -1696,11 +1717,14 @@ def task_update_purchasearrangement_initial_book(po):
     """
     invoke when user click button to book purchase_order.
     """
-    pas = PurchaseArrangement.objects.filter(purchase_order_unikey=po.uni_key, status=PurchaseRecord.EFFECT).update(purchase_order_status=po.status, initial_book=True)
+    pas = PurchaseArrangement.objects.filter(purchase_order_unikey=po.uni_key, status=PurchaseRecord.EFFECT)
+    pas.update(purchase_order_status=po.status, initial_book=True)
     
     from shopback.trades.models import PackageSkuItem
     for pa in pas:
-        PackageSkuItem.objects.filter(oid=pa.oid).update(purchase_order_unikey=po.unikey)
+        psi = PackageSkuItem.objects.filter(oid=pa.oid).first()
+        print psi.oid, po.uni_key
+        PackageSkuItem.objects.filter(oid=pa.oid).update(purchase_order_unikey=po.uni_key)
 
 @task()
 def task_check_with_purchase_order(ol):
