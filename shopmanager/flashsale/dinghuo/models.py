@@ -18,7 +18,7 @@ from supplychain.supplier.models import SaleSupplier, SaleProduct
 
 import logging
 logger = logging.getLogger(__name__)
-from django.contrib.auth.models import User
+
 class OrderList(models.Model):
     # 订单状态
     SUBMITTING = u'草稿'  # 提交中
@@ -54,7 +54,7 @@ class OrderList(models.Model):
     ST_FINISHED = 'finished'
     ST_CLOSE = 'close'
 
-    STATUS_CHOICES = (
+    SYS_STATUS_CHOICES = (
         (ST_DRAFT, u'草稿'),
         (ST_APPROVAL, u'已审核'),
         (ST_BILLING, u'结算中'),
@@ -161,7 +161,7 @@ class OrderList(models.Model):
                                   db_index=True,
                                   default=ST_DRAFT,
                                   verbose_name=u'系统状态',
-                                  choices=STATUS_CHOICES)
+                                  choices=SYS_STATUS_CHOICES)
     last_pay_date = models.DateField(null=True,
                                      blank=True,
                                      verbose_name=u'最后下单日期')
@@ -221,7 +221,6 @@ post_save.connect(
     sender=OrderList,
     dispatch_uid='post_save_check_with_purchase_order')
 
-
 class OrderDetail(models.Model):
     id = models.AutoField(primary_key=True)
     orderlist = models.ForeignKey(OrderList,
@@ -268,13 +267,21 @@ class OrderDetail(models.Model):
 
     @property
     def not_arrival_quantity(self):
-        """
-            未到数量
-        :return:
-        """
+        """ 未到数量 """
         return self.buy_quantity - self.arrival_quantity - self.inferior_quantity
 
 def orderlist_create_forecast_inbound( sender, instance, raw, **kwargs):
+    """ 根据status更新sys_status,审核通过后更新预测到货单  """
+
+    if instance.status == OrderList.SUBMITTING:
+        instance.sys_status = OrderList.ST_DRAFT
+    elif instance.status == OrderList.ZUOFEI:
+        instance.sys_status = OrderList.ST_CLOSE
+    elif instance.status == OrderList.CLOSED:
+        instance.sys_status = OrderList.ST_FINISHED
+    else:
+        instance.sys_status = OrderList.ST_APPROVAL
+
     real_orderlist = OrderList.objects.filter(id=instance.id).first()
     if  real_orderlist and \
         real_orderlist.status == OrderList.SUBMITTING and \
