@@ -273,9 +273,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
                 result.exam_state == Result.FINISHED
             result.save()
         if result.exam_state == Result.FINISHED:  # 考试通过　修改代理等级
-            if xlmm.agencylevel < exam.upper_agencylevel:  # 当前等级小于考试通过指定的等级则升级
-                xlmm.agencylevel = exam.upper_agencylevel
-                xlmm.save(update_fields=['agencylevel'])
+            xlmm.upgrade_agencylevel_by_exam(exam.upper_agencylevel)  # 考试通过　调用升级
         return Response({"code": 0, "info": "考试完成！",
                          "exam_result": {"total_point": total_point,
                                          "is_passed": is_passed}})

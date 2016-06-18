@@ -469,6 +469,16 @@ class XiaoluMama(models.Model):
     def mama_fortune(self):
         return MamaFortune.objects.filter(mama_id=self.id).first()
 
+    def upgrade_agencylevel_by_exam(self, level):
+        """ 代理考试模块中, 通过考试后指定升级
+        :type level: int 表示要升级的等级数
+        """
+        if self.agencylevel < level:  # 当前等级小于考试通过指定的等级则升级
+            self.agencylevel = level
+            self.save(update_fields=['agencylevel'])
+            return True
+        return False
+
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
