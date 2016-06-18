@@ -731,7 +731,7 @@ from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangemen
 
 class PurchaseRecordAdmin(admin.ModelAdmin):
    list_display = ('id', 'package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
-                   'sku_properties_name', 'request_num', 'book_num', 'status', 'modified', 'created')
+                   'sku_properties_name', 'request_num', 'book_num', 'status', 'modified', 'created', 'note')
    search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id')
 
 admin.site.register(PurchaseRecord, PurchaseRecordAdmin)

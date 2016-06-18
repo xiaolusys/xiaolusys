@@ -1419,6 +1419,8 @@ from . import utils
 @task()
 def task_packageskuitem_update_purchaserecord(psi):
     #print "debug: %s" % utils.get_cur_info()
+    uni_key = utils.gen_purchase_record_unikey(psi)
+    pr = PurchaseRecord.objects.filter(uni_key=uni_key).first()
     
     status = PurchaseRecord.EFFECT
     note = None
@@ -1427,23 +1429,27 @@ def task_packageskuitem_update_purchaserecord(psi):
     elif psi.is_booking_assigned():
         # Read in detail the following code logic: how we judge the PSI was assigned
         # by exisiting inventory, or newly created inventory by refundproduct.
-        if pr.status == PurchaseRecord.EFFECT:
-            rp = RefundProduct.objects.filter(sku_id=psi.sku_id,can_use=True).order_by('-created').first()
+        if not pr or pr.status == PurchaseRecord.EFFECT:
+            rp = RefundProduct.objects.filter(sku_id=psi.sku_id,can_reuse=True).order_by('-created').first()
             od = OrderDetail.objects.filter(chichu_id=psi.sku_id,arrival_quantity__gt=0).order_by('-arrival_time').first()
-            t = max(rp.created, od.arrival_time)
-            if t < pr.created:
-                # This means the PSI was assigned by existing inventory.
+
+            init_time = datetime.datetime(1900,1,1)
+            rp_time, od_time = init_time, init_time
+            if rp:
+                rp_time = rp.created
+            if od and od.arrival_time:
+                od_time = od.arrival_time
+
+            if od_time > pr.created and od_time > rp_time:
+                # In this case, the PSI was assigned by orderdetail inventory
+                status = PurchaseRecord.EFFECT
+            else:
+                # The PSI was assigned by existing inventory or refundproduct (which increased inventory)
                 status = PurchaseRecord.CANCEL
-                note = 'CANCEL: Exist Inventory|rp:%s-%s,od:%s-%s' % (rp.id, rp.created, od.id, od.arrival_time)
-            elif rp.created > od.arrival_time:
-                # This means the PSI was assigned by refundproduct (which increased inventory).
-                status = PurchaseRecord.CANCEL
-                note = 'CANCEL: New Refund Inventory| rp:%s-%s, od:%s-%s' % (rp.id, rp.created, od.id, od.arrival_time)
+                note = '%s:Exist/Refund Inventory|rp:%s,od:%s' % (datetime.datetime.now(), rp_time, od_time)
     else:
         status = PurchaseRecord.CANCEL
     
-    uni_key = utils.gen_purchase_record_unikey(psi)
-    pr = PurchaseRecord.objects.filter(uni_key=uni_key).first()
     if not pr:
         fields = ['oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
         pr = PurchaseRecord(package_sku_item_id=psi.id,uni_key=uni_key,request_num=psi.num,status=status)

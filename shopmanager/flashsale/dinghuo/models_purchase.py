@@ -115,7 +115,7 @@ post_save.connect(update_orderdetail, sender=PurchaseDetail, dispatch_uid='post_
 class PurchaseRecord(BaseModel):
     EFFECT = 1
     CANCEL = 2
-    STATUS = ((EFFECT, u'有效'),(CANCEL, u'退货取消'))
+    STATUS = ((EFFECT, u'有效'),(CANCEL, u'取消'))
 
     package_sku_item_id = models.IntegerField(default=0,db_index=True, verbose_name=u'包裹ID')
     oid =  models.CharField(max_length=32,db_index=True, verbose_name=u'sku交易单号')

@@ -1493,8 +1493,11 @@ class PackageOrder(models.Model):
 
     def set_package_address(self):
         item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).first()
-        if item:
-            st = SaleTrade.objects.get(tid=item.sale_trade_id)
+        if item and item.sale_trade_id:
+            st = SaleTrade.objects.filter(tid=item.sale_trade_id).first()
+            if not st:
+                return self
+            
             self.buyer_id = st.buyer_id
             self.receiver_name = st.receiver_name
             self.receiver_state = st.receiver_state
@@ -1861,7 +1864,7 @@ class PackageSkuItem(BaseModel):
     def reset_assign_status(self):
         PackageSkuItem.objects.filter(id=self.id).update(assign_status=0)
         package_order = self.package_order
-        if not package_order.is_sent():
+        if package_order and not package_order.is_sent():
             if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                 package_order.set_redo_sign(save_data=False)
                 package_order.reset_sku_item_num(save_data=True)
