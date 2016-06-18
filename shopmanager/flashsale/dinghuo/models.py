@@ -502,10 +502,11 @@ class ReturnGoods(models.Model):
         """
         product_sku_dict = dict([(p.id, p) for p in ProductSku.objects.filter(id__in=sku_dict.keys())])
         supplier = {}
-        for sku_id in product_sku_dict:
+        for sku_id in product_sku_dict:           #计算是否有库存，如果有那么生成detail
             if sku_dict[sku_id] > 0 and \
                     ReturnGoods.can_return(sku=sku_id):
                 sku = product_sku_dict[sku_id]
+                # if sku.product.offshelf_time<datetime.datetime.now()- datetime.timedelta(days=12):
                 detail = RGDetail(
                     skuid=sku_id,
                     num=sku_dict[sku_id],
@@ -516,9 +517,10 @@ class ReturnGoods(models.Model):
                     supplier[supplier_id] = []
                 supplier[supplier_id].append(detail)
         res = []
-        for supplier_id in supplier:
+        for supplier_id in supplier:       #如果供应商的货到了15天后，才允许退款
             if ReturnGoods.can_return(supplier_id=supplier_id):
                 rg_details = supplier[supplier_id]
+
                 rg = ReturnGoods(supplier_id=supplier_id,
                                  noter=noter,
                                  return_num=sum([d.num for d in rg_details]),
@@ -554,13 +556,16 @@ class ReturnGoods(models.Model):
         #                                                       ReturnGoods.SUCCEED_RG]).exists()
 
         if sku:
-            return not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
+            not_in_unreturn = not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
+            not_onshelf = datetime.datetime.now() < ProductSku.objects.get(id=sku).product.offshelf_time < datetime.datetime.now() + datetime.timedelta(days=7)
+            return not_in_unreturn and not_onshelf
 
-        supplier = SaleSupplier.objects.get(id=supplier_id)
-        sale_product_ids = [i["id"] for i in supplier.supplier_products.values("id")]
-        product_ids = [p["id"] for p in Product.objects.filter(id__in=sale_product_ids).values("id")]
-        unreturn_sku_ids =  [i["id"] for i in supplier.unreturnsku_set.values("sku_id")]
-        return ProductSkuStats.objects.filter(product__id__in=product_ids, product__offshelf_time__lt=datetime.datetime.now()- datetime.timedelta(days=15),
+        if supplier_id:
+            supplier = SaleSupplier.objects.get(id=supplier_id)
+            sale_product_ids = [i["id"] for i in supplier.supplier_products.values("id")]
+            product_ids = [p["id"] for p in Product.objects.filter(id__in=sale_product_ids).values("id")]
+            unreturn_sku_ids =  [i["id"] for i in supplier.unreturnsku_set.values("sku_id")]
+            return ProductSkuStats.objects.filter(product__id__in=product_ids, product__offshelf_time__lt=datetime.datetime.now()- datetime.timedelta(days=15),
                                         sold_num__lt=F('history_quantity') + F('inbound_quantity') + F('return_quantity')\
             - F('rg_quantity')).exclude(sku__id__in=unreturn_sku_ids).exists()
 

@@ -20,12 +20,15 @@ from django.views.decorators.csrf import csrf_exempt
 
 import common.utils
 from common.utils import CSVUnicodeWriter
-from core.options import log_action, CHANGE
-from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDetailInBoundDetail, InBoundDetail, InBound
+from core.options import log_action, CHANGE, ADDITION
+from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDetailInBoundDetail, InBoundDetail, InBound, ReturnGoods
 import functions
 from shopback.items.models import Product, ProductSku, ProductStock
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from django.shortcuts import get_object_or_404
+
+import logging
+logger = logging.getLogger(__name__)
 
 class ChangeDetailView(View):
     @staticmethod
@@ -244,6 +247,28 @@ def update_dinghuo_part_information(request):
         print msg
         return  HttpResponse(False)
     return HttpResponse(True)
+
+def generate_tuihuodan(request):
+
+    supplier = request.REQUEST.get("supplier", None)
+    # product_id = request.REQUEST.get("product_id", None)
+    # return_num = request.REQUEST.get("return_num", None)
+    # sum_amount = request.REQUEST.get("sum_amount", None)
+    # transactor_id = request.REQUEST.get("transactor_id", None)
+    # noter = request.REQUEST.get("noter", None)
+
+    try:
+        ss = SaleSupplier.objects.get(supplier_name = supplier)
+    except Exception,msg:
+        return HttpResponse(json.dumps({"res":False, "data":[], "desc":"供应商不存在"}))
+    try:
+        rg = ReturnGoods.objects.create(supplier=ss)
+        rg.save()
+        logger.info("新建退货单成功")
+        log_action(request.user, rg, ADDITION, 'ReturnGoods退货单创建成功')
+        return HttpResponse(json.dumps({"res":True, "data":[rg.id],"desc":""}))
+    except Exception,msg:
+        return HttpResponse(json.dumps({"res":False, "data":[],"desc":"创建退货单失败"}))
 
 
 

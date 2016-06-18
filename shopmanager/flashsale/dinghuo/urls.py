@@ -8,7 +8,8 @@ from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView, P
     DingHuoOrderListViewSet, InBoundViewSet
 
 from django.views.decorators.csrf import csrf_exempt
-from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, ChangeDetailExportView, DinghuoStatsExportView, update_dinghuo_part_information
+from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, \
+    ChangeDetailExportView, DinghuoStatsExportView, update_dinghuo_part_information,generate_tuihuodan
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView, StatsDinghuoView
 from .view_daily_work import (DailyDingHuoView, DailyDingHuoView2, ShowPicView,
                               DailyDingHuoOptimizeView, SkuAPIView,
@@ -231,6 +232,8 @@ urlpatterns = [
 
     #update订货单部分信息
     url(r'^update_dinghuo/$', update_dinghuo_part_information, name="update_dinghuo_part_information"),
+    #生成退货单
+    url(r'^generate_tuihuodan/$', generate_tuihuodan, name="generate_tuihuodan"),
 ]
 
 urlpatterns += router.urls

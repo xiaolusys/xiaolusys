@@ -1,0 +1,133 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls admin_static admin_modify %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+{{ media }}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+&rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block content %}<div id="content-main">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            退货单基本信息:
+        </div>
+        <div class="panel-body">
+            <div class="form-row">
+                <label class="required" >供应商:</label>
+                <input type="text" id = "supplier" value=""/>
+            </div>
+            <!--<div class="form-row ">-->
+                <!--<label class="required" >退货商品id:</label>-->
+                <!--<input type="text" id = "product_id" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" >退件总数:</label>-->
+                <!--<input type="text" id = "return_num" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" >计划退款总额:</label>-->
+                <!--<input type="text" id = "sum_amount" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">实际退款额:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">付款截图:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">上传截图时间:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">客户退款额:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">退款额确认</label>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">退款额确认人:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" >处理人id:</label>-->
+                <!--<input type="text" id = "transactor_id" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">交易单号:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" >录入人:</label>-->
+                <!--<input type="text" id = "noter" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">发货人:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">发货时间:</label>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">发货物流单号:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">物流公司id:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">退款状态:</label>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">退货备注:</label>-->
+                <!--<textarea></textarea>-->
+            <!--</div>-->
+            <!--<div class="form-row">-->
+                <!--<label class="required" for="id_tid">状态:</label>-->
+                <!--<input type="text" value=""/>-->
+            <!--</div>-->
+            <div class="form-row">
+                <input type="button" value="确认" id = "quereng"/>
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+<script>
+    var confirm = function(ent){
+        var supplier = $("#supplier").val();
+        var url = "/sale/dinghuo/generate_tuihuodan/";
+        var data = {"supplier":supplier
+        };
+        $.ajax({"url": url, "data": data, "type": "post", "dataType":"json", "success": callback});
+        function callback(res) {
+            if (res.res) {
+                window.location = "http://youni.huyi.so/admin/dinghuo/returngoods/?q="+res.data[0];
+            }
+        }
+    }
+    $("#quereng").click(confirm);
+</script>
+{% endblock %}
