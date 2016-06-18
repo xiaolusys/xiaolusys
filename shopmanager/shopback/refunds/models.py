@@ -259,6 +259,17 @@ class RefundProduct(models.Model):
                 setattr(self, field.name, getattr(self, field.name).strip())
 
 
+def update_warehouse_receipt_status(sender, instance, created, **kwargs):
+    """ 仓库接收客户退货拆包更新 warehouse APP 中的 ReceiptGoods 相同快递单记录的拆包状态到 拆包状态 """
+    if created:
+        from shopback.warehouse.models import ReceiptGoods
+        ReceiptGoods.update_status_by_open(instance.out_sid)
+
+
+post_save.connect(update_warehouse_receipt_status, sender=RefundProduct,
+                  dispatch_uid='post_save_update_warehouse_receipt_status')
+
+
 def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
     from shopback.refunds.tasks import task_refundproduct_update_productskustats_return_quantity
     from shopback.items.models import ProductSku
