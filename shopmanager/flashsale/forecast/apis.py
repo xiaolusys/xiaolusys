@@ -11,6 +11,7 @@ from .models import (ForecastInbound,
 @task()
 def api_create_forecastinbound_by_orderlist(order_list):
 
+    from shopback.items.models import Product, ProductSku
     supplier = order_list.supplier
     forecast_ib = ForecastInbound()
 
@@ -33,6 +34,11 @@ def api_create_forecastinbound_by_orderlist(order_list):
         forecast_detail.forecast_inbound = forecast_ib
         forecast_detail.product_id = order.product_id
         forecast_detail.sku_id = order.chichu_id
+
+        product = Product.objects.filter(id=order.product_id).first()
+        product_sku = ProductSku.objects.filter(id=order.chichu_id).first()
+        forecast_detail.product_name = '%s:%s'%(product.name, product_sku.name)
+        forecast_detail.product_img = product.pic_path
         forecast_detail.forecast_arrive_num = order.buy_quantity
         forecast_detail.save()
 
@@ -78,6 +84,7 @@ def api_create_realinbound_by_inbound(inbound_id):
         real_inbound.inferior_quantity = detail.inferior_quantity
         real_inbound.district = detail.district
         real_inbound.save()
+
 
 
 

@@ -1,20 +1,46 @@
 # coding: utf-8
 from django.contrib import admin
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+
 from core.filters import DateScheduleFilter
 from .models import ForecastInbound, ForecastInboundDetail, RealInBound, RealInBoundDetail
 from supplychain.supplier.models import SaleSupplier
 from flashsale.dinghuo.models import OrderList
 
+from core.widgets import AdminTextThumbnailWidget
+from .services import strip_forecast_inbound
+
 class ForecastInboundDetailInline(admin.TabularInline):
     model = ForecastInboundDetail
 
-    fields = ('product_id', 'sku_id', 'product_name', 'product_img', 'forecast_arrive_num', 'status')
+    fields = ('product_img', 'product_id', 'sku_id', 'product_name', 'forecast_arrive_num', 'status')
+
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + ('product_id', 'sku_id', 'product_name','forecast_arrive_num', 'status')
+        return self.readonly_fields
+
+    def formfield_for_dbfield(self, db_field, request=None, **kwargs):
+        if db_field.name == 'product_img':
+            kwargs['widget'] = AdminTextThumbnailWidget(attrs={'width:':80,'height':80})
+        return super(ForecastInboundDetailInline, self).formfield_for_dbfield(db_field, **kwargs)
+
+class RealInBoundDetailInline(admin.TabularInline):
+    model = RealInBoundDetail
+
+    fields = ( 'product_img','product_id', 'sku_id', 'product_name', 'arrival_quantity', 'inferior_quantity', 'district', 'status')
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
             return self.readonly_fields + ('product_id', 'sku_id', 'product_name',
-                                           'product_img', 'forecast_arrive_num')
+                                           'arrival_quantity', 'district', 'status')
         return self.readonly_fields
+
+    def formfield_for_dbfield(self, db_field, request=None, **kwargs):
+        if db_field.name == 'product_img':
+            kwargs['widget'] = AdminTextThumbnailWidget(attrs={'width:':80,'height':80})
+        return super(RealInBoundDetailInline, self).formfield_for_dbfield(db_field, **kwargs)
 
 
 class ForecastInboundAdmin(admin.ModelAdmin):
@@ -34,6 +60,20 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     filter_horizontal = ('relate_order_set',)
 
     inlines = [ForecastInboundDetailInline]
+
+    fieldsets = (
+        ('基本信息:', {
+         'classes': ('expand',),
+         'fields': ('supplier', 'relate_order_set', 'ware_house')
+        }),
+        ('预测到货状态:', {
+         'classes': ('expand',),
+         'fields': (('express_code', 'express_no', 'forecast_arrive_time'),
+                    ('purchaser', 'status', 'is_lackordefect', 'is_overorwrong'))
+        })
+    )
+
+    actions = ['action_merge_or_split', 'action_strip_inbound']
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ForecastInboundAdmin, self).get_form(request, obj=obj, **kwargs)
@@ -58,6 +98,41 @@ class ForecastInboundAdmin(admin.ModelAdmin):
                                            'purchaser', 'status', 'is_lackordefect', 'is_overorwrong')
         return self.readonly_fields
 
+    def delete_model(self, request, obj):
+        """
+        Given a model instance delete it from the database.
+        """
+        obj.status = obj.ST_CANCELED
+        obj.save()
+
+    def action_merge_or_split(self, request, queryset):
+
+        unapproved_qs = queryset.exclude(status_in=(ForecastInbound.ST_DRAFT,ForecastInbound.ST_APPROVED))
+        if unapproved_qs.exists():
+            self.message_user(request, u"＊＊＊＊＊＊＊＊＊合并拆分预测到货单必须都在草稿或审核状态＊＊＊＊＊＊＊＊＊!")
+            return HttpResponseRedirect(request.get_full_path())
+
+        forecast_ids = ','.join([obj.id for obj in queryset])
+
+        return HttpResponseRedirect(reverse('forecast_v1:forecastinbound-list') + '?forecast_ids=' + forecast_ids)
+
+    action_merge_or_split.short_description = u"合并拆分同供应商记录"
+
+    def action_strip_inbound(self, request, queryset):
+
+        unarrived_qs = queryset.exclude(status=ForecastInbound.ST_ARRIVED)
+        if unarrived_qs.exists() :
+            self.message_user(request, u"＊＊＊＊＊＊＊＊＊剥离未到货记录订货单需在到货状态＊＊＊＊＊＊＊＊＊!")
+            return HttpResponseRedirect(request.get_full_path())
+        try:
+            for obj in queryset:
+                strip_forecast_inbound(obj)
+        except Exception, exc:
+            self.message_user(request, u"剥离出错:%s"%exc.message)
+        return HttpResponseRedirect(request.get_full_path())
+
+    action_strip_inbound.short_description = u"剥离未到货预测记录"
+
 
 admin.site.register(ForecastInbound, ForecastInboundAdmin)
 
@@ -77,6 +152,8 @@ class ForecastInboundDetailAdmin(admin.ModelAdmin):
 admin.site.register(ForecastInboundDetail, ForecastInboundDetailAdmin)
 
 
+
+
 class RealInBoundAdmin(admin.ModelAdmin):
     # fieldsets = ((u'用户信息:', {
     #     'classes': ('expand',),
@@ -91,19 +168,40 @@ class RealInBoundAdmin(admin.ModelAdmin):
 
     filter_horizontal = ('relate_order_set',)
 
+    inlines = [RealInBoundDetailInline]
+
+    fieldsets = (
+        ('基本信息:', {
+            'classes': ('expand',),
+            'fields': ('supplier', 'relate_order_set', 'ware_house')
+        }),
+        ('实际到货状态:', {
+            'classes': ('expand',),
+            'fields': (('express_code', 'express_no', 'wave_no'),
+                       ('creator', 'inspector', 'status'),
+                       'memo')
+        })
+    )
+
     def get_form(self, request, obj=None, **kwargs):
         form = super(RealInBoundAdmin, self).get_form(request, obj=obj, **kwargs)
         if obj:
             form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset.filter(
                 id=obj.supplier.id)
-            form.base_fields['forecast_inbound'].queryset = form.base_fields['forecast_inbound'].queryset.filter(
-                supplier=obj.supplier, id=obj.forecast_inbound.id)
+            form.base_fields['relate_order_set'].queryset = form.base_fields['relate_order_set'].queryset.filter(
+                supplier=obj.supplier).exclude(status=OrderList.SUBMITTING)
         else:
             form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset\
                 .filter(status=SaleSupplier.CHARGED)
-            form.base_fields['forecast_inbound'].queryset = form.base_fields['forecast_inbound'].queryset\
-                .filter(supplier=obj.supplier, status=ForecastInbound.ST_APPROVED)
+            form.base_fields['relate_order_set'].queryset = form.base_fields['relate_order_set'].queryset \
+                .exclude(status=OrderList.SUBMITTING)
         return form
+
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + ('status', 'ware_house', 'relate_order_set',
+                                           'creator', 'inspector', 'status')
+        return self.readonly_fields
 
 
 admin.site.register(RealInBound, RealInBoundAdmin)

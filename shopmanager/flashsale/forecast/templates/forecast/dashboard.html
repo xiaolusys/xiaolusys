@@ -56,7 +56,7 @@
         border-left: 1px solid #eee;
         padding: 10px 0px;
     }
-    .panel-footer{
+    .panel-heading, .panel-footer{
         padding: 0px 10px;
     }
     .panel-footer .btn {
@@ -83,7 +83,7 @@
     <div class="container-body">
         <div class="container-body-left col-xs-2">
             <ul class="nav nav-pills nav-stacked">
-              <li role="presentation" {% ifequal action "unlogisticed" %}class="active"{% endifequal %} ><a href="/sale/forecast/dashboard?action=unlogisticed">催单提醒</a></li>
+              <li role="presentation" {% ifequal action "unlogisticed" %}class="active"{% endifequal %} ><a href="/sale/forecast/dashboard?action=unlogisticed">催货提醒</a></li>
               <li role="presentation" {% ifequal action "unarrived" %}class="active"{% endifequal %}><a href="/sale/forecast/dashboard?action=unarrived">未准时到货</a></li>
               <li role="presentation" {% ifequal action "unbilling" %}class="active"{% endifequal %}><a href="/sale/forecast/dashboard?action=unbilling">到货等待结算</a></li>
               <li role="presentation" {% ifequal action "all" %}class="active"{% endifequal %}{% ifequal action "" %}class="active"{% endifequal %}><a href="/sale/forecast/dashboard?action=all">全部待处理</a></li>

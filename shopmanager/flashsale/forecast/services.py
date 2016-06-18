@@ -1,10 +1,12 @@
 # coding: utf-8
 
 import datetime
+from django.db import transaction
 
 from . import serializers
 from .models import (
     ForecastInbound,
+    default_forecast_inbound_no,
     ForecastInboundDetail,
     RealInBound,
     RealInBoundDetail
@@ -50,7 +52,8 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
             'created': order.created,
             'purchase_time': pt ,
             'sys_status': order.sys_status,
-            'sys_status_display': order.get_sys_status_display()
+            'sys_status_name': order.status_name,
+            'total_detail_num': order.total_detail_num
         })
 
     return order_dict_list
@@ -61,10 +64,45 @@ def get_normal_forecast_inbound_by_orderid(purchase_orderid_list):
         .exclude(status=ForecastInbound.ST_CANCELED)
     return forecast_inbounds
 
+
 def get_normal_realinbound_by_forecastid(forecastid_list):
     real_inbounds = RealInBound.objects.filter(forecast_inbound_id__in=forecastid_list,
                                                status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
     return real_inbounds
+
+
+@transaction.atomic
+def strip_forecast_inbound(forecast_inbound_id):
+
+    forecast_inbound = ForecastInbound.objects.get(id=forecast_inbound_id)
+    update_fields = ['supplier', 'ware_house', 'express_code', 'express_no', 'purchaser']
+    new_forecast = ForecastInbound()
+    new_forecast.forecast_no = default_forecast_inbound_no('sub'+forecast_inbound.id)
+    for k in update_fields:
+        if hasattr(forecast_inbound, k):
+            setattr(forecast_inbound, k, getattr(forecast_inbound, k))
+    new_forecast.save()
+
+    for order in forecast_inbound.relate_order_set.all():
+        new_forecast.relate_order_set.add(order)
+
+    # TODO 如果有多个到货单关联一个预测单，需要聚合计算
+    real_inbound_details_qs = RealInBoundDetail.objects.filter(inbound__forecast_inbound=forecast_inbound,
+                                                               status=RealInBoundDetail.NORMAL)
+    real_inbound_qs_values = real_inbound_details_qs.values('sku_id', 'arrival_quantity', 'inferior_quantity')
+    real_inbound_detail_dict = dict([(d['sku_id'], d) for d in real_inbound_qs_values])
+    for detail in forecast_inbound.normal_details():
+        real_detail = real_inbound_detail_dict.get(detail.sku_id,None)
+        delta_arrive_num = detail.forecast_arrive_num > real_detail['arrival_quantity']
+        if delta_arrive_num > 0:
+            forecast_detail = ForecastInboundDetail()
+            forecast_detail.forecast_inbound = new_forecast
+            forecast_detail.forecast_arrive_num = delta_arrive_num
+            forecast_detail.product_id = detail.product_id
+            forecast_detail.sku_id = detail.sku_id
+            forecast_detail.product_name = detail.product_name
+            forecast_detail.product_img = detail.product_img
+            forecast_detail.save()
 
 
 class AggregateForcecastOrderAndInbound(object):
@@ -137,9 +175,9 @@ class AggregateForcecastOrderAndInbound(object):
                                (not forecast.forecast_arrive_time
                                 or forecast.forecast_arrive_time <= datetime.datetime.now())
                 forecast_data['is_unarrive_intime'] = is_unarrived
-
+                forecast_data['is_unrecord_logistic'] = forecast.is_unrecord_logistic()
                 is_unarrive_intime |= is_unarrived
-                is_unrecord_logistic += forecast.is_unrecord_logistic()
+                is_unrecord_logistic += forecast_data['is_unrecord_logistic']
 
             aggregate_dict_list.append({
                 'purchase_orders': aggregate_orders,
@@ -153,21 +191,26 @@ class AggregateForcecastOrderAndInbound(object):
         return aggregate_dict_list
 
 
-    def aggregate_supplier_data(self):
+    def aggregate_supplier_data(self, supplier_id=None):
         aggregate_datas = self.aggregate_data()
         aggregate_supplier_dict = {}
 
         for aggregate_order in aggregate_datas:
-            supplier_id = aggregate_order['supplier']['id']
-            if supplier_id in aggregate_supplier_dict:
-                aggregate_supplier_dict[supplier_id]['purchase_orders'].append(aggregate_order)
+            order_supplier_id = aggregate_order['supplier']['id']
+            if order_supplier_id in aggregate_supplier_dict:
+                aggregate_supplier_dict[order_supplier_id]['purchase_orders'].append(aggregate_order)
             else:
-                aggregate_supplier_dict[supplier_id] = {
+                aggregate_supplier_dict[order_supplier_id] = {
                     'supplier': aggregate_order['supplier'],
-                    'aggregate_orders': [aggregate_order]
+                    'aggregate_orders': [aggregate_order],
                 }
 
-        aggregate_supplier_list = aggregate_supplier_dict.values()
+        if supplier_id:
+            supplier_id = int(supplier_id)
+            aggregate_supplier_list = [aggregate_supplier_dict.get(supplier_id)]
+        else:
+            aggregate_supplier_list = aggregate_supplier_dict.values()
+
         return aggregate_supplier_list
 
 

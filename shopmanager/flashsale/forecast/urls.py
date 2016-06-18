@@ -20,7 +20,7 @@ router_urls = router.urls
 router_urls += ([])
 
 urlpatterns = patterns('',
-     url(r'^v1/', include(router_urls, namespace='v1')),
+     url(r'^v1/', include(router_urls, namespace='forecast_v1')),
      url(r'^dashboard', PurchaseDashBoardAPIView.as_view()),
 )
 

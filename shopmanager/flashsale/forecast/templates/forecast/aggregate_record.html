@@ -1,18 +1,28 @@
 <div class="panel panel-default">
 <div class="panel-heading clearfix">
-    <span>{{aggregate_order.supplier.supplier_name}}</span>
-    <div class="pull-right">
-        <div class="label label-danger inline">到货次品，少发</div>
-        <span class="label-badge label-danger ">2</span></div>
+    <a class="btn btn-link " href="/sale/forecast/dashboard?action=all&supplier_id={{aggregate_order.supplier.id}}">{{aggregate_order.supplier.supplier_name}}</a>
+    <div class="pull-right inline">
+        <div class="inline">
+            <a class="btn btn-link" href="{% url 'admin:dinghuo_orderlist_changelist' %}?supplier_id={{aggregate_order.supplier.id}}" target="_blank">全部订货单</a>
+            <a class="btn btn-link" href="{% url 'admin:forecast_forecastinbound_changelist' %}?supplier_id={{aggregate_order.supplier.id}}" target="_blank">全部预测单</a>
+            <a class="btn btn-link" href="{% url 'admin:forecast_realinbound_changelist' %}?supplier_id={{aggregate_order.supplier.id}}" target="_blank">全部到货单</a>
+        </div>
+        <div class="label label-danger inline">到货次品，少发 </div>
+        <span class="label-badge label-danger ">2</span>
+    </div>
 </div>
 <div class="panel-body">
     <ul class="list-group horizental clearfix">
         <li class="list-group-item col-xs-4">
-
             <ul class="list-group vertical">
                 {% for order in aggregate_order.purchase_orders %}
                 <li class="list-group-item">
-                    <a href="/admin/dinghuo/orderlist/{{order.id}}/" target="_blank"><span>{{order.id}}-订货单-{{order.created|slice:":10"}}</span></a>
+                    <div class="row">
+                        <a href="{% url 'admin:dinghuo_orderlist_change' order.id %}" target="_blank">
+                            <span>#{{order.id}}&nbsp;订货单&nbsp;{{order.created|slice:":10"}}&nbsp;{{order.sys_status_name}}&nbsp;({{order.total_detail_num}})</span>
+                        </a>
+                        <span class="pull-right"></span>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>
@@ -21,7 +31,15 @@
             <ul class="list-group vertical">
                 {% for forecast in aggregate_order.forecast_inbounds %}
                 <li class="list-group-item">
-                   <a href="/admin/forecast/forecastinbound/{{forecast.id}}/" target="_blank"><span>{{forecast.id}}-预测单-{{ forecast.forecast_arrive_time|slice:":10" }}</span></a>
+                   <div class="row">
+                       <a href="{% url 'admin:forecast_forecastinbound_change' forecast.id %}" target="_blank">
+                           <span>#{{forecast.id}}&nbsp;预测单&nbsp;{{ forecast.forecast_arrive_time|slice:":10" }}&nbsp;{{forecast.status_name}}&nbsp;({{forecast.total_detail_num}})</span>
+                       </a>
+                       <span class="pull-right">
+                           {% if forecast.is_unarrive_intime %}<i class="glyphicon glyphicon-time"></i>{% endif %}
+                           {% if forecast.is_unrecord_logistic %}<i class="glyphicon glyphicon-map-marker"></i>{% endif %}
+                       </span>
+                   </div>
                 </li>
                 {% endfor %}
             </ul>
@@ -30,7 +48,11 @@
             <ul class="list-group vertical">
                 {% for inbound in aggregate_order.real_inbounds %}
                 <li class="list-group-item">
-                    <a href="#"><span>{{inbound.id}}-到货单-{{inbound.created|slice:":10"}}</span></a>
+                    <div class="row">
+                        <a href="{% url 'admin:forecast_realinbound_change' inbound.id %}" target="_blank">
+                            <span>#{{inbound.id}}&nbsp;到货单&nbsp;{{inbound.created|slice:":10"}}&nbsp;{{inbound.status_name}}&nbsp;({{inbound.total_detail_num}})</span>
+                        </a>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>

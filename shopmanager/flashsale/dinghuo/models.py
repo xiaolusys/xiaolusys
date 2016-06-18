@@ -195,6 +195,18 @@ class OrderList(models.Model):
                                  self.last_pay_date and self.last_pay_date.strftime('%Y-%m-%d') or '------------',
                                  self.buyer_name)
 
+    def normal_details(self):
+        return self.order_list.all()
+
+    @property
+    def total_detail_num(self):
+        order_nums = self.normal_details().values_list('buy_quantity', flat=True)
+        return order_nums and sum(order_nums) or 0
+
+    @property
+    def status_name(self):
+        return self.get_sys_status_display()
+
 
 def check_with_purchase_order(sender, instance, created, **kwargs):
     if not created:

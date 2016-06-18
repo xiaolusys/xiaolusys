@@ -32,7 +32,8 @@ class OrderListSerializer(serializers.ModelSerializer):
         model = OrderList
         extra_kwargs = {}
         fields = (
-            'id', 'buyer_name', 'order_amount', 'supplier_name', 'supplier', 'created', 'status')
+            'id', 'buyer_name', 'order_amount', 'supplier_name', 'supplier',
+            'total_detail_num', 'created', 'status', 'status_name')
 
 
 class ForecastInboundDetailSerializer(serializers.ModelSerializer):
@@ -56,7 +57,8 @@ class SimpleForecastInboundSerializer(serializers.ModelSerializer):
         model = ForecastInbound
         extra_kwargs = {}
         fields = (
-        'id', 'supplier', 'express_code', 'express_no', 'forecast_arrive_time', 'purchaser', 'status')
+        'id', 'supplier', 'express_code', 'express_no', 'forecast_arrive_time',
+        'total_detail_num', 'purchaser', 'status', 'status_name')
 
 class ForecastInboundSerializer(serializers.ModelSerializer):
 
@@ -67,7 +69,8 @@ class ForecastInboundSerializer(serializers.ModelSerializer):
         model = ForecastInbound
         extra_kwargs = {}
         fields = (
-        'id', 'supplier', 'inbound_details', 'express_code', 'express_no', 'forecast_arrive_time', 'purchaser', 'status', )
+        'id', 'supplier', 'inbound_details', 'express_code', 'express_no',
+        'forecast_arrive_time', 'purchaser', 'status', 'status_name')
 
 
 class ForecastInboundDetailSerializer(serializers.ModelSerializer):
@@ -96,6 +99,7 @@ class SimpleRealInBoundSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealInBound
         extra_kwargs = {}
-        fields = ('id', 'wave_no', 'ware_house', 'express_code', 'express_no', 'creator', 'inspector', 'created', 'memo','status')
+        fields = ('id', 'wave_no', 'ware_house', 'express_code', 'express_no', 'creator', 'inspector',
+                  'total_detail_num', 'created', 'memo', 'status', 'status_name')
 
 

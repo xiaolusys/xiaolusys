@@ -10,6 +10,10 @@ from shopback.items.models import Product, ProductSku
 
 from . import constants
 
+def default_forecast_inbound_no(identify_id=None):
+    identify_id  = identify_id or str(datetime.datetime.now().time().microsecond)
+    return 'FI'+datetime.datetime.now().strftime('%Y%m%d') + '-' + identify_id
+
 class ForecastInbound(BaseModel):
     ST_DRAFT = 'draft'
     ST_APPROVED = 'approved'
@@ -23,13 +27,17 @@ class ForecastInbound(BaseModel):
         (ST_CANCELED, u'取消'),
     )
 
+    forecast_no = models.CharField(max_length=32, default=default_forecast_inbound_no,
+                                   unique=True, verbose_name=u'入库批次')
+
     supplier = models.ForeignKey(SaleSupplier,
                                  null=True,
                                  blank=True,
                                  related_name='forecast_inbound_manager',
                                  verbose_name=u'供应商')
 
-    relate_order_set = models.ManyToManyField('dinghuo.OrderList', related_name='forecase_inbounds', verbose_name=u'关联订货单')
+    relate_order_set = models.ManyToManyField('dinghuo.OrderList',
+                                              related_name='forecase_inbounds', verbose_name=u'关联订货单')
     ware_house = models.IntegerField(default=constants.WARE_NONE,
                                       choices=constants.WARE_CHOICES,verbose_name=u'所属仓库')
 
@@ -53,6 +61,15 @@ class ForecastInbound(BaseModel):
     def __unicode__(self):
         return '<%s,%s>' %(self.id, self.supplier.supplier_name)
 
+    @property
+    def status_name(self):
+        return self.get_status_display()
+
+    @property
+    def total_detail_num(self):
+        forecast_nums = self.normal_details().values_list('forecast_arrive_num', flat=True)
+        return forecast_nums and sum(forecast_nums) or 0
+
     def get_ware_house_name(self):
         return dict(constants.WARE_CHOICES).get(self.ware_house)
 
@@ -62,6 +79,12 @@ class ForecastInbound(BaseModel):
 
     def is_unrecord_logistic(self):
         return self.express_code == '' or self.express_no == ''
+
+    def inbound_arrive_update_status(self):
+        self.status = self.ST_ARRIVED
+        self.save()
+
+
 
 class ForecastInboundDetail(BaseModel):
 
@@ -220,13 +243,25 @@ class RealInBound(BaseModel):
         return str(self.id)
 
     class Meta:
-        db_table = 'forcast_real_inbound'
+        db_table = 'forecast_real_inbound'
         app_label = 'forecast'
         verbose_name = u'V2入仓单'
         verbose_name_plural = u'V2入仓单列表'
 
     def __unicode__(self):
         return '<%s, %s, %s>' % (self.id, self.wave_no, self.supplier.supplier_name)
+
+    @property
+    def status_name(self):
+        return self.get_status_display()
+
+    def normal_details(self):
+        return self.inbound_detail_manager.filter(status=RealInBoundDetail.NORMAL)
+
+    @property
+    def total_detail_num(self):
+        arrive_nums = self.normal_details().values_list('arrival_quantity', flat=True)
+        return arrive_nums and sum(arrive_nums) or 0
 
 class RealInBoundDetail(BaseModel):
 

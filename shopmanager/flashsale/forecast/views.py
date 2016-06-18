@@ -306,6 +306,9 @@ class ForecastManageViewSet(viewsets.ReadOnlyModelViewSet):
         user_name = request.user.username
         return self.queryset.filter(creator=user_name)
 
+    def get_img_display_url(self, img_url):
+        return img_url + '?imageMogr2/strip/format/jpg/quality/90/interlace/1/thumbnail/80/'
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         forecast_ids_str  = request.REQUEST.get('forecast_ids','')
@@ -339,7 +342,7 @@ class ForecastManageViewSet(viewsets.ReadOnlyModelViewSet):
                     'product_id': product.id,
                     'product_code': product.outer_id,
                     'product_name': product.name,
-                    'product_img': product.pic_path + '?imageMogr2/strip/format/jpg/quality/90/interlace/1/thumbnail/80/',
+                    'product_img': self.get_img_display_url(product.pic_path),
                     'product_num': product_num,
                     'detail_skus': detail_skus
                 }
@@ -355,7 +358,7 @@ class ForecastManageViewSet(viewsets.ReadOnlyModelViewSet):
 
 
     @list_route(methods=['post'])
-    def renew_forecast(self, request, *args, **kwargs):
+    def create_or_split_forecast(self, request, *args, **kwargs):
 
         content = request.POST
         datas = json.loads(content.get('forecast_data','{}'))
@@ -452,7 +455,11 @@ class PurchaseDashBoardAPIView(APIView):
         elif action == 'unbilling':
             pass
         else:
-            aggregate_record_list = aggregate_supplier_obj.aggregate_supplier_data()
+            supplier_id = data.get('supplier_id')
+            if supplier_id and supplier_id.isdigit():
+                aggregate_record_list = aggregate_supplier_obj.aggregate_supplier_data(supplier_id=supplier_id)
+            else:
+                aggregate_record_list = aggregate_supplier_obj.aggregate_supplier_data()
 
         return Response({'aggregate_list': aggregate_record_list, 'action': action})
 
