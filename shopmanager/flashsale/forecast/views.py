@@ -435,8 +435,10 @@ class PurchaseDashBoardAPIView(APIView):
         data = request.GET
         action = data.get('action', 'all')
 
-        username  = request.user.username
-        purchase_orders = services.filter_pending_purchaseorder(**{'staff_name': username})
+        username = request.user.username
+        staff_name = data.get('staff_name', username)
+
+        purchase_orders = services.filter_pending_purchaseorder(**{'staff_name': staff_name})
         aggregate_supplier_obj = services.AggregateForcecastOrderAndInbound(purchase_orders)
 
         aggregate_record_list = []
