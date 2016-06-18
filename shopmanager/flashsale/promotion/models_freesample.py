@@ -314,11 +314,10 @@ class XLSampleOrder(CacheModel):
         self.award_status = True
         self.save()
 
-        from flashsale.pay.models_coupon_new import UserCoupon
+        from flashsale.coupon.models import UserCoupon
         from flashsale.pay import constants
-        user_coupon = UserCoupon()
-        user_coupon.release_by_template(buyer_id=self.customer_id,
-                                        template_id=constants.COUPON_ID_FOR_20160223_AWARD)
+        UserCoupon.objects.create_normal_coupon(buyer_id=self.customer_id,
+                                                template_id=constants.COUPON_ID_FOR_20160223_AWARD)
 
 
 class ReadPacket(CacheModel):

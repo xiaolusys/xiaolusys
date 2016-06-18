@@ -27,7 +27,7 @@ from flashsale.pay.models import Customer
 from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder, ReadPacket
 from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
-from flashsale.pay.models_coupon_new import UserCoupon
+from flashsale.coupon.models import UserCoupon
 from . import constants
 from flashsale.apprelease.models import AppRelease
 
@@ -608,13 +608,9 @@ class ExchangeRedToCoupon(APIView):
             coupon_5_count = 0
         code = ''
         for i in range(coupon_10_count):
-            user_coupon = UserCoupon()
-            kwargs = {"buyer_id": customer, "template_id": 21}
-            code, msg = user_coupon.release_by_template(**kwargs)
+            cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer, template_id=21)
         for j in range(coupon_5_count):
-            user_coupon = UserCoupon()
-            kwargs = {"buyer_id": customer, "template_id": 20}
-            code, msg = user_coupon.release_by_template(**kwargs)
+            cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer, template_id=20)
         if code == 0 or code == 0:
             reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
         coupon_value = coupon_10_count * 10 + coupon_5_count * 5

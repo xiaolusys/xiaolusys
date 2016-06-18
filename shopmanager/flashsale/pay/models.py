@@ -18,7 +18,6 @@ from flashsale.pay.models_custom import Productdetail, GoodShelf, ModelProduct, 
 from flashsale.pay.models_refund import SaleRefund
 from flashsale.pay.models_envelope import Envelop
 from flashsale.pay.models_coupon import Integral, IntegralLog
-from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
 from flashsale.pay.models_share import CustomShare
 from flashsale.pay.models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
 from flashsale.pay import managers
@@ -1078,7 +1077,6 @@ def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, *args
 post_save.connect(shoppingcart_update_productskustats_shoppingcart_num, sender=ShoppingCart,
                   dispatch_uid='post_save_shoppingcart_update_productskustats_shoppingcart_num')
 
-from models_coupon_new import CouponTemplate, CouponsPool, UserCoupon
 from models_shops import CustomerShops, CuShopPros
 
 
