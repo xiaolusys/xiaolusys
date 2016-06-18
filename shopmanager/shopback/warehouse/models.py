@@ -1,9 +1,12 @@
 # -*- coding:utf8 -*-
+import logging
 from django.utils.encoding import smart_unicode
 from django.db import models
 from core.models import AdminModel
 from shopback.warehouse import constants
 from shopback.logistics.models import LogisticsCompany
+
+logger = logging.getLogger(__name__)
 
 
 class WareHouse(models.Model):
@@ -50,3 +53,17 @@ class ReceiptGoods(AdminModel):
     def logistic_company(self):
         """ 物流公司 """
         return LogisticsCompany.objects.filter(id=self.express_company).first()
+
+    @classmethod
+    def update_status_by_open(cls, express_no):
+        """ 拆包裹更新拆包状态 """
+        receipts = cls.objects.filter(express_no=express_no)
+        if receipts.count() > 1:
+            logger.error(u'update_status_by_open :%s express has more than one' % express_no)
+            return False
+        receipt = receipts.first()
+        if receipt and (receipt.status is False):
+            receipt.status = True
+            receipt.save(update_fields=['status'])
+            return True
+        return False

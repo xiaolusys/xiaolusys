@@ -895,10 +895,7 @@ def update_warehouse_receipt_status(sender, instance, created, **kwargs):
     """
     if created:
         from shopback.warehouse.models import ReceiptGoods
-        receipt = ReceiptGoods.objects.filter(express_no=instance.express_no).first()
-        if receipt:
-            receipt.status = True
-            receipt.save()
+        ReceiptGoods.update_status_by_open(instance.express_no)
 
 post_save.connect(update_warehouse_receipt_status, sender=InBound,
                   dispatch_uid='post_save_update_warehouse_receipt_status')
