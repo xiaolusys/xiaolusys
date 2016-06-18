@@ -378,36 +378,6 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
         exclude = ()
 
 
-from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate
-
-
-class UsersCouponSerializer(serializers.ModelSerializer):
-    coupon_type = serializers.IntegerField(source='cp_id.template.type', read_only=True)
-    coupon_type_display = serializers.CharField(source='cp_id.template.get_type_display', read_only=True)
-    start_time = serializers.CharField(source='cp_id.template.start_use_time', read_only=True)
-    deadline = serializers.CharField(source='cp_id.template.deadline', read_only=True)
-    title = serializers.CharField(source='cp_id.template.title', read_only=True)
-    coupon_no = serializers.CharField(source='cp_id.coupon_no', read_only=True)
-    poll_status = serializers.IntegerField(source='cp_id.status', read_only=True)
-    coupon_value = serializers.FloatField(source='cp_id.template.value', read_only=True)
-    valid = serializers.BooleanField(source='cp_id.template.valid', read_only=True)
-    use_fee = serializers.FloatField(source='cp_id.template.use_fee', read_only=True)
-    use_fee_des = serializers.CharField(source='cp_id.template.use_fee_desc', read_only=True)
-    pros_desc = serializers.CharField(source='cp_id.template.pros_desc', read_only=True)
-
-    class Meta:
-        model = UserCoupon
-        # remove the "cp_id" field, test for browser solwly
-        fields = ("id", "coupon_type", 'title', "customer", 'coupon_no', 'coupon_value', 'valid',
-                  'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee',
-                  'coupon_type_display', 'use_fee_des', 'pros_desc', 'start_time')
-
-
-class CouponTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CouponTemplate
-
-
 from shopapp.weixin.models import WXOrder
 
 

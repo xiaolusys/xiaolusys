@@ -551,10 +551,6 @@ CELERY_ROUTES = {
         'queue': 'async',
         'routing_key': 'async.task_send_message',
     },  # 缺货短信任务
-    'flashsale.pay.tasks.task_ReleaseMamaLinkCoupon': {
-        'queue': 'async',
-        'routing_key': 'async.task_ReleaseMamaLinkCoupon',
-    },  # 代理专属有订单则发送优惠券(对应类型)
 }
 CELERY_ROUTES.update(DAILY_STATS_ROUTES)
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)

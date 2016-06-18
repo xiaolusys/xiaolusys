@@ -880,16 +880,13 @@ def get_Deposit_Trade(openid, mobile):
         return None
 
 
-from flashsale.pay.models_coupon_new import UserCoupon
+from flashsale.coupon.models import UserCoupon
 
 
 def create_coupon(sale_orders):
     # 创建优惠券
     buyer_id = sale_orders[0].sale_trade.buyer_id
-    trade_id = sale_orders[0].sale_trade.id
-    cou = UserCoupon()
-    kwargs = {"buyer_id": buyer_id, "trade_id": trade_id}
-    cou.release_deposit_coupon(**kwargs)
+    cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=1)
     return cou
 
 

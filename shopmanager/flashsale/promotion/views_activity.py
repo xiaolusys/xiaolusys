@@ -17,7 +17,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
-from flashsale.pay.models_coupon_new import UserCoupon
+from flashsale.coupon.models import UserCoupon
 from flashsale.pay.models_user import Customer
 from flashsale.pay.models_custom import ActivityEntry
 
@@ -552,9 +552,7 @@ class GetAwardView(APIView):
         #coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
         code,msg = 0,""
         #if coups.count() <= 0:
-        user_coupon = UserCoupon()
-        kwargs = {"buyer_id": buyer_id, "template_id": template_id}
-        code, msg = user_coupon.release_by_template(**kwargs)
+        cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer, template_id=template_id)
 
         if code == 0:
             winner = AwardWinner.objects.get(customer_id=customer_id,event_id=event_id)
