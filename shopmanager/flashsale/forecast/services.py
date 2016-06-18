@@ -22,7 +22,7 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     order_list = OrderList.objects.filter(
         sys_status__in=[OrderList.ST_APPROVAL, OrderList.ST_BILLING]
     )
-    if staff_name.strip():
+    if staff_name and staff_name.strip():
         order_list = order_list.filter(buyer__username=staff_name)
 
     order_dict_list = []

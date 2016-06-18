@@ -528,6 +528,14 @@ CELERY_ROUTES = {
         'queue': 'async',
         'routing_key': 'async.sendTradeCallBack',
     },  # 订单发货回调任务
+    'shopback.trades.tasks.send_package_task': {
+        'queue': 'async',
+        'routing_key': 'async.send_package_task',
+    },  # 包裹发货任务
+    'shopback.trades.tasks.send_package_call_Backs': {
+        'queue': 'async',
+        'routing_key': 'async.send_package_call_Back',
+    },  # 包裹发货任务
     'shopback.trades.tasks.uploadTradeLogisticsTask': {
         'queue': 'async',
         'routing_key': 'async.uploadTradeLogisticsTask',
