@@ -75,12 +75,12 @@ def get_normal_realinbound_by_forecastid(forecastid_list):
 def strip_forecast_inbound(forecast_inbound_id):
 
     forecast_inbound = ForecastInbound.objects.get(id=forecast_inbound_id)
-    update_fields = ['supplier', 'ware_house', 'express_code', 'express_no', 'purchaser']
+    update_fields = ['supplier_id', 'ware_house', 'express_code', 'express_no']
     new_forecast = ForecastInbound()
-    new_forecast.forecast_no = default_forecast_inbound_no('sub'+forecast_inbound.id)
+    new_forecast.forecast_no = default_forecast_inbound_no('sub%d'%forecast_inbound.id)
     for k in update_fields:
         if hasattr(forecast_inbound, k):
-            setattr(forecast_inbound, k, getattr(forecast_inbound, k))
+            setattr(new_forecast, k, getattr(forecast_inbound, k))
     new_forecast.save()
 
     for order in forecast_inbound.relate_order_set.all():
@@ -93,7 +93,8 @@ def strip_forecast_inbound(forecast_inbound_id):
     real_inbound_detail_dict = dict([(d['sku_id'], d) for d in real_inbound_qs_values])
     for detail in forecast_inbound.normal_details():
         real_detail = real_inbound_detail_dict.get(detail.sku_id,None)
-        delta_arrive_num = detail.forecast_arrive_num > real_detail['arrival_quantity']
+        real_arrive_num = real_detail and real_detail.get('arrival_quantity', 0) or 0
+        delta_arrive_num = detail.forecast_arrive_num - real_arrive_num
         if delta_arrive_num > 0:
             forecast_detail = ForecastInboundDetail()
             forecast_detail.forecast_inbound = new_forecast
@@ -103,6 +104,7 @@ def strip_forecast_inbound(forecast_inbound_id):
             forecast_detail.product_name = detail.product_name
             forecast_detail.product_img = detail.product_img
             forecast_detail.save()
+    return new_forecast
 
 
 class AggregateForcecastOrderAndInbound(object):

@@ -43,7 +43,7 @@ CACHE_VIEW_TIMEOUT = 30
 def gen_uniq_staging_inbound_record_id(username, supplier_id, ware_house, sku_id):
     return '%s-%s-%s-%s'%(username, supplier_id, ware_house, sku_id)
 
-class StagingInboundViewSet(viewsets.ReadOnlyModelViewSet):
+class StagingInboundViewSet(viewsets.ModelViewSet):
     """
         预测到货单入仓操作
     """
@@ -162,7 +162,7 @@ class StagingInboundViewSet(viewsets.ReadOnlyModelViewSet):
         return Response('OK')
 
 
-class InBoundViewSet(viewsets.ReadOnlyModelViewSet):
+class InBoundViewSet(viewsets.ModelViewSet):
     queryset = RealInBound.objects.all()
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
@@ -290,7 +290,7 @@ class InBoundViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({'real_inbound_id': real_inbound.id})
 
 
-class ForecastManageViewSet(viewsets.ReadOnlyModelViewSet):
+class ForecastManageViewSet(viewsets.ModelViewSet):
     """
         预测到货单管理后台
     """

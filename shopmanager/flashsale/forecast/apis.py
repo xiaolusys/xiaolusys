@@ -85,6 +85,8 @@ def api_create_realinbound_by_inbound(inbound_id):
         real_inbound.district = detail.district
         real_inbound.save()
 
+    if forecast_inbound:
+        forecast_inbound.inbound_arrive_update_status()
 
 
 

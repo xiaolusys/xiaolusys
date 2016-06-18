@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='forecastinbound',
             name='forecast_no',
-            field=models.CharField(default=flashsale.forecast.models.default_forecast_inbound_no, unique=True, max_length=32, verbose_name='\u5165\u5e93\u6279\u6b21'),
+            field=models.CharField(default=flashsale.forecast.models.default_forecast_inbound_no, db_index=True, max_length=32, verbose_name='\u5165\u5e93\u6279\u6b21'),
         ),
     ]

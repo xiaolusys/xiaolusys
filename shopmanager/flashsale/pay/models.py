@@ -24,7 +24,7 @@ from flashsale.pay import managers
 from flashsale.pay import constants as CONST
 
 from .signals import signal_saletrade_pay_confirm, signal_saletrade_refund_post
-from .options import uniqid
+from core.utils.unikey import uniqid
 from core.fields import JSONCharMyField
 from shopback.users.models import User
 

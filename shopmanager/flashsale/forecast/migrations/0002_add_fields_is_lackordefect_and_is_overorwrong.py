@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('supplier', models.ForeignKey(related_name='staging_inbound_manager', verbose_name='\u4f9b\u5e94\u5546', to='supplier.SaleSupplier')),
             ],
             options={
-                'db_table': 'forcast_staging_inbound_record',
+                'db_table': 'forecast_staging_inbound_record',
                 'verbose_name': '\u5230\u8d27\u9884\u5f55\u5355',
                 'verbose_name_plural': '\u5230\u8d27\u9884\u5f55\u5355\u5217\u8868',
             },

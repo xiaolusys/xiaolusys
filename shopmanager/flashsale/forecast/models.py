@@ -1,17 +1,18 @@
 # coding:utf-8
 import datetime
-
+import random
 from django.db import models
 from django.db.models.signals import post_save
 
 from core.models import BaseModel
+from core.utils.unikey import uniqid
 from supplychain.supplier.models import SaleSupplier
 from shopback.items.models import Product, ProductSku
 
 from . import constants
 
-def default_forecast_inbound_no(identify_id=None):
-    identify_id  = identify_id or str(datetime.datetime.now().time().microsecond)
+def default_forecast_inbound_no(identify_id = None):
+    identify_id  = identify_id or uniqid()
     return 'FI'+datetime.datetime.now().strftime('%Y%m%d') + '-' + identify_id
 
 class ForecastInbound(BaseModel):
@@ -27,9 +28,8 @@ class ForecastInbound(BaseModel):
         (ST_CANCELED, u'取消'),
     )
 
-    forecast_no = models.CharField(max_length=32, default=default_forecast_inbound_no,
-                                   unique=True, verbose_name=u'入库批次')
-
+    forecast_no = models.CharField(max_length=32,  default=default_forecast_inbound_no,
+                                   db_index=True, verbose_name=u'入库批次')
     supplier = models.ForeignKey(SaleSupplier,
                                  null=True,
                                  blank=True,
@@ -59,7 +59,7 @@ class ForecastInbound(BaseModel):
         verbose_name_plural = u'预测到货单列表'
 
     def __unicode__(self):
-        return '<%s,%s>' %(self.id, self.supplier.supplier_name)
+        return '<%s,%s>' %(self.id, self.supplier and self.supplier.supplier_name or u'未知供应商')
 
     @property
     def status_name(self):
@@ -177,10 +177,10 @@ class StagingInBound(BaseModel):
                               verbose_name=u'状态')
 
     def __unicode__(self):
-        return str(self.id)
+        return '<%s,%s,%s>'(self.id, self.product_name, self.record_num)
 
     class Meta:
-        db_table = 'forcast_staging_inbound_record'
+        db_table = 'forecast_staging_inbound_record'
         app_label = 'forecast'
         verbose_name = u'到货预录单'
         verbose_name_plural = u'到货预录单列表'
@@ -214,7 +214,8 @@ class RealInBound(BaseModel):
 
     STATUS_CHOICES = ((STAGING, u'待入库'), (COMPLETED, u'已入库'),(CANCELED, u'已取消'))
 
-    wave_no = models.CharField(max_length=32, default=default_inbound_ware_no, db_index=True, verbose_name=u'入库批次')
+    wave_no = models.CharField(max_length=32, default=default_inbound_ware_no,
+                               db_index=True, verbose_name=u'入库批次')
 
     forecast_inbound = models.ForeignKey(ForecastInbound,  related_name='real_inbound_manager',
                                          null=True, verbose_name=u'关联预测到货单')
@@ -249,7 +250,7 @@ class RealInBound(BaseModel):
         verbose_name_plural = u'V2入仓单列表'
 
     def __unicode__(self):
-        return '<%s, %s, %s>' % (self.id, self.wave_no, self.supplier.supplier_name)
+        return '<%s, %s, %s>' % (self.id, self.wave_no, self.supplier and self.supplier.supplier_name or u'未知供应商')
 
     @property
     def status_name(self):
@@ -292,7 +293,7 @@ class RealInBoundDetail(BaseModel):
         return str(self.id)
 
     class Meta:
-        db_table = 'forcast_real_inbounddetail'
+        db_table = 'forecast_real_inbounddetail'
         app_label = 'forecast'
         verbose_name = u'V2入仓单明细'
         verbose_name_plural = u'V2入仓单明细列表'

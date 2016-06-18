@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
                 ('supplier', models.ForeignKey(verbose_name='\u4f9b\u5e94\u5546', to='supplier.SaleSupplier')),
             ],
             options={
-                'db_table': 'forcast_real_inbound',
+                'db_table': 'forecast_real_inbound',
                 'verbose_name': '\u5230\u8d27\u5355',
                 'verbose_name_plural': '\u5230\u8d27\u5355\u5217\u8868',
             },
@@ -94,7 +94,7 @@ class Migration(migrations.Migration):
                 ('inbound', models.ForeignKey(related_name='inbound_details', verbose_name='\u5165\u5e93\u5355', to='forecast.RealInBound')),
             ],
             options={
-                'db_table': 'forcast_real_inbounddetail',
+                'db_table': 'forecast_real_inbounddetail',
                 'verbose_name': '\u5230\u8d27\u5355\u660e\u7ec6',
                 'verbose_name_plural': '\u5230\u8d27\u5355\u660e\u7ec6\u5217\u8868',
             },

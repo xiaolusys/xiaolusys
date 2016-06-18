@@ -11,6 +11,8 @@ from flashsale.dinghuo.models import OrderList
 from core.widgets import AdminTextThumbnailWidget
 from .services import strip_forecast_inbound
 
+from core.options import log_action, ADDITION
+
 class ForecastInboundDetailInline(admin.TabularInline):
     model = ForecastInboundDetail
 
@@ -77,7 +79,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ForecastInboundAdmin, self).get_form(request, obj=obj, **kwargs)
-        if obj:
+        if obj and obj.supplier:
             form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset.filter(
                 id=obj.supplier.id)
 
@@ -98,22 +100,23 @@ class ForecastInboundAdmin(admin.ModelAdmin):
                                            'purchaser', 'status', 'is_lackordefect', 'is_overorwrong')
         return self.readonly_fields
 
+    def save_model(self, request, obj, form, change):
+        if obj and not obj.purchaser:
+            obj.purchaser = request.user.username
+        obj.save()
+
     def delete_model(self, request, obj):
-        """
-        Given a model instance delete it from the database.
-        """
         obj.status = obj.ST_CANCELED
         obj.save()
 
     def action_merge_or_split(self, request, queryset):
 
-        unapproved_qs = queryset.exclude(status_in=(ForecastInbound.ST_DRAFT,ForecastInbound.ST_APPROVED))
+        unapproved_qs = queryset.exclude(status__in=(ForecastInbound.ST_DRAFT,ForecastInbound.ST_APPROVED))
         if unapproved_qs.exists():
             self.message_user(request, u"＊＊＊＊＊＊＊＊＊合并拆分预测到货单必须都在草稿或审核状态＊＊＊＊＊＊＊＊＊!")
             return HttpResponseRedirect(request.get_full_path())
 
-        forecast_ids = ','.join([obj.id for obj in queryset])
-
+        forecast_ids = ','.join([str(obj.id) for obj in queryset])
         return HttpResponseRedirect(reverse('forecast_v1:forecastinbound-list') + '?forecast_ids=' + forecast_ids)
 
     action_merge_or_split.short_description = u"合并拆分同供应商记录"
@@ -122,13 +125,20 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
         unarrived_qs = queryset.exclude(status=ForecastInbound.ST_ARRIVED)
         if unarrived_qs.exists() :
-            self.message_user(request, u"＊＊＊＊＊＊＊＊＊剥离未到货记录订货单需在到货状态＊＊＊＊＊＊＊＊＊!")
+            self.message_user(request, u"＊＊＊剥离未到货记录订货单需在到货状态＊＊＊!")
             return HttpResponseRedirect(request.get_full_path())
+
+        new_forecast_obj_list = []
         try:
             for obj in queryset:
-                strip_forecast_inbound(obj)
+                new_forecast = strip_forecast_inbound(obj.id)
+                log_action(request.user.id, new_forecast, ADDITION, '从预测单(%s)剥离创建'%(obj.id))
+                new_forecast_obj_list.append(new_forecast)
         except Exception, exc:
             self.message_user(request, u"剥离出错:%s"%exc.message)
+        self.message_user(request, u"＊＊＊到货预测单未到货记录剥离成功,子预测单列表:%s ＊＊＊"%
+                          (','.join([str(obj.id) for obj in new_forecast_obj_list ])) )
+
         return HttpResponseRedirect(request.get_full_path())
 
     action_strip_inbound.short_description = u"剥离未到货预测记录"
@@ -185,7 +195,7 @@ class RealInBoundAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(RealInBoundAdmin, self).get_form(request, obj=obj, **kwargs)
-        if obj:
+        if obj and obj.supplier:
             form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset.filter(
                 id=obj.supplier.id)
             form.base_fields['relate_order_set'].queryset = form.base_fields['relate_order_set'].queryset.filter(
@@ -202,6 +212,8 @@ class RealInBoundAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('status', 'ware_house', 'relate_order_set',
                                            'creator', 'inspector', 'status')
         return self.readonly_fields
+
+
 
 
 admin.site.register(RealInBound, RealInBoundAdmin)
