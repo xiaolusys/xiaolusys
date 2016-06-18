@@ -21,6 +21,6 @@ router_urls += ([])
 
 urlpatterns = patterns('',
      url(r'^v1/', include(router_urls, namespace='forecast_v1')),
-     url(r'^dashboard', PurchaseDashBoardAPIView.as_view()),
+     url(r'^dashboard', PurchaseDashBoardAPIView.as_view(), name="forecast_dashboard"),
 )
 
