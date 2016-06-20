@@ -95,7 +95,6 @@
                 <label class="col-md-1" id="receiver_phone">{{original.receiver_phone}}</label>
                 <label class="col-md-1" for="receiver_zip">邮编:</label>
                 <label class="col-md-1" id="receiver_zip">{{original.receiver_zip}}</label>
-                <a class="col-md-1" href="/admin.xiaolumm.com/trades/search_trade">短信通知客户</a>
             </div>
             <div class="row">
                 <label class="col-md-1" for="receiver_address_all">收货人地址:</label>
@@ -162,6 +161,23 @@
                         <button type="button" data-toggle="modal"id="change_sku_{{sale_order.id}}"
                                 class="change123">换货
                         </button>
+                        <label>     </label>
+                        <label>     </label>
+                        <label>     </label>
+                        <button type="button" data-toggle="modal"id="resent_sku_{{sale_order.id}}"
+                                class="resent">重新发货
+                        </button>
+                        </button>
+                        <label>     </label>
+                        <label>     </label>
+                        <label>     </label>
+                        <button type="button" data-toggle="modal"id="tell_sku_{{sale_order.id}}"
+                                class="tellcstm">短信通知客户
+                        </button>
+                        </button>
+                        <label>     </label>
+                        <label>     </label>
+                        <label>     </label>
                         {%endif%}
                         {%if sale_order.status == 2 and sale_order.refund_status == 0%}
                         <button class="refund" id="refund_{{sale_order.id}}_{{sale_order.payment}}">退款</button>
@@ -259,6 +275,43 @@
                 }
             }
         }
+    function sent_sku_item_again(sale_order_id){
+    var url = "/mm/sent_sku_item_again/";
+    var data = {"sale_order_id": sale_order_id};
+
+        $.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});
+        function callback(res) {
+            if (res.res) {
+                alert("重新发货成功");
+                window.location.reload();
+            }
+            else{
+            alert("重新发货失败");
+
+            }
+        }
+
+    }
+
+    function tell_custom_bySMS(sale_order_id){
+    var url = "/mm/get_mrgid/";
+    var data = {"sale_order_id": sale_order_id};
+        $.ajax({"url": url, "data": data, "type": "post", dataType:"json", "success": callback});
+        function callback(res) {
+            console.log(res);
+            if (res.res) {
+                <!--alert("zuile");-->
+                trade_id = res.data[0].trade_id;
+                order_id = res.data[0].order_id;
+                window.location="/sale/kefu/send_message/"+trade_id+"/"+order_id+"/";
+            }
+            else{
+            alert("短信通知失败");
+
+            }
+        }
+
+    }
 
     function change_sku_item( sale_order_id, SKU, num){
         var url = "/mm/change_sku_item/";
@@ -267,24 +320,25 @@
         $.ajax({"url": url, "data": data, "type": "post", "success": callback});
         function callback(res) {
             if (res == "True") {
+                alert("换货成功");
                 window.location.reload();
             }
         }
     }
 
-
     var change_sku_save = function(evt){
         var sale_order_id = $("#old_sale_id").val();
         var SKU = $("#SKU").val();
         var num = $("#num").val();
-        console.log(sale_order_id);
-        console.log(SKU);
-        console.log(num);
+        <!--console.log(sale_order_id);-->
+        <!--console.log(SKU);-->
+        <!--console.log(num);-->
         change_sku_item(sale_order_id, SKU, num);
     }
 
 $(document).ready(function(){
     $('#btn_edit_seller_memo').click(edit_seller_memo);
+
     $(".change123").click(function(evt){
         $("#myModal").modal("show");
         var dom = evt.target;
@@ -292,6 +346,18 @@ $(document).ready(function(){
         $("label#sale_order_id").html(sale_order_id);
         $("#old_sale_id").val(sale_order_id);
     });
+    $(".resent").click(function(evt){
+        var dom = evt.target;
+        sale_order_id = dom.id.substring("resent_sku_".length,dom.id.length);
+         sent_sku_item_again(sale_order_id);
+    });
+
+    $(".tellcstm").click(function(evt){
+        var dom = evt.target;
+        sale_order_id = dom.id.substring("tell_sku_".length,dom.id.length);
+         tell_custom_bySMS(sale_order_id);
+    });
+
     $("#btn-change-sku-save").click(change_sku_save);
     $(".refund").click(refund_fee);
 });

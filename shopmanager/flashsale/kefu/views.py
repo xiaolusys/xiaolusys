@@ -33,6 +33,8 @@ class KefuRecordView(generics.ListCreateAPIView):
 
 
 from shopback.trades.models import MergeTrade, MergeOrder
+from flashsale.pay.models import SaleOrder,SaleTrade
+
 from shopback.items.models import Product
 from .tasks import task_send_message
 from shopapp.smsmgr.models import SMSActivity, SMS_NOTIFY_GOODS_LACK
@@ -51,20 +53,20 @@ class SendMessageView(generics.ListCreateAPIView):
     def get(self, request, trade_id, order_id, *args, **kwargs):
 
         try:
-            m_trade = MergeTrade.objects.get(id=trade_id)
-            m_order = MergeOrder.objects.get(id=order_id)
-            product = Product.objects.get(outer_id=m_order.outer_id)
+            s_trade = SaleTrade.objects.get(id=trade_id)
+            s_order = SaleOrder.objects.get(id=order_id)
+            product = Product.objects.get(outer_id=s_order.outer_id)
             product_name = product.name
-            content = SEND_TEMPLATE.format(product_name, m_order.sku_properties_name)
+            content = SEND_TEMPLATE.format(product_name, s_order.sku_name)
 
             # 根据后台短信模板设置
             sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_GOODS_LACK, status=True)
             if sms_tpls.exists():  # 如果有短信模板
                 sms_tpl = sms_tpls[0]
                 tpl = sms_tpl.text_tmpl or SEND_TEMPLATE
-                content = tpl.format(product_name, m_order.sku_properties_name)
+                content = tpl.format(product_name, s_order.sku_name)
 
-            mobile = m_trade.receiver_mobile
+            mobile = s_trade.receiver_mobile
             return Response({"content": content, "mobile": mobile, "trade_id": trade_id, "order_id": order_id})
         except:
             pass
@@ -75,11 +77,11 @@ class SendMessageView(generics.ListCreateAPIView):
         try:
             content = post.get("content")
             mobile = post.get("mobile")
-            m_trade = MergeTrade.objects.get(id=trade_id)
-            m_order = MergeOrder.objects.get(id=order_id)
+            s_trade = SaleTrade.objects.get(id=trade_id)
+            s_order = SaleOrder.objects.get(id=order_id)
             if not content and not mobile or len(mobile) != 11:
                 return Response({"send_result": "error"})
-            log_action(request.user.id, m_trade, CHANGE, u'{0}缺货短信{1}'.format(m_order.id, mobile))
+            log_action(request.user.id, s_trade, CHANGE, u'{0}缺货短信{1}'.format(s_order.id, mobile))
             task_send_message.delay(content, mobile)
         except:
             return Response({"send_result": "error"})
