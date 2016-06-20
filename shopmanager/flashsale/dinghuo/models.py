@@ -502,7 +502,7 @@ class ReturnGoods(models.Model):
         """
         product_sku_dict = dict([(p.id, p) for p in ProductSku.objects.filter(id__in=sku_dict.keys())])
         supplier = {}
-        for sku_id in product_sku_dict:           #计算是否有库存，如果有那么生成detail
+        for sku_id in product_sku_dict:
             if sku_dict[sku_id] > 0 and \
                     ReturnGoods.can_return(sku=sku_id):
                 sku = product_sku_dict[sku_id]
@@ -517,7 +517,7 @@ class ReturnGoods(models.Model):
                     supplier[supplier_id] = []
                 supplier[supplier_id].append(detail)
         res = []
-        for supplier_id in supplier:       #如果供应商的货到了15天后，才允许退款
+        for supplier_id in supplier:
             if ReturnGoods.can_return(supplier_id=supplier_id):
                 rg_details = supplier[supplier_id]
 
