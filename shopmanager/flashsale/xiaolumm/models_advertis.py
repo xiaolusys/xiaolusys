@@ -13,6 +13,10 @@ class XlmmAdvertis(models.Model):
     INNER_LEVEL = 1
     VIP_LEVEL = 2
     A_LEVEL = 3
+    VIP2_LEVEL = 12
+    VIP4_LEVEL = 14
+    VIP6_LEVEL = 16
+    VIP8_LEVEL = 18
 
     PEOPLE_CHOICE = ((INNER_LEVEL, u'内部级别'), (VIP_LEVEL, u'VIP代理'), (A_LEVEL, u'A类代理'))
 
