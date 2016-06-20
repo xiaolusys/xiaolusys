@@ -188,7 +188,7 @@ class SaleRefund(PayBaseModel):
         sorder = self.sale_order
         customer = Customer.objects.filter(id=strade.buyer_id).first()
 
-        payment = int(self.refund_fee * 100)
+        payment = round(self.refund_fee * 100, 0)
         xlmm  = XiaoluMama.objects.filter(openid=customer.unionid).first()
         if not xlmm:
             raise Exception(u'妈妈unoind:%s' % customer.unionid)
@@ -198,7 +198,7 @@ class SaleRefund(PayBaseModel):
                                        log_type=CarryLog.REFUND_RETURN).first()
         if clog:
             total_refund = clog.value + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
-            if total_refund > int(sorder.payment * 100):
+            if total_refund > round(sorder.payment * 100, 0):
                 # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
                 raise Exception(u'超过订单实际支付金额!')
             else:
@@ -211,7 +211,7 @@ class SaleRefund(PayBaseModel):
                 log_action(get_systemoa_user(), self, CHANGE, u'二次退款审核通过:%s' % self.refund_id)
         # assert clogs.count() == 0, u'订单已经退款！'
         else:  # 钱包中不存在该笔子订单的历史退款记录　则创建记录
-            if payment > int(sorder.payment * 100):
+            if payment > round(sorder.payment * 100, 0):
                 raise Exception(u'超过订单实际支付金额!')
             CarryLog.objects.create(xlmm=xlmm.id,
                                     order_num=self.order_id,
@@ -232,20 +232,20 @@ class SaleRefund(PayBaseModel):
         sorder = self.sale_order()
 
         obj = self
-        payment = int(obj.refund_fee * 100)
+        payment = round(obj.refund_fee * 100, 0)
         blog = BudgetLog.objects.filter(customer_id=strade.buyer_id,
                                          referal_id=obj.order_id,  # 以子订单为准
                                          budget_log_type=BudgetLog.BG_REFUND).first()
         if blog:
             total_refund = blog.flow_amount + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
-            if total_refund > int(sorder.payment * 100):
+            if total_refund > round(sorder.payment * 100, 0):
                 # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
                 raise Exception(u'超过订单实际支付金额!')
             else:  # 如果退款总额不大于该笔子订单的实际支付金额　则予以退款操作
                 blog.flow_amount = total_refund
                 blog.save(update_fields=['flow_amount'])
         else:
-            if payment > int(sorder.payment * 100):
+            if payment > round(sorder.payment * 100, 0):
                 raise Exception(u'超过订单实际支付金额!')
             BudgetLog.objects.create(
                 customer_id=strade.buyer_id,
@@ -260,7 +260,7 @@ class SaleRefund(PayBaseModel):
     def refund_charge_approve(self):
         ch = pingpp.Charge.retrieve(self.charge)
         re = ch.refunds.create(description=self.refund_desc(),
-                               amount=int(self.refund_fee * 100))
+                               amount=round(self.refund_fee * 100, 0))
         self.refund_id = re.id
         self.status = SaleRefund.REFUND_APPROVE
         self.save(update_fields=['refund_id', 'status'])
