@@ -760,7 +760,7 @@ class SaleOrder(PayBaseModel):
         sale_trade = self.sale_trade
         unsign_orders = sale_trade.normal_orders.exclude(
             status__in=(SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED))
-        if not unsign_orders.exist():
+        if not unsign_orders.exists():
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
             sale_trade.save(update_fields=['status'])
 
