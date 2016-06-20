@@ -144,7 +144,7 @@ class BrandProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BrandProduct
-        fields = ('id', 'product_id', 'product_name', 'product_img', 'product_lowest_price', 'product_std_sale_price')
+        fields = ('id', 'product_id', 'model_id', 'product_name', 'product_img', 'product_lowest_price', 'product_std_sale_price')
 
 
 class BrandPortalSerializer(serializers.ModelSerializer):

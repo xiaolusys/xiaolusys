@@ -1314,7 +1314,6 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     def gen_return_goods(self, request, queryset):
         from flashsale.dinghuo.admin import ReturnGoodsAdmin
-
         sku_dict = {}
         sku_num = queryset.count()
         for stat in queryset:

@@ -99,6 +99,11 @@ class ProductSkuStats(models.Model):
         #     self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
         # return self._product_sku_
 
+    @property
+    def unused_stock(self):
+        """冗余库存数"""
+        return self.history_quantity + self.inbound_quantity + self.return_quantity - self.rg_quantity - self.sold_num
+
     @staticmethod
     def redundancies():
         """
