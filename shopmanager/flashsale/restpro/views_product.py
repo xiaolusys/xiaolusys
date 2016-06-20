@@ -272,6 +272,13 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         raise exceptions.APIException(u'该接口暂未提供数据')
 
+    @list_route(methods=['get'])
+    def get_product_by_model_id(self, request, *args, **kwargs):
+        model_id = request.REQUEST.get('model_id') or None
+        pros = self.queryset.filter(model_id=model_id, status='normal')
+        serializer = self.get_serializer(pros, many=True)
+        return Response(serializer.data)
+
     def get_latest_right_date(self, dt):
         ldate = dt
         model_qs = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
