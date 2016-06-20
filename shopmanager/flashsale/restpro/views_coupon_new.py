@@ -1,6 +1,7 @@
 # coding=utf-8
 import logging
 import datetime
+import collections
 import urlparse
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -331,32 +332,42 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         """ 检查用户活动的有效性 """
         return XLSampleOrder.objects.filter(customer_id=customer_id).first()
 
-    @list_route(methods=['post'])
+    @list_route(methods=['post','get'])
     def create_order_share(self, request, *args, **kwargs):
         """
         创建订单分享
         返回分享链接
         """
+        default_return = collections.defaultdict(code=0, msg='', share_link='', title='',
+                                                 post_img='', share_times_limit=0)
         customer = get_customer(request)
         if customer is None:
-            return Response({"code": 2, "msg": "用户不存在", "share_link": ''})
+            default_return.update({"code": 2, "msg": "用户不存在"})
+            return Response(default_return)
         content = request.REQUEST
         uniq_id = content.get('uniq_id') or ''  # 订单分享创建
         ufrom = content.get("ufrom") or ''
         if not uniq_id:
-            return Response({"code": 1, "msg": "参数有误", "share_link": ''})
+            default_return.update({"code": 1, "msg": "参数有误"})
+            return Response(default_return)
         if self.check_order_valid(uniq_id, customer.id) is None:
-            return Response({"code": 4, "msg": "订单不存在", "share_link": ''})
+            default_return.update({"code": 4, "msg": "订单不存在"})
+            return Response(default_return)
 
         tpl = get_order_or_active_share_template(CouponTemplate.TYPE_ORDER_SHARE)  # 获取有效的分享模板
         if not tpl:
-            return Response({"code": 3, "msg": "分享出错", "share_link": ''})
+            default_return.update({"code": 3, "msg": "分享出错"})
+            return Response(default_return)
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
         state, order_share = OrderShareCoupon.objects.create_coupon_share(tpl, customer, uniq_id, ufrom)
-        share_link = '/pages/odsharecoupon.html?uniq_id={0}&ufrom={0}'.format(order_share.uniq_id, ufrom)
+
+        share_link = 'mall/order/redpacket?uniq_id={0}&ufrom={1}'.format(order_share.uniq_id, ufrom)
         share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
-        return Response({"code": 0, "msg": "分享成功", "share_link": share_link})
+        default_return.update({"code": 0, "msg": "分享成功", "share_link": share_link,
+                               'title': order_share.description, "post_img": order_share.post_img,
+                               "share_times_limit": tpl.share_times_limit})
+        return Response(default_return)
 
     @list_route(methods=['post'])
     def create_active_share(self, request, *args, **kwargs):
