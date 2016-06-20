@@ -33,6 +33,7 @@ CELERY_IMPORTS = (
     'statistics.tasks',
     'flashsale.restpro.tasks',
     'flashsale.forecast.apis',
+    'flashsale.dinghuo.tasks',
 )
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -87,6 +88,7 @@ CELERY_QUEUES = (
     Queue('coupon', routing_key='coupon.#'),
     Queue('statistics', routing_key='statistics.#'),
     Queue('logistics', routing_key='logistics.#'),
+    Queue('dinghuo', routing_key='dinghuo.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
@@ -101,6 +103,61 @@ APIS_ROUTES = {
     'flashsale.forecast.apis.api_create_realinbound_by_inbound': {
         'queue': 'apis',
         'routing_key': 'apis.api_create_realinbound_by_inbound',
+    },
+}
+
+DINGHUO_ROUTES = {
+    'flashsale.dinghuo.tasks.task_packageskuitem_update_purchaserecord': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_packageskuitem_update_purchaserecord',
+    },
+    'flashsale.dinghuo.tasks.task_purchasearrangement_update_purchaserecord_book_num': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_purchasearrangement_update_purchaserecord_book_num',
+    },
+    'flashsale.dinghuo.tasks.task_purchase_detail_update_purchase_order': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_purchase_detail_update_purchase_order',
+    },
+    'flashsale.dinghuo.tasks.task_purchasedetail_update_orderdetail': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_purchasedetail_update_orderdetail',
+    },
+    'flashsale.dinghuo.tasks.task_orderdetail_update_orderlist': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_orderdetail_update_orderlist',
+    },
+    'flashsale.dinghuo.tasks.task_purchasearrangement_update_purchasedetail': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_purchasearrangement_update_purchasedetail',
+    },
+    'flashsale.dinghuo.tasks.task_start_booking': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_start_booking',
+    },
+    'flashsale.dinghuo.tasks.task_purchaserecord_adjust_purchasearrangement_overbooking': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_purchaserecord_adjust_purchasearrangement_overbooking',
+    },
+    'flashsale.dinghuo.tasks.task_purchaserecord_sync_purchasearrangement_status': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_purchaserecord_sync_purchasearrangement_status',
+    },
+    'flashsale.dinghuo.tasks.task_check_arrangement': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_check_arrangement',
+    },
+    'flashsale.dinghuo.tasks.task_update_purchasedetail_status': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_update_purchasedetail_status',
+    },
+    'flashsale.dinghuo.tasks.task_update_purchasearrangement_status':{
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_update_purchasearrangement_status',
+    },
+    'flashsale.dinghuo.tasks.task_update_purchasearrangement_initial_book': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_update_purchasearrangement_initial_book',
     },
 }
 
@@ -584,6 +641,7 @@ CELERY_ROUTES.update(FLASHSALE_COUPON_ROUTES)
 CELERY_ROUTES.update(STATISTICS_ROUTES)
 CELERY_ROUTES.update(LOGISTICS_ROUTES)
 CELERY_ROUTES.update(APIS_ROUTES)
+CELERY_ROUTES.update(DINGHUO_ROUTES)
 
 API_REQUEST_INTERVAL_TIME = 10  # (seconds)
 API_TIME_OUT_SLEEP = 60  # (seconds)

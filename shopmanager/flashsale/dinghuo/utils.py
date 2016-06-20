@@ -38,6 +38,16 @@ def get_supplier(sku_id):
         pass
     return None
 
+def get_product(sku_id):
+    from shopback.items.models import ProductSku
+    try:
+        product_sku = ProductSku.objects.get(id=sku_id)
+        product = product_sku.product
+        return product
+    except ProductSku.DoesNotExist:
+        pass
+    return None
+
 def get_unit_price(sku_id):
     from shopback.items.models import ProductSku
     product_sku = ProductSku.objects.get(id=sku_id)

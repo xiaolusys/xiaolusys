@@ -36,21 +36,6 @@ class PurchaseOrder(BaseModel):
         verbose_name_plural = u'v2/订货表'
 
 
-def sync_purchase_detail_status(sender, instance, created, **kwargs):
-    PurchaseDetail.objects.filter(purchase_order_unikey=instance.uni_key).update(status=instance.status)
-    
-    if instance.status == PurchaseOrder.BOOKED:
-        if PurchaseArrangement.objects.filter(initial_book=True).count() == 0:
-            PurchaseArrangement.objects.filter(purchase_order_unikey=instance.uni_key,
-                                               status=1).update(purchase_order_status=instance.status, initial_book=True)
-    else:
-        PurchaseArrangement.objects.filter(purchase_order_unikey=instance.uni_key,
-                                           status=1).update(purchase_order_status=instance.status)
-        
-post_save.connect(sync_purchase_detail_status, sender=PurchaseOrder, dispatch_uid='post_save_sync_purchase_detail_status')
-
-        
-        
 class PurchaseDetail(BaseModel):
     uni_key = models.CharField(max_length=32, unique=True, verbose_name=u'唯一id ') #sku_id+purchase_order_unikey
     purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一ID')
@@ -85,7 +70,12 @@ class PurchaseDetail(BaseModel):
 
     @property
     def unit_price_display(self):
-        return self.unit_price * 0.01
+        return float('%.2f' % (self.unit_price * 0.01))
+
+    @property
+    def total_price_display(self):
+        total = self.unit_price * self.book_num * 0.01
+        return float('%.2f' % total)
     
     def has_extra(self):
         return self.status == PurchaseOrder.BOOKED and self.book_num > self.need_num
@@ -103,7 +93,6 @@ def update_purchase_order(sender, instance, created, **kwargs):
 
 post_save.connect(update_purchase_order, sender=PurchaseDetail, dispatch_uid='post_save_update_purchase_order')
 
-
     
 def check_arrangement(sender, instance, created, **kwargs):
     if not instance.has_extra():
@@ -112,16 +101,22 @@ def check_arrangement(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_check_arrangement
     task_check_arrangement.delay(instance)
     
-
 post_save.connect(check_arrangement, sender=PurchaseDetail, dispatch_uid='post_save_check_arrangement')
+
+
+def update_orderdetail(sender, instance, created, **kwargs):
+    from flashsale.dinghuo.tasks import task_purchasedetail_update_orderdetail
+    task_purchasedetail_update_orderdetail.delay(instance)
+    
+post_save.connect(update_orderdetail, sender=PurchaseDetail, dispatch_uid='post_save_update_orderdetail')
+
 
 
 class PurchaseRecord(BaseModel):
     EFFECT = 1
     CANCEL = 2
-    ASSIGN = 3
-    STATUS = ((EFFECT, u'有效'),(CANCEL, u'退货取消'),(ASSIGN, u'匹配取消'))
-    
+    STATUS = ((EFFECT, u'有效'),(CANCEL, u'取消'))
+
     package_sku_item_id = models.IntegerField(default=0,db_index=True, verbose_name=u'包裹ID')
     oid =  models.CharField(max_length=32,db_index=True, verbose_name=u'sku交易单号')
 
@@ -139,7 +134,7 @@ class PurchaseRecord(BaseModel):
     book_num = models.IntegerField(default=0, verbose_name=u'订购量')
     
     status =  models.IntegerField(choices=STATUS,default=EFFECT,db_index=True, verbose_name=u'状态')
-
+    note = models.CharField(max_length=128, blank=True, verbose_name=u'备注信息')
     
     class Meta:
         db_table = 'flashsale_dinghuo_purchase_record'
@@ -248,5 +243,13 @@ def update_purchase_record_book_num(sender, instance, created, **kwargs):
 post_save.connect(update_purchase_record_book_num, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_record_book_num')
 
     
-
+def update_packageskuitem_booking_status(sender, instance, created, **kwargs):
+    from shopback.trades.models import PackageSkuItem
+    if instance.purchase_order_status == PurchaseOrder.BOOKED:
+        psi = PackageSkuItem.objects.filter(oid=instance.oid).first()
+        if psi and psi.purchase_order_unikey != instance.purchase_order_unikey:
+            psi.purchase_order_unikey = instance.purchase_order_unikey
+            psi.save(update_fields=['purchase_order_unikey', 'modified'])
+    
+post_save.connect(update_packageskuitem_booking_status, sender=PurchaseArrangement, dispatch_uid='post_save_update_packageskuitem_booking_status')
 
