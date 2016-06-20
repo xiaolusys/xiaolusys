@@ -262,7 +262,7 @@ def task_calc_xlmm(start_time_str, end_time_str):
             repeat_user = all_purchase_detail & history_purchase_detail
             repeat_user_unionid = set([get_unionid_by_openid(val, settings.WEIXIN_APPID) for val in repeat_user])
 
-            all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged', agencylevel=2).values("openid").distinct()
+            all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged', agencylevel__gte=XiaoluMama.VIP_LEVEL).values("openid").distinct()
             all_xlmm_detail = set([val['openid'] for val in all_xlmm])
 
             repeat_xlmm = repeat_user_unionid & all_xlmm_detail

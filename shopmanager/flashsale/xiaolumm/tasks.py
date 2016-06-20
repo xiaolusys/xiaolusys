@@ -559,7 +559,7 @@ def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):  # 每天 写入记录
     lweek_from = target_date - datetime.timedelta(days=7)  # 生成带时间的格式  开始时间
     tweek_from = target_date - datetime.timedelta(days=14)  # 停止时间
 
-    xlmms = XiaoluMama.objects.filter(agencylevel=2)
+    xlmms = XiaoluMama.objects.filter(agencylevel__gte=2)
     for xlmm in xlmms:
         lweek_ds = calc_mama_roi(xlmm, lweek_from, target_date)
         tweek_ds = calc_mama_roi(xlmm, tweek_from, target_date)
@@ -665,7 +665,7 @@ def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, wei
             referal_mama = XiaoluMama.objects.normal_queryset.get(mobile=referal_mobile)
             if referal_mama.referal_from == xlmm.mobile or referal_mobile == xlmm.mobile:
                 return 'cross'
-            if referal_mama.agencylevel not in (2, 3):
+            if referal_mama.agencylevel < XiaoluMama.VIP_LEVEL:
                 return "l_error"
         except XiaoluMama.DoesNotExist:
             return 'unfound'
@@ -740,7 +740,7 @@ def xlmm_upgrade_A_to_VIP():
     from django.contrib.auth.models import User
     systemoa = User.objects.get(username="systemoa")
     # 找出所有代理级别为３ 已经接管　的代理
-    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED).exclude(agencylevel=XiaoluMama.INNER_LEVEL)
+    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, agencylevel=XiaoluMama.A_LEVEL)
     for xlmm in xlmms:
         # 该代理已经完成的订单
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)

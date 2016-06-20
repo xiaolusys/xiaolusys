@@ -21,7 +21,8 @@ logger = logging.getLogger('django.request')
 
 def referal_From(mobile):
     # 找推荐来的代理
-    referals = XiaoluMama.objects.filter(referal_from=mobile, agencylevel__in=(2, 3), charge_status=XiaoluMama.CHARGED)
+    referals = XiaoluMama.objects.filter(referal_from=mobile, agencylevel__gte=XiaoluMama.VIP_LEVEL,
+                                         charge_status=XiaoluMama.CHARGED)
     return referals
 
 
@@ -146,9 +147,10 @@ class XlmmExit(object):
         self.xlmm = xlmm
 
     def check_xlmm_available(self, xlmm):
-        if xlmm.charge_status != XiaoluMama.CHARGED or xlmm.agencylevel not in (
-                XiaoluMama.A_LEVEL, XiaoluMama.VIP_LEVEL):
-            pass
+        if xlmm.charge_status != XiaoluMama.CHARGED:
+            return
+        if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:
+            return None
         else:
             return xlmm
 
