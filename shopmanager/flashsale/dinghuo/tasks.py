@@ -1532,7 +1532,10 @@ def task_orderdetail_update_orderlist(od):
     ol = OrderList.objects.filter(purchase_order_unikey=od.purchase_order_unikey).first()
     if not ol:
         supplier = utils.get_supplier(od.chichu_id)
-        
+        if not supplier:
+            logger.error("No supplier for orderdetail: %d" % od.id)
+            return
+            
         p_district = OrderList.NEAR
         if supplier.ware_by == SaleSupplier.WARE_GZ:
             p_district = OrderList.GUANGDONG
