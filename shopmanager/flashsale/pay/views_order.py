@@ -8,6 +8,7 @@ from django.template import RequestContext
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 from shopback.items.models import Product, ProductSku, ProductCategory
+from shopback.trades.models import MergeOrder,MergeTrade
 from .models import SaleTrade, SaleOrder, genUUID, Customer
 from .models_refund import SaleRefund
 from .tasks import confirmTradeChargeTask
@@ -487,6 +488,29 @@ def refunding_state(request, state_id):
                 # print rec
 
     return render(request, 'pay/order_flash.html', {'info': rec, 'time': real_today, 'yesterday': today})
+
+def get_mrgid(request):
+    content = request.REQUEST
+    sale_order_id = content.get("sale_order_id", None)
+    sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
+    try:
+        sale_trade = sale_order.sale_trade_id
+        sale_order = sale_order.id
+        return HttpResponse(json.dumps({"res":True,"data":[{"trade_id":sale_trade,"order_id":sale_order}],"desc": ""}))
+    except Exception,msg:
+        return HttpResponse(json.dumps({"res":False,"data":[],"desc":str(msg)}))
+
+def sent_sku_item_again(request):
+    content = request.REQUEST
+    sale_order_id = content.get("sale_order_id", None)
+    sale_order = get_object_or_404(SaleOrder, id=sale_order_id)
+    sale_trade = sale_order.sale_trade
+    try:
+        sale_trade.redeliver_sku_item(sale_order)
+        return HttpResponse(json.dumps({"res":True ,"data":[], "desc": ""}))
+    except Exception, e0:
+        return HttpResponse(json.dumps({"res":False ,"data":[], "desc": str(e0)}))
+
 
 
 def change_sku_item(request):

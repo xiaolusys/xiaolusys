@@ -377,6 +377,33 @@ class SaleTrade(BaseModel):
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
 
+    def redeliver_sku_item(self, old_sale_order):
+        sku = ProductSku.objects.get(id = old_sale_order.sku_id)
+        old_sale_order.status = SaleOrder.TRADE_CLOSED_BY_SYS
+        new_sku_id = old_sale_order.sku_id
+        new_num = old_sale_order.num
+        print old_sale_order.id
+        old_sale_order.save()
+
+        new_sale_order = old_sale_order
+        new_sale_order.id = None
+        cnt = self.sale_orders.count()
+        new_sale_order.oid = '%s-%s' % (old_sale_order.oid, str(cnt))
+        new_sale_order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
+        new_sale_order.sku_id = new_sku_id
+        product = sku.product
+        new_sale_order.outer_id = product.outer_id
+        new_sale_order.outer_sku_id = sku.outer_id
+        new_sale_order.num = new_num
+        new_sale_order.sku_name = sku.properties_alias
+        new_sale_order.title = product.name
+        new_sale_order.pic_path = product.pic_path
+        new_sale_order.pay_time = datetime.datetime.now()
+        new_sale_order.refund_id = None
+        new_sale_order.refund_fee = 0
+        new_sale_order.refund_status = SaleRefund.NO_REFUND
+        new_sale_order.save()
+
     def change_sku_item(self, old_sale_order, sku_id, num=1):
         """
             更换sku
