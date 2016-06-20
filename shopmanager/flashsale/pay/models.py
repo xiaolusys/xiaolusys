@@ -755,14 +755,14 @@ class SaleOrder(PayBaseModel):
         """确认签收 修改该订单状态到 确认签收状态"""
         self.status = self.TRADE_BUYER_SIGNED
         self.sign_time = datetime.datetime.now()
-        self.save()
+        self.save(update_fields=['status', 'sign_time'])
 
         sale_trade = self.sale_trade
-        normal_orders = sale_trade.normal_orders
-        sign_orders = sale_trade.sale_orders.filter(status=SaleOrder.TRADE_BUYER_SIGNED)
-        if sign_orders.count() == normal_orders.count():
+        unsign_orders = sale_trade.normal_orders.exclude(
+            status__in=(SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED))
+        if not unsign_orders.exist():
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
-            update_model_fields(sale_trade, update_fields=['status'])
+            sale_trade.save(update_fields=['status'])
 
     # def cancel_assign(self):
     #     if self.assign_status == SaleOrder.ASSIGNED:

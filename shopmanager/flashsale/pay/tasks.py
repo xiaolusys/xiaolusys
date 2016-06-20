@@ -23,7 +23,6 @@ import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
 
 __author__ = 'meixqhi'
-
 logger = logging.getLogger('celery.handler')
 
 
@@ -436,7 +435,6 @@ def task_Record_Mama_Fans(instance, created):
 
 from flashsale.pay.models_user import BudgetLog, UserBudget
 from django.db.models import Sum
-
 
 @task(max_retries=3, default_retry_delay=6)
 def task_budgetlog_update_userbudget(budget_log):

@@ -28,7 +28,7 @@ class Envelop(PayBaseModel):
     CASHOUT = 'cashout'
     ORDER_RED_PAC = 'ordred'
     XLAPP_CASHOUT = 'xlapp'
-    SUBJECT_CHOICES = ((CASHOUT, u'钱包提现'), (ORDER_RED_PAC, u'订单红包'), (XLAPP_CASHOUT, u'小鹿APP提现'))
+    SUBJECT_CHOICES = ((CASHOUT, u'小鹿钱包提现'), (ORDER_RED_PAC, u'订单红包'), (XLAPP_CASHOUT, u'妈妈钱包提现'))
 
     UNSEND = ''
     SENDING = 'sending'
@@ -145,7 +145,7 @@ class Envelop(PayBaseModel):
 
     def cancel_envelop(self):
 
-        if not self.envelop_id and self.status == self.WAIT_SEND:
+        if not self.envelop_id or self.status == self.WAIT_SEND:
             self.status = Envelop.CANCEL
             self.save(update_fields=['status'])
             self.refund_envelop()
