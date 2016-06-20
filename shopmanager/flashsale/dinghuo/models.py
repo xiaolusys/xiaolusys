@@ -242,7 +242,9 @@ post_save.connect(
 def update_orderdetail_relationship(sender, instance, created, **kwargs):
     if not created:
         return
-    OrderDetail.objects.filter(purchase_order_unikey=instance.purchase_order_unikey).update(orderlist=instance)
+
+    if instance.purchase_order_unikey:
+        OrderDetail.objects.filter(purchase_order_unikey=instance.purchase_order_unikey).update(orderlist=instance)
     
 post_save.connect(update_orderdetail_relationship, sender=OrderList, dispatch_uid='post_save_update_orderdetail_relationship')
 
