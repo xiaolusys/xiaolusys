@@ -100,7 +100,7 @@ def xlmm_Conversion_Top_By_Week(request):
     if int(target_week) < int(str(today.year) + today.strftime("%U")):  # 如果目标周比本周
         next_week = str(int(target_week) + 1)  # 下一天 则是目标日期加上一天
 
-    xlmms = XiaoluMama.objects.filter(agencylevel__in=(2, 3), charge_status=XiaoluMama.CHARGED)
+    xlmms = XiaoluMama.objects.filter(agencylevel__gte=XiaoluMama.VIP_LEVEL, charge_status=XiaoluMama.CHARGED)
     # 找出某天的转化前50
     week_counts = WeekCount.objects.filter(week_code=target_week).order_by('-conversion_rate')[:50]
     for week_count in week_counts:
@@ -278,7 +278,7 @@ def xlmm_Convers_Top_By_Month(request):
         date_from, date_to = get_month_from_date(target_date)
     prev_month = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_month = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
-    xlmms = XiaoluMama.objects.filter(agencylevel__in=(2, 3), charge_status=XiaoluMama.CHARGED)
+    xlmms = XiaoluMama.objects.filter(agencylevel__gte=XiaoluMama.VIP_LEVEL, charge_status=XiaoluMama.CHARGED)
     for xlmm in xlmms:
         buyercounts = StatisticsShoppingByDay.objects.filter(tongjidate__gt=date_from, tongjidate__lt=date_to,
                                                              linkid=xlmm.id)

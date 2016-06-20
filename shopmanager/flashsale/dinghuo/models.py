@@ -166,6 +166,8 @@ class OrderList(models.Model):
                                      blank=True,
                                      verbose_name=u'最后下单日期')
     is_postpay = models.BooleanField(default=False, verbose_name=u'是否后付款')
+    
+    purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'PurchaseOrderUnikey')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderlist'
@@ -190,6 +192,21 @@ class OrderList(models.Model):
         else:
             return  self.supplier.product_link
 
+    def is_open(self):
+        return self.status == OrderList.SUBMITTING
+
+    def is_booked(self):
+        return self.status != OrderList.SUBMITTING and \
+               self.status != OrderList.COMPLETED and \
+               self.status != OrderList.ZUOFEI and \
+               self.status != OrderList.CLOSED
+                                             
+    def is_finished(self):
+        return self.status == OrderList.COMPLETED or self.status == OrderList.CLOSED
+
+    def is_canceled(self):
+        return self.status == OrderList.ZUOFEI
+
     def __unicode__(self):
         return '<%s, %s, %s>' % (str(self.id or ''),
                                  self.last_pay_date and self.last_pay_date.strftime('%Y-%m-%d') or '------------',
@@ -212,8 +229,8 @@ def check_with_purchase_order(sender, instance, created, **kwargs):
     if not created:
         return
 
-    from flashsale.dinghuo.tasks import task_check_with_purchase_order
-    task_check_with_purchase_order.delay(instance)
+    #from flashsale.dinghuo.tasks import task_check_with_purchase_order
+    #task_check_with_purchase_order.delay(instance)
 
 
 post_save.connect(
@@ -221,9 +238,48 @@ post_save.connect(
     sender=OrderList,
     dispatch_uid='post_save_check_with_purchase_order')
 
+
+def update_orderdetail_relationship(sender, instance, created, **kwargs):
+    if not created:
+        return
+    OrderDetail.objects.filter(purchase_order_unikey=instance.purchase_order_unikey).update(orderlist=instance)
+    
+post_save.connect(update_orderdetail_relationship, sender=OrderList, dispatch_uid='post_save_update_orderdetail_relationship')
+
+def update_purchaseorder_status(sender, instance, created, **kwargs):
+    from flashsale.dinghuo.models_purchase import PurchaseOrder
+    status = None
+    if instance.is_open():
+        status = PurchaseOrder.OPEN
+    elif instance.is_booked():
+        status = PurchaseOrder.BOOKED
+    elif instance.is_finished():
+        status = PurchaseOrder.FINISHED
+    elif instance.is_canceled():
+        status = PurchaseOrder.CANCELED
+    else:
+        return
+
+    po = PurchaseOrder.objects.filter(uni_key=instance.purchase_order_unikey).first()
+    if po and po.status != status:
+        po.status = status
+        po.save(update_fields=['status','modified'])
+
+        from flashsale.dinghuo.tasks import task_update_purchasedetail_status, \
+            task_update_purchasearrangement_initial_book, task_update_purchasearrangement_status
+        
+        task_update_purchasedetail_status.delay(po)
+        if status == PurchaseOrder.BOOKED:
+            task_update_purchasearrangement_initial_book.delay(po)
+        else:
+            task_update_purchasearrangement_status.delay(po)
+        
+post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='post_save_update_purchaseorder_status')
+
+
 class OrderDetail(models.Model):
     id = models.AutoField(primary_key=True)
-    orderlist = models.ForeignKey(OrderList,
+    orderlist = models.ForeignKey(OrderList,null=True,
                                   related_name='order_list',
                                   verbose_name=u'订单编号')
     product_id = models.CharField(db_index=True,
@@ -255,6 +311,9 @@ class OrderDetail(models.Model):
                                         db_index=True,
                                         verbose_name=u'到货时间')
 
+    purchase_detail_unikey = models.CharField(max_length=32, null=True, unique=True, verbose_name='PurchaseDetailUniKey')
+    purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name='PurchaseOrderUnikey')
+    
     class Meta:
         db_table = 'suplychain_flashsale_orderdetail'
         app_label = 'dinghuo'
@@ -312,6 +371,12 @@ post_save.connect(
     update_productskustats_inbound_quantity,
     sender=OrderDetail,
     dispatch_uid='post_save_update_productskustats_inbound_quantity')
+
+def update_orderlist(sender, instance, created, **kwargs):
+    from flashsale.dinghuo.tasks import task_orderdetail_update_orderlist
+    task_orderdetail_update_orderlist.delay(instance)
+    
+post_save.connect(update_orderlist, sender=OrderDetail, dispatch_uid='post_save_update_orderlist')
 
 
 class orderdraft(models.Model):

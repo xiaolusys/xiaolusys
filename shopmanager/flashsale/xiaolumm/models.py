@@ -414,7 +414,7 @@ class XiaoluMama(models.Model):
         return self.get_Mama_Deposite_Amount()
 
     def is_cashoutable(self):
-        if self.agencylevel in (self.A_LEVEL, self.VIP_LEVEL) and \
+        if self.agencylevel >=self.VIP_LEVEL and \
                         self.charge_status == self.CHARGED and self.status == self.EFFECT:
             return True
         return False
@@ -473,7 +473,14 @@ class XiaoluMama(models.Model):
         """ 代理考试模块中, 通过考试后指定升级
         :type level: int 表示要升级的等级数
         """
-        if self.agencylevel < level:  # 当前等级小于考试通过指定的等级则升级
+        if self.agencylevel < XiaoluMama.VIP_LEVEL:  # 当前等级小于2则返回false
+            return False
+        if self.charge_status != XiaoluMama.CHARGED:  # 没有接管返回false
+            return False
+        if self.status != XiaoluMama.EFFECT:  # 非正常状态 返回false
+            return False
+        # 当前等级小于考试通过指定的等级 并且是接管状态的 则升级
+        if self.agencylevel < level:
             self.agencylevel = level
             self.save(update_fields=['agencylevel'])
             return True
@@ -835,26 +842,25 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
         # 是待发货状态并且是押金交易
         order_buyer = obj.order_buyer
         mm_linkid = obj.extras_info.get('mm_linkid') or None
-        xlmms = XiaoluMama.objects.filter(openid=order_buyer.unionid)
-        if xlmms.exists():
-            xlmm = xlmms[0]
-            referal_mms = XiaoluMama.objects.filter(id=mm_linkid)
-            if referal_mms.exists():
-                xlmm.referal_from = referal_mms[0].mobile
-            xlmm.progress = XiaoluMama.PAY
-            xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
-            xlmm.agencylevel = XiaoluMama.A_LEVEL
-            update_model_fields(xlmm, update_fields=['progress', 'referal_from', 'charge_status', 'agencylevel'])
-            # 保存订单状态到确定状态
-            obj.status = SaleTrade.TRADE_FINISHED
-            update_model_fields(obj, update_fields=['status'])
-            if obj.sale_orders.all():
-                sale_order = obj.sale_orders.all()[0]
-                sale_order.status = SaleOrder.TRADE_FINISHED
-                sale_order.save()
-            # obj.sale_orders.update(status=SaleOrder.TRADE_FINISHED)
-            # 发放30元优惠券
-            res = UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=39)
+        xlmm = XiaoluMama.objects.filter(openid=order_buyer.unionid).first()
+        if not xlmm:
+            return
+        referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
+        if referal_mm:
+            xlmm.referal_from = referal_mm.mobile
+        xlmm.progress = XiaoluMama.PAY
+        xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
+        xlmm.agencylevel = XiaoluMama.A_LEVEL
+        update_model_fields(xlmm, update_fields=['progress', 'referal_from', 'charge_status', 'agencylevel'])
+        # 保存订单状态到确定状态
+        obj.status = SaleTrade.TRADE_FINISHED
+        update_model_fields(obj, update_fields=['status'])
+        if obj.sale_orders.all():
+            sale_order = obj.sale_orders.all()[0]
+            sale_order.status = SaleOrder.TRADE_FINISHED
+            sale_order.save()
+        # 发放30元优惠券
+        UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=39)
 
 
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress, sender=SaleTrade)

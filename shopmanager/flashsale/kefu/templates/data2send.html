@@ -11,6 +11,7 @@
     {% if send_result %}
         {% ifequal send_result "OK" %}
             <h2 style="color: #97eeff">发送成功</h2>
+            <a href="/admin/pay/saletrade/"> 返回特卖订单列表</a>
         {% else %}
             <h2 style="color: red">发送失败</h2>
         {% endifequal %}

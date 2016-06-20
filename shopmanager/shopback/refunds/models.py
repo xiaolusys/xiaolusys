@@ -227,7 +227,7 @@ class RefundProduct(models.Model):
     oid = models.CharField(max_length=64, db_index=True, blank=True, default='', verbose_name='子订单ID')
     outer_id = models.CharField(max_length=64, db_index=True, blank=True, verbose_name='商品编码')
     outer_sku_id = models.CharField(max_length=64, db_index=True, blank=True, verbose_name='规格编码')
-    sku_id = models.IntegerField(null=True, verbose_name='SKUID')
+    sku_id = models.IntegerField(null=True, db_index=True, verbose_name='SKUID')
     num = models.IntegerField(default=0, verbose_name='数量')
     title = models.CharField(max_length=64, blank=True, verbose_name='商品名称')
     property = models.CharField(max_length=64, blank=True, verbose_name='规格名称')

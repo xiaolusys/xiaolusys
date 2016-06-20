@@ -169,7 +169,7 @@ def task_Record_User_Click(pre_day=1):
     time_from = datetime.datetime(pre_date.year, pre_date.month, pre_date.day)  # 生成带时间的格式  开始时间
     time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)  # 停止时间
     # 代理级别为2 和 3　的　并且id　大于134的
-    xlmms = XiaoluMama.objects.filter(agencylevel__in=(2, 3), id__gt=134)
+    xlmms = XiaoluMama.objects.filter(agencylevel__gte=XiaoluMama.VIP_LEVEL, id__gt=134)
     for xiaolumama in xlmms:  #
         clicks = Clicks.objects.filter(click_time__range=(time_from, time_to),
                                        linkid=xiaolumama.id)  # 根据代理的id过滤出点击表中属于该代理的点击
@@ -282,7 +282,7 @@ def task_Count_ClickCount_Info(instance=None, created=None):
     click_count, state = ClickCount.objects.get_or_create(date=date, linkid=instance.linkid)
     try:
         xlmm = XiaoluMama.objects.get(id=instance.linkid)
-        if xlmm.agencylevel not in (2, 3):  # 未接管的不去统计
+        if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 未接管的不去统计
             return
         if state:  # 表示创建统计记录
             click_count.user_num = 1

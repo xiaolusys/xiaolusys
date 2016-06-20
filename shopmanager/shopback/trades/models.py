@@ -1493,8 +1493,11 @@ class PackageOrder(models.Model):
 
     def set_package_address(self):
         item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).first()
-        if item:
-            st = SaleTrade.objects.get(tid=item.sale_trade_id)
+        if item and item.sale_trade_id:
+            st = SaleTrade.objects.filter(tid=item.sale_trade_id).first()
+            if not st:
+                return self
+            
             self.buyer_id = st.buyer_id
             self.receiver_name = st.receiver_name
             self.receiver_state = st.receiver_state
@@ -1740,6 +1743,8 @@ class PackageSkuItem(BaseModel):
     logistics_company_name = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司')
     logistics_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司代码')
 
+    purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一ID')
+    
     class Meta:
         db_table = 'flashsale_package_sku_item'
         app_label = 'trades'
@@ -1816,10 +1821,18 @@ class PackageSkuItem(BaseModel):
 
     def is_booking_assigned(self):
         # self.assigned_purchase_order_id
-        if self.assign_status == PackageSkuItem.ASSIGNED:
+        if self.assign_status == PackageSkuItem.ASSIGNED or self.assign_status == PackageSkuItem.FINISHED:
             return True
         return False
 
+    def is_booked(self):
+        """
+        Return True means that this sku is already booked.
+        """
+        if self.purchase_order_unikey:
+            return True
+        return False
+    
     def clear_order_info(self):
         if self.assign_status == 2:
             return
@@ -1851,7 +1864,7 @@ class PackageSkuItem(BaseModel):
     def reset_assign_status(self):
         PackageSkuItem.objects.filter(id=self.id).update(assign_status=0)
         package_order = self.package_order
-        if not package_order.is_sent():
+        if package_order and not package_order.is_sent():
             if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                 package_order.set_redo_sign(save_data=False)
                 package_order.reset_sku_item_num(save_data=True)

@@ -773,13 +773,13 @@ from django.db.models import Avg, Count, Sum
 def manage_Summar(date_time):
     data = []
     xiaolumamas = XiaoluMama.objects.exclude(charge_status=XiaoluMama.UNCHARGE, manager=0).filter \
-        (agencylevel__in=(2, 3)).values('manager').distinct()
+        (agencylevel__gte=XiaoluMama.VIP_LEVEL).values('manager').distinct()
     date = date_time.date()
     for xlmm_manager in xiaolumamas:
         xiaolumama_manager2 = xlmm_manager['manager']
         clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2, date=date,
-                                                agencylevel__in=(2, 3))  # 当天的该管理员的所有代理的点击
-        xlmms = XiaoluMama.objects.filter(agencylevel__in=(2, 3), manager=xiaolumama_manager2,
+                                                agencylevel__gte=XiaoluMama.VIP_LEVEL)  # 当天的该管理员的所有代理的点击
+        xlmms = XiaoluMama.objects.filter(agencylevel__gte=XiaoluMama.VIP_LEVEL, manager=xiaolumama_manager2,
                                           charge_status=XiaoluMama.CHARGED,
                                           charge_time__lt=date_time)  # 该管理员在对应日期之前接管的代理
         xlmm_num = xlmms.count()  # 这个管理员下面的妈妈数量
