@@ -571,6 +571,3 @@ try:
         INSTALLED_APPS += ('debug_toolbar',)
 except ImportError, err:
     pass
-
-
-print 'debug db:', DATABASES

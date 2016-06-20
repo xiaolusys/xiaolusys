@@ -173,7 +173,7 @@ class RealInBoundAdmin(admin.ModelAdmin):
         'id','wave_no','forecast_inbound','supplier', 'ware_house', 'creator', 'inspector', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter))
-    search_fields = ['=id','=supplier__supplier_name', '=express_no', '=creator']
+    search_fields = ['=id','^supplier__supplier_name', '=express_no', '=creator']
 
     filter_horizontal = ('relate_order_set',)
 
