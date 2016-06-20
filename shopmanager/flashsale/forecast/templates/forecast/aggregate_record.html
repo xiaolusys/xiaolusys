@@ -1,6 +1,6 @@
 <div class="panel panel-default">
 <div class="panel-heading clearfix">
-    <a class="btn btn-link  " href="/sale/forecast/dashboard?action=all&supplier_id={{aggregate_order.supplier.id}}{% if staff_name %}&staff_name={{staff_name}}{% endif %}">{{aggregate_order.supplier.supplier_name}}</a>
+    <a class="btn btn-link" target="_blank"  href="/sale/forecast/dashboard?action=all&supplier_id={{aggregate_order.supplier.id}}{% if staff_name %}&staff_name={{staff_name}}{% endif %}">{{aggregate_order.supplier.supplier_name}}</a>
     <div class=" pull-right inline">
         <div class="inline">
             <a class="btn btn-link" href="{% url 'admin:dinghuo_orderlist_changelist' %}?supplier_id={{aggregate_order.supplier.id}}" target="_blank">全部订货单</a>
