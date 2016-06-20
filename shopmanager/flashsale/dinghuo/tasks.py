@@ -1422,7 +1422,7 @@ def task_packageskuitem_update_purchaserecord(psi):
 
     # The following code holds till all old-fashion orderdetails finish.
     od = OrderDetail.objects.filter(chichu_id=psi.sku_id).order_by('-created').first()
-    if od.orderlist and od.orderlist.status != OrderList.ZUOFEI and od.orderlist.created > psi.created:
+    if od and od.orderlist and od.orderlist.status != OrderList.ZUOFEI and od.orderlist.created > psi.created:
         return
     
     uni_key = utils.gen_purchase_record_unikey(psi)
