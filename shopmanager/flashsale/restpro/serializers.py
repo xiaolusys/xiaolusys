@@ -172,7 +172,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'url', 'name', 'outer_id', 'category', 'pic_path', 'remain_num', 'is_saleout', 'head_img',
                   'is_saleopen', 'is_newgood', 'std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 'memo',
                   'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id",
-                  'watermark_op', 'web_url')
+                  'watermark_op', 'web_url', 'sale_product')
 
 
 class ProductSimpleSerializer(serializers.ModelSerializer):
