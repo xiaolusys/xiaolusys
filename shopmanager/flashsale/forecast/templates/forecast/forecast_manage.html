@@ -82,7 +82,7 @@
                     {% endfor %}
                 </ul>
                 <div class="custom-header row">
-                    <div class="col-xs-12 btn btn-sm btn-info ">全选</div>
+                    <div class="col-xs-12 btn btn-sm btn-info btn-select-all">全选</div>
                 </div>
             </div>
 
@@ -138,7 +138,7 @@
                     {% endfor %}
                 </ul>
                 <div class="custom-header">
-                    <div class="col-xs-4 btn btn-sm btn-danger">全部取消</div>
+                    <div class="col-xs-4 btn btn-sm btn-danger btn-cancel-all">全部取消</div>
                     <div class="btn btn-primary btn-sm col-xs-8" onclick="initModal()">
                         创建新预测单
                     </div>
@@ -150,13 +150,13 @@
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span></button>
-                                        <h4 class="modal-title" id="myModalLabel">以下商品将从原预测单中删除并添加到预测单</h4>
+                                        <h4 class="modal-title" id="myModalLabel">以下商品将从原预测单中删除并添加到新预测单</h4>
                                     </div>
                                     <div class="modal-body">
 
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                                        <button type="button" class="btn btn-default " data-dismiss="modal">取消</button>
                                         <button type="submit" class="btn btn-primary">确认创建</button>
                                     </div>
                                 </div>

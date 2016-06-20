@@ -57,7 +57,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter),
                    ('forecast_arrive_time',DateScheduleFilter))
 
-    search_fields = ['=id','=supplier__supplier_name']
+    search_fields = ['=id','=supplier__supplier_name','=express_no','=purchaser']
 
     filter_horizontal = ('relate_order_set',)
 
@@ -71,7 +71,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
         ('预测到货状态:', {
          'classes': ('expand',),
          'fields': (('express_code', 'express_no', 'forecast_arrive_time'),
-                    ('purchaser', 'status', 'is_lackordefect', 'is_overorwrong'))
+                    ('purchaser', 'is_lackordefect', 'is_overorwrong'))
         })
     )
 
@@ -163,8 +163,6 @@ class ForecastInboundDetailAdmin(admin.ModelAdmin):
 admin.site.register(ForecastInboundDetail, ForecastInboundDetailAdmin)
 
 
-
-
 class RealInBoundAdmin(admin.ModelAdmin):
     # fieldsets = ((u'用户信息:', {
     #     'classes': ('expand',),
@@ -175,7 +173,7 @@ class RealInBoundAdmin(admin.ModelAdmin):
         'id','wave_no','forecast_inbound','supplier', 'ware_house', 'creator', 'inspector', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter))
-    search_fields = ['supplier__name', 'express_no']
+    search_fields = ['=id','=supplier__supplier_name', '=express_no', '=creator']
 
     filter_horizontal = ('relate_order_set',)
 
@@ -210,11 +208,8 @@ class RealInBoundAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            return self.readonly_fields + ('status', 'ware_house', 'relate_order_set',
-                                           'creator', 'inspector', 'status')
+            return self.readonly_fields + ('status', 'ware_house', 'creator', 'inspector', 'status')
         return self.readonly_fields
-
-
 
 
 admin.site.register(RealInBound, RealInBoundAdmin)
