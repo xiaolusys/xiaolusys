@@ -201,7 +201,7 @@ class AggregateForcecastOrderAndInbound(object):
         for aggregate_order in aggregate_datas:
             order_supplier_id = aggregate_order['supplier']['id']
             if order_supplier_id in aggregate_supplier_dict:
-                aggregate_supplier_dict[order_supplier_id]['purchase_orders'].append(aggregate_order)
+                aggregate_supplier_dict[order_supplier_id]['aggregate_orders'].append(aggregate_order)
             else:
                 aggregate_supplier_dict[order_supplier_id] = {
                     'supplier': aggregate_order['supplier'],
