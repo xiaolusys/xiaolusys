@@ -573,3 +573,4 @@ except ImportError, err:
     pass
 
 
+print 'debug db:', DATABASES

@@ -1252,6 +1252,7 @@ def get_suppliers(pay_time_threshold):
 
 
 def create_orderlist(supplier):
+    return {}
     now = datetime.datetime.now()
     supplier_id = supplier['id']
 

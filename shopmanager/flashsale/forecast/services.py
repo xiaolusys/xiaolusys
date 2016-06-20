@@ -147,6 +147,9 @@ class AggregateForcecastOrderAndInbound(object):
         １，　入仓的订货单根据预测单继续聚合分组；
         ２，　未入仓订货单则单独统一分组；　
         """
+        if hasattr(self, '_aggregate_data_'):
+            return self._aggregate_data_
+
         aggregate_dict_list = []
         aggregate_set_list = self.aggregate_order_set()
 
@@ -188,10 +191,11 @@ class AggregateForcecastOrderAndInbound(object):
                 'real_inbounds': aggregate_inbounds,
                 'is_unarrive_intime': is_unarrive_intime,
                 'is_unrecord_logistic': is_unrecord_logistic,
+                'is_billingable': False,
                 'supplier': aggregate_orders[0]['supplier']
             })
-
-        return aggregate_dict_list
+        self._aggregate_data_ = aggregate_dict_list
+        return self._aggregate_data_
 
 
     def aggregate_supplier_data(self, supplier_id=None):

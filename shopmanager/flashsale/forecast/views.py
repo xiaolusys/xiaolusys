@@ -396,7 +396,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
 
             for obj in forecast_data_list:
                 detail = ForecastInboundDetail.objects.filter(forecast_inbound_id=obj[2],
-                                                                 product_id=obj[1], sku_id=obj[0]).first()
+                                                            product_id=obj[1], sku_id=obj[0]).first()
                 if not detail or detail.forecast_arrive_num < obj[3]:
                     raise exceptions.APIException('trans num bigger than forecast arrive num:%s'%(obj))
                 if detail.forecast_arrive_num <= obj[3]:
@@ -437,29 +437,37 @@ class PurchaseDashBoardAPIView(APIView):
         staff_name = data.get('staff_name','')
 
         purchase_orders = services.filter_pending_purchaseorder(**{'staff_name': staff_name})
-        aggregate_supplier_obj = services.AggregateForcecastOrderAndInbound(purchase_orders)
+        aggregate_forecast_obj = services.AggregateForcecastOrderAndInbound(purchase_orders)
 
-        aggregate_record_list = []
-        if action == 'unlogisticed':
-            aggregate_datas = aggregate_supplier_obj.aggregate_data()
-            for aggregate  in aggregate_datas:
-                if aggregate['is_unrecord_logistic']:
-                    aggregate_record_list.append(aggregate)
+        aggregate_list_dict = {
+            'unlogisticed': [],
+            'unarrived': [],
+            'billingable': [],
+        }
+        aggregate_datas = aggregate_forecast_obj.aggregate_data()
+        for aggregate  in aggregate_datas:
+            if aggregate['is_unrecord_logistic']:
+                aggregate_list_dict['unlogisticed'].append(aggregate)
+            if aggregate['is_unarrive_intime']:
+                aggregate_list_dict['unarrived'].append(aggregate)
+            if aggregate['is_billingable']:
+                aggregate_list_dict['billingable'].append(aggregate)
 
-        elif action == 'unarrived':
-            aggregate_datas = aggregate_supplier_obj.aggregate_data()
-            for aggregate in aggregate_datas:
-                if aggregate['is_unarrive_intime']:
-                    aggregate_record_list.append(aggregate)
-
-        elif action == 'unbilling':
-            pass
+        is_handleable = action in ('unlogisticed', 'unarrived', 'billingable')
+        if is_handleable:
+            aggregate_record_list = aggregate_list_dict[action]
         else:
             supplier_id = data.get('supplier_id')
             if supplier_id and supplier_id.isdigit():
-                aggregate_record_list = aggregate_supplier_obj.aggregate_supplier_data(supplier_id=supplier_id)
+                aggregate_record_list = aggregate_forecast_obj.aggregate_supplier_data(supplier_id=supplier_id)
             else:
-                aggregate_record_list = aggregate_supplier_obj.aggregate_supplier_data()
+                aggregate_record_list = aggregate_forecast_obj.aggregate_supplier_data()
 
-        return Response({'aggregate_list': aggregate_record_list, 'action': action, 'staff_name':staff_name})
+        return Response({'aggregate_list': aggregate_record_list,
+                         'unlogistics_num': len(aggregate_list_dict['unlogisticed']),
+                         'unarrived_num': len(aggregate_list_dict['unarrived']),
+                         'billingable_num': len(aggregate_list_dict['billingable']),
+                         'aggregate_num': is_handleable and len(aggregate_datas) or len(aggregate_record_list),
+                         'action': action,
+                         'staff_name':staff_name})
 
