@@ -145,7 +145,7 @@ class Envelop(PayBaseModel):
 
     def cancel_envelop(self):
 
-        if not self.envelop_id and self.status == self.WAIT_SEND:
+        if not self.envelop_id or self.status == self.WAIT_SEND:
             self.status = Envelop.CANCEL
             self.save(update_fields=['status'])
             self.refund_envelop()
