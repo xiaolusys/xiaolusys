@@ -37,9 +37,10 @@ def xlmm_invite_num(xlmm):
 
 
 def get_xlmm_exam():
-    now = datetime.datetime.now()
-    return Mamaexam.objects.filter(valid=True, start_time__lte=now, expire_time__gte=now,
-                                   participant=constants.XLMM_EXAM).first()
+    #now = datetime.datetime.now()
+    # return Mamaexam.objects.filter(valid=True, start_time__lte=now, expire_time__gte=now,
+    #                                participant=constants.XLMM_EXAM).first()
+    return Mamaexam.objects.filter(valid=True, participant=constants.XLMM_EXAM).order_by('-start_time').first()
 
 
 def computation_practice_point(xlmm):
