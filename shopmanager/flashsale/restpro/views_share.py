@@ -117,7 +117,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
         wx_api = WeiXinAPI()
         signparams = wx_api.getShareSignParams(referer_url)
 
-        return signparams
+        return Response(signparams)
 
 
     @list_route(methods=['get'])
