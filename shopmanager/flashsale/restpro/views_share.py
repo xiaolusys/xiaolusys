@@ -30,7 +30,7 @@ from core.options import log_action, ADDITION, CHANGE
 class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ### 特卖分享API：
-    
+    > ### /weixin_signs :获取微信分享签名;
     > ### /shop :分享店铺信息接口;
     > ### /product: 分享商品信息接口;
     - product_id:被分享的商品ID
@@ -107,6 +107,18 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
 
         return {'openid': self.get_xlmm_share_openid(xlmm),
                 'wx_singkey': signparams}
+
+    @list_route(methods=['get'])
+    def weixin_signs(self, request, *args, **kwargs):
+
+        http_referer = request.META.get('HTTP_REFERER', settings.M_SITE_URL)
+        referer_url = request.GET.get('referer', http_referer).split('#')[0]
+
+        wx_api = WeiXinAPI()
+        signparams = wx_api.getShareSignParams(referer_url)
+
+        return signparams
+
 
     @list_route(methods=['get'])
     def today(self, request, *args, **kwargs):
