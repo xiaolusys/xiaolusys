@@ -37,7 +37,7 @@ class orderdetailInline(admin.TabularInline):
 class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'sys_status')
+        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'sys_status', 'purchase_order_unikey')
     }),)
     inlines = [orderdetailInline]
 
@@ -248,7 +248,7 @@ class orderdetailAdmin(admin.ModelAdmin):
         'classes': ('expand',),
         'fields': (
             'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity', 'arrival_quantity',
-            'inferior_quantity', 'non_arrival_quantity')
+            'inferior_quantity', 'non_arrival_quantity', 'purchase_detail_unikey', 'purchase_order_unikey')
     }),)
 
     list_display = (
