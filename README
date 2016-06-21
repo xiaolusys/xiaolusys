@@ -27,3 +27,6 @@ git pull　--rebase remote remote-branch
 等于方式二：
 git fetch remote remote-branch
 git rebase remote/remote-branch
+
+################# migrate原则 ###################
+项目上线后：不能删除字段，只能新加字段替换原来字段的功能，原来字段保留

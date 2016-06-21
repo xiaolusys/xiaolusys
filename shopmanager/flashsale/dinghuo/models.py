@@ -344,18 +344,16 @@ def orderlist_create_forecast_inbound( sender, instance, raw, **kwargs):
         instance.sys_status = OrderList.ST_APPROVAL
 
     real_orderlist = OrderList.objects.filter(id=instance.id).first()
-    if  real_orderlist and \
-        real_orderlist.status == OrderList.SUBMITTING and \
-        instance.status == OrderList.APPROVAL:
+    if  real_orderlist and instance.status == OrderList.APPROVAL:
         # if the orderlist purchase confirm, then create forecast inbound
-        from flashsale.forecast.apis import api_create_forecastinbound_by_orderlist
+        from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
         try:
             with transaction.atomic():
-                api_create_forecastinbound_by_orderlist(instance)
+                api_create_or_update_forecastinbound_by_orderlist(instance)
         except Exception,exc:
             logger.error('update forecast inbound:%s'% exc.message, exc_info=True)
 
-pre_save.connect(
+post_save.connect(
     orderlist_create_forecast_inbound,
     sender=OrderList,
     dispatch_uid='pre_save_orderlist_create_forecast_inbound')
@@ -973,9 +971,9 @@ class InBound(models.Model):
                     order_detail.chichu_id, 0)
         return assign_dict
 
-    def notify_forecast_save_inbound(self):
-        from flashsale.forecast.apis import api_create_realinbound_by_inbound
-        api_create_realinbound_by_inbound.delay(self.id)
+    def notify_forecast_save_or_update_inbound(self):
+        from flashsale.forecast.apis import api_create_or_update_realinbound_by_inbound
+        api_create_or_update_realinbound_by_inbound.delay(self.id)
 
 
 

@@ -70,6 +70,14 @@ class ForecastInbound(BaseModel):
         forecast_nums = self.normal_details().values_list('forecast_arrive_num', flat=True)
         return forecast_nums and sum(forecast_nums) or 0
 
+    @property
+    def real_arrive_num(self):
+        relate_inbounds = RealInBound.objects.filter(forecast_inbound=self)
+        arrival_quantitys = RealInBoundDetail.objects.filter(inbound__in=relate_inbounds,
+                                                             status=RealInBoundDetail.NORMAL)\
+                                                            .values_list('arrival_quantity', flat=True)
+        return arrival_quantitys and sum(arrival_quantitys) or 0
+
     def get_ware_house_name(self):
         return dict(constants.WARE_CHOICES).get(self.ware_house)
 
@@ -84,6 +92,9 @@ class ForecastInbound(BaseModel):
         self.status = self.ST_ARRIVED
         self.save()
 
+    def unarrive_close(self):
+        self.status = self.ST_CANCELED
+        self.save()
 
 
 class ForecastInboundDetail(BaseModel):
@@ -210,6 +221,7 @@ class RealInBound(BaseModel):
 
     STAGING = 'staging'
     COMPLETED = 'completed'
+    # CHECKED  = 'checked'
     CANCELED = 'canceled'
 
     STATUS_CHOICES = ((STAGING, u'待入库'), (COMPLETED, u'已入库'),(CANCELED, u'已取消'))
@@ -264,6 +276,13 @@ class RealInBound(BaseModel):
         arrive_nums = self.normal_details().values_list('arrival_quantity', flat=True)
         return arrive_nums and sum(arrive_nums) or 0
 
+    @property
+    def total_inferior_num(self):
+        inferior_quantitys = RealInBoundDetail.objects.filter(inbound=self,
+                                                             status=RealInBoundDetail.NORMAL) \
+            .values_list('inferior_quantity', flat=True)
+        return inferior_quantitys and sum(inferior_quantitys) or 0
+
 class RealInBoundDetail(BaseModel):
 
     NORMAL   = 'normal'
@@ -277,7 +296,7 @@ class RealInBoundDetail(BaseModel):
                                 related_name='inbound_detail_manager',
                                 verbose_name=u'入仓单')
 
-    product_id = models.IntegerField(verbose_name=u'商品ID')
+    product_id = models.IntegerField(db_index=True, verbose_name=u'商品ID')
     sku_id = models.IntegerField(verbose_name=u'规格ID')
 
     barcode = models.CharField(max_length=64, blank=True, verbose_name=u'商品条码')
@@ -294,6 +313,7 @@ class RealInBoundDetail(BaseModel):
 
     class Meta:
         db_table = 'forecast_real_inbounddetail'
+        unique_together = ['sku_id', 'inbound']
         app_label = 'forecast'
         verbose_name = u'V2入仓单明细'
         verbose_name_plural = u'V2入仓单明细列表'

@@ -104,7 +104,6 @@ class StagingInboundViewSet(viewsets.ModelViewSet):
                             'forecast_arrive_num': forecast_detail.forecast_arrive_num,
                             'is_forecasted': True,
                         })
-
                 record_inbound = staging_inbounds.filter(product_id=product_id, sku_id=sku.id).first()
                 if record_inbound:
                     record_dict.update({
@@ -113,7 +112,6 @@ class StagingInboundViewSet(viewsets.ModelViewSet):
                         'is_record': True,
                         'creator': record_inbound.creator
                     })
-
                 record_skus.append(record_dict)
 
             aggregate_records.append({
@@ -206,11 +204,9 @@ class InBoundViewSet(viewsets.ModelViewSet):
                 sku_dict['districts'].append(str(product_location.district))
             sku_dict.update(skus_dict[sku.id])
             product_dict['skus'][sku.id] = sku_dict
-
         saleproducts_dict = {}
         for saleproduct in SaleProduct.objects.filter(id__in=list(saleproduct_ids)):
             saleproducts_dict[saleproduct.id] = saleproduct.product_link
-
         products = []
         for product_dict in sorted(products_dict.values(), key=lambda x: x['id']):
             product_dict['skus'] = sorted(product_dict['skus'].values(), key=lambda x: x['id'])
@@ -412,6 +408,10 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                 forecast_detail.product_name = detail.product_name
                 forecast_detail.product_img = detail.product_img
                 forecast_detail.save()
+
+        for forecast in forecast_qs:
+            if forecast.total_detail_num == 0:
+                forecast.unarrive_close()
 
         # serializer_data = self.get_serializer(forecast_newobj).data
         return Response({'redrect_url': reverse('admin:forecast_forecastinbound_changelist')+'?q=%s'%forecast_newobj.id})

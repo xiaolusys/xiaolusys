@@ -9,12 +9,19 @@ from .models import (ForecastInbound,
                      )
 
 @task()
-def api_create_forecastinbound_by_orderlist(order_list):
+def api_create_or_update_forecastinbound_by_orderlist(order_list):
 
     from shopback.items.models import Product, ProductSku
     supplier = order_list.supplier
-    forecast_ib = ForecastInbound()
 
+    forecast_ib = ForecastInbound.objects.filter(relate_order_set__in=(order_list.id)).first()
+    if forecast_ib:
+        forecast_ib.express_code = forecast_ib.express_code or order_list.express_company
+        forecast_ib.express_no = forecast_ib.express_no or order_list.express_no
+        forecast_ib.save(update_fields=['express_code', 'express_no'])
+        return
+
+    forecast_ib = ForecastInbound()
     forecast_ib.supplier = supplier
     forecast_ib.ware_house  = supplier.ware_by
     forecast_ib.purchaser  = order_list.buyer_name
@@ -26,7 +33,6 @@ def api_create_forecastinbound_by_orderlist(order_list):
     forecast_ib.forecast_arrive_time = forecast_arrive_time
     forecast_ib.status = ForecastInbound.ST_DRAFT
     forecast_ib.save()
-
     forecast_ib.relate_order_set.add(order_list)
 
     for order in order_list.order_list.all():
@@ -44,14 +50,17 @@ def api_create_forecastinbound_by_orderlist(order_list):
 
 
 @task()
-def api_create_realinbound_by_inbound(inbound_id):
+def api_create_or_update_realinbound_by_inbound(inbound_id):
     """ base on dinghuo inbound complete signal updates """
     from flashsale.dinghuo.models import InBound
     inbound = InBound.objects.get(id=inbound_id)
 
+    real_wave_no = 'ref%s'% inbound_id
     inbound_order_set = set(inbound.orderlist_ids)
-    real_inbound = RealInBound()
-    real_inbound.wave_no = inbound.id
+    real_inbound = RealInBound.objects.filter(wave_no=real_wave_no).first()
+    if not real_inbound:
+        real_inbound = RealInBound()
+        real_inbound.wave_no = real_wave_no
 
     forecast_inbound = ForecastInbound.objects.filter(id=inbound.forecast_inbound_id).first()
     if inbound.orderlist_ids and not forecast_inbound:
@@ -73,17 +82,21 @@ def api_create_realinbound_by_inbound(inbound_id):
         real_inbound.relate_order_set.add(order_id)
 
     for detail  in inbound.details.all():
-        real_detail = RealInBoundDetail()
+        real_detail = RealInBoundDetail.objects.filter(inbound=real_inbound,
+                                                       sku_id=detail.sku.id).first()
+        if not real_detail:
+            real_detail = RealInBoundDetail()
+
         real_detail.inbound = real_inbound
-        real_inbound.product_id = detail.product.id
-        real_inbound.sku_id = detail.sku.id
-        real_inbound.barcode = detail.sku.barcode
-        real_inbound.product_name = detail.product_name
-        real_inbound.product_img = detail.product.pic_path
-        real_inbound.arrival_quantity = detail.arrival_quantity
-        real_inbound.inferior_quantity = detail.inferior_quantity
-        real_inbound.district = detail.district
-        real_inbound.save()
+        real_detail.product_id = detail.product.id
+        real_detail.sku_id = detail.sku.id
+        real_detail.barcode = detail.sku.barcode
+        real_detail.product_name = detail.product_name
+        real_detail.product_img = detail.product.pic_path
+        real_detail.arrival_quantity = detail.arrival_quantity + detail.inferior_quantity
+        real_detail.inferior_quantity = detail.inferior_quantity
+        real_detail.district = detail.district
+        real_detail.save()
 
     if forecast_inbound:
         forecast_inbound.inbound_arrive_update_status()

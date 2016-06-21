@@ -52,6 +52,7 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
             'receiver': order.receiver,
             'created': order.created,
             'purchase_time': pt ,
+            'memo': order.note,
             'sys_status': order.sys_status,
             'sys_status_name': order.status_name,
             'total_detail_num': order.total_detail_num
