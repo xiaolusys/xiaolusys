@@ -1539,6 +1539,9 @@ def task_purchasedetail_update_orderdetail(pd):
         
 @task()
 def task_orderdetail_update_orderlist(od):
+    if not od.purchase_order_unikey:
+        return
+    
     ol = OrderList.objects.filter(purchase_order_unikey=od.purchase_order_unikey).first()
     if not ol:
         supplier = utils.get_supplier(od.chichu_id)
