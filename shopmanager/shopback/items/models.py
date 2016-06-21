@@ -249,6 +249,9 @@ class Product(models.Model):
             sale_out &= sku.sale_out
         return sale_out
 
+    def get_product_link(self):
+        return SaleProduct.objects.get(id=self.sale_product).product_link
+
     def has_quantity(self):
         return self.collect_num > 0
 
@@ -923,6 +926,12 @@ class ProductSku(models.Model):
         sync_num = quantity - remain_num - wait_post_num
         return self.warn_num > 0 and self.warn_num >= sync_num
 
+    @property
+    def district(self):
+        location = ProductLocation.objects.filter(product_id=self.product.id, sku_id=self.id).first()
+        if location:
+            return location.district
+
     def get_district_list(self):
         locations = ProductLocation.objects.filter(product_id=self.product.id, sku_id=self.id)
         return [(l.district.parent_no, l.district.district_no) for l in locations]
@@ -1188,7 +1197,6 @@ class SkuProperty(models.Model):
 
 class ProductLocation(models.Model):
     """ 库存商品库位信息 """
-
     product_id = models.IntegerField(db_index=True, verbose_name='商品ID')
     sku_id = models.IntegerField(db_index=True, blank=True, null=True, verbose_name='规格ID')
 
@@ -1201,6 +1209,21 @@ class ProductLocation(models.Model):
     district = models.ForeignKey(DepositeDistrict,
                                  related_name='product_locations',
                                  verbose_name='关联库位')
+
+    @staticmethod
+    def set_product_district(product, district):
+        ProductLocation.objects.filter(product_id=product.id).exclude(district=district).delete()
+        res = []
+        for sku in product.prod_skus.all():
+            p, state = ProductLocation.objects.get_or_create(product_id=product.id,
+                            sku_id=sku.id,
+                            outer_id=product.outer_id,
+                            outer_sku_id=product.outer_id,
+                            name=product.title(),
+                            properties_name=sku.properties_name,
+                            district=district)
+            res.append(p)
+        return res
 
     class Meta:
         db_table = 'shop_items_productlocation'

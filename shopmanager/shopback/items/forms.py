@@ -8,7 +8,7 @@ from django import forms
 
 from core.forms import BaseForm
 
-from .models import Product
+from .models import Product, ProductSku, DepositeDistrict
 from . import constants
 
 
@@ -21,6 +21,19 @@ class ProductModelForm(forms.ModelForm):
     class Meta:
         model = Product
         exclude = ()
+
+
+class ProductLocationForm(BaseForm):
+    product = forms.IntegerField()
+    sku = forms.IntegerField(required=False)
+    district = forms.CharField()
+
+    # product = forms.IntegerField(choices=Product.objects.all())
+    # sku = forms.ChoiceField(choices=ProductSku.objects.all(), required=False)
+    # district = forms.ChoiceField(choices=DepositeDistrict.objects.all())
+    # product = forms.ModelChoiceField(Product.objects)
+    # sku = forms.ModelChoiceField(ProductSku.objects, required=False)
+    # district = forms.ModelChoiceField(DepositeDistrict.objects)
 
 
 class ProductScanForm(forms.Form):

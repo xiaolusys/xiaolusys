@@ -102,7 +102,7 @@ class ChangeDetailView(View):
         for inbounddetail in InBoundDetail.objects.filter(id__in=list(inbounddetail_ids)):
             inbound_ids.add(inbounddetail.inbound_id)
         inbound_dicts = []
-        for inbound in InBound.objects.filter(id__in=list(inbound_ids), status__in=[InBound.COMPLETED, InBound.PENDING]).order_by('id'):
+        for inbound in InBound.objects.filter(id__in=list(inbound_ids), status__in=[InBound.COMPLETED, InBound.WAIT_CHECK, InBound.PENDING]).order_by('id'):
             inbound_dicts.append({
                 'id': inbound.id,
                 'memo': inbound.memo

@@ -32,26 +32,27 @@ class GroupNameFilter(SimpleListFilter):
             my_users = [my_user.user.username for my_user in user_list]
             return queryset.filter(buyer_name__in=my_users)
 
+
 class InBoundCreatorFilter(SimpleListFilter):
     title = u'创建者'
     parameter_name = u'creator_name'
 
     def lookups(self, request, model_admin):
         from flashsale.dinghuo.models import InBound
-        from flashsale.dinghuo.views import InBoundViewSet
+        from flashsale.dinghuo.view_inbound import InBoundViewSet
         user_ids = [x['creator'] for x in InBound.objects.all().values('creator').distinct()]
 
         tmp = []
         for user in User.objects.filter(id__in=user_ids).order_by('id'):
             tmp.append((user.id, InBoundViewSet.get_username(user)))
         return tmp
+
     def queryset(self, request, queryset):
         user_id = self.value()
         if not user_id:
             return queryset
         else:
             return queryset.filter(creator_id=user_id)
-
 
 
 class OrderListStatusFilter(SimpleListFilter):

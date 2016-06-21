@@ -1,4 +1,5 @@
 # coding: utf-8
+__author__ = 'yan.huang'
 
 from django import forms
 
@@ -8,8 +9,11 @@ class FormAttrs(object):
 
 
 class BaseForm(forms.Form):
-    # 如果验证成功则设置cleaned_attrs属性
     def clean(self):
+        """
+            # 如果验证成功则设置cleaned_attrs属性
+            恩俊写的，不习惯cleaned_data的字典形式，想改成属性形式 并无别的提升
+        """
         cleaned_data = super(BaseForm, self).clean()
         for k, v in self.initial.iteritems():
             if cleaned_data.get(k) != None:
@@ -24,3 +28,12 @@ class BaseForm(forms.Form):
             setattr(cleaned_attrs, k, v)
         setattr(self, 'cleaned_attrs', cleaned_attrs)
         return cleaned_data
+
+    @property
+    def error_messsage(self):
+        # todo@hy 应该是as_json然后把key转化成verbose_name
+        return self.errors.as_text()
+
+
+class ModelField(forms.Field):
+    pass

@@ -3,10 +3,11 @@
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
-        <title>修改入仓单</title>
+        <title>审核入仓单</title>
         <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
         <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
         <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}admin/css/forms.css" rel="stylesheet" type="text/css"/>
         <style>
 
          .typeahead:focus {
@@ -107,33 +108,33 @@
         <div id="tips"></div>
         <div class="panel panel-default" id="panel-1">
             <div class="panel-heading">
-                <p>
-                    {{supplier_name}}({{supplier_id}})
-                </p>
-                <p>
-                    <strong>快递单号:</strong>
-                    <span>{{inbound.express_no}}</span>
-                </p>
-                <p>
-                    <strong>当前状态:</strong>
-                    <span id="inbound-status"></span>
-                </p>
-                <p>
-                    <strong>负责人:</strong>
-                    <span>{{inbound.creator}}</span>
-                </p>
-                <p>
-                    <strong>创建时间:</strong>
-                    <span>{{inbound.created}}</span>
-                </p>
-                <p>
-                    <strong>关联订货单:</strong>
+                入库单详情
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <label class="col-md-1" for="inbound_id">入库单编号</label>
+                    <label class="col-md-1" id="inbound_id">{{inbound.id}}</label>
+                    <label class="col-md-1" for="supplier">供应商</label>
+                    <label class="col-md-2" id="supplier">{{supplier_name}}({{supplier_id}})</label>
+                    <label class="col-md-1" for="express_no">快递单号</label>
+                    <label class="col-md-2" id="express_no">{{inbound.express_no}}</label>
+                </div>
+                <div class="row">
+                    <label class="col-md-1" for="inbound-status">当前状态</label>
+                    <label class="col-md-1" id="inbound-status">{{inbound.id}}</label>
+                    <label class="col-md-1" for="creator">负责人</label>
+                    <label class="col-md-2" id="creator">{{inbound.creator}}</label>
+                    <label class="col-md-1" for="created">创建时间</label>
+                    <label class="col-md-2" id="created">{{inbound.created}}</label>
+                </div>
+                <div class="row">
+                    <label class="col-md-1">关联订货单:</label>
                     {% for orderlist_id in inbound.orderlist_ids %}
                     <a href="/sale/dinghuo/changedetail/{{orderlist_id}}/" target="_blank">
                         {{orderlist_id}}
                     </a>
                     {% endfor %}
-                </p>
+                </div>
             </div>
             <div class="panel-body">
                 <form id="form-1">
@@ -142,7 +143,6 @@
                             <th width="200px">商品名</th>
                             <th>商品ID</th>
                             <th>编码</th>
-                            <th>所属仓库</th>
                             <th>图片</th>
                             <th>SkuID</th>
                             <th>尺寸</th>
@@ -150,8 +150,8 @@
                             <th>状态</th>
                             <th>正品</th>
                             <th>次品</th>
-                            <th>库位</th>
                             <th>操作</th>
+                            <th>设置库位</th>
                         </tr>
                         {% for product in products %}
                         {% for sku in product.skus %}
@@ -168,13 +168,6 @@
                                     {{product.outer_id}}
                                 </a>
                             </td>
-                            <td rowspan="{{product.skus|length}}" style="min-width:115px">
-                                <select class="ware-select form-control" data-product-id="{{product.id}}">
-                                    {% for warehouse in warehouses %}
-                                    <option value="{{warehouse.value}}"{% if product.ware_by == warehouse.value %} selected{% endif %}>{{warehouse.text}}</option>
-                                    {% endfor %}
-                                </select>
-                            </td>
                             <td rowspan="{{product.skus|length}}">
                                 <div class="portfolio-box">
                                     <a href="{{product.product_link}}" target="_blank">
@@ -184,7 +177,7 @@
                             </td>
                             {% endif %}
                             <td>
-                                <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank" title="Sku历史记录">{{sku.id}}</a>
+                                <a href="/admin/items/productsku/{{sku.id}}/" target="_blank" title="Sku历史记录">{{sku.id}}</a>
                             </td>
                             <td>{{sku.properties_name}}</td>
                             <td>
@@ -202,10 +195,10 @@
                                        style="width:80px" min="0" value="{{sku.inferior_quantity}}" data-total-quantity="{{sku.arrival_quantity|add:sku.inferior_quantity}}" readonly>
                             </td>
                             <td>
-                                <input class="district form-control" style="width:100px" value="{{sku.district|default:''}}">
+                                <i class="glyphicon glyphicon-copy" data-clipboard-text="{{product.outer_id}} {{product.name}} {{sku.properties_name}}"></i>
                             </td>
                             <td>
-                                <i class="glyphicon glyphicon-copy" data-clipboard-text="{{product.outer_id}} {{product.name}} {{sku.properties_name}}"></i>
+                                <input class="district form-control" style="width:100px" value="{{sku.district|default:''}}">
                             </td>
                         </tr>
                         {% endfor %}
@@ -298,8 +291,8 @@
         <script id="panel-2-tpl" type="text/html">
             <div class="panel panel-default" id="panel-2">
                 <div class="panel-heading">
-                    分配至订货单
-                    <button class="btn btn-primary matching" id="orderlists-toggle">展开所有Sku</button>
+                    <div>分配至订货单</div>
+                    <div><button class="btn btn-primary matching" id="orderlists-toggle">展开所有Sku</button></div>
                 </div>
                 <form id="form-2">
                     <div class="panel-body">
@@ -429,6 +422,8 @@
              '待处理',
              '完成'
          ];
+         var inbound_sku_data = {};//入库数
+         var allocate_sku_data = {};//分配数
 
          var districtsEngine = new Bloodhound({
              datumTokenizer: Bloodhound.tokenizers.whitespace,
@@ -699,7 +694,6 @@
              $('body').on('click', '#allocate', function(){
                  var skuData = {};
                  var inboundData = [];
-
                  $('tr.sku', '#form-2').each(function(){
                      var $this = $(this);
                      var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;

@@ -1,0 +1,47 @@
+<!-- Modal -->
+<div class="modal" id="locationModal" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="locationModalLabel">设置库位</h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="product_id" value=""/>
+                <div class="raw">
+                    <label for="product_name">商品</label>
+                    <label id="product_name"></label>
+                    <label for="district_no">库位</label>
+                    <input type="text" id="district_no" value=""/>
+                </div>
+                <div class="raw">
+                    此商品下的所有SKU都会被更改库位。一个商品仅存在于一个库位。
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btn_set_production_location">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+  $('#btn_set_production_location').click(function(){
+        var product_id = $('#product_id', '#locationModal').val();
+        var district = $('#district_no', '#locationModal').val();
+        var data = {"product":product_id, "district":district};
+        $.ajax({
+             url: '/items/location/product_location/set_product_location',
+             type: 'post',
+             dataType: 'json',
+             data: data,
+             success: function(result){
+                 window.location.reload();
+             },
+             error: function(result){
+                console.dir(result);
+             }
+            });
+    });
+</script>

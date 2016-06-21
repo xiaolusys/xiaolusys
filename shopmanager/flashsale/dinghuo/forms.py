@@ -1,9 +1,8 @@
 # coding: utf-8
-import json
-
 from django import forms
-
 from core.forms import BaseForm
+from forms_inbound import InBoundForm, MatchOrderListsForm, CreateInBoundForm, SaveInBoundForm, SaveMemoForm, \
+    SaveDistrictsForm, DealForm
 
 
 class InBoundListForm(BaseForm):
@@ -41,7 +40,7 @@ class AdvanceDingHuoForm(BaseForm):
 class InBoundForm(BaseForm):
     inbound_id = forms.IntegerField(required=False, initial=0)
     supplier_id = forms.IntegerField(required=False, initial=0)
-    orderlist_id = forms.IntegerField(required=True, initial=0)
+    orderlist_id = forms.CharField(required=True, initial='')
     express_no = forms.CharField(required=True, initial='')
 
 
@@ -52,11 +51,12 @@ class MatchOrderListsForm(BaseForm):
 class CreateInBoundForm(BaseForm):
     inbound_skus = forms.CharField(required=False, initial='{}')
     express_no = forms.CharField(required=False, initial='')
-    orderlist_id = forms.CharField(required=False, initial=0)
-    supplier_id = forms.IntegerField()
+    orderlist_id = forms.CharField(required=False, initial='')
+    supplier_id = forms.IntegerField(required=False)
     inbound_id = forms.IntegerField(required=False, initial=0)
     forecast_inbound_id = forms.IntegerField(required=False, initial=0)
     memo = forms.CharField(required=False, initial='')
+
 
 class SaveInBoundForm(BaseForm):
     inbound_skus = forms.CharField(required=False, initial='{}')
@@ -64,6 +64,7 @@ class SaveInBoundForm(BaseForm):
     express_no = forms.CharField(required=False, initial='')
     orderlist_id = forms.CharField(required=False, initial=0)
     forecast_inbound_id = forms.IntegerField(required=False, initial=0)
+
 
 class SaveMemoForm(BaseForm):
     inbound_id = forms.IntegerField()
@@ -75,6 +76,7 @@ class SaveDistrictsForm(BaseForm):
     inbound_id = forms.IntegerField()
     inbound_skus = forms.CharField(required=False)
 
+
 class DealForm(BaseForm):
     rg_id = forms.IntegerField()
     receive_method = forms.IntegerField()
@@ -82,6 +84,7 @@ class DealForm(BaseForm):
     note = forms.CharField(required=False)
     attachment = forms.CharField(required=False)
     transaction_no = forms.CharField(required=False)
+
 
 class ReturnGoodsAddSkuForm(BaseForm):
     rg_id = forms.IntegerField()

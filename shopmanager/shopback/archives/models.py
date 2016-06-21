@@ -1,5 +1,6 @@
 # -*- coding:utf8 -*-
 from django.db import models
+import re
 
 
 class Deposite(models.Model):
@@ -23,15 +24,11 @@ class Deposite(models.Model):
 
 class DepositeDistrict(models.Model):
     """ 仓库库位 """
-
+    DISTRICT_REGEX = '^(?P<parent_no>[a-zA-Z0-9=]+)-(?P<district_no>[a-zA-Z0-9]+)?$'
     district_no = models.CharField(max_length=32, blank=True, verbose_name='货位号')
-
     parent_no = models.CharField(max_length=32, blank=True, verbose_name='父货位号')
-
     location = models.CharField(max_length=64, blank=True, verbose_name='货位名')
-
     in_use = models.BooleanField(default=True, verbose_name='使用')
-
     extra_info = models.TextField(blank=True, verbose_name='备注')
 
     class Meta:
@@ -40,6 +37,21 @@ class DepositeDistrict(models.Model):
         app_label = 'archives'
         verbose_name = u'仓库货位'
         verbose_name_plural = u'仓库货位列表'
+
+    @classmethod
+    def match_district_name(cls, district):
+        r = re.compile(cls.DISTRICT_REGEX)
+        m = r.match(district)
+        if not m:
+            raise Exception(u'库位名称不合规则')
+        return True
+
+    @classmethod
+    def get_by_name(self, district):
+        r = re.compile(DepositeDistrict.DISTRICT_REGEX)
+        m = r.match(district)
+        if m:
+            return DepositeDistrict.objects.filter(**m.groupdict()).first()
 
     def __unicode__(self):
         return '%s-%s' % (self.parent_no, self.district_no)
