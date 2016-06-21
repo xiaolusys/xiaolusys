@@ -52,15 +52,7 @@ def get_unit_price(sku_id):
     from shopback.items.models import ProductSku
     product_sku = ProductSku.objects.get(id=sku_id)
     product = product_sku.product
-
-    from supplychain.supplier.models import SaleProduct
-    try:
-        sale_product = SaleProduct.objects.get(id=product.sale_product)
-        return sale_product.sale_price
-    except SaleProduct.DoesNotExist:
-        pass
-    return 0
-
+    return product.cost
 
 def copy_fields(to_obj, from_obj, fields):
     for field in fields:
