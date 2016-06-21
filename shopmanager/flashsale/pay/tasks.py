@@ -702,10 +702,30 @@ def tasks_update_sale_trade_status(sale_trade_id):
                          for s in SaleOrder.objects.filter(
                              sale_trade_id=sale_trade_id).values('status')]
     sale_order_status = list(set(sale_order_status))
-    if SaleOrder.WAIT_SELLER_SEND_GOODS not in sale_order_status and (SaleOrder.WAIT_BUYER_CONFIRM_GOODS in sale_order_status\
-            or SaleOrder.TRADE_BUYER_SIGNED in sale_order_status or SaleOrder.TRADE_FINISHED in sale_order_status):
-        logger.warn('tasks_update_sale_trade_status right now:' + str(sale_trade_id))
+    # if SaleOrder.WAIT_SELLER_SEND_GOODS not in sale_order_status and (SaleOrder.WAIT_BUYER_CONFIRM_GOODS in sale_order_status\
+    #         or SaleOrder.TRADE_BUYER_SIGNED in sale_order_status or SaleOrder.TRADE_FINISHED in sale_order_status):
+    #     logger.warn('tasks_update_sale_trade_status right now:' + str(sale_trade_id))
+    #     SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
+
+    #新的逻辑如下,n个saleorder如何影响saletrade状态，付款后已支付》已发货》确认签收》退款关闭》交易成功》交易关闭。
+    # 即如果还有1个saleorder处于已支付状态，那么saletrade就是已支付状态；其它状态类似。
+    logger.warn('tasks_update_sale_trade_status right now:' + str(sale_trade_id))
+    if SaleOrder.WAIT_SELLER_SEND_GOODS in sale_order_status:
+        SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+    elif SaleOrder.WAIT_BUYER_CONFIRM_GOODS in sale_order_status:
         SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
+    elif SaleOrder.TRADE_BUYER_SIGNED in sale_order_status:
+        SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_BUYER_SIGNED)
+    elif SaleOrder.TRADE_CLOSED in sale_order_status:
+        SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_CLOSED)
+    elif SaleOrder.TRADE_FINISHED in sale_order_status:
+        all_finish = True
+        for status in sale_order_status:
+            if status != SaleOrder.TRADE_FINISHED:
+                all_finish = False
+                break
+        if all_finish:
+            SaleTrade.objects.filter(id=sale_trade_id).update(status=SaleTrade.TRADE_FINISHED)
 
 
 @task()
