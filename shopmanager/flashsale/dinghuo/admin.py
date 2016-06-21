@@ -45,10 +45,10 @@ class ordelistAdmin(admin.ModelAdmin):
         'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num',
         'created', 'shenhe', 'is_postpay',
         'changedetail', 'note_name', 'supplier', 'express_no', 'p_district', 'reach_standard', 'updated', 'last_pay_date',
-        'created_by','sys_status'
+        'created_by','sys_status','purchase_order_unikey',
     )
     list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
-                   'last_pay_date', 'created_by')
+                   'last_pay_date', 'created_by','purchase_order_unikey')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note']
     date_hierarchy = 'created'
 
@@ -253,10 +253,11 @@ class orderdetailAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'link_order', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
-        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated'
+        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated','purchase_order_unikey',
+        'purchase_detail_unikey',
     )
     list_filter = (('created', DateFieldListFilter), OrderListStatusFilter2)
-    search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id', 'chichu_id']
+    search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id', 'chichu_id','purchase_order_unikey','purchase_detail_unikey']
     date_hierarchy = 'created'
 
     def link_order(self, obj):
