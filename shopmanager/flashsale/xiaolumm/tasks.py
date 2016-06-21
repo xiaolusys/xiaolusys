@@ -1,18 +1,20 @@
 # -*- encoding:utf8 -*-
-import time
-import datetime
-from django.db.models import F, Sum, Q
-from django.conf import settings
+import datetime, calendar
 from celery.task import task
-
+from django.db.models import F, Sum
+from django.contrib.auth.models import User
+from core.options import log_action, CHANGE
+from common.modelutils import update_model_fields
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.clickcount.models import Clicks
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog, OrderRedPacket
-from shopapp.weixin.models import WeixinUnionID, WXOrder
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, OrderRedPacket, CashOut
+from shopapp.weixin.models import WXOrder
+from flashsale.xiaolumm.models import MamaDayStats
+from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from django.db import transaction
+from shopback.trades.models import MergeTrade, MergeBuyerTrade
 
 import logging
-
-logger = logging.getLogger('celery.handler')
+logger = logging.getLogger(__name__)
 
 __author__ = 'meixqhi'
 
@@ -20,6 +22,7 @@ CLICK_REBETA_DAYS = 11
 ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
 AGENCY_RECRUIT_DAYS = 1
+RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)  # 订单红包开放时间
 
 
 @task()
@@ -64,9 +67,6 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         xlmm.push_carrylog_to_cash(cl)
 
 
-RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)  # 订单红包开放时间
-
-
 def init_Data_Red_Packet():
     # 判断 xlmm 是否有过 首单 或者 十单  如果是的将 OrderRedPacket 状态修改过来
     xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, agencylevel=2)
@@ -90,10 +90,6 @@ def init_Data_Red_Packet():
             xlmm.save()
         except Exception, exc:
             print 'exc:%s,%s' % (exc.message, xlmm.id)
-
-
-from django.db import transaction
-from shopback.trades.models import MergeTrade, MergeOrder, MergeBuyerTrade
 
 
 def shoptime_To_DateStr(shoptime):
@@ -347,9 +343,6 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         xlmm.push_carrylog_to_cash(clog)
 
 
-from flashsale.clickrebeta.models import StatisticsShopping
-
-
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
 def calc_Mama_Thousand_Rebeta(xlmm, start, end):
     # 千元补贴
@@ -395,9 +388,6 @@ def get_pre_month(year, month):
     if month == 1:
         return year - 1, 12
     return year, month - 1
-
-
-import calendar
 
 
 @task
@@ -529,11 +519,6 @@ def task_Calc_Agency_Rebeta_Pending_And_Cash():
     task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS)
 
 
-from flashsale.xiaolumm.models import MamaDayStats
-from flashsale.clickcount.models import ClickCount
-from flashsale.clickrebeta.models import StatisticsShoppingByDay
-
-
 def calc_mama_roi(xlmm, dfrom, dto):
     xlmm_id = xlmm.id
 
@@ -640,12 +625,6 @@ def task_Update_Sale_And_Weixin_Order_Status(pre_days=10):
     task_Push_SaleTrade_Finished.delay(pre_days=pre_days)
 
 
-from .tasks_manager_summary import task_make_Manager_Summary_Cvs
-
-
-# 引入任务文件
-
-
 @task()
 def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, weikefu=None):
     from .views import get_Deposit_Trade, create_coupon
@@ -727,32 +706,28 @@ def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, wei
     return 'ok'
 
 
-# 代理升级问题
-# １　小鹿妈妈交易确认完成金额满5000元　可代理升级为二级代理　升级后，将待结算的订单提成按２级代理返利20%来重新计算
-# ２　添加一个保存每天判断是计算的代理的确认金额，方便推广查看并告诉妈妈
-
-from common.modelutils import update_model_fields
-
-
 @task()
-def xlmm_upgrade_A_to_VIP():
-    from core.options import log_action, CHANGE
-    from django.contrib.auth.models import User
-    systemoa = User.objects.get(username="systemoa")
-    # 找出所有代理级别为３ 已经接管　的代理
-    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, agencylevel=XiaoluMama.A_LEVEL)
-    for xlmm in xlmms:
-        # 该代理已经完成的订单
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)
-        # 计算总的订单额(已经完成)　sum_wxorderamount
-        sum_wxorderamount = shoppings.aggregate(total_wxorderamount=Sum('wxorderamount')).get(
-            'total_wxorderamount') or 0
-        sum_amount = sum_wxorderamount / 100.0
-        xlmm.target_complete = sum_amount
-        if sum_amount >= 5000 and xlmm.agencylevel == XiaoluMama.A_LEVEL:
-            xlmm.agencylevel = XiaoluMama.VIP_LEVEL
-            log_action(systemoa.id, xlmm, CHANGE, u'A类代理满5000元升级过程升级该代理的级别到VIP类')
-        update_model_fields(xlmm, update_fields=['target_complete', 'agencylevel'])
+def task_upgrade_mama_level_to_vip():
+    """
+    ### 代理升级: 提现金额大于　2000 　的A　类代理升级为 vip
+    """
+    sys_oa = User.objects.get(username="systemoa")
+    mamas = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED,
+                                      status=XiaoluMama.EFFECT,
+                                      agencylevel=XiaoluMama.A_LEVEL)  # 有效的A类代理
+    for mm in mamas:
+        cashs = CashOut.objects.filter(xlmm=mm.id, status=CashOut.APPROVED)  # 代理提现记录　
+        t_sale_amount = cashs.aggregate(s_value=Sum('value')).get('s_value') or 0
+        update_fields = []
+        old_target_complete = mm.target_complete  # 原来的记录
+        if mm.target_complete != t_sale_amount / 100.0:
+            mm.target_complete = t_sale_amount / 100.0
+            update_fields.append("target_complete")
+        if update_fields:
+            mm.save(update_fields=update_fields)
+        if t_sale_amount >= 2000 * 100:  # 如果超过2000
+            mm.upgrade_agencylevel(level=XiaoluMama.VIP_LEVEL)
+            log_action(sys_oa.id, mm, CHANGE, u'A类代理满2000元指标 %s : %s 升级' % (old_target_complete, mm.target_complete))
 
 
 @task()
