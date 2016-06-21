@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from core.options import log_action, CHANGE
 from common.modelutils import update_model_fields
 from flashsale.clickrebeta.models import StatisticsShopping
+from flashsale.clickcount.models import ClickCount
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, OrderRedPacket, CashOut
 from shopapp.weixin.models import WXOrder
 from flashsale.xiaolumm.models import MamaDayStats
