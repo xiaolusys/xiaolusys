@@ -717,15 +717,15 @@ def task_upgrade_mama_level_to_vip():
                                       agencylevel=XiaoluMama.A_LEVEL)  # 有效的A类代理
     for mm in mamas:
         cashs = CashOut.objects.filter(xlmm=mm.id, status=CashOut.APPROVED)  # 代理提现记录　
-        t_sale_amount = cashs.aggregate(s_value=Sum('value')).get('s_value') or 0
+        t_cashout_amount = cashs.aggregate(s_value=Sum('value')).get('s_value') or 0
         update_fields = []
         old_target_complete = mm.target_complete  # 原来的记录
-        if mm.target_complete != t_sale_amount / 100.0:
-            mm.target_complete = t_sale_amount / 100.0
+        if mm.target_complete != t_cashout_amount / 100.0:
+            mm.target_complete = t_cashout_amount / 100.0
             update_fields.append("target_complete")
         if update_fields:
             mm.save(update_fields=update_fields)
-        if t_sale_amount >= 2000 * 100:  # 如果超过2000
+        if t_cashout_amount >= 2000 * 100:  # 如果超过2000
             mm.upgrade_agencylevel(level=XiaoluMama.VIP_LEVEL)
             log_action(sys_oa.id, mm, CHANGE, u'A类代理满2000元指标 %s : %s 升级' % (old_target_complete, mm.target_complete))
 
