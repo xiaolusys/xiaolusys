@@ -1453,7 +1453,7 @@ def task_packageskuitem_update_purchaserecord(psi):
             if od and od.arrival_time:
                 od_time = od.arrival_time
 
-            if od_time > pr.created and od_time > rp_time:
+            if od_time > psi.pay_time and od_time > rp_time:
                 # In this case, the PSI was assigned by orderdetail inventory
                 status = PurchaseRecord.EFFECT
             else:
@@ -1529,10 +1529,11 @@ def task_purchasedetail_update_orderdetail(pd):
             
         od.save()
     else:
-        if od.buy_quantity != pd.book_num:
+        if od.total_price != pd.total_price_display or od.buy_quantity != pd.book_num:
             od.buy_quantity = pd.book_num
+            od.buy_unitprice = pd.unit_price_display
             od.total_price = pd.total_price_display
-            od.save(update_fields=['buy_quantity', 'total_price', 'updated'])
+            od.save(update_fields=['buy_quantity', 'buy_unitprice', 'total_price', 'updated'])
         
         
 @task()
@@ -1575,26 +1576,28 @@ def task_purchasearrangement_update_purchasedetail(pa):
 
     total = res['total'] or 0
 
+    unit_price = int(utils.get_unit_price(pa.sku_id) * 100)
     uni_key = utils.gen_purchase_detail_unikey(pa)
     pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
     if not pd:
-        unit_price = int(utils.get_unit_price(pa.sku_id) * 100)
         pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey, unit_price=unit_price,book_num=total,need_num=total)
         fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
         utils.copy_fields(pd, pa, fields)
         pd.save()
     else:
         if pd.is_open():
-            if pd.book_num != total:
+            if pd.book_num != total or pd.unit_price != unit_price:
                 pd.book_num = total
                 pd.need_num = total
-                pd.save(update_fields=['book_num','need_num', 'modified'])
+                pd.unit_price = unit_price
+                pd.save(update_fields=['book_num','need_num', 'unit_price', 'modified'])
             return
         elif pd.is_booked():
-            if pd.need_num != total:
+            if pd.need_num != total or pd.unit_price != unit_price:
                 pd.need_num = total
                 pd.extra_num = pd.book_num - pd.need_num
-                pd.save(update_fields=['need_num', 'extra_num','modified'])
+                pd.unit_price = unit_price
+                pd.save(update_fields=['need_num', 'extra_num', 'unit_price', 'modified'])
 
 @task()
 def task_start_booking(pr):
