@@ -103,7 +103,7 @@ class ordelistAdmin(admin.ModelAdmin):
     calcu_model_num.short_description = "款数"
 
     def quantity(self, obj):
-        alldetails = OrderDetail.objects.filter(orderlist_id=obj.id)
+        alldetails = OrderDetail.objects.filter(orderlist_id=obj.id,buy_quantity__gt=0)
         quantityofoneorder = 0
         for detail in alldetails:
             quantityofoneorder += detail.buy_quantity
