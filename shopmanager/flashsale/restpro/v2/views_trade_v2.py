@@ -119,7 +119,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             return Response({"code": 3, "info": u'商品已下架'})
 
         cart_id = data.get("cart_id", None)
-        if cart_id:
+        if cart_id and cart_id.isdigit():
             s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
                                                  status=ShoppingCart.CANCEL, buyer_id=customer.id)
             s_temp.delete()
@@ -131,17 +131,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not lockable:
             return Response({"code": 4, "info": u'该商品已限购'})
 
-        if not Product.objects.lockQuantity(sku, sku_num):
-            return Response({"code": 5, "info": u'商品库存不足'})
-
         shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=customer.id,
                                                 sku_id=sku_id, status=ShoppingCart.NORMAL).first()
         if shop_cart:
-            shop_cart_temp = shop_cart
-            shop_cart_temp.num = sku_num
-            shop_cart_temp.total_fee = sku_num * decimal.Decimal(sku.agent_price)
-            shop_cart_temp.save()
-            return Response({"code": 0, "info": u"已加入购物车"})  # 购物车已经有了
+            # shop_cart_temp = shop_cart
+            # shop_cart_temp.num = sku_num
+            # shop_cart_temp.total_fee = sku_num * decimal.Decimal(sku.agent_price)
+            # shop_cart_temp.save()
+            return Response({"code": 6, "info": u"该商品已加入购物车"})  # 购物车已经有了
+
+        if not Product.objects.lockQuantity(sku, sku_num):
+            return Response({"code": 5, "info": u'商品库存不足'})
 
         new_shop_cart = ShoppingCart()
         new_shop_cart.buyer_id = customer.id
@@ -613,8 +613,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         order_no      = sale_trade.tid
         buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
-        payback_url = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('payback_url',CONS.MALL_PAY_SUCCESS_URL))
-        cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url',CONS.MALL_PAY_CANCEL_URL))
+        order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+        payback_url = urlparse.urljoin(settings.M_SITE_URL, order_success_url)
+        cancel_url  = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)
         if sale_trade.has_budget_paid:
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
             budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)

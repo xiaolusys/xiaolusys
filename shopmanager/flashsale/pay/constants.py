@@ -46,7 +46,7 @@ ORDER_SIGNED_TO_FINISHED_DAYS = 7
 
 MALL_LOGIN_URL = '/mall/user/login'
 
-MALL_PAY_SUCCESS_URL = '/mall/ol.html?type=2'
+MALL_PAY_SUCCESS_URL = '/mall/order/success/{order_id}/{order_tid}'
 MALL_PAY_CANCEL_URL = '/mall/ol.html?type=1'
 
 COUPON_ID_FOR_20160223_AWARD = 22
