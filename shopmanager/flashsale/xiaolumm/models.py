@@ -469,8 +469,8 @@ class XiaoluMama(models.Model):
     def mama_fortune(self):
         return MamaFortune.objects.filter(mama_id=self.id).first()
 
-    def upgrade_agencylevel_by_exam(self, level):
-        """ 代理考试模块中, 通过考试后指定升级
+    def upgrade_agencylevel(self, level=None):
+        """ 代理 升级
         :type level: int 表示要升级的等级数
         """
         if self.agencylevel < XiaoluMama.VIP_LEVEL:  # 当前等级小于2则返回false
@@ -479,6 +479,10 @@ class XiaoluMama(models.Model):
             return False
         if self.status != XiaoluMama.EFFECT:  # 非正常状态 返回false
             return False
+        if self.agencylevel == XiaoluMama.A_LEVEL:  # A_LEVEL 升级到VIP_LEVEL
+            self.agencylevel = XiaoluMama.VIP_LEVEL
+            self.save(update_fields=['agencylevel'])
+            return True
         # 当前等级小于考试通过指定的等级 并且是接管状态的 则升级
         if self.agencylevel < level:
             self.agencylevel = level
