@@ -1422,15 +1422,16 @@ def task_packageskuitem_update_purchaserecord(psi):
     #print "debug: %s" % utils.get_cur_info()
 
     # The following code holds till all old-fashion orderdetails finish.
-    ods = OrderDetail.objects.filter(chichu_id=psi.sku_id).order_by('-created')
-    for od in ods:
-        if od and od.orderlist and od.orderlist.status:
-            status = od.orderlist.status
-            if status != OrderList.SUBMITTING and status != OrderList.ZUOFEI:
-                if od.created > psi.pay_time:
-                    return
-                else:
-                    break
+    if psi.is_booking_needed():
+        ods = OrderDetail.objects.filter(chichu_id=psi.sku_id).order_by('-created')
+        for od in ods:
+            if od and od.orderlist and od.orderlist.status:
+                status = od.orderlist.status
+                if status != OrderList.SUBMITTING and status != OrderList.ZUOFEI:
+                    if od.created > psi.pay_time:
+                        return
+                    else:
+                        break
 
     uni_key = utils.gen_purchase_record_unikey(psi)
     pr = PurchaseRecord.objects.filter(uni_key=uni_key).first()
