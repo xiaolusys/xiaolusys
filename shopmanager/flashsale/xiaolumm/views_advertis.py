@@ -47,9 +47,17 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         return Response(pms)
 
     def create(self, request, *args, **kwargs):
-        today = datetime.date.today()
-        tomorrow = today + datetime.timedelta(days=1)
-        turns_num = self.queryset.filter(start_time__gte=today, start_time__lt=tomorrow).count() + 1
+        start_time = request.data.get("start_time") or None
+        if start_time is None:
+            today = datetime.date.today()
+            tomorrow = today + datetime.timedelta(days=1)
+            turns_num = self.queryset.filter(start_time__gte=today, start_time__lt=tomorrow).count() + 1
+        else:
+            # 计算开始时间天数的轮数
+            start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+            date = start_time.date()
+            next_date = date + datetime.timedelta(days=1)
+            turns_num = self.queryset.filter(start_time__gte=date, start_time__lt=next_date).count() + 1
         request.data.update({"turns_num": turns_num})
         request.data.update({"auther": request.user.username})
         serializer = self.get_serializer(data=request.data)
