@@ -694,7 +694,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         order_no = sale_trade.tid
         buyer_openid = sale_trade.openid
         channel = sale_trade.channel
-        order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+        order_success_url = CONS.MALL_PAY_SUCCESS_URL #.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
         payback_url = urlparse.urljoin(settings.M_SITE_URL, order_success_url)
         cancel_url = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)
         if sale_trade.has_budget_paid:

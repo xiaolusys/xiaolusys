@@ -10,7 +10,7 @@ from core.fields import JSONCharMyField
 from core.models import BaseTagModel
 from .base import PayBaseModel, BaseModel
 
-from shopback.items.models import Product, ContrastContent
+from shopback.items.models import Product, ProductSkuContrast, ContrastContent
 from .signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
 from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM
@@ -351,6 +351,8 @@ class ModelProduct(BaseTagModel):
                 if uni_key not in uni_set:
                     uni_set.add(uni_key)
                     p_tables.append({'table':self.format_contrast2table(contrast_origin)})
+        except ProductSkuContrast.DoesNotExist:
+            logger.warn('ProductSkuContrast not exists:%s'%(p.outer_id))
         except Exception, exc:
             logger.error(exc.message,exc_info=True)
         return {
