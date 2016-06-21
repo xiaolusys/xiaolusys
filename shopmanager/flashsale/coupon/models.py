@@ -288,7 +288,7 @@ class OrderShareCoupon(BaseModel):
 
     @property
     def title(self):
-        """模板的描述"""
+        """模板的标题"""
         return self.extras['templates']['title']
 
 
