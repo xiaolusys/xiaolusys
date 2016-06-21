@@ -19,3 +19,11 @@
 
 #################### error log system(need admin authorize) ######################
 (ve)~$ http://<server>/sentry/
+
+############### 更新远程分支代码 ################
+更新远程分支代码请使用rebase操作
+方式一：
+git pull　--rebase remote remote-branch
+等于方式二：
+git fetch remote remote-branch
+git rebase remote/remote-branch
