@@ -1531,7 +1531,8 @@ def task_purchasedetail_update_orderdetail(pd):
     else:
         if od.buy_quantity != pd.book_num:
             od.buy_quantity = pd.book_num
-            od.save(update_fields=['buy_quantity', 'updated'])
+            od.total_price = pd.total_price_display
+            od.save(update_fields=['buy_quantity', 'total_price', 'updated'])
         
         
 @task()
