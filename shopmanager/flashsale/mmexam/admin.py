@@ -21,7 +21,7 @@ class Choicedmin(admin.ModelAdmin):
 class Resultdmin(admin.ModelAdmin):
     search_fields = ['daili_user']
     list_display = ('customer_id', 'daili_user', 'exam_state', 'sheaves', 'exam_date')
-
+    list_filter = ['exam_state', 'sheaves', 'exam_date']
 
 class Mamaexamdmin(admin.ModelAdmin):
     list_display = (

@@ -928,7 +928,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时升级代理级别为A类到VIP类任务': {
-        'task': 'flashsale.xiaolumm.tasks.xlmm_upgrade_A_to_VIP',
+        'task': 'flashsale.xiaolumm.tasks.task_upgrade_mama_level_to_vip',
         'schedule': crontab(minute="50", hour="5"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
