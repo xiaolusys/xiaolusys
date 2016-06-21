@@ -1427,7 +1427,7 @@ def task_packageskuitem_update_purchaserecord(psi):
         if od and od.orderlist and od.orderlist.status:
             status = od.orderlist.status
             if status != OrderList.SUBMITTING and status != OrderList.ZUOFEI:
-                if od.created > psi.created:
+                if od.created > psi.pay_time:
                     return
                 else:
                     break
