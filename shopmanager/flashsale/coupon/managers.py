@@ -446,7 +446,9 @@ class OrderShareCouponManager(BaseManager):
                 'user_info':
                     {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail},
                 'templates':
-                    {'post_img': tpl.post_img, 'description': tpl.description}  # 优惠券模板
+                    {'post_img': tpl.post_img,
+                     'title': tpl.title,
+                     'description': tpl.description}  # 优惠券模板
             }
             value, start_use_time, expires_time = calculate_value_and_time(tpl)
             order_share = self.create(

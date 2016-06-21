@@ -332,13 +332,13 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         """ 检查用户活动的有效性 """
         return XLSampleOrder.objects.filter(customer_id=customer_id).first()
 
-    @list_route(methods=['post','get'])
+    @list_route(methods=['post'])
     def create_order_share(self, request, *args, **kwargs):
         """
         创建订单分享
         返回分享链接
         """
-        default_return = collections.defaultdict(code=0, msg='', share_link='', title='',
+        default_return = collections.defaultdict(code=0, msg='', share_link='', title='', description='',
                                                  post_img='', share_times_limit=0)
         customer = get_customer(request)
         if customer is None:
@@ -365,8 +365,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         share_link = 'mall/order/redpacket?uniq_id={0}&ufrom={1}'.format(order_share.uniq_id, ufrom)
         share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
         default_return.update({"code": 0, "msg": "分享成功", "share_link": share_link,
-                               'title': order_share.description, "post_img": order_share.post_img,
-                               "share_times_limit": tpl.share_times_limit})
+                               'title': order_share.title, "description": order_share.description,
+                               "post_img": order_share.post_img, "share_times_limit": tpl.share_times_limit})
         return Response(default_return)
 
     @list_route(methods=['post'])

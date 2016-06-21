@@ -221,7 +221,7 @@ class CouponTemplate(BaseModel):
 def default_share_extras():
     return {
         'user_info': {'id': None, 'nick': '', 'thumbnail': ''},
-        "templates": {"post_img": '', "description": ''}
+        "templates": {"post_img": '', "description": '', "title": ''}
     }
 
 
@@ -285,6 +285,11 @@ class OrderShareCoupon(BaseModel):
     def description(self):
         """模板的描述"""
         return self.extras['templates']['description']
+
+    @property
+    def title(self):
+        """模板的描述"""
+        return self.extras['templates']['title']
 
 
 def default_coupon_no():
