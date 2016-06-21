@@ -1554,7 +1554,7 @@ def task_orderdetail_update_orderlist(od):
         if ol.order_amount != total:
             if ol.is_open():
                 ol.order_amount = od.total_price
-                ol.save(updated_fields=['order_amount', 'updated'])
+                ol.save(update_fields=['order_amount', 'updated'])
             else:
                 logger.error("ZIFEI error: tying to modify booked order_list| ol.id: %s, od: %s" % (ol.id, od.id))
 
