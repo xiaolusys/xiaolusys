@@ -145,12 +145,12 @@
             <form id="form-1" >
                 <div class="row">
                     <div class="col-md-5 form-group">
-                        <label class="control-label">商品编码/名称</label>
+                        <label class="control-label">预测到货单号/订货单号</label>
                         <input class="form-control typeahead" id="orderlist-id"
                                name="orderlist_id" placeholder="输入..." value="{{ orderlist_id|default:'' }}">
                     </div>
                     <div class="col-md-5 form-group">
-                        <label class="control-label">预测入仓单号/快递单号</label>
+                        <label class="control-label">快递单号</label>
                         <input class="form-control typeahead" id="express-no"
                                name="express_no" placeholder="输入..." value="{{ express_no|default:'' }}">
                     </div>
@@ -248,7 +248,7 @@
          var products = {{records|jsonify}};
          var productsDict = {};
          var skusDict = {};
-         var forecastInboundId = {{forecast_inbound.id}};
+         var forecastInboundId = {{forecast_inbound.id|default:0}};
 
          function init(){
              var i, j;

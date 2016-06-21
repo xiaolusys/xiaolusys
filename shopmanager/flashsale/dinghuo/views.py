@@ -1982,7 +1982,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound.status = InBound.COMPLETED
         inbound.save()
 
-        inbound.notify_forecast_save_inbound()
+        inbound.notify_forecast_save_or_update_inbound()
 
         if orderlist_ids:
             self.update_orderlist(request, orderlist_ids)
@@ -2051,6 +2051,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
             record.arrival_quantity = arrival_quantity
             record.inferior_quantity = inferior_quantity
             record.save()
+
+        inbound.notify_forecast_save_or_update_inbound()
         if orderlist_ids:
             self.update_orderlist(request, sorted(orderlist_ids))
         if outer_ids:

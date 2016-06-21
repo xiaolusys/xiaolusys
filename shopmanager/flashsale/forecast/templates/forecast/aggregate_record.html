@@ -18,10 +18,16 @@
                 {% for order in aggregate_order.purchase_orders %}
                 <li class="list-group-item">
                     <div class="row">
-                        <a href="{% url 'admin:dinghuo_orderlist_change' order.id %}" target="_blank">
+                        <a href="{% url 'changedetail' order.id %}" target="_blank">
                             <span>#{{order.id}}&nbsp;订货单&nbsp;{{order.created|slice:":10"}}&nbsp;{{order.sys_status_name}}&nbsp;({{order.total_detail_num}})</span>
                         </a>
-                        <span class="pull-right"></span>
+                        <div class="inline pull-right">
+                            {% if order.memo %}
+                            <a tabindex="0" role="button" style="color:#333;" data-toggle="popover"  title="订货单备注" data-content="{{order.memo}}">
+                                <i class="glyphicon glyphicon-list-alt"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </li>
                 {% endfor %}
@@ -33,7 +39,8 @@
                 <li class="list-group-item">
                    <div class="row">
                        <a href="{% url 'admin:forecast_forecastinbound_change' forecast.id %}" target="_blank">
-                           <span>#{{forecast.id}}&nbsp;预测单&nbsp;{{ forecast.forecast_arrive_time|slice:":10" }}&nbsp;{{forecast.status_name}}&nbsp;({{forecast.total_detail_num}})</span>
+                           <span>#{{forecast.id}}&nbsp;预测单&nbsp;{{ forecast.forecast_arrive_time|slice:":10" }}&nbsp;{{forecast.status_name}}
+                               &nbsp;({{forecast.total_detail_num}} / {{forecast.real_arrive_num}})</span>
                        </a>
                        <span class="pull-right">
                            {% if forecast.is_unarrive_intime %}<i class="glyphicon glyphicon-time"></i>{% endif %}
@@ -50,8 +57,15 @@
                 <li class="list-group-item">
                     <div class="row">
                         <a href="{% url 'admin:forecast_realinbound_change' inbound.id %}" target="_blank">
-                            <span>#{{inbound.id}}&nbsp;到货单&nbsp;{{inbound.created|slice:":10"}}&nbsp;{{inbound.status_name}}&nbsp;({{inbound.total_detail_num}})</span>
+                            <span>#{{inbound.id}}&nbsp;到货单&nbsp;{{inbound.created|slice:":10"}}&nbsp;{{inbound.status_name}}
+                                &nbsp;({{inbound.total_detail_num}} / {{inbound.total_inferior_num}})</span>
                         </a>
+                        <div class="inline pull-right">
+                            {% if inbound.memo %}
+                            <a tabindex="0" role="button" style="color:#333;" data-container="body" data-toggle="popover" data-placement="left" title="到货单备注" data-content="{{inbound.memo}}">
+                                <i class="glyphicon glyphicon-list-alt"></i></a>
+                            {% endif %}
+                        </div>
                     </div>
                 </li>
                 {% endfor %}

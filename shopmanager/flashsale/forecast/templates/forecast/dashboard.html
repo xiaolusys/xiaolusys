@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" rel="stylesheet"
-          type="text/css">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" rel="stylesheet" type="text/css">
     <link href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" type="text/css"/>
     <title>采购管理界面</title>
     <style>
@@ -112,6 +111,13 @@
             {% endif %}
         </div>
     </div>
+    <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+          $('[data-toggle="popover"]').popover()
+        })
+    </script>
 </div>
 </body>
 </html>

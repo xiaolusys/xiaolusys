@@ -100,9 +100,9 @@ APIS_ROUTES = {
         'queue': 'apis',
         'routing_key': 'apis.api_create_forecastinbound_by_orderlist',
     },
-    'flashsale.forecast.apis.api_create_realinbound_by_inbound': {
+    'flashsale.forecast.apis.api_create_or_update_realinbound_by_inbound': {
         'queue': 'apis',
-        'routing_key': 'apis.api_create_realinbound_by_inbound',
+        'routing_key': 'apis.api_create_or_update_realinbound_by_inbound',
     },
 }
 
