@@ -1324,7 +1324,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id', 'sku_link_to', 'num', 'price',
         'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey')
 
-    search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid', 'package_order_id', 'oid', 'purchase_order_unikey']
+    search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid', 'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
     list_filter = ('assign_status', 'status', 'ware_by')
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
