@@ -760,3 +760,27 @@ class QrCodeView(APIView):
         data = {"qrimg": qrimg, "thumbnail": customer.thumbnail, "nick": customer.nick}
         response = render_to_response(self.template, data, context_instance=RequestContext(request))
         return response
+
+
+from rest_framework import generics
+from . import serializers
+
+class PotentialFansView(WeixinAuthMixin, generics.GenericAPIView):
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
+    authentication_classes = (authentication.SessionAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
+    def get(self, request, *args, **kwargs):
+        customer = get_customer(request)
+        customer_id = 1
+        records = AppDownloadRecord.objects.filter(from_customer=customer_id,status=AppDownloadRecord.UNUSE).order_by('-created')
+        datalist = self.paginate_queryset(records)
+        serializer = serializers.AppDownloadRecordSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
+    
+        
