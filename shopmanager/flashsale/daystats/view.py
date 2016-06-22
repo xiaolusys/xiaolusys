@@ -68,7 +68,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
 
     def list(self, request, *args, **kwargs):
         from flashsale.dinghuo.models import OrderList
-        from flashsale.pay.models import SaleOrder
+        from flashsale.pay.models import SaleOrder, SaleTrade
         from flashsale.pay.models_refund import SaleRefund
         from shopback.trades.models import MergeOrder
         from shopback import paramconfig as pcfg
@@ -118,8 +118,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_ss_delay = q.filter(created__lte=threshold3.date()).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         elif type_ == 5:
-            q = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                         refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER).exclude(outer_id__startswith='RMB')
+            q = SaleTrade.objects.filter(status__in=[SaleTrade.WAIT_SELLER_SEND_GOODS])
             n_total = q.only('id').count()
             n_delay = q.filter(pay_time__lte=threshold).only('id').count()
             n_s_delay = q.filter(pay_time__lte=threshold2).only('id').count()
