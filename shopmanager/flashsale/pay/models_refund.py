@@ -394,6 +394,29 @@ class SaleRefund(PayBaseModel):
         return False
 
 
+def roll_back_usercoupon_status(sender, instance, created, *args, **kwargs):
+    """
+     当一笔交易的所有sale_order 都退款成功了　则　退回被使用的优惠券
+    """
+    if instance.status != SaleRefund.REFUND_SUCCESS:  # 不是退款成功不处理
+        return
+    from flashsale.coupon.tasks import task_roll_back_usercoupon_by_refund
+
+    sale_trade = instance.sale_trade
+    sale_orders = sale_trade.sale_orders.all()
+    refunds = SaleRefund.objects.filter(trade_id=instance.trade_id)
+    if refunds.count() < sale_orders.count():  # 保证map是所有的sale_order的退款单
+        return
+    refunds_status = refunds.values('status')
+    r = map(lambda x: x['status'] == SaleRefund.REFUND_SUCCESS, refunds_status)
+    if False in r:  # 有没有退款成功的订单（不退优惠券）
+        return
+    task_roll_back_usercoupon_by_refund.delay(sale_trade.tid)
+
+
+post_save.connect(roll_back_usercoupon_status, sender=SaleRefund, dispatch_uid='post_save_roll_back_usercoupon_status')
+
+
 def buyeridPatch():
     from flashsale.pay.models import SaleTrade
 
