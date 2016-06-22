@@ -440,6 +440,10 @@ FLASHSALE_COUPON_ROUTES = {
         'queue': 'coupon',
         'routing_key': 'coupon.task_release_coupon_for_register',
     },
+    'flashsale.coupon.tasks.task_roll_back_usercoupon_by_refund': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_roll_back_usercoupon_by_refund',
+    },
 }
 
 STATISTICS_ROUTES = {

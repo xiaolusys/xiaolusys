@@ -461,7 +461,7 @@ class UserCoupon(BaseModel):
         """ 优惠券状态从使用状态改为未使用 """
         if self.status == UserCoupon.USED:
             self.status = UserCoupon.UNUSED
-            self.save()
+            self.save(update_fields=['status'])
             return True
         return False
 

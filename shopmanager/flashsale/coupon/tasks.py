@@ -46,7 +46,7 @@ def task_update_coupon_use_count(coupon, trade_tid):
 
     coupon.finished_time = datetime.datetime.now()  # save the finished time
     coupon.trade_tid = trade_tid  # save the trade tid with trade be binding
-    coupon.save(update_fields=['finished_time'])
+    coupon.save(update_fields=['finished_time', 'trade_tid'])
     tpl = coupon.self_template()
 
     coupons = UserCoupon.objects.all()
@@ -185,4 +185,13 @@ def task_release_coupon_for_register(instance):
         except:
             logger.error(u'task_release_coupon_for_register for customer id %s' % instance.id)
             continue
+    return
+
+
+@task()
+def task_roll_back_usercoupon_by_refund(trade_tid):
+    from flashsale.coupon.models import UserCoupon
+    cou = UserCoupon.objects.filter(trade_tid=trade_tid).first()
+    if cou:
+        cou.release_usercoupon()
     return
