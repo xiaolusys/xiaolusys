@@ -777,7 +777,8 @@ class PotentialFansView(WeixinAuthMixin, generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         customer = get_customer(request)
-        customer_id = 1
+        #customer_id = 1
+        customer_id = customer.id
         records = AppDownloadRecord.objects.filter(from_customer=customer_id,status=AppDownloadRecord.UNUSE).order_by('-created')
         datalist = self.paginate_queryset(records)
         serializer = serializers.AppDownloadRecordSerializer(datalist, many=True)
