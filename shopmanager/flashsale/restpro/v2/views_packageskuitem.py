@@ -57,7 +57,9 @@ class PackageSkuItemView(APIView):
     def get(self, request, *args, **kwargs):
         query_set = self.get_queryset(request)
         serializer = packageskuitem_serializers.PackageSkuItemSerializer(query_set, many=True)
-        return Response(serializer.data)
+        data = sorted(serializer.data, key=lambda x: x['package_group_key'])
+        
+        return Response(data)
 
         
 
