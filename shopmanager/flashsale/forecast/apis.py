@@ -8,13 +8,16 @@ from .models import (ForecastInbound,
                      RealInBoundDetail,
                      )
 
+import logging
+logger = logging.getLogger(__name__)
+
 @task()
 def api_create_or_update_forecastinbound_by_orderlist(order_list):
 
     from shopback.items.models import Product, ProductSku
     supplier = order_list.supplier
 
-    forecast_ib = ForecastInbound.objects.filter(relate_order_set__in=(order_list.id)).first()
+    forecast_ib = ForecastInbound.objects.filter(relate_order_set__in=[order_list.id]).first()
     if forecast_ib:
         forecast_ib.express_code = forecast_ib.express_code or order_list.express_company
         forecast_ib.express_no = forecast_ib.express_no or order_list.express_no
@@ -82,22 +85,24 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
         real_inbound.relate_order_set.add(order_id)
 
     for detail  in inbound.details.all():
-        real_detail = RealInBoundDetail.objects.filter(inbound=real_inbound,
-                                                       sku_id=detail.sku.id).first()
-        if not real_detail:
-            real_detail = RealInBoundDetail()
+        try:
+            real_detail = RealInBoundDetail.objects.filter(inbound=real_inbound,
+                                                           sku_id=detail.sku.id).first()
+            if not real_detail:
+                real_detail = RealInBoundDetail()
 
-        real_detail.inbound = real_inbound
-        real_detail.product_id = detail.product.id
-        real_detail.sku_id = detail.sku.id
-        real_detail.barcode = detail.sku.barcode
-        real_detail.product_name = detail.product_name
-        real_detail.product_img = detail.product.pic_path
-        real_detail.arrival_quantity = detail.arrival_quantity + detail.inferior_quantity
-        real_detail.inferior_quantity = detail.inferior_quantity
-        real_detail.district = detail.district
-        real_detail.save()
-
+            real_detail.inbound = real_inbound
+            real_detail.product_id = detail.product.id
+            real_detail.sku_id = detail.sku.id
+            real_detail.barcode = detail.sku.barcode
+            real_detail.product_name = detail.product_name
+            real_detail.product_img = detail.product.pic_path
+            real_detail.arrival_quantity = detail.arrival_quantity + detail.inferior_quantity
+            real_detail.inferior_quantity = detail.inferior_quantity
+            real_detail.district = detail.district
+            real_detail.save()
+        except Exception,exc:
+            logger.error('inbound error:%s'%exc.message, exc_info=True)
     if forecast_inbound:
         forecast_inbound.inbound_arrive_update_status()
 

@@ -52,12 +52,12 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     # }),)
 
     list_display = (
-        'id', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser', 'status'
+        'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter),
                    ('forecast_arrive_time',DateScheduleFilter))
 
-    search_fields = ['=id','=supplier__supplier_name','=express_no','=purchaser']
+    search_fields = ['=id', '=forecast_no','=supplier__supplier_name','=express_no','=purchaser']
 
     filter_horizontal = ('relate_order_set',)
 
@@ -96,7 +96,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            return self.readonly_fields + ('status', 'ware_house',
+            return self.readonly_fields + ('status', 'ware_house', 'forecast_no',
                                            'purchaser', 'status', 'is_lackordefect', 'is_overorwrong')
         return self.readonly_fields
 
@@ -173,7 +173,7 @@ class RealInBoundAdmin(admin.ModelAdmin):
         'id','wave_no','forecast_inbound','supplier', 'ware_house', 'creator', 'inspector', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter))
-    search_fields = ['=id','^supplier__supplier_name', '=express_no', '=creator']
+    search_fields = ['=id', '=wave_no','^supplier__supplier_name', '=express_no', '=creator']
 
     filter_horizontal = ('relate_order_set',)
 
@@ -208,7 +208,7 @@ class RealInBoundAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            return self.readonly_fields + ('status', 'ware_house', 'creator', 'inspector', 'status')
+            return self.readonly_fields + ('status', 'wave_no', 'ware_house', 'creator', 'inspector', 'status')
         return self.readonly_fields
 
 
