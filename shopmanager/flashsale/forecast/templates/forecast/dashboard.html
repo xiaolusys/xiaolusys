@@ -10,6 +10,12 @@
         padding: 0 0;
         margin: 0 0;
     }
+    a:visited {
+        color: #4f9fcf;
+    }
+    a.clicked:visited{
+        color:  #f69c55;
+    }
     .inline {
         display: inline;
     }
@@ -34,8 +40,8 @@
     ul.horizental > li+li{
         border-left: 1px solid #eee;
     }
-    ul.list-group {
-        /* max-height: 120px;*/
+    ul .list-group-item {
+        padding: 10px 10px;
     }
     .label-badge{
         display: inline-block;
@@ -54,6 +60,9 @@
         border-top: 1px solid #eee;
         border-left: 1px solid #eee;
         padding: 10px 0px;
+    }
+    .panel-body{
+        padding: 10px 5px;
     }
     .panel-heading, .panel-footer{
         padding: 0px 10px;
@@ -115,7 +124,10 @@
     <script src="//cdn.bootcss.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <script>
         $(function () {
-          $('[data-toggle="popover"]').popover()
+          $('[data-toggle="popover"]').popover();
+          $('a').click(function(){
+             $(this).addClass('clicked');
+          });
         })
     </script>
 </div>
