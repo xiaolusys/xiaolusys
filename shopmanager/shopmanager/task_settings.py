@@ -96,9 +96,9 @@ CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
 
 APIS_ROUTES = {
-    'flashsale.forecast.apis.api_create_forecastinbound_by_orderlist': {
+    'flashsale.forecast.apis.api_create_or_update_forecastinbound_by_orderlist': {
         'queue': 'apis',
-        'routing_key': 'apis.api_create_forecastinbound_by_orderlist',
+        'routing_key': 'apis.api_create_or_update_forecastinbound_by_orderlist',
     },
     'flashsale.forecast.apis.api_create_or_update_realinbound_by_inbound': {
         'queue': 'apis',
