@@ -10,7 +10,7 @@ from flashsale.pay.models import SaleOrder, SaleRefund
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        df = datetime.datetime(2015, 12, 31, 23, 59, 59)
+        df = datetime.datetime(2016, 5, 15, 23, 59, 59)
         sale_order_list = SaleOrder.objects.filter(pay_time__lte=df, status__in=(SaleOrder.TRADE_NO_CREATE_PAY,
                                                                                  SaleOrder.WAIT_BUYER_PAY,
                                                                                  SaleOrder.WAIT_SELLER_SEND_GOODS,
@@ -41,7 +41,9 @@ class Command(BaseCommand):
                 order.refund_status = SaleRefund.NO_REFUND
                 order.save()
                 num = num + 1
-            elif order.status in [SaleOrder.WAIT_SELLER_SEND_GOODS,SaleOrder.WAIT_BUYER_CONFIRM_GOODS,SaleOrder.TRADE_BUYER_SIGNED]:
+            elif order.status in [SaleOrder.WAIT_SELLER_SEND_GOODS]:
+                num = num + 1
+            elif order.status in [SaleOrder.WAIT_BUYER_CONFIRM_GOODS,SaleOrder.TRADE_BUYER_SIGNED]:
                 if order.refund_status != SaleRefund.NO_REFUND:
                     order.status = SaleOrder.TRADE_CLOSED
                     order.refund_status = SaleRefund.REFUND_SUCCESS
