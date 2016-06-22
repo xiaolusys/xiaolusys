@@ -396,31 +396,39 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
         return Response({"code": 0, "msg": "分享成功", "share_link": share_link})
 
-    @list_route(methods=['post'])
+    @list_route(methods=['post', 'get'])
     def pick_order_share_coupon(self, request):
         content = request.REQUEST
         uniq_id = content.get("uniq_id") or ''
         ufrom = content.get("ufrom") or ''
         customer = get_customer(request)
+        default_return = collections.defaultdict(code=0, msg='', coupon={})
         if customer is None:
-            return Response({"code": 9, "msg": "用户不存在", "coupon_id": ''})
+            default_return.update({"code": 9, "msg": "用户不存在"})
+            return Response(default_return)
         if not uniq_id:
-            return Response({"code": 10, "msg": "参数错误", "coupon_id": ''})
+            default_return.update({"code": 10, "msg": "参数错误"})
+            return Response(default_return)
         coupon_share = self.queryset.filter(uniq_id=uniq_id).first()
         if coupon_share is None:
-            return Response({"code": 8, "msg": "领取完了哦", "coupon_id": ''})
+            default_return.update({"code": 8, "msg": "领取完了哦"})
+            return Response(default_return)
         else:
             if not coupon_share.release_count < coupon_share.limit_share_count:  # 领取次数必须小于最大领取限制
-                return Response({"code": 8, "msg": "领取完了", "coupon_id": ''})
+                default_return.update({"code": 8, "msg": "领取完了"})
+                return Response(default_return)
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
 
         template_id = coupon_share.template_id
         coupon, code, msg = UserCoupon.objects.create_order_share_coupon(customer.id, template_id, uniq_id, ufrom)
         if code != 0:
-            return Response({"code": code, "msg": msg, "coupon_id": ''})
+            default_return.update({"code": code, "msg": msg})
+            return Response(default_return)
         else:
-            return Response({"code": code, "msg": msg, "coupon_id": coupon.id})
+            default_return.update({"code": code, "msg": msg})
+            serializer = serializers.UserCouponSerialize(coupon)
+            return Response({"code": code, "msg": msg, "coupon": serializer.data})
 
     @list_route(methods=['post'])
     def pick_active_share_coupon(self, request):
@@ -485,13 +493,35 @@ class TmpShareCouponViewset(viewsets.ModelViewSet):
         content = request.REQUEST
         mobile = content.get('mobile') or ''
         uniq_id = content.get("uniq_id") or ''
+        coupon = {
+            "title": '',
+            "coupon_value": 0,
+            "deadline": '',
+            "mobile": ''}
+
+        default_return = collections.defaultdict(code=0, msg='', coupon=coupon)
         if not (mobile and uniq_id):
-            return Response({"code": 1, "msg": "参数出错"})
+            default_return.update({"code": 1, "msg": "参数出错"})
+            return Response(default_return)
         if not check_uniq_id(uniq_id):
-            return Response({"code": 2, "msg": "领取出错"})
+            default_return.update({"code": 2, "msg": "领取出错"})
+            return Response(default_return)
+
+        coupon_share = OrderShareCoupon.objects.filter(uniq_id=uniq_id).first()
+        if not coupon_share:
+            default_return.update({"code": 4, "msg": "没有找到该分享"})
+            return Response(default_return)
         try:
+            tpl = CouponTemplate.objects.filter(id=coupon_share.template_id).first()
+            coupon.update(
+                {"coupon_value": str(tpl.min_val) + '-' + str(tpl.max_val),
+                 "title": tpl.title,
+                 "deadline": tpl.use_deadline,
+                 "mobile": mobile})
             tmp_shre, state = TmpShareCoupon.objects.get_or_create(mobile=mobile, share_coupon_id=uniq_id)
         except:
             logger.warn("when release tmp share coupon the mobile is %s, uniq_id is %s" % (mobile, uniq_id))
-            return Response({"code": 3, "msg": "领取出错了"})
-        return Response({"code": 0, "msg": "领取成功"})
+            default_return.update({"code": 3, "msg": "领取出错了"})
+            return Response(default_return)
+        default_return.update({"code": 0, "msg": "领取成功"})
+        return Response(default_return)
