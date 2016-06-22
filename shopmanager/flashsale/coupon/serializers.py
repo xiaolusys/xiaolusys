@@ -19,13 +19,16 @@ class UserCouponSerialize(serializers.ModelSerializer):
     customer = serializers.IntegerField(source='customer_id', read_only=True)
     coupon_type_display = serializers.CharField(source='get_coupon_type_display', read_only=True)
     deadline = serializers.DateTimeField(source='expires_time', read_only=True)
+    wisecrack = serializers.CharField(source='gen_wisecrack', read_only=True)
+    nick = serializers.CharField(source='user_nick_name', read_only=True)
+    head_img = serializers.CharField(source='user_head_img', read_only=True)
 
     class Meta:
         model = UserCoupon
         fields = (
             'id', "template_id", 'coupon_type', "coupon_type_display", "title", 'customer', "coupon_no", "coupon_value",
             "valid", "deadline", "start_use_time", "status", "created",
-            "use_fee", "use_fee_des", "pros_desc", "start_time", 'poll_status'
+            "use_fee", "use_fee_des", "pros_desc", "start_time", 'poll_status', 'wisecrack', 'nick', 'head_img'
         )
 
 
