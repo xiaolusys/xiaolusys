@@ -1,0 +1,61 @@
+{% if supplier_id %}
+    <div class="panel panel-default" id="panel-1">
+        <div class="panel-heading">
+            供应商：<label>{{ supplier_name }}({{ supplier_id }})</label>
+        </div>
+        <div class="collapse in" id="pics">
+            <div class="panel-body">
+                <ul>
+                    {% for product in products %}
+                    <li class="col-md-3">
+                        <div class="col-md-6">
+                            <div class="portfolio-box">
+                                <a href="{{product.product_link}}" target="_blank">
+                                    <img src="{{product.pic_path}}?imageView2/0/w/120" style="display:block" data-pic-path="{{product.pic_path}}" width="120px">
+                                </a>
+                            </div>
+                            <p>{{product.name}}</p>
+                        </div>
+                        <div class="col-md-6 skus">
+                            <div class="product-required-skus">
+                                {% for sku in product.skus %}
+                                {% if sku.is_required %}
+                                <div class="input-group">
+                                    <span class="input-group-addon">{{sku.properties_name}}</span>
+                                    <input type="number" class="form-control" data-sku-id="{{sku.id}}" data-product-id="{{product.id}}" style="width:60px" min="0">
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="product-all-skus">
+                                {% for sku in product.skus %}
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" class="select-product-sku"
+                                               data-sku-id="{{sku.id}}" data-product-id="{{product.id}}"{% if sku.is_required %} checked{%endif%}>{{sku.properties_name}}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    <li class="col-md-3 problem">
+                        <div class="col-md-6">
+                            <textarea rows="8" cols="16" placeholder="请填写错误描述..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-addon">数量</span>
+                                <input type="number" class="form-control" style="width:60px" min="0">
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="panel-footer" style="text-align:center">
+                <button class="btn btn-success" id="create-draft">确定</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}

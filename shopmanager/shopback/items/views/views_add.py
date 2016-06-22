@@ -25,7 +25,7 @@ from shopback.items.models import (Product, ProductSku, ProductSchedule,
 from core.options import log_action, ADDITION, CHANGE
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 
-from . import constants, forms, local_cache
+from shopback.items import constants, forms, local_cache
 
 
 class AddItemView(generics.ListCreateAPIView):

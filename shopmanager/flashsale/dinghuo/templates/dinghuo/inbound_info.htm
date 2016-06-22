@@ -1,0 +1,127 @@
+<div class="panel-heading">
+    <div class="row">
+    <div class="text-left col-md-10">入库单</div>
+    {%if not inbound.is_finished%}
+    <div class="text-right col-md-2"><a href="javascript:;" id="set-invalid">作废</a></div>
+    {%endif%}
+    </div>
+</div>
+<div class="panel-body">
+    <div class="row">
+        <label class="col-md-1" for="inbound_id">入库单编号</label>
+        <label class="col-md-1" id="inbound_id">{{inbound.id}}</label>
+        <label class="col-md-1" for="supplier">供应商</label>
+        <label class="col-md-4" id="supplier">{{supplier_name}}({{supplier_id}})</label>
+        <label class="col-md-1" for="express_no">快递单号</label>
+        <label class="col-md-2" id="express_no">{{inbound.express_no}}</label>
+    </div>
+    <div class="row">
+        <label class="col-md-1" for="inbound-status">当前状态</label>
+        <label class="col-md-1" id="inbound-status">{{inbound.get_status_display}}</label>
+        <label class="col-md-1" for="creator">负责人</label>
+        <label class="col-md-2" id="creator">{{inbound.creator}}</label>
+        <label class="col-md-1" for="created">创建时间</label>
+        <label class="col-md-2" id="created">{{inbound.created}}</label>
+    </div>
+    <div class="row">
+        <label class="col-md-1">关联订货单:</label>
+        {% for orderlist_id in inbound.orderlist_ids %}
+        <a href="/sale/dinghuo/changedetail/{{orderlist_id}}/" target="_blank">
+            {{orderlist_id}}
+        </a>
+        {% endfor %}
+    </div>
+    <div class="container" id="action">
+        <div class="row">
+            <textarea class="form-control" id="memo" rows="5" readonly>{{inbound.memo|safe}}</textarea>
+        </div>
+        <div class="row input-group">
+            <div class="col-md-9" style="padding:0">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="添加备注" id="memo-input">
+                            <span class="input-group-btn">
+                                <a href="javascript:;" class="btn btn-default" id="add-memo-btn">添加</a>
+                            </span>
+                </div>
+            </div>
+            <div class="col-md-3 btn-group">
+                <a class="btn btn-info" href="javascript:;" id="save">保存</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(function(){
+var INBOUND_ID = {{inbound.id}};
+$('#add-memo-btn').click(function(){
+     var text = $('#memo-input').val();
+     text = _.trim(text);
+     if(_.isEmpty(text))
+         return;
+     $.ajax({
+         url: '/sale/dinghuo/inbound/add_memo',
+         type: 'get',
+         dataType: 'json',
+         data: {content: text},
+         success: function(result){
+             if(!_.isEmpty(result.memo)){
+                 var tmp = [];
+                 var oldText = $('#memo').val();
+                 if(!_.isEmpty(oldText))
+                     tmp.push(oldText);
+                 tmp.push(result.memo);
+                 $('#memo').val(tmp.join('\n'));
+             }
+         }
+     });
+ });
+
+$('#save').click(function(){
+     $.ajax({
+         url: '/sale/dinghuo/inbound/save_memo',
+         type: 'post',
+         dataType: 'json',
+         data: {
+             inbound_id: INBOUND_ID,
+             memo: $('#memo').val()
+         },
+         success: function(result){
+             if(result.error){
+                 swal('错误', result.error, 'error');
+             }
+             else{
+                 swal('成功', '备注已更新', 'success');
+             }
+         }
+     });
+  });
+$('#set-invalid').click(function(){
+ swal({
+     title: '警告',
+     text: '确定要作废入库单吗？',
+     type: 'warning',
+     showCancelButton: true,
+     confirmButtonText: '确认',
+     cancelButtonText: '取消'
+ }, function(){
+     $('#set-invalid').attr('disabled', true);
+     $.ajax({
+         url: '/sale/dinghuo/inbound/' + INBOUND_ID + '/set_invalid',
+         type: 'post',
+         dataType: 'json',
+         success: function(result){
+             if(result.error){
+                 swal('错误', result.error, 'error');
+             }
+             else{
+                 swal('成功', '', 'success');
+                 updateInboundStatus(INVALID);
+                 window.location = '/admin/dinghuo/inbound/?id='+inbound.id;
+             }
+         }
+     });
+ });
+});
+});
+</script>
+<hr>

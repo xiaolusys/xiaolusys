@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, ProductSku, Item, DepositeDistrict
+from .models import Product, ProductSku, Item, DepositeDistrict, ProductLocation
 from shopback.categorys.models import Category
 from shopback.users.models import User
 
@@ -41,6 +41,14 @@ class ProductItemSerializer(serializers.ModelSerializer):
         model = Item
         # fields = ('id','outer_id','name','outer_sku_id','properties_name','price','num')
         exclude = ('desc',)
+
+
+class ProductLocationSerializer(serializers.ModelSerializer):
+    district = serializers.CharField(source='district.district_no', read_only=True)
+    class Meta:
+        model = ProductLocation
+        fields = ("product_id", "sku_id", "outer_id", "name", "outer_sku_id", "properties_name", "district")
+        #exclude = ('district',)
 
 
 class DepositeDistrictSerializer(serializers.ModelSerializer):

@@ -152,6 +152,7 @@
                             <th>次品</th>
                             <th>库位</th>
                             <th>操作</th>
+                            <th>设置库位</th>
                         </tr>
                         {% for product in products %}
                         {% for sku in product.skus %}
@@ -202,10 +203,10 @@
                                        style="width:80px" min="0" value="{{sku.inferior_quantity}}" data-total-quantity="{{sku.arrival_quantity|add:sku.inferior_quantity}}" readonly>
                             </td>
                             <td>
-                                <input class="district form-control" style="width:100px" value="{{sku.district|default:''}}">
+                                <i class="glyphicon glyphicon-copy" data-clipboard-text="{{product.outer_id}} {{product.name}} {{sku.properties_name}}"></i>
                             </td>
                             <td>
-                                <i class="glyphicon glyphicon-copy" data-clipboard-text="{{product.outer_id}} {{product.name}} {{sku.properties_name}}"></i>
+                                <input class="district form-control" style="width:100px" value="{{sku.district|default:''}}">
                             </td>
                         </tr>
                         {% endfor %}
@@ -518,7 +519,6 @@
              $('input[type="number"]', '#form-2').change(function(){
                  var tpl = _.template('tr.sku[data-sku-id=<%= skuId %>]');
                  var skuId = $(this).closest('tr.sku').attr('data-sku-id');
-
                  var arrivalQuantity = 0;
                  var inferiorQuantity = 0;
                  $(tpl({skuId: skuId}), '#form-2').each(function(){

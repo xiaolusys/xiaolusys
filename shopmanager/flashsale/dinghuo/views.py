@@ -2786,17 +2786,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
             district, _ = max(stats.items(), key=lambda x: x[1])
         return Response({'district': district})
 
-    @classmethod
-    def update_product_location(cls, product_id, deposite_district):
-        for sku in ProductSku.objects.filter(product_id=product_id,
-                                             status=ProductSku.NORMAL):
-            if ProductLocation.objects.filter(product_id=product_id,
-                                              sku_id=sku.id):
-                continue
-            ProductLocation.objects.get_or_create(product_id=product_id,
-                                                  sku_id=sku.id,
-                                                  district=deposite_district)
-
     @list_route(methods=['post'])
     def save_memo(self, request):
         form = forms.SaveMemoForm(request.POST)
