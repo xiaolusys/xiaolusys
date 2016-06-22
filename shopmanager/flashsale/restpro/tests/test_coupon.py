@@ -200,4 +200,4 @@ class TmpShareCouponTestCase(TestCase):
         response = self.client.post(self.url_create_temp, data, ACCPET='application/json')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertEqual(data['code'], 0)
+        self.assertEqual(data['code'], 3)
