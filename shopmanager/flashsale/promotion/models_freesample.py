@@ -71,6 +71,8 @@ class AppDownloadRecord(BaseModel):
     from_customer = models.IntegerField(default=0, db_index=True, verbose_name=u'来自用户')
     openid = models.CharField(max_length=128, db_index=True, blank=True, null=True, verbose_name=u'微信授权openid')
     unionid = models.CharField(max_length=128, db_index=True, blank=True, null=True, verbose_name=u'微信授权unionid')
+    headimgurl = models.CharField(max_length=256, null=False, blank=True, verbose_name=u'头图')
+    nick = models.CharField(max_length=32, null=False, blank=True, verbose_name=u'昵称')
     status = models.BooleanField(default=UNUSE, choices=USE_STATUS, db_index=True, verbose_name=u'是否注册APP')
     mobile = models.CharField(max_length=11, blank=True, null=True, db_index=True, verbose_name=u'手机号')
     ufrom = models.CharField(max_length=8, choices=UFROM, verbose_name=u'来自平台')
