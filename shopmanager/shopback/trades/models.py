@@ -1730,6 +1730,7 @@ class PackageSkuItem(BaseModel):
     adjust_fee = models.FloatField(default=0.0, verbose_name=u'调整费用')
 
     pay_time = models.DateTimeField(db_index=True, verbose_name=u'付款时间')
+    book_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'订货时间')
     assign_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'分配SKU时间')
     finish_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'完成时间')
     cancel_time = models.DateTimeField(db_index=True, null=True, verbose_name=u'取消时间')
@@ -1796,7 +1797,10 @@ class PackageSkuItem(BaseModel):
 
     @property
     def package_group_key(self):
-        return '%s-%s-%s' % (self.assign_status, self.ware_by, self.out_sid)
+        book_sign = 0
+        if self.purchase_order_unikey:
+            book_sign = 1
+        return '%s-%s-%s-%s' % (self.assign_status, self.ware_by, book_sign, self.out_sid)
 
     @property
     def ware_by_display(self):

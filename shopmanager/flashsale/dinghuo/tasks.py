@@ -1751,10 +1751,10 @@ def task_update_purchasearrangement_initial_book(po):
     pas.update(purchase_order_status=po.status, initial_book=True)
     
     from shopback.trades.models import PackageSkuItem
+    book_time = datetime.datetime.now()
     for pa in pas:
         psi = PackageSkuItem.objects.filter(oid=pa.oid).first()
-        print psi.oid, po.uni_key
-        PackageSkuItem.objects.filter(oid=pa.oid).update(purchase_order_unikey=po.uni_key)
+        PackageSkuItem.objects.filter(oid=pa.oid).update(purchase_order_unikey=po.uni_key,book_time=book_time)
 
 @task()
 def task_check_with_purchase_order(ol):
