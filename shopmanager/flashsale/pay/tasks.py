@@ -14,6 +14,7 @@ from shopback.users.models import User
 from shopapp.weixin.models import WeiXinUser, WeixinUnionID
 from flashsale.dinghuo.models import OrderList, OrderDetail
 from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress
+from flashsale.pay.models_shops import CustomerShops, CuShopPros
 from common.utils import update_model_fields
 from .service import FlashSaleService
 from .options import get_user_unionid
@@ -23,7 +24,7 @@ import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
 
 __author__ = 'meixqhi'
-logger = logging.getLogger('celery.handler')
+logger = logging.getLogger(__name__)
 
 
 @task()
@@ -791,6 +792,7 @@ def task_update_orderlist(sku_id):
         orderlist.note += '\n-->%s: %s' % (now.strftime('%m月%d %H:%M'), msg)
         orderlist.save()
 
+
 @task()
 def task_customer_update_weixinuserinfo(customer):
     if not customer.unionid:
@@ -801,4 +803,44 @@ def task_customer_update_weixinuserinfo(customer):
     if not info:
         info = WeixinUserInfo(unionid=customer.unionid,nick=customer.nick,thumbnail=customer.thumbnail)
         info.save()
+
+
+@task()
+def task_add_product_to_customer_shop(product):
+    """
+    添加产品产品到用户店铺中
+    """
+    from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+
+    shops = CustomerShops.objects.all()
+    rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
+    for shop in shops:
+        customer = Customer.objects.filter(id=shop.customer, status=Customer.NORMAL).first()
+        if not customer:
+            continue
+        xlmm = customer.getXiaolumm()
+        if not xlmm:
+            continue
+        kwargs = {'agencylevel': xlmm.agencylevel,
+                  'payment': float(product.agent_price)} if xlmm and product.agent_price else {}
+        rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+        cu_shop_prods = CuShopPros.objects.filter(customer=shop.customer)
+        cu_shop_prod = cu_shop_prods.filter(product=product.id).first()  # 该用户该产品
+        if not cu_shop_prod:
+            position = cu_shop_prods.count() + 1
+            cu_pro = CuShopPros(shop=shop.id,
+                                customer=shop.customer,
+                                product=product.id,
+                                model=product.model_id,
+                                name=product.name,
+                                pic_path=product.pic_path,
+                                std_sale_price=product.std_sale_price,
+                                agent_price=product.agent_price,
+                                remain_num=product.remain_num,
+                                carry_scheme=rebt.id,
+                                carry_amount=rebet_amount,
+                                position=position,
+                                pro_category=product.category.cid,
+                                offshelf_time=product.offshelf_time)
+            cu_pro.save()
 

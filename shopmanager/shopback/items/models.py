@@ -616,15 +616,39 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 
 
-def update_mama_shop(sender, instance, raw, *args, **kwargs):
+def update_mama_shop_down_shelf(sender, instance, raw, *args, **kwargs):
     """ 如果商品是下架状态则更新妈妈店铺的商品到下架状态 """
     if instance.shelf_status != Product.DOWN_SHELF:
         return
     from flashsale.pay.models_shops import CuShopPros
-    CuShopPros.objects.filter(product=instance.id).update(pro_status=CuShopPros.DOWN_SHELF)
+    CuShopPros.update_down_shelf(instance.id)  # 更新所有店铺的　该产品　到　下架状态
 
 
-pre_save.connect(update_mama_shop, sender=Product)
+pre_save.connect(update_mama_shop_down_shelf, sender=Product, dispatch_uid='post_save_update_mama_shop_down_shelf')
+
+
+def update_mama_shop_up_shelf(sender, instance, raw, *args, **kwargs):
+    """
+    添加上架产品到用户店铺中
+    """
+    if instance.status != Product.NORMAL:
+        return
+    if instance.shelf_status != Product.UP_SHELF:
+        return
+    if not (instance.sale_time and instance.offshelf_time):
+        return
+    now = datetime.datetime.now()
+    if not (datetime.datetime.combine(instance.sale_time, datetime.time(0, 0)) <= now <= instance.offshelf_time):
+        return  # 不在上架时间的不做处理
+    from supplychain.supplier.models import SaleProductManageDetail
+
+    pms = SaleProductManageDetail.objects.filter(sale_product_id=instance.sale_product, is_promotion=True).first()
+    if not pms:  # 选品不是推送的产品则不处理
+        return
+    from flashsale.pay.tasks import task_add_product_to_customer_shop
+    task_add_product_to_customer_shop.delay(instance)
+
+pre_save.connect(update_mama_shop_up_shelf, sender=Product, dispatch_uid='post_save_update_mama_shop_up_shelf')
 
 
 def custom_sort(a, b):

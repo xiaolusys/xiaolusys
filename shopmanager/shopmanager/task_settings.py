@@ -34,6 +34,7 @@ CELERY_IMPORTS = (
     'flashsale.restpro.tasks',
     'flashsale.forecast.apis',
     'flashsale.dinghuo.tasks',
+    'flashsale.pay.tasks',
 )
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -89,6 +90,7 @@ CELERY_QUEUES = (
     Queue('statistics', routing_key='statistics.#'),
     Queue('logistics', routing_key='logistics.#'),
     Queue('dinghuo', routing_key='dinghuo.#'),
+    Queue('usershop', routing_key='usershop.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
@@ -634,6 +636,15 @@ CELERY_ROUTES = {
         'routing_key': 'async.task_send_message',
     },  # 缺货短信任务
 }
+
+
+USER_SHOP_ROUTES = {
+    'flashsale.pay.tasks.task_add_product_to_customer_shop': {
+        'queue': 'usershop',
+        'routing_key': 'usershop.task_add_product_to_customer_shop',
+    },
+}
+
 CELERY_ROUTES.update(DAILY_STATS_ROUTES)
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)
 CELERY_ROUTES.update(MAMA_FORTUNE_ROUTES)
@@ -646,6 +657,7 @@ CELERY_ROUTES.update(STATISTICS_ROUTES)
 CELERY_ROUTES.update(LOGISTICS_ROUTES)
 CELERY_ROUTES.update(APIS_ROUTES)
 CELERY_ROUTES.update(DINGHUO_ROUTES)
+CELERY_ROUTES.update(USER_SHOP_ROUTES)
 
 API_REQUEST_INTERVAL_TIME = 10  # (seconds)
 API_TIME_OUT_SLEEP = 60  # (seconds)
