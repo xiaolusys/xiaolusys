@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from rest_framework import routers, viewsets
 from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView, PendingDingHuoViewSet, \
-    DingHuoOrderListViewSet, InBoundViewSet
+    DingHuoOrderListViewSet
+from .view_inbound import InBoundViewSet
 
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, \

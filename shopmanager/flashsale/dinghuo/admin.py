@@ -48,7 +48,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'created_by','sys_status','purchase_order_unikey',
     )
     list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
-                   'last_pay_date', 'created_by','purchase_order_unikey')
+                   'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note']
     date_hierarchy = 'created'
 
@@ -666,12 +666,12 @@ class InBoundAdmin(admin.ModelAdmin):
     list_display = ('id', 'show_id', 'show_creator', 'supplier', 'express_no',
                     'memo', 'show_orderlists', 'created', 'modified', 'status')
 
-    list_filter = ('status', 'created', InBoundCreatorFilter)
+    list_filter = ('status', 'created', 'checked', 'wrong', 'out_stock', InBoundCreatorFilter)
 
     search_fields = ('supplier__supplier_name', 'express_no')
 
     def show_creator(self, obj):
-        from flashsale.dinghuo.views import InBoundViewSet
+        from flashsale.dinghuo.view_inbound import InBoundViewSet
         return InBoundViewSet.get_username(obj.creator)
     show_creator.short_description = u'创建人'
 

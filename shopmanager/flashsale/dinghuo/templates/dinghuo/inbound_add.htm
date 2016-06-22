@@ -1,0 +1,46 @@
+<div class="container" id="inbound-add">
+    <!--<div class="panel panel-default form-control" id="panel-0">-->
+    <!--<div class="panel panel-default form-control" id="panel-0">-->
+        <div>{{error_message}}</div>
+        <div class="row">
+            <div class="col-md-5 form-group">
+                <label class="control-label">快递单号</label>
+                <input class="form-control typeahead" id="express-no"
+                       name="express_no" placeholder="输入..." value="{{ express_no|default:'' }}">
+            </div>
+            <div class="col-md-5 form-group">
+                <label class="control-label">订货单号</label>
+                <input class="form-control typeahead" id="orderlist-id"
+                       name="orderlist_id" placeholder="输入..." value="{{ orderlist_id|default:'' }}">
+            </div>
+            <div class="col-md-1 form-group">
+                <label class="control-label">&nbsp;</label>
+                <a class="btn btn-primary btn-block" id="begin_inbound">确定</a>
+            </div>
+            <div class="col-md-1 form-group">
+                <label class="control-label">&nbsp;</label>
+                <a class="btn btn-default btn-block reset" href="/sale/dinghuo/inbound">重置</a>
+            </div>
+            <input type="hidden" id="orderlist-id-bak" value="{{ orderlist_id|default:0 }}">
+            <input type="hidden" id="express-no-bak" value="{{ express_no|default:0 }}">
+            <input type="hidden" id="supplier-id" name="supplier_id" value="{{ supplier_id|default:0 }}">
+            <input type="hidden" id="inbound-id" name="inbound_id" value="{{ inbound_id|default:0 }}">
+        </div>
+   <!--</div>-->
+</div>
+<script>
+$(function(){
+ $('#begin_inbound').click(function(){
+    var expressNo = _.trim($('#express-no').val());
+    if(_.isEmpty(expressNo)){
+        swal('错误', '请填写包裹上的快递单号', 'error');
+        return false;
+     }
+     var orderlist_ids = $("#orderlist-id").val();
+     var express_no = $("#express-no").val();
+     var url = "/sale/dinghuo/inbound?express_no=" + expressNo + '&orderlist_id=' + orderlist_ids;
+     window.location = url;
+ });
+});
+</script>
+<hr>

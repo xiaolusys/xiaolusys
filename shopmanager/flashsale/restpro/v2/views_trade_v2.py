@@ -691,7 +691,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         logistics_company_id = form.get('logistics_company_id','').strip()
         logistic_company = None
         if logistics_company_id and logistics_company_id != '0':
-            if logistics_company_id.isdigit():
+            if logistics_company_id.replace('-','').isdigit():
                logistic_company = LogisticsCompany.objects.get(id=logistics_company_id)
             else:
                 logistic_company = LogisticsCompany.objects.get(code=logistics_company_id)

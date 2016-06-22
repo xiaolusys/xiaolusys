@@ -47,13 +47,13 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, Browsab
 from rest_framework.views import APIView
 from rest_framework import filters
 from rest_framework import authentication
-from . import serializers
+from shopback.items import serializers
 from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseForbidden
 from shopback.items.models import ProductSkuStats
-from . import serializers
-from .renderers import *
+from shopback.items import serializers
+from shopback.items.renderers import *
 ###########7-27
 import logging
 
@@ -639,7 +639,9 @@ class ProductBarCodeView(APIView):
 
 ############################################ 产品区位操作 #######################################
 class ProductDistrictView(APIView):
-    """ 根据商品编码，名称查询商品 """
+    """ 根据商品编码，名称查询商品
+        TODO@hy　设计不清，重构中 参见ProductLocationViewSet
+    """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)

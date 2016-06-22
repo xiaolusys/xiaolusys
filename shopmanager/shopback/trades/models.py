@@ -1805,12 +1805,15 @@ class PackageSkuItem(BaseModel):
     @property
     def assign_status_display(self):
         if self.assign_status == PackageSkuItem.ASSIGNED:
-            return '验货完毕'
+            return '质检打包完毕'
         if self.assign_status == PackageSkuItem.FINISHED:
             return '已发货'
         if self.assign_status == PackageSkuItem.CANCELED:
             return '已取消'
-        return '订单已送达外贸厂快速调货...'
+        if self.assign_status == PackageSkuItem.NOT_ASSIGNED:
+            if self.purchase_order_unikey:
+                return '订单已送达外贸厂订货'
+        return '订单已确认'
 
     @property
     def num_of_purchase_try(self):

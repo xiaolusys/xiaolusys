@@ -1,52 +1,34 @@
 # coding: utf-8
 
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns, url, include
 from django.views.generic import TemplateView
-from shopback.items.views import (ProductListView,
-                                  ProductItemView,
-                                  ProductModifyView,
-                                  ProductUpdateView,
-                                  StockRedundanciesView,
-                                  ProductSkuInstanceView,
-                                  ProductSearchView,
-                                  ProductDistrictView,
-                                  ProductBarCodeView,
-                                  ProductWarnMgrView,
-                                  ProductNumAssignView,
-                                  ProductOrSkuStatusMdView,
-                                  ProductView,
-                                  ProductSkuView,
-                                  StatProductSaleView,
-                                  StatProductSaleAsyncView,
-                                  ProductScanView)
-# from shopback.items.resources import (ProductListResource,
-#                                       ProductItemResource,
-#                                       ProductResource,
-#                                       ProductSkuResource,
-#                                       ProductDistrictResource,
-#                                       ProductDaySaleResource,
-#                                       ProductScanResource)
-# from shopback.items.renderers import (ProductListHtmlRenderer,
-#                                       JSONRenderer,
-#                                       ProductItemHtmlRenderer,
-#                                       ProductUpdateHtmlRenderer,
-#                                       ProductSkuHtmlRenderer,
-#                                       ProductDistrictHtmlRenderer,
-#                                       ProductHtmlRenderer,
-#                                       ProductBarcodeHtmlRenderer,
-#                                       ProductWarnHtmlRenderer,
-#                                       ProductSaleHtmlRenderer,
-#                                       ProductScanRenderer)
-# from core.options.renderers  import BaseJsonRenderer
-# from core.options.permissions import IsAuthenticated
-from shopback.base.authentication import login_required_ajax
-from shopback.items.views_rest import ProductInvalidConfirmView
+
+from shopback.items.views.views import (ProductListView,
+                                        ProductItemView,
+                                        ProductModifyView,
+                                        ProductUpdateView,
+                                        StockRedundanciesView,
+                                        ProductSkuInstanceView,
+                                        ProductSearchView,
+                                        ProductDistrictView,
+                                        ProductBarCodeView,
+                                        ProductWarnMgrView,
+                                        ProductNumAssignView,
+                                        ProductOrSkuStatusMdView,
+                                        ProductView,
+                                        ProductSkuView,
+                                        StatProductSaleView,
+                                        StatProductSaleAsyncView,
+                                        ProductScanView)
+from .views.product_location import ProductLocationViewSet
+from shopback.items.views.views_rest import ProductInvalidConfirmView
 from .select_sale_time import change_Sale_Time
-from .views_add import AddItemView, GetCategory, GetSupplier, GetSkuDetail, PreviewSkuDetail, BatchSetTime, \
+from shopback.items.views.views_add import AddItemView, GetCategory, GetSupplier, GetSkuDetail, PreviewSkuDetail, BatchSetTime, \
     ProductScheduleView, ProductScheduleAPIView
-
-urlpatterns = patterns('shopback.items.views',
-
+from rest_framework import routers
+router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'product_location', ProductLocationViewSet)
+urlpatterns = patterns('shopback.items.views.views',
     url('update/items/$', 'update_user_items', name='update_items'),
     url('update/item/$', 'update_user_item', name='update_item'),
     url('update/stock/$', 'update_product_stock', name='update_stock'),
@@ -74,7 +56,6 @@ urlpatterns = patterns('shopback.items.views',
     url(r'^test/$', TemplateView.as_view(
        template_name="items/product_sku_diff.html"),
        name='test_diff'),
-    # (r'^product_lookup/$', 'shopback.items.views.json_lookup', product_lookup),
     url(r'^select_sale_time/$', change_Sale_Time, name='select_sale_time'),
     url(r'^add_item/$', AddItemView.as_view(), name='select_sale_time'),
     url(r'^get_category/$', GetCategory.as_view(), name='get_category'),
@@ -85,5 +66,6 @@ urlpatterns = patterns('shopback.items.views',
     url(r'^product_schedule/$', ProductScheduleView.as_view(), name='product_schedule'),
     url(r'^product_schedule/(?P<p>\d+)/$', ProductScheduleView.as_view(), name='product_schedule'),
     url(r'^product_schedule_api/$', ProductScheduleAPIView.as_view(), name='product_schedule_api'),
-    url(r'redundancies', StockRedundanciesView.as_view(), name='redundancies_view')
+    url(r'redundancies', StockRedundanciesView.as_view(), name='redundancies_view'),
+    url(r'^location/', include(router.urls, namespace='v2')),
 )
