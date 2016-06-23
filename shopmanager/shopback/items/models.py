@@ -627,30 +627,6 @@ def update_mama_shop_down_shelf(sender, instance, raw, *args, **kwargs):
 pre_save.connect(update_mama_shop_down_shelf, sender=Product, dispatch_uid='post_save_update_mama_shop_down_shelf')
 
 
-def update_mama_shop_up_shelf(sender, instance, raw, *args, **kwargs):
-    """
-    添加上架产品到用户店铺中
-    """
-    if instance.status != Product.NORMAL:
-        return
-    if instance.shelf_status != Product.UP_SHELF:
-        return
-    if not (instance.sale_time and instance.offshelf_time):
-        return
-    now = datetime.datetime.now()
-    if not (datetime.datetime.combine(instance.sale_time, datetime.time(0, 0)) <= now <= instance.offshelf_time):
-        return  # 不在上架时间的不做处理
-    from supplychain.supplier.models import SaleProductManageDetail
-
-    pms = SaleProductManageDetail.objects.filter(sale_product_id=instance.sale_product, is_promotion=True).first()
-    if not pms:  # 选品不是推送的产品则不处理
-        return
-    from flashsale.pay.tasks import task_add_product_to_customer_shop
-    task_add_product_to_customer_shop.delay(instance)
-
-pre_save.connect(update_mama_shop_up_shelf, sender=Product, dispatch_uid='post_save_update_mama_shop_up_shelf')
-
-
 def custom_sort(a, b):
     c = ContrastContent.objects.get(name=a[0])
     d = ContrastContent.objects.get(name=b[0])

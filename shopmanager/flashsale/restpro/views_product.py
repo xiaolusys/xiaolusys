@@ -710,6 +710,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             shop_info = model_to_dict(shop, fields=['name'])
             shop_info['thumbnail'] = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg'
             shop_pros = CuShopPros.objects.filter(shop=shop.id, pro_status=CuShopPros.UP_SHELF).order_by('-position')
+            if shop_pros.count() == 0:  # 如果用户店铺没有上架商品则初始化添加推荐商品
+                from flashsale.pay.tasks import task_add_product_to_customer_shop
+                task_add_product_to_customer_shop(customer)
         except:
             return Response({"shop_info": None, "products": None})
         from flashsale.pay.constants import FEMALE_CID_LIST, CHILD_CID_LIST

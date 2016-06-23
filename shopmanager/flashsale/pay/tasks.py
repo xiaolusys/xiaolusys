@@ -806,41 +806,54 @@ def task_customer_update_weixinuserinfo(customer):
 
 
 @task()
-def task_add_product_to_customer_shop(product):
+def task_add_product_to_customer_shop(customer):
     """
-    添加产品产品到用户店铺中
+    为代理用户店铺添加　推送中的商品
     """
+    if not customer:
+        return
+    xlmm = customer.getXiaolumm()
+    if not xlmm:
+        return
+    from supplychain.supplier.models import SaleProductManageDetail
     from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
-
-    shops = CustomerShops.objects.all()
+    from shopback.items.models import Product
     rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
-    for shop in shops:
-        customer = Customer.objects.filter(id=shop.customer, status=Customer.NORMAL).first()
-        if not customer:
-            continue
-        xlmm = customer.getXiaolumm()
-        if not xlmm:
+    today_date = datetime.date.today()
+    shop = CustomerShops.objects.filter(customer=customer.id).first()
+    if not shop:
+        return
+    # 当天推广的选品
+    pms = SaleProductManageDetail.objects.filter(schedule_manage__sale_time=today_date,
+                                                 is_promotion=True)
+    for pm in pms:
+        # 当天上架的　对应选品的商品
+        pro = Product.objects.filter(sale_time=today_date,
+                                     status=Product.NORMAL,
+                                     sale_product=pm.sale_product_id,
+                                     shelf_status=Product.UP_SHELF).first()  # 仅　添加一个产品
+        if not pro:
             continue
         kwargs = {'agencylevel': xlmm.agencylevel,
-                  'payment': float(product.agent_price)} if xlmm and product.agent_price else {}
+                  'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
         rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
         cu_shop_prods = CuShopPros.objects.filter(customer=shop.customer)
-        cu_shop_prod = cu_shop_prods.filter(product=product.id).first()  # 该用户该产品
+        cu_shop_prod = cu_shop_prods.filter(product=pro.id).first()  # 该用户该产品
         if not cu_shop_prod:
-            position = cu_shop_prods.count() + 1
+            position = cu_shop_prods.count() + 1    # 位置加1
             cu_pro = CuShopPros(shop=shop.id,
                                 customer=shop.customer,
-                                product=product.id,
-                                model=product.model_id,
-                                name=product.name,
-                                pic_path=product.pic_path,
-                                std_sale_price=product.std_sale_price,
-                                agent_price=product.agent_price,
-                                remain_num=product.remain_num,
+                                product=pro.id,
+                                model=pro.model_id,
+                                name=pro.name,
+                                pic_path=pro.pic_path,
+                                std_sale_price=pro.std_sale_price,
+                                agent_price=pro.agent_price,
+                                remain_num=pro.remain_num,
                                 carry_scheme=rebt.id,
                                 carry_amount=rebet_amount,
                                 position=position,
-                                pro_category=product.category.cid,
-                                offshelf_time=product.offshelf_time)
+                                pro_category=pro.category.cid,
+                                offshelf_time=pro.offshelf_time)
             cu_pro.save()
 
