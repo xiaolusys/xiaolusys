@@ -42,7 +42,7 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num',
+        'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num','shelf_status',
         'created', 'shenhe', 'is_postpay',
         'changedetail', 'note_name', 'supplier', 'express_no', 'p_district', 'reach_standard', 'updated', 'last_pay_date',
         'created_by','sys_status','purchase_order_unikey',
@@ -80,6 +80,18 @@ class ordelistAdmin(admin.ModelAdmin):
     buyer_select.allow_tags = True
     buyer_select.short_description = '负责人'
 
+    def shelf_status(self, obj):
+        if obj.status != OrderList.SUBMITTING:
+            return ''
+        details = obj.order_list.all()
+        for detail in details:
+            pro = Product.objects.get(id=detail.product_id)
+            if pro.shelf_status:
+                return ''
+        return "已下架"
+        
+    shelf_status.short_description = "是否下架"
+    
     def calcu_item_sum_amount(self, obj):
         amount = 0
         details = obj.order_list.all()
