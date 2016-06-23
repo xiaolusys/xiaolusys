@@ -92,3 +92,12 @@ class CuShopPros(PayBaseModel):
     def sale_num_salt(self):
         """ 销量盐 """
         return self.remain_num * 19 + random.choice(xrange(19))
+
+    @classmethod
+    def update_down_shelf(cls, product_id):
+        """
+        修改店铺指定商品id的状态到下架状态
+        :type product_id: shopback.item.model Product instance id
+        """
+        cls.objects.filter(product=product_id).update(pro_status=CuShopPros.DOWN_SHELF)
+        return

@@ -14,6 +14,7 @@ from shopback.users.models import User
 from shopapp.weixin.models import WeiXinUser, WeixinUnionID
 from flashsale.dinghuo.models import OrderList, OrderDetail
 from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress
+from flashsale.pay.models_shops import CustomerShops, CuShopPros
 from common.utils import update_model_fields
 from .service import FlashSaleService
 from .options import get_user_unionid
@@ -23,7 +24,7 @@ import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
 
 __author__ = 'meixqhi'
-logger = logging.getLogger('celery.handler')
+logger = logging.getLogger(__name__)
 
 
 @task()
@@ -791,6 +792,7 @@ def task_update_orderlist(sku_id):
         orderlist.note += '\n-->%s: %s' % (now.strftime('%m月%d %H:%M'), msg)
         orderlist.save()
 
+
 @task()
 def task_customer_update_weixinuserinfo(customer):
     if not customer.unionid:
@@ -801,4 +803,57 @@ def task_customer_update_weixinuserinfo(customer):
     if not info:
         info = WeixinUserInfo(unionid=customer.unionid,nick=customer.nick,thumbnail=customer.thumbnail)
         info.save()
+
+
+@task()
+def task_add_product_to_customer_shop(customer):
+    """
+    为代理用户店铺添加　推送中的商品
+    """
+    if not customer:
+        return
+    xlmm = customer.getXiaolumm()
+    if not xlmm:
+        return
+    from supplychain.supplier.models import SaleProductManageDetail
+    from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+    from shopback.items.models import Product
+    rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
+    today_date = datetime.date.today()
+    shop = CustomerShops.objects.filter(customer=customer.id).first()
+    if not shop:
+        return
+    # 当天推广的选品
+    pms = SaleProductManageDetail.objects.filter(schedule_manage__sale_time=today_date,
+                                                 is_promotion=True)
+    for pm in pms:
+        # 当天上架的　对应选品的商品
+        pro = Product.objects.filter(sale_time=today_date,
+                                     status=Product.NORMAL,
+                                     sale_product=pm.sale_product_id,
+                                     shelf_status=Product.UP_SHELF).first()  # 仅　添加一个产品
+        if not pro:
+            continue
+        kwargs = {'agencylevel': xlmm.agencylevel,
+                  'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
+        rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+        cu_shop_prods = CuShopPros.objects.filter(customer=shop.customer)
+        cu_shop_prod = cu_shop_prods.filter(product=pro.id).first()  # 该用户该产品
+        if not cu_shop_prod:
+            position = cu_shop_prods.count() + 1    # 位置加1
+            cu_pro = CuShopPros(shop=shop.id,
+                                customer=shop.customer,
+                                product=pro.id,
+                                model=pro.model_id,
+                                name=pro.name,
+                                pic_path=pro.pic_path,
+                                std_sale_price=pro.std_sale_price,
+                                agent_price=pro.agent_price,
+                                remain_num=pro.remain_num,
+                                carry_scheme=rebt.id,
+                                carry_amount=rebet_amount,
+                                position=position,
+                                pro_category=pro.category.cid,
+                                offshelf_time=pro.offshelf_time)
+            cu_pro.save()
 
