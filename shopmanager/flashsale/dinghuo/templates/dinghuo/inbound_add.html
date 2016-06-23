@@ -204,6 +204,7 @@
             <p>Copyright © 2014-2016 小鹿美美，All Rights Reserved</p>
             <p> 沪ICP备15013901号-1</p>
         </footer>
+        {%include "dinghuo/inbound_location.htm"%}
         {% verbatim %}
         <script id="inbound-tpl" type="text/html">
             <div class="panel panel-default" id="panel-2">
@@ -212,11 +213,12 @@
                 </div>
                 <form id="form-2">
                     <div class="panel-body">
-                        <table class="table table-striped" style="width:100%;">
+                        <table class="table table-striped" style="width:100%;" id="inbound_table">
                             <tr>
                                 <th>商品名</th>
                                 <th>商品ID</th>
                                 <th>编码</th>
+                                <th>库位</th>
                                 <th>图片</th>
                                 <th>SkuId</th>
                                 <th>尺寸</th>
@@ -233,6 +235,15 @@
                                     <a href="/items/product/district/{{product.id}}/" target="_blank" title="商品库位">
                                         {{product.id}}
                                     </a>
+                                </td>
+                                <td rowspan="{{product.skus.length}}">
+                                    <a href="/admin/items/product/?outer_id={{product.outer_id}}" target="_blank" title="库存商品列表">
+                                        {{product.outer_id}}
+                                    </a>
+                                </td>
+                                <td rowspan="{{product.skus.length}}">
+                                    <a href="javascript:;" class="district" style="width:100px" data-product-id="{{product.id}}"
+                                        data-product-name="{{product.name}}">【{{sku.district}}】</a>
                                 </td>
                                 <td rowspan="{{product.skus.length}}">
                                     <a href="/admin/items/product/?outer_id={{product.outer_id}}" target="_blank" title="库存商品列表">
@@ -451,6 +462,7 @@
          }
 
 
+
          function setupForm2(inboundProducts){
              $('#panel-2').remove();
              $('#panel-1').after(template('inbound-tpl', {products: inboundProducts, warehouses: WARE_HOUSES}));
@@ -507,6 +519,15 @@
                      }
                  });
              });
+             $('.district', '#inbound_table').click(function(evt){
+                var dom=evt.target;
+                console.dir(dom);
+                product_id = $(dom).data("product-id");
+                product_name = $(dom).data("product-name");
+                $('#product_id', '#locationModal').val(product_id);
+                $('#product_name', '#locationModal').html(product_name);
+                $("#locationModal").modal("show");
+            });
          }
 
 
