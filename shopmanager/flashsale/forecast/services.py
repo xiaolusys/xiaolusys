@@ -2,6 +2,7 @@
 
 import datetime
 from django.db import transaction
+from django.db.models import Sum
 
 from . import serializers
 from .models import (
@@ -67,6 +68,12 @@ def get_normal_forecast_inbound_by_orderid(purchase_orderid_list):
     return forecast_inbounds
 
 
+def get_normal_realinbound_by_orderid(purchase_orderid_list):
+    real_inbounds = RealInBound.objects.filter(relate_order_set__in=purchase_orderid_list,
+                                               status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
+    return real_inbounds
+
+
 def get_normal_realinbound_by_forecastid(forecastid_list):
     real_inbounds = RealInBound.objects.filter(forecast_inbound_id__in=forecastid_list,
                                                status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
@@ -88,14 +95,15 @@ def strip_forecast_inbound(forecast_inbound_id):
     for order in forecast_inbound.relate_order_set.all():
         new_forecast.relate_order_set.add(order)
 
-    # TODO 如果有多个到货单关联一个预测单，需要聚合计算
+    # 如果有多个到货单关联一个预测单，需要聚合计算
     real_inbound_details_qs = RealInBoundDetail.objects.filter(inbound__forecast_inbound=forecast_inbound,
                                                                status=RealInBoundDetail.NORMAL)
-    real_inbound_qs_values = real_inbound_details_qs.values('sku_id', 'arrival_quantity', 'inferior_quantity')
+    real_inbound_qs_values = real_inbound_details_qs.values('sku_id')\
+        .annotate(total_arrival_num=Sum('arrival_quantity'),total_inferior_num=Sum('inferior_quantity'))
     real_inbound_detail_dict = dict([(d['sku_id'], d) for d in real_inbound_qs_values])
     for detail in forecast_inbound.normal_details():
         real_detail = real_inbound_detail_dict.get(detail.sku_id,None)
-        real_arrive_num = real_detail and real_detail.get('arrival_quantity', 0) or 0
+        real_arrive_num = real_detail and real_detail.get('total_arrival_num', 0) or 0
         delta_arrive_num = detail.forecast_arrive_num - real_arrive_num
         if delta_arrive_num > 0:
             forecast_detail = ForecastInboundDetail()
@@ -126,9 +134,14 @@ class AggregateForcecastOrderAndInbound(object):
 
         aggregate_id_set.add(order_id)
         self.aggregate_set.add(order_id)
-
+        # aggregate order from forecast inbound
         forecast_inbounds = get_normal_forecast_inbound_by_orderid([order_id])
         order_ids = forecast_inbounds.values_list('relate_order_set',flat=True)
+        for order_id in order_ids:
+            self.recursive_aggragate_order(order_id, aggregate_id_set)
+        # aggregate order from real inbound
+        real_inbounds = get_normal_realinbound_by_orderid([order_id])
+        order_ids = real_inbounds.values_list('relate_order_set', flat=True)
         for order_id in order_ids:
             self.recursive_aggragate_order(order_id, aggregate_id_set)
 
