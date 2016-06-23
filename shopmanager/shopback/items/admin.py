@@ -1217,7 +1217,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         # 'realtime_lock_num_display',
         'district_link', 'created')
     list_display_links = ['sku_link']
-    search_fields = ['sku__id', 'product__id', 'product__name']
+    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id']
     readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'inferior_num', 'history_quantity',
                        'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
                        'waitingpay_num', 'created', 'modified', 'status']
@@ -1234,7 +1234,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     sku_link.short_description = 'SKU'
 
     def lookup_allowed(self, lookup, value):
-        if lookup in ['product__name']:
+        if lookup in ['product__name', 'product__outer_id']:
             return True
         return super(ProductSkuStatsAdmin, self).lookup_allowed(lookup, value)
 
