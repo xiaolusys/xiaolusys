@@ -302,7 +302,8 @@ class UserCouponManager(BaseManager):
         tasks.task_update_tpl_released_coupon_nums.delay(tpl)
         return cou, 0, u"领取成功"
 
-    def create_order_share_coupon(self, buyer_id, template_id, share_uniq_id=None, ufrom=None, **kwargs):
+    def create_order_share_coupon(self, buyer_id, template_id, share_uniq_id=None, ufrom=None, coupon_value=None,
+                                  **kwargs):
         """
         创建订单分享优惠券
         # 如果是分享类型 判断批次领取
@@ -339,6 +340,8 @@ class UserCouponManager(BaseManager):
             return None, 8, u'该分享已领完'  # batch_coupon = None
 
         value, start_use_time, expires_time = calculate_value_and_time(tpl)
+        if coupon_value:    # 如果　指定了　优惠券价值（根据临时优惠券生成用户优惠券的时候）
+            value = coupon_value
         uniq_id = make_uniq_id(tpl, customer.id, share_id=share_coupon.id)
         extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
         cou = UserCoupon.objects.create(template_id=int(template_id),

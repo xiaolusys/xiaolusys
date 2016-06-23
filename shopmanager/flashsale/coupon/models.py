@@ -291,6 +291,10 @@ class OrderShareCoupon(BaseModel):
         """模板的标题"""
         return self.extras['templates']['title']
 
+    @property
+    def template(self):
+        return CouponTemplate.objects.filter(id=self.template_id).first()
+
 
 def default_coupon_no():
     return uniqid('%s%s' % ('yhq', datetime.datetime.now().strftime('%y%m%d')))
@@ -482,6 +486,7 @@ class TmpShareCoupon(BaseModel):
     mobile = models.CharField(max_length=11, db_index=True, verbose_name=u'手机号')
     share_coupon_id = models.CharField(db_index=True, max_length=32, verbose_name=u"分享uniq_id")
     status = models.BooleanField(default=False, db_index=True, verbose_name=u'是否领取')
+    value = models.FloatField(default=0.0, verbose_name=u'优惠券价值')
 
     class Meta:
         unique_together = ('mobile', 'share_coupon_id')  # 一个分享 一个手机号只能领取一次

@@ -81,7 +81,7 @@ admin.site.register(UserCoupon, UserCouponAdmin)
 
 
 class TmpShareCouponAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mobile', 'share_coupon_id', 'status')
+    list_display = ('id', 'mobile', 'share_coupon_id', 'value', 'status')
 
     list_filter = ('created', )
     search_fields = ['=id', '=mobile', '=share_coupon_id']
