@@ -275,6 +275,15 @@ def release_coupon_for_register(sender, instance, created, **kwargs):
 post_save.connect(release_coupon_for_register, dispatch_uid='release_coupon_for_register', sender=Customer)
 
 
+def update_weixinuserinfo(sender, instance, created, **kwargs):
+    if not instance.unionid:
+        return
+    from flashsale.pay.tasks import task_customer_update_weixinuserinfo
+    task_customer_update_weixinuserinfo.delay(instance)
+        
+post_save.connect(update_weixinuserinfo, sender=Customer, dispatch_uid='post_save_update_weixinuserinfo')
+    
+
 class UserBudget(PayBaseModel):
     """ 特卖用户钱包 """
 

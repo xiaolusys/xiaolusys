@@ -790,3 +790,15 @@ def task_update_orderlist(sku_id):
               (sku.product.name, sku.properties_name or sku.properties_alias, abs(delta), sale_quantity, buy_quantity)
         orderlist.note += '\n-->%s: %s' % (now.strftime('%m月%d %H:%M'), msg)
         orderlist.save()
+
+@task()
+def task_customer_update_weixinuserinfo(customer):
+    if not customer.unionid:
+        return
+    
+    from shopapp.weixin.models_base import WeixinUserInfo    
+    info = WeixinUserInfo.objects.filter(unionid=customer.unionid).first()
+    if not info:
+        info = WeixinUserInfo(unionid=customer.unionid,nick=customer.nick,thumbnail=customer.thumbnail)
+        info.save()
+
