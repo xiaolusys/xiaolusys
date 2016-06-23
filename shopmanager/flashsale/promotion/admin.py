@@ -100,7 +100,7 @@ admin.site.register(ReadPacket, ReadPacketAdmin)
 
 
 class AppDownloadRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'from_customer', 'unionid', 'mobile', 'status', 'modified', 'created')
+    list_display = ('id', 'from_customer', 'unionid', 'nick', 'mobile', 'status', 'modified', 'created')
     list_display_links = ('id', 'from_customer')
     list_filter = ('created', 'status')
     search_fields = ['id', 'mobile', 'from_customer', 'unionid']
