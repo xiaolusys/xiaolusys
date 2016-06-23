@@ -9,6 +9,7 @@ from flashsale.pay.models import SaleOrder
 from flashsale.pay.models_refund import SaleRefund
 from flashsale.pay.models_user import Customer
 from flashsale.pay import tasks
+from shopback.trades.models import PackageSkuItem
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +172,11 @@ def refund_Handler(request):
             return {"code": 0, "info": "修改物流成功!", "apply_fee": refund_fee}
         elif modify == 3:  # 修改数量返回退款金额(不做数据库写动作)
             return {"code": 0, "info": "获取可退金额成功!", "apply_fee": refund_fee}
+
+        # 判断　订货后　不予退款
+        psi = PackageSkuItem.objects.filter(oid=order.oid).first()
+        if psi and psi.is_booked():
+            return {"code": 9, "info": "订单已送达外贸厂订货,暂时不可取消.", "apply_fee": 0}
 
         # 创建退款单
         if refund:
