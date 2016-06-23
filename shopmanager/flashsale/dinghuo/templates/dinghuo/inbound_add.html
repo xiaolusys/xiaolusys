@@ -232,7 +232,7 @@
                                 {{if j == 0}}
                                 <td rowspan="{{product.skus.length}}" style="min-width:150px">{{product.name}}</td>
                                 <td rowspan="{{product.skus.length}}">
-                                    <a href="/items/product/district/{{product.id}}/" target="_blank" title="商品库位">
+                                    <a href="/admin/items/product/?id={{product.id}}/" target="_blank" title="商品库位">
                                         {{product.id}}
                                     </a>
                                 </td>
@@ -245,10 +245,6 @@
                                     <a href="javascript:;" class="district" style="width:100px" data-product-id="{{product.id}}"
                                         data-product-name="{{product.name}}">【{{sku.district}}】</a>
                                 </td>
-                                <td rowspan="{{product.skus.length}}">
-                                    <a href="/admin/items/product/?outer_id={{product.outer_id}}" target="_blank" title="库存商品列表">
-                                        {{product.outer_id}}
-                                    </a>
                                 </td>
                                 <td rowspan="{{product.skus.length}}">
                                     <div class="portfolio-box">
@@ -259,11 +255,11 @@
                                 </td>
                                 {{/if}}
                                 <td>
-                                    <a href="/admin/items/productsku/{{sku.id}}/history/" target="_blank" title="Sku历史记录">{{sku.id}}</a>
+                                    <a href="/admin/items/productsku?id={{sku.id}}/" target="_blank" title="Sku历史记录">{{sku.id}}</a>
                                 </td>
                                 <td>{{sku.properties_name}}</td>
                                 <td>
-                                    <a href="/admin/items/productsku/{{sku.id}}" target="_blank" title="Sku明细">
+                                    <a href="/admin/items/productskustats/?sku_id={{sku.id}}" target="_blank" title="Sku明细">
                                         {{sku.barcode}}
                                     </a>
                                 </td>
@@ -533,15 +529,19 @@
 
          function buildInboundProducts(inboundSkusDict){
              var inboundProducts = {};
+             console.dir(inboundSkusDict);
              for(skuId in inboundSkusDict){
+             console.log("sku");
+             console.log(skuId);
                  var inboundSku = inboundSkusDict[skuId];
                  var sku = skusDict[skuId];
                  var product = productsDict[inboundSku.productId];
-
+                 console.log('product');
+                 console.dir(product);
                  var arrivalQuantity = inboundSku.arrivalQuantity;
                  var inferiorQuantity = inboundSku.inferiorQuantity;
-                 var district = inboundSku.district;
-
+                 var district = product.district;
+                 console.log(product.district);
                  var inboundProduct = {
                      id: product.id,
                      name: product.name,

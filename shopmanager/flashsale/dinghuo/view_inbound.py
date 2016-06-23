@@ -325,6 +325,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 'saleproduct_id': sku.product.sale_product,
                 'name': sku.product.name,
                 'outer_id': sku.product.outer_id,
+                'district': sku.product.get_district_info(),
                 'pic_path': '%s' % sku.product.pic_path.strip(),
                 'ware_by': sku.product.ware_by,
                 'skus': {},

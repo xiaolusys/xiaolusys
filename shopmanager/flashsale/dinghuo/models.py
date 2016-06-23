@@ -1421,11 +1421,17 @@ class InBound(models.Model):
         """
         for inbound_detail_id in data:
             inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
-            inbound_detail.finish_change_inferior(data[inbound_detail_id]["arrivalQuantity"],
+            if inbound_detail.checked:
+                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
+                                                  data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
+            else:
+                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
                                                   data[inbound_detail_id]["inferiorQuantity"])
+                inbound_detail.finish_check2()
         self.status = InBound.COMPLETED
         self.checked = True
         self.check_time = datetime.datetime.now()
+        self.set_stat()
         self.save()
 
     def reset_to_verify(self):
@@ -1737,8 +1743,8 @@ class InBoundDetail(models.Model):
         :param inferior_quantity:
         :return:
         """
-        self.change_inferior(arrival_quantity, inferior_quantity, True)
-        self.finish_check()
+        self.set_quantity(arrival_quantity, inferior_quantity)
+        self.finish_check2()
 
     def finish_check(self):
         """
@@ -1756,6 +1762,55 @@ class InBoundDetail(models.Model):
             ProductSku.objects.filter(id=self.sku_id).update(quantity=F('quantity') + self.all_allocate_quantity)
         self.save()
 
+    def finish_check2(self):
+        if self.checked:
+            return
+        self.checked = True
+        self.check_time = datetime.datetime.now()
+        self.status = InBoundDetail.NORMAL
+        ProductSku.objects.filter(id=self.sku_id).update(quantity=F('quantity') + self.all_allocate_quantity)
+        self.save()
+
+    def set_quantity(self, arrival_quantity, inferior_quantity, update_stock=False):
+        """
+            设置库存
+        :param arrival_quantity:
+        :param inferior_quantity:
+        :param update_stock:
+        :return:
+        """
+        if self.arrival_quantity == arrival_quantity and self.inferior_quantity == inferior_quantity:
+            return
+        if arrival_quantity + inferior_quantity != self.arrival_quantity + self.inferior_quantity:
+            raise Exception(u'改变次品时总数量不能发生变化')
+        self.inferior_quantity = inferior_quantity
+        self.arrival_quantity = arrival_quantity
+        if self.records.exists() and self.arrival_quantity < self.all_allocate_quantity:
+            # 已经分配到订货单的必须同步修正订货单
+            change = self.all_allocate_quantity - self.arrival_quantity
+            self.set_records_quantity(change, update_stock)
+        self.save()
+
+    def set_records_quantity(self, change_total, update_stock):
+        """
+            inbound_detail的arrival_quantity的减少自动体现到records上
+        :param change_total:
+        :param change_stock:
+        :return:
+        """
+        quantity_change = change_total
+        for r in self.records.order_by('-id'):
+            if r.arrival_quantity >= change_total:
+                r.arrival_quantity -= change_total
+                r.save()
+                break
+            else:
+                r.arrival_quantity = 0
+                r.save()
+                change_total -= r.arrival_quantity
+        if update_stock:
+            ProductSku.objects.filter(id=self.sku_id).update(quantity=F('quantity') - quantity_change)
+
     @property
     def out_stock_cnt(self):
         if self.wrong:
@@ -1768,7 +1823,6 @@ class InBoundDetail(models.Model):
 def update_stock(sender, instance, created, **kwargs):
     if instance.checked:
         instance.sync_order_detail()
-        instance.inbound.set_stat().save()
 
 post_save.connect(update_stock,
                   sender=InBoundDetail,
