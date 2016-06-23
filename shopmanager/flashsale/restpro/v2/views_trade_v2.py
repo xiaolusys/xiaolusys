@@ -603,7 +603,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                     status=BudgetLog.CONFIRMED)
             #确认付款后保存
             confirmTradeChargeTask.delay(strade_id)
-        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
+        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功', 'order_no':sale_trade.tid}
     
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
@@ -916,7 +916,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 logger.error('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
                 return Response({'code':6, 'info':exc.message or '未知支付异常'})
 
-        return Response({'code':0, 'info':u'支付成功', 'channel':channel, 'charge':response_charge})
+        return Response({'code':0, 'info':u'支付成功', 'channel':channel,
+                         'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel},
+                         'charge':response_charge})
             
         
     @list_route(methods=['post'])
@@ -1001,7 +1003,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)
-        return Response(response_charge)
+        return Response({'code':0, 'info':u'支付成功', 'channel':channel,
+                         'trade': {'id': sale_trade.id, 'tid': sale_trade.tid, 'channel':channel},
+                         'charge':response_charge})
 
     @detail_route(methods=['post'])
     def charge(self, request, *args, **kwargs):
@@ -1027,7 +1031,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             # pingpp 支付
             response_charge = self.pingpp_charge(instance)
         log_action(request.user.id, instance, CHANGE, u'重新支付')
-        return Response({'code': 0, 'info': 'success', 'charge': response_charge})
+        return Response({'code': 0, 'info': u'支付成功','channel':instance.channel,
+                         'trade':{'id':instance.id, 'tid':instance.tid, 'channel':instance.channel,},
+                         'charge': response_charge})
 
     def perform_destroy(self, instance):
         # 订单不在 待付款的 或者不在创建状态
