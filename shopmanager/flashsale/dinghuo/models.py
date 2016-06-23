@@ -1245,7 +1245,10 @@ class InBound(models.Model):
         return orderlists
 
     def get_allocate_order_details_dict(self):
-        orderlist_ids = self.get_may_allocate_order_list_ids()
+        if self.is_allocated():
+            orderlist_ids = self.order_list_ids
+        else:
+            orderlist_ids = self.get_may_allocate_order_list_ids()
         orderlists_dict = {}
         for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
             orderlists_dict[orderlist.id] = {
