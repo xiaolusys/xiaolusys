@@ -39,7 +39,7 @@ from shopback.items.models import Product
 from .tasks import task_send_message
 from shopapp.smsmgr.models import SMSActivity, SMS_NOTIFY_GOODS_LACK
 
-SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您订购{0}{1}码 因订购人数众多。由于我们是按照下单的先后顺序发货的，到您这里很不巧缺货了。要麻烦亲申请一下退款我们会及时处理。给您带来不便非常抱歉！么么哒～"
+SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您订购{0}{1}码 因销量火爆，厂家缺货。我们已经帮您自动退款并且补偿10元优惠券。给您带来不便非常抱歉！么么哒～"
 
 
 class SendMessageView(generics.ListCreateAPIView):
