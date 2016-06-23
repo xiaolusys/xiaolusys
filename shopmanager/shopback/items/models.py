@@ -460,6 +460,15 @@ class Product(models.Model):
         locations = ProductLocation.objects.filter(product_id=self.id)
         return [(l.district.parent_no, l.district.district_no) for l in locations]
 
+    def get_district_info(self):
+        if not hasattr(self, '_district_info_'):
+            district_ids = [i['district'] for i in ProductLocation.objects.filter(product_id=self.id).values('district').distinct()]
+            if district_ids:
+                self._district_info_ = ','.join([str(d) for d in DepositeDistrict.objects.filter(id__in=district_ids)])
+            else:
+                self._district_info_ = ''
+        return self._district_info_
+
     def get_districts_code(self):
         """ 商品库中区位 """
         locations = self.get_district_list()
