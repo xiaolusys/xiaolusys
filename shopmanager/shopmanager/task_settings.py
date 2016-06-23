@@ -634,6 +634,7 @@ CELERY_ROUTES = {
         'routing_key': 'async.task_send_message',
     },  # 缺货短信任务
 }
+
 CELERY_ROUTES.update(DAILY_STATS_ROUTES)
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)
 CELERY_ROUTES.update(MAMA_FORTUNE_ROUTES)

@@ -707,7 +707,7 @@ class CuShopProsAdmin(admin.ModelAdmin):
                     'model', 'pro_status', 'position', 'created')
     list_display_links = ('shop',)
     list_filter = ('created', 'pro_status', CushopProCategoryFiler)
-    search_fields = ['=id', 'model', 'shop', 'product']
+    search_fields = ['=id', 'model', 'shop', 'product', '=customer']
 
     def pro_category_dec(self, obj):
         """

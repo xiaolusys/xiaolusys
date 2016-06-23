@@ -625,15 +625,15 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 
 
-def update_mama_shop(sender, instance, raw, *args, **kwargs):
+def update_mama_shop_down_shelf(sender, instance, raw, *args, **kwargs):
     """ 如果商品是下架状态则更新妈妈店铺的商品到下架状态 """
     if instance.shelf_status != Product.DOWN_SHELF:
         return
     from flashsale.pay.models_shops import CuShopPros
-    CuShopPros.objects.filter(product=instance.id).update(pro_status=CuShopPros.DOWN_SHELF)
+    CuShopPros.update_down_shelf(instance.id)  # 更新所有店铺的　该产品　到　下架状态
 
 
-pre_save.connect(update_mama_shop, sender=Product)
+pre_save.connect(update_mama_shop_down_shelf, sender=Product, dispatch_uid='post_save_update_mama_shop_down_shelf')
 
 
 def custom_sort(a, b):
