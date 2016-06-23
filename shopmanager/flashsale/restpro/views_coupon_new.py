@@ -19,6 +19,7 @@ from flashsale.coupon.models import UserCoupon, OrderShareCoupon, CouponTemplate
 from flashsale.pay.models import Customer, ShoppingCart, SaleTrade
 from flashsale.pay.tasks import task_release_coupon_push
 from flashsale.promotion.models_freesample import XLSampleOrder
+from flashsale.coupon.managers import calculate_value_and_time
 
 logger = logging.getLogger(__name__)
 
@@ -29,27 +30,25 @@ def release_tmp_share_coupon(customer):
     """
     if not customer:
         return True
-    tmp_share_coupons = TmpShareCoupon.objects.filter(mobile=customer.mobile, status=False)
-    share_coupon_ids = tmp_share_coupons.values('share_coupon_id')
-    now = datetime.datetime.now()
-    share_coupons = OrderShareCoupon.objects.filter(
-        uniq_id__in=share_coupon_ids,
-        share_start_time__lte=now,  # 开始分享时间 小于 现在时间
-        share_end_time__gte=now,  # 结束分享时间 大于 现在时间
-    )
-    for share_coupon in share_coupons:  # 遍历分享 查看优惠券模板 按照模板发放优惠券
-        # 在分享时间内的发放
-        try:
-            tpl = CouponTemplate.objects.filter(id=share_coupon.template_id).first()
-            if tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE:
-                UserCoupon.objects.create_order_share_coupon(customer.id, tpl.id, share_coupon.uniq_id, ufrom=u'tmp')
-
-            elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE:
-                UserCoupon.objects.create_active_share_coupon(customer.id, tpl.id, share_coupon.uniq_id, ufrom=u'tmp')
-        except:
+    tmp_coupons = TmpShareCoupon.objects.filter(mobile=customer.mobile, status=False)
+    for tmp_coupon in tmp_coupons:
+        share = OrderShareCoupon.objects.filter(uniq_id=tmp_coupon.share_coupon_id).first()
+        if not share:
             continue
-    # 更新状态到已经领取
-    tmp_share_coupons.update(status=True)
+        tpl = share.template
+        if not tpl:
+            continue
+        try:
+            if tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE:
+                x = UserCoupon.objects.create_order_share_coupon(customer.id, tpl.id, share.uniq_id, ufrom=u'tmp',
+                                                                 coupon_value=tmp_coupon.value)
+            elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE:
+                UserCoupon.objects.create_active_share_coupon(customer.id, tpl.id, share.uniq_id, ufrom=u'tmp')
+            tmp_coupon.status = True
+            tmp_coupon.save(update_fields=['status'])  # 更新状态到已经领取
+        except Exception as exc:
+            logger.error(u'release_tmp_share_coupon for customer %s -%s' % (customer.id, exc))
+            continue
     return True
 
 
@@ -414,7 +413,9 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
             default_return.update({"code": 8, "msg": "领取完了哦"})
             return Response(default_return)
         else:
-            if not coupon_share.release_count < coupon_share.limit_share_count:  # 领取次数必须小于最大领取限制
+
+            urelase_tmp_count = TmpShareCoupon.objects.filter(share_coupon_id=uniq_id, status=False).count()  # 临时未　领取　
+            if not (coupon_share.release_count + urelase_tmp_count) < coupon_share.limit_share_count:  # 领取次数必须小于最大领取限制
                 default_return.update({"code": 8, "msg": "领取完了"})
                 return Response(default_return)
         if not ufrom:
@@ -508,19 +509,30 @@ class TmpShareCouponViewset(viewsets.ModelViewSet):
             return Response(default_return)
 
         coupon_share = OrderShareCoupon.objects.filter(uniq_id=uniq_id).first()
+
         if not coupon_share:
             default_return.update({"code": 4, "msg": "没有找到该分享"})
             return Response(default_return)
+
+        # 当前分享的　临时优惠券张数
+        unrelease_tmp_count = self.queryset.filter(share_coupon_id=uniq_id, status=False).count()  # 未领取的临时记录张数
+        if unrelease_tmp_count + coupon_share.release_count >= coupon_share.limit_share_count:
+            default_return.update({"code": 5, "msg": "领完了"})
+            return Response(default_return)
         try:
-            tpl = CouponTemplate.objects.filter(id=coupon_share.template_id).first()
-            coupon.update(
-                {"coupon_value": str(tpl.min_val) + '-' + str(tpl.max_val),
-                 "title": tpl.title,
-                 "deadline": tpl.use_deadline,
-                 "mobile": mobile})
+            tpl = coupon_share.template
             tmp_shre, state = TmpShareCoupon.objects.get_or_create(mobile=mobile, share_coupon_id=uniq_id)
-        except:
-            logger.warn("when release tmp share coupon the mobile is %s, uniq_id is %s" % (mobile, uniq_id))
+            value, start_use_time, expires_time = calculate_value_and_time(tpl)
+            if state and tmp_shre.value != value:
+                tmp_shre.value = value
+                tmp_shre.save(update_fields=['value'])
+            coupon.update(
+                {"coupon_value": tmp_shre.value,
+                 "title": tpl.title,
+                 "deadline": expires_time,
+                 "mobile": mobile})
+        except Exception as exc:
+            logger.warn("when release tmp share coupon the mobile is %s, uniq_id is %s exc:%s" % (mobile, uniq_id, exc))
             default_return.update({"code": 3, "msg": "领取出错了"})
             return Response(default_return)
         default_return.update({"code": 0, "msg": "领取成功"})
