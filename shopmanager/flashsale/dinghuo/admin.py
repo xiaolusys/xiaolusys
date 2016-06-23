@@ -676,7 +676,7 @@ class InBoundAdmin(admin.ModelAdmin):
     ), )
 
     list_display = ('id', 'show_id', 'show_creator', 'supplier', 'express_no',
-                    'memo', 'show_orderlists', 'created', 'modified', 'status')
+                     'show_orderlists', 'created', 'status', 'show_status_info', 'memo')
 
     list_filter = ('status', 'created', 'checked', 'wrong', 'out_stock', InBoundCreatorFilter)
 
@@ -699,6 +699,11 @@ class InBoundAdmin(admin.ModelAdmin):
         return ','.join(tmp)
     show_orderlists.allow_tags = True
     show_orderlists.short_description = u'关联订货单'
+
+    def show_status_info(self, obj):
+        return obj.get_set_status_info()
+    show_status_info.allow_tags = True
+    show_status_info.short_description = u'当前状态'
 
 
 class InBoundDetailAdmin(admin.ModelAdmin):

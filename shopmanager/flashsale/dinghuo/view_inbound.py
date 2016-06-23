@@ -61,6 +61,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound = InBound(supplier_id=supplier_id,
                           creator_id=request.user.id,
                           express_no=express_no,
+                          ori_orderlist_id=orderlist_id,
                           memo='\n'.join(tmp))
         if orderlist_id:
             inbound.orderlist_ids = [orderlist_id]
@@ -101,7 +102,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         #                         for x in orderlists], orderlist_id, express_no)
         log_action(request.user.id, inbound, ADDITION, '创建')
         return Response({
-            "res":True,
+            "res": True,
             'inbound': {
                 'id': inbound.id,
                 # 'details': inbounddetails_dict,
@@ -114,9 +115,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
         orderlist_ids = set()
         for orderdetail in OrderDetail.objects.filter(
                 chichu_id__in=sku_ids).exclude(
-                    orderlist__status__in=
-                    [OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED,
-                     OrderList.TO_PAY, OrderList.SUBMITTING]):
+            orderlist__status__in=
+            [OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED,
+             OrderList.TO_PAY, OrderList.SUBMITTING]):
             orderlist_ids.add(orderdetail.orderlist_id)
         return cls._build_orderlists(list(orderlist_ids))
 
@@ -189,7 +190,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             for product_id in sorted(orderlist_products_dict.keys()):
                 product_dict = copy.copy(products_dict[product_id])
                 product_dict.update(saleproducts_dict.get(product_dict[
-                    'saleproduct_id']) or {})
+                                                              'saleproduct_id']) or {})
                 orderlist_skus_dict = orderlist_products_dict[product_id]
                 for sku_id in sorted(orderlist_skus_dict.keys()):
                     len_of_skus += 1
@@ -234,7 +235,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
         result = {
             'express_no': form.cleaned_data['express_no'],
-            'orderlist_id':form.cleaned_data['orderlist_id'],
+            'orderlist_id': form.cleaned_data['orderlist_id'],
             'orderlist_ids': [{'id': v,
                                'text': k}
                               for k, v in orderlist_id_dict.iteritems()],
@@ -504,18 +505,16 @@ class InBoundViewSet(viewsets.GenericViewSet):
             raise exceptions.ParseError(e0.message)
 
     @detail_route(methods=['post'])
-    def add_inferior_quantity(self, request, pk=None):
+    def add_allocate_quantity(self, request, pk=None):
         num = int(request.POST.get('num', 1))
-        orderdetail_id = request.POST.get('orderdetail_id')
-        orderdetail = get_object_or_404(OrderDetail, id=orderdetail_id)
-        oi = OrderDetailInBoundDetail.objects.get(inbounddetail__inbound__id=pk, orderdetail_id=orderdetail)
-        oi.inferior_quantity += num
-        oi.arrival_quantity -= num
-        if oi.arrival_quantity < 0:
-            return Response({'res': False, 'desc': u'正品数不能小于0'})
-        oi.save()
-        oi.inbounddetail.sync_quantity()
-        return Response({'res': True})
+        oi_id = request.POST.get('oi_id')
+        relation = get_object_or_404(OrderDetailInBoundDetail, id=oi_id)
+        try:
+            relation.change_arrival_quantity(num)
+            return Response({'res': True, 'data': {'sku': relation.inbounddetail.sku_id,
+                                                   'status_info': relation.inbounddetail.get_status_info()}})
+        except Exception, e0:
+            raise exceptions.ParseError(e0.message)
 
     @detail_route(methods=['post'])
     def finish_check(self, request, pk):
@@ -536,6 +535,12 @@ class InBoundViewSet(viewsets.GenericViewSet):
             return Response({'res': True})
         except Exception, e0:
             raise exceptions.ParseError(e0.message)
+
+    @detail_route(methods=['post'])
+    def generate_return_goods(self, request, pk):
+        inbound = get_object_or_404(InBound, pk=pk)
+        inbound.generate_return_goods(request.user.username)
+        return Response({'res': True})
 
     @detail_route(methods=['post'])
     def reset_to_verify(self, request, pk):
