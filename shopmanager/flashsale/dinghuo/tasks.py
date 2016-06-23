@@ -1454,7 +1454,7 @@ def task_packageskuitem_update_purchaserecord(psi):
             if od and od.arrival_time:
                 od_time = od.arrival_time
 
-            if od.purchase_detail_unikey and od_time > psi.pay_time and od_time > rp_time:
+            if od and od.purchase_detail_unikey and od_time > psi.pay_time and od_time > rp_time:
                 # In this case, the PSI was assigned by orderdetail inventory
                 status = PurchaseRecord.EFFECT
             else:
