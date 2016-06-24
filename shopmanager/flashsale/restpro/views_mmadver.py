@@ -72,9 +72,8 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         if xlmm:
             if model_id:
                 return os.path.join(settings.M_SITE_URL,
-                                    "m/{0}/?next={1}/mall/product/details/{2}".format(xlmm.id,
-                                                                                      settings.M_SITE_URL,
-                                                                                      model_id))  # 专属链接
+                                    "m/{0}/?next=mall/product/details/{1}".format(xlmm.id,
+                                                                                  model_id))  # 专属链接
             return os.path.join(settings.M_SITE_URL,
                                 "m/{0}/".format(xlmm.id))  # 专属链接
         else:

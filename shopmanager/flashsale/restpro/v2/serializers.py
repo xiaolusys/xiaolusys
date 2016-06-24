@@ -1,4 +1,9 @@
 # coding=utf-8
+import json
+import collections
+import random
+from django.core.cache import cache
+from django.forms import model_to_dict
 from rest_framework import serializers
 
 from flashsale.xiaolumm.models_fortune import (
@@ -13,6 +18,11 @@ from flashsale.xiaolumm.models_fortune import (
     UniqueVisitor,
     DailyStats,
 )
+
+from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme, calculate_price_carry
+from flashsale.xiaolumm.models import XiaoluMama
+from shopback.items.models import Product
+from flashsale.pay.models import Customer
 
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
@@ -148,3 +158,71 @@ class DailyStatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DailyStats
+
+
+class ProductSimpleSerializerV2(serializers.ModelSerializer):
+    level_info = serializers.SerializerMethodField('agencylevel_info', read_only=True)
+    shop_product_num = serializers.SerializerMethodField('shop_products_info', read_only=True)
+
+    class Meta:
+        model = Product
+        extra_kwargs = {'in_customer_shop': {}, 'shop_product_num': {}}
+        fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num',
+                  'in_customer_shop', 'shop_product_num',
+                  "level_info")
+
+    @property
+    def agency_rebate_info(self):
+        if not hasattr(self, '_agency_rebate_info_'):
+            rebate = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
+            self._agency_rebate_info_ = model_to_dict(rebate)
+            return self._agency_rebate_info_
+        return self._agency_rebate_info_
+
+    def mama_agency_level_info(self, user):
+        default_info = collections.defaultdict(agencylevel=XiaoluMama.INNER_LEVEL,
+                                               agencylevel_desc=XiaoluMama.AGENCY_LEVEL[0][1],
+                                               next_agencylevel=XiaoluMama.A_LEVEL,
+                                               next_agencylevel_desc=XiaoluMama.AGENCY_LEVEL[2][1])
+        if not hasattr(self, '_agency_user_level_info_'):
+            customer = Customer.objects.filter(user=user).first()
+            if not customer:
+                return default_info
+            xlmm = customer.getXiaolumm()
+            if not xlmm:
+                return default_info
+            next_agencylevel, next_agencylevel_desc = xlmm.next_agencylevel_info()
+            default_info.update({
+                "agencylevel": xlmm.agencylevel,
+                "agencylevel_desc": xlmm.get_agencylevel_display(),
+                "next_agencylevel": next_agencylevel,
+                "next_agencylevel_desc": next_agencylevel_desc
+            })
+            self._agency_user_level_info_ = default_info
+            return self._agency_user_level_info_
+        return self._agency_user_level_info_
+
+    def agencylevel_info(self, obj):
+        user = self.context['request'].user
+        info = self.mama_agency_level_info(user)
+        sale_num = obj.remain_num * 19 + random.choice(xrange(19))
+        sale_num_des = '{0}人在卖'.format(sale_num)
+        rebate = self.agency_rebate_info
+        rebet_amount = calculate_price_carry(info['agencylevel'], obj.agent_price, rebate['price_rebetas'])
+        rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
+        next_rebet_amount = calculate_price_carry(info['next_agencylevel'], obj.agent_price, rebate['price_rebetas'])
+        next_rebet_amount_des = '佣 ￥{0}.00'.format(next_rebet_amount)
+        info.update({
+            "sale_num": sale_num,
+            "sale_num_des": sale_num_des,
+            "rebet_amount": rebet_amount,
+            "rebet_amount_des": rebet_amount_des,
+            "next_rebet_amount": next_rebet_amount,
+            "next_rebet_amount_des": next_rebet_amount_des
+        })
+        return info
+
+    def shop_products_info(self, obj):
+        shop_products_num = self.context['shop_product_num']
+        return shop_products_num
+
