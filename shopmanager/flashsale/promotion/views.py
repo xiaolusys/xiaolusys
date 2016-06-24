@@ -301,11 +301,11 @@ class APPDownloadView(WeixinAuthMixin, View):
                     return redirect(redirect_url)
             # now we have userinfo
             request_customer = self.get_current_customer(unionid=unionid)
-            if request_customer.id != int(from_customer):
+            if not (request_customer and from_customer.isdigit() and request_customer.id == int(from_customer)):
                 task_create_appdownloadrecord_with_userinfo.delay(from_customer, userinfo)    
         elif valid_mobile(mobile):
             request_customer = self.get_current_customer(mobile=mobile)
-            if request_customer.id != int(from_customer):
+            if not (request_customer and from_customer.isdigit() and request_customer.id == int(from_customer)):
                 task_create_appdownloadrecord_with_mobile.delay(from_customer, mobile)
             
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
