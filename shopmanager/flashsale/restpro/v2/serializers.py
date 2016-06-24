@@ -202,7 +202,7 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
     class Meta:
         model = Product
         extra_kwargs = {'in_customer_shop': {}, 'shop_product_num': {}}
-        fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num', 
+        fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num',
                   'in_customer_shop', 'shop_product_num',
                   "level_info")
 
@@ -215,7 +215,7 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
         rebet_amount = calculate_price_carry(info['agencylevel'], obj.agent_price, rebate['price_rebetas'])
         rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
         next_rebet_amount = calculate_price_carry(info['next_agencylevel'], obj.agent_price, rebate['price_rebetas'])
-        next_rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
+        next_rebet_amount_des = '佣 ￥{0}.00'.format(next_rebet_amount)
         info.update({
             "sale_num": sale_num,
             "sale_num_des": sale_num_des,
