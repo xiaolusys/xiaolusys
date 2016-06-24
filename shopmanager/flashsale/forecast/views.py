@@ -421,7 +421,7 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
     queryset = ForecastInbound.objects.all()
     authentication_classes = (authentication.TokenAuthentication,authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer)
+    renderer_classes = (TemplateHTMLRenderer, JSONRenderer, BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         """
