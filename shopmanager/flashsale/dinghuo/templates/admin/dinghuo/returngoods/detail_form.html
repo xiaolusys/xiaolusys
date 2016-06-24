@@ -108,9 +108,9 @@
             </div>
         </div>
         <div class="panel-body">
-            <div>
-                <label class="required" for="id_status">状态:</label>
-                <label class="simple-label" id="id_status">{{original.get_status_display}}</label>
+            <div class="row">
+                <label class="col-md-1" for="id_status">状态:</label>
+                <label class="col-md-1" id="id_status">{{original.get_status_display}}</label>
                 {%if original.type == 0 %}
                 {%if original.status ==  0%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_check" value="审核通过" />&nbsp;&nbsp;
