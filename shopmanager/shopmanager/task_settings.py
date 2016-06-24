@@ -323,9 +323,17 @@ MAMA_RELATIONSHIP_ROUTES = {
         'queue': 'relationship',
         'routing_key': 'relationship.task_decide_award_winner',
     },
-    'flashsale.promotion.tasks_activity.task_sampleapply_update_appdownloadapp': {
+    'flashsale.promotion.tasks_activity.task_sampleapply_update_appdownloadrecord': {
         'queue': 'relationship',
-        'routing_key': 'relationship.task_sampleapply_update_appdownloadapp',
+        'routing_key': 'relationship.task_sampleapply_update_appdownloadrecord',
+    },
+    'flashsale.promotion.tasks_activity.task_create_appdownloadrecord_with_userinfo': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_create_appdownloadrecord_with_userinfo',
+    },
+    'flashsale.promotion.tasks_activity.task_create_appdownloadrecord_with_mobile': {
+        'queue': 'relationship',
+        'routing_key': 'relationship.task_create_appdownloadrecord_with_mobile',
     },
     'flashsale.xiaolumm.tasks_lesson.task_create_lessonattendrecord': {
         'queue': 'relationship',

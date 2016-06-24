@@ -65,15 +65,3 @@ class WeixinUserInfo(BaseModel):
         return u'<%s>' % self.nick
 
 
-def weixin_userinfo_update_customer(sender, instance, created, *args, **kwargs):
-    """
-    Every time WeixinUserInfo gets updated, we update corresponding customer (if exists).
-    -- Zifei 2016-04-12
-    """
-
-    from .tasks import task_userinfo_update_customer
-    task_userinfo_update_customer.delay(instance)
-
-
-post_save.connect(weixin_userinfo_update_customer, sender=WeixinUserInfo,
-                  dispatch_uid="weixin_userinfo_update_customer")

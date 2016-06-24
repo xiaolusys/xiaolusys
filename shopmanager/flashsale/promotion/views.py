@@ -274,40 +274,40 @@ class APPDownloadView(WeixinAuthMixin, View):
         from_customer = content.get('from_customer') or ''  # 分享人的用户id
         mobile = content.get('mobile') or ''
         ufrom = content.get("ufrom") or None
-        if from_customer:  # 创建下载记录
-            # 如果当前用户等于from_customer 则return
 
-            if self.is_from_weixin(request):  # 如果是在微信里面
-                self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
-                openid, unionid = self.get_openid_and_unionid(request)  # 先获取cookie如果没有则会静默授权获取openid
-                if not self.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
-                    return redirect(self.get_wxauth_redirct_url(request))
-                else:
-                    if not self.valid_openid(unionid):  # openid 有效
-                        unionid = options.get_unionid_by_openid(openid, settings.WXPAY_APPID)
+        from flashsale.promotion.tasks_activity import task_create_appdownloadrecord_with_userinfo, \
+            task_create_appdownloadrecord_with_mobile
+        
+        if self.is_from_weixin(request):
+            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        
+            # get openid from cookie
+            openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
-                    if not self.valid_openid(unionid):  # 先获取一次数据库中的unionid　不合法　高级授权
-                        return redirect(self.get_snsuserinfo_redirct_url(request))
-                    request_customer = self.get_current_customer(unionid=unionid)
-
-                    if not (request_customer and from_customer.isdigit() and request_customer.id == int(from_customer)):
-                        # 如果当前用户不是from_customer 则添加下载记录
-                        download, state = AppDownloadRecord.objects.get_or_create(unionid=unionid,
-                                                                                  from_customer=int(from_customer))
-                        download.mobile = mobile
-                        download.openid = openid
-                        download.ufrom = ufrom
-                        download.save()
-
-            else:
-                if valid_mobile(mobile):  # 合法手机号
-                    request_customer = self.get_current_customer(mobile=mobile)
-                    if not (request_customer and from_customer.isdigit() and request_customer.id == int(from_customer)):
-                        download, state = AppDownloadRecord.objects.get_or_create(mobile=mobile,
-                                                                                  from_customer=int(from_customer))
-                        download.ufrom = ufrom
-                        download.save()
-
+            userinfo = {}
+            if self.valid_openid(unionid):
+                record = WeixinUserInfo.objects.filter(unionid=unionid).first()
+                if record:
+                    userinfo.update({"unionid":record.unionid, "nickname":record.nick, "headimgurl":record.thumbnail})
+                        
+            if not userinfo:
+                # get openid from 'debug' or from using 'code' (if code exists)
+                userinfo = self.get_auth_userinfo(request)
+                unionid = userinfo.get("unionid")
+            
+                if not self.valid_openid(unionid):
+                    # if we still dont have openid, we have to do oauth
+                    redirect_url = self.get_snsuserinfo_redirct_url(request)
+                    return redirect(redirect_url)
+            # now we have userinfo
+            request_customer = self.get_current_customer(unionid=unionid)
+            if request_customer.id != int(from_customer):
+                task_create_appdownloadrecord_with_userinfo.delay(from_customer, userinfo)    
+        elif valid_mobile(mobile):
+            request_customer = self.get_current_customer(mobile=mobile)
+            if request_customer.id != int(from_customer):
+                task_create_appdownloadrecord_with_mobile.delay(from_customer, mobile)
+            
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         if agent and "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
             url = self.QQ_YINYONGBAO_URL

@@ -223,7 +223,8 @@ def task_sampleapply_update_appdownloadrecord(application):
     record = get_appdownloadrecord(application.user_unionid, application.mobile)
     if not record:
         record = AppDownloadRecord(from_customer=application.from_customer, openid=application.user_openid,
-                                   unionid=application.user_unionid, mobile=application.mobile)
+                                   unionid=application.user_unionid, nick=application.nick, headimgurl=application.headimgurl,
+                                   mobile=application.mobile)
         record.save()
     else:
         if not record.unionid and application.user_unionid:
@@ -292,3 +293,21 @@ def task_appdownloadrecord_update_fans(record):
     fan = XlmmFans(xlmm=mama_id, xlmm_cusid=mama_customer_id, refreal_cusid=referal_customer_id, fans_cusid=customer.id,
                    fans_nick=customer.nick, fans_thumbnail=customer.thumbnail)
     fan.save()
+
+
+@task()
+def task_create_appdownloadrecord_with_userinfo(from_customer, userinfo):
+    from_customer = int(from_customer)
+    unionid = userinfo.get("unionid")
+    nick = userinfo.get("nickname")
+    headimgurl = userinfo.get("headimgurl")
+    
+    record = AppDownloadRecord(from_customer=from_customer,unionid=unionid,headimgurl=headimgurl,nick=nick,ufrom=AppDownloadRecord.WXAPP)
+    record.save()
+
+@task()
+def task_create_appdownloadrecord_with_mobile(from_customer, mobile):
+    from_customer = int(from_customer)
+    record = AppDownloadRecord(from_customer=from_customer,mobile=mobile)
+    record.save()
+    
