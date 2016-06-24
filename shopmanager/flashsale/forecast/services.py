@@ -18,6 +18,40 @@ class AggregateDataException(BaseException):
     pass
 
 
+def get_purchaseorder_date(order):
+    from flashsale.dinghuo.models import OrderList
+    if not isinstance(order, OrderList):
+        order = OrderList.objects.get(id=order)
+
+    order_details = order.order_list.all()
+    detail_dict_list = []
+    for detail in order_details:
+        detail_dict = {
+            'id': detail.id,
+            'product_id': detail.product_id,
+            'sku_id': detail.chichu_id,
+            'product_name': detail.product_name,
+            'sku_name': detail.product_chicun,
+            'purchase_num': detail.buy_quantity
+        }
+        detail_dict_list.append(detail_dict)
+    pt = order.last_pay_date
+    if pt:
+        pt = datetime.datetime(pt.year, pt.month, pt.day)
+    return {
+        'id': order.id,
+        'supplier': serializers.SupplierSerializer(order.supplier).data,
+        'purchaser': order.buyer_name,
+        'post_district': order.p_district,
+        'receiver': order.receiver,
+        'created': order.created,
+        'purchase_time': pt,
+        'memo': order.note,
+        'sys_status': order.sys_status,
+        'sys_status_name': order.status_name,
+        'total_detail_num': order.total_detail_num
+    }
+
 def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     """ 通过采购员名称获取订货单 """
     from flashsale.dinghuo.models import OrderList, OrderDetail
@@ -29,56 +63,31 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
 
     order_dict_list = []
     for order in order_list:
-        order_details = order.order_list.all()
-        detail_dict_list = []
-        for detail in order_details:
-            detail_dict = {
-                'id': detail.id,
-                'product_id': detail.product_id,
-                'sku_id': detail.chichu_id,
-                'product_name':detail.product_name,
-                'sku_name':detail.product_chicun,
-                'purchase_num':detail.buy_quantity
-            }
-            detail_dict_list.append(detail_dict)
-
-        pt = order.last_pay_date
-        if pt:
-            pt = datetime.datetime(pt.year, pt.month, pt.day)
-
-        order_dict_list.append({
-            'id': order.id,
-            'supplier': serializers.SupplierSerializer(order.supplier).data,
-            'purchaser':order.buyer_name,
-            'post_district': order.p_district,
-            'receiver': order.receiver,
-            'created': order.created,
-            'purchase_time': pt ,
-            'memo': order.note,
-            'sys_status': order.sys_status,
-            'sys_status_name': order.status_name,
-            'total_detail_num': order.total_detail_num
-        })
+        order_dict = get_purchaseorder_date(order)
+        order_dict_list.append(order_dict)
 
     return order_dict_list
 
 
 def get_normal_forecast_inbound_by_orderid(purchase_orderid_list):
-    forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=purchase_orderid_list)\
-        .exclude(status=ForecastInbound.ST_CANCELED)
-    return forecast_inbounds
+    # TODO : caution many to many in filter will not include other object related
+    forecast_ids = ForecastInbound.objects.filter(relate_order_set__in=purchase_orderid_list)\
+        .exclude(status=ForecastInbound.ST_CANCELED).values_list('id',flat=True)
+    return ForecastInbound.objects.filter(id__in=forecast_ids)
 
 
 def get_normal_realinbound_by_orderid(purchase_orderid_list):
-    real_inbounds = RealInBound.objects.filter(relate_order_set__in=purchase_orderid_list,
+    # TODO : caution many to many in filter will not include other object related
+    rb_ids = RealInBound.objects.filter(relate_order_set__in=purchase_orderid_list,
                                                status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
-    return real_inbounds
+    return RealInBound.objects.filter(id__in=rb_ids)
 
 
 def get_normal_realinbound_by_forecastid(forecastid_list):
-    real_inbounds = RealInBound.objects.filter(forecast_inbound_id__in=forecastid_list,
+    # TODO : caution many to many in filter will not include other object related
+    rb_ids = RealInBound.objects.filter(forecast_inbound_id__in=forecastid_list,
                                                status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
-    return real_inbounds
+    return RealInBound.objects.filter(id__in=rb_ids)
 
 def get_purchaseorders_data(purchase_orderid_list):
     from flashsale.dinghuo.models import OrderList, OrderDetail
@@ -223,7 +232,10 @@ class AggregateForcecastOrderAndInbound(object):
             aggregate_orders = []
             for order_id in aggregate_id_set:
                 forecast_inbounds = get_normal_forecast_inbound_by_orderid([order_id])
-                order_dict = self.aggregate_orders_dict[order_id]
+                if order_id in self.aggregate_orders_dict:
+                    order_dict = self.aggregate_orders_dict[order_id]
+                else:
+                    order_dict = get_purchaseorder_date(order_id)
                 order_dict['relate_forecasts'] = forecast_inbounds.values_list('id', flat=True)
                 aggregate_orders.append(order_dict)
 
@@ -274,7 +286,6 @@ class AggregateForcecastOrderAndInbound(object):
     def aggregate_supplier_data(self, supplier_id=None):
         aggregate_datas = self.aggregate_data()
         aggregate_supplier_dict = {}
-
         for aggregate_order in aggregate_datas:
             order_supplier_id = aggregate_order['supplier']['id']
             if order_supplier_id in aggregate_supplier_dict:
@@ -284,13 +295,11 @@ class AggregateForcecastOrderAndInbound(object):
                     'supplier': aggregate_order['supplier'],
                     'aggregate_orders': [aggregate_order],
                 }
-
         if supplier_id:
             supplier_id = int(supplier_id)
             aggregate_supplier_list = [aggregate_supplier_dict.get(supplier_id)]
         else:
             aggregate_supplier_list = aggregate_supplier_dict.values()
-
         return aggregate_supplier_list
 
 

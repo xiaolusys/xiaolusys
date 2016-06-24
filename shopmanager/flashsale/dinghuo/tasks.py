@@ -1441,6 +1441,7 @@ def task_packageskuitem_update_purchaserecord(psi):
     if psi.is_booking_needed():
         status = PurchaseRecord.EFFECT
     elif psi.is_booking_assigned():
+        status = PurchaseRecord.CANCEL
         # Read in detail the following code logic: how we judge the PSI was assigned
         # by exisiting inventory, or newly created inventory by refundproduct.
         if not pr or pr.status == PurchaseRecord.EFFECT:
@@ -1459,7 +1460,6 @@ def task_packageskuitem_update_purchaserecord(psi):
                 status = PurchaseRecord.EFFECT
             else:
                 # The PSI was assigned by existing inventory or refundproduct (which increased inventory)
-                status = PurchaseRecord.CANCEL
                 note = '%s:Exist/Refund Inventory|rp:%s,od:%s' % (datetime.datetime.now(), rp_time, od_time)
     else:
         status = PurchaseRecord.CANCEL

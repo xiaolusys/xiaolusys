@@ -317,29 +317,6 @@ def syncWXProductNumTask():
         syncStockByWxShopTask(wx_product)
 
 
-@task
-def task_userinfo_update_customer(instance):
-    """
-    WeixinUserInfo update corresponding customer, if the customer exists.
-    --- Zifei 2016-04-12
-    """
-    nick = instance.nick
-    thumbnail = instance.thumbnail
-    unionid = instance.unionid
-    from flashsale.pay.models_user import Customer
-    customers = Customer.objects.filter(unionid=unionid, status=Customer.NORMAL)
-
-    params = {}
-    if customers.count() > 0:
-        customer = customers[0]
-        if thumbnail and customer.thumbnail != thumbnail:
-            params.update(thumbnail=thumbnail)
-        if nick and customer.nick != nick:
-            params.update(nick=nick)
-        if params:
-            customers.update(**params)
-
-
 from core.weixin.options import valid_openid
 
 
