@@ -24,6 +24,7 @@ class ReceiptGoodsAdmin(admin.ModelAdmin):
         "express_company_display",
         "created",
         "modified",
+        "status"
     )
     list_filter = (
         "creator",
