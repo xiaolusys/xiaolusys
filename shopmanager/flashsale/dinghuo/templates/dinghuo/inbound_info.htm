@@ -12,40 +12,56 @@
         <label class="col-md-1" id="inbound_id">{{inbound.id}}</label>
         <label class="col-md-1" for="supplier">供应商</label>
         <label class="col-md-4" id="supplier">{{supplier_name}}({{supplier_id}})</label>
-        <label class="col-md-1" for="express_no">快递单号</label>
-        <label class="col-md-2" id="express_no">{{inbound.express_no}}</label>
+        <label class="col-md-1" for="creator">负责人</label>
+        <label class="col-md-1" id="creator">{{inbound.creator}}</label>
+        <label class="col-md-1" for="inbound-status">当前进度</label>
+        <label class="col-md-1" id="inbound-status">{{inbound.get_status_display}}</label>
     </div>
     <div class="row">
-        <label class="col-md-1" for="inbound-status">当前状态</label>
-        <label class="col-md-1" id="inbound-status">{{inbound.get_status_display}}</label>
-        <label class="col-md-1" for="creator">负责人</label>
-        <label class="col-md-2" id="creator">{{inbound.creator}}</label>
+        <label class="col-md-1">原始订货单:</label>
+        <label class="col-md-1"><a href="/sale/dinghuo/changedetail/{{inbound.ori_orderlist_id}}/" target="_blank">{{inbound.ori_orderlist_id}}</a></label>
+        <label class="col-md-1" for="express_no">快递单号</label>
+        <label class="col-md-2" id="express_no">{{inbound.express_no}}</label>
         <label class="col-md-1" for="created">创建时间</label>
         <label class="col-md-2" id="created">{{inbound.created}}</label>
+        <label class="col-md-1" for="check-time">质检时间</label>
+        <label class="col-md-2" id="check-time">{{inbound.check_time|default:''}}</label>
+    </div>
+    <div class="row">
+
     </div>
     <div class="row">
         <label class="col-md-1">关联订货单:</label>
+        <div class="col-md-8">
         {% for orderlist_id in inbound.orderlist_ids %}
         <a href="/sale/dinghuo/changedetail/{{orderlist_id}}/" target="_blank">
             {{orderlist_id}}
         </a>
         {% endfor %}
+        </div>
+        <label class="col-md-1" for="inbound-status-info">当前状态</label>
+        <label class="col-md-1" id="inbound-status-info">{{inbound.get_set_status_info}}</label>
     </div>
     <div class="container" id="action">
         <div class="row">
             <textarea class="form-control" id="memo" rows="5" readonly>{{inbound.memo|safe}}</textarea>
         </div>
         <div class="row input-group">
-            <div class="col-md-9" style="padding:0">
+            <div class="col-md-8" style="padding:0">
                 <div class="input-group">
                     <input type="text" class="form-control" placeholder="添加备注" id="memo-input">
-                            <span class="input-group-btn">
-                                <a href="javascript:;" class="btn btn-default" id="add-memo-btn">添加</a>
-                            </span>
+                    <span class="input-group-btn">
+                        <a href="javascript:;" class="btn btn-default" id="add-memo-btn">添加</a>
+                    </span>
                 </div>
             </div>
-            <div class="col-md-3 btn-group">
+            <div class="col-md-2 btn-group">
                 <a class="btn btn-info" href="javascript:;" id="save">保存</a>
+            </div>
+            <div class="col-md-2 btn-group">
+                {% if inbound.need_return %}
+                <button class="btn btn-info" id="gen_return_goods">退多错货</button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -75,7 +91,23 @@ $('#add-memo-btn').click(function(){
          }
      });
  });
-
+$('#gen_return_goods').click(function(){
+    $.ajax({
+         url: '/sale/dinghuo/inbound/'+ INBOUND_ID +'/generate_return_goods',
+         type: 'post',
+         dataType: 'json',
+         data: {
+             inbound_id: INBOUND_ID,
+         },
+         success: function(result){
+            swal('成功', '退货已生成', 'success');
+         },
+         error: function(result){
+            swal('错误', result.responseText, 'error');
+         }
+     });
+    swal('成功', '备注已更新', 'success');
+});
 $('#save').click(function(){
      $.ajax({
          url: '/sale/dinghuo/inbound/save_memo',

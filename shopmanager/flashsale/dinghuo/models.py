@@ -5,7 +5,7 @@ import sys
 import copy
 import numpy as np
 from django.db import models
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count, F, Q
 from django.db.models.signals import post_save, pre_save
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -671,10 +671,35 @@ class ReturnGoods(models.Model):
                 res.append(rg)
         return res
 
-    def create_by_inbound(self, inbound):
+    @staticmethod
+    def generate_by_inbound(inbound, noter):
         if not inbound.wrong and not inbound.out_stock:
-            raise Exception(u'此入库单无错货多货')
-        inbound.out_stock_cnt
+            raise Exception(u'此入库单无错货多货无法生成退货单')
+        supplier_id = inbound.supplier_id
+        rg_details = []
+        for detail in inbound.details.filter(Q(out_stock=True) or Q(inferior_quantity__gt=0)):
+            rg_detail = RGDetail(
+                    skuid=detail.sku_id,
+                    num=detail.out_stock_cnt,
+                    inferior_num=detail.inferior_quantity,
+                    price=0
+                )
+            rg_details.append(rg_detail)
+            rg_details.append(rg_detail)
+        rg = ReturnGoods(supplier_id=supplier_id,
+                 noter=noter,
+                 return_num=sum([d.num for d in rg_details]),
+                 sum_amount=sum([d.num * d.price for d in rg_details]),
+                 type=1
+                 )
+        rg.save()
+        details = []
+        for detail in rg_details:
+            detail.return_goods = rg
+            detail.return_goods_id = rg.id
+            details.append(detail)
+        RGDetail.objects.bulk_create(details)
+        return rg
 
     @staticmethod
     def can_return(supplier_id=None, sku=None):
@@ -970,6 +995,7 @@ class InBound(models.Model):
     PENDING = 1
     WAIT_CHECK = 2
     COMPLETED = 3
+    COMPLETE_RETURN = 4
 
     SUPPLIER = 1
     REFUND = 2
@@ -977,7 +1003,8 @@ class InBound(models.Model):
     STATUS_CHOICES = ((INVALID, u'作废'),
                       (PENDING, u'待分配'),
                       (WAIT_CHECK, u'待质检'),
-                      (COMPLETED, u'完成'))
+                      (COMPLETED, u'已入库'),
+                      (COMPLETE_RETURN, u'已完结'))
     supplier = models.ForeignKey(SaleSupplier,
                                  null=True,
                                  blank=True,
@@ -1147,6 +1174,19 @@ class InBound(models.Model):
         return {item['sku_id']: item['arrival_quantity'] + item['inferior_quantity']
                 for item in self.details.values('sku_id', 'arrival_quantity', 'inferior_quantity')}
 
+    def get_set_status_info(self):
+        if self.set_stat():
+            self.save()
+        info = u''
+        if self.wrong:
+            info += u'有错货'
+        if self.out_stock:
+            info += u'有多货'
+        all_inferior_quantity = self.all_inferior_quantity
+        if all_inferior_quantity:
+            info += u'有%d件次品' % all_inferior_quantity
+        return info
+
     def get_may_allocate_order_list_ids(self):
         query = OrderDetail.objects.filter(orderlist__supplier_id=self.supplier_id, chichu_id__in=self.sku_ids).exclude(
             orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED,
@@ -1285,15 +1325,18 @@ class InBound(models.Model):
                 sku_dict.update({
                     'id': sku.id,
                     'properties_name': sku.properties_name or sku.properties_alias,
-                    'barcode': sku.barcode,
-                    'is_inbound': 1
+                    'barcode': sku.barcode
                 })
                 if self.is_allocated():
                     relation = self.get_relation(orderdetail)
                     sku_dict.update({
+                        'has_relation': bool(relation),
+                        'has_out_stock': bool(relation.inbounddetail.out_stock_cnt if relation else 0),
                         'inbound_total': self.sku_data.get(sku.id, 0),
                         'inbound_arrival_quantity': relation.arrival_quantity if relation else 0,
-                        'inbound_inferior_quantity': relation.inferior_quantity if relation else 0
+                        'inbound_inferior_quantity': relation.inferior_quantity if relation else 0,
+                        'inbound_status_info': relation.inbounddetail.get_allocate_info() if relation else '',
+                        'inbound_relation_id': relation.id if relation else ''
                     })
                 product_dict['skus'].append(sku_dict)
                 product_dict['sku_ids'] = [sku['id'] for sku in product_dict['skus']]
@@ -1437,6 +1480,18 @@ class InBound(models.Model):
         self.set_stat()
         self.save()
 
+    def need_return(self):
+        if self.status != InBound.COMPLETE_RETURN:
+            return self.wrong or self.out_stock
+        else:
+            return False
+
+    def generate_return_goods(self, noter):
+        if self.need_return():
+            ReturnGoods.generate_by_inbound(self, noter)
+        self.status = InBound.COMPLETE_RETURN
+        self.save()
+
     def reset_to_verify(self):
         self.status = InBound.WAIT_CHECK
         self.checked = False
@@ -1448,13 +1503,6 @@ class InBound(models.Model):
         self.save()
         for detail in self.details.filter(checked=True):
             detail.reset_to_unchecked()
-
-    # def sync_quantity(self):
-    #     if self.status == InBound.COMPLETED:
-    #         for oi in OrderDetailInBoundDetail.objects.filter(inbounddetail__inbound__id=self.id):
-    #             oi.update_orderdetail()
-    #         for detail in self.details.all():
-    #             detail.sync_quantity()
 
     def get_optimized_allocate_dict(inbound):
         EXPRESS_NO_SPLIT_PATTERN = re.compile(r'\s+|,|，')
@@ -1564,15 +1612,21 @@ class InBound(models.Model):
         return self._err_detail_
 
     def is_allocated(self):
-        return self.status in [InBound.WAIT_CHECK, InBound.COMPLETED]
+        return self.status > InBound.PENDING
 
     def is_finished(self):
-        return self.status == InBound.COMPLETED
+        return self.status >= InBound.COMPLETED
 
     def set_stat(self):
+        ori_out_stock = self.out_stock
+        ori_wrong = self.wrong
         self.out_stock = True in [u["out_stock"] for u in self.details.values("out_stock")]
         self.wrong = self.details.filter(wrong=True).exists()
-        return self
+        if ori_out_stock == self.out_stock and ori_wrong == self.wrong:
+            change = False
+        else:
+            change = True
+        return change
 
     class Meta:
         db_table = 'flashsale_dinghuo_inbound'
@@ -1726,6 +1780,17 @@ class InBoundDetail(models.Model):
         total = total if total else 0
         return total
 
+    def get_status_info(self):
+        info = u''
+        if self.out_stock:
+            info += u'多货'
+        return info
+
+    def get_allocate_info(self):
+        if self.out_stock_num > 0:
+            return u'多货'
+        return u'完全分配'
+
     def reset_out_stock(self):
         ori_out_stock = self.out_stock
         self.out_stock = self.out_stock_num > 0
@@ -1835,19 +1900,10 @@ post_save.connect(update_stock,
 class OrderDetailInBoundDetail(models.Model):
     INVALID = 0
     NORMAL = 1
-
-    orderdetail = models.ForeignKey(OrderDetail,
-                                    related_name='records',
-                                    verbose_name=u'订货明细')
-    inbounddetail = models.ForeignKey(InBoundDetail,
-                                      related_name='records',
-                                      verbose_name=u'入仓明细')
-    arrival_quantity = models.IntegerField(default=0,
-                                           blank=True,
-                                           verbose_name=u'正品数')
-    inferior_quantity = models.IntegerField(default=0,
-                                            blank=True,
-                                            verbose_name=u'次品数')
+    orderdetail = models.ForeignKey(OrderDetail, related_name='records', verbose_name=u'订货明细')
+    inbounddetail = models.ForeignKey(InBoundDetail, related_name='records', verbose_name=u'入仓明细')
+    arrival_quantity = models.IntegerField(default=0, blank=True, verbose_name=u'正品数')
+    inferior_quantity = models.IntegerField(default=0, blank=True, verbose_name=u'次品数')
     status = models.SmallIntegerField(
         default=NORMAL,
         choices=((NORMAL, u'正常'), (INVALID, u'无效')),
@@ -1863,12 +1919,23 @@ class OrderDetailInBoundDetail(models.Model):
     @staticmethod
     def create(orderdetail, inbound, arrival_quantity, inferior_quantity=0):
         inbounddetail = inbound.details.get(sku_id=orderdetail.chichu_id)
-        oi = OrderDetailInBoundDetail(orderdetail=orderdetail,
-                                      inbounddetail=inbounddetail,
-                                      arrival_quantity=arrival_quantity,
-                                      inferior_quantity=inferior_quantity)
+        oi = OrderDetailInBoundDetail(orderdetail=orderdetail, inbounddetail=inbounddetail,
+                                      arrival_quantity=arrival_quantity, inferior_quantity=inferior_quantity)
         oi.save()
         return oi
+
+    def change_arrival_quantity(self, num):
+        if self.inbounddetail.out_stock_cnt < num:
+            raise Exception(u"入库数不足进行分配")
+        if self.orderdetail.need_arrival_quantity < num:
+            raise Exception(u"分配数超出订货待入库数")
+        self.arrival_quantity += num
+        if self.arrival_quantity < 0:
+            raise Exception(u"入库数不能小于0")
+        self.save()
+        if self.inbounddetail.checked:
+            ProductSku.objects.filter(id=self.inbounddetail.sku_id).update(quantity=F('quantity') + num)
+        return True
 
     def update_orderdetail(self):
         orderdetail = self.orderdetail
@@ -1888,7 +1955,7 @@ def update_inbound_record(sender, instance, created, **kwargs):
 
 post_save.connect(update_inbound_record,
                   sender=OrderDetailInBoundDetail,
-                  dispatch_uid='update_inbound_record')
+                  dispatch_uid='post_save_orderdetail_inbounddetail_update_inbound_record')
 
 
 def update_orderdetail_record(sender, instance, created, **kwargs):
@@ -1897,4 +1964,4 @@ def update_orderdetail_record(sender, instance, created, **kwargs):
 
 post_save.connect(update_orderdetail_record,
                   sender=OrderDetailInBoundDetail,
-                  dispatch_uid='update_inbound_record')
+                  dispatch_uid='post_save_orderdetail_inbounddetail_update_orderdetail_record')

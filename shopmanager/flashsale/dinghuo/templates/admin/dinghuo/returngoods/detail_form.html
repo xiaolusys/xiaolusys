@@ -80,34 +80,39 @@
             供应商收到退货后进行退款，提供退货凭据。<br/>
             采购点击退货完成，录入退货凭证。退货单退货成功。<br/>
             退货成功同时，在财务的入账列表里新增记录，财务自行确认。（目前暂时未实现）<br/>
-    <fieldset class="module aligned ">
-        <div class="form-row row-through">
-            <div>
-                <label class="required" for="id_returngoods_id">退货单ID:</label>
-                <label class="simple-label" id="id_returngoods_id">{{original.id}}</label>
-                <label class="required" for="supplier">供应商:</label>
-                <label class="simple-label" id="supplier">{{original.supplier.supplier_name}}</label>
-                <label class="required" for="id_return_num">退货数量:</label>
-                <label class="simple-label" id="id_return_num" name="return_num">{{original.return_num}}</label>
-                <label class="required" for="id_sum_amount">退货总金额:</label>
-                <label class="simple-label" id="id_sum_amount" name="sum_amount">{{original.sum_amount}}元</label>
-                <label class="required" for="id_noter">退货单录入人:</label>
-                <label class="simple-label" id="id_noter" name="noter">{{original.noter}}</label>
-                <a href="/sale/dinghuo/returngoods/export/?rg_id={{original.id}}" target="_blank">
+    <fieldset class="container" style="width:95%;">
+        <div class="panel-body">
+            <div class="row">
+                <label class="col-md-1" for="id_returngoods_id">退货单ID:</label>
+                <label class="col-md-1" id="id_returngoods_id">{{original.id}}</label>
+                <label class="col-md-1" for="supplier">供应商:</label>
+                <label class="col-md-3" id="supplier">{{original.supplier.supplier_name}}</label>
+                <label class="col-md-1" for="type">类型:</label>
+                <label class="col-md-1" id="type">{{original.get_type_display}}</label>
+            </div>
+            <div class="row">
+                <label class="col-md-1" for="id_return_num">退货数量:</label>
+                <label class="col-md-1" id="id_return_num" name="return_num">{{original.return_num}}</label>
+                <label class="col-md-1" for="id_sum_amount">退货总金额:</label>
+                <label class="col-md-1" id="id_sum_amount" name="sum_amount">{{original.sum_amount}}元</label>
+                <label class="col-md-1" for="id_noter">退货单录入人:</label>
+                <label class="col-md-1" id="id_noter" name="noter">{{original.noter}}</label>
+                <a class="col-md-1" href="/sale/dinghuo/returngoods/export/?rg_id={{original.id}}" target="_blank">
                     <span class="label label-success">导出excel</span>
                 </a>
                 {% if original.status == original.CREATE_RG or original.status == original.VERIFY_RG %}
-                <a href="javascript:;" id="add-sku">
+                <a class="col-md-1" href="javascript:;" id="add-sku">
                     <span class="label label-primary">添加Sku</span>
                 </a>
                 {% endif %}
             </div>
         </div>
-        <div class="form-row row-through">
+        <div class="panel-body">
             <div>
                 <label class="required" for="id_status">状态:</label>
                 <label class="simple-label" id="id_status">{{original.get_status_display}}</label>
-                {%if original.status == 0%}
+                {%if original.type == 0 %}
+                {%if original.status ==  0%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_check" value="审核通过" />&nbsp;&nbsp;
                 <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
                 {%elif original.status == 1%}
@@ -120,9 +125,10 @@
                 <input type="button" class="btn-mini btn-success" id="id_btn_success" value="已经收款"/>&nbsp;&nbsp;
                 <input type="button" class="btn-mini btn-success" id="id_btn_error" value="退货失败"/>&nbsp;&nbsp;
                 {%endif%}
+                {%endif%}
             </div>
         </div>
-        <div class="form-row row-through">
+        <div class="panel-body">
             <div>
                 <div><label class="required" for="id_status">退货单详情:</label></div>
                 <div class="results">
@@ -179,14 +185,14 @@
                 </div>
             </div>
         </div>
-        <div class="form-row field-memo">
+        <div class="panel-body field-memo">
             <div>
                 <label for="id_memo">备注:</label>
                 <textarea class="vLargeTextField" cols="40" id="id_memo" maxlength="512" name="memo" rows="10">{{original.memo}}</textarea>
                 <input type="button" class="btn-mini btn-success" id="btn_edit_note" value="修改备注"/>
             </div>
         </div>
-        <div class="form-row field-memo">
+        <div class="panel-body field-memo">
             <div>
                 <label for="id_transactor">负责人:</label>
                 <label class="simple-label transactor_text">{{original.transactor.username}}</label>
@@ -235,7 +241,7 @@
         </div>
         {%endif%}
         {%if original.confirm_pic_url %}
-        <div class="form-row field-memo">
+        <div class="panel-body field-memo">
             <div>
                 <label for="id_refund_picture">付款证明图:</label>
                 <a href="{{original.confirm_pic_url}}" target="_blank">
@@ -246,7 +252,7 @@
         </div>
         {%endif%}
         {%if original.bill %}
-        <div class="form-row field-memo">
+        <div class="panel-body field-memo">
             <div>
                 <label for="id_refund_picture">收款单:</label>
                 <a href="/sale/finance/bill/{{original.bill.id}}/" target="_blank">{{original.bill.id}}</a>
@@ -254,7 +260,7 @@
         </div>
         {%endif%}
         {%if original.has_refund%}
-        <div class="form-row field-memo">
+        <div class="panel-body field-memo">
             <div>
                 <label for="id_refund_fee">收款额:</label>
                 <label class="simple-label" id="id_refund_fee">{{original.refund_fee}}</label>
