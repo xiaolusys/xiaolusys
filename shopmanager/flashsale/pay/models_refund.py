@@ -29,6 +29,7 @@ pingpp.api_key = settings.PINGPP_APPKEY
 import logging
 logger = logging.getLogger(__name__)
 
+
 def default_refund_no():
     return uniqid('RF%s' % (datetime.datetime.now().strftime('%y%m%d')))
 
@@ -334,9 +335,9 @@ class SaleRefund(PayBaseModel):
 
     def sale_order(self):
         from flashsale.pay.models import SaleOrder
-        if not hasattr(self, '__sale_order__'):
-            self.__sale_order__ = SaleOrder.objects.filter(id=self.order_id).first()
-        return self.__sale_order__
+        if not hasattr(self, '_sale_order_'):
+            self._sale_order_ = SaleOrder.objects.filter(id=self.order_id).first()
+        return self._sale_order_
 
     def get_return_address(self):
         """ 退货地址 """
