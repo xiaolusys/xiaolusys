@@ -30,6 +30,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
 
 from flashsale.restpro import serializers
+from flashsale.restpro.v2 import serializers as serializersv2
 
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
@@ -334,17 +335,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         content = request.REQUEST
         category = int(content.get('category', 0))  # 1童装2女装
         sort_field = content.get('sort_field', 'id')  # 排序字段
-
         customer = get_object_or_404(Customer, user=request.user)
-
-        agencylevel = 1
-        try:
-            xlmm = XiaoluMama.objects.get(openid=customer.unionid)
-            agencylevel = xlmm.agencylevel
-        except XiaoluMama.DoesNotExist:
-            pass
-        # agencylevel = 2 #debug
-
         queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
 
         if category == 1:
@@ -357,53 +348,22 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         extra_str = 'remain_num - lock_num > 0'
         queryset = queryset.extra(where={extra_str})  # 没有卖光的 不是秒杀产品的
 
-        # queryset = self.paginate_queryset(queryset)
-
-        queryset = self.choice_query_2_dict(queryset, customer, agencylevel)
+        shop_products = CuShopPros.objects.filter(customer=customer.id,
+                                                  pro_status=CuShopPros.UP_SHELF).values("product")
+        product_ids = map(lambda x: x['product'], shop_products)
+        product_ids = set(product_ids)
+        shop_product_num = len(product_ids)
+        for pro in queryset:
+            pro.in_customer_shop = 1 if pro.id in product_ids else 0
 
         if sort_field in ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']:
             queryset = sorted(queryset, key=lambda k: getattr(k, sort_field), reverse=True)
 
         queryset = self.paginate_queryset(queryset)
-        serializer = serializers.ProductSimpleSerializer(queryset, many=True)
+        serializer = serializersv2.ProductSimpleSerializerV2(queryset, many=True,
+                                                             context={'request': request,
+                                                                      "shop_product_num": shop_product_num})
         return self.get_paginated_response(serializer.data)
-
-    def choice_query_2_dict(self, queryset, customer, agencylevel):
-        carry_policy = {}
-        try:
-            rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
-            carry_policy = rebt.price_rebetas
-        except AgencyOrderRebetaScheme.DoesNotExist:
-            pass
-
-        shop_products = CuShopPros.objects.filter(customer=customer.id, pro_status=CuShopPros.UP_SHELF).values(
-            "product")
-        # shop_products = CuShopPros.objects.filter(customer=19,pro_status=CuShopPros.UP_SHELF).values("product")
-        product_ids = set()
-        for item in shop_products:
-            product_ids.add(item["product"])
-
-        shop_product_num = len(product_ids)
-
-        from flashsale.xiaolumm.models_rebeta import calculate_price_carry
-        for pro in queryset:
-            rebet_amount = calculate_price_carry(agencylevel, pro.agent_price, carry_policy)
-
-            # 预留数 * 97(质数)+(97内的随机数) = (模拟)销量　
-            sale_num = pro.remain_num * 19 + random.choice(xrange(19))
-            pro.sale_num = sale_num
-
-            pro.in_customer_shop = 0
-            if pro.id in product_ids:
-                pro.in_customer_shop = 1
-
-            pro.shop_product_num = shop_product_num
-
-            pro.rebet_amount = rebet_amount
-            pro.sale_num_des = '{0}人在卖'.format(sale_num)
-            pro.rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
-
-        return queryset
 
     @list_route(methods=['get'])
     def get_mama_shop(self, request):
