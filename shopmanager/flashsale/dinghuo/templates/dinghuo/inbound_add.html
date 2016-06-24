@@ -204,7 +204,7 @@
             <p>Copyright © 2014-2016 小鹿美美，All Rights Reserved</p>
             <p> 沪ICP备15013901号-1</p>
         </footer>
-        {%include "dinghuo/inbound_location.htm"%}
+        {%include "dinghuo/inbound_location_1.htm"%}
         {% verbatim %}
         <script id="inbound-tpl" type="text/html">
             <div class="panel panel-default" id="panel-2">
@@ -242,7 +242,7 @@
                                     </a>
                                 </td>
                                 <td rowspan="{{product.skus.length}}">
-                                    <a href="javascript:;" class="district" style="width:100px" data-product-id="{{product.id}}"
+                                    <a href="javascript:;" class="district product_district_{{product.id}}" style="width:100px" data-product-id="{{product.id}}"
                                         data-product-name="{{product.name}}">【{{sku.district}}】</a>
                                 </td>
                                 </td>
@@ -517,7 +517,6 @@
              });
              $('.district', '#inbound_table').click(function(evt){
                 var dom=evt.target;
-                console.dir(dom);
                 product_id = $(dom).data("product-id");
                 product_name = $(dom).data("product-name");
                 $('#product_id', '#locationModal').val(product_id);
@@ -535,7 +534,10 @@
                      dataType: 'json',
                      data: data,
                      success: function(result){
+                         $('#product_id', '#locationModal').val('');
+                         $('#product_name', '#locationModal').html('');
                          $("#locationModal").modal("hide");
+                         $(".product_district_"+product_id).html(district);
                      },
                      error: function(result){
                         console.dir(result);
@@ -547,19 +549,13 @@
 
          function buildInboundProducts(inboundSkusDict){
              var inboundProducts = {};
-             console.dir(inboundSkusDict);
              for(skuId in inboundSkusDict){
-             console.log("sku");
-             console.log(skuId);
                  var inboundSku = inboundSkusDict[skuId];
                  var sku = skusDict[skuId];
                  var product = productsDict[inboundSku.productId];
-                 console.log('product');
-                 console.dir(product);
                  var arrivalQuantity = inboundSku.arrivalQuantity;
                  var inferiorQuantity = inboundSku.inferiorQuantity;
                  var district = product.district;
-                 console.log(product.district);
                  var inboundProduct = {
                      id: product.id,
                      name: product.name,
@@ -669,7 +665,6 @@
 
                  var data = _.extend({inbound_skus: JSON.stringify(inboundSkusDict), memo: $('#memo').val(),
                  'express_no':express_no, 'orderlist_id':orderlist_id});
-                 console.dir(data);
                  $.ajax({
                      url: '/sale/dinghuo/inbound/create_inbound',
                      type: 'post',

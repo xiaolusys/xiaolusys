@@ -1,0 +1,19 @@
+<script>
+  $('#btn_set_production_location').click(function(){
+        var product_id = $('#product_id', '#locationModal').val();
+        var district = $('#district_no', '#locationModal').val();
+        var data = {"product":product_id, "district":district};
+        $.ajax({
+             url: '/items/location/product_location/set_product_location',
+             type: 'post',
+             dataType: 'json',
+             data: data,
+             success: function(result){
+                 window.location.reload();
+             },
+             error: function(result){
+                console.dir(result);
+             }
+            });
+    });
+</script>
