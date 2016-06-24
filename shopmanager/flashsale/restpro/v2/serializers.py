@@ -202,7 +202,7 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
     class Meta:
         model = Product
         extra_kwargs = {'in_customer_shop': {}, 'shop_product_num': {}}
-        fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num', 'sale_num',
+        fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num', 
                   'in_customer_shop', 'shop_product_num',
                   "level_info")
 
