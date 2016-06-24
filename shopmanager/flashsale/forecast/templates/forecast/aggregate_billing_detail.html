@@ -1,0 +1,200 @@
+<div class="row" >
+    <div class="panel panel-default" id="panel-1" >
+        <div class="panel-heading">订货单结算数量及金额汇总</div>
+        <div class="panel-body">
+            <table id="table-1" class="table table-striped" >
+                <thead>
+                <tr>
+                    <th class="col-xs-1">图片</th>
+                    <th class="col-xs-1">商品编码</th>
+                    <th class="col-xs-2">商品名称</th>
+                    <th class="col-xs-1">采购</th>
+                    <th class="col-xs-1">到货</th>
+                    <th class="col-xs-1">未到</th>
+                    <!-- 6 -->
+                    <th class="col-xs-1">多订</th>
+                    <th class="col-xs-1">次品</th>
+                    <th class="col-xs-1">退货</th>
+                    <th class="col-xs-1">支付款</th>
+                    <th class="col-xs-1">应退款</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for detail in aggregate_details %}
+                <tr>
+                    <td>
+                        <div class="portfolio-box">
+                        <img class="thumbnail" data-src="{{detail.product_img}}" style="margin-bottom:0px;"
+                             src="{{detail.product_img}}?imageMogr2/thumbnail/40/format/jpg/quality/90/crop/40x40"/>
+                        </div>
+                    </td>
+                    <td>{{detail.outer_id}}</td>
+                    <td>{{detail.product_name}}:{{detail.sku_name}}</td>
+                    <td>{{detail.buy_num}}</td>
+                    <td>{{detail.arrival_num}}</td>
+                    <td>{{detail.delta_num}}</td>
+                     <!-- 6 -->
+                    <td>{{detail.excess_num}}</td>
+                    <td>{{detail.inferior_num}}</td>
+                    <td>{{detail.return_num}}</td>
+                    <td>{{detail.real_payment}}</td>
+                    <td>{{detail.return_amount}}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                    <td colspan="3">汇总:</td>
+                    <td><input id="input-3" data-type="int" size="4"/></td>
+                    <td><input id="input-4" data-type="int" size="4"/></td>
+                    <td><input id="input-5" data-type="int" size="4"/></td>
+                    <td><input id="input-6" data-type="int" size="4"/></td>
+                    <td><input id="input-7" data-type="int" size="4"/></td>
+                    <td><input id="input-8" data-type="int" size="4"/></td>
+                    <td><input id="input-9" data-type="float" size="7"/></td>
+                    <td><input id="input-10" data-type="float" size="7"/></td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <div class="panel panel-default" id="panel-2">
+        <div class="panel-heading">订货单收付款记录列表</div>
+        <div class="panel-body">
+            <table class="table table-striped" style="width:100%">
+                <thead>
+                <tr>
+                    <th class="col-xs-2">账单编号</th>
+                    <th class="col-xs-2">业务日期</th>
+                    <th class="col-xs-1">申请人</th>
+                    <th class="col-xs-1">收支类型</th>
+                    <th class="col-xs-2">付款类型</th>
+                    <th class="col-xs-1">支付金额</th>
+                    <th class="col-xs-1">收回金额</th>
+                    <th class="col-xs-1">账单状态</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for bill in bill_data.bills %}
+                    <tr>
+                        <td>{{bill.id}}
+                            <div class="inline pull-right">
+                            {% if bill.note %}
+                            <a tabindex="0" role="button" style="color:#333;" data-toggle="popover"  title="收付款单备注" data-content="{{bill.note}}">
+                                <i class="glyphicon glyphicon-list-alt"></i>
+                            </a>
+                            {% endif %}
+                            </div>
+                        </td>
+                        <td>{{bill.created|slice:":10"}}</td>
+                        <td>{{bill.creater}}</td>
+                        <td>{{bill.type_name}}</td>
+                        <td>{{bill.pay_method_name}}</td>
+                        <td>{{bill.out_amount}}</td>
+                        <td>{{bill.in_amount}}</td>
+                        <td>{{bill.status_name}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5">汇总:</td>
+                        <td><input size="7" value="{{bill_data.total_in_amount}}"/></td>
+                        <td><input size="7" value="{{bill_data.total_out_amount}}"/></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+function　calcIndexCell(index){
+        var bodyCellRows = $("#table-1 tbody > tr");
+        var footCells = $("#table-1 tfoot > tr > td");
+        var $footerInput = $('input[id=input-'+ index +']');
+        var data_type = $footerInput.attr('data-type');
+        var calc_val = 0
+        for(var i=0; i< bodyCellRows.length; i++){
+            if (bodyCellRows[i].cells.length < index) continue;
+            var rowCell = bodyCellRows[i].cells[index];
+            if (data_type == 'int'){
+                calc_val += parseInt(rowCell.innerText);
+            }else{
+                calc_val += parseFloat(rowCell.innerText);
+            }
+        };
+        if (data_type == 'int'){
+            $footerInput.val(calc_val);
+        }else{
+            $footerInput.val(calc_val.toFixed(2));
+        }
+    }
+
+var calcStatsData = function () {
+    for(var i=3; i<11; i++){
+        calcIndexCell(i);
+    };
+}
+
+$('[data-toggle="popover"]').popover();
+$('#panel-1 table').dataTable({
+    //"bJQueryUI": true,
+    "bAutoWidth": false, //自适应宽度
+    "aaSorting": [[1, "asc"]],
+    "iDisplayLength": 10,
+    "aLengthMenu": [[10, 50, 100, -1], [10, 50, 100, "All"]],
+    //"sPaginationType": "full_numbers",
+    //"sDom": '<"H"Tfr>t<"F"ip>',
+    "oLanguage": {
+        "sLengthMenu": "每页 _MENU_ 条",
+        "sZeroRecords": "抱歉， 没有找到",
+        "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+        "sInfoEmpty": "没有数据",
+        "sSearch": "搜索",
+        "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+        "oPaginate": {
+            "sFirst": "首页",
+            "sPrevious": "前一页",
+            "sNext": "后一页",
+            "sLast": "尾页"
+        },
+        "sZeroRecords": "没有检索到数据",
+        "sProcessing": "<img src='/static/img/loading.gif' />"
+    }
+});
+
+$('#panel-2 table').dataTable({
+    "paging":   false,
+    "ordering": true,
+    "info":     false
+});
+
+calcStatsData();
+$("#table-1_length select").change(function(e){
+    e.preventDefault();
+    calcStatsData();
+});
+
+//搜索时，重新计算
+$("#table-1_filter input").keyup(function(e){
+    e.preventDefault();
+    calcStatsData();
+});
+
+//分页时，重新计算
+$("#table-1-table_paginate a").click(function(e){
+    e.preventDefault();
+    calcStatsData();
+});
+$('.portfolio-box img', '#panel-1').popover({
+    html: true,
+    trigger: 'hover',
+    container: 'body',
+    content: function(){
+        console.log( '<img src="'+ $(this).attr('data-src') +'?imageMogr2/thumbnail/400/format/jpg/quality/90" width="400px">');
+     return '<img src="'+ $(this).attr('data-src') +'?imageMogr2/thumbnail/400/format/jpg/quality/90" width="100%">';
+    }
+});
+
+</script>

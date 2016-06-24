@@ -203,17 +203,19 @@ class StagingInBound(BaseModel):
         return dict(constants.WARE_CHOICES).get(self.ware_house)
 
     def get_product(self):
-        product_sku = ProductSku.objects.filter(id=self.sku_id).first()
-        if not product_sku:
-            return {}
-        product = product_sku.product
-        return {
-            'product_id': product.id,
-            'sku_id': product_sku.id,
-            'product_name': '%s - %s'%(product.name, product_sku.name),
-            'product_img': product.PIC_PATH,
-            'barcode':product_sku.barcode
-        }
+        if not hasattr(self, '_product_'):
+            product_sku = ProductSku.objects.filter(id=self.sku_id).first()
+            if not product_sku:
+                return {}
+            product = product_sku.product
+            self._product_ = {
+                'product_id': product.id,
+                'sku_id': product_sku.id,
+                'product_name': '%s - %s'%(product.name, product_sku.name),
+                'product_img': product.PIC_PATH,
+                'barcode':product_sku.barcode
+            }
+        return self._product_
 
     product = property(get_product)
 

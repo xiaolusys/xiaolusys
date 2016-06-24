@@ -74,9 +74,7 @@
     </ul>
 </div>
 <div class="panel-footer">
-    <div class="btn btn-sm btn-primary">查看未发货订单</div>
-    <div class="btn btn-sm btn-primary">支付预付款</div>
-    <div class="btn btn-sm btn-primary pull-right">退库存</div>
-    <div class="btn btn-sm btn-primary pull-right">开始结算</div>
+    <a class="btn btn-sm btn-primary">查看未发货订单</a>
+    <a class="btn btn-sm btn-primary pull-right btn-account" data-oids="{% for o in aggregate_order.purchase_orders %},{{o.id}}{% endfor %}">开始结算</a>
 </div>
 </div>

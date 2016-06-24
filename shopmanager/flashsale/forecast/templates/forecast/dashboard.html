@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" rel="stylesheet"
+          type="text/css">
     <link href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" type="text/css"/>
+    <link rel="stylesheet" type="text/css"
+          href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
     <title>采购管理界面</title>
     <style>
     * {
@@ -79,6 +82,7 @@
         border-right: 250px solid #ddd;
         text-align: center;
     }
+
     </style>
 </head>
 <body>
@@ -91,45 +95,80 @@
     <div class="container-body">
         <div class="container-body-left col-xs-2">
             <ul class="nav nav-pills nav-stacked">
-              <li role="presentation" {% ifequal action "unlogisticed" %}class="active"{% endifequal %} >
-                <a href="/sale/forecast/dashboard?action=unlogisticed{% if staff_name %}&staff_name={{staff_name}}{% endif %}">催货提醒 <span class="badge">{{unlogistics_num}}</span></a>
-              </li>
-              <li role="presentation" {% ifequal action "unarrived" %}class="active"{% endifequal %}>
-                <a href="/sale/forecast/dashboard?action=unarrived{% if staff_name %}&staff_name={{staff_name}}{% endif %}">未准时到货 <span class="badge">{{unarrived_num}}</span></a>
-              </li>
-              <li role="presentation" {% ifequal action "unbilling" %}class="active"{% endifequal %}>
-                <a href="/sale/forecast/dashboard?action=billingable{% if staff_name %}&staff_name={{staff_name}}{% endif %}">到货等待结算 <span class="badge">{{billingable_num}}</span></a>
-              </li>
-              <li role="presentation" {% ifequal action "all" %}class="active"{% endifequal %}{% ifequal action "" %}class="active"{% endifequal %}>
-                <a href="/sale/forecast/dashboard?action=all{% if staff_name %}&staff_name={{staff_name}}{% endif %}">全部待处理 <span class="badge">{{aggregate_num}}</span></a>
-              </li>
+                <li role="presentation" {% ifequal action "unlogisticed" %}class="active"{% endifequal %} >
+                <a href="/sale/forecast/dashboard?action=unlogisticed{% if staff_name %}&staff_name={{staff_name}}{% endif %}">催货提醒
+                    <span class="badge">{{unlogistics_num}}</span></a>
+                </li>
+                <li role="presentation" {% ifequal action "unarrived" %}class="active"{% endifequal %}>
+                <a href="/sale/forecast/dashboard?action=unarrived{% if staff_name %}&staff_name={{staff_name}}{% endif %}">未准时到货
+                    <span class="badge">{{unarrived_num}}</span></a>
+                </li>
+                <li role="presentation" {% ifequal action "unbilling" %}class="active"{% endifequal %}>
+                <a href="/sale/forecast/dashboard?action=billingable{% if staff_name %}&staff_name={{staff_name}}{% endif %}">到货等待结算
+                    <span class="badge">{{billingable_num}}</span></a>
+                </li>
+                <li role="presentation" {% ifequal action "all" %}class="active"{% endifequal %}{% ifequal action "" %}class="active"{% endifequal %}>
+                <a href="/sale/forecast/dashboard?action=all{% if staff_name %}&staff_name={{staff_name}}{% endif %}">全部待处理
+                    <span class="badge">{{aggregate_num}}</span></a>
+                </li>
             </ul>
         </div>
         <div class="container-body-right  col-xs-10">
             {% if action == '' or action == 'all' %}
-                {% for aggregate in aggregate_list %}
-                <div class="group-line">{{aggregate.supplier.supplier_name}}</div>
-                {% for aggregate_order in aggregate.aggregate_orders %}
-                    {% include 'forecast/aggregate_record.html' %}
-                {% endfor %}
-                {% endfor %}
+            {% for aggregate in aggregate_list %}
+            <div class="group-line">{{aggregate.supplier.supplier_name}}</div>
+            {% for aggregate_order in aggregate.aggregate_orders %}
+            {% include 'forecast/aggregate_record.html' %}
+            {% endfor %}
+            {% endfor %}
             {% else %}
-                {% for aggregate_order in aggregate_list %}
-                    {% include 'forecast/aggregate_record.html' %}
-                {% endfor %}
+            {% for aggregate_order in aggregate_list %}
+            {% include 'forecast/aggregate_record.html' %}
+            {% endfor %}
             {% endif %}
         </div>
     </div>
-    <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
-    <script src="//cdn.bootcss.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-    <script>
-        $(function () {
-          $('[data-toggle="popover"]').popover();
-          $('a').click(function(){
-             $(this).addClass('clicked');
-          });
-        })
-    </script>
 </div>
+<div id="modal_dialog" class="modal fade" tabindex="-1" role="dialog">
+    <!-- 模态对话框 -->
+    <div class="modal-dialog modal-lg" aria-hidden="true"  role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">订货单结算对话框</h4>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default " data-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary">确认关闭订货单</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
+<script>
+$(function(){
+  $('[data-toggle="popover"]').popover();
+  $('a').click(function(){
+     $(this).addClass('clicked');
+  });
+  console.log('init account', $('a.btn-account'));
+  $('a.btn-account').click(function(){
+     var order_ids = $(this).attr('data-oids');
+     console.log('btn-account get:', order_ids);
+     $.get('/sale/forecast/v1/dashboard/calc_stats.html?order_ids=' + order_ids,
+        function(resp){
+            $('#modal_dialog div.modal-body').html(resp);
+        }
+     );
+     $('#modal_dialog').modal('show');
+  });
+})
+</script>
 </body>
 </html>

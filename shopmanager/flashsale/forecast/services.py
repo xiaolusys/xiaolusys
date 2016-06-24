@@ -2,7 +2,8 @@
 
 import datetime
 from django.db import transaction
-from django.db.models import Sum
+from django.forms import model_to_dict
+from django.db.models import Sum, Avg, Min
 
 from . import serializers
 from .models import (
@@ -79,6 +80,57 @@ def get_normal_realinbound_by_forecastid(forecastid_list):
                                                status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
     return real_inbounds
 
+def get_purchaseorders_data(purchase_orderid_list):
+    from flashsale.dinghuo.models import OrderList, OrderDetail
+    orderdetail_qs = OrderDetail.objects.filter(orderlist__in=purchase_orderid_list)
+    orderdetail_values = orderdetail_qs.values('chichu_id','orderlist__supplier_id').annotate(
+        buy_quantity=Sum('buy_quantity'),
+        total_price=Sum('total_price'),
+        min_created=Min('created'),
+    )
+    return orderdetail_values
+
+def get_realinbounds_data(purchase_orderid_list):
+    inbound_qs = get_normal_realinbound_by_orderid(purchase_orderid_list)
+    inbound_details_qs = RealInBoundDetail.objects.filter(inbound__in=inbound_qs,
+                                                          status=RealInBoundDetail.NORMAL)
+    real_inbound_values = inbound_details_qs.values('sku_id').annotate(
+            arrival_quantity=Sum('arrival_quantity'),
+            inferior_quantity=Sum('inferior_quantity')
+        )
+    return real_inbound_values
+
+def get_returngoods_data(supplier_ids, start_from):
+    from flashsale.dinghuo.models import RGDetail, ReturnGoods
+    rgdetail_qs = RGDetail.objects.filter(return_goods__supplier_id__in=supplier_ids,
+                                          created__gt=start_from)
+    rgdetail_values = rgdetail_qs.values('skuid').annotate(
+            return_num=Sum('num'),
+            inferior_num=Sum('inferior_num'),
+            price=Avg('price')
+        )
+    return rgdetail_values
+
+def get_bills_list(purchase_orderids):
+    from flashsale.finance.models import BillRelation, Bill
+    from django.contrib.contenttypes.models import ContentType
+    orderlist_contenttype = ContentType.objects.filter(app_label="dinghuo", model="OrderList").first()
+    bill_relates = BillRelation.objects.filter(object_id__in=purchase_orderids,
+                                              content_type=orderlist_contenttype).select_related('bill')
+    bill_list = []
+    for br in bill_relates:
+        br_dict = model_to_dict(br.bill)
+        br_dict['out_amount'] = 0
+        br_dict['in_amount']  = 0
+        br_dict['type_name'] = br.get_type_display()
+        br_dict['status_name'] = br.get_status_display()
+        br_dict['pay_method_name'] = br.get_pay_method_display()
+        if br_dict['type'] == Bill.PAY:
+            br_dict['out_amount'] = br_dict['plan_amount']
+        elif br_dict['type'] == Bill.RECEIVE:
+            br_dict['in_amount'] = br_dict['plan_amount']
+        bill_list.append(br_dict)
+    return bill_list
 
 @transaction.atomic
 def strip_forecast_inbound(forecast_inbound_id):
@@ -176,33 +228,40 @@ class AggregateForcecastOrderAndInbound(object):
                 aggregate_orders.append(order_dict)
 
             aggregate_forecasts = []
-            aggregate_inbounds = []
 
             is_unarrive_intime = False
             is_unrecord_logistic = False
+
+            real_inbound_qs = get_normal_realinbound_by_orderid(aggregate_id_set)
+            inbounds_data = serializers.SimpleRealInBoundSerializer(real_inbound_qs, many=True).data
+
+            aggregate_inbounds_dict = dict([(ib['id'], ib) for ib in inbounds_data])
+
             forecast_inbound_qs = get_normal_forecast_inbound_by_orderid(aggregate_id_set)
             for forecast in forecast_inbound_qs:
                 forecast_data = serializers.SimpleForecastInboundSerializer(forecast).data
+
                 real_inbound_qs = get_normal_realinbound_by_forecastid([forecast.id])
+                inbounds_data = serializers.SimpleRealInBoundSerializer(real_inbound_qs, many=True).data
 
                 forecast_data['relate_inbounds'] = real_inbound_qs.values_list('id', flat=True)
-                aggregate_forecasts.append(forecast_data)
-
-                inbound_data = serializers.SimpleRealInBoundSerializer(real_inbound_qs, many=True).data
-                aggregate_inbounds.extend(inbound_data)
-
-                is_unarrived = len(inbound_data) == 0 and \
+                is_unarrived = len(inbounds_data) == 0 and \
                                (not forecast.forecast_arrive_time
                                 or forecast.forecast_arrive_time <= datetime.datetime.now())
                 forecast_data['is_unarrive_intime'] = is_unarrived
                 forecast_data['is_unrecord_logistic'] = forecast.is_unrecord_logistic()
                 is_unarrive_intime |= is_unarrived
-                is_unrecord_logistic += forecast_data['is_unrecord_logistic']
+                is_unrecord_logistic |= forecast_data['is_unrecord_logistic']
+
+                aggregate_forecasts.append(forecast_data)
+                for ib in inbounds_data:
+                    if ib['id'] not in aggregate_inbounds_dict:
+                        aggregate_inbounds_dict.update({ib['id']:ib})
 
             aggregate_dict_list.append({
                 'purchase_orders': aggregate_orders,
                 'forecast_inbounds': aggregate_forecasts,
-                'real_inbounds': aggregate_inbounds,
+                'real_inbounds': aggregate_inbounds_dict.values(),
                 'is_unarrive_intime': is_unarrive_intime,
                 'is_unrecord_logistic': is_unrecord_logistic,
                 'is_billingable': False,

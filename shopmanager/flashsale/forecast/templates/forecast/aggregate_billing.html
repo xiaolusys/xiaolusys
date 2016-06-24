@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{% load custom_filter %}
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <title>订货单结算流程</title>
+    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/Select-1.1.2/css/select.bootstrap.min.css"/>
+</head>
+<body>
+{% include 'forecast/aggregate_billing_detail.html' %}
+<script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+<script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}DataTables/Select-1.1.2/js/dataTables.select.min.js"></script>
+</body>
+</html>

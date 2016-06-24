@@ -8,7 +8,7 @@
     <ul class="object-tools">
       {% block object-tools-items %}
         <li>
-          <a href="{% url 'forecast_dashboard' %}?staff_name={{user.get_username}}" class="historylink" target="_blank">
+          <a href="/sale/forecast/v1/dashboard?staff_name={{user.get_username}}" class="historylink" target="_blank">
              预测到货单管理
           </a>
         </li>

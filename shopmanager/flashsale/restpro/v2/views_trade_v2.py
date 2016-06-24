@@ -591,7 +591,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         if payment > 0:
             user_budget = UserBudget.objects.filter(user=buyer, amount__gte=payment).first()
-            logger.info('budget charge:uid=%s, tid=%s, payment=%.2f'%(sale_trade.buyer_id, sale_trade.tid, payment))
             if not user_budget:
                 raise Exception(u'小鹿钱包余额不足')
 
@@ -620,6 +619,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
             budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
             if not budget_charge_create:
+                logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s'%(sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
                 raise Exception('用户余额不足')
         
         extra = {}
@@ -681,7 +681,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
         buyer_openid = buyer_openid or customer.openid
-        payment      = float(form.get('payment'))
+        payment      = round(float(form.get('payment')), 2)
         pay_extras   = form.get('pay_extras','')
         budget_payment = self.calc_extra_budget(pay_extras)
         coupon_id  = form.get('coupon_id','')
@@ -702,9 +702,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'payment':payment,
             'pay_cash':max(0, round(payment * 100 - budget_payment) / 100.0),
             'has_budget_paid':budget_payment > 0,
-            'total_fee':float(form.get('total_fee')),
-            'post_fee':float(form.get('post_fee')),
-            'discount_fee':float(form.get('discount_fee')),
+            'total_fee':round(float(form.get('total_fee')),2),
+            'post_fee':round(float(form.get('post_fee')),2),
+            'discount_fee':round(float(form.get('discount_fee')),2),
             'charge':'',
             'logistics_company_id': logistic_company and logistic_company.id or None,
             'status':SaleTrade.WAIT_BUYER_PAY,
@@ -913,7 +913,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
         except Exception,exc:
-                logger.error('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
+                logger.error('cart charge error:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
                 return Response({'code':6, 'info':exc.message or '未知支付异常'})
 
         return Response({'code':0, 'info':u'支付成功', 'channel':channel,
