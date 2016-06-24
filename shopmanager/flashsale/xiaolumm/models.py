@@ -490,6 +490,18 @@ class XiaoluMama(models.Model):
             return True
         return False
 
+    def next_agencylevel_info(self):
+        level_map = {
+            XiaoluMama.INNER_LEVEL: (XiaoluMama.A_LEVEL, XiaoluMama.AGENCY_LEVEL[2][1]),
+            XiaoluMama.A_LEVEL: (XiaoluMama.VIP_LEVEL, XiaoluMama.AGENCY_LEVEL[1][1]),
+            XiaoluMama.VIP_LEVEL: (XiaoluMama.VIP2_LEVEL, XiaoluMama.AGENCY_LEVEL[3][1]),
+            XiaoluMama.VIP2_LEVEL: (XiaoluMama.VIP4_LEVEL, XiaoluMama.AGENCY_LEVEL[4][1]),
+            XiaoluMama.VIP4_LEVEL: (XiaoluMama.VIP6_LEVEL, XiaoluMama.AGENCY_LEVEL[5][1]),
+            XiaoluMama.VIP6_LEVEL: (XiaoluMama.VIP8_LEVEL, XiaoluMama.AGENCY_LEVEL[6][1]),
+            XiaoluMama.VIP8_LEVEL: (XiaoluMama.VIP8_LEVEL, XiaoluMama.AGENCY_LEVEL[6][1]),
+        }
+        return level_map[self.agencylevel]
+
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune

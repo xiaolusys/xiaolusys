@@ -1,4 +1,9 @@
 # coding=utf-8
+import json
+import collections
+import random
+from django.core.cache import cache
+from django.forms import model_to_dict
 from rest_framework import serializers
 
 from flashsale.xiaolumm.models_fortune import (
@@ -13,6 +18,11 @@ from flashsale.xiaolumm.models_fortune import (
     UniqueVisitor,
     DailyStats,
 )
+
+from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme, calculate_price_carry
+from flashsale.xiaolumm.models import XiaoluMama
+from shopback.items.models import Product
+from flashsale.pay.models import Customer
 
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
@@ -148,3 +158,75 @@ class DailyStatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DailyStats
+
+
+def mama_agency_level_info(user):
+    agency_user_level_info = cache.get("agency_user_level_info_" + str(user.id))
+    default_info = collections.defaultdict(agencylevel=XiaoluMama.INNER_LEVEL,
+                                           agencylevel_desc=XiaoluMama.AGENCY_LEVEL[0][1],
+                                           next_agencylevel=XiaoluMama.A_LEVEL,
+                                           next_agencylevel_desc=XiaoluMama.AGENCY_LEVEL[2][1])
+    if not agency_user_level_info:
+        customer = Customer.objects.filter(user=user).first()
+        if not customer:
+            return default_info
+        xlmm = customer.getXiaolumm()
+        if not xlmm:
+            return default_info
+        next_agencylevel, next_agencylevel_desc = xlmm.next_agencylevel_info()
+        default_info.update({
+            "agencylevel": xlmm.agencylevel,
+            "agencylevel_desc": xlmm.get_agencylevel_display(),
+            "next_agencylevel": next_agencylevel,
+            "next_agencylevel_desc": next_agencylevel_desc
+        })
+        cache.set('agency_user_level_info_' + str(user.id), json.dumps(default_info), 1 * 60 * 60)
+    agency_user_level_info = cache.get("agency_user_level_info_" + str(user.id))
+    return json.loads(agency_user_level_info)
+
+
+def agency_rebate_info():
+    agency_info = cache.get("agency_rebate_info")
+    if not agency_info:
+        rebate = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
+        rebate_d = model_to_dict(rebate)
+        cache.set('agency_rebate_info', json.dumps(rebate_d), 6 * 60 * 60)
+    agency_info = cache.get("agency_rebate_info")
+    return json.loads(agency_info)
+
+
+class ProductSimpleSerializerV2(serializers.ModelSerializer):
+    level_info = serializers.SerializerMethodField('agencylevel_info', read_only=True)
+    shop_product_num = serializers.SerializerMethodField('shop_products_info', read_only=True)
+
+    class Meta:
+        model = Product
+        extra_kwargs = {'in_customer_shop': {}, 'shop_product_num': {}}
+        fields = ('id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num', 'sale_num',
+                  'in_customer_shop', 'shop_product_num',
+                  "level_info")
+
+    def agencylevel_info(self, obj):
+        user = self.context['request'].user
+        info = mama_agency_level_info(user)
+        sale_num = obj.remain_num * 19 + random.choice(xrange(19))
+        sale_num_des = '{0}人在卖'.format(sale_num)
+        rebate = agency_rebate_info()
+        rebet_amount = calculate_price_carry(info['agencylevel'], obj.agent_price, rebate['price_rebetas'])
+        rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
+        next_rebet_amount = calculate_price_carry(info['next_agencylevel'], obj.agent_price, rebate['price_rebetas'])
+        next_rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
+        info.update({
+            "sale_num": sale_num,
+            "sale_num_des": sale_num_des,
+            "rebet_amount": rebet_amount,
+            "rebet_amount_des": rebet_amount_des,
+            "next_rebet_amount": next_rebet_amount,
+            "next_rebet_amount_des": next_rebet_amount_des
+        })
+        return info
+
+    def shop_products_info(self, obj):
+        shop_products_num = self.context['shop_product_num']
+        return shop_products_num
+
