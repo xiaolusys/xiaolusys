@@ -744,7 +744,7 @@ class ProductSku(models.Model):
         """ 多余未售库存数 """
         sku_stats = self.obj_sku_stats
         if sku_stats:
-            return sku_stats.realtime_quantity - sku_stats.wait_post_num
+            return max(0, sku_stats.realtime_quantity - sku_stats.wait_post_num)
         return 0
 
     @property

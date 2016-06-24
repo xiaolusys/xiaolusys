@@ -506,8 +506,8 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
             inbound_detail = inbound_details_dict.get(sku_id,{})
             rg_detail = returngood_details_dict.get(sku_id,{})
             arrived_num = inbound_detail and inbound_detail['arrival_quantity'] or 0
-            return_num  = rg_detail and (rg_detail['num'] + rg_detail['inferior_num']) or 0
-            per_price = round(float(odetail['total_price']) / odetail['buy_quantity'],2)
+            return_num  = rg_detail and (rg_detail['return_num'] + rg_detail['inferior_num']) or 0
+            per_price = odetail['buy_quantity'] and round(float(odetail['total_price']) / odetail['buy_quantity'],2) or 0
             unwork_num = odetail['buy_quantity'] - arrived_num + return_num
             sku_detail.update({
                 'buy_num': odetail['buy_quantity'],
