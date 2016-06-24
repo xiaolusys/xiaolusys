@@ -1714,17 +1714,18 @@ class InBoundDetail(models.Model):
     def change_total_quantity(self, num):
         """
             数量变化，不改变次品数
+            如果总数大于分配数，则不改变分配数，如果总数小于分配数，则调整分配数使它重新等于总数
         :param num:
         :return:
         """
-        ori_arrival_quantity = self.arrival_quantity
         self.arrival_quantity += num
         if self.arrival_quantity < 0:
             raise Exception(u"入库的正品数不可能小于0，请保证次品数正确")
         self.save()
-        change_total = ori_arrival_quantity - self.arrival_quantity
-        if self.records.exists():
-            self.change_records_arrival_quantity(change_total, self.checked)
+        if self.arrival_quantity < self.all_allocate_quantity:
+            change_total = self.all_allocate_quantity - self.arrival_quantity
+            if self.records.exists():
+                self.change_records_arrival_quantity(change_total, self.checked)
 
     def change_records_arrival_quantity(self, change_total, change_stock=False):
         """
@@ -1744,29 +1745,7 @@ class InBoundDetail(models.Model):
                 r.save()
                 change_total -= r.arrival_quantity
         if change_stock:
-            ProductSku.objects.filter(id=self.sku_id).update(quantity=F('quantity') + quantity_add)
-
-    def change_inferior(self, arrival_quantity, inferior_quantity, update_stock=False):
-        """
-            设置库存
-        :param arrival_quantity:
-        :param inferior_quantity:
-        :param update_stock:
-        :return:
-        """
-        if self.arrival_quantity == arrival_quantity and self.inferior_quantity == inferior_quantity:
-            return
-        if arrival_quantity + inferior_quantity != self.arrival_quantity + self.inferior_quantity:
-            raise Exception(u'改变次品时总数量不能发生变化')
-        ori_arrival_quantity = self.arrival_quantity
-        self.inferior_quantity = inferior_quantity
-        self.arrival_quantity = arrival_quantity
-        change_total = ori_arrival_quantity - self.arrival_quantity  # 减小为正数
-        if self.records.exists():
-            # 已经分配到订货单的必须同步修正订货单
-            if self.out_stock_num < change_total:
-                self.change_records_arrival_quantity(self.out_stock_num - change_total, update_stock)
-        self.save()
+            ProductSku.objects.filter(id=self.sku_id).update(quantity=F('quantity') - quantity_add)
 
     @property
     def out_stock_num(self):
