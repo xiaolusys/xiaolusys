@@ -22,8 +22,6 @@
                         orderstatus.text("作废");
                     }
                 }
-
-
             };
             if (orderstatus.text() == "草稿") {
                 $.ajax({url: url, data: data, type: "post", success: callback});

@@ -213,7 +213,7 @@ class SaleTrade(BaseModel):
     def budget_payment(self):
         """ 余额支付（分） """
         if self.has_budget_paid:
-            return round((self.payment - self.pay_cash) * 100)
+            return int(round((self.payment - self.pay_cash) * 100))
         return 0
 
     @property

@@ -734,7 +734,18 @@ class ProductSku(models.Model):
         """
         This tells how many quantity in store.
         """
-        raise NotImplementedError
+        sku_stats = self.obj_sku_stats
+        if sku_stats:
+            return self.obj_sku_stats.realtime_quantity
+        return 0
+
+    @property
+    def excess_quantity(self):
+        """ 多余未售库存数 """
+        sku_stats = self.obj_sku_stats
+        if sku_stats:
+            return sku_stats.realtime_quantity - sku_stats.wait_post_num
+        return 0
 
     @property
     def aggregate_quantity(self):

@@ -137,25 +137,25 @@ def task_Push_SaleTrade_Finished(pre_days=10):
     3，根据SaleTrade的所有SaleOrder状态更新SaleTrade状态;
     """
     day_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
-    strades = SaleTrade.objects.filter(status__in=(
-        SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
-        SaleTrade.TRADE_BUYER_SIGNED),
-                                       pay_time__lte=day_date)
-    for strade in strades:
-        for sorder in strade.normal_orders:
-            if sorder.is_finishable():
-                sorder.status = SaleOrder.TRADE_FINISHED
-                sorder.save()
-        if strade.normal_orders.count() == 0:
-            strade.status = SaleTrade.TRADE_CLOSED
-            strade.save()
+    sorders = SaleOrder.objects.filter(status__in=(
+        SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED),
+        pay_time__lte=day_date).select_related('sale_trade')
+    for sorder in sorders:
+        strade = sorder.sale_trade
+        if sorder.is_finishable():
+            sorder.status = SaleOrder.TRADE_FINISHED
+            sorder.save(update_fields=['status'])
 
-        normal_orders = strade.normal_orders
+        normal_num = strade.normal_orders.count()
+        if normal_num == 0:
+            strade.status = SaleTrade.TRADE_CLOSED
+            strade.save(update_fields=['status'])
+
         finish_orders = strade.sale_orders.filter(
             status=SaleOrder.TRADE_FINISHED)
-        if normal_orders.count() == finish_orders.count():
+        if normal_num == finish_orders.count():
             strade.status = SaleTrade.TRADE_FINISHED
-            strade.save()
+            strade.save(update_fields=['status'])
 
 
 @task(max_retries=3, default_retry_delay=60)

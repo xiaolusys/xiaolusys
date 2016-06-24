@@ -314,7 +314,7 @@ class UserBudget(PayBaseModel):
         try:
             BudgetLog.objects.get(customer_id=self.user.id,
                                   referal_id=strade_id,
-                                  budget_log_type=BudgetLog.BG_CONSUM, )
+                                  budget_log_type=BudgetLog.BG_CONSUM)
         except BudgetLog.DoesNotExist:
             urows = UserBudget.objects.filter(
                 user=self.user,

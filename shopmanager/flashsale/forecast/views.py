@@ -2,9 +2,6 @@
 import os
 import json
 import datetime
-import hashlib
-import urlparse
-import random
 
 from django.db import models
 from django.db import transaction
@@ -27,12 +24,12 @@ from common.utils import get_admin_name
 from core.options import log_action, ADDITION, CHANGE
 from shopback.items.models import Product, ProductSku, ProductLocation
 from supplychain.supplier.models import SaleProduct
-from flashsale.dinghuo.models import OrderList, OrderDetail
 
 
 from .models import StagingInBound,ForecastInbound,ForecastInboundDetail,RealInBound,RealInBoundDetail
 from . import serializers
 from . import constants
+from . import services
 
 import logging
 logger = logging.getLogger(__name__)
@@ -360,7 +357,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         datas = json.loads(content.get('forecast_data','{}'))
         forecast_ids  = set()
         forecast_data_list = []
-        logger.debug('data:%s'% datas);
+        logger.debug('data:%s'% datas)
         for kstr, num in datas.iteritems():
             sku_id, product_id, forecast_id, k1,k2 = kstr.split('-')
             forecast_ids.add(int(forecast_id))
@@ -417,18 +414,16 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         return Response({'redrect_url': reverse('admin:forecast_forecastinbound_changelist')+'?q=%s'%forecast_newobj.id})
 
 
-from . import services
-
-class PurchaseDashBoardAPIView(APIView):
+class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
     """
         订货单管理dashboard页面
     """
+    queryset = ForecastInbound.objects.all()
     authentication_classes = (authentication.TokenAuthentication,authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer)
-    template_name = 'forecast/dashboard.html'
 
-    def get(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         """
         action: (all, 全部), (unarrived, 未准时到货), (unbilling, 到货等待结算), (unlogisticed, 未填写物流信息),
         """
@@ -469,5 +464,69 @@ class PurchaseDashBoardAPIView(APIView):
                          'billingable_num': len(aggregate_list_dict['billingable']),
                          'aggregate_num': is_handleable and len(aggregate_datas) or len(aggregate_record_list),
                          'action': action,
-                         'staff_name':staff_name})
+                         'staff_name':staff_name},
+                        template_name='forecast/dashboard.html')
 
+    @list_route(methods=['get'])
+    def calc_stats(self, request, *args, **kwargs):
+        """ 采购单与入库单聚合结算 """
+
+        purchase_orderid_str = request.GET.get('order_ids','')
+        purchase_orderid_list = [int(i) for i in purchase_orderid_str.split(',') if i.strip()]
+
+        orderdetail_values = services.get_purchaseorders_data(purchase_orderid_list)
+        inbounddetail_values = services.get_realinbounds_data(purchase_orderid_list)
+
+        order_details_dict = dict([(int(od['chichu_id']),od) for od in orderdetail_values])
+        inbound_details_dict = dict([(od['sku_id'], od) for od in inbounddetail_values])
+
+        sku_id_set = set(order_details_dict.keys())
+        sku_id_set.update(inbound_details_dict.keys())
+        sku_values = []
+        sku_qs = ProductSku.objects.filter(id__in=sku_id_set).select_related('product')
+        for sku in sku_qs:
+            sku_values.append({
+                'sku_id':sku.id,
+                'outer_id': sku.product.outer_id,
+                'product_name':sku.product.name,
+                'sku_name':sku.name,
+                'product_img':sku.product.pic_path,
+                'excess_num':sku.excess_quantity
+            })
+        product_details_dict = dict([(s['sku_id'],s) for s in sku_values])
+
+        supplier_ids = set([s['orderlist__supplier_id'] for s in orderdetail_values])
+        min_datetime = orderdetail_values and orderdetail_values[0]['min_created'] or datetime.datetime.now()
+        returngood_details = services.get_returngoods_data(supplier_ids, min_datetime)
+        returngood_details_dict = dict([(rg['skuid'], rg) for rg in returngood_details])
+
+        aggregate_details_list = []
+        for sku_id, odetail in order_details_dict.iteritems():
+            sku_detail = product_details_dict.get(sku_id,{})
+            inbound_detail = inbound_details_dict.get(sku_id,{})
+            rg_detail = returngood_details_dict.get(sku_id,{})
+            arrived_num = inbound_detail and inbound_detail['arrival_quantity'] or 0
+            return_num  = rg_detail and (rg_detail['num'] + rg_detail['inferior_num']) or 0
+            per_price = round(float(odetail['total_price']) / odetail['buy_quantity'],2)
+            unwork_num = odetail['buy_quantity'] - arrived_num + return_num
+            sku_detail.update({
+                'buy_num': odetail['buy_quantity'],
+                'total_price': odetail['total_price'],
+                'delta_num': odetail['buy_quantity'] - arrived_num,
+                'real_payment': odetail['total_price'],
+                'arrival_num': inbound_detail and inbound_detail['arrival_quantity'] or 0,
+                'inferior_num': inbound_detail and inbound_detail['inferior_quantity'] or 0,
+                'return_num': return_num,
+                'return_inferior_num': rg_detail and rg_detail['inferior_num'] or 0,
+                'return_amount': unwork_num * per_price,
+            })
+            aggregate_details_list.append(sku_detail)
+
+        # TODO 付款单金额统计
+        bill_list = services.get_bills_list(purchase_orderid_list)
+        total_in_amount = bill_list and sum([br['in_amount'] for br in bill_list]) or 0
+        total_out_amount = bill_list and sum([br['out_amount'] for br in bill_list]) or 0
+
+        return Response({'aggregate_details': aggregate_details_list,
+                         'bill_data':{'bills': bill_list, 'total_in_amount':total_in_amount, 'total_out_amount':total_out_amount}},
+                        template_name='forecast/aggregate_billing_detail.html')

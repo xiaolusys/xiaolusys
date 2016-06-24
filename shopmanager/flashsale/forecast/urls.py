@@ -6,14 +6,14 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 from rest_framework import routers, viewsets
 
-from .views import StagingInboundViewSet, ForecastManageViewSet, PurchaseDashBoardAPIView, InBoundViewSet
+from .views import StagingInboundViewSet, ForecastManageViewSet, PurchaseDashBoardViewSet, InBoundViewSet
 
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'staging', StagingInboundViewSet)
 router.register(r'manage', ForecastManageViewSet)
 router.register('inbound', InBoundViewSet)
-
+router.register('dashboard', PurchaseDashBoardViewSet)
 
 router_urls = router.urls
 
@@ -21,6 +21,6 @@ router_urls += ([])
 
 urlpatterns = patterns('',
      url(r'^v1/', include(router_urls, namespace='forecast_v1')),
-     url(r'^dashboard', staff_member_required(PurchaseDashBoardAPIView.as_view()), name="forecast_dashboard"),
+     # url(r'^dashboard', staff_member_required(PurchaseDashBoardAPIView.as_view()), name="forecast_dashboard"),
 )
 
