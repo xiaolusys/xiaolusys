@@ -28,6 +28,7 @@ class ReceiptGoodsAdmin(admin.ModelAdmin):
     )
     list_filter = (
         "creator",
+        'status',
         "receipt_type",
         "weight_time",
         "express_company",
