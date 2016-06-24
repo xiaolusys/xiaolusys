@@ -28,11 +28,9 @@ class XlmmFans(BaseModel):
 
     def getCustomer(self):
         """ 获取粉丝在特卖客户列表中的信息 """
-        try:
-            cus = Customer.objects.get(id=self.fans_cusid)
-            return cus
-        except Customer.DoesNotExist:
-            return None
+        if not hasattr(self, '_fans_customer_'):
+            self._fans_customer_ = Customer.objects.filter(id=self.fans_cusid).first()
+        return self._fans_customer_
 
     def fans_description(self):
         if self.xlmm_cusid == self.refreal_cusid:
