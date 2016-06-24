@@ -253,7 +253,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 from .models import AppDownloadRecord
 from shopapp.weixin import options
 from common.utils import valid_mobile
-
+from shopapp.weixin.models_base import WeixinUserInfo
 
 class APPDownloadView(WeixinAuthMixin, View):
     """ 下载页面 """
