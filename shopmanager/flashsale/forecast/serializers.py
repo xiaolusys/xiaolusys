@@ -58,7 +58,8 @@ class SimpleForecastInboundSerializer(serializers.ModelSerializer):
         extra_kwargs = {}
         fields = (
         'id', 'supplier', 'express_code', 'express_no', 'forecast_arrive_time',
-        'total_detail_num', 'real_arrive_num', 'purchaser', 'status', 'status_name')
+        'total_detail_num', 'real_arrive_num', 'purchaser', 'status', 'status_name',
+        'memo', 'has_lack', 'has_defact', 'has_overhead', 'has_wrong')
 
 class ForecastInboundSerializer(serializers.ModelSerializer):
 

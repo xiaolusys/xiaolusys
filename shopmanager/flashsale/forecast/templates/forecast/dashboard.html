@@ -99,6 +99,10 @@
                 <a href="/sale/forecast/v1/dashboard?action=unlogisticed{% if staff_name %}&staff_name={{staff_name}}{% endif %}">催货提醒
                     <span class="badge">{{unlogistics_num}}</span></a>
                 </li>
+                <li role="presentation" {% ifequal action "arrivalexcept" %}class="active"{% endifequal %}>
+                <a href="/sale/forecast/v1/dashboard?action=arrivalexcept{% if staff_name %}&staff_name={{staff_name}}{% endif %}">到货异常
+                    <span class="badge">{{arrivalexcept_num}}</span></a>
+                </li>
                 <li role="presentation" {% ifequal action "unarrived" %}class="active"{% endifequal %}>
                 <a href="/sale/forecast/v1/dashboard?action=unarrived{% if staff_name %}&staff_name={{staff_name}}{% endif %}">未准时到货
                     <span class="badge">{{unarrived_num}}</span></a>
