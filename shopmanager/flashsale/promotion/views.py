@@ -31,6 +31,9 @@ from flashsale.coupon.models import UserCoupon
 from . import constants
 from flashsale.apprelease.models import AppRelease
 
+import logging
+logger = logging.getLogger('django.request')
+
 CARTOON_DIGIT_IMAGES = [
     "http://7xogkj.com2.z0.glb.qiniucdn.com/222-0.png",
     "http://7xogkj.com2.z0.glb.qiniucdn.com/222-1.png",
@@ -298,6 +301,7 @@ class APPDownloadView(WeixinAuthMixin, View):
                 if not self.valid_openid(unionid):
                     # if we still dont have openid, we have to do oauth
                     redirect_url = self.get_snsuserinfo_redirct_url(request)
+                    logger.error("AppDownloadView|redirect_url: %s, absolute_uri:%s" %(redirect_url, request.build_absolute_uri()))
                     return redirect(redirect_url)
             # now we have userinfo
             request_customer = self.get_current_customer(unionid=unionid)
@@ -762,26 +766,3 @@ class QrCodeView(APIView):
         return response
 
 
-from rest_framework import generics
-from . import serializers
-
-class PotentialFansView(WeixinAuthMixin, generics.GenericAPIView):
-    paginate_by = 10
-    page_query_param = 'page'
-    paginate_by_param = 'page_size'
-    max_paginate_by = 100
-
-    authentication_classes = (authentication.SessionAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer,)
-
-    def get(self, request, *args, **kwargs):
-        customer = get_customer(request)
-        #customer_id = 1
-        customer_id = customer.id
-        records = AppDownloadRecord.objects.filter(from_customer=customer_id,status=AppDownloadRecord.UNUSE).order_by('-created')
-        datalist = self.paginate_queryset(records)
-        serializer = serializers.AppDownloadRecordSerializer(datalist, many=True)
-        return self.get_paginated_response(serializer.data)
-    
-        

@@ -31,19 +31,16 @@ logger = logging.getLogger(__name__)
 
 
 def get_customer_id(user):
-    customers = Customer.objects.filter(user=user)
-    customer_id = None
-    if customers.count() > 0:
-        customer_id = customers[0].id
-    #customer_id = 19 # debug test
-    return customer_id
-
+    # return 19 # debug test
+    customer = Customer.objects.filter(user=user).first()
+    if customer:
+        return customer.id
+    return None
 
 def get_mama_id(user):
-    customers = Customer.objects.filter(user=user)
+    customer = Customer.objects.filter(user=user).first()
     mama_id = None
-    if customers.count() > 0:
-        customer = customers[0]
+    if customer:
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
@@ -664,3 +661,24 @@ class ModelProductViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
     
+
+from rest_framework import generics
+from flashsale.promotion.models_freesample import AppDownloadRecord
+
+class PotentialFansView(generics.GenericAPIView):
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
+    authentication_classes = (authentication.SessionAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,)
+
+    def get(self, request, *args, **kwargs):
+        customer_id = get_customer_id(request.user)
+        #customer_id = 1
+        records = AppDownloadRecord.objects.filter(from_customer=customer_id,status=AppDownloadRecord.UNUSE).order_by('-created')
+        datalist = self.paginate_queryset(records)
+        serializer = serializers.AppDownloadRecordSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
