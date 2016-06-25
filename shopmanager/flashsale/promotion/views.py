@@ -277,7 +277,8 @@ class APPDownloadView(WeixinAuthMixin, View):
         from_customer = content.get('from_customer') or ''  # 分享人的用户id
         mobile = content.get('mobile') or ''
         ufrom = content.get("ufrom") or None
-
+        diff_customer = True
+            
         from flashsale.promotion.tasks_activity import task_create_appdownloadrecord_with_userinfo, \
             task_create_appdownloadrecord_with_mobile
         
@@ -288,7 +289,7 @@ class APPDownloadView(WeixinAuthMixin, View):
             openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
             userinfo = {}
-            if self.valid_openid(unionid):
+            if unionid:
                 record = WeixinUserInfo.objects.filter(unionid=unionid).first()
                 if record:
                     userinfo.update({"unionid":record.unionid, "nickname":record.nick, "headimgurl":record.thumbnail})
@@ -298,18 +299,25 @@ class APPDownloadView(WeixinAuthMixin, View):
                 userinfo = self.get_auth_userinfo(request)
                 unionid = userinfo.get("unionid")
             
-                if not self.valid_openid(unionid):
+                if not unionid:
                     # if we still dont have openid, we have to do oauth
                     redirect_url = self.get_snsuserinfo_redirct_url(request)
                     logger.error("AppDownloadView|redirect_url: %s, absolute_uri:%s" %(redirect_url, request.build_absolute_uri()))
                     return redirect(redirect_url)
             # now we have userinfo
+
             request_customer = self.get_current_customer(unionid=unionid)
-            if not (request_customer and from_customer.isdigit() and request_customer.id == int(from_customer)):
+            if from_customer.isdigit() and request_customer and request_customer.id == int(from_customer):
+                diff_customer = False
+                
+            if from_customer.isdigit() and diff_customer:
                 task_create_appdownloadrecord_with_userinfo.delay(from_customer, userinfo)    
         elif valid_mobile(mobile):
             request_customer = self.get_current_customer(mobile=mobile)
-            if not (request_customer and from_customer.isdigit() and request_customer.id == int(from_customer)):
+            if from_customer.isdigit() and request_customer and request_customer.id == int(from_customer):
+                diff_customer = False
+            
+            if from_customer.isdigit() and diff_customer:
                 task_create_appdownloadrecord_with_mobile.delay(from_customer, mobile)
             
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
