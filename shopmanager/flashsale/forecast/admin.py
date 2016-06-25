@@ -52,10 +52,12 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     # }),)
 
     list_display = (
-        'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser', 'status'
+        'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser',
+        'has_lack', 'has_defact', 'has_overhead', 'has_wrong', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter),
-                   ('forecast_arrive_time',DateScheduleFilter))
+                   ('forecast_arrive_time',DateScheduleFilter),
+                   'has_lack', 'has_defact','has_overhead', 'has_wrong')
 
     search_fields = ['=id', '=forecast_no','=supplier__supplier_name','=express_no','=purchaser']
 
@@ -66,16 +68,17 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     fieldsets = (
         ('基本信息:', {
          'classes': ('expand',),
-         'fields': ('supplier', 'relate_order_set', 'ware_house')
+         'fields': ('supplier', 'relate_order_set',('ware_house','status'))
         }),
         ('预测到货状态:', {
          'classes': ('expand',),
          'fields': (('express_code', 'express_no', 'forecast_arrive_time'),
-                    ('purchaser', 'is_lackordefect', 'is_overorwrong'))
+                    ('purchaser', 'has_lack', 'has_defact','has_overhead', 'has_wrong'),
+                    'memo')
         })
     )
 
-    actions = ['action_merge_or_split', 'action_strip_inbound']
+    actions = ['action_merge_or_split', 'action_strip_inbound', 'action_timeout_reforecast']
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ForecastInboundAdmin, self).get_form(request, obj=obj, **kwargs)
@@ -96,8 +99,8 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            return self.readonly_fields + ('status', 'ware_house', 'forecast_no',
-                                           'purchaser', 'status', 'is_lackordefect', 'is_overorwrong')
+            return self.readonly_fields + ('status', 'ware_house', 'forecast_no', 'purchaser', 'status',
+                                            'has_lack', 'has_defact', 'has_overhead', 'has_wrong')
         return self.readonly_fields
 
     def save_model(self, request, obj, form, change):
@@ -133,7 +136,9 @@ class ForecastInboundAdmin(admin.ModelAdmin):
         try:
             for obj in queryset:
                 new_forecast = strip_forecast_inbound(obj.id)
-                log_action(request.user.id, new_forecast, ADDITION, '从预测单(%s)剥离创建'%(obj.id))
+                if not new_forecast:
+                    continue
+                log_action(request.user.id, new_forecast, ADDITION, u'从预测单(%s)剥离创建'%(obj.id))
                 new_forecast_obj_list.append(new_forecast)
         except Exception, exc:
             self.message_user(request, u"剥离出错:%s"%exc.message)
@@ -143,6 +148,37 @@ class ForecastInboundAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(request.get_full_path())
 
     action_strip_inbound.short_description = u"剥离未到货预测记录"
+
+    def action_timeout_reforecast(self, request, queryset):
+
+        unapproved_qs = queryset.exclude(status=ForecastInbound.ST_APPROVED)
+        if unapproved_qs.exists():
+            self.message_user(request, u"＊＊＊重新预测到货需在审核状态下处理＊＊＊!")
+            return HttpResponseRedirect(request.get_full_path())
+
+        new_forecast_obj_list = []
+        try:
+            for obj in queryset:
+                if not obj.is_arrival_timeout():
+                    continue
+                new_forecast = strip_forecast_inbound(obj.id)
+                if not new_forecast:
+                    continue
+                log_action(request.user.id, new_forecast, ADDITION, u'超时重新预测到货,原单(id:%s)' % (obj.id))
+                new_forecast_obj_list.append(new_forecast)
+                new_forecast.memo += u"超时重新预测,上次预测时间:%.19s \n" % obj.forecast_arrive_time
+                new_forecast.save(update_fields=['memo'])
+
+                obj.status = ForecastInbound.ST_TIMEOUT
+                obj.save(update_fields=['status'])
+        except Exception, exc:
+            self.message_user(request, u"创建出错:%s" % exc.message)
+        self.message_user(request, u"＊＊＊超时预测到货单重新预测成功,子预测单列表:%s ＊＊＊" %
+                          (','.join([str(obj.id) for obj in new_forecast_obj_list])))
+
+        return HttpResponseRedirect(request.get_full_path())
+
+    action_timeout_reforecast.short_description = u"超时重新预测到货"
 
 
 admin.site.register(ForecastInbound, ForecastInboundAdmin)

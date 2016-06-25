@@ -437,6 +437,7 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
         aggregate_list_dict = {
             'unlogisticed': [],
             'unarrived': [],
+            'arrivalexcept': [],
             'billingable': [],
         }
         aggregate_datas = aggregate_forecast_obj.aggregate_data()
@@ -445,10 +446,12 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
                 aggregate_list_dict['unlogisticed'].append(aggregate)
             if aggregate['is_unarrive_intime']:
                 aggregate_list_dict['unarrived'].append(aggregate)
+            if aggregate['is_arrivalexcept']:
+                aggregate_list_dict['arrivalexcept'].append(aggregate)
             if aggregate['is_billingable']:
                 aggregate_list_dict['billingable'].append(aggregate)
 
-        is_handleable = action in ('unlogisticed', 'unarrived', 'billingable')
+        is_handleable = action in ('unlogisticed', 'unarrived', 'billingable', 'arrivalexcept')
         if is_handleable:
             aggregate_record_list = aggregate_list_dict[action]
         else:
@@ -461,6 +464,7 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
         return Response({'aggregate_list': aggregate_record_list,
                          'unlogistics_num': len(aggregate_list_dict['unlogisticed']),
                          'unarrived_num': len(aggregate_list_dict['unarrived']),
+                         'arrivalexcept_num': len(aggregate_list_dict['arrivalexcept']),
                          'billingable_num': len(aggregate_list_dict['billingable']),
                          'aggregate_num': is_handleable and len(aggregate_datas) or len(aggregate_record_list),
                          'action': action,

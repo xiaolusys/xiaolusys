@@ -4,6 +4,7 @@ import datetime
 from django.db import transaction
 from django.forms import model_to_dict
 from django.db.models import Sum, Avg, Min
+from django.core.cache import cache
 
 from . import serializers
 from .models import (
@@ -18,11 +19,15 @@ class AggregateDataException(BaseException):
     pass
 
 
-def get_purchaseorder_date(order):
-    from flashsale.dinghuo.models import OrderList
-    if not isinstance(order, OrderList):
-        order = OrderList.objects.get(id=order)
+def get_purchaseorder_date(order_id):
 
+    from flashsale.dinghuo.models import OrderList
+    cache_key = '%s_orderlist_id_for_forecast_inbound'% order_id
+    order_data = cache.get(cache_key)
+    if order_data:
+        return order_data
+
+    order = OrderList.objects.get(id=order_id)
     order_details = order.order_list.all()
     detail_dict_list = []
     for detail in order_details:
@@ -36,9 +41,8 @@ def get_purchaseorder_date(order):
         }
         detail_dict_list.append(detail_dict)
     pt = order.last_pay_date
-    if pt:
-        pt = datetime.datetime(pt.year, pt.month, pt.day)
-    return {
+    pt = pt and datetime.datetime(pt.year, pt.month, pt.day)
+    order_data = {
         'id': order.id,
         'supplier': serializers.SupplierSerializer(order.supplier).data,
         'purchaser': order.buyer_name,
@@ -51,6 +55,8 @@ def get_purchaseorder_date(order):
         'sys_status_name': order.status_name,
         'total_detail_num': order.total_detail_num
     }
+    cache.set(cache_key, order_data, 60)
+    return order_data
 
 def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     """ 通过采购员名称获取订货单 """
@@ -61,9 +67,10 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     if staff_name and staff_name.strip():
         order_list = order_list.filter(buyer__username=staff_name)
 
+    order_ids = order_list.values_list('id', flat=True)
     order_dict_list = []
-    for order in order_list:
-        order_dict = get_purchaseorder_date(order)
+    for order_id in order_ids:
+        order_dict = get_purchaseorder_date(order_id)
         order_dict_list.append(order_dict)
 
     return order_dict_list
@@ -145,16 +152,6 @@ def get_bills_list(purchase_orderids):
 def strip_forecast_inbound(forecast_inbound_id):
 
     forecast_inbound = ForecastInbound.objects.get(id=forecast_inbound_id)
-    update_fields = ['supplier_id', 'ware_house', 'express_code', 'express_no']
-    new_forecast = ForecastInbound()
-    new_forecast.forecast_no = default_forecast_inbound_no('sub%d'%forecast_inbound.id)
-    for k in update_fields:
-        if hasattr(forecast_inbound, k):
-            setattr(new_forecast, k, getattr(forecast_inbound, k))
-    new_forecast.save()
-
-    for order in forecast_inbound.relate_order_set.all():
-        new_forecast.relate_order_set.add(order)
 
     # 如果有多个到货单关联一个预测单，需要聚合计算
     real_inbound_details_qs = RealInBoundDetail.objects.filter(inbound__forecast_inbound=forecast_inbound,
@@ -162,49 +159,79 @@ def strip_forecast_inbound(forecast_inbound_id):
     real_inbound_qs_values = real_inbound_details_qs.values('sku_id')\
         .annotate(total_arrival_num=Sum('arrival_quantity'),total_inferior_num=Sum('inferior_quantity'))
     real_inbound_detail_dict = dict([(d['sku_id'], d) for d in real_inbound_qs_values])
+
+    sku_delta_dict = {}
     for detail in forecast_inbound.normal_details():
-        real_detail = real_inbound_detail_dict.get(detail.sku_id,None)
+        real_detail = real_inbound_detail_dict.get(detail.sku_id, None)
         real_arrive_num = real_detail and real_detail.get('total_arrival_num', 0) or 0
         delta_arrive_num = detail.forecast_arrive_num - real_arrive_num
         if delta_arrive_num > 0:
-            forecast_detail = ForecastInboundDetail()
-            forecast_detail.forecast_inbound = new_forecast
-            forecast_detail.forecast_arrive_num = delta_arrive_num
-            forecast_detail.product_id = detail.product_id
-            forecast_detail.sku_id = detail.sku_id
-            forecast_detail.product_name = detail.product_name
-            forecast_detail.product_img = detail.product_img
-            forecast_detail.save()
-    return new_forecast
+            sku_delta_dict[detail.sku_id] = delta_arrive_num
+
+    if sku_delta_dict:
+        update_fields = ['supplier_id', 'ware_house', 'express_code', 'express_no']
+        new_forecast = ForecastInbound()
+        new_forecast.forecast_no = default_forecast_inbound_no('sub%d' % forecast_inbound.id)
+        for k in update_fields:
+            if hasattr(forecast_inbound, k):
+                setattr(new_forecast, k, getattr(forecast_inbound, k))
+        new_forecast.save()
+
+        for order in forecast_inbound.relate_order_set.all():
+            new_forecast.relate_order_set.add(order)
+
+        for detail in forecast_inbound.normal_details():
+            delta_arrive_num = sku_delta_dict.get(detail.sku_id, 0)
+            if delta_arrive_num > 0:
+                forecast_detail = ForecastInboundDetail()
+                forecast_detail.forecast_inbound = new_forecast
+                forecast_detail.forecast_arrive_num = delta_arrive_num
+                forecast_detail.product_id = detail.product_id
+                forecast_detail.sku_id = detail.sku_id
+                forecast_detail.product_name = detail.product_name
+                forecast_detail.product_img = detail.product_img
+                forecast_detail.save()
+        return new_forecast
+    return None
 
 
 class AggregateForcecastOrderAndInbound(object):
 
     def __init__(self, purchase_orders):
         self.aggregate_orders_dict = {}
-
         for order_dict in purchase_orders:
             self.aggregate_orders_dict[order_dict['id']] = order_dict
-
         self.aggregate_set  = set()
+        self.supplier_unarrival_dict = {}
 
     def recursive_aggragate_order(self, order_id, aggregate_id_set):
 
         if order_id in self.aggregate_set:
             return
-
-        aggregate_id_set.add(order_id)
         self.aggregate_set.add(order_id)
+
         # aggregate order from forecast inbound
         forecast_inbounds = get_normal_forecast_inbound_by_orderid([order_id])
         order_ids = forecast_inbounds.values_list('relate_order_set',flat=True)
-        for order_id in order_ids:
-            self.recursive_aggragate_order(order_id, aggregate_id_set)
+        for fi_order_id in order_ids:
+            self.recursive_aggragate_order(fi_order_id, aggregate_id_set)
         # aggregate order from real inbound
         real_inbounds = get_normal_realinbound_by_orderid([order_id])
         order_ids = real_inbounds.values_list('relate_order_set', flat=True)
-        for order_id in order_ids:
-            self.recursive_aggragate_order(order_id, aggregate_id_set)
+        for ri_order_id in order_ids:
+            self.recursive_aggragate_order(ri_order_id, aggregate_id_set)
+
+        # aggregate all inbound unarrival together
+        if real_inbounds.exists():
+            aggregate_id_set.add(order_id)
+        else:
+            order_data = get_purchaseorder_date(order_id)
+            supplier_id = order_data['supplier']['id']
+            if supplier_id in self.supplier_unarrival_dict:
+                self.supplier_unarrival_dict[supplier_id].add(order_id)
+            else:
+                self.supplier_unarrival_dict[supplier_id] = set([order_id])
+
 
     def aggregate_order_set(self):
         """ aggregate order id to set and return set list """
@@ -214,7 +241,10 @@ class AggregateForcecastOrderAndInbound(object):
                 continue
             aggregate_id_set = set()
             self.recursive_aggragate_order(order_id, aggregate_id_set)
-            aggregate_set_list.append(aggregate_id_set)
+            if aggregate_id_set:
+                aggregate_set_list.append(aggregate_id_set)
+
+        aggregate_set_list.extend(self.supplier_unarrival_dict.values())
         return aggregate_set_list
 
     def aggregate_data(self):
@@ -243,6 +273,8 @@ class AggregateForcecastOrderAndInbound(object):
 
             is_unarrive_intime = False
             is_unrecord_logistic = False
+            is_billingable = True
+            is_arrivalexcept = False
 
             real_inbound_qs = get_normal_realinbound_by_orderid(aggregate_id_set)
             inbounds_data = serializers.SimpleRealInBoundSerializer(real_inbound_qs, many=True).data
@@ -264,6 +296,8 @@ class AggregateForcecastOrderAndInbound(object):
                 forecast_data['is_unrecord_logistic'] = forecast.is_unrecord_logistic()
                 is_unarrive_intime |= is_unarrived
                 is_unrecord_logistic |= forecast_data['is_unrecord_logistic']
+                is_billingable &= not forecast.is_inthedelivery()
+                is_arrivalexcept |= forecast.is_arrival_except()
 
                 aggregate_forecasts.append(forecast_data)
                 for ib in inbounds_data:
@@ -276,7 +310,8 @@ class AggregateForcecastOrderAndInbound(object):
                 'real_inbounds': aggregate_inbounds_dict.values(),
                 'is_unarrive_intime': is_unarrive_intime,
                 'is_unrecord_logistic': is_unrecord_logistic,
-                'is_billingable': False,
+                'is_billingable': is_billingable,
+                'is_arrivalexcept': is_arrivalexcept,
                 'supplier': aggregate_orders[0]['supplier']
             })
         self._aggregate_data_ = aggregate_dict_list

@@ -19,12 +19,14 @@ class ForecastInbound(BaseModel):
     ST_DRAFT = 'draft'
     ST_APPROVED = 'approved'
     ST_ARRIVED = 'arrived'
+    ST_TIMEOUT = 'timeout'
     ST_CANCELED = 'canceled'
 
     STATUS_CHOICES = (
         (ST_DRAFT, u'草稿'),
         (ST_APPROVED, u'审核'),
         (ST_ARRIVED, u'到货'),
+        (ST_TIMEOUT, u'超时关闭'),
         (ST_CANCELED, u'取消'),
     )
 
@@ -47,10 +49,14 @@ class ForecastInbound(BaseModel):
 
     purchaser = models.CharField(max_length=30, blank=True, db_index=True, verbose_name=u'采购员')
 
-    status = models.CharField(max_length=8, db_index=True, default=ST_DRAFT, choices=STATUS_CHOICES, verbose_name=u'状态')
+    status = models.CharField(max_length=8, db_index=True, default=ST_DRAFT,
+                              choices=STATUS_CHOICES, verbose_name=u'状态')
+    memo = models.TextField(max_length=1000, blank=True, verbose_name=u'备注')
 
-    is_lackordefect = models.BooleanField(default=False,db_index=True,verbose_name=u'缺货或次品')
-    is_overorwrong  = models.BooleanField(default=False,db_index=True,verbose_name=u'多到或错货')
+    has_lack = models.BooleanField(default=False,db_index=True,verbose_name=u'缺货')
+    has_defact  = models.BooleanField(default=False,db_index=True,verbose_name=u'次品')
+    has_overhead = models.BooleanField(default=False,db_index=True,verbose_name=u'多到')
+    has_wrong = models.BooleanField(default=False,db_index=True,verbose_name=u'错发')
 
     class Meta:
         db_table = 'forecast_inbound'
@@ -81,12 +87,29 @@ class ForecastInbound(BaseModel):
     def get_ware_house_name(self):
         return dict(constants.WARE_CHOICES).get(self.ware_house)
 
-
     def normal_details(self):
         return self.details_manager.filter(status=ForecastInboundDetail.NORMAL)
 
     def is_unrecord_logistic(self):
         return self.express_code == '' or self.express_no == ''
+
+    def is_inthedelivery(self):
+        """ 是否发货中 """
+        return self.status in (self.ST_DRAFT, self.ST_APPROVED)
+
+    def is_arrival_except(self):
+        """ 是否到货异常 """
+        return self.has_lack or self.has_defact or self.has_overhead or self.has_wrong
+
+    def is_arrival_timeout(self):
+        """ 到货超时 """
+        tnow = datetime.datetime.now()
+        if self.status == self.ST_APPROVED and \
+            (not self.forecast_arrive_time or self.forecast_arrive_time < tnow):
+            return True
+        if self.status == self.ST_TIMEOUT:
+            return True
+        return False
 
     def inbound_arrive_update_status(self):
         self.status = self.ST_ARRIVED

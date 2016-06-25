@@ -45,6 +45,11 @@
                        <span class="pull-right">
                            {% if forecast.is_unarrive_intime %}<i class="glyphicon glyphicon-time"></i>{% endif %}
                            {% if forecast.is_unrecord_logistic %}<i class="glyphicon glyphicon-map-marker"></i>{% endif %}
+                           {% if forecast.memo %}
+                            <a tabindex="0" role="button" style="color:#333;"　data-container="body" data-toggle="popover" data-placement="left" title="预测单备注" data-content="{{forecast.memo}}">
+                                <i class="glyphicon glyphicon-list-alt"></i>
+                            </a>
+                            {% endif %}
                        </span>
                    </div>
                 </li>

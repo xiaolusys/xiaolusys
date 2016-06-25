@@ -84,6 +84,7 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
     for order_id in inbound_order_set:
         real_inbound.relate_order_set.add(order_id)
 
+    inbound_sku_dict = {}
     for detail  in inbound.details.all():
         try:
             real_detail = RealInBoundDetail.objects.filter(inbound=real_inbound,
@@ -101,10 +102,32 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
             real_detail.inferior_quantity = detail.inferior_quantity
             real_detail.district = detail.district
             real_detail.save()
+
+            inbound_sku_dict[real_detail.sku_id] = {
+                'arrival_quantity': real_detail.arrival_quantity,
+                'inferior_quantity': real_detail.inferior_quantity
+            }
         except Exception,exc:
             logger.error('inbound error:%s'%exc.message, exc_info=True)
+
     if forecast_inbound:
         forecast_inbound.inbound_arrive_update_status()
+        for detail in forecast_inbound.normal_details():
+            ib_detail = inbound_sku_dict.pop(detail.sku_id, None)
+            if not ib_detail:
+                forecast_inbound.has_lack |= True
+                continue
+
+            if detail.forecast_arrive_num > ib_detail['arrival_quantity']:
+                forecast_inbound.has_lack |= True
+            elif detail.forecast_arrive_num < ib_detail['arrival_quantiy']:
+                forecast_inbound.has_overhead |= True
+            if ib_detail['inferior_quantity'] > 0:
+                forecast_inbound.has_defact |= True
+        if inbound_sku_dict:
+            forecast_inbound.has_wrong = True
+        forecast_inbound.save(update_fields=['has_lack', 'has_overhead', 'has_defact', 'has_wrong'])
+
 
 
 

@@ -1,6 +1,10 @@
-<div class="row" >
-    <div class="panel panel-default" id="panel-1" >
-        <div class="panel-heading">订货单结算数量及金额汇总</div>
+
+<ul class="nav nav-tabs nav-justified">
+  <li role="presentation" class="active"><a href="#panel-1" data-toggle='tab'>商品订货/到货数量/金额统计</a></li>
+  <li role="presentation"><a href="#panel-2" data-toggle='tab'>订单收支账单列表</a></li>
+</ul>
+<div class="row tab-content" >
+    <div class="panel panel-default tab-pane active" id="panel-1" >
         <div class="panel-body">
             <table id="table-1" class="table table-striped" >
                 <thead>
@@ -32,10 +36,10 @@
                     <td>{{detail.product_name}}:{{detail.sku_name}}</td>
                     <td>{{detail.buy_num}}</td>
                     <td>{{detail.arrival_num}}</td>
-                    <td>{{detail.delta_num}}</td>
+                    <td class="{% if detail.delta_num < 0 %}bg-danger{% endif %}">{{detail.delta_num}}</td>
                      <!-- 6 -->
-                    <td>{{detail.excess_num}}</td>
-                    <td>{{detail.inferior_num}}</td>
+                    <td class="{% if detail.excess_num > 0 %}bg-warning{% endif %}">{{detail.excess_num}}</td>
+                    <td class="{% if detail.inferior_num > 0 %}bg-primary{% endif %}">{{detail.inferior_num}}</td>
                     <td>{{detail.return_num}}</td>
                     <td>{{detail.real_payment}}</td>
                     <td>{{detail.return_amount}}</td>
@@ -58,8 +62,7 @@
             </table>
         </div>
     </div>
-    <div class="panel panel-default" id="panel-2">
-        <div class="panel-heading">订货单收付款记录列表</div>
+    <div class="panel panel-default tab-pane" id="panel-2">
         <div class="panel-body">
             <table class="table table-striped" style="width:100%">
                 <thead>
@@ -67,11 +70,11 @@
                     <th class="col-xs-2">账单编号</th>
                     <th class="col-xs-2">业务日期</th>
                     <th class="col-xs-1">申请人</th>
-                    <th class="col-xs-1">收支类型</th>
-                    <th class="col-xs-2">付款类型</th>
-                    <th class="col-xs-1">支付金额</th>
-                    <th class="col-xs-1">收回金额</th>
-                    <th class="col-xs-1">账单状态</th>
+                    <th class="col-xs-1">收/支</th>
+                    <th class="col-xs-2">付款方式</th>
+                    <th class="col-xs-1">付款</th>
+                    <th class="col-xs-1">回款</th>
+                    <th class="col-xs-1">状态</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -141,7 +144,7 @@ $('[data-toggle="popover"]').popover();
 $('#panel-1 table').dataTable({
     //"bJQueryUI": true,
     "bAutoWidth": false, //自适应宽度
-    "aaSorting": [[1, "asc"]],
+    "aaSorting": [[7, "desc"],[6,"desc"],[5,"asc"],[4,"asc"]],//次品,多发,错发,缺货
     "iDisplayLength": 10,
     "aLengthMenu": [[10, 50, 100, -1], [10, 50, 100, "All"]],
     //"sPaginationType": "full_numbers",
@@ -178,6 +181,11 @@ $("#table-1_length select").change(function(e){
 
 //搜索时，重新计算
 $("#table-1_filter input").keyup(function(e){
+    e.preventDefault();
+    calcStatsData();
+});
+//排序后重新计算
+$("#table-1 .sorting").click(function(e){
     e.preventDefault();
     calcStatsData();
 });
