@@ -226,3 +226,9 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
         shop_products_num = self.context['shop_product_num']
         return shop_products_num
 
+
+from flashsale.promotion.models_freesample import AppDownloadRecord
+
+class AppDownloadRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppDownloadRecord

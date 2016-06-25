@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from flashsale.promotion.models_freesample import RedEnvelope, AwardWinner, AppDownloadRecord
+from flashsale.promotion.models_freesample import RedEnvelope, AwardWinner
 
 
 class RedEnvelopeSerializer(serializers.ModelSerializer):
@@ -18,6 +18,3 @@ class AwardWinnerSerializer(serializers.ModelSerializer):
         fields = ('customer_img', 'customer_nick', 'invite_num')
 
 
-class AppDownloadRecordSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AppDownloadRecord

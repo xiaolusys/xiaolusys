@@ -50,5 +50,4 @@ urlpatterns = patterns('',
     url(r'^stats/(?P<event_id>\d+)/', views_activity.StatsView.as_view(), name="stats_activity"),
     url(r'^get_award/(?P<event_id>\d+)/', views_activity.GetAwardView.as_view(), name="get_award"),
     url(r'^promotion/', include(router_urls, namespace='promotion')),
-    url(r'^potential_fans/$', views.PotentialFansView.as_view(), name="potential_fans"),
                        )
