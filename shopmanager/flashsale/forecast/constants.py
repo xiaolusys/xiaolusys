@@ -8,3 +8,5 @@ WARE_CHOICES = (
     (WARE_SH, u'上海仓'),
     (WARE_GZ, u'广州仓')
 )
+
+UNRECORD_PRODUCTID_TUPLE = (55555, 222222)

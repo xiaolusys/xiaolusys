@@ -7,7 +7,7 @@ from .models import (ForecastInbound,
                      RealInBound,
                      RealInBoundDetail,
                      )
-
+from . import  constants
 import logging
 logger = logging.getLogger(__name__)
 
@@ -56,6 +56,7 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
 def api_create_or_update_realinbound_by_inbound(inbound_id):
     """ base on dinghuo inbound complete signal updates """
     from flashsale.dinghuo.models import InBound
+    from shopback.items.models import ProductSku
     inbound = InBound.objects.get(id=inbound_id)
 
     real_wave_no = 'ref%s'% inbound_id
@@ -87,17 +88,23 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
     inbound_sku_dict = {}
     for detail  in inbound.details.all():
         try:
+            if not detail.product or not detail.sku:
+                product_id, sku_id = constants.UNRECORD_PRODUCTID_TUPLE
+            else:
+                product_id, sku_id = detail.product.id , detail.sku.id
+            sku = ProductSku.objects.filter(id=sku_id).first()
+            product = sku and sku.product
             real_detail = RealInBoundDetail.objects.filter(inbound=real_inbound,
-                                                           sku_id=detail.sku.id).first()
+                                                           sku_id=sku_id).first()
             if not real_detail:
                 real_detail = RealInBoundDetail()
 
             real_detail.inbound = real_inbound
-            real_detail.product_id = detail.product.id
-            real_detail.sku_id = detail.sku.id
-            real_detail.barcode = detail.sku.barcode
-            real_detail.product_name = detail.product_name
-            real_detail.product_img = detail.product.pic_path
+            real_detail.product_id = product_id
+            real_detail.sku_id  = sku_id
+            real_detail.barcode = sku and sku.BARCODE
+            real_detail.product_name = product and product.name
+            real_detail.product_img =  product and product.pic_path
             real_detail.arrival_quantity = detail.arrival_quantity + detail.inferior_quantity
             real_detail.inferior_quantity = detail.inferior_quantity
             real_detail.district = detail.district
@@ -120,7 +127,7 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
 
             if detail.forecast_arrive_num > ib_detail['arrival_quantity']:
                 forecast_inbound.has_lack |= True
-            elif detail.forecast_arrive_num < ib_detail['arrival_quantiy']:
+            elif detail.forecast_arrive_num < ib_detail['arrival_quantity']:
                 forecast_inbound.has_overhead |= True
             if ib_detail['inferior_quantity'] > 0:
                 forecast_inbound.has_defact |= True
