@@ -50,7 +50,16 @@ class WeixinAuthMixin(object):
     def get_wxauth_redirct_url(self,request,scope="snsapi_base"):
         """ 微信网页基本授权可获取 openid """
         absolute_url = request.build_absolute_uri()
-        absolute_url = re.sub('&?(code|state)=[\w]+','',absolute_url)
+        #absolute_url = re.sub('&?(code|state)=[\w]+','',absolute_url) # this code has bug, 'code' might have '-' characters
+
+        tokens = absolute_url.split('?')
+        gets = []
+        for key,value in request.GET.iteritems():
+            if key != 'code' and key != 'state':
+                s = "%s=%s" % (key,value)
+                gets.append(s)
+        absolute_url = "%s?%s" % (tokens[0], '&'.join(gets))
+        
         params = dict([('appid',self._wxpubid),
                       ('redirect_uri',absolute_url),
                       ('response_type','code'),
