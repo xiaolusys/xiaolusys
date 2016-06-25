@@ -1924,6 +1924,8 @@ class OrderDetailInBoundDetail(models.Model):
         orderdetail.inferior_quantity = orderdetail.records.filter(
             inbounddetail__checked=True).aggregate(
             n=Sum('inferior_quantity')).get('n') or 0
+        orderdetail.non_arrival_quantity = orderdetail.buy_quantity - orderdetail.arrival_quantity \
+                                           - orderdetail.inferior_quantity
         orderdetail.arrival_time = orderdetail.records.order_by('-created').first().created
         orderdetail.save()
 
