@@ -278,50 +278,53 @@ class APPDownloadView(WeixinAuthMixin, View):
         mobile = content.get('mobile') or ''
         ufrom = content.get("ufrom") or None
         diff_customer = True
-            
+        userinfo = {}
+        
         from flashsale.promotion.tasks_activity import task_create_appdownloadrecord_with_userinfo, \
             task_create_appdownloadrecord_with_mobile
-        
-        if self.is_from_weixin(request):
-            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
-        
-            # get openid from cookie
-            openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
-            userinfo = {}
-            if unionid:
-                record = WeixinUserInfo.objects.filter(unionid=unionid).first()
-                if record:
-                    userinfo.update({"unionid":record.unionid, "nickname":record.nick, "headimgurl":record.thumbnail})
+        logger.error("AppDownloadView|request_url: %s" % request.build_absolute_uri())
+
+        if from_customer.isdigit():
+            if self.is_from_weixin(request):
+                self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        
+                # get openid from cookie
+                openid, unionid = self.get_cookie_openid_and_unoinid(request)
+
+                if unionid:
+                    record = WeixinUserInfo.objects.filter(unionid=unionid).first()
+                    if record:
+                        userinfo.update({"unionid":record.unionid, "nickname":record.nick, "headimgurl":record.thumbnail})
                         
-            if not userinfo:
-                # get openid from 'debug' or from using 'code' (if code exists)
-                userinfo = self.get_auth_userinfo(request)
-                unionid = userinfo.get("unionid")
+                if not userinfo:
+                    # get openid from 'debug' or from using 'code' (if code exists)
+                    userinfo = self.get_auth_userinfo(request)
+                    unionid = userinfo.get("unionid")
 
-                if not self.valid_openid(unionid):
-                    logger.error("Appdownloadview| invalid unionid: %s" % unionid)
+                    if not self.valid_openid(unionid):
+                        logger.error("Appdownloadview| invalid unionid: %s" % unionid)
                     
-                if not unionid:
-                    # if we still dont have openid, we have to do oauth
-                    redirect_url = self.get_snsuserinfo_redirct_url(request)
-                    logger.error("AppDownloadView|redirect_url: %s, absolute_uri:%s" %(redirect_url, request.build_absolute_uri()))
-                    return redirect(redirect_url)
-            # now we have userinfo
+                    if not unionid:
+                        # if we still dont have openid, we have to do oauth
+                        redirect_url = self.get_snsuserinfo_redirct_url(request)
+                        logger.error("AppDownloadView|redirect_url: %s, absolute_uri:%s" %(redirect_url, request.build_absolute_uri()))
+                        return redirect(redirect_url)
+                # now we have userinfo
 
-            request_customer = self.get_current_customer(unionid=unionid)
-            if from_customer.isdigit() and request_customer and request_customer.id == int(from_customer):
-                diff_customer = False
+                request_customer = self.get_current_customer(unionid=unionid)
+                if from_customer.isdigit() and request_customer and request_customer.id == int(from_customer):
+                    diff_customer = False
                 
-            if from_customer.isdigit() and diff_customer:
-                task_create_appdownloadrecord_with_userinfo.delay(from_customer, userinfo)    
-        elif valid_mobile(mobile):
-            request_customer = self.get_current_customer(mobile=mobile)
-            if from_customer.isdigit() and request_customer and request_customer.id == int(from_customer):
-                diff_customer = False
+                if from_customer.isdigit() and diff_customer:
+                    task_create_appdownloadrecord_with_userinfo.delay(from_customer, userinfo)    
+            elif valid_mobile(mobile):
+                request_customer = self.get_current_customer(mobile=mobile)
+                if from_customer.isdigit() and request_customer and request_customer.id == int(from_customer):
+                    diff_customer = False
             
-            if from_customer.isdigit() and diff_customer:
-                task_create_appdownloadrecord_with_mobile.delay(from_customer, mobile)
+                if from_customer.isdigit() and diff_customer:
+                    task_create_appdownloadrecord_with_mobile.delay(from_customer, mobile)
             
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         if agent and "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
