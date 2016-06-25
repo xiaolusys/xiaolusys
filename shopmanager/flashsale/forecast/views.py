@@ -293,8 +293,6 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer,)
 
-    template_name = 'forecast/forecast_manage.html'
-
     def get_main_queryset(self, request):
         user_name = request.user.username
         return self.queryset.filter(creator=user_name)
@@ -345,7 +343,8 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             forecast_details.append(forecast_data)
 
         return Response({'forecast_inbounds':forecast_details,
-                         'supplier': forecast_details and forecast_details[0]['supplier'] or {}})
+                         'supplier': forecast_details and forecast_details[0]['supplier'] or {}
+                         },template_name='forecast/forecast_manage.html')
 
     # def parse_forecast_data(self, data):
 
@@ -413,23 +412,14 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         # serializer_data = self.get_serializer(forecast_newobj).data
         return Response({'redrect_url': reverse('admin:forecast_forecastinbound_changelist')+'?q=%s'%forecast_newobj.id})
 
-
-class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
-    """
-        订货单管理dashboard页面
-    """
-    queryset = ForecastInbound.objects.all()
-    authentication_classes = (authentication.TokenAuthentication,authentication.SessionAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (TemplateHTMLRenderer, JSONRenderer, BrowsableAPIRenderer)
-
-    def list(self, request, *args, **kwargs):
+    @list_route(methods=['get'])
+    def dashboard(self, request, *args, **kwargs):
         """
         action: (all, 全部), (unarrived, 未准时到货), (unbilling, 到货等待结算), (unlogisticed, 未填写物流信息),
         """
         data = request.GET
         action = data.get('action', 'all')
-        staff_name = data.get('staff_name','')
+        staff_name = data.get('staff_name', '')
 
         purchase_orders = services.filter_pending_purchaseorder(**{'staff_name': staff_name})
         aggregate_forecast_obj = services.AggregateForcecastOrderAndInbound(purchase_orders)
@@ -441,7 +431,7 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
             'billingable': [],
         }
         aggregate_datas = aggregate_forecast_obj.aggregate_data()
-        for aggregate  in aggregate_datas:
+        for aggregate in aggregate_datas:
             if aggregate['is_unrecord_logistic']:
                 aggregate_list_dict['unlogisticed'].append(aggregate)
             if aggregate['is_unarrive_intime']:
@@ -468,20 +458,19 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
                          'billingable_num': len(aggregate_list_dict['billingable']),
                          'aggregate_num': is_handleable and len(aggregate_datas) or len(aggregate_record_list),
                          'action': action,
-                         'staff_name':staff_name},
+                         'staff_name': staff_name},
                         template_name='forecast/dashboard.html')
 
     @list_route(methods=['get'])
-    def calc_stats(self, request, *args, **kwargs):
+    def calcstats(self, request, *args, **kwargs):
         """ 采购单与入库单聚合结算 """
-
-        purchase_orderid_str = request.GET.get('order_ids','')
+        purchase_orderid_str = request.GET.get('order_ids', '')
         purchase_orderid_list = [int(i) for i in purchase_orderid_str.split(',') if i.strip()]
 
         orderdetail_values = services.get_purchaseorders_data(purchase_orderid_list)
         inbounddetail_values = services.get_realinbounds_data(purchase_orderid_list)
 
-        order_details_dict = dict([(int(od['chichu_id']),od) for od in orderdetail_values])
+        order_details_dict = dict([(int(od['chichu_id']), od) for od in orderdetail_values])
         inbound_details_dict = dict([(od['sku_id'], od) for od in inbounddetail_values])
 
         sku_id_set = set(order_details_dict.keys())
@@ -490,14 +479,14 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
         sku_qs = ProductSku.objects.filter(id__in=sku_id_set).select_related('product')
         for sku in sku_qs:
             sku_values.append({
-                'sku_id':sku.id,
+                'sku_id': sku.id,
                 'outer_id': sku.product.outer_id,
-                'product_name':sku.product.name,
-                'sku_name':sku.name,
-                'product_img':sku.product.pic_path,
-                'excess_num':sku.excess_quantity
+                'product_name': sku.product.name,
+                'sku_name': sku.name,
+                'product_img': sku.product.pic_path,
+                'excess_num': sku.excess_quantity
             })
-        product_details_dict = dict([(s['sku_id'],s) for s in sku_values])
+        product_details_dict = dict([(s['sku_id'], s) for s in sku_values])
 
         supplier_ids = set([s['orderlist__supplier_id'] for s in orderdetail_values])
         min_datetime = orderdetail_values and orderdetail_values[0]['min_created'] or datetime.datetime.now()
@@ -506,12 +495,13 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
 
         aggregate_details_list = []
         for sku_id, odetail in order_details_dict.iteritems():
-            sku_detail = product_details_dict.get(sku_id,{})
-            inbound_detail = inbound_details_dict.get(sku_id,{})
-            rg_detail = returngood_details_dict.get(sku_id,{})
+            sku_detail = product_details_dict.get(sku_id, {})
+            inbound_detail = inbound_details_dict.get(sku_id, {})
+            rg_detail = returngood_details_dict.get(sku_id, {})
             arrived_num = inbound_detail and inbound_detail['arrival_quantity'] or 0
-            return_num  = rg_detail and (rg_detail['return_num'] + rg_detail['inferior_num']) or 0
-            per_price = odetail['buy_quantity'] and round(float(odetail['total_price']) / odetail['buy_quantity'],2) or 0
+            return_num = rg_detail and (rg_detail['return_num'] + rg_detail['inferior_num']) or 0
+            per_price = odetail['buy_quantity'] and round(float(odetail['total_price']) / odetail['buy_quantity'],
+                                                          2) or 0
             unwork_num = odetail['buy_quantity'] - arrived_num + return_num
             sku_detail.update({
                 'buy_num': odetail['buy_quantity'],
@@ -532,5 +522,9 @@ class PurchaseDashBoardViewSet(viewsets.GenericViewSet):
         total_out_amount = bill_list and sum([br['out_amount'] for br in bill_list]) or 0
 
         return Response({'aggregate_details': aggregate_details_list,
-                         'bill_data':{'bills': bill_list, 'total_in_amount':total_in_amount, 'total_out_amount':total_out_amount}},
+                         'bill_data': {'bills': bill_list, 'total_in_amount': total_in_amount,
+                                       'total_out_amount': total_out_amount}},
                         template_name='forecast/aggregate_billing_detail.html')
+
+
+

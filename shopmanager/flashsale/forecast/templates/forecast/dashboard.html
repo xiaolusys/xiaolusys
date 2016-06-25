@@ -95,23 +95,23 @@
         <div class="container-body-left col-xs-2">
             <ul class="nav nav-pills nav-stacked">
                 <li role="presentation" {% ifequal action "unlogisticed" %}class="active"{% endifequal %} >
-                <a href="/sale/forecast/v1/dashboard?action=unlogisticed{% if staff_name %}&staff_name={{staff_name}}{% endif %}">催货提醒
+                <a href="{% url 'forecast_v1:forecastinbound-dashboard' %}?action=unlogisticed{% if staff_name %}&staff_name={{staff_name}}{% endif %}">催货提醒
                     <span class="badge">{{unlogistics_num}}</span></a>
                 </li>
                 <li role="presentation" {% ifequal action "arrivalexcept" %}class="active"{% endifequal %}>
-                <a href="/sale/forecast/v1/dashboard?action=arrivalexcept{% if staff_name %}&staff_name={{staff_name}}{% endif %}">到货异常
+                <a href="{% url 'forecast_v1:forecastinbound-dashboard' %}?action=arrivalexcept{% if staff_name %}&staff_name={{staff_name}}{% endif %}">到货异常
                     <span class="badge">{{arrivalexcept_num}}</span></a>
                 </li>
                 <li role="presentation" {% ifequal action "unarrived" %}class="active"{% endifequal %}>
-                <a href="/sale/forecast/v1/dashboard?action=unarrived{% if staff_name %}&staff_name={{staff_name}}{% endif %}">未准时到货
+                <a href="{% url 'forecast_v1:forecastinbound-dashboard' %}?action=unarrived{% if staff_name %}&staff_name={{staff_name}}{% endif %}">未准时到货
                     <span class="badge">{{unarrived_num}}</span></a>
                 </li>
                 <li role="presentation" {% ifequal action "unbilling" %}class="active"{% endifequal %}>
-                <a href="/sale/forecast/v1/dashboard?action=billingable{% if staff_name %}&staff_name={{staff_name}}{% endif %}">到货等待结算
+                <a href="{% url 'forecast_v1:forecastinbound-dashboard' %}?action=billingable{% if staff_name %}&staff_name={{staff_name}}{% endif %}">到货等待结算
                     <span class="badge">{{billingable_num}}</span></a>
                 </li>
                 <li role="presentation" {% ifequal action "all" %}class="active"{% endifequal %}{% ifequal action "" %}class="active"{% endifequal %}>
-                <a href="/sale/forecast/v1/dashboard?action=all{% if staff_name %}&staff_name={{staff_name}}{% endif %}">全部待处理
+                <a href="{% url 'forecast_v1:forecastinbound-dashboard' %}?action=all{% if staff_name %}&staff_name={{staff_name}}{% endif %}">全部待处理
                     <span class="badge">{{aggregate_num}}</span></a>
                 </li>
             </ul>
@@ -162,12 +162,11 @@ $(function(){
   });
   console.log('init account', $('a.btn-account'));
   $('a.btn-account').click(function(){
-     var order_ids = $(this).attr('data-oids');
-     console.log('btn-account get:', order_ids);
-     $.get('/sale/forecast/v1/dashboard/calc_stats?order_ids=' + order_ids,
+     var dataSrc = $(this).attr('data-src');
+     $.get(dataSrc,
         function(resp){
             $('#modal_dialog div.modal-body').html(resp);
-        }
+        },'html'
      );
      $('#modal_dialog').modal('show');
   });
