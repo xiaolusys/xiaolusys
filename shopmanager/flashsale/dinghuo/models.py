@@ -30,6 +30,7 @@ class OrderList(models.Model):
     SUBMITTING = u'草稿'  # 提交中
     APPROVAL = u'审核'  # 审核
     WAIT_PAY = u"付款"
+    BE_PAID = u'已付款'
     ZUOFEI = u'作废'  # 作废
     COMPLETED = u'验货完成'  # 验货完成
     QUESTION = u'有问题'  # 有问题
@@ -72,7 +73,7 @@ class OrderList(models.Model):
     CREATED_BY_PERSON = 1
     CREATED_BY_MACHINE = 2
 
-    ORDER_PRODUCT_STATUS = ((SUBMITTING, u'草稿'), (APPROVAL, u'审核'),
+    ORDER_PRODUCT_STATUS = ((SUBMITTING, u'草稿'), (APPROVAL, u'审核'),(BE_PAID,u'已付款'),
                             (ZUOFEI, u'作废'), (QUESTION, u'有次品又缺货'),
                             (CIPIN, u'有次品'), (QUESTION_OF_QUANTITY, u'到货数量问题'),
                             (COMPLETED, u'验货完成'), (DEALED, u'已处理'),

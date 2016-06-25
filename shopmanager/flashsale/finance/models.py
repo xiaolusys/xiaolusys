@@ -17,11 +17,12 @@ class Bill(BaseModel):
         (DELETE, '作废'),
         (RECEIVE, '收款')
     )
-
+    STATUS_DELAY = -1
     STATUS_PENDING = 0
     STATUS_DEALED = 1
     STATUS_COMPLETED = 2
     STATUS_CHOICES = (
+        (STATUS_DELAY, "延期处理"),
         (STATUS_PENDING, '待处理'),
         (STATUS_DEALED, '已处理'),
         (STATUS_COMPLETED, '已完成')
