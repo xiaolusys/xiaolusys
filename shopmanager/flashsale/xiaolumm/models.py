@@ -458,16 +458,16 @@ class XiaoluMama(models.Model):
 
     def get_mama_customer(self):
         """ 获取妈妈的特卖用户对象 """
-        from flashsale.pay.models import Customer
-
-        customers = Customer.objects.filter(unionid=self.openid, status=Customer.NORMAL)
-        if customers.exists():
-            return customers[0]
-        return None
+        if not hasattr(self, '_mama_customer_'):
+            from flashsale.pay.models import Customer
+            self._mama_customer_ = Customer.objects.filter(unionid=self.openid, status=Customer.NORMAL).first()
+        return self._mama_customer_
 
     @property
     def mama_fortune(self):
-        return MamaFortune.objects.filter(mama_id=self.id).first()
+        if not hasattr(self, '_mama_fortune_'):
+            self._mama_fortune_ = MamaFortune.objects.filter(mama_id=self.id).first()
+        return self._mama_fortune_
 
     def upgrade_agencylevel(self, level=None):
         """ 代理 升级

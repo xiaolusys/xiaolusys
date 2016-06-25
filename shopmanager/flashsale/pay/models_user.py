@@ -162,21 +162,22 @@ class Customer(BaseModel):
         """ 获取当前用户对应的小鹿妈妈 """
         if not self.unionid:
             return None
-        from flashsale.xiaolumm.models import XiaoluMama
-        try:
-            return XiaoluMama.objects.get(openid=self.unionid, charge_status=XiaoluMama.CHARGED)
-        except XiaoluMama.DoesNotExist:
-            return None
+        if not hasattr(self, '_customer_mama_'):
+            from flashsale.xiaolumm.models import XiaoluMama
+
+            self._customer_mama_ = XiaoluMama.objects.filter(openid=self.unionid,
+                                                             charge_status=XiaoluMama.CHARGED).first()
+        return self._customer_mama_
 
     def get_referal_xlmm(self):
-        """ 获取当前用户被推荐小鹿妈妈 """
-        from flashsale.xiaolumm.models_fans import XlmmFans
-        from flashsale.xiaolumm.models import XiaoluMama
-        try:
-            xlmm_fan = XlmmFans.objects.get(fans_cusid=self.id)
-        except XlmmFans.DoesNotExist:
-            return None
-        return XiaoluMama.objects.get(id=xlmm_fan.xlmm)
+        """ 获取推荐当前用户的小鹿妈妈 """
+        if not hasattr(self, '_customer_referal_mama_'):
+            from flashsale.xiaolumm.models_fans import XlmmFans
+            from flashsale.xiaolumm.models import XiaoluMama
+
+            xlmm_fan = XlmmFans.objects.filter(fans_cusid=self.id).first()
+            self._customer_referal_mama_ = XiaoluMama.objects.filter(id=xlmm_fan.xlmm).first()
+        return self._customer_referal_mama_
 
     def get_openid_and_unoinid_by_appkey(self, appkey):
         if not self.unionid.strip():
