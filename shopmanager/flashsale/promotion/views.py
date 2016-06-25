@@ -301,6 +301,7 @@ class APPDownloadView(WeixinAuthMixin, View):
 
                 if not self.valid_openid(unionid):
                     logger.error("Appdownloadview| invalid unionid: %s" % unionid)
+                    
                 if not unionid:
                     # if we still dont have openid, we have to do oauth
                     redirect_url = self.get_snsuserinfo_redirct_url(request)
