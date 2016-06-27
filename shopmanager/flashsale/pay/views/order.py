@@ -1,20 +1,14 @@
 # -*- encoding:utf8 -*-
 import json
+import datetime
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 
-from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 from shopback.items.models import Product, ProductSku, ProductCategory
-from shopback.trades.models import MergeOrder,MergeTrade
-from .models import SaleTrade, SaleOrder, genUUID, Customer
-from .models_refund import SaleRefund
-from .tasks import confirmTradeChargeTask
-from flashsale.xiaolumm.models import CarryLog, XiaoluMama
-import time
-import datetime
+from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
+
 from  django.db.models import Q
 from shopback.logistics import getLogisticTrace
 
@@ -605,3 +599,4 @@ def refund_fee(request):
     #     return  HttpResponse(True)
     # else:
     #     return HttpResponse(s)
+

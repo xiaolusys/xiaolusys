@@ -1,6 +1,6 @@
 <div class="panel panel-default">
 <div class="panel-heading clearfix">
-    <a class="btn btn-link" target="_blank"  href="/sale/forecast/v1/dashboard?action=all&supplier_id={{aggregate_order.supplier.id}}{% if staff_name %}&staff_name={{staff_name}}{% endif %}">{{aggregate_order.supplier.supplier_name}}</a>
+    <a class="btn btn-link" target="_blank"  href="{% url 'forecast_v1:forecastinbound-dashboard' %}?action=all&supplier_id={{aggregate_order.supplier.id}}{% if staff_name %}&staff_name={{staff_name}}{% endif %}">{{aggregate_order.supplier.supplier_name}}</a>
     <div class=" pull-right inline">
         <div class="inline">
             <a class="btn btn-link" href="{% url 'admin:dinghuo_orderlist_changelist' %}?supplier_id={{aggregate_order.supplier.id}}" target="_blank">全部订货单</a>
@@ -80,6 +80,6 @@
 </div>
 <div class="panel-footer">
     <a class="btn btn-sm btn-primary">查看未发货订单</a>
-    <a class="btn btn-sm btn-primary pull-right btn-account" data-oids="{% for o in aggregate_order.purchase_orders %},{{o.id}}{% endfor %}">开始结算</a>
+    <a class="btn btn-sm btn-primary pull-right btn-account" data-src="{% url 'forecast_v1:forecastinbound-calcstats' %}?order_ids={% for o in aggregate_order.purchase_orders %},{{o.id}}{% endfor %}" >开始结算</a>
 </div>
 </div>

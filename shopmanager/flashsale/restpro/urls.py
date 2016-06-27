@@ -15,7 +15,7 @@ from . import views_share
 from . import views_coupon_new
 from . import views_integral
 from . import views_portal
-from flashsale.pay.views_login import weixin_login, weixin_test, weixin_auth_and_redirect
+from flashsale.pay.views import weixin_login, weixin_test, weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 from flashsale.push import views as views_push
 

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" rel="stylesheet"
+          type="text/css">
+    <link href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" type="text/css"/>
+    <link rel="stylesheet" type="text/css"
+          href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+    <title>采购管理界面</title>
+    <style>
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>订货单缺货商品管理
+            <small>退款规则：单个优先，后付先退</small>
+        </h1>
+    </div>
+    <div class="container-body">
+        <div class="container-body-left col-xs-6">
+            <div class="panel panel-default tab-pane active" >
+                <div class="panel-body">
+                    <table id="table-11" class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th class="col-xs-2">图片</th>
+                            <th class="col-xs-2">商品编码</th>
+                            <th class="col-xs-4">商品名称</th>
+                            <th class="col-xs-1">采购</th>
+                            <th class="col-xs-1">未到</th>
+                            <th class="col-xs-1">次品</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for detail in aggregate_details %}
+                        <tr>
+                            <td>
+                                <div class="portfolio-box">
+                                    <img class="thumbnail" data-src="{{detail.product_img}}"
+                                         style="margin-bottom:0px;"
+                                         src="{{detail.product_img}}?imageMogr2/thumbnail/40/format/jpg/quality/90/crop/40x40"/>
+                                </div>
+                            </td>
+                            <td>{{detail.outer_id}}</td>
+                            <td>{{detail.product_name}}:{{detail.sku_name}}</td>
+                            <td>{{detail.buy_num}}</td>
+                            <td>{{detail.arrival_num}}</td>
+                            <td>{{detail.arrival_num}}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="3">汇总:</td>
+                            <td><input id="input-3" data-type="int" size="4"/></td>
+                            <td><input id="input-4" data-type="int" size="4"/></td>
+                            <td><input id="input-5" data-type="int" size="4"/></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="container-body-right  col-xs-6">
+            <div class="panel panel-default tab-pane active">
+                <div class="panel-body">
+                    <table id="table-12" class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th class="col-xs-2">用户名</th>
+                            <th class="col-xs-2">付款日期</th>
+                            <th class="col-xs-1">数量</th>
+                            <th class="col-xs-2">订单金额</th>
+                            <th class="col-xs-4">关联商品</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for detail in aggregate_details %}
+                        <tr>
+                            <td>
+                                <div class="portfolio-box">
+                                    <img class="thumbnail" data-src="{{detail.product_img}}"
+                                         style="margin-bottom:0px;"
+                                         src="{{detail.product_img}}?imageMogr2/thumbnail/40/format/jpg/quality/90/crop/40x40"/>
+                                </div>
+                            </td>
+                            <td>{{detail.outer_id}}</td>
+                            <td>{{detail.product_name}}:{{detail.sku_name}}</td>
+                            <td>{{detail.buy_num}}</td>
+                            <td>{{detail.arrival_num}}</td>
+                            <td>{{detail.arrival_num}}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="2">汇总:</td>
+                            <td><input id="input-13" data-type="int" size="3"/></td>
+                            <td><input id="input-14" data-type="int" size="6"/></td>
+                            <td></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
+<script>
+$(function(){
+  $('[data-toggle="popover"]').popover();
+  $('a').click(function(){
+     $(this).addClass('clicked');
+  });
+
+})
+
+</script>
+</body>
+</html>

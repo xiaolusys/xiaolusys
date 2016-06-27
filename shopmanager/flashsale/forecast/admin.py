@@ -119,7 +119,6 @@ class ForecastInboundAdmin(admin.ModelAdmin):
             self.message_user(request, u"＊＊＊＊＊＊＊＊＊合并拆分预测到货单必须都在草稿或审核状态＊＊＊＊＊＊＊＊＊!")
             return HttpResponseRedirect(request.get_full_path())
 
-        staff_name = request.user.username
         forecast_ids_str = ','.join([str(obj.id) for obj in queryset])
         return HttpResponseRedirect(reverse('forecast_v1:forecastinbound-list') + '?forecast_ids=%s'%(forecast_ids_str))
 
