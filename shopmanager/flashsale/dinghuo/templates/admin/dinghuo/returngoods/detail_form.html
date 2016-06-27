@@ -434,6 +434,8 @@
             if (res == "True") {
                 //刷新当前页面
                 window.location.reload();
+                if(act=="send_fail")
+                    alert("入仓成功");
             }
         }
     }
@@ -515,7 +517,24 @@
         //post_data_to_server("send_ok", $('#id_btn_success'), id);
     }
     var return_error = function(evt){
-        post_data_to_server("send_fail", $('#id_btn_error'), id);
+        var cfm = confirm("确定退货失败么,确定的话,将会把退货失败的货物加入系统库存");
+        if(cfm == true){
+            var url = "/sale/dinghuo/tuihuo/set_return_goods_failed/";
+            var data = {"id":id};
+            $.ajax({
+            "url":url,
+            "data":data,
+            "type":"post",
+            "success":callback
+            });
+            function callback(res){
+                if (res == "True") {
+                    //刷新当前页面
+                    window.location.reload();
+                    alert("入仓成功");
+                }
+            }
+            }
     }
     var edit_note = function(evt){
         var dom = $('#btn_edit_note');

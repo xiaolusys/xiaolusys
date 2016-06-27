@@ -605,6 +605,7 @@ class ReturnGoods(models.Model):
             self._transactor_ = User.objects.get(id=self.transactor_id)
         return self._transactor_
 
+
     def products_item_sku(self):
         products = self.products
         for sku in self.product_skus:
@@ -813,9 +814,20 @@ class ReturnGoods(models.Model):
             self.status = ReturnGoods.REFUND_RG
         self.save()
 
-    def set_fail_closed(self):
+    def set_failed(self):
         self.status = ReturnGoods.FAILED_RG
-        self.save()
+        rd = self.rg_details.all()
+        for item in rd:
+            skuid = item.skuid
+            num = item.num
+            inferior_num = item.inferior_num
+            ProductSku.objects.filter(id=skuid).update(quantity = F('quantity')+num, sku_inferior_num=F('sku_inferior_num')+inferior_num)
+            self.save()
+        return
+
+    # def set_fail_closed(self):
+    #     self.status = ReturnGoods.FAILED_RG
+    #     self.save()
 
     @staticmethod
     def transactors():
