@@ -25,7 +25,6 @@ from core.options import log_action, ADDITION, CHANGE
 from shopback.items.models import Product, ProductSku, ProductLocation
 from supplychain.supplier.models import SaleProduct
 
-
 from .models import StagingInBound,ForecastInbound,ForecastInboundDetail,RealInBound,RealInBoundDetail
 from . import serializers
 from . import constants
@@ -503,16 +502,21 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             per_price = odetail['buy_quantity'] and round(float(odetail['total_price']) / odetail['buy_quantity'],
                                                           2) or 0
             unwork_num = odetail['buy_quantity'] - arrived_num + return_num
+            inferior_num = inbound_detail and inbound_detail['inferior_quantity'] or 0
+            unarrival_num = odetail['buy_quantity'] - arrived_num
+            # 如果到货超出预订，则计算未到货数量时需考虑次品
+            if unarrival_num < 0:
+                unarrival_num += inferior_num
             sku_detail.update({
                 'buy_num': odetail['buy_quantity'],
                 'total_price': odetail['total_price'],
-                'delta_num': odetail['buy_quantity'] - arrived_num,
+                'delta_num': unarrival_num,
                 'real_payment': odetail['total_price'],
                 'arrival_num': inbound_detail and inbound_detail['arrival_quantity'] or 0,
-                'inferior_num': inbound_detail and inbound_detail['inferior_quantity'] or 0,
+                'inferior_num': inferior_num,
                 'return_num': return_num,
                 'return_inferior_num': rg_detail and rg_detail['inferior_num'] or 0,
-                'return_amount': unwork_num * per_price,
+                'return_amount': max(unwork_num * per_price, 0),
             })
             aggregate_details_list.append(sku_detail)
 
