@@ -63,7 +63,8 @@ class SendMessageView(generics.ListCreateAPIView):
             sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_GOODS_LACK, status=True)
             if sms_tpls.exists():  # 如果有短信模板
                 sms_tpl = sms_tpls[0]
-                tpl = sms_tpl.text_tmpl or SEND_TEMPLATE
+                # tpl = sms_tpl.text_tmpl or SEND_TEMPLATE
+                tpl = SEND_TEMPLATE
                 content = tpl.format(product_name, s_order.sku_name)
 
             mobile = s_trade.receiver_mobile

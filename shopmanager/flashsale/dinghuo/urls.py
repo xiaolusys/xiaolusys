@@ -21,7 +21,7 @@ from .view_refund_supplier import (
     StatisRefundSupView, change_duihuo_status, change_sum_price,
     change_return_goods_memo, modify_return_goods_sku, delete_return_goods_sku,
     set_return_goods_sku_send, set_transactor, set_refund, export_return_goods,
-    mark_unreturn, returngoods_add_sku,
+    mark_unreturn, returngoods_add_sku,set_return_goods_failed,
     returngoods_deal)
 import views_wuliu
 import views_sale_status
@@ -235,6 +235,7 @@ urlpatterns = [
     url(r'^update_dinghuo/$', update_dinghuo_part_information, name="update_dinghuo_part_information"),
     #生成退货单
     url(r'^generate_tuihuodan/$', generate_tuihuodan, name="generate_tuihuodan"),
+    url(r'^tuihuo/set_return_goods_failed/$', set_return_goods_failed, name="set_return_goods_failed"),
 ]
 
 urlpatterns += router.urls

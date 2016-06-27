@@ -149,11 +149,24 @@ def change_duihuo_status(request):
         log_action(user_id, rg, CHANGE,
                    change_status_des.format(rg.get_status_display()))
     elif act_str == "send_fail":  # 已经发货
-        rg.status = ReturnGoods.FAILED_RG
-        rg.save()
-        log_action(user_id, rg, CHANGE,
-                   change_status_des.format(rg.get_status_display()))
-    return HttpResponse(True)
+        return
+        # rg.status = ReturnGoods.FAILED_RG
+        # rd = rg.rg_details.all()
+        # try:
+        #     for item in rd:
+        #         skuid = item.skuid
+        #         num = item.num
+        #         inferior_num = item.inferior_num
+        #         ProductSku.objects.filter(id=skuid).update(quantity = F('quantity')+num, sku_inferior_num=F('sku_inferior_num')+inferior_num)
+        #         rg.save()
+        #     # log_action(user_id, rg, CHANGE,
+        #     #            change_status_des.format(rg.get_status_display()))
+        #     return HttpResponse(True)
+        # except Exception,msg:
+        #     return HttpResponse(False)
+
+
+
 
 
 def change_return_goods_memo(request):
@@ -235,11 +248,11 @@ def set_return_goods_failed(request):
     content = request.REQUEST
     id = int(content.get("id", None))
     return_goods = get_object_or_404(ReturnGoods, id=id)
-    if return_goods.status == ReturnGoods.REFUND_RG:
-        return_goods.set_fail_closed()
+    if return_goods.status == ReturnGoods.DELIVER_RG:
+        return_goods.set_failed()
         return HttpResponse(True)
     else:
-        res = {"success": False, 'desc': u'只有已审核的退货可以执行发货'}
+        res = {"success": False, 'desc': u'只有发货了才能退货失败加库存'}
         return HttpResponse(json.dump(res))
 
 
