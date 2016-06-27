@@ -27,6 +27,7 @@ class OrderList(models.Model):
     # 订单状态
     SUBMITTING = u'草稿'  # 提交中
     APPROVAL = u'审核'  # 审核
+    WAIT_PAY = u"付款"
     ZUOFEI = u'作废'  # 作废
     COMPLETED = u'验货完成'  # 验货完成
     QUESTION = u'有问题'  # 有问题
@@ -156,7 +157,7 @@ class OrderList(models.Model):
     completed_time = models.DateTimeField(blank=True, null=True, verbose_name=u'完成时间')
     note = models.TextField(default="", blank=True, verbose_name=u'备注信息')
     created_by = models.SmallIntegerField(
-        choices=((CREATED_BY_PERSON, '人工'), (CREATED_BY_MACHINE, '自动')),
+        choices=((CREATED_BY_PERSON, u'手工订货'), (CREATED_BY_MACHINE, u'订单自动订货')),
         default=CREATED_BY_PERSON,
         verbose_name=u'创建方式')
 
@@ -165,11 +166,26 @@ class OrderList(models.Model):
                                   default=ST_DRAFT,
                                   verbose_name=u'系统状态',
                                   choices=SYS_STATUS_CHOICES)
-    last_pay_date = models.DateField(null=True,
-                                     blank=True,
-                                     verbose_name=u'最后下单日期')
+    STAGE_DRAFT = 0
+    STAGE_CHECKED = 1
+    STAGE_PAY = 2
+    STAGE_RECEIVE = 3
+    STAGE_STATE = 4
+    STAGE_COMPLETED = 5
+    STAGE_DELETED = 9
+    STAGE_CHOICES = ((STAGE_DRAFT, u'草稿'),
+                     (STAGE_CHECKED, u'审核'),
+                     (STAGE_PAY, u'付款'),
+                     (STAGE_RECEIVE, u'收货'),
+                     (STAGE_STATE, u'结算'),
+                     (STAGE_COMPLETED, u'完成'),
+                     (STAGE_DELETED, u'删除'))
+    # 改进原状态一点小争议和妥协造成的状态字段冗余 TODO@hy
+    stage = models.IntegerField(db_index=True, choices=STAGE_CHOICES, default=0, verbose_name=u'进度')
+    lack = models.BooleanField(default=True, verbose_name=u'缺货')
+    inferior = models.BooleanField(default=False, verbose_name=u'有次品')
+    last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
     is_postpay = models.BooleanField(default=False, verbose_name=u'是否后付款')
-
     purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'PurchaseOrderUnikey')
 
     class Meta:
@@ -268,14 +284,49 @@ class OrderList(models.Model):
     def status_name(self):
         return self.get_sys_status_display()
 
+    def set_stat(self):
+        lack = False
+        inferior = False
+        for detail in self.order_list.all():
+            if detail.need_arrival_quantity > 0:
+                lack = True
+                inferior = True
+        change = False
+        if self.lack != lack:
+            change = True
+            self.lack = lack
+        elif self.inferior != inferior:
+            change = True
+            self.inferior = inferior
+        return change
+
+    def has_paid(self):
+        return self.status > OrderList.STAGE_PAY
+
+    def set_stage_receive(self):
+        self.stage = OrderList.STAGE_RECEIVE
+        self.status = OrderList.QUESTION_OF_QUANTITY
+        self.save()
+
+    def set_stage_state(self):
+        self.stage = OrderList.STAGE_STATE
+        self.save()
+
+    def get_receive_status(self):
+        if self.lack and not self.inferior:
+            info = u'缺货'
+        elif self.lack and self.inferior:
+            info = u'有次品又缺货'
+        elif self.inferior:
+            info = u'有次品'
+        else:
+            info = u'完成'
+        return info
+
 
 def check_with_purchase_order(sender, instance, created, **kwargs):
     if not created:
         return
-
-        # from flashsale.dinghuo.tasks import task_check_with_purchase_order
-        # task_check_with_purchase_order.delay(instance)
-
 
 post_save.connect(
     check_with_purchase_order,
@@ -393,6 +444,14 @@ class OrderDetail(models.Model):
     @property
     def product(self):
         return Product.objects.get(id=self.product_id)
+
+    def get_receive_status(self):
+        if self.buy_quantity == self.arrival_quantity:
+            return u'完成'
+        if self.buy_quantity > self.arrival_quantity:
+            return u'缺货'
+        if self.buy_quantity < self.arrival_quantity:
+            return u'超额'
 
 
 def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
@@ -1099,6 +1158,22 @@ class InBound(models.Model):
                     order_detail.chichu_id, 0)
         return assign_dict
 
+    def allocate(self, data):
+        request_all_sku = {}
+        for orderdetail_id in data:
+            orderdetail = OrderDetail.objects.get(id=orderdetail_id)
+            request_all_sku[int(orderdetail.chichu_id)] = request_all_sku.get(int(orderdetail.chichu_id), 0) + data[orderdetail_id]
+        sku_data = self.sku_data
+        for sku_id in request_all_sku:
+            if request_all_sku.get(sku_id, 0) > sku_data[sku_id]:
+                raise Exception(u'分配数不能超出总数')
+        for orderdetail_id in data:
+            orderdetail = OrderDetail.objects.get(id=orderdetail_id)
+            OrderDetailInBoundDetail.create(orderdetail, self, data[orderdetail_id])
+        self.status = InBound.WAIT_CHECK
+        self.set_stat()
+        self.save()
+
     def notify_forecast_save_or_update_inbound(self):
         from flashsale.forecast.apis import api_create_or_update_realinbound_by_inbound
         api_create_or_update_realinbound_by_inbound.delay(self.id)
@@ -1185,6 +1260,11 @@ class InBound(models.Model):
     def sku_data(self):
         return {item['sku_id']: item['arrival_quantity'] + item['inferior_quantity']
                 for item in self.details.values('sku_id', 'arrival_quantity', 'inferior_quantity')}
+
+    def all_skus(self):
+        orderlist_ids = self.get_may_allocate_order_list_ids()
+        query = OrderDetail.objects.filter(orderlist_id__in=orderlist_ids).values('chichu_id').distinct()
+        return [int(item['chichu_id'])   for item in query]
 
     def get_set_status_info(self):
         if self.set_stat():
@@ -1297,10 +1377,10 @@ class InBound(models.Model):
         return orderlists
 
     def get_allocate_order_details_dict(self):
-        if self.is_allocated():
-            orderlist_ids = self.order_list_ids
-        else:
-            orderlist_ids = self.get_may_allocate_order_list_ids()
+        # if self.is_allocated():
+        #     orderlist_ids = self.order_list_ids
+        # else:
+        orderlist_ids = self.get_may_allocate_order_list_ids()
         orderlists_dict = {}
         for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
             orderlists_dict[orderlist.id] = {
@@ -1332,7 +1412,7 @@ class InBound(models.Model):
                     'arrival_quantity': orderdetail.arrival_quantity,
                     'inferior_quantity': orderdetail.inferior_quantity,
                     'all_quantity': orderdetail.inferior_quantity + orderdetail.arrival_quantity,
-                    'in_inbound': orderdetail.chichu_id in self.sku_data,
+                    'in_inbound': int(orderdetail.chichu_id) in self.sku_data,
                 }
                 sku_dict.update({
                     'id': sku.id,
@@ -1640,6 +1720,13 @@ class InBound(models.Model):
             change = True
         return change
 
+    def add_order_detail(self, orderdetail, num):
+        oi = OrderDetailInBoundDetail.create(orderdetail, self, num)
+        inbounddetail = self.details.filter(sku=orderdetail.sku).first()
+        if inbounddetail.checked:
+            ProductSku.objects.filter(id=inbounddetail.sku_id).update(quantity=F('quantity') + oi.num)
+        return oi
+
     class Meta:
         db_table = 'flashsale_dinghuo_inbound'
         app_label = 'dinghuo'
@@ -1906,6 +1993,7 @@ class OrderDetailInBoundDetail(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'入仓订货明细对照'
         verbose_name_plural = u'入仓订货明细对照列表'
+        unique_together = ('orderdetail', 'inbounddetail')
 
     @staticmethod
     def create(orderdetail, inbound, arrival_quantity, inferior_quantity=0):
