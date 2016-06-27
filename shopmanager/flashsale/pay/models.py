@@ -282,7 +282,7 @@ class SaleTrade(BaseModel):
         """
         Roughly check whether order is paid via app, should be revised later.
         """
-        return self.channel == SaleTrade.WX or self.channel == SaleTrade.ALIPAY
+        return self.channel == SaleTrade.WX or self.channel == SaleTrade.ALIPAY or self.channel == SaleTrade.BUDGET
 
     def is_effect(self):
         return self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS,
