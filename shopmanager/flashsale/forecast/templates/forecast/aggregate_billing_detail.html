@@ -195,8 +195,8 @@ $('.portfolio-box img', '#panel-1').popover({
     trigger: 'hover',
     container: 'body',
     content: function(){
-        console.log( '<img src="'+ $(this).attr('data-src') +'?imageMogr2/thumbnail/400/format/jpg/quality/90" width="400px">');
-     return '<img src="'+ $(this).attr('data-src') +'?imageMogr2/thumbnail/400/format/jpg/quality/90" width="100%">';
+     return '<img src="'+ $(this).attr('data-src')
+        +'?imageMogr2/thumbnail/400/format/jpg/quality/90" width="100%">';
     }
 });
 

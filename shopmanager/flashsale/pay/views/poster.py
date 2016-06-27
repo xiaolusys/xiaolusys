@@ -2,16 +2,16 @@
 """
 从排期管理中上传海报
 """
-from models_custom import GoodShelf
+import json
+import datetime
 from django.views.generic import View
 from django.http import HttpResponse
-import json
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-import datetime
+
 from common.modelutils import update_model_fields
 from core.options import log_action, ADDITION, CHANGE
-
+from flashsale.pay.models import GoodShelf
 
 class PostGoodShelf(View):
     template = "poster/upload_poster.html"

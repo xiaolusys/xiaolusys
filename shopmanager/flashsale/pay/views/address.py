@@ -10,9 +10,10 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, StaticHTMLRenderer
 from rest_framework.decorators import detail_route
-
-from .models import Customer, District, UserAddress
 from rest_framework.views import APIView
+
+from flashsale.pay.models import Customer, District, UserAddress
+from flashsale.pay.options import getDistrictTree
 
 import logging
 
@@ -129,9 +130,6 @@ class UserAddressDetail(APIView):
         uaddr.save()
 
         return Response({'success': True})
-
-
-from .options import getDistrictTree
 
 
 class DistrictList(APIView):

@@ -1,0 +1,40 @@
+# coding:utf-8
+import json
+import datetime
+from django.conf import settings
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.forms import model_to_dict
+
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+
+from shopback.items.models import Product, ProductSku
+from flashsale.pay.models import SaleTrade, SaleOrder
+from flashsale.pay import serializes
+
+
+class SaleTradeManageAPIView(generics.ListCreateAPIView):
+
+    queryset = SaleTrade.objects.all()
+    serializer_class = serializes.ProductSerializer
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+
+        sku_idstr = request.GET.get('aggsku_str')
+        skuid_map_list = [tp.split('|') for tp in sku_idstr.split(',') if tp.strip()]
+
+        SaleOrder.objects.filter()
+
+
+    def post(self, request, *args, **kwargs):
+        pass
+

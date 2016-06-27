@@ -1,8 +1,7 @@
 # -*- encoding:utf8 -*-
-from django.conf import settings
-from django.http import Http404, HttpResponseForbidden
-from django.views.generic import View
+import datetime
 from django.forms import model_to_dict
+from django.db.models import Sum
 from django.shortcuts import redirect, get_object_or_404
 
 from rest_framework import generics
@@ -12,135 +11,66 @@ from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.views import APIView
 
-from .models import SaleTrade, SaleOrder, Customer, TradeCharge
-from .models_refund import SaleRefund
-from . import tasks
-import pingpp
-import logging
+from flashsale.pay.models import SaleTrade, SaleOrder, Customer, SaleRefund
+from shopback.items.models import Product, ProductDaySale
+from core.options import log_action, CHANGE
+from shopback.trades.models import MergeOrder, MergeTrade
+from flashsale.pay.tasks import task_send_msg_for_refund, task_update_orderlist
 
+import logging
 logger = logging.getLogger(__name__)
 
-
-class RefundApply(APIView):
+class RefundReason(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
-    # permission_classes = (permissions.IsAuthenticated,)
-    template_name = "pay/mrefundapply.html"
+    template_name = "salerefund/refund_reason.html"
 
-    def get(self, request, format=None):
-
-        content = request.GET
-        user = request.user
-        customer = get_object_or_404(Customer, user=request.user)
-
-        trade_id = content.get('trade_id')
-        order_id = content.get('order_id')
-
-        sale_order = get_object_or_404(SaleOrder, pk=order_id, sale_trade=trade_id, sale_trade__buyer_id=customer.id)
-
-        if not sale_order.refundable:
-            raise Http404
-
-        if sale_order.refund:
-            return redirect('refund_confirm', pk=sale_order.refund.id)
-
-        return Response({'order': model_to_dict(sale_order)})
-
-    def post(self, request, format=None):
-        content = request.POST
-        user = request.user
-        trade_id = content.get('trade_id')
-        order_id = content.get('order_id')
-        return_good = content.get('return_good')
-        customer = get_object_or_404(Customer, user=request.user)
-        sale_trade = get_object_or_404(SaleTrade, pk=trade_id, buyer_id=customer.id)
-        sale_order = get_object_or_404(SaleOrder, pk=order_id, sale_trade=trade_id, sale_trade__buyer_id=customer.id)
-        if not sale_order.refundable:
-            return HttpResponseForbidden('UNREFUNDABLE')
-        if sale_order.refund:
-            return redirect('refund_confirm', pk=sale_order.refund.id)
-
-        params = {
-            'reason': content.get('reason'),
-            'refund_fee': content.get('refund_fee'),
-            'desc': content.get('desc'),
-            'trade_id': sale_trade.id,
-            'order_id': sale_order.id,
-            'buyer_id': sale_trade.buyer_id,
-            'buyer_nick': sale_trade.buyer_nick,
-            'item_id': sale_order.item_id,
-            'title': sale_order.title,
-            'sku_id': sale_order.sku_id,
-            'sku_name': sale_order.sku_name,
-            'total_fee': sale_order.total_fee,
-            'payment': sale_order.payment,
-            'mobile': sale_trade.receiver_mobile,
-            'phone': sale_trade.receiver_phone,
-            'charge': sale_trade.charge,
-        }
-        if return_good:
-            params.update({'refund_num': content.get('refund_num'),
-                           'company_name': content.get('company_name'),
-                           'sid': content.get('sid'),
-                           'has_good_return': True,
-                           'good_status': SaleRefund.BUYER_RECEIVED,
-                           'status': SaleRefund.REFUND_WAIT_SELLER_AGREE
-                           })
-
+    def get(self, request):
+        content = request.REQUEST
+        user_name = request.user.username
+        today = datetime.datetime.today()
+        pro_code = content.get("pro_code", None)
+        pro_id = content.get("pro_id", None)
+        if pro_code:
+            pros = Product.objects.filter(outer_id=pro_code, status='normal')
+        elif pro_id:
+            pros = Product.objects.filter(id=pro_id, status='normal')
         else:
-            good_status = SaleRefund.BUYER_NOT_RECEIVED
-            good_receive = content.get('good_receive')
-            if good_receive.lower() == 'y':
-                good_status = SaleRefund.BUYER_RECEIVED
-
-            params.update({'has_good_return': False,
-                           'good_status': good_status,
-                           'status': SaleRefund.REFUND_WAIT_SELLER_AGREE
-                           })
-
-        sale_refund = SaleRefund.objects.create(**params)
-
-        sale_order.refund_id = sale_refund.id
-        sale_order.refund_fee = sale_refund.refund_fee
-        sale_order.refund_status = sale_refund.status
-        sale_order.save()
-        if settings.DEBUG:
-            tasks.pushTradeRefundTask(sale_refund.id)
+            return Response({'today': today, "user_name": user_name})
+        if len(pros) > 0:
+            pro = pros[0]
         else:
-            tasks.pushTradeRefundTask.delay(sale_refund.id)
+            return Response({'today': today, "user_name": user_name})
 
-        return Response(model_to_dict(sale_refund))
+        if pro.model_id == 0 or pro.model_id is None:
+            sale_refunds = SaleRefund.objects.filter(item_id=pro.id)
+            sale = ProductDaySale.objects.filter(product_id=pro.id)
+        else:
+            pro_ids = Product.objects.filter(model_id=pro.model_id).values('id').distinct()
+            sale_refunds = SaleRefund.objects.filter(item_id__in=pro_ids)
+            sale = ProductDaySale.objects.filter(product_id__in=pro_ids)
+        sale_num = sale.aggregate(total_sale=Sum('sale_num')).get("total_sale") or 0
+
+        reason = {}
+        des = []
+        pro_info = model_to_dict(pro, fields=['name', 'pic_path', 'id'])
+        for ref in sale_refunds:
+            if reason.has_key(ref.reason):
+                reason[ref.reason] += ref.refund_num
+            else:
+                reason[ref.reason] = ref.refund_num
+            des.append(ref.desc)
+        info_base = {'today': today, "user_name": user_name, "reason": reason, "sale_num": sale_num,
+                     "desc": des, 'pro_info': pro_info}
+        return Response(info_base)
 
 
-class RefundConfirm(APIView):
+class RefundAnaList(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
-    # permission_classes = (permissions.IsAuthenticated,)
-    template_name = "pay/mrefundconfirm.html"
+    template_name = "salerefund/pro_ref_list.html"
 
-    def get(self, request, pk, format=None):
-        customer = get_object_or_404(Customer, user=request.user)
-        sale_refund = get_object_or_404(SaleRefund, pk=pk)
-        sale_order = get_object_or_404(SaleOrder, pk=sale_refund.order_id,
-                                       sale_trade=sale_refund.trade_id,
-                                       sale_trade__buyer_id=customer.id)
-
-        refund_dict = model_to_dict(sale_refund)
-        refund_dict.update({'created': sale_refund.created,
-                            'modified': sale_refund.modified})
-
-        return Response({'order': model_to_dict(sale_order),
-                         'refund': refund_dict})
-
-    def post(self, request, pk, format=None):
-        return Response({})
-
-
-from core.options import log_action, User, ADDITION, CHANGE
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog
-from flashsale.pay.models_user import UserBudget, BudgetLog
-from django.db import models
-from shopback.trades.models import MergeOrder, MergeTrade
-from shopback import paramconfig as pcfg
-from tasks import task_send_msg_for_refund
+    def get(self, request):
+        username = request.user.username
+        return Response({"username": username})
 
 
 def calculate_amount_flow(refund):
@@ -240,7 +170,7 @@ class RefundPopPageView(APIView):
             obj.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
             obj.save()
 
-            tasks.task_update_orderlist.delay(str(obj.sku_id))
+            task_update_orderlist.delay(str(obj.sku_id))
             log_action(request.user.id, obj, CHANGE, '保存状态信息到－退货状态')
 
         if method == "agree":  # 同意退款
@@ -297,3 +227,4 @@ class RefundPopPageView(APIView):
                 return Response({"res": "sys_error"})
         task_send_msg_for_refund.s(obj).delay()
         return Response({"res": True})
+

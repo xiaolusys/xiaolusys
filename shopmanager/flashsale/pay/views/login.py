@@ -4,9 +4,13 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.conf import settings
-
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
+
+from urlparse import urljoin
+from flashsale.pay.decorators import weixin_xlmm_auth, weixin_test_auth
+from core.weixin import options
+from flashsale.pay.models import Customer
 
 import logging
 
@@ -40,13 +44,6 @@ def flashsale_login(request):
 
 def productlist_redirect(request):
     return HttpResponseRedirect(urljoin(settings.M_SITE_URL, reverse('v1:weixin-login')))
-
-
-import urllib
-from urlparse import urljoin
-from .decorators import weixin_xlmm_auth, weixin_test_auth
-from core.weixin import options
-from flashsale.pay.models_user import Customer
 
 
 @weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL, '/pages/denglu.html'))
