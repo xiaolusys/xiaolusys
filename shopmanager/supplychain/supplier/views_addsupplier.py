@@ -160,7 +160,7 @@ class ScheduleManageView(generics.ListCreateAPIView):
         category = request.GET.get("category", "0")
         result_data = []
         target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d')
-        for i in range(0, 3):
+        for i in range(0, 1):
             temp_date = target_date + datetime.timedelta(days=i)
             one_data, wem_posters, chd_posters, target_sch = get_target_date_detail(
                 temp_date, category)
