@@ -49,7 +49,7 @@ class ordelistAdmin(admin.ModelAdmin):
     )
     list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
                    'last_pay_date', 'created_by')
-    search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note']
+    search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
     date_hierarchy = 'created'
 
     list_per_page = 25
