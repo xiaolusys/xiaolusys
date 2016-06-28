@@ -475,7 +475,7 @@
                     <td><a href="javascript:;" id="arrival_quantity_{{ order.id }}" class="order_arrival_quantity" data-sku-id="{{order.chichu_id}}">{{ order.arrival_quantity }}</a>
                     </td>
                     <td>
-                        <span id="inferior_quantity_{{ order.id }}" class="order_inferior_quantity" data-sku-id="{{order.chichu_id}}">{{ order.inferior_quantity }}</span>
+                        <a href="javascript:;" id="inferior_quantity_{{ order.id }}" class="order_inferior_quantity" data-sku-id="{{order.chichu_id}}">{{ order.get_all_inferior_quantity }}</span>
                     </td>
                     <td width="70px">
                         <a href="/admin/dinghuo/orderdetail/{{order.id}}/" target="_blank">
@@ -530,6 +530,7 @@
     <script type="text/javascript">
         var ORDERLIST_ID = {{ orderlist.id}};
         var sku_inbound_details = {};
+        var sku_inferior_details = {};
         $('#confirm').click(function(){
             var url = "/sale/dinghuo/update_dinghuo/";
             var data = {"dinghuo_id":$ ('#orderlist_id').text(),"express_company_id": $ ('#express_company_id').val(),"express_no":$ ('#express_no').val(),
@@ -657,6 +658,39 @@
                  }
              });
             $('.order_arrival_quantity').popover();
+            $('.order_inferior_quantity').popover({
+                 html: true,
+                 trigger: 'hover',
+                 //trigger:'click',
+                 container: 'body',
+                 content: function(){
+                     console.dir($(this));
+                     var sku_id = $(this).data("sku-id")
+                     var data = {"sku_id": sku_id};
+                     if (sku_id in sku_inferior_details){
+                        return sku_inferior_details[sku_id];
+                     }
+                     else{
+                         $.ajax({
+                             url: '/sale/dinghuo/dinghuo_orderlist/' + ORDERLIST_ID + '/get_sku_inferior_detail',
+                             type: 'get',
+                             dataType: 'html',
+                             data: data,
+                             success: function(result){
+                                console.dir(result);
+                                sku_inferior_details[sku_id] = result;
+                                $(".popover-content").html(result);
+                             },
+                             error: function(result){
+                                console.dir(result);
+                             }
+                            });
+                            }
+                         return "<table><tr><td>请等待。。。</td></tr></table>";
+                 }
+             });
+            $('.order_inferior_quantity').popover();
+
         });
     </script>
 {% endblock %}

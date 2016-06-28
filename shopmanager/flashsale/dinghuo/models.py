@@ -1004,6 +1004,14 @@ class RGDetail(models.Model):
     def product_sku(self):
         return ProductSku.objects.get(id=self.skuid)
 
+    @staticmethod
+    def get_return_inferior_num_total(sku_id):
+        from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
+        res = RGDetail.objects.filter(skuid=sku_id, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME,
+                                      return_goods__status__in=[ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
+                                                                ReturnGoods.SUCCEED_RG, ]).aggregate(
+            n=Sum("inferior_num")).get('n', 0)
+        return res or 0
 
 def sync_rgd_return(sender, instance, created, **kwargs):
     instance.return_goods.set_stat()
