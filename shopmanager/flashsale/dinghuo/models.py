@@ -182,7 +182,7 @@ class OrderList(models.Model):
                      (STAGE_DELETED, u'删除'))
     # 改进原状态一点小争议和妥协造成的状态字段冗余 TODO@hy
     stage = models.IntegerField(db_index=True, choices=STAGE_CHOICES, default=0, verbose_name=u'进度')
-    lack = models.BooleanField(default=True, verbose_name=u'缺货')
+    lack = models.NullBooleanField(default=None, verbose_name=u'缺货')
     inferior = models.BooleanField(default=False, verbose_name=u'有次品')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
     is_postpay = models.BooleanField(default=False, verbose_name=u'是否后付款')
@@ -285,6 +285,8 @@ class OrderList(models.Model):
         return self.get_sys_status_display()
 
     def set_stat(self):
+        if self.stage in [OrderList.STAGE_DRAFT, OrderList.STAGE_CHECKED, OrderList.STAGE_DELETED]:
+            return
         lack = False
         inferior = False
         for detail in self.order_list.all():
@@ -303,16 +305,25 @@ class OrderList(models.Model):
     def has_paid(self):
         return self.status > OrderList.STAGE_PAY
 
+    def set_stage_verify(self, is_postpay=False):
+        self.stage = OrderList.STAGE_CHECKED
+        self.status = OrderList.APPROVAL
+        if is_postpay:
+            self.is_postpay = True
+        self.save(update_fields=['stage', 'status', 'is_postpay'])
+
     def set_stage_receive(self):
         self.stage = OrderList.STAGE_RECEIVE
         self.status = OrderList.QUESTION_OF_QUANTITY
-        self.save()
+        self.save(update_fields=['stage', 'status'])
 
     def set_stage_state(self):
         self.stage = OrderList.STAGE_STATE
-        self.save()
+        self.save(update_fields=['stage', 'status'])
 
     def get_receive_status(self):
+        if self.lack is None:
+            return u'未到货'
         if self.lack and not self.inferior:
             info = u'缺货'
         elif self.lack and self.inferior:
@@ -1977,6 +1988,8 @@ class InBoundDetail(models.Model):
 def update_stock(sender, instance, created, **kwargs):
     if instance.checked:
         instance.sync_order_detail()
+        from shopback.items.tasks import task_update_productskustats_inferior_num
+        task_update_productskustats_inferior_num.delay(instance.sku_id)
 
 post_save.connect(update_stock,
                   sender=InBoundDetail,
@@ -2001,7 +2014,6 @@ class OrderDetailInBoundDetail(models.Model):
         app_label = 'dinghuo'
         verbose_name = u'入仓订货明细对照'
         verbose_name_plural = u'入仓订货明细对照列表'
-        unique_together = ('orderdetail', 'inbounddetail')
 
     @staticmethod
     def create(orderdetail, inbound, arrival_quantity, inferior_quantity=0):

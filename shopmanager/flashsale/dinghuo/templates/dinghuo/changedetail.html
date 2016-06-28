@@ -259,12 +259,12 @@
 {% endblock %}
 {% block container %}
     <div class="row" style="margin-top: 20px">
-        <div class="col-lg-2">
+        <div class="col-lg-3">
             <span class="label label-info" style="font-size: 15px">当前进度：</span>
             <label id="order_stage" class="label label-success"
-                   style="font-size: large">{{ orderlist.get_stage_display }}</label>
+                   style="font-size: large">{{ orderlist.get_stage_display }}/{{ orderlist.get_receive_status }}</label>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <span class="label label-info" style="font-size: 20px">当前状态：</span>
             <label id="order_status" class="label label-success"
                    style="font-size: large">{{ orderlist.get_status_display }}</label>
