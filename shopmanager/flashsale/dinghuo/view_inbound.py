@@ -485,12 +485,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
     def allocate(self, request, pk=None):
         inbound = InBound.objects.get(id=pk)
         data = json.loads(request.POST.get('data') or '[]')
-        for orderdetail_id in data:
-            orderdetail = OrderDetail.objects.get(id=orderdetail_id)
-            OrderDetailInBoundDetail.create(orderdetail, inbound, data[orderdetail_id])
-        inbound.status = InBound.WAIT_CHECK
-        inbound.set_stat()
-        inbound.save()
+        inbound.allocate(data)
         return Response({'res': True})
 
     @detail_route(methods=['post'])
@@ -507,10 +502,16 @@ class InBoundViewSet(viewsets.GenericViewSet):
     @detail_route(methods=['post'])
     def add_allocate_quantity(self, request, pk=None):
         num = int(request.POST.get('num', 1))
-        oi_id = request.POST.get('oi_id')
-        relation = get_object_or_404(OrderDetailInBoundDetail, id=oi_id)
+        orderdetail_id = request.POST.get('orderdetail_id')
+        inbound = get_object_or_404(InBound, pk=pk)
+        orderdetail = get_object_or_404(OrderDetail, pk=orderdetail_id)
+        relation = OrderDetailInBoundDetail.objects.filter(orderdetail_id=orderdetail_id,
+                                     inbounddetail__inbound__id=inbound.id).first()
         try:
-            relation.change_arrival_quantity(num)
+            if relation:
+                relation.change_arrival_quantity(num)
+            else:
+                relation = inbound.add_order_detail(orderdetail, num)
             return Response({'res': True, 'data': {'sku': relation.inbounddetail.sku_id,
                                                    'status_info': relation.inbounddetail.get_status_info()}})
         except Exception, e0:

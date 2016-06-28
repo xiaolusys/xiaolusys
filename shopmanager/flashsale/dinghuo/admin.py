@@ -177,6 +177,7 @@ class ordelistAdmin(admin.ModelAdmin):
         for p in queryset:
             if p.status != "审核":
                 p.status = "审核"
+                p.stage = OrderList.STAGE_CHECKED
                 p.save()
                 log_action(request.user.id, p, CHANGE, u'审核订货单')
 
@@ -190,6 +191,7 @@ class ordelistAdmin(admin.ModelAdmin):
             if p.status != '审核':
                 p.status = '审核'
                 p.is_postpay = True
+                p.stage = OrderList.STAGE_CHECKED
                 p.save()
                 log_action(request.user.id, p, CHANGE, u'审核订货单')
                 self.message_user(request, u'已成功审核!')
