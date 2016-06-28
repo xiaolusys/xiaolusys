@@ -1,0 +1,17 @@
+<table class="table">
+    <thead>
+        <th>入仓单</th>
+        <th>次品数</th>
+        <th>入仓时间</th>
+    </thead>
+    {% for oi in res %}
+    <tr>
+        <td><a href="/sale/dinghuo/inbound/{{oi.inbound_id}}" target="_blank">{{oi.inbound_id}}</a></td>
+        <td>{{oi.inferior_quantity}}</td>
+        <td>{{oi.inbound_time}}</td>
+    </tr>
+    {%endfor%}
+    <tr>
+        <td colspan="3">已退数：{{already_return}}</td>
+    </tr>
+</table>
