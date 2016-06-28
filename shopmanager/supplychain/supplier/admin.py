@@ -175,7 +175,7 @@ class SaleSupplierAdmin(ApproxAdmin):
                                , ('address', 'progress', 'status')
                                , ('account_bank', 'account_no')
                                , ('supplier_type', 'supplier_zone', 'ware_by')
-                               , ('memo',)
+                               , ('memo','delta_arrive_days')
                                )
                  }),
                  (u'供应商数据:', {

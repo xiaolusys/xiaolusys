@@ -49,6 +49,8 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
         forecast_detail.product_name = '%s:%s'%(product.name, product_sku.name)
         forecast_detail.product_img = product.pic_path
         forecast_detail.forecast_arrive_num = order.buy_quantity
+        if order.buy_quantity <= 0:
+            forecast_detail.status = ForecastInboundDetail.DELETE
         forecast_detail.save()
 
 

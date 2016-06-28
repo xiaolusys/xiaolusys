@@ -426,7 +426,7 @@ class CarryRecordAdmin(admin.ModelAdmin):
     list_display = (
         'mama_id', 'carry_num_display', 'date_field', 'carry_description', 'carry_type', 'status', 'modified',
         'created')
-    search_fields = ['mama_id', 'carry_description']
+    search_fields = ['=mama_id', '^carry_description']
     list_filter = ('status', 'carry_type',)
 
 
@@ -439,7 +439,7 @@ class OrderCarryAdmin(admin.ModelAdmin):
                     'sku_name', 'sku_img', 'contributor_nick',
                     'contributor_id', 'date_field', 'status', 'modified', 'created')
     list_filter = ('status', 'carry_type',)
-    search_fields = ('mama_id', 'order_id', 'carry_description', 'contributor_nick',)
+    search_fields = ('=mama_id', '=order_id', '^carry_description', '=contributor_nick',)
 
     def get_changelist(self, request, **kwargs):
         from .changelist import OrderCarryChangeList
@@ -454,7 +454,7 @@ class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'contributor_nick',
                     'contributor_img', 'contributor_mama_id', 'status')
     list_filter = ('status', 'carry_type',)
-    search_fields = ('mama_id', 'contributor_nick',)
+    search_fields = ('=mama_id', '=contributor_nick',)
 
 
 admin.site.register(AwardCarry, AwardCarryAdmin)
@@ -465,7 +465,7 @@ class ClickCarryAdmin(admin.ModelAdmin):
                     'init_click_limit', 'confirmed_order_num',
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
                     'status', 'date_field', 'modified', 'created')
-    search_fields = ('mama_id',)
+    search_fields = ('=mama_id',)
     list_filter = ('status',)
 
 
@@ -540,7 +540,8 @@ admin.site.register(Instructor, InstructorAdmin)
 
 
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('title', 'instructor_name', 'num_attender', 'effect_num_attender', 'num_score', 'start_time', 'status', 'modified', 'created')
+    list_display = ('title', 'instructor_name', 'num_attender', 'effect_num_attender',
+                    'num_score', 'start_time', 'status', 'modified', 'created')
     search_fields = ('title', 'instructor_name', )
     list_filter = ('status',)
 admin.site.register(Lesson, LessonAdmin)
