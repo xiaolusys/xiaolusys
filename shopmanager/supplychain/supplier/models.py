@@ -169,7 +169,8 @@ class SaleSupplier(models.Model):
     category = models.ForeignKey(SaleCategory, null=True,
                                  related_name='category_suppliers', verbose_name=u'类别')
 
-    level = models.IntegerField(db_index=True, default=LEVEL_NORMAL, choices=LEVEL_CHOICES, verbose_name=u'等级')
+    level = models.IntegerField(db_index=True, default=LEVEL_NORMAL,
+                                choices=LEVEL_CHOICES, verbose_name=u'等级')
     speciality = models.CharField(max_length=256, blank=True, verbose_name=u'产品特长')
     total_select_num = models.IntegerField(default=0, verbose_name=u'总选款数量')
     total_sale_num = models.FloatField(default=0.0, verbose_name=u'总销售件数')
@@ -412,6 +413,19 @@ pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
 
 
 class SaleProductManage(models.Model):
+
+    TYPE_BRAND = 'brand'
+    TYPE_TOP   = 'top'
+    TYPE_SALE  = 'sale'
+    TYPE_CHOICES = (
+        (TYPE_BRAND, u'品牌'),
+        (TYPE_TOP, u'TOP榜'),
+        (TYPE_SALE, u'特卖'),
+    )
+
+    schedule_type = models.CharField(max_length=16,default=TYPE_SALE,
+                                     choices=TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
+    sale_suppliers = models.ManyToManyField('supplier.SaleSupplier', verbose_name=u'排期供应商')
     sale_time = models.DateField(db_index=True, unique=True, verbose_name=u'排期日期')
     product_num = models.IntegerField(default=0, verbose_name=u'商品数量')
     responsible_people_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'负责人ID')
@@ -425,6 +439,10 @@ class SaleProductManage(models.Model):
         app_label = 'supplier'
         verbose_name = u'排期管理'
         verbose_name_plural = u'排期管理列表'
+
+    @property
+    def sale_supplier_num(self):
+        return self.sale_suppliers.count()
 
     @property
     def normal_detail(self):
@@ -481,7 +499,7 @@ class SaleProductManageDetail(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     pic_rating = models.FloatField(blank=True, null=True, verbose_name=u'作图评分')
-    is_approved = models.SmallIntegerField(default=0, verbose_name='审核通过')
+    is_approved = models.SmallIntegerField(default=0, verbose_name=u'审核通过')
     is_promotion = models.BooleanField(default=False, verbose_name=u'推广商品')
 
     class Meta:
@@ -502,20 +520,30 @@ class SaleProductManageDetail(models.Model):
         return '<%s,%s>' % (self.id, self.sale_product_id)
 
     @property
+    def status(self):
+        return self.today_use_status
+
+    @property
+    def status_name(self):
+        return self.get_today_use_status_display()
+
+    @property
+    def sale_product(self):
+        if not hasattr(self, '_sale_product_'):
+            self._sale_product_ = SaleProduct.objects.filter(id=self.sale_product_id).first()
+        return self._sale_product_
+
+    @property
     def sale_memo(self):
-        try:
-            sl_pro = SaleProduct.objects.get(id=self.sale_product_id)
-            return sl_pro.memo
-        except:
-            return u""
+        if self.sale_product:
+            return self.sale_product.memo
+        return u""
 
     @property
     def std_purchase_price(self):
-        try:
-            sl_pro = SaleProduct.objects.get(id=self.sale_product_id)
-            return sl_pro.sale_price
-        except:
-            return u"0.0"
+        if self.sale_product:
+            return self.sale_product.sale_price
+        return 0.0
 
     @property
     def pic_rating_memos(self):

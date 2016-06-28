@@ -162,9 +162,13 @@ class ProductAdmin(ApproxAdmin):
         except:
             product_detail = None
         head_img_url = product_detail and product_detail.head_imgs.split('\n')[0] or Product.NO_PIC_PATH
-
-        return u'<p>%s</p><img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="50px" height="40px" />' % (
-            obj.outer_id, head_img_url)
+        style_css = ""
+        if obj.status == obj.DELETE:
+            style_css = "text-decoration:line-through;"
+        elif obj.status == obj.REMAIN:
+            style_css = "border:1px solid grey;"
+        return u'<p style="%s">%s</p><img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="50px" height="40px" />' % (
+            style_css, obj.outer_id, head_img_url)
 
     outer_id_link.allow_tags = True
     outer_id_link.short_description = u"商品编码(题头图)"
@@ -179,7 +183,12 @@ class ProductAdmin(ApproxAdmin):
         str_list.append(
             '<img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="100px" height="80px" title="%s"/>'
             % (abs_pic_url, obj.name))
-        str_list.append('<p><span>%s</span></p>' % (obj.name or u'--'))
+        style_css = ""
+        if obj.status == obj.DELETE:
+            style_css = "text-decoration:line-through;"
+        elif obj.status == obj.REMAIN:
+            style_css = "border:1px solid grey;"
+        str_list.append('<p><span style="%s">%s</span></p>' % (style_css,obj.name or u'--'))
         return ''.join(str_list)
 
     pic_link.allow_tags = True
