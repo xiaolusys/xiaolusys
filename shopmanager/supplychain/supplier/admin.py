@@ -802,12 +802,15 @@ class SaleProductManageDetailInline(admin.TabularInline):
         return self.readonly_fields
 
 
+
+
 class SaleProductManageAdmin(admin.ModelAdmin):
     list_display = ('sale_time', 'product_num', 'responsible_person_name', 'lock_status', 'created', 'modified')
     inlines = [SaleProductManageDetailInline]
     list_filter = (('sale_time', DateFieldListFilter),)
     search_fields = ['product_num', ]
     date_hierarchy = 'sale_time'
+
     def custom_product_list(self, obj):
         product_list = obj.product_list
         result_str = ""
@@ -816,4 +819,13 @@ class SaleProductManageAdmin(admin.ModelAdmin):
         return u'<pre style="width:300px;white-space: pre-wrap;word-break:break-all;">{0}</pre>'.format(result_str)
     custom_product_list.allow_tags = True
     custom_product_list.short_description = "商品列表"
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(SaleProductManageAdmin, self).get_form(request, obj=obj, **kwargs)
+        if obj and obj.sale_suppliers.exists():
+            form.base_fields['sale_suppliers'].queryset = obj.sale_suppliers.all()
+        else:
+            form.base_fields['sale_suppliers'].queryset = form.base_fields['sale_suppliers'].queryset.none()
+        return form
+
 admin.site.register(SaleProductManage, SaleProductManageAdmin)

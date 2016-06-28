@@ -425,7 +425,7 @@ class SaleProductManage(models.Model):
 
     schedule_type = models.CharField(max_length=16,default=TYPE_SALE,
                                      choices=TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
-    sale_suppliers = models.ManyToManyField('supplier.SaleSupplier', verbose_name=u'排期供应商')
+    sale_suppliers = models.ManyToManyField('supplier.SaleSupplier', blank=True, verbose_name=u'排期供应商')
     sale_time = models.DateField(db_index=True, unique=True, verbose_name=u'排期日期')
     product_num = models.IntegerField(default=0, verbose_name=u'商品数量')
     responsible_people_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'负责人ID')
