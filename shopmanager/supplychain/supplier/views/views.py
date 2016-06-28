@@ -32,12 +32,20 @@ from shopback.categorys.models import ProductCategory
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 
-from . import constants, forms
-from .models import SaleSupplier, SaleCategory, SaleProduct, SaleProductManage, SaleProductManageDetail
-from .serializers import (SaleSupplierSerializer,
-                          SaleCategorySerializer,
-                          SaleProductSerializer,
-                          SaleProductSampleSerializer,)
+from supplychain.supplier import constants, forms
+from supplychain.supplier.models import (
+    SaleSupplier,
+    SaleCategory,
+    SaleProduct,
+    SaleProductManage,
+    SaleProductManageDetail
+)
+from supplychain.supplier.serializers import (
+    SaleSupplierSerializer,
+    SaleCategorySerializer,
+    SaleProductSerializer,
+    SimpleSaleProductSerializer
+)
 
 
 class SaleSupplierList(generics.ListCreateAPIView):
@@ -243,7 +251,7 @@ class SaleProductAdd(generics.ListCreateAPIView):
 
 class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = SaleProduct.objects.all()
-    serializer_class = SaleProductSampleSerializer
+    serializer_class = SimpleSaleProductSerializer
     renderer_classes = (JSONRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
 

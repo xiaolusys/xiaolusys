@@ -226,7 +226,6 @@ LOGIN_URL = '/admin/'
 LOGOUT_URL = '/accounts/logout/'
 
 ############################# EXTENSION CONFIG ##############################
-
 TAOBAO_PAGE_SIZE = 50  # the page_size of  per request
 from .task_settings import *  # celery config
 

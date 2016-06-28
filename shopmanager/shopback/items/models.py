@@ -19,6 +19,7 @@ from django.db.models import Sum, Avg, F
 from django.conf import settings
 from django.db.models.signals import pre_save, post_save
 from django.forms.models import model_to_dict
+from django.core.cache import cache
 
 from auth import apis
 from common.modelutils import update_model_fields
@@ -1414,6 +1415,9 @@ def default_contrast_cid():
         return str( max_constrast.id + 1)
     return '1'
 
+def gen_contrast_cache_key(key_name):
+    return hashlib.sha1('%s.%s'%(__name__, key_name)).hexdigest()
+
 class ContrastContent(models.Model):
     NORMAL = 'normal'
     DELETE = 'delete'
@@ -1445,8 +1449,7 @@ class ContrastContent(models.Model):
     @classmethod
     def contrast_maps(cls):
         # TODO ,如果内容字典修改,需要更新cache
-        from django.core.cache import cache
-        cache_key  = hashlib.sha1('%s.%s'%(__name__, cls.__name__)).hexdigest()
+        cache_key  = gen_contrast_cache_key(cls.__name__)
         cache_contrast = cache.get(cache_key)
         if not cache_contrast:
             contrasts = cls.objects.filter(status=cls.NORMAL).values_list('cid', 'name')
@@ -1455,6 +1458,14 @@ class ContrastContent(models.Model):
             logger.warn('contrast dictionary cache not hit: key=%s'% cache_key)
         return cache_contrast
 
+
+def invalid_contrast_maps_cache(sender, instance, created, **kwargs):
+    cache_key = gen_contrast_cache_key(instance.__class__.__name__)
+    cache.delete(cache_key)
+
+post_save.connect(invalid_contrast_maps_cache,
+                  sender=ContrastContent,
+                  dispatch_uid='post_save_invalid_contrast_maps_cache')
 
 
 class ImageWaterMark(models.Model):

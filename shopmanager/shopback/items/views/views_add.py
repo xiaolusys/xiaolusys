@@ -216,6 +216,7 @@ class GetSkuDetail(generics.ListCreateAPIView):
             if product_bean.count() > 0:
                 all_sku = [key.properties_alias for key in product_bean[0].normal_skus]
                 result_data = {}
+                constants_map = ContrastContent.contrast_maps()
                 for one_sku in all_sku:
                     notexist_skus = []
                     for one_chima in all_chima_content:

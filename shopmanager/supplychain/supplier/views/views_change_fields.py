@@ -1,5 +1,5 @@
 # coding=utf-8
-from .models import SupplierZone, SaleSupplier
+from supplychain.supplier.models import SupplierZone, SaleSupplier
 from django.views.generic import View
 from django.http import HttpResponse
 from common.modelutils import update_model_fields
