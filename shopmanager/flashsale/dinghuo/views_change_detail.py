@@ -47,6 +47,7 @@ class ChangeDetailView(View):
             product_sku = ProductSku.objects.get(id=order.chichu_id)
             order_dict['supplier_outer_id'] = ''
             order_dict['wait_post_num'] = product_sku.wait_post_num
+            order_dict['not_assign_num'] = product_sku.not_assign_num
             order_dict['get_all_inferior_quantity'] = product_sku.real_inferior_quantity
             order_dict['get_receive_status'] = order.get_receive_status()
             if product.sale_product:
@@ -149,6 +150,7 @@ class ChangeDetailView(View):
             order_dict['pic_path'] = product.pic_path
             product_sku = ProductSku.objects.get(id=order.chichu_id)
             order_dict['wait_post_num'] = product_sku.wait_post_num
+            order_dict['not_assign_num'] = product_sku.not_assign_num
             order_dict['supplier_outer_id'] = ''
             if product.sale_product:
                 try:
