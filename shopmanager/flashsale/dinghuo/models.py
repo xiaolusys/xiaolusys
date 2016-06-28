@@ -827,7 +827,7 @@ class ReturnGoods(models.Model):
         self.save()
 
     def has_sent(self):
-        return self.status >= ReturnGoods.DELIVER_RG
+        return self.status >= ReturnGoods.DELIVER_RG and not self.status == ReturnGoods.FAILED_RG
 
     def has_refund(self):
         return self.status in [ReturnGoods.REFUND_RG, ReturnGoods.SUCCEED_RG]
