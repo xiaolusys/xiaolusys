@@ -46,35 +46,24 @@
                     {% for one_chima in result %}
                         <tr>
                             <td>{{ one_chima.0 }}</td>
-                            {% for k1,v1 in one_chima.1 %}
+                            {% for k1,k2,v1 in one_chima.1 %}
                                 <td>
                                     <div class="input-group">
-                                        <div class="input-group-addon">{{ k1 }}</div>
+                                        <div class="input-group-addon">{{ k2 }}</div>
                                         <input type="text" class="form-control change-area" disabled="disabled"
                                                id="{{ product_id }}_{{ one_chima.0 }}_{{ k1 }}" value="{{ v1 }}" style="width:66px">
                                     </div>
                                 </td>
-                                {% ifequal forloop.counter 6 %}
-                                    </tr>
-                                    <tr>
-                                    <td></td>
-                                {% endifequal %}
-                            {% ifequal forloop.counter 12 %}
+                            {% if forloop.counter|divisibleby:7 %}
                                 </tr>
                                 <tr>
                                 <td></td>
-                            {% endifequal %}
-                            {% ifequal forloop.counter 18 %}
-                                </tr>
-                                <tr>
-                                <td></td>
-                            {% endifequal %}
+                            {% endif %}
                             {% endfor %}
                             </tr>
                     {% endfor %}
                 </table>
                 <input type="button" id="product" value="{{ product_id }}" hidden=""/>
-
             {% endifequal %}
         </div>
     </div>

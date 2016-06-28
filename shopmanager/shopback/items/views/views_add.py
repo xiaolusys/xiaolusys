@@ -214,8 +214,7 @@ class GetSkuDetail(generics.ListCreateAPIView):
         all_chima_content = ContrastContent.objects.all().order_by('sid')
         try:
             if product_bean.count() > 0:
-                all_sku = [key.properties_alias
-                           for key in product_bean[0].normal_skus]
+                all_sku = [key.properties_alias for key in product_bean[0].normal_skus]
                 result_data = {}
                 for one_sku in all_sku:
                     notexist_skus = []
@@ -230,14 +229,12 @@ class GetSkuDetail(generics.ListCreateAPIView):
                                 chi_ma_size = 0
                         except:
                             chi_ma_size = 0
-                            notexist_skus.append((one_chima.name, chi_ma_size))
+                            notexist_skus.append((one_chima.cid, one_chima.name, chi_ma_size))
                             continue
                         if one_sku in result_data:
-                            result_data[one_sku].append((one_chima.name,
-                                                         chi_ma_size))
+                            result_data[one_sku].append((one_chima.cid, one_chima.name, chi_ma_size))
                         else:
-                            result_data[one_sku] = [(one_chima.name,
-                                                     chi_ma_size)]
+                            result_data[one_sku] = [(one_chima.cid, one_chima.name, chi_ma_size)]
                     result_data[one_sku].extend(notexist_skus)
                 # chima_content = product_bean[0].contrast.get_correspond_content
                 chima_content = result_data.items()
@@ -265,19 +262,16 @@ class GetSkuDetail(generics.ListCreateAPIView):
         all_chi_ma = set()
         for k, v in content.items():
             if len(k.split("_")) == 3:
-                all_chi_ma.add(k.split("_")[2])
+                all_chi_ma.add(k.split("_")[2].strip())
         chi_ma_result = {}
         for sku in all_sku:
             for chi_ma in all_chi_ma:
-                temp_chi_ma = ContrastContent.objects.get(name=chi_ma)
-                chi_ma_content = content.get(str(product_model.id) + "_" + sku +
-                                             "_" + chi_ma)
-                if chi_ma_content and len(
-                        chi_ma_content) > 0 and chi_ma_content != "0":
+                chi_ma_content = content.get(str(product_model.id) + "_" + sku + "_" + chi_ma)
+                if chi_ma_content and len( chi_ma_content) > 0 and chi_ma_content != "0":
                     if sku in chi_ma_result:
-                        chi_ma_result[sku][temp_chi_ma.id] = chi_ma_content
+                        chi_ma_result[sku][chi_ma] = chi_ma_content
                     else:
-                        chi_ma_result[sku] = {temp_chi_ma.id: chi_ma_content}
+                        chi_ma_result[sku] = {chi_ma: chi_ma_content}
         try:
             product_model.contrast.contrast_detail = chi_ma_result
             product_model.contrast.save()

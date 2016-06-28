@@ -6,22 +6,21 @@ $(function () {
 })
 var searchtext = $("#searchtext").val();
 function preview_view(){
-
     var url = '/items/preview_sku/?search_input=' + searchtext;
-                layer.open({
-                    type: 2,
-                    title: '预览界面',
-                    shadeClose: true,
-                    shade: 0.8,
-                    maxmin: true,
-                    area: ['1000px', '600px'],
-                    content: url
-                });
+    layer.open({
+        type: 2,
+        title: '预览界面',
+        shadeClose: true,
+        shade: 0.8,
+        maxmin: true,
+        area: ['1000px', '600px'],
+        content: url
+    });
 }
 function submit_data() {
     var product = $("#product").val();
     var change_data = $(".change-area");
-    var result_data = {product:product}
+    var result_data = {product:product};
     for (var i = 0; i < change_data.length; i++) {
         var key = change_data.eq(i).attr("id");
         result_data[key] = change_data.eq(i).val();
