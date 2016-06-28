@@ -717,10 +717,7 @@ class ProductSku(models.Model):
 
     @property
     def obj_sku_stats(self):
-        try:
-            return ProductSkuStats.objects.get(sku_id=self.id)
-        except ProductSkuStats.DoesNotExist:
-            return None
+        return ProductSkuStats.get_by_sku(self.id)
 
     @property
     def obj_active_sku_salestats(self):
@@ -738,6 +735,10 @@ class ProductSku(models.Model):
         if sku_stats:
             return self.obj_sku_stats.realtime_quantity
         return 0
+
+    @property
+    def real_inferior_quantity(self):
+        return ProductSkuStats.get_by_sku(self.id).inferior_num
 
     @property
     def excess_quantity(self):

@@ -24,14 +24,13 @@ from flashsale.dinghuo import paramconfig as pcfg
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
-                                      OrderDetailInBoundDetail)
+                                      OrderDetailInBoundDetail, ReturnGoods,RGDetail)
 from flashsale.dinghuo.models_stats import SupplyChainDataStats
 from shopback.archives.models import DepositeDistrict
 from shopback.items.models import Product, ProductCategory, ProductSku, ProductStock, ProductLocation
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 
 from . import forms, functions, functions2view, models
-
 
 def search_product(request):
     """搜索商品"""
@@ -1871,3 +1870,22 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             }
             res.append(item)
         return Response({'res':res}, template_name=u"dinghuo/order_sku_inbound_detail.htm")
+
+    @detail_route(methods=['get'])
+    def get_sku_inferior_detail(self, request, pk):
+        sku_id = request.REQUEST.get('sku_id', None)
+        orderlist = get_object_or_404(OrderList, id=pk)
+        sku = get_object_or_404(ProductSku, id=sku_id)
+        ois = OrderDetailInBoundDetail.objects.filter(inbounddetail__sku_id=sku.id, inbounddetail__checked=True, inferior_quantity__gt=0).\
+            select_related('orderdetail', 'inbounddetail').distinct()
+        res = []
+        for oi in ois:
+            item = {
+                'inbound_id': oi.inbounddetail.inbound_id,
+                'inferior_quantity': oi.inbounddetail.inferior_quantity,
+                'inbound_time': oi.inbounddetail.inbound.created.strftime("%Y-%m-%d %H")
+            }
+            res.append(item)
+        already_return = RGDetail.get_return_inferior_num_total(sku_id)
+        return Response({'res':res, 'already_return': already_return}, template_name=u"dinghuo/order_sku_inferior_detail.htm")
+
