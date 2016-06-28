@@ -87,8 +87,7 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     """
     ###排期管理商品REST API接口：
-    - payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
-    - {prefix}/{{pk}}/delete_carts[.formt]
+    - 
     """
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
