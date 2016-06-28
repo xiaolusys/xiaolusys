@@ -39,8 +39,9 @@ from shopback.items.models import Product
 from .tasks import task_send_message
 from shopapp.smsmgr.models import SMSActivity, SMS_NOTIFY_GOODS_LACK
 
-SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您订购{0}{1}码 因销量火爆，厂家缺货。我们已经帮您自动退款并且补偿10元优惠券。给您带来不便非常抱歉！么么哒～"
-
+# SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您订购{0}{1}码 因销量火爆，厂家缺货。我们已经帮您自动退款并且补偿10元优惠券。给您带来不便非常抱歉！么么哒～"
+SEND_TEMPLATE = "尊贵的{0}小主！我是小鹿客服小凳子~在这里很抱歉的告诉小主，" \
+                "由于小主的眼光过于犀利，购买的{1}{2}这款宝贝严重缺货了呢。小凳子我在这里拼尽全力为您奉上一张10元优惠券以表歉意，也已经帮小主走后门申请退款了~请小主息怒~么么哒~【小鹿美美】"
 
 class SendMessageView(generics.ListCreateAPIView):
     """
@@ -57,15 +58,15 @@ class SendMessageView(generics.ListCreateAPIView):
             s_order = SaleOrder.objects.get(id=order_id)
             product = Product.objects.get(outer_id=s_order.outer_id)
             product_name = product.name
-            content = SEND_TEMPLATE.format(product_name, s_order.sku_name)
-
+            receiver_name = s_trade.receiver_name
+            content = SEND_TEMPLATE.format(receiver_name, product_name, s_order.sku_name)
             # 根据后台短信模板设置
             sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_GOODS_LACK, status=True)
             if sms_tpls.exists():  # 如果有短信模板
                 sms_tpl = sms_tpls[0]
                 # tpl = sms_tpl.text_tmpl or SEND_TEMPLATE
                 tpl = SEND_TEMPLATE
-                content = tpl.format(product_name, s_order.sku_name)
+                content = tpl.format(receiver_name, product_name, s_order.sku_name)
 
             mobile = s_trade.receiver_mobile
             return Response({"content": content, "mobile": mobile, "trade_id": trade_id, "order_id": order_id})

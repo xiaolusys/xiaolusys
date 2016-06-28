@@ -27,19 +27,19 @@ class ProductInvalidConfirmView(APIView):
 
         product_qs = Product.objects.filter(outer_id__in=product_ids)
         for p in product_qs:
-            cnt = 0
-            success = False
-            invalid_outerid = p.outer_id
-            while cnt < 10:
-                invalid_outerid += '_del'
-                products = Product.objects.filter(outer_id=invalid_outerid)
-                if products.count() == 0:
-                    success = True
-                    break
-                cnt += 1
-            if not success:
-                continue
-            p.outer_id = invalid_outerid
+            # cnt = 0
+            # success = False
+            # invalid_outerid = p.outer_id
+            # while cnt < 10:
+            #     invalid_outerid += '_del'
+            #     products = Product.objects.filter(outer_id=invalid_outerid)
+            #     if products.count() == 0:
+            #         success = True
+            #         break
+            #     cnt += 1
+            # if not success:
+            #     continue
+            # p.outer_id = invalid_outerid
             p.status = Product.DELETE
             p.save()
 
