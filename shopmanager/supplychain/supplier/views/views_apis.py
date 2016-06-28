@@ -31,8 +31,8 @@ logger = logging.getLogger(__name__)
 class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###供应商REST API接口：
-    - list_filters: 获取供应商过滤条件
-    -
+    - 列表过滤条件: category, supplier_name, supplier_type, supplier_zone
+    - /list_filters: 获取供应商过滤条件
     """
     queryset = SaleSupplier.objects.all()
     serializer_class = serializers.SaleSupplierSerializer
@@ -54,8 +54,7 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
 class SaleProductViewSet(viewsets.ModelViewSet):
     """
     ###排期管理商品REST API接口：
-    - payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
-    - {prefix}/{{pk}}/delete_carts[.formt]
+    - 列表过滤条件: sale_supplier, sale_category
     """
     queryset = SaleProduct.objects.all()
     serializer_class = serializers.SimpleSaleProductSerializer
@@ -69,8 +68,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
 class SaleScheduleViewSet(viewsets.ModelViewSet):
     """
     ###排期管理REST API接口：
-    - payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
-    - {prefix}/{{pk}}/delete_carts[.formt]
+    - 列表过滤条件: schedule_type, sale_suppliers
     """
     queryset = SaleProductManage.objects.all()
     serializer_class = serializers.SimpleSaleProductManageSerializer
