@@ -469,9 +469,9 @@ class XiaoluMama(models.Model):
             self._mama_fortune_ = MamaFortune.objects.filter(mama_id=self.id).first()
         return self._mama_fortune_
 
-    def upgrade_agencylevel(self, level=None):
-        """ 代理 升级
-        :type level: int 表示要升级的等级数
+    def upgrade_agencylevel_by_cashout(self):
+        """ 代理 升级 提现满足条件升级（仅仅从Ａ类升级到VIP1）
+        :type
         """
         if self.agencylevel < XiaoluMama.VIP_LEVEL:  # 当前等级小于2则返回false
             return False
@@ -483,12 +483,34 @@ class XiaoluMama(models.Model):
             self.agencylevel = XiaoluMama.VIP_LEVEL
             self.save(update_fields=['agencylevel'])
             return True
+
+    def upgrade_agencylevel_by_exam(self, level=None):
+        """ 代理 升级
+        :type level: int 表示要升级的等级数 升级的
+        """
+        level_map = {
+            XiaoluMama.A_LEVEL: XiaoluMama.VIP2_LEVEL,  # A 类升级到v2
+            XiaoluMama.VIP_LEVEL: XiaoluMama.VIP2_LEVEL,  # v1 类升级到v2
+            XiaoluMama.VIP2_LEVEL: XiaoluMama.VIP4_LEVEL,  # v2 类升级到v4
+            XiaoluMama.VIP4_LEVEL: XiaoluMama.VIP6_LEVEL,  # v4 类升级到v6
+            XiaoluMama.VIP6_LEVEL: XiaoluMama.VIP8_LEVEL  # v6 类升级到v8
+        }
+        try:
+            upper_level = level_map[self.agencylevel]
+        except KeyError:  # 没有找到升级值返回False
+            return False
+        if upper_level != level:    # 要升级的等级　和指定升级的等级不一致　则不处理
+            return False
+        if self.agencylevel < XiaoluMama.VIP_LEVEL:  # 当前等级小于2则返回false
+            return False
+        if self.charge_status != XiaoluMama.CHARGED:  # 没有接管返回false
+            return False
+        if self.status != XiaoluMama.EFFECT:  # 非正常状态 返回false
+            return False
         # 当前等级小于考试通过指定的等级 并且是接管状态的 则升级
-        if self.agencylevel < level:
-            self.agencylevel = level
-            self.save(update_fields=['agencylevel'])
-            return True
-        return False
+        self.agencylevel = level
+        self.save(update_fields=['agencylevel'])
+        return True
 
     def next_agencylevel_info(self):
         level_map = {
