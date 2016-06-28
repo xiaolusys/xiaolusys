@@ -47,6 +47,18 @@ class ProductSkuStats(models.Model):
     def __unicode__(self):
         return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
 
+    @staticmethod
+    def get_by_sku(sku_id):
+        stat = ProductSkuStats.objects.filter(sku_id=sku_id).first()
+        if stat:
+            return stat
+        else:
+            from shopback.items.models import ProductSku
+            sku = ProductSku.objects.get(sku=sku_id)
+            stat = ProductSkuStats(sku_id=sku.id, product_id=sku.product_id)
+            stat.save()
+            return stat
+
     @property
     def realtime_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.return_quantity - self.post_num - self.rg_quantity
