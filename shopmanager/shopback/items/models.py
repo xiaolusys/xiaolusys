@@ -820,6 +820,10 @@ class ProductSku(models.Model):
         except:
             return {"result": {}, "free_num": display_num}
 
+    def get_sku_inferior_info(self):
+
+        return
+
     def calc_discount_fee(self, xlmm=None):
         """ 优惠折扣 """
         if not xlmm or xlmm.agencylevel < 2:
