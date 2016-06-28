@@ -727,7 +727,7 @@ def task_upgrade_mama_level_to_vip():
         if update_fields:
             mm.save(update_fields=update_fields)
         if t_cashout_amount >= 2000 * 100:  # 如果超过2000
-            mm.upgrade_agencylevel(level=XiaoluMama.VIP_LEVEL)
+            mm.upgrade_agencylevel_by_cashout()
             log_action(sys_oa.id, mm, CHANGE, u'A类代理满2000元指标 %s : %s 升级' % (old_target_complete, mm.target_complete))
 
 
