@@ -1891,6 +1891,10 @@ class PackageSkuItem(BaseModel):
         for item in PackageSkuItem.objects.filter(sale_trade_id=sale_trade_tid):
             item.reset_assign_package()
 
+    @staticmethod
+    def get_not_assign_num(sku_id):
+        return PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).count()
+
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
 

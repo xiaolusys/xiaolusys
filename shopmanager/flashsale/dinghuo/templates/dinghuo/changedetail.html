@@ -425,6 +425,7 @@
             <th>图片</th>
             <th>规格</th>
             <th style="min-width:60px">购买数量</th>
+            <th>未备货数</th>
             <th>买入价格</th>
             <th>单项价格</th>
             <th>已入库数</th>
@@ -470,6 +471,7 @@
                             </a>
                         {% endif %}
                     </td>
+                    <td>{{ order.not_assign_num }}</td>
                     <td>{{ order.buy_unitprice }}</td>
                     <td>{{ order.total_price }}</td>
                     <td><a href="javascript:;" id="arrival_quantity_{{ order.id }}" class="order_arrival_quantity" data-sku-id="{{order.chichu_id}}">{{ order.arrival_quantity }}</a>

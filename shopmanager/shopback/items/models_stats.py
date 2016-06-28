@@ -72,6 +72,11 @@ class ProductSkuStats(models.Model):
         return self.sold_num - self.post_num
 
     @property
+    def not_assign_num(self):
+        from shopback.trades.models import PackageSkuItem
+        return PackageSkuItem.get_not_assign_num(self.sku_id)
+
+    @property
     def wait_assign_num(self):
         return self.sold_num - self.assign_num - self.post_num
 
