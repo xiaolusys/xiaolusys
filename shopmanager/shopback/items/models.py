@@ -716,8 +716,10 @@ class ProductSku(models.Model):
                 setattr(self, field.name, getattr(self, field.name).strip())
 
     @property
-    def obj_sku_stats(self):
-        return ProductSkuStats.get_by_sku(self.id)
+    def stat(self):
+        if not hasattr(self, '_stat_'):
+            self._stat_ = ProductSkuStats.get_by_sku(self.id)
+        return self._stat_
 
     @property
     def obj_active_sku_salestats(self):
@@ -731,9 +733,9 @@ class ProductSku(models.Model):
         """
         This tells how many quantity in store.
         """
-        sku_stats = self.obj_sku_stats
+        sku_stats = self.stat
         if sku_stats:
-            return self.obj_sku_stats.realtime_quantity
+            return self.stat.realtime_quantity
         return 0
 
     @property
@@ -743,7 +745,7 @@ class ProductSku(models.Model):
     @property
     def excess_quantity(self):
         """ 多余未售库存数 """
-        sku_stats = self.obj_sku_stats
+        sku_stats = self.stat
         if sku_stats:
             return max(0, sku_stats.realtime_quantity - sku_stats.wait_post_num)
         return 0
@@ -821,9 +823,9 @@ class ProductSku(models.Model):
         except:
             return {"result": {}, "free_num": display_num}
 
-    def get_sku_inferior_info(self):
-
-        return
+    @property
+    def not_assign_num(self):
+        return self.stat.not_assign_num
 
     def calc_discount_fee(self, xlmm=None):
         """ 优惠折扣 """

@@ -149,6 +149,17 @@ class MamaFortune(BaseModel):
             self.extras = extras
             self.save()
 
+def copy_history_cash(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.models import XiaoluMama
+    m = XiaoluMama.objects.filter(id=instance.mama_id).first()
+    if m and m.cash != instance.history_confirmed:
+        instance.history_confirmed = m.cash
+        instance.save(update_fields=['history_confirmed'])
+
+
+post_save.connect(copy_history_cash,
+                  sender=MamaFortune, dispatch_uid='post_save_copy_history_cash')
+
 
 class DailyStats(BaseModel):
     STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'),)
