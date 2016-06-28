@@ -176,7 +176,9 @@ class Customer(BaseModel):
             from flashsale.xiaolumm.models import XiaoluMama
 
             xlmm_fan = XlmmFans.objects.filter(fans_cusid=self.id).first()
-            self._customer_referal_mama_ = XiaoluMama.objects.filter(id=xlmm_fan.xlmm).first()
+            self._customer_referal_mama_ = None
+            if xlmm_fan:
+                self._customer_referal_mama_ = XiaoluMama.objects.filter(id=xlmm_fan.xlmm).first()
         return self._customer_referal_mama_
 
     def get_openid_and_unoinid_by_appkey(self, appkey):
