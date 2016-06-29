@@ -315,19 +315,7 @@ def task_refundproduct_update_productskustats_return_quantity(sku_id):
     sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
         .aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
-
-    stats = ProductSkuStats.objects.filter(sku_id=sku_id)
-    if stats.count() <= 0:
-        product_id = ProductSku.objects.get(id=sku_id).product.id
-        try:
-            stat = ProductSkuStats(sku_id=sku_id,product_id=product_id,return_quantity=total)
-            stat.save()
-        except IntegrityError as exc:
-            logger.warn(
-                "IntegrityError - productskustat/inbound_quantity | sku_id: %s, inbound_quantity: %s" % (sku_id, total))
-            raise task_refundproduct_update_productskustats_return_quantity.retry(exc=exc)
-    else:
-        stat = stats[0]
-        if stat.return_quantity != total:
-            stat.return_quantity = total
-            stat.save(update_fields=['return_quantity'])
+    stat = ProductSkuStats.get_by_sku(sku_id)
+    if stat.return_quantity != total:
+        stat.return_quantity = total
+        stat.save(update_fields=['return_quantity'])

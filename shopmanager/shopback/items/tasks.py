@@ -1047,11 +1047,10 @@ def task_productsku_update_productskustats(sku_id, product_id):
 
 @task()
 def task_update_productskustats_inferior_num(sku_id):
-
     from shopback.items.models_stats import ProductSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
     from flashsale.dinghuo.models import InBoundDetail, RGDetail, ReturnGoods
-    inferior_num = InBoundDetail.objects.filter(sku_id=sku_id, checked=True).aggregate(n=Sum("inferior_quantity"),
-                                                       created__gt=PRODUCT_SKU_STATS_COMMIT_TIME).get('n', 0)
+    inferior_num = InBoundDetail.objects.filter(sku_id=sku_id, checked=True, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME).\
+        aggregate(n=Sum("inferior_quantity")).get('n', 0)
     inferior_num_add = inferior_num if inferior_num else 0
     inferior_num_plus = RGDetail.get_return_inferior_num_total(sku_id)
     stat = ProductSkuStats.get_by_sku(sku_id)

@@ -176,9 +176,7 @@ class ordelistAdmin(admin.ModelAdmin):
     def test_order_action(self, request, queryset):
         for p in queryset:
             if p.status != "审核":
-                p.status = "审核"
-                p.stage = OrderList.STAGE_CHECKED
-                p.save()
+                p.set_stage_verify()
                 log_action(request.user.id, p, CHANGE, u'审核订货单')
 
                 self.message_user(request, u"已成功审核!")
@@ -188,11 +186,8 @@ class ordelistAdmin(admin.ModelAdmin):
 
     def verify_order_action(self, request, queryset):
         for p in queryset:
-            if p.status != '审核':
-                p.status = '审核'
-                p.is_postpay = True
-                p.stage = OrderList.STAGE_CHECKED
-                p.save()
+            if p.status != u'审核':
+                p.set_stage_verify(is_postpay=True)
                 log_action(request.user.id, p, CHANGE, u'审核订货单')
                 self.message_user(request, u'已成功审核!')
         return HttpResponseRedirect(request.get_full_path())
