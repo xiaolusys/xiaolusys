@@ -9,7 +9,7 @@
 ################################################
 
 PUBLISH_HOST=(
-root@youni.huyi.so 
+root@admin.xiaolumm.com
 root@proxy.huyi.so
 root@sale.huyi.so 
 )

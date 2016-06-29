@@ -124,7 +124,7 @@
         $.ajax({"url": url, "data": data, "type": "post", "dataType":"json", "success": callback});
         function callback(res) {
             if (res.res) {
-                window.location = "http://youni.huyi.so/admin/dinghuo/returngoods/?q="+res.data[0];
+                window.location = "/admin/dinghuo/returngoods/?q="+res.data[0];
             }
         }
     }

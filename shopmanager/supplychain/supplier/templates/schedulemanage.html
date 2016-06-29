@@ -231,7 +231,20 @@
                                  <div class="checkbox">
                                      <label>
                                         <input type="checkbox" name="promotion" data-id="{{data1.id}}" {% if data1.is_promotion %}checked{% endif %}/>
-                                         <span>每日推送商品</span>                                     </label>
+                                         <span>每日推送商品</span>
+                                     </label>
+                                  </div>
+                                 <div class="checkbox">
+                                     <label>
+                                        <input type="checkbox" name="tophot" data-id="{{data1.id}}" {% if data1.is_top_type %}checked{% endif %}/>
+                                         <span>top10商品</span>
+                                     </label>
+                                  </div>
+                                 <div class="checkbox">
+                                     <label>
+                                        <input type="checkbox" name="brand" data-id="{{data1.id}}" {% if data1.is_brand_type %}checked{% endif %}/>
+                                         <span>品牌商品</span>
+                                     </label>
                                   </div>
                             </td>
                             <td><img  src="" class="preview_img zhutu_{{ data1.sale_product_id }}" width="100px">

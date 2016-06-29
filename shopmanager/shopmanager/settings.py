@@ -385,7 +385,7 @@ if not DEBUG:
     ALLOWED_HOSTS = ['.huyi.so', '.xiaolu.so', '.xiaolumeimei.com', '.xiaolumm.com', '121.199.168.159']
 
     # WEB DNS
-    SITE_URL = 'http://youni.huyi.so/'
+    SITE_URL = 'http://admin.xiaolumm.com/'
     # WAP DNS
     # M_SITE_URL = 'http://m.xiaolumeimei.com'
     ########################### ONEAPM Statsd ##############################

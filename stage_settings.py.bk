@@ -61,7 +61,7 @@ RAVEN_CONFIG = {
 
 
 #WEB DNS
-SITE_URL = 'http://youni.huyi.so/' 
+SITE_URL = 'http://admin.xiaolumm.com/'
 #WAP DNS
 M_SITE_URL = 'http://m.xiaolumeimei.com'  
 
