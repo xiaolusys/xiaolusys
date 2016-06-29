@@ -82,7 +82,6 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def aggregate(self, request, *args, **kwargs):
-
         sale_date  = request.GET.get('sale_date','')
         if not sale_date:
             start_date = datetime.date.today() - datetime.timedelta(days=7)
