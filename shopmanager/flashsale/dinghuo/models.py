@@ -349,11 +349,11 @@ class OrderList(models.Model):
     def update_stage(self):
         if self.stage == OrderList.STAGE_RECEIVE:
             self.set_stat()
-            if not self.lack:
+            if self.lack is False:
                 self.stage = OrderList.STAGE_STATE
                 self.save()
         elif self.stage == OrderList.STAGE_STATE:
-            if not self.lack and not self.is_postpay:
+            if self.lack is False and not self.is_postpay:
                 self.stage = OrderList.STAGE_COMPLETED
                 self.save()
 
