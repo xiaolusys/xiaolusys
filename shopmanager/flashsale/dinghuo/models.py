@@ -184,6 +184,7 @@ class OrderList(models.Model):
     stage = models.IntegerField(db_index=True, choices=STAGE_CHOICES, default=0, verbose_name=u'进度')
     lack = models.NullBooleanField(default=None, verbose_name=u'缺货')
     inferior = models.BooleanField(default=False, verbose_name=u'有次品')
+    press_num = models.IntegerField(default=0, verbose_name=u'催促次数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
     is_postpay = models.BooleanField(default=False, verbose_name=u'是否后付款')
     purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'PurchaseOrderUnikey')
@@ -284,15 +285,26 @@ class OrderList(models.Model):
     def status_name(self):
         return self.get_sys_status_display()
 
+    def press(self, desc):
+        OrderGuarantee(purchase_order=self, desc=desc).save()
+        self.press_num = self.guarantees.count()
+        self.save(update_fields=['press_num'])
+
     def set_stat(self):
         if self.stage in [OrderList.STAGE_DRAFT, OrderList.STAGE_CHECKED, OrderList.STAGE_DELETED]:
+            self.lack = None
             return
         lack = False
         inferior = False
+        arrival_quantity_total = 0
         for detail in self.order_list.all():
             if detail.need_arrival_quantity > 0:
                 lack = True
+            if detail.inferior_quantity > 0:
                 inferior = True
+            arrival_quantity_total += detail.arrival_quantity + detail.inferior_quantity
+        if arrival_quantity_total == 0:
+            lack = None
         change = False
         if self.lack != lack:
             change = True
@@ -334,15 +346,40 @@ class OrderList(models.Model):
             info = u'完成'
         return info
 
+    def update_stage(self):
+        if self.stage == OrderList.STAGE_RECEIVE:
+            self.set_stat()
+            if not self.lack:
+                self.stage = OrderList.STAGE_STATE
+                self.save()
+        elif self.stage == OrderList.STAGE_STATE:
+            if not self.lack and not self.is_postpay:
+                self.stage = OrderList.STAGE_COMPLETED
+                self.save()
+
+
 
 def check_with_purchase_order(sender, instance, created, **kwargs):
     if not created:
         return
 
+
 post_save.connect(
     check_with_purchase_order,
     sender=OrderList,
     dispatch_uid='post_save_check_with_purchase_order')
+
+
+def order_list_update_stage(sender, instance, created, **kwargs):
+    if instance.stage in [OrderList.STAGE_RECEIVE, OrderList.STAGE_STATE]:
+        from flashsale.dinghuo.tasks import task_orderlist_update_self
+        task_orderlist_update_self.delay(instance)
+
+
+post_save.connect(
+    order_list_update_stage,
+    sender=OrderList,
+    dispatch_uid='post_save_update_stage')
 
 
 def update_orderdetail_relationship(sender, instance, created, **kwargs):
@@ -479,14 +516,15 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
 
     real_orderlist = OrderList.objects.filter(id=instance.id).first()
 
-    if  real_orderlist and instance.status == OrderList.APPROVAL:
+    if real_orderlist and instance.status == OrderList.APPROVAL:
         # if the orderlist purchase confirm, then create forecast inbound
         from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
         try:
             with transaction.atomic():
                 api_create_or_update_forecastinbound_by_orderlist(instance)
-        except Exception,exc:
-            logger.error('update forecast inbound:%s'% exc.message, exc_info=True)
+        except Exception, exc:
+            logger.error('update forecast inbound:%s' % exc.message, exc_info=True)
+
 
 post_save.connect(
     orderlist_create_forecast_inbound,
@@ -515,6 +553,10 @@ def update_orderlist(sender, instance, created, **kwargs):
 
 post_save.connect(update_orderlist, sender=OrderDetail, dispatch_uid='post_save_update_orderlist')
 
+
+class OrderGuarantee(BaseModel):
+    purchase_order = models.ForeignKey(OrderList, related_name='guarantees', verbose_name=u'订货单')
+    desc = models.CharField(max_length=100, default='')
 
 class orderdraft(models.Model):
     buyer_name = models.CharField(default="None",
@@ -675,7 +717,6 @@ class ReturnGoods(models.Model):
             self._transactor_ = User.objects.get(id=self.transactor_id)
         return self._transactor_
 
-
     def products_item_sku(self):
         products = self.products
         for sku in self.product_skus:
@@ -750,19 +791,19 @@ class ReturnGoods(models.Model):
         rg_details = []
         for detail in inbound.details.filter(Q(out_stock=True) or Q(inferior_quantity__gt=0)):
             rg_detail = RGDetail(
-                    skuid=detail.sku_id,
-                    num=detail.out_stock_cnt,
-                    inferior_num=detail.inferior_quantity,
-                    price=0
-                )
+                skuid=detail.sku_id,
+                num=detail.out_stock_cnt,
+                inferior_num=detail.inferior_quantity,
+                price=0
+            )
             rg_details.append(rg_detail)
             rg_details.append(rg_detail)
         rg = ReturnGoods(supplier_id=supplier_id,
-                 noter=noter,
-                 return_num=sum([d.num for d in rg_details]),
-                 sum_amount=sum([d.num * d.price for d in rg_details]),
-                 type=1
-                 )
+                         noter=noter,
+                         return_num=sum([d.num for d in rg_details]),
+                         sum_amount=sum([d.num * d.price for d in rg_details]),
+                         type=1
+                         )
         rg.save()
         details = []
         for detail in rg_details:
@@ -891,7 +932,8 @@ class ReturnGoods(models.Model):
             skuid = item.skuid
             num = item.num
             inferior_num = item.inferior_num
-            ProductSku.objects.filter(id=skuid).update(quantity = F('quantity')+num, sku_inferior_num=F('sku_inferior_num')+inferior_num)
+            ProductSku.objects.filter(id=skuid).update(quantity=F('quantity') + num,
+                                                       sku_inferior_num=F('sku_inferior_num') + inferior_num)
             self.save()
         return
 
@@ -1023,6 +1065,7 @@ class RGDetail(models.Model):
                                                                 ReturnGoods.SUCCEED_RG, ]).aggregate(
             n=Sum("inferior_num")).get('n', 0)
         return res or 0
+
 
 def sync_rgd_return(sender, instance, created, **kwargs):
     instance.return_goods.set_stat()
@@ -1181,7 +1224,8 @@ class InBound(models.Model):
         request_all_sku = {}
         for orderdetail_id in data:
             orderdetail = OrderDetail.objects.get(id=orderdetail_id)
-            request_all_sku[int(orderdetail.chichu_id)] = request_all_sku.get(int(orderdetail.chichu_id), 0) + data[orderdetail_id]
+            request_all_sku[int(orderdetail.chichu_id)] = request_all_sku.get(int(orderdetail.chichu_id), 0) + data[
+                orderdetail_id]
         sku_data = self.sku_data
         for sku_id in request_all_sku:
             if request_all_sku.get(sku_id, 0) > sku_data[sku_id]:
@@ -1283,7 +1327,7 @@ class InBound(models.Model):
     def all_skus(self):
         orderlist_ids = self.get_may_allocate_order_list_ids()
         query = OrderDetail.objects.filter(orderlist_id__in=orderlist_ids).values('chichu_id').distinct()
-        return [int(item['chichu_id'])   for item in query]
+        return [int(item['chichu_id']) for item in query]
 
     def get_set_status_info(self):
         if self.set_stat():
@@ -1580,10 +1624,10 @@ class InBound(models.Model):
             inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
             if inbound_detail.checked:
                 inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
-                                                  data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
+                                            data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
             else:
                 inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
-                                                  data[inbound_detail_id]["inferiorQuantity"])
+                                            data[inbound_detail_id]["inferiorQuantity"])
                 inbound_detail.finish_check2()
         self.status = InBound.COMPLETED
         self.checked = True
@@ -1990,6 +2034,7 @@ def update_stock(sender, instance, created, **kwargs):
         instance.sync_order_detail()
         from shopback.items.tasks import task_update_productskustats_inferior_num
         task_update_productskustats_inferior_num.delay(instance.sku_id)
+
 
 post_save.connect(update_stock,
                   sender=InBoundDetail,

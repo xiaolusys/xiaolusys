@@ -34,7 +34,7 @@ class orderdetailInline(admin.TabularInline):
         return self.readonly_fields
 
 
-class ordelistAdmin(admin.ModelAdmin):
+class OrderListAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
         'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'sys_status', 'purchase_order_unikey')
@@ -42,11 +42,8 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num','shelf_status',
-        'created', 'shenhe', 'is_postpay',
-        'changedetail', 'note_name', 'supplier', 'express_no', 'p_district', 'reach_standard', 'updated', 'last_pay_date',
-        'created_by','sys_status','purchase_order_unikey',
-    )
+        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'shenhe', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'express_no',
+        'supplier', 'note_name')
     list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
                    'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
@@ -55,7 +52,7 @@ class ordelistAdmin(admin.ModelAdmin):
     list_per_page = 25
 
     def queryset(self, request):
-        qs = super(ordelistAdmin, self).queryset(request)
+        qs = super(OrderListAdmin, self).queryset(request)
         if request.user.is_superuser:
             return qs
         else:
@@ -78,7 +75,7 @@ class ordelistAdmin(admin.ModelAdmin):
         return ''.join(part)
 
     buyer_select.allow_tags = True
-    buyer_select.short_description = '负责人'
+    buyer_select.short_description = u'负责人'
 
     def shelf_status(self, obj):
         if obj.status != OrderList.SUBMITTING:
@@ -90,7 +87,7 @@ class ordelistAdmin(admin.ModelAdmin):
                 return ''
         return "已下架"
         
-    shelf_status.short_description = "是否下架"
+    shelf_status.short_description = u"是否下架"
     
     def calcu_item_sum_amount(self, obj):
         amount = 0
@@ -101,7 +98,7 @@ class ordelistAdmin(admin.ModelAdmin):
         return amount
 
     calcu_item_sum_amount.allow_tags = True
-    calcu_item_sum_amount.short_description = "录入价"
+    calcu_item_sum_amount.short_description = u"录入价"
 
     def calcu_model_num(self, obj):
         """计算显示款式数量"""
@@ -112,7 +109,7 @@ class ordelistAdmin(admin.ModelAdmin):
         return len(se)
 
     calcu_model_num.allow_tags = True
-    calcu_model_num.short_description = "款数"
+    calcu_model_num.short_description = u"款数"
 
     def quantity(self, obj):
         alldetails = OrderDetail.objects.filter(orderlist_id=obj.id,buy_quantity__gt=0)
@@ -122,7 +119,11 @@ class ordelistAdmin(admin.ModelAdmin):
         return '{0}'.format(quantityofoneorder)
 
     quantity.allow_tags = True
-    quantity.short_description = "商品数量"
+    quantity.short_description = u"商品数量"
+
+    def get_receive_status(self, obj):
+        return obj.get_receive_status()
+    get_receive_status.short_description = u"到货状态"
 
     def supply_chain(self, obj):
         return u'<div style="width: 150px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"><a href="{0}" target="_blank" >{1}</a></div>'.format(
@@ -130,13 +131,13 @@ class ordelistAdmin(admin.ModelAdmin):
             obj.supplier_shop or obj.supplier_name)
 
     supply_chain.allow_tags = True
-    supply_chain.short_description = "供应商"
+    supply_chain.short_description = u"供应商"
 
     def display_pic(self, obj):
         return u'<a href="#{0}" onclick="show_pic({0})" >图片{0}</a>'.format(obj.id)
 
     display_pic.allow_tags = True
-    display_pic.short_description = "显示图片"
+    display_pic.short_description = u"显示图片"
 
     def note_name(self, obj):
         return u'<pre style="width:300px;white-space: pre-wrap;word-break:break-all;">{0}</pre>'.format(
@@ -150,7 +151,7 @@ class ordelistAdmin(admin.ModelAdmin):
         return symbol_link
 
     shenhe.allow_tags = True
-    shenhe.short_description = "状态"
+    shenhe.short_description = u"状态"
 
     def changedetail(self, obj):
         symbol_link = u'【详情页】'
@@ -224,7 +225,7 @@ class ordelistAdmin(admin.ModelAdmin):
     def get_actions(self, request):
 
         user = request.user
-        actions = super(ordelistAdmin, self).get_actions(request)
+        actions = super(OrderListAdmin, self).get_actions(request)
 
         if user.is_superuser:
             return actions
@@ -289,7 +290,7 @@ class orderdetailAdmin(admin.ModelAdmin):
             return qs.exclude(orderlist__status='作废')
 
 
-admin.site.register(OrderList, ordelistAdmin)
+admin.site.register(OrderList, OrderListAdmin)
 admin.site.register(OrderDetail, orderdetailAdmin)
 admin.site.register(orderdraft)
 

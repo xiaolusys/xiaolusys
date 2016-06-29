@@ -1085,6 +1085,15 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         return Response(True)
 
     @detail_route(methods=['post'])
+    def press_order(self, request, pk):
+        orderlist = get_object_or_404(OrderList, pk=pk)
+        desc = request.POST.get("desc", '')
+        if desc:
+            orderlist.press(desc)
+        return Response(True)
+
+
+    @detail_route(methods=['post'])
     def cancel(self, request, pk):
         inbounds = InBound.objects.filter(id=pk)[:1]
         if not inbounds:
