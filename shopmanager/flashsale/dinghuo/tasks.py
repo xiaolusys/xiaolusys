@@ -1537,11 +1537,15 @@ def task_purchasedetail_update_orderdetail(pd):
             od.buy_unitprice = pd.unit_price_display
             od.total_price = pd.total_price_display
             od.save(update_fields=['buy_quantity', 'buy_unitprice', 'total_price', 'updated'])
-        
-        
+
+@task()
+def task_orderlist_update_self(ol):
+    ol.update_stage()
+
 @task()
 def task_orderdetail_update_orderlist(od):
     if not od.purchase_order_unikey:
+        od.orderlist.save()
         return
     
     ol = OrderList.objects.filter(purchase_order_unikey=od.purchase_order_unikey).first()

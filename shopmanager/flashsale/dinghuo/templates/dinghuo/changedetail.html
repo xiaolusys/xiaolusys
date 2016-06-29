@@ -226,28 +226,28 @@
         }
 
         function set_status_receive(orderlist_id) {
+
             var url = '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/set_stage_receive';
             $.ajax({url: url,
                 type: "post",
                 dateType: "json",
                 success: function(){
-                    alert("开始收货");
-                    windows.location.refresh();
+                    swal("Tips", "开始收货", "warning");
+                    window.location.reload();
                 }
             });
         }
         function set_status_state(orderlist_id) {
-            var url = '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/set_status_state';
+            var url = '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/set_stage_state';
             $.ajax({url: url,
                 type: "post",
                 dateType: "json",
                 success: function(){
-                    alert("开始结算");
-                    windows.location.refresh();
+                    swal("Tips", "开始结算", "warning");
+                    window.location.reload();
                 }
             });
         }
-
         function doKey() {
             if (event.keyCode == 116) {//屏蔽 F5 刷新键
                 event.keyCode = 0;
@@ -408,7 +408,30 @@
         <div class="col-lg-2">
             {{orderlist.updated}}
         </div>
+        <div class="col-lg-2">
+            催货{{orderlist.press_num}}次
+        </div>
+        <div class="col-lg-2">
+            <button type="button" class="btn-mini btn-primary" data-toggle="modal" data-target="#myModal">催货</button>
+        </div>
     </div>
+    {% if orderlist.press_num %}
+    <div class="row">
+        <div class="col-lg-12">
+            <table class="table">
+                <thead><th>催货时间</th><th>催货回复</th></thead>
+            {% for g in orderlist.guarantees.all%}
+            <tr><td>
+            {{g.created}}
+                </td><td>
+            {{g.desc}}
+                </td>
+                </tr>
+            {% endfor%}
+            </table>
+        </div>
+    </div>
+    {%endif%}
     <div class="row">
         <legend>
             <h4 class="head-title">详细列表</h4>
@@ -526,7 +549,24 @@
             </thead>
         </table>
     </div>
-
+    <div class="modal press" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">订货单催货</h4>
+          </div>
+          <div class="modal-body">
+            <label for="order_press_desc">催货回复</label>
+            <textarea type="text" style="width:100%;" id="order_press_desc"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-primary" id="btn_press">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
 {% endblock %}
 {% block tail_script %}
     <script type="text/javascript">
@@ -556,6 +596,7 @@
                 }
             });
         });
+
         $('#orderdetailtable').dataTable({
             //"bJQueryUI": true,
             "bAutoWidth": false, //自适应宽度
@@ -626,6 +667,20 @@
             $('#total_inferior_num').val(total_inferior_num.toString());
             $('#total_wait_post_num').val(total_wait_post_num.toString());
         }
+        function press_order() {
+            var desc = $("#order_press_desc").val();
+            var data = {"desc":desc};
+            console.dir(data);
+            var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/press_order';
+            $.ajax({url: url,
+                type: "post",
+                data: data,
+                dateType: "json",
+                success: function(){
+                    window.location.reload();
+                }
+            });
+        }
         $(function () {
             Calc_stats_data();
             $('.order_arrival_quantity').popover({
@@ -692,6 +747,9 @@
                  }
              });
             $('.order_inferior_quantity').popover();
+            $("#btn_press").click(function(){
+                press_order();
+            });
 
         });
     </script>
