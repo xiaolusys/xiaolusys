@@ -40,24 +40,19 @@ from supplychain.supplier.models import (
     SaleProductManage,
     SaleProductManageDetail
 )
-from supplychain.supplier.serializers import (
-    SaleSupplierSerializer,
-    SaleCategorySerializer,
-    SaleProductSerializer,
-    SimpleSaleProductSerializer
-)
+from supplychain.supplier import serializers
 
 
 class SaleSupplierList(generics.ListCreateAPIView):
     queryset = SaleSupplier.objects.all()
-    serializer_class = SaleSupplierSerializer
+    serializer_class = serializers.SaleSupplierSerializer
     template_name = "supplier_list.html"
     permission_classes = (permissions.IsAuthenticated,)
 
 
 class SaleSupplierDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = SaleSupplier.objects.all()
-    serializer_class = SaleSupplierSerializer
+    serializer_class = serializers.SaleSupplierSerializer
     renderer_classes = (JSONRenderer,)
     # template_name = "supplier.html"
     permission_classes = (permissions.IsAuthenticated,)
@@ -89,18 +84,18 @@ def chargeSupplier(request, pk):
 
 class SaleCategoryList(generics.ListCreateAPIView):
     queryset = SaleCategory.objects.all()
-    serializer_class = SaleCategorySerializer
+    serializer_class = serializers.SaleCategorySerializer
 
 
 class SaleCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = SaleCategory.objects.all()
-    serializer_class = SaleCategorySerializer
+    serializer_class = serializers.SaleCategorySerializer
     permission_classes = (permissions.IsAuthenticated,)
 
 
 class SaleProductList(generics.ListCreateAPIView):
     queryset = SaleProduct.objects.all()
-    serializer_class = SaleProductSerializer
+    serializer_class = serializers.SaleProductSerializer
     filter_fields = ("status", "sale_supplier")
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "product_screen.html"
@@ -115,7 +110,7 @@ class SaleProductList(generics.ListCreateAPIView):
 
         queryset = self.filter_queryset(self.queryset.order_by(*self.ordering))
         sale_category = SaleCategory.objects.all()
-        sale_category = SaleCategorySerializer(sale_category, many=True).data
+        sale_category = serializers.SaleCategorySerializer(sale_category, many=True).data
 
         supplier_id = request.GET.get('sale_supplier', '')
         supplier = None
@@ -127,7 +122,7 @@ class SaleProductList(generics.ListCreateAPIView):
                     progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
                 supplier.progress = progress
                 supplier.save()
-            supplier = SaleSupplierSerializer(supplier,
+            supplier = serializers.SaleSupplierSerializer(supplier,
                                               context={'request': request}).data
             queryset = queryset.filter(sale_supplier_id=supplier_id)
             if status:
@@ -169,7 +164,6 @@ class SaleProductList(generics.ListCreateAPIView):
                 if k == 'orderlist_show_memo' and v == 'on':
                     v = True
                 hasattr(sproduct, k) and setattr(sproduct, k, v)
-
         sproduct.sale_supplier = supplier
         sproduct.status = sproduct.status or SaleProduct.SELECTED
         sproduct.platform = SaleProduct.MANUALINPUT
@@ -184,7 +178,7 @@ class SaleProductList(generics.ListCreateAPIView):
 
 class SaleProductAdd(generics.ListCreateAPIView):
     queryset = SaleProduct.objects.all()
-    serializer_class = SaleProductSerializer
+    serializer_class = serializers.SaleProductSerializer
     filter_fields = ("status", "sale_supplier")
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "product_add.html"
@@ -200,7 +194,7 @@ class SaleProductAdd(generics.ListCreateAPIView):
         serializer = self.get_serializer(page, many=True)
         resp_data = serializer.data
         sale_category = SaleCategory.objects.all()
-        sale_category = SaleCategorySerializer(sale_category, many=True).data
+        sale_category = serializers.SaleCategorySerializer(sale_category, many=True).data
         supplier_id = request.GET.get('sale_supplier', '')
         supplier = None
         if supplier_id:
@@ -210,7 +204,7 @@ class SaleProductAdd(generics.ListCreateAPIView):
                     progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
                 supplier.progress = progress
                 supplier.save()
-            supplier = SaleSupplierSerializer(supplier,
+            supplier = serializers.SaleSupplierSerializer(supplier,
                                               context={'request': request}).data
         result_data = {'request_data': request.GET.dict(),
                        'supplier': supplier,
@@ -251,7 +245,7 @@ class SaleProductAdd(generics.ListCreateAPIView):
 
 class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = SaleProduct.objects.all()
-    serializer_class = SimpleSaleProductSerializer
+    serializer_class = serializers.SaleProductUpdateSerializer
     renderer_classes = (JSONRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -266,6 +260,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                                          partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+
         index_map = {SaleProduct.SELECTED: 1,
                      SaleProduct.PURCHASE: 2,
                      SaleProduct.PASSED: 3,
@@ -276,16 +271,14 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
         for k, v in request.data.iteritems():
             if not hasattr(instance, k):
                 continue
-            print k
             if k == 'orderlist_show_memo':
                 if v == 'on':
                     v = True
                     instance.orderlist_show_memo = True
-                    instance.save()
                 else:
                     v = False
                     instance.orderlist_show_memo = False
-                    instance.save()
+                instance.save(update_fields=['orderlist_show_memo'])
             update_field_labels.append('%s:%s' % (
                 SaleProduct._meta.get_field(k).verbose_name.title(), v))
 
@@ -476,7 +469,7 @@ class FetchAndCreateProduct(APIView):
         supplier = get_object_or_404(SaleSupplier, pk=pk)
         tsoup, response = getBeaSoupByCrawUrl(fetch_url)
         categorys = SaleCategory.objects.all()
-        sale_category = SaleCategorySerializer(categorys, many=True).data
+        sale_category = serializers.SaleCategorySerializer(categorys, many=True).data
 
         data = {
             'title': self.getItemTitle(tsoup),
@@ -486,7 +479,7 @@ class FetchAndCreateProduct(APIView):
             'supplier_sku': self.getSupplierSku(fetch_url, tsoup),
             'status': status,
             'categorys': sale_category,
-            'supplier': SaleSupplierSerializer(
+            'supplier': serializers.SaleSupplierSerializer(
                 supplier,
                 context={'request': request}).data
         }
@@ -543,7 +536,7 @@ class FetchAndCreateProduct(APIView):
                                                             '%Y-%m-%d %H:%M:%S')
 
         data = {'record':
-                SaleProductSerializer(sproduct,
+                serializers.SaleProductSerializer(sproduct,
                                       context={'request': request}).data, 'is_exists': is_exists}
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
 

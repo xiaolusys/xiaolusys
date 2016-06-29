@@ -43,9 +43,8 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SaleSupplier
-        fields = ('id', 'supplier_name', 'supplier_code', 'brand_url', 'main_page', 'contact', 'phone',
-                  'mobile', 'fax', 'zip_code', 'email', 'address', 'account_bank', 'account_no', 'progress',
-                  'category', 'status', 'created', 'modified', 'memo')
+        fields = ('id', 'supplier_name', 'supplier_code', 'brand_url',
+                  'progress', 'category', 'status', 'created', 'modified', 'memo')
 
 
 class PlatformField(serializers.Field):
@@ -70,6 +69,7 @@ class StatusField(serializers.Field):
         return data
 
 
+
 class SaleProductSerializer(serializers.ModelSerializer):
     sale_supplier = SaleSupplierSerializer(read_only=True)
     sale_category = SaleCategorySerializer()
@@ -84,9 +84,20 @@ class SaleProductSerializer(serializers.ModelSerializer):
             'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
             'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num', 'orderlist_show_memo')
 
+class SaleProductUpdateSerializer(serializers.ModelSerializer):
+    status = StatusField()
+    platform = PlatformField()
+    sale_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = SaleProduct
+        fields = (
+            'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
+            'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
+            'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num', 'orderlist_show_memo')
 
 class SimpleSaleProductSerializer(serializers.ModelSerializer):
-    # sale_supplier = SaleSupplierSerializer(read_only=True)
+    sale_supplier = SaleSupplierSerializer(read_only=True)
     sale_category = SaleCategorySerializer(read_only=True)
     status = StatusField()
     contactor = serializers.CharField(source='contactor.username', read_only=True)

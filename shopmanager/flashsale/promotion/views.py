@@ -283,7 +283,7 @@ class APPDownloadView(WeixinAuthMixin, View):
         from flashsale.promotion.tasks_activity import task_create_appdownloadrecord_with_userinfo, \
             task_create_appdownloadrecord_with_mobile
 
-        logger.error("AppDownloadView|request_url: %s" % request.build_absolute_uri())
+        logger.warn("AppDownloadView|request_url: %s" % request.build_absolute_uri())
 
         if from_customer.isdigit():
             if self.is_from_weixin(request):
@@ -303,7 +303,7 @@ class APPDownloadView(WeixinAuthMixin, View):
                     unionid = userinfo.get("unionid")
 
                     if not self.valid_openid(unionid):
-                        logger.error("Appdownloadview| invalid unionid: %s" % unionid)
+                        logger.warn("Appdownloadview| invalid unionid: %s" % unionid)
                     
                     if not unionid:
                         # if we still dont have openid, we have to do oauth
