@@ -34,7 +34,7 @@ class ChangeDetailView(View):
     @staticmethod
     def get(request, order_detail_id):
         order_list = OrderList.objects.get(id=order_detail_id)
-        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id,buy_quantity__gt=0)
+        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id,buy_quantity__gt=0).order_by('outer_id')
         flag_of_status = False
         flag_of_question = False
         flag_of_sample = False
@@ -389,7 +389,7 @@ class ChangeDetailExportView(View):
         supplier_name = ''
         supplier_contactor = ''
         supplier_contact = ''
-        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id,buy_quantity__gt=0)
+        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id,buy_quantity__gt=0).order_by('outer_id')
 
         receiver_address = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼' if order_list.p_district == '3' else \
             '上海市佘山镇吉业路245号5号楼'
