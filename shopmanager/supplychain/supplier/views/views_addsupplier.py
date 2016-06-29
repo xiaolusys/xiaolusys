@@ -140,6 +140,8 @@ def get_target_date_detail(target_date, category):
         for detail in all_detail:
             detail_dict = model_to_dict(detail)
             detail_dict['sale_memo'] = detail.sale_memo
+            detail_dict['is_top_type'] = detail.is_top_type
+            detail_dict['is_brand_type'] = detail.is_brand_type
             detail_list.append(detail_dict)
         return detail_list, wem_posters, chd_posters, target_sch[0]
     else:
@@ -550,6 +552,7 @@ class SaleProductManageDetailView(generics.ListCreateAPIView):
                 v = v and True or False
             update_fields.append(k)
             setattr(instance, k, v)
+        print 'debug:', data, update_fields
         if update_fields:
             instance.save(update_fields=update_fields)
 

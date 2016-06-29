@@ -1,7 +1,7 @@
 # coding: utf-8
 
 SP_BRAND = 'brand'
-SP_TOP   = 'top'
+SP_TOP   = 'atop'
 SP_SALE  = 'sale'
 
 
