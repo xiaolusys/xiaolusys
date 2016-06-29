@@ -91,7 +91,9 @@ class AppDownloadRecord(BaseModel):
 
     @property
     def note(self):
-        return u"下载关联已确认，马上粉你哦～"
+        if self.status == AppDownloadRecord.UNUSE:
+            return '下载关联已确认，马上粉你哦～'
+        return '通过分享成为你的粉丝～'
     
 
 def appdownloadrecord_update_fans(sender, instance, created, *args, **kwargs):
