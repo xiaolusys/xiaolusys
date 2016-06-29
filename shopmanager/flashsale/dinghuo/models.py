@@ -183,10 +183,10 @@ class OrderList(models.Model):
     # 改进原状态一点小争议和妥协造成的状态字段冗余 TODO@hy
     stage = models.IntegerField(db_index=True, choices=STAGE_CHOICES, default=0, verbose_name=u'进度')
     lack = models.NullBooleanField(default=None, verbose_name=u'缺货')
-    inferior = models.BooleanField(default=False, verbose_name=u'有次品')
+    inferior = models.BooleanField(default=False, verbose_name=u'次品')
     press_num = models.IntegerField(default=0, verbose_name=u'催促次数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
-    is_postpay = models.BooleanField(default=False, verbose_name=u'是否后付款')
+    is_postpay = models.BooleanField(default=False, verbose_name=u'后付')
     purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'PurchaseOrderUnikey')
 
     class Meta:
