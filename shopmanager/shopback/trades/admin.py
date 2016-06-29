@@ -1261,9 +1261,9 @@ admin.site.register(TradeWuliu, WuliuAdmin)
 
 
 class PackageOrderAdmin(admin.ModelAdmin):
-    list_display = ('pid', 'id', 'sys_status', 'type', 'out_sid', 'receiver_name', 'receiver_mobile',
+    list_display = ('pid', 'id', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
                     'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
-                    'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
+                    'is_send_sms', 'has_refund',  'ware_by', 'created', 'send_time', 'weight_time',
                     'consign_time', 'weight', 'merge_trade_id')
 
     search_fields = ['pid', 'id', 'out_sid', 'receiver_name', 'receiver_mobile']
@@ -1300,6 +1300,10 @@ class PackageOrderAdmin(admin.ModelAdmin):
                                   content_type="text/html")
 
     push_package_to_scan.short_description = "同步发货".decode('utf8')
+
+    def logistics_company_name(self, obj):
+        return obj.logistics_company.name if obj.logistics_company else ''
+    logistics_company_name.short_description = u"物流公司"
 
     actions = ['push_package_to_scan']
 
