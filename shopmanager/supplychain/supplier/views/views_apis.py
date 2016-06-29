@@ -71,6 +71,7 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
     """
     ###排期管理REST API接口：
     - 列表过滤条件: schedule_type, sale_suppliers
+    - /aggregate: 获取按日期聚合排期列表
     """
     queryset = SaleProductManage.objects.all()
     serializer_class = serializers.SimpleSaleProductManageSerializer
@@ -79,6 +80,34 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_fields = ('schedule_type', 'sale_suppliers')
 
+    @list_route(methods=['get'])
+    def aggregate(self, request, *args, **kwargs):
+
+        sale_date  = request.GET.get('sale_date','')
+        if not sale_date:
+            start_date = datetime.date.today() - datetime.timedelta(days=7)
+            queryset = self.queryset.filter(sale_time__gte=start_date)
+        else:
+            sale_date = datetime.datetime.strftime(sale_date, '%Y-%m-%d').date()
+            queryset = self.queryset.filter(sale_time=sale_date)
+
+        schedule_values = queryset.values(
+            'sale_time', 'id', 'schedule_type', 'product_num', 'lock_status')
+        aggregate_data = {}
+        for value in schedule_values:
+            sdate = value['sale_time'].strftime("%Y-%m-%d")
+            product_num = value['product_num']
+            if sdate in aggregate_data:
+                aggregate_data[sdate]['schedules'].append(value)
+                aggregate_data[sdate]['product_sum'] += product_num
+            else:
+                aggregate_data[sdate] = {
+                    'schedule_list': [value],
+                    'schedule_date': sdate,
+                    'product_sum': product_num
+                }
+        aggregate_list = sorted(aggregate_data.values(), key=lambda x:x['schedule_date'],reverse=True)
+        return Response(aggregate_list)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
