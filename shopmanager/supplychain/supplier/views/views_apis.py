@@ -63,6 +63,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_fields = ('sale_supplier', 'sale_category')
 
+    def destroy(self, request, *args, **kwargs):
+        raise NotImplemented
 
 
 class SaleScheduleViewSet(viewsets.ModelViewSet):
@@ -83,11 +85,14 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
         serializer = serializers.SaleProductManageSerializer(instance)
         return Response(serializer.data)
 
+    def destroy(self, request, *args, **kwargs):
+        raise NotImplemented
+
 
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     """
     ###排期管理商品REST API接口：
-    - 
+    -
     """
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
@@ -106,6 +111,9 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        raise NotImplemented
 
 
 
