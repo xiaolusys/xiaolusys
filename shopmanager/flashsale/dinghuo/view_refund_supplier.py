@@ -148,8 +148,9 @@ def change_duihuo_status(request):
         rg.save()
         log_action(user_id, rg, CHANGE,
                    change_status_des.format(rg.get_status_display()))
-    elif act_str == "send_fail":  # 已经发货
-        return
+    return HttpResponse(True)
+    # elif act_str == "send_fail":  # 已经发货
+    #     return
         # rg.status = ReturnGoods.FAILED_RG
         # rd = rg.rg_details.all()
         # try:
