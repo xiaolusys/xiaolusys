@@ -552,7 +552,6 @@ class SaleProductManageDetailView(generics.ListCreateAPIView):
                 v = v and True or False
             update_fields.append(k)
             setattr(instance, k, v)
-        print 'debug:', data, update_fields
         if update_fields:
             instance.save(update_fields=update_fields)
 

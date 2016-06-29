@@ -331,6 +331,12 @@ class OrderList(models.Model):
 
     def set_stage_state(self):
         self.stage = OrderList.STAGE_STATE
+        self.status = OrderList.TO_BE_PAID
+        self.save(update_fields=['stage', 'status'])
+
+    def set_stage_complete(self):
+        self.stage = OrderList.STAGE_STATE
+        self.status = OrderList.CLOSED
         self.save(update_fields=['stage', 'status'])
 
     def get_receive_status(self):

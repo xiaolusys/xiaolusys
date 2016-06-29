@@ -329,6 +329,18 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         return channel_list
 
+    def check_coupon(self, request, real_payment, cart_itemid_str):
+        customer = self.get_customer(request)
+        coupon_id = request.GET.get('coupon_id', '')
+        if coupon_id:
+            user_coupon = UserCoupon.objects.filter(id=coupon_id, customer_id=customer.id).first()
+            if not user_coupon:
+                raise exceptions.APIException(u'未找到该优惠券')
+            try:  # 优惠券条件检查 绑定产品　和满单金额
+                user_coupon.check_user_coupon(product_ids=cart_itemid_str, use_fee=real_payment)
+            except Exception, exc:
+                raise exceptions.APIException(exc.message)
+
     @list_route(methods=['get', 'post'])
     def carts_payinfo(self, request, format=None, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
@@ -339,12 +351,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not cart_ids or len(cart_ids) != queryset.count():
             raise exceptions.APIException(u'购物车已失效请重新加入')
 
+        item_ids = []
         total_fee = 0
         discount_fee = 0
         post_fee = 0
-        for cart in queryset:
-            total_fee += cart.price * cart.num
-
         xlmm = None
         customer = self.get_customer(request)
         if customer and customer.unionid.strip():
@@ -352,10 +362,15 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
 
         for cart in queryset:
+            total_fee += cart.price * cart.num
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
+            item_ids.append(cart.item_id)
 
         discount_fee = min(discount_fee, total_fee)
         total_payment = total_fee + post_fee - discount_fee
+
+        real_item_payment = total_fee - discount_fee
+        self.check_coupon(request, real_item_payment, ','.join(item_ids))
 
         ware_by = self.get_logistics_by_shoppingcart(queryset)
         default_address = customer.get_default_address()

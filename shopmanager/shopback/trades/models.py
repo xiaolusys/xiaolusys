@@ -1823,6 +1823,14 @@ class PackageSkuItem(BaseModel):
     def num_of_purchase_try(self):
         return 1
 
+    @property
+    def note(self):
+        if self.assign_status == PackageSkuItem.NOT_ASSIGNED and self.purchase_order_unikey:
+            return '亲，订单信息已送达外贸厂，厂家正发货，暂时不可取消。若要退款，请收货后选择七天无理由退货。客服电话400-823-5355。'
+        if self.assign_status == PackageSkuItem.FINISHED or self.assign_status == PackageSkuItem.CANCELED:
+            return '亲，申请退货后请注意退货流程，记得填写快递单号哦～'
+        return ''
+    
     def is_booking_needed(self):
         return self.assign_status == PackageSkuItem.NOT_ASSIGNED
 

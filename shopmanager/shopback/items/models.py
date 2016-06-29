@@ -1448,7 +1448,6 @@ class ContrastContent(models.Model):
 
     @classmethod
     def contrast_maps(cls):
-        # TODO ,如果内容字典修改,需要更新cache
         cache_key  = gen_contrast_cache_key(cls.__name__)
         cache_contrast = cache.get(cache_key)
         if not cache_contrast:

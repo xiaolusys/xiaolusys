@@ -1,5 +1,5 @@
 {% extends "dinghuo/dinghuo_base.html" %}
-{% block title %}订单详情页{% endblock %}
+{% block title %}订货单详情页{% endblock %}
 {% block head_script %}
     <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'/>
     <link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
@@ -314,7 +314,7 @@
                 <strong>联系人:{{orderlist.supplier.contact}}</strong><br/>
             <strong>供应商其他联系方式：{{orderlist.supplier.zip_code}}</strong></p>
             <p class="alert alert-success" role="alert">
-                <strong>商品链接:<input id = "supplier_name" size = 30 type="text" value={{orderlist.supplier_name}} /></strong>
+                <strong>商品链接:<input id = "supplier_name" size = 30 type="text" value={{orderlist.supplier.product_link}} /></strong>
                 <strong> <a href="{{ orderlist.supplier_name }}" target="_blank">{{ orderlist.supplier_name }}</a></strong>
             </p>
         </div>
