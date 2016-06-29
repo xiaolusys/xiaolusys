@@ -1486,6 +1486,8 @@ def task_purchasearrangement_update_purchaserecord_book_num(pa):
     res = PurchaseArrangement.objects.filter(purchase_record_unikey=pa.purchase_record_unikey,
                                              purchase_order_status__lte=PurchaseOrder.BOOKED).aggregate(total=Sum('num'))
     book_num = res['total'] or 0
+    logger.warn("pa update pr.book_num: %s" % book_num)
+    
     pr = PurchaseRecord.objects.filter(uni_key=pa.purchase_record_unikey).first()
     if pr and pr.book_num != book_num:
         pr.book_num = book_num
