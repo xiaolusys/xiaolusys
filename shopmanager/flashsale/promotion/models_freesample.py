@@ -88,6 +88,10 @@ class AppDownloadRecord(BaseModel):
 
     def is_activated(self):
         return self.status == AppDownloadRecord.USED
+
+    @property
+    def note(self):
+        return u"下载关联已确认，马上粉你哦～"
     
 
 def appdownloadrecord_update_fans(sender, instance, created, *args, **kwargs):

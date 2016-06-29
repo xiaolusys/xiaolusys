@@ -230,5 +230,7 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
 from flashsale.promotion.models_freesample import AppDownloadRecord
 
 class AppDownloadRecordSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = AppDownloadRecord
+        fields = ('headimgurl', 'nick', 'mobile', 'note', 'modified')
