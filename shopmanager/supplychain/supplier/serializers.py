@@ -82,19 +82,22 @@ class SaleProductSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
             'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
-            'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num', 'orderlist_show_memo')
+            'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num',
+            'orderlist_show_memo')
 
 class SaleProductUpdateSerializer(serializers.ModelSerializer):
     status = StatusField()
     platform = PlatformField()
     sale_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    orderlist_show_memo = serializers.NullBooleanField()
 
     class Meta:
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
             'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
-            'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num', 'orderlist_show_memo')
+            'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num',
+            'orderlist_show_memo')
 
 class SimpleSaleProductSerializer(serializers.ModelSerializer):
     sale_supplier = SaleSupplierSerializer(read_only=True)
