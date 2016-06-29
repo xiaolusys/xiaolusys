@@ -72,8 +72,17 @@
          #panel-message .panel-body {
              padding: 0;
          }
-         input[type=checkbox]:checked + span{
-            color: red;
+         input[type=checkbox] + span{
+            background-color: #777;
+         }
+         input[name=promotion]:checked + span{
+            background-color: #d9534f;
+         }
+         input[name=atop]:checked + span{
+            background-color: #337ab7;
+         }
+         input[name=brand]:checked + span{
+            background-color: #5cb85c;
          }
         </style>
     </head>
@@ -231,19 +240,19 @@
                                  <div class="checkbox">
                                      <label>
                                         <input type="checkbox" name="promotion" data-id="{{data1.id}}" {% if data1.is_promotion %}checked{% endif %}/>
-                                         <span>每日推送商品</span>
+                                         <span class="label">每日推送商品</span>
                                      </label>
                                   </div>
                                  <div class="checkbox">
                                      <label>
-                                        <input type="checkbox" name="tophot" data-id="{{data1.id}}" {% if data1.is_top_type %}checked{% endif %}/>
-                                         <span>top10商品</span>
+                                        <input type="checkbox" name="atop" data-id="{{data1.id}}" {% if data1.is_top_type %}checked{% endif %}/>
+                                         <span class="label">top10商品</span>
                                      </label>
                                   </div>
                                  <div class="checkbox">
                                      <label>
                                         <input type="checkbox" name="brand" data-id="{{data1.id}}" {% if data1.is_brand_type %}checked{% endif %}/>
-                                         <span>品牌商品</span>
+                                         <span class="label">品牌商品</span>
                                      </label>
                                   </div>
                             </td>
@@ -809,6 +818,32 @@
              var checked = typeof($(this).attr('checked')) != 'undefined'?'on':'';
              var detail_id = $(this).attr('data-id');
              var params = {'is_promotion':checked};
+             $.post('/supplychain/supplier/schedule/detail/'+ detail_id +'/',
+                params,
+                function(resp){
+                    console.log(resp);
+                },
+                'json'
+             )
+         });
+         // 是否选择TOP10商品
+         $('input[name="atop"]').click(function(){
+             var schedule_type = typeof($(this).attr('checked')) != 'undefined'?'atop':'sale';
+             var detail_id = $(this).attr('data-id');
+             var params = {'schedule_type': schedule_type};
+             $.post('/supplychain/supplier/schedule/detail/'+ detail_id +'/',
+                params,
+                function(resp){
+                    console.log(resp);
+                },
+                'json'
+             )
+         });
+         // 是否选择品牌商品
+         $('input[name="brand"]').click(function(){
+             var schedule_type = typeof($(this).attr('checked')) != 'undefined'?'brand':'sale';
+             var detail_id = $(this).attr('data-id');
+             var params = {'schedule_type': schedule_type};
              $.post('/supplychain/supplier/schedule/detail/'+ detail_id +'/',
                 params,
                 function(resp){
