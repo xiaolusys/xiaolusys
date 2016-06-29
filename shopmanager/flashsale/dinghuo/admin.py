@@ -42,9 +42,9 @@ class OrderListAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'shenhe', 'stage', 'get_receive_status', 'is_postpay', 'changedetail',
+        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'shenhe', 'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail',
         'supplier', 'note_name')
-    list_filter = (('created', DateFieldListFilter), 'stage', 'lack', 'inferior', 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
+    list_filter = (('created', DateFieldListFilter), 'stage', 'lack', 'inferior', 'is_postpay', 'press_num', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
                    'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
     date_hierarchy = 'created'
