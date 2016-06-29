@@ -99,9 +99,9 @@ class AddItemView(generics.ListCreateAPIView):
                 chi_ma_content = content.get(sku + "_" + chi_ma + "_size")
                 if chi_ma_content and len(chi_ma_content) > 0 and chi_ma_content != "0":
                     if sku in chi_ma_result:
-                        chi_ma_result[sku][temp_chi_ma.id] = chi_ma_content
+                        chi_ma_result[sku][temp_chi_ma.cid] = chi_ma_content
                     else:
-                        chi_ma_result[sku] = {temp_chi_ma.id: chi_ma_content}
+                        chi_ma_result[sku] = {temp_chi_ma.cid: chi_ma_content}
         pro_count = 1
         for color in all_colors:
             total_remain_num = 0
