@@ -85,7 +85,6 @@ $(".sale_category_select").live("change",function(e){
 
     var url = "/supplychain/supplier/product/"+ spid +"/?format=json";
     var callback = function (res) {
-
      if (res.sale_category.toString() == cat_id) {
           $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
         }
