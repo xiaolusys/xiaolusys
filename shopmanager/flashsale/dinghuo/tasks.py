@@ -1483,11 +1483,13 @@ def task_packageskuitem_update_purchaserecord(psi):
 def task_purchasearrangement_update_purchaserecord_book_num(pa):
     #print "debug: %s" % utils.get_cur_info()
     
-    res = PurchaseArrangement.objects.filter(purchase_record_unikey=pa.purchase_record_unikey,
-                                             purchase_order_status__lte=PurchaseOrder.BOOKED).aggregate(total=Sum('num'))
-    book_num = res['total'] or 0
-    logger.warn("pa update pr.book_num: %s" % book_num)
+    res = PurchaseArrangement.objects.filter(
+        purchase_record_unikey=pa.purchase_record_unikey,
+        purchase_order_status__lte=PurchaseOrder.BOOKED,
+        status=PurchaseRecord.EFFECT).aggregate(total=Sum('num'))
     
+    book_num = res['total'] or 0
+
     pr = PurchaseRecord.objects.filter(uni_key=pa.purchase_record_unikey).first()
     if pr and pr.book_num != book_num:
         pr.book_num = book_num
