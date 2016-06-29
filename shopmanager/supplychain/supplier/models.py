@@ -414,17 +414,17 @@ pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
 
 class SaleProductManage(models.Model):
 
-    TYPE_BRAND = 'brand'
-    TYPE_TOP   = 'top'
-    TYPE_SALE  = 'sale'
-    TYPE_CHOICES = (
-        (TYPE_BRAND, u'品牌'),
-        (TYPE_TOP, u'TOP榜'),
-        (TYPE_SALE, u'特卖'),
+    SP_BRAND = constants.SP_BRAND
+    SP_TOP   = constants.SP_TOP
+    SP_SALE  = constants.SP_SALE
+    SP_TYPE_CHOICES = (
+        (SP_BRAND, u'品牌'),
+        (SP_TOP, u'TOP榜'),
+        (SP_SALE, u'特卖'),
     )
 
-    schedule_type = models.CharField(max_length=16,default=TYPE_SALE,
-                                     choices=TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
+    schedule_type = models.CharField(max_length=16,default=SP_SALE,
+                                     choices=SP_TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
     sale_suppliers = models.ManyToManyField('supplier.SaleSupplier', blank=True, verbose_name=u'排期供应商')
     sale_time = models.DateField(db_index=True, unique=True, verbose_name=u'排期日期')
     product_num = models.IntegerField(default=0, verbose_name=u'商品数量')
@@ -482,6 +482,17 @@ class SaleProductManageDetail(models.Model):
         (TAKEOVER, u'接管'),
         (NOTTAKEOVER, u'未接管')
     )
+    SP_BRAND = constants.SP_BRAND
+    SP_TOP = constants.SP_TOP
+    SP_SALE = constants.SP_SALE
+    SP_TYPE_CHOICES = (
+        (SP_BRAND, u'品牌'),
+        (SP_TOP, u'TOP榜'),
+        (SP_SALE, u'特卖'),
+    )
+
+    schedule_type = models.CharField(max_length=16, default=SP_SALE,
+                                     choices=SP_TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
     schedule_manage = models.ForeignKey(SaleProductManage, related_name='manage_schedule', verbose_name=u'排期管理')
     sale_product_id = models.BigIntegerField(default=0, verbose_name=u"选品ID")
     name = models.CharField(max_length=64, verbose_name=u'选品名称')
@@ -548,6 +559,14 @@ class SaleProductManageDetail(models.Model):
     @property
     def pic_rating_memos(self):
         return self._pic_rating_memos.all().order_by('created')
+
+    @property
+    def is_top_type(self):
+        return self.schedule_type == self.SP_TOP
+
+    @property
+    def is_brand_type(self):
+        return self.schedule_type == self.SP_BRAND
 
 
 post_save.connect(update_saleproduct_supplier, SaleProductManageDetail)

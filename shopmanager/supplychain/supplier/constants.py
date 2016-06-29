@@ -1,5 +1,10 @@
 # coding: utf-8
 
+SP_BRAND = 'brand'
+SP_TOP   = 'top'
+SP_SALE  = 'sale'
+
+
 from django.conf import settings
 
 if settings.DEBUG:
