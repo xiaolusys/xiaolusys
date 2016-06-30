@@ -881,9 +881,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 budget_amount += round(float(param['budget']) * 100)
         return budget_amount
 
+    def logger_request(self, request):
+        cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
+        logger.warn('cart create:%s | %s | %s | %s' % (request.GET.get('uuid'),
+                                                       request.META.get('HTTP_USER_AGENT'), request.GET, cookies))
+
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
         """ 购物车订单支付接口 """
+        self.logger_request(request)
+
         CONTENT = request.REQUEST
         tuuid = CONTENT.get('uuid')
         if not UUID_RE.match(tuuid):
