@@ -344,6 +344,11 @@ class OrderList(models.Model):
         self.status = OrderList.CLOSED
         self.save(update_fields=['stage', 'status'])
 
+    def set_stage_delete(self):
+        self.stage = OrderList.STAGE_DELETED
+        self.status = OrderList.ZUOFEI
+        self.save(update_fields=['stage', 'status'])
+
     def get_receive_status(self):
         if self.lack is None:
             return u'未到货'
