@@ -846,15 +846,17 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     def logger_request(self, request):
         cookies = dict([(k,v) for k,v in request.COOKIES.items() if k in ('mm_linkid','ufrom')])
-        logger.warn('%s | %s | %s | %s'%(request.GET.get('uuid'), request.META.get('HTTP_USER_AGENT'), request.GET, cookies))
+        logger.warn('cart create:%s | %s | %s | %s'%(request.GET.get('uuid'),
+                                                     request.META.get('HTTP_USER_AGENT'), request.GET, cookies))
 
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
         """ 购物车订单支付接口 """
+        self.logger_request(request)
+
         CONTENT  = request.REQUEST
         tuuid    = CONTENT.get('uuid')
         customer = get_object_or_404(Customer,user=request.user)
-
         cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
         cart_qs = ShoppingCart.objects.filter(
             id__in=[i for i in cart_ids if i.isdigit()],
