@@ -530,5 +530,6 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                                        'total_out_amount': total_out_amount}},
                         template_name='forecast/aggregate_billing_detail.html')
 
-
-
+    @list_route(methods=['get'])
+    def reports(self, request, *args, **kwargs):
+        return Response({},template_name='forecast/reports.html')
