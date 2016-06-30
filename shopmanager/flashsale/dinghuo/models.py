@@ -850,7 +850,7 @@ class ReturnGoods(models.Model):
             unreturn_sku_ids = [i["id"] for i in supplier.unreturnsku_set.values("sku_id")]
             return ProductSkuStats.objects.filter(product__id__in=product_ids,
                                                   product__offshelf_time__lt=datetime.datetime.now() - datetime.timedelta(
-                                                      days=15),
+                                                      days=10),
                                                   sold_num__lt=F('history_quantity') + F('inbound_quantity') + F(
                                                       'return_quantity') \
                                                                - F('rg_quantity')).exclude(
