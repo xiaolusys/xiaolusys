@@ -89,7 +89,7 @@ def calculate_value_and_time(tpl):
     return value, start_use_time, expires_time
 
 
-def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id=None):
+def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id=None, cashout_id=None):
     """
     生成 uniq_id: template.id + template.coupon_type + customer_id + X
     """
@@ -113,6 +113,9 @@ def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id
 
     elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE and share_id:  # 活动分享 6
         uniqs.append(str(share_id))
+
+    elif tpl.coupon_type == CouponTemplate.TYPE_CASHOUT_EXCHANGE and cashout_id:  # 优惠券兑换　7
+        uniqs.append(str(cashout_id))
     else:
         raise Exception('Template type is tpl.coupon_type : %s !' % tpl.coupon_type)
     return '_'.join(uniqs)
@@ -292,6 +295,47 @@ class UserCouponManager(BaseManager):
                                         coupon_type=tpl.coupon_type,
                                         customer_id=int(buyer_id),
                                         trade_tid=trade.tid,
+                                        value=value,
+                                        start_use_time=start_use_time,
+                                        expires_time=expires_time,
+                                        ufrom=ufrom,
+                                        uniq_id=uniq_id,
+                                        extras=extras)
+        # update the release num
+        tasks.task_update_tpl_released_coupon_nums.delay(tpl)
+        return cou, 0, u"领取成功"
+
+    def create_cashout_exchange_coupon(self, buyer_id, template_id, cashout_id=None, ufrom=None, **kwargs):
+        """
+        创建退货补贴邮费优惠券
+        这里计算领取数量(默认能领取多张 填写 uniq_id的张数内容)
+        """
+        from flashsale.coupon.models import UserCoupon, CouponTemplate
+
+        ufrom = ufrom or ''
+        cashout_id = cashout_id or ''
+        if not (buyer_id and template_id and cashout_id):
+            return None, 7, u'没有发放'
+        tpl, code, tpl_msg = check_template(template_id)  # 优惠券检查
+        if not tpl:  # 没有找到模板或者没有
+            return tpl, code, tpl_msg
+        if tpl.coupon_type != CouponTemplate.TYPE_CASHOUT_EXCHANGE:  # 模板类型不是 提现兑换 则抛出异常
+            raise AssertionError(u'领取优惠券类型有误!')
+        customer, code, cu_msg = check_target_user(buyer_id, tpl)  # 用户身份检查
+        if not customer:  # 用户不存在
+            return customer, code, cu_msg
+
+        coupons, code, tpl_n_msg = check_template_release_nums(tpl, template_id)  # 优惠券存量检查
+        if coupons is None:  # coupons 该优惠券的发放queryset
+            return coupons, code, tpl_n_msg
+
+        value, start_use_time, expires_time = calculate_value_and_time(tpl)
+        uniq_id = make_uniq_id(tpl, customer.id, cashout_id=cashout_id)
+        extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
+        cou = UserCoupon.objects.create(template_id=int(template_id),
+                                        title=tpl.title,
+                                        coupon_type=tpl.coupon_type,
+                                        customer_id=int(buyer_id),
                                         value=value,
                                         start_use_time=start_use_time,
                                         expires_time=expires_time,

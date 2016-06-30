@@ -39,13 +39,15 @@ class CouponTemplate(BaseModel):
     TYPE_COMPENSATE = 4
     TYPE_ORDER_BENEFIT = 5
     TYPE_ACTIVE_SHARE = 6
+    TYPE_CASHOUT_EXCHANGE = 7
     COUPON_TYPES = (
         (TYPE_NORMAL, u"普通类型"),  # 一般点击类型,或者普通发放类型
         (TYPE_ORDER_BENEFIT, u"下单红包"),  # 用户购买商品后发放
         (TYPE_ORDER_SHARE, u"订单分享"),  # 用户购买商品后分享给其他人领取
         (TYPE_MAMA_INVITE, u"推荐专享"),  # 在代理的专属链接购买商品后,给代理发放的类型
         (TYPE_COMPENSATE, u"售后补偿"),  # 不邮费等售后服务发放
-        (TYPE_ACTIVE_SHARE, u"活动分享")  # 不邮费等售后服务发放
+        (TYPE_ACTIVE_SHARE, u"活动分享"),  # 不邮费等售后服务发放
+        (TYPE_CASHOUT_EXCHANGE, u"提现兑换")  # 提现兑换类型
     )
 
     TARGET_ALL = 1
@@ -311,13 +313,15 @@ class UserCoupon(BaseModel):
     TYPE_COMPENSATE = 4
     TYPE_ORDER_BENEFIT = 5
     TYPE_ACTIVE_SHARE = 6
+    TYPE_CASHOUT_EXCHANGE = 7
     COUPON_TYPES = (
         (TYPE_NORMAL, u"普通类型"),  # 一般点击类型,或者普通发放类型
         (TYPE_ORDER_BENEFIT, u"下单红包"),  # 用户购买商品后发放
         (TYPE_ORDER_SHARE, u"订单分享"),  # 用户购买商品后分享给其他人领取
         (TYPE_MAMA_INVITE, u"推荐专享"),  # 在代理的专属链接购买商品后,给代理发放的类型
         (TYPE_COMPENSATE, u"售后补偿"),  # 不邮费等售后服务发放
-        (TYPE_ACTIVE_SHARE, u"活动分享")  # 不邮费等售后服务发放
+        (TYPE_ACTIVE_SHARE, u"活动分享"),  # 不邮费等售后服务发放
+        (TYPE_CASHOUT_EXCHANGE, u"提现兑换")  # 提现兑换类型
     )
 
     UNUSED = 0
