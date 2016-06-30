@@ -43,9 +43,8 @@ class OrderListAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'shenhe', 'created', 'press_num', 'stage',
-        'get_receive_status', 'is_postpay', 'changedetail',
-        'supplier', 'note_name')
+        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'purchase_total_num', 'shelf_status', 'shenhe',
+        'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name')
     list_filter = (('created', DateFieldListFilter), 'stage', OrderListReceiveStatusFilter, 'is_postpay', 'press_num',
                    OrderListStatusFilter, 'pay_status', BuyerNameFilter,
                    'last_pay_date', 'created_by')
@@ -114,15 +113,15 @@ class OrderListAdmin(admin.ModelAdmin):
     calcu_model_num.allow_tags = True
     calcu_model_num.short_description = u"款数"
 
-    def quantity(self, obj):
-        alldetails = OrderDetail.objects.filter(orderlist_id=obj.id, buy_quantity__gt=0)
-        quantityofoneorder = 0
-        for detail in alldetails:
-            quantityofoneorder += detail.buy_quantity
-        return '{0}'.format(quantityofoneorder)
-
-    quantity.allow_tags = True
-    quantity.short_description = u"商品数量"
+    # def quantity(self, obj):
+    #     alldetails = OrderDetail.objects.filter(orderlist_id=obj.id, buy_quantity__gt=0)
+    #     quantityofoneorder = 0
+    #     for detail in alldetails:
+    #         quantityofoneorder += detail.buy_quantity
+    #     return '{0}'.format(quantityofoneorder)
+    #
+    # quantity.allow_tags = True
+    # quantity.short_description = u"商品数量"
 
     def get_receive_status(self, obj):
         return obj.get_receive_status()
@@ -144,7 +143,7 @@ class OrderListAdmin(admin.ModelAdmin):
     display_pic.short_description = u"显示图片"
 
     def note_name(self, obj):
-        return u'<pre style="width:300px;white-space: pre-wrap;word-break:break-all;">{0}</pre>'.format(
+        return u'<pre style="white-space: pre-wrap;word-break:break-all;">{0}</pre>'.format(
             obj.note)
 
     note_name.allow_tags = True
@@ -750,7 +749,19 @@ class InBoundDetailAdmin(admin.ModelAdmin):
 
 class OrderDetailInBoundDetailAdmin(admin.ModelAdmin):
     list_display = (
-        'show_orderdetail', 'show_inbounddetail', 'arrival_quantity', 'inferior_quantity', 'created', 'status')
+        'orderlist_id_link', 'show_orderdetail', 'inbound_id_link', 'show_inbounddetail', 'arrival_quantity', 'inferior_quantity', 'created', 'status')
+
+    def orderlist_id_link(self, obj):
+        return '<a href="/sale/dinghuo/changedetail/%(id)d" target="_blank">%(id)d</a>' % {'id': obj.orderdetail.orderlist_id}
+
+    orderlist_id_link.allow_tags = True
+    orderlist_id_link.short_description = u'订货单ID'
+
+    def inbound_id_link(self, obj):
+        return '<a href="/sale/dinghuo/inbound/%(id)d" target="_blank">%(id)d</a>' % {'id': obj.inbounddetail.inbound_id}
+
+    inbound_id_link.allow_tags = True
+    inbound_id_link.short_description = u'入库单ID'
 
     def show_orderdetail(self, obj):
         return '<a href="/admin/dinghuo/orderdetail/?id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.orderdetail_id}
@@ -765,6 +776,10 @@ class OrderDetailInBoundDetailAdmin(admin.ModelAdmin):
     show_inbounddetail.allow_tags = True
     show_inbounddetail.short_description = u'入仓明细ID'
 
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['inbounddetail__sku_id']:
+            return True
+        return super(OrderDetailInBoundDetailAdmin, self).lookup_allowed(lookup, value)
 
 admin.site.register(InBound, InBoundAdmin)
 admin.site.register(InBoundDetail, InBoundDetailAdmin)
