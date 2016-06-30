@@ -1,6 +1,6 @@
 # coding=utf-8
 import logging
-import os, urlparse
+import os, urlparse, collections
 import datetime
 import decimal
 from django.shortcuts import get_object_or_404
@@ -21,7 +21,7 @@ from . import permissions as perms
 from . import serializers
 
 from flashsale.clickcount.models import Clicks
-from core.options import log_action, ADDITION
+from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans, FansNumberRecord
 from flashsale.clickcount.models import ClickCount
@@ -29,6 +29,8 @@ from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models_fortune import MamaFortune
 from flashsale.pay.models import BudgetLog
 from flashsale.xiaolumm.models_fortune import MamaFortune
+from flashsale.coupon.models import UserCoupon, CouponTemplate
+
 logger = logging.getLogger(__name__)
 
 
@@ -519,7 +521,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         # 满足提现请求　创建提现记录
         cashout = CashOut(xlmm=xlmm.id, value=value, approve_time=datetime.datetime.now())
         cashout.save()
-        
+
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
         return Response(msg)
 
@@ -564,6 +566,65 @@ class CashOutViewSet(viewsets.ModelViewSet):
             code = 0 if result else 1
             return Response({"code": code})  # 0　体现取消成功　1　失败
         return Response({"code": 2})  # 提现记录不存在
+
+    @list_route(methods=['get'])
+    def exchange_coupon(self, request):
+        """
+        代理余额兑换优惠券
+        """
+        content = request.REQUEST
+        exchange_num = content.get("exchange_num") or None  # 兑换张数
+        template_id = content.get("template_id") or None  # 兑换的优惠券模板　72: ￥20　73　￥50
+        default_return = collections.defaultdict(code=0, info='兑换成功')
+        if not (exchange_num and template_id):
+            default_return.update({"code": 1, "info": "参数错误"})
+            return Response(default_return)
+        tpl = CouponTemplate.objects.filter(id=template_id).first()
+        if not tpl:
+            default_return.update({"code": 2, "info": "优惠券还没有开放"})
+            return Response(default_return)
+        customer, xlmm = self.get_customer_and_xlmm(request)
+        if not xlmm:
+            default_return.update({"code": 3, "info": "用户异常"})
+            return Response(default_return)
+        could_cash_out, _ = self.get_mamafortune(xlmm.id)  # 可提现的金额
+        exchange_amount = int(exchange_num) * tpl.value
+        if exchange_amount > could_cash_out:
+            default_return.update({"code": 4, "info": "兑换额超过余额"})
+            return Response(default_return)
+
+        def exchange_one_coupon():
+            cash = CashOut(xlmm=xlmm.id,
+                           value=tpl.value * 100,
+                           approve_time=datetime.datetime.now(),
+                           status=CashOut.APPROVED)
+            cash.save()
+            log_action(request.user, cash, ADDITION, u'用户现金兑换优惠券添加提现记录')
+            cou, co, ms = UserCoupon.objects.create_cashout_exchange_coupon(customer.id, tpl.id,
+                                                                            cashout_id=cash.id)
+            if co != 0:
+                cash.status = CashOut.CANCEL
+                cash.save(update_fields=['status'])
+                log_action(request.user, cash, CHANGE, u'优惠券兑换失败，自动取消提现记录')
+            return cash.id, cou, co, ms
+
+        codes = []
+        msgs = []
+        for i in xrange(int(exchange_num)):
+            try:
+                cashout_id, coupon, c_code, msg = exchange_one_coupon()
+                codes.append(c_code)
+                msgs.append(msg)
+            except AssertionError as e:
+                msgs.append(e.message)
+                logger.error(u'exchange_coupon %s' % e)
+                continue
+        success_num = codes.count(0)  # 发放成功的数量
+        if success_num > 0:
+            default_return.update({"info": "成功兑换%s张优惠券" % success_num})
+            return Response(default_return)
+        default_return.update({"code": 5, "info": "兑换出错:%s" % '/'.join(msgs)})
+        return Response(default_return)
 
 
 class ClickViewSet(viewsets.ModelViewSet):

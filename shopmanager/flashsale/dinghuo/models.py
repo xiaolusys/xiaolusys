@@ -345,7 +345,7 @@ class OrderList(models.Model):
         if self.lack and not self.inferior:
             info = u'缺货'
         elif self.lack and self.inferior:
-            info = u'有次品又缺货'
+            info = u'次品又缺货'
         elif self.inferior:
             info = u'有次品'
         else:
@@ -356,12 +356,10 @@ class OrderList(models.Model):
         if self.stage == OrderList.STAGE_RECEIVE:
             self.set_stat()
             if self.lack is False:
-                self.stage = OrderList.STAGE_STATE
-                self.save()
+                self.set_stage_state()
         elif self.stage == OrderList.STAGE_STATE:
             if self.lack is False and not self.is_postpay:
-                self.stage = OrderList.STAGE_COMPLETED
-                self.save()
+                self.set_stage_complete()
 
 
 

@@ -1220,7 +1220,7 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = (
         'sku_link', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
-        'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'inferior_num',
+        'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link', 'inferior_num',
         'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
         # 'realtime_lock_num_display',
@@ -1247,6 +1247,11 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
             return True
         return super(ProductSkuStatsAdmin, self).lookup_allowed(lookup, value)
 
+    def unused_stock_link(self, obj):
+        return obj.unused_stock
+    unused_stock_link.short_description = u'冗余库存数'
+    unused_stock_link.admin_order_field = 'unused_stock'
+
     def get_changelist(self, request, **kwargs):
         """
         Returns the ChangeList class for use on the changelist page.
@@ -1254,7 +1259,12 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         orderingdict = {'now_quantity': (F('post_num') + F('rg_quantity')
                                          - F('history_quantity') - F('inbound_quantity') - F('return_quantity'),
                                          F('history_quantity') + F('inbound_quantity') + F('return_quantity') - F(
-                                             'post_num') - F('rg_quantity'))}
+                                             'post_num') - F('rg_quantity')),
+                        'unused_stock':  (F('sold_num') + F('rg_quantity')
+                                         - F('history_quantity') - F('inbound_quantity') - F('return_quantity'),
+                                         F('history_quantity') + F('inbound_quantity') + F('return_quantity') - F(
+                                             'sold_num') - F('rg_quantity'))
+                        }
         from django.contrib.admin.views.main import ChangeList, ORDER_VAR
         class StatsOrderChangeList(ChangeList):
             def get_ordering(self, request, queryset):
