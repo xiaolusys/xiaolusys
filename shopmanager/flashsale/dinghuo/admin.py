@@ -1,7 +1,8 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
 from django.contrib.auth.models import User
-from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, UnReturnSku
+from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, \
+    UnReturnSku
 from django.http import HttpResponseRedirect
 from functools import partial, reduce, update_wrapper
 from core.options import log_action, CHANGE
@@ -11,13 +12,12 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
     PayToPackStats
 import time
-from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter, InBoundCreatorFilter
+from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter, \
+    InBoundCreatorFilter, OrderListReceiveStatusFilter
 from flashsale.dinghuo import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 
 from django.http import Http404, HttpResponseRedirect
-
-
 
 
 class orderdetailInline(admin.TabularInline):
@@ -37,14 +37,17 @@ class orderdetailInline(admin.TabularInline):
 class OrderListAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'sys_status', 'purchase_order_unikey')
+        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'sys_status',
+                   'purchase_order_unikey')
     }),)
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'shenhe', 'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail',
+        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'shenhe', 'created', 'press_num', 'stage',
+        'get_receive_status', 'is_postpay', 'changedetail',
         'supplier', 'note_name')
-    list_filter = (('created', DateFieldListFilter), 'stage', 'lack', 'inferior', 'is_postpay', 'press_num', OrderListStatusFilter, 'pay_status', BuyerNameFilter,
+    list_filter = (('created', DateFieldListFilter), 'stage', OrderListReceiveStatusFilter, 'is_postpay', 'press_num',
+                   OrderListStatusFilter, 'pay_status', BuyerNameFilter,
                    'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
     date_hierarchy = 'created'
@@ -86,9 +89,9 @@ class OrderListAdmin(admin.ModelAdmin):
             if pro.shelf_status:
                 return ''
         return "已下架"
-        
+
     shelf_status.short_description = u"是否下架"
-    
+
     def calcu_item_sum_amount(self, obj):
         amount = 0
         details = obj.order_list.all()
@@ -112,7 +115,7 @@ class OrderListAdmin(admin.ModelAdmin):
     calcu_model_num.short_description = u"款数"
 
     def quantity(self, obj):
-        alldetails = OrderDetail.objects.filter(orderlist_id=obj.id,buy_quantity__gt=0)
+        alldetails = OrderDetail.objects.filter(orderlist_id=obj.id, buy_quantity__gt=0)
         quantityofoneorder = 0
         for detail in alldetails:
             quantityofoneorder += detail.buy_quantity
@@ -123,6 +126,7 @@ class OrderListAdmin(admin.ModelAdmin):
 
     def get_receive_status(self, obj):
         return obj.get_receive_status()
+
     get_receive_status.short_description = u"到货状态"
 
     def supply_chain(self, obj):
@@ -183,6 +187,7 @@ class OrderListAdmin(admin.ModelAdmin):
                 self.message_user(request, u"已成功审核!")
 
         return HttpResponseRedirect(request.get_full_path())
+
     test_order_action.short_description = u"审核(已付款)"
 
     def verify_order_action(self, request, queryset):
@@ -263,18 +268,19 @@ class orderdetailAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'link_order', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
-        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated','purchase_order_unikey',
+        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated', 'purchase_order_unikey',
         'purchase_detail_unikey',
     )
     list_filter = (('created', DateFieldListFilter), OrderListStatusFilter2)
-    search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id', 'chichu_id','purchase_order_unikey','purchase_detail_unikey']
+    search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id', 'chichu_id', 'purchase_order_unikey',
+                     'purchase_detail_unikey']
     date_hierarchy = 'created'
 
     def link_order(self, obj):
         order_list = obj.orderlist
         if order_list:
             link_str = u"<a href='/sale/dinghuo/changedetail/{0}/' target='_blank'>{1}</a>".format(order_list.id,
-                                                                                               obj.orderlist.__unicode__())
+                                                                                                   obj.orderlist.__unicode__())
         else:
             link_str = u"<a href='#' target='_blank'>None</a>"
         return link_str
@@ -295,6 +301,7 @@ admin.site.register(OrderDetail, orderdetailAdmin)
 admin.site.register(orderdraft)
 
 from django.contrib.auth.models import User
+
 
 class myuserAdmin(admin.ModelAdmin):
     fieldsets = ((u'用户信息:', {
@@ -438,9 +445,9 @@ from flashsale.pay.models import SaleRefund
 
 
 class ReturnGoodsAdmin(BaseModelAdmin):
-    list_display = ('id_link', "supplier_link","show_detail_num", "sum_amount",
-                    "status", "status_contrl", "noter",  "transactor_name", "created",
-                    "consign_time", "sid",  "consigner", 'show_memo', 'show_reason'
+    list_display = ('id_link', "supplier_link", "show_detail_num", "sum_amount",
+                    "status", "status_contrl", "noter", "transactor_name", "created",
+                    "consign_time", "sid", "consigner", 'show_memo', 'show_reason'
                     )
     search_fields = ['id', "supplier__id", "supplier__supplier_name", "transaction_number",
                      "noter", "consigner", "transactor_id", "sid"]
@@ -452,6 +459,7 @@ class ReturnGoodsAdmin(BaseModelAdmin):
     list_display_links = []
     list_select_related = True
     list_per_page = 25
+
     # change_form_template = "admin/dinghuo/returngoods/change_form.html"
     def lookup_allowed(self, lookup, value):
         if lookup in ['supplier__supplier_name']:
@@ -461,9 +469,10 @@ class ReturnGoodsAdmin(BaseModelAdmin):
     def id_link(self, obj):
         return ('<a href="%(url)s" target="_blank">'
                 '%(show_text)s</a>') % {
-                'url': '/admin/dinghuo/returngoods/%d/' % obj.id,
-                'show_text': str(obj.id)
-            }
+                   'url': '/admin/dinghuo/returngoods/%d/' % obj.id,
+                   'show_text': str(obj.id)
+               }
+
     id_link.allow_tags = True
     id_link.short_description = u"ID"
 
@@ -471,15 +480,14 @@ class ReturnGoodsAdmin(BaseModelAdmin):
         extra_context = {'title': u'仓库退货单', 'transactors': ReturnGoods.transactors()}
         return self.detailform_view(request, object_id, form_url, extra_context)
 
-
     # def change_view(self, request, object_id, form_url='', extra_context=None):
     #     extra_context = {'title': u'仓库退货单', 'transactors': ReturnGoods.transactors()}
     #     return self.changeform_view(request, object_id, form_url, extra_context)
 
     def transactor_name(self, obj):
         return obj.transactor.username
-    transactor_name.short_description = u"负责人"
 
+    transactor_name.short_description = u"负责人"
 
     def supplier_link(self, obj):
         if not obj.supplier:
@@ -487,14 +495,16 @@ class ReturnGoodsAdmin(BaseModelAdmin):
 
         return ('<a href="%(url)s" target="_blank">'
                 '%(show_text)s</a>') % {
-                'url': '/admin/supplier/salesupplier/%d/' % obj.supplier_id,
-                'show_text': obj.supplier.supplier_name
-            }
+                   'url': '/admin/supplier/salesupplier/%d/' % obj.supplier_id,
+                   'show_text': obj.supplier.supplier_name
+               }
+
     supplier_link.allow_tags = True
     supplier_link.short_description = u"供应商"
 
     def product_desc(self, obj):
         return '<br/>'.join([p.title() for p in obj.products])
+
     # def show_pic(self, obj):
     #     product_id = obj.product_id
     #     pro = Product.objects.get(id=product_id)
@@ -531,7 +541,6 @@ class ReturnGoodsAdmin(BaseModelAdmin):
     show_reason.allow_tags = True
     show_reason.short_description = u"原因"
 
-
     def show_detail_num(self, obj):
         return_num = 0
         dts = obj.rg_details.all()
@@ -560,12 +569,12 @@ class ReturnGoodsAdmin(BaseModelAdmin):
         if obj.status == ReturnGoods.CREATE_RG:
             # 如果是创建状态则　显示　审核通过　作废退货　两个按钮
             html = u'<a cid="{0}" onclick="verify_ok(this)" style="margin-right:0px;">审核通过</a><br/>' \
-                   u'<a cid="{0}" onclick="verify_no(this)">作废退货</a>'.format(obj.id,)
+                   u'<a cid="{0}" onclick="verify_no(this)">作废退货</a>'.format(obj.id, )
             return html
         elif obj.status == ReturnGoods.DELIVER_RG:
             # 如果是已经发货　　显示　退货成功　退货失败　两个按钮
             html = u'<a cid="{0}" onclick="send_ok(this)" style="margin-right:0px;">退货成功</a><br/>' \
-                   u'<a cid="{0}" onclick="send_fail(this)">退货失败</a>'.format(obj.id,)
+                   u'<a cid="{0}" onclick="send_fail(this)">退货失败</a>'.format(obj.id, )
             return html
         else:
             return obj.get_status_display()
@@ -585,11 +594,10 @@ class ReturnGoodsAdmin(BaseModelAdmin):
             return True
         return super(ReturnGoodsAdmin, self).lookup_allowed(lookup, value)
 
-
     class Meta:
         # related_fkey_lookups = ['rg_details__skuid']
         css = {"all": (
-        "css/admin_css.css", "css/return_goods.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
+            "css/admin_css.css", "css/return_goods.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
         )}
         js = ("js/tuihuo_ctrl.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
               "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js")
@@ -597,25 +605,31 @@ class ReturnGoodsAdmin(BaseModelAdmin):
 
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
 
+
 class UnReturnSkuAdmin(admin.ModelAdmin):
-    list_display = ('id', 'product_outer_id', "product_name", "sku_properties_name", "supplier_sku", "supplier_name", "reason", "creater_name",
-                    "created", "modified", "status")
+    list_display = (
+    'id', 'product_outer_id', "product_name", "sku_properties_name", "supplier_sku", "supplier_name", "reason",
+    "creater_name",
+    "created", "modified", "status")
     search_fields = ['product__name', "supplier__id", "supplier__supplier_name", "product__id",
                      "sku__id"]
     list_filter = ["status", "reason"]
     readonly_fields = ('product', 'sale_product', 'sku', 'supplier', 'creater')
-    #inlines = [RGDetailInline, ]
-    #list_display_links = ['id',]
-    #list_select_related = True
+    # inlines = [RGDetailInline, ]
+    # list_display_links = ['id',]
+    # list_select_related = True
     list_per_page = 50
 
     def product_outer_id(self, obj):
-        return '<a href="/admin/items/product/?outer_id=%(outer_id)s">%(outer_id)s</a>' % {'outer_id': obj.product.outer_id}
+        return '<a href="/admin/items/product/?outer_id=%(outer_id)s">%(outer_id)s</a>' % {
+            'outer_id': obj.product.outer_id}
+
     product_outer_id.short_description = '商品编码'
     product_outer_id.allow_tags = True
 
     def product_name(self, obj):
         return obj.product.name;
+
     product_name.short_description = '商品名称'
 
     def sku_properties_name(self, obj):
@@ -623,15 +637,18 @@ class UnReturnSkuAdmin(admin.ModelAdmin):
             'sku_id': obj.sku.id,
             'properties_name': obj.sku.properties_name or obj.sku.properties_alias or ''
         }
+
     sku_properties_name.allow_tags = True
     sku_properties_name.short_description = '规格'
 
     def supplier_sku(self, obj):
         return obj.sale_product.supplier_sku
+
     supplier_sku.short_description = '货号'
 
     def supplier_name(self, obj):
         return obj.supplier.supplier_name
+
     supplier_name.short_description = '供应商名称'
 
     def creater_name(self, obj):
@@ -643,14 +660,16 @@ class UnReturnSkuAdmin(admin.ModelAdmin):
         else:
             names = [last_name, first_name]
         return ''.join(filter(None, names)) or user.username
+
     creater_name.short_description = '创建人'
 
     def lookup_allowed(self, lookup, value):
         if lookup in ['product___name', 'sale_product__name', 'supplier__supplier_name', 'sku__id']:
             return True
         return super(UnReturnSkuAdmin, self).lookup_allowed(lookup, value)
-admin.site.register(UnReturnSku, UnReturnSkuAdmin)
 
+
+admin.site.register(UnReturnSku, UnReturnSkuAdmin)
 
 from .models import SaleInventoryStat
 
@@ -667,14 +686,14 @@ from .models import InBound, InBoundDetail, OrderDetailInBoundDetail
 
 class InBoundAdmin(admin.ModelAdmin):
     fieldsets = ((
-        u'详情', {
-            'classes': ('expand', ),
-            'fields': ('express_no', 'sent_from', 'memo')
-        }
-    ), )
+                     u'详情', {
+                         'classes': ('expand',),
+                         'fields': ('express_no', 'sent_from', 'memo')
+                     }
+                 ),)
 
     list_display = ('id', 'show_id', 'show_creator', 'supplier', 'express_no',
-                     'show_orderlists', 'created', 'status', 'show_status_info', 'memo')
+                    'show_orderlists', 'created', 'status', 'show_status_info', 'memo')
 
     list_filter = ('status', 'created', 'checked', 'wrong', 'out_stock', InBoundCreatorFilter)
 
@@ -683,35 +702,44 @@ class InBoundAdmin(admin.ModelAdmin):
     def show_creator(self, obj):
         from flashsale.dinghuo.view_inbound import InBoundViewSet
         return InBoundViewSet.get_username(obj.creator)
+
     show_creator.short_description = u'创建人'
 
     def show_id(self, obj):
         return '<a href="/sale/dinghuo/inbound/%(id)d" target="_blank">详情</a>' % {'id': obj.id}
+
     show_id.allow_tags = True
     show_id.short_description = u'详情'
 
     def show_orderlists(self, obj):
         tmp = []
         for orderlist_id in sorted(obj.orderlist_ids):
-            tmp.append('<a href="/sale/dinghuo/changedetail/%(id)d/" target="_blank">%(id)d</a>' % {'id': int(orderlist_id)})
+            tmp.append(
+                '<a href="/sale/dinghuo/changedetail/%(id)d/" target="_blank">%(id)d</a>' % {'id': int(orderlist_id)})
         return ','.join(tmp)
+
     show_orderlists.allow_tags = True
     show_orderlists.short_description = u'关联订货单'
 
     def show_status_info(self, obj):
         return obj.get_set_status_info()
+
     show_status_info.allow_tags = True
     show_status_info.short_description = u'当前状态'
 
 
 class InBoundDetailAdmin(admin.ModelAdmin):
     fieldsets = ((
-        u'详情', {
-            'classes': ('expand', ),
-            'fields': ('product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'status')
-        }
-    ), )
-    list_display = ('id', 'show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'created', 'modified', 'status')
+                     u'详情', {
+                         'classes': ('expand',),
+                         'fields': (
+                         'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity', 'status')
+                     }
+                 ),)
+    list_display = (
+    'id', 'show_inbound', 'product', 'sku', 'product_name', 'properties_name', 'arrival_quantity', 'inferior_quantity',
+    'created', 'modified', 'status')
+
     def show_inbound(self, obj):
         return '<a href="/sale/dinghuo/inbound/%(id)d" target="_blank">%(id)d</a>' % {
             'id': obj.inbound_id}
@@ -722,7 +750,7 @@ class InBoundDetailAdmin(admin.ModelAdmin):
 
 class OrderDetailInBoundDetailAdmin(admin.ModelAdmin):
     list_display = (
-    'show_orderdetail', 'show_inbounddetail', 'arrival_quantity', 'inferior_quantity', 'created', 'status')
+        'show_orderdetail', 'show_inbounddetail', 'arrival_quantity', 'inferior_quantity', 'created', 'status')
 
     def show_orderdetail(self, obj):
         return '<a href="/admin/dinghuo/orderdetail/?id=%(id)d" target="_blank">%(id)d</a>' % {'id': obj.orderdetail_id}
@@ -742,30 +770,38 @@ admin.site.register(InBound, InBoundAdmin)
 admin.site.register(InBoundDetail, InBoundDetailAdmin)
 admin.site.register(OrderDetailInBoundDetail, OrderDetailInBoundDetailAdmin)
 
-
 from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangement, PurchaseDetail, PurchaseOrder
 
+
 class PurchaseRecordAdmin(admin.ModelAdmin):
-   list_display = ('id', 'package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
-                   'sku_properties_name', 'request_num', 'book_num', 'status', 'modified', 'created', 'note')
-   search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id')
+    list_display = ('id', 'package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
+                    'sku_properties_name', 'request_num', 'book_num', 'status', 'modified', 'created', 'note')
+    search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id')
+
 
 admin.site.register(PurchaseRecord, PurchaseRecordAdmin)
 
 
 class PurchaseArrangementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'package_sku_item_id', 'oid', 'purchase_order_unikey', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
-                    'sku_properties_name', 'num', 'status', 'purchase_order_status', 'initial_book', 'modified', 'created')
+    list_display = (
+    'id', 'package_sku_item_id', 'oid', 'purchase_order_unikey', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
+    'sku_properties_name', 'num', 'status', 'purchase_order_status', 'initial_book', 'modified', 'created')
 
-    search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id', 'purchase_order_unikey') 
+    search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id', 'purchase_order_unikey')
+
+
 admin.site.register(PurchaseArrangement, PurchaseArrangementAdmin)
 
 
 class PurchaseDetailAdmin(admin.ModelAdmin):
-    list_display = ('id', 'outer_id', 'purchase_order_unikey', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'book_num', 'need_num',
-                    'extra_num', 'status', 'unit_price_display', 'modified', 'created')
+    list_display = (
+    'id', 'outer_id', 'purchase_order_unikey', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'book_num',
+    'need_num',
+    'extra_num', 'status', 'unit_price_display', 'modified', 'created')
 
     search_fields = ('outer_id', 'title', 'sku_id', 'purchase_order_unikey')
+
+
 admin.site.register(PurchaseDetail, PurchaseDetailAdmin)
 
 
@@ -773,4 +809,6 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'uni_key', 'supplier_id', 'supplier_name', 'book_num', 'need_num', 'arrival_num', 'status',
                     'modified', 'created')
     search_fields = ('supplier_id', 'supplier_name', 'uni_key')
+
+
 admin.site.register(PurchaseOrder, PurchaseOrderAdmin)
