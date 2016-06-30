@@ -383,12 +383,7 @@
         <input class="btn btn-warning" type="button" onclick="showwuliu({{ orderlist.id }})" value="物流明细">
     </div>
     <div class="col-lg-1">
-        {%if orderlist.stage == 1 %}
-        <input class="btn btn-info" type="button" onclick="set_status_receive({{ orderlist.id }})" value="开始收货">
-        {%endif%}
-        {%if orderlist.stage == 2 %}
-        <input class="btn btn-info" type="button" onclick="set_status_receive({{ orderlist.id }})" value="开始收货">
-        {%endif%}
+        <input class="btn btn-info" type="button" onclick="set_status_receive({{ orderlist.id }})" value="设置收货">
         {%if orderlist.stage == 3 %}
         <input class="btn btn-info" type="button" onclick="set_status_state({{ orderlist.id }})" value="开始结算">
         {%endif%}

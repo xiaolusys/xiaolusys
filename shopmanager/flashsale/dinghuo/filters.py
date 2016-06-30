@@ -76,6 +76,36 @@ class OrderListStatusFilter(SimpleListFilter):
             else:
                 return queryset.filter(status=status_id)
 
+class OrderListReceiveStatusFilter(SimpleListFilter):
+    """按订货单状态过滤"""
+    title = u'订货单状态'
+    parameter_name = 'custom_status'
+
+    def lookups(self, request, model_admin):
+        status_list1 = (("0", u'未到货'),
+                        ("1", u'缺货'),
+                        ("2", u'有次品'),
+                        ("3", u'次品又缺货'),
+                        ("4", u'完成'),
+                        )
+        return status_list1
+
+    def queryset(self, request, queryset):
+        status_id = self.value()
+        if not status_id:
+            return queryset
+        else:
+            if status_id == '0':
+                return queryset.filter(lack=None)
+            elif status_id == '1':
+                return queryset.filter(lack=True)
+            elif status_id == '2':
+                return queryset.filter(inferior=True)
+            elif status_id == '3':
+                return queryset.filter(inferior=True, lack=True)
+            elif status_id == '4':
+                return queryset.filter(lack=False)
+
 
 class OrderListStatusFilter2(SimpleListFilter):
     title = u'订货单状态'
