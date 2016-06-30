@@ -1085,6 +1085,12 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         return Response(True)
 
     @detail_route(methods=['post'])
+    def set_stage_delete(self, request, pk):
+        orderlist = get_object_or_404(OrderList, pk=pk)
+        orderlist.set_stage_delete()
+        return Response(True)
+
+    @detail_route(methods=['post'])
     def press_order(self, request, pk):
         orderlist = get_object_or_404(OrderList, pk=pk)
         desc = request.POST.get("desc", '')

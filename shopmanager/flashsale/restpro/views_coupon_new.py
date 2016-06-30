@@ -258,6 +258,33 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response([])
 
+    @list_route(methods=['get'])
+    def get_register_gift_coupon(self, request):
+        default_return = collections.defaultdict(code=0, info='', coupons=[])
+        tplids = range(54, 61)
+        customer = Customer.objects.get(user=request.user)
+        if not customer:
+            default_return.update({"code": 1, "info": "用户不存在"})
+            return Response(default_return)
+        success_id = []
+        except_msgs = set()
+        for tplid in tplids:
+            try:
+                coupon, c_code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer.id,
+                                                                              template_id=tplid)
+                if c_code in [0, 9]:  # 0　是创建　9　是已经存在的
+                    success_id.append(coupon.id)
+            except AssertionError as e:
+                except_msgs.add(e.message)
+                continue
+        if len(success_id) > 0:
+            queryset = self.queryset.filter(id__in=success_id)
+            serializer = self.get_serializer(queryset, many=True)
+            default_return.update({'info': '您已领取%s张优惠券' % len(success_id), "coupons": serializer.data})
+            return Response(default_return)
+        default_return.update({"code": 2, "info": "领取出错啦:%s" % ','.join(except_msgs)})
+        return Response(default_return)
+
 
 class CouponTemplateViewSet(viewsets.ModelViewSet):
     queryset = CouponTemplate.objects.all()

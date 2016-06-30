@@ -233,4 +233,4 @@ class AppDownloadRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AppDownloadRecord
-        fields = ('headimgurl', 'nick', 'mobile', 'note', 'modified')
+        fields = ('headimgurl', 'nick', 'mobile', 'note', 'modified', 'created')
