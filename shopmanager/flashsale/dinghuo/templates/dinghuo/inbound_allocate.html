@@ -334,11 +334,13 @@ function getSkuData(){
      if(!(allocate_quantity))
          return;
      var skuId = parseInt($this.attr('data-sku-id'));
-     if(_.isEmpty(skuData[skuId])){
-         skuData[skuId] = allocate_quantity;
+     console.log(skuId);
+     console.log(allocate_quantity);
+     if(skuId in skuData){
+         skuData[skuId] = skuData[skuId] + allocate_quantity;
      }
      else{
-         skuData[skuId] += allocate_quantity;
+         skuData[skuId] = allocate_quantity;
      }
     });
     return skuData;
@@ -474,10 +476,11 @@ $('#orderlists-allocate').click(function(){
          });
          return false;
      }
+     console.dir(skuData);
      var warnSkuNums = [];
      var errorSkuNums = [];
-     //console.log("--------------------------------------------------");
-     //console.dir(inbound_data);
+     console.log("--------------------------------------------------");
+     console.dir(inbound_data);
 
      for (var sku in inbound_data){
          if (inbound_data[sku] < skuData[sku]){
@@ -487,8 +490,8 @@ $('#orderlists-allocate').click(function(){
             warnSkuNums.push(sku)
          }
      }
-     //console.dir(errorSkuNums);
-     //console.dir(warnSkuNums);
+     console.dir(errorSkuNums);
+     console.dir(warnSkuNums);
      if(errorSkuNums && errorSkuNums.length > 0){
          swal("警告", "一些SKU的分配数超出了入库数", "error");
          _.each(errorSkuNums, function(el){
