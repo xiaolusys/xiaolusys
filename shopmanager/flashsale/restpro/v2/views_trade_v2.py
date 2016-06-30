@@ -843,7 +843,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.BUDGET:
                 budget_amount += round(float(param['budget']) * 100)
         return budget_amount
-            
+
+    def logger_request(self, request):
+        cookies = dict([(k,v) for k,v in request.COOKIES.items() if k in ('mm_linkid','ufrom')])
+        logger.warn('%s | %s | %s | %s'%(request.GET.get('uuid'), request.META.get('HTTP_USER_AGENT'), request.GET, cookies))
+
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
         """ 购物车订单支付接口 """
@@ -928,8 +932,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
         except Exception,exc:
-                logger.error('cart charge error:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
-                return Response({'code':6, 'info':exc.message or '未知支付异常'})
+            logger.error('cart charge error:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
+            return Response({'code':6, 'info':exc.message or '未知支付异常'})
 
         return Response({'code':0, 'info':u'支付成功', 'channel':channel,
                          'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel},
