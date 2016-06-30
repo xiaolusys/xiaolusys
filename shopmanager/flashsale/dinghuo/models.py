@@ -155,6 +155,11 @@ class OrderList(models.Model):
     created = models.DateField(auto_now_add=True,
                                db_index=True,
                                verbose_name=u'订货日期')
+    checked_time = models.DateTimeField(default=None, verbose_name=u'检出时间')
+    pay_time = models.DateTimeField(default=None, verbose_name=u'开始支付时间')
+    paid_time = models.DateTimeField(default=None, verbose_name=u'支付完成时间')
+    receive_time = models.DateTimeField(default=None, verbose_name=u'开始收货时间')
+    received_time = models.DateTimeField(default=None, verbose_name=u'开始结算时间')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
     completed_time = models.DateTimeField(blank=True, null=True, verbose_name=u'完成时间')
     note = models.TextField(default="", blank=True, verbose_name=u'备注信息')
@@ -325,6 +330,7 @@ class OrderList(models.Model):
         self.status = OrderList.APPROVAL
         self.purchase_total_num = self.order_list.aggregate(
                 total_num=Sum('buy_quantity')).get('total_num') or 0
+        self.checked_time = datetime.datetime.now()
         if is_postpay:
             self.is_postpay = True
         self.save(update_fields=['stage', 'status', 'is_postpay'])
@@ -332,16 +338,20 @@ class OrderList(models.Model):
     def set_stage_receive(self):
         self.stage = OrderList.STAGE_RECEIVE
         self.status = OrderList.QUESTION_OF_QUANTITY
+        if not self.receive_time:
+            self.receive_time = datetime.datetime.now()
         self.save(update_fields=['stage', 'status'])
 
     def set_stage_state(self):
         self.stage = OrderList.STAGE_STATE
         self.status = OrderList.TO_BE_PAID
+        self.received_time = datetime.datetime.now()
         self.save(update_fields=['stage', 'status'])
 
     def set_stage_complete(self):
         self.stage = OrderList.STAGE_STATE
         self.status = OrderList.CLOSED
+        self.completed_time = datetime.datetime.now()
         self.save(update_fields=['stage', 'status'])
 
     def set_stage_delete(self):
@@ -498,6 +508,10 @@ class OrderDetail(models.Model):
     def need_arrival_quantity(self):
         """ 未到数量 """
         return max(self.buy_quantity - self.arrival_quantity, 0)
+
+    @property
+    def sku_id(self):
+        return int(self.chichu_id)
 
     @property
     def sku(self):
@@ -1672,7 +1686,32 @@ class InBound(models.Model):
         for detail in self.details.filter(checked=True):
             detail.reset_to_unchecked()
 
-    def get_optimized_allocate_dict(inbound):
+    def get_optimized_allocate_dict(self):
+        """
+           获取入库SKU的推荐分配方式
+           1/优先分派给填入订货单号的订货单
+           # 2/优先分派给可满足的订货单
+           3/优先分派给时间早的订货单
+        :return:
+        """
+        orderlist_ids = self.get_may_allocate_order_list_ids()
+        first_orderlist = OrderList.objects.filter(id=self.ori_orderlist_id).first()
+        if first_orderlist and first_orderlist.id in orderlist_ids:
+            orderlists = [first_orderlist] + list(OrderList.objects.filter(id__in=orderlist_ids).exclude(
+                id=first_orderlist.id).order_by('id'))
+        else:
+            orderlists = list(OrderList.objects.filter(id__in=orderlist_ids).order_by('id'))
+        sku_data = self.sku_data
+        skus = sku_data.keys()
+        allocate_dict = {}
+        for orderlist in orderlists:
+            for orderdetail in orderlist.order_list.filter(chichu_id__in=skus):
+                if orderdetail.need_arrival_quantity > 0 and sku_data[orderdetail.sku_id] > 0:
+                    allocate_dict[orderdetail.id] = min(orderdetail.need_arrival_quantity, sku_data[orderdetail.sku_id])
+                    sku_data[orderdetail.sku_id] -= allocate_dict[orderdetail.id]
+        return allocate_dict
+
+    def get_optimized_allocate_dict_bak(inbound):
         EXPRESS_NO_SPLIT_PATTERN = re.compile(r'\s+|,|，')
         express_no = inbound.express_no
         orderlist_id = inbound.ori_orderlist_id
