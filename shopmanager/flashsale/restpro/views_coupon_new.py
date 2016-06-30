@@ -260,19 +260,21 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_register_gift_coupon(self, request):
-        default_return = collections.defaultdict(code=0, info='', coupons=[])
+        default_return = collections.defaultdict(code=0, info='', pop_flag=0, coupons=[])
         tplids = range(54, 61)
         customer = Customer.objects.get(user=request.user)
         if not customer:
             default_return.update({"code": 1, "info": "用户不存在"})
             return Response(default_return)
         success_id = []
+        codes = []
         except_msgs = set()
         for tplid in tplids:
             try:
                 coupon, c_code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer.id,
                                                                               template_id=tplid)
                 if c_code in [0, 9]:  # 0　是创建　9　是已经存在的
+                    codes.append(c_code)
                     success_id.append(coupon.id)
             except AssertionError as e:
                 except_msgs.add(e.message)
@@ -280,6 +282,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         if len(success_id) > 0:
             queryset = self.queryset.filter(id__in=success_id)
             serializer = self.get_serializer(queryset, many=True)
+            if codes.count(0) == 7:  # 完整领取　则设置　领取弹窗　位　为　0
+                default_return.update({"pop_flag": 1})
             default_return.update({'info': '您已领取%s张优惠券' % len(success_id), "coupons": serializer.data})
             return Response(default_return)
         default_return.update({"code": 2, "info": "领取出错啦:%s" % ','.join(except_msgs)})
