@@ -1,10 +1,13 @@
 # coding=utf-8
+import datetime
 import json
 import collections
 import random
+from django.conf import settings
 from django.core.cache import cache
 from django.forms import model_to_dict
 from rest_framework import serializers
+from flashsale.restpro import constants
 
 from flashsale.xiaolumm.models_fortune import (
     MamaFortune,
@@ -28,13 +31,34 @@ from flashsale.pay.models import Customer
 class MamaFortuneSerializer(serializers.ModelSerializer):
     cash_value = serializers.FloatField(source='cash_num_display', read_only=True)
     carry_value = serializers.FloatField(source='carry_num_display', read_only=True)
+    extra_info = serializers.SerializerMethodField('gen_extra_info', read_only=True)
 
     class Meta:
         model = MamaFortune
         fields = ('mama_id', 'mama_name', 'mama_level', 'mama_level_display', 'cash_value',
                   'fans_num', 'invite_num', 'order_num', 'carry_value', 'active_value_num',
                   'carry_pending_display', 'carry_confirmed_display', 'carry_cashout_display',
-                  'mama_event_link', 'history_last_day', 'today_visitor_num', 'modified', 'created')
+                  'mama_event_link', 'history_last_day', 'today_visitor_num', 'modified', 'created',
+                  "extra_info")
+
+    def gen_extra_info(self, obj):
+        user = self.context['request'].user
+        xlmm = obj.xlmm
+        invite_url = constants.MAMA_INVITE_AGENTCY_URL.format(**{'site_url': settings.M_SITE_URL})
+        surplus_days = (xlmm.renew_time - datetime.datetime.now()).days if xlmm.renew_time else 0
+        surplus_days = max(surplus_days, 0)
+        next_level_exam_url = 'http://m.xiaolumeimei.com/mall/activity/exam'
+        xlmm_next_level = xlmm.next_agencylevel_info()
+
+        return {
+            "invite_url": invite_url,
+            "agencylevel": xlmm.agencylevel,
+            "agencylevel_display": xlmm.get_agencylevel_display(),
+            "surplus_days": surplus_days,
+            "next_agencylevel":xlmm_next_level[0],
+            "next_agencylevel_display":xlmm_next_level[1],
+            "next_level_exam_url": next_level_exam_url
+        }
 
 
 class CarryRecordSerializer(serializers.ModelSerializer):
