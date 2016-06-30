@@ -2,7 +2,7 @@
 
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.contrib.admin import SimpleListFilter, FieldListFilter
@@ -87,6 +87,7 @@ class OrderListReceiveStatusFilter(SimpleListFilter):
                         ("2", u'有次品'),
                         ("3", u'次品又缺货'),
                         ("4", u'完成'),
+                        ("5", u'需售后'),
                         )
         return status_list1
 
@@ -105,6 +106,8 @@ class OrderListReceiveStatusFilter(SimpleListFilter):
                 return queryset.filter(inferior=True, lack=True)
             elif status_id == '4':
                 return queryset.filter(lack=False)
+            elif status_id == '5':
+                return queryset.filter(Q(inferior=True) | Q(lack=True))
 
 
 class OrderListStatusFilter2(SimpleListFilter):
