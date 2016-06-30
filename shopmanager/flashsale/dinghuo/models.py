@@ -1844,7 +1844,7 @@ class InBound(models.Model):
         oi = OrderDetailInBoundDetail.create(orderdetail, self, num)
         inbounddetail = self.details.filter(sku=orderdetail.sku).first()
         if inbounddetail.checked:
-            ProductSku.objects.filter(id=inbounddetail.sku_id).update(quantity=F('quantity') + oi.num)
+            ProductSku.objects.filter(id=inbounddetail.sku_id).update(quantity=F('quantity') + oi.arrival_quantity  )
         return oi
 
     class Meta:
