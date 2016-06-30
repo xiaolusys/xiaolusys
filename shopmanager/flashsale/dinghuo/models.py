@@ -340,24 +340,24 @@ class OrderList(models.Model):
         self.status = OrderList.QUESTION_OF_QUANTITY
         if not self.receive_time:
             self.receive_time = datetime.datetime.now()
-        self.save(update_fields=['stage', 'status'])
+        self.save()
 
     def set_stage_state(self):
         self.stage = OrderList.STAGE_STATE
         self.status = OrderList.TO_BE_PAID
         self.received_time = datetime.datetime.now()
-        self.save(update_fields=['stage', 'status'])
+        self.save()
 
     def set_stage_complete(self):
         self.stage = OrderList.STAGE_COMPLETED
         self.status = OrderList.CLOSED
         self.completed_time = datetime.datetime.now()
-        self.save(update_fields=['stage', 'status'])
+        self.save()
 
     def set_stage_delete(self):
         self.stage = OrderList.STAGE_DELETED
         self.status = OrderList.ZUOFEI
-        self.save(update_fields=['stage', 'status'])
+        self.save()
 
     def get_receive_status(self):
         if self.lack is None:
@@ -374,12 +374,17 @@ class OrderList(models.Model):
 
     def update_stage(self):
         if self.stage == OrderList.STAGE_RECEIVE:
-            self.set_stat()
+            change = self.set_stat()
             if self.lack is False:
                 self.set_stage_state()
+            elif change:
+                self.save()
         elif self.stage == OrderList.STAGE_STATE:
+            change = self.set_stat()
             if self.lack is False and not self.is_postpay:
                 self.set_stage_complete()
+            elif change:
+                self.save()
 
 
 
