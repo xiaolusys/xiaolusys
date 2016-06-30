@@ -113,15 +113,15 @@ class OrderListAdmin(admin.ModelAdmin):
     calcu_model_num.allow_tags = True
     calcu_model_num.short_description = u"款数"
 
-    # def quantity(self, obj):
-    #     alldetails = OrderDetail.objects.filter(orderlist_id=obj.id, buy_quantity__gt=0)
-    #     quantityofoneorder = 0
-    #     for detail in alldetails:
-    #         quantityofoneorder += detail.buy_quantity
-    #     return '{0}'.format(quantityofoneorder)
-    #
-    # quantity.allow_tags = True
-    # quantity.short_description = u"商品数量"
+    def quantity(self, obj):
+        alldetails = OrderDetail.objects.filter(orderlist_id=obj.id, buy_quantity__gt=0)
+        quantityofoneorder = 0
+        for detail in alldetails:
+            quantityofoneorder += detail.buy_quantity
+        return '{0}'.format(quantityofoneorder)
+
+    quantity.allow_tags = True
+    quantity.short_description = u"商品数量"
 
     def get_receive_status(self, obj):
         return obj.get_receive_status()
