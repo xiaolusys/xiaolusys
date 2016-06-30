@@ -533,6 +533,7 @@ class ClickLogView(WeixinAuthMixin, View):
         if not self.is_from_weixin(request):
             share_url = get_share_url(next_page=next_page, mm_linkid=linkid, ufrom='web')
             response = redirect(share_url)
+            response.set_cookie('mm_linkid', linkid, max_age=86400)
             return response
 
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
@@ -553,6 +554,7 @@ class ClickLogView(WeixinAuthMixin, View):
         share_url = get_share_url(next_page=next_page, mm_linkid=mm_linkid, ufrom='wx')
         response = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
+        response.set_cookie('mm_linkid', linkid, max_age=86400)
         return response
 
 

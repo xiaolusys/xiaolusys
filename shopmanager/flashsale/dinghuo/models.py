@@ -9,6 +9,8 @@ from django.db.models import Sum, Count, F, Q
 from django.db.models.signals import post_save, pre_save
 from django.contrib.auth.models import User
 from django.db import transaction
+
+from core.utils.modelutils import update_model_fields
 from core.fields import JSONCharMyField
 from core.models import BaseModel
 from shopback.items.models import ProductSku, Product, ProductSkuStats
@@ -517,9 +519,9 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
         instance.sys_status = OrderList.ST_FINISHED
     else:
         instance.sys_status = OrderList.ST_APPROVAL
+    update_model_fields(instance, update_fields=['sys_status'])
 
     real_orderlist = OrderList.objects.filter(id=instance.id).first()
-
     if real_orderlist and instance.status == OrderList.APPROVAL:
         # if the orderlist purchase confirm, then create forecast inbound
         from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
@@ -553,7 +555,6 @@ post_save.connect(
 def update_orderlist(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_orderdetail_update_orderlist
     task_orderdetail_update_orderlist.delay(instance)
-
 
 post_save.connect(update_orderlist, sender=OrderDetail, dispatch_uid='post_save_update_orderlist')
 

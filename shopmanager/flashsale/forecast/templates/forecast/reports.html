@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>dc.js - Filtering Example</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/dc/2.0.0-alpha.3/dc.css"/>
+</head>
+<body>
+
+<div class="container">
+   <div id="chart-supplier-amount" style="width:300px; height:800px">
+    <div>供应商</div>
+    <div class="reset" style="visibility: hidden;">selected: <span class="filter"></span>
+      <a href="javascript:supplierRowChart.filterAll();dc.redrawAll();">reset</a>
+    </div>
+  </div>
+  <div id="chart-dinghuo-peroid" style="width:300px; height:300px">
+    <div>订货周期</div>
+    <div class="reset" style="visibility: hidden;">selected: <span class="filter"></span>
+      <a href="javascript:dhPeroidHistChart.filterAll();dc.redrawAll();">reset</a>
+    </div>
+  </div>
+  <div id="chart-arrival-peroid" style="width:300px; height:300px">
+    <div>到货周期</div>
+    <div class="reset" style="visibility: hidden;">selected: <span class="filter"></span>
+      <a href="javascript:arPeroidHistChart.filterAll();dc.redrawAll();">reset</a>
+    </div>
+  </div>
+  <div id="chart-ring-buyer" style="width:300px; height:300px">
+    <div>买手</div>
+    <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
+      <a href="javascript:buyerRingChart.filterAll();dc.redrawAll();">reset</a>
+    </div>
+  </div>
+  <div id="chart-ring-purchaser" style="width:300px; height:300px">
+    <div>采购</div>
+    <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
+      <a href="javascript:purchaserRingChart.filterAll();dc.redrawAll();">reset</a>
+    </div>
+  </div>
+
+<script type="text/javascript" src="//cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/crossfilter/1.3.12/crossfilter.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/dc/2.0.0-beta.30/dc.min.js"></script>
+<script type="text/javascript">
+var supplierRowChart   = dc.rowChart("#chart-supplier-amount"),
+    dhPeroidHistChart  = dc.barChart("#chart-dinghuo-peroid"),
+    arPeroidHistChart  = dc.barChart("#chart-arrival-peroid"),
+    buyerRingChart   = dc.pieChart("#chart-ring-buyer"),
+    purchaserRingChart   = dc.pieChart("#chart-ring-purchaser");
+// use static or load via d3.csv("spendData.csv", function(error, spendData) {/* do stuff */});
+var spendData = [
+    {id: 101, buyer: 'xiuqing.mei', purchaser: 'shirley.zhang', supplier: '优尼世界', sku_num:20, amount: 2540, book_time:'2016-06-01', book_peroid:7, arrival_peroid:3},
+    {id: 102, buyer: 'jie.lin', purchaser: 'shirley.zhang', supplier: '优尼世界', sku_num:6, amount: 520, book_time:'2016-06-02', book_peroid:5, arrival_peroid:3},
+    {id: 103, buyer: 'xiuqing.mei', purchaser: 'shirley.zhang', supplier: '优尼世界', sku_num:13, amount: 1214, book_time:'2016-06-03', book_peroid:4, arrival_peroid:2},
+    {id: 104, buyer: 'yu.xia', purchaser: 'xuedi.sun', supplier: '小鹿美美', sku_num:70, amount: 2310, book_time:'2016-06-01', book_peroid:3, arrival_peroid:1},
+    {id: 105, buyer: 'xiuqing.mei', purchaser: 'xuedi.sun', supplier: '小鹿美美', sku_num:45, amount: 2540, book_time:'2016-06-02', book_peroid:4, arrival_peroid:2},
+    {id: 106, buyer: 'jie.lin', purchaser: 'xuedi.sun', supplier: '小鹿美美', sku_num:32, amount: 2540, book_time:'2016-06-03', book_peroid:4, arrival_peroid:2},
+    {id: 107, buyer: 'brook', purchaser: 'xuedi.sun', supplier: '小鹿美美', sku_num:20, amount: 2540, book_time:'2016-06-04', book_peroid:6, arrival_peroid:4}
+];
+// normalize/parse data
+// set crossfilter
+var ndx = crossfilter(spendData),
+    supplierDim  = ndx.dimension(function(d) {return d.supplier}),
+    buyerDim = ndx.dimension(function(d) {return d.buyer;}),
+    purchaserDim = ndx.dimension(function(d) {return d.purchaser;}),
+    dhPeroidDim  = ndx.dimension(function(d) {return d.book_peroid;}),
+    arPeroidDim  = ndx.dimension(function(d) {return d.arrival_peroid;}),
+    supplierAmountGroup = supplierDim.group().reduceSum(function(d) {return +d.amount;}),
+    buyerAmountGroup = buyerDim.group().reduceSum(function(d) {return +d.amount;}),
+    purchaserAmountGroup = purchaserDim.group().reduceSum(function(d) {return +d.amount;}),
+    dhPeroidGroup = dhPeroidDim.group().reduceCount(),
+    arPeroidGroup = arPeroidDim.group().reduceCount();
+
+// var trendDimension = ndx.dimension(function(d) {return [d.Expt, d.boot_time]; });
+// var trendGroup = runDimension.group().reduceSum(function(d) { return +d.Speed; });
+
+supplierRowChart
+    .dimension(supplierDim)
+    .group(supplierAmountGroup)
+    .elasticX(true)
+    .controlsUseVisibility(true);
+supplierRowChart.xAxis().tickFormat(function(d) {return parseInt(d / 100)});
+
+dhPeroidHistChart
+    .dimension(dhPeroidDim)
+    .group(dhPeroidGroup)
+    .x(d3.scale.linear().domain([0,10]))
+    .elasticY(true)
+    .controlsUseVisibility(true);
+dhPeroidHistChart.margins().bottom += 40;
+// dhPeroidHistChart.xAxis().tickFormat(function(d) {return d}); // convert back to base unit
+// dhPeroidHistChart.yAxis().ticks(2);
+
+arPeroidHistChart
+    .dimension(arPeroidDim)
+    .group(arPeroidGroup)
+    .x(d3.scale.linear().domain([0,10]))
+    .elasticY(true)
+    .controlsUseVisibility(true);
+arPeroidHistChart.margins().bottom += 40;
+
+buyerRingChart
+    .dimension(buyerDim)
+    .group(buyerAmountGroup)
+    .innerRadius(50)
+    .controlsUseVisibility(true);
+
+purchaserRingChart
+    .dimension(purchaserDim)
+    .group(purchaserAmountGroup)
+    .innerRadius(50)
+    .controlsUseVisibility(true);
+
+/* chart
+    .width(768)
+    .height(480)
+    .chart(function(c) { return dc.lineChart(c).interpolate('basis'); })
+    .x(d3.scale.linear().domain([0,20]))
+    .brushOn(false)
+    .yAxisLabel("Measured Speed km/s")
+    .xAxisLabel("Run")
+    .clipPadding(10)
+    .elasticY(true)
+    .dimension(runDimension)
+    .group(runGroup)
+    .mouseZoomable(true)
+    .seriesAccessor(function(d) {return "Expt: " + d.key[0];})
+    .keyAccessor(function(d) {return +d.key[1];})
+    .valueAccessor(function(d) {return +d.value - 500;})
+    .legend(dc.legend().x(350).y(350).itemHeight(13).gap(5).horizontal(1).legendWidth(140).itemWidth(70));
+chart.yAxis().tickFormat(function(d) {return d3.format(',d')(d+299500);});*/
+
+dc.renderAll();
+</script>
+
+</div>
+</body>
+</html>
