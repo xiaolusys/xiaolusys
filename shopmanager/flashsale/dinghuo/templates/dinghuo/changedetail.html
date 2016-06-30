@@ -504,10 +504,10 @@
                     <td>{{ order.not_assign_num }}</td>
                     <td>{{ order.buy_unitprice }}</td>
                     <td>{{ order.total_price }}</td>
-                    <td><a href="/admin/dinghuo/orderdetailinbounddetail/?inbounddetail__sku_id={{order.chichu_id}}&orderdetail_id={{order.id}}" target="_blank" id="arrival_quantity_{{ order.id }}" class="order_arrival_quantity" data-sku-id="{{order.chichu_id}}">{{ order.arrival_quantity }}</a>
+                    <td><a href="/admin/dinghuo/orderdetailinbounddetail/?inbounddetail__sku_id={{order.chichu_id}}" target="_blank" id="arrival_quantity_{{ order.id }}" class="order_arrival_quantity" data-sku-id="{{order.chichu_id}}">{{ order.arrival_quantity }}</a>
                     </td>
                     <td>
-                        <a href="javascript:;" id="inferior_quantity_{{ order.id }}" class="order_inferior_quantity" data-sku-id="{{order.chichu_id}}">{{ order.get_all_inferior_quantity }}</span>
+                        <a href="/admin/dinghuo/orderdetailinbounddetail/?inbounddetail__sku_id={{order.chichu_id}}" target="_blank" id="inferior_quantity_{{ order.id }}" class="order_inferior_quantity" data-sku-id="{{order.chichu_id}}">{{ order.get_all_inferior_quantity }}</a>
                     </td>
                     <td width="70px">
                         <a href="/admin/dinghuo/orderdetail/{{order.id}}/" target="_blank">
