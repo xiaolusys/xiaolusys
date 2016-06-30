@@ -76,10 +76,11 @@ class OrderListStatusFilter(SimpleListFilter):
             else:
                 return queryset.filter(status=status_id)
 
+
 class OrderListReceiveStatusFilter(SimpleListFilter):
     """按订货单状态过滤"""
-    title = u'订货单状态'
-    parameter_name = 'custom_status'
+    title = u'到货状态'
+    parameter_name = 'receive_status'
 
     def lookups(self, request, model_admin):
         status_list1 = (("0", u'未到货'),
