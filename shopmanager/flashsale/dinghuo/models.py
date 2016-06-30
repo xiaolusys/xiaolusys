@@ -187,7 +187,7 @@ class OrderList(models.Model):
     lack = models.NullBooleanField(default=None, verbose_name=u'缺货')
     inferior = models.BooleanField(default=False, verbose_name=u'次品')
     press_num = models.IntegerField(default=0, verbose_name=u'催促次数')
-    purchase_total_num = models.IntegerField(default=0, verbose_name=u'总件数')
+    purchase_total_num = models.IntegerField(default=0, verbose_name=u'订购总件数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
     is_postpay = models.BooleanField(default=False, verbose_name=u'后付')
     purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'PurchaseOrderUnikey')
