@@ -349,7 +349,7 @@ class OrderList(models.Model):
         self.save(update_fields=['stage', 'status'])
 
     def set_stage_complete(self):
-        self.stage = OrderList.STAGE_STATE
+        self.stage = OrderList.STAGE_COMPLETED
         self.status = OrderList.CLOSED
         self.completed_time = datetime.datetime.now()
         self.save(update_fields=['stage', 'status'])
