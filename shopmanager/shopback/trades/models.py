@@ -1953,7 +1953,7 @@ post_save.connect(update_purchase_record, sender=PackageSkuItem,
 
 def check_saleorder_sync(sender, instance, created, **kwargs):
     if created:
-        from flashsale.dinghuo.tasks import task_saleorder_sync_packageskuitem
+        from shopback.trades.tasks import task_saleorder_sync_packageskuitem
         task_saleorder_sync_packageskuitem.delay()
 
 post_save.connect(check_saleorder_sync, sender=PackageSkuItem,
