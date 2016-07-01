@@ -165,8 +165,9 @@ class Customer(BaseModel):
         if not hasattr(self, '_customer_mama_'):
             from flashsale.xiaolumm.models import XiaoluMama
 
-            self._customer_mama_ = XiaoluMama.objects.filter(openid=self.unionid,
-                                                             charge_status=XiaoluMama.CHARGED).first()
+            self._customer_mama_ = XiaoluMama.objects.filter(
+                openid=self.unionid,status=XiaoluMama.EFFECT,
+                charge_status=XiaoluMama.CHARGED).first()
         return self._customer_mama_
 
     def get_referal_xlmm(self):
