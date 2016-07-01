@@ -44,6 +44,52 @@ class XLSampleSku(CacheModel):
         return '-'.join([str(self.sample_product), self.sku_name])
 
 
+class DownloadMobileRecord(BaseModel):
+    UNKNOWN = 0
+    QRCODE = 1
+    ACTIVITY = 2
+    REDENVELOPE = 3
+    UFROM = (
+        (UNKNOWN, u'未知'),
+        (QRCODE, u'二维码'),
+        (ACTIVITY, u'活动'),
+        (REDENVELOPE, u'红包')
+    )
+
+    from_customer = models.IntegerField(db_index=True, verbose_name=u'来自用户')
+    mobile = models.CharField(max_length=11, db_index=True, verbose_name=u'用户手机号')
+    ufrom = models.IntegerField(default=0, choices=UFROM, verbose_name=u'来源')
+    uni_key = models.CharField(max_length=64, unique=True, verbose_name=u'唯一标识')
+
+    class Meta:
+        db_table = 'flashsale_promotion_download_mobile_record'
+        app_label = 'promotion'
+        verbose_name = u'推广/下载手机记录表'
+        verbose_name_plural = u'推广/下载手机记录表'
+
+    def __unicode__(self):
+        return str(self.from_customer)
+
+
+class DownloadUnionidRecord(BaseModel):
+
+    from_customer = models.IntegerField(db_index=True, verbose_name=u'来自用户')
+    ufrom = models.IntegerField(default=0, choices=DownloadMobileRecord.UFROM, verbose_name=u'来源')
+    uni_key = models.CharField(max_length=64, unique=True, verbose_name=u'唯一标识')
+    unionid = models.CharField(max_length=64, db_index=True, verbose_name=u'微信授权unionid')
+    headimgurl = models.CharField(max_length=256, null=False, blank=True, verbose_name=u'头图')
+    nick = models.CharField(max_length=32, null=False, blank=True, verbose_name=u'昵称')
+
+    class Meta:
+        db_table = 'flashsale_promotion_download_unionid_record'
+        app_label = 'promotion'
+        verbose_name = u'推广/下载unionid记录表'
+        verbose_name_plural = u'推广/下载unionid记录表'
+
+    def __unicode__(self):
+        return str(self.from_customer)
+
+
 class AppDownloadRecord(BaseModel):
 
     WXAPP = 'wxapp'
@@ -101,7 +147,6 @@ def appdownloadrecord_update_fans(sender, instance, created, *args, **kwargs):
     task_appdownloadrecord_update_fans.delay(instance)
     
 post_save.connect(appdownloadrecord_update_fans, sender=AppDownloadRecord, dispatch_uid="appdownloadrecord_update_fans")
-
 
 
 class XLSampleApply(CacheModel):
