@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pay', '0016_add_extrapic_and_brand_locationid'),
+        ('pay', '0017_add_brandentry_brandproduct_pictype'),
     ]
 
     operations = [
@@ -30,11 +30,6 @@ class Migration(migrations.Migration):
                 'verbose_name': 'v2/\u540c\u6b65\u68c0\u67e5\u65e5\u5fd7',
                 'verbose_name_plural': 'v2/\u540c\u6b65\u68c0\u67e5\u65e5\u5fd7\u8868',
             },
-        ),
-        migrations.AlterField(
-            model_name='brandproduct',
-            name='product_id',
-            field=models.BigIntegerField(default=0, verbose_name='\u5546\u54c1ID', db_index=True),
         ),
         migrations.AlterField(
             model_name='salerefund',
