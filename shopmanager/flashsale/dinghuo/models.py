@@ -155,11 +155,11 @@ class OrderList(models.Model):
     created = models.DateField(auto_now_add=True,
                                db_index=True,
                                verbose_name=u'订货日期')
-    checked_time = models.DateTimeField(default=None, verbose_name=u'检出时间')
-    pay_time = models.DateTimeField(default=None, verbose_name=u'开始支付时间')
-    paid_time = models.DateTimeField(default=None, verbose_name=u'支付完成时间')
-    receive_time = models.DateTimeField(default=None, verbose_name=u'开始收货时间')
-    received_time = models.DateTimeField(default=None, verbose_name=u'开始结算时间')
+    checked_time = models.DateTimeField(default=None, null=True, verbose_name=u'检出时间')
+    pay_time = models.DateTimeField(default=None, null=True, verbose_name=u'开始支付时间')
+    paid_time = models.DateTimeField(default=None, null=True, verbose_name=u'支付完成时间')
+    receive_time = models.DateTimeField(default=None, null=True, verbose_name=u'开始收货时间')
+    received_time = models.DateTimeField(default=None, null=True, verbose_name=u'开始结算时间')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
     completed_time = models.DateTimeField(blank=True, null=True, verbose_name=u'完成时间')
     note = models.TextField(default="", blank=True, verbose_name=u'备注信息')
@@ -303,6 +303,7 @@ class OrderList(models.Model):
     def press(self, desc):
         OrderGuarantee(purchase_order=self, desc=desc).save()
         self.press_num = self.guarantees.count()
+        self.arrival_process = OrderList.ARRIVAL_PRESSED
         self.save(update_fields=['press_num'])
 
     def set_stat(self):
