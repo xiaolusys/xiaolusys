@@ -192,6 +192,13 @@ class OrderList(models.Model):
     lack = models.NullBooleanField(default=None, verbose_name=u'缺货')
     inferior = models.BooleanField(default=False, verbose_name=u'次品')
     press_num = models.IntegerField(default=0, verbose_name=u'催促次数')
+    ARRIVAL_NOT = 0
+    ARRIVAL_NEED_PROCESS = 1
+    ARRIVAL_PRESSED = 2
+    ARRIVAL_FINISHED = 3
+    ARRIVAL_CHOICES = ((ARRIVAL_NOT, u'未到'), (ARRIVAL_NEED_PROCESS, u'需处理'),
+                       (ARRIVAL_PRESSED, u'已催货'), (ARRIVAL_FINISHED, u'已完成'))
+    arrival_process = models.IntegerField(choices=ARRIVAL_CHOICES, default=ARRIVAL_NOT, verbose_name=u'到货处理')
     purchase_total_num = models.IntegerField(default=0, verbose_name=u'订购总件数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
     is_postpay = models.BooleanField(default=False, verbose_name=u'后付')
