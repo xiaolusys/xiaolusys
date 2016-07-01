@@ -18,6 +18,7 @@ djcelery.setup_loader()
 
 CELERY_IMPORTS = (
     'shopback.trades.tasks_release',
+    'flashsale.xiaolumm.tasks',
     'flashsale.xiaolumm.tasks_mama',
     'flashsale.xiaolumm.tasks_mama_activevalue',
     'flashsale.xiaolumm.tasks_mama_fortune',
@@ -1056,6 +1057,13 @@ SHOP_APP_SCHEDULE = {
     u'定时检查全站推送': {
         'task': 'flashsale.protocol.tasks.task_site_push',
         'schedule': crontab(minute="*/30"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
+    u'定时检查小鹿妈妈续费状态': {
+        'task': 'flashsale.xiaolumm.tasks.task_period_check_mama_renew_state',
+        'schedule': crontab(minute="45", hour="4"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },

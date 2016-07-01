@@ -104,6 +104,7 @@ class XiaoluMama(models.Model):
 
     charge_time = models.DateTimeField(default=datetime.datetime.now,
                                        db_index=True, blank=True, null=True, verbose_name=u'接管时间')
+    renew_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下次续费时间')
 
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
@@ -888,8 +889,9 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
             xlmm.referal_from = referal_mm.mobile
         xlmm.progress = XiaoluMama.PAY
         xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
+        xlmm.charge_time = datetime.datetime.now()  # 接管时间
         xlmm.agencylevel = XiaoluMama.A_LEVEL
-        update_model_fields(xlmm, update_fields=['progress', 'referal_from', 'charge_status', 'agencylevel'])
+        xlmm.save(update_fields=['progress', 'referal_from', 'charge_status', 'agencylevel', 'charge_time'])
         # 保存订单状态到确定状态
         obj.status = SaleTrade.TRADE_FINISHED
         update_model_fields(obj, update_fields=['status'])
