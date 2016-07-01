@@ -1076,7 +1076,7 @@ def create_sync_log(time_from, type, uni_key):
     time_to = time_from + datetime.timedelta(hours=1)
     sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,pay_time__gt=time_from,pay_time__lte=time_to)
     target_num = sos.count()
-    actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to).exclude(assign_status=PackageSkuItem.CANCELED).count()
+    actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to,assign_status__lt=PackageSkuItem.FINISHED).count()
     log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,target_num=target_num,actual_num=actual_num)
     if target_num == actual_num:
         log.status = SaleOrderSyncLog.COMPLETED
@@ -1086,7 +1086,7 @@ def create_sync_log(time_from, type, uni_key):
 @task()
 def task_saleorder_sync_packageskuitem():
     type = SaleOrderSyncLog.SO_PSI
-    log = SaleOrderSyncLog.objects.filter(type=type).order_by('-time_from').first()
+    log = SaleOrderSyncLog.objects.filter(type=type,status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
     if not log:
         return
     
@@ -1103,8 +1103,8 @@ def task_saleorder_sync_packageskuitem():
             if not psi:
                 so.save()
         target_num = sos.count()
-        actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to).exclude(assign_status=PackageSkuItem.CANCELED).count()
-
+        actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to,assign_status__lt=PackageSkuItem.FINISHED).count()
+        
         update_fields = []
         if log.target_num != target_num:
             log.target_num = target_num
