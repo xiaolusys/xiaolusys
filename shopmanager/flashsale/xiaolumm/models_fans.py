@@ -88,21 +88,15 @@ class FansNumberRecord(BaseModel):
         return "<%s,%s>" % (self.xlmm, self.fans_num)
 
 
-from django.contrib.auth.signals import user_logged_in
-def login_activate_appdownloadrecord(sender, request, user, *args, **kwargs):
+def login_activate_appdownloadrecord(user):
     """
     Only check whether this user has download-relationship, if he/she has
     and that download-relationship record is not used yet, we confirm he/she is 
     a fan of the related user.
-
-    Note: In the near future, we must add a field is_app_actived to Customer, after
-    we confirm the user is actived via app, we dont do this check upon future 
-    login from the user.
     """
 
     from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_activate_appdownloadrecord, task_login_create_appdownloadrecord
     task_login_activate_appdownloadrecord.delay(user)
-    task_login_create_appdownloadrecord.delay(user)
+    #task_login_create_appdownloadrecord.delay()
 
 
-user_logged_in.connect(login_activate_appdownloadrecord, dispatch_uid='login_activate_appdownloadrecord')

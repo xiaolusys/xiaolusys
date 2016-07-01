@@ -15,6 +15,8 @@ from flashsale.pay.models import Register, Customer
 from shopapp.smsmgr.tasks import task_register_code
 from core.weixin.options import gen_wxlogin_sha1_sign
 
+from flashsale.xiaolumm.models_fans import login_activate_appdownloadrecord
+
 import logging
 logger = logging.getLogger('django.request')
 
@@ -138,6 +140,13 @@ def should_resend_code(reg):
         return False
     return True
 
+def is_from_app(params):
+    devtype = params.get("devtype")
+    if devtype:
+        devtype = devtype.lower()
+    if devtype == "android" or devtype == "ios":
+        return True
+    return False
 
     
 class SendCodeView(views.APIView):
@@ -242,8 +251,11 @@ class VerifyCodeView(views.APIView):
             if not user or user.is_anonymous():
                 return Response({"rcode": 5, "msg": u'登录异常！'})
 
-            logger.warn("Register/SMS_LOGIN: %s" % request.POST)
             login(request, user)
+
+            if is_from_app(content):
+                login_activate_appdownloadrecord(user)
+                
             return Response({"rcode": 0, "msg": u"登录成功！"})  
         
         return Response({"rcode": 0, "msg": u"验证码校验通过！"}) 
@@ -310,9 +322,11 @@ class PasswordLoginView(views.APIView):
         if not user or user.is_anonymous():
             return Response({"rcode": 2, "msg": u"用户名或密码错误呢！", 'next': ''})
 
-        logger.warn("PasswordLogin: %s" % request.POST)
         login(request, user)
-        
+
+        if is_from_app(content):
+            login_activate_appdownloadrecord(user)
+
         return Response({"rcode": 0, "msg": u"登录成功", "next": next_url})
 
 
@@ -363,6 +377,8 @@ class WeixinAppLoginView(views.APIView):
         """
         app客户端微信授权登陆
         """
+        content = request.POST
+        
         if not check_sign(request):
             return Response({"rcode": 1, "msg": u'登录失败'})
 
@@ -371,6 +387,8 @@ class WeixinAppLoginView(views.APIView):
         if not user or user.is_anonymous():
             return Response({"rcode": 2, "msg": u'登录异常'})
 
-        logger.warn("WeixinAppLogin: %s" % request.POST)
         login(request, user)
+        if is_from_app(content):
+            login_activate_appdownloadrecord(user)
+        
         return Response({"rcode": 0, "msg": u'登录成功'})

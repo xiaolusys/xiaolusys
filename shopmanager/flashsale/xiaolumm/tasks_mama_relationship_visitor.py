@@ -116,11 +116,15 @@ from flashsale.xiaolumm.models import XiaoluMama
 
 @task()
 def task_login_activate_appdownloadrecord(user):
-    customers = Customer.objects.filter(user=user)
-    if not customers.exists():
+    customer = Customer.objects.filter(user=user).first()
+    if not customer:
         return
 
-    customer = customers[0]
+    fan = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+    if fan:
+        # already a fan
+        return
+
     self_mama = customer.getXiaolumm()
     if self_mama:
         # XiaoluMama can't be a fan of any others.
