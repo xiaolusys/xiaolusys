@@ -901,7 +901,7 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 
 
 from shopback.trades.models import PackageSkuItem, PackageOrder
-
+from flashsale.pay.models import SaleOrder,SaleTrade
 
 @task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats(sku_id):
@@ -1001,19 +1001,23 @@ def task_update_package_order(instance):
                                                         sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
                     PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order.id,
                                                                          package_order_pid=package_order.pid)
+
+                    package_order.reset_sku_item_num(save_data=True)
                 else:
                     PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id,
                                                                          package_order_pid=package_order.pid)
                     package_order.set_redo_sign(save_data=False)
                     if package_order.sys_status == PackageOrder.PKG_NEW_CREATED:
                         package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-                    package_order.reset_sku_item_num(save_data=True)
                     package_order.set_package_address()
                     package_order.set_logistics_company()
+                    package_order.reset_sku_item_num(save_data=True)
+
             else:
                 logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
                 return
         else:
+
             package_order = PackageOrder.objects.get(id=instance.package_order_id)
             if package_order.sys_status == PackageOrder.PKG_NEW_CREATED:
                 package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
