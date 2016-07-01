@@ -1031,7 +1031,7 @@ def task_assign_stock_to_package_sku_item(stat):
 def task_relase_package_sku_item(stat):
     sku_id = stat.sku_id
     from shopback.trades.models import PackageSkuItem
-    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=1).order_by('-id').first()
+    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
     if pki:
         pki.reset_assign_status()
 
@@ -1049,13 +1049,14 @@ def task_productsku_update_productskustats(sku_id, product_id):
 def task_update_productskustats_inferior_num(sku_id):
     from shopback.items.models_stats import ProductSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
     from flashsale.dinghuo.models import InBoundDetail, RGDetail, ReturnGoods
-    inferior_num = InBoundDetail.objects.filter(sku_id=sku_id, checked=True, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME).\
+    inferior_num = InBoundDetail.objects.filter(sku_id=sku_id, checked=True, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME). \
         aggregate(n=Sum("inferior_quantity")).get('n', 0)
     inferior_num_add = inferior_num if inferior_num else 0
     inferior_num_plus = RGDetail.get_return_inferior_num_total(sku_id)
     stat = ProductSkuStats.get_by_sku(sku_id)
     stat.inferior_num = inferior_num_add - inferior_num_plus
     stat.save(update_fields=['inferior_num'])
+
 
 # @task()
 def task_stock_adjust_update_productskustats_inferior_num(sku_id, product_id):
