@@ -259,16 +259,16 @@ if os.environ.get('TARGET') in ('staging',):
         'default': {
             'ENGINE': 'django.db.backends.mysql',
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'shopmgr',  # Or path to database file if using sqlite3.
+            'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
             'USER': 'xiaoludev',  # Not used with sqlite3.
-            'PASSWORD': 'xiaolu_test123',  # Not used with sqlite3.
-            'HOST': 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com',
+            'PASSWORD': 'Xiaolu_test123',  # Not used with sqlite3.
+            'HOST': 'rm-bp17ea269uu21f9i1.mysql.rds.aliyuncs.com',
         # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
             'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
             'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
                         'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
             'TEST': {
-                'NAME': 'test_shopmgr',
+                'NAME': 'test_xiaoludb',
                 'CHARSET': 'utf8',
             }
         }
