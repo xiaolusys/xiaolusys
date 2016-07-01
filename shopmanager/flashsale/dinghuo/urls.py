@@ -236,6 +236,7 @@ urlpatterns = [
     #生成退货单
     url(r'^generate_tuihuodan/$', generate_tuihuodan, name="generate_tuihuodan"),
     url(r'^tuihuo/set_return_goods_failed/$', set_return_goods_failed, name="set_return_goods_failed"),
+
 ]
 
 urlpatterns += router.urls
