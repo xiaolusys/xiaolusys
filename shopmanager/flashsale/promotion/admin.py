@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
 from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord, \
-    RedEnvelope, AwardWinner
+    RedEnvelope, AwardWinner, DownloadMobileRecord, DownloadUnionidRecord
 from .models import XLInviteCode, XLReferalRelationship, XLInviteCount
 
 from core.filters import DateFieldListFilter
@@ -126,3 +126,32 @@ class AwardWinnerAdmin(admin.ModelAdmin):
 
 
 admin.site.register(AwardWinner, AwardWinnerAdmin)
+
+
+class DownloadMobileRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "from_customer",
+        "mobile",
+        "ufrom",
+    )
+    list_filter = ('ufrom',)
+    search_fields = ('from_customer', 'mobile')
+
+
+admin.site.register(DownloadMobileRecord, DownloadMobileRecordAdmin)
+
+
+class DownloadUnionidRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "from_customer",
+        "unionid",
+        "ufrom",
+    )
+    list_filter = ('ufrom',)
+    search_fields = ('from_customer', 'unionid')
+
+
+admin.site.register(DownloadUnionidRecord, DownloadUnionidRecordAdmin)
+
