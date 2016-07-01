@@ -98,9 +98,20 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
 
         statsd.incr('xiaolumm.mamafortune_count')
 
-        fortunes = self.get_owner_queryset(request)
+        # fortunes = self.get_owner_queryset(request)
+        customer = Customer.objects.filter(user=request.user).first()
+        mama_id = None
+        xlmm = None
+        if customer:
+            xlmm = customer.getXiaolumm()
+            if xlmm:
+                mama_id = xlmm.id
+        fortunes = self.queryset.filter(mama_id=mama_id)
         # fortunes = self.paginate_queryset(fortunes)
-        serializer = serializers.MamaFortuneSerializer(fortunes, many=True, context={'request': request})
+        serializer = serializers.MamaFortuneSerializer(fortunes, many=True,
+                                                       context={'request': request,
+                                                                "customer": customer,
+                                                                "xlmm": xlmm})
         data = serializer.data
         if len(data) > 0:
             res = data[0]
