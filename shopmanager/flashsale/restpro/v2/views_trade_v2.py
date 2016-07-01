@@ -615,9 +615,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                     budget_log_type=BudgetLog.BG_CONSUM,
                                     budget_type=BudgetLog.BUDGET_OUT,
                                     status=BudgetLog.CONFIRMED)
-            #确认付款后保存
-            confirmTradeChargeTask.delay(strade_id)
-        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功', 'order_no':sale_trade.tid}
+
+        #确认付款后保存
+        confirmTradeChargeTask.delay(strade_id)
+        success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+        return {'channel':channel,'success':True,'id':sale_trade.id,
+                'info':'订单支付成功', 'order_no':sale_trade.tid,
+                'success_url': success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL}
     
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """

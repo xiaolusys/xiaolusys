@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 from shopback.trades.models import (
+    PackageOrder,
     PackageSkuItem,
 )
 

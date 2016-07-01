@@ -537,6 +537,17 @@ class SaleTrade(BaseModel):
                 ware_by &= product.ware_by
         return ware_by or Product.WARE_NONE
 
+    @property
+    def package_orders(self):
+        try:
+            package_list = []
+            for sorder in self.sale_orders.all():
+                package = sorder.package_order
+                if package and package not in package_list:
+                    package_list.append(package)
+            return package_list
+        except Exception,exc:
+            logger.error(exc.message, exc_info=True)
 
 def record_supplier_args(sender, obj, **kwargs):
     """ 随支付成功信号 更新供应商的销售额，销售数量
@@ -730,13 +741,21 @@ class SaleOrder(PayBaseModel):
 
     @property
     def package_order(self):
-        if not self.package_order_id:
-            return None
-        try:
+        if not hasattr(self, '_package_order_'):
             from shopback.trades.models import PackageOrder
-            return PackageOrder.objects.get(id=self.package_order_id)
-        except:
-            return None
+            package_sku_item = self.package_sku()
+            if package_sku_item and package_sku_item.package_order_id:
+                self._package_order_ = PackageOrder.objects.filter(id=package_sku_item.package_order_id).first()
+            else:
+                self._package_order_ = None
+        return self._package_order_
+
+    def is_packaged(self):
+        """ 是否打包 """
+        package_sku_item = self.package_sku()
+        if package_sku_item and package_sku_item.package_order_id:
+            return True
+        return False
 
     @property
     def refundable(self):
@@ -895,7 +914,7 @@ class SaleOrder(PayBaseModel):
     def package_sku(self):
         if not hasattr(self, '_package_sku_'):
             from shopback.trades.models import PackageSkuItem
-            self._package_sku_ = PackageSkuItem.objects.get(sale_order_id=self.id)
+            self._package_sku_ = PackageSkuItem.objects.filter(sale_order_id=self.id).first()
         return self._package_sku_
 
 
