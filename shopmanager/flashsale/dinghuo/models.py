@@ -348,9 +348,18 @@ class OrderList(models.Model):
             self.is_postpay = True
         self.save(update_fields=['stage', 'status', 'is_postpay'])
 
-    def set_stage_receive(self):
+    def set_stage_pay(self, pay_way=13):
+        # 付款提货 进入付款状态
+        self.bill_method = pay_way
+        self.stage = OrderList.STAGE_PAY
+        self.pay_time = datetime.datetime.now()
+        self.save()
+
+    def set_stage_receive(self, pay_way=11):
+        self.bill_method = pay_way
         self.stage = OrderList.STAGE_RECEIVE
         self.status = OrderList.QUESTION_OF_QUANTITY
+        self.arrival_process = OrderList.ARRIVAL_NEED_PROCESS
         if not self.receive_time:
             self.receive_time = datetime.datetime.now()
         self.save()
@@ -359,6 +368,7 @@ class OrderList(models.Model):
         self.stage = OrderList.STAGE_STATE
         self.status = OrderList.TO_BE_PAID
         self.received_time = datetime.datetime.now()
+        self.arrival_process = OrderList.ARRIVAL_FINISHED
         self.save()
 
     def set_stage_complete(self):
@@ -1289,8 +1299,8 @@ class InBound(models.Model):
     def update_orderlist_inbound(self):
         for orderlist_id in self.orderlist_ids:
             OrderList.objects.filter(id=orderlist_id,
-                                 arrival_status__in=[OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_PRESSED]).update(
-                arrival_status=OrderList.ARRIVAL_NEED_PROCESS)
+                                 arrival_process__in=[OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_PRESSED]).update(
+                arrival_process=OrderList.ARRIVAL_NEED_PROCESS)
 
     def notify_forecast_save_or_update_inbound(self):
         from flashsale.forecast.apis import api_create_or_update_realinbound_by_inbound

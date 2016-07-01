@@ -1073,6 +1073,30 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         return Response(buyer_id)
 
     @detail_route(methods=['post'])
+    def create_bill(self, request, pk):
+        pay_tool = request.REQUEST.get("pay_tool", None)
+        orderlist = get_object_or_404(OrderList, id=pk)
+        pay_way = request.REQUEST.get("pay_way", None)
+        from flashsale.finance.models import Bill
+        if int(pay_way) == OrderList.PC_POD_TYPE:
+            status = Bill.STATUS_PENDING
+        else:
+            # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
+            status = Bill.STATUS_DELAY
+        pay_method = dict(Bill.PAY_CHOICES).get(pay_tool, Bill.SELF_PAY)
+        receive_account = request.REQUEST.get("receive_account")
+        receive_name = request.REQUEST.get("receive_name")
+        pay_taobao_link = request.REQUEST.get("pay_taobao_link")
+        bill = Bill.create([orderlist], Bill.PAY, status, pay_method, orderlist.order_amount, orderlist.supplier,
+                           user_id=request.user.id, receive_account=receive_account, receive_name=receive_name,
+                           pay_taobao_link=pay_taobao_link)
+        if int(pay_way) == OrderList.PC_POD_TYPE:
+            orderlist.set_stage_pay(pay_way)
+        else:
+            orderlist.set_stage_receive(pay_way)
+        return Response({"res": True, "data": [bill.id], "desc": ""})
+
+    @detail_route(methods=['post'])
     def set_stage_receive(self, request, pk):
         orderlist = get_object_or_404(OrderList, pk=pk)
         orderlist.set_stage_receive()

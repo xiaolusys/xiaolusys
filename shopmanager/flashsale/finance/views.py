@@ -104,8 +104,8 @@ def pay_bill(request):
 def finish_bill(request):
     bill_id = int(request.REQUEST.get("bill_id", None))
     Bill.objects.filter(id=bill_id).update(status=Bill.STATUS_COMPLETED)
-    orderlist = BillRelation.objects.get(bill_id=bill_id).object_id
-    OrderList.objects.filter(id=orderlist).update(status=OrderList.BE_PAID)
+    orderlist = BillRelation.objects.get(bill_id=bill_id).get_based_object()
+    orderlist.set_stage_receive()
     return {'bill_id': bill_id}
 
 @staff_member_required

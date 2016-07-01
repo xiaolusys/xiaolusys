@@ -277,45 +277,6 @@ def generate_tuihuodan(request):
         return HttpResponse(json.dumps({"res":False, "data":[],"desc":"创建退货单失败"}))
 
 
-def create_bill(request):
-    pay_tool = request.REQUEST.get("pay_tool", None)
-    orderlist_id = request.REQUEST.get("orderlist_id", None)
-    pay_way = request.REQUEST.get("pay_way", None)
-    if int(pay_way) == 13:
-        status = Bill.STATUS_PENDING
-    else:
-        status = Bill.STATUS_DELAY      # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
-
-    receive_account = request.REQUEST.get("receive_account")
-    receive_name = request.REQUEST.get("receive_name")
-    orderlist = OrderList.objects.get(id=orderlist_id)
-    orderlist.bill_method = pay_way
-    orderlist.status = OrderList.APPROVAL    # 更新orderlist审核中，付款方式是在线先付
-    orderlist.save()
-
-    pay_method = {
-        1 : Bill.TAOBAO_PAY,
-        2 : Bill.TRANSFER_PAY,
-        3 : Bill.TAOBAO_PAY
-    }
-    billrelation = BillRelation.objects.filter(object_id = orderlist.id)
-    if billrelation.count() != 0:
-        bill_id = billrelation[0].bill.id
-        Bill.objects.filter(id = bill_id).update(type=Bill.PAY, status=status, plan_amount=orderlist.order_amount,
-                                   pay_method=pay_method[int(pay_tool)], receive_account=receive_account, receive_name = receive_name,
-                                   supplier=orderlist.supplier,creater_id=request.user.id)
-        return HttpResponse(True)
-
-    bill = Bill.objects.create(type=Bill.PAY, status=status, plan_amount=orderlist.order_amount,
-                                   pay_method=pay_method[int(pay_tool)], receive_account=receive_account, receive_name = receive_name,
-                                   supplier=orderlist.supplier,creater_id=request.user.id)  # 生成Bill实例
-    bill.save()
-    returngoods_type = ContentType.objects.get(app_label='dinghuo',model='orderlist')
-    bill_relation = BillRelation.objects.create(bill=bill, object_id=orderlist.id,type=BillRelation.TYPE_DINGHUO_PAY,content_type = returngoods_type)  # 生成Billrelation实例
-    bill_relation.save()
-    return HttpResponse(json.dumps({"res": True, "data": [bill.id, bill_relation.id], "desc": ""}))
-
-
 @csrf_exempt
 def change_inferior_num(request):
     if not request.user.has_perm('dinghuo.change_orderdetail_quantity'):
