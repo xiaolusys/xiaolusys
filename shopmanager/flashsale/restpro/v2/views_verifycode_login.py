@@ -242,6 +242,7 @@ class VerifyCodeView(views.APIView):
             if not user or user.is_anonymous():
                 return Response({"rcode": 5, "msg": u'登录异常！'})
 
+            logger.warn("Register/SMS_LOGIN: %s" % request.POST)
             login(request, user)
             return Response({"rcode": 0, "msg": u"登录成功！"})  
         
@@ -258,7 +259,7 @@ class ResetPasswordView(views.APIView):
         """
         reset password after verifying code
         """
-        content = request.REQUEST
+        content = request.POST
         mobile = content.get("mobile", "0")
         pwd1 = content.get("password1", "")
         pwd2 = content.get("password2", "")
@@ -308,6 +309,8 @@ class PasswordLoginView(views.APIView):
         user = authenticate(username=username, password=password)
         if not user or user.is_anonymous():
             return Response({"rcode": 2, "msg": u"用户名或密码错误呢！", 'next': ''})
+
+        logger.warn("PasswordLogin: %s" % request.POST)
         login(request, user)
         
         return Response({"rcode": 0, "msg": u"登录成功", "next": next_url})
@@ -368,5 +371,6 @@ class WeixinAppLoginView(views.APIView):
         if not user or user.is_anonymous():
             return Response({"rcode": 2, "msg": u'登录异常'})
 
+        logger.warn("WeixinAppLogin: %s" % request.POST)
         login(request, user)
         return Response({"rcode": 0, "msg": u'登录成功'})
