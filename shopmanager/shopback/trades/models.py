@@ -12,7 +12,6 @@ from core.options import log_action, CHANGE
 from shopback.orders.models import Trade, Order, STEP_TRADE_STATUS
 from shopback.trades.managers import MergeTradeManager
 from shopback.items.models import Item, Product, ProductSku
-from flashsale.pay.models import SaleOrder, SaleTrade
 from shopback.logistics.models import Logistics, LogisticsCompany
 from shopback.refunds.models import Refund, REFUND_STATUS
 from shopback import paramconfig as pcfg
@@ -1287,9 +1286,7 @@ class PackageOrder(models.Model):
     sys_status = models.CharField(max_length=32, db_index=True,
                                   choices=PACKAGE_STATUS, blank=True,
                                   default=PKG_NEW_CREATED, verbose_name=u'系统状态')
-    sku_num = models.IntegerField(default=0, verbose_name=u'当前SKU种类数')
-    order_sku_num = models.IntegerField(default=0, verbose_name=u'用户订货SKU种类总数')
-    ready_completion = models.BooleanField(default=False, verbose_name=u'是否备货完毕')
+    sku_num = models.IntegerField(default=0, verbose_name=u'SKU种类数')
     # 物流信息
     seller_id = models.BigIntegerField(db_index=True, verbose_name=u'卖家ID')
     # 收货信息
@@ -1408,13 +1405,6 @@ class PackageOrder(models.Model):
             sale_order.sale_trade.set_out_sid(sku_item.package_order.out_sid,
                                               sku_item.package_order.logistics_company_id)
 
-    def is_ready_completion(self):
-        if self.sku_num == self.order_sku_num:
-            self.ready_completion = True
-            return True
-        else:
-            return False
-
     @property
     def buyer(self):
         if not hasattr(self, '_buyer_'):
@@ -1513,7 +1503,7 @@ class PackageOrder(models.Model):
             st = SaleTrade.objects.filter(tid=item.sale_trade_id).first()
             if not st:
                 return self
-
+            
             self.buyer_id = st.buyer_id
             self.receiver_name = st.receiver_name
             self.receiver_state = st.receiver_state
@@ -1565,18 +1555,16 @@ class PackageOrder(models.Model):
                 self.logistics_company_id = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0].id
             self.save(update_fields=['logistics_company_id'])
 
+
     def reset_sku_item_num(self, save_data=True):
         sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
-                                                  assign_status=PackageSkuItem.ASSIGNED)
+                                                  sys_status__in=[PackageSkuItem.ASSIGNED,
+                                                                  PackageSkuItem.FINISHED])
         sku_num = sku_items.count()
-        order_sku_num = PackageSkuItem.unsend_orders_cnt(self.buyer_id)
-        if order_sku_num > 0:
-            ready_completion = sku_num == order_sku_num
-        else:
-            ready_completion = 0
-        if self.sku_num != sku_num or self.order_sku_num != order_sku_num or ready_completion != self.ready_completion:
-            PackageOrder.objects.filter(id=self.id).update(sku_num=sku_num, order_sku_num=order_sku_num,
-                                                           ready_completion=ready_completion)
+        if self.sku_num != sku_num:
+            PackageOrder.objects.filter(id=self.id).update(sku_num=sku_num)
+        if save_data:
+            self.save()
 
     def refresh(self):
         """
@@ -1763,7 +1751,7 @@ class PackageSkuItem(BaseModel):
     logistics_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司代码')
 
     purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一ID')
-
+    
     class Meta:
         db_table = 'flashsale_package_sku_item'
         app_label = 'trades'
@@ -1848,22 +1836,7 @@ class PackageSkuItem(BaseModel):
         if self.assign_status == PackageSkuItem.FINISHED or self.assign_status == PackageSkuItem.CANCELED:
             return '亲，申请退货后请注意退货流程，记得填写快递单号哦～'
         return ''
-
-    @staticmethod
-    def unsend_orders_cnt(buyer_id):
-        payed_counts = SaleOrder.objects.filter(buyer_id=buyer_id, status=SaleOrder.WAIT_SELLER_SEND_GOODS).count()
-        payed_saleorder = SaleOrder.objects.filter(buyer_id=buyer_id, status=SaleOrder.WAIT_SELLER_SEND_GOODS)
-        oids = [o.oid for o in payed_saleorder]
-        unuse_cnt = PackageSkuItem.objects.filter(oid__in=oids, assign_status__in=[PackageSkuItem.CANCELED,
-                                                                                   PackageSkuItem.FINISHED]).count()
-        payed_counts -= unuse_cnt
-        return payed_counts
-        # for i in payed_saleorder:
-        #     if PackageSkuItem.objects.get(oid = i.oid).assign_status == PackageSkuItem.CANCELED or \
-        #                     PackageSkuItem.objects.get(oid = i.oid).assign_status == PackageSkuItem.FINISHED:
-        #         payed_counts = payed_counts -1
-        # return payed_counts
-
+    
     def is_booking_needed(self):
         return self.assign_status == PackageSkuItem.NOT_ASSIGNED
 
@@ -1880,7 +1853,7 @@ class PackageSkuItem(BaseModel):
         if self.purchase_order_unikey:
             return True
         return False
-
+    
     def clear_order_info(self):
         if self.assign_status == 2:
             return
@@ -1918,7 +1891,10 @@ class PackageSkuItem(BaseModel):
                 package_order.reset_sku_item_num(save_data=True)
             else:
                 package_order.reset_to_new_create()
-        PackageSkuItem.objects.filter(id=self.id).update(package_order_id=None, package_order_pid=None)
+        p = PackageSkuItem.objects.get(id=self.id)
+        p.package_order_id = None
+        p.package_order_pid = None
+        p.save()
 
     def reset_assign_package(self):
         if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
@@ -1970,7 +1946,6 @@ post_save.connect(update_package_order, sender=PackageSkuItem,
 def update_purchase_record(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_packageskuitem_update_purchaserecord
     task_packageskuitem_update_purchaserecord.delay(instance)
-
 
 post_save.connect(update_purchase_record, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_purchase_record')

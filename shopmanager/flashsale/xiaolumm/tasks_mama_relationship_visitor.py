@@ -123,11 +123,13 @@ def task_login_activate_appdownloadrecord(user):
     fan = XlmmFans.objects.filter(fans_cusid=customer.id).first()
     if fan:
         # already a fan
+        logger.warn("activate appdownload: already a fan")
         return
 
     self_mama = customer.getXiaolumm()
     if self_mama:
         # XiaoluMama can't be a fan of any others.
+        logger.warn("activate appdownload: already a mama")
         return
     
     unionid = customer.unionid

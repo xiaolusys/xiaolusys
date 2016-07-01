@@ -321,13 +321,17 @@ class OrderList(models.Model):
             arrival_quantity_total += detail.arrival_quantity + detail.inferior_quantity
         if arrival_quantity_total == 0:
             lack = None
+        if lack is False:
+            arrival_process = OrderList.ARRIVAL_FINISHED
         change = False
         if self.lack != lack:
             change = True
             self.lack = lack
-        elif self.inferior != inferior:
+        if self.inferior != inferior:
             change = True
             self.inferior = inferior
+        if self.arrival_process != arrival_process:
+            self.arrival_process = arrival_process
         return change
 
     def has_paid(self):
@@ -1277,6 +1281,16 @@ class InBound(models.Model):
         self.set_stat()
         self.save()
 
+    def record_orderlist_ids(self):
+        self.orderlist_ids = self.order_list_ids
+        self.save()
+
+    def update_orderlist_inbound(self):
+        for orderlist_id in self.orderlist_ids:
+            OrderList.objects.filter(id=orderlist_id,
+                                 arrival_status__in=[OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_PRESSED]).update(
+                arrival_status=OrderList.ARRIVAL_NEED_PROCESS)
+
     def notify_forecast_save_or_update_inbound(self):
         from flashsale.forecast.apis import api_create_or_update_realinbound_by_inbound
         api_create_or_update_realinbound_by_inbound.delay(self.id)
@@ -1674,6 +1688,7 @@ class InBound(models.Model):
         self.check_time = datetime.datetime.now()
         self.set_stat()
         self.save()
+        self.update_orderlist_inbound()
 
     def need_return(self):
         if self.status != InBound.COMPLETE_RETURN:

@@ -79,7 +79,7 @@ class OrderListStatusFilter(SimpleListFilter):
 
 class OrderListReceiveStatusFilter(SimpleListFilter):
     """按订货单状态过滤"""
-    title = u'到货状态'
+    title = u'到货处理<重复待删>'
     parameter_name = 'receive_status'
 
     def lookups(self, request, model_admin):
