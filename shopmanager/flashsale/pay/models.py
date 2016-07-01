@@ -1208,7 +1208,7 @@ class SaleOrderSyncLog(BaseModel):
         verbose_name_plural = u'v2/同步检查日志表'
 
     def __unicode__(self):
-        return '%s|%s' % (self.id, self.time_key)
+        return '%s|%s' % (self.id, self.uni_key)
 
     def is_completed(self):
         return self.target_num == self.actual_num
