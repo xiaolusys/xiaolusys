@@ -149,6 +149,15 @@ class MamaFortune(BaseModel):
             self.extras = extras
             self.save()
 
+    @property
+    def xlmm(self):
+        if not hasattr(self, '_xiaolumm_xlmm_'):
+            from flashsale.xiaolumm.models import XiaoluMama
+
+            self._xiaolumm_xlmm_ = XiaoluMama.objects.filter(id=self.mama_id).first()
+        return self._xiaolumm_xlmm_
+
+
 def copy_history_cash(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.models import XiaoluMama
     m = XiaoluMama.objects.filter(id=instance.mama_id).first()
