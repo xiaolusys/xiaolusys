@@ -44,7 +44,8 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             if len(x) > 0:
                 p.update({'model_id': x[0]['model_id']})
                 p.update({'sale_time': x[0]['sale_time']})
-        return Response(pms)
+        a = sorted(pms, key=lambda k: k['sale_product_id'], reverse=True)   # 按照选品id　排序
+        return Response(a)
 
     def create(self, request, *args, **kwargs):
         start_time = request.data.get("start_time") or None
