@@ -19,7 +19,7 @@ from flashsale.pay.models import (
     CustomShare,
     UserBudget
 )
-from shopback.trades.models import TradeWuliu
+from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
 from . import constants
@@ -263,12 +263,14 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
     refund_status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
     refund_status_display = serializers.CharField(source='get_refund_status_display', read_only=True)
     kill_title = serializers.BooleanField(source='second_kill_title', read_only=True)
-
+    is_packaged = serializers.BooleanField(read_only=True)
+    package_order_id = serializers.CharField(source='package_sku.package_order_id', read_only=True)
     class Meta:
         model = SaleOrder
         fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
-                  'refund_status', 'refund_status_display', "refund_id", 'kill_title', 'is_seckill')
+                  'refund_status', 'refund_status_display', "refund_id", 'kill_title',
+                  'is_seckill', 'is_packaged', 'package_order_id')
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
@@ -290,21 +292,42 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
                   'receiver_district', 'receiver_address', 'receiver_mobile', 'receiver_phone')
 
 
+class PackageOrderSerializer(serializers.ModelSerializer):
+
+    pay_time = serializers.CharField(source='first_package_sku_item.pay_time', read_only=True)
+    process_time = serializers.CharField(source='first_package_sku_item.process_time', read_only=True)
+    book_time = serializers.CharField(source='first_package_sku_item.book_time', read_only=True)
+    assign_time = serializers.CharField(source='first_package_sku_item.assign_time', read_only=True)
+    finish_time = serializers.CharField(source='first_package_sku_item.finish_time', read_only=True)
+    cancel_time = serializers.CharField(source='first_package_sku_item.cancel_time', read_only=True)
+    ware_by_display = serializers.CharField(source='get_ware_by_display', read_only=True)
+    assign_status_display = serializers.CharField(source='first_package_sku_item.get_assign_status_display', read_only=True)
+    out_sid = serializers.CharField(source='first_package_sku_item.process_time', read_only=True)
+    logistics_company = LogisticsCompanySerializer(read_only=True)
+    note = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = PackageOrder
+        fields = ('id', 'logistics_company', 'process_time', 'pay_time', 'book_time', 'assign_time',
+                  'finish_time', 'cancel_time','assign_status_display', 'ware_by_display', 'out_sid', 'note')
+
 class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='v2:saletrade-detail')
     orders = SaleOrderSerializer(source='sale_orders', many=True, read_only=True)
+    # TODO 根据订单信息，显示未分包商品及已分包商品列表
     channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
     logistics_company = LogisticsCompanySerializer(read_only=True)
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
     status_display = serializers.CharField(source='status_name', read_only=True)
+    package_orders = PackageOrderSerializer(many=True, read_only=True)
     extras = JSONParseField(source='get_extras', read_only=True)
     class Meta:
         model = SaleTrade
         fields = ('id', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
-                  'logistics_company', 'user_adress', 'extras')
+                  'logistics_company', 'user_adress', 'package_orders','extras')
 
 
 from flashsale.pay.models import District, UserAddress

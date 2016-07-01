@@ -33,6 +33,7 @@ def get_customer_id(user):
 class PackageSkuItemView(APIView):
     """
     Return package sku items upon query with sale_trade_id or receiver_mobile.
+    # NOTICE:this api is move to views_trade_v2
     """
 
     queryset = PackageSkuItem.objects.all()
@@ -58,7 +59,6 @@ class PackageSkuItemView(APIView):
         query_set = self.get_queryset(request)
         serializer = packageskuitem_serializers.PackageSkuItemSerializer(query_set, many=True)
         data = sorted(serializer.data, key=lambda x: x['package_group_key'])
-        
         return Response(data)
 
         

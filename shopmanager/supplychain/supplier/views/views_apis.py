@@ -70,6 +70,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
 class SaleScheduleViewSet(viewsets.ModelViewSet):
     """
     ###排期管理REST API接口：
+    - schedule_type: (brand, 品牌),(atop, TOP榜),(topic, 专题),(sale, 特卖)
     - 列表过滤条件: schedule_type, sale_suppliers
     - /aggregate: 获取按日期聚合排期列表
     """

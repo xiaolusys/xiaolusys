@@ -1443,6 +1443,12 @@ class PackageOrder(models.Model):
         return PackageSkuItem.objects.filter(package_order_id=self.id)
 
     @property
+    def first_package_sku_item(self):
+        if not hasattr(self, '_first_package_sku_item_'):
+            self._first_package_sku_item_ = PackageSkuItem.objects.filter(package_order_id=self.id).first()
+        return self._first_package_sku_item_
+
+    @property
     def seller(self):
         if not hasattr(self, '_seller_'):
             self._seller_ = User.objects.get(id=self.seller_id)
