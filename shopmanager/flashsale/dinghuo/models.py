@@ -73,7 +73,7 @@ class OrderList(models.Model):
     CREATED_BY_PERSON = 1
     CREATED_BY_MACHINE = 2
 
-    ORDER_PRODUCT_STATUS = ((SUBMITTING, u'草稿'), (APPROVAL, u'审核'),(BE_PAID,u'已付款'),
+    ORDER_PRODUCT_STATUS = ((SUBMITTING, u'草稿'), (APPROVAL, u'审核'), (BE_PAID, u'已付款'),
                             (ZUOFEI, u'作废'), (QUESTION, u'有次品又缺货'),
                             (CIPIN, u'有次品'), (QUESTION_OF_QUANTITY, u'到货数量问题'),
                             (COMPLETED, u'验货完成'), (DEALED, u'已处理'),
@@ -298,8 +298,44 @@ class OrderList(models.Model):
         return order_nums and sum(order_nums) or 0
 
     @property
+    def total_arrival_quantity(self):
+        n = self.order_list.aggregate(n=Sum('arrival_quantity')).get('n', 0)
+        return n or 0
+
+    @property
     def status_name(self):
         return self.get_sys_status_display()
+
+    @property
+    def lack_num(self):
+        return sum([detail.need_arrival_quantity for detail in self.order_list.all()])
+
+    def lack_detail(self):
+        res = []
+        for d in self.order_list.all():
+            if d.need_arrival_quantity > 0:
+                res.append(d)
+        return res
+
+    @property
+    def related_inbounds(self):
+        if not hasattr(self, '_related_inbounds_'):
+            self._related_inbounds_ = InBound.objects.filter(id__in=self.get_inbound_ids())
+        return self._related_inbounds_
+
+    @property
+    def related_out_stock_inbound_details(self):
+        if not hasattr(self, '_related_out_stock_inbound_details_'):
+            self._related_out_stock_inbound_details_ = InBoundDetail.objects.filter(inbound_id__in=self.get_inbound_ids())
+        return self._related_out_stock_inbound_details_
+
+    def get_related_inbounds_out_stock_cnt(self):
+        return sum([d.out_stock_num for d in self.related_out_stock_inbound_details])
+
+    def get_inbound_ids(self):
+        detail_ids = [i['id'] for i in self.order_list.values('id')]
+        q = InBoundDetail.objects.filter(records__orderdetail_id__in=detail_ids).values('inbound_id').distinct()
+        return [i['inbound_id'] for i in q]
 
     def press(self, desc):
         OrderGuarantee(purchase_order=self, desc=desc).save()
@@ -345,7 +381,7 @@ class OrderList(models.Model):
         self.stage = OrderList.STAGE_CHECKED
         self.status = OrderList.APPROVAL
         self.purchase_total_num = self.order_list.aggregate(
-                total_num=Sum('buy_quantity')).get('total_num') or 0
+            total_num=Sum('buy_quantity')).get('total_num') or 0
         self.checked_time = datetime.datetime.now()
         if is_postpay:
             self.is_postpay = True
@@ -411,7 +447,6 @@ class OrderList(models.Model):
                 self.set_stage_complete()
             elif change:
                 self.save()
-
 
 
 def check_with_purchase_order(sender, instance, created, **kwargs):
@@ -609,12 +644,14 @@ def update_orderlist(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_orderdetail_update_orderlist
     task_orderdetail_update_orderlist.delay(instance)
 
+
 post_save.connect(update_orderlist, sender=OrderDetail, dispatch_uid='post_save_update_orderlist')
 
 
 class OrderGuarantee(BaseModel):
     purchase_order = models.ForeignKey(OrderList, related_name='guarantees', verbose_name=u'订货单')
     desc = models.CharField(max_length=100, default='')
+
 
 class orderdraft(models.Model):
     buyer_name = models.CharField(default="None",
@@ -1302,7 +1339,7 @@ class InBound(models.Model):
     def update_orderlist_inbound(self):
         for orderlist_id in self.orderlist_ids:
             OrderList.objects.filter(id=orderlist_id,
-                                 arrival_process__in=[OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_PRESSED]).update(
+                                     arrival_process__in=[OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_PRESSED]).update(
                 arrival_process=OrderList.ARRIVAL_NEED_PROCESS)
 
     def notify_forecast_save_or_update_inbound(self):

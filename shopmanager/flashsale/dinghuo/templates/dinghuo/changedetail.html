@@ -326,8 +326,7 @@
     <div class="col-lg-8">
         <strong>供应商:</strong>
         {% if orderlist.supplier %}
-        <a href="/admin/supplier/salesupplier/?id={{ orderlist.supplier.id }}" target="_blank">{{
-            orderlist.supplier.supplier_name }}</a>
+        <a href="/admin/supplier/salesupplier/?id={{ orderlist.supplier.id }}" target="_blank">{{orderlist.supplier.supplier_name }}</a>
         {% endif %}
         <p class="alert alert-success" role="alert"><strong>供应商地址:{{orderlist.supplier.address}}
         </strong><br/><strong>供应商电话:{{orderlist.supplier.phone}}</strong><br/>
@@ -601,8 +600,50 @@
                     <h4 class="modal-title" id="myModalLabel">订货单催货</h4>
                 </div>
                 <div class="modal-body">
-                    <label for="order_press_desc">催货回复</label>
-                    <textarea type="text" style="width:100%;" id="order_press_desc"></textarea>
+                    <div class="row">
+                        <label for="order_press_desc">催货回复</label>
+                        <textarea type="text" style="width:100%;" id="order_press_desc"></textarea>
+                    </div>
+                    <div class="row">
+                        本次订货{{orderlist.purchase_total_num}}件，当前共缺货{{orderlist.lack_num}}件，相关入库单共到货{{orderlist.total_arrival_quantity}}件，共多货{{orderlist.get_related_inbounds_out_stock_cnt}}件。<br/>
+                        详情如下：<br/>
+                        <table class="table">
+                            <thead>
+                                <th>类别</th>
+                                <th>入仓单</th>
+                                <th>入仓时间</th>
+                                <th>商品名称</th>
+                                <th>错误原因</th>
+                            </thead>
+                            {%for detail in orderlist.lack_detail%}
+                            <tr>
+                                <td>缺货</td>
+                                <td><a href="/sale/dinghuo/inbound/{{detail.inbound_id}}" target="_blank">{{detail.inbound_id}}</a></td>
+                                <td>{{detail.check_time}}</td>
+                                <td>{{detail.sku.product.name}}||{{detail.sku_id}}</td>
+                                <td>缺{{detail.need_arrival_quantity}}件</td>
+                            </tr>
+                            {%endfor%}
+                            {%for detail in orderlist.related_out_stock_inbound_details%}
+                            <tr>
+                                <td>多货</td>
+                                <td><a href="/sale/dinghuo/inbound/{{detail.inbound_id}}" target="_blank">{{detail.inbound_id}}</a></td>
+                                <td>{{detail.check_time}}</td>
+                                <td>{{detail.sku.product.name}}||{{detail.sku_id}}</td>
+                                <td>多{{detail.out_stock_num}}件</td>
+                            </tr>
+                            {%endfor%}
+                            {%for detail in orderlist.related_inferior_inbound_details%}
+                            <tr>
+                                <td>次品</td>
+                                <td><a href="/sale/dinghuo/inbound/{{detail.inbound_id}}" target="_blank">{{detail.inbound_id}}</a></td>
+                                <td>{{detail.check_time}}</td>
+                                <td>{{detail.sku.product.name}}||{{detail.sku_id}}</td>
+                                <td>次品{{detail.inferior_quantity}}件</td>
+                            </tr>
+                            {%endfor%}
+                        </table>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
