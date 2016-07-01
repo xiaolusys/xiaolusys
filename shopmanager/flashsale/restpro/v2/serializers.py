@@ -42,22 +42,34 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
                   "extra_info")
 
     def gen_extra_info(self, obj):
-        user = self.context['request'].user
-        xlmm = obj.xlmm
+        customer = self.context['customer']
+        xlmm = self.context['xlmm']
         invite_url = constants.MAMA_INVITE_AGENTCY_URL.format(**{'site_url': settings.M_SITE_URL})
         surplus_days = (xlmm.renew_time - datetime.datetime.now()).days if xlmm.renew_time else 0
         surplus_days = max(surplus_days, 0)
         next_level_exam_url = 'http://m.xiaolumeimei.com/mall/activity/exam'
         xlmm_next_level = xlmm.next_agencylevel_info()
+        could_cash_out = 1
+        tmp_des = []
+        if obj.cash_num_display < 100.0:
+            tmp_des.append(u'余额不足')
+            could_cash_out = 0
+        if obj.active_value_num < 100:
+            tmp_des.append(u'活跃度不足')
+            could_cash_out = 0
+        cashout_reason = u' '.join(tmp_des) + u'不能提现'
 
         return {
             "invite_url": invite_url,
             "agencylevel": xlmm.agencylevel,
             "agencylevel_display": xlmm.get_agencylevel_display(),
             "surplus_days": surplus_days,
-            "next_agencylevel":xlmm_next_level[0],
-            "next_agencylevel_display":xlmm_next_level[1],
-            "next_level_exam_url": next_level_exam_url
+            "next_agencylevel": xlmm_next_level[0],
+            "next_agencylevel_display": xlmm_next_level[1],
+            "next_level_exam_url": next_level_exam_url,
+            "thumbnail": customer.thumbnail if customer else '',
+            "could_cash_out":could_cash_out,
+            "cashout_reason": cashout_reason
         }
 
 
