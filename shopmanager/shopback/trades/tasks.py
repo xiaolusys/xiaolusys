@@ -1086,7 +1086,7 @@ def create_sync_log(time_from, type, uni_key):
 @task()
 def task_saleorder_sync_packageskuitem():
     type = SaleOrderSyncLog.SO_PSI
-    log = SaleOrderSyncLog.objects.filter(type=type).order_by('-time_key').first()
+    log = SaleOrderSyncLog.objects.filter(type=type).order_by('-time_from').first()
     if not log:
         return
     
