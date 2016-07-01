@@ -5,6 +5,7 @@ import urlparse
 import time
 import datetime
 import decimal
+import collections
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -846,11 +847,16 @@ class CustomerViewSet(viewsets.ModelViewSet):
         """
         content = request.REQUEST
         cashout_amount = content.get('cashout_amount', None)
+        default_return = collections.defaultdict(code=0, message='', qrcode='')
+
         if not cashout_amount:
             return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
         customer = get_object_or_404(Customer, user=request.user)
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
+        if amount > 200 * 100:
+            default_return.update({"code": 6, "message": "提现不能超过200"})
+            return Response(default_return)
         code, message = budget.action_budget_cashout(amount)
         qrcode = ''
         if code in (4, 5):
