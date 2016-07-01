@@ -25,6 +25,8 @@ from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDe
 import functions
 from shopback.items.models import Product, ProductSku, ProductStock
 from supplychain.supplier.models import SaleProduct, SaleSupplier
+from flashsale.finance.models import Bill,BillRelation     #财务记录model
+from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 
 import logging
@@ -273,7 +275,6 @@ def generate_tuihuodan(request):
         return HttpResponse(json.dumps({"res":True, "data":[rg.id],"desc":""}))
     except Exception,msg:
         return HttpResponse(json.dumps({"res":False, "data":[],"desc":"创建退货单失败"}))
-
 
 
 @csrf_exempt

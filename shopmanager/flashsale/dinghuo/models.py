@@ -30,6 +30,7 @@ class OrderList(models.Model):
     SUBMITTING = u'草稿'  # 提交中
     APPROVAL = u'审核'  # 审核
     WAIT_PAY = u"付款"
+    BE_PAID = u'已付款'
     ZUOFEI = u'作废'  # 作废
     COMPLETED = u'验货完成'  # 验货完成
     QUESTION = u'有问题'  # 有问题
@@ -72,7 +73,7 @@ class OrderList(models.Model):
     CREATED_BY_PERSON = 1
     CREATED_BY_MACHINE = 2
 
-    ORDER_PRODUCT_STATUS = ((SUBMITTING, u'草稿'), (APPROVAL, u'审核'),
+    ORDER_PRODUCT_STATUS = ((SUBMITTING, u'草稿'), (APPROVAL, u'审核'),(BE_PAID,u'已付款'),
                             (ZUOFEI, u'作废'), (QUESTION, u'有次品又缺货'),
                             (CIPIN, u'有次品'), (QUESTION_OF_QUANTITY, u'到货数量问题'),
                             (COMPLETED, u'验货完成'), (DEALED, u'已处理'),
@@ -347,9 +348,18 @@ class OrderList(models.Model):
             self.is_postpay = True
         self.save(update_fields=['stage', 'status', 'is_postpay'])
 
-    def set_stage_receive(self):
+    def set_stage_pay(self, pay_way=13):
+        # 付款提货 进入付款状态
+        self.bill_method = pay_way
+        self.stage = OrderList.STAGE_PAY
+        self.pay_time = datetime.datetime.now()
+        self.save()
+
+    def set_stage_receive(self, pay_way=11):
+        self.bill_method = pay_way
         self.stage = OrderList.STAGE_RECEIVE
         self.status = OrderList.QUESTION_OF_QUANTITY
+        self.arrival_process = OrderList.ARRIVAL_NEED_PROCESS
         if not self.receive_time:
             self.receive_time = datetime.datetime.now()
         self.save()
@@ -358,6 +368,7 @@ class OrderList(models.Model):
         self.stage = OrderList.STAGE_STATE
         self.status = OrderList.TO_BE_PAID
         self.received_time = datetime.datetime.now()
+        self.arrival_process = OrderList.ARRIVAL_FINISHED
         self.save()
 
     def set_stage_complete(self):
@@ -1288,8 +1299,8 @@ class InBound(models.Model):
     def update_orderlist_inbound(self):
         for orderlist_id in self.orderlist_ids:
             OrderList.objects.filter(id=orderlist_id,
-                                 arrival_status__in=[OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_PRESSED]).update(
-                arrival_status=OrderList.ARRIVAL_NEED_PROCESS)
+                                 arrival_process__in=[OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_PRESSED]).update(
+                arrival_process=OrderList.ARRIVAL_NEED_PROCESS)
 
     def notify_forecast_save_or_update_inbound(self):
         from flashsale.forecast.apis import api_create_or_update_realinbound_by_inbound

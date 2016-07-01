@@ -10,21 +10,20 @@ class Bill(BaseModel):
     PAY = -1
     DELETE = 0
     RECEIVE = 1
-
-
     TYPE_CHOICES = (
-        (PAY, '付款'),
-        (DELETE, '作废'),
-        (RECEIVE, '收款')
+        (PAY, u'付款'),
+        (DELETE, u'作废'),
+        (RECEIVE, u'收款')
     )
-
+    STATUS_DELAY = -1
     STATUS_PENDING = 0
     STATUS_DEALED = 1
     STATUS_COMPLETED = 2
     STATUS_CHOICES = (
-        (STATUS_PENDING, '待处理'),
-        (STATUS_DEALED, '已处理'),
-        (STATUS_COMPLETED, '已完成')
+        (STATUS_DELAY, u"延期处理"),
+        (STATUS_PENDING, u'待处理'),
+        (STATUS_DEALED, u'已处理'),
+        (STATUS_COMPLETED, u'已完成')
     )
 
     type = models.IntegerField(choices=TYPE_CHOICES, verbose_name=u'账单类型')
@@ -70,8 +69,20 @@ class Bill(BaseModel):
         verbose_name_plural = u'账单列表'
 
     @staticmethod
-    def create(relations, num, plan_amount, amount):
-        return
+    def create(relations, type, status, pay_method, plan_amount, supplier, user_id, receive_account='', receive_name='',
+               pay_taobao_link=''):
+        bill = Bill(type=type,
+                    status=status,
+                    plan_amount=plan_amount,
+                    pay_method=pay_method,
+                    supplier=supplier,
+                    creater_id=user_id,
+                    receive_account=receive_account,
+                    receive_name=receive_name,
+                    pay_taobao_link=pay_taobao_link)
+        bill.save()
+        bill.relate_to(relations)
+        return bill
 
     def merge_to(self, bill):
         for bill_relation in self.billrelation_set.all():
@@ -83,7 +94,7 @@ class Bill(BaseModel):
             )
 
     def relate_to(self, relations, lack_dict={}):
-        from flashsale.dinghuo.models import ReturnGoods, OrderDetail
+        from flashsale.dinghuo.models import ReturnGoods, OrderList
         for r in relations:
             rtype = lack_dict.get(r.id)
             ctype = None
@@ -91,8 +102,8 @@ class Bill(BaseModel):
                 ctype = ContentType.objects.get(app_label='dinghuo',model='returngoods')
                 if not rtype:
                     rtype = 3
-            elif type(r) == OrderDetail:
-                ctype = ContentType.objects.get(app_label='dinghuo',model='orderdetail')
+            elif type(r) == OrderList:
+                ctype = ContentType.objects.get(app_label='dinghuo',model='orderlist')
                 if not rtype:
                     rtype = 1
             else:
