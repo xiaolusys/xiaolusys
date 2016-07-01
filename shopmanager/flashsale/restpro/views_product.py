@@ -204,9 +204,9 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
                     params.update({'mama_id': mama.id})
                 else:
                     params.update({'mama_id': 1})
-        else:
-            params.update({'customer': {}})
-            params.update({'mama_id': 1})
+        if not params:
+            params.update({'customer': {},'mama_id': 1})
+
         share_params = active_obj.get_shareparams(**params)
         share_params.update(qrcode_link=self.get_qrcode_page_link(**params))
         return Response(share_params)
