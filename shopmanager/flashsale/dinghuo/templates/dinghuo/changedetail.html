@@ -495,8 +495,7 @@
 
             {% for order in orderdetails %}
             <tr id="orderdetail_{{ forloop.counter }}">
-                <td><a href="/admin/items/productskustats/?sku_id={{ order.chichu_id}}" target="_blank">{{
-                    order.chichu_id }}</a></td>
+                <td><a href="/admin/items/productskustats/?sku_id={{ order.chichu_id}}" target="_blank">{{order.chichu_id }}</a></td>
                 <td><a href="/admin/items/product/?q={{ order.outer_id }}" target="_blank">{{ order.outer_id }}</a></td>
                 <td>{{order.memo}}</td>
                 <td>

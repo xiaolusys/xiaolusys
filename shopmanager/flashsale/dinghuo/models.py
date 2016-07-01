@@ -322,8 +322,11 @@ class OrderList(models.Model):
             arrival_quantity_total += detail.arrival_quantity + detail.inferior_quantity
         if arrival_quantity_total == 0:
             lack = None
+        arrival_process = None
         if lack is False:
             arrival_process = OrderList.ARRIVAL_FINISHED
+        elif lack is None:
+            arrival_process = OrderList.ARRIVAL_NOT
         change = False
         if self.lack != lack:
             change = True
@@ -331,7 +334,7 @@ class OrderList(models.Model):
         if self.inferior != inferior:
             change = True
             self.inferior = inferior
-        if self.arrival_process != arrival_process:
+        if arrival_process and self.arrival_process != arrival_process:
             self.arrival_process = arrival_process
         return change
 
