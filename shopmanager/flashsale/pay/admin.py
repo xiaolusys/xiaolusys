@@ -21,7 +21,8 @@ from .models import (SaleTrade,
                      UserAddress,
                      SaleRefund,
                      UserBudget,
-                     BudgetLog)
+                     BudgetLog,
+                     SaleOrderSyncLog)
 
 import logging
 
@@ -809,3 +810,11 @@ class SaleFaqAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SaleFaq, SaleFaqAdmin)
+
+class SaleOrderSyncLogAdmin(admin.ModelAdmin):
+    list_display = ('time_from', 'time_to', 'uni_key', 'target_num', 'actual_num', 'type', 'status')
+
+    list_filter = ('type','status')
+    
+admin.site.register(SaleOrderSyncLog, SaleOrderSyncLogAdmin)    
+    

@@ -1951,6 +1951,16 @@ post_save.connect(update_purchase_record, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_purchase_record')
 
 
+def check_saleorder_sync(sender, instance, created, **kwargs):
+    if created:
+        from shopback.trades.tasks import task_saleorder_sync_packageskuitem
+        task_saleorder_sync_packageskuitem.delay()
+
+post_save.connect(check_saleorder_sync, sender=PackageSkuItem,
+                  dispatch_uid='post_save_check_saleorder_sync')
+
+
+
 def get_package_address_dict(package_order):
     res = {}
     attrs = ['buyer_id', 'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address',
