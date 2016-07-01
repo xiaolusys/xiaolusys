@@ -1,6 +1,8 @@
 # -*- coding:utf8 -*-
 import time
 import datetime
+
+import django_filters
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.conf import settings
@@ -14,6 +16,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
+from rest_framework import filters
 
 from supplychain.supplier.models import (
     SaleSupplier,
@@ -67,6 +70,15 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         raise NotImplemented
 
 
+class SaleProductManageFilter(filters.FilterSet):
+    sale_time_start = django_filters.DateFilter(name="sale_time", lookup_type='gte')
+    sale_time_end = django_filters.DateFilter(name="sale_time", lookup_type='lte')
+
+    class Meta:
+        model = SaleProductManage
+        fields = ['sale_time_start', 'sale_time_end', 'schedule_type', 'sale_suppliers']
+
+
 class SaleScheduleViewSet(viewsets.ModelViewSet):
     """
     ###排期管理REST API接口：
@@ -79,7 +91,9 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    filter_fields = ('schedule_type', 'sale_suppliers')
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = SaleProductManageFilter
+    # filter_fields = ('schedule_type', 'sale_suppliers')
 
     @list_route(methods=['get'])
     def aggregate(self, request, *args, **kwargs):
