@@ -248,6 +248,17 @@
                 }
             });
         }
+        function set_status_complete(orderlist_id) {
+            var url = '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/set_stage_complete';
+            $.ajax({url: url,
+                type: "post",
+                dateType: "json",
+                success: function(){
+                    swal("Tips", "设置完成", "warning");
+                    window.location.reload();
+                }
+            });
+        }
         function set_status_delete(orderlist_id) {
             var url = '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/set_stage_delete';
             $.ajax({url: url,
@@ -395,6 +406,7 @@
     </div>
     <div class="col-lg-9">
         <input class="btn btn-info" type="button" onclick="set_status_receive({{ orderlist.id }})" value="设置收货">
+        <input class="btn btn-info" type="button" onclick="set_status_complete({{ orderlist.id }})" value="设置完成">
         <input class="btn btn-info" type="button" onclick="set_status_delete({{ orderlist.id }})" value="作废">
         {%if orderlist.stage == 3 %}
         <input class="btn btn-info" type="button" onclick="set_status_state({{ orderlist.id }})" value="开始结算">

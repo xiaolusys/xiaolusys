@@ -1579,14 +1579,17 @@ def task_orderdetail_update_orderlist(od):
         ol.save()
     else:
         od_sum = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).aggregate(total=Sum('total_price'))
+        purchase_total_num = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).count()
         total = od_sum['total'] or 0
-        if ol.order_amount != total:
+        if ol.order_amount != total or ol.purchase_total_num != purchase_total_num:
             if ol.is_open():
                 ol.order_amount = total
-                ol.save(update_fields=['order_amount', 'updated'])
+                ol.purchase_total_num = purchase_total_num
+                ol.save(update_fields=['order_amount', 'updated', 'purchase_total_num'])
             else:
                 logger.warn("ZIFEI error: tying to modify booked order_list| ol.id: %s, od: %s" % (ol.id, od.id))
-
+        else:
+            ol.save(update_fields=['updated'])
 
 @task()
 def task_purchasearrangement_update_purchasedetail(pa):
