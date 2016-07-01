@@ -1068,3 +1068,55 @@ def task_merge_trade_update_sale_order(merge_trade):
                 if not sale_order.status >= SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
                     sale_order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
                     sale_order.save()
+
+
+from flashsale.pay.models import SaleOrderSyncLog
+
+def create_sync_log(time_from, type, uni_key):
+    time_to = time_from + datetime.timedelta(hours=1)
+    sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,pay_time__gt=time_from,pay_time__lte=time_to)
+    target_num = sos.count()
+    actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to).exclude(assign_status=PackageSkuItem.CANCELED).count()
+    log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,target_num=target_num,actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+    
+
+@task()
+def task_saleorder_sync_packageskuitem():
+    type = SaleOrderSyncLog.SO_PSI
+    log = SaleOrderSyncLog.objects.filter(type=type).order_by('-time_key').first()
+    if not log:
+        return
+    
+    time_from = log.time_to
+    uni_key = "%s|%s" % (type, time_from)
+    log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
+    if not log:
+        create_sync_log(time_from, type, uni_key)
+    elif not log.is_completed():
+        time_to = log.time_to
+        sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,pay_time__gt=time_from,pay_time__lte=time_to)
+        for so in sos:
+            psi = PackageSkuItem.objects.filter(oid=so.oid).exclude(assign_status=PackageSkuItem.CANCELED).first()
+            if not psi:
+                so.save()
+        target_num = sos.count()
+        actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to).exclude(assign_status=PackageSkuItem.CANCELED).count()
+
+        update_fields = []
+        if log.target_num != target_num:
+            log.target_num = target_num
+            update_fields.append('target_num')
+        if log.actual_num != actual_num:
+            log.actual_num = actual_num
+            update_fields.append('actual_num')
+        if target_num == actual_num:
+            log.status = SaleOrderSyncLog.COMPLETED
+            update_fields.append('status')
+        if update_fields:
+            log.save(update_fields=update_fields)
+
+        if target_num != actual_num:
+            logger.error("saleorder_sync_packageskuitem | uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))

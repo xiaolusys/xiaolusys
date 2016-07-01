@@ -1179,3 +1179,36 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
 
 
 post_save.connect(check_SaleRefund_Status, sender=SaleRefund)
+
+
+class SaleOrderSyncLog(BaseModel):
+    UNKNOWN = 0
+    SO_PSI = 1 # SaleOrder -> PackageSkuItem
+    PSI_PR = 2 # PackageSkuItem -> PurchaseRecord
+    TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货'), (PSI_PR, u'订货'))
+
+    OPEN = 1
+    COMPLETED = 2
+    STATUS_CHOICE = ((OPEN, u'未完成'), (COMPLETED, u'完成'))
+    
+    time_from = models.DateTimeField(verbose_name=u'开始时间')
+    time_to = models.DateTimeField(verbose_name=u'结束时间')
+    uni_key = models.CharField(max_length=32, unique=True, verbose_name='UniKey')
+    
+    target_num = models.IntegerField(null=True, default=0, verbose_name=u'目标数量')
+    actual_num = models.IntegerField(null=True, default=0, verbose_name=u'实际数量')
+    
+    type = models.IntegerField(choices=TYPE_CHOICE, default=UNKNOWN, db_index=True, verbose_name=u'类型')
+    status = models.IntegerField(choices=STATUS_CHOICE, default=OPEN, db_index=True, verbose_name=u'状态')
+    
+    class Meta:
+        db_table = 'flashsale_saleorder_synclog'
+        app_label = 'pay'
+        verbose_name = u'v2/同步检查日志'
+        verbose_name_plural = u'v2/同步检查日志表'
+
+    def __unicode__(self):
+        return '%s|%s' % (self.id, self.time_key)
+
+    def is_completed(self):
+        return self.target_num == self.actual_num
