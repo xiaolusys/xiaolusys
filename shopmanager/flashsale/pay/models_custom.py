@@ -456,7 +456,8 @@ class GoodShelf(PayBaseModel):
         return ActivityEntry.get_landing_effect_activitys(now)
 
     def get_brands(self):
-        return BrandEntry.get_brand()
+        # return BrandEntry.get_brand()
+        return []
 
 
 class ActivityEntry(PayBaseModel):
@@ -554,20 +555,20 @@ class ActivityEntry(PayBaseModel):
         return 16
 
 
-BANNER_PIC_TYPE = 0  # Banner picture
-COUPON_PIC_TYPE = 1
-CATEGORY_PIC_TYPE = 2
-GOODS_PIC_TYPE = 3
-FOOTER_PIC_TYPE = 4
 
-PIC_TYPE_CHOICES = ((BANNER_PIC_TYPE, u'Banner图片'),
-                    (COUPON_PIC_TYPE, u'优惠券图片'),
-                    (CATEGORY_PIC_TYPE, u'分类说明图片'),
-                    (GOODS_PIC_TYPE, u'商品图片'),
-                    (FOOTER_PIC_TYPE, u'底部活动说明图片'),)
 
 class BrandEntry(BaseModel):
     """ 专题活动入口 """
+
+    PROMOTION_TOP10 = 1
+    PROMOTION_TOPIC = 2
+    PROMOTION_BRAND = 3
+
+    PROMOTION_CHOICES = (
+        (PROMOTION_TOP10, u'Top10'),
+        (PROMOTION_TOPIC, u'专题'),
+        (PROMOTION_BRAND, u'品牌'),
+    )
 
     id = models.AutoField(primary_key=True)
     brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'专题名称')
@@ -576,6 +577,11 @@ class BrandEntry(BaseModel):
     brand_pic = models.CharField(max_length=256, blank=True, verbose_name=u'品牌LOGO')
     brand_post = models.CharField(max_length=256, blank=True, verbose_name=u'专题海报')
     brand_applink = models.CharField(max_length=256, blank=True, verbose_name=u'专题APP协议链接')
+    mask_link = models.CharField(max_length=256, blank=True, verbose_name=u'专题活动弹窗提示图')
+    share_icon = models.CharField(max_length=128, blank=True, verbose_name=u'专题活动分享图片')
+    share_link = models.CharField(max_length=256, blank=True, verbose_name=u'专题活动分享链接')
+    promotion_type = models.IntegerField(choices=PROMOTION_CHOICES, default=PROMOTION_TOP10,
+                                         db_index=True, verbose_name=u'专题活动类型')
 
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
@@ -615,6 +621,24 @@ class BrandEntry(BaseModel):
 class BrandProduct(BaseModel):
     """ 品牌商品信息 """
 
+    BANNER_PIC_TYPE = 0  # Banner picture
+    COUPON_GETBEFORE_PIC_TYPE = 1
+    COUPON_GETAFTER_PIC_TYPE = 2
+    TOPIC_PIC_TYPE = 3
+    CATEGORY_PIC_TYPE = 4
+    GOODS_HORIZEN_PIC_TYPE = 5
+    GOODS_VERTICAL_PIC_TYPE = 6
+    FOOTER_PIC_TYPE = 7
+
+    PIC_TYPE_CHOICES = ((BANNER_PIC_TYPE, u'Banner图片'),
+                        (COUPON_GETBEFORE_PIC_TYPE, u'优惠券领前'),
+                        (COUPON_GETAFTER_PIC_TYPE, u'优惠券领后'),
+                        (TOPIC_PIC_TYPE, u'主题入口'),
+                        (CATEGORY_PIC_TYPE, u'分类说明图片'),
+                        (GOODS_HORIZEN_PIC_TYPE, u'商品横放图片'),
+                        (GOODS_VERTICAL_PIC_TYPE, u'商品竖放图片'),
+                        (FOOTER_PIC_TYPE, u'底部分享图片'),)
+
     id = models.AutoField(primary_key=True)
     brand = models.ForeignKey(BrandEntry, related_name='brand_products', verbose_name=u'所属专题')
     brand_name = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'专题名称')
@@ -628,6 +652,8 @@ class BrandProduct(BaseModel):
     end_time = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
 
     location_id = models.IntegerField(default=0, verbose_name=u'位置')
+    pic_type = models.IntegerField(choices=PIC_TYPE_CHOICES, default=GOODS_VERTICAL_PIC_TYPE,
+                                   db_index=True, verbose_name=u'图片类型')
 
     class Meta:
         db_table = 'flashsale_brand_product'
@@ -641,21 +667,21 @@ class BrandProduct(BaseModel):
     def save(self, *args, **kwargs):
         if not self.brand_name:
             self.brand_name = self.brand.brand_name
-        if not self.product_name:
-            self.product_name = self.prodouct.name
-            self.product_img = self.prodouct.head_img()
+        # if not self.product_name:
+        #     self.product_name = self.prodouct.name
+        #     self.product_img = self.prodouct.head_img()
         return super(BrandProduct, self).save(*args, **kwargs)
 
-    @property
-    def prodouct(self):
-        if not hasattr(self, '_product_'):
-            self._product_ = Product.objects.get(id=self.product_id)
-        return self._product_
-
-    def product_lowest_price(self):
-        """ 商品最低价 """
-        return self.prodouct.product_lowest_price()
-
-    def product_std_sale_price(self):
-        """ 商品吊牌价 """
-        return self.prodouct.std_sale_price
+    # @property
+    # def prodouct(self):
+    #     if not hasattr(self, '_product_'):
+    #         self._product_ = Product.objects.get(id=self.product_id)
+    #     return self._product_
+    #
+    # def product_lowest_price(self):
+    #     """ 商品最低价 """
+    #     return self.prodouct.product_lowest_price()
+    #
+    # def product_std_sale_price(self):
+    #     """ 商品吊牌价 """
+    #     return self.prodouct.std_sale_price
