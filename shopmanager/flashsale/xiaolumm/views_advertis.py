@@ -30,6 +30,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         date = request.REQUEST.get('date') or datetime.date.today()
         # 排期日期在未来三天的　需要推广的商品
         pms = SaleProductManageDetail.objects.filter(schedule_manage__sale_time=date,
+                                                     today_use_status=SaleProductManageDetail.NORMAL,
                                                      is_promotion=True).values("sale_product_id",
                                                                                "name",
                                                                                "pic_path")
