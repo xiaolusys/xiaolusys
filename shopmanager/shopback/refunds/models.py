@@ -2,8 +2,10 @@
 __author__ = 'meixqhi'
 import json
 import time
+import datetime
 from common.utils import parse_datetime
 from django.db import models
+from django.db.models import Sum
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
 from django.db.models.signals import post_save
@@ -258,6 +260,11 @@ class RefundProduct(models.Model):
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
 
+    @staticmethod
+    def get_total(sku_id, can_reuse=True, begin_time=datetime.datetime(2016, 4, 20)):
+        res = RefundProduct.objects.filter(
+            sku_id=sku_id, can_reuse=can_reuse, created__gt=begin_time).aggregate(n=Sum("num")).get('n',0)
+        return res or 0
 
 def update_warehouse_receipt_status(sender, instance, created, **kwargs):
     """ 仓库接收客户退货拆包更新 warehouse APP 中的 ReceiptGoods 相同快递单记录的拆包状态到 拆包状态 """
@@ -272,14 +279,14 @@ post_save.connect(update_warehouse_receipt_status, sender=RefundProduct,
 
 def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
     from shopback.refunds.tasks import task_refundproduct_update_productskustats_return_quantity
-    from shopback.items.tasks import task_update_productskustats_inferior_num
+    from shopback.items.tasks import task_update_inferiorsku_return_quantity
     from shopback.items.models import ProductSku
     sku_id = ProductSku.get_by_outer_id(instance.outer_id,instance.outer_sku_id).id
     RefundProduct.objects.filter(id=instance.id).update(sku_id=sku_id)
     if instance.can_reuse:
         task_refundproduct_update_productskustats_return_quantity.delay(sku_id)
     else:
-        task_update_productskustats_inferior_num.delay(instance.sku_id)
+        task_update_inferiorsku_return_quantity.delay(instance.sku_id)
 
 
 post_save.connect(update_productskustats_refund_quantity, sender=RefundProduct, dispatch_uid='post_save_update_productskustats_refund_quantity')

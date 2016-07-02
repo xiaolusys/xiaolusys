@@ -105,6 +105,11 @@
                     <span class="label label-primary">添加Sku</span>
                 </a>
                 {% endif %}
+                {% if original.type %}
+                <a class="col-md-1" href="javascript:;" id="regen-return">
+                    <span class="label label-primary">重新生成</span>
+                </a>
+                {%endif%}
             </div>
         </div>
         <div class="panel-body">
@@ -114,7 +119,6 @@
                 {%if original.type == 0 %}
                 {%if original.status ==  0%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_check" value="审核通过" />&nbsp;&nbsp;
-                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
                 {%elif original.status == 1%}
                 <button type="button" class="btn-mini btn-primary" data-toggle="modal" data-target="#myModal">
                   已经发货
@@ -126,6 +130,7 @@
                 <input type="button" class="btn-mini btn-success" id="id_btn_error" value="退货失败"/>&nbsp;&nbsp;
                 {%endif%}
                 {%endif%}
+                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
             </div>
         </div>
         <div class="panel-body">
@@ -141,14 +146,16 @@
                         <td>SKU编码</td>
                         <td>尺码</td>
                         <td>库位</td>
-                        <td>退货数量</td>
+                        <td>退货正品数</td>
+                        <td>退货次品数</td>
                         <td>单件退回价格</td>
+                        <td>来源</td>
+                        <td>处理方式</td>
                         <td style="min-width:180px">操作</td>
                         </thead>
                         {%for products_item in original.products_item_sku%}
                         {%for detail in products_item.detail_items%}
                         <tr>
-
                         {%if forloop.first%}
                         <td rowspan={{products_item.detail_length}}><a href="/admin/items/product?id={{products_item.id}}" target="_blank">{{products_item.id}}</a></td>
                         <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
@@ -166,8 +173,12 @@
                         <td>{{detail.product_sku.get_districts_code}}</td>
                         <td id="td_num_{{detail.skuid}}"><label id="label_num_{{detail.skuid}}" class="show_sku_{{detail.skuid}}">{{detail.num}}</label>
                             <input id="text_num_{{detail.skuid}}" class="edit_sku_{{detail.skuid}}" type="text" value="{{detail.num}}" style="display: none;width:42px"></td>
+                        <td id="td_inferior_num_{{detail.skuid}}"><label id="label_inferior_num_{{detail.skuid}}" class="show_inferior_sku_{{detail.skuid}}">{{detail.inferior_num}}</label>
+                            <input id="text_inferior_num_{{detail.skuid}}" class="edit_inferior_sku_{{detail.skuid}}" type="text" value="{{detail.inferior_num}}" style="display: none;width:42px"></td>
                         <td id="td_price_{{detail.skuid}}"><label id="label_price_{{detail.skuid}}" class="show_sku_{{detail.skuid}}">{{detail.price}}</label>
                             <input id="text_price_{{detail.skuid}}" class="edit_sku_{{detail.skuid}}" type="text" value="{{detail.price}}" style="display: none;width:42px"></td>
+                        <td>{%if detail.src%}入仓单：<a href="/sale/dinghuo/inbound/{{detail.src}}">{{detail.src}}</a>{%else%}库存退货{%endif%}</td>
+                        <td>{{detail.get_type_display}}</td>
                         <td>{%if original.status == 0%}
                             <input type="button" class="btn-mini btn_modify" id="btn_modify_{{detail.skuid}}" value="修改"/>&nbsp;&nbsp;
                             <input type="button" class="btn-mini btn_delete" id="btn_delete_{{detail.skuid}}" value="删除"/>&nbsp;&nbsp;
@@ -194,7 +205,7 @@
         </div>
         <div class="panel-body field-memo">
             <div>
-                <label for="id_transactor">负责人:</label>
+                <label>负责人:</label>
                 <label class="simple-label transactor_text">{{original.transactor.username}}</label>
                 <button class="btn-small modify-transactor">修改</button>
                 <div class="dropdown xiaolu-hide clearfix">
@@ -209,27 +220,10 @@
                     {%endfor%}
                   </ul>
                 </div>
-                    <!--{{original.transactor.username}}-->
-                <!--<div class="dropdown">-->
-                    <!--<a href="#" class="dropdown-toggle" data-toggle="dropdown">-->
-                       <!--Java-->
-                       <!--<b class="caret"></b>-->
-                    <!--</a>-->
-                    <!--<ul class="dropdown-menu">-->
-                       <!--<li><a href="#">jmeter</a></li>-->
-                       <!--<li><a href="#">EJB</a></li>-->
-                       <!--<li><a href="#">Jasper Report</a></li>-->
-                       <!--<li class="divider"></li>-->
-                       <!--<li><a href="#">分离的链接</a></li>-->
-                       <!--<li class="divider"></li>-->
-                       <!--<li><a href="#">另一个分离的链接</a></li>-->
-                    <!--</ul>-->
-                 <!--</div>-->
-                <!--<input type="button" class="btn-mini" id="btn_change_transactor" value="修改"/>-->
             </div>
         </div>
         {%if original.has_sent %}
-        <div class="form-row field-consigner clearfix">
+        <div class="panel-body field-memo">
                 <label for="id_consigner">发货人:</label>
                 <label class="simple-label" id="id_consigner" name="consigner">{{original.consigner}}</label>
                 <label for="label_sid">发货物流单号:</label>
@@ -271,7 +265,6 @@
                 <label class="simple-label" id="id_refund_confirmer">{{original.refund_fee}}</label>
                 <label for="id_refund_note">收款信息说明</label>
                 <label class="simple-label" id="id_refund_note">{{original.note}}</label>
-
             </div>
         </div>
         {%endif%}
@@ -473,6 +466,16 @@
     }
     function set_refund(evt){
         var dom = $("#btn_return_refund");
+        var url = "/sale/dinghuo/returngoods/set_refund/";
+        var data = {"id": id};
+        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+        function callback(res) {
+            if (res == "True") {
+                window.location.reload();
+            }
+        }
+    }
+    function gen_supplier_return(evt){
         var url = "/sale/dinghuo/returngoods/set_refund/";
         var data = {"id": id};
         $.ajax({"url": url, "data": data, "type": "post", "success": callback});
@@ -719,6 +722,31 @@
 
         $('#add-sku').click(function(){
             $('#sku-modal').modal('show');
+        });
+
+        $('#regen-return').click(function(){
+           swal({
+             title: '警告',
+             text: '这个操作会作废掉这个供应商未审核的退货单生成新退货单，您需要手动作废已审核的退货单（不包括库存退货回款）',
+             type: 'warning',
+             showCancelButton: true,
+             confirmButtonText: '确认',
+             cancelButtonText: '取消'
+           }, function(){
+                $.ajax({
+                    url: '/sale/dinghuo/purchase_return/gen_by_supplier',
+                    type: 'post',
+                    data: {'supplier_id': {{original.supplier.id}}},
+                    dataType: 'json',
+                    success: function(result){
+                        window.location="/admin/dinghuo/returngoods/?supplier_id={{original.supplier.id}}";
+                    },
+                    error: function(result){
+                        console.dir(result.responseText);
+                    }
+                });
+
+           });
         });
 
         $('#sku-search-form').submit(function(){

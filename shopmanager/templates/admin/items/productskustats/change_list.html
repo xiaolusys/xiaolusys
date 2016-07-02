@@ -31,6 +31,18 @@
             (function ($) {
                 $(document).ready(function ($) {
                     $("tr input.action-select").actions();
+                    $("#search_by_supplier").click(function(){
+                        var supplier_id = $("#supplier_id").val();
+                        var supplier_name = $("#supplier_name").val();
+                        if (supplier_id){
+                            window.location = "/items/supplierfilter/?supplier_id=" + supplier_id;
+                            return
+                        }
+                        if (supplier_name){
+                            window.location = "/items/supplierfilter/?supplier_name=" + supplier_name;
+                            return
+                        }
+                    });
                 });
             })(django.jQuery);
         </script>
@@ -71,6 +83,10 @@
             </p>
             {{ cl.formset.non_form_errors }}
         {% endif %}
+        <div><label>供应商：</label>
+            <input type="text" id="supplier_name" name="supplier_name" placeholder="输入供应商名称">
+            <input type="text" id="supplier_id" name="supplier_id" placeholder="输入供应商id">
+            <input type="button" value="搜索" id="search_by_supplier"></div>
         <div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
             {% block search %}{% search_form cl %}{% endblock %}
             {% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}

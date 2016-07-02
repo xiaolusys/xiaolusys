@@ -1057,6 +1057,36 @@ def task_update_productskustats_inferior_num(sku_id):
     stat.inferior_num = inferior_num_add - inferior_num_plus
     stat.save(update_fields=['inferior_num'])
 
+@task()
+def task_update_inferiorsku_rg_quantity(sku_id):
+    from shopback.items.models_stats import InferiorSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
+    from flashsale.dinghuo.models import RGDetail
+    rg_quantity = RGDetail.get_inferior_total(sku_id, PRODUCT_SKU_STATS_COMMIT_TIME)
+    stat = InferiorSkuStats.get_by_sku(sku_id)
+    if stat.rg_quantity != rg_quantity:
+        stat.rg_quantity = rg_quantity
+        stat.save(update_fields=['rg_quantity'])
+
+@task()
+def task_update_inferiorsku_return_quantity(sku_id):
+    from shopback.items.models_stats import InferiorSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
+    from shopback.refunds.models import RefundProduct
+    quantity = RefundProduct.get_total(sku_id, can_reuse=False, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
+    stat = InferiorSkuStats.get_by_sku(sku_id)
+    if stat.return_quantity != quantity:
+        stat.return_quantity = quantity
+        stat.save(update_fields=['return_quantity'])
+
+@task()
+def task_update_inferiorsku_inbound_quantity(sku_id):
+    from shopback.items.models_stats import InferiorSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
+    from flashsale.dinghuo.models import InBoundDetail
+    quantity = InBoundDetail.get_inferior_total(sku_id, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
+    stat = InferiorSkuStats.get_by_sku(sku_id)
+    if stat.inbound_quantity != quantity:
+        stat.inbound_quantity = quantity
+        stat.save(update_fields=['inbound_quantity'])
+
 
 # @task()
 def task_stock_adjust_update_productskustats_inferior_num(sku_id, product_id):

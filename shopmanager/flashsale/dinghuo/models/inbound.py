@@ -13,6 +13,7 @@ from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList, OrderDetail
+from shopback.warehouse import WARE_SH, WARE_CHOICES
 import logging
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ class InBound(models.Model):
     creator = models.ForeignKey(User,
                                 related_name='inbounds',
                                 verbose_name=u'创建人')
+    ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
@@ -958,14 +960,30 @@ class InBoundDetail(models.Model):
         total = 0 if total is None else total
         return self.arrival_quantity - total
 
+    @staticmethod
+    def get_inferior_total(sku_id, begin_time=datetime.datetime(2016, 4, 20)):
+        res = InBoundDetail.objects.filter(
+            sku_id=sku_id, check_time__gte=begin_time, checked=True).aggregate(
+            n=Sum("inferior_quantity")).get('n', 0)
+        return res or 0
+
+
+def update_inferiorsku_inbound_quantity(sender, instance, created, **kwargs):
+    if instance.checked:
+        from shopback.items.tasks import task_update_inferiorsku_inbound_quantity
+        task_update_inferiorsku_inbound_quantity.delay(instance.sku_id)
+
+
+post_save.connect(update_inferiorsku_inbound_quantity,
+                  sender=InBoundDetail,
+                  dispatch_uid='post_save_update_inferiorsku_inbound_quantity')
+
 
 def update_stock(sender, instance, created, **kwargs):
     if instance.checked:
         instance.sync_order_detail()
         from shopback.items.tasks import task_update_productskustats_inferior_num
         task_update_productskustats_inferior_num.delay(instance.sku_id)
-
-
 post_save.connect(update_stock,
                   sender=InBoundDetail,
                   dispatch_uid='post_save_update_stock')

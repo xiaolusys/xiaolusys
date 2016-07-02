@@ -648,6 +648,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-primary" id="btn_press">保存</button>
+                    <button type="button" class="btn btn-primary" id="btn_gen_return">生成退货单</button>
                 </div>
             </div>
         </div>
@@ -985,7 +986,30 @@ $(function () {
     $("#btn_press").click(function(){
         press_order();
     });
+    $('#btn_gen_return').click(function(){
+           swal({
+             title: '警告',
+             text: '这个操作会作废掉这个供应商未审核的退货单生成新退货单，您需要手动作废已审核的退货单（不包括库存退货回款）',
+             type: 'warning',
+             showCancelButton: true,
+             confirmButtonText: '确认',
+             cancelButtonText: '取消'
+           }, function(){
+                $.ajax({
+                    url: '/sale/dinghuo/purchase_return/gen_by_supplier',
+                    type: 'post',
+                    data: {'supplier_id': {{original.supplier.id}}},
+                    dataType: 'json',
+                    success: function(result){
+                        window.location="/admin/dinghuo/returngoods/?supplier_id={{original.supplier.id}}";
+                    },
+                    error: function(result){
+                        console.dir(result.responseText);
+                    }
+                });
 
+           });
+        });
 });
 
 </script>
