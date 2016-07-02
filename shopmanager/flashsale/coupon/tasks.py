@@ -221,6 +221,8 @@ def task_update_mobile_download_record(tempcoupon):
 def task_update_unionid_download_record(usercoupon):
     from flashsale.promotion.models_freesample import DownloadUnionidRecord, DownloadMobileRecord
     customer = usercoupon.customer
+    if not customer:
+        return 
     if not customer.unionid.strip():  # 没有unionid  写mobilde 记录
         dl_record = DownloadMobileRecord.objects.filter(from_customer=usercoupon.share_user_id,
                                                         mobile=customer.mobile).first()
