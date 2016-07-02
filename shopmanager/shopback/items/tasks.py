@@ -1052,7 +1052,7 @@ def task_update_productskustats_inferior_num(sku_id):
     inferior_num = InBoundDetail.objects.filter(sku_id=sku_id, checked=True, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME). \
         aggregate(n=Sum("inferior_quantity")).get('n', 0)
     inferior_num_add = inferior_num if inferior_num else 0
-    inferior_num_plus = RGDetail.get_return_inferior_num_total(sku_id)
+    inferior_num_plus = RGDetail.get_inferior_total(sku_id)
     stat = ProductSkuStats.get_by_sku(sku_id)
     stat.inferior_num = inferior_num_add - inferior_num_plus
     stat.save(update_fields=['inferior_num'])
