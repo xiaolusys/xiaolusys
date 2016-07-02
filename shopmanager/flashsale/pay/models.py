@@ -1145,11 +1145,12 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
 post_save.connect(check_SaleRefund_Status, sender=SaleRefund)
 
 
+
 class SaleOrderSyncLog(BaseModel):
     UNKNOWN = 0
     SO_PSI = 1 # SaleOrder -> PackageSkuItem
     PSI_PR = 2 # PackageSkuItem -> PurchaseRecord
-    TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货'), (PSI_PR, u'订货'))
+    TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'))
 
     OPEN = 1
     COMPLETED = 2
@@ -1176,3 +1177,20 @@ class SaleOrderSyncLog(BaseModel):
 
     def is_completed(self):
         return self.target_num == self.actual_num
+
+    def type_display(self):
+        return get_choice_name(self.TYPE_CHOICE, self.type)
+    
+
+def gauge_data(sender, instance, created, **kwargs):
+    from django_statsd.clients import statsd
+    if instance.is_completed():
+        key = None
+        if instance.type == SaleOrderSyncLog.SO_PSI:
+            key = 'saleorder_synclog.psi'
+        if instance.type == Saleorder_Synclog.PSI_PR:
+            key = 'saleorder_synclog.pr'
+        if key:
+            statsd.timing(key, instance.actual_num)
+
+post_save.connect(gauge_data, sender=SaleOrderSyncLog, dispatch_uid='post_save_gauge_data')
