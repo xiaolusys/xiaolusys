@@ -1934,3 +1934,4 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         already_return = RGDetail.get_inferior_total(sku_id)
         return Response({'res':res, 'already_return': already_return}, template_name=u"dinghuo/order_sku_inferior_detail.htm")
 
+
