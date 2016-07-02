@@ -1001,10 +1001,10 @@ $(function () {
                     data: {'supplier_id': {{original.supplier.id}}},
                     dataType: 'json',
                     success: function(result){
-                        window.location="/admin/dinghuo/returngoods/?supplier_id={{original.supplier.id}}";
+                        window.open("/admin/dinghuo/returngoods/?supplier_id={{original.supplier.id}}");
                     },
                     error: function(result){
-                        console.dir(result.responseText);
+                        alert(result.responseText);
                     }
                 });
 
