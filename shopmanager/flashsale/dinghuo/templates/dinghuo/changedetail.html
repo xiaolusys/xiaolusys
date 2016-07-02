@@ -667,7 +667,7 @@
                             <label>交易方式:</label>
                         </div>
                         <div class="col-lg-8">
-                            <select class="form-control" id="pay_ways" onchange="get_pay_way(this.value)">
+                            <select class="form-control" id="pay_ways" >
                                 <option value=11>货到付款</option>
                                 <option value=13 selected="selected">付款提货</option>
                             </select>
@@ -766,7 +766,8 @@
             // bt1.setAttribute("data-toggle", "modal");
             // bt1.setAttribute("href", "#con_pay");
             bt1.onclick = function(){
-                var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/set_stage_receive';
+                console.log("haha");
+                var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/create_bill';
                 var data = {};
                 con = false;
                 if(input == 1||input == 3){

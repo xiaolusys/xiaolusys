@@ -228,7 +228,7 @@
             else{
                 var data = {"bill_id":{{id}}};
                 $.ajax({
-                    url:'/sale/finance/finish_bill/',
+                    url:'/sale/finance/bill_list/{{id}}/finish_bill',
                     type:'post',
                     dataType:'json',
                     data:data,
@@ -248,7 +248,7 @@
             var note = $("#note").val();
             var data = {"note":note,"bill_id":{{id}}};
                 $.ajax({
-                    url:'/sale/finance/change_note/',
+                    url:'/sale/finance/bill_list/{{id}}/change_note',
                     type:'post',
                     dataType:'json',
                     data:data,
@@ -298,7 +298,7 @@
                 var pay_amount = $("#pay-amount").val();
                 var data = {"pay_no":pay_no,"pay_amount":pay_amount,"bill_id":{{id}}};
                 $.ajax({
-                    url:'/sale/finance/pay_bill/',
+                    url:'/sale/finance/bill_list/{{id}}/pay_bill',
                     type:'post',
                     dataType:'json',
                     data:data,
@@ -319,7 +319,7 @@
                      data[el.name] = el.value;
                  });
                  $.ajax({
-                     url: '/sale/finance/confirm_bill/',
+                     url: '/sale/finance/bill_list/{{id}}/confirm_bill',
                      type: 'post',
                      dataType: 'json',
                      data: data,
@@ -357,7 +357,7 @@
                  }
 
                  $.ajax({
-                     url: '/sale/finance/deal/',
+                     url: '/sale/finance/bill_list/{{id}}/deal',
                      type: 'post',
                      dataType: 'json',
                      data: data,
