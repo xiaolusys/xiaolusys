@@ -1185,7 +1185,7 @@ def gauge_data(sender, instance, created, **kwargs):
     if instance.is_completed():
         if instance.type == SaleOrderSyncLog.SO_PSI:
             key = 'saleorder_synclog.psi'
-        if instance.type == SaleorderSynclog.PSI_PR:
+        if instance.type == SaleOrderSynclog.PSI_PR:
             key = 'saleorder_synclog.pr'
         if key:
             statsd.timing(key, instance.actual_num)
