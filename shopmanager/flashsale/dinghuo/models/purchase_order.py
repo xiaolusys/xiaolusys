@@ -317,7 +317,7 @@ class OrderList(models.Model):
         if not hasattr(self, '_related_out_stock_inbound_details_'):
             from flashsale.dinghuo.models.inbound import InBoundDetail
             self._related_out_stock_inbound_details_ = InBoundDetail.objects.filter(
-                inbound_id__in=self.get_inbound_ids())
+                inbound_id__in=self.get_inbound_ids(), out_stock=True)
         return self._related_out_stock_inbound_details_
 
     def get_related_inbounds_out_stock_cnt(self):
