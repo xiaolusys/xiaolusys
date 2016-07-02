@@ -278,6 +278,42 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
             return ''
 
 
+def generate_refund_choices(obj):
+    """ obj is a saletrade object """
+    if not obj.status in (SaleTrade.WAIT_SELLER_SEND_GOODS,
+                          SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                          SaleTrade.TRADE_BUYER_SIGNED):
+        return {}
+
+    _default = {
+        obj.BUDGET: {'name': u'极速退款', 'desc_name': u'小鹿钱包',
+                     'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，并可立即支付使用，无需等待.'},
+        obj.WX: {'name': u'退微信支付', 'desc_name': u'微信钱包或微信银行卡',
+                 'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
+        obj.ALIPAY: {'name': u'退支付宝', 'desc_name': u'支付宝账户',
+                     'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
+        'refund_title_choice': (u'申请退款后', u'退货成功后'),
+    }
+    is_post_refund = obj.status != SaleTrade.WAIT_SELLER_SEND_GOODS
+    refund_title = _default['refund_title_choice'][is_post_refund and 1 or 0]
+    refund_channels = [obj.BUDGET]
+    if obj.channel != obj.BUDGET and not obj.has_budget_paid:
+        refund_channels.append(obj.channel)
+
+    refund_resp_list = []
+    for channel in refund_channels:
+        channel_alias = channel.split('_')[0]
+        refund_param = _default.get(channel_alias)
+        refund_resp_list.append({
+            'refund_channel': channel,
+            'name': refund_param['name'],
+            'desc': refund_param['desc_tpl'].format(refund_title=refund_title,
+                                                    desc_name=refund_param['desc_name'])
+        })
+    return {
+        'refund_choices': refund_resp_list
+    }
+
 class SaleOrderDetailSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='v1:saleorder-detail')
     status = serializers.ChoiceField(choices=SaleOrder.ORDER_STATUS)
@@ -301,40 +337,7 @@ class SaleOrderDetailSerializer(serializers.HyperlinkedModelSerializer):
             return ''
 
     def gen_extras_info(self, obj):
-        obj = obj.sale_trade
-        if not obj.status in (SaleTrade.WAIT_SELLER_SEND_GOODS,
-                              SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
-                              SaleTrade.TRADE_BUYER_SIGNED):
-            return {}
-
-        _default = {
-            obj.BUDGET: {'name': u'极速退款', 'desc_name': u'小鹿钱包',
-                         'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，并可立即支付使用，无需等待.'},
-            obj.WX: {'name': u'退微信支付', 'desc_name': u'微信钱包或微信银行卡',
-                     'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
-            obj.ALIPAY: {'name': u'退支付宝', 'desc_name': u'支付宝账户',
-                         'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
-            'refund_title_choice': (u'申请退款后', u'退货成功后'),
-        }
-        is_post_refund = obj.status != SaleTrade.WAIT_SELLER_SEND_GOODS
-        refund_title = _default['refund_title_choice'][is_post_refund and 1 or 0]
-        refund_channels = [obj.BUDGET]
-        if obj.channel != obj.BUDGET and not obj.has_budget_paid:
-            refund_channels.append(obj.channel)
-
-        refund_resp_list = []
-        for channel in refund_channels:
-            channel_alias = channel.split('_')[0]
-            refund_param = _default.get(channel_alias)
-            refund_resp_list.append({
-                'refund_channel': channel,
-                'name': refund_param['name'],
-                'desc': refund_param['desc_tpl'].format(refund_title=refund_title,
-                                                        desc_name=refund_param['desc_name'])
-            })
-        return {
-            'refund_choices': refund_resp_list
-        }
+        return generate_refund_choices(obj.sale_trade)
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
@@ -378,7 +381,7 @@ class PackageOrderSerializer(serializers.ModelSerializer):
 
 class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='v2:saletrade-detail')
-    orders = SaleOrderSerializer(source='sale_orders', many=True, read_only=True)
+    orders = serializers.SerializerMethodField('gen_sale_orders', read_only=True)
     # TODO 根据订单信息，显示未分包商品及已分包商品列表
     channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
@@ -394,6 +397,11 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
                   'logistics_company', 'user_adress', 'package_orders','extras')
+
+    def gen_sale_orders(self, obj):
+        order_data_list = SaleOrderSerializer(obj.sale_orders, many=True).data
+        order_data_list.sort(key=lambda x:x['package_order_id'])
+        return order_data_list
 
     def gen_package_orders(self, obj):
         package_list = PackageOrderSerializer(obj.package_orders, many=True).data
@@ -415,42 +423,11 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
                     'note':''
                 })
                 break
+        package_list.sort(key=lambda x:x['id'])
         return package_list
 
     def gen_extras_info(self, obj):
-        if not obj.status in (SaleTrade.WAIT_SELLER_SEND_GOODS,
-                               SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
-                               SaleTrade.TRADE_BUYER_SIGNED):
-            return {}
-
-        _default = {
-            obj.BUDGET: {'name': u'极速退款', 'desc_name': u'小鹿钱包',
-                          'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，并可立即支付使用，无需等待.'},
-            obj.WX: {'name': u'退微信支付', 'desc_name': u'微信钱包或微信银行卡',
-                      'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
-            obj.ALIPAY: {'name': u'退支付宝', 'desc_name': u'支付宝账户',
-                          'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
-            'refund_title_choice': (u'申请退款后', u'退货成功后'),
-        }
-        is_post_refund = obj.status != SaleTrade.WAIT_SELLER_SEND_GOODS
-        refund_title = _default['refund_title_choice'][is_post_refund and 1 or 0]
-        refund_channels = [obj.BUDGET]
-        if obj.channel != obj.BUDGET and not obj.has_budget_paid:
-            refund_channels.append(obj.channel)
-
-        refund_resp_list = []
-        for channel in refund_channels:
-            channel_alias = channel.split('_')[0]
-            refund_param = _default.get(channel_alias)
-            refund_resp_list.append({
-                'refund_channel': channel,
-                'name': refund_param['name'],
-                'desc': refund_param['desc_tpl'].format(refund_title=refund_title,
-                                                        desc_name=refund_param['desc_name'])
-            })
-        return {
-            'refund_choices': refund_resp_list
-        }
+        return generate_refund_choices(obj)
 
 
 from flashsale.pay.models import District, UserAddress
