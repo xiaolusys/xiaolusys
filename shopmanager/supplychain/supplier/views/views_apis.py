@@ -91,9 +91,10 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = SaleProductManageFilter
     # filter_fields = ('schedule_type', 'sale_suppliers')
+    ordering_fields = ('sale_time', 'id', 'created', 'modified', 'product_num')
 
     @list_route(methods=['get'])
     def aggregate(self, request, *args, **kwargs):
