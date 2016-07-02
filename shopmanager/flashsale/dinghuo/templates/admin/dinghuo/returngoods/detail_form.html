@@ -116,7 +116,6 @@
             <div class="row">
                 <label class="col-md-1" for="id_status">状态:</label>
                 <label class="col-md-1" id="id_status">{{original.get_status_display}}</label>
-                {%if original.type == 0 %}
                 {%if original.status ==  0%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_check" value="审核通过" />&nbsp;&nbsp;
                 {%elif original.status == 1%}
@@ -128,7 +127,6 @@
                 {%elif original.status == 3%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_success" value="已经收款"/>&nbsp;&nbsp;
                 <input type="button" class="btn-mini btn-success" id="id_btn_error" value="退货失败"/>&nbsp;&nbsp;
-                {%endif%}
                 {%endif%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
             </div>
