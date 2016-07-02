@@ -33,7 +33,7 @@
     <div class="row">
         <label class="col-md-1">关联订货单:</label>
         <div class="col-md-8">
-        {% for orderlist_id in inbound.orderlist_ids %}
+        {% for orderlist_id in inbound.order_list_ids %}
         <a href="/sale/dinghuo/changedetail/{{orderlist_id}}/" target="_blank">
             {{orderlist_id}}
         </a>
