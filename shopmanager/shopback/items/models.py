@@ -363,6 +363,11 @@ class Product(models.Model):
         else:
             return self.sale_charger + "未关联"
 
+    @staticmethod
+    def get_by_supplier(supplier_id):
+        sale_procuct_ids = [s['id'] for s in SaleProduct.objects.filter(sale_supplier_id=supplier_id).values("id")]
+        return Product.objects.filter(sale_product__in=sale_procuct_ids).exclude(status=pcfg.DELETE)
+
     def update_collect_num(self, num, full_update=False, dec_update=False):
         """
             更新商品库存:

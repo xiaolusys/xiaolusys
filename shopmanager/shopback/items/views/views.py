@@ -9,7 +9,7 @@ from django.db.models import Q, Sum, F
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
-
+from django.shortcuts import get_object_or_404
 # from djangorestframework.serializer import Serializer
 # from djangorestframework.utils import as_tuple
 # from djangorestframework import status
@@ -54,6 +54,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpRespons
 from shopback.items.models import ProductSkuStats
 from shopback.items import serializers
 from shopback.items.renderers import *
+from supplychain.supplier.models import SaleSupplier
 ###########7-27
 import logging
 
@@ -1392,3 +1393,20 @@ class StockRedundanciesView(View):
     def get(self, request):
         s = ','.join([str(p.id) for p in ProductSkuStats.redundancies()])
         return HttpResponseRedirect('/admin/items/productskustats?id__in=%s' % s)
+
+
+class ProductSkuStatsTmpView(View):
+    def get(self, request):
+        supplier_id = request.GET.get('supplier_id')
+        supplier_name = request.GET.get('supplier_name')
+        if supplier_id:
+            supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
+        elif supplier_name:
+            supplier = get_object_or_404(SaleSupplier, supplier_name=SaleSupplier)
+        else:
+            return HttpResponseRedirect('/admin/items/productskustats')
+        s = ','.join([str(p) for p in ProductSkuStats.filter_by_supplier(supplier.id)])
+        return HttpResponseRedirect('/admin/items/productskustats?product_id__in=%s' % s)
+
+class ProductSkuStatsViewSet(View):
+    pass

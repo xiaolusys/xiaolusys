@@ -10,7 +10,7 @@ from .view_inbound import InBoundViewSet
 
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, \
-    ChangeDetailExportView, DinghuoStatsExportView, update_dinghuo_part_information,generate_tuihuodan
+    ChangeDetailExportView, DinghuoStatsExportView, update_dinghuo_part_information, generate_tuihuodan
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView, StatsDinghuoView
 from .view_daily_work import (DailyDingHuoView, DailyDingHuoView2, ShowPicView,
                               DailyDingHuoOptimizeView, SkuAPIView,
@@ -21,8 +21,8 @@ from .view_refund_supplier import (
     StatisRefundSupView, change_duihuo_status, change_sum_price,
     change_return_goods_memo, modify_return_goods_sku, delete_return_goods_sku,
     set_return_goods_sku_send, set_transactor, set_refund, export_return_goods,
-    mark_unreturn, returngoods_add_sku,set_return_goods_failed,
-    returngoods_deal)
+    mark_unreturn, returngoods_add_sku, set_return_goods_failed,
+    returngoods_deal, ReturnGoodsViewSet)
 import views_wuliu
 import views_sale_status
 import views_product
@@ -33,6 +33,8 @@ router.register(r'pending_dinghuo', PendingDingHuoViewSet)
 router.register(r'instant_dinghuo', InstantDingHuoViewSet, 'dinghuo')
 router.register(r'dinghuo_orderlist', DingHuoOrderListViewSet,
                 'dinghuo_orderlist')
+router.register(r'purchase_return', ReturnGoodsViewSet,
+                'purchase_return')
 router.register(r'inbound', InBoundViewSet, 'inbound')
 
 urlpatterns = [
@@ -231,9 +233,9 @@ urlpatterns = [
         staff_member_required(AddDingHuoView.as_view()),
         name="add_ding_huo"),
 
-    #update订货单部分信息
+    # update订货单部分信息
     url(r'^update_dinghuo/$', update_dinghuo_part_information, name="update_dinghuo_part_information"),
-    #生成退货单
+    # 生成退货单
     url(r'^generate_tuihuodan/$', generate_tuihuodan, name="generate_tuihuodan"),
     url(r'^tuihuo/set_return_goods_failed/$', set_return_goods_failed, name="set_return_goods_failed"),
 

@@ -24,14 +24,15 @@ import common.utils
 from core.options import log_action, ADDITION, CHANGE
 from tasks import calcu_refund_info_by_pro_v2
 from shopback.logistics.models import LogisticsCompany
+
 logger = logging.getLogger('django.request')
 
 from common.decorators import jsonapi
 from flashsale.dinghuo.models import RGDetail, ReturnGoods, UnReturnSku
 from flashsale.finance.models import BillRelation, Bill
-from shopback.items.models import Product, ProductSku
-from supplychain.supplier.models import SaleProduct
-
+from rest_framework import generics, permissions, renderers, viewsets
+from supplychain.supplier.models import SaleProduct, SaleSupplier
+from rest_framework.decorators import list_route, detail_route
 from . import forms
 
 
@@ -151,23 +152,20 @@ def change_duihuo_status(request):
     return HttpResponse(True)
     # elif act_str == "send_fail":  # 已经发货
     #     return
-        # rg.status = ReturnGoods.FAILED_RG
-        # rd = rg.rg_details.all()
-        # try:
-        #     for item in rd:
-        #         skuid = item.skuid
-        #         num = item.num
-        #         inferior_num = item.inferior_num
-        #         ProductSku.objects.filter(id=skuid).update(quantity = F('quantity')+num, sku_inferior_num=F('sku_inferior_num')+inferior_num)
-        #         rg.save()
-        #     # log_action(user_id, rg, CHANGE,
-        #     #            change_status_des.format(rg.get_status_display()))
-        #     return HttpResponse(True)
-        # except Exception,msg:
-        #     return HttpResponse(False)
-
-
-
+    # rg.status = ReturnGoods.FAILED_RG
+    # rd = rg.rg_details.all()
+    # try:
+    #     for item in rd:
+    #         skuid = item.skuid
+    #         num = item.num
+    #         inferior_num = item.inferior_num
+    #         ProductSku.objects.filter(id=skuid).update(quantity = F('quantity')+num, sku_inferior_num=F('sku_inferior_num')+inferior_num)
+    #         rg.save()
+    #     # log_action(user_id, rg, CHANGE,
+    #     #            change_status_des.format(rg.get_status_display()))
+    #     return HttpResponse(True)
+    # except Exception,msg:
+    #     return HttpResponse(False)
 
 
 def change_return_goods_memo(request):
@@ -410,7 +408,6 @@ def update_refundpro_to_product(can_reuse=False):
 
 
 def export_return_goods(request):
-
     def _parse_name(product_name):
         name, color = ('-',) * 2
         parts = product_name.rsplit('/', 1)
@@ -509,7 +506,7 @@ def export_return_goods(request):
             worksheet.write(row, 3, properties_name)
             if pic_path:
                 opt = {'image_data':
-                       io.BytesIO(urllib.urlopen(pic_path).read()),
+                           io.BytesIO(urllib.urlopen(pic_path).read()),
                        'x_scale': 0.25,
                        'y_scale': 0.25}
                 if product_link:
@@ -608,7 +605,7 @@ def returngoods_deal(request):
                                                model='returngoods')
     bill_relation = BillRelation.objects.filter(content_type=returngoods_type,
                                                 object_id=rg.id).exclude(
-                                                    bill__type=Bill.DELETE).order_by('-id').first()
+        bill__type=Bill.DELETE).order_by('-id').first()
     if not bill_relation:
         return {'code': 1, 'msg': '找不到账单'}
     bill = bill_relation.bill
@@ -625,3 +622,16 @@ def returngoods_deal(request):
     bill.transcation_no = form.cleaned_data['transaction_no']
     bill.save()
     return {'bill_id': bill.id}
+
+
+class ReturnGoodsViewSet(viewsets.GenericViewSet):
+    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = ReturnGoods.objects.all()
+
+    @list_route(methods=['post'])
+    def gen_by_supplier(self, request):
+        supplier_id = int(request.POST.get('supplier_id') or 0)
+        supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
+        returngoods = ReturnGoods.generate_by_supplier(supplier.id, request.user.username)
+        return Response('OK')
