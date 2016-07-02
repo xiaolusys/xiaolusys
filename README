@@ -30,3 +30,13 @@ git rebase remote/remote-branch
 
 ################# migrate原则 ###################
 项目上线后：不能删除字段，只能新加字段替换原来字段的功能，原来字段保留
+
+################# oneapm, 业务实时统计 ##############
+实时累加统计:
+from django_statsd.clients import statsd
+statsd.incr('xiaolumm.prepay_count')
+statsd.incr('xiaolumm.prepay_amount', sale_trade.payment)
+参数指标监控:
+statsd.timing('users.online', 123)
+statsd.timing('active.connections', 1001, tags=["protocol:http"])
+
