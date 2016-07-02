@@ -481,41 +481,6 @@ class SaleTrade(BaseModel):
             SaleTrade._seller = User.objects.get(uid=FLASH_SELLER_ID)
         return SaleTrade._seller
 
-    def get_extras(self):
-        if not self.status in (SaleTrade.WAIT_SELLER_SEND_GOODS,
-                               SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
-                               SaleTrade.TRADE_BUYER_SIGNED):
-            return {}
-
-        _default = {
-            self.BUDGET: {'name':u'极速退款', 'desc_name':u'小鹿钱包',
-                       'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，并可立即支付使用，无需等待.'},
-            self.WX: {'name':u'退微信支付', 'desc_name':u'微信钱包或微信银行卡',
-                      'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
-            self.ALIPAY: {'name':u'退支付宝', 'desc_name':u'支付宝账户',
-                      'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
-            'refund_title_choice': (u'申请退款后', u'退货成功后'),
-        }
-
-        is_post_refund = self.status != SaleTrade.WAIT_SELLER_SEND_GOODS
-        refund_title = _default['refund_title_choice'][is_post_refund and 1 or 0]
-        refund_channels =  [self.BUDGET]
-        if self.channel != self.BUDGET and not self.has_budget_paid:
-            refund_channels.append(self.channel)
-
-        refund_resp_list = []
-        for channel in refund_channels:
-            channel_alias = channel.split('_')[0]
-            refund_param = _default.get(channel_alias)
-            refund_resp_list.append({
-                'refund_channel': channel,
-                'name': refund_param['name'],
-                'desc': refund_param['desc_tpl'].format(refund_title=refund_title, desc_name=refund_param['desc_name'])
-            })
-        return {
-            'refund_choices': refund_resp_list
-        }
-
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """
         SaleTrade.objects.get(id=self.id)
@@ -539,15 +504,13 @@ class SaleTrade(BaseModel):
 
     @property
     def package_orders(self):
-        try:
-            package_list = []
-            for sorder in self.sale_orders.all():
-                package = sorder.package_order
-                if package and package not in package_list:
-                    package_list.append(package)
-            return package_list
-        except Exception,exc:
-            logger.error(exc.message, exc_info=True)
+        package_list = []
+        for sorder in self.sale_orders.all():
+            package = sorder.package_order
+            if package and package not in package_list:
+                package_list.append(package)
+        return package_list
+
 
 def record_supplier_args(sender, obj, **kwargs):
     """ 随支付成功信号 更新供应商的销售额，销售数量
