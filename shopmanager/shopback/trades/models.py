@@ -1979,8 +1979,8 @@ post_save.connect(update_purchase_record, sender=PackageSkuItem,
 
 def check_saleorder_sync(sender, instance, created, **kwargs):
     if created:
-        from shopback.trades.tasks import task_saleorder_sync_packageskuitem
-        task_saleorder_sync_packageskuitem.delay()
+        from shopback.trades.tasks import task_saleorder_check_packageskuitem
+        task_saleorder_check_packageskuitem.delay()
 
 post_save.connect(check_saleorder_sync, sender=PackageSkuItem,
                   dispatch_uid='post_save_check_saleorder_sync')
