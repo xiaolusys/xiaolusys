@@ -812,7 +812,7 @@ class SaleFaqAdmin(admin.ModelAdmin):
 admin.site.register(SaleFaq, SaleFaqAdmin)
 
 class SaleOrderSyncLogAdmin(admin.ModelAdmin):
-    list_display = ('time_from', 'time_to', 'uni_key', 'target_num', 'actual_num', 'type', 'status')
+    list_display = ('id', 'time_from', 'time_to', 'target_num', 'actual_num', 'type', 'status', 'modified', 'created')
 
     list_filter = ('type','status')
     

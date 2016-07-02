@@ -1127,4 +1127,4 @@ def task_saleorder_check_packageskuitem():
             log.save(update_fields=update_fields)
 
         if target_num != actual_num:
-            logger.error("saleorder_sync_packageskuitem | uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))
+            logger.error("task_saleorder_check_packageskuitem | uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))

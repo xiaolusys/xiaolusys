@@ -198,6 +198,14 @@ def start_booking(sender, instance, created, **kwargs):
 post_save.connect(start_booking, sender=PurchaseRecord, dispatch_uid='post_save_start_booking')
 
 
+def check_packageskuitem(sender, instance, created, **kwargs):
+    if created:
+        from flashsale.dinghuo.tasks import task_packageskuitem_check_purchaserecord
+        task_packageskuitem_check_purchaserecord.delay()
+
+post_save.connect(check_packageskuitem, sender=PurchaseRecord, dispatch_uid='post_save_check_packageskuitem')
+
+
 class PurchaseArrangement(BaseModel):
     package_sku_item_id = models.IntegerField(default=0,db_index=True, verbose_name=u'包裹ID')
     oid =  models.CharField(max_length=32,db_index=True, verbose_name=u'sku交易单号')
