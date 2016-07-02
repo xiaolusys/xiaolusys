@@ -1811,7 +1811,7 @@ from flashsale.pay.models import SaleOrderSyncLog
 from shopback.trades.models import PackageSkuItem
 from flashsale.dinghuo.models_purchase import PurchaseRecord
 
-def create_sync_log(time_from, type, uni_key):
+def create_purchaserecord_check_log(time_from, type, uni_key):
     time_to = time_from + datetime.timedelta(hours=1)
     psis = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to)
     target_num = psis.count()
@@ -1829,17 +1829,22 @@ def create_sync_log(time_from, type, uni_key):
 
     
 @task()
-def task_packageskuitem_sync_purchaserecord():
+def task_packageskuitem_check_purchaserecord():
     type = SaleOrderSyncLog.PSI_PR
     log = SaleOrderSyncLog.objects.filter(type=type,status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
     if not log:
         return
 
     time_from = log.time_to
+    now = datetime.datetime.now()
+    
+    if time_from > now - datetime.timedelta(hours=2):
+        return
+    
     uni_key = "%s|%s" % (type, time_from)
     log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
     if not log:
-        create_sync_log(time_from, type, uni_key)
+        create_purchaserecord_check_log(time_from, type, uni_key)
     elif not log.is_completed():
         time_to = log.time_to
         psis = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to)
