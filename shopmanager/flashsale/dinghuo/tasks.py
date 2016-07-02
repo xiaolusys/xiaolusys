@@ -1822,7 +1822,7 @@ def create_purchaserecord_check_log(time_from, type, uni_key):
             actual_num += 1
         elif psi.is_booking_needed():
             psi.save()
-    log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,target_num=target_num,actual_num=actual_num)
+    log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,type=type,target_num=target_num,actual_num=actual_num)
     if target_num == actual_num:
         log.status = SaleOrderSyncLog.COMPLETED
     log.save()
