@@ -269,13 +269,72 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
                   'refund_status', 'refund_status_display', "refund_id", 'kill_title',
-                  'is_seckill', 'package_order_id')
+                  'is_seckill','package_order_id')
 
     def gen_package_order_id(self, obj):
         if obj.package_sku:
             return obj.package_sku.package_order_id or ''
         else:
             return ''
+
+
+class SaleOrderDetailSerializer(serializers.HyperlinkedModelSerializer):
+    # url = serializers.HyperlinkedIdentityField(view_name='v1:saleorder-detail')
+    status = serializers.ChoiceField(choices=SaleOrder.ORDER_STATUS)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    refund_status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
+    refund_status_display = serializers.CharField(source='get_refund_status_display', read_only=True)
+    kill_title = serializers.BooleanField(source='second_kill_title', read_only=True)
+    package_order_id = serializers.SerializerMethodField('gen_package_order_id', read_only=True)
+    extras = serializers.SerializerMethodField('gen_extras_info', read_only=True)
+    class Meta:
+        model = SaleOrder
+        fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
+                  'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
+                  'refund_status', 'refund_status_display', "refund_id", 'kill_title',
+                  'is_seckill', 'package_order_id', 'extras')
+
+    def gen_package_order_id(self, obj):
+        if obj.package_sku:
+            return obj.package_sku.package_order_id or ''
+        else:
+            return ''
+
+    def gen_extras_info(self, obj):
+        obj = obj.sale_trade
+        if not obj.status in (SaleTrade.WAIT_SELLER_SEND_GOODS,
+                              SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                              SaleTrade.TRADE_BUYER_SIGNED):
+            return {}
+
+        _default = {
+            obj.BUDGET: {'name': u'极速退款', 'desc_name': u'小鹿钱包',
+                         'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，并可立即支付使用，无需等待.'},
+            obj.WX: {'name': u'退微信支付', 'desc_name': u'微信钱包或微信银行卡',
+                     'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
+            obj.ALIPAY: {'name': u'退支付宝', 'desc_name': u'支付宝账户',
+                         'desc_tpl': u'{refund_title}，退款金额立即退到{desc_name}，需要等待支付渠道审核３至５个工作日到账.'},
+            'refund_title_choice': (u'申请退款后', u'退货成功后'),
+        }
+        is_post_refund = obj.status != SaleTrade.WAIT_SELLER_SEND_GOODS
+        refund_title = _default['refund_title_choice'][is_post_refund and 1 or 0]
+        refund_channels = [obj.BUDGET]
+        if obj.channel != obj.BUDGET and not obj.has_budget_paid:
+            refund_channels.append(obj.channel)
+
+        refund_resp_list = []
+        for channel in refund_channels:
+            channel_alias = channel.split('_')[0]
+            refund_param = _default.get(channel_alias)
+            refund_resp_list.append({
+                'refund_channel': channel,
+                'name': refund_param['name'],
+                'desc': refund_param['desc_tpl'].format(refund_title=refund_title,
+                                                        desc_name=refund_param['desc_name'])
+            })
+        return {
+            'refund_choices': refund_resp_list
+        }
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')

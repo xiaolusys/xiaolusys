@@ -517,9 +517,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        extras = instance.sale_trade.get_extras()
-        serializer_data = self.get_serializer(instance).data
-        serializer_data['extras'] = extras
+        serializer_data = serializers.SaleOrderDetailSerializer(instance).data
         return Response(serializer_data)
 
     def confirm_sign(self, request, pk=None):
