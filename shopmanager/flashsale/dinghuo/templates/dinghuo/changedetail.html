@@ -998,10 +998,10 @@ $(function () {
                 $.ajax({
                     url: '/sale/dinghuo/purchase_return/gen_by_supplier',
                     type: 'post',
-                    data: {'supplier_id': {{original.supplier.id}}},
+                    data: {'supplier_id': {{orderlist.supplier.id}}},
                     dataType: 'json',
                     success: function(result){
-                        window.open("/admin/dinghuo/returngoods/?supplier_id={{original.supplier.id}}");
+                        window.open("/admin/dinghuo/returngoods/?supplier_id={{orderlist.supplier.id}}");
                     },
                     error: function(result){
                         alert(result.responseText);
