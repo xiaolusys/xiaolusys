@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from core.models import BaseModel
 from shopback.items.models import ProductSku, Product, ProductSkuStats
 from supplychain.supplier.models import SaleSupplier, SaleProduct
+from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
 from .purchase_order import OrderList
 import logging
 logger = logging.getLogger(__name__)
@@ -50,8 +51,9 @@ class ReturnGoods(models.Model):
     logistics_company_id = models.BigIntegerField(null=True, verbose_name='物流公司ID')
     # logistics_company = models.ForeignKey(LogisticsCompany, null=True, blank=True, verbose_name=u'物流公司')
     status = models.IntegerField(default=0, choices=RG_STATUS, db_index=True, verbose_name=u"状态")
-
-    type = models.IntegerField(default=0, choices=((0, u'普通退货'), (1, u'未入库退货')), verbose_name=u'退货类型')
+    TYPE_COMMON = 0
+    TYPE_CHANGE = 1
+    type = models.IntegerField(default=0, choices=((TYPE_COMMON, u'退货回款'), (TYPE_CHANGE, u'退货更换')), verbose_name=u'退货类型')
     REFUND_STATUS = ((0, u"未付"), (1, u"已完成"), (2, u"部分支付"), (3, u"已关闭"))
     refund_status = models.IntegerField(default=0, choices=REFUND_STATUS, db_index=True, verbose_name=u"退款状态")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
@@ -175,7 +177,9 @@ class ReturnGoods(models.Model):
                 skuid=detail.sku_id,
                 num=detail.out_stock_cnt,
                 inferior_num=detail.inferior_quantity,
-                price=0
+                price=0,
+                type=RGDetail.TYPE_CHANGE,
+                src=inbound.id
             )
             rg_details.append(rg_detail)
             rg_details.append(rg_detail)
@@ -183,7 +187,7 @@ class ReturnGoods(models.Model):
                          noter=noter,
                          return_num=sum([d.num for d in rg_details]),
                          sum_amount=sum([d.num * d.price for d in rg_details]),
-                         type=1
+                         type=ReturnGoods.TYPE_CHANGE
                          )
         rg.save()
         details = []
@@ -194,6 +198,44 @@ class ReturnGoods(models.Model):
         RGDetail.objects.bulk_create(details)
         return rg
 
+    @staticmethod
+    def generate_by_supplier(supplier_id, noter):
+        """
+            重新生成供应商的所有退货单，自动作废未审核的退货单，提示手工作废已审核的退货单
+        :param supplier_id:
+        :return:
+        """
+        from flashsale.dinghuo.models.inbound import InBound, InBoundDetail
+        inbounds = InBound.objects.filter(supplier_id=supplier_id).filter(Q(wrong=True)|Q(out_stock=True))
+        inbound_ids = [i.id for i in inbounds]
+        ReturnGoods.objects.filter(supplier_id=supplier_id, status=ReturnGoods.CREATE_RG).update(
+            status=ReturnGoods.OBSOLETE_RG)
+        rg_details = []
+        for detail in InBoundDetail.objects.filter(inbound_id__in=inbound_ids).filter(
+                        Q(out_stock=True) or Q(inferior_quantity__gt=0)):
+            rg_detail = RGDetail(
+                skuid=detail.sku_id,
+                num=detail.out_stock_cnt,
+                inferior_num=detail.inferior_quantity,
+                price=0,
+                type=RGDetail.TYPE_CHANGE,
+                src=detail.inbound_id
+            )
+            rg_details.append(rg_detail)
+        rg = ReturnGoods(supplier_id=supplier_id,
+                         noter=noter,
+                         return_num=sum([d.num for d in rg_details]),
+                         sum_amount=sum([d.num * d.price for d in rg_details]),
+                         type=ReturnGoods.TYPE_CHANGE
+                         )
+        rg.save()
+        details = []
+        for detail in rg_details:
+            detail.return_goods = rg
+            detail.return_goods_id = rg.id
+            details.append(detail)
+        RGDetail.objects.bulk_create(details)
+        return rg
 
     @staticmethod
     def can_return(supplier_id=None, sku=None):
@@ -277,7 +319,7 @@ class ReturnGoods(models.Model):
         self.consign_time = datetime.datetime.now()
         self.status = ReturnGoods.DELIVER_RG
         self.save()
-        for d in self.rg_details.all():
+        for d in self.rg_details.filter(type=RGDetail.TYPE_REFUND):
             ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity') - d.num)
 
     def supply_notify_refund(self, receive_method, amount, note='', pic=None):
@@ -397,10 +439,19 @@ def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
         for rg in instance.rg_details.all():
             task_update_product_sku_stat_rg_quantity.delay(rg.skuid)
 
-
 post_save.connect(update_product_sku_stat_rg_quantity,
                   sender=ReturnGoods,
                   dispatch_uid='post_save_update_product_sku_stat_rg_quantity')
+
+
+def update_sku_inferior_rg_num(sender, instance, created, **kwargs):
+    from shopback.items.tasks import task_update_inferiorsku_rg_quantity
+    if instance.has_sent():
+        for detail in instance.rg_details.all():
+            task_update_inferiorsku_rg_quantity.delay(detail.sku_id)
+
+
+post_save.connect(update_sku_inferior_rg_num, sender=ReturnGoods, dispatch_uid='post_save_update_sku_inferior_rg_num')
 
 
 class RGDetail(models.Model):
@@ -413,9 +464,12 @@ class RGDetail(models.Model):
     price = models.FloatField(default=0.0, verbose_name=u"退回价格")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
     modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
-    # TYPE_CHOICES = ((0, u'普通退货'),
-    #                 (1, u'未入库退货'))
-    # type = models.IntegerField(choices=TYPE_CHOICES)
+    TYPE_REFUND = 0
+    TYPE_CHANGE = 0
+    TYPE_CHOICES = ((TYPE_REFUND, u'退货收款'),
+                    (TYPE_CHANGE, u'退货更换'))
+    type = models.IntegerField(choices=TYPE_CHOICES, default=0)
+    src = models.IntegerField(default=0, verbose_name=u"来源", help_text=u"0或入库单id")
     class Meta:
         db_table = 'flashsale_dinghuo_rg_detail'
         app_label = 'dinghuo'
@@ -441,12 +495,16 @@ class RGDetail(models.Model):
     def product_sku(self):
         return ProductSku.objects.get(id=self.skuid)
 
+    def get_src_desc(self):
+        if not self.src:
+            return u'库存退货'
+        return u'入仓单<%d>' % self.src
+
     @staticmethod
-    def get_return_inferior_num_total(sku_id):
-        from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
-        res = RGDetail.objects.filter(skuid=sku_id, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME,
+    def get_inferior_total(sku_id, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME):
+        res = RGDetail.objects.filter(skuid=sku_id, created__gt=begin_time,
                                       return_goods__status__in=[ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
-                                                                ReturnGoods.SUCCEED_RG, ]).aggregate(
+                                                                ReturnGoods.SUCCEED_RG]).aggregate(
             n=Sum("inferior_num")).get('n', 0)
         return res or 0
 

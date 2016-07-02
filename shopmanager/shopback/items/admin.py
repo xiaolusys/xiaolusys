@@ -33,6 +33,7 @@ from common.utils import gen_cvs_tuple, CSVUnicodeWriter, update_model_fields
 from flashsale.pay.models_custom import Productdetail
 from flashsale.pay.forms import ProductdetailForm
 from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
+from shopback.items.models_stats import InferiorSkuStats
 
 from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
@@ -1528,6 +1529,152 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 admin.site.register(ProductSkuStats, ProductSkuStatsAdmin)
 
 
+class InferiorSkuStatsAdmin(admin.ModelAdmin):
+    list_display = (
+        'sku_link', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
+        'now_quantity', 'history_quantity', 'inbound_quantity_link', 'return_quantity_link',
+        'rg_quantity_link', 'created')
+    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id']
+    list_select_related = True
+    list_per_page = 50
+    list_filter = []
+    SKU_PREVIEW_TPL = (
+        '<a href="%(sku_url)s" target="_blank">'
+        '%(skucode)s</a>')
+
+    def sku_link(self, obj):
+        return obj.sku_id
+    sku_link.short_description = 'SKU'
+
+    def skucode(self, obj):
+        return self.SKU_PREVIEW_TPL % {
+            'sku_url': '/admin/items/productsku/%s/' % str(obj.sku_id),
+            'skucode': obj.sku.BARCODE
+        }
+
+    skucode.allow_tags = True
+    skucode.short_description = u'sku条码'
+
+    PRODUCT_LINK = (
+        '<a href="%(product_url)s" target="_blank">'
+        '%(product_title)s</a>')
+
+    def product_id_link(self, obj):
+        return ('<a href="%(product_url)s" target="_blank">'
+                '%(product_id)s</a>') % {
+                   'product_url': '/admin/items/product/?id=%d' % obj.sku.product.id,
+                   'product_id': obj.sku.product.id
+               }
+
+    product_id_link.allow_tags = True
+    product_id_link.short_description = u'商品ID'
+
+    def inbound_quantity_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/dinghuo/orderdetail/?chichu_id=%s' % obj.sku_id,
+            'num': obj.inbound_quantity
+        }
+
+    inbound_quantity_link.allow_tags = True
+    inbound_quantity_link.short_description = u'入仓数'
+    inbound_quantity_link.admin_order_field = 'inbound_quantity'
+
+    def return_quantity_link(self, obj):
+        return obj.return_quantity
+        # return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+        #     'url': '/admin/dinghuo/orderdetail/?chichu_id=1&sku_id=%(sku)s',
+        #     'sku': obj.sku_id,
+        #     'num': obj.return_quantity
+        # }
+
+    # return_quantity_link.allow_tags = True
+    return_quantity_link.short_description = u'用户退货数'
+    return_quantity_link.admin_order_field = 'return_quantity'
+
+    def rg_quantity_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
+            'url': '/admin/dinghuo/returngoods/?rg_details__skuid=%s' % obj.sku_id,
+            'num': obj.rg_quantity
+        }
+
+    rg_quantity_link.allow_tags = True
+    rg_quantity_link.short_description = u'仓库退货数'
+    rg_quantity_link.admin_order_field = 'rg_quantity'
+
+    def product_title(self, obj):
+        return self.PRODUCT_LINK % {
+            'product_url': '/admin/items/product/%d/' % obj.sku.product.id,
+            'product_title': obj.product.name
+        }
+
+    product_title.allow_tags = True
+    product_title.short_description = u'商品名称'
+
+    def now_quantity(self, obj):
+        return obj.realtime_quantity
+
+    now_quantity.short_description = u'实时库存'
+    now_quantity.admin_order_field = 'now_quantity'
+
+    def properties_name_alias(self, obj):
+        return obj.sku.properties_name
+
+    properties_name_alias.short_description = u'规格'
+
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['product__name', 'product__outer_id']:
+            return True
+        return super(ProductSkuStatsAdmin, self).lookup_allowed(lookup, value)
+
+    def get_changelist(self, request, **kwargs):
+        """
+        Returns the ChangeList class for use on the changelist page.
+        """
+        # self.history_quantity + self.inbound_quantity + self.return_quantity + self.adjust_num - self.rg_quantity
+        orderingdict = {'now_quantity': (F('rg_quantity') - F('history_quantity')
+                                         - F('inbound_quantity') - F('return_quantity') - F('adjust_num'),
+                                         F('history_quantity') + F('inbound_quantity') +
+                                         F('return_quantity') + F('adjust_num') - F('rg_quantity'))
+                        }
+        from django.contrib.admin.views.main import ChangeList, ORDER_VAR
+        class StatsOrderChangeList(ChangeList):
+            def get_ordering(self, request, queryset):
+                params = self.params
+                ordering = list(self.model_admin.get_ordering(request)
+                                or self._get_default_ordering())
+                if ORDER_VAR in params:
+                    # Clear ordering and used params
+                    ordering = []
+                    order_params = params[ORDER_VAR].split('.')
+                    for p in order_params:
+                        try:
+                            none, pfx, idx = p.rpartition('-')
+                            field_name = self.list_display[int(idx)]
+                            order_field = self.get_ordering_field(field_name)
+                            if not order_field:
+                                continue
+                            if order_field in orderingdict:
+                                if pfx =='-':
+                                    ordering.append(orderingdict[order_field][0])
+                                else:
+                                    ordering.append(orderingdict[order_field][1])
+                            elif order_field.startswith('-') and pfx == "-":
+                                ordering.append(order_field[1:])
+                            else:
+                                ordering.append(pfx + order_field)
+                        except (IndexError, ValueError):
+                            continue
+                ordering.extend(queryset.query.order_by)
+                pk_name = self.lookup_opts.pk.name
+                if not (set(ordering) & {'pk', '-pk', pk_name, '-' + pk_name}):
+                    ordering.append('-pk')
+                return ordering
+        return StatsOrderChangeList
+
+
+admin.site.register(InferiorSkuStats, InferiorSkuStatsAdmin)
+
+
 class ProductSkuSaleStatsAdmin(admin.ModelAdmin):
     list_display = ('sku_id', 'properties_name', 'init_waitassign_num', 'num', 'sale_start_time', 'sale_end_time')
     search_fields = ['=sku_id']
@@ -1535,6 +1682,7 @@ class ProductSkuSaleStatsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ProductSkuSaleStats, ProductSkuSaleStatsAdmin)
+
 
 
 class ContrastContentAdmin(admin.ModelAdmin):

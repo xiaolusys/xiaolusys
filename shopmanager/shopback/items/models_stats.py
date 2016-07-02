@@ -1,11 +1,11 @@
 # coding: utf-8
 import logging
 import datetime
-
 from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.db.models import F
 
+from shopback.warehouse import WARE_SH, WARE_CHOICES
 logger = logging.getLogger('django.request')
 
 # This is the commit time, and also the time we start.
@@ -26,7 +26,7 @@ class ProductSkuStats(models.Model):
     #product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
     sku = models.OneToOneField('ProductSku', null=True, verbose_name=u'SKU')
     product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
-
+    # ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     assign_num = models.IntegerField(default=0, verbose_name=u'分配数')  # 未出库包裹单中已分配的sku数量
     inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
 
@@ -145,6 +145,11 @@ class ProductSkuStats(models.Model):
                 need_return_skus.append(sku)
         return ProductSkuStats.objects.filter(sku_id__in=need_return_skus)
 
+    @staticmethod
+    def filter_by_supplier(supplier_id):
+        from shopback.items.models import Product
+        return [p['id'] for p in Product.get_by_supplier(supplier_id).values('id')]
+
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     if instance.realtime_quantity > instance.assign_num:
@@ -170,6 +175,57 @@ def product_sku_stats_agg(sender, instance, created, **kwargs):
         logger.error(exc.message)
 
 post_save.connect(product_sku_stats_agg, sender=ProductSkuStats, dispatch_uid='post_save_product_sku_stats')
+
+
+class InferiorSkuStats(models.Model):
+    class Meta:
+        db_table = 'shop_items_inferiorskustats'
+        app_label = 'items'
+        verbose_name = u'次品记录'
+        verbose_name_plural = u'次品库存列表'
+    STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
+    sku = models.OneToOneField('ProductSku', null=True, verbose_name=u'SKU')
+    product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
+    ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
+    history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存数')
+    inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存数')
+    return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货数')
+    rg_quantity = models.IntegerField(default=0, verbose_name=u'退还供应商货数')
+    adjust_num = models.IntegerField(default=0, verbose_name=u'调整数')
+    created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
+    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
+    status = models.IntegerField(default=0, db_index=True, choices=STATUS, verbose_name=u'状态')
+
+    def __unicode__(self):
+        return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
+
+    @staticmethod
+    def get_by_sku(sku_id):
+        stat = InferiorSkuStats.objects.filter(sku_id=sku_id).first()
+        if stat:
+            return stat
+        else:
+            return InferiorSkuStats.create(sku_id)
+
+    @staticmethod
+    def create(sku_id, real_quantity_zreo=False):
+        from shopback.items.models import ProductSku
+        from shopback.refunds.models import RefundProduct
+        from flashsale.dinghuo.models import RGDetail, InBoundDetail
+        sku = ProductSku.objects.get(id=sku_id)
+        stat = InferiorSkuStats(sku_id=sku.id, product_id=sku.product_id)
+        stat.save()
+        stat.rg_quantity = RGDetail.get_inferior_total(sku_id, PRODUCT_SKU_STATS_COMMIT_TIME)
+        stat.return_quantity = RefundProduct.get_total(sku_id, can_reuse=False, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
+        stat.inbound_quantity = InBoundDetail.get_inferior_total(sku_id, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
+        if stat.realtime_quantity < 0 and real_quantity_zreo:
+            stat.history_quantity = -stat.realtime_quantity
+        stat.save()
+        return stat
+
+    @property
+    def realtime_quantity(self):
+        return self.history_quantity + self.inbound_quantity + self.return_quantity + self.adjust_num - self.rg_quantity
 
 
 class ProductSkuSaleStats(models.Model):
