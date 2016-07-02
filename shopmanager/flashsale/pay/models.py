@@ -1181,13 +1181,14 @@ class SaleOrderSyncLog(BaseModel):
 
 def gauge_data(sender, instance, created, **kwargs):
     from django_statsd.clients import statsd
+    key = None
     if instance.is_completed():
-        key = None
         if instance.type == SaleOrderSyncLog.SO_PSI:
             key = 'saleorder_synclog.psi'
         if instance.type == Saleorder_Synclog.PSI_PR:
             key = 'saleorder_synclog.pr'
         if key:
             statsd.timing(key, instance.actual_num)
+    logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
 
 post_save.connect(gauge_data, sender=SaleOrderSyncLog, dispatch_uid='post_save_gauge_data')
