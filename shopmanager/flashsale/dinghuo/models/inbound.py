@@ -138,10 +138,8 @@ class InBound(models.Model):
         self.save()
 
     def update_orderlist_inbound(self):
-        for orderlist_id in self.orderlist_ids:
-            OrderList.objects.filter(id=orderlist_id,
-                                     arrival_process__in=[OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_PRESSED]).update(
-                arrival_process=OrderList.ARRIVAL_NEED_PROCESS)
+        for orderlist_id in self.order_list_ids:
+            OrderList.objects.get(id=orderlist_id).set_arrival_process_status()
 
     def notify_forecast_save_or_update_inbound(self):
         from flashsale.forecast.apis import api_create_or_update_realinbound_by_inbound
@@ -549,6 +547,7 @@ class InBound(models.Model):
             return False
 
     def generate_return_goods(self, noter):
+        from flashsale.dinghuo.models import ReturnGoods
         if self.need_return():
             ReturnGoods.generate_by_inbound(self, noter)
         self.status = InBound.COMPLETE_RETURN

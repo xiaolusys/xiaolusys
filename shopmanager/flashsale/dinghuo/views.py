@@ -1931,6 +1931,6 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 'inbound_time': oi.inbounddetail.inbound.created.strftime("%Y-%m-%d %H")
             }
             res.append(item)
-        already_return = RGDetail.get_return_inferior_num_total(sku_id)
+        already_return = RGDetail.get_inferior_total(sku_id)
         return Response({'res':res, 'already_return': already_return}, template_name=u"dinghuo/order_sku_inferior_detail.htm")
 
