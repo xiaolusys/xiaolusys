@@ -743,7 +743,7 @@ class SaleOrder(PayBaseModel):
     def package_order(self):
         if not hasattr(self, '_package_order_'):
             from shopback.trades.models import PackageOrder
-            package_sku_item = self.package_sku()
+            package_sku_item = self.package_sku
             if package_sku_item and package_sku_item.package_order_id:
                 self._package_order_ = PackageOrder.objects.filter(id=package_sku_item.package_order_id).first()
             else:
@@ -752,7 +752,7 @@ class SaleOrder(PayBaseModel):
 
     def is_packaged(self):
         """ 是否打包 """
-        package_sku_item = self.package_sku()
+        package_sku_item = self.package_sku
         if package_sku_item and package_sku_item.package_order_id:
             return True
         return False
@@ -911,6 +911,7 @@ class SaleOrder(PayBaseModel):
                                                                             SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
         return False
 
+    @property
     def package_sku(self):
         if not hasattr(self, '_package_sku_'):
             from shopback.trades.models import PackageSkuItem

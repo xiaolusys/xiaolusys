@@ -264,13 +264,19 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
     refund_status_display = serializers.CharField(source='get_refund_status_display', read_only=True)
     kill_title = serializers.BooleanField(source='second_kill_title', read_only=True)
     is_packaged = serializers.BooleanField(read_only=True)
-    package_order_id = serializers.CharField(source='package_sku.package_order_id', read_only=True)
+    package_order_id = serializers.SerializerMethodField('gen_package_order_id', read_only=True)
     class Meta:
         model = SaleOrder
         fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
                   'refund_status', 'refund_status_display', "refund_id", 'kill_title',
                   'is_seckill', 'is_packaged', 'package_order_id')
+
+    def gen_package_order_id(self, obj):
+        if obj.package_sku:
+            return obj.package_sku.package_order_id
+        else:
+            return ''
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
