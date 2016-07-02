@@ -1081,7 +1081,7 @@ def create_packageskuitem_check_log(time_from, type, uni_key):
     sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,pay_time__gt=time_from,pay_time__lte=time_to)
     target_num = sos.count()
     actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to,assign_status__lt=PackageSkuItem.FINISHED).count()
-    log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,target_num=target_num,actual_num=actual_num)
+    log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,type=type,target_num=target_num,actual_num=actual_num)
     if target_num == actual_num:
         log.status = SaleOrderSyncLog.COMPLETED
     log.save()
