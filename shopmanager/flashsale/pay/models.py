@@ -1178,9 +1178,6 @@ class SaleOrderSyncLog(BaseModel):
     def is_completed(self):
         return self.target_num == self.actual_num
 
-    def type_display(self):
-        return get_choice_name(self.TYPE_CHOICE, self.type)
-    
 
 def gauge_data(sender, instance, created, **kwargs):
     from django_statsd.clients import statsd
