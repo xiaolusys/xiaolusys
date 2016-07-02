@@ -1807,3 +1807,70 @@ def task_check_with_purchase_order(ol):
     task_update_purchasearrangement_initial_book.delay(po)
 
 
+from flashsale.pay.models import SaleOrderSyncLog
+from shopback.trades.models import PackageSkuItem
+from flashsale.dinghuo.models_purchase import PurchaseRecord
+
+def create_purchaserecord_check_log(time_from, type, uni_key):
+    time_to = time_from + datetime.timedelta(hours=1)
+    psis = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to)
+    target_num = psis.count()
+    actual_num = 0
+    for psi in psis:
+        pr = PurchaseRecord.objects.filter(oid=psi.oid).first()
+        if pr:
+            actual_num += 1
+        elif psi.is_booking_needed():
+            psi.save()
+    log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,target_num=target_num,actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+    
+@task()
+def task_packageskuitem_check_purchaserecord():
+    type = SaleOrderSyncLog.PSI_PR
+    log = SaleOrderSyncLog.objects.filter(type=type,status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
+    if not log:
+        return
+
+    time_from = log.time_to
+    now = datetime.datetime.now()
+    
+    if time_from > now - datetime.timedelta(hours=2):
+        return
+    
+    uni_key = "%s|%s" % (type, time_from)
+    log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
+    if not log:
+        create_purchaserecord_check_log(time_from, type, uni_key)
+    elif not log.is_completed():
+        time_to = log.time_to
+        psis = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to)
+        target_num = psis.count()
+        actual_num = 0
+        for psi in psis:
+            pr = PurchaseRecord.objects.filter(oid=psi.oid).first()
+            if pr:
+                actual_num += 1
+            elif psi.is_booking_needed():
+                psi.save()
+
+        update_fields = []
+        if log.target_num != target_num:
+            log.target_num = target_num
+            update_fields.append('target_num')
+        if log.actual_num != actual_num:
+            log.actual_num = actual_num
+            update_fields.append('actual_num')
+        if target_num == actual_num:
+            log.status = SaleOrderSyncLog.COMPLETED
+            update_fields.append('status')
+        if update_fields:
+            log.save(update_fields=update_fields)
+        
+        if target_num != actual_num:
+            logger.error("packageskuitem_sync_purchaserecord|uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))
+
+
