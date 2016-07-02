@@ -1814,7 +1814,7 @@ from flashsale.dinghuo.models_purchase import PurchaseRecord
 def create_purchaserecord_check_log(time_from, type, uni_key):
     psi_unikey = "%s|%s" % (SaleOrderSyncLog.SO_PSI, time_from)
     psi_log = SaleOrderSyncLog.objects.filter(uni_key=psi_unikey).first()
-    if not pis_log.is_completed():
+    if not psi_log.is_completed():
         return
     time_to = time_from + datetime.timedelta(hours=1)
     psis = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to)
