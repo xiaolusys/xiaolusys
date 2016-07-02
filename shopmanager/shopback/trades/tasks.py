@@ -1076,7 +1076,7 @@ def task_merge_trade_update_sale_order(merge_trade):
 
 from flashsale.pay.models import SaleOrderSyncLog
 
-def create_sync_log(time_from, type, uni_key):
+def create_packageskuitem_check_log(time_from, type, uni_key):
     time_to = time_from + datetime.timedelta(hours=1)
     sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,pay_time__gt=time_from,pay_time__lte=time_to)
     target_num = sos.count()
@@ -1088,17 +1088,20 @@ def create_sync_log(time_from, type, uni_key):
     
 
 @task()
-def task_saleorder_sync_packageskuitem():
+def task_saleorder_check_packageskuitem():
     type = SaleOrderSyncLog.SO_PSI
     log = SaleOrderSyncLog.objects.filter(type=type,status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
     if not log:
         return
     
     time_from = log.time_to
+    if time_from > now - datetime.timedelta(hours=2):
+        return
+
     uni_key = "%s|%s" % (type, time_from)
     log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
     if not log:
-        create_sync_log(time_from, type, uni_key)
+        create_packageskuitem_check_log(time_from, type, uni_key)
     elif not log.is_completed():
         time_to = log.time_to
         sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,pay_time__gt=time_from,pay_time__lte=time_to)
