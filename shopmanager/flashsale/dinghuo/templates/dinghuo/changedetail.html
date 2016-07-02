@@ -620,7 +620,7 @@
                                 <td>缺货</td>
                                 <td><a href="/sale/dinghuo/inbound/{{detail.inbound_id}}" target="_blank">{{detail.inbound_id}}</a></td>
                                 <td>{{detail.check_time}}</td>
-                                <td>{{detail.sku.product.name}}||{{detail.sku_id}}</td>
+                                <td>{{detail.sku.product.name}}||{{detail.sku.properties_name}}||{{detail.sku_id}}</td>
                                 <td>缺{{detail.need_arrival_quantity}}件</td>
                             </tr>
                             {%endfor%}
