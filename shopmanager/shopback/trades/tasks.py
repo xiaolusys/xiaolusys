@@ -901,7 +901,7 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 
 
 from shopback.trades.models import PackageSkuItem, PackageOrder
-from flashsale.pay.models import SaleOrder,SaleTrade
+from flashsale.pay.models import SaleOrder, SaleTrade, SaleRefund
 
 @task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats(sku_id):
