@@ -1095,6 +1095,7 @@ def task_saleorder_check_packageskuitem():
         return
     
     time_from = log.time_to
+    now = datetime.datetime.now()
     if time_from > now - datetime.timedelta(hours=2):
         return
 
