@@ -85,6 +85,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserCouponSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
@@ -289,12 +290,27 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         default_return.update({"code": 2, "info": "领取出错啦:%s" % ','.join(except_msgs)})
         return Response(default_return)
 
+    @list_route(methods=['get'])
+    def is_picked_register_gift_coupon(self, request):
+        default_return = collections.defaultdict(code=0, info='', is_picked=0)
+        tplids = range(54, 61)
+        customer = Customer.objects.get(user=request.user)
+        if not customer:
+            default_return.update({"code": 1, "info": "用户不存在"})
+            return Response(default_return)
+        if self.queryset.filter(template_id__in=tplids, customer_id=customer.id).exists():
+            default_return.update({'is_picked': 1, "info": "已经领取过"})
+            return Response(default_return)
+        default_return.update({"info": "没有领取"})
+        return Response(default_return)
+
 
 class CouponTemplateViewSet(viewsets.ModelViewSet):
     queryset = CouponTemplate.objects.all()
     serializer_class = serializers.CouponTemplateSerialize
     authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)  # 这里使用只读的权限
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_useful_template_query(self):
@@ -345,6 +361,7 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.OrderShareCouponSerialize
     authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def list(self, request, *args, **kwargs):
