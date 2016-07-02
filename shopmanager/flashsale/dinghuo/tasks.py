@@ -1812,6 +1812,10 @@ from shopback.trades.models import PackageSkuItem
 from flashsale.dinghuo.models_purchase import PurchaseRecord
 
 def create_purchaserecord_check_log(time_from, type, uni_key):
+    psi_unikey = "%s|%s" % (SaleOrderSyncLog.SO_PSI, time_from)
+    psi_log = SaleOrderSyncLog.objects.filter(uni_key=psi_unikey).first()
+    if not pis_log.is_completed():
+        return
     time_to = time_from + datetime.timedelta(hours=1)
     psis = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to)
     target_num = psis.count()
@@ -1840,7 +1844,7 @@ def task_packageskuitem_check_purchaserecord():
     
     if time_from > now - datetime.timedelta(hours=2):
         return
-    
+
     uni_key = "%s|%s" % (type, time_from)
     log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
     if not log:
@@ -1871,6 +1875,6 @@ def task_packageskuitem_check_purchaserecord():
             log.save(update_fields=update_fields)
         
         if target_num != actual_num:
-            logger.error("packageskuitem_sync_purchaserecord|uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))
+            logger.error("task_packageskuitem_check_purchaserecord|uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))
 
 
