@@ -363,6 +363,7 @@ class OrderList(models.Model):
             change = True
             self.inferior = inferior
         if arrival_process and self.arrival_process != arrival_process:
+            change = True
             self.arrival_process = arrival_process
         return change
 
