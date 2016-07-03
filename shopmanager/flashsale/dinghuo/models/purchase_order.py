@@ -406,7 +406,6 @@ class OrderList(models.Model):
         self.bill_method = pay_way
         self.stage = OrderList.STAGE_RECEIVE
         self.status = OrderList.QUESTION_OF_QUANTITY
-        self.arrival_process = OrderList.ARRIVAL_NEED_PROCESS
         if not self.receive_time:
             self.receive_time = datetime.datetime.now()
         self.save()
