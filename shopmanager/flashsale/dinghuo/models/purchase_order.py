@@ -355,6 +355,8 @@ class OrderList(models.Model):
             arrival_process = OrderList.ARRIVAL_FINISHED
         elif lack is None:
             arrival_process = OrderList.ARRIVAL_NOT
+        elif lack is True and self.arrival_process in [OrderList.ARRIVAL_NOT, OrderList.ARRIVAL_FINISHED]:
+            arrival_process = OrderList.ARRIVAL_NEED_PROCESS
         change = False
         if self.lack != lack:
             change = True
