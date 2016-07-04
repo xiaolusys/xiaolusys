@@ -1636,13 +1636,7 @@ def task_start_booking(pr):
     if not pr.need_booking():
         return
 
-    pd = PurchaseDetail.objects.filter(sku_id=pr.sku_id, extra_num__gte=pr.need_num, status=PurchaseOrder.BOOKED).first()
-    if pd:
-        purchase_order_unikey = pd.purchase_order_unikey
-    else:
-        # 2. create new purchase order
-        purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
-
+    purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
     uni_key = utils.gen_purchase_arrangement_unikey(purchase_order_unikey, pr.uni_key)
 
     pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
@@ -1691,7 +1685,8 @@ def task_purchaserecord_sync_purchasearrangement_status(pr):
 @task()
 def task_check_arrangement(pd):
     #print "debug: %s" % utils.get_cur_info()
-    
+    return
+
     if not pd.has_extra():
         return
 
