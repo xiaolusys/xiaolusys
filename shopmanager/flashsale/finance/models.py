@@ -114,17 +114,13 @@ class Bill(BaseModel):
                          type=rtype).save()
     @property
     def relation_objects(self):
-        objects = []
+        objects = {}
         for bill_relation in self.billrelation_set.order_by('id'):
-            object_dict = {
-                'type': dict(BillRelation.TYPE_CHOICES)[bill_relation.type],
-                'object_id': bill_relation.object_id
-            }
-            content_object = bill_relation.get_based_object()
-            if hasattr(content_object, 'bill_relation_dict'):
-                object_dict.update(content_object.bill_relation_dict)
-            objects.append(object_dict)
+            if bill_relation.get_type_display() not in objects:
+                objects[bill_relation.get_type_display()] = []
+            objects[bill_relation.get_type_display()].append(bill_relation)
         return objects
+
 
 
 class BillRelation(BaseModel):
@@ -153,3 +149,10 @@ class BillRelation(BaseModel):
             returns the edited object represented by this log entry
         """
         return self.content_type.get_object_for_this_type(pk=self.object_id)
+
+    def object_url(self):
+        tyc = {
+            1:'/sale/dinghuo/changedetail/%s/' %(self.object_id),
+            3:'/admin/dinghuo/returngoods/%s/' %(self.object_id)
+        }
+        return tyc[self.type]
