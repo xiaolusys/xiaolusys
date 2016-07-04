@@ -404,6 +404,8 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
         return order_data_list
 
     def gen_package_orders(self, obj):
+        if obj.status not in SaleTrade.INGOOD_STATUS:
+            return []
         package_list = PackageOrderSerializer(obj.package_orders, many=True).data
         for sale_order in obj.sale_orders.all():
             if not sale_order.is_packaged():
