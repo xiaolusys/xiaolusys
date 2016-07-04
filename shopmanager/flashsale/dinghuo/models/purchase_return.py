@@ -222,6 +222,8 @@ class ReturnGoods(models.Model):
                 src=detail.inbound_id
             )
             rg_details.append(rg_detail)
+        if not rg_details:
+            return
         rg = ReturnGoods(supplier_id=supplier_id,
                          noter=noter,
                          return_num=sum([d.num for d in rg_details]),

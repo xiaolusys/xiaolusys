@@ -444,7 +444,7 @@ from flashsale.pay.models import SaleRefund
 
 
 class ReturnGoodsAdmin(BaseModelAdmin):
-    list_display = ('id_link', "supplier_link", "show_detail_num", "sum_amount",
+    list_display = ('id_link', "supplier_link", "show_detail_num", "sum_amount", "type",
                     "status", "status_contrl", "noter", "transactor_name", "created",
                     "consign_time", "sid", "consigner", 'show_memo', 'show_reason'
                     )
@@ -453,7 +453,7 @@ class ReturnGoodsAdmin(BaseModelAdmin):
 
     list_filter = ["status", "noter", "consigner", "transactor_id",
                    ("created", DateFieldListFilter), ("modify", DateFieldListFilter)]
-    readonly_fields = ('status', 'supplier')
+    readonly_fields = ('status', "type", 'supplier')
     inlines = [RGDetailInline, ]
     list_display_links = []
     list_select_related = True
