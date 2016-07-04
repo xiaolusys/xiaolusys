@@ -80,7 +80,7 @@ class ForecastInbound(BaseModel):
 
     @property
     def total_detail_num(self):
-        forecast_nums = self.normal_details().values_list('forecast_arrive_num', flat=True)
+        forecast_nums = self.normal_details.values_list('forecast_arrive_num', flat=True)
         return forecast_nums and sum(forecast_nums) or 0
 
     @property

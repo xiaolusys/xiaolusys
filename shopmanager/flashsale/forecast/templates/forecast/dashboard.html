@@ -170,6 +170,9 @@ $(function(){
      );
      $('#modal_dialog').modal('show');
   });
+  $('#modal_dialog').on('hidden.bs.modal', function(){
+     $('#modal_dialog div.modal-body').html('');
+  });
 })
 </script>
 </body>

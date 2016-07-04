@@ -22,7 +22,7 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, Browsab
 
 from common.utils import get_admin_name
 from core.options import log_action, ADDITION, CHANGE
-from shopback.items.models import Product, ProductSku, ProductLocation
+from shopback.items.models import Product, ProductSku, ProductLocation, ProductSkuStats
 from supplychain.supplier.models import SaleProduct
 
 from .models import StagingInBound,ForecastInbound,ForecastInboundDetail,RealInBound,RealInBoundDetail
@@ -463,6 +463,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def calcstats(self, request, *args, **kwargs):
         """ 采购单与入库单聚合结算 """
+
         purchase_orderid_str = request.GET.get('order_ids', '')
         purchase_orderid_list = [int(i) for i in purchase_orderid_str.split(',') if i.strip()]
 
@@ -475,15 +476,23 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         sku_id_set = set(order_details_dict.keys())
         sku_id_set.update(inbound_details_dict.keys())
         sku_values = []
-        sku_qs = ProductSku.objects.filter(id__in=sku_id_set).select_related('product')
-        for sku in sku_qs:
+        productsku_values = ProductSku.objects.filter(id__in=sku_id_set).select_related('product').values(
+            'id', 'product__outer_id', 'product__name', 'properties_name', 'properties_alias', 'product__pic_path'
+        )
+        sku_stats_values = ProductSkuStats.objects.filter(sku__in=sku_id_set).extra(
+            select={'excess_num': "history_quantity + inbound_quantity + return_quantity "
+                                  + "+ sold_num - post_num - rg_quantity - post_num"}
+        ).values_list('id','excess_num')
+        sku_stats_dict = dict(sku_stats_values)
+        for sku_val in productsku_values:
+            sku_stats = sku_stats_dict.get(sku_val['id'])
             sku_values.append({
-                'sku_id': sku.id,
-                'outer_id': sku.product.outer_id,
-                'product_name': sku.product.name,
-                'sku_name': sku.name,
-                'product_img': sku.product.pic_path,
-                'excess_num': sku.excess_quantity
+                'sku_id': sku_val['id'],
+                'outer_id': sku_val['product__outer_id'],
+                'product_name': sku_val['product__name'],
+                'sku_name': sku_val['properties_name'] or sku_val['properties_alias'],
+                'product_img': sku_val['product__pic_path'],
+                'excess_num': sku_stats and max(0, sku_stats['excess_num']) or 0
             })
         product_details_dict = dict([(s['sku_id'], s) for s in sku_values])
 
@@ -499,8 +508,8 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             rg_detail = returngood_details_dict.get(sku_id, {})
             arrived_num = inbound_detail and inbound_detail['arrival_quantity'] or 0
             return_num = rg_detail and (rg_detail['return_num'] + rg_detail['inferior_num']) or 0
-            per_price = odetail['buy_quantity'] and round(float(odetail['total_price']) / odetail['buy_quantity'],
-                                                          2) or 0
+            per_price = odetail['buy_quantity'] and \
+                        round(float(odetail['total_price']) / odetail['buy_quantity'], 2) or 0
             unwork_num = odetail['buy_quantity'] - arrived_num + return_num
             inferior_num = inbound_detail and inbound_detail['inferior_quantity'] or 0
             unarrival_num = odetail['buy_quantity'] - arrived_num
