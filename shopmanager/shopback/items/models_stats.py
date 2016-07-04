@@ -130,23 +130,23 @@ class ProductSkuStats(models.Model):
         :return:
         """
         from flashsale.dinghuo.models import OrderDetail
-        from shopback.items.models import ProductSku, Product
+        from shopback.items.models import Product
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
             arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
             'chichu_id').distinct()]
-        has_nouse_stock_sku_product = [(stat['sku_id'], stat['product_id']) for stat in ProductSkuStats.objects.filter(sku_id__in=order_skus,
+        has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in ProductSkuStats.objects.filter(sku_id__in=order_skus,
             sold_num__lt=F('history_quantity') + F('inbound_quantity') + F('return_quantity')\
-            - F('rg_quantity')).values('sku_id', 'product_id')]
-        has_nouse_stock_products = {product_id for (sku_id, product_id) in has_nouse_stock_sku_product}
+            - F('rg_quantity')).values('id', 'product_id')]
+        has_nouse_stock_products = {product_id for (_id, product_id) in has_nouse_stock_sku_product}
         products = Product.objects.filter(id__in=has_nouse_stock_products)
         product_dict = {p.id: p for p in products}
-        sku_product = [(sku_id, product_dict[product_id]) for (sku_id, product_id) in has_nouse_stock_sku_product]
-        need_return_skus = []
-        for sku, pro in sku_product:
+        sku_product = [(id, product_dict[product_id]) for (id, product_id) in has_nouse_stock_sku_product]
+        return_ids = []
+        for id, pro in sku_product:
             if pro.sale_time and pro.offshelf_time and not datetime.datetime(pro.sale_time.year, pro.sale_time.month,
                                  pro.sale_time.day) < datetime.datetime.now() < pro.offshelf_time:
-                need_return_skus.append(sku)
-        return ProductSkuStats.objects.filter(sku_id__in=need_return_skus)
+                return_ids.append(id)
+        return return_ids
 
     @staticmethod
     def filter_by_supplier(supplier_id):

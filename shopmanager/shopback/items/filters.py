@@ -1,15 +1,11 @@
 # -*- coding:utf8 -*-
 import datetime
-
 from django.db import models
-from django.utils.encoding import smart_unicode, force_unicode
+from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
-from shopback import paramconfig as pcfg
 from core.filters import SimpleListFilter, FieldListFilter
-from shopback.items.models import Product
-
+from shopback.items.models_stats import ProductSkuStats
 
 class ChargerFilter(SimpleListFilter):
     # Human-readable title which will be displayed in the
@@ -211,3 +207,75 @@ class CategoryFilter(SimpleListFilter):
             else:
                 cate_ids.append(int(cat_id))
                 return queryset.filter(category__in=cate_ids)
+
+
+class ProductSkuStatsUnusedStockFilter(SimpleListFilter):
+    """按订货单状态过滤"""
+    title = u'冗余库存数'
+    parameter_name = 'unused_stock_cnt'
+
+    def lookups(self, request, model_admin):
+        condition = (("3", u'大于0且可退货'),
+                     ("1", u'大于0'),
+                     ("2", u'等于0'))
+        return condition
+
+    def queryset(self, request, queryset):
+        status_id = self.value()
+        if not status_id:
+            return queryset
+        else:
+            if status_id == '1':
+                return queryset.filter(return_quantity__gt=F('sold_num') + F('rg_quantity')
+                                                           - F('history_quantity') - F('inbound_quantity') - F(
+                    'return_quantity'))
+            if status_id == '2':
+                return queryset.filter(return_quantity=F('sold_num') + F('rg_quantity')
+                                                       - F('history_quantity') - F('inbound_quantity') - F(
+                    'return_quantity'))
+            if status_id == '3':
+                return queryset.filter(id__in=ProductSkuStats.redundancies())
+
+
+class ProductSkuStatsSupplierIdFilter(SimpleListFilter):
+    """按订货单状态过滤"""
+    title = u'供应商ID'
+    parameter_name = 'supplier_id'
+
+    def lookups(self, request, model_admin):
+        condition = (("3", u'大于0且可退货'),
+                     ("1", u'大于0'),
+                     ("2", u'等于0'))
+        return condition
+
+    def queryset(self, request, queryset):
+        supplier_id = self.value()
+        from shopback.items.models import ProductSkuStats
+        from supplychain.supplier.models import SaleSupplier
+        supplier = SaleSupplier.objects.filter(pk=supplier_id).first() if supplier_id else None
+        if not supplier:
+            return queryset
+        else:
+            return queryset.filter(product_id__in=ProductSkuStats.filter_by_supplier(supplier.id))
+
+
+class ProductSkuStatsSupplierNameFilter(SimpleListFilter):
+    """按订货单状态过滤"""
+    title = u'供应商名称'
+    parameter_name = 'supplier_name'
+
+    def lookups(self, request, model_admin):
+        condition = (("3", u'大于0且可退货'),
+                     ("1", u'大于0'),
+                     ("2", u'等于0'))
+        return condition
+
+    def queryset(self, request, queryset):
+        supplier_name = self.value()
+        from shopback.items.models import ProductSkuStats
+        from supplychain.supplier.models import SaleSupplier
+        supplier = SaleSupplier.objects.filter(supplier_name=supplier_name).first() if supplier_name else None
+        if not supplier:
+            return queryset
+        else:
+            return queryset.filter(product_id__in=ProductSkuStats.filter_by_supplier(supplier.id))
