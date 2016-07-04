@@ -1188,6 +1188,8 @@ def gauge_data(sender, instance, created, **kwargs):
             key = 'saleorder_synclog.psi'
         if instance.type == SaleOrderSyncLog.PSI_PR:
             key = 'saleorder_synclog.pr'
+        if instance.type == SaleOrderSyncLog.BOOKNUM:
+            key = 'saleorder_synclog.booknum'
         if key:
             statsd.timing(key, instance.actual_num)
     logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
