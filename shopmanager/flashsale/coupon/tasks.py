@@ -204,16 +204,15 @@ def task_update_mobile_download_record(tempcoupon):
     if not share:
         return
     from flashsale.promotion.models_freesample import DownloadMobileRecord
-
-    dl_record = DownloadMobileRecord.objects.filter(from_customer=share.share_customer,
-                                                    mobile=tempcoupon.mobile).first()
+    uni_key = '/'.join([str(share.share_customer), str(tempcoupon.mobile)])
+    dl_record = DownloadMobileRecord.objects.filter(uni_key=uni_key).first()
     if dl_record:  # 记录存在不做处理
         return
     dl_record = DownloadMobileRecord(
         from_customer=share.share_customer,
         mobile=tempcoupon.mobile,
         ufrom=DownloadMobileRecord.REDENVELOPE,
-        uni_key='/'.join([str(share.share_customer), str(tempcoupon.mobile)]))
+        uni_key=uni_key)
     dl_record.save()
 
 
@@ -224,26 +223,26 @@ def task_update_unionid_download_record(usercoupon):
     if not customer:
         return 
     if not customer.unionid.strip():  # 没有unionid  写mobilde 记录
-        dl_record = DownloadMobileRecord.objects.filter(from_customer=usercoupon.share_user_id,
-                                                        mobile=customer.mobile).first()
+        uni_key = '/'.join([str(usercoupon.share_user_id), str(customer.mobile)])
+        dl_record = DownloadMobileRecord.objects.filter(uni_key=uni_key).first()
         if dl_record:  # 记录存在不做处理
             return
         dl_record = DownloadMobileRecord(
             from_customer=usercoupon.share_user_id,
             mobile=customer.mobile,
             ufrom=DownloadMobileRecord.REDENVELOPE,
-            uni_key='/'.join([str(usercoupon.share_user_id), str(customer.mobile)]))
+            uni_key=uni_key)
         dl_record.save()
     else:
-        dl_record = DownloadUnionidRecord.objects.filter(from_customer=usercoupon.share_user_id,
-                                                         unionid=customer.unionid).first()
+        uni_key = '/'.join([str(usercoupon.share_user_id), str(customer.unionid)])
+        dl_record = DownloadUnionidRecord.objects.filter(uni_key=uni_key).first()
         if dl_record:  # 记录存在不做处理
             return
         dl_record = DownloadUnionidRecord(
             from_customer=usercoupon.share_user_id,
             ufrom=DownloadMobileRecord.REDENVELOPE,
             unionid=customer.unionid,
-            uni_key='/'.join([str(usercoupon.share_user_id), str(customer.unionid)]),
+            uni_key=uni_key,
             headimgurl=customer.thumbnail,
             nick=customer.nick
         )
