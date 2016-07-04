@@ -176,9 +176,23 @@ class OrderListAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('status', 'supplier_shop',)
         return self.readonly_fields
 
+
     # 批量审核
     def test_order_action(self, request, queryset):
         for p in queryset:
+            pds = PurchaseDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey)
+            psis_total = 0
+            for pd in pds:
+                psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
+                psi_total = psi_res['total'] or 0
+                psis_total += psi_total
+                
+            ods_res = OrderDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey).aggregate(total=Sum('buy_quantity'))
+            ods_total = ods_res['total'] or 0
+            if psis_total != ods_total:
+                log_action(request.user.id, p, CHANGE, u'数量不对，审核失败')
+                break
+
             if p.status != "审核":
                 p.set_stage_verify()
                 log_action(request.user.id, p, CHANGE, u'审核订货单')
@@ -189,8 +203,22 @@ class OrderListAdmin(admin.ModelAdmin):
 
     test_order_action.short_description = u"审核(已付款)"
 
+    from django.db.models import Sum
     def verify_order_action(self, request, queryset):
         for p in queryset:
+            pds = PurchaseDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey)
+            psis_total = 0
+            for pd in pds:
+                psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
+                psi_total = psi_res['total'] or 0
+                psis_total += psi_total
+                
+            ods_res = OrderDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey).aggregate(total=Sum('buy_quantity'))
+            ods_total = ods_res['total'] or 0
+            if psis_total != ods_total:
+                log_action(request.user.id, p, CHANGE, u'数量不对，审核失败')
+                break
+            
             if p.status != u'审核':
                 p.set_stage_verify(is_postpay=True)
                 log_action(request.user.id, p, CHANGE, u'审核订货单')
