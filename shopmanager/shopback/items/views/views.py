@@ -1391,7 +1391,7 @@ def as_tuple(obj):
 
 class StockRedundanciesView(View):
     def get(self, request):
-        s = ','.join([str(p['id']) for p in ProductSkuStats.redundancies().values('id')])
+        s = ','.join([str(p) for p in ProductSkuStats.redundancies()])
         return HttpResponseRedirect('/admin/items/productskustats?id__in=%s' % s)
 
 

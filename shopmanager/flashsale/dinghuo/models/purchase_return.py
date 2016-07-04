@@ -450,7 +450,7 @@ def update_sku_inferior_rg_num(sender, instance, created, **kwargs):
     from shopback.items.tasks import task_update_inferiorsku_rg_quantity
     if instance.has_sent():
         for detail in instance.rg_details.all():
-            task_update_inferiorsku_rg_quantity.delay(detail.sku_id)
+            task_update_inferiorsku_rg_quantity.delay(detail.skuid)
 
 
 post_save.connect(update_sku_inferior_rg_num, sender=ReturnGoods, dispatch_uid='post_save_update_sku_inferior_rg_num')

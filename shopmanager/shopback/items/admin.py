@@ -34,7 +34,8 @@ from flashsale.pay.models_custom import Productdetail
 from flashsale.pay.forms import ProductdetailForm
 from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
 from shopback.items.models_stats import InferiorSkuStats
-
+from shopback.items.filters import ProductSkuStatsSupplierIdFilter, ProductSkuStatsSupplierNameFilter, \
+    ProductSkuStatsUnusedStockFilter
 from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from django.contrib.auth.models import User as DjangoUser
@@ -189,7 +190,7 @@ class ProductAdmin(ApproxAdmin):
             style_css = "text-decoration:line-through;"
         elif obj.status == obj.REMAIN:
             style_css = "border:1px solid grey;"
-        str_list.append('<p><span style="%s">%s</span></p>' % (style_css,obj.name or u'--'))
+        str_list.append('<p><span style="%s">%s</span></p>' % (style_css, obj.name or u'--'))
         return ''.join(str_list)
 
     pic_link.allow_tags = True
@@ -1221,19 +1222,21 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = (
         'sku_link', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
-        'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link', 'inferior_num',
+        'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link',
+        'inferior_num',
         'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
         # 'realtime_lock_num_display',
         'district_link', 'created')
     list_display_links = ['sku_link']
-    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id']
+    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id', ('supplier_id', ProductSkuStatsSupplierIdFilter),
+                     ('supplier_name', ProductSkuStatsSupplierNameFilter)]
     readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'inferior_num', 'history_quantity',
                        'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
                        'waitingpay_num', 'created', 'modified', 'status']
     list_select_related = True
     list_per_page = 50
-    list_filter = []
+    list_filter = ['status', ProductSkuStatsUnusedStockFilter]
 
     SKU_PREVIEW_TPL = (
         '<a href="%(sku_url)s" target="_blank">'
@@ -1241,15 +1244,63 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     def sku_link(self, obj):
         return obj.sku_id
+
     sku_link.short_description = 'SKU'
 
     def lookup_allowed(self, lookup, value):
-        if lookup in ['product__name', 'product__outer_id']:
+        if lookup in ['product__name', 'product__outer_id', 'supplier_id', 'supplier_name']:
             return True
         return super(ProductSkuStatsAdmin, self).lookup_allowed(lookup, value)
 
+    def get_search_results(self, request, queryset, search_term):
+        import operator
+        from django.contrib.admin.utils import lookup_needs_distinct
+        custom_search_fields = ['supplier_id', 'supplier_name']
+        def construct_search(field_name):
+            if field_name.startswith('^'):
+                return "%s__istartswith" % field_name[1:]
+            elif field_name.startswith('='):
+                return "%s__iexact" % field_name[1:]
+            elif field_name.startswith('@'):
+                return "%s__search" % field_name[1:]
+            else:
+                return "%s__icontains" % field_name
+
+        use_distinct = False
+        search_fields = self.get_search_fields(request)
+        custom_condition = {}
+        for field in custom_search_fields:
+            if field in search_fields:
+                custom_condition[field] = request.GET.get(field)
+                # search_fields.remove(field)
+        if search_fields and search_term:
+            orm_lookups = [construct_search(str(search_field))
+                           for search_field in search_fields]
+            for bit in search_term.split():
+                or_queries = [models.Q(**{orm_lookup: bit})
+                              for orm_lookup in orm_lookups]
+                queryset = queryset.filter(reduce(operator.or_, or_queries))
+            if not use_distinct:
+                for search_spec in orm_lookups:
+                    if lookup_needs_distinct(self.opts, search_spec):
+                        use_distinct = True
+                        break
+        if custom_condition:
+            supplier_id = request.GET.get('supplier_id')
+            supplier_name = request.GET.get('supplier_name')
+            if supplier_id:
+                supplier = SaleSupplier.objects.filter(pk=supplier_id).first()
+            elif supplier_name:
+                supplier = SaleSupplier.objects.filter(supplier_name=supplier_name).first()
+            else:
+                supplier = None
+            if supplier:
+                queryset = queryset.filter(product_id__in=ProductSkuStats.filter_by_supplier(supplier.id))
+        return queryset, use_distinct
+
     def unused_stock_link(self, obj):
         return obj.unused_stock
+
     unused_stock_link.short_description = u'冗余库存数'
     unused_stock_link.admin_order_field = 'unused_stock'
 
@@ -1261,27 +1312,19 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
                                          - F('history_quantity') - F('inbound_quantity') - F('return_quantity'),
                                          F('history_quantity') + F('inbound_quantity') + F('return_quantity') - F(
                                              'post_num') - F('rg_quantity')),
-                        'unused_stock':  (F('sold_num') + F('rg_quantity')
+                        'unused_stock': (F('sold_num') + F('rg_quantity')
                                          - F('history_quantity') - F('inbound_quantity') - F('return_quantity'),
                                          F('history_quantity') + F('inbound_quantity') + F('return_quantity') - F(
                                              'sold_num') - F('rg_quantity'))
                         }
-        from django.contrib.admin.views.main import ChangeList, ORDER_VAR
+        from django.contrib.admin.views.main import ChangeList, ORDER_VAR, SuspiciousOperation, ImproperlyConfigured,\
+            IncorrectLookupParameters
+
         class StatsOrderChangeList(ChangeList):
             def get_ordering(self, request, queryset):
-                """
-                Returns the list of ordering fields for the change list.
-                First we check the get_ordering() method in model admin, then we check
-                the object's default ordering. Then, any manually-specified ordering
-                from the query string overrides anything. Finally, a deterministic
-                order is guaranteed by ensuring the primary key is used as the last
-                ordering field.
-                """
                 params = self.params
-                ordering = list(self.model_admin.get_ordering(request)
-                                or self._get_default_ordering())
+                ordering = list(self.model_admin.get_ordering(request) or self._get_default_ordering())
                 if ORDER_VAR in params:
-                    # Clear ordering and used params
                     ordering = []
                     order_params = params[ORDER_VAR].split('.')
                     for p in order_params:
@@ -1290,10 +1333,9 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
                             field_name = self.list_display[int(idx)]
                             order_field = self.get_ordering_field(field_name)
                             if not order_field:
-                                continue  # No 'admin_order_field', skip it
-                            # reverse order if order_field has already "-" as prefix
+                                continue
                             if order_field in orderingdict:
-                                if pfx =='-':
+                                if pfx == '-':
                                     ordering.append(orderingdict[order_field][0])
                                 else:
                                     ordering.append(orderingdict[order_field][1])
@@ -1302,22 +1344,37 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
                             else:
                                 ordering.append(pfx + order_field)
                         except (IndexError, ValueError):
-                            continue  # Invalid ordering specified, skip it.
-
-                # Add the given query's ordering fields, if any.
+                            continue
                 ordering.extend(queryset.query.order_by)
-
-                # Ensure that the primary key is systematically present in the list of
-                # ordering fields so we can guarantee a deterministic order across all
-                # database backends.
                 pk_name = self.lookup_opts.pk.name
                 if not (set(ordering) & {'pk', '-pk', pk_name, '-' + pk_name}):
-                    # The two sets do not intersect, meaning the pk isn't present. So
-                    # we add it.
                     ordering.append('-pk')
-
                 return ordering
 
+            # def get_queryset(self, request):
+            #     (self.filter_specs, self.has_filters, remaining_lookup_params,
+            #      filters_use_distinct) = self.get_filters(request)
+            #     qs = self.root_queryset
+            #     for filter_spec in self.filter_specs:
+            #         new_qs = filter_spec.queryset(request, qs)
+            #         if new_qs is not None:
+            #             qs = new_qs
+            #     try:
+            #         qs = qs.filter(**remaining_lookup_params)
+            #     except (SuspiciousOperation, ImproperlyConfigured):
+            #         raise
+            #     except Exception as e:
+            #         raise IncorrectLookupParameters(e)
+            #     if not qs.query.select_related:
+            #         qs = self.apply_select_related(qs)
+            #     ordering = self.get_ordering(request, qs)
+            #     qs = qs.order_by(*ordering)
+            #     qs, search_use_distinct = self.model_admin.get_search_results(
+            #         request, qs, self.query)
+            #     if filters_use_distinct | search_use_distinct:
+            #         return qs.distinct()
+            #     else:
+            #         return qs
         return StatsOrderChangeList
 
     # def get_queryset(self, request):
@@ -1367,17 +1424,17 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
                     row.delete()
             else:
                 unreturn_sku = UnReturnSku(
-                    supplier = saleproduct.sale_supplier,
-                    sale_product = saleproduct,
-                    product = product,
-                    sku = productsku_stat.sku,
-                    creater = request.user,
-                    status = UnReturnSku.EFFECT
+                    supplier=saleproduct.sale_supplier,
+                    sale_product=saleproduct,
+                    product=product,
+                    sku=productsku_stat.sku,
+                    creater=request.user,
+                    status=UnReturnSku.EFFECT
                 )
                 unreturn_sku.save()
         return HttpResponseRedirect(request.get_full_path())
-    mark_unreturn.short_description = u'标记不可退货'
 
+    mark_unreturn.short_description = u'标记不可退货'
 
     def skucode(self, obj):
         return self.SKU_PREVIEW_TPL % {
@@ -1544,6 +1601,7 @@ class InferiorSkuStatsAdmin(admin.ModelAdmin):
 
     def sku_link(self, obj):
         return obj.sku_id
+
     sku_link.short_description = 'SKU'
 
     def skucode(self, obj):
@@ -1654,7 +1712,7 @@ class InferiorSkuStatsAdmin(admin.ModelAdmin):
                             if not order_field:
                                 continue
                             if order_field in orderingdict:
-                                if pfx =='-':
+                                if pfx == '-':
                                     ordering.append(orderingdict[order_field][0])
                                 else:
                                     ordering.append(orderingdict[order_field][1])
@@ -1669,6 +1727,7 @@ class InferiorSkuStatsAdmin(admin.ModelAdmin):
                 if not (set(ordering) & {'pk', '-pk', pk_name, '-' + pk_name}):
                     ordering.append('-pk')
                 return ordering
+
         return StatsOrderChangeList
 
 
@@ -1682,7 +1741,6 @@ class ProductSkuSaleStatsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ProductSkuSaleStats, ProductSkuSaleStatsAdmin)
-
 
 
 class ContrastContentAdmin(admin.ModelAdmin):
