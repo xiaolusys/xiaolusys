@@ -382,20 +382,8 @@ class OrderList(models.Model):
         return change
 
     def set_arrival_process_status(self):
-        """
-            <无货>未到
-            <满货>已完成
-            <有货>数量变化 - 需处理
-            <催货>已催货
-        """
-        if self.lack is False:
-            arrival_process = OrderList.ARRIVAL_FINISHED
-        elif self.lack is None:
-            arrival_process = OrderList.ARRIVAL_NOT
-        else:
-            arrival_process = OrderList.ARRIVAL_NEED_PROCESS
-        if arrival_process != self.arrival_process:
-            OrderList.objects.filter(id=self.id).update(arrival_process=arrival_process)
+        if self.set_stat():
+            self.save()
 
     def has_paid(self):
         return self.status > OrderList.STAGE_PAY
