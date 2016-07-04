@@ -21,7 +21,7 @@ class BillAdmin(admin.ModelAdmin):
     list_per_page = 25
 
     def show_id(self, obj):
-        return '<a href="/sale/finance/bill/%d/" target="_blank">%d</a>' % (obj.id, obj.id)
+        return '<a href="/sale/finance/bill_list/%d/bill_detail" target="_blank">%d</a>' % (obj.id, obj.id)
 
     show_id.allow_tags = True
     show_id.short_description = 'ID'
@@ -32,18 +32,8 @@ class BillAdmin(admin.ModelAdmin):
     show_creater.short_description = '创建人'
 
     def show_relation_objects(self, obj):
-        relation_objects_dict = {}
-        for bill_relation in obj.billrelation_set.all():
-            relation_object = bill_relation.get_based_object()
-            if hasattr(relation_object, 'bill_relation_dict'):
-                relation_objects_dict.setdefault(bill_relation.type, []).append(relation_object.bill_relation_dict)
-        relation_objects = []
-        for k in sorted(relation_objects_dict.keys()):
-            relation_objects.append({
-                'name': dict(BillRelation.TYPE_CHOICES)[k],
-                'items': sorted(relation_objects_dict[k], key=lambda x: x['object_id'])
-            })
-        return render_to_string('finance/bill_relation_objects.html', {'relation_objects': relation_objects})
+        return render_to_string('finance/bill_relation_objects.html', {'relation_objects':
+                                   [{'name':k, 'items':v} for k,v in obj.relation_objects.iteritems()]})
 
     show_relation_objects.allow_tag = True
     show_relation_objects.short_description = '关联信息'
@@ -77,7 +67,7 @@ class BillAdmin(admin.ModelAdmin):
             if bill.note:
                 bill_notes.append(bill.note)
 
-        redirect_url = '/admin/finance/bill/?id__in=%s' % ','.join([str(x) for x in sorted(bill_ids)])
+        redirect_url = '/admin/finance/bill_list/?id__in=%s' % ','.join([str(x) for x in sorted(bill_ids)])
         if is_wrong_type:
             self.message_user(request, u'不能合并已作废的账单')
             return HttpResponseRedirect(redirect_url)
