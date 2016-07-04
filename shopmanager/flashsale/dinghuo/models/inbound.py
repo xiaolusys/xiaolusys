@@ -15,6 +15,7 @@ from supplychain.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList, OrderDetail
 from shopback.warehouse import WARE_SH, WARE_CHOICES
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -228,6 +229,16 @@ class InBound(models.Model):
         return {item['sku_id']: item['arrival_quantity'] + item['inferior_quantity']
                 for item in self.details.values('sku_id', 'arrival_quantity', 'inferior_quantity')}
 
+    def get_allocate_orderlist_dict(self):
+        res = {}
+        for orderlist in self.order_lists.all():
+            detail_ids = [detail.id for detail in orderlist.order_list.all()]
+            res[orderlist.id] = OrderDetailInBoundDetail.objects.filter(inbounddetail__inbound_id=self.id,
+                                                                inbounddetail__checked=True,
+                                                                orderdetail_id__in=detail_ids).aggregate(
+                n=Sum('arrival_quantity')).get('n', 0) or 0
+        return res.iteritems()
+
     def all_skus(self):
         orderlist_ids = self.get_may_allocate_order_list_ids()
         query = OrderDetail.objects.filter(orderlist_id__in=orderlist_ids).values('chichu_id').distinct()
@@ -236,15 +247,9 @@ class InBound(models.Model):
     def get_set_status_info(self):
         if self.set_stat():
             self.save()
-        info = u''
-        if self.wrong:
-            info += u'有错货'
-        if self.out_stock:
-            info += u'有多货'
-        all_inferior_quantity = self.all_inferior_quantity
-        if all_inferior_quantity:
-            info += u'有%d件次品' % all_inferior_quantity
-        return info
+        wrong_str = u'错货%d件' % (self.error_cnt,) if self.wrong else ''
+        return u"共%d件SKU（%d正品%d次品%s），分配了%d件进订货单" % (self.all_quantity, self.all_arrival_quantity,
+                                                    self.all_inferior_quantity, wrong_str, self.all_allocate_quantity)
 
     def get_may_allocate_order_list_ids(self):
         query = OrderDetail.objects.filter(orderlist__supplier_id=self.supplier_id, chichu_id__in=self.sku_ids).exclude(
@@ -344,10 +349,10 @@ class InBound(models.Model):
         return orderlists
 
     def get_allocate_order_details_dict(self):
-        # if self.is_allocated():
-        #     orderlist_ids = self.order_list_ids
-        # else:
-        orderlist_ids = self.get_may_allocate_order_list_ids()
+        if self.is_finished():
+            orderlist_ids = self.order_list_ids
+        else:
+            orderlist_ids = self.get_may_allocate_order_list_ids()
         orderlists_dict = {}
         for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
             orderlists_dict[orderlist.id] = {
@@ -673,15 +678,19 @@ class InBound(models.Model):
 
     @property
     def all_quantity(self):
-        return self.details.aggregate(n=Sum('arrival_quantity') + Sum('inferior_quantity')).get('n', 0)
+        return self.details.aggregate(n=Sum('arrival_quantity') + Sum('inferior_quantity')).get('n', 0) or 0
+
+    @property
+    def all_arrival_quantity(self):
+        return self.details.filter(wrong=False).aggregate(n=Sum('arrival_quantity')).get('n', 0) or 0
 
     @property
     def all_allocate_quantity(self):
-        return self.details.filter(wrong=False).aggregate(n=Sum('arrival_quantity')).get('n', 0)
+        return self.details.filter(wrong=False).aggregate(n=Sum('arrival_quantity')).get('n', 0) or 0
 
     @property
     def all_inferior_quantity(self):
-        return self.details.filter(wrong=False).aggregate(n=Sum('inferior_quantity')).get('n', 0)
+        return self.details.filter(wrong=False).aggregate(n=Sum('inferior_quantity')).get('n', 0) or 0
 
     @property
     def out_stock_cnt(self):
@@ -983,6 +992,8 @@ def update_stock(sender, instance, created, **kwargs):
         instance.sync_order_detail()
         from shopback.items.tasks import task_update_productskustats_inferior_num
         task_update_productskustats_inferior_num.delay(instance.sku_id)
+
+
 post_save.connect(update_stock,
                   sender=InBoundDetail,
                   dispatch_uid='post_save_update_stock')

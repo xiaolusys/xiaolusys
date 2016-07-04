@@ -643,6 +643,15 @@
                             </tr>
                             {%endfor%}
                         </table>
+                        相关入仓单：<br/>
+                        {%for inbound in orderlist.get_inbounds%}
+                        <a href="/sale/dinghuo/inbound/{{inbound.id}}" target="_blank">{{inbound.id}}</a>&nbsp;{{inbound.get_set_status_info}}&nbsp;&nbsp;
+                        {% for orderlist_id,num in  inbound.get_allocate_orderlist_dict%}
+                        <a href="/sale/dinghuo/changedetail/{{orderlist_id}}/" target="_blank">
+                            {{orderlist_id}}
+                        </a>&nbsp;{{num}}件&nbsp;&nbsp;
+                        {% endfor %}<br/>
+                        {%endfor%}
                     </div>
                 </div>
                 <div class="modal-footer">

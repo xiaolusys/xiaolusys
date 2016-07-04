@@ -31,16 +31,16 @@
 
     </div>
     <div class="row">
+        <label class="col-md-1" for="inbound-status-info">当前状态</label>
+        <label class="col-md-3" id="inbound-status-info">{{inbound.get_set_status_info}}</label>
         <label class="col-md-1">关联订货单:</label>
-        <div class="col-md-8">
-        {% for orderlist_id in inbound.order_list_ids %}
+        <div class="col-md-7">
+        {% for orderlist_id,num in  inbound.get_allocate_orderlist_dict%}
         <a href="/sale/dinghuo/changedetail/{{orderlist_id}}/" target="_blank">
             {{orderlist_id}}
-        </a>
+        </a>&nbsp;{{num}}件&nbsp;
         {% endfor %}
         </div>
-        <label class="col-md-1" for="inbound-status-info">当前状态</label>
-        <label class="col-md-1" id="inbound-status-info">{{inbound.get_set_status_info}}</label>
     </div>
     <div class="container" id="action">
         <div class="row">
