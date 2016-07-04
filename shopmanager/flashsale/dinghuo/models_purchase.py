@@ -199,6 +199,15 @@ post_save.connect(start_booking, sender=PurchaseRecord, dispatch_uid='post_save_
 
 
 def check_packageskuitem(sender, instance, created, **kwargs):
+    # In a case where PSI just got created and immediately assigned, it triggers 2 events:
+    # 1) create pr; 2) cancel pr;
+    # however, event 1) might get execulted after event 2, which cause trouble.
+    from shopback.trades.models import PackageSkuItem
+    psi = PackageSkuItem.objects.filter(oid=instance.oid).first()
+    if not psi.is_booking_needed():
+        if instance.status == PurchaseRecord.EFFECT:
+            psi.save(update_fields=['modified'])
+        
     if created:
         from flashsale.dinghuo.tasks import task_packageskuitem_check_purchaserecord
         task_packageskuitem_check_purchaserecord.delay()
@@ -242,22 +251,19 @@ def update_purchase_detail(sender, instance, created, **kwargs):
 
 post_save.connect(update_purchase_detail, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_detail')
 
+def check_purchaseorder_booknum(sender, instance, created, **kwargs):
+    if created:
+        from flashsale.dinghuo.tasks import task_check_purchaseorder_booknum
+        task_check_purchaseorder_booknum.delay()
+        
+post_save.connect(check_purchaseorder_booknum, sender=PurchaseArrangement, dispatch_uid='post_save_check_purchaseorder_booknum')
+
 
 def update_purchase_record_book_num(sender, instance, created, **kwargs):
-    
     from flashsale.dinghuo.tasks import task_purchasearrangement_update_purchaserecord_book_num
     task_purchasearrangement_update_purchaserecord_book_num.delay(instance)
 
 post_save.connect(update_purchase_record_book_num, sender=PurchaseArrangement, dispatch_uid='post_save_update_purchase_record_book_num')
 
-    
-#def update_packageskuitem_booking_status(sender, instance, created, **kwargs):
-#    from shopback.trades.models import PackageSkuItem
-#    if instance.purchase_order_status == PurchaseOrder.BOOKED:
-#        psi = PackageSkuItem.objects.filter(oid=instance.oid).first()
-#        if psi and psi.purchase_order_unikey != instance.purchase_order_unikey:
-#            psi.purchase_order_unikey = instance.purchase_order_unikey
-#            psi.save(update_fields=['purchase_order_unikey', 'modified'])
-#    
-#post_save.connect(update_packageskuitem_booking_status, sender=PurchaseArrangement, dispatch_uid='post_save_update_packageskuitem_booking_status')
+
 

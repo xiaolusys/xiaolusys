@@ -1150,7 +1150,8 @@ class SaleOrderSyncLog(BaseModel):
     UNKNOWN = 0
     SO_PSI = 1 # SaleOrder -> PackageSkuItem
     PSI_PR = 2 # PackageSkuItem -> PurchaseRecord
-    TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'))
+    BOOKNUM = 3
+    TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'), (BOOKNUM, u'订货NUM'))
 
     OPEN = 1
     COMPLETED = 2

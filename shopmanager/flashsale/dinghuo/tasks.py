@@ -1422,16 +1422,16 @@ def task_packageskuitem_update_purchaserecord(psi):
     #print "debug: %s" % utils.get_cur_info()
 
     # The following code holds till all old-fashion orderdetails finish.
-    if psi.is_booking_needed():
-        ods = OrderDetail.objects.filter(chichu_id=psi.sku_id).order_by('-created')
-        for od in ods:
-            if od and od.orderlist and od.orderlist.status:
-                status = od.orderlist.status
-                if status != OrderList.SUBMITTING and status != OrderList.ZUOFEI:
-                    if od.created > psi.pay_time:
-                        return
-                    else:
-                        break
+    #if psi.is_booking_needed():
+    #    ods = OrderDetail.objects.filter(chichu_id=psi.sku_id).order_by('-created')
+    #    for od in ods:
+    #        if od and od.orderlist and od.orderlist.status:
+    #            status = od.orderlist.status
+    #            if status != OrderList.SUBMITTING and status != OrderList.ZUOFEI:
+    #                if od.created > psi.pay_time:
+    #                    return
+    #                else:
+    #                    break
 
     uni_key = utils.gen_purchase_record_unikey(psi)
     pr = PurchaseRecord.objects.filter(uni_key=uni_key).first()
@@ -1532,10 +1532,16 @@ def task_purchase_detail_update_purchase_order(pd):
 
 @task()
 def task_purchasedetail_update_orderdetail(pd):
+    # we should re-calculate the num of records each time we sync pd and od.
+    res = PurchaseArrangement.objects.filter(purchase_order_unikey=pd.purchase_order_unikey,
+                                             sku_id=pd.sku_id, status=PurchaseRecord.EFFECT).aggregate(total=Sum('num'))
+    total = res['total'] or 0
+    total_price = total * pd.unit_price_display
+    
     od = OrderDetail.objects.filter(purchase_detail_unikey=pd.uni_key).first()
     if not od:
         product = utils.get_product(pd.sku_id)
-        od = OrderDetail(product_id=product.id,outer_id=pd.outer_id,product_name=pd.title,chichu_id=pd.sku_id,product_chicun=pd.sku_properties_name,buy_quantity=pd.book_num,buy_unitprice=pd.unit_price_display,total_price=pd.total_price_display,purchase_detail_unikey=pd.uni_key,purchase_order_unikey=pd.purchase_order_unikey)
+        od = OrderDetail(product_id=product.id,outer_id=pd.outer_id,product_name=pd.title,chichu_id=pd.sku_id,product_chicun=pd.sku_properties_name,buy_quantity=total,buy_unitprice=pd.unit_price_display,total_price=total_price,purchase_detail_unikey=pd.uni_key,purchase_order_unikey=pd.purchase_order_unikey)
         
         ol = OrderList.objects.filter(purchase_order_unikey=pd.purchase_order_unikey).first()
         if ol:
@@ -1543,10 +1549,10 @@ def task_purchasedetail_update_orderdetail(pd):
             
         od.save()
     else:
-        if od.total_price != pd.total_price_display or od.buy_quantity != pd.book_num:
-            od.buy_quantity = pd.book_num
+        if od.total_price != total_price or od.buy_quantity != total:
+            od.buy_quantity = total
             od.buy_unitprice = pd.unit_price_display
-            od.total_price = pd.total_price_display
+            od.total_price = total_price
             od.save(update_fields=['buy_quantity', 'buy_unitprice', 'total_price', 'updated'])
 
 @task()
@@ -1858,8 +1864,11 @@ def task_packageskuitem_check_purchaserecord():
             pr = PurchaseRecord.objects.filter(oid=psi.oid).first()
             if pr:
                 actual_num += 1
-            elif psi.is_booking_needed():
-                psi.save()
+                if psi.is_booking_needed() and pr.status == PurchaseRecord.EFFECT:
+                    continue
+                if (not psi.is_booking_needed()) and pr.status == PurchaseRecord.CANCELED:
+                    continue
+            psi.save(update_fields=['modified'])
 
         update_fields = []
         if log.target_num != target_num:
@@ -1878,3 +1887,70 @@ def task_packageskuitem_check_purchaserecord():
             logger.error("task_packageskuitem_check_purchaserecord|uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))
 
 
+def create_purchaseorder_booknum_check_log(time_from, type, uni_key):
+    res = PackageSkuItem.objects.filter(assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
+    target_num = res['total'] or 0
+
+    pos = PurchaseOrder.objects.filter(status=PurchaseOrder.OPEN)
+    actual_num = 0
+    for po in pos:
+        res = OrderDetail.objects.filter(purchase_order_unikey=po.uni_key).aggregate(total=Sum('buy_quantity'))
+        total = res['total'] or 0
+        actual_num += total
+        
+    time_to = time_from + datetime.timedelta(hours=1)
+    
+    log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,type=type,target_num=target_num,actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+    
+
+
+@task()
+def task_check_purchaseorder_booknum():
+    type = SaleOrderSyncLog.BOOKNUM
+    log = SaleOrderSyncLog.objects.filter(type=type,status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
+    if not log:
+        return
+
+    time_from = log.time_to
+    now = datetime.datetime.now()
+    
+    if time_from > now - datetime.timedelta(hours=2):
+        return
+
+    uni_key = "%s|%s" % (type, time_from)
+    log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
+    if not log:
+        create_purchaseorder_booknum_check_log(time_from, type, uni_key)
+    elif not log.is_completed():
+        res = PackageSkuItem.objects.filter(assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
+        target_num = res['total'] or 0
+
+        pos = PurchaseOrder.objects.filter(status=PurchaseOrder.OPEN)
+        actual_num = 0
+        for po in pos:
+            pds = PurchaseDetail.objects.filter(purchase_order_unikey=po.uni_key)
+            for pd in pds:
+                od = OrderDetail.objects.filter(purchase_detail_unikey=pd.uni_key).first()
+                if od:
+                    actual_num += od.buy_quantity
+                if (not od) or od.buy_quantity != pd.book_num:
+                    pd.save(update_fields=['modified'])
+
+        update_fields = []
+        if log.target_num != target_num:
+            log.target_num = target_num
+            update_fields.append('target_num')
+        if log.actual_num != actual_num:
+            log.actual_num = actual_num
+            update_fields.append('actual_num')
+        if target_num == actual_num:
+            log.status = SaleOrderSyncLog.COMPLETED
+            update_fields.append('status')
+        if update_fields:
+            log.save(update_fields=update_fields)
+        
+        if target_num != actual_num:
+            logger.error("task_check_purchaseorder_booknum|uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))
