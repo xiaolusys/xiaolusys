@@ -108,6 +108,10 @@ APIS_ROUTES = {
 }
 
 DINGHUO_ROUTES = {
+    'flashsale.dinghuo.tasks.task_check_purchaseorder_booknum': {
+        'queue': 'dinghuo',
+        'routing_key':'dinghuo.task_check_purchaseorder_booknum',
+    },
     'flashsale.dinghuo.tasks.task_packageskuitem_check_purchaserecord': {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_packageskuitem_check_purchaserecord',
