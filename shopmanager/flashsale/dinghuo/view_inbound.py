@@ -15,11 +15,13 @@ from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
                                       OrderDetailInBoundDetail)
 from shopback.archives.models import DepositeDistrict
-from shopback.items.models import Product, ProductCategory, ProductSku, ProductStock, ProductLocation
+from shopback.items.models import Product,ProductSku, ProductCategory, ProductSku, ProductStock, ProductLocation
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from . import forms, functions, functions2view, models
 from django.shortcuts import get_object_or_404
 from django.shortcuts import HttpResponseRedirect
+
+from . import services
 
 
 class InBoundViewSet(viewsets.GenericViewSet):
@@ -40,18 +42,27 @@ class InBoundViewSet(viewsets.GenericViewSet):
     def create_inbound(self, request):
         form = forms.CreateInBoundForm(request.POST)
         if not form.is_valid():
-            return Response({'orderlists': []})
+            return Response({'orderlists': [], "error_message": form.errors.as_text()})
 
         inbound_skus = json.loads(form.cleaned_data['inbound_skus'])
         if not inbound_skus:
-            return Response({'orderlists': []})
+            return Response({'orderlists': [], "error_message": 'inbound skus data not valid;'})
         inbound_skus_dict = {int(k): v for k, v in inbound_skus.iteritems()}
         for sku in ProductSku.objects.filter(id__in=inbound_skus_dict.keys()):
             inbound_skus_dict[sku.id]['product_id'] = sku.product_id
         orderlist_id = form.cleaned_data.get('orderlist_id')
+
+        from collections import defaultdict
+        forecast_group = defaultdict(list)
+        for id, sku in inbound_skus.iteritems():
+            forecast_group[sku['forecastId']].append(sku['arrival_quantity'])
+        optimize_forecast_id = max(dict([(k, len(v)) for k,v in forecast_group.items()]),
+                                   key=lambda x:forecast_group.get(x))
+
+        forecast_inbound_data = services.get_forecastinbound_data(optimize_forecast_id)
         express_no = form.cleaned_data['express_no']
-        orderlist = OrderList.objects.filter(id__in=orderlist_id.split(',')).first()
-        supplier_id = orderlist.supplier.id
+        relate_orderids = forecast_inbound_data['relate_order_set']
+        supplier_id = forecast_inbound_data['supplier']
         now = datetime.datetime.now()
         username = self.get_username(request.user)
         tmp = ['-->%s %s: 创建入仓单' % (now.strftime('%m月%d %H:%M'), username)]
@@ -61,10 +72,11 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound = InBound(supplier_id=supplier_id,
                           creator_id=request.user.id,
                           express_no=express_no,
+                          forecast_inbound_id=optimize_forecast_id,
                           ori_orderlist_id=orderlist_id,
                           memo='\n'.join(tmp))
-        if orderlist_id:
-            inbound.orderlist_ids = [orderlist_id]
+        if relate_orderids:
+            inbound.orderlist_ids = relate_orderids
         inbound.save()
 
         inbounddetails_dict = {}
@@ -204,7 +216,37 @@ class InBoundViewSet(viewsets.GenericViewSet):
             orderlists.append(orderlist_dict)
         return orderlists
 
-    def list(self, request):
+    def get_forecast_inbounds(self, express_no, orderlist_id):
+        from flashsale.forecast.models import ForecastInbound
+        order_list = OrderList.objects.filter(Q(id=orderlist_id) | Q(express_no=express_no)) \
+            .exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
+                                 OrderList.CLOSED, OrderList.TO_PAY]).first()
+        supplier = None
+        forecast_inbounds = []
+        if order_list:
+            supplier = order_list.supplier
+        else:
+            forecast_inbound = ForecastInbound.objects.filter(
+                Q(id=orderlist_id) | Q(express_no=express_no),
+                status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT)).first()
+            if forecast_inbound:
+                supplier = forecast_inbound.supplier
+        if supplier:
+            forecast_qs = ForecastInbound.objects.filter(supplier=supplier,
+                status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT)).order_by('created')
+            for fi in forecast_qs:
+                if fi.express_no == express_no:
+                    forecast_inbounds.insert(0, fi)
+                    continue
+                order_values = fi.relate_order_set.values('id','express_no')
+                for order in order_values:
+                    if order['id'] == orderlist_id or order['express_no'] == express_no:
+                        forecast_inbounds.insert(0, fi)
+                        continue
+                forecast_inbounds.append(fi)
+        return forecast_inbounds
+
+    def list(self, request, *args, **kwargs):
         form = forms.InBoundForm(request.GET)
         if not form.is_valid():
             if not form.cleaned_data.get('express_no'):
@@ -212,162 +254,74 @@ class InBoundViewSet(viewsets.GenericViewSet):
             return Response({"error_message": form.errors.as_text()}, template_name='dinghuo/inbound_add.html')
         if not form.cleaned_data['orderlist_id'] or not form.cleaned_data['express_no']:
             return Response({"error_message": form.errors.as_text()}, template_name='dinghuo/inbound_add.html')
-        order_lists = OrderList.objects.filter(id__in=form.cleaned_data['orderlist_id'].split(','))
-        if order_lists.count() == 0:
+        forecast_inbounds = self.get_forecast_inbounds(form.cleaned_data['express_no'], form.cleaned_data['orderlist_id'])
+        if not forecast_inbounds:
             return Response({"error_message": form.errors.as_text()}, template_name='dinghuo/inbound_add.html')
-        if len(order_lists.values("supplier").distinct()) > 1:
-            raise exceptions.ValidationError("只有同一个供应商的订货单可写在一起")
-        supplier = order_lists.first().supplier
+        supplier = forecast_inbounds[0].supplier
         if not supplier:
-            return Response({"error_message": u"这个订货单居然没有指定供应商，请联系技术"}, template_name='dinghuo/inbound_add.html')
-        supplier_id = supplier.id
-        # TODO@hy 下面一段超傻代码有功夫再去优化吧 前后端重度耦合又故作复杂耗时较大不好改
-        orderlist_id_dict = {}
-        express_no_dict = {}
-        for orderlist in OrderList.objects.select_related('supplier').exclude(
-                status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
-                            OrderList.CLOSED, OrderList.TO_PAY]).exclude(supplier_id=None):
-            orderlist_id_dict[orderlist.id] = orderlist.supplier_id
-            if orderlist.express_no:
-                for express_no in self.EXPRESS_NO_SPLIT_PATTERN.split(
-                        orderlist.express_no.strip()):
-                    express_no_dict[express_no.strip()] = orderlist.supplier_id
+            return Response({"error_message": u"这个预测到货单居然没有指定供应商，请联系技术"}, template_name='dinghuo/inbound_add.html')
 
+        # TODO@hy 下面一段超傻代码有功夫再去优化吧 前后端重度耦合又故作复杂耗时较大不好改
         result = {
             'express_no': form.cleaned_data['express_no'],
             'orderlist_id': form.cleaned_data['orderlist_id'],
-            'orderlist_ids': [{'id': v,
-                               'text': k}
-                              for k, v in orderlist_id_dict.iteritems()],
-            'express_nos': [{'id': v,
-                             'text': k} for k, v in express_no_dict.iteritems()]
         }
-        supplier_orderlist_ids = []
-        for orderlist in OrderList.objects.filter(
-                supplier_id=supplier_id).exclude(
-            status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
-                        OrderList.CLOSED, OrderList.TO_PAY]):
-            orderlist_express_nos = self.EXPRESS_NO_SPLIT_PATTERN.split(
-                orderlist.express_no.strip())
-            if form.cleaned_data.get('orderlist_id') and form.cleaned_data[
-                'orderlist_id'] == orderlist.id:
-                supplier_orderlist_ids.insert(0, orderlist.id)
-            elif form.cleaned_data.get('express_no') and form.cleaned_data[
-                'express_no'] in orderlist_express_nos:
-                supplier_orderlist_ids.insert(0, orderlist.id)
-            else:
-                supplier_orderlist_ids.append(orderlist.id)
 
-        product_ids = set()
-        sku_ids = set()
-        product_weights_dict = {}
-        max_weight = len(supplier_orderlist_ids)
-        weights = {k: i for i, k in enumerate(supplier_orderlist_ids)}
+        forecast_list = []
+        for forecast in forecast_inbounds:
+            forecast_details = forecast.normal_details().values('product_id','sku_id','forecast_arrive_num')
+            forecast_details_dict = dict([(d['sku_id'], d) for d in forecast_details])
 
-        for orderdetail in OrderDetail.objects.filter(
-                orderlist_id__in=supplier_orderlist_ids):
-            if orderdetail.buy_quantity <= orderdetail.arrival_quantity:
-                continue
-            product_id = int(orderdetail.product_id)
-            product_weights_dict[product_id] = min(
-                product_weights_dict.setdefault(product_id, max_weight),
-                weights[orderdetail.orderlist_id])
-            product_ids.add(product_id)
-            sku_ids.add(int(orderdetail.chichu_id))
+            product_ids = set([f['product_id'] for f in forecast_details])
+            product_qs = Product.objects.filter(id__in=product_ids)
+            forecast_product_list = []
+            for product in product_qs:
+                sku_dict_list = []
+                for sku in product.normal_skus:
+                    sku_dict = {
+                        "id": sku.id,
+                        "properties_name": sku.name,
+                        "barcode": sku.BARCODE,
+                        "district": ','.join(['%s-%s'%(k, v) for k,v in  sku.get_district_list()])
+                    }
+                    fi_sku_dict = forecast_details_dict.get(sku.id, {})
+                    sku_dict.update({
+                        'is_required': fi_sku_dict and 1 or 0,
+                        'forecast_arrive_num': fi_sku_dict and fi_sku_dict['forecast_arrive_num'] or 0
+                    })
+                    sku_dict_list.append(sku_dict)
 
-        saleproduct_ids = set()
-        for product in Product.objects.filter(id__in=list(product_ids)):
-            saleproduct_ids.add(product.sale_product)
-        saleproducts_dict = {}
-        sibling_product_ids = []
-        for product in Product.objects.filter(
-                sale_product__in=list(saleproduct_ids),
-                status=Product.NORMAL):
-            saleproducts_dict.setdefault(product.sale_product,
-                                         []).append(product.id)
-            sibling_product_ids.append(product.id)
-        sibling_products_dict = {}
-        district_stats = ProductLocation.objects.select_related(
-            'district').filter(product_id__in=sibling_product_ids).values(
-            'product_id', 'district').annotate(num=Count('sku_id'))
-        for district_stat in district_stats:
-            product_id = district_stat['product_id']
-            sibling_products_dict.setdefault(
-                product_id, {'district': district_stat['district'],
-                             'num': 0})['num'] += district_stat['num']
-        saleproduct_districts_dict = {}
-        for saleproduct_id, sibling_product_ids in saleproducts_dict.iteritems(
-        ):
-            saleproduct_districts = filter(
-                None, [sibling_products_dict.get(product_id)
-                       for product_id in sibling_product_ids])
-            if not saleproduct_districts:
-                continue
-            saleproduct_districts_dict[saleproduct_id] = max(
-                saleproduct_districts,
-                key=lambda x: x['num'])['district']
+                forecast_product_list.append({
+                    "name": product.name,
+                    "weight": 1,
+                    "saleproduct_id": product.sale_product,
+                    "ware_by": product.ware_by,
+                    "district": '',
+                    "pic_path": product.pic_path,
+                    "outer_id": product.outer_id,
+                    "id": product.id,
+                    "skus": sku_dict_list
+                })
+            sale_product_ids  = set([p['saleproduct_id'] for p in forecast_product_list])
+            saleproduct_values = SaleProduct.objects.filter(id__in=sale_product_ids)\
+                .values('id','product_link')
+            saleproduct_values_dict = dict([(v['id'],v) for v in saleproduct_values])
+            for fp in forecast_product_list:
+                saleproduct_dict = saleproduct_values_dict.get(fp['saleproduct_id'], {})
+                fp.update({
+                    'product_link': saleproduct_dict and saleproduct_dict['product_link'] or ''
+                })
 
-        deposite_districts_dict = {}
-        for deposite_district in DepositeDistrict.objects.filter(
-                id__in=saleproduct_districts_dict.values()):
-            deposite_districts_dict[deposite_district.id] = str(
-                deposite_district)
-        for k in saleproduct_districts_dict.keys():
-            deposite_district_id = saleproduct_districts_dict[k]
-            saleproduct_districts_dict[k] = deposite_districts_dict[
-                deposite_district_id]
+            forecast_list.append({
+                'id': forecast.id,
+                'total_detail_num': forecast.total_detail_num,
+                'products': forecast_product_list
+            })
 
-        products_dict = {}
-        for sku in ProductSku.objects.select_related('product').filter(
-                product_id__in=list(product_ids),
-                status=ProductSku.NORMAL):
-            product_dict = {
-                'id': sku.product.id,
-                'saleproduct_id': sku.product.sale_product,
-                'name': sku.product.name,
-                'outer_id': sku.product.outer_id,
-                'district': sku.product.get_district_info(),
-                'pic_path': '%s' % sku.product.pic_path.strip(),
-                'ware_by': sku.product.ware_by,
-                'skus': {},
-                'weight': product_weights_dict[sku.product.id]
-            }
-            product_dict = products_dict.setdefault(sku.product.id,
-                                                    product_dict)
-            sku_dict = {
-                'id': sku.id,
-                'properties_name': sku.properties_name or
-                                   sku.properties_alias,
-                'barcode': sku.barcode,
-                'district':
-                    saleproduct_districts_dict.get(sku.product.sale_product) or
-                    ''
-            }
-            if sku.id in sku_ids:
-                sku_dict['is_required'] = 1
-            product_dict['skus'][sku.id] = sku_dict
-        saleproducts_dict = {}
-        saleproduct_ids = list(set([x['saleproduct_id'] for x in products_dict.values()]))
-        for saleproduct in SaleProduct.objects.filter(
-                id__in=saleproduct_ids):
-            saleproducts_dict[saleproduct.id] = {
-                'product_link': saleproduct.product_link,
-                'title': saleproduct.title
-            }
-
-        products = []
-        for product_dict in sorted(products_dict.values(),
-                                   key=itemgetter('id')):
-            skus_dict = product_dict['skus']
-            product_dict['skus'] = [skus_dict[k]
-                                    for k in sorted(skus_dict.keys())]
-            product_dict.update(saleproducts_dict.get(product_dict[
-                                                          'saleproduct_id']) or {})
-            products.append(product_dict)
         result.update({
             'supplier_id': supplier.id,
             'supplier_name': supplier.supplier_name,
-            'products': products
+            'forecasts': forecast_list
         })
         return Response(result, template_name='dinghuo/inbound_add.html')
 

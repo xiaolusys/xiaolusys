@@ -160,7 +160,7 @@ $(function(){
   $('a').click(function(){
      $(this).addClass('clicked');
   });
-  console.log('init account', $('a.btn-account'));
+
   $('a.btn-account').click(function(){
      var dataSrc = $(this).attr('data-src');
      $.get(dataSrc,

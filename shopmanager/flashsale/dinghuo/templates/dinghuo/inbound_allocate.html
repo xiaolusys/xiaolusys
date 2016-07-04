@@ -71,7 +71,6 @@
         width: 80px;
         }
         #panel-1, #panel-2 {
-        width: 80%;
         margin: 20px auto
         }
         #tips {
@@ -101,10 +100,10 @@
         }
     </style>
 </head>
-<body>
+<body class="container">
 <div id="tips"></div>
 {% include "dinghuo/inbound_add.htm" %}
-<div class="panel panel-default" id="panel-1">
+<div class="panel panel-default row" id="panel-1">
     {% include "dinghuo/inbound_info.htm" %}
     <div class="panel-heading">
         <div class="col-md-10">入库明细</div>

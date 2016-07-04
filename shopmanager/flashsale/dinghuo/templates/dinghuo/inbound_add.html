@@ -67,10 +67,6 @@
              margin: 0;
          }
 
-         #panel-1, #panel-2, #panel-3 {
-             width: 80%;
-             margin:20px auto;
-         }
          #tips {
              width: 100%;
              display: block;
@@ -122,29 +118,66 @@
          .product-all-skus .checkbox {
              display: inline-block;
          }
-
+         .panel-body{
+            border-bottom: 1px solid #ddd;
+         }
+         .tab-pane ul{
+            list-style: none;
+         }
+         .side-bar-left{
+            width:0;
+            height:0;
+            position:fixed;
+            left:80px;
+            top:50%;
+            bottom:50%;
+         }
+         .bar-inner{
+            width:160px;
+            height:400px;
+            margin-left:-80px;
+            margin-top:-200px
+         }
         </style>
     </head>
-    <body>
+    <body class="container">
         <div id="tips"></div>
         {% include "dinghuo/inbound_add.htm" %}
         {% if supplier_id %}
-        <div class="panel panel-default" id="panel-1">
-            <div class="panel-heading">
-                供应商：<label>{{ supplier_name }}({{ supplier_id }})</label>
-                <button class="btn btn-primary" data-toggle="collapse" data-target="#pics" aria-expanded="true" aria-controls="pics" id="pics-toggle">
-                    收起
-                </button>
-            </div>
-            <div class="collapse in" id="pics">
-                <div class="panel-body">
+         <div class="side-bar-left">
+             <div class="bar-inner">
+                 <ul class="nav nav-pills nav-stacked">
+                  {% for forecast in forecasts %}
+                  <li role="presentation" {% if forloop.first %}class="active"{% endif %} data-role="tab" data-id="#panel-body-{{forecast.id}}">
+                      <a href="#panel-body-{{forecast.id}}" >
+                          <label>#{{forecast.id}}&nbsp;预测单&nbsp;({{forecast.total_detail_num}})</label>
+                          <span class="pull-right" ><i class="glyphicon {% if forloop.first %}glyphicon-ok{% endif %}"></i></span>
+                      </a>
+
+                  </li>
+                  {% endfor %}
+                </ul>
+             </div>
+         </div>
+         <div class="clearfix"></div>
+         <div class="tab-content row" id="panel-1">
+            <div class="panel panel-default row" >
+                <div class="panel-heading">
+                    <label>{{ supplier_name }}({{ supplier_id }})</label>
+                    <button class="btn btn-primary" data-toggle="collapse" data-target="#pics" aria-expanded="true" aria-controls="pics" id="pics-toggle">
+    -                    收起
+    -               </button>
+                </div>
+                <div id="pics">
+                 {% for forecast in forecasts %}
+                <div class="panel-body tab-pane {% if not forloop.first %}hidden{% endif %}"  id="panel-body-{{forecast.id}}">
                     <ul>
-                        {% for product in products %}
+                        {% for product in forecast.products %}
                         <li class="col-md-3">
                             <div class="col-md-6">
                                 <div class="portfolio-box">
                                     <a href="{{product.product_link}}" target="_blank">
-                                        <img src="{{product.pic_path}}?imageView2/0/w/120" style="display:block" data-pic-path="{{product.pic_path}}" width="120px">
+                                        <img src="{{product.pic_path}}?imageMogr2/strip/format/jpg/quality/90/interlace/1/thumbnail/200/" style="display:block" data-pic-path="{{product.pic_path}}" width="120px">
                                     </a>
                                 </div>
                                 <p>{{product.name}}</p>
@@ -155,7 +188,8 @@
                                     {% if sku.is_required %}
                                     <div class="input-group">
                                         <span class="input-group-addon">{{sku.properties_name}}</span>
-                                        <input type="number" class="form-control" data-sku-id="{{sku.id}}" data-product-id="{{product.id}}" style="width:60px" min="0">
+                                        <input type="number" class="form-control" data-sku-id="{{sku.id}}" data-product-id="{{product.id}}"
+                                               data_forecast_id="{{forecast.id}}" style="width:60px" min="0">
                                     </div>
                                     {% endif %}
                                     {% endfor %}
@@ -173,6 +207,7 @@
                             </div>
                         </li>
                         {% endfor %}
+                        {% if forloop.first %}
                         <li class="col-md-3 problem">
                             <div class="col-md-6">
                                 <textarea rows="8" cols="16" placeholder="请填写错误描述..."></textarea>
@@ -184,13 +219,17 @@
                                 </div>
                             </div>
                         </li>
+                        {% endif %}
                     </ul>
+                </div>
+                {% endfor %}
                 </div>
                 <div class="panel-footer" style="text-align:center">
                     <button class="btn btn-success" id="create-draft">确定</button>
                 </div>
             </div>
         </div>
+
         {% endif %}
         <footer class="text-center clearfix font-xxs footer">
             <p>
@@ -207,7 +246,7 @@
         {%include "dinghuo/inbound_location_1.htm"%}
         {% verbatim %}
         <script id="inbound-tpl" type="text/html">
-            <div class="panel panel-default" id="panel-2">
+            <div class="panel panel-default row" id="panel-2">
                 <div class="panel-heading">
                     <label>入库SKU列表</label>
                 </div>
@@ -228,7 +267,7 @@
                             </tr>
                             {{each products as product i}}
                             {{each product.skus as sku j}}
-                            <tr class="sku" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}">
+                            <tr class="sku" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}" data-forecast-id="{{product.forecastinbound_id}}">
                                 {{if j == 0}}
                                 <td rowspan="{{product.skus.length}}" style="min-width:150px">{{product.name}}</td>
                                 <td rowspan="{{product.skus.length}}">
@@ -337,17 +376,22 @@
          ];
 
          var orderlists;
-         var orderlistIds = {{orderlist_ids|jsonify}};
-         var expressNos = {{express_nos|jsonify}};
-         var products = {{products|jsonify}};
+         var forecasts = {{forecasts|jsonify}};
+         var products = [];
          var productsDict = {};
          var skusDict = {};
          var inboundSkusDict = {};
          var inbound = {};
 
-
          function init(){
-             var i, j;
+             var i, j, productItem;
+             for(i = 0; i<forecasts.length; ++i){
+                for(j = 0; j<forecasts[i].products.length; ++j){
+                    productItem = forecasts[i].products[j];
+                    productItem.forecastinbound_id = forecasts[i].id;
+                    products[products.length] = productItem;
+                }
+             }
              for(i = 0; i < products.length; ++i){
                  var product = products[i];
                  productsDict[product.id] = product;
@@ -411,7 +455,7 @@
                      return;
                  var productId = parseInt($this.attr('data-product-id'));
                  var $tr = $(_.template('tr.sku[data-sku-id="<%= skuId %>"]')({skuId: skuId}), '#form-2');
-
+                 var forecastinboudnId = parseInt($this.attr('data_forecast_id'));
                  arrivalQuantity = parseInt($this.val()) || 0;
                  if(arrivalQuantity <= 0)
                      return;
@@ -428,7 +472,8 @@
                      productId: productId,
                      skuId: skuId,
                      arrivalQuantity: arrivalQuantity,
-                     inferiorQuantity: inferiorQuantity
+                     inferiorQuantity: inferiorQuantity,
+                     forecastinboudnId: forecastinboudnId,
                  }
              });
              return picSkusDict;
@@ -440,16 +485,17 @@
                  var $this = $(this);
                  var productId = parseInt($this.attr('data-product-id'));
                  var skuId = parseInt($this.attr('data-sku-id'));
+                 var forecastId = parseInt($this.attr('data-forecast-id'));
                  var arrivalQuantity = parseInt($this.find('.arrival-quantity').val()) || 0;
                  var inferiorQuantity = parseInt($this.find('.inferior-quantity').val()) || 0;
                  var name = $this.find('.name').val() || '';
-
                  if(!arrivalQuantity && !inferiorQuantity)
                      return;
                  inboundSkusDict[skuId] = {
                      productId: productId,
                      skuId: skuId,
                      name: name,
+                     forecastId: forecastId,
                      arrival_quantity: arrivalQuantity,
                      inferior_quantity: inferiorQuantity
                  }
@@ -466,7 +512,8 @@
              var problemSkuName = _.trim($('.problem textarea', '#pics').val());
              var problemSkuQuantity = parseInt($('.problem input[type="number"]', '#pics').val());
              if(problemSkuName && problemSkuQuantity)
-                 $('table tr.stats', '#form-2').before(template('problem-sku-tpl', {name: problemSkuName, quantity: problemSkuQuantity}));
+                 $('table tr.stats', '#form-2').before(template('problem-sku-tpl',
+                    {name: problemSkuName, quantity: problemSkuQuantity}));
 
              quantityChangeHandler('#form-2')();
              $('.portfolio-box img', '#form-2').popover({
@@ -562,6 +609,7 @@
                      pic_path: product.pic_path,
                      outer_id: product.outer_id,
                      ware_by: product.ware_by,
+                     forecastinbound_id: product.forecastinbound_id,
                      product_link: product.product_link,
                      skus: {}
                  }
@@ -575,7 +623,7 @@
                      inferior_quantity: inferiorQuantity,
                      barcode: sku.barcode,
                      properties_name: sku.properties_name,
-                     district: district
+                     district: district,
                  };
              }
              var newInboundProducts = [];
@@ -625,7 +673,6 @@
              return newOrderLists;
          }
 
-
          $(function(){
              $.noty.defaults = $.extend($.noty.defaults, {
                  animation: {
@@ -636,23 +683,8 @@
                  }
              });
              _.mixin(_.string.exports());
-
+             console.log('init')
              init();
-
-             $('#express-no').typeahead({
-                 hint: true,
-                 highlight: true,
-                 minLength: 1
-             }, {name: 'expressNos', source: matcher(expressNos)}).bind('typeahead:select', supplierIdHandler(expressNos));
-
-
-             $('#orderlist-id').typeahead({
-                 hint: true,
-                 highlight: true,
-                 minLength: 1
-             }, {name: 'orderlistIds', source: matcher(orderlistIds)}).bind('typeahead:select', supplierIdHandler(orderlistIds));
-
-             $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
 
              $('body').on('submit', '#form-2', function(){
                  $('#create-inbound').attr('disabled', true);
@@ -662,9 +694,12 @@
                      return false;
                  var express_no = $('#express-no-bak', "#inbound-add").val();
                  var orderlist_id = $('#orderlist-id-bak', "#inbound-add").val();
-
-                 var data = _.extend({inbound_skus: JSON.stringify(inboundSkusDict), memo: $('#memo').val(),
-                 'express_no':express_no, 'orderlist_id':orderlist_id});
+                 var data = _.extend({
+                     inbound_skus: JSON.stringify(inboundSkusDict),
+                     memo: $('#memo').val(),
+                     'forecast_inbound_id': '',
+                     'express_no':express_no,
+                     'orderlist_id':orderlist_id});
                  $.ajax({
                      url: '/sale/dinghuo/inbound/create_inbound',
                      type: 'post',
@@ -728,6 +763,22 @@
                      $productRequiredSkus.append(template('product-required-sku-tpl', productSku));
                  });
              });
+
+             $('li[data-role=tab]').click(function(){
+                $('li[data-role=tab]').removeClass('active');
+                var $curTab = $(this);
+                var panelId = $curTab.attr('data-id');
+                $curTab.addClass('active');
+                console.log('panel id:', panelId);
+                if ($curTab.find('span > i').hasClass('glyphicon-ok')){
+                    $curTab.find('span > i').removeClass('glyphicon-ok');
+                    $(panelId).addClass('hidden');
+                }else{
+                    $curTab.find('span > i').addClass('glyphicon-ok');
+                    $(panelId).removeClass('hidden');
+                }
+
+             })
          });
         </script>
     </body>
