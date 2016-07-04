@@ -195,3 +195,55 @@ def task_roll_back_usercoupon_by_refund(trade_tid):
     if cou:
         cou.release_usercoupon()
     return
+
+
+@task()
+def task_update_mobile_download_record(tempcoupon):
+    from flashsale.coupon.models import OrderShareCoupon
+    share = OrderShareCoupon.objects.filter(uniq_id=tempcoupon.share_coupon_id).first()
+    if not share:
+        return
+    from flashsale.promotion.models_freesample import DownloadMobileRecord
+    uni_key = '/'.join([str(share.share_customer), str(tempcoupon.mobile)])
+    dl_record = DownloadMobileRecord.objects.filter(uni_key=uni_key).first()
+    if dl_record:  # 记录存在不做处理
+        return
+    dl_record = DownloadMobileRecord(
+        from_customer=share.share_customer,
+        mobile=tempcoupon.mobile,
+        ufrom=DownloadMobileRecord.REDENVELOPE,
+        uni_key=uni_key)
+    dl_record.save()
+
+
+@task()
+def task_update_unionid_download_record(usercoupon):
+    from flashsale.promotion.models_freesample import DownloadUnionidRecord, DownloadMobileRecord
+    customer = usercoupon.customer
+    if not customer:
+        return 
+    if not customer.unionid.strip():  # 没有unionid  写mobilde 记录
+        uni_key = '/'.join([str(usercoupon.share_user_id), str(customer.mobile)])
+        dl_record = DownloadMobileRecord.objects.filter(uni_key=uni_key).first()
+        if dl_record:  # 记录存在不做处理
+            return
+        dl_record = DownloadMobileRecord(
+            from_customer=usercoupon.share_user_id,
+            mobile=customer.mobile,
+            ufrom=DownloadMobileRecord.REDENVELOPE,
+            uni_key=uni_key)
+        dl_record.save()
+    else:
+        uni_key = '/'.join([str(usercoupon.share_user_id), str(customer.unionid)])
+        dl_record = DownloadUnionidRecord.objects.filter(uni_key=uni_key).first()
+        if dl_record:  # 记录存在不做处理
+            return
+        dl_record = DownloadUnionidRecord(
+            from_customer=usercoupon.share_user_id,
+            ufrom=DownloadMobileRecord.REDENVELOPE,
+            unionid=customer.unionid,
+            uni_key=uni_key,
+            headimgurl=customer.thumbnail,
+            nick=customer.nick
+        )
+        dl_record.save()

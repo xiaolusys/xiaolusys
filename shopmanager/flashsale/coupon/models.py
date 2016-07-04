@@ -7,6 +7,7 @@
 import datetime
 
 from django.db import models
+from django.db.models.signals import post_save
 
 from flashsale.pay.options import uniqid
 from core.models import BaseModel
@@ -380,6 +381,13 @@ class UserCoupon(BaseModel):
     def __unicode__(self):
         return "<%s,%s>" % (self.id, self.customer_id)
 
+    @property
+    def customer(self):
+        if not hasattr(self, "_coupon_customer_"):
+            from flashsale.pay.models_user import Customer
+            self._coupon_customer_ = Customer.objects.filter(id=self.customer_id).first()
+        return self._coupon_customer_
+
     def self_template(self):
         tpl = CouponTemplate.objects.get(id=self.template_id)
         return tpl
@@ -486,6 +494,17 @@ class UserCoupon(BaseModel):
         return False
 
 
+def update_unionid_download_record(sender, instance, created, **kwargs):
+    if instance.coupon_type != UserCoupon.TYPE_ORDER_SHARE:  # 非的呢订单分享类型
+        return
+    from flashsale.coupon.tasks import task_update_unionid_download_record
+    task_update_unionid_download_record.delay(instance)
+
+
+post_save.connect(update_unionid_download_record, sender=UserCoupon,
+                  dispatch_uid='post_save_update_unionid_download_record')
+
+
 class TmpShareCoupon(BaseModel):
     mobile = models.CharField(max_length=11, db_index=True, verbose_name=u'手机号')
     share_coupon_id = models.CharField(db_index=True, max_length=32, verbose_name=u"分享uniq_id")
@@ -501,3 +520,12 @@ class TmpShareCoupon(BaseModel):
 
     def __unicode__(self):
         return "<%s,%s>" % (self.id, self.mobile)
+
+
+def update_mobile_download_record(sender, instance, created, **kwargs):
+    from flashsale.coupon.tasks import task_update_mobile_download_record
+    task_update_mobile_download_record.delay(instance)
+
+
+post_save.connect(update_mobile_download_record, sender=TmpShareCoupon,
+                  dispatch_uid='post_save_update_mobile_download_record')

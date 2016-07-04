@@ -42,7 +42,9 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('category', 'supplier_name', 'supplier_type', 'supplier_zone')
+    ordering_fields = ('total_refund_num', 'total_sale_num')
 
     @list_route(methods=['get'])
     def list_filters(self, request, *args, **kwargs):
@@ -52,6 +54,23 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
             'supplier_type': SaleSupplier.SUPPLIER_TYPE,
             'supplier_zone': SupplierZone.objects.values_list('id','name')
         })
+
+    def list(self, request, *args, **kwargs):
+        ordering = request.REQUEST.get('ordering')
+        queryset = self.filter_queryset(self.get_queryset())
+        if ordering == 'refund_rate':
+            queryset = queryset.extra(select={'refund_rate': 'total_refund_num/total_sale_num'}).order_by(
+                'refund_rate')
+        if ordering == '-refund_rate':
+            queryset = queryset.extra(select={'refund_rate': 'total_refund_num/total_sale_num'}).order_by(
+                '-refund_rate')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class SaleProductViewSet(viewsets.ModelViewSet):

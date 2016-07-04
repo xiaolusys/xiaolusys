@@ -119,7 +119,10 @@
 <div class="panel panel-default" id="panel-1">
     {% include "dinghuo/inbound_info.htm" %}
     <div class="panel-heading">
-        <div class="col-md-10">商品质检</div>
+        <div class="row">
+            <div class="col-md-10">商品质检</div>
+            <div class="col-md-2 text-right"></div>
+        </div>
     </div>
     <div class="panel-body">
         <table class="table table-striped" style="width:100%" id="inbound_table">
@@ -236,8 +239,8 @@
         <!--<div class="col-md-6">关联订货</div>-->
         <div class="text-right">
             {%if inbound.status > 2 %}
-            <button id="orderlists-relate">关联订货</button>
-            <button id="orderlists-toggle" class="matching">展示订货单详情</button>
+            <!--<button id="orderlists-toggle" class="matching" style="display:none;">展示订货单详情</button>-->
+            <input  type="text" id="sku_filter" placeholder="SKU过滤">
             {%endif%}
             {%if inbound.status == 2 %}
             <button id="change_to_allocate">重新分配</button>
@@ -288,7 +291,8 @@
             <th width="50px" class="text-center">正品</th>
             <th width="50px" class="text-center">次品</th>
             <th width="70px" class="text-center">此次总入库</th>
-            <th width="50px" class="text-center">分到的正品</th>
+            <th width="70px" class="text-center">入库品分配状态</th>
+            <th width="70px" class="text-center">分到的正品</th>
             <th width="50px" class="text-center">分到的次品</th>
         </tr>
         {{each orderlists as orderlist}}
@@ -337,14 +341,29 @@
             </td>
             <td>{{sku.buy_quantity}}</td>
             <td>{{sku.plan_quantity}}</td>
-            <td>
-                {{sku.arrival_quantity}}
-            </td>
-            <td>
-                {{sku.inferior_quantity}}
-            </td>
+            <td>{{sku.arrival_quantity}}</td>
+            <td>{{sku.inferior_quantity}}</td>
             <td>{{sku.inbound_total}}</td>
-            <td>{{sku.inbound_arrival_quantity}}
+            <td>{{sku.inbound_status_info}}</td>
+            <td>
+                {{ if sku.in_inbound }}
+                <div class="col-md-1">
+                    <a onclick="plusAllocateQuantity({{sku.orderdetail_id}}, 1)">
+                        <span class="glyphicon glyphicon-plus"></span>
+                    </a>
+                </div>
+                <div class="col-md-1">
+                    {{sku.inbound_arrival_quantity}}
+                </div>
+                <div class="col-md-1">
+                    <a onclick="plusAllocateQuantity({{sku.orderdetail_id}}, -1)">
+                        <span class="glyphicon glyphicon-minus"></span>
+                    </a>
+                </div>
+                {{ /if }}
+                {{ if !sku.in_inbound }}
+                    {{sku.inbound_arrival_quantity}}
+                {{ /if }}
             </td>
             <td>{{sku.inbound_inferior_quantity}}</td>
         </tr>
@@ -360,7 +379,49 @@
          //var SUGGEST_DISTRICT_TPL = _.template('<p><small>建议库位:</small><span class="bg-success"><%= district %></span></p>')
          var INBOUND_ID = {{inbound.id}};
          var inbound_data = {{inbound.sku_data|jsonify}};
+         var inbound_skus= {{inbound.sku_data.keys|jsonify}};
          var allocate_orderlist = null;
+         function plusQuantity(inbound_detail_id, num) {
+            swal({
+                 title: '警告',
+                 text: '确定要修改SKU入库数吗？',
+                 type: 'warning',
+                 showCancelButton: true,
+                 confirmButtonText: '确认',
+                 cancelButtonText: '取消'
+             }, function(){
+                 var data = {"inbound_detail_id": inbound_detail_id, "num": num};
+                 $.ajax({
+                     url: '/sale/dinghuo/inbound/' + INBOUND_ID + '/add_total_quantity',
+                     type: 'post',
+                     dataType: 'json',
+                     data: data,
+                     success: function(result){
+                         window.location = '/sale/dinghuo/inbound/'+INBOUND_ID;
+                     },
+                     error: function(result){
+                        console.dir(result);
+                     }
+                    });
+                 });
+         }
+         function plusAllocateQuantity(oi_id, num) {
+                 var data = {"orderdetail_id": oi_id, "num": num};
+                 $.ajax({
+                     url: '/sale/dinghuo/inbound/' + INBOUND_ID + '/add_allocate_quantity',
+                     type: 'post',
+                     dataType: 'json',
+                     data: data,
+                     success: function(result){
+                        alert("分配更改成功");
+                        $("#status_"+ result.data.sku).html(result.data.status_info);
+                        show_inbound_order_detail();
+                     },
+                     error: function(result){
+                        swal('错误', result.responseText, 'error');
+                     }
+                    });
+         }
 
          function tip(text, type){
              $('#tips').noty({
@@ -382,8 +443,19 @@
                  }
              });
          };
+         function list_filter(string_list, s){
+            var res = [];
+            var tmp = '';
+            for (var i in string_list){
+                tmp = String(string_list[i]);
+                if (tmp.substr(0,s.length)==s){
+                    res.push(parseInt(tmp));
+                }
+            }
+            return res;
+         }
          //隐藏细项
-        function orderlists_filter_inbound_sku(orderlists){
+        function orderlists_filter_inbound_sku(orderlists, skus_filter){
              var i;
              var newOrderLists = [];
              _.each(orderlists, function(orderlist){
@@ -392,7 +464,7 @@
                  _.each(orderlist.products, function(product){
                      var newProduct = _.extend(_.clone(product), {skus: []});
                      _.each(product.skus, function(sku){
-                         if(inbound_data[sku.id]){
+                         if(skus_filter && $.inArray(sku.id,skus_filter)>=0){
                              newProduct.skus.push(sku);
                              i += 1;
                          }
@@ -423,17 +495,25 @@
          });
 
          function show_inbound_order_detail(){
+                    /*$('#orderlists-toggle').show();
+                    allocate_orderlist = result.order_lists;
+                    //$('#orderlists').html(template('orderlists-tpl', {orderlists: allocate_orderlist}));
+                    var r = orderlists_filter_inbound_sku(allocate_orderlist);
+                    $('#orderlists').html(template('orderlists-tpl', {orderlists: orderlists_filter_inbound_sku(allocate_orderlist)}));
+                    imgPopover();*/
              $.ajax({
                  url: '/sale/dinghuo/inbound/'+ INBOUND_ID +'/get_allocate_inbound_order_details',
                  type: 'get',
                  dataType: 'json',
                  success: function(result){
-                     $('#orderlists-toggle').show();
                      allocate_orderlist = result.order_lists;
-                    //$('#orderlists').html(template('orderlists-tpl', {orderlists: allocate_orderlist}));
-                    var r = orderlists_filter_inbound_sku(allocate_orderlist);
-                    $('#orderlists').html(template('orderlists-tpl', {orderlists: orderlists_filter_inbound_sku(allocate_orderlist)}));
+                     $('#orderlists').html(template('orderlists-tpl', {orderlists: orderlists_filter_inbound_sku(allocate_orderlist, inbound_skus)}));
                     imgPopover();
+                    $("#sku_filter").bind('input propertychange', function() {
+                        var filter_skus = list_filter(inbound_skus,$("#sku_filter").val());
+                        var data = orderlists_filter_inbound_sku(allocate_orderlist, filter_skus);
+                        $('#orderlists').html(template('orderlists-tpl', {orderlists: data}));
+                    });
                  }
              });
          }
@@ -478,9 +558,7 @@
                      });
                  });
             });
-            $('body').on('click', '#orderlists-relate', function(){
-                show_inbound_order_detail();
-            });
+            show_inbound_order_detail();
             $('.district', '#inbound_table').click(function(evt){
                 var dom=evt.target;
                 product_id = $(dom).data("product-id");

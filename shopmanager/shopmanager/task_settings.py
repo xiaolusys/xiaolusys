@@ -457,6 +457,14 @@ FLASHSALE_COUPON_ROUTES = {
         'queue': 'coupon',
         'routing_key': 'coupon.task_roll_back_usercoupon_by_refund',
     },
+    'flashsale.coupon.tasks.task_update_mobile_download_record': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_update_mobile_download_record',
+    },
+    'flashsale.coupon.tasks.task_update_unionid_download_record': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_update_unionid_download_record',
+    },
 }
 
 STATISTICS_ROUTES = {
