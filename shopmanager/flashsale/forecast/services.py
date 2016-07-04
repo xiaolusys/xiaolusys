@@ -19,7 +19,7 @@ class AggregateDataException(BaseException):
     pass
 
 
-def get_purchaseorder_date(order_id):
+def get_purchaseorder_data(order_id):
 
     from flashsale.dinghuo.models import OrderList
     cache_key = '%s_orderlist_id_for_forecast_inbound'% order_id
@@ -70,7 +70,7 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     order_ids = order_list.values_list('id', flat=True)
     order_dict_list = []
     for order_id in order_ids:
-        order_dict = get_purchaseorder_date(order_id)
+        order_dict = get_purchaseorder_data(order_id)
         order_dict_list.append(order_dict)
 
     return order_dict_list
@@ -225,7 +225,7 @@ class AggregateForcecastOrderAndInbound(object):
         if real_inbounds.exists():
             aggregate_id_set.add(order_id)
         else:
-            order_data = get_purchaseorder_date(order_id)
+            order_data = get_purchaseorder_data(order_id)
             supplier_id = order_data['supplier']['id']
             if supplier_id in self.supplier_unarrival_dict:
                 self.supplier_unarrival_dict[supplier_id].add(order_id)
@@ -265,7 +265,7 @@ class AggregateForcecastOrderAndInbound(object):
                 if order_id in self.aggregate_orders_dict:
                     order_dict = self.aggregate_orders_dict[order_id]
                 else:
-                    order_dict = get_purchaseorder_date(order_id)
+                    order_dict = get_purchaseorder_data(order_id)
                 order_dict['relate_forecasts'] = forecast_inbounds.values_list('id', flat=True)
                 aggregate_orders.append(order_dict)
 

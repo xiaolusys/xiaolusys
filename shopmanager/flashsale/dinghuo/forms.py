@@ -54,7 +54,6 @@ class CreateInBoundForm(BaseForm):
     orderlist_id = forms.CharField(required=False, initial='')
     supplier_id = forms.IntegerField(required=False)
     inbound_id = forms.IntegerField(required=False, initial=0)
-    forecast_inbound_id = forms.IntegerField(required=False, initial=0)
     memo = forms.CharField(required=False, initial='')
 
 
@@ -63,7 +62,6 @@ class SaveInBoundForm(BaseForm):
     inbound_id = forms.IntegerField()
     express_no = forms.CharField(required=False, initial='')
     orderlist_id = forms.CharField(required=False, initial=0)
-    forecast_inbound_id = forms.IntegerField(required=False, initial=0)
 
 
 class SaveMemoForm(BaseForm):
