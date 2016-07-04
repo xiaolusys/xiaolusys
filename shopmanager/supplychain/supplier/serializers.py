@@ -1,3 +1,4 @@
+# coding=utf-8
 from .models import (
     SaleSupplier,
     SaleCategory,
@@ -40,11 +41,16 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
     # category = SaleCategorySerializer()
     status = SupplierStatusField()
     progress = ProgressField()
+    refund_rate = serializers.SerializerMethodField("calculate_refund_rate", read_only=True)
 
     class Meta:
         model = SaleSupplier
-        fields = ('id', 'supplier_name', 'supplier_code', 'brand_url',
+        fields = ('id', 'supplier_name', 'supplier_code', 'brand_url', 'total_sale_num', 'refund_rate',
                   'progress', 'category', 'status', 'created', 'modified', 'memo')
+
+    def calculate_refund_rate(self, obj):
+        """ 计算供应商的退货率 """
+        return "%0.2f" % (obj.total_refund_num / obj.total_sale_num) if obj.total_sale_num > 0 else "0.0"
 
 
 class PlatformField(serializers.Field):
