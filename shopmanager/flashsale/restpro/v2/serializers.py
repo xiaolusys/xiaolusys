@@ -51,7 +51,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         xlmm_next_level = xlmm.next_agencylevel_info()
         could_cash_out = 1
         tmp_des = []
-        if obj.cash_num_display < 100.0:
+        if obj.cash_num_display() < 100.0:
             tmp_des.append(u'余额不足')
             could_cash_out = 0
         if obj.active_value_num < 100:

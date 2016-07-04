@@ -47,12 +47,19 @@ class ForecastInbound(BaseModel):
     express_no = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'预填运单号')
     forecast_arrive_time = models.DateTimeField(blank=True, null=True, verbose_name=u'预测到货时间')
 
+    total_forecast_num = models.IntegerField(default=0, verbose_name=u'总预测数')
+    total_arrival_num = models.IntegerField(default=0, verbose_name=u'总到货数')
+
     purchaser = models.CharField(max_length=30, blank=True, db_index=True, verbose_name=u'采购员')
 
     status = models.CharField(max_length=8, db_index=True, default=ST_DRAFT,
                               choices=STATUS_CHOICES, verbose_name=u'状态')
     memo = models.TextField(max_length=1000, blank=True, verbose_name=u'备注')
 
+    delivery_time = models.DateTimeField(blank=True, null=True, db_index=True,verbose_name=u'发货时间')
+    arrival_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'到货时间')
+
+    is_unrecord_logistic = models.BooleanField(default=False, verbose_name=u'未及时催货')
     has_lack = models.BooleanField(default=False,db_index=True,verbose_name=u'缺货')
     has_defact  = models.BooleanField(default=False,db_index=True,verbose_name=u'次品')
     has_overhead = models.BooleanField(default=False,db_index=True,verbose_name=u'多到')
@@ -73,7 +80,7 @@ class ForecastInbound(BaseModel):
 
     @property
     def total_detail_num(self):
-        forecast_nums = self.normal_details().values_list('forecast_arrive_num', flat=True)
+        forecast_nums = self.normal_details.values_list('forecast_arrive_num', flat=True)
         return forecast_nums and sum(forecast_nums) or 0
 
     @property
@@ -87,6 +94,7 @@ class ForecastInbound(BaseModel):
     def get_ware_house_name(self):
         return dict(constants.WARE_CHOICES).get(self.ware_house)
 
+    @property
     def normal_details(self):
         return self.details_manager.filter(status=ForecastInboundDetail.NORMAL)
 
@@ -112,12 +120,24 @@ class ForecastInbound(BaseModel):
         return False
 
     def inbound_arrive_update_status(self):
+        self.arrival_time = self.arrival_time or datetime.datetime.now()
         self.status = self.ST_ARRIVED
         self.save()
 
     def unarrive_close(self):
         self.status = self.ST_CANCELED
         self.save()
+
+
+def modify_forecastinbound_data(sender, instance, created, **kwargs):
+    if instance.express_no and not instance.delivery_time:
+        instance.delivery_time = datetime.datetime.now()
+        instance.save(update_fields=['delivery_time'])
+
+post_save.connect(
+    modify_forecastinbound_data,
+    sender=ForecastInbound,
+    dispatch_uid='post_save_modify_forecastinbound_data')
 
 
 class ForecastInboundDetail(BaseModel):
@@ -169,6 +189,19 @@ class ForecastInboundDetail(BaseModel):
     @property
     def product_pic(self):
         return self.product.pic_path + '?imageMogr2/strip/format/jpg/quality/90/interlace/1/thumbnail/80/'
+
+
+def update_forecastinbound_data(sender, instance, created, **kwargs):
+    forecast_inbound = instance.forecast_inbound
+
+    forecast_num = sum(forecast_inbound.normal_details.values_list('forecast_arrive_num',flat=True))
+    forecast_inbound.total_forecast_num = forecast_num
+    forecast_inbound.save(update_fields=['total_forecast_num'])
+
+post_save.connect(
+    update_forecastinbound_data,
+    sender=ForecastInboundDetail,
+    dispatch_uid='post_save_update_forecastinbound_data')
 
 
 def default_inbound_ware_no():
@@ -259,6 +292,9 @@ class RealInBound(BaseModel):
     relate_order_set = models.ManyToManyField('dinghuo.OrderList', related_name='real_inbounds',
                                          verbose_name=u'关联订货单')
 
+    total_inbound_num = models.IntegerField(default=0, verbose_name=u'总入仓数')
+    total_inferior_num = models.IntegerField(default=0, verbose_name=u'总次品数')
+
     supplier = models.ForeignKey(SaleSupplier, verbose_name=u'供应商')
     ware_house = models.IntegerField(default=constants.WARE_NONE,choices=constants.WARE_CHOICES
                                       ,db_index=True,verbose_name=u'所属仓库')
@@ -293,20 +329,14 @@ class RealInBound(BaseModel):
     def status_name(self):
         return self.get_status_display()
 
+    @property
     def normal_details(self):
         return self.inbound_detail_manager.filter(status=RealInBoundDetail.NORMAL)
 
     @property
     def total_detail_num(self):
-        arrive_nums = self.normal_details().values_list('arrival_quantity', flat=True)
-        return arrive_nums and sum(arrive_nums) or 0
+        return self.total_inbound_num
 
-    @property
-    def total_inferior_num(self):
-        inferior_quantitys = RealInBoundDetail.objects.filter(inbound=self,
-                                                             status=RealInBoundDetail.NORMAL) \
-            .values_list('inferior_quantity', flat=True)
-        return inferior_quantitys and sum(inferior_quantitys) or 0
 
 class RealInBoundDetail(BaseModel):
 
@@ -345,3 +375,62 @@ class RealInBoundDetail(BaseModel):
 
     def __unicode__(self):
         return '<%s, %s, %s>' % (self.id, self.product_name, self.arrival_quantity)
+
+
+def update_realinbound_data(sender, instance, created, **kwargs):
+    real_inbound = instance.inbound
+
+    real_inbound.total_forecast_num = \
+        sum(real_inbound.normal_details.values_list('arrival_quantity',flat=True))
+    real_inbound.total_inferior_num = \
+        sum(real_inbound.normal_details.values_list('inferior_quantity', flat=True))
+    real_inbound.save(update_fields=['total_forecast_num', 'total_inferior_num'])
+
+    forecast_inbound = real_inbound.forecast_inbound
+    real_inbounds = RealInBound.objects.filter(forecast_inbound=forecast_inbound)
+    forecast_inbound_details = RealInBoundDetail.objects.filter(
+        inbound__in=real_inbounds, status=RealInBoundDetail.NORMAL
+    )
+    forecast_inbound.total_arrival_num = \
+        sum(forecast_inbound_details.values_list('arrival_quantity', flat=True))
+    forecast_inbound.save(update_fields=['total_arrival_num'])
+
+
+post_save.connect(
+    update_realinbound_data,
+    sender=RealInBoundDetail,
+    dispatch_uid='post_save_update_realinbound_data')
+
+
+# class ForecastStat(BaseModel):
+#
+#     NORMAL   = 'normal'
+#     INVALID  = 'invalid'
+#     STATUS_CHOICES = (
+#         (NORMAL, u'有效'),
+#         (INVALID, u'作废'),
+#     )
+#
+#     forecast_inbound = models.OneToOneField('supplier.SaleSupplier', verbose_name=u'预测单')
+#
+#     delivery_period = models.IntegerField(default=0, verbose_name=u'到货周期')
+#     delivery_period = models.IntegerField(default=0, verbose_name=u'到货周期')
+#     delivery_period = models.IntegerField(default=0, verbose_name=u'到货周期')
+#     delivery_period = models.IntegerField(default=0, verbose_name=u'到货周期')
+#     billing_delay = models.IntegerField(default=0, verbose_name=u'结算延迟')
+#
+#     district = models.CharField(max_length=64, blank=True, verbose_name=u'库位')
+#     status   = models.CharField(max_length=8, choices=STATUS_CHOICES, default=NORMAL, verbose_name=u'状态')
+#
+#     def __unicode__(self):
+#         return str(self.id)
+#
+#     class Meta:
+#         db_table = 'forecast_real_inbounddetail'
+#         unique_together = ['sku_id', 'inbound']
+#         app_label = 'forecast'
+#         verbose_name = u'V2入仓单明细'
+#         verbose_name_plural = u'V2入仓单明细列表'
+#
+#     def __unicode__(self):
+#         return '<%s, %s, %s>' % (self.id, self.product_name, self.arrival_quantity)

@@ -12,9 +12,7 @@ from common.modelutils import update_model_change_fields
 from . import constants
 import logging
 
-__author__ = 'linjie'
-
-logger = logging.getLogger('celery.handler')
+logger = logging.getLogger(__name__)
 
 CLICK_ACTIVE_START_TIME = datetime.datetime(2015, 6, 15, 10)
 CLICK_MAX_LIMIT_DATE = datetime.date(2015, 6, 5)
@@ -32,6 +30,11 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     """
     xlmmid = int(xlmmid)
 
+    xlmm = XiaoluMama.objects.filter(id=xlmmid).first()
+    if not xlmm:
+        return
+    if not xlmm.is_cashoutable():
+        return
     today = datetime.datetime.now()
     tf = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
     tt = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
@@ -40,9 +43,8 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     clicks = Clicks.objects.filter(openid=openid, click_time__range=(tf, tt))
     click_linkids = set([l.get('linkid') for l in clicks.values('linkid').distinct()])
     click_count = len(click_linkids)
-    xlmms = XiaoluMama.objects.filter(id=xlmmid)
 
-    if click_count < Clicks.CLICK_DAY_LIMIT and xlmms.count() > 0 and xlmmid not in click_linkids:
+    if click_count < Clicks.CLICK_DAY_LIMIT and xlmmid not in click_linkids:
         isvalid = True
 
     click = Clicks.objects.create(

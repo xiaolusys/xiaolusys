@@ -220,7 +220,6 @@ class AggregateForcecastOrderAndInbound(object):
         order_ids = real_inbounds.values_list('relate_order_set', flat=True)
         for ri_order_id in order_ids:
             self.recursive_aggragate_order(ri_order_id, aggregate_id_set)
-
         # aggregate all inbound unarrival together
         if real_inbounds.exists():
             aggregate_id_set.add(order_id)
@@ -255,9 +254,13 @@ class AggregateForcecastOrderAndInbound(object):
         if hasattr(self, '_aggregate_data_'):
             return self._aggregate_data_
 
+        import time
+        start_time = time.time()
         aggregate_dict_list = []
         aggregate_set_list = self.aggregate_order_set()
 
+        print 'time1:', time.time() - start_time
+        start_time = time.time()
         for aggregate_id_set in aggregate_set_list:
             aggregate_orders = []
             for order_id in aggregate_id_set:
@@ -270,7 +273,6 @@ class AggregateForcecastOrderAndInbound(object):
                 aggregate_orders.append(order_dict)
 
             aggregate_forecasts = []
-
             is_unarrive_intime = False
             is_unrecord_logistic = False
             is_billingable = True
@@ -278,7 +280,6 @@ class AggregateForcecastOrderAndInbound(object):
 
             real_inbound_qs = get_normal_realinbound_by_orderid(aggregate_id_set)
             inbounds_data = serializers.SimpleRealInBoundSerializer(real_inbound_qs, many=True).data
-
             aggregate_inbounds_dict = dict([(ib['id'], ib) for ib in inbounds_data])
 
             forecast_inbound_qs = get_normal_forecast_inbound_by_orderid(aggregate_id_set)
@@ -288,11 +289,11 @@ class AggregateForcecastOrderAndInbound(object):
                 real_inbound_qs = get_normal_realinbound_by_forecastid([forecast.id])
                 inbounds_data = serializers.SimpleRealInBoundSerializer(real_inbound_qs, many=True).data
 
-                forecast_data['relate_inbounds'] = real_inbound_qs.values_list('id', flat=True)
+                forecast_data['relate_inbounds']  = real_inbound_qs.values_list('id', flat=True)
                 is_unarrived = len(inbounds_data) == 0 and \
                                (not forecast.forecast_arrive_time
                                 or forecast.forecast_arrive_time <= datetime.datetime.now())
-                forecast_data['is_unarrive_intime'] = is_unarrived
+                forecast_data['is_unarrive_intime']   = is_unarrived
                 forecast_data['is_unrecord_logistic'] = forecast.is_unrecord_logistic()
                 is_unarrive_intime |= is_unarrived
                 is_unrecord_logistic |= forecast_data['is_unrecord_logistic']
@@ -314,6 +315,8 @@ class AggregateForcecastOrderAndInbound(object):
                 'is_arrivalexcept': is_arrivalexcept,
                 'supplier': aggregate_orders[0]['supplier']
             })
+
+        print 'time2:', time.time() - start_time
         self._aggregate_data_ = aggregate_dict_list
         return self._aggregate_data_
 

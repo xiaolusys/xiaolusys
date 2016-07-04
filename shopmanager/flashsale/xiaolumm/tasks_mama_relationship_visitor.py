@@ -32,31 +32,34 @@ def task_update_referal_relationship(sale_order):
     customer_id = sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
 
-    mamas = XiaoluMama.objects.filter(openid=customer.unionid)
-    if mamas.count() <= 0:
+    mama = XiaoluMama.objects.filter(openid=customer.unionid).first()
+    if not mama:  # 当前订单用户不是代理　则不做处理
         return
 
     # mama status is taken care of by some other logic, so we ignore.
     # mamas.update(status=XiaoluMama.EFFECT, progress=XiaoluMama.PAY, charge_status=XiaoluMama.CHARGED)
-    to_mama_id = mamas[0].id
+    to_mama_id = mama.id  # 被推荐的妈妈id
 
     extra = sale_trade.extras_info
-    mm_linkid = 0
+    mm_linkid = 0   # 推荐人妈妈id
     if 'mm_linkid' in extra:
         mm_linkid = int(extra['mm_linkid'] or '0')
-
-    if mm_linkid <= 0:
+    referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
+    if not referal_mm:  # 没有推荐人　
+        return
+    if not referal_mm.is_cashoutable():  # 推荐人身份不合法
         return
 
     logger.warn("%s: mm_linkid=%s, to_mama_id=%s" % (get_cur_info(), mm_linkid, to_mama_id))
 
-    records = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id)
-    if records.count() <= 0:
-        record = ReferalRelationship(referal_from_mama_id=mm_linkid,
-                                     referal_to_mama_id=to_mama_id,
-                                     referal_to_mama_nick=customer.nick,
-                                     referal_to_mama_img=customer.thumbnail)
-        record.save()
+    record = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id).first()
+    if record:  # 记录存在则不处理
+        return
+    record = ReferalRelationship(referal_from_mama_id=mm_linkid,
+                                 referal_to_mama_id=to_mama_id,
+                                 referal_to_mama_nick=customer.nick,
+                                 referal_to_mama_img=customer.thumbnail)
+    record.save()
 
 
 @task()
