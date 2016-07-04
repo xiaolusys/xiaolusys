@@ -324,9 +324,9 @@ class OrderList(models.Model):
     def related_inferior_inbound_details(self):
         if not hasattr(self, '_related_inferior_inbound_details_'):
             from flashsale.dinghuo.models.inbound import InBoundDetail
-            self.related_inferior_inbound_details = InBoundDetail.objects.filter(
+            self._related_inferior_inbound_details_ = InBoundDetail.objects.filter(
                 inbound_id__in=self.get_inbound_ids(), inferior_quantity__gt=0)
-        return self.related_inferior_inbound_details
+        return self._related_inferior_inbound_details_
 
     def get_related_inbounds_out_stock_cnt(self):
         return sum([d.out_stock_num for d in self.related_out_stock_inbound_details])
