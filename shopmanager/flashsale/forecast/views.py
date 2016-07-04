@@ -318,7 +318,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                 product = Product.objects.get(id=pid)
                 product_num = 0
                 detail_skus = []
-                forecast_skus = forecast.normal_details().filter(product_id=pid)
+                forecast_skus = forecast.normal_details.filter(product_id=pid)
                 for forecast_sku in forecast_skus:
                     product_sku = ProductSku.objects.get( id=forecast_sku.sku_id)
                     product_num += forecast_sku.forecast_arrive_num

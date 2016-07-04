@@ -283,8 +283,7 @@ class OrderList(models.Model):
 
     @property
     def total_detail_num(self):
-        order_nums = self.normal_details.values_list('buy_quantity', flat=True)
-        return order_nums and sum(order_nums) or 0
+        return self.purchase_total_num
 
     @property
     def total_arrival_quantity(self):

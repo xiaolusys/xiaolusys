@@ -269,7 +269,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
         forecast_list = []
         for forecast in forecast_inbounds:
-            forecast_details = forecast.normal_details().values('product_id','sku_id','forecast_arrive_num')
+            forecast_details = forecast.normal_details.values('product_id','sku_id','forecast_arrive_num')
             forecast_details_dict = dict([(d['sku_id'], d) for d in forecast_details])
 
             product_ids = set([f['product_id'] for f in forecast_details])
