@@ -464,7 +464,7 @@ class Product(models.Model):
 
     def get_district_list(self):
         locations = ProductLocation.objects.filter(product_id=self.id)
-        return [(l.district.parent_no, l.district.district_no) for l in locations]
+        return list(set([(l.district.parent_no, l.district.district_no) for l in locations]))
 
     def get_district_info(self):
         if not hasattr(self, '_district_info_'):

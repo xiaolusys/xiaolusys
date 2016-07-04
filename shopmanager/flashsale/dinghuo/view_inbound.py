@@ -296,7 +296,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                     "weight": 1,
                     "saleproduct_id": product.sale_product,
                     "ware_by": product.ware_by,
-                    "district": '',
+                    "district": ','.join(['%s-%s'%(k, v) for k,v in  product.get_district_list()]),
                     "pic_path": product.pic_path,
                     "outer_id": product.outer_id,
                     "id": product.id,
