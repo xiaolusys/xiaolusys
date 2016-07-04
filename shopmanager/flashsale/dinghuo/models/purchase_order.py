@@ -337,6 +337,10 @@ class OrderList(models.Model):
         q = InBoundDetail.objects.filter(records__orderdetail_id__in=detail_ids).values('inbound_id').distinct()
         return [i['inbound_id'] for i in q]
 
+    def get_inbounds(self):
+        from flashsale.dinghuo.models.inbound import InBound
+        return InBound.objects.filter(id__in=self.get_inbound_ids())
+
     def press(self, desc):
         OrderGuarantee(purchase_order=self, desc=desc).save()
         self.press_num = self.guarantees.count()
