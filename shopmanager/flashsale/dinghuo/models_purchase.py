@@ -13,7 +13,7 @@ class PurchaseOrder(BaseModel):
     
     STATUS = ((OPEN, 'OPEN'),(BOOKED,'BOOKED'),(FINISHED,'FINISHED'),(CANCELED,'CANCELED'))
 
-    uni_key = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一ID')
+    uni_key = models.CharField(max_length=32, unique=True, verbose_name=u'订货单唯一ID')
 
     supplier_id = models.IntegerField(default=0, verbose_name=u'Supplier ID')
     supplier_name = models.CharField(max_length=128, verbose_name=u'Supplier名称')
@@ -94,16 +94,6 @@ def update_purchase_order(sender, instance, created, **kwargs):
 post_save.connect(update_purchase_order, sender=PurchaseDetail, dispatch_uid='post_save_update_purchase_order')
 
     
-def check_arrangement(sender, instance, created, **kwargs):
-    if not instance.has_extra():
-        return
-
-    from flashsale.dinghuo.tasks import task_check_arrangement
-    task_check_arrangement.delay(instance)
-    
-post_save.connect(check_arrangement, sender=PurchaseDetail, dispatch_uid='post_save_check_arrangement')
-
-
 def update_orderdetail(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_purchasedetail_update_orderdetail
     task_purchasedetail_update_orderdetail.delay(instance)
