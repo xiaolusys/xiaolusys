@@ -38,7 +38,7 @@ def task_update_referal_relationship(sale_order):
 
     # mama status is taken care of by some other logic, so we ignore.
     # mamas.update(status=XiaoluMama.EFFECT, progress=XiaoluMama.PAY, charge_status=XiaoluMama.CHARGED)
-    to_mama_id = mama[0].id  # 被推荐的妈妈id
+    to_mama_id = mama.id  # 被推荐的妈妈id
 
     extra = sale_trade.extras_info
     mm_linkid = 0   # 推荐人妈妈id
