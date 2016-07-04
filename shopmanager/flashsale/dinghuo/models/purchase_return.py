@@ -172,7 +172,7 @@ class ReturnGoods(models.Model):
             raise Exception(u'此入库单无错货多货无法生成退货单')
         supplier_id = inbound.supplier_id
         rg_details = []
-        for detail in inbound.details.filter(Q(out_stock=True) or Q(inferior_quantity__gt=0)):
+        for detail in inbound.details.filter(Q(out_stock=True) | Q(inferior_quantity__gt=0)):
             rg_detail = RGDetail(
                 skuid=detail.sku_id,
                 num=detail.out_stock_cnt,
@@ -206,13 +206,11 @@ class ReturnGoods(models.Model):
         :return:
         """
         from flashsale.dinghuo.models.inbound import InBound, InBoundDetail
-        inbounds = InBound.objects.filter(supplier_id=supplier_id).filter(Q(wrong=True)|Q(out_stock=True))
+        inbounds = InBound.objects.filter(supplier_id=supplier_id).exclude(status__in=[InBound.COMPLETE_RETURN, InBound.INVALID])
         inbound_ids = [i.id for i in inbounds]
-        ReturnGoods.objects.filter(supplier_id=supplier_id, status=ReturnGoods.CREATE_RG).update(
-            status=ReturnGoods.OBSOLETE_RG)
         rg_details = []
         for detail in InBoundDetail.objects.filter(inbound_id__in=inbound_ids).filter(
-                        Q(out_stock=True) or Q(inferior_quantity__gt=0)):
+                        Q(out_stock=True) | Q(inferior_quantity__gt=0)):# | Q(wrong=True)):
             rg_detail = RGDetail(
                 skuid=detail.sku_id,
                 num=detail.out_stock_cnt,
@@ -236,6 +234,7 @@ class ReturnGoods(models.Model):
             detail.return_goods = rg
             detail.return_goods_id = rg.id
             details.append(detail)
+        inbounds.update(status=InBound.COMPLETE_RETURN)
         RGDetail.objects.bulk_create(details)
         return rg
 
@@ -535,3 +534,6 @@ class UnReturnSku(BaseModel):
         app_label = 'dinghuo'
         verbose_name = u'不可退货商品明细表'
         verbose_name_plural = u'不可退货商品明细列表'
+
+
+
