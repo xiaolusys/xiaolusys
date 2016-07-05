@@ -104,7 +104,7 @@ $('#gen_return_goods').click(function(){
                          url: '/sale/dinghuo/purchase_return/gen_by_supplier',
                          type: 'post',
                          dataType: 'json',
-                         data: {'supplier_id': {{supplier_id}},
+                         data: {'supplier_id': {{supplier_id}} },
                          success: function(result){
                             swal('成功', '退货已生成', 'success');
                             window.location="/admin/dinghuo/returngoods/?supplier_id={{supplier_id}}";
