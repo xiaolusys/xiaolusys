@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.db.models import Sum
 from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, \
     UnReturnSku
 from django.http import HttpResponseRedirect
