@@ -101,9 +101,9 @@
                     <span class="label label-success">导出excel</span>
                 </a>
                 {% if original.status == original.CREATE_RG or original.status == original.VERIFY_RG %}
-                <a class="col-md-1" href="javascript:;" id="add-sku">
-                    <span class="label label-primary">添加Sku</span>
-                </a>
+                <button type="button" class="btn-mini btn-primary" data-toggle="modal" data-target="#change-sku-modal">
+                  添加Sku
+                </button>
                 {% endif %}
                 {% if original.type %}
                 <a class="col-md-1" href="javascript:;" id="regen-return">
@@ -334,72 +334,30 @@
         </div>
     </div>
 </div>
-<div class="modal" id="sku-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog">
+<div class="modal" id="change-sku-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title">添加Sku</h4>
+            <div class="panel-heading">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">添加SKU</h4>
             </div>
-            <div class="modal-body">
-                <form id="sku-search-form">
-                    <div class="row">
-                        <div class="col-md-10">
-                            <input class="form-control" name="outer_id" placeholder="商品编码..." style="margin-left:10px">
-                        </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-default">查询</button>
-                        </div>
-                    </div>
-                </form>
-                <div id="skus">
+            <div class="panel-body">
+                <div class="row">
+                    <label class="col-md-2" >SKUid：</label>
+                    <input class="col-md-3" type="text" id="sku_id" value=""/>
+                    <label class="col-md-2">数量</label>
+                    <input class="col-md-2" type="text" id="num" value="1"/>
+                    <input class="col-md-2s" type="checkbox" id="inferior">次品
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer panel-body">
                 <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="submit-sku">确定</button>
+                <button type="button" class="btn btn-primary" id="btn-add-sku-save">保存</button>
             </div>
         </div>
     </div>
 </div>
-{% verbatim %}
-<script id="skus-tpl" type="text/html">
-    <table class="table table-striped">
-        <tr>
-            <th>商品名</th>
-            <th>编码</th>
-            <th>图片</th>
-            <th>尺寸</th>
-            <th>数量</th>
-            <th>价格</th>
-        </tr>
-        <tr>
-            {{each product.skus as sku j}}
-            <tr class="sku" data-product-id="{{product.id}}" data-sku-id="{{sku.id}}">
-                {{if j == 0}}
-                <td rowspan="{{product.skus.length}}" style="min-width:150px">{{product.name}}</td>
-                <td rowspan="{{product.skus.length}}">{{product.outer_id}}</td>
-                <td rowspan="{{product.skus.length}}">
-                    <img src="{{product.pic_path}}?imageMogr2/thumbnail/120/crop/120x120/format/jpg" data-pic-path="{{product.pic_path}}" width="120px">
-                </td>
-                {{/if}}
-                <td>
-                    <a href="/admin/items/productskustats/?sku_id={{sku.id}}" target="_blank" title="库存列表">{{sku.properties_name}}</a>
-                </td>
-                <td>
-                    <input type="number" class="form-control num" min="0" style="min-width:60px">
-                </td>
-                <td>
-                    <input type="number" class="form-control price" min="0" step="0.1" style="min-width:60px">
-                </td>
-            </tr>
-            {{/each}}
-        </tr>
-    </table>
-</script>
-{% endverbatim %}
 <script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
 <script src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
 <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
@@ -412,7 +370,6 @@
 <script type="text/javascript">
     var id = {{original.id|default_if_none:"0"}};
     function post_data_to_server(act, dom, id) {
-        // todo@hy 复制林杰的代码 待修改
         if (dom.hasClass("loading")) {
             return
         }
@@ -535,7 +492,7 @@
                     alert("入仓成功");
                 }
             }
-            }
+        }
     }
     var edit_note = function(evt){
         var dom = $('#btn_edit_note');
@@ -599,13 +556,6 @@
         }
     }
 
-    function showDialog(manager){
-        this.dialog = new goog.ui.Dialog();
-        this.orderManager = manager;
-        this.trade_id = null;
-        this.clickPos = null;
-    }
-
     var modifyTransactor = function() {
         $('.modify-transactor').addClass('xiaolu-hide');
         $('.dropdown').removeClass('xiaolu-hide');
@@ -633,14 +583,14 @@
             "data": data,
             "type": "post",
             "success": callback
-            });
-            function callback(res) {
-                dom.removeClass("loading");
-                if (res == "True") {
-                    //刷新当前页面
-                    window.location.reload();
-                }
+        });
+        function callback(res) {
+            dom.removeClass("loading");
+            if (res == "True") {
+                //刷新当前页面
+                window.location.reload();
             }
+        }
     }
 
 
@@ -652,14 +602,6 @@
 
         var files = $('#files').uploader('getData');
         data.attachment = files.length > 0 ? files[0] : '';
-        return data;
-    }
-
-    function getSkuSearchFormData(){
-        var data = {};
-        _.each($('#sku-search-form').serializeArray(), function(el){
-            data[el.name] = $.trim(el.value);
-        });
         return data;
     }
 
@@ -725,7 +667,7 @@
         $('#regen-return').click(function(){
            swal({
              title: '警告',
-             text: '这个操作会作废掉这个供应商未审核的退货单生成新退货单，您需要手动作废已审核的退货单（不包括库存退货回款）',
+             text: '这个操作会将此供应商的多错货入仓单都生成退货单，注意处理',
              type: 'warning',
              showCancelButton: true,
              confirmButtonText: '确认',
@@ -743,60 +685,33 @@
                         console.dir(result.responseText);
                     }
                 });
-
            });
         });
 
-        $('#sku-search-form').submit(function(){
+        $('#btn-add-sku-save').click(function(){
+            var sku_id = $("#sku_id").val();
+            var num = $("#num").val();
+            var inferior = null;
+            console.dir($("#inferior"));
+            if ($("#inferior").attr("checked") == "checked"){
+                inferior = 1;
+            }else{
+                inferior = 0;
+            }
             $.ajax({
-                url: '/items/query/',
-                type: 'get',
+                url: '/sale/dinghuo/returngoods/add_sku/',
+                type: 'post',
                 dataType: 'json',
-                data: getSkuSearchFormData(),
+                data: {'sku_id':sku_id, 'num':num, 'inferior':inferior, 'rg_id': {{original.id}}},
                 success: function(result){
                     if(result.code){
                         alert(result.msg);
                     }
-                    else
-                        $('#skus').html(template('skus-tpl', result));
-                }
-            });
-            return false;
-        });
-
-        $('#submit-sku').click(function(){
-            var skus = {};
-            $('tr.sku', '#skus').each(function(){
-                var $this = $(this);
-                var skuId = parseInt($this.attr('data-sku-id'));
-                var productId = parseInt($this.attr('data-product-id'));
-                var n = $this.find('input.num').val();
-                var p = $this.find('input.price').val();
-                n = parseInt(n);
-                p = parseFloat(p) || 0;
-                if(n){
-                    skus[skuId] = {
-                        num: n,
-                        price: p
-                    };
-                }
-            });
-            if(!_.isEmpty(skus)){
-                $.ajax({
-                    url: '/sale/dinghuo/returngoods/add_sku/',
-                    type: 'post',
-                    dataType: 'json',
-                    data: {skus: JSON.stringify(skus), rg_id: {{original.id}}},
-                    success: function(result){
-                        if(result.code){
-                            alert(result.msg);
-                        }
-                        else{
-                            window.location.reload();
-                        }
+                    else{
+                        window.location.reload();
                     }
-                });
-            }
+                }
+            });
         });
         $('img[data-pic-path]').popover({
             html: true,
