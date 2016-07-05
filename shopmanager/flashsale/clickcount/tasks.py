@@ -33,8 +33,7 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     xlmm = XiaoluMama.objects.filter(id=xlmmid).first()
     if not xlmm:
         return
-    if not xlmm.is_cashoutable():
-        return
+
     today = datetime.datetime.now()
     tf = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
     tt = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
