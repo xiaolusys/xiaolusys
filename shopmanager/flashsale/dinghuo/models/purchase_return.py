@@ -372,23 +372,25 @@ class ReturnGoods(models.Model):
                                    groups__name__in=(u'小鹿买手资料员', u'小鹿采购管理员', u'小鹿采购员', u'管理员', u'小鹿管理员')). \
             distinct().order_by('id')
 
-    def add_sku(self, skuid, num, price=None):
+    def add_sku(self, skuid, num, price=None, inferior=False):
         from shopback.items.models import ProductSku
         sku = ProductSku.objects.get(id=skuid)
         if self.status in [self.CREATE_RG, self.VERIFY_RG]:
             rgd = self.rg_details.filter(skuid=skuid).first()
             if rgd:
-                rgd.num += num
-                if price:
-                    rgd.price = price
-                rgd.save()
+                if inferior and rgd.inferior_num > 0:
+                    raise Exception(u'重复添加')
+                if not inferior and rgd.num > 0:
+                    raise Exception(u'重复添加')
+            rgd = RGDetail()
+            rgd.return_goods = self
+            rgd.skuid = skuid
+            if inferior:
+                rgd.inferior_num = num
             else:
-                rgd = RGDetail()
-                rgd.return_goods = self
-                rgd.skuid = skuid
                 rgd.num = num
-                rgd.price = price or sku.cost
-                rgd.save()
+            rgd.price = price or sku.cost
+            rgd.save()
         else:
             raise Exception(u'已发货的退货单不可更改')
 
