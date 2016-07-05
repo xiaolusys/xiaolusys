@@ -31,6 +31,17 @@ from supplychain.supplier import serializers
 import logging
 logger = logging.getLogger(__name__)
 
+
+class SaleSupplierFilter(filters.FilterSet):
+
+    id_start = django_filters.NumberFilter(name="id", lookup_type='gte')
+    id_end = django_filters.NumberFilter(name="id", lookup_type='lte')
+
+    class Meta:
+        model = SaleSupplier
+        fields = ['id_start', 'id_end', 'category', 'supplier_name', 'supplier_type', 'supplier_zone']
+
+
 class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###供应商REST API接口：
@@ -43,8 +54,8 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('category', 'supplier_name', 'supplier_type', 'supplier_zone')
-    ordering_fields = ('total_refund_num', 'total_sale_num')
+    ordering_fields = ('id', 'total_refund_num', 'total_sale_num', 'created', 'modified')
+    filter_class = SaleSupplierFilter
 
     @list_route(methods=['get'])
     def list_filters(self, request, *args, **kwargs):
@@ -150,6 +161,15 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         raise NotImplemented
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        request.data.update({"responsible_person_name": user.username, "responsible_people_id": user.id})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):

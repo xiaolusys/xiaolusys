@@ -33,7 +33,7 @@ from shopapp.weixin.options import get_openid_by_unionid
 import re
 import logging
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 
 class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
@@ -72,7 +72,7 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
             xlmm = XiaoluMama.objects.filter(openid=unionid).first()
             if xlmm:  # 存在则保存当前登陆用户的手机号码到当前小鹿妈妈的手机号字段
                 xlmm.mobile = customer_mobile
-                xlmm.save()
+                xlmm.save(update_fields=['mobile'])
             else:  # 否则创建当前用户的小鹿妈妈账号 并且是填写资料后状态
                 XiaoluMama.objects.create(mobile=customer_mobile,
                                           referal_from=referal_from,
