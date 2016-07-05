@@ -466,7 +466,7 @@ class RGDetail(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
     modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     TYPE_REFUND = 0
-    TYPE_CHANGE = 0
+    TYPE_CHANGE = 1
     TYPE_CHOICES = ((TYPE_REFUND, u'退货收款'),
                     (TYPE_CHANGE, u'退货更换'))
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
