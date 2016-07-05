@@ -18,7 +18,7 @@ from flashsale.dinghuo import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 
 from django.http import Http404, HttpResponseRedirect
-
+from shopback.trades.models import PackageSkuItem
 
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
