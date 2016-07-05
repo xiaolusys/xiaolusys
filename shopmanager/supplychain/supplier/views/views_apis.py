@@ -17,6 +17,8 @@ from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
 from rest_framework import filters
+from django_filters import Filter
+from django_filters.fields import Lookup
 
 from supplychain.supplier.models import (
     SaleSupplier,
@@ -31,6 +33,23 @@ from supplychain.supplier import serializers
 import logging
 logger = logging.getLogger(__name__)
 
+
+class ListFilter(Filter):
+    def filter(self, qs, value):
+        value_list = value.split(u',')
+        return super(ListFilter, self).filter(qs, Lookup(value_list, 'in'))
+
+
+class SaleSupplierFilter(filters.FilterSet):
+    id = ListFilter(name='id')
+    category = ListFilter(name='category')
+    supplier_zone = ListFilter(name='supplier_zone')
+
+    class Meta:
+        model = SaleSupplier
+        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone']
+
+
 class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###供应商REST API接口：
@@ -43,8 +62,8 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('category', 'supplier_name', 'supplier_type', 'supplier_zone')
-    ordering_fields = ('total_refund_num', 'total_sale_num')
+    ordering_fields = ('id', 'total_refund_num', 'total_sale_num', 'created', 'modified')
+    filter_class = SaleSupplierFilter
 
     @list_route(methods=['get'])
     def list_filters(self, request, *args, **kwargs):
@@ -150,6 +169,26 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         raise NotImplemented
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        request.data.update({"responsible_person_name": user.username, "responsible_people_id": user.id})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers.SaleProductManageSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):

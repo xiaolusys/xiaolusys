@@ -363,6 +363,12 @@ class SaleProduct(BaseTagModel):
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
 
+    @property
+    def item_products(self):
+        if not hasattr(self, '_item_products_'):
+            from shopback.items.models import Product
+            self._item_products_ = Product.objects.filter(sale_product=self.id, status=Product.NORMAL)
+        return self._item_products_
 
 
 
