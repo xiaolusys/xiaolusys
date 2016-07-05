@@ -521,9 +521,13 @@ class ReturnGoodsAdmin(BaseModelAdmin):
             return ''
 
         return ('<a href="%(url)s" target="_blank">'
-                '%(show_text)s</a>') % {
+                '%(show_text)s</a> 《') % {
                    'url': '/admin/supplier/salesupplier/%d/' % obj.supplier_id,
                    'show_text': obj.supplier.supplier_name
+               } + ('<a href="%(url)s">'
+                '%(show_text)s</a>》 ') % {
+                   'url': '/admin/dinghuo/returngoods?supplier_id=%d' % obj.supplier_id,
+                   'show_text': obj.supplier.id
                }
 
     supplier_link.allow_tags = True
