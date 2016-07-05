@@ -258,15 +258,15 @@ class ReturnGoods(models.Model):
 
         if sku:
             not_in_unreturn = not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
-            not_onshelf = datetime.datetime.now() < ProductSku.objects.get(
+            onshelf = datetime.datetime.now() < ProductSku.objects.get(
                 id=sku).product.offshelf_time < datetime.datetime.now() + datetime.timedelta(days=7)
-            return not_in_unreturn and not_onshelf
+            return not_in_unreturn and not onshelf
 
         if supplier_id:
             supplier = SaleSupplier.objects.get(id=supplier_id)
             sale_product_ids = [i["id"] for i in supplier.supplier_products.values("id")]
-            product_ids = [p["id"] for p in Product.objects.filter(id__in=sale_product_ids).values("id")]
-            unreturn_sku_ids = [i["id"] for i in supplier.unreturnsku_set.values("sku_id")]
+            product_ids = [p["id"] for p in Product.objects.filter(sale_product__in=sale_product_ids).values("id")]
+            unreturn_sku_ids = [i["sku_id"] for i in supplier.unreturnsku_set.values("sku_id")]
             return ProductSkuStats.objects.filter(product__id__in=product_ids,
                                                   product__offshelf_time__lt=datetime.datetime.now() - datetime.timedelta(
                                                       days=10),
