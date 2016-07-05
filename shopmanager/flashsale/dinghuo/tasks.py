@@ -1658,7 +1658,7 @@ def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
     if not pr.is_overbooked():
         return
     
-    pa = PurchaseArrangement.objects.filter(sku_id=pr.sku_id, purchase_order_status=PurchaseOrder.OPEN, status=PurchaseRecord.EFFECT).first()
+    pa = PurchaseArrangement.objects.filter(oid=pr.oid, purchase_order_status=PurchaseOrder.OPEN, status=PurchaseRecord.EFFECT, num__gt=0).first()
     if not pa:
         logger.error("severe logical error: overbooking|sku_id:%s, package_sku_item_id:%s, oid:%s, request_num:%s, book_num:%s" %
                      (pr.sku_id, pr.package_sku_item_id, pr.oid, pr.request_num, pr.book_num))
