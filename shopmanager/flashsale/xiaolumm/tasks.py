@@ -13,6 +13,7 @@ from flashsale.xiaolumm.models import MamaDayStats
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 from django.db import transaction
 from shopback.trades.models import MergeTrade, MergeBuyerTrade
+from core.options import get_systemoa_user
 
 import logging
 logger = logging.getLogger(__name__)
@@ -812,6 +813,7 @@ def task_period_check_mama_renew_state(days=None):
         charge_status=XiaoluMama.CHARGED)  # 有效并接管的　没有设置下次续费时间的妈妈
 
     now = datetime.datetime.now()
+    sys_oa = get_systemoa_user()
     for mm in unset_mms:
         update_fields = []
         try:
@@ -823,6 +825,7 @@ def task_period_check_mama_renew_state(days=None):
 
             if now >= mm.renew_time:
                 mm.status = XiaoluMama.FROZEN
+                log_action(sys_oa, mm, CHANGE, u'定时任务:设置续费时间 检查到期 修改状态到冻结')
                 update_fields.append('status')
             if update_fields:
                 mm.save(update_fields=update_fields)
@@ -839,5 +842,6 @@ def task_period_check_mama_renew_state(days=None):
             if now >= emm.renew_time:
                 emm.status = XiaoluMama.FROZEN
                 emm.save(update_fields=['status'])
+                log_action(sys_oa, emm, CHANGE, u'定时任务: 检查到期 修改状态到冻结')
         except TypeError as e:
             logger.error(u"task_period_check_mama_renew_state FROZEN mama:%s, error info: %s" % (emm.id, e))

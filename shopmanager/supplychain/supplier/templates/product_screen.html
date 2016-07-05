@@ -400,7 +400,7 @@
         var memo = $("#id-memo-" + counter).val();
         var selection = $("#id-select-" + counter).val();
 
-        var orderlistShowMemo = $('#id-orderlist-show-memo-' + counter).prop('checked') ? 'on' : ''
+        var orderlistShowMemo = $('#id-orderlist-show-memo-' + counter).prop('checked') ? 'true' : 'false'
 
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
         var data = {
