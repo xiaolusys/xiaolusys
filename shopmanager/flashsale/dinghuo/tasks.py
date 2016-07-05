@@ -1675,7 +1675,9 @@ def task_purchaserecord_sync_purchasearrangement_status(pr):
     if not pr.is_booked():
         return
 
-    records = PurchaseArrangement.objects.filter(purchase_record_unikey=pr.uni_key)
+    purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
+        
+    records = PurchaseArrangement.objects.filter(purchase_record_unikey=pr.uni_key, purchase_order_unikey=purchase_order_unikey)
     for record in records:
         if record.status != pr.status:
             record.status = pr.status
