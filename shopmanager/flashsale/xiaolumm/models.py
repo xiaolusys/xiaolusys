@@ -882,23 +882,53 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
         order_buyer = obj.order_buyer
         mm_linkid = obj.extras_info.get('mm_linkid') or None
         xlmm = XiaoluMama.objects.filter(openid=order_buyer.unionid).first()
+        order = obj.sale_orders.all().first()
+        if not order:
+            return
+        skuid_day_map = {11873: 365,
+                         213710: 333,
+                         213711: 15}
         if not xlmm:
             return
         referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
+        update_fields = []
         if referal_mm:
-            xlmm.referal_from = referal_mm.mobile
-        xlmm.progress = XiaoluMama.PAY
-        xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
-        xlmm.charge_time = datetime.datetime.now()  # 接管时间
-        xlmm.agencylevel = XiaoluMama.A_LEVEL
-        xlmm.save(update_fields=['progress', 'referal_from', 'charge_status', 'agencylevel', 'charge_time'])
+            if not xlmm.referal_from:   # 如果没有填写推荐人　更新推荐人
+                update_fields.append("referal_from")
+                xlmm.referal_from = referal_mm.mobile
+
+        now = datetime.datetime.now()
+        add_day_time = datetime.timedelta(days=skuid_day_map[int(order.sku_id)])  # map 续费天数
+        if xlmm.progress != XiaoluMama.PAY:
+            update_fields.append('progress')
+            xlmm.progress = XiaoluMama.PAY
+
+        if xlmm.charge_status != XiaoluMama.CHARGED:
+            update_fields.append('charge_status')
+            xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
+
+        if not xlmm.charge_time:    # 如果没有接管时间　则赋值现在时间
+            update_fields.append("charge_time")
+            xlmm.charge_time = now  # 接管时间
+
+        if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类 续费等级则不去变更
+            update_fields.append("agencylevel")
+            xlmm.agencylevel = XiaoluMama.A_LEVEL
+
+        if xlmm.renew_time is None:
+            update_fields.append("renew_time")
+            xlmm.renew_time = now + add_day_time
+        else:
+            if isinstance(xlmm.renew_time, datetime.datetime):
+                update_fields.append("renew_time")
+                xlmm.renew_time = xlmm.renew_time + add_day_time
+
+        xlmm.save(update_fields=update_fields)
         # 保存订单状态到确定状态
         obj.status = SaleTrade.TRADE_FINISHED
         update_model_fields(obj, update_fields=['status'])
-        if obj.sale_orders.all():
-            sale_order = obj.sale_orders.all()[0]
-            sale_order.status = SaleOrder.TRADE_FINISHED
-            sale_order.save()
+        order.status = SaleOrder.TRADE_FINISHED
+        order.save(update_fields=['status'])
         # 发放30元优惠券
         UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=39)
 
