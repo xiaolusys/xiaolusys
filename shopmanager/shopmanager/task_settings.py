@@ -755,6 +755,7 @@ SYNC_MODEL_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+
     #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
     #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
     #        'schedule':crontab(minute="0",hour="2"), #
@@ -1087,6 +1088,13 @@ SHOP_APP_SCHEDULE = {
     u'定时更新全部未收到货包裹的物流信息': {
         'task': 'flashsale.restpro.tasks.update_all_logistics',
         'schedule': crontab(minute="0", hour="6"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
+    u'根据saleorder的退款状态更新saletrade的状态':{
+        'task': 'flashsale.pay.tasks_stats.task_update_saletrade_status',
+        'achedule':crontab(hour="23"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
