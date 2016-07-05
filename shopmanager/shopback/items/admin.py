@@ -1229,8 +1229,8 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         # 'realtime_lock_num_display',
         'district_link', 'created')
     list_display_links = ['sku_link']
-    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id', ('supplier_id', ProductSkuStatsSupplierIdFilter),
-                     ('supplier_name', ProductSkuStatsSupplierNameFilter)]
+    search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id']
+    #('supplier_id', ProductSkuStatsSupplierIdFilter),                 ('supplier_name', ProductSkuStatsSupplierNameFilter)]
     readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'inferior_num', 'history_quantity',
                        'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
                        'waitingpay_num', 'created', 'modified', 'status']
@@ -1351,6 +1351,8 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
                     ordering.append('-pk')
                 return ordering
 
+            # def get_queryset(self, request):
+            #     return
             # def get_queryset(self, request):
             #     (self.filter_specs, self.has_filters, remaining_lookup_params,
             #      filters_use_distinct) = self.get_filters(request)
