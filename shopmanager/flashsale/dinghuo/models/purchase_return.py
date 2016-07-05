@@ -291,7 +291,7 @@ class ReturnGoods(models.Model):
         return get_max_from_list(r)
 
     def set_stat(self):
-        self.rg_details.filter(num=0).delete()
+        self.rg_details.filter(num=0, inferior_num=0).delete()
         rgds = self.rg_details.all()
         total_num = 0
         total_amount = 0
