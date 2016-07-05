@@ -17,6 +17,8 @@ from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
 from rest_framework import filters
+from django_filters import Filter
+from django_filters.fields import Lookup
 
 from supplychain.supplier.models import (
     SaleSupplier,
@@ -32,14 +34,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class SaleSupplierFilter(filters.FilterSet):
+class ListFilter(Filter):
+    def filter(self, qs, value):
+        value_list = value.split(u',')
+        return super(ListFilter, self).filter(qs, Lookup(value_list, 'in'))
 
-    id_start = django_filters.NumberFilter(name="id", lookup_type='gte')
-    id_end = django_filters.NumberFilter(name="id", lookup_type='lte')
+
+class SaleSupplierFilter(filters.FilterSet):
+    id = ListFilter(name='id')
+    category = ListFilter(name='category')
+    supplier_zone = ListFilter(name='supplier_zone')
 
     class Meta:
         model = SaleSupplier
-        fields = ['id_start', 'id_end', 'category', 'supplier_name', 'supplier_type', 'supplier_zone']
+        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone']
 
 
 class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
