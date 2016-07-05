@@ -730,7 +730,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'openid':buyer_openid,
             'extras_info':{
                 'coupon': coupon_id,
-                'pay_extras':pay_extras
+                'pay_extras':pay_extras,
+                'agent': request.META.get('HTTP_USER_AGENT')
             }
         })
         params['extras_info'].update(self.get_mama_referal_params(request))

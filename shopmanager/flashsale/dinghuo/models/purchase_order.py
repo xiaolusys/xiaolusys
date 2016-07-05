@@ -522,7 +522,6 @@ def update_purchaseorder_status(sender, instance, created, **kwargs):
         else:
             task_update_purchasearrangement_status.delay(po)
 
-
 post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='post_save_update_purchaseorder_status')
 
 
@@ -628,6 +627,13 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
                 api_create_or_update_forecastinbound_by_orderlist(instance)
         except Exception, exc:
             logger.error('update forecast inbound:%s' % exc.message, exc_info=True)
+
+    #refresh forecast stats
+    from flashsale.forecast.models import ForecastInbound
+    from flashsale.forecast import tasks
+    forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=[instance.id])
+    for forecast in forecast_inbounds:
+        tasks.task_forecast_update_stats_data.delay(forecast.id)
 
 
 post_save.connect(

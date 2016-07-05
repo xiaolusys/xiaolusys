@@ -772,8 +772,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'charge': '',
             'status': SaleTrade.WAIT_BUYER_PAY,
             'openid': buyer_openid,
-            'extras_info': {'coupon': form.get('coupon_id', ''),
-                            'pay_extras': pay_extras }
+            'extras_info': {
+                'coupon': form.get('coupon_id', ''),
+                'pay_extras': pay_extras,
+                'agent': request.META.get('HTTP_USER_AGENT')
+            }
         })
         params['extras_info'].update(self.get_mama_referal_params(request))
 

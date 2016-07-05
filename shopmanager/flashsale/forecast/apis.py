@@ -120,7 +120,7 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
             logger.error('inbound error:%s'%exc.message, exc_info=True)
 
     if forecast_inbound:
-        forecast_inbound.inbound_arrive_update_status()
+        forecast_inbound.inbound_arrive_update_status(arrival_time=inbound.created)
         for detail in forecast_inbound.normal_details():
             ib_detail = inbound_sku_dict.pop(detail.sku_id, None)
             if not ib_detail:
@@ -135,7 +135,7 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
                 forecast_inbound.has_defact |= True
         if inbound_sku_dict:
             forecast_inbound.has_wrong = True
-        forecast_inbound.save(update_fields=['has_lack', 'has_overhead', 'has_defact', 'has_wrong'])
+        forecast_inbound.save()
 
 
 

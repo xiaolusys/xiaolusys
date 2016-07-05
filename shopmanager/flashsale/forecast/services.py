@@ -58,6 +58,15 @@ def get_purchaseorder_data(order_id):
     cache.set(cache_key, order_data, 60)
     return order_data
 
+def get_purchaseorder_detail_data(orderid_list):
+
+    from flashsale.dinghuo.models import OrderDetail
+    details = OrderDetail.objects.filter(
+        orderlist__in=orderid_list
+    )
+    return details.values('id','chichu_id', 'product_id', 'buy_unitprice', 'buy_quantity')
+
+
 def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     """ 通过采购员名称获取订货单 """
     from flashsale.dinghuo.models import OrderList, OrderDetail
@@ -77,21 +86,21 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
 
 
 def get_normal_forecast_inbound_by_orderid(purchase_orderid_list):
-    # TODO : caution many to many in filter will not include other object related
+    # TODO : caution many to many manager filter will not include other object related
     forecast_ids = ForecastInbound.objects.filter(relate_order_set__in=purchase_orderid_list)\
         .exclude(status=ForecastInbound.ST_CANCELED).values_list('id',flat=True)
     return ForecastInbound.objects.filter(id__in=forecast_ids)
 
 
 def get_normal_realinbound_by_orderid(purchase_orderid_list):
-    # TODO : caution many to many in filter will not include other object related
+    # TODO : caution many to many manager filter will not include other object related
     rb_ids = RealInBound.objects.filter(relate_order_set__in=purchase_orderid_list,
                                                status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
     return RealInBound.objects.filter(id__in=rb_ids)
 
 
 def get_normal_realinbound_by_forecastid(forecastid_list):
-    # TODO : caution many to many in filter will not include other object related
+    # TODO : caution many to many manager filter will not include other object related
     rb_ids = RealInBound.objects.filter(forecast_inbound_id__in=forecastid_list,
                                                status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
     return RealInBound.objects.filter(id__in=rb_ids)

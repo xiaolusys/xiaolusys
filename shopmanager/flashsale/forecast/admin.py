@@ -4,14 +4,14 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 
 from core.filters import DateScheduleFilter
-from .models import ForecastInbound, ForecastInboundDetail, RealInBound, RealInBoundDetail
+from .models import ForecastInbound, ForecastInboundDetail, RealInBound, RealInBoundDetail, ForecastStats
 from supplychain.supplier.models import SaleSupplier
 from flashsale.dinghuo.models import OrderList
 
 from core.widgets import AdminTextThumbnailWidget
 from .services import strip_forecast_inbound
 
-from core.options import log_action, ADDITION
+from core.options import log_action, ADDITION, CHANGE
 
 class ForecastInboundDetailInline(admin.TabularInline):
     model = ForecastInboundDetail
@@ -78,7 +78,10 @@ class ForecastInboundAdmin(admin.ModelAdmin):
         })
     )
 
-    actions = ['action_merge_or_split', 'action_strip_inbound', 'action_timeout_reforecast']
+    actions = ['action_merge_or_split',
+               'action_strip_inbound',
+               'action_timeout_reforecast',
+               'action_close_unarrival']
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ForecastInboundAdmin, self).get_form(request, obj=obj, **kwargs)
@@ -179,6 +182,25 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     action_timeout_reforecast.short_description = u"超时重新预测到货"
 
+    def action_close_unarrival(self, request, queryset):
+
+        unapproved_qs = queryset.exclude(status=ForecastInbound.ST_APPROVED)
+        if unapproved_qs.exists():
+            self.message_user(request, u"＊＊＊预测单缺货关闭需在审核状态下处理＊＊＊!")
+            return HttpResponseRedirect(request.get_full_path())
+
+        close_forecast_ids = ','.join([str(obj.id) for obj in unapproved_qs])
+        for obj in unapproved_qs:
+            obj.lackgood_close_update_status()
+            obj.save(update_fields=['status'])
+            log_action(request.user.id, obj, CHANGE, u'预测单缺货关闭')
+
+        self.message_user(request, u"＊＊＊已关闭缺货预测单列表:%s ＊＊＊" %close_forecast_ids)
+
+        return HttpResponseRedirect(request.get_full_path())
+
+    action_close_unarrival.short_description = u"商家缺货无法到货"
+
 
 admin.site.register(ForecastInbound, ForecastInboundAdmin)
 
@@ -265,3 +287,21 @@ class RealInBoundDetailAdmin(admin.ModelAdmin):
 
 
 admin.site.register(RealInBoundDetail, RealInBoundDetailAdmin)
+
+class ForecastStatsAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'forecast_inbound', 'buyer_name', 'purchaser', 'purchase_num', 'inferior_num', 'lack_num',
+        'purchase_amount', 'purchase_time', 'delivery_time', 'arrival_time', 'billing_time', 'finished_time',
+        'has_lack', 'has_defact', 'has_overhead', 'has_wrong', 'is_unrecordlogistic', 'is_timeout', 'is_lackclose'
+    )
+    list_filter = ('buyer_name', 'purchaser', ('purchase_time', DateScheduleFilter),
+                   'is_timeout','is_lackclose','is_unrecordlogistic')
+    search_fields = ['=forecast_inbound' ,'=supplier__id', '=supplier__supplier_name']
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields + ('forecast_inbound','supplier')
+
+
+
+admin.site.register(ForecastStats, ForecastStatsAdmin)
