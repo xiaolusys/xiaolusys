@@ -154,9 +154,6 @@ class PurchaseRecord(BaseModel):
 
 
 def sync_purchase_arrangement(sender, instance, created, **kwargs):
-    if not instance.is_booked():
-        return
-
     from flashsale.dinghuo.tasks import task_purchaserecord_sync_purchasearrangement_status
     task_purchaserecord_sync_purchasearrangement_status.delay(instance)        
 

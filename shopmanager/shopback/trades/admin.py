@@ -1326,7 +1326,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         'id', 'sale_order_link_to', 'oid', 'sale_trade_id_link', 'receiver_mobile', 'out_sid', 'logistics_company_name',
         'package_order_link_to', 'package_sku_item_link_to', 'assign_status', 'sys_status',
         'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id', 'sku_link_to', 'num', 'price',
-        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey')
+        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link')
 
     search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid', 'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
     list_filter = ('assign_status', 'status', 'ware_by')
@@ -1338,6 +1338,14 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         '<a href="%(package_order_url)s" target="_blank">'
         '%(package_order_pid)s</a>')
 
+    def purchase_order_unikey_link(self, obj):
+        if obj.purchase_order_unikey:
+            return '<a href="/admin/dinghuo/orderlist/?purchase_order_unikey=%s" target="_blank"> %s </a>' % (obj.purchase_order_unikey,obj.purchase_order_unikey)
+        return ''
+    
+    purchase_order_unikey_link.allow_tags = True
+    purchase_order_unikey_link.short_description = u'订货单'
+    
     def get_actions(self, request):
         return [i for i in super(PackageSkuItemAdmin, self).get_actions(request) if i != 'delete_selected']
 
