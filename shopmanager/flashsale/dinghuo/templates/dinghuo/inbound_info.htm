@@ -92,21 +92,29 @@ $('#add-memo-btn').click(function(){
      });
  });
 $('#gen_return_goods').click(function(){
-    $.ajax({
-         url: '/sale/dinghuo/inbound/'+ INBOUND_ID +'/generate_return_goods',
-         type: 'post',
-         dataType: 'json',
-         data: {
-             inbound_id: INBOUND_ID,
-         },
-         success: function(result){
-            swal('成功', '退货已生成', 'success');
-         },
-         error: function(result){
-            swal('错误', result.responseText, 'error');
-         }
-     });
-    swal('成功', '备注已更新', 'success');
+    swal({
+             title: '警告',
+             text: '这个操作会将此供应商的多错货入仓单都生成退货单，注意处理',
+             type: 'warning',
+             showCancelButton: true,
+             confirmButtonText: '确认',
+             cancelButtonText: '取消'
+           }, function(){
+                    $.ajax({
+                         url: '/sale/dinghuo/purchase_return/gen_by_supplier',
+                         type: 'post',
+                         dataType: 'json',
+                         data: {'supplier_id': {{supplier_id}},
+                         success: function(result){
+                            swal('成功', '退货已生成', 'success');
+                            window.location="/admin/dinghuo/returngoods/?supplier_id={{supplier_id}}";
+                         },
+                         error: function(result){
+                            swal('错误', result.responseText, 'error');
+                         }
+                     });
+                     swal('成功', '备注已更新', 'success');
+        });
 });
 $('#save').click(function(){
      $.ajax({
