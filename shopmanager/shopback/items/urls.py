@@ -22,6 +22,7 @@ from shopback.items.views.views import (ProductListView,
                                         StatProductSaleAsyncView,
                                         ProductScanView)
 from .views.product_location import ProductLocationViewSet
+from .views.sku import ProductSkuViewSet
 from shopback.items.views.views_rest import ProductInvalidConfirmView
 from .select_sale_time import change_Sale_Time
 from shopback.items.views.views_add import AddItemView, GetCategory, GetSupplier, GetSkuDetail, PreviewSkuDetail, BatchSetTime, \
@@ -29,6 +30,9 @@ from shopback.items.views.views_add import AddItemView, GetCategory, GetSupplier
 from rest_framework import routers
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'product_location', ProductLocationViewSet)
+router2 = routers.DefaultRouter(trailing_slash=False)
+router2.register(r'sku', ProductSkuViewSet)
+
 urlpatterns = patterns('shopback.items.views.views',
     url('update/items/$', 'update_user_items', name='update_items'),
     url('update/item/$', 'update_user_item', name='update_item'),
@@ -70,4 +74,5 @@ urlpatterns = patterns('shopback.items.views.views',
     url(r'redundancies', StockRedundanciesView.as_view(), name='redundancies_view'),
     url(r'supplierfilter', ProductSkuStatsTmpView.as_view(), name='supplierfilter_view'),
     url(r'^location/', include(router.urls, namespace='v2')),
+    url(r'^v2/', include(router2.urls, namespace='v2_sku')),
 )

@@ -686,7 +686,9 @@ class InBound(models.Model):
 
     @property
     def all_allocate_quantity(self):
-        return self.details.filter(wrong=False).aggregate(n=Sum('arrival_quantity')).get('n', 0) or 0
+        return OrderDetailInBoundDetail.objects.filter(inbounddetail__inbound__id=self.id).\
+                   aggregate(n=Sum('arrival_quantity')).get('n', 0) or 0
+
 
     @property
     def all_inferior_quantity(self):

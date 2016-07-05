@@ -580,17 +580,18 @@ def mark_unreturn(request):
 def returngoods_add_sku(request):
     form = forms.ReturnGoodsAddSkuForm(request.POST)
     if not form.is_valid():
-        raise Exception('参数错误')
-    skus_dict = {int(k): v
-                 for k, v in json.loads(form.cleaned_data['skus']).iteritems()}
+        raise Exception(form.error_messsage)
     rg_id = form.cleaned_data['rg_id']
+    sku_id = form.cleaned_data['sku_id']
+    sku = get_object_or_404(ProductSku, id=sku_id)
+    num = form.cleaned_data['num']
+    inferior = form.cleaned_data['inferior']
+    rg = get_object_or_404(ReturnGoods, id=rg_id)
+    supplier = sku.product.get_supplier()
+    # if supplier.id != rg.supplier_id:
+    #     raise Exception(u'只能添加此供应商的SKU')
     rg = ReturnGoods.objects.get(id=rg_id)
-
-    for sku_id, sku_dict in skus_dict.iteritems():
-        num = sku_dict.get('num')
-        if not num:
-            continue
-        rg.add_sku(sku_id, num, sku_dict.get('price'))
+    rg.add_sku(sku_id, num, inferior)
     return {'code': 0}
 
 

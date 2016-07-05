@@ -480,7 +480,7 @@ class ReturnGoodsAdmin(BaseModelAdmin):
     search_fields = ['id', "supplier__id", "supplier__supplier_name", "transaction_number",
                      "noter", "consigner", "transactor_id", "sid"]
 
-    list_filter = ["status", "noter", "consigner", "transactor_id",
+    list_filter = ["type", "status", "noter", "consigner", "transactor_id",
                    ("created", DateFieldListFilter), ("modify", DateFieldListFilter)]
     readonly_fields = ('status', "type", 'supplier')
     inlines = [RGDetailInline, ]

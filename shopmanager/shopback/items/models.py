@@ -363,6 +363,9 @@ class Product(models.Model):
         else:
             return self.sale_charger + "未关联"
 
+    def get_supplier(self):
+        return SaleProduct.objects.get(id=self.sale_product).sale_supplier
+
     @staticmethod
     def get_by_supplier(supplier_id):
         sale_procuct_ids = [s['id'] for s in SaleProduct.objects.filter(sale_supplier_id=supplier_id).values("id")]

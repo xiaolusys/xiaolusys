@@ -86,4 +86,6 @@ class DealForm(BaseForm):
 
 class ReturnGoodsAddSkuForm(BaseForm):
     rg_id = forms.IntegerField()
-    skus = forms.CharField()
+    sku_id = forms.IntegerField()
+    num = forms.IntegerField()
+    inferior = forms.IntegerField()
