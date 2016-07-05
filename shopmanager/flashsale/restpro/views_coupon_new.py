@@ -285,7 +285,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             if codes.count(0) == 7:  # 完整领取　则设置　领取弹窗　位　为　0
                 default_return.update({"pop_flag": 1})
-            default_return.update({'info': '您已领取%s张优惠券' % len(success_id), "coupons": serializer.data})
+            default_return.update({'info': '新手礼包已领取', "coupons": serializer.data})
             return Response(default_return)
         default_return.update({"code": 2, "info": "领取出错啦:%s" % ','.join(except_msgs)})
         return Response(default_return)
