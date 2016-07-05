@@ -220,23 +220,20 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
                                                agencylevel_desc=XiaoluMama.AGENCY_LEVEL[0][1],
                                                next_agencylevel=XiaoluMama.A_LEVEL,
                                                next_agencylevel_desc=XiaoluMama.AGENCY_LEVEL[2][1])
-        if not hasattr(self, '_agency_user_level_info_'):
-            customer = Customer.objects.filter(user=user).first()
-            if not customer:
-                return default_info
-            xlmm = customer.getXiaolumm()
-            if not xlmm:
-                return default_info
-            next_agencylevel, next_agencylevel_desc = xlmm.next_agencylevel_info()
-            default_info.update({
-                "agencylevel": xlmm.agencylevel,
-                "agencylevel_desc": xlmm.get_agencylevel_display(),
-                "next_agencylevel": next_agencylevel,
-                "next_agencylevel_desc": next_agencylevel_desc
-            })
-            self._agency_user_level_info_ = default_info
-            return self._agency_user_level_info_
-        return self._agency_user_level_info_
+        customer = Customer.objects.filter(user=user).first()
+        if not customer:
+            return default_info
+        xlmm = customer.getXiaolumm()
+        if not xlmm:
+            return default_info
+        next_agencylevel, next_agencylevel_desc = xlmm.next_agencylevel_info()
+        default_info.update({
+            "agencylevel": xlmm.agencylevel,
+            "agencylevel_desc": xlmm.get_agencylevel_display(),
+            "next_agencylevel": next_agencylevel,
+            "next_agencylevel_desc": next_agencylevel_desc
+        })
+        return default_info
 
     def agencylevel_info(self, obj):
         user = self.context['request'].user
