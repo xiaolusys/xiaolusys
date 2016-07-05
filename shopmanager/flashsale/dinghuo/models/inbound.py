@@ -752,6 +752,17 @@ post_save.connect(update_warehouse_receipt_status, sender=InBound,
                   dispatch_uid='post_save_update_warehouse_receipt_status')
 
 
+def refresh_inbound_order_status(sender, instance, created, **kwargs):
+
+    if not created:
+        from flashsale.forecast import apis
+        apis.api_create_or_update_realinbound_by_inbound(instance.id)
+
+
+post_save.connect(refresh_inbound_order_status, sender=InBound,
+                  dispatch_uid='post_save_refresh_inbound_order_status')
+
+
 class InBoundDetail(models.Model):
     NORMAL = 1
     PROBLEM = 2

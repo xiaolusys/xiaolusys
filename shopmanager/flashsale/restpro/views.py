@@ -331,7 +331,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         logistic_company_code = content.get('logistic_company_code', '').strip()
         if not receiver_state or not receiver_city or not receiver_district or not receiver_name \
                 or not re.compile(regex.REGEX_MOBILE).match(receiver_mobile):
-            return Response({'ret': False, "msg": "地址信息不全", 'code': 2})
+            logger.warn('address unmatch: agent=%s, post=%s' % (request.META.get('HTTP_USER_AGENT'), request.POST))
+            return Response({'ret': False, "msg": "地址信息不全", "info": "地址信息不全", 'code': 2})
         try:
             address, state = UserAddress.objects.get_or_create(
                 cus_uid=customer_id, receiver_name=receiver_name,
@@ -344,10 +345,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 address.set_default_address()
             address.set_logistic_company(logistic_company_code)
 
-            result = {'ret': True, "msg": "添加成功", 'result':{'address_id':address.id}, 'code': 0}
+            result = {'ret': True, "msg": "添加成功", "info": "添加成功", 'result':{'address_id':address.id}, 'code': 0}
         except Exception,exc:
             logger.error(exc.message, exc_info=True)
-            result = {'ret': False, "msg": "添加出错", "code": 1}
+            result = {'ret': False, "msg": "添加出错", "info": "添加出错", "code": 1}
         return Response(result)
 
     @list_route(methods=['get'])

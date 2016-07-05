@@ -406,7 +406,8 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
 
         for forecast in forecast_qs:
             if forecast.total_detail_num == 0:
-                forecast.unarrive_close()
+                forecast.unarrive_close_update_status()
+                forecast.save()
 
         # serializer_data = self.get_serializer(forecast_newobj).data
         return Response({'redrect_url': reverse('admin:forecast_forecastinbound_changelist')+'?q=%s'%forecast_newobj.id})
@@ -540,5 +541,5 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                         template_name='forecast/aggregate_billing_detail.html')
 
     @list_route(methods=['get'])
-    def reports(self, request, *args, **kwargs):
+    def report_stats(self, request, *args, **kwargs):
         return Response({},template_name='forecast/reports.html')

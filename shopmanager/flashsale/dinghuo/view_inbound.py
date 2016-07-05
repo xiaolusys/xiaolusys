@@ -78,7 +78,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if relate_orderids:
             inbound.orderlist_ids = relate_orderids
         inbound.save()
-
+        
         inbounddetails_dict = {}
         for sku in ProductSku.objects.select_related('product').filter(
                 id__in=inbound_skus_dict.keys()):
@@ -107,6 +107,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
                           product_name=problem_sku_dict['name'],
                           arrival_quantity=problem_sku_dict['arrival_quantity'],
                           status=InBoundDetail.PROBLEM).save()
+
+        from flashsale.forecast import apis
+        apis.api_create_or_update_realinbound_by_inbound(inbound.id)
 
         # orderlists = self._find_orderlists(inbound_skus.keys())
         # allocate_dict = self._find_optimized_allocate_dict(
