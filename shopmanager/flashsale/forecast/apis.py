@@ -121,7 +121,7 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
 
     if forecast_inbound:
         forecast_inbound.inbound_arrive_update_status(arrival_time=inbound.created)
-        for detail in forecast_inbound.normal_details():
+        for detail in forecast_inbound.normal_details:
             ib_detail = inbound_sku_dict.pop(detail.sku_id, None)
             if not ib_detail:
                 forecast_inbound.has_lack |= True

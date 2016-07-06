@@ -2,7 +2,14 @@
 from rest_framework import serializers
 
 from supplychain.supplier.models import SaleSupplier
-from .models import ForecastInbound, ForecastInboundDetail, StagingInBound, RealInBound, RealInBoundDetail
+from .models import (
+    ForecastInbound,
+    ForecastInboundDetail,
+    StagingInBound,
+    RealInBound,
+    RealInBoundDetail,
+    ForecastStats
+)
 
 from flashsale.dinghuo.models import OrderList, OrderDetail
 
@@ -102,5 +109,22 @@ class SimpleRealInBoundSerializer(serializers.ModelSerializer):
         extra_kwargs = {}
         fields = ('id', 'wave_no', 'ware_house', 'express_code', 'express_no', 'creator', 'inspector',
                   'total_detail_num', 'total_inferior_num', 'created', 'memo', 'status', 'status_name')
+
+class ForecastStatsSerializer(serializers.ModelSerializer):
+    supplier_name = serializers.CharField(source='supplier.supplier_name',read_only=True)
+    has_lack = serializers.IntegerField()
+    has_defact = serializers.IntegerField()
+    has_overhead = serializers.IntegerField()
+    has_wrong = serializers.IntegerField()
+    is_unrecordlogistic = serializers.IntegerField()
+    is_timeout = serializers.IntegerField()
+    is_lackclose = serializers.IntegerField()
+    class Meta:
+        model = ForecastStats
+        extra_kwargs = {}
+        fields = ('id', 'forecast_inbound', 'supplier_name', 'buyer_name', 'purchaser', 'purchase_num', 'inferior_num',
+                  'lack_num', 'purchase_amount', 'purchase_time', 'delivery_time', 'arrival_time', 'billing_time',
+                  'finished_time', 'has_lack', 'has_defact', 'has_overhead', 'has_wrong', 'is_unrecordlogistic',
+                  'is_timeout', 'is_lackclose')
 
 
