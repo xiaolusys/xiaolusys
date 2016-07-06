@@ -1147,7 +1147,7 @@ def create_packageorder_finished_check_log(time_from, uni_key):
     """
     time_to = time_from + datetime.timedelta(hours=1)
     actual_num = PackageSkuItem.objects.filter(finish_time__gt=time_from, finish_time__lte=time_to,
-                                               assign_status__lt=PackageSkuItem.FINISHED).count()
+                                               assign_status=PackageSkuItem.FINISHED).count()
     target_num = PackageOrder.objects.filter(weight_time__gt=time_from, weight_time__lte=time_to,
                                              sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE,
                                                              PackageOrder.FINISHED_STATUS]).aggregate(
