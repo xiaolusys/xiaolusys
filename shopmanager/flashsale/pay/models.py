@@ -42,8 +42,10 @@ TIME_FOR_PAYMENT = 25 * 60
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
 
+
 def gen_uuid_trade_tid():
     return uniqid('%s%s' % (SaleTrade.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
+
 
 def genTradeUniqueid():
     return gen_uuid_trade_tid()
@@ -220,7 +222,7 @@ class SaleTrade(BaseModel):
     def status_name(self):
         if self.status in (SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.TRADE_BUYER_SIGNED):
             is_complete_refunding = True
-            for sorder in  self.sale_orders.all():
+            for sorder in self.sale_orders.all():
                 if sorder.refund_status < CONST.REFUND_WAIT_SELLER_AGREE:
                     is_complete_refunding = False
             if is_complete_refunding and self.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
@@ -245,16 +247,15 @@ class SaleTrade(BaseModel):
         user_addr = UserAddress.objects.filter(id=self.user_address_id).first()
         return {
             'id': self.user_address_id,
-            'receiver_name':self.receiver_name,
-            'receiver_state':self.receiver_state,
-            'receiver_city':self.receiver_city,
-            'receiver_district':self.receiver_district,
-            'receiver_address':self.receiver_address,
-            'receiver_mobile':self.receiver_mobile,
-            'receiver_phone':self.receiver_phone,
-            'default':user_addr and user_addr.default or ''
+            'receiver_name': self.receiver_name,
+            'receiver_state': self.receiver_state,
+            'receiver_city': self.receiver_city,
+            'receiver_district': self.receiver_district,
+            'receiver_address': self.receiver_address,
+            'receiver_mobile': self.receiver_mobile,
+            'receiver_phone': self.receiver_phone,
+            'default': user_addr and user_addr.default or ''
         }
-
 
     def get_cash_payment(self):
         """ 实际需支付金额 """
@@ -378,7 +379,7 @@ class SaleTrade(BaseModel):
         self.confirm_payment()
 
     def redeliver_sku_item(self, old_sale_order):
-        sku = ProductSku.objects.get(id = old_sale_order.sku_id)
+        sku = ProductSku.objects.get(id=old_sale_order.sku_id)
         old_sale_order.status = SaleOrder.TRADE_CLOSED_BY_SYS
         new_sku_id = old_sale_order.sku_id
         new_num = old_sale_order.num
@@ -464,7 +465,7 @@ class SaleTrade(BaseModel):
         coupon_id = self.extras_info.get("coupon") or None
         usercoupon = UserCoupon.objects.filter(id=coupon_id).first()
         if usercoupon is None:
-            return 
+            return
         usercoupon.release_usercoupon()  # 修改该优惠券的状态到未使用
 
     @property
@@ -492,7 +493,7 @@ class SaleTrade(BaseModel):
     def get_logistics_by_orders(self):
         """ 获取订单所属仓库 """
         ware_by = None
-        product_ids = self.sale_orders.values_list('item_id',flat=True)
+        product_ids = self.sale_orders.values_list('item_id', flat=True)
         for product_id in product_ids:
             product = Product.objects.filter(id=product_id).first()
             if product and ware_by is None:
@@ -558,6 +559,7 @@ def category_trade_stat(sender, obj, **kwargs):
 
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 
+
 def push_msg_mama(sender, obj, **kwargs):
     """专属链接有人下单后则推送消息给代理"""
     from flashsale.xiaolumm.tasks_mama_push import task_push_mama_order_msg
@@ -586,6 +588,7 @@ def freeze_coupon_by_refund(sender, obj, **kwargs):
     """用户退款冻结绑定的优惠券"""
     from flashsale.coupon.tasks import task_freeze_coupon_by_refund
     task_freeze_coupon_by_refund.delay(obj)
+
 
 signal_saletrade_pay_confirm.connect(push_msg_mama, sender=SaleTrade)
 signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
@@ -682,11 +685,11 @@ class SaleOrder(PayBaseModel):
         return '<%s>' % (self.id)
 
     def can_change_sku(self):
-        if self.status != SaleOrder.WAIT_SELLER_SEND_GOODS\
-            or self.refund_status in [SaleRefund.REFUND_WAIT_RETURN_GOODS,
-                                                SaleRefund.REFUND_CONFIRM_GOODS,
-                                                SaleRefund.REFUND_APPROVE,
-                                                SaleRefund.REFUND_SUCCESS]:
+        if self.status != SaleOrder.WAIT_SELLER_SEND_GOODS \
+                or self.refund_status in [SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                          SaleRefund.REFUND_CONFIRM_GOODS,
+                                          SaleRefund.REFUND_APPROVE,
+                                          SaleRefund.REFUND_SUCCESS]:
             return False
         else:
             return True
@@ -822,8 +825,8 @@ class SaleOrder(PayBaseModel):
                                SaleOrder.TRADE_FINISHED)
 
     def stats_not_pay(self):
-        return self.status in (SaleOrder.TRADE_NO_CREATE_PAY ,
-                               SaleOrder.WAIT_BUYER_PAY ,
+        return self.status in (SaleOrder.TRADE_NO_CREATE_PAY,
+                               SaleOrder.WAIT_BUYER_PAY,
                                SaleOrder.TRADE_CLOSED_BY_SYS)
 
     def stats_paid(self):
@@ -836,13 +839,13 @@ class SaleOrder(PayBaseModel):
         refund = SaleRefund.objects.filter(id=self.refund_id).first()
         if refund and refund.good_status == SaleRefund.BUYER_NOT_RECEIVED:  # 买家没有收到货(卖家没有发货 == 发货前)
             return self.status not in [  # 不在以下状态认为是 有 付过款
-                                         SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
-                                         SaleOrder.WAIT_BUYER_PAY,  # 待付款
-                                         SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
-                                         ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
-                                                                            SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
-                                                                            SaleRefund.NO_REFUND,  # 没有退款
-                                                                            SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
+                SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
+                SaleOrder.WAIT_BUYER_PAY,  # 待付款
+                SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
+            ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
+                SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
+                SaleRefund.NO_REFUND,  # 没有退款
+                SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
         return False
 
     def stats_out_stock(self):
@@ -850,13 +853,13 @@ class SaleOrder(PayBaseModel):
         refund = SaleRefund.objects.filter(id=self.refund_id).first()
         if refund and refund.good_status == SaleRefund.SELLER_OUT_STOCK:  # 退款单 为  缺货退款单
             return self.status not in [  # 不在以下状态认为是 有 付过款
-                                         SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
-                                         SaleOrder.WAIT_BUYER_PAY,  # 待付款
-                                         SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
-                                         ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
-                                                                            SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
-                                                                            SaleRefund.NO_REFUND,  # 没有退款
-                                                                            SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
+                SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
+                SaleOrder.WAIT_BUYER_PAY,  # 待付款
+                SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
+            ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
+                SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
+                SaleRefund.NO_REFUND,  # 没有退款
+                SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
         return False
 
     def stats_return_goods(self):
@@ -865,13 +868,13 @@ class SaleOrder(PayBaseModel):
         if refund and refund.good_status in [SaleRefund.BUYER_RECEIVED,
                                              SaleRefund.BUYER_RETURNED_GOODS]:  # (买家收到货/卖家已经退货 == 发货后)
             return self.status not in [  # 不在以下状态认为是 有 付过款
-                                         SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
-                                         SaleOrder.WAIT_BUYER_PAY,  # 待付款
-                                         SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
-                                         ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
-                                                                            SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
-                                                                            SaleRefund.NO_REFUND,  # 没有退款
-                                                                            SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
+                SaleOrder.TRADE_NO_CREATE_PAY,  # 创建
+                SaleOrder.WAIT_BUYER_PAY,  # 待付款
+                SaleOrder.TRADE_CLOSED_BY_SYS  # 交易关闭
+            ] and self.refund_status not in [  # 不在以下状态 认为在退款状态
+                SaleRefund.REFUND_CLOSED,  # 退款单关闭掉
+                SaleRefund.NO_REFUND,  # 没有退款
+                SaleRefund.REFUND_REFUSE_BUYER]  # 拒绝退款
         return False
 
     @property
@@ -932,6 +935,7 @@ post_save.connect(saleorder_update_saletrade_status, sender=SaleOrder,
 def saleorder_update_stats_record(sender, instance, *args, **kwargs):
     from statistics.tasks import task_update_sale_order_stats_record
     task_update_sale_order_stats_record.delay(instance)
+
 
 post_save.connect(saleorder_update_stats_record, sender=SaleOrder,
                   dispatch_uid='post_save_saleorder_update_stats_record')
@@ -1145,28 +1149,27 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
 post_save.connect(check_SaleRefund_Status, sender=SaleRefund)
 
 
-
 class SaleOrderSyncLog(BaseModel):
     UNKNOWN = 0
-    SO_PSI = 1 # SaleOrder -> PackageSkuItem
-    PSI_PR = 2 # PackageSkuItem -> PurchaseRecord
+    SO_PSI = 1  # SaleOrder -> PackageSkuItem
+    PSI_PR = 2  # PackageSkuItem -> PurchaseRecord
     BOOKNUM = 3
     TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'), (BOOKNUM, u'订货NUM'))
 
     OPEN = 1
     COMPLETED = 2
     STATUS_CHOICE = ((OPEN, u'未完成'), (COMPLETED, u'完成'))
-    
+
     time_from = models.DateTimeField(verbose_name=u'开始时间')
     time_to = models.DateTimeField(verbose_name=u'结束时间')
     uni_key = models.CharField(max_length=32, unique=True, verbose_name='UniKey')
-    
+
     target_num = models.IntegerField(null=True, default=0, verbose_name=u'目标数量')
     actual_num = models.IntegerField(null=True, default=0, verbose_name=u'实际数量')
-    
+
     type = models.IntegerField(choices=TYPE_CHOICE, default=UNKNOWN, db_index=True, verbose_name=u'类型')
     status = models.IntegerField(choices=STATUS_CHOICE, default=OPEN, db_index=True, verbose_name=u'状态')
-    
+
     class Meta:
         db_table = 'flashsale_saleorder_synclog'
         app_label = 'pay'
@@ -1192,6 +1195,7 @@ def gauge_data(sender, instance, created, **kwargs):
             key = 'saleorder_synclog.booknum'
         if key:
             statsd.timing(key, instance.actual_num)
-    #logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
+            # logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
+
 
 post_save.connect(gauge_data, sender=SaleOrderSyncLog, dispatch_uid='post_save_gauge_data')
