@@ -6,8 +6,8 @@ from .models import (
     ForecastInbound,
     ForecastInboundDetail,
     StagingInBound,
-    RealInBound,
-    RealInBoundDetail,
+    RealInbound,
+    RealInboundDetail,
     ForecastStats
 )
 
@@ -102,10 +102,10 @@ class StagingInBoundSerializer(serializers.ModelSerializer):
         fields = ('id', 'wave_no', 'forecast_inbound', 'supplier', 'ware_house', 'product', 'record_num', 'creator','status')
 
 
-class SimpleRealInBoundSerializer(serializers.ModelSerializer):
+class SimpleRealInboundSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = RealInBound
+        model = RealInbound
         extra_kwargs = {}
         fields = ('id', 'wave_no', 'ware_house', 'express_code', 'express_no', 'creator', 'inspector',
                   'total_detail_num', 'total_inferior_num', 'created', 'memo', 'status', 'status_name')

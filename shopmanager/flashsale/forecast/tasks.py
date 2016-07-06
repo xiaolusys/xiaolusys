@@ -5,7 +5,7 @@ from django.db.models import Max
 from celery.task import task
 from celery.task.sets import subtask
 
-from .models import ForecastInbound, ForecastInboundDetail, ForecastStats, RealInBound
+from .models import ForecastInbound, ForecastInboundDetail, ForecastStats, RealInbound
 from . import services
 
 import logging
@@ -22,9 +22,10 @@ def task_forecast_update_stats_data(finbound_id):
             stats = ForecastStats(forecast_inbound=forecast_inbound,
                               supplier=forecast_inbound.supplier)
 
+        stats.purchaser = forecast_inbound.purchaser
         if forecast_inbound.supplier:
-            buyer = forecast_inbound.supplier.buyer
-            stats.buyer_name = buyer and buyer.username or 'nobody'
+            buyer_name = forecast_inbound.supplier.buyer_name
+            stats.buyer_name = buyer_name or 'nobody'
 
         # timeout stats
         if forecast_inbound.status == ForecastInbound.ST_TIMEOUT:
@@ -33,7 +34,7 @@ def task_forecast_update_stats_data(finbound_id):
             return
 
         realinbounds_qs = forecast_inbound.real_inbound_manager.filter(
-            status__in=(RealInBound.STAGING, RealInBound.COMPLETED)
+            status__in=(RealInbound.STAGING, RealInbound.COMPLETED)
         )
         stats.purchase_num = forecast_inbound.total_forecast_num
         stats.inferior_num = sum(realinbounds_qs.values_list('total_inferior_num',flat=True))
@@ -42,7 +43,7 @@ def task_forecast_update_stats_data(finbound_id):
 
         purchase_orders = forecast_inbound.relate_order_set.all()
         purchase_details = services.get_purchaseorder_detail_data(purchase_orders)
-        purchase_details_dict = dict([(o['chichu_id'], o) for o in purchase_details])
+        purchase_details_dict = dict([(int(o['chichu_id']), o) for o in purchase_details])
 
         total_amount = 0
         for detail in forecast_inbound.normal_details:

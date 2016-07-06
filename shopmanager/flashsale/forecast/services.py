@@ -11,8 +11,8 @@ from .models import (
     ForecastInbound,
     default_forecast_inbound_no,
     ForecastInboundDetail,
-    RealInBound,
-    RealInBoundDetail
+    RealInbound,
+    RealInboundDetail
 )
 
 class AggregateDataException(BaseException):
@@ -94,16 +94,16 @@ def get_normal_forecast_inbound_by_orderid(purchase_orderid_list):
 
 def get_normal_realinbound_by_orderid(purchase_orderid_list):
     # TODO : caution many to many manager filter will not include other object related
-    rb_ids = RealInBound.objects.filter(relate_order_set__in=purchase_orderid_list,
-                                               status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
-    return RealInBound.objects.filter(id__in=rb_ids)
+    rb_ids = RealInbound.objects.filter(relate_order_set__in=purchase_orderid_list,
+                                               status__in=(RealInbound.STAGING,RealInbound.COMPLETED))
+    return RealInbound.objects.filter(id__in=rb_ids)
 
 
 def get_normal_realinbound_by_forecastid(forecastid_list):
     # TODO : caution many to many manager filter will not include other object related
-    rb_ids = RealInBound.objects.filter(forecast_inbound_id__in=forecastid_list,
-                                               status__in=(RealInBound.STAGING,RealInBound.COMPLETED))
-    return RealInBound.objects.filter(id__in=rb_ids)
+    rb_ids = RealInbound.objects.filter(forecast_inbound_id__in=forecastid_list,
+                                               status__in=(RealInbound.STAGING,RealInbound.COMPLETED))
+    return RealInbound.objects.filter(id__in=rb_ids)
 
 def get_purchaseorders_data(purchase_orderid_list):
     from flashsale.dinghuo.models import OrderList, OrderDetail
@@ -117,8 +117,8 @@ def get_purchaseorders_data(purchase_orderid_list):
 
 def get_realinbounds_data(purchase_orderid_list):
     inbound_qs = get_normal_realinbound_by_orderid(purchase_orderid_list)
-    inbound_details_qs = RealInBoundDetail.objects.filter(inbound__in=inbound_qs,
-                                                          status=RealInBoundDetail.NORMAL)
+    inbound_details_qs = RealInboundDetail.objects.filter(inbound__in=inbound_qs,
+                                                          status=RealInboundDetail.NORMAL)
     real_inbound_values = inbound_details_qs.values('sku_id').annotate(
             arrival_quantity=Sum('arrival_quantity'),
             inferior_quantity=Sum('inferior_quantity')
@@ -163,8 +163,8 @@ def strip_forecast_inbound(forecast_inbound_id):
     forecast_inbound = ForecastInbound.objects.get(id=forecast_inbound_id)
 
     # 如果有多个到货单关联一个预测单，需要聚合计算
-    real_inbound_details_qs = RealInBoundDetail.objects.filter(inbound__forecast_inbound=forecast_inbound,
-                                                               status=RealInBoundDetail.NORMAL)
+    real_inbound_details_qs = RealInboundDetail.objects.filter(inbound__forecast_inbound=forecast_inbound,
+                                                               status=RealInboundDetail.NORMAL)
     real_inbound_qs_values = real_inbound_details_qs.values('sku_id')\
         .annotate(total_arrival_num=Sum('arrival_quantity'),total_inferior_num=Sum('inferior_quantity'))
     real_inbound_detail_dict = dict([(d['sku_id'], d) for d in real_inbound_qs_values])
@@ -288,7 +288,7 @@ class AggregateForcecastOrderAndInbound(object):
             is_arrivalexcept = False
 
             real_inbound_qs = get_normal_realinbound_by_orderid(aggregate_id_set)
-            inbounds_data = serializers.SimpleRealInBoundSerializer(real_inbound_qs, many=True).data
+            inbounds_data = serializers.SimpleRealInboundSerializer(real_inbound_qs, many=True).data
             aggregate_inbounds_dict = dict([(ib['id'], ib) for ib in inbounds_data])
 
             forecast_inbound_qs = get_normal_forecast_inbound_by_orderid(aggregate_id_set)
@@ -296,7 +296,7 @@ class AggregateForcecastOrderAndInbound(object):
                 forecast_data = serializers.SimpleForecastInboundSerializer(forecast).data
 
                 real_inbound_qs = get_normal_realinbound_by_forecastid([forecast.id])
-                inbounds_data = serializers.SimpleRealInBoundSerializer(real_inbound_qs, many=True).data
+                inbounds_data = serializers.SimpleRealInboundSerializer(real_inbound_qs, many=True).data
 
                 forecast_data['relate_inbounds']  = real_inbound_qs.values_list('id', flat=True)
                 is_unarrived = len(inbounds_data) == 0 and \

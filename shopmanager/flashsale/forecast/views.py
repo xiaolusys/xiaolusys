@@ -17,6 +17,9 @@ from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
 from rest_framework import filters
+from django_filters import Filter
+from django_filters.fields import Lookup
+import django_filters
 
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
@@ -30,8 +33,8 @@ from .models import (
     StagingInBound,
     ForecastInbound,
     ForecastInboundDetail,
-    RealInBound,
-    RealInBoundDetail,
+    RealInbound,
+    RealInboundDetail,
     ForecastStats
 )
 from . import serializers
@@ -54,7 +57,7 @@ class StagingInboundViewSet(viewsets.ModelViewSet):
     queryset = StagingInBound.objects.filter(status=StagingInBound.STAGING)
 
     serializer_class = serializers.StagingInBoundSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer,)
 
@@ -165,16 +168,16 @@ class StagingInboundViewSet(viewsets.ModelViewSet):
 
 
 class InBoundViewSet(viewsets.ModelViewSet):
-    queryset = RealInBound.objects.all()
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    queryset = RealInbound.objects.all()
+    authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer,)
 
     def retrieve(self, request, pk=None):
-        inbound = RealInBound.objects.get(id=pk)
+        inbound = RealInbound.objects.get(id=pk)
 
         skus_dict = {}
-        for inbounddetail in inbound.inbound_detail_manager.filter(status=RealInBoundDetail.NORMAL).order_by('id'):
+        for inbounddetail in inbound.inbound_detail_manager.filter(status=RealInboundDetail.NORMAL).order_by('id'):
             skus_dict[inbounddetail.sku_id] = {
                 'arrival_quantity': inbounddetail.arrival_quantity,
                 'inferior_quantity': inbounddetail.inferior_quantity
@@ -231,7 +234,7 @@ class InBoundViewSet(viewsets.ModelViewSet):
         inbound = {
             'supplier': supplier,
             'express_no': inbound.express_no,
-            'status': dict(RealInBound.STATUS_CHOICES).get(inbound.status) or '待入库',
+            'status': dict(RealInbound.STATUS_CHOICES).get(inbound.status) or '待入库',
             'created': inbound.created.strftime('%y年%m月%d %H:%M:%S'),
             'warehouse': dict(constants.WARE_CHOICES).get(inbound.ware_house) or '未选仓',
             'forecast_inbound_id': inbound.forecast_inbound.id if inbound.forecast_inbound else '',
@@ -251,7 +254,7 @@ class InBoundViewSet(viewsets.ModelViewSet):
 
         forecast_inbound = ForecastInbound.objects.get(id=forecast_inbound_id)
         supplier_id = forecast_inbound.supplier_id
-        real_inbound = RealInBound(
+        real_inbound = RealInbound(
             forecast_inbound=forecast_inbound,
             ware_house=forecast_inbound.ware_house,
             supplier=forecast_inbound.supplier,
@@ -273,7 +276,7 @@ class InBoundViewSet(viewsets.ModelViewSet):
             barcode = sku.barcode
             product_name = sku.product.name
             product_img = sku.product.PIC_PATH
-            real_inbound_detail = RealInBoundDetail(
+            real_inbound_detail = RealInboundDetail(
                 inbound=real_inbound,
                 product_id=product_id,
                 sku_id=sku_id,
@@ -296,7 +299,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
     """
     queryset = ForecastInbound.objects.all()
     serializer_class = serializers.ForecastInboundSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer,)
 
@@ -549,24 +552,32 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                         template_name='forecast/aggregate_billing_detail.html')
 
 
+class ForecastStatsFilter(filters.FilterSet):
+    purchase_time_start = django_filters.DateFilter(name="purchase_time", lookup_type='gte')
+    purchase_time_end = django_filters.DateFilter(name="purchase_time", lookup_type='lte')
 
+    class Meta:
+        model = ForecastStats
+        fields = ['purchase_time_start', 'purchase_time_end']
 
 class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ForecastStats.objects.all()
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.ForecastStatsSerializer
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, renderers.TemplateHTMLRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('supplier', 'purchase_time', 'buyer_name', 'purchaser')
+    # filter_fields = ('supplier', 'purchase_time', 'buyer_name', 'purchaser')
+    filter_class = ForecastStatsFilter
     template_name = 'forecast/report_stats.html'
+
 
     def list(self, request, format=None, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related('supplier')
         stats_values = queryset.extra(
             select = {
-                'arrival_period': 'TIMESTAMPDIFF(DAY, purchase_time, arrival_time)',
-                'delivery_period': 'TIMESTAMPDIFF(DAY, purchase_time, delivery_time)',
+                'arrival_period': 'IFNULL(TIMESTAMPDIFF(DAY, purchase_time, arrival_time),TIMESTAMPDIFF(DAY, purchase_time,NOW()))',
+                'delivery_period': 'IFNULL(TIMESTAMPDIFF(DAY, purchase_time, delivery_time),TIMESTAMPDIFF(DAY, purchase_time,NOW()))',
                 'logistic_period': 'TIMESTAMPDIFF(DAY, delivery_time, arrival_time)',
                 'is_lack': 'has_lack',
                 'is_defact': 'has_defact',
@@ -581,9 +592,15 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
             'inferior_num', 'lack_num', 'purchase_amount', 'arrival_period', 'delivery_period', 'logistic_period',
             'is_lack', 'is_defact', 'is_overhead', 'is_wrong', 'is_unrecord', 'is_timeouted', 'is_close'
         )
+        purchase_time_start = request.GET.get('purchase_time_start',datetime.datetime(2016,1,1))
+        purchase_time_end = request.GET.get('purchase_time_end',datetime.datetime.now())
         if format == 'json':
-            return Response({'results': stats_values})
+            return Response({'results': stats_values,
+                             'purchase_time_start':purchase_time_start,
+                             'purchase_time_end':purchase_time_end})
         else:
             stats_values = list(stats_values)
-            return Response({'results': stats_values})
+            return Response({'results': stats_values,
+                             'purchase_time_start':purchase_time_start,
+                             'purchase_time_end':purchase_time_end})
 

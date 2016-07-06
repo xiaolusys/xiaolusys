@@ -125,6 +125,10 @@ class ForecastInbound(BaseModel):
             self.is_unrecordlogistic = True
         if not self.arrival_time:
             self.arrival_time = arrival_time or datetime.datetime.now()
+        if not self.delivery_time:
+            self.delivery_time = self.created + datetime.timedelta(days=1)
+            if self.delivery_time > self.arrival_time:
+                self.delivery_time = self.arrival_time
         self.status = self.ST_ARRIVED
 
 

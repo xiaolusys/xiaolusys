@@ -14,7 +14,7 @@ from .. import constants
 def default_inbound_ware_no():
     return datetime.datetime.now().strftime('%Y%m%d') + '-1'
 
-def uniq_staging_inbound_record(supplier_id, ware_house, creator, sku_id):
+def gen_uniq_staging_inbound_record_id(supplier_id, ware_house, creator, sku_id):
     staging_ibs = StagingInBound.objects.filter(supplier_id=supplier_id,
                                   ware_house=ware_house,
                                   creator=creator,
