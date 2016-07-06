@@ -1154,19 +1154,21 @@ class SaleOrderSyncLog(BaseModel):
     SO_PSI = 1  # SaleOrder -> PackageSkuItem
     PSI_PR = 2  # PackageSkuItem -> PurchaseRecord
     BOOKNUM = 3
-    TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'), (BOOKNUM, u'订货NUM'))
-
+    PACKAGE_SKU_NUM = 4  # PackageSkuItem -> PackageOrder
+    INBOUND_OUT_STOCK = 5  # InBoundDetail -> InBound out_stock
+    INBOUND_INFERIOR = 6   # InBoundDetail -> InBound inferior
+    PACKAGE_SKU_FINISH_NUM = 7
+    TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'), (BOOKNUM, u'订货NUM'),
+                   (PACKAGE_SKU_FINISH_NUM, u'包裹SKU完成计数'), (INBOUND_OUT_STOCK, u'入库有多货'),
+                   (INBOUND_INFERIOR, u'入库有次品'), (PACKAGE_SKU_NUM, u'包裹SKU实时计数'))
     OPEN = 1
     COMPLETED = 2
     STATUS_CHOICE = ((OPEN, u'未完成'), (COMPLETED, u'完成'))
-
     time_from = models.DateTimeField(verbose_name=u'开始时间')
     time_to = models.DateTimeField(verbose_name=u'结束时间')
     uni_key = models.CharField(max_length=32, unique=True, verbose_name='UniKey')
-
     target_num = models.IntegerField(null=True, default=0, verbose_name=u'目标数量')
     actual_num = models.IntegerField(null=True, default=0, verbose_name=u'实际数量')
-
     type = models.IntegerField(choices=TYPE_CHOICE, default=UNKNOWN, db_index=True, verbose_name=u'类型')
     status = models.IntegerField(choices=STATUS_CHOICE, default=OPEN, db_index=True, verbose_name=u'状态')
 

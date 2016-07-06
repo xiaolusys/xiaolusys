@@ -21,22 +21,26 @@ from django.views.decorators.csrf import csrf_exempt
 import common.utils
 from common.utils import CSVUnicodeWriter
 from core.options import log_action, CHANGE, ADDITION
-from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDetailInBoundDetail, InBoundDetail, InBound, ReturnGoods
+from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDetailInBoundDetail, InBoundDetail, \
+    InBound, ReturnGoods
 import functions
 from shopback.items.models import Product, ProductSku, ProductStock
 from supplychain.supplier.models import SaleProduct, SaleSupplier
-from flashsale.finance.models import Bill,BillRelation     #财务记录model
+from flashsale.finance.models import Bill, BillRelation  # 财务记录model
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
-
+from django.db.models import Q
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class ChangeDetailView(View):
     @staticmethod
     def get(request, order_detail_id):
         order_list = OrderList.objects.get(id=order_detail_id)
-        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id,buy_quantity__gt=0).order_by('outer_id')
+        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id, buy_quantity__gt=0).order_by(
+            'outer_id')
         flag_of_status = False
         flag_of_question = False
         flag_of_sample = False
@@ -98,7 +102,6 @@ class ChangeDetailView(View):
             buyer_name = '%s%s' % (order_list.buyer.last_name, order_list.buyer.first_name)
             buyer_name = buyer_name or order_list.buyer.username
 
-
         inbounddetail_ids = set()
         for record in OrderDetailInBoundDetail.objects.filter(orderdetail_id__in=[x['id'] for x in order_list_list],
                                                               status=OrderDetailInBoundDetail.NORMAL):
@@ -107,7 +110,7 @@ class ChangeDetailView(View):
         for inbounddetail in InBoundDetail.objects.filter(id__in=list(inbounddetail_ids)):
             inbound_ids.add(inbounddetail.inbound_id)
         inbound_dicts = []
-        #for inbound in InBound.objects.filter(id__in=list(inbound_ids), status__in=[InBound.COMPLETED, InBound.WAIT_CHECK, InBound.PENDING]).order_by('id'):
+        # for inbound in InBound.objects.filter(id__in=list(inbound_ids), status__in=[InBound.COMPLETED, InBound.WAIT_CHECK, InBound.PENDING]).order_by('id'):
         for inbound in order_list.get_inbounds():
             inbound_dicts.append({
                 'id': inbound.id,
@@ -143,7 +146,7 @@ class ChangeDetailView(View):
             order_list.save()
             log_action(request.user.id, order_list, CHANGE,
                        u'%s 订货单' % (u'添加备注'))
-        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id,buy_quantity__gt=0)
+        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id, buy_quantity__gt=0)
         order_list_list = []
         for order in order_details:
             order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity
@@ -184,6 +187,7 @@ class ChangeDetailView(View):
             except:
                 w = _M.get(chicun) or chicun
             return x.get('product_id') or 0, w
+
         order_list_list = sorted(order_list_list, key=_sort)
 
         if order_list.status == "草稿":
@@ -196,7 +200,7 @@ class ChangeDetailView(View):
         # 是否到货商品关联订单
         flag_of_question = False
         if order_list.status in [OrderList.QUESTION, OrderList.CIPIN, OrderList.QUESTION_OF_QUANTITY,
-                                OrderList.TO_BE_PAID, OrderList.TO_PAY, OrderList.CLOSED]:
+                                 OrderList.TO_BE_PAID, OrderList.TO_PAY, OrderList.CLOSED]:
             flag_of_question = True
 
         try:
@@ -235,12 +239,12 @@ class AutoNewOrder(View):
 
 def update_dinghuo_part_information(request):
     dinghuo_id = int(request.REQUEST.get("dinghuo_id", None))
-    express_company = request.REQUEST.get("express_company_id",None)
+    express_company = request.REQUEST.get("express_company_id", None)
     express_no = request.REQUEST.get("express_no", None)
     pay_way = int(request.REQUEST.get("pay_way", None))
     supplier_name = request.REQUEST.get("supplier_name", None)
     try:
-        item = OrderList.objects.get(id = dinghuo_id)
+        item = OrderList.objects.get(id=dinghuo_id)
         item.express_company = express_company
         item.express_no = express_no
         item.supplier_name = supplier_name
@@ -250,39 +254,31 @@ def update_dinghuo_part_information(request):
         if not sale_supplier.product_link:
             sale_supplier.product_link = supplier_name
             sale_supplier.save()
-    except Exception,msg:
+    except Exception, msg:
         print msg
-        return  HttpResponse(False)
+        return HttpResponse(False)
     return HttpResponse(True)
 
-def generate_tuihuodan(request):
 
+def generate_return_goods(request):
     supplier = request.REQUEST.get("supplier", None)
-    # product_id = request.REQUEST.get("product_id", None)
-    # return_num = request.REQUEST.get("return_num", None)
-    # sum_amount = request.REQUEST.get("sum_amount", None)
-    # transactor_id = request.REQUEST.get("transactor_id", None)
-    # noter = request.REQUEST.get("noter", None)
-
+    stype = request.REQUEST.get("type", 0)
     try:
-        ss = SaleSupplier.objects.get(supplier_name = supplier)
-    except Exception,msg:
-        return HttpResponse(json.dumps({"res":False, "data":[], "desc":"供应商不存在"}))
+        ss = SaleSupplier.objects.get(Q(supplier_name=supplier) | Q(id=supplier))
+    except Exception, msg:
+        return HttpResponse(json.dumps({"res": False, "data": [], "desc": "供应商不存在"}))
     try:
-        rg = ReturnGoods.objects.create(supplier=ss)
+        rg = ReturnGoods.objects.create(supplier=ss, type=stype)
         rg.save()
-        logger.info("新建退货单成功")
-        log_action(request.user, rg, ADDITION, 'ReturnGoods退货单创建成功')
-        return HttpResponse(json.dumps({"res":True, "data":[rg.id],"desc":""}))
-    except Exception,msg:
-        return HttpResponse(json.dumps({"res":False, "data":[],"desc":"创建退货单失败"}))
+        return HttpResponse(json.dumps({"res": True, "data": [rg.id], "desc": ""}))
+    except Exception, msg:
+        return HttpResponse(json.dumps({"res": False, "data": [], "desc": "创建退货单失败"}))
 
 
 @csrf_exempt
 def change_inferior_num(request):
     if not request.user.has_perm('dinghuo.change_orderdetail_quantity'):
         return HttpResponse(json.dumps({'error': True, 'msg': "权限不足"}), content_type='application/json')
-
 
     post = request.POST
     flag = post['flag']
@@ -324,7 +320,7 @@ class ChangeDetailExportView(View):
         headers = [u'商品编码', u'供应商编码', u'商品名称', u'规格', u'购买数量', u'买入价格', u'单项价格',
                    u'已入库数', u'次品数']
         order_list = OrderList.objects.get(id=order_detail_id)
-        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id,buy_quantity__gt=0)
+        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id, buy_quantity__gt=0)
         items = []
         for o in order_details:
             sku = ProductSku.objects.get(id=o.chichu_id)
@@ -391,7 +387,8 @@ class ChangeDetailExportView(View):
         supplier_name = ''
         supplier_contactor = ''
         supplier_contact = ''
-        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id,buy_quantity__gt=0).order_by('outer_id')
+        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id, buy_quantity__gt=0).order_by(
+            'outer_id')
 
         receiver_address = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼' if order_list.p_district == '3' else \
             '上海市佘山镇吉业路245号5号楼'
@@ -529,15 +526,13 @@ class ChangeDetailExportView(View):
         return response
 
 
-
 class DinghuoStatsExportView(View):
-
     @classmethod
     def get_status(cls, status):
         status_mapping = dict(OrderList.ORDER_PRODUCT_STATUS)
         status_display = status_mapping.get(status) or status
         buyer_status_display = '已完成' if status in \
-          [OrderList.COMPLETED, OrderList.TO_BE_PAID, OrderList.CLOSED] else '未完成'
+                                        [OrderList.COMPLETED, OrderList.TO_BE_PAID, OrderList.CLOSED] else '未完成'
         return status_display, buyer_status_display
 
     def get(self, request):
@@ -547,7 +542,8 @@ class DinghuoStatsExportView(View):
         end_date = datetime.datetime.strptime(request.GET['end_date'], '%Y%m%d').date()
 
         data = []
-        for orderlist in OrderList.objects.filter(created__gte=start_date, created__lte=end_date).exclude(status=OrderList.ZUOFEI).order_by('id'):
+        for orderlist in OrderList.objects.filter(created__gte=start_date, created__lte=end_date).exclude(
+                status=OrderList.ZUOFEI).order_by('id'):
             username = get_admin_name(orderlist.buyer)
             interval = (orderlist.updated - datetime.datetime.combine(orderlist.created, datetime.time.min)).days
             created_str = orderlist.created.strftime('%Y-%m-%d')

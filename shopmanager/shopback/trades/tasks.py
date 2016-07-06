@@ -903,6 +903,7 @@ def getProductSkuByOuterId(outer_id, outer_sku_id):
 from shopback.trades.models import PackageSkuItem, PackageOrder
 from flashsale.pay.models import SaleOrder, SaleTrade, SaleRefund
 
+
 @task(max_retries=3, default_retry_delay=6)
 def task_packageskuitem_update_productskustats(sku_id):
     """
@@ -1076,24 +1077,29 @@ def task_merge_trade_update_sale_order(merge_trade):
 
 from flashsale.pay.models import SaleOrderSyncLog
 
+
 def create_packageskuitem_check_log(time_from, type, uni_key):
     time_to = time_from + datetime.timedelta(hours=1)
-    sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,pay_time__gt=time_from,pay_time__lte=time_to)
+    sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                   refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER, pay_time__gt=time_from,
+                                   pay_time__lte=time_to)
     target_num = sos.count()
-    actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to,assign_status__lt=PackageSkuItem.FINISHED).count()
-    log = SaleOrderSyncLog(time_from=time_from,time_to=time_to,uni_key=uni_key,type=type,target_num=target_num,actual_num=actual_num)
+    actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to,
+                                               assign_status__lt=PackageSkuItem.FINISHED).count()
+    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key, type=type, target_num=target_num,
+                           actual_num=actual_num)
     if target_num == actual_num:
         log.status = SaleOrderSyncLog.COMPLETED
     log.save()
-    
+
 
 @task()
 def task_saleorder_check_packageskuitem():
     type = SaleOrderSyncLog.SO_PSI
-    log = SaleOrderSyncLog.objects.filter(type=type,status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
+    log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
     if not log:
         return
-    
+
     time_from = log.time_to
     now = datetime.datetime.now()
     if time_from > now - datetime.timedelta(hours=2):
@@ -1105,14 +1111,17 @@ def task_saleorder_check_packageskuitem():
         create_packageskuitem_check_log(time_from, type, uni_key)
     elif not log.is_completed():
         time_to = log.time_to
-        sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER,pay_time__gt=time_from,pay_time__lte=time_to)
+        sos = SaleOrder.objects.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                       refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER, pay_time__gt=time_from,
+                                       pay_time__lte=time_to)
         for so in sos:
             psi = PackageSkuItem.objects.filter(oid=so.oid).exclude(assign_status=PackageSkuItem.CANCELED).first()
             if not psi:
                 so.save()
         target_num = sos.count()
-        actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from,pay_time__lte=time_to,assign_status__lt=PackageSkuItem.FINISHED).count()
-        
+        actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to,
+                                                   assign_status__lt=PackageSkuItem.FINISHED).count()
+
         update_fields = []
         if log.target_num != target_num:
             log.target_num = target_num
@@ -1127,4 +1136,77 @@ def task_saleorder_check_packageskuitem():
             log.save(update_fields=update_fields)
 
         if target_num != actual_num:
-            logger.error("task_saleorder_check_packageskuitem | uni_key: %s, target_num: %s, actual_num: %s" % (uni_key, target_num, actual_num))
+            logger.error("task_saleorder_check_packageskuitem | uni_key: %s, target_num: %s, actual_num: %s" % (
+                uni_key, target_num, actual_num))
+
+
+def create_packageorder_finished_check_log(time_from, uni_key):
+    """
+        确保已备货的PackageSkuItem数量等于待发货PackageOrder关联的PackageSkuItem的数量，
+        同时等于每个PackageOrder的sku_num等于其关联的PackageSkuItem的数量
+    """
+    time_to = time_from + datetime.timedelta(hours=1)
+    actual_num = PackageSkuItem.objects.filter(finish_time__gt=time_from, pay_time__lte=time_to,
+                                               assign_status__lt=PackageSkuItem.FINISHED).count()
+    target_num = PackageOrder.objects.filter(weight_time__gt=time_from, weight_time__lte=time_to,
+                                               sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE,
+                                                               PackageOrder.FINISHED_STATUS]).count()
+    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
+                           type=SaleOrderSyncLog.PACKAGE_SKU_FINISH_NUM, target_num=target_num,
+                           actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+
+@task()
+def task_packageorder_send_check_packageorder():
+    type = SaleOrderSyncLog.PACKAGE_SKU_FINISH_NUM
+    log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
+    if not log:
+        return
+    time_from = log.time_to
+    now = datetime.datetime.now()
+    if time_from > now - datetime.timedelta(hours=2):
+        return
+
+    uni_key = "%s|%s" % (type, time_from)
+    log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
+    if not log:
+        create_packageorder_finished_check_log(time_from, uni_key)
+
+
+def create_packageorder_realtime_check_log(time_from, uni_key):
+    """
+        确保已备货的PackageSkuItem数量等于待发货PackageOrder关联的PackageSkuItem的数量，
+        同时等于每个PackageOrder的sku_num等于其关联的PackageSkuItem的数量
+    """
+    target_num = PackageSkuItem.objects.filter(assign_status=1).count()
+    sku_item_total = PackageOrder.objects.filter(sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS,
+                                                             PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+                                                             PackageOrder.WAIT_SCAN_WEIGHT_STATUS]).aggregate(
+        n=Sum('sku_num')).get('n', 0) or 0
+    actual_num = sum([p.package_sku_items.count() for p in PackageOrder.objects.filter(
+        sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+                        PackageOrder.WAIT_SCAN_WEIGHT_STATUS])])
+    actual_num = min(sku_item_total, actual_num)
+    log = SaleOrderSyncLog(time_from=time_from, time_to=datetime.datetime.now(), uni_key=uni_key,
+                           type=SaleOrderSyncLog.PACKAGE_SKU_NUM, target_num=target_num,
+                           actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+
+@task()
+def task_schedule_check_packageskuitem_cnt():
+    type = SaleOrderSyncLog.PACKAGE_SKU_NUM
+    log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
+    if not log:
+        return
+    time_from = datetime.datetime(log.time_to.year, log.time_to.month, log.time_to.day, log.time_to.hour)
+    now = datetime.datetime.now()
+    if time_from > now - datetime.timedelta(minutes=10):
+        return  #　celery schedule中每半小时启动一次
+    uni_key = "%s|%s" % (type, now)
+    create_packageorder_realtime_check_log(time_from, uni_key)

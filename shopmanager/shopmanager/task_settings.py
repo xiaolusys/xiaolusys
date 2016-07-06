@@ -1098,6 +1098,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'实时统计当前待发货准备的packageskuitem的数据':{
+        'task': 'shopback.trades.tasks.task_schedule_check_packageskuitem_cnt',
+        'achedule':crontab(minute="0"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     #    'runs-every-10-minutes-update-seller-flag':{
     #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
     #        'schedule':crontab(minute="*/10"),

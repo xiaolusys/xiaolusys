@@ -385,6 +385,7 @@ class ReturnGoods(models.Model):
             rgd = RGDetail()
             rgd.return_goods = self
             rgd.skuid = skuid
+            rgd.type = self.type
             if inferior:
                 rgd.inferior_num = num
             else:
