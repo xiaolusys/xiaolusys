@@ -9,8 +9,7 @@ import datetime, urlparse
 from core.fields import JSONCharMyField
 
 import logging
-
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django.request')
 
 
 def get_choice_name(choices, val):
@@ -554,12 +553,13 @@ post_save.connect(confirm_previous_clickcarry,
 
 def gauge_active_mama(sender, instance, created, **kwargs):
     from django_statsd.clients import statsd
+    active_mama_count = 0
     if created:
         date_field = datetime.datetime.now().date()
         active_mama_count = ClickCarry.objects.filter(date_field=date_field).count()
         key = "clickcarry.active_mama"
         statsd.timing(key, active_mama_count)
-        logger.warn("gauge_active_mama|active_mama_count:%s" % active_mama_count)
+    logger.warn("gauge_active_mama|active_mama_count:%s" % active_mama_count)
 
 post_save.connect(gauge_active_mama, sender=ClickCarry, dispatch_uid='post_save_gauge_active_mama')
 
