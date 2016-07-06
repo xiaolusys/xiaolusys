@@ -16,6 +16,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
+from rest_framework import filters
 
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
@@ -25,7 +26,14 @@ from core.options import log_action, ADDITION, CHANGE
 from shopback.items.models import Product, ProductSku, ProductLocation, ProductSkuStats
 from supplychain.supplier.models import SaleProduct
 
-from .models import StagingInBound,ForecastInbound,ForecastInboundDetail,RealInBound,RealInBoundDetail
+from .models import (
+    StagingInBound,
+    ForecastInbound,
+    ForecastInboundDetail,
+    RealInBound,
+    RealInBoundDetail,
+    ForecastStats
+)
 from . import serializers
 from . import constants
 from . import services
@@ -123,7 +131,7 @@ class StagingInboundViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def save_staging_records(self, request):
-        from .models import uniq_staging_inbound_record
+        from .models import gen_uniq_staging_inbound_record_id
 
         staging_records = json.loads(request.POST['staging_records'])
         forecast_inbound_id = request.POST['forecast_inbound_id']
@@ -149,7 +157,7 @@ class StagingInboundViewSet(viewsets.ModelViewSet):
                     product_id=product_id,
                     sku_id=sku_id,
                     record_num=staging_record['record_num'],
-                    uniq_key=uniq_staging_inbound_record(supplier_id, product.ware_by, creator, sku_id),
+                    uniq_key=gen_uniq_staging_inbound_record_id(supplier_id, product.ware_by, creator, sku_id),
                     creator=creator
                 )
                 staging_inbound.save()
@@ -540,6 +548,42 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                                        'total_out_amount': total_out_amount}},
                         template_name='forecast/aggregate_billing_detail.html')
 
-    @list_route(methods=['get'])
-    def report_stats(self, request, *args, **kwargs):
-        return Response({},template_name='forecast/reports.html')
+
+
+
+class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ForecastStats.objects.all()
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = serializers.ForecastStatsSerializer
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, renderers.TemplateHTMLRenderer,)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_fields = ('supplier', 'purchase_time', 'buyer_name', 'purchaser')
+    template_name = 'forecast/report_stats.html'
+
+    def list(self, request, format=None, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset()).select_related('supplier')
+        stats_values = queryset.extra(
+            select = {
+                'arrival_period': 'TIMESTAMPDIFF(DAY, purchase_time, arrival_time)',
+                'delivery_period': 'TIMESTAMPDIFF(DAY, purchase_time, delivery_time)',
+                'logistic_period': 'TIMESTAMPDIFF(DAY, delivery_time, arrival_time)',
+                'is_lack': 'has_lack',
+                'is_defact': 'has_defact',
+                'is_overhead': 'has_overhead',
+                'is_wrong': 'has_wrong',
+                'is_unrecord': 'is_unrecordlogistic',
+                'is_timeouted': 'is_timeout',
+                'is_close': 'is_lackclose',
+            }
+        ).values(
+            'id', 'forecast_inbound', 'supplier__supplier_name', 'buyer_name', 'purchaser', 'purchase_num',
+            'inferior_num', 'lack_num', 'purchase_amount', 'arrival_period', 'delivery_period', 'logistic_period',
+            'is_lack', 'is_defact', 'is_overhead', 'is_wrong', 'is_unrecord', 'is_timeouted', 'is_close'
+        )
+        if format == 'json':
+            return Response({'results': stats_values})
+        else:
+            stats_values = list(stats_values)
+            return Response({'results': stats_values})
+

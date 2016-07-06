@@ -170,7 +170,7 @@ def strip_forecast_inbound(forecast_inbound_id):
     real_inbound_detail_dict = dict([(d['sku_id'], d) for d in real_inbound_qs_values])
 
     sku_delta_dict = {}
-    for detail in forecast_inbound.normal_details():
+    for detail in forecast_inbound.normal_details:
         real_detail = real_inbound_detail_dict.get(detail.sku_id, None)
         real_arrive_num = real_detail and real_detail.get('total_arrival_num', 0) or 0
         delta_arrive_num = detail.forecast_arrive_num - real_arrive_num
@@ -189,7 +189,7 @@ def strip_forecast_inbound(forecast_inbound_id):
         for order in forecast_inbound.relate_order_set.all():
             new_forecast.relate_order_set.add(order)
 
-        for detail in forecast_inbound.normal_details():
+        for detail in forecast_inbound.normal_details:
             delta_arrive_num = sku_delta_dict.get(detail.sku_id, 0)
             if delta_arrive_num > 0:
                 forecast_detail = ForecastInboundDetail()
