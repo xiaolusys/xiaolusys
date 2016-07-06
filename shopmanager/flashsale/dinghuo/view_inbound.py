@@ -122,6 +122,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
         #     inbound_skus_dict, [x['orderlist_id']
         #                         for x in orderlists], orderlist_id, express_no)
         log_action(request.user.id, inbound, ADDITION, '创建')
+        from flashsale.dinghuo.tasks import task_inbound_check_out_stock, task_inbound_check_inferior
+        task_inbound_check_out_stock.delay()
+        task_inbound_check_inferior.delay()
         return Response({
             "res": True,
             'inbound': {
