@@ -137,7 +137,9 @@ class ForecastInbound(BaseModel):
 
 def modify_forecastinbound_data(sender, instance, created, **kwargs):
 
-    if instance.express_no and not instance.delivery_time:
+    if (instance.express_no and
+        not instance.delivery_time and
+        instance.status == ForecastInbound.ST_APPROVED):
         instance.delivery_time = datetime.datetime.now()
         instance.save(update_fields=['delivery_time'])
 
