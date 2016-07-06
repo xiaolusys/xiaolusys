@@ -203,6 +203,14 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class SaleScheduleDetailFilter(filters.FilterSet):
+    order_weight = django_filters.NumberFilter(name="order_weight")
+
+    class Meta:
+        model = SaleProductManageDetail
+        fields = ['order_weight', "id"]
+
+
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     """
     ###排期管理商品REST API接口：
@@ -213,6 +221,9 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     # permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
+    ordering_fields = ('order_weight', )
+    filter_class = SaleScheduleDetailFilter
 
     def list(self, request, schedule_id=None, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

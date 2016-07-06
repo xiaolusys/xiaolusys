@@ -151,9 +151,10 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SaleProductManageDetail
-        fields = ('id', 'product_name', 'schedule_manage', 'product_pic', 'product_link', 'design_person',
-                  'sale_category', 'material_status', 'product_purchase_price', 'product_sale_price', 'product_origin_price',
-                  'design_take_over', 'design_complete', 'is_approved', 'is_promotion' ,'created', 'modified')
+        fields = ('id', 'product_name', 'product_pic', 'product_link', 'design_person', 'order_weight',
+                  'sale_category', 'material_status', 'product_purchase_price', 'product_sale_price',
+                  'product_origin_price','design_take_over', 'design_complete', 'is_approved', 'is_promotion',
+                  'created', 'modified')
 
 
 class SaleProductManageDetailSimpleSerializer(serializers.ModelSerializer):
