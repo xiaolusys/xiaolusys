@@ -178,6 +178,7 @@ class OrderList(models.Model):
                      (STAGE_DELETED, u'删除'))
     # 改进原状态一点小争议和妥协造成的状态字段冗余 TODO@hy
     stage = models.IntegerField(db_index=True, choices=STAGE_CHOICES, default=0, verbose_name=u'进度')
+    # 冗余字段 避免过多查询
     lack = models.NullBooleanField(default=None, verbose_name=u'缺货')
     inferior = models.BooleanField(default=False, verbose_name=u'次品')
     press_num = models.IntegerField(default=0, verbose_name=u'催促次数')

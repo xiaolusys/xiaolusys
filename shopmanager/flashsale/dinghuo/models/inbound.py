@@ -74,8 +74,9 @@ class InBound(models.Model):
     forecast_inbound_id = models.IntegerField(null=True, db_index=True, verbose_name=u'关联预测单ID')
     checked = models.BooleanField(default=False, verbose_name=u"是否质检")
     check_time = models.DateTimeField(null=True, verbose_name=u"检查时间")
-    wrong = models.BooleanField(default=False, verbose_name=u"是否错货")
-    out_stock = models.BooleanField(default=False, verbose_name=u"是否多货")
+    wrong = models.BooleanField(default=False, verbose_name=u"有错货")
+    out_stock = models.BooleanField(default=False, verbose_name=u"有多货")
+    inferior = models.BooleanField(default=False, verbose_name=u"有次品")
 
     class Meta:
         db_table = 'flashsale_dinghuo_inbound'
@@ -717,9 +718,11 @@ class InBound(models.Model):
     def set_stat(self):
         ori_out_stock = self.out_stock
         ori_wrong = self.wrong
-        self.out_stock = True in [u["out_stock"] for u in self.details.values("out_stock")]
+        ori_inferior = self.inferior
+        self.out_stock = self.all_arrival_quantity > self.all_allocate_quantity
         self.wrong = self.details.filter(wrong=True).exists()
-        if ori_out_stock == self.out_stock and ori_wrong == self.wrong:
+        self.inferior = self.all_inferior_quantity > 0
+        if ori_out_stock == self.out_stock and ori_wrong == self.wrong and ori_inferior == self.inferior:
             change = False
         else:
             change = True
