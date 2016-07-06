@@ -1186,7 +1186,7 @@ def create_packageorder_realtime_check_log(time_from, uni_key):
                                                              PackageOrder.WAIT_CHECK_BARCODE_STATUS,
                                                              PackageOrder.WAIT_SCAN_WEIGHT_STATUS]).aggregate(
         n=Sum('sku_num')).get('n', 0) or 0
-    actual_num = sum([p.package_sku_items.count() for p in PackageOrder.objects.filter(
+    actual_num = sum([p.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).count() for p in PackageOrder.objects.filter(
         sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS,
                         PackageOrder.WAIT_SCAN_WEIGHT_STATUS])])
     actual_num = min(sku_item_total, actual_num)
