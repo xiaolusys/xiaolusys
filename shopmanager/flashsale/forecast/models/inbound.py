@@ -131,9 +131,10 @@ def update_realinbound_data(sender, instance, created, **kwargs):
     forecast_inbound_details = RealInBoundDetail.objects.filter(
         inbound__in=real_inbounds, status=RealInBoundDetail.NORMAL
     )
-    forecast_inbound.total_arrival_num = \
-        sum(forecast_inbound_details.values_list('arrival_quantity', flat=True))
-    forecast_inbound.save(update_fields=['total_arrival_num'])
+    if forecast_inbound:
+        forecast_inbound.total_arrival_num = \
+            sum(forecast_inbound_details.values_list('arrival_quantity', flat=True))
+        forecast_inbound.save(update_fields=['total_arrival_num'])
 
 
 post_save.connect(
