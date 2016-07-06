@@ -348,6 +348,8 @@ class SaleProductAdmin(ApproxAdmin):
 
     def sale_info(self, obj):
         """上架销售信息"""
+        if obj.status != SaleProduct.SCHEDULE:
+            return ''
         product_outer_ids = obj.item_products.values("outer_id")
         from statistics.models import SaleStats
         # 日报　产品　统计
@@ -357,17 +359,19 @@ class SaleProductAdmin(ApproxAdmin):
                       3: u"缺货退款",
                       4: u"退货退款"}
         data = {}
-        stats = SaleStats.objects.filter(current_id__in=product_outer_ids, timely_type=6, record_type=4)
+        stats = SaleStats.objects.filter(timely_type=6,
+                                         record_type=4,
+                                         current_id__in=product_outer_ids).values("date_field", "status", 'num')
         for st in stats:
-            if st.date_field not in data:
-                data[st.date_field] = {u'未付款': 0,
-                                       u'已付款': 0,
-                                       u'发货前退款': 0,
-                                       u'缺货退款': 0,
-                                       u'退货退款': 0}
-                data[st.date_field][status_map[st.status]] = st.num
+            if st['date_field'] not in data:
+                data[st['date_field']] = {u'未付款': 0,
+                                          u'已付款': 0,
+                                          u'发货前退款': 0,
+                                          u'缺货退款': 0,
+                                          u'退货退款': 0}
+                data[st['date_field']][status_map[st['status']]] = st['num']
             else:
-                data[st.date_field][status_map[st.status]] += st.num
+                data[st['date_field']][status_map[st['status']]] += st['num']
         html = []
         for k1, v1 in data.iteritems():
             html.append('<p>%s<br>' % k1.strftime("%Y-%m-%d"))
