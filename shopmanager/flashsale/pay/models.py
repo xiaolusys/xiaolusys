@@ -1192,6 +1192,6 @@ def gauge_data(sender, instance, created, **kwargs):
             key = 'saleorder_synclog.booknum'
         if key:
             statsd.timing(key, instance.actual_num)
-    logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
+    #logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))
 
 post_save.connect(gauge_data, sender=SaleOrderSyncLog, dispatch_uid='post_save_gauge_data')
