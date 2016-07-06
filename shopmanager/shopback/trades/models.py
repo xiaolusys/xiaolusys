@@ -1408,6 +1408,8 @@ class PackageOrder(models.Model):
             psku.update_wait_post_num(sku_item.num, dec_update=True)
             sale_order.sale_trade.set_out_sid(sku_item.package_order.out_sid,
                                               sku_item.package_order.logistics_company_id)
+        from shopback.trades.tasks import task_packageorder_send_check_packageorder
+        task_packageorder_send_check_packageorder.delay()
 
     def is_ready_completion(self):
         if self.sku_num == self.order_sku_num:

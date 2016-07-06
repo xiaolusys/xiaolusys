@@ -33,6 +33,13 @@
                 <label class="required" >供应商:</label>
                 <input type="text" id = "supplier" value=""/>
             </div>
+            <div class="form-row">
+                <label class="required" >类型:</label>
+                <select id="type">
+                    <option selected="selected" value="0">退货回款</option>
+                    <option value="1">退货更换</option>
+                </select>
+            </div>
             <!--<div class="form-row ">-->
                 <!--<label class="required" >退货商品id:</label>-->
                 <!--<input type="text" id = "product_id" value=""/>-->
@@ -118,9 +125,9 @@
 <script>
     var confirm = function(ent){
         var supplier = $("#supplier").val();
-        var url = "/sale/dinghuo/generate_tuihuodan/";
-        var data = {"supplier":supplier
-        };
+        var type = $("#type").val();
+        var url = "/sale/dinghuo/generate_return_goods/";
+        var data = {"supplier":supplier, "type": type};
         $.ajax({"url": url, "data": data, "type": "post", "dataType":"json", "success": callback});
         function callback(res) {
             if (res.res) {
