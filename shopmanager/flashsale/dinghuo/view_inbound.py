@@ -23,6 +23,9 @@ from django.shortcuts import HttpResponseRedirect
 
 from . import services
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class InBoundViewSet(viewsets.GenericViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
@@ -108,8 +111,11 @@ class InBoundViewSet(viewsets.GenericViewSet):
                           arrival_quantity=problem_sku_dict['arrival_quantity'],
                           status=InBoundDetail.PROBLEM).save()
 
-        from flashsale.forecast import apis
-        apis.api_create_or_update_realinbound_by_inbound(inbound.id)
+        try:
+            from flashsale.forecast import apis
+            apis.api_create_or_update_realinbound_by_inbound(inbound.id)
+        except Exception,exc:
+            logger.error(exc.message, exc_info=True)
 
         # orderlists = self._find_orderlists(inbound_skus.keys())
         # allocate_dict = self._find_optimized_allocate_dict(
