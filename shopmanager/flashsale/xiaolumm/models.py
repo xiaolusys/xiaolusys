@@ -96,6 +96,7 @@ class XiaoluMama(models.Model):
     pending = models.IntegerField(default=0, verbose_name=u"冻结佣金")
 
     hasale = models.BooleanField(default=False, verbose_name=u"有购买")
+    is_trial = models.BooleanField(default=False, verbose_name=u"是否试用")
 
     agencylevel = models.IntegerField(default=INNER_LEVEL, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
@@ -883,10 +884,11 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
         mm_linkid = obj.extras_info.get('mm_linkid') or None
         xlmm = XiaoluMama.objects.filter(openid=order_buyer.unionid).first()
         order = obj.sale_orders.all().first()
+        sku_id = int(order.sku_id)
         if not order:
             return
         skuid_day_map = {11873: 365,
-                         213710: 333,
+                         213710: 183,
                          213711: 15}
         if not xlmm:
             return
@@ -898,7 +900,7 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
                 xlmm.referal_from = referal_mm.mobile
 
         now = datetime.datetime.now()
-        add_day_time = datetime.timedelta(days=skuid_day_map[int(order.sku_id)])  # map 续费天数
+        add_day_time = datetime.timedelta(days=skuid_day_map[sku_id])  # map 续费天数
         if xlmm.progress != XiaoluMama.PAY:
             update_fields.append('progress')
             xlmm.progress = XiaoluMama.PAY
@@ -911,7 +913,7 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
             update_fields.append("charge_time")
             xlmm.charge_time = now  # 接管时间
 
-        if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类 续费等级则不去变更
+        if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类 续费场景 则不去变更
             update_fields.append("agencylevel")
             xlmm.agencylevel = XiaoluMama.A_LEVEL
 
@@ -919,9 +921,16 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
             update_fields.append("renew_time")
             xlmm.renew_time = now + add_day_time
         else:
-            if isinstance(xlmm.renew_time, datetime.datetime):
+            if isinstance(xlmm.renew_time, datetime.datetime) and (xlmm.is_trial is False):  # 非试用用户才加时
                 update_fields.append("renew_time")
-                xlmm.renew_time = xlmm.renew_time + add_day_time
+                xlmm.renew_time = xlmm.renew_time + add_day_time  # 续费延长过期时间
+
+        if xlmm.is_trial and (sku_id in skuid_day_map.keys()[0:2]):  # 非试用订单
+            xlmm.is_trial = False
+            update_fields.append('is_trial')    # 修改用户为　非试用状态
+        if xlmm.is_trial is False and sku_id == skuid_day_map.keys()[2]:  # 试用订单
+            xlmm.is_trial = True
+            update_fields.append('is_trial')    # 修改用户为　 试用状态
 
         xlmm.save(update_fields=update_fields)
         # 保存订单状态到确定状态
@@ -930,7 +939,8 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
         order.status = SaleOrder.TRADE_FINISHED
         order.save(update_fields=['status'])
         # 发放30元优惠券
-        UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=39)
+        if sku_id == skuid_day_map.keys()[0]:    # 188的押金发放优惠券
+            UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=39)
 
 
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress, sender=SaleTrade)
