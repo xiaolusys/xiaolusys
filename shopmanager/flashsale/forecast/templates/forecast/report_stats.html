@@ -24,14 +24,16 @@
 <div class="container">
     <div class="page-header">
         <h1>供应链订货/到货数据统计报表
-            <small></small>
+            <div class="pull-right "><input name="daterange"></div>
         </h1>
     </div>
-    <div class="row">
-        <div id="chart-supplier-amount" class="chart-area chart" style="width:24%; height:800px">
-            <div>供应商 / 采购金额(百元) </div>
-            <div class="reset" style="visibility: hidden;">selected: <span class="filter"></span>
-                <a href="javascript:supplierRowChart.filterAll();dc.redrawAll();">reset</a>
+    <div class="row" >
+        <div class="chart-area" style="width:24%;background-color:#777;">
+            <div id="chart-supplier-amount" class="chart" style="height:100%;height:800px;">
+                <div>供应商 / 采购金额(百元) </div>
+                <div class="reset" style="visibility: hidden;">selected: <span class="filter"></span>
+                    <a href="javascript:supplierRowChart.filterAll();dc.redrawAll();">reset</a>
+                </div>
             </div>
         </div>
         <div style="width:50%;" class="chart-area">
@@ -54,31 +56,39 @@
                 </div>
             </div>
             <div id="chart-chain-quantity" class="chart"  style="width:48%; height:300px">
-                <div>物流周期 = 到货时间 - 发货时间</div>
+                <div>到货异常分类</div>
                 <div class="reset" style="visibility: hidden;">selected: <span class="filter"></span>
                     <a href="javascript:deliveryPeroidHistChart.filterAll();dc.redrawAll();">reset</a>
                 </div>
             </div>
         </div>
         <div style="width:25%;" class="chart-area">
-            <div id="chart-ring-buyer" class="chart"  style="width:100%;height:200px">
+            <div id="chart-ring-buyer" class="chart"  style="width:100%;height:300px">
                 <div>买手</div>
                 <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
                     <a href="javascript:buyerRingChart.filterAll();dc.redrawAll();">reset</a>
                 </div>
             </div>
-            <div id="chart-ring-purchaser" class="chart"  style="width:100%;height:200px">
-                <div>采购</div>
+            <div id="chart-ring-purchaser" class="chart"  style="width:100%;height:300px">
+                <div>采购员</div>
                 <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
                     <a href="javascript:purchaserRingChart.filterAll();dc.redrawAll();">reset</a>
                 </div>
             </div>
         </div>
     </div>
-    <script type="text/javascript" src="//cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>
-    <script type="text/javascript" src="//cdn.bootcss.com/crossfilter/1.3.12/crossfilter.min.js"></script>
-    <script type="text/javascript" src="//cdn.bootcss.com/dc/2.0.0-beta.30/dc.min.js"></script>
-    <script type="text/javascript">
+<script type="text/javascript" src="//cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/crossfilter/1.3.12/crossfilter.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/dc/2.0.0-beta.30/dc.min.js"></script>
+
+<script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/moment.min.js"></script>
+
+<!-- Include Date Range Picker -->
+<script type="text/javascript" src="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/daterangepicker.min.css" />
+<script type="text/javascript">
+
 var supplierRowChart   = dc.rowChart("#chart-supplier-amount"),
     arrivalPeroidHistChart  = dc.barChart("#chart-dinghuo-peroid"),
     deliveryPeroidHistChart  = dc.barChart("#chart-arrival-peroid"),
@@ -87,16 +97,30 @@ var supplierRowChart   = dc.rowChart("#chart-supplier-amount"),
     purchaserRingChart   = dc.pieChart("#chart-ring-purchaser");
 // use static or load via d3.csv("spendData.csv", function(error, spendData) {/* do stuff */});
 var spendData = {{ results|jsonify }};
-// normalize/parse data
-// set crossfilter
-var ndx = crossfilter(spendData),
-    supplierDim  = ndx.dimension(function(d) {return d.supplier__supplier_name}),
+function initial(dataset){
+    var i, d, tags;
+    for(i=0;i<dataset.length;i++){
+        d = dataset[i];
+        tags = [];
+        if (d.is_lack > 0) tags.push('lack');
+        if(d.is_defact > 0) tags.push('defact');
+        if(d.is_timeouted > 0) tags.push('timeouted');
+        if(d.is_overhead > 0) tags.push('overhead');
+        if(d.is_wrong > 0) tags.push('wrong');
+        if(d.is_unrecord > 0) tags.push('unrecord');
+        if(d.is_close > 0) tags.push('close');
+        d['tags'] = tags;
+    }
+    return dataset
+}
+
+var ndx = crossfilter(initial(spendData)),
     buyerDim = ndx.dimension(function(d) {return d.buyer_name;}),
     purchaserDim = ndx.dimension(function(d) {return d.purchaser;}),
     arrivalPeroidDim  = ndx.dimension(function(d) {return d.arrival_period;}),
     logisticPeroidDim  = ndx.dimension(function(d) {return d.logistic_period;}),
     deliveryPeroidDim  = ndx.dimension(function(d) {return d.delivery_period;}),
-    supplierAmountGroup = supplierDim.group().reduceSum(function(d) {return +d.purchase_amount;}),
+
     buyerAmountGroup = buyerDim.group().reduceSum(function(d) {return +d.purchase_amount;}),
     purchaserAmountGroup = purchaserDim.group().reduceSum(function(d) {return +d.purchase_amount;}),
     arrivalPeroidGroup = arrivalPeroidDim.group().reduceCount(),
@@ -106,64 +130,129 @@ var ndx = crossfilter(spendData),
 // var trendDimension = ndx.dimension(function(d) {return [d.Expt, d.purchase_period]; });
 // var trendGroup = runDimension.group().reduceSum(function(d) { return +d.Speed; });
 
+var supplierDim  = ndx.dimension(function(d) {return d.supplier__supplier_name}),
+    supplierAmountGroup = supplierDim.group().reduceSum(function(d) {return +d.purchase_amount;});
+
 supplierRowChart
     .dimension(supplierDim)
     .group(supplierAmountGroup)
     .elasticX(true)
-    .controlsUseVisibility(true);
+    .ordering(function(d) { return -d.value })
+    .controlsUseVisibility(true)
+    .title(function(d){return d.value;})
+    .label(function(d) { return d.key });
+
+supplierRowChart.data(function(group) {
+   return group.top(50);
+});
 supplierRowChart.xAxis().tickFormat(function(d) {return parseInt(d / 100)});
 
+var xRange = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
 arrivalPeroidHistChart
     .dimension(arrivalPeroidDim)
     .group(arrivalPeroidGroup)
-    .x(d3.scale.linear().domain([0,10]))
+    .x(d3.scale.ordinal().domain(xRange))
+    .xUnits(dc.units.ordinal)
     .elasticY(true)
     .controlsUseVisibility(true);
 
-// dhPeroidHistChart.xAxis().tickFormat(function(d) {return d}); // convert back to base unit
+arrivalPeroidHistChart.xAxis().tickFormat(function(d) {return parseInt(d)}).tickSubdivide(0); // convert back to base unit
 // dhPeroidHistChart.yAxis().ticks(2);
 
 deliveryPeroidHistChart
     .dimension(deliveryPeroidDim)
     .group(deliveryPeroidGroup)
-    .x(d3.scale.linear().domain([0,10]))
+    .x(d3.scale.ordinal().domain(xRange))
+    .xUnits(dc.units.ordinal)
     .elasticY(true)
     .controlsUseVisibility(true);
 
 logisticPeroidHistChart
     .dimension(logisticPeroidDim)
     .group(logisticPeroidGroup)
-    .x(d3.scale.linear().domain([0,10]))
+    .x(d3.scale.linear().domain([0,15]))
     .elasticY(true)
     .controlsUseVisibility(true);
 
 buyerRingChart
     .dimension(buyerDim)
     .group(buyerAmountGroup)
-    .innerRadius(50)
-    .controlsUseVisibility(true);
+    .innerRadius(30)
+    .externalLabels(10)
+    .externalRadiusPadding(50)
+    .drawPaths(true)
+    .label(function(d) { return d.key + ':' + d.value;})
+    .controlsUseVisibility(true)
+    .legend(dc.legend().legendText(function (d) {return d.name + ':' + d.data;}));;
 
 purchaserRingChart
     .dimension(purchaserDim)
     .group(purchaserAmountGroup)
-    .innerRadius(50)
-    .controlsUseVisibility(true);
+    .innerRadius(30)
+    .externalLabels(10)
+    .externalRadiusPadding(50)
+    .drawPaths(true)
+    .label(function(d) { return d.key})
+    .controlsUseVisibility(true)
+    .legend(dc.legend().legendText(function (d) {return d.name + ':' + d.data;}));
 
-/*
-var chainQuanlityRingChart  = dc.barChart("#chart-chain-quantity"),
-    quanlityDimension  = ndx.dimension(function(d) {return "run-"+d.Run;}),
-    quanlitySumGroup = quanlityDimension.group().reduceSum(function(d) {return d.Speed * d.Run;});
+
+function reduceAdd(p, v) {
+  v.tags.forEach (function(val, idx) {
+     p[val] = (p[val] || 0) + 1; //increment counts
+  });
+  return p;
+}
+
+function reduceRemove(p, v) {
+  v.tags.forEach (function(val, idx) {
+     p[val] = (p[val] || 0) - 1; //decrement counts
+  });
+  return p;
+}
+
+function reduceInitial() {
+  return {};
+}
+
+var chainQuanlityRingChart  = dc.pieChart("#chart-chain-quantity"),
+    tagsDimension  = ndx.dimension(function(d) {return d.tags});
+var tagsGroup = tagsDimension.groupAll().reduce(reduceAdd, reduceRemove, reduceInitial).value();
+// hack to make dc.js charts work
+tagsGroup.all = function() {
+  var newObject = [];
+  for (var key in this) {
+    if (this.hasOwnProperty(key) && key != "all") {
+      newObject.push({
+        key: key,
+        value: this[key]
+      });
+    }
+  }
+  return newObject;
+}
+
+var mapNames = {
+    lack: '到货缺货',
+    defact: '次品',
+    timeouted: '到货超时',
+    overhead: '多到',
+    wrong: '错货',
+    unrecord: '未及时催货',
+    close: '下单缺货',
+    empty: '无异常'
+};
 
 chainQuanlityRingChart
-  .slicesCap(4)
-  .innerRadius(100)
-  .externalLabels(50)
+  //.slicesCap(4)
+  .innerRadius(30)
+  .externalLabels(20)
   .externalRadiusPadding(50)
   .drawPaths(true)
-  .dimension(quanlityDimension)
-  .group(quanlitySumGroup)
-  .legend(dc.legend());
-*/
+  .dimension(tagsDimension)
+  .group(tagsGroup)
+  .label(function(d) { return mapNames[d.key] + ':' + d.value;})
+  .legend(dc.legend().legendText(function (d) { return mapNames[d.name]+':'+d.data;}));
 
 /* chart
     .width(768)
@@ -185,11 +274,31 @@ chainQuanlityRingChart
 chart.yAxis().tickFormat(function(d) {return d3.format(',d')(d+299500);});*/
 
 dc.renderAll();
-
-
-
-
-    </script>
+</script>
+<script>
+    $(function(){
+        $('input[name="daterange"]').daterangepicker(
+        {
+            locale: {
+              format: 'YYYY-MM-DD'
+            },
+            startDate: '{{purchase_time_start}}',
+            endDate: '{{purchase_time_end}}',
+            ranges: {
+               '今日': [moment(), moment()],
+               '昨日': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+               '过去七天': [moment().subtract(6, 'days'), moment()],
+               '过去一月': [moment().subtract(29, 'days'), moment()],
+               '本月': [moment().startOf('month'), moment().endOf('month')],
+               '上个月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        },
+        function(start, end, label) {
+            var path = window.location.pathname;
+            window.location.href = path+'?purchase_time_start='+ start.format('YYYY-MM-DD') + '&purchase_time_end=' + end.format('YYYY-MM-DD');
+        });
+    })
+</script>
 
 </div>
 </body>

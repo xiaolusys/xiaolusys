@@ -4,8 +4,8 @@ from celery import task
 
 from .models import (ForecastInbound,
                      ForecastInboundDetail,
-                     RealInBound,
-                     RealInBoundDetail,
+                     RealInbound,
+                     RealInboundDetail,
                      )
 from . import  constants
 import logging
@@ -63,9 +63,9 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
 
     real_wave_no = 'ref%s'% inbound_id
     inbound_order_set = set(inbound.orderlist_ids)
-    real_inbound = RealInBound.objects.filter(wave_no=real_wave_no).first()
+    real_inbound = RealInbound.objects.filter(wave_no=real_wave_no).first()
     if not real_inbound:
-        real_inbound = RealInBound()
+        real_inbound = RealInbound()
         real_inbound.wave_no = real_wave_no
 
     forecast_inbound = ForecastInbound.objects.filter(id=inbound.forecast_inbound_id).first()
@@ -77,7 +77,7 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
     real_inbound.express_no = inbound.express_no
     real_inbound.creator = inbound.creator.username
     real_inbound.memo = inbound.memo
-    real_inbound.status = RealInBound.COMPLETED
+    real_inbound.status = RealInbound.COMPLETED
     real_inbound.save()
 
     if forecast_inbound:
@@ -103,10 +103,10 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
                 product_id, sku_id = detail.product.id , detail.sku.id
             sku = ProductSku.objects.filter(id=sku_id).first()
             product = sku and sku.product
-            real_detail = RealInBoundDetail.objects.filter(inbound=real_inbound,
+            real_detail = RealInboundDetail.objects.filter(inbound=real_inbound,
                                                            sku_id=sku_id).first()
             if not real_detail:
-                real_detail = RealInBoundDetail()
+                real_detail = RealInboundDetail()
 
             real_detail.inbound = real_inbound
             real_detail.product_id = product_id

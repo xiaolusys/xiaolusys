@@ -231,6 +231,21 @@ class SaleSupplier(models.Model):
     def get_delta_arrive_days(self):
         return self.delta_arrive_days
 
+    @property
+    def charge_buyer(self):
+        charge = SupplierCharge.objects.filter(supplier_id=self.id,status=SupplierCharge.EFFECT).first()
+        if charge:
+            return charge.employee
+        return None
+
+    @property
+    def buyer_name(self):
+        buyer = self.charge_buyer
+        if buyer:
+            return buyer.username
+        return ''
+
+
 
 class SupplierCharge(models.Model):
     """ 供应商接管信息表　"""

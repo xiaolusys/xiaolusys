@@ -15,7 +15,7 @@ def default_inbound_ware_no():
     return datetime.datetime.now().strftime('%Y%m%d') + '-1'
 
 
-class RealInBound(BaseModel):
+class RealInbound(BaseModel):
 
     STAGING = 'staging'
     COMPLETED = 'completed'
@@ -71,14 +71,14 @@ class RealInBound(BaseModel):
 
     @property
     def normal_details(self):
-        return self.inbound_detail_manager.filter(status=RealInBoundDetail.NORMAL)
+        return self.inbound_detail_manager.filter(status=RealInboundDetail.NORMAL)
 
     @property
     def total_detail_num(self):
         return self.total_inbound_num
 
 
-class RealInBoundDetail(BaseModel):
+class RealInboundDetail(BaseModel):
 
     NORMAL   = 'normal'
     INVALID  = 'invalid'
@@ -87,7 +87,7 @@ class RealInBoundDetail(BaseModel):
         (INVALID, u'作废'),
     )
 
-    inbound = models.ForeignKey(RealInBound,
+    inbound = models.ForeignKey(RealInbound,
                                 related_name='inbound_detail_manager',
                                 verbose_name=u'入仓单')
 
@@ -127,9 +127,9 @@ def update_realinbound_data(sender, instance, created, **kwargs):
     real_inbound.save(update_fields=['total_inbound_num', 'total_inferior_num'])
 
     forecast_inbound = real_inbound.forecast_inbound
-    real_inbounds = RealInBound.objects.filter(forecast_inbound=forecast_inbound)
-    forecast_inbound_details = RealInBoundDetail.objects.filter(
-        inbound__in=real_inbounds, status=RealInBoundDetail.NORMAL
+    real_inbounds = RealInbound.objects.filter(forecast_inbound=forecast_inbound)
+    forecast_inbound_details = RealInboundDetail.objects.filter(
+        inbound__in=real_inbounds, status=RealInboundDetail.NORMAL
     )
     if forecast_inbound:
         forecast_inbound.total_arrival_num = \
@@ -139,6 +139,6 @@ def update_realinbound_data(sender, instance, created, **kwargs):
 
 post_save.connect(
     update_realinbound_data,
-    sender=RealInBoundDetail,
+    sender=RealInboundDetail,
     dispatch_uid='post_save_update_realinbound_data')
 

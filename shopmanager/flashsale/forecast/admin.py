@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 
 from core.filters import DateScheduleFilter
-from .models import ForecastInbound, ForecastInboundDetail, RealInBound, RealInBoundDetail, ForecastStats
+from .models import ForecastInbound, ForecastInboundDetail, RealInbound, RealInboundDetail, ForecastStats
 from supplychain.supplier.models import SaleSupplier
 from flashsale.dinghuo.models import OrderList
 
@@ -28,8 +28,8 @@ class ForecastInboundDetailInline(admin.TabularInline):
             kwargs['widget'] = AdminTextThumbnailWidget(attrs={'width:':80,'height':80})
         return super(ForecastInboundDetailInline, self).formfield_for_dbfield(db_field, **kwargs)
 
-class RealInBoundDetailInline(admin.TabularInline):
-    model = RealInBoundDetail
+class RealInboundDetailInline(admin.TabularInline):
+    model = RealInboundDetail
 
     fields = ( 'product_img','product_id', 'sku_id', 'product_name', 'arrival_quantity', 'inferior_quantity', 'district', 'status')
 
@@ -42,7 +42,7 @@ class RealInBoundDetailInline(admin.TabularInline):
     def formfield_for_dbfield(self, db_field, request=None, **kwargs):
         if db_field.name == 'product_img':
             kwargs['widget'] = AdminTextThumbnailWidget(attrs={'width:':80,'height':80})
-        return super(RealInBoundDetailInline, self).formfield_for_dbfield(db_field, **kwargs)
+        return super(RealInboundDetailInline, self).formfield_for_dbfield(db_field, **kwargs)
 
 
 class ForecastInboundAdmin(admin.ModelAdmin):
@@ -220,7 +220,7 @@ class ForecastInboundDetailAdmin(admin.ModelAdmin):
 admin.site.register(ForecastInboundDetail, ForecastInboundDetailAdmin)
 
 
-class RealInBoundAdmin(admin.ModelAdmin):
+class RealInboundAdmin(admin.ModelAdmin):
     # fieldsets = ((u'用户信息:', {
     #     'classes': ('expand',),
     #     'fields': ('user', 'group')
@@ -235,7 +235,7 @@ class RealInBoundAdmin(admin.ModelAdmin):
 
     filter_horizontal = ('relate_order_set',)
 
-    inlines = [RealInBoundDetailInline]
+    inlines = [RealInboundDetailInline]
 
     fieldsets = (
         ('基本信息:', {
@@ -251,7 +251,7 @@ class RealInBoundAdmin(admin.ModelAdmin):
     )
 
     def get_form(self, request, obj=None, **kwargs):
-        form = super(RealInBoundAdmin, self).get_form(request, obj=obj, **kwargs)
+        form = super(RealInboundAdmin, self).get_form(request, obj=obj, **kwargs)
         if obj and obj.supplier:
             form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset.filter(
                 id=obj.supplier.id)
@@ -270,10 +270,10 @@ class RealInBoundAdmin(admin.ModelAdmin):
         return self.readonly_fields
 
 
-admin.site.register(RealInBound, RealInBoundAdmin)
+admin.site.register(RealInbound, RealInboundAdmin)
 
 
-class RealInBoundDetailAdmin(admin.ModelAdmin):
+class RealInboundDetailAdmin(admin.ModelAdmin):
     # fieldsets = ((u'用户信息:', {
     #     'classes': ('expand',),
     #     'fields': ('user', 'group')
@@ -286,7 +286,7 @@ class RealInBoundDetailAdmin(admin.ModelAdmin):
     search_fields = ['inbound' ,'product_id', 'product_name']
 
 
-admin.site.register(RealInBoundDetail, RealInBoundDetailAdmin)
+admin.site.register(RealInboundDetail, RealInboundDetailAdmin)
 
 class ForecastStatsAdmin(admin.ModelAdmin):
 
