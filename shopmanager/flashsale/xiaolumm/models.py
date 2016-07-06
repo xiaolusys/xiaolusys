@@ -12,6 +12,7 @@ from .managers import XiaoluMamaManager
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
 from common.modelutils import update_model_fields
+from core.models import BaseModel
 from flashsale.clickcount.models import ClickCount
 from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
@@ -21,6 +22,7 @@ from . import ccp_schema
 from . import constants
 from .models_fortune import MamaFortune
 from django.db.models.signals import post_save
+from core.options import log_action, CHANGE
 
 import logging
 
@@ -872,78 +874,68 @@ def push_Pending_Carry_To_Cash(obj, *args, **kwargs):
 
 signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash, sender=XiaoluMama)
 
+
+class PotentialMama(BaseModel):
+    """
+    潜在代理: 针对一元开店用户
+    """
+    potential_mama = models.IntegerField(db_index=True, verbose_name=u"潜在妈妈专属id")
+    referal_mama = models.IntegerField(db_index=True, verbose_name=u"推荐人专属id")
+    nick = models.CharField(max_length=32, blank=True, verbose_name=u"潜在妈妈昵称")
+    thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u"潜在妈妈头像")
+    uni_key = models.CharField(max_length=32, unique=True, verbose_name=u"唯一key")
+    is_full_member = models.BooleanField(default=False, verbose_name=u"是否转正")
+
+    class Meta:
+        db_table = 'xiaolumm_potential_record'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿妈妈/潜在小鹿妈妈表'
+        verbose_name_plural = u'小鹿妈妈/潜在小鹿妈妈列表'
+
+    def __unicode__(self):
+        return '%s-%s' % (self.potential_mama, self.referal_mama)
+
+
+def unitary_mama(obj, *args, **kwargs):
+    """
+    一元开店
+    1. 修改记录为接管状态
+    2. 添加 renew_time　now + 15d
+    3. 修改代理等级到 A 类
+    """
+    from flashsale.xiaolumm.tasks import task_unitary_mama
+    print "obj ", obj
+    task_unitary_mama.delay(obj)
+
+
+def register_mama(obj, *args, **kwargs):
+    """
+    代理注册
+    1. 修改记录为接管状态
+    2. 添加 renew_time　now + 365d　or 183d
+    3. 修改代理等级到 A 类
+    4. 填写推荐人
+    """
+    from flashsale.xiaolumm.tasks import task_register_mama
+    print "obj ", obj
+    task_register_mama.delay(obj)
+
+
+def renew_mama(obj, *args, **kwargs):
+    """
+    代理续费
+    1. 更新 renew_time
+    """
+    from flashsale.xiaolumm.tasks import task_renew_mama
+    print "obj ", obj
+    task_renew_mama.delay(obj)
+
+
 from flashsale.pay.signals import signal_saletrade_pay_confirm
-from flashsale.pay.models import SaleTrade, SaleOrder
-from flashsale.coupon.models import UserCoupon
-
-
-def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
-    if (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
-        # 是待发货状态并且是押金交易
-        order_buyer = obj.order_buyer
-        mm_linkid = obj.extras_info.get('mm_linkid') or None
-        xlmm = XiaoluMama.objects.filter(openid=order_buyer.unionid).first()
-        order = obj.sale_orders.all().first()
-        sku_id = int(order.sku_id)
-        if not order:
-            return
-        skuid_day_map = {11873: 365,
-                         213710: 183,
-                         213711: 15}
-        if not xlmm:
-            return
-        referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
-        update_fields = []
-        if referal_mm:
-            if not xlmm.referal_from:   # 如果没有填写推荐人　更新推荐人
-                update_fields.append("referal_from")
-                xlmm.referal_from = referal_mm.mobile
-
-        now = datetime.datetime.now()
-        add_day_time = datetime.timedelta(days=skuid_day_map[sku_id])  # map 续费天数
-        if xlmm.progress != XiaoluMama.PAY:
-            update_fields.append('progress')
-            xlmm.progress = XiaoluMama.PAY
-
-        if xlmm.charge_status != XiaoluMama.CHARGED:
-            update_fields.append('charge_status')
-            xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
-
-        if not xlmm.charge_time:    # 如果没有接管时间　则赋值现在时间
-            update_fields.append("charge_time")
-            xlmm.charge_time = now  # 接管时间
-
-        if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类 续费场景 则不去变更
-            update_fields.append("agencylevel")
-            xlmm.agencylevel = XiaoluMama.A_LEVEL
-
-        if xlmm.renew_time is None:
-            update_fields.append("renew_time")
-            xlmm.renew_time = now + add_day_time
-        else:
-            if isinstance(xlmm.renew_time, datetime.datetime) and (xlmm.is_trial is False):  # 非试用用户才加时
-                update_fields.append("renew_time")
-                xlmm.renew_time = xlmm.renew_time + add_day_time  # 续费延长过期时间
-
-        if xlmm.is_trial and (sku_id in skuid_day_map.keys()[0:2]):  # 非试用订单
-            xlmm.is_trial = False
-            update_fields.append('is_trial')    # 修改用户为　非试用状态
-        if xlmm.is_trial is False and sku_id == skuid_day_map.keys()[2]:  # 试用订单
-            xlmm.is_trial = True
-            update_fields.append('is_trial')    # 修改用户为　 试用状态
-
-        xlmm.save(update_fields=update_fields)
-        # 保存订单状态到确定状态
-        obj.status = SaleTrade.TRADE_FINISHED
-        update_model_fields(obj, update_fields=['status'])
-        order.status = SaleOrder.TRADE_FINISHED
-        order.save(update_fields=['status'])
-        # 发放30元优惠券
-        if sku_id == skuid_day_map.keys()[0]:    # 188的押金发放优惠券
-            UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=39)
-
-
-signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress, sender=SaleTrade)
+from flashsale.pay.models import SaleTrade
+signal_saletrade_pay_confirm.connect(unitary_mama, sender=SaleTrade, dispatch_uid="post_save_unitary_mama")
+signal_saletrade_pay_confirm.connect(register_mama, sender=SaleTrade, dispatch_uid="post_save_register_mama")
+signal_saletrade_pay_confirm.connect(renew_mama, sender=SaleTrade, dispatch_uid="post_save_renew_mama")
 
 
 # 首单红包，10单红包
