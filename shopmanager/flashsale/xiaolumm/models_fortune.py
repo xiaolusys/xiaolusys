@@ -548,6 +548,16 @@ def confirm_previous_clickcarry(sender, instance, created, **kwargs):
 post_save.connect(confirm_previous_clickcarry,
                   sender=ClickCarry, dispatch_uid='post_save_confirm_previous_clickcarry')
 
+def gauge_active_mama(sender, instance, created, **kwargs):
+    from django_statsd.clients import statsd
+    if created:
+        date_field = datetime.datetime.now().date()
+        active_mama_count = ClickCarry.objects.filter(date_field=date_field).count()
+        key = "clickcarry.active_mama"
+        statsd.timing(key, active_mama_count)
+
+post_save.connect(gauge_active_mama, sender=ClickCarry, dispatch_uid='post_save_gauge_active_mama')
+
 
 class ActiveValue(BaseModel):
     VALUE_MAP = {"1": 1, "2": 10, "3": 50, "4": 5}
