@@ -320,7 +320,7 @@ class SaleProductAdmin(ApproxAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'librarian_select',
                     'select_Contactor', 'supplier_link', 'category_select',
-                    'sale_price', 'on_sale_price', 'sale_info', 'sale_time_select',  'status_link')
+                    'sale_price', 'on_sale_price', 'sale_time_select',  'status_link')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -346,41 +346,41 @@ class SaleProductAdmin(ApproxAdmin):
                    , ('memo',), ('voting',)
                    )}),)
 
-    def sale_info(self, obj):
-        """上架销售信息"""
-        if obj.status != SaleProduct.SCHEDULE:
-            return ''
-        product_outer_ids = obj.item_products.values("outer_id")
-        from statistics.models import SaleStats
-        # 日报　产品　统计
-        status_map = {0: u"未付款",
-                      1: u"已付款",
-                      2: u"发货前退款",
-                      3: u"缺货退款",
-                      4: u"退货退款"}
-        data = {}
-        stats = SaleStats.objects.filter(timely_type=6,
-                                         record_type=4,
-                                         current_id__in=product_outer_ids).values("date_field", "status", 'num')
-        for st in stats:
-            if st['date_field'] not in data:
-                data[st['date_field']] = {u'未付款': 0,
-                                          u'已付款': 0,
-                                          u'发货前退款': 0,
-                                          u'缺货退款': 0,
-                                          u'退货退款': 0}
-                data[st['date_field']][status_map[st['status']]] = st['num']
-            else:
-                data[st['date_field']][status_map[st['status']]] += st['num']
-        html = []
-        for k1, v1 in data.iteritems():
-            html.append('<p>%s<br>' % k1.strftime("%Y-%m-%d"))
-            for status, num in v1.iteritems():
-                html.append('<span>%s</span>: <em>%s</em><br>' % (status, num))
-            html.append('</p>')
-        return ''.join(html)
-    sale_info.allow_tags = True
-    sale_info.short_description = u"销售信息"
+    # def sale_info(self, obj):
+    #     """上架销售信息"""
+    #     if obj.status != SaleProduct.SCHEDULE:
+    #         return ''
+    #     product_outer_ids = obj.item_products.values("outer_id")
+    #     from statistics.models import SaleStats
+    #     # 日报　产品　统计
+    #     status_map = {0: u"未付款",
+    #                   1: u"已付款",
+    #                   2: u"发货前退款",
+    #                   3: u"缺货退款",
+    #                   4: u"退货退款"}
+    #     data = {}
+    #     stats = SaleStats.objects.filter(timely_type=6,
+    #                                      record_type=4,
+    #                                      current_id__in=product_outer_ids).values("date_field", "status", 'num')
+    #     for st in stats:
+    #         if st['date_field'] not in data:
+    #             data[st['date_field']] = {u'未付款': 0,
+    #                                       u'已付款': 0,
+    #                                       u'发货前退款': 0,
+    #                                       u'缺货退款': 0,
+    #                                       u'退货退款': 0}
+    #             data[st['date_field']][status_map[st['status']]] = st['num']
+    #         else:
+    #             data[st['date_field']][status_map[st['status']]] += st['num']
+    #     html = []
+    #     for k1, v1 in data.iteritems():
+    #         html.append('<p>%s<br>' % k1.strftime("%Y-%m-%d"))
+    #         for status, num in v1.iteritems():
+    #             html.append('<span>%s</span>: <em>%s</em><br>' % (status, num))
+    #         html.append('</p>')
+    #     return ''.join(html)
+    # sale_info.allow_tags = True
+    # sale_info.short_description = u"销售信息"
 
     def outer_id_link(self, obj):
         test_link = u'<div style="width:120px;font-size:12px;"><a href="/admin/supplier/saleproduct/{0}/" onclick="return showTradePopup(this);">{1}</a>'.format(
