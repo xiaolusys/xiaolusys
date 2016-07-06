@@ -6,7 +6,7 @@ import pingpp
 import urlparse
 import decimal
 
-from django.db import models
+from django.db import models, IntegrityError
 from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -639,7 +639,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
             if not budget_charge_create:
                 logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s'%(sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
-                raise Exception('用户余额不足')
+                raise Exception('钱包余额不足')
         
         extra = {}
         if channel == SaleTrade.WX_PUB:
@@ -651,7 +651,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         elif channel == SaleTrade.UPMP_WAP:
             extra = {"result_url":payback_url}
-        
+
+
         params ={ 'order_no':'%s'%order_no,
                   'app':dict(id=settings.PINGPP_APPID),
                   'channel':channel,
@@ -659,7 +660,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                   'amount':'%d'%payment,
                   'client_ip':settings.PINGPP_CLENTIP,
                   'subject':u'小鹿美美平台交易',
-                  'body':u'订单ID(%s),订单金额(%.2f)'%(sale_trade.id,sale_trade.payment),
+                  'body':u'用户订单金额[%s, %s, %.2f]'%(
+                      sale_trade.buyer_id,
+                      sale_trade.id,
+                      sale_trade.payment),
                   'metadata':dict(color='red'),
                   'extra':extra}
         charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
@@ -819,7 +823,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment, **kwargs):
         """ payment（单位分）按原始支付金额计算优惠信息 """
-        user_coupon = get_object_or_404(UserCoupon, id=coupon_id, customer_id=buyer_id, status=UserCoupon.UNUSED)
+        user_coupon = UserCoupon.objects.filter(id=coupon_id, customer_id=buyer_id).first()
+        if not user_coupon:
+            raise exceptions.APIException(u'优惠券未找到')
         user_coupon.check_user_coupon(product_ids=item_ids, use_fee=payment / 100.0)
         return round(user_coupon.value * 100)
     
@@ -938,9 +944,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             else:
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
+        except IntegrityError,exc:
+            logger.error('Duplicate entry:uuid=%s,channel=%s,err=%s' % (tuuid, channel, exc.message), exc_info=True)
+            return Response({'code': 9, 'info': u'订单重复提交'})
         except Exception,exc:
             logger.error('cart charge error:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
-            return Response({'code':6, 'info':exc.message or '未知支付异常'})
+            return Response({'code':6, 'info':exc.message or u'未知支付异常'})
 
         return Response({'code':0, 'info':u'支付成功', 'channel':channel,
                          'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel},

@@ -84,8 +84,15 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
         for order_list in forecast_inbound.relate_order_set.all():
             inbound_order_set.add(order_list.id)
 
+    relate_order_ids = set(real_inbound.relate_order_set.values_list('id',flat=True))
     for order_id in inbound_order_set:
-        real_inbound.relate_order_set.add(order_id)
+        if not order_id in relate_order_ids:
+            real_inbound.relate_order_set.add(order_id)
+        else:
+            relate_order_ids.remove(order_id)
+
+    for rm_order_id in relate_order_ids:
+        real_inbound.relate_order_set.remove(rm_order_id)
 
     inbound_sku_dict = {}
     for detail  in inbound.details.all():
