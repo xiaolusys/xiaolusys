@@ -120,11 +120,11 @@ class RealInBoundDetail(BaseModel):
 def update_realinbound_data(sender, instance, created, **kwargs):
     real_inbound = instance.inbound
 
-    real_inbound.total_forecast_num = \
+    real_inbound.total_inbound_num = \
         sum(real_inbound.normal_details.values_list('arrival_quantity',flat=True))
     real_inbound.total_inferior_num = \
         sum(real_inbound.normal_details.values_list('inferior_quantity', flat=True))
-    real_inbound.save(update_fields=['total_forecast_num', 'total_inferior_num'])
+    real_inbound.save(update_fields=['total_inbound_num', 'total_inferior_num'])
 
     forecast_inbound = real_inbound.forecast_inbound
     real_inbounds = RealInBound.objects.filter(forecast_inbound=forecast_inbound)
