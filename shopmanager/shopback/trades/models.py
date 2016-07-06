@@ -1919,7 +1919,10 @@ class PackageSkuItem(BaseModel):
                 package_order.reset_sku_item_num(save_data=True)
             else:
                 package_order.reset_to_new_create()
-        PackageSkuItem.objects.filter(id=self.id).update(package_order_id=None, package_order_pid=None)
+        self.package_order_id = None
+        self.package_order_pid = None
+        self.assign_status = PackageSkuItem.NOT_ASSIGNED
+        self.save()
 
     def reset_assign_package(self):
         if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
