@@ -1146,11 +1146,12 @@ def create_packageorder_finished_check_log(time_from, uni_key):
         同时等于每个PackageOrder的sku_num等于其关联的PackageSkuItem的数量
     """
     time_to = time_from + datetime.timedelta(hours=1)
-    actual_num = PackageSkuItem.objects.filter(finish_time__gt=time_from, pay_time__lte=time_to,
+    actual_num = PackageSkuItem.objects.filter(finish_time__gt=time_from, finish_time__lte=time_to,
                                                assign_status__lt=PackageSkuItem.FINISHED).count()
     target_num = PackageOrder.objects.filter(weight_time__gt=time_from, weight_time__lte=time_to,
-                                               sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE,
-                                                               PackageOrder.FINISHED_STATUS]).count()
+                                             sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE,
+                                                             PackageOrder.FINISHED_STATUS]).aggregate(
+        n=Sum('sku_num')).get('n', 0) or 0
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
                            type=SaleOrderSyncLog.PACKAGE_SKU_FINISH_NUM, target_num=target_num,
                            actual_num=actual_num)
@@ -1183,12 +1184,13 @@ def create_packageorder_realtime_check_log(time_from, uni_key):
     """
     target_num = PackageSkuItem.objects.filter(assign_status=1).count()
     sku_item_total = PackageOrder.objects.filter(sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS,
-                                                             PackageOrder.WAIT_CHECK_BARCODE_STATUS,
-                                                             PackageOrder.WAIT_SCAN_WEIGHT_STATUS]).aggregate(
+                                                                 PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+                                                                 PackageOrder.WAIT_SCAN_WEIGHT_STATUS]).aggregate(
         n=Sum('sku_num')).get('n', 0) or 0
-    actual_num = sum([p.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).count() for p in PackageOrder.objects.filter(
-        sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS,
-                        PackageOrder.WAIT_SCAN_WEIGHT_STATUS])])
+    actual_num = sum(
+        [p.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).count() for p in PackageOrder.objects.filter(
+            sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+                            PackageOrder.WAIT_SCAN_WEIGHT_STATUS])])
     actual_num = min(sku_item_total, actual_num)
     log = SaleOrderSyncLog(time_from=time_from, time_to=datetime.datetime.now(), uni_key=uni_key,
                            type=SaleOrderSyncLog.PACKAGE_SKU_NUM, target_num=target_num,
@@ -1207,6 +1209,6 @@ def task_schedule_check_packageskuitem_cnt():
     time_from = datetime.datetime(log.time_to.year, log.time_to.month, log.time_to.day, log.time_to.hour)
     now = datetime.datetime.now()
     if time_from > now - datetime.timedelta(minutes=10):
-        return  #　celery schedule中每半小时启动一次
+        return  # celery schedule中每半小时启动一次
     uni_key = "%s|%s" % (type, now)
     create_packageorder_realtime_check_log(time_from, uni_key)
