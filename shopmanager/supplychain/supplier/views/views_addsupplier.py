@@ -288,12 +288,13 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         sku_list = ""
         for one_sku in all_product[0].normal_skus:
             sku_list += (one_sku.properties_alias + " | ")
-
-        name = all_product[0].name.split("/")[0]
+        model_id = all_product[0].model_id
+        model_product = ModelProduct.objects.filter(id=model_id).first()
+        name = model_product and model_product.name  or all_product[0].name.split("/")[0]
         lowest_price = all_product[0].lowest_price()
         std_sale_price = all_product[0].std_sale_price
         sale_charger = all_product[0].sale_charger
-        model_id = all_product[0].model_id
+
         product_id = all_product[0].id
         std_purchase_price = all_product[0].std_purchase_price
         single_model = True

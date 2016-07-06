@@ -29,9 +29,9 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     click_time:点击时间
     """
     xlmmid = int(xlmmid)
-
     xlmm = XiaoluMama.objects.filter(id=xlmmid).first()
     if not xlmm:
+        logger.warning('weixin clicks mamalinkid( %s) not found' % xlmmid)
         return
 
     today = datetime.datetime.now()
