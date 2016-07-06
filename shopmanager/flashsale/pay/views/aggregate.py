@@ -39,12 +39,13 @@ class AggregateProductView(View):
         log_action(request.user.id, m, ADDITION, u'新建款式')
         product_id_list = post.getlist("product_id")
         for product_id in product_id_list:
-            pro = Product.objects.filter(id=product_id)
-            if pro.count() > 0:
-                temp_pro = pro[0]
-                temp_pro.model_id = m.id
-                temp_pro.save()
-                log_action(request.user.id, temp_pro, CHANGE, u'聚合商品到{0}'.format(m.id))
+            product = Product.objects.filter(id=product_id).first()
+            if product:
+                color_name = product.name.find('/') >= 0 and product.name.split('/')[1] or ''
+                product.name = '%s/%s'%(m.name , color_name)
+                product.model_id = m.id
+                product.save(update_fields=['name','model_id'])
+                log_action(request.user.id, product, CHANGE, u'聚合商品到{0}'.format(m.id))
         return redirect("/mm/aggregeta_product/")
 
 
@@ -223,6 +224,10 @@ class ModelChangeAPIView(generics.ListCreateAPIView):
             model_bean = ModelProduct.objects.get(id=model_id)
             model_bean.name = model_name
             model_bean.save()
+            for product in model_bean.products:
+                color_name = product.name.find('/') >= 0 and product.name.split('/')[1] or ''
+                product.name = '%s/%s'%(model_name, color_name)
+                product.save(update_fields=['name'])
             log_action(request.user.id, model_bean, CHANGE, u'修改名字')
             products = Product.objects.filter(status=Product.NORMAL, model_id=model_bean.id)
             change_name(request.user.id, model_name, products)
