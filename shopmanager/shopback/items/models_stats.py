@@ -28,8 +28,9 @@ class ProductSkuStats(models.Model):
     product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
     # ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
     assign_num = models.IntegerField(default=0, verbose_name=u'分配数')  # 未出库包裹单中已分配的sku数量
-    inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
+    inferior_num = models.IntegerField(default=0, verbose_name=u"次品数", help_text=u"已作废的数据")  # 保存对应sku的次品数量
 
+    adjust_quantity = models.IntegerField(default=0, verbose_name=u'调整数')  #
     history_quantity = models.IntegerField(default=0, verbose_name=u'历史库存数')  #
     inbound_quantity = models.IntegerField(default=0, verbose_name=u'入仓库存数')  #
     return_quantity = models.IntegerField(default=0, verbose_name=u'客户退货数')  #
@@ -153,6 +154,10 @@ class ProductSkuStats(models.Model):
         from shopback.items.models import Product
         return [p['id'] for p in Product.get_by_supplier(supplier_id).values('id')]
 
+    @staticmethod
+    def update_adjust_num(sku_id, adjust_quantity):
+        ProductSkuStats.objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
+
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     if instance.realtime_quantity > instance.assign_num:
@@ -229,6 +234,10 @@ class InferiorSkuStats(models.Model):
     @property
     def realtime_quantity(self):
         return self.history_quantity + self.inbound_quantity + self.return_quantity + self.adjust_num - self.rg_quantity
+
+    @staticmethod
+    def update_adjust_num(sku_id, adjust_quantity):
+        InferiorSkuStats.objects.filter(sku_id=sku_id).update(adjust_num=adjust_quantity)
 
 
 class ProductSkuSaleStats(models.Model):

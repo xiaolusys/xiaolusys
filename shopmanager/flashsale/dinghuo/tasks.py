@@ -1657,9 +1657,9 @@ def task_start_booking(pr):
         utils.copy_fields(pa, pr, fields)
         pa.save()
     else:
-        # We have to note that logically pa wont be an old-canceled record.
-        pa.num = pa.num + pr.need_num
-        pa.save(update_fields=['num', 'modified'])
+        pa.num = pr.need_num
+        pa.status = PurchaseRecord.EFFECT
+        pa.save(update_fields=['num', 'modified', 'status'])
 
 
 @task()
