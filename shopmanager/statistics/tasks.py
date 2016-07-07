@@ -388,14 +388,11 @@ def task_update_parent_sale_stats(sale_stats):
     """
     parent_id = sale_stats.parent_id
     if sale_stats.record_type >= constants.TYPE_AGG:  # 买手上级别不从本task 更新
-        logger.warn(u'task_update_parent_sale_stats ale_stats id %s do not update parent!' % sale_stats.id)
         return
     if not parent_id:  # # 没有父级别id
         logger.error(u'task_update_parent_sale_stats: parent_id is None, current id  is %s' % sale_stats.current_id)
         return
     if sale_stats.timely_type != constants.TIMELY_TYPE_DATE:
-        logger.warn(u'task_update_parent_sale_stats ale_stats id %s timely_type is %s!' % (
-            sale_stats.id, sale_stats.get_timely_type_display()))
         return
     stats = SaleStats.objects.filter(parent_id=parent_id,
                                      date_field=sale_stats.date_field,
@@ -466,11 +463,8 @@ def task_update_agg_sale_stats(sale_stats, time_from, time_to, upper_timely_type
     """
     record_type = sale_stats.record_type
     if sale_stats.record_type > constants.TYPE_AGG:  # 买手上级别不从本task 更新
-        logger.warn(u'task_update_detail_agg_sale_stats ale_stats id %s do not update parent!' % sale_stats.id)
         return
     if sale_stats.timely_type >= constants.TIMELY_TYPE_YEAR:
-        logger.warn(u'task_update_detail_agg_sale_stats ale_stats id %s timely_type is %s '
-                    u'no upper timely_type!' % (sale_stats.id, sale_stats.get_timely_type_display()))
         return
 
     # 日期细分类型 record_type 等于 instance.record_type 的 分组聚合
@@ -617,14 +611,11 @@ def create_stock_snapshot_record(stock_stats):
 def task_update_parent_stock_stats(stock_stats):
     parent_id = stock_stats.parent_id
     if stock_stats.record_type >= constants.TYPE_AGG:  # 买手上级别不从本task 更新
-        logger.warn(u'task_update_parent_sale_stats ale_stats id %s do not update parent!' % stock_stats.id)
         return
     if not parent_id:  # # 没有父级别id
         logger.error(u'task_update_parent_sale_stats: parent_id is None, current id  is %s' % stock_stats.current_id)
         return
     if stock_stats.timely_type != constants.TIMELY_TYPE_DATE:
-        logger.warn(u'task_update_parent_sale_stats ale_stats id %s timely_type is %s!' % (
-            stock_stats.id, stock_stats.get_timely_type_display()))
         return
 
     same_stock_statss = ProductStockStat.objects.filter(parent_id=parent_id,
@@ -666,13 +657,9 @@ def task_update_parent_stock_stats(stock_stats):
         grand_parent_id, name, pic_path = get_parent_id_name_and_pic_path(record_type, parent_id, date_field)
         # 供应商级别更新bd级别的 bd没有找到 则return
         if stock_stats.record_type == constants.TYPE_SUPPLIER and grand_parent_id is None:
-            logger.warn(u'task_update_parent_stock_stats: '
-                        u' bd user not found , the supplier is %s' % stock_stats.current_id)
             return
         # 更新款式级别的父级别 即 供应商级别 供应商为空的时候返回
         if stock_stats.record_type == constants.TYPE_MODEL and parent_id is None:
-            logger.warn(u'task_update_parent_stock_stats: '
-                        u' model supplier not found, the model is %s' % stock_stats.current_id)
             return
         psk_stat = ProductStockStat(
             parent_id=grand_parent_id,
@@ -697,11 +684,8 @@ def task_update_parent_stock_stats(stock_stats):
 def task_update_agg_stock_stats(stock_stats, time_from, time_to, upper_timely_type, tag):
     record_type = stock_stats.record_type
     if stock_stats.record_type > constants.TYPE_AGG:  # 总计上级别不从本task 更新
-        logger.warn(u'task_update_agg_stock_stats ale_stats id %s do not update agg!' % stock_stats.id)
         return
     if stock_stats.timely_type >= constants.TIMELY_TYPE_YEAR:
-        logger.warn(u'task_update_agg_stock_stats ale_stats id %s timely_type is %s '
-                    u'no upper timely_type!' % (stock_stats.id, stock_stats.get_timely_type_display()))
         return
     # 日期细分类型 record_type 等于 instance.record_type 的 分组聚合
     current_id = stock_stats.current_id
