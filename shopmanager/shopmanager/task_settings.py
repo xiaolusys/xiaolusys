@@ -413,6 +413,21 @@ MAMA_CARRY_ROUTES = {
     },
 }
 
+MAMA_REGISTER_ROUTE = {
+    'flashsale.xiaolumm.tasks.task_unitary_mama': {
+        'queue': 'mama',
+        'routing_key': 'mama.task_unitary_mama',
+    },
+    'flashsale.xiaolumm.tasks.task_register_mama': {
+        'queue': 'mama',
+        'routing_key': 'mama.task_register_mama',
+    },
+    'flashsale.xiaolumm.tasks.task_renew_mama': {
+        'queue': 'mama',
+        'routing_key': 'mama.task_renew_mama',
+    },
+}
+
 MAMA_CARRYRECORD_ROUTES = {
     'flashsale.xiaolumm.tasks_mama_carryrecord.task_awardcarry_update_carryrecord': {
         'queue': 'carryrecord',
@@ -666,6 +681,7 @@ CELERY_ROUTES.update(MAMA_FORTUNE_ROUTES)
 CELERY_ROUTES.update(MAMA_RELATIONSHIP_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRY_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRYRECORD_ROUTES)
+CELERY_ROUTES.update(MAMA_REGISTER_ROUTE)
 CELERY_ROUTES.update(SKU_STATS_ROUTES)
 CELERY_ROUTES.update(FLASHSALE_COUPON_ROUTES)
 CELERY_ROUTES.update(STATISTICS_ROUTES)
@@ -1074,6 +1090,13 @@ SHOP_APP_SCHEDULE = {
     u'定时检查全站推送': {
         'task': 'flashsale.protocol.tasks.task_site_push',
         'schedule': crontab(minute="*/30"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
+    u'定时检查小鹿妈妈活跃更新续费时间': {
+        'task': 'flashsale.xiaolumm.tasks.task_mama_postphone_renew_time_by_active',
+        'schedule': crontab(minute="45", hour="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },

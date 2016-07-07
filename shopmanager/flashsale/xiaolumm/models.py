@@ -12,6 +12,7 @@ from .managers import XiaoluMamaManager
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
 from common.modelutils import update_model_fields
+from core.models import BaseModel
 from flashsale.clickcount.models import ClickCount
 from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
@@ -21,6 +22,7 @@ from . import ccp_schema
 from . import constants
 from .models_fortune import MamaFortune
 from django.db.models.signals import post_save
+from core.options import log_action, CHANGE
 
 import logging
 
@@ -96,6 +98,7 @@ class XiaoluMama(models.Model):
     pending = models.IntegerField(default=0, verbose_name=u"冻结佣金")
 
     hasale = models.BooleanField(default=False, verbose_name=u"有购买")
+    is_trial = models.BooleanField(default=False, verbose_name=u"是否试用")
 
     agencylevel = models.IntegerField(default=INNER_LEVEL, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
@@ -535,7 +538,15 @@ post_save.connect(xiaolumama_update_mamafortune,
                   sender=XiaoluMama, dispatch_uid='post_save_xiaolumama_update_mamafortune')
 
 
-# from .clickprice import CLICK_TIME_PRICE
+def update_trial_mama_full_member_by_condition(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks import task_update_trial_mama_full_member_by_condition
+
+    task_update_trial_mama_full_member_by_condition.delay(instance)
+
+
+post_save.connect(update_trial_mama_full_member_by_condition,
+                  sender=XiaoluMama, dispatch_uid='post_save_update_trial_mama_full_member_by_condition')
+
 
 class AgencyLevel(models.Model):
     category = models.CharField(max_length=11, unique=True, blank=False, verbose_name=u"类别")
@@ -871,39 +882,65 @@ def push_Pending_Carry_To_Cash(obj, *args, **kwargs):
 
 signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash, sender=XiaoluMama)
 
+
+class PotentialMama(BaseModel):
+    """
+    潜在代理: 针对一元开店用户
+    """
+    potential_mama = models.IntegerField(db_index=True, verbose_name=u"潜在妈妈专属id")
+    referal_mama = models.IntegerField(db_index=True, verbose_name=u"推荐人专属id")
+    nick = models.CharField(max_length=32, blank=True, verbose_name=u"潜在妈妈昵称")
+    thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u"潜在妈妈头像")
+    uni_key = models.CharField(max_length=32, unique=True, verbose_name=u"唯一key")
+    is_full_member = models.BooleanField(default=False, verbose_name=u"是否转正")
+
+    class Meta:
+        db_table = 'xiaolumm_potential_record'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿妈妈/潜在小鹿妈妈表'
+        verbose_name_plural = u'小鹿妈妈/潜在小鹿妈妈列表'
+
+    def __unicode__(self):
+        return '%s-%s' % (self.potential_mama, self.referal_mama)
+
+
+def unitary_mama(obj, *args, **kwargs):
+    """
+    一元开店
+    1. 修改记录为接管状态
+    2. 添加 renew_time　now + 15d
+    3. 修改代理等级到 A 类
+    """
+    from flashsale.xiaolumm.tasks import task_unitary_mama
+    task_unitary_mama.delay(obj)
+
+
+def register_mama(obj, *args, **kwargs):
+    """
+    代理注册
+    1. 修改记录为接管状态
+    2. 添加 renew_time　now + 365d　or 183d
+    3. 修改代理等级到 A 类
+    4. 填写推荐人
+    """
+    from flashsale.xiaolumm.tasks import task_register_mama
+    task_register_mama.delay(obj)
+
+
+def renew_mama(obj, *args, **kwargs):
+    """
+    代理续费
+    1. 更新 renew_time
+    """
+    from flashsale.xiaolumm.tasks import task_renew_mama
+    task_renew_mama.delay(obj)
+
+
 from flashsale.pay.signals import signal_saletrade_pay_confirm
-from flashsale.pay.models import SaleTrade, SaleOrder
-from flashsale.coupon.models import UserCoupon
-
-
-def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
-    if (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
-        # 是待发货状态并且是押金交易
-        order_buyer = obj.order_buyer
-        mm_linkid = obj.extras_info.get('mm_linkid') or None
-        xlmm = XiaoluMama.objects.filter(openid=order_buyer.unionid).first()
-        if not xlmm:
-            return
-        referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
-        if referal_mm:
-            xlmm.referal_from = referal_mm.mobile
-        xlmm.progress = XiaoluMama.PAY
-        xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
-        xlmm.charge_time = datetime.datetime.now()  # 接管时间
-        xlmm.agencylevel = XiaoluMama.A_LEVEL
-        xlmm.save(update_fields=['progress', 'referal_from', 'charge_status', 'agencylevel', 'charge_time'])
-        # 保存订单状态到确定状态
-        obj.status = SaleTrade.TRADE_FINISHED
-        update_model_fields(obj, update_fields=['status'])
-        if obj.sale_orders.all():
-            sale_order = obj.sale_orders.all()[0]
-            sale_order.status = SaleOrder.TRADE_FINISHED
-            sale_order.save()
-        # 发放30元优惠券
-        UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=39)
-
-
-signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress, sender=SaleTrade)
+from flashsale.pay.models import SaleTrade
+signal_saletrade_pay_confirm.connect(unitary_mama, sender=SaleTrade, dispatch_uid="post_save_unitary_mama")
+signal_saletrade_pay_confirm.connect(register_mama, sender=SaleTrade, dispatch_uid="post_save_register_mama")
+signal_saletrade_pay_confirm.connect(renew_mama, sender=SaleTrade, dispatch_uid="post_save_renew_mama")
 
 
 # 首单红包，10单红包
