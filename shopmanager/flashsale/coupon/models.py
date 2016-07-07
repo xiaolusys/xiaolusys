@@ -416,10 +416,6 @@ class UserCoupon(BaseModel):
         tpl = self.self_template()
         return tpl.get_scope_type_display()
 
-    def gen_wisecrack(self):
-        """ 生成tips """
-        return u''
-
     def user_nick_name(self):
         """ 用户昵称 """
         return self.extras['user_info']['nick']
