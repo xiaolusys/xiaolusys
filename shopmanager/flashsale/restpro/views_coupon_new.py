@@ -378,6 +378,27 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         """ 检查用户活动的有效性 """
         return XLSampleOrder.objects.filter(customer_id=customer_id).first()
 
+    @list_route(methods=['get'])
+    def get_share_coupon(self, request):
+        """
+        获取某个分享 中领取的 优惠券
+        1. 提取正式优惠券
+        2. 展示没有领取的临时优惠券
+        """
+        default_return = collections.defaultdict(tmp_coupon=[], coupon=[])
+        content = request.REQUEST
+        uniq_id = content.get('uniq_id') or ''
+        coupon_share = OrderShareCoupon.objects.filter(uniq_id=uniq_id).first()
+        tmpcoupons = TmpShareCoupon.objects.filter(share_coupon_id=uniq_id, status=False)
+        tmpserializer = serializers.TmpShareCouponMapSerialize(tmpcoupons, many=True)
+        default_return.update({"tmp_coupon": tmpserializer.data})
+        if coupon_share:
+            queryset = UserCoupon.objects.filter(order_coupon_id=coupon_share.id)
+            serializer = serializers.ShareUserCouponSerialize(queryset, many=True)
+            default_return.update({"coupon": serializer.data})
+            return Response(default_return)
+        return Response(default_return)
+
     @list_route(methods=['post'])
     def create_order_share(self, request, *args, **kwargs):
         """
