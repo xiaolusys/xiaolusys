@@ -45,7 +45,7 @@ class OrderListAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'purchase_total_num', 'shelf_status', 'shenhe',
-        'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name')
+        'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name', 'purchase_order_unikey_link')
     list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', OrderListReceiveStatusFilter, 'is_postpay', 'press_num',
                    OrderListStatusFilter, 'pay_status', BuyerNameFilter,
                    'last_pay_date', 'created_by')
@@ -157,6 +157,14 @@ class OrderListAdmin(admin.ModelAdmin):
     shenhe.allow_tags = True
     shenhe.short_description = u"状态"
 
+    def purchase_order_unikey_link(self, obj):
+        if obj.status == OrderList.SUBMITTING:
+            return obj.purchase_order_unikey
+        
+        return u'<a href="/admin/trades/packageskuitem/?o=11.-10&q=%s" target="_blank" style="display: block;" >%s</a>' % (obj.purchase_order_unikey, obj.purchase_order_unikey)
+    purchase_order_unikey_link.allow_tags = True
+    purchase_order_unikey_link.short_description = "订单列表"
+            
     def changedetail(self, obj):
         symbol_link = u'【详情页】'
         return u'<a href="/sale/dinghuo/changedetail/{0}/" target="_blank" style="display: block;" >{1}</a>'.format(
