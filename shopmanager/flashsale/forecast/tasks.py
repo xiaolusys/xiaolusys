@@ -50,7 +50,7 @@ def task_forecast_update_stats_data(finbound_id):
             lastest_received_time=Max('received_time'),
             lastest_completed_time=Max('completed_time'))
         stats.purchase_amount = total_amount
-        stats.purchase_time = aggregate_data.get('lastest_pay_time')
+        stats.purchase_time = forecast_inbound.created #aggregate_data.get('lastest_pay_time')
 
         stats.delivery_time = forecast_inbound.delivery_time
         stats.arrival_time = forecast_inbound.arrival_time
