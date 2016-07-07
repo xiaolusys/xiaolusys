@@ -1175,6 +1175,7 @@ def task_packageorder_send_check_packageorder():
     log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
     if not log:
         create_packageorder_finished_check_log(time_from, uni_key)
+        task_packageorder_send_check_packageorder.delay()
 
 
 def create_packageorder_realtime_check_log(time_from, uni_key):

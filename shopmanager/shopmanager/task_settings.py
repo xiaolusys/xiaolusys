@@ -1100,7 +1100,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'实时统计当前待发货准备的packageskuitem的数据':{
         'task': 'shopback.trades.tasks.task_schedule_check_packageskuitem_cnt',
-        'achedule':crontab(minute="0"),
+        'achedule':crontab(minute="*/30"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
