@@ -8,11 +8,13 @@ from .. import constants
 
 class ForecastStats(BaseModel):
 
-    NORMAL   = 'normal'
-    INVALID  = 'invalid'
+    STAGING = 'staging'
+    ARRIVAL = 'arrival'
+    CLOSED  = 'closed'
     STATUS_CHOICES = (
-        (NORMAL, u'有效'),
-        (INVALID, u'作废'),
+        (STAGING, u'待收货'),
+        (ARRIVAL, u'已到货'),
+        (CLOSED, u'已关闭'),
     )
 
     forecast_inbound = models.OneToOneField('forecast.ForecastInbound', verbose_name=u'预测单')
@@ -40,6 +42,7 @@ class ForecastStats(BaseModel):
     is_timeout = models.BooleanField(default=False, verbose_name=u'预测超时')
     is_lackclose = models.BooleanField(default=False, verbose_name=u'下单缺货')
 
+    status = models.CharField(max_length=16,default=STAGING,choices=STATUS_CHOICES,db_index=True,verbose_name=u'状态')
     def __unicode__(self):
         return str(self.id)
 

@@ -245,6 +245,10 @@ class SaleSupplier(models.Model):
             return buyer.username
         return ''
 
+    @classmethod
+    def get_default_unrecord_supplier(cls):
+        return SaleSupplier.objects.filter(id=1).first()
+
 
 
 class SupplierCharge(models.Model):

@@ -187,6 +187,12 @@ def new_order(request):
             supplier_id, _ = max(suppliers_dict.items(), key=itemgetter(1))
             if supplier_id:
                 orderlist.supplier_id = supplier_id
+        if not orderlist.supplier_id:
+            ssp = SaleSupplier.objects.filter(supplier_name=orderlist.supplier_name).first()
+            if not ssp:
+                ssp = SaleSupplier.get_default_unrecord_supplier()
+            orderlist.supplier = ssp
+
         orderlist.buyer_id = request.user.id
         orderlist.save()
 
