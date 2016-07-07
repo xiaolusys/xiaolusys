@@ -92,6 +92,15 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
+class SaleProductFilter(filters.FilterSet):
+    id = ListFilter(name='id')
+    sale_supplier = ListFilter(name='sale_supplier')
+
+    class Meta:
+        model = SaleProduct
+        fields = ['id', 'sale_supplier', 'sale_supplier__supplier_name', 'status']
+
+
 class SaleProductViewSet(viewsets.ModelViewSet):
     """
     ###排期管理商品REST API接口：
@@ -102,7 +111,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    filter_fields = ('sale_supplier', 'sale_category')
+    # filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_class = SaleProductFilter
 
     def destroy(self, request, *args, **kwargs):
         raise NotImplemented

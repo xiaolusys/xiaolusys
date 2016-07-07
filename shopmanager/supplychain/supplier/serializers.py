@@ -75,6 +75,16 @@ class StatusField(serializers.Field):
         return data
 
 
+class StatusFullField(serializers.Field):
+    def to_representation(self, obj):
+        for record in SaleProduct.STATUS_CHOICES:
+            if record[0] == obj:
+                return {record[0]: record[1]}
+        return {}
+
+    def to_internal_value(self, data):
+        return data
+
 
 class SaleProductSerializer(serializers.ModelSerializer):
     sale_supplier = SaleSupplierSerializer(read_only=True)
@@ -91,6 +101,7 @@ class SaleProductSerializer(serializers.ModelSerializer):
             'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num',
             'orderlist_show_memo')
 
+
 class SaleProductUpdateSerializer(serializers.ModelSerializer):
     status = StatusField()
     platform = PlatformField()
@@ -105,10 +116,11 @@ class SaleProductUpdateSerializer(serializers.ModelSerializer):
             'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num',
             'orderlist_show_memo')
 
+
 class SimpleSaleProductSerializer(serializers.ModelSerializer):
     sale_supplier = SaleSupplierSerializer(read_only=True)
     sale_category = SaleCategorySerializer(read_only=True)
-    status = StatusField()
+    status = StatusFullField()
     contactor = serializers.CharField(source='contactor.username', read_only=True)
 
     class Meta:
