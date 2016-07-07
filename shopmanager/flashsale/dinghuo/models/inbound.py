@@ -51,6 +51,10 @@ class InBound(models.Model):
                                null=True,
                                blank=True,
                                related_name='inbounds',
+                               verbose_name=u'退款单', help_text=u"无效字段暂未删除")
+    return_goods = models.ForeignKey('ReturnGoods',
+                               null=True,
+                               blank=True,
                                verbose_name=u'退货单')
     creator = models.ForeignKey(User,
                                 related_name='inbounds',
