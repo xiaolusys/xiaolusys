@@ -82,6 +82,15 @@ class XiaoluMama(models.Model):
         (VIP6_LEVEL, "VIP6"),
         (VIP8_LEVEL, "VIP8"),
     )
+    TRIAL = 15
+    HALF = 183
+    FULL = 365
+
+    RENEW_TYPE = (
+        (TRIAL, u'试用'),
+        (HALF, u'半年'),
+        (FULL, u'一年'),
+    )
 
     mobile = models.CharField(max_length=11, db_index=True, blank=False, verbose_name=u"手机")
     openid = models.CharField(max_length=64, blank=False, unique=True, verbose_name=u"UnionID")
@@ -98,7 +107,7 @@ class XiaoluMama(models.Model):
     pending = models.IntegerField(default=0, verbose_name=u"冻结佣金")
 
     hasale = models.BooleanField(default=False, verbose_name=u"有购买")
-    is_trial = models.BooleanField(default=False, verbose_name=u"是否试用")
+    last_renew_type = models.IntegerField(choices=RENEW_TYPE, default=365, verbose_name=u"最近续费类型")
 
     agencylevel = models.IntegerField(default=INNER_LEVEL, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
@@ -419,7 +428,8 @@ class XiaoluMama(models.Model):
 
     def is_cashoutable(self):
         if self.agencylevel >=self.VIP_LEVEL and \
-                        self.charge_status == self.CHARGED and self.status == self.EFFECT:
+                        self.charge_status == self.CHARGED and self.status == self.EFFECT and \
+                        self.last_renew_type > XiaoluMama.TRIAL:  # 最后续费类型大于　试用类型　可以提现
             return True
         return False
 
