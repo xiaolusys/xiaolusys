@@ -1223,15 +1223,13 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = (
         'sku_link', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
         'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link',
-        'inferior_num',
-        'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
+        'adjust_quantity', 'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
-        # 'realtime_lock_num_display',
         'district_link', 'created')
     list_display_links = ['sku_link']
     search_fields = ['sku__id', 'product__id', 'product__name', 'product__outer_id']
     #('supplier_id', ProductSkuStatsSupplierIdFilter),                 ('supplier_name', ProductSkuStatsSupplierNameFilter)]
-    readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'inferior_num', 'history_quantity',
+    readonly_fields = [u'id', 'sku', 'product', 'assign_num', 'adjust_quantity', 'history_quantity',
                        'inbound_quantity', 'return_quantity', 'rg_quantity', 'post_num', 'sold_num', 'shoppingcart_num',
                        'waitingpay_num', 'created', 'modified', 'status']
     list_select_related = True

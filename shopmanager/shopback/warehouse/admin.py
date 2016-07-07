@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
-from .models import WareHouse, ReceiptGoods
+from .models import WareHouse, ReceiptGoods, StockAdjust
 
 
 class WareHouseAdmin(admin.ModelAdmin):
@@ -49,3 +49,17 @@ class ReceiptGoodsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ReceiptGoods, ReceiptGoodsAdmin)
+
+
+class StockAdjustAdmin(admin.ModelAdmin):
+    list_display = (#"sku",
+                    "num", "inferior", "status")
+    list_filter = ("inferior", "status")
+    readonly_fields = ("status", "ware_by")
+    search_fields = (
+        "id", #"sku",
+        "=creator",
+    )
+    # change_form_template = ""
+
+admin.site.register(StockAdjust, StockAdjustAdmin)
