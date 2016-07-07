@@ -209,6 +209,7 @@ class ReturnGoods(models.Model):
         inbounds = InBound.objects.filter(supplier_id=supplier_id).exclude(status__in=[InBound.COMPLETE_RETURN, InBound.INVALID])
         inbound_ids = [i.id for i in inbounds]
         rg_details = []
+        return_inbound_ids = []
         for detail in InBoundDetail.objects.filter(inbound_id__in=inbound_ids).filter(
                         Q(out_stock=True) | Q(inferior_quantity__gt=0)):# | Q(wrong=True)):
             rg_detail = RGDetail(
@@ -220,6 +221,7 @@ class ReturnGoods(models.Model):
                 src=detail.inbound_id
             )
             rg_details.append(rg_detail)
+            return_inbound_ids.append(detail.inbound_id)
         if not rg_details:
             return
         rg = ReturnGoods(supplier_id=supplier_id,
@@ -234,7 +236,8 @@ class ReturnGoods(models.Model):
             detail.return_goods = rg
             detail.return_goods_id = rg.id
             details.append(detail)
-        inbounds.update(status=InBound.COMPLETE_RETURN)
+        InBound.objects.filter(id__in=return_inbound_ids).update(status=InBound.COMPLETE_RETURN, return_goods_id=rg.id)
+        inbounds.exclude(id__in=return_inbound_ids).update(status=InBound.COMPLETE_RETURN)
         RGDetail.objects.bulk_create(details)
         return rg
 
