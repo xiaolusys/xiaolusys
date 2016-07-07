@@ -27,14 +27,13 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
     forecast_ib = ForecastInbound()
     forecast_ib.supplier = supplier
     forecast_ib.ware_house  = supplier.ware_by
-    forecast_ib.purchaser  = order_list.buyer_name
+    forecast_ib.purchaser  = order_list.buyer and order_list.buyer.username or order_list.buyer_name
     forecast_arrive_time = order_list.last_pay_date
     if not forecast_arrive_time:
         forecast_arrive_time = datetime.datetime.now()
     forecast_arrive_time += datetime.timedelta(days=supplier.get_delta_arrive_days())
 
     forecast_ib.forecast_arrive_time = forecast_arrive_time
-    forecast_ib.status = ForecastInbound.ST_DRAFT
     forecast_ib.save()
     forecast_ib.relate_order_set.add(order_list)
 

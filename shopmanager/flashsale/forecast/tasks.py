@@ -22,16 +22,9 @@ def task_forecast_update_stats_data(finbound_id):
             stats = ForecastStats(forecast_inbound=forecast_inbound,
                               supplier=forecast_inbound.supplier)
 
-        stats.purchaser = forecast_inbound.purchaser
         if forecast_inbound.supplier:
             buyer_name = forecast_inbound.supplier.buyer_name
             stats.buyer_name = buyer_name or 'nobody'
-
-        # timeout stats
-        if forecast_inbound.status == ForecastInbound.ST_TIMEOUT:
-            stats.is_timeout = True
-            stats.save()
-            return
 
         realinbounds_qs = forecast_inbound.real_inbound_manager.filter(
             status__in=(RealInbound.STAGING, RealInbound.COMPLETED)
@@ -45,6 +38,7 @@ def task_forecast_update_stats_data(finbound_id):
         purchase_details = services.get_purchaseorder_detail_data(purchase_orders)
         purchase_details_dict = dict([(int(o['chichu_id']), o) for o in purchase_details])
 
+        stats.purchaser = purchase_orders.first().get_buyer_name()
         total_amount = 0
         for detail in forecast_inbound.normal_details:
             purchase_detail = purchase_details_dict.get(detail.sku_id, {})
@@ -58,12 +52,6 @@ def task_forecast_update_stats_data(finbound_id):
         stats.purchase_amount = total_amount
         stats.purchase_time = aggregate_data.get('lastest_pay_time')
 
-        # lackgoods stats
-        if forecast_inbound.status == ForecastInbound.ST_CLOSE:
-            stats.is_lackclose = True
-            stats.save()
-            return
-
         stats.delivery_time = forecast_inbound.delivery_time
         stats.arrival_time = forecast_inbound.arrival_time
         stats.billing_time = aggregate_data.get('lastest_received_time')
@@ -74,6 +62,19 @@ def task_forecast_update_stats_data(finbound_id):
         stats.has_overhead = forecast_inbound.has_overhead
         stats.has_wrong = forecast_inbound.has_wrong
         stats.is_unrecordlogistic = forecast_inbound.is_unrecordlogistic
+        # timeout stats
+        if forecast_inbound.status == ForecastInbound.ST_TIMEOUT:
+            stats.status = ForecastStats.CLOSED
+            stats.is_timeout = True
+        elif forecast_inbound.status == ForecastInbound.ST_CLOSE:
+            stats.status = ForecastStats.CLOSED
+            stats.is_lackclose = True
+        elif forecast_inbound.status == ForecastInbound.ST_CANCELED:
+            stats.status = ForecastStats.CLOSED
+        elif forecast_inbound.status == ForecastInbound.ST_APPROVED:
+            stats.status = ForecastStats.STAGING
+        elif forecast_inbound.status == ForecastInbound.ST_ARRIVED:
+            stats.status = ForecastStats.ARRIVAL
         stats.save()
     except Exception,exc:
         raise task_forecast_update_stats_data.retry(exc=exc)

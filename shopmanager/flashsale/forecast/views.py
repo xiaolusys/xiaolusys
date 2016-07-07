@@ -590,7 +590,7 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
         ).values(
             'id', 'forecast_inbound', 'supplier__supplier_name', 'buyer_name', 'purchaser', 'purchase_num',
             'inferior_num', 'lack_num', 'purchase_amount', 'arrival_period', 'delivery_period', 'logistic_period',
-            'is_lack', 'is_defact', 'is_overhead', 'is_wrong', 'is_unrecord', 'is_timeouted', 'is_close'
+            'is_lack', 'is_defact', 'is_overhead', 'is_wrong', 'is_unrecord', 'is_timeouted', 'is_close','status'
         )
         purchase_time_start = request.GET.get('purchase_time_start',datetime.datetime(2016,1,1))
         purchase_time_end = request.GET.get('purchase_time_end',datetime.datetime.now())

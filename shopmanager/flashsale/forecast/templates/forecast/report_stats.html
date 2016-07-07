@@ -29,7 +29,7 @@
     </div>
     <div class="row" >
         <div class="chart-area" style="width:24%;background-color:#777;">
-            <div id="chart-supplier-amount" class="chart" style="height:100%;height:800px;">
+            <div id="chart-supplier-amount" class="chart" style="height:100%;height:900px;">
                 <div>供应商 / 采购金额(百元) </div>
                 <div class="reset" style="visibility: hidden;">selected: <span class="filter"></span>
                     <a href="javascript:supplierRowChart.filterAll();dc.redrawAll();">reset</a>
@@ -63,13 +63,19 @@
             </div>
         </div>
         <div style="width:25%;" class="chart-area">
-            <div id="chart-ring-buyer" class="chart"  style="width:100%;height:300px">
+            <div id="chart-ring-status" class="chart"  style="width:100%;height:280px">
+                <div>预测单状态</div>
+                <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
+                    <a href="javascript:statusRingChart.filterAll();dc.redrawAll();">reset</a>
+                </div>
+            </div>
+            <div id="chart-ring-buyer" class="chart"  style="width:100%;height:280px">
                 <div>买手</div>
                 <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
                     <a href="javascript:buyerRingChart.filterAll();dc.redrawAll();">reset</a>
                 </div>
             </div>
-            <div id="chart-ring-purchaser" class="chart"  style="width:100%;height:300px">
+            <div id="chart-ring-purchaser" class="chart"  style="width:100%;height:280px">
                 <div>采购员</div>
                 <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
                     <a href="javascript:purchaserRingChart.filterAll();dc.redrawAll();">reset</a>
@@ -93,6 +99,7 @@ var supplierRowChart   = dc.rowChart("#chart-supplier-amount"),
     arrivalPeroidHistChart  = dc.barChart("#chart-dinghuo-peroid"),
     deliveryPeroidHistChart  = dc.barChart("#chart-arrival-peroid"),
     logisticPeroidHistChart  = dc.barChart("#chart-logistic-peroid"),
+    statusRingChart   = dc.pieChart("#chart-ring-status"),
     buyerRingChart   = dc.pieChart("#chart-ring-buyer"),
     purchaserRingChart   = dc.pieChart("#chart-ring-purchaser");
 // use static or load via d3.csv("spendData.csv", function(error, spendData) {/* do stuff */});
@@ -115,16 +122,18 @@ function initial(dataset){
 }
 
 var ndx = crossfilter(initial(spendData)),
+    statusDim = ndx.dimension(function(d) {return d.status;}),
     buyerDim = ndx.dimension(function(d) {return d.buyer_name;}),
     purchaserDim = ndx.dimension(function(d) {return d.purchaser;}),
     arrivalPeroidDim  = ndx.dimension(function(d) {return d.arrival_period;}),
     logisticPeroidDim  = ndx.dimension(function(d) {return d.logistic_period;}),
     deliveryPeroidDim  = ndx.dimension(function(d) {return d.delivery_period;}),
 
+    statusCountGroup = statusDim.group().reduceCount(),
     buyerAmountGroup = buyerDim.group().reduceSum(function(d) {return +d.purchase_amount;}),
     purchaserAmountGroup = purchaserDim.group().reduceSum(function(d) {return +d.purchase_amount;}),
     arrivalPeroidGroup = arrivalPeroidDim.group().reduceCount(),
-    deliveryPeroidGroup = deliveryPeroidDim.group().reduceCount()
+    deliveryPeroidGroup = deliveryPeroidDim.group().reduceCount(),
     logisticPeroidGroup = logisticPeroidDim.group().reduceCount();
 
 // var trendDimension = ndx.dimension(function(d) {return [d.Expt, d.purchase_period]; });
@@ -173,6 +182,25 @@ logisticPeroidHistChart
     .x(d3.scale.linear().domain([0,15]))
     .elasticY(true)
     .controlsUseVisibility(true);
+
+var mapStatusName = {
+    staging: '待收货',
+    arrival: '已到货',
+    closed: '已关闭',
+};
+
+statusRingChart
+    .dimension(statusDim)
+    .group(statusCountGroup)
+    .innerRadius(30)
+    .externalLabels(10)
+    .externalRadiusPadding(50)
+    .drawPaths(true)
+    .label(function(d) { return d.key + ':' + d.value;})
+    .controlsUseVisibility(true)
+    .legend(dc.legend().legendText(function (d) {
+        return mapStatusName[d.name] + ':' + d.data;
+    }));;
 
 buyerRingChart
     .dimension(buyerDim)
