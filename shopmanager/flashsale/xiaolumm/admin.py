@@ -16,7 +16,8 @@ from .models import (
     CarryLog,
     OrderRedPacket,
     MamaDayStats,
-    AgencyOrderRebetaScheme
+    AgencyOrderRebetaScheme,
+    PotentialMama
 )
 from . import forms
 from flashsale.mmexam.models import Result
@@ -558,4 +559,23 @@ class TopicAttendRecordAdmin(admin.ModelAdmin):
     search_fields = ('title', )
     list_filter = ('status',)
 admin.site.register(TopicAttendRecord, TopicAttendRecordAdmin)
-    
+
+
+class PotentialMamaAdmin(admin.ModelAdmin):
+    list_display = ("potential_mama",
+                    "referal_mama",
+                    "nick",
+                    "thumbnail",
+                    "uni_key",
+                    "is_full_member")
+
+    list_filter = ("is_full_member",
+                   'created',
+                   'modified')
+
+    search_fields = ("potential_mama",
+                     "referal_mama",
+                     "nick")
+
+
+admin.site.register(PotentialMama, PotentialMamaAdmin)

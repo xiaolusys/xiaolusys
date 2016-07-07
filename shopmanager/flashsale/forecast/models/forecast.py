@@ -100,7 +100,7 @@ class ForecastInbound(BaseModel):
         return self.details_manager.filter(status=ForecastInboundDetail.NORMAL)
 
     def is_unrecord_logistic(self):
-        return self.express_code == '' or self.express_no == ''
+        return self.status in (self.ST_DRAFT,self.ST_APPROVED) and self.express_code == '' and self.express_no == ''
 
     def is_inthedelivery(self):
         """ 是否发货中 """
@@ -113,7 +113,7 @@ class ForecastInbound(BaseModel):
     def is_arrival_timeout(self):
         """ 到货超时 """
         tnow = datetime.datetime.now()
-        if self.status == self.ST_APPROVED and \
+        if self.status in (self.ST_APPROVED, self.ST_DRAFT) and \
             (not self.forecast_arrive_time or self.forecast_arrive_time < tnow):
             return True
         if self.status == self.ST_TIMEOUT:

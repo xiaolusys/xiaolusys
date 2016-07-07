@@ -12,15 +12,14 @@
                 <thead>
                     <tr>
                         <th class="col-xs-1">图片</th>
-                        <th class="col-xs-1">商品编码</th>
+                        <th class="col-xs-2">商品编码</th>
                         <th class="col-xs-2">商品名称</th>
                         <th class="col-xs-1">采购</th>
                         <th class="col-xs-1">到货</th>
                         <th class="col-xs-1">未到</th>
                         <!-- 6 -->
-                        <th class="col-xs-1">多订</th>
+                        <th class="col-xs-1">多货</th>
                         <th class="col-xs-1">次品</th>
-                        <th class="col-xs-1">退货</th>
                         <th class="col-xs-1">支付款</th>
                         <th class="col-xs-1">应退款</th>
                     </tr>
@@ -31,18 +30,17 @@
                     <td>
                         <div class="portfolio-box">
                         <img class="thumbnail" data-src="{{detail.product_img}}" style="margin-bottom:0px;"
-                             src="{{detail.product_img}}?imageMogr2/thumbnail/40/format/jpg/quality/90/crop/40x40"/>
+                             src="{{detail.product_img}}?imageMogr2/thumbnail/35/format/jpg/quality/90/crop/35x35"/>
                         </div>
                     </td>
                     <td>{{detail.outer_id}}</td>
                     <td>{{detail.product_name}}:{{detail.sku_name}}</td>
-                    <td>{{detail.buy_num}}</td>
-                    <td>{{detail.arrival_num}}</td>
-                    <td class="{% if detail.delta_num < 0 %}bg-danger{% endif %}">{{detail.delta_num}}</td>
+                    <td >{{detail.buy_num}}</td>
+                    <td >{{detail.arrival_num}}</td>
+                    <td class="{% if detail.delta_num > 0 %}bg-danger{% endif %}">{{detail.delta_num}}</td>
                      <!-- 6 -->
                     <td class="{% if detail.excess_num > 0 %}bg-warning{% endif %}">{{detail.excess_num}}</td>
                     <td class="{% if detail.inferior_num > 0 %}bg-primary{% endif %}">{{detail.inferior_num}}</td>
-                    <td>{{detail.return_num}}</td>
                     <td>{{detail.real_payment}}</td>
                     <td>{{detail.return_amount}}</td>
                 </tr>
@@ -51,18 +49,17 @@
                 <tfoot>
                     <tr>
                         <td colspan="3">汇总:</td>
-                        <td><input id="input-3" data-type="int" size="4"/></td>
-                        <td><input id="input-4" data-type="int" size="4"/></td>
-                        <td><input id="input-5" data-type="int" size="4"/></td>
-                        <td><input id="input-6" data-type="int" size="4"/></td>
-                        <td><input id="input-7" data-type="int" size="4"/></td>
-                        <td><input id="input-8" data-type="int" size="4"/></td>
-                        <td><input id="input-9" data-type="float" size="7"/></td>
-                        <td><input id="input-10" data-type="float" size="7"/></td>
+                        <td><input id="input-3" data-type="int" size="3"/></td>
+                        <td><input id="input-4" data-type="int" size="3"/></td>
+                        <td><input id="input-5" data-type="int" size="3"/></td>
+                        <td><input id="input-6" data-type="int" size="3"/></td>
+                        <td><input id="input-7" data-type="int" size="3"/></td>
+                        <td><input id="input-8" data-type="float" size="5"/></td>
+                        <td><input id="input-9" data-type="float" size="5"/></td>
                     </tr>
                     <tr>
                         <th class="col-xs-1">图片</th>
-                        <th class="col-xs-1">商品编码</th>
+                        <th class="col-xs-2">商品编码</th>
                         <th class="col-xs-2">商品名称</th>
                         <th class="col-xs-1">采购</th>
                         <th class="col-xs-1">到货</th>
@@ -70,7 +67,6 @@
                         <!-- 6 -->
                         <th class="col-xs-1">多订</th>
                         <th class="col-xs-1">次品</th>
-                        <th class="col-xs-1">退货</th>
                         <th class="col-xs-1">支付款</th>
                         <th class="col-xs-1">应退款</th>
                     </tr>
@@ -160,7 +156,7 @@ var $oTable = $('#panel-1 table').dataTable({
     "scrollCollapse": true,
     "paging": false,
     "ordering": true,
-    "order": [[7, "desc"],[6,"desc"],[5,"asc"],[4,"asc"]] //次品,多发,错发,缺货
+    "order": [[7, "desc"],[6,"desc"],[5,"desc"]] //次品,缺货,多发,错发
 });
 
 $oTable.closest(".dataTables_wrapper").find(".dataTables_scrollHeadInner").css("width","100%");

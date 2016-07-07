@@ -66,7 +66,7 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
             logger.error('inbound detail empty: inbound_id=%s'% inbound_id)
             return
         real_wave_no = 'ref%s'% inbound_id
-        inbound_order_set = set(inbound.orderlist_ids)
+        inbound_order_set = set([int(bid) for bid in inbound.orderlist_ids])
         real_inbound = RealInbound.objects.filter(wave_no=real_wave_no).first()
         if not real_inbound:
             real_inbound = RealInbound()
@@ -91,15 +91,10 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
             for order_list in forecast_inbound.relate_order_set.all():
                 inbound_order_set.add(order_list.id)
 
-        relate_order_ids = set(real_inbound.relate_order_set.values_list('id',flat=True))
+        real_inbound.relate_order_set.clear()
+        print 'debug orderlist:', real_inbound.relate_order_set.all(), inbound_order_set
         for order_id in inbound_order_set:
-            if not order_id in relate_order_ids:
-                real_inbound.relate_order_set.add(order_id)
-            else:
-                relate_order_ids.remove(order_id)
-
-        for rm_order_id in relate_order_ids:
-            real_inbound.relate_order_set.remove(rm_order_id)
+            real_inbound.relate_order_set.add(order_id)
 
         inbound_sku_dict = {}
         for detail  in inbound.details.all():
