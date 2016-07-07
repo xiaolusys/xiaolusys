@@ -492,7 +492,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             'id', 'product__outer_id', 'product__name', 'properties_name', 'properties_alias', 'product__pic_path'
         )
         sku_stats_values = ProductSkuStats.objects.filter(sku__in=sku_id_set).extra(
-            select={'excess_num': "history_quantity + inbound_quantity + return_quantity "
+            select={'excess_num': "history_quantity + adjust_quantity + inbound_quantity + return_quantity "
                                   + "+ sold_num - post_num - rg_quantity - post_num"}
         ).values_list('id','excess_num')
         sku_stats_dict = dict(sku_stats_values)

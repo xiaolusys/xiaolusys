@@ -62,11 +62,11 @@ class ProductSkuStats(models.Model):
 
     @property
     def realtime_quantity(self):
-        return self.history_quantity + self.inbound_quantity + self.return_quantity - self.post_num - self.rg_quantity
+        return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.post_num - self.rg_quantity
 
     @property
     def aggregate_quantity(self):
-        return self.history_quantity + self.inbound_quantity
+        return self.history_quantity + self.inbound_quantity + self.adjust_quantity
 
     @property
     def wait_post_num(self):
@@ -120,7 +120,7 @@ class ProductSkuStats(models.Model):
     @property
     def unused_stock(self):
         """冗余库存数"""
-        return self.history_quantity + self.inbound_quantity + self.return_quantity - self.rg_quantity - self.sold_num
+        return self.history_quantity + self.inbound_quantity + self.adjust_quantity + self.return_quantity - self.rg_quantity - self.sold_num
 
     @staticmethod
     def redundancies():
@@ -136,7 +136,7 @@ class ProductSkuStats(models.Model):
             arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
             'chichu_id').distinct()]
         has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in ProductSkuStats.objects.filter(sku_id__in=order_skus,
-            sold_num__lt=F('history_quantity') + F('inbound_quantity') + F('return_quantity')\
+            sold_num__lt=F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F('return_quantity')\
             - F('rg_quantity')).values('id', 'product_id')]
         has_nouse_stock_products = {product_id for (_id, product_id) in has_nouse_stock_sku_product}
         products = Product.objects.filter(id__in=has_nouse_stock_products)
