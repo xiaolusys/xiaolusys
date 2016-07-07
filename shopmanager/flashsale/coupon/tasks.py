@@ -19,6 +19,11 @@ def task_update_tpl_released_coupon_nums(template):
     count = UserCoupon.objects.filter(template_id=template.id).count()
     template.has_released_count = count
     template.save(update_fields=['has_released_count'])
+    from django_statsd.clients import statsd
+    if template.id == 55:
+        statsd.timing('coupon.new_customer_released_count', count)
+    elif template.id == 67:
+        statsd.timing('coupon.share_released_count', count)
     return
 
 
@@ -59,6 +64,12 @@ def task_update_coupon_use_count(coupon, trade_tid):
         share_used_count = coupons.filter(order_coupon_id=share.id, status=UserCoupon.USED).count()
         share.has_used_count = share_used_count
         share.save(update_fields=['has_used_count'])
+
+    from django_statsd.clients import statsd
+    if coupon.template_id == 55:
+        statsd.timing('coupon.new_customer_used_count', tpl_used_count)
+    elif coupon.template_id == 67:
+        statsd.timing('coupon.share_used_count', tpl_used_count)
     return
 
 
