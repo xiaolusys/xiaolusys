@@ -1000,3 +1000,57 @@ def task_renew_mama(obj):
     # 更新订单到交易成功
     order.status = SaleTrade.TRADE_FINISHED
     order.save(update_fields=['status'])
+
+
+@task()
+def task_mama_postphone_renew_time_by_active():
+    """
+    妈妈(正式)当天有活跃度情况下续费时间向后添加一天
+    """
+    from flashsale.xiaolumm.models_fortune import ActiveValue
+    mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
+                                      agencylevel__gte=XiaoluMama.VIP_LEVEL,
+                                      is_trial=False,
+                                      charge_status=XiaoluMama.CHARGED)
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    for mama in mamas:
+        if ActiveValue.objects.filter(mama_id=mama.id, date_field=yesterday).exists():
+            if isinstance(mama.renew_time, datetime.datetime):
+                mama.renew_time = mama.renew_time + datetime.timedelta(days=1)
+
+
+@task()
+def task_update_trial_mama_full_member_by_condition(mama):
+    """
+    检查该妈妈的推荐人是否是　试用用户　
+    如果是　试用用户数　
+    满足邀请三个188　或者　
+    6个99的妈妈则将该代理转为正式妈妈
+    这里用续费天数　判断
+    """
+    trial_mama = XiaoluMama.objects.filter(mobile=mama.referal_from,
+                                           status=XiaoluMama.EFFECT,  # 自接管后　15天　变为冻结
+                                           is_trial=True).first()  # 推荐人(试用用户并且是有效状态的)
+    if not trial_mama:
+        return
+    join_mamas = XiaoluMama.objects.filter(referal_from=trial_mama.mobile,
+                                           status=XiaoluMama.EFFECT,
+                                           is_trial=False,
+                                           agencylevel__gte=XiaoluMama.VIP_LEVEL,
+                                           charge_status=XiaoluMama.CHARGED)  # 推荐人邀请的正式妈妈
+    total_point = 0
+    now = datetime.datetime.now()
+    for mm in join_mamas:
+        if not isinstance(mm.renew_time, datetime.datetime):
+            logger.warn(u"task_update_trial_mama_full_member_by_condition: joined mama %s has no renew time" % mm.id)
+            continue
+        if (mm.renew_time - now).days > 150:    # 购买￥99的用户  183 天后续费
+            total_point += 1
+        if (mm.renew_time - now).days > 300:    # 购买￥188的用户 365 天后续费
+            total_point += 2
+    if total_point >= 6:
+        trial_mama.is_trial = False
+        trial_mama.renew_time = trial_mama.renew_time + datetime.timedelta(days=365)
+        trial_mama.save(update_fields=['is_trial', 'renew_time'])
+        sys_oa = get_systemoa_user()
+        log_action(sys_oa, trial_mama, CHANGE, u'满足转正条件,转为正式妈妈')

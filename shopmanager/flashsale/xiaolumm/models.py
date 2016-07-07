@@ -538,7 +538,15 @@ post_save.connect(xiaolumama_update_mamafortune,
                   sender=XiaoluMama, dispatch_uid='post_save_xiaolumama_update_mamafortune')
 
 
-# from .clickprice import CLICK_TIME_PRICE
+def update_trial_mama_full_member_by_condition(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks import task_update_trial_mama_full_member_by_condition
+
+    task_update_trial_mama_full_member_by_condition.delay(instance)
+
+
+post_save.connect(update_trial_mama_full_member_by_condition,
+                  sender=XiaoluMama, dispatch_uid='post_save_update_trial_mama_full_member_by_condition')
+
 
 class AgencyLevel(models.Model):
     category = models.CharField(max_length=11, unique=True, blank=False, verbose_name=u"类别")
