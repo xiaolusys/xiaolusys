@@ -904,7 +904,6 @@ def unitary_mama(obj, *args, **kwargs):
     3. 修改代理等级到 A 类
     """
     from flashsale.xiaolumm.tasks import task_unitary_mama
-    print "obj ", obj
     task_unitary_mama.delay(obj)
 
 
@@ -917,7 +916,6 @@ def register_mama(obj, *args, **kwargs):
     4. 填写推荐人
     """
     from flashsale.xiaolumm.tasks import task_register_mama
-    print "obj ", obj
     task_register_mama.delay(obj)
 
 
@@ -927,7 +925,6 @@ def renew_mama(obj, *args, **kwargs):
     1. 更新 renew_time
     """
     from flashsale.xiaolumm.tasks import task_renew_mama
-    print "obj ", obj
     task_renew_mama.delay(obj)
 
 
