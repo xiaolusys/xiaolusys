@@ -1904,7 +1904,7 @@ def task_packageskuitem_check_purchaserecord():
 
         if target_num != actual_num:
             logger.error("task_packageskuitem_check_purchaserecord|uni_key: %s, target_num: %s, actual_num: %s" % (
-            uni_key, target_num, actual_num))
+                uni_key, target_num, actual_num))
 
 
 def create_purchaseorder_booknum_check_log(time_from, type, uni_key):
@@ -1976,4 +1976,69 @@ def task_check_purchaseorder_booknum():
 
         if target_num != actual_num:
             logger.error("task_check_purchaseorder_booknum|uni_key: %s, target_num: %s, actual_num: %s" % (
-            uni_key, target_num, actual_num))
+                uni_key, target_num, actual_num))
+
+
+def create_inbound_out_stock_check_log(time_from, uni_key):
+    from flashsale.dinghuo.models import InBound, InBoundDetail
+    time_to = time_from + datetime.timedelta(hours=1)
+    target_num = sum([i.out_stock_num for i in
+                  InBoundDetail.objects.filter(check_time__range=(time_from, time_to))])
+    actual_num = sum([i.all_arrival_quantity - i.all_allocate_quantity for i in
+                  InBound.objects.filter(check_time__range=(time_from, time_to), out_stock=True)])
+    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
+                           type=SaleOrderSyncLog.INBOUND_OUT_STOCK, target_num=target_num,
+                           actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+
+@task()
+def task_inbound_check_out_stock():
+    type = SaleOrderSyncLog.INBOUND_OUT_STOCK
+    log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
+    if not log:
+        return
+    time_from = log.time_to
+    now = datetime.datetime.now()
+    if time_from > now - datetime.timedelta(hours=2):
+        return
+    uni_key = "%s|%s" % (type, time_from)
+    log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
+    if not log:
+        create_inbound_out_stock_check_log(time_from, uni_key)
+        task_inbound_check_out_stock.delay()
+
+
+def create_inbound_inferior_check_log(time_from, uni_key):
+    from flashsale.dinghuo.models import InBound, InBoundDetail
+    time_to = time_from + datetime.timedelta(hours=1)
+    target_num = InBoundDetail.objects.filter(checked=True, check_time__range=(time_from, time_to)).aggregate(
+        n=Sum('inferior_quantity')).get('n', 0) or 0
+    actual_num = sum([i.all_inferior_quantity for i in
+                  InBound.objects.filter(check_time__range=(time_from, time_to), checked=True)])
+    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
+                           type=SaleOrderSyncLog.INBOUND_INFERIOR, target_num=target_num,
+                           actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+
+@task()
+def task_inbound_check_inferior():
+    type = SaleOrderSyncLog.INBOUND_INFERIOR
+    log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
+    if not log:
+        return
+    time_from = log.time_to
+    now = datetime.datetime.now()
+    if time_from > now - datetime.timedelta(hours=2):
+        return
+
+    uni_key = "%s|%s" % (type, time_from)
+    log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
+    if not log:
+        create_inbound_inferior_check_log(time_from, uni_key)
+        task_inbound_check_inferior.delay()
