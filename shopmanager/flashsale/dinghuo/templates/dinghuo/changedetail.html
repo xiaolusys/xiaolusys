@@ -633,7 +633,7 @@
                                 <td>{{detail.check_time}}</td>
                                 <td>{{detail.sku.product.name}}||{{detail.sku_id}}</td>
                                 <td>多{{detail.out_stock_num}}件</td>
-                                <th>{%if detail.inbound.type == 4%}已处理{%else%}未处理{%endif%}</th>
+                                <th>{%if detail.inbound.status == 4%}已处理{%else%}未处理{%endif%}</th>
                             </tr>
                             {%endfor%}
                             {%for detail in orderlist.related_inferior_inbound_details%}
@@ -643,7 +643,7 @@
                                 <td>{{detail.check_time}}</td>
                                 <td>{{detail.sku.product.name}}||{{detail.sku_id}}</td>
                                 <td>次品{{detail.inferior_quantity}}件</td>
-                                <th>{%if detail.inbound.type == 4%}已处理{%else%}未处理{%endif%}</th>
+                                <th>{%if detail.inbound.status == 4%}已处理{%else%}未处理{%endif%}</th>
                             </tr>
                             {%endfor%}
                         </table>
