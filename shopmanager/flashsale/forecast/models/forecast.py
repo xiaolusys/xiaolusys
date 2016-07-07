@@ -85,10 +85,10 @@ class ForecastInbound(BaseModel):
 
     @property
     def real_arrive_num(self):
-        from .inbound import RealInBound, RealInBoundDetail
-        relate_inbounds = RealInBound.objects.filter(forecast_inbound=self)
-        arrival_quantitys = RealInBoundDetail.objects.filter(inbound__in=relate_inbounds,
-                                                             status=RealInBoundDetail.NORMAL)\
+        from .inbound import RealInbound, RealInboundDetail
+        relate_inbounds = RealInbound.objects.filter(forecast_inbound=self)
+        arrival_quantitys = RealInboundDetail.objects.filter(inbound__in=relate_inbounds,
+                                                             status=RealInboundDetail.NORMAL)\
                                                             .values_list('arrival_quantity', flat=True)
         return arrival_quantitys and sum(arrival_quantitys) or 0
 
