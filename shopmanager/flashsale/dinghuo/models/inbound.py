@@ -157,6 +157,9 @@ class InBound(models.Model):
             self._sku_ids_ = [i['sku_id'] for i in self.details.values('sku_id')]
         return self._sku_ids_
 
+    def is_invalid_status(self):
+        return self.status == self.INVALID
+
     @property
     def product_ids(self):
         if not hasattr(self, '_product_ids_'):
@@ -763,7 +766,7 @@ def refresh_inbound_order_status(sender, instance, created, **kwargs):
 
     if not created:
         from flashsale.forecast import apis
-        apis.api_create_or_update_realinbound_by_inbound(instance.id)
+        apis.api_create_or_update_realinbound_by_inbound.delay(instance.id)
 
 
 post_save.connect(refresh_inbound_order_status, sender=InBound,

@@ -239,13 +239,13 @@ class InBoundViewSet(viewsets.GenericViewSet):
             supplier = order_list.supplier
         else:
             forecast_inbound = ForecastInbound.objects.filter(
-                Q(id=orderlist_id) | Q(express_no=express_no),
-                status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT)).first()
+                Q(id=orderlist_id) | Q(express_no=express_no)).first()
             if forecast_inbound:
                 supplier = forecast_inbound.supplier
         if supplier:
             forecast_qs = ForecastInbound.objects.filter(supplier=supplier,
-                status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT)).order_by('created')
+                status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT,ForecastInbound.ST_ARRIVED)
+            ).exclude(status=ForecastInbound.ST_ARRIVED,has_lack=False,has_defact=False).order_by('created')
             for fi in forecast_qs:
                 if fi.express_no == express_no or fi.id == int(orderlist_id):
                     forecast_inbounds.insert(0, fi)

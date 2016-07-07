@@ -53,7 +53,8 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser',
-        'total_forecast_num', 'total_arrival_num', 'has_lack', 'has_defact', 'has_overhead', 'has_wrong', 'status'
+        'total_forecast_num', 'total_arrival_num', 'has_lack', 'has_defact', 'has_overhead', 'has_wrong',
+        'created', 'arrival_time', 'delivery_time', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter),
                    ('forecast_arrive_time',DateScheduleFilter),
@@ -228,7 +229,7 @@ class RealInboundAdmin(admin.ModelAdmin):
 
     list_display = (
         'id','wave_no','forecast_inbound','supplier', 'ware_house', 'creator', 'inspector',
-        'total_inbound_num', 'total_inferior_num', 'status'
+        'total_inbound_num', 'total_inferior_num', 'created', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter))
     search_fields = ['=id', '=wave_no','^supplier__supplier_name', '=express_no', '=creator']
@@ -280,7 +281,7 @@ class RealInboundDetailAdmin(admin.ModelAdmin):
     # }),)
 
     list_display = (
-        'id','inbound', 'product_name', 'product_id', 'arrival_quantity', 'inferior_quantity', 'district', 'status'
+        'id','inbound', 'product_name', 'product_id', 'arrival_quantity', 'inferior_quantity', 'district', 'created', 'status'
     )
     list_filter = ('status', ('created', DateScheduleFilter))
     search_fields = ['inbound' ,'product_id', 'product_name']
