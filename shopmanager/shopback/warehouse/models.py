@@ -34,11 +34,12 @@ class WareHouse(models.Model):
 class StockAdjust(AdminModel):
     """库存调整"""
     ware_by = models.IntegerField(default=constants.WARE_NONE, db_index=True, choices=constants.WARE_CHOICES,
-                                  verbose_name=u'所属仓库')
-    sku = models.ForeignKey(ProductSku, null=True, verbose_name=u'SKU')
+                                  verbose_name=u'所属仓库', blank=True)
+    # sku = models.ForeignKey(ProductSku, null=True, verbose_name=u'SKU')
+    sku_id = models.IntegerField(null=True, verbose_name=u'SKU')
     num = models.IntegerField(default=0, verbose_name=u'调整数')
     inferior = models.BooleanField(default=False, verbose_name=u'次品')
-    status = models.IntegerField(choices=((0, u'初始'), (1, u'已处理'), (-1, u'已作废')))
+    status = models.IntegerField(choices=((0, u'初始'), (1, u'已处理'), (-1, u'已作废')), default=0, blank=True)
 
     class Meta:
         db_table = 'shop_ware_stock_adjust'
@@ -68,7 +69,7 @@ def update_productskustats_adjust_num(sender, instance, created, **kwargs):
             adjust_quantity = StockAdjust.objects.filter(sku_id=instance.sku_id, inferior=True)\
                               .aggregate(n=Sum('num')).get('n') or 0
             InferiorSkuStats.update_adjust_num(instance.sku_id, adjust_quantity)
-        StockAdjust.filter(id=instance.id).update(status=1)
+        StockAdjust.objects.filter(id=instance.id).update(status=1)
 
 post_save.connect(update_productskustats_adjust_num, sender=StockAdjust,
                   dispatch_uid='post_save_update_warehouse_receipt_status')
