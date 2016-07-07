@@ -59,8 +59,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         forecast_group = defaultdict(list)
         for id, sku in inbound_skus.iteritems():
             forecast_group[sku['forecastId']].append(sku['arrival_quantity'])
-        optimize_forecast_id = max(dict([(k, len(v)) for k,v in forecast_group.items()]),
-                                   key=lambda x:forecast_group.get(x))
+        forecast_group_sum = dict([(k, sum(v)) for k,v in forecast_group.items()])
+        optimize_forecast_id = max(forecast_group_sum, key=lambda x:forecast_group_sum.get(x))
 
         forecast_inbound_data = services.get_forecastinbound_data(optimize_forecast_id)
         express_no = form.cleaned_data['express_no']

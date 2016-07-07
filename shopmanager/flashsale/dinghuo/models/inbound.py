@@ -253,8 +253,8 @@ class InBound(models.Model):
         return [int(item['chichu_id']) for item in query]
 
     def get_set_status_info(self):
-        if self.set_stat():
-            self.save()
+        # if self.set_stat():
+        #     self.save()
         wrong_str = u'错货%d件' % (self.error_cnt,) if self.wrong else ''
         return u"共%d件SKU（%d正品%d次品%s），分配了%d件进订货单" % (self.all_quantity, self.all_arrival_quantity,
                                                     self.all_inferior_quantity, wrong_str, self.all_allocate_quantity)

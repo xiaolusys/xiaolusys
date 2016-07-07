@@ -491,20 +491,18 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         productsku_values = ProductSku.objects.filter(id__in=sku_id_set).select_related('product').values(
             'id', 'product__outer_id', 'product__name', 'properties_name', 'properties_alias', 'product__pic_path'
         )
-        sku_stats_values = ProductSkuStats.objects.filter(sku__in=sku_id_set).extra(
-            select={'excess_num': "history_quantity + adjust_quantity + inbound_quantity + return_quantity "
-                                  + "+ sold_num - post_num - rg_quantity - post_num"}
-        ).values_list('id','excess_num')
-        sku_stats_dict = dict(sku_stats_values)
+        # sku_stats_values = ProductSkuStats.objects.filter(sku__in=sku_id_set).extra(
+        #     select={'excess_num': "history_quantity + inbound_quantity + return_quantity "
+        #                           + "+ sold_num - post_num - rg_quantity - post_num"}
+        # ).values_list('id','excess_num')
+        # sku_stats_dict = dict(sku_stats_values)
         for sku_val in productsku_values:
-            sku_stats = sku_stats_dict.get(sku_val['id'])
             sku_values.append({
                 'sku_id': sku_val['id'],
                 'outer_id': sku_val['product__outer_id'],
                 'product_name': sku_val['product__name'],
                 'sku_name': sku_val['properties_name'] or sku_val['properties_alias'],
                 'product_img': sku_val['product__pic_path'],
-                'excess_num': sku_stats and max(0, sku_stats['excess_num']) or 0
             })
         product_details_dict = dict([(s['sku_id'], s) for s in sku_values])
 
@@ -512,7 +510,6 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         min_datetime = orderdetail_values and orderdetail_values[0]['min_created'] or datetime.datetime.now()
         returngood_details = services.get_returngoods_data(supplier_ids, min_datetime)
         returngood_details_dict = dict([(rg['skuid'], rg) for rg in returngood_details])
-
         aggregate_details_list = []
         for sku_id, odetail in order_details_dict.iteritems():
             sku_detail = product_details_dict.get(sku_id, {})
@@ -520,18 +517,18 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             rg_detail = returngood_details_dict.get(sku_id, {})
             arrived_num = inbound_detail and inbound_detail['arrival_quantity'] or 0
             return_num = rg_detail and (rg_detail['return_num'] + rg_detail['inferior_num']) or 0
-            per_price = odetail['buy_quantity'] and \
+            per_price  = odetail['buy_quantity'] and \
                         round(float(odetail['total_price']) / odetail['buy_quantity'], 2) or 0
             unwork_num = odetail['buy_quantity'] - arrived_num + return_num
             inferior_num = inbound_detail and inbound_detail['inferior_quantity'] or 0
-            unarrival_num = odetail['buy_quantity'] - arrived_num
+            unarrival_num = max(0, odetail['buy_quantity'] - arrived_num)
+            excess_num  = abs(min(0, odetail['buy_quantity'] - arrived_num + inferior_num))
             # 如果到货超出预订，则计算未到货数量时需考虑次品
-            if unarrival_num < 0:
-                unarrival_num += inferior_num
             sku_detail.update({
                 'buy_num': odetail['buy_quantity'],
                 'total_price': odetail['total_price'],
                 'delta_num': unarrival_num,
+                'excess_num': excess_num,
                 'real_payment': odetail['total_price'],
                 'arrival_num': inbound_detail and inbound_detail['arrival_quantity'] or 0,
                 'inferior_num': inferior_num,
@@ -553,8 +550,8 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
 
 
 class ForecastStatsFilter(filters.FilterSet):
-    purchase_time_start = django_filters.DateFilter(name="purchase_time", lookup_type='gte')
-    purchase_time_end = django_filters.DateFilter(name="purchase_time", lookup_type='lte')
+    purchase_time_start = django_filters.DateTimeFilter(name="purchase_time", lookup_type='gte')
+    purchase_time_end = django_filters.DateTimeFilter(name="purchase_time", lookup_type='lte')
 
     class Meta:
         model = ForecastStats
@@ -592,7 +589,7 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
             'inferior_num', 'lack_num', 'purchase_amount', 'arrival_period', 'delivery_period', 'logistic_period',
             'is_lack', 'is_defact', 'is_overhead', 'is_wrong', 'is_unrecord', 'is_timeouted', 'is_close','status'
         )
-        purchase_time_start = request.GET.get('purchase_time_start',datetime.datetime(2016,1,1))
+        purchase_time_start = request.GET.get('purchase_time_start',datetime.datetime(2016,6,19))
         purchase_time_end = request.GET.get('purchase_time_end',datetime.datetime.now())
         if format == 'json':
             return Response({'results': stats_values,

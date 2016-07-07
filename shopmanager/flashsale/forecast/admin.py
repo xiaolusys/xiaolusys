@@ -20,7 +20,7 @@ class ForecastInboundDetailInline(admin.TabularInline):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            return self.readonly_fields + ('product_id', 'sku_id', 'product_name','forecast_arrive_num', 'status')
+            return self.readonly_fields + ('product_id', 'sku_id', 'product_name','forecast_arrive_num')
         return self.readonly_fields
 
     def formfield_for_dbfield(self, db_field, request=None, **kwargs):

@@ -323,7 +323,7 @@ dc.renderAll();
         },
         function(start, end, label) {
             var path = window.location.pathname;
-            window.location.href = path+'?purchase_time_start='+ start.format('YYYY-MM-DD') + '&purchase_time_end=' + end.format('YYYY-MM-DD');
+            window.location.href = path+'?purchase_time_start='+ start.format('YYYY-MM-DD 00:00:00') + '&purchase_time_end=' + end.format('YYYY-MM-DD 23:59:59');
         });
     })
 </script>

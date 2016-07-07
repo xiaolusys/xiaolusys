@@ -299,12 +299,9 @@ class AggregateForcecastOrderAndInbound(object):
                 inbounds_data = serializers.SimpleRealInboundSerializer(real_inbound_qs, many=True).data
 
                 forecast_data['relate_inbounds']  = real_inbound_qs.values_list('id', flat=True)
-                is_unarrived = len(inbounds_data) == 0 and \
-                               (not forecast.forecast_arrive_time
-                                or forecast.forecast_arrive_time <= datetime.datetime.now())
-                forecast_data['is_unarrive_intime']   = is_unarrived
+                forecast_data['is_unarrive_intime']   = forecast.is_arrival_timeout()
                 forecast_data['is_unrecord_logistic'] = forecast.is_unrecord_logistic()
-                is_unarrive_intime |= is_unarrived
+                is_unarrive_intime |= forecast_data['is_unarrive_intime']
                 is_unrecord_logistic |= forecast_data['is_unrecord_logistic']
                 is_billingable &= not forecast.is_inthedelivery()
                 is_arrivalexcept |= forecast.is_arrival_except()

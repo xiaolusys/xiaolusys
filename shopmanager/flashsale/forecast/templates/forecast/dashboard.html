@@ -81,7 +81,9 @@
         border-right: 250px solid #ddd;
         text-align: center;
     }
-
+    .modal-lg{
+        width: 1000px;
+    }
     </style>
 </head>
 <body>
@@ -160,7 +162,6 @@ $(function(){
   $('a').click(function(){
      $(this).addClass('clicked');
   });
-
   $('a.btn-account').click(function(){
      var dataSrc = $(this).attr('data-src');
      $.get(dataSrc,
