@@ -141,7 +141,7 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
 
 class SaleProductManageDetailSerializer(serializers.ModelSerializer):
 
-    sale_category = SaleCategorySerializer()
+    # sale_category = SaleCategorySerializer()
     product_name = serializers.CharField(source='sale_product.title', read_only=True)
     product_purchase_price = serializers.CharField(source='sale_product.sale_price', read_only=True)
     product_sale_price = serializers.CharField(source='sale_product.on_sale_price', read_only=True)
@@ -151,9 +151,13 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SaleProductManageDetail
-        fields = ('id', 'product_name', 'product_pic', 'product_link', 'design_person',
+        fields = ('id', 'product_name', 'schedule_manage', 'product_pic', 'product_link', 'design_person',
                   'sale_category', 'material_status', 'product_purchase_price', 'product_sale_price', 'product_origin_price',
                   'design_take_over', 'design_complete', 'is_approved', 'is_promotion' ,'created', 'modified')
 
 
+class SaleProductManageDetailSimpleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SaleProductManageDetail
 
