@@ -273,7 +273,7 @@ class ReturnGoods(models.Model):
             return ProductSkuStats.objects.filter(product__id__in=product_ids,
                                                   product__offshelf_time__lt=datetime.datetime.now() - datetime.timedelta(
                                                       days=10),
-                                                  sold_num__lt=F('history_quantity') + F('inbound_quantity') + F(
+                                                  sold_num__lt=F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F(
                                                       'return_quantity') \
                                                                - F('rg_quantity')).exclude(
                 sku__id__in=unreturn_sku_ids).exists()
