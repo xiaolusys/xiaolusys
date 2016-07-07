@@ -971,6 +971,8 @@ def task_register_mama(obj):
     if protentialmama:
         protentialmama.is_full_member = True
         protentialmama.save(update_fields=['is_full_member'])
+        sys_oa = get_systemoa_user()
+        log_action(sys_oa, protentialmama, CHANGE, u'注册为正式妈妈,修改is_full_member为true')
 
 
 @task()
@@ -1054,3 +1056,10 @@ def task_update_trial_mama_full_member_by_condition(mama):
         trial_mama.save(update_fields=['is_trial', 'renew_time'])
         sys_oa = get_systemoa_user()
         log_action(sys_oa, trial_mama, CHANGE, u'满足转正条件,转为正式妈妈')
+        # 修改潜在小鹿妈妈列表中的　转正状态
+
+        potential = PotentialMama.objects.filter(potential_mama=trial_mama.id, is_full_member=False).first()
+        if potential:
+            potential.is_full_member = True
+            potential.save(update_fields=['is_full_member'])
+            log_action(sys_oa, potential, CHANGE, u'满足转正条件,转为正式妈妈')
