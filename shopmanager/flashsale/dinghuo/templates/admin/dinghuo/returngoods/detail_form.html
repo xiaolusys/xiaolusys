@@ -118,17 +118,24 @@
                 <label class="col-md-1" id="id_status">{{original.get_status_display}}</label>
                 {%if original.status ==  0%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_check" value="审核通过" />&nbsp;&nbsp;
+                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
                 {%elif original.status == 1%}
                 <button type="button" class="btn-mini btn-primary" data-toggle="modal" data-target="#myModal">
                   已经发货
                 </button>
+                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
                 <!--%elif original.status == 3%-->
                 <!--<input type="button" class="btn-mini btn-success" id="id_btn_refund" value="已经退款"/>-->
                 {%elif original.status == 3%}
                 <input type="button" class="btn-mini btn-success" id="id_btn_success" value="已经收款"/>&nbsp;&nbsp;
                 <input type="button" class="btn-mini btn-success" id="id_btn_error" value="退货失败"/>&nbsp;&nbsp;
+                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>&nbsp;&nbsp;
+                {%if original.type == 1%}
+                    <input type="button" class="btn-mini btn-success" id="id_btn_finished" value="已经完成"/>&nbsp;&nbsp;
                 {%endif%}
-                <input type="button" class="btn-mini btn-success" id="id_btn_destroy" value="作废退货单"/>
+                {%endif%}
+
+
             </div>
         </div>
         <div class="panel-body">
@@ -144,6 +151,7 @@
                         <td>SKU编码</td>
                         <td>尺码</td>
                         <td>库位</td>
+                        <td>冗余库存数</td>
                         <td>退货正品数</td>
                         <td>退货次品数</td>
                         <td>单件退回价格</td>
@@ -169,6 +177,7 @@
                         <td>{{detail.product_sku.BARCODE}}</td>
                         <td>{{detail.product_sku.properties_name}}</td>
                         <td>{{detail.product_sku.get_districts_code}}</td>
+                        <td><a href="/admin/items/productskustats/?sku_id={{detail.skuid}}" target="_blank">{{detail.product_sku.stat.unused_stock}}</a></td>
                         <td id="td_num_{{detail.skuid}}"><label id="label_num_{{detail.skuid}}" class="show_sku_{{detail.skuid}}">{{detail.num}}</label>
                             <input id="text_num_{{detail.skuid}}" class="edit_sku_{{detail.skuid}}" type="text" value="{{detail.num}}" style="display: none;width:42px"></td>
                         <td id="td_inferior_num_{{detail.skuid}}"><label id="label_inferior_num_{{detail.skuid}}" class="show_inferior_sku_{{detail.skuid}}">{{detail.inferior_num}}</label>
@@ -430,6 +439,7 @@
             }
         }
     }
+
     function gen_supplier_return(evt){
         var url = "/sale/dinghuo/returngoods/set_refund/";
         var data = {"id": id};
@@ -721,6 +731,10 @@
                 var tpl = _.template('<img src="<%= pic_path %>" width=650 height=650>');
                 return tpl({pic_path: $(this).attr('data-pic-path')});
             }
+        });
+        $('#id_btn_finished').click(function(){
+            post_data_to_server("send_ok", $('#id_btn_finished'), id);
+            window.location.reload();
         });
     });
 

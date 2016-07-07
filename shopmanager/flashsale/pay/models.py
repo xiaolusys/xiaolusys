@@ -1195,6 +1195,14 @@ def gauge_data(sender, instance, created, **kwargs):
             key = 'saleorder_synclog.pr'
         if instance.type == SaleOrderSyncLog.BOOKNUM:
             key = 'saleorder_synclog.booknum'
+        if instance.type == SaleOrderSyncLog.PACKAGE_SKU_FINISH_NUM:
+            key = "saleorder_synclog.package_sku_finish_count"
+        if instance.type == SaleOrderSyncLog.PACKAGE_SKU_NUM:
+            key = "saleorder_synclog.package_sku_count"
+        if instance.type == SaleOrderSyncLog.INBOUND_OUT_STOCK:
+            key = "saleorder_synclog.inbound_out_stock"
+        if instance.type == SaleOrderSyncLog.INBOUND_INFERIOR:
+            key = "saleorder_synclog.inbound_inferior"
         if key:
             statsd.timing(key, instance.actual_num)
             # logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))

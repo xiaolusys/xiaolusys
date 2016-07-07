@@ -61,6 +61,8 @@
             <div class="col-md-2 btn-group">
                 {% if inbound.need_return %}
                 <button class="btn btn-info" id="gen_return_goods">退多错货</button>
+                {%elif inbound.return_goods_id%}
+                退货单号<a href="/admin/dinghuo/returngoods/{{inbound.return_goods_id}}">{{inbound.return_goods_id}}</a>
                 {% endif %}
             </div>
         </div>

@@ -1160,6 +1160,8 @@ def create_packageorder_finished_check_log(time_from, uni_key):
     log.save()
 
 
+
+
 @task()
 def task_packageorder_send_check_packageorder():
     type = SaleOrderSyncLog.PACKAGE_SKU_FINISH_NUM
