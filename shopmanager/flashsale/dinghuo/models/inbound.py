@@ -883,10 +883,10 @@ class InBoundDetail(models.Model):
         return total
 
     def get_status_info(self):
-        info = u''
         if self.out_stock:
-            info += u'多货'
-        return info
+            return u'多货'
+        else:
+            return u'完全分配'
 
     def get_allocate_info(self):
         if self.out_stock_num > 0:
@@ -1011,6 +1011,9 @@ post_save.connect(update_inferiorsku_inbound_quantity,
 def update_stock(sender, instance, created, **kwargs):
     if instance.checked:
         instance.sync_order_detail()
+        instance.reset_out_stock()
+        if instance.inbound.set_stat():
+            instance.inbound.save()
         from shopback.items.tasks import task_update_productskustats_inferior_num
         task_update_productskustats_inferior_num.delay(instance.sku_id)
 
