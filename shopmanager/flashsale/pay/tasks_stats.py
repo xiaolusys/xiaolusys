@@ -63,7 +63,6 @@ def task_saleorder_update_productskustats_waitingpay_num(sku_id):
             stat.waitingpay_num = total
             stat.save(update_fields=["waitingpay_num"])
 
-
 @task()
 def task_update_saletrade_status():
     from flashsale.pay.models import SaleOrder, SaleRefund

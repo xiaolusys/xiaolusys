@@ -53,9 +53,9 @@ class InBound(models.Model):
                                related_name='inbounds',
                                verbose_name=u'退款单', help_text=u"无效字段暂未删除")
     return_goods = models.ForeignKey('ReturnGoods',
-                               null=True,
-                               blank=True,
-                               verbose_name=u'退货单')
+                                     null=True,
+                                     blank=True,
+                                     verbose_name=u'退货单')
     creator = models.ForeignKey(User,
                                 related_name='inbounds',
                                 verbose_name=u'创建人')
@@ -242,8 +242,8 @@ class InBound(models.Model):
         for orderlist in self.order_lists.all():
             detail_ids = [detail.id for detail in orderlist.order_list.all()]
             res[orderlist.id] = OrderDetailInBoundDetail.objects.filter(inbounddetail__inbound_id=self.id,
-                                                                inbounddetail__checked=True,
-                                                                orderdetail_id__in=detail_ids).aggregate(
+                                                                        inbounddetail__checked=True,
+                                                                        orderdetail_id__in=detail_ids).aggregate(
                 n=Sum('arrival_quantity')).get('n', 0) or 0
         return res.iteritems()
 
@@ -694,9 +694,8 @@ class InBound(models.Model):
 
     @property
     def all_allocate_quantity(self):
-        return OrderDetailInBoundDetail.objects.filter(inbounddetail__inbound__id=self.id).\
+        return OrderDetailInBoundDetail.objects.filter(inbounddetail__inbound__id=self.id). \
                    aggregate(n=Sum('arrival_quantity')).get('n', 0) or 0
-
 
     @property
     def all_inferior_quantity(self):
@@ -763,7 +762,6 @@ post_save.connect(update_warehouse_receipt_status, sender=InBound,
 
 
 def refresh_inbound_order_status(sender, instance, created, **kwargs):
-
     if not created:
         from flashsale.forecast import apis
         apis.api_create_or_update_realinbound_by_inbound.delay(instance.id)

@@ -33,11 +33,12 @@ class Bill(BaseModel):
     PC_PREPAID_TYPE = 12  # 预付款
     PC_POD_TYPE = 13  # 付款提货
     PC_OTHER_TYPE = 14  # 其它
-    RECEIVE_DIRECT = 4
-    RECEIVE_DEDUCTIBLE = 5
     TAOBAO_PAY = 1
     TRANSFER_PAY = 2
     SELF_PAY = 3
+    RECEIVE_DIRECT = 4
+    RECEIVE_DEDUCTIBLE = 5
+    ALI_PAY = 6
     PURCHASE_PAYMENT_TYPE = (
         (PC_COD_TYPE, u'货到付款'),
         (PC_PREPAID_TYPE, u'预付款'),
@@ -46,9 +47,8 @@ class Bill(BaseModel):
     )
     plan_amount = models.FloatField(verbose_name=u'计划款额')
     amount = models.FloatField(default=0, verbose_name=u'实收款额')
-    PAY_CHOICES = ((TAOBAO_PAY, u'淘宝代付'), (TRANSFER_PAY, u'转款'), (SELF_PAY, u"自付"),
-                   (RECEIVE_DIRECT, u'直退'),
-                   (RECEIVE_DEDUCTIBLE, u'余额抵扣'))
+    PAY_CHOICES = ((TAOBAO_PAY, u'支付宝'), (ALI_PAY, u'代付'), (TRANSFER_PAY, u'转款'), (SELF_PAY, u"自付"),
+                   (RECEIVE_DIRECT, u'直退'), (RECEIVE_DEDUCTIBLE, u'余额抵扣'))
     pay_method = models.IntegerField(choices=PAY_CHOICES, verbose_name=u'支付方式')
     pay_taobao_link = models.TextField(null=True, blank=True, verbose_name=u'淘宝链接')
     # receive_method = models.IntegerField(choices=((1, u'直退'), (2, u'余额抵扣')), verbose_name=u'收款方式')
@@ -96,6 +96,7 @@ class Bill(BaseModel):
     def relate_to(self, relations, lack_dict={}):
         from flashsale.dinghuo.models import ReturnGoods, OrderList
         for r in relations:
+            print self.id
             rtype = lack_dict.get(r.id)
             ctype = None
             if type(r) == ReturnGoods:
@@ -120,6 +121,9 @@ class Bill(BaseModel):
                 objects[bill_relation.get_type_display()] = []
             objects[bill_relation.get_type_display()].append(bill_relation)
         return objects
+
+    def is_finished(self):
+        return self.status == Bill.STATUS_COMPLETED
 
 
 
@@ -153,6 +157,18 @@ class BillRelation(BaseModel):
     def object_url(self):
         tyc = {
             1:'/sale/dinghuo/changedetail/%s/' %(self.object_id),
-            3:'/admin/dinghuo/returngoods/%s/' %(self.object_id)
+            3:'/admin/dinghuo/returngoods/%s/' %(self.object_id),
+            2:'/sale/dinghuo/changedetail/%s/' %(self.object_id),
         }
         return tyc[self.type]
+
+    def set_orderlist_stage(self):
+        from flashsale.dinghuo.models import OrderList
+        ol = self.get_based_object()
+        if self.type == BillRelation.TYPE_DINGHUO_RECEIVE:   #退货回款 订货单状态直接完成
+            ol.stage = OrderList.STAGE_COMPLETED
+        elif self.type == BillRelation.TYPE_DINGHUO_PAY and ol.bill_method == OrderList.PC_COD_TYPE: #在货到付款情况下，订单状态完成
+            ol.stage = OrderList.STAGE_COMPLETED
+        elif self.type == BillRelation.TYPE_DINGHUO_PAY and ol.bill_method == OrderList.PC_POD_TYPE: #在付款提货状态下，订单状态为收货
+            ol.stage = OrderList.STAGE_RECEIVE
+        ol.save()
