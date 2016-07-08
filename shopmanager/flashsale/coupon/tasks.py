@@ -21,8 +21,10 @@ def task_update_tpl_released_coupon_nums(template):
     template.save(update_fields=['has_released_count'])
     from django_statsd.clients import statsd
     if template.id == 55:
+        statsd.incr('coupon.new_customer_released')
         statsd.timing('coupon.new_customer_released_count', count)
     elif template.id == 67:
+        statsd.incr('coupon.share_released')
         statsd.timing('coupon.share_released_count', count)
     return
 
@@ -67,8 +69,10 @@ def task_update_coupon_use_count(coupon, trade_tid):
 
     from django_statsd.clients import statsd
     if coupon.template_id == 55:
+        statsd.incr('coupon.new_customer_used')
         statsd.timing('coupon.new_customer_used_count', tpl_used_count)
     elif coupon.template_id == 67:
+        statsd.incr('coupon.share_used')
         statsd.timing('coupon.share_used_count', tpl_used_count)
     return
 
