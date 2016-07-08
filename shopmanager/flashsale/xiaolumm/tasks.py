@@ -856,8 +856,7 @@ def task_unitary_mama(obj):
     if not(obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
         return
     order = obj.sale_orders.all().first()
-    sku_id = int(order.sku_id)
-    if sku_id != 213711:  # 一元开店专用skuid
+    if not order.is_1_deposit():  # 不是一元开店不做处理
         return
     order_customer = obj.order_buyer
     xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
@@ -882,9 +881,9 @@ def task_unitary_mama(obj):
     if xlmm.renew_time is None:
         update_fields.append("renew_time")
         xlmm.renew_time = now + datetime.timedelta(days=15)
-    if xlmm.is_trial is False:  # 更新试用字段为True
-        update_fields.append("is_trial")
-        xlmm.is_trial = True
+    if xlmm.last_renew_type != XiaoluMama.TRIAL:  # 更新 续费类型为试用
+        update_fields.append("last_renew_type")
+        xlmm.last_renew_type = XiaoluMama.TRIAL
     if update_fields:
         xlmm.save(update_fields=update_fields)
         sys_oa = get_systemoa_user()
@@ -917,17 +916,25 @@ def task_register_mama(obj):
     if not(obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
         return
     order = obj.sale_orders.all().first()
-    sku_id = int(order.sku_id)
-    if sku_id not in [11873, 213710]:  # 代理注册 专用skuid
+    if not (order.is_99_deposit() or order.is_188_deposit()):  # 非代理注册　订单不处理
         return
     order_customer = obj.order_buyer
     xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
     if not xlmm:  # 代理
         return
-    if xlmm.charge_status == XiaoluMama.CHARGED and xlmm.is_trial is False:   # 如果是接管的不处理
+    if xlmm.charge_status == XiaoluMama.CHARGED and \
+                    xlmm.last_renew_type in (XiaoluMama.HALF, XiaoluMama.FULL):  # 如果是接管的正式代理则不处理
         return
-    days_map = {11873: 365, 213710: 183}
-    coupon_map = {11873: 39, 213710: 79}
+    if order.is_99_deposit():
+        renew_days = XiaoluMama.HALF
+        last_renew_type = XiaoluMama.HALF
+        coupon_id = 79
+
+    if order.is_188_deposit():
+        renew_days = XiaoluMama.FULL
+        last_renew_type = XiaoluMama.FULL
+        coupon_id = 39
+
     update_fields = []
     now = datetime.datetime.now()
     if xlmm.progress != XiaoluMama.PAY:
@@ -944,10 +951,10 @@ def task_register_mama(obj):
         xlmm.agencylevel = XiaoluMama.A_LEVEL
     if xlmm.renew_time is None:
         update_fields.append("renew_time")
-        xlmm.renew_time = now + datetime.timedelta(days=days_map[sku_id])
-    if xlmm.is_trial is True:  # 更新试用字段为 False
-        update_fields.append("is_trial")
-        xlmm.is_trial = False
+        xlmm.renew_time = now + datetime.timedelta(days=renew_days)
+    if xlmm.last_renew_type != last_renew_type:  # 更新试用字段为 False
+        update_fields.append("last_renew_type")
+        xlmm.last_renew_type = last_renew_type
 
     mm_linkid = obj.extras_info.get('mm_linkid') or None
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
@@ -960,7 +967,7 @@ def task_register_mama(obj):
         sys_oa = get_systemoa_user()
         log_action(sys_oa, xlmm, CHANGE, u'代理注册成功')
     from flashsale.coupon.models import UserCoupon
-    UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=coupon_map[sku_id])
+    UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=coupon_id)
     # 更新订单到交易成功
     order.status = SaleTrade.TRADE_FINISHED
     order.save(update_fields=['status'])
@@ -984,19 +991,29 @@ def task_renew_mama(obj):
     if not(obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
         return
     order = obj.sale_orders.all().first()
-    sku_id = int(order.sku_id)
-    days_map = {11873: 365, 213710: 183}
-    if sku_id not in [11873, 213710]:  # 代理注册 专用skuid
+
+    if not (order.is_99_deposit() or order.is_188_deposit()):  # 代理注册
         return
+    if order.is_99_deposit():
+        renew_days = XiaoluMama.HALF
+        last_renew_type = XiaoluMama.HALF
+
+    if order.is_188_deposit():
+        renew_days = XiaoluMama.FULL
+        last_renew_type = XiaoluMama.FULL
+
     order_customer = obj.order_buyer
     xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
     if not xlmm:  # 代理
         return
     if xlmm.charge_status != XiaoluMama.CHARGED:   # 如果不是接管的不处理
         return
-    if xlmm.is_trial:  # 试用代理不予续费服务
+    if xlmm.last_renew_type == XiaoluMama.TRIAL:  # 试用代理不予续费服务
         return
-    xlmm.renew_time = xlmm.renew_time + datetime.timedelta(days=days_map[sku_id])  # 原来的基础上加天数
+    xlmm.last_renew_type = last_renew_type
+    xlmm.renew_time = xlmm.renew_time + datetime.timedelta(days=renew_days)  # 原来的基础上加天数
+    xlmm.save(update_fields=['renew_time', 'last_renew_type'])
+
     sys_oa = get_systemoa_user()
     log_action(sys_oa, xlmm, CHANGE, u'代理续费成功')
     # 更新订单到交易成功
@@ -1012,7 +1029,7 @@ def task_mama_postphone_renew_time_by_active():
     from flashsale.xiaolumm.models_fortune import ActiveValue
     mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
                                       agencylevel__gte=XiaoluMama.VIP_LEVEL,
-                                      is_trial=False,
+                                      last_renew_type=XiaoluMama.FULL,  # 年费用户才添加天数
                                       charge_status=XiaoluMama.CHARGED)
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     for mama in mamas:
@@ -1032,28 +1049,18 @@ def task_update_trial_mama_full_member_by_condition(mama):
     """
     trial_mama = XiaoluMama.objects.filter(mobile=mama.referal_from,
                                            status=XiaoluMama.EFFECT,  # 自接管后　15天　变为冻结
-                                           is_trial=True).first()  # 推荐人(试用用户并且是有效状态的)
+                                           last_renew_type=XiaoluMama.TRIAL).first()  # 推荐人(试用用户并且是有效状态的)
     if not trial_mama:
         return
     join_mamas = XiaoluMama.objects.filter(referal_from=trial_mama.mobile,
                                            status=XiaoluMama.EFFECT,
-                                           is_trial=False,
+                                           last_renew_type=XiaoluMama.FULL,  # 邀请的是188
                                            agencylevel__gte=XiaoluMama.VIP_LEVEL,
                                            charge_status=XiaoluMama.CHARGED)  # 推荐人邀请的正式妈妈
-    total_point = 0
-    now = datetime.datetime.now()
-    for mm in join_mamas:
-        if not isinstance(mm.renew_time, datetime.datetime):
-            logger.warn(u"task_update_trial_mama_full_member_by_condition: joined mama %s has no renew time" % mm.id)
-            continue
-        if (mm.renew_time - now).days > 150:    # 购买￥99的用户  183 天后续费
-            total_point += 1
-        if (mm.renew_time - now).days > 300:    # 购买￥188的用户 365 天后续费
-            total_point += 2
-    if total_point >= 6:
-        trial_mama.is_trial = False
-        trial_mama.renew_time = trial_mama.renew_time + datetime.timedelta(days=365)
-        trial_mama.save(update_fields=['is_trial', 'renew_time'])
+    if join_mamas.count() >= 3:  # 满足条件
+        trial_mama.last_renew_type = XiaoluMama.HALF    # 转正为半年的类型
+        trial_mama.renew_time = trial_mama.renew_time + datetime.timedelta(days=XiaoluMama.HALF)
+        trial_mama.save(update_fields=['last_renew_type', 'renew_time'])
         sys_oa = get_systemoa_user()
         log_action(sys_oa, trial_mama, CHANGE, u'满足转正条件,转为正式妈妈')
         # 修改潜在小鹿妈妈列表中的　转正状态

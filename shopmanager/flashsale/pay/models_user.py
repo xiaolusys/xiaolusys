@@ -271,12 +271,12 @@ class Customer(BaseModel):
 # post_save.connect(triger_record_xlmm_fans, dispatch_uid='triger_record_xlmm_fans', sender=Customer)
 
 
-def release_coupon_for_register(sender, instance, created, **kwargs):
-    if created:
-        from flashsale.coupon.tasks import task_release_coupon_for_register
-        task_release_coupon_for_register.delay(instance)
-
-post_save.connect(release_coupon_for_register, dispatch_uid='release_coupon_for_register', sender=Customer)
+# def release_coupon_for_register(sender, instance, created, **kwargs):
+#     if created:
+#         from flashsale.coupon.tasks import task_release_coupon_for_register
+#         task_release_coupon_for_register.delay(instance)
+#
+# post_save.connect(release_coupon_for_register, dispatch_uid='release_coupon_for_register', sender=Customer)
 
 
 def update_weixinuserinfo(sender, instance, created, **kwargs):

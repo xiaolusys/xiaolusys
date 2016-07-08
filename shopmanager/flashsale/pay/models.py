@@ -810,6 +810,15 @@ class SaleOrder(PayBaseModel):
     def is_deposit(self):
         return self.outer_id.startswith('RMB')
 
+    def is_1_deposit(self):
+        return self.is_deposit() and self.outer_sku_id == '3'
+
+    def is_99_deposit(self):
+        return self.is_deposit() and self.outer_sku_id == '2'
+
+    def is_188_deposit(self):
+        return self.is_deposit() and self.outer_sku_id == '1'
+
     @property
     def item_ware_by(self):
         """　商品所属仓库 """
@@ -892,6 +901,8 @@ def order_trigger(sender, instance, created, **kwargs):
     if instance.is_deposit():
         if instance.is_confirmed():
             from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
+            if instance.is_1_deposit():  # 一元开店 不记录推荐关系
+                return
             task_update_referal_relationship.delay(instance)
     else:
         from flashsale.xiaolumm import tasks_mama
