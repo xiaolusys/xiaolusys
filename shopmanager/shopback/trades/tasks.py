@@ -1178,6 +1178,44 @@ def task_packageorder_send_check_packageorder():
         task_packageorder_send_check_packageorder.delay()
 
 
+def create_assign_check_log(time_from, uni_key):
+    from shopback.items.models_stats import ProductSkuStats
+    actual_num = PackageSkuItem.objects.filter(assign_status=1).aggregate(n=Sum('num')).get('n') or 0
+    target_num = ProductSkuStats.objects.aggregate(n=Sum('assign_num')).get('n') or 0
+    time_to = time_from + datetime.timedelta(hours=1)
+    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
+                           type=SaleOrderSyncLog.PACKAGE_ASSIGN_NUM, target_num=target_num,
+                           actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+
+def create_stock_not_assign_check_log(time_from, uni_key):
+    from shopback.items.models_stats import ProductSkuStats
+    actual_num = ProductSkuStats.objects.filter(assign_num__gt=0,
+                                                assign_num__lt=F('history_quantity') + F('inbound_quantity') + F(
+                                                    'adjust_quantity') + F('return_quantity') - F('post_num') - F(
+                                                    'rg_quantity')).count()
+    actual_num = ProductSkuStats.objects.filter(assign_num__gt=0,
+                                                post_num__lt=F('history_quantity') + F('inbound_quantity') + F(
+                                                    'adjust_quantity') + F('return_quantity') - F(
+                                                    'rg_quantity')).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
+                                                    'adjust_quantity') + Sum('return_quantity') - Sum(
+                                                    'rg_quantity')).get('n', 0)
+    sku_ids = [item['sku_id'] for item in PackageSkuItem.objects.filter(assign_status=1).values('sku_id').distinct()]
+    ProductSkuStats.objects.filter(id__in=sku_ids).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
+                                                    'adjust_quantity') + Sum('return_quantity') - Sum(
+                                                    'rg_quantity')).get('n', 0)
+    time_to = time_from + datetime.timedelta(hours=1)
+    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
+                           type=SaleOrderSyncLog.PACKAGE_STOCK_NOTASSIGN, target_num=0,
+                           actual_num=actual_num)
+    if actual_num == 0:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+
 def create_packageorder_realtime_check_log(time_from, uni_key):
     """
         确保已备货的PackageSkuItem数量等于待发货PackageOrder关联的PackageSkuItem的数量，

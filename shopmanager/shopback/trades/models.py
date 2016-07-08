@@ -1640,7 +1640,14 @@ class PackageOrder(models.Model):
         now_num = PackageStat.get_sended_package_num(id) + 1
         # pstat = PackageStat.objects.get_or_create(id=id)[0]
         # now_num = pstat.num + 1
-        return id + '-' + str(now_num)
+        res = id + '-' + str(now_num)
+        while True:
+            if PackageOrder.objects.filter(id=res, sys_status__in=
+                    [PackageOrder.FINISHED_STATUS, PackageOrder.WAIT_CUSTOMER_RECEIVE]).exists():
+                logger.error('gen_new_package_id error: sku order smaller than count:' + str(res))
+                now_num += 1
+                res = id + '-' + str(now_num)
+        return res
 
 
 def check_package_order_status(sender, instance, created, **kwargs):
