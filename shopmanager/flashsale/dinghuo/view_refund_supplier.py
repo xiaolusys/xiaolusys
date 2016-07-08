@@ -197,8 +197,9 @@ def delete_return_goods_sku(request):
     id = int(content.get("id", None))
     sku_id = content.get("sku_id", None)
     return_goods = get_object_or_404(ReturnGoods, id=id)
-    rg_detail = return_goods.rg_details.get(skuid=sku_id)
-    rg_detail.delete()
+    rg_details = return_goods.rg_details.filter(skuid=sku_id)
+    for rg_detail in rg_details:
+        rg_detail.delete()
     return_goods.set_stat()
     return HttpResponse(True)
 

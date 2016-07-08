@@ -177,6 +177,13 @@
             </tr>
             {% endfor %}
             {% endfor %}
+            <tr>
+                <td><div>正品总数</div></td>
+                <td><label class="total-arrival-quantity" style="width:80px">{{inbound.all_arrival_quantity}}</label></td>
+                <td><div>次品总数</div></td>
+                <td><label class="total-inferior-quantity" style="width:80px">{{inbound.all_inferior_quantity}}</label></td>
+                <td colspan="8"></td>
+            </tr>
         </table>
     </div>
     <div class="panel-heading">
@@ -283,9 +290,8 @@
         {{/each}}
         {{/each}}
         <tr>
-            <!--<td colspan="2">XX个订货单全部到货</td>
-            <td colspan="2">XX个订货单存在次品</td>-->
-            <td colspan="11"></td>
+            <td colspan="4">分配  2<label id="allocate_num">0</label>个到订货单</td>
+            <td colspan="7"></td>
             <td>
                 <button class="btn btn-primary" href="javascript:;" id="allocate">确认分配</button>
             </td>
@@ -332,9 +338,7 @@ function getSkuData(){
      var allocate_quantity = parseInt($this.find('.allocate_quantity').val()) || 0;
      if(!(allocate_quantity))
          return;
-     var skuId = parseInt($this.attr('data-sku-id'));
-     console.log(skuId);
-     console.log(allocate_quantity);
+     var skuId = parseInt($this.attr('data-sku-id'))
      if(skuId in skuData){
          skuData[skuId] = skuData[skuId] + allocate_quantity;
      }
@@ -361,7 +365,6 @@ function getSkuData(){
  //分配执行 获取orderdetail和sku num关联
  function allocateInbound(indentify){
     var allocateData = getAllocateData();
-    //console.dir(allocateData);
     $('#allocate').attr('disabled', true);
     $.ajax({
          url: '/sale/dinghuo/inbound/'+ INBOUND_ID +'/allocate',
@@ -420,11 +423,19 @@ function get_optimized_allocate_dict(){
                 else{
                     $this.find('.allocate_quantity').val(0);
                 }
+                set_allocate_total();
             });
          }
      });
 }
-
+function set_allocate_total(){
+    var d = getSkuData();
+    var sum = 0;
+    for (var i in d){
+        sum = sum + d[i];
+    }
+    $("#allocate_num").html(sum);
+}
 $(function(){
  $.noty.defaults = $.extend($.noty.defaults, {
      animation: {
@@ -464,7 +475,9 @@ $(function(){
 $('#orderlists-allocate').click(function(){
     get_optimized_allocate_dict();
 });
-
+ $('body').on('change','.allocate_quantity',function(){
+    set_allocate_total();
+ });
  $('body').on('click', '#allocate', function(){
      var skuData = getSkuData();
      var errorSkuIds = _.difference(_.keys(skuData), _.keys(inbound_data));
@@ -475,11 +488,8 @@ $('#orderlists-allocate').click(function(){
          });
          return false;
      }
-     console.dir(skuData);
      var warnSkuNums = [];
      var errorSkuNums = [];
-     console.log("--------------------------------------------------");
-     console.dir(inbound_data);
 
      for (var sku in inbound_data){
          if (inbound_data[sku] < skuData[sku]){
@@ -489,13 +499,9 @@ $('#orderlists-allocate').click(function(){
             warnSkuNums.push(sku)
          }
      }
-     console.dir(errorSkuNums);
-     console.dir(warnSkuNums);
      if(errorSkuNums && errorSkuNums.length > 0){
          swal("警告", "一些SKU的分配数超出了入库数", "error");
          _.each(errorSkuNums, function(el){
-                 //console.log(el);
-                 //console.dir($(TR_SELECTOR_TPL({skuId: el}), '#allocate_table'));
                  $(TR_SELECTOR_TPL({skuId: el}), '#allocate_table').addClass('error');
              });
          return false;
