@@ -6,7 +6,7 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, F
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade, Order
 from shopback.trades.service import TradeService
@@ -1160,8 +1160,6 @@ def create_packageorder_finished_check_log(time_from, uni_key):
     log.save()
 
 
-
-
 @task()
 def task_packageorder_send_check_packageorder():
     type = SaleOrderSyncLog.PACKAGE_SKU_FINISH_NUM
@@ -1211,6 +1209,7 @@ def task_schedule_check_packageskuitem_cnt():
         return
     time_from = datetime.datetime(log.time_to.year, log.time_to.month, log.time_to.day, log.time_to.hour)
     now = datetime.datetime.now()
+    time_from += datetime.timedelta(hours=1)
     if time_from > now - datetime.timedelta(minutes=10):
         return  # celery schedule中每半小时启动一次
     uni_key = "%s|%s" % (type, time_from)
