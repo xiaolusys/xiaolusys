@@ -139,6 +139,40 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
         fields = ('id', 'schedule_type', 'sale_time', 'sale_suppliers', 'product_num',
                   'responsible_person_name', 'responsible_people_id', 'lock_status', 'created', 'modified')
 
+
+class MaterialStatusField(serializers.Field):
+    def to_representation(self, obj):
+        for record in SaleProductManageDetail.MATERIAL_STATUS:
+            if record[0] == obj:
+                return record[1]
+        return ""
+
+    def to_internal_value(self, data):
+        return data
+
+
+class DesignTakeStatusField(serializers.Field):
+    def to_representation(self, obj):
+        for record in SaleProductManageDetail.DESIGN_TAKE_STATUS:
+            if record[0] == obj:
+                return record[1]
+        return ""
+
+    def to_internal_value(self, data):
+        return data
+
+
+class ManageDetailUseStatusField(serializers.Field):
+    def to_representation(self, obj):
+        for record in SaleProductManageDetail.USE_STATUS:
+            if record[0] == obj:
+                return record[1]
+        return ""
+
+    def to_internal_value(self, data):
+        return data
+
+
 class SaleProductManageDetailSerializer(serializers.ModelSerializer):
 
     # sale_category = SaleCategorySerializer()
@@ -148,12 +182,16 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     product_origin_price = serializers.CharField(source='sale_product.std_sale_price', read_only=True)
     product_pic = serializers.CharField(source='sale_product.pic_url', read_only=True)
     product_link = serializers.CharField(source='sale_product.product_link', read_only=True)
+    material_status = MaterialStatusField()
+    design_take_over = DesignTakeStatusField()
+    today_use_status = ManageDetailUseStatusField()
 
     class Meta:
         model = SaleProductManageDetail
-        fields = ('id', 'product_name', 'schedule_manage', 'product_pic', 'product_link', 'design_person',
-                  'sale_category', 'material_status', 'product_purchase_price', 'product_sale_price', 'product_origin_price',
-                  'design_take_over', 'design_complete', 'is_approved', 'is_promotion' ,'created', 'modified')
+        fields = ('id', 'product_name', 'product_pic', 'product_link', 'design_person', 'order_weight',
+                  'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
+                  'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
+                  'created', 'modified')
 
 
 class SaleProductManageDetailSimpleSerializer(serializers.ModelSerializer):

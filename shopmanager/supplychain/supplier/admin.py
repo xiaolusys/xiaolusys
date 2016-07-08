@@ -828,7 +828,8 @@ admin.site.register(HotProduct, HotProductAdmin)
 class SaleProductManageDetailInline(admin.TabularInline):
     model = SaleProductManageDetail
     fields = ('sale_product_id', 'design_take_over', 'design_person', 'name', 'sale_category',
-              'product_link', 'material_status', 'design_complete', 'is_promotion', 'today_use_status')
+              'product_link', 'material_status', 'design_complete', "order_weight",
+              'is_promotion', 'today_use_status')
     extra = 3
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
