@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 import time
+import json
 import datetime
-
 import django_filters
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
@@ -9,7 +9,9 @@ from django.conf import settings
 from django.db import transaction
 
 from rest_framework import viewsets
+from rest_framework.parsers import JSONParser
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import parser_classes
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import renderers
@@ -208,8 +210,8 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
+    # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    # permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def list(self, request, schedule_id=None, *args, **kwargs):
@@ -227,14 +229,35 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         raise NotImplemented
 
-    def create(self, request, *args, **kwargs):
+    @parser_classes(JSONParser)
+    def create_manage_detail(self, request, schedule_id, *args, **kwargs):
+        sale_product_id = request.data.get('sale_product_id') or None
+        sale_product = get_object_or_404(SaleProduct, id=sale_product_id)
+        detail = SaleProductManageDetail.objects.filter(schedule_manage=schedule_id,
+                                                        sale_product_id=sale_product.id).first()
+        if detail:
+            serializer = serializers.SaleProductManageDetailSimpleSerializer(detail)
+            return Response(serializer.data, status=status.HTTP_302_FOUND)
+        request.data.update({
+            "schedule_manage": schedule_id,
+            "sale_product_id": sale_product_id,
+            "name": sale_product.title,
+            "today_use_status": SaleProductManageDetail.NORMAL,
+            "pic_path": sale_product.pic_url,
+            "product_link": sale_product.product_link,
+            "sale_category": sale_product.sale_category.full_name
+        })
         serializer = serializers.SaleProductManageDetailSimpleSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-
-
-
-
+    def modify_manage_detail(self, request, schedule_id, pk, *args, **kwargs):
+        kwargs['partial'] = True
+        partial = kwargs.pop('partial', False)
+        instance = get_object_or_404(SaleProductManageDetail, id=pk)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)

@@ -26,7 +26,13 @@ router_urls += ([
     url(r'^saleschedule/(?P<schedule_id>[0-9]+)/product/(?P<pk>[0-9]+)$',
         views.SaleScheduleDetailViewSet.as_view({'get': 'retrieve'}),
         name='saleschedule-product-detail'),
-])
+    url(r'^saleschedule/(?P<schedule_id>[0-9]+)/create_manage_detail$',
+        views.SaleScheduleDetailViewSet.as_view({'post': 'create_manage_detail'}),
+        name='saleschedule-product-create_manage_detail'),
+    url(r'^saleschedule/(?P<schedule_id>[0-9]+)/modify_manage_detail/(?P<pk>[0-9]+)$',
+        views.SaleScheduleDetailViewSet.as_view({'patch': 'modify_manage_detail'}),
+        name='saleschedule-product-modify-manage-detail'),
+    ])
 
 urlpatterns = patterns('',
     url(r'^v1/', include(router_urls, namespace='apis_v1')),

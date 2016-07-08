@@ -433,6 +433,10 @@ class XiaoluMama(models.Model):
             return True
         return False
 
+    def is_relationshipable(self):
+        return self.agencylevel >= self.VIP_LEVEL and \
+               self.charge_status == self.CHARGED and self.status == self.EFFECT
+
     def get_cash_iters(self):
         if not self.is_cashoutable():
             return 0

@@ -47,7 +47,7 @@ def task_update_referal_relationship(sale_order):
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
     if not referal_mm:  # 没有推荐人　
         return
-    if not referal_mm.is_cashoutable():  # 推荐人身份不合法
+    if not referal_mm.is_relationshipable():  # 可以记录
         return
 
     logger.warn("%s: mm_linkid=%s, to_mama_id=%s" % (get_cur_info(), mm_linkid, to_mama_id))
