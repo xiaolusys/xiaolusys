@@ -92,7 +92,6 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
                 inbound_order_set.add(order_list.id)
 
         real_inbound.relate_order_set.clear()
-        print 'debug orderlist:', real_inbound.relate_order_set.all(), inbound_order_set
         for order_id in inbound_order_set:
             real_inbound.relate_order_set.add(order_id)
 
