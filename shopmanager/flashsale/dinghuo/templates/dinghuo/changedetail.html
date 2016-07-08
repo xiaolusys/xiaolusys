@@ -703,7 +703,7 @@
                             <label>付款类型:</label>
                         </div>
                         <div class="col-lg-8">
-                            <select class="form-control" id="pay_chioces" onchange="get_pay_chioce(this.value)">
+                            <select class="form-control" id="pay_chioces">
                                 <option value=0  selected="selected"> 请选择</option>
                                 <option value=1>支付宝</option>
                                 <option value=2>银行卡</option>
@@ -712,22 +712,22 @@
                             </select>
                         </div>
                     </div>
-                    <div id=pay_information>
-                        <!--<div class="row" id="bank_account">-->
-                            <!--<label class="col-lg-3">账号</label>-->
-                            <!--<input placeholder="请输入供应商银行账号" class="form-control col-lg-9">-->
-                        <!--</div>-->
-                        <!--<div class="row">-->
-                            <!--<label>姓名</label>-->
-                            <!--<input placeholder="请输入供应商姓名" class="form-control">-->
-                        <!--</div>-->
-                        <!--<button class="btn btn-default" id="sent_pay_info">确认</button>-->
+                    <div id="pay_information">
+                    </div>
+                    <div id="pay_information1" style="display:none">
+                        <label>支付宝账号</label>
+                        <input id="receive_account" placeholder="请输入供应商支付宝账号" class="form-control">
+                    </div>
+                    <div id="pay_information2" style="display:none">
+                        <label>账号</label><input placeholder="请输入供应商银行账号" id="receive_account" class="form-control">
+                        <label>姓名</label>
+                        <input placeholder="请输入供应商姓名" id="receive_name" class="form-control">
                     </div>
                 </div>
-                <!--<div class="modal-footer">-->
-                    <!--<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>-->
-                    <!--<button type="button" class="btn btn-primary" id="btn_create_bill">保存</button>-->
-                <!--</div>-->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="sent_pay_info">保存</button>
+                </div>
             </div>
         </div>
     </div>
@@ -804,7 +804,7 @@
         })
 
 
-        function get_pay_chioce(input){
+        /*function get_pay_chioce(input){
             var pay_information = document.getElementById("pay_information");
             $("#pay_information").children().remove();
             var label1 = document.createElement("label");
@@ -910,7 +910,7 @@
              pay_information.appendChild(br1);
              pay_information.appendChild(bt1);
             }
-        };
+        };*/
 
         $('#files').uploader({
             fileButton: 'pickfiles',
@@ -920,7 +920,7 @@
             width: 100,
             height: 100
         });
-            function set_status_state() {
+        function set_status_state() {
             var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/set_stage_state';
 
 
@@ -1132,6 +1132,57 @@ $(function () {
     $("#btn_press").click(function(){
         press_order();
     });
+    $("#pay_chioces").change(function(event){
+        var val = $(this).val();
+        console.dir(val);
+        if (val == 1){
+            $("#pay_information1").show();
+            $("#pay_information").hide();
+            $("#pay_information2").hide();
+        }
+        else if (val == 2){
+            $("#pay_information2").show();
+            $("#pay_information1").hide();
+            $("#pay_information").hide();
+        }
+        else{
+            $("#pay_information").show();
+            $("#pay_information1").hide();
+            $("#pay_information2").hide();
+        }
+	});
+	$("#sent_pay_info").click(function(){
+        var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/create_bill';
+        var orderlist_id = $ ('#orderlist_id').text();
+        var pay_way = $('#pay_ways').val();
+        var pay_tool = $("#pay_chioces").val();
+        var money = $("#ol_mon").val();
+        var receive_account = $("#receive_account").val();
+        var receive_name = $("#receive_name").val();
+
+        var data = {"orderlist_id":orderlist_id,
+                "pay_way":pay_way,
+                "pay_tool":pay_tool,
+                "money":money,
+                "receive_account":receive_account,
+                "receive_name":receive_name
+                };
+        $.ajax({
+                url: url,
+                data: data,
+                method: "post",
+                dateType: "json",
+                success: function(res){
+                    if (res.res == true) {
+                        alert("付款记录创建成功 等待财务处理");
+                        window.location.reload();
+                    }
+                },
+                error: function(){
+                }
+            });
+	});
+
     $('#btn_gen_return').click(function(){
            swal({
              title: '警告',

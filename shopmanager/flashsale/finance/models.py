@@ -47,7 +47,7 @@ class Bill(BaseModel):
     )
     plan_amount = models.FloatField(verbose_name=u'计划款额')
     amount = models.FloatField(default=0, verbose_name=u'实收款额')
-    PAY_CHOICES = ((TAOBAO_PAY, u'淘宝代付'), (ALI_PAY, u'支付宝'), (TRANSFER_PAY, u'转款'), (SELF_PAY, u"自付"),
+    PAY_CHOICES = ((TAOBAO_PAY, u'支付宝'), (ALI_PAY, u'代付'), (TRANSFER_PAY, u'转款'), (SELF_PAY, u"自付"),
                    (RECEIVE_DIRECT, u'直退'), (RECEIVE_DEDUCTIBLE, u'余额抵扣'))
     pay_method = models.IntegerField(choices=PAY_CHOICES, verbose_name=u'支付方式')
     pay_taobao_link = models.TextField(null=True, blank=True, verbose_name=u'淘宝链接')
