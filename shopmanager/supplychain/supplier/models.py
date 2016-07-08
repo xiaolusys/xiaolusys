@@ -518,6 +518,8 @@ class SaleProductManageDetail(models.Model):
         (SP_SALE, u'特卖'),
     )
 
+    WEIGHT_CHOICE = ((i, i) for i in range(1, 101)[::-1])
+
     schedule_type = models.CharField(max_length=16, default=SP_SALE,
                                      choices=SP_TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
     schedule_manage = models.ForeignKey(SaleProductManage, related_name='manage_schedule', verbose_name=u'排期管理')
@@ -539,6 +541,7 @@ class SaleProductManageDetail(models.Model):
     pic_rating = models.FloatField(blank=True, null=True, verbose_name=u'作图评分')
     is_approved = models.SmallIntegerField(default=0, verbose_name=u'审核通过')
     is_promotion = models.BooleanField(default=False, verbose_name=u'推广商品')
+    order_weight = models.IntegerField(db_index=True, default=8, choices=WEIGHT_CHOICE, verbose_name=u'权值')
 
     class Meta:
         db_table = 'supplychain_supply_schedule_manage_detail'
@@ -595,6 +598,25 @@ class SaleProductManageDetail(models.Model):
     def is_brand_type(self):
         return self.schedule_type == self.SP_BRAND
 
+    @property
+    def item_products(self):
+        if not hasattr(self, '_item_products_'):
+            from shopback.items.models import Product
+            self._item_products_ = Product.objects.filter(sale_product=self.sale_product_id, status=Product.NORMAL)
+        return self._item_products_
+
+
+def sync_product_detail_order_weight(sender, instance, raw, *args, **kwargs):
+    """ 同步：　Productdetail　的　order_weight　字段
+    product_detail
+    """
+    pros = instance.item_products
+    for pro in pros:
+        if pro.details:
+            pro.details.update_order_weight(instance.order_weight)
+
+post_save.connect(sync_product_detail_order_weight, SaleProductManageDetail,
+                  dispatch_uid='post_save_sync_product_detail_order_weight')
 
 post_save.connect(update_saleproduct_supplier, SaleProductManageDetail)
 

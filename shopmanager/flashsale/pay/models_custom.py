@@ -87,6 +87,13 @@ class Productdetail(PayBaseModel):
     def content_images(self):
         return self.content_imgs.split()
 
+    def update_order_weight(self, order_weight):
+        if self.order_weight != order_weight:
+            self.order_weight = order_weight
+            self.save(update_fields=['order_weight'])
+            return True
+        return False
+
 
 class ModelProduct(BaseTagModel):
     NORMAL = '0'

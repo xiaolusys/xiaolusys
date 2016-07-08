@@ -13,6 +13,8 @@ from flashsale.pay.models import SaleOrder
 from flashsale.pay.models_user import Customer
 from flashsale.xiaolumm import util_unikey
 
+from flashsale.xiaolumm.models import PotentialMama
+
 import sys
 
 
@@ -135,15 +137,22 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
         logger.warn("IntegrityError - task_update_ordercarry | mama_id: %s, order_id: %s" % (mama_id, order_id))
 
 
-award_carry_array = [[0, 0], [1, 3000], [4, 4000], [8, 5000], [21, 7000], [41, 9000], [101, 11000]]
+award_carry_array99 = [[0, 0], [1, 1500], [4, 2000], [8, 2500], [21, 3500], [41, 4500], [101, 5500]]
+award_carry_array188 = [[0, 0], [1, 3000], [4, 4000], [8, 5000], [21, 7000], [41, 9000], [101, 11000]]
 group_carry_array = [[0, 0], [50, 1000], [200, 1500], [500, 2000], [1000, 3000]]
 
 
-def get_award_carry_num(num):
+def get_award_carry_num(num, last_renew_type):
     """
     find out award_num
+    last_renew_type：　被邀请人最后付费类型
     """
     idx = 0
+    carry_map = {
+        XiaoluMama.HALF: award_carry_array99,
+        XiaoluMama.FULL: award_carry_array188
+    }
+    award_carry_array = carry_map[last_renew_type]
     for entry in award_carry_array:
         if num < entry[0]:
             break
@@ -171,8 +180,8 @@ def task_referal_update_awardcarry(relationship):
     award_carrys = AwardCarry.objects.filter(uni_key=uni_key)
     if award_carrys.count() <= 0:
         records = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id)
-
-        carry_num = get_award_carry_num(records.count())
+        to_mama = XiaoluMama.objects.filter(id=to_mama_id).first()  # 被邀请人
+        carry_num = get_award_carry_num(records.count(), to_mama.last_renew_type)
         carry_type = 1  # direct referal
         date_field = relationship.created.date()
         status = 2  # confirmed
@@ -196,28 +205,29 @@ def task_group_update_awardcarry(relationship):
     uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
 
     from flashsale.xiaolumm.models_fortune import AwardCarry
-    award_carrys = AwardCarry.objects.filter(uni_key=uni_key)
-    if award_carrys.count() <= 0:
-        direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id).count()
-        group_referal_num = GroupRelationship.objects.filter(leader_mama_id=from_mama_id).count()
-        carry_num = get_group_carry_num(group_referal_num + direct_referal_num)
+    award_carrys = AwardCarry.objects.filter(uni_key=uni_key).first()
+    if not award_carrys:
+        return
+    direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id).count()
+    group_referal_num = GroupRelationship.objects.filter(leader_mama_id=from_mama_id).count()
+    carry_num = get_group_carry_num(group_referal_num + direct_referal_num)
 
-        # if direct_referal_num >= 15, at least get 1000 cents for group referal
-        if carry_num <= 0 and direct_referal_num >= 15:
-            carry_num = 1000
+    # if direct_referal_num >= 15, at least get 1000 cents for group referal
+    if carry_num <= 0 and direct_referal_num >= 15:
+        carry_num = 1000
 
-        if carry_num <= 0:
-            return
+    if carry_num <= 0:
+        return
 
-        carry_type = 2  # group referal
-        date_field = relationship.created.date()
-        status = 2  # confirmed
-        award_carry = AwardCarry(mama_id=from_mama_id, carry_num=carry_num, carry_type=carry_type,
-                                 contributor_nick=relationship.member_mama_nick,
-                                 contributor_img=relationship.member_mama_img,
-                                 contributor_mama_id=relationship.member_mama_id,
-                                 date_field=date_field, uni_key=uni_key, status=status)
-        award_carry.save()
+    carry_type = 2  # group referal
+    date_field = relationship.created.date()
+    status = 2  # confirmed
+    award_carry = AwardCarry(mama_id=from_mama_id, carry_num=carry_num, carry_type=carry_type,
+                             contributor_nick=relationship.member_mama_nick,
+                             contributor_img=relationship.member_mama_img,
+                             contributor_mama_id=relationship.member_mama_id,
+                             date_field=date_field, uni_key=uni_key, status=status)
+    award_carry.save()
 
 
 from flashsale.xiaolumm.models import XiaoluMama
