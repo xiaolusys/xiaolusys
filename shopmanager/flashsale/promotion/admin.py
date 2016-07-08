@@ -172,6 +172,8 @@ class DownloadMobileRecordAdmin(admin.ModelAdmin):
         "from_customer",
         "mobile",
         "ufrom",
+        "created",
+        "modified"
     )
     list_filter = ('ufrom',)
     search_fields = ('from_customer', 'mobile')
@@ -186,6 +188,8 @@ class DownloadUnionidRecordAdmin(admin.ModelAdmin):
         "from_customer",
         "unionid",
         "ufrom",
+        "created",
+        "modified"
     )
     list_filter = ('ufrom',)
     search_fields = ('from_customer', 'unionid')
