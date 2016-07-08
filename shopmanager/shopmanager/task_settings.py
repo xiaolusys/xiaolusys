@@ -1117,41 +1117,22 @@ SHOP_APP_SCHEDULE = {
 
     u'根据saleorder的退款状态更新saletrade的状态':{
         'task': 'flashsale.pay.tasks_stats.task_update_saletrade_status',
-        'schedule':crontab(minute="0",hour="23"),
+        'schedule': crontab(minute="0", hour="23"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'实时统计当前待发货准备的packageskuitem的数据':{
         'task': 'shopback.trades.tasks.task_schedule_check_packageskuitem_cnt',
-        'achedule':crontab(minute="*/30"),
+        'schedule': crontab(minute="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    #    'runs-every-10-minutes-update-seller-flag':{
-    #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
-    #        'schedule':crontab(minute="*/10"),
-    #        'args':()
-    #    },
-    #    'runs-every-30-minutes-keyword-pagerank':{
-    #        'task':'shopapp.collector.tasks.updateItemKeywordsPageRank',
-    #        'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
-    #        'args':()
-    #    },
-    #    'runs-every-day-delete_keyword':{
-    #        'task':'shopapp.collector.tasks.deletePageRankRecordTask',
-    #        'schedule':crontab(minute="0",hour="1"),
-    #        'args':(30,)
-    #    },
-    #    'runs-every-day-send-yunda-weight':{
-    #        'task':'shopapp.yunda.tasks.SyncYundaScanWeightTask',
-    #        'schedule':crontab(minute="0",hour="20,22,0"),
-    #        'args':()
-    #    },
-    #    'runs-every-day-product-trade':{
-    #        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',
-    #        'schedule':crontab(minute="0",hour="1"),
-    #        'args':()
-    #    },
+    u'小鹿每日统计总额':{
+        'task': 'statistics.tasks.task_xiaolu_daily_stat',
+        'schedule': crontab(minute="5", hour="0"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    }
 }
 
 CELERYBEAT_SCHEDULE = {}
