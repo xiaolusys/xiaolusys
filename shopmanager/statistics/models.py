@@ -221,8 +221,8 @@ class DailyStat(BaseModel):
     class Meta:
         db_table = 'statistics_daily_stat'
         app_label = 'statistics'
-        verbose_name = u'小鹿日统计表'
-        verbose_name_plural = u'库存统计列表'
+        verbose_name = u'小鹿资产日统计表'
+        verbose_name_plural = u'小鹿资产日统计表'
 
     @staticmethod
     def create(daytime):

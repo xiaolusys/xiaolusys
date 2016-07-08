@@ -3,6 +3,7 @@ from django.contrib import admin
 from core.utils.modelutils import get_class_fields
 from statistics.models import SaleOrderStatsRecord, SaleStats, ProductStockStat
 from statistics import constants
+from statistics.models import DailyStat
 
 
 class SaleStatsAdmin(admin.ModelAdmin):
@@ -62,6 +63,7 @@ class SaleOrderStatsRecordAdmin(admin.ModelAdmin):
     list_per_page = 50
     list_filter = ('pay_time', 'status')
     search_fields = ['id', 'oid', 'sku_id', 'name']
+
     # readonly_fields = get_class_fields(SaleOrderStatsRecord)
 
     def pic_display(self, obj):
@@ -101,3 +103,20 @@ class ProductStockStatAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ProductStockStat, ProductStockStatAdmin)
+
+
+class DailyStatAdmin(admin.ModelAdmin):
+    list_display = (
+        'daytime',
+        'total_stock',
+        'total_amount',
+        'total_order',
+        'total_purchase',
+        'note'
+    )
+    list_per_page = 50
+    list_filter = ()
+    search_fields = ['id', 'daytime']
+
+
+admin.site.register(DailyStat, DailyStatAdmin)
