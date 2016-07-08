@@ -737,7 +737,7 @@ class InBoundAdmin(admin.ModelAdmin):
 
     list_filter = ('status', 'created', 'checked', 'wrong', 'out_stock', InBoundCreatorFilter)
 
-    search_fields = ('id', 'ori_orderlist_id', 'supplier__supplier_name', 'express_no')
+    search_fields = ('id', 'ori_orderlist_id', 'supplier__id', 'supplier__supplier_name', 'express_no')
     list_per_page = 20
 
     def show_creator(self, obj):

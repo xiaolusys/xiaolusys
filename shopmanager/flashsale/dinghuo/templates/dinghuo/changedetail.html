@@ -606,7 +606,7 @@
                     </div>
                     <div class="row">
                         本次订货{{orderlist.purchase_total_num}}件，当前共缺货{{orderlist.lack_num}}件，相关入库单共到货{{orderlist.total_arrival_quantity}}件，共多货{{orderlist.get_related_inbounds_out_stock_cnt}}件。<br/>
-                        详情如下：<br/>
+                        详情如下：(查看供应商全部入库记录:<a href="/admin/dinghuo/inbound?q={{orderlist.supplier.id}}"  target="_blank">{{orderlist.supplier.supplier_name }}</a>）<br/>
                         <table class="table">
                             <thead>
                                 <th>类别</th>
