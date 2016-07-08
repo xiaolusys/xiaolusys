@@ -404,14 +404,19 @@ class OrderList(models.Model):
         self.bill_method = pay_way
         self.stage = OrderList.STAGE_PAY
         self.pay_time = datetime.datetime.now()
+        self.is_postpay = False
         self.save()
 
     def set_stage_receive(self, pay_way=11):
+        """
+            直接设置收货仅限于到货付款的情况
+        """
         self.bill_method = pay_way
         self.stage = OrderList.STAGE_RECEIVE
         self.status = OrderList.QUESTION_OF_QUANTITY
         if not self.receive_time:
             self.receive_time = datetime.datetime.now()
+        self.is_postpay = True
         self.save()
 
     def set_stage_state(self):
@@ -445,6 +450,12 @@ class OrderList(models.Model):
             info = u'完成'
         return info
 
+    def get_bill(self):
+        from flashsale.finance.models import BillRelation
+        br = BillRelation.objects.filter(object_id=self.id, type=1).first()
+        if br:
+            return br.bill
+
     def update_stage(self):
         if self.stage == OrderList.STAGE_RECEIVE:
             change = self.set_stat()
@@ -454,10 +465,14 @@ class OrderList(models.Model):
                 self.save()
         elif self.stage == OrderList.STAGE_STATE:
             change = self.set_stat()
+            bill = self.get_bill()
             if self.lack is False and not self.is_postpay:
+                self.set_stage_complete()
+            elif bill and bill.is_finished():
                 self.set_stage_complete()
             elif change:
                 self.save()
+
 
 
 def check_with_purchase_order(sender, instance, created, **kwargs):

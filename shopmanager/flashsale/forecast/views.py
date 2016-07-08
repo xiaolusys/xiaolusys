@@ -483,7 +483,14 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         inbounddetail_values = services.get_realinbounds_data(purchase_orderid_list)
 
         order_details_dict = dict([(int(od['chichu_id']), od) for od in orderdetail_values])
-        inbound_details_dict = dict([(od['sku_id'], od) for od in inbounddetail_values])
+        inbound_details_dict = {}
+        for ib_detail in inbounddetail_values:
+            order_details_dict.setdefault(ib_detail['sku_id'],{
+                'chichu_id': str(ib_detail['sku_id']),
+                'buy_quantity': 0,
+                'total_price': 0,
+            })
+            inbound_details_dict.setdefault(ib_detail['sku_id'], ib_detail)
 
         sku_id_set = set(order_details_dict.keys())
         sku_id_set.update(inbound_details_dict.keys())
