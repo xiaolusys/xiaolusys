@@ -1213,5 +1213,5 @@ def task_schedule_check_packageskuitem_cnt():
     now = datetime.datetime.now()
     if time_from > now - datetime.timedelta(minutes=10):
         return  # celery schedule中每半小时启动一次
-    uni_key = "%s|%s" % (type, now)
+    uni_key = "%s|%s" % (type, time_from)
     create_packageorder_realtime_check_log(time_from, uni_key)

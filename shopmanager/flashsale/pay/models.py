@@ -85,8 +85,8 @@ class SaleTrade(BaseModel):
     DEPOSITE_ORDER = 2
     ORDER_TYPE_CHOICES = (
         (SALE_ORDER, u"特卖订单"),
-        (RESERVE_ORDER, "预订制"),
-        (DEPOSITE_ORDER, "押金订单"),
+        (RESERVE_ORDER, u"预订制"),
+        (DEPOSITE_ORDER, u"押金订单"),
     )
 
     TRADE_NO_CREATE_PAY = 0

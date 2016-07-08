@@ -1,10 +1,12 @@
 # coding=utf-8
 import logging
+import datetime
 from django.db import models
 from django.db.models import Sum
 from core.models import BaseModel
 from django.db.models.signals import post_save
 from statistics import constants
+from shopback import paramconfig as pcfg
 
 logger = logging.getLogger(__name__)
 
@@ -203,3 +205,79 @@ def update_parent_stock_stats(sender, instance, created, **kwargs):
 
 post_save.connect(update_parent_stock_stats, sender=ProductStockStat,
                   dispatch_uid='post_save_update_parent_stock_stats')
+
+
+class DailyStat(BaseModel):
+    """
+        日统计　没有考虑错误数据
+    """
+    total_stock = models.FloatField(default=0, verbose_name=u'总库存')
+    total_amount = models.FloatField(default=0, verbose_name=u'总金额')
+    total_order = models.FloatField(default=0, verbose_name=u'月订单总营收')
+    total_purchase = models.FloatField(default=0, verbose_name=u'月采购总支出')
+    daytime = models.DateTimeField(verbose_name=u'统计日')
+    note = models.CharField(max_length=1000, verbose_name=u'备注')
+
+    class Meta:
+        db_table = 'statistics_daily_stat'
+        app_label = 'statistics'
+        verbose_name = u'小鹿日统计表'
+        verbose_name_plural = u'库存统计列表'
+
+    @staticmethod
+    def create(daytime):
+        """
+            celery每天执行一次
+        """
+        daytime = datetime.datetime(daytime.year, daytime.month, daytime.day)
+        total_stock = DailyStat.get_total_stock()
+        total_amount = DailyStat.get_total_amount()
+        time_begin = datetime.datetime(daytime.year, daytime.month, 1)
+        total_order = DailyStat.get_total_order_amount(time_begin, daytime)
+        total_purchase = DailyStat.get_total_purchase(time_begin, daytime)
+        DailyStat(
+            total_stock=total_stock,
+            total_amount=total_amount,
+            total_order=total_order,
+            total_purchase=total_purchase,
+            daytime=daytime
+        ).save()
+        return
+
+    def set_note(self, note):
+        self.note = note
+        self.save()
+        return
+
+    @staticmethod
+    def get_total_stock():
+        from shopback.items.models_stats import ProductSkuStats
+        return ProductSkuStats.objects.filter(product__status=pcfg.NORMAL).aggregate(
+            n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
+                'rg_quantity') - Sum('post_num')).get('n') or 0
+
+    @staticmethod
+    def get_total_amount():
+        from django.db import connection
+        sql = """SELECT SUM(p.cost * (s.history_quantity + s.adjust_quantity + s.inbound_quantity + s.return_quantity - s.post_num - s.rg_quantity)) AS money
+FROM shop_items_product AS p LEFT JOIN shop_items_productskustats AS s ON p.id = s.product_id
+WHERE p.status = 'normal';"""
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        res = cursor.fetchall()[0][0]
+        cursor.close()
+        return res
+
+    @staticmethod
+    def get_total_order_amount(time_begin, time_end):
+        from flashsale.pay.models import SaleOrder, SaleTrade
+        return SaleOrder.objects.filter(pay_time__range=(time_begin, time_end),
+                                        status__in=[2, 3, 4, 5, 6], refund_status=0,
+                                        sale_trade__order_type=SaleTrade.SALE_ORDER).aggregate(n=Sum('payment')).get(
+            'n') or 0
+
+    @staticmethod
+    def get_total_purchase(time_begin, time_end):
+        from flashsale.finance.models import Bill
+        return Bill.objects.filter(status=Bill.STATUS_COMPLETED, created__range=(time_begin, time_end)).aggregate(
+            n=Sum('amount')).get('n') or 0

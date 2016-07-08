@@ -743,3 +743,9 @@ def task_update_agg_stock_stats(stock_stats, time_from, time_to, upper_timely_ty
         )
         psk_stat.save()
 
+
+@task()
+def task_xiaolu_daily_stat():
+    from statistics.models import DailyStat
+    now = datetime.datetime.now()
+    DailyStat.create(now)
