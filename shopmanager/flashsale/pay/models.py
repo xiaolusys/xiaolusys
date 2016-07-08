@@ -1169,6 +1169,8 @@ class SaleOrderSyncLog(BaseModel):
     INBOUND_OUT_STOCK = 5  # InBoundDetail -> InBound out_stock
     INBOUND_INFERIOR = 6   # InBoundDetail -> InBound inferior
     PACKAGE_SKU_FINISH_NUM = 7
+    PACKAGE_ASSIGN_NUM = 8
+    PACKAGE_STOCK_NOTASSIGN = 9
     TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'), (BOOKNUM, u'订货NUM'),
                    (PACKAGE_SKU_FINISH_NUM, u'包裹SKU完成计数'), (INBOUND_OUT_STOCK, u'入库有多货'),
                    (INBOUND_INFERIOR, u'入库有次品'), (PACKAGE_SKU_NUM, u'包裹SKU实时计数'))
