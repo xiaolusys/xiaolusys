@@ -47,14 +47,13 @@ class BillAdmin(admin.ModelAdmin):
         is_wrong_status = False
         is_wrong_type = False
         bill_notes = []
-
         plan_amount = .0
         for bill in queryset:
             if bill.type == Bill.PAY:
                 plan_amount += bill.plan_amount
             elif bill.type == Bill.RECEIVE:
                 plan_amount -= bill.plan_amount
-            if bill.status in [Bill.STATUS_COMPLETED]:
+            if bill.status in [Bill.STATUS_COMPLETED,Bill.STATUS_DELAY]:
                 is_wrong_status = True
             status_set.add(bill.status)
             if bill.type == Bill.DELETE:
@@ -62,7 +61,7 @@ class BillAdmin(admin.ModelAdmin):
             if bill.attachment:
                 attachment_set.add(bill.attachment)
             supplier_ids.add(bill.supplier_id)
-            if bill.pay_method not in [Bill.TRANSFER_PAY, Bill.RECEIVE_DIRECT, Bill.RECEIVE_DEDUCTIBLE]:
+            if bill.pay_method not in [Bill.TAOBAO_PAY, Bill.TRANSFER_PAY, Bill.RECEIVE_DIRECT, Bill.RECEIVE_DEDUCTIBLE]:
                 is_wrong_pay_method = True
             if bill.note:
                 bill_notes.append(bill.note)
@@ -72,7 +71,7 @@ class BillAdmin(admin.ModelAdmin):
             self.message_user(request, u'不能合并已作废的账单')
             return HttpResponseRedirect(redirect_url)
         if is_wrong_status:
-            self.message_user(request, u'只能合并待处理的账单')
+            self.message_user(request, u'只能合并已完成的账单')
             return HttpResponseRedirect(redirect_url)
         if is_wrong_pay_method:
             self.message_user(request, u'账单包含错误的支付方式')

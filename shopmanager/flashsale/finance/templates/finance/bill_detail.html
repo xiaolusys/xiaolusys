@@ -101,11 +101,12 @@
                 </div>
                 {% endif %}
                 {% if pay_deal %}
+                    {% if bill_status %}
                 <div class="panel-footer" style="text-align:center">
                     <button class="btn btn-primary" id="pay_deal">输入支付交易号</button>
                     <button class="btn btn-primary" id="payconfirm_deal" onclick="confirm_pay()">确认付款</button>      
                 </div>
-                    
+                    {% endif %}
                 {% endif %}
 
 

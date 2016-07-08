@@ -96,6 +96,7 @@ class Bill(BaseModel):
     def relate_to(self, relations, lack_dict={}):
         from flashsale.dinghuo.models import ReturnGoods, OrderList
         for r in relations:
+            print self.id
             rtype = lack_dict.get(r.id)
             ctype = None
             if type(r) == ReturnGoods:
@@ -120,6 +121,9 @@ class Bill(BaseModel):
                 objects[bill_relation.get_type_display()] = []
             objects[bill_relation.get_type_display()].append(bill_relation)
         return objects
+
+    def is_finished(self):
+        return self.status == Bill.STATUS_COMPLETED
 
 
 
@@ -153,6 +157,18 @@ class BillRelation(BaseModel):
     def object_url(self):
         tyc = {
             1:'/sale/dinghuo/changedetail/%s/' %(self.object_id),
-            3:'/admin/dinghuo/returngoods/%s/' %(self.object_id)
+            3:'/admin/dinghuo/returngoods/%s/' %(self.object_id),
+            2:'/sale/dinghuo/changedetail/%s/' %(self.object_id),
         }
         return tyc[self.type]
+
+    def set_orderlist_stage(self):
+        from flashsale.dinghuo.models import OrderList
+        ol = self.get_based_object()
+        if self.type == BillRelation.TYPE_DINGHUO_RECEIVE:   #退货回款 订货单状态直接完成
+            ol.stage = OrderList.STAGE_COMPLETED
+        elif self.type == BillRelation.TYPE_DINGHUO_PAY and ol.bill_method == OrderList.PC_COD_TYPE: #在货到付款情况下，订单状态完成
+            ol.stage = OrderList.STAGE_COMPLETED
+        elif self.type == BillRelation.TYPE_DINGHUO_PAY and ol.bill_method == OrderList.PC_POD_TYPE: #在付款提货状态下，订单状态为收货
+            ol.stage = OrderList.STAGE_RECEIVE
+        ol.save()

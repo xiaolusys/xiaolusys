@@ -21,6 +21,7 @@ class BillViewSet(viewsets.GenericViewSet):
         deal=False
         confirm = False
         pay_deal = False
+        bill_status = True
 
         if bill.type in[Bill.RECEIVE]:
             if bill.status == Bill.STATUS_PENDING:
@@ -30,6 +31,9 @@ class BillViewSet(viewsets.GenericViewSet):
 
         if bill.type in [Bill.PAY]:
             pay_deal = True
+
+        if bill.status == 2:
+            bill_status = False
         result = {
             'id' : bill.id,
             'supplier_name':bill.supplier.supplier_name,
@@ -37,7 +41,7 @@ class BillViewSet(viewsets.GenericViewSet):
             'status': dict(Bill.STATUS_CHOICES)[bill.status],
             'created': bill.created.strftime('%y年%m月%d %H:%M:%S'),
             'pay_method': dict(Bill.PAY_CHOICES)[bill.pay_method],
-            'plan_amonut': bill.plan_amount,
+            'plan_amount': bill.plan_amount,
             'amount': bill.amount,
             'receive_account':bill.receive_account,
             'receive_name': bill.receive_name,
@@ -47,12 +51,14 @@ class BillViewSet(viewsets.GenericViewSet):
             'confirm': confirm,
             'note': bill.note,
             'deal': deal,
-            'pay_deal': pay_deal
+            'pay_deal': pay_deal,
+            'bill_status' :bill_status
         }
         return Response(result, template_name=u"finance/bill_detail.html")
 
     @detail_route(methods=['post'])
     def confirm_bill(self,request, pk):
+        from flashsale.dinghuo.models import *
         form = forms.ConfirmBillForm(request.POST)
         if not form.is_valid():
             return ({"res":False, "data":[], "desc":"参数错误"})
@@ -62,7 +68,10 @@ class BillViewSet(viewsets.GenericViewSet):
         bill.amount = form.cleaned_data['amount']
         bill.status = Bill.STATUS_COMPLETED
         bill.save()
-
+        brs = BillRelation.objects.filter(bill_id=pk,content_type_id = 199)           #获取非退货状态下的orderlist
+        if brs.count():
+            for br in brs:
+                br.set_orderlist_stage()
         for bill_relation in bill.billrelation_set.all():
             relation_object = bill_relation.get_based_object()
             if hasattr(relation_object, 'confirm'):
@@ -100,9 +109,12 @@ class BillViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def finish_bill(self, request, pk):
+        from flashsale.dinghuo.models import *
         Bill.objects.filter(id=pk).update(status=Bill.STATUS_COMPLETED)
-        orderlist = BillRelation.objects.get(bill_id=pk).get_based_object()
-        orderlist.set_stage_receive()
+        brs = BillRelation.objects.filter(bill_id=pk,content_type_id = 199)
+        if brs.count():
+            for br in brs:
+                br.set_orderlist_stage()
         return Response({'bill_id': pk})
 
 
