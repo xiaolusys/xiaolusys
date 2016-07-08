@@ -33,11 +33,12 @@ class Bill(BaseModel):
     PC_PREPAID_TYPE = 12  # 预付款
     PC_POD_TYPE = 13  # 付款提货
     PC_OTHER_TYPE = 14  # 其它
-    RECEIVE_DIRECT = 4
-    RECEIVE_DEDUCTIBLE = 5
     TAOBAO_PAY = 1
     TRANSFER_PAY = 2
     SELF_PAY = 3
+    RECEIVE_DIRECT = 4
+    RECEIVE_DEDUCTIBLE = 5
+    ALI_PAY = 6
     PURCHASE_PAYMENT_TYPE = (
         (PC_COD_TYPE, u'货到付款'),
         (PC_PREPAID_TYPE, u'预付款'),
@@ -46,9 +47,8 @@ class Bill(BaseModel):
     )
     plan_amount = models.FloatField(verbose_name=u'计划款额')
     amount = models.FloatField(default=0, verbose_name=u'实收款额')
-    PAY_CHOICES = ((TAOBAO_PAY, u'淘宝代付'), (TRANSFER_PAY, u'转款'), (SELF_PAY, u"自付"),
-                   (RECEIVE_DIRECT, u'直退'),
-                   (RECEIVE_DEDUCTIBLE, u'余额抵扣'))
+    PAY_CHOICES = ((TAOBAO_PAY, u'淘宝代付'), (ALI_PAY, u'支付宝'), (TRANSFER_PAY, u'转款'), (SELF_PAY, u"自付"),
+                   (RECEIVE_DIRECT, u'直退'), (RECEIVE_DEDUCTIBLE, u'余额抵扣'))
     pay_method = models.IntegerField(choices=PAY_CHOICES, verbose_name=u'支付方式')
     pay_taobao_link = models.TextField(null=True, blank=True, verbose_name=u'淘宝链接')
     # receive_method = models.IntegerField(choices=((1, u'直退'), (2, u'余额抵扣')), verbose_name=u'收款方式')
