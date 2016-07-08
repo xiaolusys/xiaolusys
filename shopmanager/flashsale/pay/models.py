@@ -811,13 +811,13 @@ class SaleOrder(PayBaseModel):
         return self.outer_id.startswith('RMB')
 
     def is_1_deposit(self):
-        return self.outer_id.startswith('RMB1')
+        return self.is_deposit() and self.outer_sku_id == '3'
 
     def is_99_deposit(self):
-        return self.outer_id.startswith('RMB99')
+        return self.is_deposit() and self.outer_sku_id == '2'
 
     def is_188_deposit(self):
-        return self.outer_id.startswith('RMB188')
+        return self.is_deposit() and self.outer_sku_id == '1'
 
     @property
     def item_ware_by(self):
