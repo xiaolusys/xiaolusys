@@ -1945,8 +1945,8 @@ class PackageSkuItem(BaseModel):
             self.cancel_time == datetime.datetime.now()
 
     def reset_assign_status(self):
-        PackageSkuItem.objects.filter(id=self.id).update(assign_status=0)
         package_order = self.package_order
+        PackageSkuItem.objects.filter(id=self.id).update(assign_status=0, package_order_id=None, package_order_pid=None)
         if package_order and not package_order.is_sent():
             if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                 package_order.set_redo_sign(save_data=False)
