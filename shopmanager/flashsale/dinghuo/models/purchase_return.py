@@ -172,7 +172,8 @@ class ReturnGoods(models.Model):
             raise Exception(u'此入库单无错货多货无法生成退货单')
         supplier_id = inbound.supplier_id
         rg_details = []
-        for detail in inbound.details.filter(Q(out_stock=True) | Q(inferior_quantity__gt=0)):
+        # inbounddetail 中存在sku_id=0的情况，为了防止异常
+        for detail in inbound.details.filter(Q(out_stock=True) | Q(inferior_quantity__gt=0)).exclude(wrong=False):
             rg_detail = RGDetail(
                 skuid=detail.sku_id,
                 num=detail.out_stock_cnt,
@@ -210,7 +211,8 @@ class ReturnGoods(models.Model):
         inbound_ids = [i.id for i in inbounds]
         rg_details = []
         return_inbound_ids = []
-        for detail in InBoundDetail.objects.filter(inbound_id__in=inbound_ids).filter(
+        # inbounddetail 中存在sku_id=0的情况，为了防止异常
+        for detail in InBoundDetail.objects.filter(inbound_id__in=inbound_ids, wrong=False).filter(
                         Q(out_stock=True) | Q(inferior_quantity__gt=0)):# | Q(wrong=True)):
             rg_detail = RGDetail(
                 skuid=detail.sku_id,
