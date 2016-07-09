@@ -334,7 +334,7 @@ class MamaDayStatsAdmin(ApproxAdmin):
                     'tweek_clicks', 'tweek_buyers', 'get_tweek_payment_display')
 
     search_fields = ['=xlmm']
-    list_filter = ('log_type', 'carry_type', 'status', ('day_date', DateFieldListFilter))
+    list_filter = (('day_date', DateFieldListFilter),)
     form = MamaDayStatsForm
 
 
