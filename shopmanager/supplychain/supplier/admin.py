@@ -325,7 +325,6 @@ class SaleProductAdmin(ApproxAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     # ordering = ('-hot_value',)
-    date_hierarchy = 'sale_time'
     list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
                    ('created', DateFieldListFilter), 'librarian', "buyer")

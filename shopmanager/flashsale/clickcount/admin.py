@@ -39,7 +39,8 @@ class ClicksAdmin(ApproxAdmin):
     list_display = ('linkid', 'openid', 'isvalid', 'click_time')
     list_filter = ('isvalid', ('click_time', DateFieldListFilter),)
     search_fields = ['=linkid', '=openid']
-    date_hierarchy = 'click_time'
+
+    list_per_page = 50
 
     def get_changelist(self, request, **kwargs):
         return ClicksChangeList
@@ -64,7 +65,6 @@ class ClickCountAdmin(ApproxAdmin):
     list_display_links = ['linkid', 'username']
     list_filter = ('date', 'username')
 
-    date_hierarchy = 'date'
     search_fields = ['=linkid', '=mobile']
 
 
