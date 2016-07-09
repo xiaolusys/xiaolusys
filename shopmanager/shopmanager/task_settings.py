@@ -31,10 +31,12 @@ CELERY_IMPORTS = (
     'flashsale.promotion.tasks_activity',
     'flashsale.pay.tasks_stats',
     'shopback.items.tasks_stats',
+    'shopback.items.tasks',
     'statistics.tasks',
     'flashsale.restpro.tasks',
     'flashsale.forecast.apis',
     'flashsale.dinghuo.tasks',
+    'supplychain.supplier.tasks_sync_shelf_time',
 )
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -1144,7 +1146,21 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="5", hour="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
+    u'定时同步排期设置时间到库存商品列表的上下架时间': {
+        'task': 'supplychain.supplier.tasks_sync_shelf_time.task_sync_shelf_time_from_manager',
+        'schedule': crontab(minute="*/30"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'定时自动上下架库存商品': {
+        'task': 'shopback.items.tasks.task_auto_shelf_prods',
+        'schedule': crontab(minute="0", hour="*/1"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     }
+
 }
 
 CELERYBEAT_SCHEDULE = {}

@@ -6,6 +6,8 @@ from django.core.cache import cache
 from django.db import models
 from django.contrib.auth.models import User
 from core.models import  BaseTagModel
+from django.db.models.signals import pre_save, post_save
+from common.modelutils import update_model_fields
 
 import common.utils
 from models_praise import SalePraise
@@ -390,11 +392,6 @@ class SaleProduct(BaseTagModel):
         return self._item_products_
 
 
-
-from django.db.models.signals import pre_save, post_save
-from common.modelutils import update_model_fields
-
-
 def update_saleproduct_supplier(sender, instance, **kwargs):
     """
         如果选品录入，则更新供应商品最后选品日期,最后上架日期
@@ -419,7 +416,7 @@ def update_saleproduct_supplier(sender, instance, **kwargs):
         update_model_fields(sale_supplier, update_fields=['last_schedule_time'])
 
 
-post_save.connect(update_saleproduct_supplier, SaleProduct)
+post_save.connect(update_saleproduct_supplier, SaleProduct, dispatch_uid='post_save_update_saleproduct_supplier')
 
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
@@ -454,6 +451,8 @@ class SaleProductManage(models.Model):
                                      choices=SP_TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
     sale_suppliers = models.ManyToManyField('supplier.SaleSupplier', blank=True, verbose_name=u'排期供应商')
     sale_time = models.DateField(db_index=True, verbose_name=u'排期日期')
+    upshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'上架时间')
+    offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
     product_num = models.IntegerField(default=0, verbose_name=u'商品数量')
     responsible_people_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'负责人ID')
     responsible_person_name = models.CharField(max_length=64, verbose_name=u'负责人名字')
