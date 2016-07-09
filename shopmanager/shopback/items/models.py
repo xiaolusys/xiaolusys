@@ -148,6 +148,7 @@ class Product(models.Model):
     modified = models.DateTimeField(null=True, blank=True, db_index=True,
                                     auto_now=True, verbose_name=u'修改时间')
     sale_time = models.DateField(null=True, blank=True, db_index=True, verbose_name=u'上架日期')
+    upshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'上架时间')
     offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
 
     is_split = models.BooleanField(default=False, verbose_name=u'需拆分')
@@ -577,6 +578,73 @@ class Product(models.Model):
         """
         return None
 
+    @classmethod
+    def items_by_sale_product_id(cls, sale_product_id):
+        """ 选品id对应的产品 """
+        return cls.objects.filter(sale_product=sale_product_id, status=cls.NORMAL)
+
+    @classmethod
+    def upshelf_right_now_products(cls):
+        """需要立即上架的产品"""
+        now = datetime.datetime.now()  # 现在时间在上架时间和下架时间之间　状态为正常 处于下架状态 并且审核通过的产品
+        return cls.objects.filter(
+            upshelf_time__lte=now, offshelf_time__gt=now,
+            status=cls.NORMAL,
+            is_verify=True,
+            shelf_status=cls.DOWN_SHELF
+        )
+
+    @classmethod
+    def offshelf_right_now_products(cls):
+        now = datetime.datetime.now()  # 下架时间小于现在（在这之前就应该下架）　　状态正常　且处于　上架状态　的　产品
+        return cls.objects.filter(
+            offshelf_time__lte=now,
+            status=cls.NORMAL,
+            shelf_status=cls.UP_SHELF
+        )
+
+    def upshelf_product(self):
+        """ 上架产品 """
+        if not self.is_verify:
+            return False
+        if self.shelf_status != Product.UP_SHELF:
+            self.shelf_status = Product.UP_SHELF
+            self.save(update_fields=['shelf_status'])
+            return True
+        return False
+
+    def offshelf_product(self):
+        """ 下架产品 """
+        update_fields = []
+        if self.shelf_status != Product.DOWN_SHELF:
+            self.shelf_status = Product.DOWN_SHELF
+            update_fields.append('shelf_status')
+        if self.is_verify:  # 下架过程要将审核重置为未审核
+            self.is_verify = False
+            update_fields.append('is_verify')
+        if update_fields:
+            self.save(update_fields=update_fields)
+            return True
+        return False
+
+    def update_shelf_time(self, upshelf_time, offshelf_time):
+        """ 更新上下架时间 """
+        if self.shelf_status == Product.UP_SHELF:  # 正在上架的产品不去　更新　上下架时间
+            return False
+        update_fields = []
+        if not (upshelf_time and offshelf_time):
+            return
+        if self.upshelf_time != upshelf_time:
+            self.upshelf_time = upshelf_time
+            update_fields.append('upshelf_time')
+        if self.sale_time != upshelf_time.date():
+            self.sale_time = upshelf_time.date()
+            update_fields.append('sale_time')
+        if self.offshelf_time != offshelf_time:
+            self.offshelf_time = offshelf_time
+            update_fields.append('offshelf_time')
+        self.save(update_fields=update_fields)
+        return True
 
 from flashsale.pay.models_shops import CuShopPros, CustomerShops
 
