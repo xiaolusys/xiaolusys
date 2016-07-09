@@ -1173,7 +1173,8 @@ class SaleOrderSyncLog(BaseModel):
     PACKAGE_STOCK_NOTASSIGN = 9
     TYPE_CHOICE = ((UNKNOWN, u'未知'), (SO_PSI, u'发货PSI'), (PSI_PR, u'订货PR'), (BOOKNUM, u'订货NUM'),
                    (PACKAGE_SKU_FINISH_NUM, u'包裹SKU完成计数'), (INBOUND_OUT_STOCK, u'入库有多货'),
-                   (INBOUND_INFERIOR, u'入库有次品'), (PACKAGE_SKU_NUM, u'包裹SKU实时计数'))
+                   (INBOUND_INFERIOR, u'入库有次品'), (PACKAGE_SKU_NUM, u'包裹SKU实时计数'),
+                   (PACKAGE_ASSIGN_NUM, u'备货计数'), (PACKAGE_STOCK_NOTASSIGN, u'有库存未备货'))
     OPEN = 1
     COMPLETED = 2
     STATUS_CHOICE = ((OPEN, u'未完成'), (COMPLETED, u'完成'))
@@ -1216,6 +1217,10 @@ def gauge_data(sender, instance, created, **kwargs):
             key = "saleorder_synclog.inbound_out_stock"
         if instance.type == SaleOrderSyncLog.INBOUND_INFERIOR:
             key = "saleorder_synclog.inbound_inferior"
+        if instance.type == SaleOrderSyncLog.PACKAGE_STOCK_NOTASSIGN:
+            key = "saleorder_synclog.package_stock_notassign"
+        if instance.type == SaleOrderSyncLog.PACKAGE_ASSIGN_NUM:
+            key = "saleorder_synclog.package_assign_num"
         if key:
             statsd.timing(key, instance.actual_num)
             # logger.warn("gauge_data|key:%s,completed:%s, actual_num:%s" % (key, instance.is_completed(), instance.actual_num))

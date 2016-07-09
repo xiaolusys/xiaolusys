@@ -1127,6 +1127,18 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'实时统计备货的packageskuitem':{
+        'task': 'shopback.trades.tasks.task_schedule_check_assign_num',
+        'schedule': crontab(minute="2"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'实时统计可备货但未备货的packageskuitem和空包裹':{
+        'task': 'shopback.trades.tasks.task_schedule_check_stock_not_assign',
+        'schedule': crontab(minute="3"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     u'小鹿每日统计总额':{
         'task': 'statistics.tasks.task_xiaolu_daily_stat',
         'schedule': crontab(minute="5", hour="0"),
