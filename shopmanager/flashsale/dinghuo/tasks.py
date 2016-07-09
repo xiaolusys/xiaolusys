@@ -2014,7 +2014,7 @@ def task_inbound_check_out_stock():
 def create_inbound_inferior_check_log(time_from, uni_key):
     from flashsale.dinghuo.models import InBound, InBoundDetail
     time_to = time_from + datetime.timedelta(hours=1)
-    target_num = InBoundDetail.objects.filter(checked=True, check_time__range=(time_from, time_to)).aggregate(
+    target_num = InBoundDetail.objects.filter(checked=True, inbound__check_time__range=(time_from, time_to)).aggregate(
         n=Sum('inferior_quantity')).get('n', 0) or 0
     actual_num = sum([i.all_inferior_quantity for i in
                   InBound.objects.filter(check_time__range=(time_from, time_to), checked=True)])
