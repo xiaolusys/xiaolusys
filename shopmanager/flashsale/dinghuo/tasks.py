@@ -2002,7 +2002,7 @@ def task_inbound_check_out_stock():
         return
     time_from = log.time_to
     now = datetime.datetime.now()
-    if time_from > now - datetime.timedelta(hours=2):
+    if time_from > now - datetime.timedelta(hours=1):
         return
     uni_key = "%s|%s" % (type, time_from)
     log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
@@ -2034,7 +2034,7 @@ def task_inbound_check_inferior():
         return
     time_from = log.time_to
     now = datetime.datetime.now()
-    if time_from > now - datetime.timedelta(hours=2):
+    if time_from > now - datetime.timedelta(hours=1):
         return
 
     uni_key = "%s|%s" % (type, time_from)
