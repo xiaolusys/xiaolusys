@@ -339,14 +339,14 @@ class ProductAdmin(ApproxAdmin):
              ('collect_num', 'warn_num', 'remain_num', 'wait_post_num',
               'reduce_num'),
              ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
-             ('sale_time', 'offshelf_time'),
+             ('sale_time', 'upshelf_time', 'offshelf_time'),
              ('cost', 'std_sale_price', 'agent_price'),
              ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
     }),
                  ('商品系统设置:', {
                      'classes': ('collapse',),
                      'fields': (('weight', 'sync_stock', 'is_assign',
-                                 'is_split', 'is_match', 'post_check',
+                                 'is_split', 'is_match', 'post_check', 'is_verify',
                                  'is_watermark'), ('barcode', 'match_reason'),
                                 ('sale_charger', 'storage_charger'),
                                 ('buyer_prompt', 'memo'))
