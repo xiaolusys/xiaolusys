@@ -76,16 +76,22 @@
                             <th>金额</th>
                             <th>支付信息</th>
                         </tr>
-                        {% for obj in relation_objects %}
+                        {% for relation_object in relation_objects %}
                         <tr>
-                            <td>{{obj.type}}</td>
+                            <td>{{relation_object.name}}</td>
                             <td>
-                                <a href="{{obj.object_url}}" target="_blank">{{obj.object_id}}</a>
+                                {% for item in relation_object.items %}
+                                <a href="{{item.object_url}}" target="_blank">{{item.object_id}}</a>
+                                {% endfor %}
                             </td>
                             <td>
-                                {{obj.amount}}
+                                {% for item in relation_object.items %}
+                                {% if forloop.first %}
+                                <a href="{{item.object_url}}" target="_blank">{{item.bill.amount}}</a>
+                                {% else %}
+                                {% endif %}
+                                {% endfor %}
                             </td>
-                            <td style="max-width:200px">{{obj.payinfo}}</td>
                         </tr>
                         {% endfor %}
                     </table>
