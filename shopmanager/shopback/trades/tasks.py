@@ -1193,25 +1193,32 @@ def create_assign_check_log(time_from, uni_key):
 
 def create_stock_not_assign_check_log(time_from, uni_key):
     from shopback.items.models_stats import ProductSkuStats
-    actual_num = ProductSkuStats.objects.filter(assign_num__gt=0,
+    stock_not_assign_num = ProductSkuStats.objects.filter(assign_num__gt=0,
                                                 assign_num__lt=F('history_quantity') + F('inbound_quantity') + F(
                                                     'adjust_quantity') + F('return_quantity') - F('post_num') - F(
                                                     'rg_quantity')).count()
-    actual_num = ProductSkuStats.objects.filter(assign_num__gt=0,
-                                                post_num__lt=F('history_quantity') + F('inbound_quantity') + F(
-                                                    'adjust_quantity') + F('return_quantity') - F(
-                                                    'rg_quantity')).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
-                                                    'adjust_quantity') + Sum('return_quantity') - Sum(
-                                                    'rg_quantity')).get('n', 0)
-    sku_ids = [item['sku_id'] for item in PackageSkuItem.objects.filter(assign_status=1).values('sku_id').distinct()]
-    ProductSkuStats.objects.filter(id__in=sku_ids).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
-                                                    'adjust_quantity') + Sum('return_quantity') - Sum(
-                                                    'rg_quantity')).get('n', 0)
-    time_to = time_from + datetime.timedelta(hours=1)
+    empty_package_count = 0
+    for p in PackageOrder.objects.filter(
+            sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS,
+                            PackageOrder.WAIT_SCAN_WEIGHT_STATUS]):
+        if p.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).count() == 0:
+            empty_package_count += 1
+    # actual_num = ProductSkuStats.objects.filter(assign_num__gt=0,
+    #                                             post_num__lt=F('history_quantity') + F('inbound_quantity') + F(
+    #                                                 'adjust_quantity') + F('return_quantity') - F(
+    #                                                 'rg_quantity')).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
+    #                                                 'adjust_quantity') + Sum('return_quantity') - Sum(
+    #                                                 'rg_quantity')).get('n', 0)
+    # sku_ids = [item['sku_id'] for item in PackageSkuItem.objects.filter(assign_status=1).values('sku_id').distinct()]
+    # ProductSkuStats.objects.filter(id__in=sku_ids).aggregate(n=Sum('history_quantity') + Sum('inbound_quantity') + Sum(
+    #                                                 'adjust_quantity') + Sum('return_quantity') - Sum(
+    #                                                 'rg_quantity')).get('n', 0)
+    # time_to = time_from + datetime.timedelta(hours=1)
+    time_to = datetime.datetime.now()
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
-                           type=SaleOrderSyncLog.PACKAGE_STOCK_NOTASSIGN, target_num=0,
-                           actual_num=actual_num)
-    if actual_num == 0:
+                           type=SaleOrderSyncLog.PACKAGE_STOCK_NOTASSIGN, target_num=stock_not_assign_num,
+                           actual_num=empty_package_count)
+    if stock_not_assign_num == empty_package_count == 0:
         log.status = SaleOrderSyncLog.COMPLETED
     log.save()
 
@@ -1241,14 +1248,26 @@ def create_packageorder_realtime_check_log(time_from, uni_key):
 
 @task()
 def task_schedule_check_packageskuitem_cnt():
-    type = SaleOrderSyncLog.PACKAGE_SKU_NUM
+    realtime_check(SaleOrderSyncLog.PACKAGE_SKU_NUM, create_packageorder_realtime_check_log)
+
+
+@task()
+def task_schedule_check_assign_num():
+    realtime_check(SaleOrderSyncLog.PACKAGE_ASSIGN_NUM, create_assign_check_log)
+
+
+@task()
+def task_schedule_check_stock_not_assign():
+    realtime_check(SaleOrderSyncLog.PACKAGE_STOCK_NOTASSIGN, create_stock_not_assign_check_log)
+
+
+def realtime_check(type, func):
     log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
     if not log:
         return
-    time_from = datetime.datetime(log.time_to.year, log.time_to.month, log.time_to.day, log.time_to.hour)
     now = datetime.datetime.now()
-    time_from += datetime.timedelta(hours=1)
-    if time_from > now - datetime.timedelta(minutes=10):
+    time_from = datetime.datetime(now.year, now.month, now.day, now.hour)
+    if time_from <= log.time_to:
         return  # celery schedule中每半小时启动一次
     uni_key = "%s|%s" % (type, time_from)
-    create_packageorder_realtime_check_log(time_from, uni_key)
+    func(time_from, uni_key)

@@ -1983,7 +1983,7 @@ def create_inbound_out_stock_check_log(time_from, uni_key):
     from flashsale.dinghuo.models import InBound, InBoundDetail
     time_to = time_from + datetime.timedelta(hours=1)
     target_num = sum([i.out_stock_num for i in
-                  InBoundDetail.objects.filter(check_time__range=(time_from, time_to))])
+                  InBoundDetail.objects.filter(inbound__check_time__range=(time_from, time_to))])
     actual_num = sum([i.all_arrival_quantity - i.all_allocate_quantity for i in
                   InBound.objects.filter(check_time__range=(time_from, time_to), out_stock=True)])
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,

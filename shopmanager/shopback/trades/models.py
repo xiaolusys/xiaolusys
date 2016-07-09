@@ -1647,6 +1647,8 @@ class PackageOrder(models.Model):
                 logger.error('gen_new_package_id error: sku order smaller than count:' + str(res))
                 now_num += 1
                 res = id + '-' + str(now_num)
+            else:
+                break
         return res
 
 
