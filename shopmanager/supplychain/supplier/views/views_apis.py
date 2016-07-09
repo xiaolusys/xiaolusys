@@ -218,8 +218,8 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
-    # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    # permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     ordering_fields = ('order_weight', )
