@@ -1491,8 +1491,10 @@ class PackageOrder(models.Model):
                 self.is_picking_print = False
             elif action == 'reset_express_print':
                 self.is_express_print = False
-            if save_data:
-                self.save()
+        if self.sys_status == PackageOrder.PKG_NEW_CREATED:
+            self.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
+        if save_data:
+            self.save()
 
     def reset_to_new_create(self):
         from flashsale.pay.models import FLASH_SELLER_ID
@@ -1510,13 +1512,26 @@ class PackageOrder(models.Model):
         self.sku_num = 0
         self.save()
 
+    def reset_package_address(self):
+        item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
+        if item and item.sale_trade_id:
+            st = SaleTrade.objects.filter(tid=item.sale_trade_id).first()
+            self.buyer_id = st.buyer_id
+            self.receiver_name = st.receiver_name
+            self.receiver_state = st.receiver_state
+            self.receiver_city = st.receiver_city
+            self.receiver_district = st.receiver_district
+            self.receiver_address = st.receiver_address
+            self.receiver_zip = st.receiver_zip
+            self.receiver_phone = st.receiver_phone
+            self.receiver_mobile = st.receiver_mobile
+
     def set_package_address(self):
-        item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).first()
+        item = self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
         if item and item.sale_trade_id:
             st = SaleTrade.objects.filter(tid=item.sale_trade_id).first()
             if not st:
                 return self
-
             self.buyer_id = st.buyer_id
             self.receiver_name = st.receiver_name
             self.receiver_state = st.receiver_state
@@ -1568,7 +1583,7 @@ class PackageOrder(models.Model):
                 self.logistics_company_id = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0].id
             self.save(update_fields=['logistics_company_id'])
 
-    def reset_sku_item_num(self, save_data=True):
+    def reset_sku_item_num(self):
         sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
                                                   assign_status=PackageSkuItem.ASSIGNED)
         sku_num = sku_items.count()
@@ -1577,9 +1592,11 @@ class PackageOrder(models.Model):
             ready_completion = sku_num == order_sku_num
         else:
             ready_completion = 0
-        if self.sku_num != sku_num or self.order_sku_num != order_sku_num or ready_completion != self.ready_completion:
-            PackageOrder.objects.filter(id=self.id).update(sku_num=sku_num, order_sku_num=order_sku_num,
-                                                           ready_completion=ready_completion)
+        change = self.sku_num != sku_num or self.order_sku_num != order_sku_num or ready_completion != self.ready_completion
+        self.sku_num = sku_num
+        self.order_sku_num = order_sku_num
+        self.ready_completion = ready_completion
+        return change
 
     def refresh(self):
         """
@@ -1596,7 +1613,7 @@ class PackageOrder(models.Model):
                 self.reset_to_new_create()
 
     @staticmethod
-    def create(id, sale_trade, sys_status=None):
+    def create(id, sale_trade, sys_status=None, psi= None):
         package_order = PackageOrder(id=id)
         buyer_id, address_id, ware_by_id, order = id.split('-')
         package_order.buyer_id = int(buyer_id)
@@ -1606,7 +1623,12 @@ class PackageOrder(models.Model):
         if sys_status:
             package_order.sys_status = sys_status
         package_order.sku_num = 1
+        package_order.order_sku_num = PackageSkuItem.unsend_orders_cnt(int(buyer_id))
+        package_order.ready_completion = package_order.order_sku_num == 1
         package_order.save()
+        if psi:
+            PackageSkuItem.objects.filter(id=psi.id).update(package_order_id=package_order.id,
+                                                                 package_order_pid=package_order.pid)
         return package_order
 
     @staticmethod
@@ -1927,7 +1949,8 @@ class PackageSkuItem(BaseModel):
         if package_order and not package_order.is_sent():
             if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                 package_order.set_redo_sign(save_data=False)
-                package_order.reset_sku_item_num(save_data=True)
+                package_order.reset_sku_item_num()
+                package_order.save()
             else:
                 package_order.reset_to_new_create()
         self.package_order_id = None

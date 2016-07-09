@@ -1400,7 +1400,7 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
     sum_res = RGDetail.objects.filter(skuid=sku_id, created__gte=PRODUCT_SKU_STATS_COMMIT_TIME,
                                       return_goods__status__in=[ReturnGoods.DELIVER_RG,
                                                                 ReturnGoods.REFUND_RG,
-                                                                ReturnGoods.SUCCEED_RG], type=RGDetail.TYPE_CHANGE).aggregate(total=Sum('num'))
+                                                                ReturnGoods.SUCCEED_RG], type=RGDetail.TYPE_REFUND).aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
     stat = ProductSkuStats.objects.get(sku_id=sku_id)
     if stat.rg_quantity != total:
