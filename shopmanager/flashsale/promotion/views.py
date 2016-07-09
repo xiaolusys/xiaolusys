@@ -275,6 +275,17 @@ class APPDownloadView(WeixinAuthMixin, View):
     def get(self, request):
         content = request.GET
         from_customer = content.get('from_customer') or ''  # 分享人的用户id
+        if not from_customer:
+            mm_linkid = content.get('mm_linkid') or None  # 分享人的用户id
+            if mm_linkid is None:
+                cookies = request.COOKIES
+                mm_linkid = cookies.get("mm_linkid")
+            from flashsale.xiaolumm.models import XiaoluMama
+            mm = XiaoluMama.objects.filter(id=mm_linkid).first()
+            if mm:
+                customer = mm.get_mama_customer()
+                from_customer = str(customer.id) if customer else ''
+
         mobile = content.get('mobile') or ''
         ufrom = content.get("ufrom") or None
         diff_customer = True
