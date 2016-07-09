@@ -346,7 +346,7 @@ class ProductAdmin(ApproxAdmin):
                  ('商品系统设置:', {
                      'classes': ('collapse',),
                      'fields': (('weight', 'sync_stock', 'is_assign',
-                                 'is_split', 'is_match', 'post_check',
+                                 'is_split', 'is_match', 'post_check', 'is_verify',
                                  'is_watermark'), ('barcode', 'match_reason'),
                                 ('sale_charger', 'storage_charger'),
                                 ('buyer_prompt', 'memo'))

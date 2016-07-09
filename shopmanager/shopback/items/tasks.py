@@ -1097,8 +1097,11 @@ def task_stock_adjust_update_productskustats_inferior_num(sku_id, product_id):
 
 
 @task(max_retries=3, default_retry_delay=5)
-def task_up_shelf_prods():
-    """ 自动上架产品：　已经审核的产品　并且在下架状态的产品　修改状态到上架 """
+def task_auto_shelf_prods():
+    """
+    1. 自动上架产品：　已经审核的产品　并且在下架状态的产品　修改状态到上架
+    2. 自动下架产品：　并且在上架状态的产品　修改状态到下架状态
+    """
     pros = Product.upshelf_right_now_products()  # 要立即上架的产品
     systemoa = get_systemoa_user()
     logger.warn(u'执行自动上架产品任务 task_up_shelf_prods: 产品数量: %s' % pros.count())
@@ -1108,19 +1111,14 @@ def task_up_shelf_prods():
             if state:  # 上架成功　打log
                 log_action(systemoa, pro, CHANGE, u'系统自动上架修改该产品到上架状态')
     except Exception as exc:
-        raise task_up_shelf_prods.retry(countdown=60 * 5, exc=exc)
+        raise task_auto_shelf_prods.retry(countdown=60 * 5, exc=exc)
 
-
-@task(max_retries=3, default_retry_delay=5)
-def task_off_shelf_prods():
-    """ 自动下架产品：　并且在上架状态的产品　修改状态到下架状态 """
     pros = Product.offshelf_right_now_products()  # 要立即下架的产品
     logger.warn(u'执行自动下架产品任务 task_off_shelf_prods: 产品数量: %s' % pros.count())
-    systemoa = get_systemoa_user()
     try:
         for pro in pros:
             state = pro.offshelf_product()  # 执行上架动作
             if state:  # 上架成功　打log
                 log_action(systemoa, pro, CHANGE, u'系统自动下架修改该产品到下架状态')
     except Exception as exc:
-        raise task_off_shelf_prods.retry(countdown=60 * 5, exc=exc)
+        raise task_auto_shelf_prods.retry(countdown=60 * 5, exc=exc)

@@ -1150,22 +1150,16 @@ SHOP_APP_SCHEDULE = {
 
     u'定时同步排期设置时间到库存商品列表的上下架时间': {
         'task': 'supplychain.supplier.tasks_sync_shelf_time.task_sync_shelf_time_from_manager',
-        'schedule': crontab(minute=0, hour="*/4"),
+        'schedule': crontab(minute="*/30"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时自动上架库存商品': {
-        'task': 'shopback.items.tasks.task_up_shelf_prods',
+    u'定时自动上下架库存商品': {
+        'task': 'shopback.items.tasks.task_auto_shelf_prods',
         'schedule': crontab(minute="0", hour="*/1"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时自动下架库存商品': {
-        'task': 'shopback.items.tasks.task_off_shelf_prods',
-        'schedule': crontab(minute="0", hour="*/1"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    }
 
 }
 
