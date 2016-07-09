@@ -1,4 +1,4 @@
-# -*- encoding:utf-8 -*-
+es# -*- encoding:utf-8 -*-
 
 from django.db.models import F
 from celery.task import task
@@ -189,7 +189,7 @@ def plan_for_price_limit_name(order_num, carry_plan_id):
 
 @task()
 def task_visitor_increment_clickcarry(mama_id, date_field):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
     uni_key = util_unikey.gen_clickcarry_unikey(mama_id, date_field)
     click_carrys = ClickCarry.objects.filter(uni_key=uni_key)
@@ -201,14 +201,21 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
         click_carry = click_carrys[0]
         price = click_carry.init_click_price
         limit = click_carry.init_click_limit
+
         click_num = click_carry.click_num
-        if click_num < limit:
-            total_value = (click_num + 1) * price
-            click_carry.click_num = click_num + 1
-            click_carry.total_value = total_value
-            click_carry.save()
+        if click_num % 10 == 0:
+            # every 10 clicks, we check with unique visitors to calculate click_num
+            click_num = UniqueVisitor.objects.filter(mama_id=mama_id, date_field=date_field).count()
         else:
-            click_carrys.update(click_num=F('click_num') + 1)
+            click_num = click_num + 1
+            
+        if click_num <= limit:
+            total_value = click_num * price
+            click_carry.click_num = click_num
+            click_carry.total_value = total_value
+            click_carry.save(update_fields=['click_num', 'total_value', 'modified'])
+        else:
+            click_carrys.update(click_num=click_num)
 
 
 @task()
