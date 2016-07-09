@@ -591,8 +591,9 @@ class Product(models.Model):
             upshelf_time__lte=now, offshelf_time__gt=now,
             status=cls.NORMAL,
             is_verify=True,
-            shelf_status=cls.DOWN_SHELF).exclude(upshelf_time__isnull=True,
-                                                 offshelf_time__isnull=True)
+            shelf_status=cls.DOWN_SHELF,
+            upshelf_time__isnull=False,
+            offshelf_time__isnull=False)
 
     @classmethod
     def offshelf_right_now_products(cls):
