@@ -61,6 +61,9 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
 
 @task()
 def task_Update_User_Click(click_id, *args, **kwargs):
+    if not click_id:
+        return
+
     click = Clicks.objects.get(id=click_id)
     openid = click.openid
     app_key = click.app_key
