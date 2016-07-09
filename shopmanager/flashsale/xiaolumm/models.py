@@ -437,6 +437,12 @@ class XiaoluMama(models.Model):
         return self.agencylevel >= self.VIP_LEVEL and \
                self.charge_status == self.CHARGED and self.status == self.EFFECT
 
+    def is_click_countable(self):
+        if self.agencylevel >=self.VIP_LEVEL and \
+                        self.charge_status == self.CHARGED and self.status == self.EFFECT:
+            return True
+        return False
+
     def get_cash_iters(self):
         if not self.is_cashoutable():
             return 0

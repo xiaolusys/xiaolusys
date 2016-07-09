@@ -770,7 +770,7 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
     try:
         from flashsale.xiaolumm.models import XiaoluMama
         mama = XiaoluMama.objects.get(id=mama_id)
-        if not mama.is_cashoutable():
+        if not mama.is_click_countable():
             return
     except XiaoluMama.DoesNotExist:
         return
