@@ -1,4 +1,4 @@
-es# -*- encoding:utf-8 -*-
+# -*- encoding:utf-8 -*-
 
 from django.db.models import F
 from celery.task import task
