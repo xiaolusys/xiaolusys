@@ -276,7 +276,7 @@ class APPDownloadView(WeixinAuthMixin, View):
         content = request.GET
         from_customer = content.get('from_customer') or ''  # 分享人的用户id
         if not from_customer:
-            mm_linkid = content.get('mm_linkid') or ''  # 分享人的用户id
+            mm_linkid = content.get('mm_linkid') or None  # 分享人的用户id
             if mm_linkid is None:
                 cookies = request.COOKIES
                 mm_linkid = cookies.get("mm_linkid")
