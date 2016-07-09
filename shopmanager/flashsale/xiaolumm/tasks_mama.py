@@ -203,11 +203,11 @@ def task_group_update_awardcarry(relationship):
     to_mama_id = relationship.member_mama_id
 
     uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
+    award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
 
-    from flashsale.xiaolumm.models_fortune import AwardCarry
-    award_carrys = AwardCarry.objects.filter(uni_key=uni_key).first()
-    if not award_carrys:
+    if award_carry:
         return
+    
     direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id).count()
     group_referal_num = GroupRelationship.objects.filter(leader_mama_id=from_mama_id).count()
     carry_num = get_group_carry_num(group_referal_num + direct_referal_num)

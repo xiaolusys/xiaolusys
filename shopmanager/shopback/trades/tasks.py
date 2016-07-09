@@ -1182,8 +1182,7 @@ def create_assign_check_log(time_from, uni_key):
 
 def create_stock_not_assign_check_log(time_from, uni_key):
     from shopback.items.models_stats import ProductSkuStats
-    stock_not_assign_num = ProductSkuStats.objects.filter(assign_num__gt=0,
-                                                assign_num__lt=F('history_quantity') + F('inbound_quantity') + F(
+    stock_not_assign_num = ProductSkuStats.objects.filter(assign_num__gt=F('history_quantity') + F('inbound_quantity') + F(
                                                     'adjust_quantity') + F('return_quantity') - F('post_num') - F(
                                                     'rg_quantity')).count()
     empty_package_count = 0
