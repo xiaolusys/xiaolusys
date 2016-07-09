@@ -992,50 +992,38 @@ def task_update_package_order(instance):
     if instance.assign_status == PackageSkuItem.ASSIGNED:
         if not instance.package_order_id:
             sale_trade = instance.sale_trade
-            if sale_trade.buyer_id and sale_trade.user_address_id and instance.product_sku.ware_by:
-                package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                                   instance.product_sku.ware_by)
-                package_order = PackageOrder.objects.filter(id=package_order_id).first()
-                new_create = not package_order
-                if new_create:
-                    package_order = PackageOrder.create(package_order_id, sale_trade,
-                                                        sys_status=PackageOrder.WAIT_PREPARE_SEND_STATUS)
-                    PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order.id,
-                                                                         package_order_pid=package_order.pid)
-
-                    package_order.reset_sku_item_num(save_data=True)
-                else:
-                    PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id,
-                                                                         package_order_pid=package_order.pid)
-                    package_order.set_redo_sign(save_data=False)
-                    if package_order.sys_status == PackageOrder.PKG_NEW_CREATED:
-                        package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-                    package_order.set_package_address()
-                    package_order.set_logistics_company()
-                    package_order.reset_sku_item_num(save_data=True)
-
-            else:
+            if not (sale_trade.buyer_id and sale_trade.user_address_id and instance.product_sku.ware_by):
                 logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
                 return
-        else:
-
-            package_order = PackageOrder.objects.get(id=instance.package_order_id)
-            if package_order.sys_status == PackageOrder.PKG_NEW_CREATED:
-                package_order.sys_status = PackageOrder.WAIT_PREPARE_SEND_STATUS
-                package_order.reset_sku_item_num(save_data=True)
+            package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
+                                                               instance.product_sku.ware_by)
+            package_order = PackageOrder.objects.filter(id=package_order_id).first()
+            if not package_order:
+                PackageOrder.create(package_order_id, sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS,
+                                                    instance)
             else:
+                PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id,
+                                                                     package_order_pid=package_order.pid)
                 package_order.set_redo_sign(save_data=False)
-                package_order.reset_sku_item_num(save_data=True)
+                package_order.reset_package_address()
+                package_order.reset_sku_item_num()
+                package_order.save()
+        else:
+            package_order = PackageOrder.objects.get(id=instance.package_order_id)
+            package_order.set_redo_sign(save_data=False)
+            package_order.reset_package_address()
+            package_order.reset_sku_item_num()
+            package_order.save()
     elif instance.assign_status == PackageSkuItem.CANCELED:
         if instance.package_order_id:
             package_order = PackageOrder.objects.get(id=instance.package_order_id)
             if not package_order.is_sent():
                 if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                     package_order.set_redo_sign(save_data=False)
-                    package_order.reset_sku_item_num(save_data=True)
+                    package_order.reset_sku_item_num()
+                    package_order.save()
                 else:
                     package_order.reset_to_new_create()
-
     elif instance.assign_status == PackageSkuItem.FINISHED:
         sku_items = PackageSkuItem.objects.filter(package_order_id=instance.package_order_id)
         assign_status_set = set([p.assign_status for p in sku_items])
