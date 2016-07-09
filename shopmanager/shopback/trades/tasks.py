@@ -1021,6 +1021,7 @@ def task_update_package_order(instance):
                 if package_order.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                     package_order.set_redo_sign(save_data=False)
                     package_order.reset_sku_item_num()
+                    package_order.can_send_time = None
                     package_order.save()
                 else:
                     package_order.reset_to_new_create()
