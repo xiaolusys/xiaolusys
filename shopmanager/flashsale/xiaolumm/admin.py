@@ -313,7 +313,6 @@ class CarryLogAdmin(ApproxAdmin):
                     'carry_type', 'status', 'carry_date', 'created')
     list_filter = ('log_type', 'carry_type', 'status', ('carry_date', DateFieldListFilter))
     search_fields = ['=xlmm', '=buyer_nick']
-    date_hierarchy = 'carry_date'
 
 
 admin.site.register(CarryLog, CarryLogAdmin)
@@ -335,7 +334,7 @@ class MamaDayStatsAdmin(ApproxAdmin):
                     'tweek_clicks', 'tweek_buyers', 'get_tweek_payment_display')
 
     search_fields = ['=xlmm']
-    date_hierarchy = 'day_date'
+    list_filter = ('log_type', 'carry_type', 'status', ('day_date', DateFieldListFilter))
     form = MamaDayStatsForm
 
 

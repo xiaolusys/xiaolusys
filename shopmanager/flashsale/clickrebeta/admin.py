@@ -89,7 +89,6 @@ class StatisticsShoppingAdmin(ApproxAdmin):
 
     list_filter = ('status', ('shoptime', DateFieldListFilter),)
 
-    date_hierarchy = 'shoptime'
     search_fields = ['=linkid', '=openid', '=wxorderid']
 
     inlines = [OrderDetailRebetaInline]

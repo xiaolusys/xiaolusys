@@ -2,8 +2,9 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
-from shopback.orders.models import Order, Trade
 
+from shopback.orders.models import Order, Trade
+from core.filters import DateFieldListFilter
 
 class OrderInline(admin.TabularInline):
     model = Order
@@ -28,7 +29,7 @@ class TradeAdmin(admin.ModelAdmin):
 
     inlines = [OrderInline]
 
-    list_filter = ('seller_nick', 'type', 'status',)
+    list_filter = ('seller_nick', 'type', 'status', ('created', DateFieldListFilter))
     search_fields = ['id', 'buyer_nick']
 
     # --------定制控件属性----------------
@@ -48,10 +49,9 @@ class OrderAdmin(admin.ModelAdmin):
     list_display_links = ('oid', 'trade', 'refund_id', 'status')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'created'
     # ordering = ['created_at']
 
-    list_filter = ('status', 'refund_status')
+    list_filter = ('status', 'refund_status' ,('created', DateFieldListFilter))
     search_fields = ['oid', 'buyer_nick', 'num_iid', 'sku_properties_name']
 
 
