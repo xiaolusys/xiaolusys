@@ -1349,7 +1349,7 @@ class PackageOrder(models.Model):
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name=u'生成日期')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改日期')
-    merged = models.DateTimeField(null=True, blank=True, verbose_name=u'合并日期')
+    can_send_time = models.DateTimeField(db_column="merged", null=True, blank=True, verbose_name=u'可发货时间')
     send_time = models.DateTimeField(null=True, blank=True, verbose_name=u'发货日期')
     weight_time = models.DateTimeField(db_index=True, null=True, blank=True, verbose_name=u'称重日期')
     charge_time = models.DateTimeField(null=True, blank=True, verbose_name=u'揽件日期')
@@ -1620,6 +1620,7 @@ class PackageOrder(models.Model):
         package_order.user_address_id = int(address_id)
         package_order.ware_by = int(ware_by_id)
         package_order.copy_order_info(sale_trade)
+        package_order.can_send_time = datetime.datetime.now()
         if sys_status:
             package_order.sys_status = sys_status
         package_order.sku_num = 1
