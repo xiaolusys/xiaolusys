@@ -1501,13 +1501,14 @@ class PackageOrder(models.Model):
         new_p = PackageOrder()
         need_attrs = ['pid', 'id', 'buyer_id', 'user_address_id', 'ware_by', 'tid', 'receiver_name', 'receiver_state',
                       'receiver_city', 'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile',
-                      'receiver_phone', 'buyer_nick', 'logistics_company_id']
+                      'receiver_phone', 'buyer_nick', 'logistics_company_id', 'merged']
         # all_attrs = PackageOrder.get_deferred_fields()
         all_attrs = [i.column for i in PackageOrder._meta.fields]
         for attr in all_attrs:
             if attr not in need_attrs:
                 val = getattr(new_p, attr)
                 setattr(self, attr, val)
+        self.can_send_time = None
         self.seller_id = User.objects.get(uid=FLASH_SELLER_ID).id
         self.sku_num = 0
         self.save()

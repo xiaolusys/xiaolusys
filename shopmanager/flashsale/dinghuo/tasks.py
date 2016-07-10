@@ -1885,7 +1885,7 @@ def task_packageskuitem_check_purchaserecord():
                 actual_num += 1
                 if psi.is_booking_needed() and pr.status == PurchaseRecord.EFFECT:
                     continue
-                if (not psi.is_booking_needed()) and pr.status == PurchaseRecord.CANCELED:
+                if (not psi.is_booking_needed()) and pr.status == PurchaseRecord.CANCEL:
                     continue
             psi.save(update_fields=['modified'])
 
