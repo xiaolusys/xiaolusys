@@ -138,12 +138,12 @@ class ActivityEntrySerializer(serializers.ModelSerializer):
                   'total_member_num', 'friend_member_num', 'is_active', 'products')
 
 class SimpleActivityEntrySerializer(serializers.ModelSerializer):
-
+    extras = JSONParseField(read_only=True, required=False)
     class Meta:
         model = ActivityEntry
         fields = ('id', 'title', 'login_required', 'act_desc', 'act_img', 'act_logo', 'mask_link', 'act_link',
                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val',
-                  'total_member_num', 'friend_member_num', 'is_active')
+                  'total_member_num', 'friend_member_num', 'is_active', 'extras')
 
 
 class BrandEntrySerializer(serializers.ModelSerializer):

@@ -157,9 +157,9 @@ class ActivityProduct(BaseModel):
     @property
     def prodouct(self):
         if not hasattr(self, '_product_'):
-            if self.product_id > 0:
+            if self.model_id > 0:
                 self._product_ = Product.objects.get(id=self.product_id)
-            elif self.model_id > 0:
+            elif self.product_id > 0:
                 self._product_ = Product.objects.filter(model_id=self.model_id).first()
             else:
                 self._product_ = None
