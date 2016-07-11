@@ -20,7 +20,7 @@ class ComplainAdmin(BaseModelAdmin):
     detail_view = BaseModelAdmin.change_view
 
     def detail_view(self, request, object_id, form_url='', extra_context=None):
-        extra_context = {'title': u'仓库退货单'}
+        extra_context = {'title': u'用户投诉'}
         return self.detailform_view(request, object_id, form_url, extra_context)
 
     def selfactions(self, obj):
