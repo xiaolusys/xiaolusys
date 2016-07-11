@@ -399,7 +399,7 @@ def task_collect_union_download_record(instance):
         unionid = customer.unionid if customer else ''
         thumbnail = customer.thumbnail if customer else ''
         nick = customer.nick if customer else ''
-        mobile = customer.mobile
+        mobile = customer.mobile if customer else ''
         appdownload = AppDownloadRecord(from_customer=instance.from_customer,
                                         unionid=unionid,
                                         headimgurl=thumbnail,
