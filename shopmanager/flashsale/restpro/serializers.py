@@ -158,6 +158,7 @@ class BrandPortalSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
+    name = serializers.SerializerMethodField(read_only=True)
     category = ProductCategorySerializer(read_only=True)
     #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
     product_model = ModelProductSerializer(source="get_product_model", read_only=True)
@@ -173,6 +174,9 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
                   'is_saleopen', 'is_newgood', 'std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 'memo',
                   'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id",
                   'watermark_op', 'web_url', 'sale_product')
+
+    def get_name(self, obj):
+        return obj.name.split('/')[0]
 
 
 class ProductSimpleSerializer(serializers.ModelSerializer):
