@@ -9,7 +9,8 @@ logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.pay.models import Customer, BudgetLog, UserBudget
-from flashsale.promotion.models import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord
+from flashsale.promotion.models import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord, \
+    DownloadMobileRecord, DownloadUnionidRecord
 from utils import get_application
 
 import sys, random
@@ -215,22 +216,31 @@ def task_sampleapply_update_appdownloadrecord(application):
     if not (application.user_unionid or application.mobile):
         # We dont create downloadrecord if both unionid and mobile are missing.
         return
-
     if not application.from_customer:
-        #自己下载的,不是别人推荐的,那么直接退出
+        #  自己下载的,不是别人推荐的,那么直接退出
         return
 
-    record = get_appdownloadrecord(application.user_unionid, application.mobile)
-    if not record:
-        record = AppDownloadRecord(from_customer=application.from_customer, openid=application.user_openid,
-                                   unionid=application.user_unionid, nick=application.nick, headimgurl=application.headimgurl,
-                                   mobile=application.mobile)
-        record.save()
-    else:
-        if not record.unionid and application.user_unionid:
-            # if the appdownloadrecord only have mobile, it's the chance to update it's unionid.
-            record.unionid = application.user_unionid
-            record.save()
+    if application.user_unionid:
+        uni_key = '/'.join([str(application.from_customer), str(application.user_unionid)])
+        unioindown = DownloadUnionidRecord.objects.filter(uni_key=uni_key).first()
+        if not unioindown:
+            unioindown = DownloadUnionidRecord(from_customer=application.from_customer,
+                                               ufrom=DownloadMobileRecord.ACTIVITY,
+                                               uni_key=uni_key,
+                                               unionid=application.user_unionid,
+                                               headimgurl=application.headimgurl,
+                                               nick=application.nick)
+            unioindown.save()
+    # 这里　选择有union信息　和　mobile 信息　都做记录　再　两 表中显示
+    if application.mobile:
+        uni_key = '/'.join([str(application.from_customer), str(application.mobile)])
+        mobiledown = DownloadUnionidRecord.objects.filter(uni_key=uni_key).first()
+        if not mobiledown:
+            mobiledown = DownloadMobileRecord(from_customer=application.from_customer,
+                                              mobile=application.mobile,
+                                              ufrom=DownloadMobileRecord.ACTIVITY,
+                                              uni_key=uni_key)
+            mobiledown.save()
 
 
 @task()
@@ -297,17 +307,112 @@ def task_appdownloadrecord_update_fans(record):
 
 @task()
 def task_create_appdownloadrecord_with_userinfo(from_customer, userinfo):
+    """
+    通过扫码邀请粉丝有微信授权信息记录
+    """
     from_customer = int(from_customer)
     unionid = userinfo.get("unionid")
     nick = userinfo.get("nickname")
     headimgurl = userinfo.get("headimgurl")
-    
-    record = AppDownloadRecord(from_customer=from_customer,unionid=unionid,headimgurl=headimgurl,nick=nick,ufrom=AppDownloadRecord.WXAPP)
-    record.save()
+    uni_key = '/'.join([str(from_customer), str(unionid)])
+    unioindown = DownloadUnionidRecord.objects.filter(uni_key=uni_key).first()
+    if not unioindown:
+        unioindown = DownloadUnionidRecord(from_customer=from_customer,
+                                           ufrom=DownloadMobileRecord.QRCODE,
+                                           uni_key=uni_key,
+                                           unionid=unionid,
+                                           headimgurl=headimgurl,
+                                           nick=nick)
+        unioindown.save()
+    else:
+        update_fields = []
+        if unioindown.ufrom != DownloadMobileRecord.QRCODE:
+            unioindown.ufrom = DownloadMobileRecord.QRCODE
+            update_fields.append('ufrom')
+        unioindown.modified = datetime.datetime.now()
+        update_fields.append('modified')
+        unioindown.save(update_fields=update_fields)
+
 
 @task()
 def task_create_appdownloadrecord_with_mobile(from_customer, mobile):
+    """
+    通过扫码邀请粉丝有手机号下载记录
+    """
     from_customer = int(from_customer)
-    record = AppDownloadRecord(from_customer=from_customer,mobile=mobile)
-    record.save()
-    
+    uni_key = '/'.join([str(from_customer), str(mobile)])
+    mobiledown = DownloadUnionidRecord.objects.filter(uni_key=uni_key).first()
+    if not mobiledown:
+        mobiledown = DownloadMobileRecord(from_customer=from_customer,
+                                          mobile=mobile,
+                                          ufrom=DownloadMobileRecord.QRCODE,
+                                          uni_key=uni_key)
+        mobiledown.save()
+    else:
+        update_fields = []
+        if mobiledown.ufrom != DownloadMobileRecord.QRCODE:
+            mobiledown.ufrom = DownloadMobileRecord.QRCODE
+            update_fields.append('ufrom')
+        mobiledown.modified = datetime.datetime.now()
+        update_fields.append('modified')
+        mobiledown.save(update_fields=update_fields)
+
+
+@task()
+def task_collect_mobile_download_record(instance):
+    """
+    instance: DownloadMobileRecord instance
+    收集手机号产生的下载记录到　汇总的下载记录表中
+    """
+    uni_key = '/'.join([str(instance.from_customer), str(instance.mobile)])
+    appdownload = AppDownloadRecord.objects.filter(uni_key=uni_key).first()
+    if not appdownload:
+        customer = Customer.objects.filter(mobile=instance.mobile, status=Customer.NORMAL).first()
+        unionid = customer.unionid if customer else ''
+        thumbnail = customer.thumbnail if customer else ''
+        nick = customer.nick if customer else ''
+        appdownload = AppDownloadRecord(from_customer=instance.from_customer,
+                                        unionid=unionid,
+                                        headimgurl=thumbnail,
+                                        nick=nick,
+                                        mobile=instance.mobile,
+                                        inner_ufrom=instance.ufrom)
+        appdownload.save()
+    else:
+        update_fields = []
+        if appdownload.ufrom != instance.ufrom:
+            appdownload.ufrom = instance.ufrom
+            update_fields.append('ufrom')
+        appdownload.modified = datetime.datetime.now()
+        update_fields.append('modified')
+        appdownload.save(update_fields=update_fields)
+
+
+@task()
+def task_collect_union_download_record(instance):
+    """
+    instance: DownloadUnionidRecord instance
+    """
+    uni_key = '/'.join([str(instance.from_customer), str(instance.unionid)])
+    appdownload = AppDownloadRecord.objects.filter(uni_key=uni_key).first()
+    if not appdownload:
+        customer = Customer.objects.filter(unionid=instance.unionid, status=Customer.NORMAL).first()
+        unionid = customer.unionid if customer else ''
+        thumbnail = customer.thumbnail if customer else ''
+        nick = customer.nick if customer else ''
+        mobile = customer.mobile if customer else ''
+        appdownload = AppDownloadRecord(from_customer=instance.from_customer,
+                                        unionid=unionid,
+                                        headimgurl=thumbnail,
+                                        nick=nick,
+                                        mobile=mobile,
+                                        inner_ufrom=instance.ufrom)
+        appdownload.save()
+    else:
+        update_fields = []
+        if appdownload.ufrom != instance.ufrom:
+            appdownload.ufrom = instance.ufrom
+            update_fields.append('ufrom')
+        appdownload.modified = datetime.datetime.now()
+        update_fields.append('modified')
+        appdownload.save(update_fields=update_fields)
