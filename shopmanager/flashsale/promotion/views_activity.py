@@ -18,8 +18,7 @@ from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
 from flashsale.coupon.models import UserCoupon
-from flashsale.pay.models_user import Customer
-from flashsale.pay.models_custom import ActivityEntry
+from flashsale.pay.models import Customer, ActivityEntry
 
 from shopback.items.models import Product
 from shopapp.weixin.options import get_openid_by_unionid

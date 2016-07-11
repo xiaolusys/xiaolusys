@@ -184,7 +184,7 @@ def task_release_coupon_for_register(instance):
     """
      - release coupon for register a new Customer instance ( when post save created a Customer instance run this task)
     """
-    from flashsale.pay.models_user import Customer
+    from flashsale.pay.models import Customer
 
     if not isinstance(instance, Customer):
         return

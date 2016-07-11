@@ -6,9 +6,8 @@ from celery.task import task
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from shopback.items.models import Product
-from flashsale.pay.models_custom import ModelProduct
 from supplychain.supplier.models import SupplierCharge, SaleSupplier
-from flashsale.pay.models import SaleOrder
+from flashsale.pay.models import SaleOrder, ModelProduct
 from statistics import constants
 
 from statistics.models import SaleStats, ProductStockStat

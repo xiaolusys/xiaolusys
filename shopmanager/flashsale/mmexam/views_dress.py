@@ -13,7 +13,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
-from flashsale.pay.models_user import Customer
+from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.options import  get_openid_by_unionid
 from .models import MamaDressResult

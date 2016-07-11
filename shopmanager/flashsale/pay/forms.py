@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from django import forms
-from .models import Envelop, CustomShare
+from .models import Envelop, CustomShare, Productdetail
 
 
 class EnvelopForm(forms.ModelForm):
@@ -25,9 +25,6 @@ class CustomShareForm(forms.ModelForm):
     class Meta:
         model = CustomShare
         exclude = ()
-
-
-from .models_custom import Productdetail
 
 try:
     from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme

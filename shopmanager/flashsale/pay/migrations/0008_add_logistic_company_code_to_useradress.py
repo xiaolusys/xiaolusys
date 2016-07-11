@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import flashsale.pay.models_custom
+import flashsale.pay.models
 import jsonfield.fields
 
 
@@ -21,12 +21,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='goodshelf',
             name='chd_posters',
-            field=jsonfield.fields.JSONField(default=flashsale.pay.models_custom.default_chd_poster, max_length=10240, verbose_name='\u7ae5\u88c5\u6d77\u62a5', blank=True),
+            field=jsonfield.fields.JSONField(default=flashsale.pay.models.default_chd_poster, max_length=10240, verbose_name='\u7ae5\u88c5\u6d77\u62a5', blank=True),
         ),
         migrations.AlterField(
             model_name='goodshelf',
             name='wem_posters',
-            field=jsonfield.fields.JSONField(default=flashsale.pay.models_custom.default_wen_poster, max_length=10240, verbose_name='\u5973\u88c5\u6d77\u62a5', blank=True),
+            field=jsonfield.fields.JSONField(default=flashsale.pay.models.default_wen_poster, max_length=10240, verbose_name='\u5973\u88c5\u6d77\u62a5', blank=True),
         ),
         migrations.AlterField(
             model_name='salerefund',

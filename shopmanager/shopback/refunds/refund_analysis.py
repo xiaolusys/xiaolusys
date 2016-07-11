@@ -10,7 +10,7 @@ from shopback.trades.models import MergeTrade
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.views import APIView
-from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models import SaleRefund
 import operator
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct

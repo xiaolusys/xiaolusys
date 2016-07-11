@@ -981,7 +981,7 @@ def refund_update_order_info(sender, obj, *args, **kwargs):
     2,修改对应的订单状态，该笔交易的问题编号；
     3,减掉待发数；
     """
-    from flashsale.pay.models_refund import SaleRefund
+    from flashsale.pay.models import SaleRefund
     if not isinstance(obj, SaleRefund):
         logger.warning('refund ins(%s) not SaleRefund' % obj)
         return

@@ -11,7 +11,7 @@ from flashsale.clickcount.models import Clicks, ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models import CarryLog
 from flashsale.pay.models import Customer
-from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models import SaleRefund
 from .models import DailyStat, PopularizeCost
 from flashsale.clickcount.models import UserClicks
 from flashsale.xiaolumm.models import XiaoluMama

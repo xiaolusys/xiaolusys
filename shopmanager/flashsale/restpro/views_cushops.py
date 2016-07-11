@@ -15,8 +15,7 @@ from shopback.items.models import Product
 from . import permissions as perms
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm.models import XiaoluMama
-from flashsale.pay.models import Customer
-from flashsale.pay.models_shops import CustomerShops, CuShopPros
+from flashsale.pay.models import Customer, CustomerShops, CuShopPros
 from django.db.models import F
 
 

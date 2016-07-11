@@ -116,7 +116,7 @@ class UserAddressSerializer(serializers.ModelSerializer):
 
 
 # 用户积分Serializer
-from models_coupon import IntegralLog, Integral
+from .models import IntegralLog, Integral
 
 
 class UserIntegralSerializer(serializers.ModelSerializer):

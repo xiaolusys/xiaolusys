@@ -88,7 +88,7 @@ def getOrCreateSaleSeller():
 
 
 from django.forms import model_to_dict
-from .models_addr import District
+from .models import District, UserAddress
 
 
 def getDistrictTree(province=None):
@@ -115,10 +115,6 @@ def getDistrictTree(province=None):
         dc_json.append(fd_json)
 
     return dc_json
-
-
-from .models_addr import UserAddress
-
 
 def getAddressByUserOrID(customer, id=None):
     if id:

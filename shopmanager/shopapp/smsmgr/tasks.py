@@ -6,7 +6,7 @@ from celery.task import task
 from django.db.models import F
 from django.template import Context, Template
 from common.utils import update_model_fields, single_instance_task
-from flashsale.pay.models_user import Register
+from flashsale.pay.models import Register
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
 from shopback.trades.models import SendLaterTrade

@@ -1,7 +1,7 @@
 # coding=utf-8
 from .models_freesample import ReadPacket, AwardWinner
 from django.db.models import Sum, F
-from flashsale.pay.models_user import BudgetLog
+from flashsale.pay.models import BudgetLog
 from decimal import Decimal
 import logging
 

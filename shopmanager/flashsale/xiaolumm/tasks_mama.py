@@ -9,8 +9,7 @@ import logging
 logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models_fortune import OrderCarry, AwardCarry, ReferalRelationship
-from flashsale.pay.models import SaleOrder
-from flashsale.pay.models_user import Customer
+from flashsale.pay.models import SaleOrder, Customer
 from flashsale.xiaolumm import util_unikey
 
 from flashsale.xiaolumm.models import PotentialMama

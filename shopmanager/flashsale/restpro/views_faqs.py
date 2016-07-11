@@ -5,7 +5,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework import exceptions
-from flashsale.pay.models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
+from flashsale.pay.models import FaqMainCategory, FaqsDetailCategory, SaleFaq
 
 
 class SaleCategoryViewSet(viewsets.ModelViewSet):

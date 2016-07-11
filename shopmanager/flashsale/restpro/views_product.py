@@ -24,8 +24,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
-from flashsale.pay.models import GoodShelf, ModelProduct
-from flashsale.pay.models_custom import Productdetail, ActivityEntry, BrandProduct
+from flashsale.pay.models import GoodShelf, ModelProduct, Productdetail, ActivityEntry, BrandProduct
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
@@ -37,7 +36,7 @@ from core.options import log_action, ADDITION, CHANGE
 
 from . import constants
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
-from flashsale.pay.models_shops import CustomerShops, CuShopPros
+from flashsale.pay.models import CustomerShops, CuShopPros
 
 CACHE_VIEW_TIMEOUT = 30
 

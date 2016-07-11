@@ -11,7 +11,7 @@ from rest_framework import authentication, renderers, viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
-from flashsale.pay import models_user
+from flashsale.pay.models import Customer
 
 from . import constants, models, serializers, tasks
 
@@ -54,7 +54,7 @@ class PushViewSet(viewsets.ModelViewSet):
         regid = validated_data['regid']
 
         customer = None
-        rows = models_user.Customer.objects.filter(user=request.user)
+        rows = Customer.objects.filter(user=request.user)
         if rows:
             customer = rows[0]
         if not customer:

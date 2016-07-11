@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import flashsale.pay.models_refund
+import flashsale.pay.models
 
 
 class Migration(migrations.Migration):
@@ -25,6 +25,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='salerefund',
             name='refund_no',
-            field=models.CharField(default=flashsale.pay.models_refund.default_refund_no, unique=True, max_length=32, verbose_name=b'\xe9\x80\x80\xe6\xac\xbe\xe7\xbc\x96\xe5\x8f\xb7'),
+            field=models.CharField(default=flashsale.pay.models.default_refund_no, unique=True, max_length=32, verbose_name=b'\xe9\x80\x80\xe6\xac\xbe\xe7\xbc\x96\xe5\x8f\xb7'),
         ),
     ]

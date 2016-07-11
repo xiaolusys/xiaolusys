@@ -4,7 +4,7 @@ import datetime
 
 from celery.task import task
 
-from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models import SaleRefund
 
 import logging
 

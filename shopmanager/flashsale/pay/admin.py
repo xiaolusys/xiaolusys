@@ -12,25 +12,34 @@ from core.filters import DateFieldListFilter
 from core.admin import ApproxAdmin, BaseModelAdmin
 from core.managers import ApproxCountQuerySet
 from .service import FlashSaleService
-from .models import (SaleTrade,
-                     SaleOrder,
-                     TradeCharge,
-                     Customer,
-                     Register,
-                     District,
-                     UserAddress,
-                     SaleRefund,
-                     UserBudget,
-                     BudgetLog,
-                     SaleOrderSyncLog)
-
-import logging
+from .models import (
+    SaleTrade,
+    SaleOrder,
+    TradeCharge,
+    Customer,
+    Register,
+    District,
+    UserAddress,
+    SaleRefund,
+    UserBudget,
+    BudgetLog,
+    SaleOrderSyncLog,
+    FaqMainCategory,
+    FaqsDetailCategory,
+    SaleFaq,
+    CuShopPros,
+    CustomerShops,
+    Envelop,
+    Integral,
+    IntegralLog,
+)
 
 import cStringIO as StringIO
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter
 from django.http import HttpResponse
 import datetime, time
 
+import logging
 logger = logging.getLogger('django.request')
 
 
@@ -488,7 +497,6 @@ admin.site.register(SaleRefund, SaleRefundAdmin)
 
 from django.db.models import Sum
 from django.shortcuts import redirect, render_to_response, RequestContext
-from .models_envelope import Envelop
 from .forms import EnvelopForm, CustomShareForm
 
 
@@ -546,7 +554,7 @@ class EnvelopAdmin(admin.ModelAdmin):
 
 admin.site.register(Envelop, EnvelopAdmin)
 
-from flashsale.pay.models_custom import ModelProduct, BrandEntry, BrandProduct
+from flashsale.pay.models import ModelProduct, BrandEntry, BrandProduct
 
 
 class BrandProductInline(admin.TabularInline):
@@ -570,7 +578,7 @@ class ModelProductAdmin(ApproxAdmin):
 
 admin.site.register(ModelProduct, ModelProductAdmin)
 
-from flashsale.pay.models_custom import GoodShelf, ActivityEntry
+from flashsale.pay.models import GoodShelf, ActivityEntry
 
 
 class GoodShelfAdmin(admin.ModelAdmin):
@@ -642,8 +650,6 @@ class BrandProductAdmin(ApproxAdmin):
 
 admin.site.register(BrandProduct, BrandProductAdmin)
 
-from models_coupon import Integral, IntegralLog
-
 
 class IntegralAdmin(admin.ModelAdmin):
     list_display = ('id', 'integral_user', 'integral_value', 'created', 'modified')
@@ -698,7 +704,6 @@ class CustomShareAdmin(admin.ModelAdmin):
 
 admin.site.register(CustomShare, CustomShareAdmin)
 
-from .models_shops import CuShopPros, CustomerShops
 from .filters import CushopProCategoryFiler
 import constants
 
@@ -775,8 +780,6 @@ class BudgetLogAdmin(admin.ModelAdmin):
 
 
 admin.site.register(BudgetLog, BudgetLogAdmin)
-
-from .models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
 
 
 class FaqMainCategoryAdmin(admin.ModelAdmin):

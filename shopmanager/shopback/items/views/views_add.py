@@ -16,7 +16,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 
 from common import page_helper
-from flashsale.pay.models_custom import ModelProduct, Productdetail
+from flashsale.pay.models import ModelProduct, Productdetail
 from flashsale.pay.signals import signal_record_supplier_models
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from shopback.categorys.models import ProductCategory

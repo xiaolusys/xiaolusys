@@ -19,7 +19,7 @@ from django.db import transaction
 from django.db.models import F, Q
 from django.forms import model_to_dict
 
-from flashsale.pay.models_custom import Productdetail
+from flashsale.pay.models import Productdetail, ModelProduct, GoodShelf
 from core.options import log_action, ADDITION, CHANGE
 from shopback import paramconfig as pcfg
 from supplychain.supplier.models import (
@@ -108,7 +108,6 @@ class CheckSupplierView(generics.ListCreateAPIView):
 
 
 from shopback.items.models import Product
-from flashsale.pay.models_custom import ModelProduct, GoodShelf
 
 
 def get_target_date_detail(target_date, category):
