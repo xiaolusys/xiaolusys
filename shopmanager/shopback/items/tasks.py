@@ -1055,6 +1055,7 @@ def task_update_productskustats_inferior_num(sku_id):
     stat.inferior_num = inferior_num_add - inferior_num_plus
     stat.save(update_fields=['inferior_num'])
 
+
 @task()
 def task_update_inferiorsku_rg_quantity(sku_id):
     from shopback.items.models_stats import InferiorSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
@@ -1065,6 +1066,7 @@ def task_update_inferiorsku_rg_quantity(sku_id):
         stat.rg_quantity = rg_quantity
         stat.save(update_fields=['rg_quantity'])
 
+
 @task()
 def task_update_inferiorsku_return_quantity(sku_id):
     from shopback.items.models_stats import InferiorSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
@@ -1074,6 +1076,7 @@ def task_update_inferiorsku_return_quantity(sku_id):
     if stat.return_quantity != quantity:
         stat.return_quantity = quantity
         stat.save(update_fields=['return_quantity'])
+
 
 @task()
 def task_update_inferiorsku_inbound_quantity(sku_id):
@@ -1117,3 +1120,11 @@ def task_auto_shelf_prods():
                 log_action(systemoa, pro, CHANGE, u'系统自动下架修改该产品到下架状态')
     except Exception as exc:
         raise task_auto_shelf_prods.retry(countdown=60 * 5, exc=exc)
+
+
+@task()
+def task_productskustats_update_productsku(stats):
+    sku_id = stats.sku_id
+    psku = ProductSku.objects.get(id=sku_id)
+    psku.lock_num = stats.lock_num
+    psku.save(update_fields=['lock_num'])

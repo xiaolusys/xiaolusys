@@ -1167,6 +1167,33 @@ def task_packageorder_send_check_packageorder():
         task_packageorder_send_check_packageorder.delay()
 
 
+def create_shoppingcart_cnt_check_log(time_from, uni_key):
+    from flashsale.pay.models import ShoppingCart
+    from shopback.items.models_stats import ProductSkuStats
+    actual_num = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL).aggregate(n=Sum('num')).get('n') or 0
+    target_num = ProductSkuStats.objects.aggregate(n=Sum('shoppingcart_num')).get('n') or 0
+    time_to = time_from + datetime.timedelta(hours=1)
+    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
+                           type=SaleOrderSyncLog.SALE_ORDER_SHOPPING_CART, target_num=target_num,
+                           actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+
+def create_waitingpay_cnt_check_log(time_from, uni_key):
+    from shopback.items.models_stats import ProductSkuStats
+    actual_num = SaleOrder.objects.filter(status=SaleOrder.WAIT_BUYER_PAY).aggregate(n=Sum("num")).get('n') or 0
+    target_num = ProductSkuStats.objects.aggregate(n=Sum('waitingpay_num')).get('n') or 0
+    time_to = time_from + datetime.timedelta(hours=1)
+    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,
+                           type=SaleOrderSyncLog.SALE_ORDER_WAITING_PAY, target_num=target_num,
+                           actual_num=actual_num)
+    if target_num == actual_num:
+        log.status = SaleOrderSyncLog.COMPLETED
+    log.save()
+
+
 def create_assign_check_log(time_from, uni_key):
     from shopback.items.models_stats import ProductSkuStats
     actual_num = PackageSkuItem.objects.filter(assign_status=1).aggregate(n=Sum('num')).get('n') or 0
@@ -1247,6 +1274,15 @@ def task_schedule_check_assign_num():
 @task()
 def task_schedule_check_stock_not_assign():
     realtime_check(SaleOrderSyncLog.PACKAGE_STOCK_NOTASSIGN, create_stock_not_assign_check_log)
+
+
+@task()
+def task_schedule_check_waitingpay_cnt():
+    realtime_check(SaleOrderSyncLog.SALE_ORDER_WAITING_PAY, create_waitingpay_cnt_check_log)
+
+@task()
+def task_schedule_check_shoppingcart_cnt():
+    realtime_check(SaleOrderSyncLog.SALE_ORDER_SHOPPING_CART, create_shoppingcart_cnt_check_log)
 
 
 def realtime_check(type, func):

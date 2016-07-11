@@ -85,7 +85,7 @@ class FlashSaleService(LocalService):
 
     @classmethod
     def createMergeTrade(cls, trade, *args, **kwargs):
-
+        return
         from shopback.trades.handlers import trade_handler
         from shopback.trades.models import MergeTrade
 
@@ -147,6 +147,8 @@ class FlashSaleService(LocalService):
         ########################## 押金链接，不需仓库处理 ######################
         outer_ids = set([o[0] for o in self.trade.normal_orders.values_list('outer_id')])
         if len(outer_ids) == 1 and list(outer_ids)[0].startswith('RMB'):
+            return
+        if self.trade.order_type == SaleTrade.SALE_ORDER:
             return
             ###################################################################
         self.__class__.createMergeTrade(self.trade)

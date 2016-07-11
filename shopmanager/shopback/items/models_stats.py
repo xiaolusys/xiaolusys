@@ -87,6 +87,11 @@ class ProductSkuStats(models.Model):
         return res if res > 0 else 0
 
     @property
+    def lock_num(self):
+        """老锁定数（仓库里待发货，加购物车待支付）"""
+        return self.shoppingcart_num + self.waitingpay_num + self.sold_num - self.return_quantity - self.post_num
+
+    @property
     def realtime_lock_num(self):
         return self.shoppingcart_num + self.waitingpay_num
 
@@ -171,6 +176,13 @@ def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
 
 post_save.connect(assign_stock_to_package_sku_item, sender=ProductSkuStats,
                   dispatch_uid='post_save_assign_stock_to_package_sku_item')
+
+
+def update_productsku(sender, instance, created, **kwargs):
+    from shopback.items.tasks import task_productskustats_update_productsku
+    task_productskustats_update_productsku.delay(instance)
+
+post_save.connect(update_productsku, sender=ProductSkuStats, dispatch_uid='post_save_productskustats_update_productsku')
 
 
 def product_sku_stats_agg(sender, instance, created, **kwargs):
