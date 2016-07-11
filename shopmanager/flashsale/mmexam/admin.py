@@ -20,8 +20,9 @@ class Choicedmin(admin.ModelAdmin):
 
 class Resultdmin(admin.ModelAdmin):
     search_fields = ['daili_user', 'xlmm_id', 'customer_id']
-    list_display = ('customer_id', 'xlmm_id', 'daili_user', 'total_point', 'exam_state', 'sheaves', 'exam_date')
-    list_filter = ['exam_state', 'sheaves', 'exam_date']
+    list_display = ('customer_id', 'xlmm_id', 'daili_user', 'total_point', 'exam_state', 'sheaves', 'exam_date',
+                    'modified')
+    list_filter = ['exam_state', 'sheaves', 'exam_date', 'created', 'modified']
 
 class Mamaexamdmin(admin.ModelAdmin):
     list_display = (

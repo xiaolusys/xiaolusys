@@ -69,6 +69,14 @@ class DownloadMobileRecord(BaseModel):
         return str(self.from_customer)
 
 
+def sync_mobile_download_to_total_record(instance, created, *args, **kwargs):
+    from flashsale.promotion.tasks_activity import task_collect_mobile_download_record
+    task_collect_mobile_download_record.delay(instance)
+
+post_save.connect(sync_mobile_download_to_total_record, sender=DownloadMobileRecord,
+                  dispatch_uid='post_save_sync_mobile_download_to_total_record')
+
+
 class DownloadUnionidRecord(BaseModel):
 
     from_customer = models.IntegerField(db_index=True, verbose_name=u'来自用户')
@@ -86,6 +94,14 @@ class DownloadUnionidRecord(BaseModel):
 
     def __unicode__(self):
         return str(self.from_customer)
+
+
+def sync_union_download_to_total_record(instance, created, *args, **kwargs):
+    from flashsale.promotion.tasks_activity import task_collect_union_download_record
+    task_collect_union_download_record.delay(instance)
+
+post_save.connect(sync_union_download_to_total_record, sender=DownloadUnionidRecord,
+                  dispatch_uid='post_save_sync_union_download_to_total_record')
 
 
 class AppDownloadRecord(BaseModel):
@@ -110,6 +126,17 @@ class AppDownloadRecord(BaseModel):
     UNUSE = False
     USED = True
 
+    UNKNOWN = 0
+    QRCODE = 1
+    ACTIVITY = 2
+    REDENVELOPE = 3
+    INNER_UFROM = (
+        (UNKNOWN, u'未知'),
+        (QRCODE, u'二维码'),
+        (ACTIVITY, u'活动'),
+        (REDENVELOPE, u'红包')
+    )
+
     USE_STATUS = ((UNUSE, u'未注册'), (USED, u'已注册'))
 
     from_customer = models.IntegerField(default=0, db_index=True, verbose_name=u'来自用户')
@@ -119,7 +146,9 @@ class AppDownloadRecord(BaseModel):
     nick = models.CharField(max_length=32, null=False, blank=True, verbose_name=u'昵称')
     status = models.BooleanField(default=UNUSE, choices=USE_STATUS, db_index=True, verbose_name=u'是否注册APP')
     mobile = models.CharField(max_length=11, blank=True, null=True, db_index=True, verbose_name=u'手机号')
-    ufrom = models.CharField(max_length=8, choices=UFROM, verbose_name=u'来自平台')
+    ufrom = models.CharField(max_length=8, default=WXAPP, choices=UFROM, verbose_name=u'来自平台')
+    inner_ufrom = models.IntegerField(default=UNKNOWN, db_index=True, choices=INNER_UFROM, verbose_name=u'内部渠道')
+    uni_key = models.CharField(max_length=64, unique=True, null=True, verbose_name=u'唯一标识')
 
     class Meta:
         db_table = 'flashsale_promotion_download_record'

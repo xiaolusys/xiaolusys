@@ -123,9 +123,16 @@ class ModelProductSerializer(serializers.ModelSerializer):
 
 class ActivityProductSerializer(serializers.ModelSerializer):
 
+    web_url = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = ActivityProduct
-        fields = ('id', 'product_id', 'model_id', 'product_name', 'product_img', 'product_lowest_price', 'product_std_sale_price')
+        fields = ('id', 'product_id', 'model_id', 'product_name', 'product_img',
+                  'product_lowest_price', 'product_std_sale_price', 'web_url')
+
+    def get_web_url(self, obj):
+        if obj.product:
+            return obj.product.get_weburl()
+        return ''
 
 class ActivityEntrySerializer(serializers.ModelSerializer):
 
@@ -175,7 +182,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     name = serializers.SerializerMethodField(read_only=True)
     category = ProductCategorySerializer(read_only=True)
     #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
-    product_model = ModelProductSerializer(source="get_product_model", read_only=True)
+    product_model = ModelProductSerializer(read_only=True)
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
     is_saleopen = serializers.BooleanField(source='sale_open', read_only=True)
     is_newgood = serializers.BooleanField(source='new_good', read_only=True)
@@ -460,7 +467,8 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
         return package_list
 
     def gen_extras_info(self, obj):
-        return generate_refund_choices(obj)
+        refund_dict = generate_refund_choices(obj)
+        return refund_dict or {}
 
 
 from flashsale.pay.models import District, UserAddress

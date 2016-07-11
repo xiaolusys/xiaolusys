@@ -200,10 +200,7 @@ class Product(models.Model):
         if self.model_id == 0:
             return None
         from flashsale.pay.models import ModelProduct
-        try:
-            pmodel = ModelProduct.objects.get(id=self.model_id)
-        except:
-            return None
+        pmodel = ModelProduct.objects.filter(id=self.model_id).first()
         return pmodel
 
     product_model = property(get_product_model)
