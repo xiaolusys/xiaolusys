@@ -69,17 +69,19 @@ class Bill(BaseModel):
         verbose_name_plural = u'账单列表'
 
     @staticmethod
-    def create(relations, type, status, pay_method, plan_amount, supplier, user_id, receive_account='', receive_name='',
-               pay_taobao_link=''):
+    def create(relations, type, status, pay_method, plan_amount, amount,supplier, user_id, receive_account='', receive_name='',
+               pay_taobao_link='',transcation_no=''):
         bill = Bill(type=type,
                     status=status,
                     plan_amount=plan_amount,
+                    amount=amount,
                     pay_method=pay_method,
                     supplier=supplier,
                     creater_id=user_id,
                     receive_account=receive_account,
                     receive_name=receive_name,
-                    pay_taobao_link=pay_taobao_link)
+                    pay_taobao_link=pay_taobao_link,
+                    transcation_no=transcation_no)
         bill.save()
         bill.relate_to(relations)
         return bill
@@ -149,7 +151,6 @@ class Bill(BaseModel):
     def relate_to(self, relations, lack_dict={}):
         from flashsale.dinghuo.models import ReturnGoods, OrderList
         for r in relations:
-            print self.id
             rtype = lack_dict.get(r.id)
             ctype = None
             if type(r) == ReturnGoods:
