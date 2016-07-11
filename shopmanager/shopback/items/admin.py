@@ -1390,11 +1390,10 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     #     return qs
 
     def gen_return_goods(self, request, queryset):
-        from flashsale.dinghuo.admin import ReturnGoodsAdmin
         sku_dict = {}
         sku_num = queryset.count()
         for stat in queryset:
-            sku_dict[stat.sku_id] = stat.history_quantity + stat.adjust_quantiy + stat.inbound_quantity + stat.return_quantity \
+            sku_dict[stat.sku_id] = stat.history_quantity + stat.adjust_quantity + stat.inbound_quantity + stat.return_quantity \
                                     - stat.rg_quantity - stat.sold_num
         returns = ReturnGoods.generate(sku_dict, request.user.username)
         self.message_user(request, '本次对%d个SKU执行了退货, 生成了%d个退货单' % (sku_num, len(returns)))
