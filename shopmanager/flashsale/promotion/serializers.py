@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from flashsale.promotion.models_freesample import RedEnvelope, AwardWinner
+from flashsale.promotion.models import RedEnvelope, AwardWinner
 
 
 class RedEnvelopeSerializer(serializers.ModelSerializer):

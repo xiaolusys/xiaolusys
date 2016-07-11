@@ -24,7 +24,7 @@ from core.weixin.signals import signal_weixin_snsauth_response
 from core.utils.modelutils import update_model_fields
 
 from flashsale.pay.models import Customer
-from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder, ReadPacket
+from .models import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder, ReadPacket
 from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.coupon.models import UserCoupon

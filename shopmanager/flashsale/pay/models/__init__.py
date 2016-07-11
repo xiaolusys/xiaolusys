@@ -1,4 +1,3 @@
-from .activity import ActivityEntry
 from .address import UserAddress, District, UserAddressChange
 from .brand import BrandEntry, BrandProduct
 from .coupon import CouponTemplate, UserCoupon, CouponsPool, default_coupon_no

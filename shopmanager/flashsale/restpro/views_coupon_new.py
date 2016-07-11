@@ -18,7 +18,7 @@ from shopback.items.models import Product
 from flashsale.coupon.models import UserCoupon, OrderShareCoupon, CouponTemplate, TmpShareCoupon
 from flashsale.pay.models import Customer, ShoppingCart, SaleTrade
 from flashsale.pay.tasks import task_release_coupon_push
-from flashsale.promotion.models_freesample import XLSampleOrder
+from flashsale.promotion.models import XLSampleOrder
 from flashsale.coupon.managers import calculate_value_and_time
 
 logger = logging.getLogger(__name__)

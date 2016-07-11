@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 
-from flashsale.promotion.models_freesample import XLSampleApply
+from flashsale.promotion.models import XLSampleApply
 
 
 def get_application(event_id, unionid=None, mobile=None):

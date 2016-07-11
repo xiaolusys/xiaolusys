@@ -1,11 +1,26 @@
 # -*- coding:utf-8 -*-
+from django.db import models
 from django.contrib import admin
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord, \
-    RedEnvelope, AwardWinner, DownloadMobileRecord, DownloadUnionidRecord
-from .models import XLInviteCode, XLReferalRelationship, XLInviteCount
-
+from django.forms import TextInput, Textarea
+from .models import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord, \
+    RedEnvelope, AwardWinner, DownloadMobileRecord, DownloadUnionidRecord, XLInviteCode, XLReferalRelationship, \
+    XLInviteCount, ActivityEntry
 from core.filters import DateFieldListFilter
 
+
+class ActivityEntryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'start_time', 'end_time', 'created', 'is_active')
+
+    list_filter = ('is_active', ('start_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    search_fields = ['title']
+    list_per_page = 25
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 128})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
+    }
+
+admin.site.register(ActivityEntry, ActivityEntryAdmin)
 
 class XLFreeSampleAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'name', 'expiried', 'pic_url', 'sale_url')

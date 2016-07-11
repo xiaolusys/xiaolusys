@@ -14,10 +14,10 @@ from flashsale.pay.models import (
     Customer,
     Register,
     GoodShelf,
-    ActivityEntry,
     CustomShare,
     UserBudget
 )
+from flashsale.promotion.models import ActivityEntry
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.xiaolumm.models import XiaoluMama

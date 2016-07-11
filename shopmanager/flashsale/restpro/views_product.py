@@ -24,8 +24,8 @@ from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
-from flashsale.pay.models import GoodShelf, ModelProduct, Productdetail, ActivityEntry, BrandProduct
-from flashsale.pay.models import Customer
+from flashsale.pay.models import GoodShelf, ModelProduct, Productdetail, BrandProduct, Customer
+from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
 

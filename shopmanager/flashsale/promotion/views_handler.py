@@ -1,12 +1,11 @@
 # coding=utf-8
-from .models_freesample import ReadPacket, AwardWinner
+from .models import ReadPacket, AwardWinner
 from django.db.models import Sum, F
 from flashsale.pay.models import BudgetLog
 from decimal import Decimal
+
 import logging
-
 logger = logging.getLogger(__name__)
-
 
 def pmt_red_to_budgetlog():
     """
@@ -15,8 +14,8 @@ def pmt_red_to_budgetlog():
     # 找出没有兑换的活动红包记录
     reds = ReadPacket.objects.filter(status=ReadPacket.NOT_EXCHANGE)
     # 按计算记录的金额 按照用户和日期分组 {'created_d': datetime.date(2016, 2, 27), 'customer': u'1', 'sum_value': 5.92}
-    cus_reds = reds.extra(select={'created_d': 'date(created)'}).values('created_d',
-                                                                        'customer').annotate(sum_value=Sum('value'))
+    cus_reds = reds.extra(select={'created_d': 'date(created)'})\
+        .values('created_d','customer').annotate(sum_value=Sum('value'))
     for cus_red in cus_reds:
         customer_id = cus_red['customer']
         flow_amount = int(Decimal(str(cus_red['sum_value'])) * 100)  # 注意小数转换

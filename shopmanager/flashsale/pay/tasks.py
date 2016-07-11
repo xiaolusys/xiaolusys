@@ -384,7 +384,7 @@ def task_Pull_Red_Envelope(pre_day=7):
 
 from django.db.models import Q
 from flashsale.xiaolumm.models_fans import XlmmFans
-from flashsale.promotion.models_freesample import AppDownloadRecord
+from flashsale.promotion.models import AppDownloadRecord
 from shopapp.weixin.models import WeixinUnionID
 from django.conf import settings
 

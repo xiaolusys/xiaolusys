@@ -10,7 +10,7 @@ from core.fields import JSONCharMyField
 from core.models import BaseTagModel
 from .base import PayBaseModel, BaseModel
 
-from .activity import ActivityEntry
+from flashsale.promotion.models import ActivityEntry
 
 import logging
 logger = logging.getLogger(__name__)

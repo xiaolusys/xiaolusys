@@ -18,12 +18,13 @@ from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
 from flashsale.coupon.models import UserCoupon
-from flashsale.pay.models import Customer, ActivityEntry
+from flashsale.pay.models import Customer
+from flashsale.promotion.models import ActivityEntry
 
 from shopback.items.models import Product
 from shopapp.weixin.options import get_openid_by_unionid
 
-from .models_freesample import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
+from .models import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
 from serializers import RedEnvelopeSerializer, AwardWinnerSerializer
 from utils import  get_application
 

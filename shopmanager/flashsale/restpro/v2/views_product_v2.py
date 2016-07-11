@@ -28,13 +28,12 @@ from flashsale.pay.models import (
     GoodShelf,
     ModelProduct,
     Productdetail,
-    ActivityEntry,
     BrandProduct,
     CustomerShops,
     CuShopPros,
     Customer
 )
-
+from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
 
