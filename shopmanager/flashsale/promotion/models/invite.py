@@ -2,14 +2,11 @@
 import random, string
 import datetime
 from django.db import models
+
 from core.models import BaseModel
-from django.contrib.auth.models import User
+from .freesample import XLSampleApply, XLSampleOrder
 
-from core.models import CacheModel
-from flashsale.pay.models import Customer
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord
-
-from managers import VipCodeManager
+from ..managers import VipCodeManager
 
 SAFE_CODE_SECONDS = 180
 TOKEN_EXPIRED_IN = 15 * 60
@@ -45,7 +42,7 @@ class XLInviteCode(BaseModel):
 
 
 class XLInviteCount(BaseModel):
-    customer = models.OneToOneField(Customer, verbose_name=u'特卖用户')
+    customer = models.OneToOneField('pay.Customer', verbose_name=u'特卖用户')
     apply_count = models.IntegerField(default=0, verbose_name=u'申请人数')
     invite_count = models.IntegerField(default=0, verbose_name=u'激活人数')
     click_count = models.IntegerField(default=0, verbose_name=u'点击次数')

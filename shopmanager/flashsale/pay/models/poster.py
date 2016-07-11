@@ -10,7 +10,7 @@ from core.fields import JSONCharMyField
 from core.models import BaseTagModel
 from .base import PayBaseModel, BaseModel
 
-from .activity import ActivityEntry
+from flashsale.promotion.models import ActivityEntry
 
 import logging
 logger = logging.getLogger(__name__)
@@ -84,6 +84,4 @@ class GoodShelf(PayBaseModel):
         now = datetime.datetime.now()
         return ActivityEntry.get_landing_effect_activitys(now)
 
-    def get_brands(self):
-        # return BrandEntry.get_brand()
-        return []
+

@@ -3,9 +3,7 @@ from django.db import models
 from core.models import BaseModel, CacheModel
 from django.contrib.auth.models import User
 
-from .managers import ReadPacketManager
-from flashsale.xiaolumm.models import XiaoluMama
-from flashsale.pay.models import Customer
+from flashsale.promotion.managers import ReadPacketManager
 from django.db.models.signals import post_save
 
 
@@ -140,12 +138,12 @@ class AppDownloadRecord(BaseModel):
         if self.status == AppDownloadRecord.UNUSE:
             return '下载关联已确认，马上粉你哦～'
         return '通过分享成为你的粉丝～'
-    
+
 
 def appdownloadrecord_update_fans(sender, instance, created, *args, **kwargs):
     from flashsale.promotion.tasks_activity import task_appdownloadrecord_update_fans
     task_appdownloadrecord_update_fans.delay(instance)
-    
+
 post_save.connect(appdownloadrecord_update_fans, sender=AppDownloadRecord, dispatch_uid="appdownloadrecord_update_fans")
 
 
@@ -225,7 +223,7 @@ def generate_red_envelope(sender, instance, created, *args, **kwargs):
     if not instance.is_activated():
         return
 
-    from tasks_activity import task_generate_red_envelope
+    from flashsale.promotion.tasks_activity import task_generate_red_envelope
     task_generate_red_envelope.delay(instance)
 
 
@@ -235,7 +233,7 @@ post_save.connect(generate_red_envelope, sender=XLSampleApply, dispatch_uid="sam
 def update_appdownloadrecord(sender, instance, created, *args, **kwargs):
     # We only update downloadrecord if unionid or mobile exists.
     if instance.user_unionid or instance.mobile:
-        from tasks_activity import task_sampleapply_update_appdownloadrecord
+        from flashsale.promotion.tasks_activity import task_sampleapply_update_appdownloadrecord
         task_sampleapply_update_appdownloadrecord.delay(instance)
 
 
@@ -294,7 +292,7 @@ class RedEnvelope(CacheModel):
 def envelope_create_budgetlog(sender, instance, created, *args, **kwargs):
     if not created:
         return
-    from tasks_activity import task_envelope_create_budgetlog
+    from flashsale.promotion.tasks_activity import task_envelope_create_budgetlog
     task_envelope_create_budgetlog.delay(instance)
 
 
@@ -304,7 +302,7 @@ post_save.connect(envelope_create_budgetlog, sender=RedEnvelope)
 def open_envelope_update_budgetlog(sender, instance, created, *args, **kwargs):
     if not instance.is_cashable():
         return
-    from tasks_activity import task_envelope_update_budgetlog
+    from flashsale.promotion.tasks_activity import task_envelope_update_budgetlog
     task_envelope_update_budgetlog.delay(instance)
 
 
@@ -314,7 +312,7 @@ post_save.connect(open_envelope_update_budgetlog, sender=RedEnvelope)
 def open_envelope_decide_awardwinner(sender, instance, created, *args, **kwargs):
     if not instance.is_card_open():
         return
-    from tasks_activity import task_decide_award_winner
+    from flashsale.promotion.tasks_activity import task_decide_award_winner
     task_decide_award_winner.delay(instance)
 
 

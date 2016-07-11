@@ -272,17 +272,30 @@ from .filters import Filte_By_Reason
 from .tasks import notifyTradeRefundTask
 
 
-class SaleRefundAdmin(ApproxAdmin):
-    list_display = ('refund_no', 'order_no', 'package_sku_item_link_to', 'channel', 'title', 'sku_id', 'refund_fee',
+class SaleRefundAdmin(BaseModelAdmin):
+    list_display = ('id_link', 'refund_no', 'order_no', 'package_sku_item_link_to', 'channel', 'title', 'sku_id', 'refund_fee',
                     'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status',
                     'refund_pro_link')
 
     list_filter = (
         'status', 'good_status', 'channel', 'has_good_return', 'has_good_change', Filte_By_Reason, "created",
         "modified")
-
+    list_display_links = ['refund_no']
     search_fields = ['=refund_no', '=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20
+
+    def id_link(self, obj):
+        return ('<a href="%(url)s" target="_blank">'
+                '%(show_text)s</a>') % {
+                   'url': '/admin/pay/salerefund/%d/' % obj.id,
+                   'show_text': str(obj.id)
+               }
+    id_link.allow_tags = True
+    id_link.short_description = u"ID"
+
+    def detail_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = {'title': u'退件详情'}
+        return self.detailform_view(request, object_id, form_url, extra_context)
 
     PACKAGE_SKU_ITEM_LINK = (
         '<a href="%(pki_url)s" target="_blank">'
@@ -578,7 +591,7 @@ class ModelProductAdmin(ApproxAdmin):
 
 admin.site.register(ModelProduct, ModelProductAdmin)
 
-from flashsale.pay.models import GoodShelf, ActivityEntry
+from flashsale.pay.models import GoodShelf
 
 
 class GoodShelfAdmin(admin.ModelAdmin):
@@ -597,24 +610,7 @@ class GoodShelfAdmin(admin.ModelAdmin):
     preview_link.allow_tags = True
     preview_link.short_description = u"预览"
 
-
 admin.site.register(GoodShelf, GoodShelfAdmin)
-
-
-class ActivityEntryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'start_time', 'end_time', 'created', 'is_active')
-
-    list_filter = ('is_active', ('start_time', DateFieldListFilter), ('created', DateFieldListFilter))
-    search_fields = ['title']
-    list_per_page = 25
-
-    formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size': 128})},
-        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
-    }
-
-
-admin.site.register(ActivityEntry, ActivityEntryAdmin)
 
 
 class BrandEntryAdmin(admin.ModelAdmin):
@@ -632,7 +628,7 @@ class BrandEntryAdmin(admin.ModelAdmin):
     }
 
 
-admin.site.register(BrandEntry, BrandEntryAdmin)
+# admin.site.register(BrandEntry, BrandEntryAdmin)
 
 
 class BrandProductAdmin(ApproxAdmin):
@@ -648,7 +644,7 @@ class BrandProductAdmin(ApproxAdmin):
     }
 
 
-admin.site.register(BrandProduct, BrandProductAdmin)
+# admin.site.register(BrandProduct, BrandProductAdmin)
 
 
 class IntegralAdmin(admin.ModelAdmin):

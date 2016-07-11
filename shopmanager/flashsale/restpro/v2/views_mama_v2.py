@@ -672,7 +672,7 @@ class ModelProductViewSet(viewsets.ModelViewSet):
     
 
 from rest_framework import generics
-from flashsale.promotion.models_freesample import AppDownloadRecord
+from flashsale.promotion.models import AppDownloadRecord
 
 class PotentialFansView(generics.GenericAPIView):
     paginate_by = 10

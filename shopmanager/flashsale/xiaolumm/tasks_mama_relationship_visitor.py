@@ -112,7 +112,7 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
         # visitor already visited a mama's link, ignoring.
 
 
-from flashsale.promotion.models_freesample import AppDownloadRecord
+from flashsale.promotion.models import AppDownloadRecord
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.xiaolumm.models import XiaoluMama
 

@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
-from flashsale.pay.models import ActivityEntry
+from flashsale.promotion.models import ActivityEntry
 
 def get_customer_id(user):
     customers = Customer.objects.filter(user=user)

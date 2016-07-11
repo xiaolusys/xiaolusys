@@ -1,0 +1,148 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls admin_static admin_modify %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+{{ media }}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+&rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block content %}<div id="content-main">
+{% block object-tools %}
+{% if change %}{% if not is_popup %}
+  <ul class="object-tools">
+    {% block object-tools-items %}
+    <li>
+        {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+        <a href="{% add_preserved_filters history_url %}" class="historylink">{% trans "History" %}</a>
+    </li>
+    {% if has_absolute_url %}<li><a href="{{ absolute_url }}" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif %}
+    {% endblock %}
+  </ul>
+{% endif %}{% endif %}
+{% endblock %}
+<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form" novalidate>{% csrf_token %}{% block form_top %}{% endblock %}
+<div>
+{% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1" />{% endif %}
+{% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}" />{% endif %}
+{% if save_on_top %}{% block submit_buttons_top %}{% submit_row %}{% endblock %}{% endif %}
+{% if errors %}
+    <p class="errornote">
+    {% if errors|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
+    </p>
+    {{ adminform.form.non_field_errors }}
+{% endif %}
+
+<fieldset class="module aligned expand">
+    <h2>基本信息:</h2>
+        <div class="form-row field-refund_no field-trade_id field-order_id">
+            <div class="field-box field-refund_no">
+                <label class="required" for="id_refund_no">退款编号:</label>
+                <input class="vTextField" id="id_refund_no" maxlength="32" name="refund_no" type="text" value="{{original.refund_no}}">
+                <input id="initial-id_refund_no" name="initial-refund_no" type="hidden" value="{{original.refund_no}}">
+            </div>
+            <div class="field-box field-trade_id">
+                <label class="required inline" for="id_trade_id">交易ID:</label>
+                <input class="vIntegerField" id="id_trade_id" name="trade_id" type="text" value="{{original.trade_id}}">
+            </div>
+            <div class="field-box field-order_id">
+                <label class="required inline" for="id_order_id">订单ID:</label>
+                <input class="vIntegerField" id="id_order_id" name="order_id" type="text" value="{{original.order_id}}">
+            </div>
+        </div>
+        <div class="form-row field-buyer_id field-title field-sku_name">
+            <div class="field-box field-buyer_id">
+                <label class="required" for="id_buyer_id">客户ID:</label>
+                <input class="vBigIntegerField" id="id_buyer_id" name="buyer_id" type="text" value="{{original.buyer_id}}">
+            </div>
+            <div class="field-box field-title">
+                <label class="inline" for="id_title">出售标题:</label>
+                <input class="vTextField" id="id_title" maxlength="64" name="title" type="text" value="{{original.title}}">
+            </div>
+            <div class="field-box field-sku_name">
+                <label class="inline" for="id_sku_name">规格标题:</label>
+                <input class="vTextField" id="id_sku_name" maxlength="64" name="sku_name" type="text" value="{{original.sku_name}}">
+            </div>
+        </div>
+        <div class="form-row field-payment field-total_fee">
+                <div class="field-box field-payment">
+                    <label class="required" for="id_payment">实付:</label>
+                    <input id="id_payment" name="payment" size="8" type="text" value="{{original.payment}}">
+                </div>
+                <div class="field-box field-total_fee">
+                    <label class="required inline" for="id_total_fee">总费用:</label>
+                    <input id="id_total_fee" name="total_fee" size="8" type="text" value="{{original.total_fee}}">
+                </div>
+        </div>
+        <div class="form-row field-company_name field-sid">
+            <div class="field-box field-company_name">
+                <label for="id_company_name">退回快递公司:</label>
+                <input class="vTextField" id="id_company_name" maxlength="64" name="company_name" type="text">
+            </div>
+            <div class="field-box field-sid">
+                <label class="inline" for="id_sid">退回快递单号:</label>
+                <input class="vTextField" id="id_sid" maxlength="64" name="sid" type="text">
+            </div>
+        </div>
+        <div class="form-row field-reason field-desc">
+            <div class="field-box field-reason">
+                <label for="id_reason">退款原因:</label>
+                <textarea cols="35" id="id_reason" maxlength="200" name="reason" rows="6">{{original.reason}}</textarea>
+            </div>
+            <div class="field-box field-desc">
+                <label class="inline" for="id_desc">描述:</label>
+                <textarea cols="35" id="id_desc" maxlength="1000" name="desc" rows="6">{{original.desc}}</textarea>
+            </div>
+        </div>
+        <div class="form-row field-proof_pic">
+            <div class="field-box field-proof_pic">
+                <label>佐证图片:</label>
+                {%for src in original.proof_pic%}
+                    <img src="{{src}}"/>
+                {%endfor%}
+            </div>
+        </div>
+</fieldset>
+
+{% block admin_change_form_document_ready %}
+    <script type="text/javascript">
+        (function($) {
+            $(document).ready(function() {
+                $('.add-another').click(function(e) {
+                    e.preventDefault();
+                    showAddAnotherPopup(this);
+                });
+                $('.related-lookup').click(function(e) {
+                    e.preventDefault();
+                    showRelatedObjectLookupPopup(this);
+                });
+            {% if adminform and add %}
+                $('form#{{ opts.model_name }}_form :input:visible:enabled:first').focus()
+            {% endif %}
+            });
+        })(django.jQuery);
+    </script>
+{% endblock %}
+
+{# JavaScript for prepopulated fields #}
+{% prepopulated_fields_js %}
+
+</div>
+</form></div>
+{% endblock %}

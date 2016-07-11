@@ -1,11 +1,49 @@
 # -*- coding:utf-8 -*-
+from django.db import models
 from django.contrib import admin
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord, \
-    RedEnvelope, AwardWinner, DownloadMobileRecord, DownloadUnionidRecord
-from .models import XLInviteCode, XLReferalRelationship, XLInviteCount
-
+from django.forms import TextInput, Textarea
+from .models import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord, \
+    RedEnvelope, AwardWinner, DownloadMobileRecord, DownloadUnionidRecord, XLInviteCode, XLReferalRelationship, \
+    XLInviteCount, ActivityEntry, ActivityProduct
 from core.filters import DateFieldListFilter
+from core.admin import ApproxAdmin
 
+
+class ActivityProductInline(admin.TabularInline):
+    model = ActivityProduct
+    fields = ('product_name', 'product_img', 'model_id', 'start_time', 'end_time',)
+
+class ActivityProductAdmin(ApproxAdmin):
+    list_display = ('id','activity', 'product_name', 'product_img', 'model_id', 'start_time', 'end_time')
+
+    list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))
+    search_fields = ['product_name','=model_id', '=activity']
+    list_per_page = 25
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 128})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
+    }
+
+admin.site.register(ActivityProduct, ActivityProductAdmin)
+
+class ActivityEntryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'act_type', 'start_time', 'end_time', 'created', 'is_active')
+
+    list_filter = ('is_active', 'act_type',
+                   ('start_time', DateFieldListFilter),
+                   ('created', DateFieldListFilter))
+    search_fields = ['=id','title']
+    list_per_page = 25
+
+    inlines = [ActivityProductInline]
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 128})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
+    }
+
+admin.site.register(ActivityEntry, ActivityEntryAdmin)
 
 class XLFreeSampleAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'name', 'expiried', 'pic_url', 'sale_url')

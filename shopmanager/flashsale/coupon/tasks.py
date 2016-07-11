@@ -218,7 +218,7 @@ def task_update_mobile_download_record(tempcoupon):
     share = OrderShareCoupon.objects.filter(uniq_id=tempcoupon.share_coupon_id).first()
     if not share:
         return
-    from flashsale.promotion.models_freesample import DownloadMobileRecord
+    from flashsale.promotion.models import DownloadMobileRecord
     uni_key = '/'.join([str(share.share_customer), str(tempcoupon.mobile)])
     dl_record = DownloadMobileRecord.objects.filter(uni_key=uni_key).first()
     if dl_record:  # 记录存在不做处理
@@ -233,7 +233,7 @@ def task_update_mobile_download_record(tempcoupon):
 
 @task()
 def task_update_unionid_download_record(usercoupon):
-    from flashsale.promotion.models_freesample import DownloadUnionidRecord, DownloadMobileRecord
+    from flashsale.promotion.models import DownloadUnionidRecord, DownloadMobileRecord
     customer = usercoupon.customer
     if not customer:
         return 

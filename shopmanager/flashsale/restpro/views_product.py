@@ -24,8 +24,8 @@ from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
-from flashsale.pay.models import GoodShelf, ModelProduct, Productdetail, ActivityEntry, BrandProduct
-from flashsale.pay.models import Customer
+from flashsale.pay.models import GoodShelf, ModelProduct, Productdetail, BrandProduct, Customer
+from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
 
@@ -218,6 +218,11 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
             'picture': 'http://7xogkj.com2.z0.glb.qiniucdn.com/startup_ios8_retina_HD5.5.png',
             'created': datetime.datetime.now(),
         })
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer_data = serializers.ActivityEntrySerializer(instance).data
+        return Response(serializer_data)
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):

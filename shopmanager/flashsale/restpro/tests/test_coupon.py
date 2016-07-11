@@ -2,7 +2,7 @@
 import json
 from django.test import TestCase
 from flashsale.coupon.models import UserCoupon, OrderShareCoupon
-from flashsale.promotion.models_freesample import XLSampleApply
+from flashsale.promotion.models import XLSampleApply
 
 
 class UserCouponTestCase(TestCase):

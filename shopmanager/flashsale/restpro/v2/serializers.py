@@ -260,7 +260,7 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
         return shop_products_num
 
 
-from flashsale.promotion.models_freesample import AppDownloadRecord
+from flashsale.promotion.models import AppDownloadRecord
 
 class AppDownloadRecordSerializer(serializers.ModelSerializer):
 
