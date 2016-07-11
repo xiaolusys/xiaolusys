@@ -1440,7 +1440,9 @@ def task_packageskuitem_update_purchaserecord(psi):
             status = PurchaseRecord.CANCEL
             # The PSI was assigned by existing inventory or refundproduct (which increased inventory)
             note = '%s:Asssigned' % datetime.datetime.now()
-
+    else:
+        status = PurchaseRecord.CANCEL
+        
     if not pr:
         fields = ['oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
         pr = PurchaseRecord(package_sku_item_id=psi.id, uni_key=uni_key, request_num=psi.num, status=status)
