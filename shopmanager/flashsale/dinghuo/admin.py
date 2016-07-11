@@ -14,7 +14,7 @@ from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStat
     PayToPackStats
 import time
 from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter, \
-    InBoundCreatorFilter, OrderListReceiveStatusFilter
+    InBoundCreatorFilter
 from flashsale.dinghuo import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 
@@ -44,11 +44,11 @@ class OrderListAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'purchase_total_num', 'shelf_status', 'shenhe',
-        'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name', 'purchase_order_unikey_link')
-    list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', OrderListReceiveStatusFilter, 'is_postpay', 'press_num',
-                   OrderListStatusFilter, 'pay_status', BuyerNameFilter,
-                   'last_pay_date', 'created_by')
+        'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'purchase_total_num', 'shelf_status',
+        'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
+        'purchase_order_unikey_link')
+    list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', 'is_postpay', 'press_num',
+                   'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
     date_hierarchy = 'created'
 
@@ -59,7 +59,7 @@ class OrderListAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return qs
         else:
-            return qs.exclude(status='作废')
+            return qs.exclude(status=u'作废')
 
     def buyer_select(self, obj):
         part = ['<select class="buyer-select" orderlist-id="%d" onchange="buyer_select(this)">' % obj.id]

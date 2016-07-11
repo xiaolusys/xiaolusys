@@ -544,6 +544,7 @@ class SaleProductManageDetail(models.Model):
 
     class Meta:
         db_table = 'supplychain_supply_schedule_manage_detail'
+        unique_together = ("schedule_manage", "sale_product_id")
         app_label = 'supplier'
         verbose_name = u'排期管理明细'
         verbose_name_plural = u'排期管理明细列表'
