@@ -1573,7 +1573,8 @@ def task_orderdetail_update_orderlist(od):
     else:
         od_sum = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).aggregate(
             total=Sum('total_price'))
-        purchase_total_num = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).count()
+        purchase_total_num = OrderDetail.objects.filter(purchase_order_unikey=od.purchase_order_unikey).aggregate(
+            total=Sum('buy_quantity')).get('total') or 0
         total = od_sum['total'] or 0
         if ol.order_amount != total or ol.purchase_total_num != purchase_total_num:
             if ol.is_open():
