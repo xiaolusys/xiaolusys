@@ -1584,15 +1584,15 @@ class PackageOrder(models.Model):
                 self.logistics_company_id = LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0].id
             self.save(update_fields=['logistics_company_id'])
 
-    def update_relase_package_sku_item(package_order):
-        if package_order and not package_order.is_sent():
-            if PackageSkuItem.objects.filter(package_order_id=package_order.id, assign_status=PackageSkuItem.ASSIGNED)\
+    def update_relase_package_sku_item(self):
+        if not self.is_sent():
+            if PackageSkuItem.objects.filter(package_order_id=self.id, assign_status=PackageSkuItem.ASSIGNED)\
                     .exists():
-                package_order.set_redo_sign(save_data=False)
-                package_order.reset_sku_item_num()
-                package_order.save()
+                self.set_redo_sign(save_data=False)
+                self.reset_sku_item_num()
+                self.save()
             else:
-                package_order.reset_to_new_create()
+                self.reset_to_new_create()
 
 
     def reset_sku_item_num(self):
@@ -1959,11 +1959,13 @@ class PackageSkuItem(BaseModel):
     def reset_assign_status(self):
         package_order = self.package_order
         PackageSkuItem.objects.filter(id=self.id).update(assign_status=0, package_order_id=None, package_order_pid=None)
+        logging.error("update_relase_package_sku_item:" + str(self.id))
         package_order.update_relase_package_sku_item()
         self.package_order_id = None
         self.package_order_pid = None
         self.assign_status = PackageSkuItem.NOT_ASSIGNED
         self.save()
+        logging.error("update_relase_package_sku_item finished:" + str(self.id))
 
     def reset_assign_package(self):
         if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
