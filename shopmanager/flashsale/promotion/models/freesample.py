@@ -148,6 +148,7 @@ class AppDownloadRecord(BaseModel):
     mobile = models.CharField(max_length=11, blank=True, null=True, db_index=True, verbose_name=u'手机号')
     ufrom = models.CharField(max_length=8, default=WXAPP, choices=UFROM, verbose_name=u'来自平台')
     inner_ufrom = models.IntegerField(default=UNKNOWN, db_index=True, choices=INNER_UFROM, verbose_name=u'内部渠道')
+    uni_key = models.CharField(max_length=64, unique=True, null=True, verbose_name=u'唯一标识')
 
     class Meta:
         db_table = 'flashsale_promotion_download_record'

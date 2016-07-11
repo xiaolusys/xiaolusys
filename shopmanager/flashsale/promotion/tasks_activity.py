@@ -364,7 +364,8 @@ def task_collect_mobile_download_record(instance):
     instance: DownloadMobileRecord instance
     收集手机号产生的下载记录到　汇总的下载记录表中
     """
-    appdownload = AppDownloadRecord.objects.filter(mobile=instance.mobile, from_customer=instance.from_customer).first()
+    uni_key = '/'.join([str(instance.from_customer), str(instance.mobile)])
+    appdownload = AppDownloadRecord.objects.filter(uni_key=uni_key).first()
     if not appdownload:
         customer = Customer.objects.filter(mobile=instance.mobile, status=Customer.NORMAL).first()
         unionid = customer.unionid if customer else ''
@@ -392,8 +393,8 @@ def task_collect_union_download_record(instance):
     """
     instance: DownloadUnionidRecord instance
     """
-    appdownload = AppDownloadRecord.objects.filter(unionid=instance.unionid,
-                                                   from_customer=instance.from_customer).first()
+    uni_key = '/'.join([str(instance.from_customer), str(instance.unionid)])
+    appdownload = AppDownloadRecord.objects.filter(uni_key=uni_key).first()
     if not appdownload:
         customer = Customer.objects.filter(unionid=instance.unionid, status=Customer.NORMAL).first()
         unionid = customer.unionid if customer else ''
