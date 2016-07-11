@@ -453,10 +453,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     - payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
     - {path}/waitpay[.formt]:获取待支付订单；
     - {path}/waitsend[.formt]:获取待发货订单；
-    - {path}/confirm_sign[.formt]: 确认收货
-    - {path}/remind_send[.formt]: 提醒发货
-    - {path}/undisplay[.formt]: 删除订单记录
-    - {path}/{pk}/charge[.formt]:支付待支付订单;
+    - {path}/confirm_sign[.formt]: 确认收货;
+    - {path}/remind_send[.formt]: 提醒发货;
+    - {path}/undisplay[.formt]: 删除订单记录;
+    - {path}/{pk}: 获取订单详情, 请传入参数 device :支付类型 (app ,app支付), (wap, wap支付), (web, 网页支付);
+    - {path}/{pk}/charge[.formt]:支付待支付订单,可传入支付方式: channel;
     - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
     > - cart_ids：购物车明细ID，如 `100,101,...` 
     > - addr_id:客户地址ID
