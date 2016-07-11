@@ -1,7 +1,6 @@
 # coding=utf-8
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
-from flashsale.pay.models_user import Customer
-from models_coupon import IntegralLog, Integral
+from flashsale.pay.models import Customer, IntegralLog, Integral
 from django.db.models.signals import post_save
 import logging
 import datetime

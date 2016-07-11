@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models_fortune import ReferalRelationship, GroupRelationship, UniqueVisitor
-from flashsale.pay.models_user import Customer
+from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
 
 import sys

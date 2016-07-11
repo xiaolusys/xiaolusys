@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from flashsale.pay.models import Customer
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
-from flashsale.pay.models_coupon import IntegralLog, Integral
+from flashsale.pay.models import IntegralLog, Integral
 
 
 class UserIntegralViewSet(viewsets.ModelViewSet):

@@ -14,7 +14,7 @@ from rest_framework import authentication
 from rest_framework import status
 from rest_framework import viewsets
 
-from flashsale.pay.models_custom import BrandEntry, BrandProduct
+from flashsale.pay.models import BrandEntry, BrandProduct
 from flashsale.pay.serializes import BrandProductSerializer
 
 

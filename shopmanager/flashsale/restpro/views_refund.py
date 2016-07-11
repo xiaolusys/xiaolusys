@@ -6,8 +6,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import exceptions
 from common.modelutils import update_model_fields
 from flashsale.pay.models import SaleOrder
-from flashsale.pay.models_refund import SaleRefund
-from flashsale.pay.models_user import Customer
+from flashsale.pay.models import SaleRefund, Customer
 from flashsale.pay import tasks
 from shopback.trades.models import PackageSkuItem
 

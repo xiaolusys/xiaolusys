@@ -33,7 +33,7 @@ from flashsale.clickcount import tasks as ctasks
 from common.modelutils import update_model_fields
 
 from .models import XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
-from flashsale.pay.models import SaleTrade, Customer, SaleRefund
+from flashsale.pay.models import SaleTrade, Customer, SaleRefund, Envelop, SaleOrder
 from .serializers import CashOutSerializer, CarryLogSerializer
 from models_advertis import XlmmAdvertis
 
@@ -699,7 +699,6 @@ def cash_Out_Verify(request, id, xlmm):
 from django.db import transaction
 from django.db.models import F
 from django.conf import settings
-from flashsale.pay.models import Envelop
 from shopapp.weixin.models import WeixinUnionID
 from flashsale.xiaolumm.models_fortune import MamaFortune
 
@@ -840,9 +839,6 @@ def stats_summary(request):
 
 
 ###################### 妈妈审核功能
-
-from flashsale.pay.models_user import Customer
-from flashsale.pay.models import SaleTrade, SaleOrder
 
 
 def get_Deposit_Trade(openid, mobile):

@@ -12,7 +12,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework.exceptions import APIException
-from flashsale.pay.models_user import Customer
+from flashsale.pay.models import Customer
 from flashsale.mmexam.models import Question, Result, Mamaexam, ExamResultDetail
 from flashsale.mmexam import constants
 

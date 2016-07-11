@@ -6,22 +6,25 @@ from django.db.models import Q, Sum
 from django.conf import settings
 from django.db import transaction
 from django.db.models.signals import post_save
+from django.db.models import F
+
+from shopback.categorys.models import CategorySaleStat
+from common.modelutils import update_model_fields
+from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
+from core.fields import JSONCharMyField
 
 from shopback import paramconfig as pcfg
-from .signals import signal_saletrade_refund_confirm
-from .options import uniqid
-
-from core.fields import JSONCharMyField
-from .base import PayBaseModel
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
-from .constants import CHANNEL_CHOICES
+from flashsale.pay.signals import signal_saletrade_refund_post
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS, REFUND_STATUS
 from flashsale.pay.managers import SaleRefundManager
-from core.options import log_action, ADDITION, CHANGE, get_systemoa_user
 
-from . import constants
+from ..signals import signal_saletrade_refund_confirm
+from ..options import uniqid
+from .base import PayBaseModel
+from .. import constants
 
 import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
@@ -95,10 +98,10 @@ class SaleRefund(PayBaseModel):
     refund_id = models.CharField(max_length=28, blank=True, db_index=True, verbose_name=u'P++退款编号')
     charge = models.CharField(max_length=28, blank=True, db_index=True, verbose_name=u'P++支付编号')
     channel = models.CharField(max_length=16, db_index=True,
-                               choices=CHANNEL_CHOICES, blank=True, verbose_name=u'付款方式')
+                               choices=constants.CHANNEL_CHOICES, blank=True, verbose_name=u'付款方式')
 
     refund_channel = models.CharField(max_length=16, db_index=True,
-                               choices=CHANNEL_CHOICES, blank=True, verbose_name=u'退款方式')
+                               choices=constants.CHANNEL_CHOICES, blank=True, verbose_name=u'退款方式')
 
     item_id = models.BigIntegerField(null=True, default=0, verbose_name='商品ID')
     title = models.CharField(max_length=64, blank=True, verbose_name='出售标题')
@@ -165,7 +168,7 @@ class SaleRefund(PayBaseModel):
 
     @property
     def sale_trade(self):
-        from flashsale.pay.models import SaleTrade
+        from .trade import SaleTrade
         if not hasattr(self, '__sale_trade__'):
             self.__sale_trade__ = SaleTrade.objects.filter(id=self.trade_id).first()
         return self.__sale_trade__
@@ -181,7 +184,7 @@ class SaleRefund(PayBaseModel):
     @transaction.atomic
     def refund_wallet_approve(self):
         """ deprecated 退款至妈妈钱包 """
-        from flashsale.pay.models import Customer
+        from .user import Customer
         from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 
 
@@ -228,7 +231,7 @@ class SaleRefund(PayBaseModel):
     @transaction.atomic
     def refund_fast_approve(self):
         """　极速退款审核确认 """
-        from flashsale.pay.models import BudgetLog
+        from .user import BudgetLog
         strade = self.sale_trade
         sorder = self.sale_order()
 
@@ -268,7 +271,7 @@ class SaleRefund(PayBaseModel):
 
     def refund_approve(self):
 
-        from flashsale.pay.models import SaleTrade
+        from .trade import SaleTrade
         strade = self.sale_trade
         if strade.channel == SaleTrade.WALLET:
             self.refund_wallet_approve()
@@ -287,7 +290,7 @@ class SaleRefund(PayBaseModel):
         self.success_time = datetime.datetime.now()
         self.status = SaleRefund.REFUND_SUCCESS
         self.save()
-        from flashsale.pay.models import SaleOrder, SaleTrade
+        from .trade import SaleOrder, SaleTrade
         sorder = SaleOrder.objects.get(id=self.order_id)
         sorder.refund_status = SaleRefund.REFUND_SUCCESS
         if sorder.status in (
@@ -334,7 +337,7 @@ class SaleRefund(PayBaseModel):
             return None
 
     def sale_order(self):
-        from flashsale.pay.models import SaleOrder
+        from .trade import SaleOrder
         if not hasattr(self, '_sale_order_'):
             self._sale_order_ = SaleOrder.objects.filter(id=self.order_id).first()
         return self._sale_order_
@@ -344,7 +347,7 @@ class SaleRefund(PayBaseModel):
         if self.status < self.REFUND_WAIT_RETURN_GOODS:
             return '退货状态未确定'
         from shopback.warehouse.models import WareHouse
-        from flashsale.pay.models import SaleOrder
+        from .trade import SaleOrder
         from shopback.items.models import Product
         sorder = SaleOrder.objects.get(id=self.order_id)
         try:
@@ -358,7 +361,7 @@ class SaleRefund(PayBaseModel):
 
     def get_refund_customer(self):
         """ 退款用户 """
-        from flashsale.pay.models_user import Customer
+        from flashsale.pay.models import Customer
         customer = Customer.objects.get(id=self.buyer_id)
         return customer
 
@@ -419,8 +422,7 @@ post_save.connect(roll_back_usercoupon_status, sender=SaleRefund, dispatch_uid='
 
 
 def buyeridPatch():
-    from flashsale.pay.models import SaleTrade
-
+    from .trade import SaleTrade
     sfs = SaleRefund.objects.all()
     for sf in sfs:
         st = SaleTrade.objects.get(id=sf.trade_id)
@@ -430,7 +432,7 @@ def buyeridPatch():
 
 def handle_sale_refund_signal(sender, instance, created, *args, **kwargs):
     """ 特卖退款单生成触发更新库存数及锁定数信号 """
-    from .models import SaleTrade
+    from .trade import SaleTrade
     from shopback import signals
     from shopback.trades.models import MergeOrder
 
@@ -441,11 +443,6 @@ def handle_sale_refund_signal(sender, instance, created, *args, **kwargs):
 
 
 post_save.connect(handle_sale_refund_signal, sender=SaleRefund)
-
-from flashsale.pay.signals import signal_saletrade_refund_post
-from shopback.categorys.models import CategorySaleStat
-from django.db.models import F
-from common.modelutils import update_model_fields
 
 
 def category_refund_stat(sender, obj, **kwargs):
@@ -464,3 +461,57 @@ def category_refund_stat(sender, obj, **kwargs):
 
 
 signal_saletrade_refund_post.connect(category_refund_stat, sender=SaleRefund)
+
+def check_SaleRefund_Status(sender, instance, created, **kwargs):
+    # created 表示实例是否创建 （修改）
+    # 允许抛出异常
+    from .trade import SaleTrade, SaleOrder
+    order = SaleOrder.objects.get(id=instance.order_id)
+    trade = SaleTrade.objects.get(id=instance.trade_id)
+    # 退款成功  如果是退款关闭要不要考虑？？？
+    if instance.status == SaleRefund.REFUND_SUCCESS:
+        # 如果是退款成功状态
+        # 找到订单
+        refund_num = instance.refund_num  # 退款数量
+        order_num = order.num  # 订单数量
+        if refund_num == order_num:  # 退款数量等于订单数量
+            # 关闭这个订单
+            order.status = SaleOrder.TRADE_CLOSED  # 退款关闭
+            order.save()
+        """ 判断交易状态 """
+        orders = trade.sale_orders.all()
+        flag_re = 0
+        for orde in orders:
+            if orde.status == SaleOrder.TRADE_CLOSED:
+                flag_re += 1
+
+        if flag_re == orders.count():  # 所有订单都退款成功
+            # 这笔交易 退款 关闭
+            trade.status = SaleTrade.TRADE_CLOSED
+            trade.save()
+
+    if instance.status == SaleRefund.REFUND_CLOSED:  # 退款关闭即没有退款成功 切换订单到交易成功状态
+        # 如果是退款成功状态 找到订单
+        refund_num = instance.refund_num  # 退款数量
+        order_num = order.num  # 订单数量
+        if refund_num == order_num:  # 退款数量等于订单数量
+            order.status = SaleOrder.TRADE_FINISHED  # 交易成功
+            order.save()
+        """ 判断交易状态 """
+        orders = trade.sale_orders.all()
+        flag_re = 0
+        for orde in orders:
+            if orde.status == SaleOrder.TRADE_FINISHED:
+                flag_re += 1
+
+        if flag_re == orders.count():  # 所有订单都退款关闭
+            # 这笔交易　交易成功
+            trade.status = SaleTrade.TRADE_FINISHED
+            trade.save()
+
+    """ 同步退款状态到订单，这里至更新 退款的状态到订单的 退款状态字段 """
+    order.refund_status = instance.status
+    order.save()  # 保存同步的状态
+
+
+post_save.connect(check_SaleRefund_Status, sender=SaleRefund)

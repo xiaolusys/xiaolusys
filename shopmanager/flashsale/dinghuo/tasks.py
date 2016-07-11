@@ -630,7 +630,7 @@ def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_
 
 
 from supplychain.supplier.models import SaleProduct
-from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models import SaleRefund
 from shopback.refunds.models import RefundProduct
 from .models import ReturnGoods, RGDetail
 

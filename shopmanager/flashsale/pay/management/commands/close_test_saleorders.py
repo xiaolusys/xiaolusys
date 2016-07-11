@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from flashsale.pay import REFUND_REFUSE_BUYER, REFUND_CLOSED
 from flashsale.pay.models import SaleOrder
-from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models import SaleRefund
 
 
 class Command(BaseCommand):

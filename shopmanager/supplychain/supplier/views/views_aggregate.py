@@ -5,7 +5,7 @@ from django.shortcuts import HttpResponse, render_to_response, redirect
 from django.template import RequestContext
 from django.utils.safestring import mark_safe
 
-from flashsale.pay.models_custom import ModelProduct, Productdetail
+from flashsale.pay.models import ModelProduct, Productdetail
 from shopback.items.models import Product
 from django.db import transaction
 from core.options import log_action, ADDITION, CHANGE

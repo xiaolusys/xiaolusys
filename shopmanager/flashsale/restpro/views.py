@@ -18,14 +18,21 @@ from rest_framework import exceptions
 from flashsale.apprelease.models import AppRelease
 from .views_refund import refund_Handler
 
-from flashsale.pay.models import SaleTrade, Customer
+from flashsale.pay.models import (
+    SaleTrade,
+    Customer,
+    SaleRefund,
+    District,
+    UserAddress,
+    SaleOrder,
+    SaleTrade,
+    UserAddressChange
+)
 
 from . import permissions as perms
 from . import serializers
 from core.utils import regex
 
-from flashsale.pay.models import SaleRefund, District, UserAddress, SaleOrder, SaleTrade
-from flashsale.pay.models_addr import UserAddressChange
 from flashsale.pay.tasks import tasks_set_user_address_id
 from flashsale.xiaolumm.models import XiaoluMama
 from shopback.trades.models import PackageSkuItem

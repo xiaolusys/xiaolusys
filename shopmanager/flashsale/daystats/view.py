@@ -69,7 +69,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
     def list(self, request, *args, **kwargs):
         from flashsale.dinghuo.models import OrderList
         from flashsale.pay.models import SaleOrder, SaleTrade
-        from flashsale.pay.models_refund import SaleRefund
+        from flashsale.pay.models import SaleRefund
         from shopback.trades.models import MergeOrder
         from shopback import paramconfig as pcfg
 

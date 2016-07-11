@@ -243,7 +243,7 @@ class MamaDressResult(BaseModel):
 
     def send_envelop(self):
         from flashsale.pay.models import Customer
-        from flashsale.pay.models_coupon_new import UserCoupon
+        from flashsale.pay.models import UserCoupon
 
         customers = Customer.objects.filter(unionid=self.user_unionid, status=Customer.NORMAL)
         if customers.exists():

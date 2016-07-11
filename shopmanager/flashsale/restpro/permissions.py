@@ -1,6 +1,6 @@
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
-from flashsale.pay.models_user import Customer
+from flashsale.pay.models import Customer
 
 
 class IsOwnerOnly(permissions.BasePermission):

@@ -23,8 +23,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from flashsale.dinghuo.models import OrderDetail, OrderList
-from flashsale.pay.models import SaleOrder
-from flashsale.pay.models_custom import ModelProduct, Productdetail
+from flashsale.pay.models import ModelProduct, Productdetail, SaleOrder
 from core.options import log_action, ADDITION, CHANGE
 
 from shopback import paramconfig as pcfg

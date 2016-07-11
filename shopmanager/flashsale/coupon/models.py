@@ -384,7 +384,7 @@ class UserCoupon(BaseModel):
     @property
     def customer(self):
         if not hasattr(self, "_coupon_customer_"):
-            from flashsale.pay.models_user import Customer
+            from flashsale.pay.models import Customer
             self._coupon_customer_ = Customer.objects.filter(id=self.customer_id).first()
         return self._coupon_customer_
 

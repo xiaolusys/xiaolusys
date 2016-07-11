@@ -1,15 +1,19 @@
 # -*- coding:utf-8 -*-
 __author__ = 'yann'
-from celery.task import task
-from flashsale.pay.models import ShoppingCart, SaleTrade
-from shopback.items.models import Product
-from django.contrib.auth.models import User as DjangoUser
-from core.options import log_action, ADDITION, CHANGE
-import logging
-
 import json
 import urllib, urllib2
+
+from celery.task import task
+from django.contrib.auth.models import User as DjangoUser
+
+from core.options import log_action, ADDITION, CHANGE
+from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopPros
+from shopback.items.models import Product
 from shopback.trades.models import TradeWuliu, PackageSkuItem
+from views_cushops import save_pro_info
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"
@@ -222,12 +226,6 @@ def update_all_logistics():
                     temp_sid = psi.out_sid
     logger = logging.getLogger(__name__)
     logger.warn('update_all_logistics trades counts=%d, update counts=%d' % (sale_trades.count(), num))
-
-from flashsale.pay.models_shops import CustomerShops, CuShopPros
-from views_cushops import save_pro_info
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 @task()

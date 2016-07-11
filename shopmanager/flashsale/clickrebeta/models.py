@@ -465,7 +465,7 @@ def tongji_saleorder(sender, obj, **kwargs):
 
 signal_saletrade_pay_confirm.connect(tongji_saleorder, sender=SaleTrade)
 
-from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models import SaleRefund
 from flashsale.pay.signals import signal_saletrade_refund_confirm
 
 

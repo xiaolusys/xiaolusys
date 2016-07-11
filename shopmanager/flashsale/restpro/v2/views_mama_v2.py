@@ -17,14 +17,12 @@ from rest_framework.views import APIView
 
 from flashsale.restpro import permissions as perms
 from . import serializers
-from flashsale.pay.models import Customer
+from flashsale.pay.models import Customer, ModelProduct
 
 from django.db.models import Sum, Count
 
 from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
     AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor, DailyStats
-
-from flashsale.pay.models_custom import ModelProduct
 
 from django_statsd.clients import statsd
 logger = logging.getLogger(__name__)

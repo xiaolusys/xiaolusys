@@ -3,7 +3,7 @@ __author__ = 'jishu_linjie'
 import json
 from django.test import TestCase
 from flashsale.xiaolumm.models import CashOut, MamaFortune
-from flashsale.pay.models_user import BudgetLog
+from flashsale.pay.models import BudgetLog
 
 
 class MamaCahoutTestCase(TestCase):

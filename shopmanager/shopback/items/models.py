@@ -199,7 +199,7 @@ class Product(models.Model):
         """ 获取商品款式 """
         if self.model_id == 0:
             return None
-        from flashsale.pay.models_custom import ModelProduct
+        from flashsale.pay.models import ModelProduct
         try:
             pmodel = ModelProduct.objects.get(id=self.model_id)
         except:
@@ -312,7 +312,7 @@ class Product(models.Model):
         """ 获取商品款式 """
         if self.model_id == 0:
             self.model_id = None
-        from flashsale.pay.models_custom import ModelProduct
+        from flashsale.pay.models import ModelProduct
         try:
             pmodel = ModelProduct.objects.get(id=self.model_id)
         except:
@@ -545,6 +545,7 @@ class Product(models.Model):
 
     def in_customer_shop(self, customer):
         """在用户我的店铺中有本产品则返回true否则返回false"""
+        from flashsale.pay.models import CuShopPros, CustomerShops
         try:
             customer_shop = CustomerShops.objects.get(customer=customer)
             cps = CuShopPros.objects.filter(product=self.id, shop=customer_shop.id)
@@ -647,8 +648,6 @@ class Product(models.Model):
         self.save(update_fields=update_fields)
         return True
 
-from flashsale.pay.models_shops import CuShopPros, CustomerShops
-
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):
     """ 当作废产品的时候　检查　同款是否 全部  作废　如果是　则　将对应供应商的选款数量减去１
@@ -707,7 +706,7 @@ def update_mama_shop_down_shelf(sender, instance, raw, *args, **kwargs):
     """ 如果商品是下架状态则更新妈妈店铺的商品到下架状态 """
     if instance.shelf_status != Product.DOWN_SHELF:
         return
-    from flashsale.pay.models_shops import CuShopPros
+    from flashsale.pay.models import CuShopPros
     CuShopPros.update_down_shelf(instance.id)  # 更新所有店铺的　该产品　到　下架状态
 
 

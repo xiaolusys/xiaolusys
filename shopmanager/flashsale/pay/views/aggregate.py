@@ -1,14 +1,19 @@
 # -*- encoding:utf8 -*-
+import datetime
+from django.db import transaction
+from django.forms.models import model_to_dict
 from django.views.generic import View
+from django.shortcuts import HttpResponse, render_to_response, redirect
+from django.template import RequestContext
+
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
-from django.shortcuts import HttpResponse, render_to_response, redirect
-from django.template import RequestContext
-from flashsale.pay.models_custom import ModelProduct, Productdetail
+
+from flashsale.pay.models import ModelProduct, Productdetail, ModelProduct
 from shopback.items.models import Product
-from django.db import transaction
+
 from core.options import log_action, ADDITION, CHANGE
 
 import logging
@@ -105,12 +110,6 @@ class CheckModelExistView(View):
         else:
             result_str = """{"result":false}"""
         return HttpResponse(result_str)
-
-
-import datetime
-from django.forms.models import model_to_dict
-from flashsale.pay.models_custom import ModelProduct
-
 
 def check_aggregate_error(product):
     p_outer_id = product.outer_id

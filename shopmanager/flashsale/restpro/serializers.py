@@ -2,13 +2,12 @@
 import urlparse
 from django.conf import settings
 
-from flashsale.pay.models_custom import BrandEntry, BrandProduct
+from flashsale.pay.models import BrandEntry, BrandProduct
 from shopback.items.models import Product, ProductSku, ProductCategory
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,
     SaleRefund,
-    LogisticsCompany,
     Productdetail,
     ModelProduct,
     ShoppingCart,
@@ -19,6 +18,7 @@ from flashsale.pay.models import (
     CustomShare,
     UserBudget
 )
+from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
@@ -479,7 +479,7 @@ class DistrictSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'url', 'parent_id', 'name', 'grade', 'sort_order')
 
 
-from flashsale.pay.models_coupon import IntegralLog, Integral
+from flashsale.pay.models import IntegralLog, Integral
 
 
 class UserIntegralSerializer(serializers.HyperlinkedModelSerializer):
@@ -644,7 +644,7 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
         fields = ('id', "title", "start_time", "turns_num", "pic_arry", 'could_share', 'description')
 
 
-from flashsale.pay.models_shops import CustomerShops, CuShopPros
+from flashsale.pay.models import CustomerShops, CuShopPros
 
 
 class CustomerShopsSerialize(serializers.ModelSerializer):
@@ -679,7 +679,7 @@ class XLSampleSkuSerialize(serializers.ModelSerializer):
         model = XLSampleSku
 
 
-from flashsale.pay.models_user import BudgetLog
+from flashsale.pay.models import BudgetLog
 
 
 class BudgetLogSerialize(serializers.ModelSerializer):
@@ -707,7 +707,7 @@ class AppReleaseSerialize(serializers.ModelSerializer):
         model = AppRelease
 
 
-from flashsale.pay.models_faqs import FaqMainCategory, FaqsDetailCategory, SaleFaq
+from flashsale.pay.models import FaqMainCategory, FaqsDetailCategory, SaleFaq
 
 
 class SaleFaqDetailCategorySerializer(serializers.ModelSerializer):

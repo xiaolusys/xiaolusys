@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 import logging
 from .base import PayBaseModel, BaseModel
-from . import managers
+from .. import managers
 
 logger = logging.getLogger('django.request')
 class District(PayBaseModel):
