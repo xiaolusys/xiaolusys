@@ -1436,29 +1436,10 @@ def task_packageskuitem_update_purchaserecord(psi):
     if psi.is_booking_needed():
         status = PurchaseRecord.EFFECT
     elif psi.is_booking_assigned():
-        status = PurchaseRecord.CANCEL
-        # Read in detail the following code logic: how we judge the PSI was assigned
-        # by exisiting inventory, or newly created inventory by refundproduct.
-        if not pr or pr.status == PurchaseRecord.EFFECT:
-            rp = RefundProduct.objects.filter(sku_id=psi.sku_id, can_reuse=True).order_by('-created').first()
-            od = OrderDetail.objects.filter(chichu_id=psi.sku_id, arrival_quantity__gt=0).order_by(
-                '-arrival_time').first()
-
-            init_time = datetime.datetime(1900, 1, 1)
-            rp_time, od_time = init_time, init_time
-            if rp:
-                rp_time = rp.created
-            if od and od.arrival_time:
-                od_time = od.arrival_time
-
-            if od and od.purchase_detail_unikey and od_time > psi.pay_time and od_time > rp_time:
-                # In this case, the PSI was assigned by orderdetail inventory
-                status = PurchaseRecord.EFFECT
-            else:
-                # The PSI was assigned by existing inventory or refundproduct (which increased inventory)
-                note = '%s:Exist/Refund Inventory|rp:%s,od:%s' % (datetime.datetime.now(), rp_time, od_time)
-    else:
-        status = PurchaseRecord.CANCEL
+        if not psi.purchase_order_unikey:
+            status = PurchaseRecord.CANCEL
+            # The PSI was assigned by existing inventory or refundproduct (which increased inventory)
+            note = '%s:Asssigned' % datetime.datetime.now()
 
     if not pr:
         fields = ['oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
