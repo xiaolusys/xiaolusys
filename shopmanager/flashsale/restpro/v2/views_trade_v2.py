@@ -56,6 +56,20 @@ def is_from_weixin(request):
         return True
     return False
 
+def get_channel_list(request):
+    content = request.data
+    is_in_weixin = is_from_weixin(request)
+    is_in_wap = content.get('device', 'wap') == 'wap'
+    channel_list = []
+    if is_in_wap:
+        if is_in_weixin:
+            channel_list.append({'id': 'wx_pub', 'name': u'微信支付', 'payable': True, 'msg': ''})
+        channel_list.append({'id': 'alipay_wap', 'name': u'支付宝', 'payable': True, 'msg': ''})
+    else:
+        channel_list.append({'id': 'wx', 'name': u'微信支付', 'payable': True, 'msg': ''})
+        channel_list.append({'id': 'alipay', 'name': u'支付宝', 'payable': True, 'msg': ''})
+    return channel_list
+
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     ###特卖购物车REST API接口：
@@ -311,23 +325,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return lg_dict_list
 
     def get_charge_channels(self, request, total_payment):
-        content = request.REQUEST
-        is_in_weixin = is_from_weixin(request)
-        is_in_wap    = content.get('device','wap') == 'wap'
-
-        customer = self.get_customer(request)
-        channel_list = []
-        # budget_payable, budget_cash = self.get_budget_info(customer, total_payment)
-        # channel_list.append({'id': 'budget', 'name':u'小鹿钱包', 'payable': budget_payable ,'msg':'', 'budget_cash':budget_cash})
-        if is_in_wap :
-            if is_in_weixin:
-                channel_list.append({'id': 'wx_pub', 'name':u'微信支付', 'payable': True ,'msg':''})
-            channel_list.append({'id': 'alipay_wap', 'name':u'支付宝', 'payable': True, 'msg': ''})
-        else:
-            channel_list.append({'id': 'wx', 'name':u'微信支付', 'payable':True, 'msg':''})
-            channel_list.append({'id': 'alipay', 'name':u'支付宝', 'payable': True, 'msg': ''})
-
-        return channel_list
+        return get_channel_list(request)
 
     def check_coupon(self, request, real_payment, cart_itemid_str):
         customer = self.get_customer(request)
@@ -522,8 +520,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """ 获取用户订单及订单明细列表 """
         instance   = self.get_object()
-        serializer = serializers.SaleTradeDetailSerializer(instance,context={'request': request})
-        return Response(serializer.data)
+        data = serializers.SaleTradeDetailSerializer(instance,context={'request': request}).data
+        data['extras'].update(channels=get_channel_list(request))
+        return Response(data)
     
     @list_route(methods=['get'])
     def waitpay(self, request, *args, **kwargs):
@@ -1048,8 +1047,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         _errmsg = {SaleTrade.WAIT_SELLER_SEND_GOODS: u'订单无需重复付款',
                    SaleTrade.TRADE_CLOSED_BY_SYS: u'订单已关闭或超时',
                    'default': u'订单不在可支付状态'}
-
+        channel = request.data.get('channel','')
         instance = self.get_object()
+        if channel and channel != instance.channel:
+            instance.channel = channel
+            instance.save(update_fields=['channel'])
+
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             return Response({'code': 1, 'info': _errmsg.get(instance.status, _errmsg.get('default'))})
 

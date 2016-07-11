@@ -155,7 +155,7 @@ class ActivityProduct(BaseModel):
         return u'<%s,%s>' % (self.id, self.activity)
 
     @property
-    def prodouct(self):
+    def product(self):
         if not hasattr(self, '_product_'):
             if self.model_id > 0:
                 self._product_ = Product.objects.get(id=self.product_id)
@@ -167,14 +167,14 @@ class ActivityProduct(BaseModel):
 
     def product_lowest_price(self):
         """ 商品最低价 """
-        if self.prodouct:
-            return self.prodouct.product_lowest_price()
+        if self.product:
+            return self.product.product_lowest_price()
         return 0
 
     def product_std_sale_price(self):
         """ 商品吊牌价 """
-        if self.prodouct:
-            return self.prodouct.std_sale_price
+        if self.product:
+            return self.product.std_sale_price
         return 0
 
     def update_start_and_end_time(self, start_time, end_time):
