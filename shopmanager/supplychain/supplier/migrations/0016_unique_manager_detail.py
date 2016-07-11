@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplier', '0014_saleproductmanagedetail_order_weight'),
+        ('supplier', '0015_add_shelf_time_in_manage'),
     ]
 
     operations = [
