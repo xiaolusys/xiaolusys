@@ -140,7 +140,7 @@ def task_login_activate_appdownloadrecord(user):
 
     records = None
     if unionid:
-        records = AppDownloadRecord.objects.filter(unionid=unionid, status=AppDownloadRecord.UNUSE).order_by('-created')
+        records = AppDownloadRecord.objects.filter(unionid=unionid, status=AppDownloadRecord.UNUSE).order_by('-modified')
         record = records.first()
         if record:
             record.status = AppDownloadRecord.USED
@@ -149,7 +149,7 @@ def task_login_activate_appdownloadrecord(user):
             return
     
     if mobile and len(mobile) == 11:
-        records = AppDownloadRecord.objects.filter(mobile=mobile, status=AppDownloadRecord.UNUSE).order_by('-created')
+        records = AppDownloadRecord.objects.filter(mobile=mobile, status=AppDownloadRecord.UNUSE).order_by('-modified')
         record = records.first()
         if record:
             record.status = AppDownloadRecord.USED

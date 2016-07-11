@@ -294,7 +294,7 @@ class APPDownloadView(WeixinAuthMixin, View):
         from flashsale.promotion.tasks_activity import task_create_appdownloadrecord_with_userinfo, \
             task_create_appdownloadrecord_with_mobile
 
-        logger.warn("AppDownloadView|request_url: %s" % request.build_absolute_uri())
+        # logger.warn("AppDownloadView|request_url: %s" % request.build_absolute_uri())
 
         if from_customer.isdigit():
             if self.is_from_weixin(request):
