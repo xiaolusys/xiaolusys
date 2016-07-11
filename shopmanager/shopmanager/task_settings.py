@@ -1141,6 +1141,18 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'实时统计购物车中sku数':{
+        'task': 'shopback.trades.tasks.task_schedule_check_shoppingcart_cnt',
+        'schedule': crontab(minute="4"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'实时统计待支付的sku数':{
+        'task': 'shopback.trades.tasks.task_schedule_check_waitingpay_cnt',
+        'schedule': crontab(minute="6"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     u'小鹿每日统计总额':{
         'task': 'statistics.tasks.task_xiaolu_daily_stat',
         'schedule': crontab(minute="5", hour="0"),

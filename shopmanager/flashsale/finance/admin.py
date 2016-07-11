@@ -16,11 +16,17 @@ class BillAdmin(admin.ModelAdmin):
     list_display = (
         'show_id', 'supplier', 'type', 'show_relation_objects', 'plan_amount', 'amount', 'show_creater', 'pay_method',
         'created', 'status', 'note')
-    search_fields = ['id', "transcation_no", "supplier__id", "supplier__supplier_name"]
+    search_fields = ['id', "transcation_no", "supplier__id", "supplier__supplier_name", "billrelation__object_id"]
     list_filter = ["type", "status", "pay_method", ('created', DateFieldListFilter)]
     readonly_fields = ('creater', 'supplier')
     list_select_related = True
     list_per_page = 25
+
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['billrelation__object_id']:
+            return True
+        return super(BillAdmin, self).lookup_allowed(lookup, value)
+
 
     def show_id(self, obj):
         return '<a href="/sale/finance/bill_list/%d/bill_detail" target="_blank">%d</a>' % (obj.id, obj.id)
@@ -50,6 +56,8 @@ class BillAdmin(admin.ModelAdmin):
         is_wrong_type = False
         bill_notes = []
         plan_amount = .0
+        receive_acount_set = set()
+        receive_name_set = set()
         for bill in queryset:
             if bill.type == Bill.PAY:
                 plan_amount += bill.plan_amount
@@ -67,6 +75,10 @@ class BillAdmin(admin.ModelAdmin):
                 is_wrong_pay_method = True
             if bill.note:
                 bill_notes.append(bill.note)
+            if bill.receive_account:
+                receive_acount_set.add(bill.receive_account)
+            if bill.receive_name:
+                receive_name_set.add(bill.receive_name)
 
         redirect_url = '/admin/finance/bill_list/?id__in=%s' % ','.join([str(x) for x in sorted(bill_ids)])
         if is_wrong_type:
@@ -95,6 +107,14 @@ class BillAdmin(admin.ModelAdmin):
             attachment = attachment_set.pop()
         else:
             attachment = ''
+        if receive_acount_set:
+            receive_acount = receive_acount_set.pop()
+        else:
+            receive_acount = ''
+        if receive_name_set:
+            receive_name = receive_name_set.pop()
+        else:
+            receive_name = ''
         type_ = Bill.RECEIVE if plan_amount < 0 else Bill.PAY
 
         merged_bill = Bill(
@@ -105,7 +125,9 @@ class BillAdmin(admin.ModelAdmin):
             supplier_id=supplier_id,
             attachment=attachment,
             creater=request.user,
-            status=min(status_set)
+            status=min(status_set),
+            receive_name=receive_name,
+            receive_account=receive_acount
         )
         merged_bill.save()
 
