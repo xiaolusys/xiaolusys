@@ -34,6 +34,11 @@ class BillViewSet(viewsets.GenericViewSet):
 
         if bill.status == 2:
             bill_status = False
+
+        ro = [{'name':k, 'items':v} for k,v in bill.relation_objects.iteritems()]
+        # for i in ro:
+        #     i['items'] = i['items'][0]
+        # ro = {'a':1,'b':2,'c':3}
         result = {
             'id': bill.id,
             'supplier_name': bill.supplier.supplier_name,
@@ -46,7 +51,7 @@ class BillViewSet(viewsets.GenericViewSet):
             'receive_account': bill.receive_account,
             'receive_name': bill.receive_name,
             'transaction_no': bill.transcation_no,
-            'relation_objects': bill.relation_objects,
+            'relation_objects': ro,
             'attachment': bill.attachment,
             'confirm': confirm,
             'note': bill.note,
