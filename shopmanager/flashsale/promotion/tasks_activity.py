@@ -9,7 +9,7 @@ logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.pay.models import Customer, BudgetLog, UserBudget
-from flashsale.promotion.models.freesample import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord, \
+from flashsale.promotion.models import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord, \
     DownloadMobileRecord, DownloadUnionidRecord
 from utils import get_application
 
