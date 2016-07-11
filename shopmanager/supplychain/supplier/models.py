@@ -575,6 +575,13 @@ class SaleProductManageDetail(models.Model):
         return self._sale_product_
 
     @property
+    def product_model_id(self):
+        if not hasattr(self, '_model_id_'):
+            from shopback.items.models import Product
+            self._model_id_ = Product.objects.filter(id=self.sale_product_id, status=Product.NORMAL).first()
+        return self._model_id_.model_id if self._model_id_ else 0
+
+    @property
     def sale_memo(self):
         if self.sale_product:
             return self.sale_product.memo
