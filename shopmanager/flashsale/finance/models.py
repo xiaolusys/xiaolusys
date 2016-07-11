@@ -84,6 +84,40 @@ class Bill(BaseModel):
         bill.relate_to(relations)
         return bill
 
+    @staticmethod
+    def check_merge(bills):
+        if Bill.DELETE in {b.type for b in bills}:
+            raise Exception(u"不能合并已经作废的账单")
+        supplier_ids = {b.supplier_id for b in bills}
+        if len(supplier_ids) > 1:
+            raise Exception(u"不能合并不同供应商的账单")
+        if Bill.STATUS_COMPLETED in {b.status for b in bills}:
+            raise Exception(u"不能合并已经完成的账单")
+        pay_method_set = {b.pay_method for b in bills}
+        if Bill.SELF_PAY in pay_method_set or Bill.ALI_PAY in pay_method_set:
+            raise Exception(u"自付和代付不能合单")
+
+    @staticmethod
+    def merge(bills, creater):
+        plan_amount = sum([b.plan_amount*b.type for b in bills])
+        type_ = plan_amount / abs(plan_amount) if plan_amount else 0
+        status_set = {b.status for b in bills}
+        if Bill.STATUS_PENDING in status_set or Bill.STATUS_DELAY in status_set:
+            status = Bill.STATUS_PENDING
+        else:
+            status = Bill.STATUS_DEALED
+        merged_bill = Bill(
+            type=type_,
+            pay_method=Bill.TRANSFER_PAY,
+            plan_amount=abs(plan_amount),
+            note='\r\n'.join([b.note for b in bills]),
+            supplier_id=bills[0].supplier_id,
+            attachment=bills[0].attachment,
+            creater=creater,
+            status=status
+        )
+        merged_bill.save()
+
     def merge_to(self, bill):
         for bill_relation in self.billrelation_set.all():
             BillRelation.objects.get_or_create(
@@ -92,6 +126,23 @@ class Bill(BaseModel):
                 object_id=bill_relation.object_id,
                 type=bill_relation.type
             )
+        self.type = Bill.DELETE
+        self.save()
+
+    def split(self, amount):
+        new_b = Bill()
+        all_attrs = [i.column for i in Bill._meta.fields]
+        for attr in all_attrs:
+            val = getattr(self, attr)
+            setattr(new_b, attr, val)
+        new_b.id = None
+        new_b.amount = amount
+        new_b.note += u"自账单%d拆分而得" % (self.id,)
+        new_b.save()
+        self.note += u"账单原额%d,拆分得到新账单%d" % (new_b.amount ,new_b.id)
+        self.amount -= amount
+        self.save()
+        # self.billrelation_set.update()
 
     def relate_to(self, relations, lack_dict={}):
         from flashsale.dinghuo.models import ReturnGoods, OrderList
@@ -125,7 +176,6 @@ class Bill(BaseModel):
 
     def is_finished(self):
         return self.status == Bill.STATUS_COMPLETED
-
 
 
 class BillRelation(BaseModel):
