@@ -592,7 +592,7 @@ def returngoods_add_sku(request):
     # if supplier.id != rg.supplier_id:
     #     raise Exception(u'只能添加此供应商的SKU')
     rg = ReturnGoods.objects.get(id=rg_id)
-    rg.add_sku(sku_id, num, inferior)
+    rg.add_sku(sku_id, num, inferior=inferior)
     return {'code': 0}
 
 

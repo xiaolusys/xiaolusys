@@ -1036,6 +1036,7 @@ def task_mama_postphone_renew_time_by_active():
         if ActiveValue.objects.filter(mama_id=mama.id, date_field=yesterday).exists():
             if isinstance(mama.renew_time, datetime.datetime):
                 mama.renew_time = mama.renew_time + datetime.timedelta(days=1)
+                mama.save(update_fields=['renew_time'])
 
 
 @task()
