@@ -62,7 +62,8 @@ class BillViewSet(viewsets.GenericViewSet):
         return Response(result, template_name=u"finance/bill_detail.html")
 
     @detail_route(methods=['post'])
-    def confirm_bill(self, request, pk):
+
+    def confirm_bill(self,request, pk):
         form = forms.ConfirmBillForm(request.POST)
         if not form.is_valid():
             return Response({"res": False, "data": [], "desc": "参数错误"})
