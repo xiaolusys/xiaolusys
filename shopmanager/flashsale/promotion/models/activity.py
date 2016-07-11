@@ -6,6 +6,8 @@ from django.db import models
 from core.fields import JSONCharMyField
 from core.models import BaseModel
 
+from shopback.items.models import Product
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -20,18 +22,19 @@ class ActivityEntry(BaseModel):
     ACT_TOPIC   = 'topic'
 
     ACT_CHOICES = (
-        (ACT_WEBVIEW, u'商城活动页'),
-        (ACT_BRAND, u'商城Top10'),
+        (ACT_WEBVIEW, u'普通活动'),
+        (ACT_TOP, u'商城Top10'),
         (ACT_TOPIC, u'专题活动'),
-        (ACT_BRAND, u'品牌活动'),
+        (ACT_BRAND, u'品牌专场'),
         (ACT_COUPON, u'优惠券活动'),
         (ACT_MAMA, u'妈妈活动'),
     )
 
-    title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'活动名称')
+    title = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'活动/品牌名称')
 
     act_desc = models.TextField(max_length=512, blank=True, verbose_name=u'活动描述')
     act_img = models.CharField(max_length=256, blank=True, verbose_name=u'活动入口图片')
+    act_logo = models.CharField(max_length=256, blank=True, verbose_name=u'品牌LOGO')
     act_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动链接')
     mask_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动弹窗提示图')
     act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议链接')
@@ -62,7 +65,8 @@ class ActivityEntry(BaseModel):
     def get_default_activity(cls):
         acts = cls.objects.filter(is_active=True,
                                   end_time__gte=datetime.datetime.now()) \
-            .exclude(act_type=ActivityEntry.ACT_MAMA).order_by('-order_val', '-modified')
+            .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND))\
+            .order_by('-order_val', '-modified')
         if acts.exists():
             return acts[0]
         return None
@@ -73,19 +77,14 @@ class ActivityEntry(BaseModel):
         acts = cls.objects.filter(is_active=True,
                                   end_time__gte=active_time) \
             .order_by('-order_val', '-modified')
-        if acts.exists():
-            return acts
-        return cls.objects.none()
+        return acts
 
     @classmethod
     def get_landing_effect_activitys(cls, active_time):
         """ 根据时间获取活动列表app首页展示 """
-        acts = cls.objects.filter(is_active=True,
-                                  end_time__gte=active_time) \
-            .exclude(act_type=ActivityEntry.ACT_MAMA).order_by('-order_val', '-modified')
-        if acts.exists():
-            return acts
-        return cls.objects.none()
+        acts = cls.get_effect_activitys(active_time)\
+                .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND))
+        return acts
 
     def get_shareparams(self, **params):
         return {
@@ -132,7 +131,7 @@ class ActivityProduct(BaseModel):
                         (FOOTER_PIC_TYPE, u'底部分享图片'),)
 
     id = models.AutoField(primary_key=True)
-    activity = models.ForeignKey(ActivityEntry, related_name='brand_products', verbose_name=u'所属专题')
+    activity = models.ForeignKey(ActivityEntry, related_name='activity_products', verbose_name=u'所属专题')
 
     product_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品ID')
     model_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u'商品款式ID')
@@ -153,21 +152,30 @@ class ActivityProduct(BaseModel):
         verbose_name_plural = u'特卖/专题商品列表'
 
     def __unicode__(self):
-        return u'<%s,%s>' % (self.id, self.brand_name)
+        return u'<%s,%s>' % (self.id, self.activity)
 
-    # @property
-    # def prodouct(self):
-    #     if not hasattr(self, '_product_'):
-    #         self._product_ = Product.objects.get(id=self.product_id)
-    #     return self._product_
-    #
-    # def product_lowest_price(self):
-    #     """ 商品最低价 """
-    #     return self.prodouct.product_lowest_price()
-    #
-    # def product_std_sale_price(self):
-    #     """ 商品吊牌价 """
-    #     return self.prodouct.std_sale_price
+    @property
+    def prodouct(self):
+        if not hasattr(self, '_product_'):
+            if self.product_id > 0:
+                self._product_ = Product.objects.get(id=self.product_id)
+            elif self.model_id > 0:
+                self._product_ = Product.objects.filter(model_id=self.model_id).first()
+            else:
+                self._product_ = None
+        return self._product_
+
+    def product_lowest_price(self):
+        """ 商品最低价 """
+        if self.prodouct:
+            return self.prodouct.product_lowest_price()
+        return 0
+
+    def product_std_sale_price(self):
+        """ 商品吊牌价 """
+        if self.prodouct:
+            return self.prodouct.std_sale_price
+        return 0
 
     def update_start_and_end_time(self, start_time, end_time):
         """ 更新开始结束时间 """

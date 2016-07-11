@@ -597,7 +597,6 @@ class GoodShelfAdmin(admin.ModelAdmin):
     preview_link.allow_tags = True
     preview_link.short_description = u"预览"
 
-
 admin.site.register(GoodShelf, GoodShelfAdmin)
 
 
@@ -616,7 +615,7 @@ class BrandEntryAdmin(admin.ModelAdmin):
     }
 
 
-admin.site.register(BrandEntry, BrandEntryAdmin)
+# admin.site.register(BrandEntry, BrandEntryAdmin)
 
 
 class BrandProductAdmin(ApproxAdmin):
@@ -632,7 +631,7 @@ class BrandProductAdmin(ApproxAdmin):
     }
 
 
-admin.site.register(BrandProduct, BrandProductAdmin)
+# admin.site.register(BrandProduct, BrandProductAdmin)
 
 
 class IntegralAdmin(admin.ModelAdmin):

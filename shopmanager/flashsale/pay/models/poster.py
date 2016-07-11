@@ -84,6 +84,4 @@ class GoodShelf(PayBaseModel):
         now = datetime.datetime.now()
         return ActivityEntry.get_landing_effect_activitys(now)
 
-    def get_brands(self):
-        # return BrandEntry.get_brand()
-        return []
+

@@ -3,7 +3,7 @@
 from django.conf.urls import patterns, url, include
 from django.views.decorators.cache import cache_page
 
-from flashsale.promotion.views_promotion_goods import PromotionGoodsViewSet
+from flashsale.promotion.views_activity_goods import ActivityGoodsViewSet
 from . import views
 from . import views_activity
 from flashsale.pay.decorators import weixin_xlmm_auth
@@ -11,7 +11,7 @@ from flashsale.pay import constants
 from rest_framework import routers
 
 router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'goods', PromotionGoodsViewSet)
+router.register(r'goods', ActivityGoodsViewSet)
 router_urls = router.urls
 router_urls += ([])
 
@@ -50,4 +50,4 @@ urlpatterns = patterns('',
     url(r'^stats/(?P<event_id>\d+)/', views_activity.StatsView.as_view(), name="stats_activity"),
     url(r'^get_award/(?P<event_id>\d+)/', views_activity.GetAwardView.as_view(), name="get_award"),
     url(r'^promotion/', include(router_urls, namespace='promotion')),
-                       )
+)

@@ -219,6 +219,11 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
             'created': datetime.datetime.now(),
         })
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer_data = serializers.ActivityEntrySerializer(instance).data
+        return Response(serializer_data)
+
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """

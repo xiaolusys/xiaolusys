@@ -1,6 +1,5 @@
 # coding=utf-8
-import urlparse
-from django.conf import settings
+import datetime
 
 from flashsale.pay.models import BrandEntry, BrandProduct
 from shopback.items.models import Product, ProductSku, ProductCategory
@@ -17,7 +16,7 @@ from flashsale.pay.models import (
     CustomShare,
     UserBudget
 )
-from flashsale.promotion.models import ActivityEntry
+from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.xiaolumm.models import XiaoluMama
@@ -122,13 +121,28 @@ class ModelProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
 
 
+class ActivityProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ActivityProduct
+        fields = ('id', 'product_id', 'model_id', 'product_name', 'product_img', 'product_lowest_price', 'product_std_sale_price')
+
 class ActivityEntrySerializer(serializers.ModelSerializer):
+
+    products = ActivityProductSerializer(source='activity_products', many=True)
     extras = JSONParseField(read_only=True, required=False)
+    class Meta:
+        model = ActivityEntry
+        fields = ('id', 'title', 'login_required', 'act_desc', 'act_img', 'act_logo', 'mask_link', 'act_link',
+                  'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras',
+                  'total_member_num', 'friend_member_num', 'is_active', 'products')
+
+class SimpleActivityEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActivityEntry
-        fields = ('id', 'title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link',
-                  'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras',
+        fields = ('id', 'title', 'login_required', 'act_desc', 'act_img', 'act_logo', 'mask_link', 'act_link',
+                  'act_type', 'act_applink', 'start_time', 'end_time', 'order_val',
                   'total_member_num', 'friend_member_num', 'is_active')
 
 
@@ -234,12 +248,25 @@ class PortalSerializer(serializers.ModelSerializer):
     """ 商城入口初始加载数据 """
     posters = JSONParseField(source='get_posters', read_only=True)
     categorys = JSONParseField(source='get_cat_imgs', read_only=True)
-    activitys  = ActivityEntrySerializer(source='get_current_activitys', read_only=True, many=True)
-    promotion_brands   = BrandEntrySerializer(source='get_brands', read_only=True, many=True)
+    activitys  = serializers.SerializerMethodField(read_only=True)
+    promotion_brands   = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = GoodShelf
         fields = ('id', 'posters', 'categorys', 'activitys', 'promotion_brands' ,'active_time')
+
+    def get_activitys(self, obj):
+        now_time = datetime.datetime.now()
+        activitys = ActivityEntry.get_landing_effect_activitys(now_time)
+        brands_data = SimpleActivityEntrySerializer(activitys, many=True).data
+        return brands_data
+
+    def get_promotion_brands(self, obj):
+        now_time = datetime.datetime.now()
+        activitys = ActivityEntry.get_effect_activitys(now_time)\
+            .filter(act_type=ActivityEntry.ACT_BRAND)
+        brands_data = SimpleActivityEntrySerializer(activitys, many=True).data
+        return brands_data
 
 #####################################################################################
 
