@@ -319,7 +319,7 @@ class APPDownloadView(WeixinAuthMixin, View):
                     if not unionid:
                         # if we still dont have openid, we have to do oauth
                         redirect_url = self.get_snsuserinfo_redirct_url(request)
-                        logger.error("AppDownloadView|redirect_url: %s, absolute_uri:%s" %(redirect_url, request.build_absolute_uri()))
+                        logger.warn("AppDownloadView|redirect_url: %s, absolute_uri:%s" %(redirect_url, request.build_absolute_uri()))
                         return redirect(redirect_url)
                 # now we have userinfo
 
