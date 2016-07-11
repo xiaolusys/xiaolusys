@@ -18,17 +18,14 @@ def task_sync_shelf_time_from_manager():
     """
     now = datetime.datetime.now()
     next_time = now + datetime.timedelta(days=2)  # 同步两天内　　排期管理记录
-    managers = SaleProductManage.objects.filter(
-        lock_status=True,
-        upshelf_time__gte=now,  # 上架时间大于现在时间（未来）
-        upshelf_time__lte=next_time,  # 上架时间小于两天后
-        upshelf_time__isnull=False,
-        offshelf_time__isnull=False
-    ).exclude(upshelf_time__isnull=True,
-              offshelf_time__isnull=True).order_by('upshelf_time')  # 按照时间排序（方便后面　取　最近的排期时间）
+    managers = SaleProductManage.objects.filter(lock_status=True,
+                                                upshelf_time__gte=now,  # 上架时间大于现在时间（未来）
+                                                upshelf_time__lte=next_time,  # 上架时间小于两天后
+                                                upshelf_time__isnull=False,
+                                                offshelf_time__isnull=False).order_by('upshelf_time')
+    # 按照时间排序（方便后面　取　最近的排期时间）
 
     for manager in managers:
-        print "manager is ", manager.id
         logger.warn(u'task_sync_shelf_time_from_manager manage id is %s , up %s - off %s' % (
             manager.id, manager.upshelf_time, manager.offshelf_time))
 
