@@ -20,12 +20,15 @@ def task_update_tpl_released_coupon_nums(template):
     template.has_released_count = count
     template.save(update_fields=['has_released_count'])
     from django_statsd.clients import statsd
+    from django.utils.timezone import now, timedelta
+    start = now().date()
+    end = start + timedelta(days=1)
     if template.id == 55:
-        statsd.incr('coupon.new_customer_released')
-        statsd.timing('coupon.new_customer_released_count', count)
+        statsd.timing('coupon.new_customer_released_count',
+                      UserCoupon.objects.filter(template_id=template.id, start_use_time__range=(start, end)).count())
     elif template.id == 67:
-        statsd.incr('coupon.share_released')
-        statsd.timing('coupon.share_released_count', count)
+        statsd.timing('coupon.share_released_count',
+                      UserCoupon.objects.filter(template_id=template.id, start_use_time__range=(start, end)).count())
     return
 
 
@@ -68,12 +71,16 @@ def task_update_coupon_use_count(coupon, trade_tid):
         share.save(update_fields=['has_used_count'])
 
     from django_statsd.clients import statsd
+    from django.utils.timezone import now, timedelta
+    start = now().date()
+    end = start + timedelta(days=1)
+
     if coupon.template_id == 55:
-        statsd.incr('coupon.new_customer_used')
-        statsd.timing('coupon.new_customer_used_count', tpl_used_count)
+        statsd.timing('coupon.new_customer_used_count', coupons.filter(template_id=tpl.id, status=UserCoupon.USED,
+                                                                       finished_time__range=(start, end)).count())
     elif coupon.template_id == 67:
-        statsd.incr('coupon.share_used')
-        statsd.timing('coupon.share_used_count', tpl_used_count)
+        statsd.timing('coupon.share_used_count', coupons.filter(template_id=tpl.id, status=UserCoupon.USED,
+                                                                finished_time__range=(start, end)).count())
     return
 
 
