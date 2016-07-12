@@ -161,16 +161,6 @@
                         <button type="button" data-toggle="modal"id="change_sku_{{sale_order.id}}"
                                 class="change123">换货
                         </button>
-                        <label>     </label>
-                        <label>     </label>
-                        <label>     </label>
-                        <button type="button" data-toggle="modal"id="resent_sku_{{sale_order.id}}"
-                                class="resent">重新发货
-                        </button>
-                        </button>
-                        <label>     </label>
-                        <label>     </label>
-                        <label>     </label>
                         <button type="button" data-toggle="modal"id="tell_sku_{{sale_order.id}}"
                                 class="tellcstm">短信通知客户
                         </button>
@@ -181,6 +171,11 @@
                         {%endif%}
                         {%if sale_order.status == 2 and sale_order.refund_status == 0%}
                         <button class="refund" id="refund_{{sale_order.id}}_{{sale_order.payment}}">退款</button>
+                        {%endif%}
+                        {%if sale_order.status == 3 and sale_order.refund_status == 0%}
+                        <button type="button" data-toggle="modal"id="resent_sku_{{sale_order.id}}"
+                                class="resent">重新发货
+                        </button>
                         {%endif%}
                     </td>
                 </tr>
