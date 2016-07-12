@@ -376,6 +376,7 @@ def task_collect_mobile_download_record(instance):
                                         headimgurl=thumbnail,
                                         nick=nick,
                                         mobile=instance.mobile,
+                                        uni_key=uni_key,
                                         inner_ufrom=instance.ufrom)
         appdownload.save()
     else:
@@ -406,6 +407,7 @@ def task_collect_union_download_record(instance):
                                         headimgurl=thumbnail,
                                         nick=nick,
                                         mobile=mobile,
+                                        uni_key=uni_key,
                                         inner_ufrom=instance.ufrom)
         appdownload.save()
     else:
