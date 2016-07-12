@@ -626,7 +626,7 @@ def task_saleorder_update_package_sku_item(sale_order):
         ware_by = ProductSku.objects.get(id=sale_order.sku_id).ware_by
         sku_item = PackageSkuItem(sale_order_id=sale_order.id, ware_by=ware_by)
         attrs = ['num', 'oid', 'package_order_id', 'title', 'price', 'sku_id',
-                 'num', 'total_fee', 'payment', 'discount_fee', 'refund_status',
+                 'total_fee', 'payment', 'discount_fee', 'refund_status',
                  'pay_time', 'status', 'pic_path']
         for attr in attrs:
             if hasattr(sale_order, attr):
@@ -662,6 +662,8 @@ def task_saleorder_update_package_sku_item(sale_order):
 
     if sku_item.assign_status != assign_status:
         sku_item.assign_status = assign_status
+        if not sku_item.receiver_mobile:
+            sku_item.receiver_mobile = sale_order.sale_trade.receiver_mobile
         sku_item.set_assign_status_time()
         sku_item.save()
 
