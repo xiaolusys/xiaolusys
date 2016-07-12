@@ -137,7 +137,7 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SaleProductManage
-        fields = ('id', 'schedule_type', 'sale_time', 'sale_suppliers', 'product_num',
+        fields = ('id', 'schedule_type', 'sale_time', 'sale_suppliers', 'product_num', 'upshelf_time', 'offshelf_time',
                   'responsible_person_name', 'responsible_people_id', 'lock_status', 'created', 'modified')
 
 
