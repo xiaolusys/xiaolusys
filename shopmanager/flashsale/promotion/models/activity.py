@@ -158,9 +158,9 @@ class ActivityProduct(BaseModel):
     def product(self):
         if not hasattr(self, '_product_'):
             if self.model_id > 0:
-                self._product_ = Product.objects.get(id=self.product_id)
-            elif self.product_id > 0:
                 self._product_ = Product.objects.filter(model_id=self.model_id).first()
+            elif self.product_id > 0:
+                self._product_ = Product.objects.get(id=self.product_id)
             else:
                 self._product_ = None
         return self._product_
