@@ -487,6 +487,12 @@ class SaleProductManage(models.Model):
     def __unicode__(self):
         return '<%s,%s>' % (self.sale_time, self.responsible_person_name)
 
+    def save(self, *args, **kwargs):
+        detail_count = self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL).count()
+        if self.product_num != detail_count:
+            self.product_num = detail_count
+        return super(SaleProductManage, self).save(*args, **kwargs)
+
 
 class SaleProductManageDetail(models.Model):
     COMPLETE = u'complete'
@@ -626,6 +632,20 @@ post_save.connect(sync_product_detail_order_weight, SaleProductManageDetail,
                   dispatch_uid='post_save_sync_product_detail_order_weight')
 
 post_save.connect(update_saleproduct_supplier, SaleProductManageDetail)
+
+
+def sync_product_detail_count(sender, instance, raw, *args, **kwargs):
+    """ 同步：　Productdetail　的　order_weight　字段
+    product_detail
+    """
+    manager = instance.schedule_manage
+    detail_count = manager.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL)
+    if manager.product_num != detail_count:
+        manager.product_num = detail_count
+        manager.save(update_fields=['product_num'])
+
+post_save.connect(sync_product_detail_count, SaleProductManageDetail,
+                  dispatch_uid='post_save_sync_product_detail_count')
 
 
 class SaleProductSku(models.Model):
