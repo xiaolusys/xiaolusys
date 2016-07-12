@@ -55,7 +55,7 @@ class ProductSkuStats(models.Model):
             return stat
         else:
             from shopback.items.models import ProductSku
-            sku = ProductSku.objects.get(sku=sku_id)
+            sku = ProductSku.objects.get(id=sku_id)
             stat = ProductSkuStats(sku_id=sku.id, product_id=sku.product_id)
             stat.save()
             return stat
