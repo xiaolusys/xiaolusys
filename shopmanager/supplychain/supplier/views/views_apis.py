@@ -21,6 +21,8 @@ from rest_framework import exceptions
 from rest_framework import filters
 from django_filters import Filter
 from django_filters.fields import Lookup
+from core.options import get_systemoa_user, log_action
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 
 from supplychain.supplier.models import (
     SaleSupplier,
@@ -138,8 +140,8 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleProductManage.objects.all()
     serializer_class = serializers.SimpleSaleProductManageSerializer
-    # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    # permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = SaleProductManageFilter
@@ -200,6 +202,16 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        log_action(request.user, instance, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
+        self.perform_update(serializer)
         return Response(serializer.data)
 
 
@@ -266,5 +278,6 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         instance = get_object_or_404(SaleProductManageDetail, id=pk)
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+        log_action(request.user, instance, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
         self.perform_update(serializer)
         return Response(serializer.data)
