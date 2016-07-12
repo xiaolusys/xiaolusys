@@ -253,10 +253,9 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                                   context_instance=RequestContext(request))
 
 
-from .models import AppDownloadRecord
-from shopapp.weixin import options
 from common.utils import valid_mobile
 from shopapp.weixin.models_base import WeixinUserInfo
+
 
 class APPDownloadView(WeixinAuthMixin, View):
     """ 下载页面 """
@@ -293,9 +292,6 @@ class APPDownloadView(WeixinAuthMixin, View):
         
         from flashsale.promotion.tasks_activity import task_create_appdownloadrecord_with_userinfo, \
             task_create_appdownloadrecord_with_mobile
-
-        # logger.warn("AppDownloadView|request_url: %s" % request.build_absolute_uri())
-
         if from_customer.isdigit():
             if self.is_from_weixin(request):
                 self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
@@ -341,23 +337,7 @@ class APPDownloadView(WeixinAuthMixin, View):
         if agent and "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
             url = self.QQ_YINYONGBAO_URL
             return redirect(url)
-
-        appreleases = AppRelease.objects.filter(status=AppRelease.VALID).order_by('-release_time')
-        android_download_link = constants.ANDROID_DOWNLOAD
-        qrcode_android_download = constants.ANDROID_DOWNLOAD_QRCODE
-        if appreleases.exists():  # 存在则使用最新版的
-            release = appreleases[0]
-            android_download_link = release.download_link
-            qrcode_android_download = release.qrcode_link
-        qrcode_ios_download = constants.APP_STORE_DOWNLOAD_QRCODE
-        ios_download_link = constants.APP_STORE_DOWNLOAD
-        return render_to_response(self.download_page,
-                                  {"from_customer": from_customer,
-                                   "qrcode_android_download": qrcode_android_download,
-                                   "android_download_link": android_download_link,
-                                   "qrcode_ios_download": qrcode_ios_download,
-                                   "ios_download_link": ios_download_link},
-                                  context_instance=RequestContext(request))
+        return redirect('/static/promotion/html/download.html')
 
 
 from .models import XLInviteCount
