@@ -3,13 +3,17 @@ import datetime
 from django.shortcuts import render, redirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponse
 from rest_framework import permissions, authentication, renderers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import constants
 
+from flashsale.apprelease import serializers
 from .models import AppRelease
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class addNewReleaseView(APIView):
@@ -53,3 +57,15 @@ class addNewReleaseView(APIView):
         AppRelease.objects.create(download_link=download_link, qrcode_link=qrcode_link,
                                   version=version, release_time=release_time, memo=memo)
         return redirect(constants.RELESE_SUCCESS_PAGE)
+
+
+class AppReleaseView(APIView):
+    renderer_classes = (renderers.JSONRenderer, )
+
+    def get(self, request):
+        app = AppRelease.objects.filter(status=AppRelease.VALID).order_by('-release_time').first()
+        if not app:
+            logger.error(u'get_newest_app_release bug no app release found')
+        serializer = serializers.AppReleaseSerialize(app)
+
+        return Response(serializer.data)
