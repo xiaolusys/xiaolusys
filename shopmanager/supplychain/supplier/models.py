@@ -578,7 +578,7 @@ class SaleProductManageDetail(models.Model):
     def product_model_id(self):
         if not hasattr(self, '_model_id_'):
             from shopback.items.models import Product
-            self._model_id_ = Product.objects.filter(id=self.sale_product_id, status=Product.NORMAL).first()
+            self._model_id_ = Product.objects.filter(sale_product=self.sale_product_id, status=Product.NORMAL).first()
         return self._model_id_.model_id if self._model_id_ else 0
 
     @property
