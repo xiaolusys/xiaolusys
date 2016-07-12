@@ -384,7 +384,7 @@ def task_collect_mobile_download_record(instance):
         if appdownload.ufrom != instance.ufrom:
             appdownload.ufrom = instance.ufrom
             update_fields.append('ufrom')
-        appdownload.modified = datetime.datetime.now()
+        appdownload.modified = instance.modified
         update_fields.append('modified')
         appdownload.save(update_fields=update_fields)
 
@@ -397,16 +397,13 @@ def task_collect_union_download_record(instance):
     uni_key = '/'.join([str(instance.from_customer), str(instance.unionid)])
     appdownload = AppDownloadRecord.objects.filter(uni_key=uni_key).first()
     if not appdownload:
-        customer = Customer.objects.filter(unionid=instance.unionid, status=Customer.NORMAL).first()
-        unionid = customer.unionid if customer else ''
-        thumbnail = customer.thumbnail if customer else ''
-        nick = customer.nick if customer else ''
-        mobile = customer.mobile if customer else ''
+        unionid = instance.unionid
+        headimgurl = instance.headimgurl
+        nick = instance.nick
         appdownload = AppDownloadRecord(from_customer=instance.from_customer,
                                         unionid=unionid,
-                                        headimgurl=thumbnail,
+                                        headimgurl=headimgurl,
                                         nick=nick,
-                                        mobile=mobile,
                                         uni_key=uni_key,
                                         inner_ufrom=instance.ufrom)
         appdownload.save()
@@ -415,6 +412,6 @@ def task_collect_union_download_record(instance):
         if appdownload.ufrom != instance.ufrom:
             appdownload.ufrom = instance.ufrom
             update_fields.append('ufrom')
-        appdownload.modified = datetime.datetime.now()
+        appdownload.modified = instance.modified
         update_fields.append('modified')
         appdownload.save(update_fields=update_fields)
