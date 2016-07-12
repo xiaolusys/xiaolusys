@@ -68,7 +68,7 @@ class ComplainViewSet(viewsets.ModelViewSet):
         for f in fields:
             if f in content:
                 condition[f] = content.get(f)
-        queryset = Complain.objects.filter(user_id=request.user.id).filter(**condition)
+        queryset = Complain.objects.filter(user_id=request.user.id).filter(**condition).order_by('-id')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
