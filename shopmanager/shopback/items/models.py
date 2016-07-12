@@ -588,7 +588,7 @@ class Product(models.Model):
         return cls.objects.filter(
             upshelf_time__lte=now, offshelf_time__gt=now,
             status=cls.NORMAL,
-            is_verify=True,
+            # is_verify=True,
             shelf_status=cls.DOWN_SHELF,
             upshelf_time__isnull=False,
             offshelf_time__isnull=False)

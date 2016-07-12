@@ -29,9 +29,10 @@ def task_sync_shelf_time_from_manager():
         logger.warn(u'task_sync_shelf_time_from_manager manage id is %s , up %s - off %s' % (
             manager.id, manager.upshelf_time, manager.offshelf_time))
 
-        details = manager.manage_schedule.filter(material_status=SaleProductManageDetail.COMPLETE,  # 资料全部完成
-                                                 today_use_status=SaleProductManageDetail.NORMAL,  # 正常使用状态
-                                                 design_take_over=SaleProductManageDetail.TAKEOVER)  # 接管过的
+        details = manager.manage_schedule.filter(
+            # material_status=SaleProductManageDetail.COMPLETE,  # 资料全部完成
+            today_use_status=SaleProductManageDetail.NORMAL,  # 正常使用状态
+            design_take_over=SaleProductManageDetail.TAKEOVER)  # 接管过的
 
         detail_sale_products = details.values('sale_product_id')
         systemoa = get_systemoa_user()
