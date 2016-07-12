@@ -919,7 +919,7 @@ post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_
 
 def saleorder_update_productskustats_waitingpay_num(sender, instance, *args, **kwargs):
     from flashsale.pay.tasks_stats import task_saleorder_update_productskustats_waitingpay_num
-    task_saleorder_update_productskustats_waitingpay_num.delay(instance.sku_id)
+    task_saleorder_update_productskustats_waitingpay_num(instance.sku_id)
 
 
 post_save.connect(saleorder_update_productskustats_waitingpay_num, sender=SaleOrder,
