@@ -26,6 +26,7 @@ from core.options import log_action, ADDITION, CHANGE
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 
 from shopback.items import constants, forms, local_cache
+from shopback.items.models_stats import ProductSkuStats
 
 
 class AddItemView(generics.ListCreateAPIView):
@@ -141,6 +142,7 @@ class AddItemView(generics.ListCreateAPIView):
                                      std_sale_price=price, agent_price=agentprice,
                                      properties_name=sku, properties_alias=sku, barcode=barcode)
                 one_sku.save()
+                ProductSkuStats.get_by_sku(one_sku.id)
                 log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
                 count += 1
         # 发送　添加供应商总选款的字段　的信号
