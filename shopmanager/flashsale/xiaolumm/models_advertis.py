@@ -4,6 +4,7 @@
 """
 import datetime
 from django.db import models
+from core.models import BaseModel
 
 from core.fields import JSONCharMyField
 from django.db.models.signals import post_save
@@ -42,7 +43,7 @@ class XlmmAdvertis(models.Model):
 class TweetAdvertorial(models.Model):
     title = models.CharField(max_length=128, db_index=True, verbose_name=u'推文标题')
     content = models.TextField(max_length=6400, verbose_name=u'推文文字内容')
-    pic_arry = JSONCharMyField(max_length=6400, default= {}, null=True, blank=True, verbose_name=u'推文图片')
+    pic_arry = JSONCharMyField(max_length=6400, default={}, null=True, blank=True, verbose_name=u'推文图片')
     release_date = models.DateField(blank=True, null=True, verbose_name=u"投放日期")
 
     class Meta:
@@ -76,7 +77,7 @@ class NinePicAdver(models.Model):
     title = models.CharField(max_length=512, db_index=True, verbose_name=u'标题')
     description = models.TextField(max_length=1024, blank=True, null=True, verbose_name=u'文案描述')
     cate_gory = models.IntegerField(choices=CATEGORY_CHOICE, default=Nine_PIC, verbose_name=u"类型")
-    pic_arry = JSONCharMyField(max_length=2048, default= {}, blank=True, null=True, verbose_name=u'图片链接')
+    pic_arry = JSONCharMyField(max_length=2048, default={}, blank=True, null=True, verbose_name=u'图片链接')
     start_time = models.DateTimeField(null=True, blank=True, verbose_name=u'开始时间')
     turns_num = models.IntegerField(verbose_name=u'轮数(第几轮)')
     is_pushed = models.BooleanField(default=False, verbose_name=u'是否已经推送')
@@ -114,3 +115,17 @@ def gen_emoji(sender, instance, created, **kwargs):
 
 post_save.connect(gen_emoji,
                   sender=NinePicAdver, dispatch_uid='post_save_ninpicadver_gen_emoji')
+
+
+class MamaVebViewConf(BaseModel):
+    version = models.CharField(max_length=32, db_index=True, verbose_name=u'版本号')
+    is_valid = models.BooleanField(db_index=True, default=False, verbose_name=u'是否有效')
+    extra = JSONCharMyField(max_length=2048, default={}, blank=True, null=True, verbose_name=u'配置内容')
+
+    class Meta:
+        db_table = 'flashsale_xlmm_webview_config'
+        app_label = 'xiaolumm'
+        verbose_name = u'客户端妈妈页面webview配置表'
+        verbose_name_plural = u'客户端妈妈页面webview配置列表'
+
+

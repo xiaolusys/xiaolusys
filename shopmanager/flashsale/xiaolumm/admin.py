@@ -26,6 +26,7 @@ from flashsale.clickrebeta.models import StatisticsShoppingByDay
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from .filters import UserNameFilter
+from models_advertis import MamaVebViewConf
 
 
 class XiaoluMamaAdmin(ApproxAdmin):
@@ -578,3 +579,15 @@ class PotentialMamaAdmin(admin.ModelAdmin):
 
 
 admin.site.register(PotentialMama, PotentialMamaAdmin)
+
+
+class MamaVebViewConfAdmin(admin.ModelAdmin):
+    list_display = ("id", 'version', 'is_valid')
+
+    list_filter = ("is_valid",
+                   'created',
+                   'modified')
+    search_fields = ("version", )
+
+
+admin.site.register(MamaVebViewConf, MamaVebViewConfAdmin)

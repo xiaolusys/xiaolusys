@@ -22,6 +22,7 @@ from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
 from . import constants
+from flashsale.xiaolumm.models_advertis import MamaVebViewConf
 
 
 class RegisterSerializer(serializers.HyperlinkedModelSerializer):
@@ -694,6 +695,14 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
     class Meta:
         model = NinePicAdver
         fields = ('id', "title", "start_time", "turns_num", "pic_arry", 'could_share', 'description')
+
+
+class MamaVebViewConfSerialize(serializers.ModelSerializer):
+    extra = JSONParseField()
+
+    class Meta:
+        model = MamaVebViewConf
+        fields = ('id', 'version', "is_valid", "extra", "created", "modified")
 
 
 from flashsale.pay.models import CustomerShops, CuShopPros

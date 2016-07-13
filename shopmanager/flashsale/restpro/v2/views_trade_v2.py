@@ -57,7 +57,7 @@ def is_from_weixin(request):
     return False
 
 def get_channel_list(request):
-    content = request.data
+    content = request.REQUEST
     is_in_weixin = is_from_weixin(request)
     is_in_wap = content.get('device', 'wap') == 'wap'
     channel_list = []
