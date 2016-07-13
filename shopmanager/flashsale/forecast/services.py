@@ -147,12 +147,13 @@ def get_bills_list(purchase_orderids):
                                               content_type=orderlist_contenttype).select_related('bill')
     bill_list = []
     for br in bill_relates:
-        br_dict = model_to_dict(br.bill)
+        bill = br.bill
+        br_dict = model_to_dict(bill)
         br_dict['out_amount'] = 0
         br_dict['in_amount']  = 0
-        br_dict['type_name'] = br.get_type_display()
-        br_dict['status_name'] = br.get_status_display()
-        br_dict['pay_method_name'] = br.get_pay_method_display()
+        br_dict['type_name'] = bill.get_type_display()
+        br_dict['status_name'] = bill.get_status_display()
+        br_dict['pay_method_name'] = bill.get_pay_method_display()
         if br_dict['type'] == Bill.PAY:
             br_dict['out_amount'] = br_dict['plan_amount']
         elif br_dict['type'] == Bill.RECEIVE:
