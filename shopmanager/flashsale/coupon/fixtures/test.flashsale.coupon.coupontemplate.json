@@ -256,5 +256,91 @@
   },
   "model": "coupon.coupontemplate",
   "pk": 6
-}
+},
+  {
+  "fields": {
+    "status": 1,
+    "release_start_time": "2016-05-05T20:16:04",
+    "release_end_time": "2030-05-25T20:16:05",
+    "description": "test \u6d3b\u52a8\u5206\u4eab",
+    "coupon_type": 2,
+    "title": "test \u6d3b\u52a8\u5206\u4eab",
+    "scope_type": 1,
+    "is_flextime": true,
+    "created": "2016-05-05T20:16:45",
+    "target_user": 1,
+    "modified": "2016-05-05T20:16:45",
+    "value": 10.0,
+    "prepare_release_num": 1000000,
+    "extras": {
+      "release": {
+        "use_after_release_days": 0,
+        "release_min_payment": 0,
+        "use_min_payment": 50,
+        "limit_after_release_days": 3,
+        "share_times_limit": 20
+      },
+      "scopes": {
+        "product_ids": "",
+        "category_ids": ""
+      },
+      "randoms": {
+        "max_val": 10,
+        "min_val": 3
+      },
+      "templates": {
+        "post_img": ""
+      }
+    },
+    "has_released_count": 0,
+    "is_random_val": true,
+    "use_deadline": "2030-05-31T20:16:16",
+    "has_used_count": 0
+  },
+  "model": "coupon.coupontemplate",
+  "pk": 86
+  },
+  {
+    "fields": {
+      "status": 1,
+      "release_start_time": "2016-05-05T20:16:04",
+      "release_end_time": "2030-05-25T20:16:05",
+      "description": "test \u6d3b\u52a8\u5206\u4eab",
+      "coupon_type": 2,
+      "title": "test \u6d3b\u52a8\u5206\u4eab",
+      "scope_type": 1,
+      "is_flextime": true,
+      "created": "2016-05-05T20:16:45",
+      "target_user": 1,
+      "modified": "2016-05-05T20:16:45",
+      "value": 10.0,
+      "prepare_release_num": 1000000,
+      "extras": {
+        "release": {
+          "use_after_release_days": 0,
+          "release_min_payment": 0,
+          "use_min_payment": 0,
+          "limit_after_release_days": 3,
+          "share_times_limit": 20
+        },
+        "scopes": {
+          "product_ids": "",
+          "category_ids": ""
+        },
+        "randoms": {
+          "max_val": 10,
+          "min_val": 3
+        },
+        "templates": {
+          "post_img": ""
+        }
+      },
+      "has_released_count": 0,
+      "is_random_val": true,
+      "use_deadline": "2030-05-31T20:16:16",
+      "has_used_count": 0
+    },
+    "model": "coupon.coupontemplate",
+    "pk": 67
+  }
 ]
