@@ -12,6 +12,10 @@ from supplychain.supplier.models import SaleSupplier
 import logging
 logger = logging.getLogger(__name__)
 
+def gen_purchase_order_group_key(order_ids):
+    sorted_ids = [int(s) for s in set(order_ids)]
+    sorted_ids.sort()
+    return '-%s-'%('-'.join([str(s) for s in sorted_ids]))
 
 class OrderList(models.Model):
     # 订单状态
@@ -192,7 +196,8 @@ class OrderList(models.Model):
     purchase_total_num = models.IntegerField(default=0, verbose_name=u'订购总件数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
     is_postpay = models.BooleanField(default=False, verbose_name=u'后付')
-    purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'PurchaseOrderUnikey')
+    purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'订货单标识')
+    order_group_key = models.CharField(max_length=128, db_index=True, blank=True, verbose_name=u'订货单分组键')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderlist'
@@ -473,11 +478,15 @@ class OrderList(models.Model):
             elif change:
                 self.save()
 
+    @classmethod
+    def gen_group_key(cls, orderids):
+        return gen_purchase_order_group_key(orderids)
 
 
 def check_with_purchase_order(sender, instance, created, **kwargs):
-    if not created:
-        return
+    if not instance.order_group_key:
+        instance.order_group_key = '-%s-' % instance.id
+        instance.save(update_fields=['order_group_key'])
 
 
 post_save.connect(

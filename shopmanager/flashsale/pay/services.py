@@ -1,16 +1,16 @@
 # -*- coding:utf8 -*-
 import json
 import datetime
+
+from common.modelutils import update_model_fields, update_model_change_fields
 from .models import SaleTrade, SaleOrder, SaleRefund, FLASH_SELLER_ID
 from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
-from common.modelutils import update_model_fields, update_model_change_fields
 from shopapp.weixin.models import MIAOSHA_SELLER_ID
 from shopback.users.models import User
+
 import logging
-
-logger = logging.getLogger('celery.handler')
-
+logger = logging.getLogger(__name__)
 
 class FlashSaleService(LocalService):
     trade = None
@@ -185,3 +185,5 @@ class FlashSaleService(LocalService):
             self.trade.save()
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
+
+

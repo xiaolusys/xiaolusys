@@ -18,6 +18,9 @@ from .models import (
 class AggregateDataException(BaseException):
     pass
 
+def gen_order_group_key(order_ids):
+    from flashsale.dinghuo.models import OrderList
+    return OrderList.gen_group_key(order_ids)
 
 def get_purchaseorder_data(order_id):
 

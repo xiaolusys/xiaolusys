@@ -6,7 +6,7 @@ from shopback.orders.service import OrderService
 from shopback.fenxiao.service import PurchaseOrderService
 from shopapp.weixin.service import WxShopService
 from shopapp.jingdong.service import JDShopService
-from flashsale.pay.service import FlashSaleService
+from flashsale.pay.services import FlashSaleService
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 

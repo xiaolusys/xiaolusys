@@ -225,6 +225,7 @@ class RefundPopPageView(APIView):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
                 return Response({"res": "sys_error"})
+
         task_send_msg_for_refund.s(obj).delay()
         return Response({"res": True})
 

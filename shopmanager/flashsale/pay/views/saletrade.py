@@ -17,13 +17,13 @@ from rest_framework import filters
 
 from shopback.items.models import Product, ProductSku
 from flashsale.pay.models import SaleTrade, SaleOrder
-from flashsale.pay import serializes
+from flashsale.pay import serializers
 
 
 class SaleTradeManageAPIView(generics.ListCreateAPIView):
 
     queryset = SaleTrade.objects.all()
-    serializer_class = serializes.ProductSerializer
+    serializer_class = serializers.ProductSerializer
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
 

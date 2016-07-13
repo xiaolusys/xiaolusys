@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" rel="stylesheet"
-          type="text/css">
-    <link href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" type="text/css"/>
-    <link rel="stylesheet" type="text/css"
-          href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css"  href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" />
+    <link rel="stylesheet" type="text/css"  href="//cdn.bootcss.com/bootstrap-datepicker/1.6.1/css/bootstrap-datepicker.min.css" />
+    <link rel="stylesheet" type="text/css"  href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
     <title>采购管理界面</title>
     <style>
     * {
@@ -84,6 +82,12 @@
     .modal-lg{
         width: 1000px;
     }
+    #table-1 >tbody > tr.selected {
+        background-color: #777;
+    }
+    input[type=number]{
+        line-height: 30px;
+    }
     </style>
 </head>
 <body>
@@ -146,10 +150,6 @@
             <div class="modal-body">
 
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default " data-dismiss="modal">取消</button>
-                <button type="submit" class="btn btn-primary">确认关闭订货单</button>
-            </div>
         </div>
     </div>
 </div>
@@ -158,7 +158,9 @@
 <script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
 <script>
 $(function(){
-  $('[data-toggle="popover"]').popover();
+  $('[data-toggle="popover"]').popover({
+     //trigger: 'hover',
+  });
   $('a').click(function(){
      $(this).addClass('clicked');
   });

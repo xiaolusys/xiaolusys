@@ -18,13 +18,14 @@ SMS_NOTIFY_BIRTH = 'birth'  # 生日祝福
 SMS_NOTIFY_VERIFY_CODE = 'code'  # 验证码
 SMS_NOTIFY_GOODS_LATER = 'later_send'  # 五天未发货
 SMS_NOTIFY_GOODS_LACK = 'goods_lack'  # 缺货通知
+SMS_NOTIFY_LACK_REFUND = 'lackrefund' #缺货退款通知
 
 SMS_RECORD_STATUS = (
-    (pcfg.SMS_CREATED, '初始创建'),
-    (pcfg.SMS_COMMIT, '任务提交'),
-    (pcfg.SMS_COMPLETE, '任务完成'),
-    (pcfg.SMS_ERROR, '任务出错'),
-    (pcfg.SMS_CANCLE, '任务取消'),
+    (pcfg.SMS_CREATED, u'初始创建'),
+    (pcfg.SMS_COMMIT, u'任务提交'),
+    (pcfg.SMS_COMPLETE, u'任务完成'),
+    (pcfg.SMS_ERROR, u'任务出错'),
+    (pcfg.SMS_CANCLE, u'任务取消'),
 )
 
 
@@ -40,23 +41,24 @@ def choice_sms_notify_type():
         (SMS_NOTIFY_VERIFY_CODE, u'验证码'),
         (SMS_NOTIFY_GOODS_LATER, u'五天未发货'),
         (SMS_NOTIFY_GOODS_LACK, u'缺货通知'),
+        (SMS_NOTIFY_LACK_REFUND, u'缺货退款通知'),
     )
     return sms_notify_type
 
 
 class SMSPlatform(models.Model):
     """ 短信服务商 """
-    code = models.CharField(max_length=16, verbose_name='编码')
-    name = models.CharField(max_length=64, verbose_name='服务商名称')
+    code = models.CharField(max_length=16, verbose_name=u'编码')
+    name = models.CharField(max_length=64, verbose_name=u'服务商名称')
 
-    user_id = models.CharField(max_length=32, verbose_name='企业ID')
-    account = models.CharField(max_length=64, verbose_name='帐号')
-    password = models.CharField(max_length=64, verbose_name='密码')
+    user_id = models.CharField(max_length=32, verbose_name=u'企业ID')
+    account = models.CharField(max_length=64, verbose_name=u'帐号')
+    password = models.CharField(max_length=64, verbose_name=u'密码')
 
-    remainums = models.IntegerField(default=0, verbose_name='剩余条数')
-    sendnums = models.IntegerField(default=0, verbose_name='已发条数')
+    remainums = models.IntegerField(default=0, verbose_name=u'剩余条数')
+    sendnums = models.IntegerField(default=0, verbose_name=u'已发条数')
 
-    is_default = models.BooleanField(default=False, verbose_name='首选服务商')
+    is_default = models.BooleanField(default=False, verbose_name=u'首选服务商')
 
     class Meta:
         db_table = 'shop_smsmgr_smsplatform'
@@ -70,31 +72,30 @@ class SMSPlatform(models.Model):
 
 class SMSRecord(models.Model):
     """ 短信平台发送记录 """
+    platform = models.ForeignKey(SMSPlatform, null=True, default=None, related_name='sms_records', verbose_name=u'短信服务商')
 
-    platform = models.ForeignKey(SMSPlatform, null=True, default=None, related_name='sms_records', verbose_name='短信服务商')
+    task_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), verbose_name=u'类型')
 
-    task_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), verbose_name='类型')
-
-    task_id = models.CharField(null=True, blank=True, default='', max_length=128, verbose_name='服务商返回任务ID')
-    task_name = models.CharField(null=True, blank=True, default='', max_length=256, verbose_name='任务标题')
+    task_id = models.CharField(null=True, blank=True, default='', max_length=128, verbose_name=u'服务商返回任务ID')
+    task_name = models.CharField(null=True, blank=True, default='', max_length=256, verbose_name=u'任务标题')
     mobiles = models.TextField(null=True, blank=True, default='', verbose_name='发送号码')
-    content = models.CharField(null=True, blank=True, default='', max_length=1000, verbose_name='发送内容')
+    content = models.CharField(null=True, blank=True, default='', max_length=1000, verbose_name=u'发送内容')
 
-    sendtime = models.DateTimeField(null=True, blank=True, verbose_name='定时发送时间')
+    sendtime = models.DateTimeField(null=True, blank=True, verbose_name=u'定时发送时间')
     # finishtime = models.DateTimeField(null=True,blank=True,verbose_name='完成时间')
 
-    countnums = models.IntegerField(default=0, verbose_name='发送数量')
-    mobilenums = models.IntegerField(default=0, verbose_name='手机数量')
-    telephnums = models.IntegerField(default=0, verbose_name='固话数量')
-    succnums = models.IntegerField(default=0, verbose_name='成功数量')
+    countnums = models.IntegerField(default=0, verbose_name=u'发送数量')
+    mobilenums = models.IntegerField(default=0, verbose_name=u'手机数量')
+    telephnums = models.IntegerField(default=0, verbose_name=u'固话数量')
+    succnums = models.IntegerField(default=0, verbose_name=u'成功数量')
 
-    retmsg = models.CharField(max_length=512, blank=True, null=True, verbose_name='任务返回结果')
+    retmsg = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'任务返回结果')
 
-    created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name='创建时间')
-    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name='修改时间')
+    created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name=u'创建时间')
+    modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
 
-    memo = models.CharField(max_length=512, blank=True, null=True, verbose_name='备注说明')
-    status = models.IntegerField(default=pcfg.SMS_CREATED, choices=SMS_RECORD_STATUS, verbose_name='任务返回结果')
+    memo = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'备注说明')
+    status = models.IntegerField(default=pcfg.SMS_CREATED, choices=SMS_RECORD_STATUS, verbose_name=u'任务返回结果')
 
     class Meta:
         db_table = 'shop_smsmgr_smsrecord'
@@ -108,10 +109,9 @@ class SMSRecord(models.Model):
 
 class SMSActivity(models.Model):
     """ 活动短信模板 """
-
-    sms_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), verbose_name='类型')
-    text_tmpl = models.CharField(max_length=512, blank=True, null=True, verbose_name='内容')
-    status = models.BooleanField(default=True, verbose_name="使用")
+    sms_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), verbose_name=u'类型')
+    text_tmpl = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'内容')
+    status = models.BooleanField(default=True, verbose_name=u"使用")
 
     class Meta:
         db_table = 'shop_smsmgr_activity'

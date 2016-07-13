@@ -6,13 +6,14 @@
     </ul>
 </div>
 <div class="tab-content row" >
+    <input type="hidden" name="order_group_key" value="{{order_group_key}}">
     <div class="panel panel-default tab-pane active" id="panel-1" >
         <div class="panel-body">
             <table id="table-1" class="table table-striped" >
                 <thead>
                     <tr>
                         <th class="col-xs-1">图片</th>
-                        <th class="col-xs-2">商品编码</th>
+                        <th class="col-xs-1">商品编码</th>
                         <th class="col-xs-2">商品名称</th>
                         <th class="col-xs-1">采购</th>
                         <th class="col-xs-1">到货</th>
@@ -22,11 +23,12 @@
                         <th class="col-xs-1">次品</th>
                         <th class="col-xs-1">支付款</th>
                         <th class="col-xs-1">应退款</th>
+                        <th class="col-xs-1">选数</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for detail in aggregate_details %}
-                <tr>
+                <tr id="skuitem-{{detail.sku_id}}">
                     <td>
                         <div class="portfolio-box">
                         <img class="thumbnail" data-src="{{detail.product_img}}" style="margin-bottom:0px;"
@@ -43,12 +45,16 @@
                     <td class="{% if detail.inferior_num > 0 %}bg-primary{% endif %}">{{detail.inferior_num}}</td>
                     <td>{{detail.real_payment}}</td>
                     <td>{{detail.return_amount}}</td>
+                    <td><input type="number" max="{{detail.buy_num}}" min="0" data-product-id="{{detail.product_id}}"
+                               name="select-num" data-sku-id="{{detail.sku_id}}" data-init="{{detail.delta_num}}" size="4" value="0"/></td>
                 </tr>
                 {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3">汇总:</td>
+                        <td colspan="1"><label><input class="select-all" type="checkbox" style="margin-right:10px;"/>全选</label></td>
+                        <td colspan="1"><div class="lable">已选<span class="badge select-num">0</span>/<span class="total-num">{{aggregate_details|length}}</span>条</div></td>
+                        <td colspan="1">汇总:</td>
                         <td><input id="input-3" data-type="int" size="3"/></td>
                         <td><input id="input-4" data-type="int" size="3"/></td>
                         <td><input id="input-5" data-type="int" size="3"/></td>
@@ -56,22 +62,27 @@
                         <td><input id="input-7" data-type="int" size="3"/></td>
                         <td><input id="input-8" data-type="float" size="5"/></td>
                         <td><input id="input-9" data-type="float" size="5"/></td>
+                        <td><input id="input-10" data-type="number" size="4" value="0"/></td>
                     </tr>
                     <tr>
                         <th class="col-xs-1">图片</th>
-                        <th class="col-xs-2">商品编码</th>
+                        <th class="col-xs-1">商品编码</th>
                         <th class="col-xs-2">商品名称</th>
                         <th class="col-xs-1">采购</th>
                         <th class="col-xs-1">到货</th>
                         <th class="col-xs-1">未到</th>
                         <!-- 6 -->
-                        <th class="col-xs-1">多订</th>
+                        <th class="col-xs-1">多货</th>
                         <th class="col-xs-1">次品</th>
                         <th class="col-xs-1">支付款</th>
                         <th class="col-xs-1">应退款</th>
+                        <th class="col-xs-1">选数</th>
                     </tr>
                 </tfoot>
             </table>
+        </div>
+        <div class="panel-footer">
+            <button type="button" class="btn btn-primary btn-create-lackorder" >创建缺货单</button>
         </div>
     </div>
     <div class="panel panel-default tab-pane" id="panel-2">
@@ -134,66 +145,151 @@ function　calcIndexCell(index){
         var rowCell = bodyCellRows[i].cells[index];
         if (data_type == 'int'){
             calc_val += parseInt(rowCell.innerText);
-        }else{
+        }else if(data_type == 'float'){
             calc_val += parseFloat(rowCell.innerText);
+        }else if(data_type == 'number'){
+            calc_val += parseInt($(rowCell).find('input').val());
         }
     };
-    calc_val = data_type == 'int'?calc_val:calc_val.toFixed(2);
+    calc_val = data_type == 'float'?calc_val.toFixed(2):calc_val;
     $calcInputDown.val(calc_val);
 }
 
-var calcStatsData = function () {
-    for(var i=3; i<11; i++){
-        calcIndexCell(i);
-    };
+function selectRowTr($trEle){
+    var $input = $trEle.find('input');
+    if ($trEle.hasClass('selected')){
+        if ($input.val() == '0'){
+            $input.val($input.attr('data-init'));
+        }
+    }else{
+        $input.val(0);
+    }
 }
 
-$('[data-toggle="popover"]').popover();
-var $oTable = $('#panel-1 table').dataTable({
-    "scrollY": 600,
-    "responsive": true,
-    "bAutoWidth": true,
-    "scrollCollapse": true,
-    "paging": false,
-    "ordering": true,
-    "order": [[7, "desc"],[6,"desc"],[5,"desc"]] //次品,缺货,多发,错发
-});
+function updateRowSelectCount(){
+    var selectNum = $('#table-1 > tbody > tr.selected').length;
+    $('#panel-1 div.dataTables_scrollFoot span.select-num').html(selectNum);
+}
 
-$oTable.closest(".dataTables_wrapper").find(".dataTables_scrollHeadInner").css("width","100%");
-$oTable.closest(".dataTables_wrapper").find(".dataTables_scrollFootInner").css("width","100%");
-$oTable.closest(".dataTables_wrapper").find(".dataTable").css("width","100%");
-
-$('#panel-2 table').dataTable({
-    "paging":   false,
-    "ordering": true,
-    "info":     false,
-});
-
-calcStatsData();
-$("#table-1_length select").on('change',function(e){
-    calcStatsData();
-});
-//搜索时，重新计算
-$("#table-1_filter input").on('keyup',function(e){
-    calcStatsData();
-});
-//排序后重新计算
-$("#table-1 .sorting").on('click',function(e){
-    calcStatsData();
-});
-//分页时，重新计算
-$("#table-1_wrapper a").on('click',function(e){
-    calcStatsData();
-});
-
-$('.portfolio-box img', '#panel-1').popover({
-    html: true,
-    trigger: 'hover',
-    container: 'body',
-    content: function(){
-     return '<img src="'+ $(this).attr('data-src')
-        +'?imageMogr2/thumbnail/400/format/jpg/quality/90" width="100%">';
+$(function(){
+    var calcStatsData = function () {
+        for(var i=3; i< 11; i++){
+            calcIndexCell(i);
+        };
     }
-});
+    $('[data-toggle="popover"]').popover();
+    var $oTable = $('#table-1').dataTable({
+            "scrollY": 600,
+            "select": false,
+            "bAutoWidth": false,
+            "responsive": true,
+            "scrollCollapse": true,
+            "paging": false,
+            "ordering": true,
+            "info": false,
+            "order": [[7, "desc"],[6,"desc"],[5,"desc"]], //次品,缺货,多发,错发
+            "oLanguage": {
+			    "sSearch": "搜索"
+			}
+        })
+        .on( 'click', 'tbody > tr', function () {
+            var $trEle = $(this);
+            $trEle.toggleClass('selected');
+            selectRowTr($trEle);
+            calcStatsData();
+            updateRowSelectCount();
+        })
+        .on( 'click', 'tbody > tr > td > input', function (e) {
+            e.stopPropagation();
+        });
+    $('#panel-1').on('click', 'input[type=checkbox]', function (e) {
+            var tableRows = $('#table-1 > tbody > tr');
+            if ($(this).is(':checked')){
+                tableRows.addClass('selected');
+            }else{
+                tableRows.removeClass('selected');
+            }
+            $.each(tableRows, function(index, trEle){
+                selectRowTr($(trEle));
+            })
+            calcStatsData();
+            updateRowSelectCount();
+        });
 
+    $oTable.closest(".dataTables_wrapper").find(".dataTables_scrollHeadInner").css("width","100%");
+    $oTable.closest(".dataTables_wrapper").find(".dataTables_scrollFootInner").css("width","100%");
+    $oTable.closest(".dataTables_wrapper").find(".dataTable").css("width","100%");
+
+    calcStatsData();
+    $("#table-1_length select").on('change',function(e){
+        calcStatsData();
+    });
+    //搜索时，重新计算
+    $("#table-1_filter input").on('keyup',function(e){
+        calcStatsData();
+    });
+    //排序后重新计算
+    $("#table-1 .sorting").on('click',function(e){
+        calcStatsData();
+    });
+    //分页时，重新计算
+    $("#table-1_wrapper a").on('click',function(e){
+        calcStatsData();
+    });
+
+    $('.portfolio-box img', '#panel-1').popover({
+        html: true,
+        trigger: 'hover',
+        container: 'body',
+        content: function(){
+         return '<img src="'+ $(this).attr('data-src')
+            +'?imageMogr2/thumbnail/400/format/jpg/quality/90" width="100%">';
+        }
+    });
+
+    $('#panel-2 table').dataTable({
+        "paging":   false,
+        "ordering": true,
+        "info":     false,
+    });
+
+    $('.btn-create-lackorder').click(function(){
+        var $that = $(this);
+        $that.attr('disabled','true');
+        var $sInput,
+            orderObj,
+            i=0,
+            lackGoods = [],
+            retParam = {},
+            $selectInputs = $('#table-1 tbody > tr.selected').find('input');
+
+        for (i=0; i<$selectInputs.length; i++){
+            $sInput = $($selectInputs[i]);
+            orderObj = {
+                product_id: $sInput.attr('data-product-id'),
+                sku_id: $sInput.attr('data-sku-id'),
+                lack_num: $sInput.val(),
+            };
+            lackGoods.push(orderObj);
+        }
+        retParam.order_group_key = $('input[name=order_group_key]').val();
+        retParam.lack_goods = lackGoods;
+        console.log('debugn post:', retParam);
+        $.ajax({
+             type: "POST",
+             url: "/apis/dinghuo/v1/lackorder/multi_create",
+             data: JSON.stringify(retParam),
+             dataType: "json",
+             contentType: 'application/json',
+             success: function(resp){
+                $that.attr('disabled', null);
+                if (resp.code == 0){
+                    window.open(resp.redirect_url,'缺货单管理','fullscreen=0,scrollbars=0');
+                }else{
+                    alert('创建缺货单错误:'+resp.info);
+                }
+             },
+         });
+    });
+})
 </script>

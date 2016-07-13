@@ -11,7 +11,7 @@ from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
 from shopback.trades.models import SendLaterTrade
 from shopapp.smsmgr.models import SMSPlatform, SMSActivity, SMS_NOTIFY_POST, SMS_NOTIFY_VERIFY_CODE, \
-    SMS_NOTIFY_GOODS_LATER, SMS_NOTIFY_DELAY_POST
+    SMS_NOTIFY_GOODS_LATER, SMS_NOTIFY_DELAY_POST, SMS_NOTIFY_LACK_REFUND
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +138,77 @@ def task_notify_package_post(package_order):
     return
 
 
+def gen_lack_refund_sms_content(sale_order):
+    """
+    订货缺货退款短信通知内容
+    """
+    # 查找短信模板
+    sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_LACK_REFUND, status=True)
+        # 公主大人，小鹿子有事禀报：您订的{{title}}衣，因外贸厂热销，供货紧缺，耽搁了{{later_days}}天。
+        # 小鹿子现已责令{{logistics_company_name}}快递小哥快马加鞭送货。因此事造成的延误，恳请公主大人原谅！【小鹿美美】
+    text_tmpls = [tpl.text_tmpl for tpl in sms_tpls]
+    if not text_tmpls:
+        logger.warn(u'gen_lack_refund_sms_content:'
+                    u'sms template not found, sale_order id is %s .' % sale_order.id)
+        return
+    tpl_text = random.sample(text_tmpls, 1)[0]  # 随机选取一个模板
+    if not tpl_text:
+        return None
+
+    title = sale_order.title
+    payment  = round(sale_order.payment, 1)
+
+    sale_order_dict = {
+        'title': title,
+        'payment': payment
+    }
+    template = Template(tpl_text)
+    context = Context(sale_order_dict)
+    return template.render(context)
+
+
+@single_instance_task(60 * 60, prefix='shopapp.smsmgr.tasks.')
+def task_notify_lack_refund(sale_order):
+    """
+    :param package_order: PackageOrder instance
+    功能: 用户的订单发货了, 发送发货的短信通知 , package_order 称重的时候触发此任务执行.
+    """
+    platform = SMSPlatform.objects.filter(is_default=True).order_by('-id').first()  # step1: 选择默认短信平台商
+    if not platform:
+        logger.error(u"task_notify_lack_refund: SMSPlatform object not found !")
+        return
+    if len(str(sale_order.sale_trade.receiver_mobile).strip()) != 11:
+        return  # 已经发过短信 或者 手机号不正确
+
+    sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code, None)
+    if not sms_manager:
+        raise Exception(u'未找到短信服务商接口实现')
+
+    task_name = u"缺货短信提示"
+    sms_notify_type = SMS_NOTIFY_LACK_REFUND
+    content = gen_lack_refund_sms_content(sale_order)
+    if not content:
+        return
+    manager = sms_manager()
+    params = {
+        'content': content,
+        'userid': platform.user_id,
+        'account': platform.account,
+        'password': platform.password,
+        'mobile': sale_order.sale_trade.receiver_mobile,
+        'taskName': task_name,
+        'mobilenumber': 1,
+        'countnumber': 1,
+        'telephonenumber': 0,
+        'action': 'send',
+        'checkcontent': '0'
+    }
+    succnums, success = call_send_a_sms(manager, params, sms_notify_type)  # 调用短信发送
+    if success:
+        SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums') + int(succnums))
+    return
+
+
 def gen_later_not_post_sms_content(sale_order, trade):
     """
     :param trade: SaleOrder.SaleTrade
@@ -221,6 +292,7 @@ def send_later_not_post_notify(sale_order):
     except Exception, exc:
         logger.error(exc.message or u'send_later_post_notify: sale id is :%s' % sale_order.id, exc_info=True)
 
+# TODO 缺货退款通知
 
 @task()
 def task_deliver_goods_later():

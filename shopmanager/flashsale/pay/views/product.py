@@ -16,12 +16,12 @@ from rest_framework.views import APIView
 from rest_framework import filters
 
 from shopback.items.models import Product, ProductSku
-from flashsale.pay import serializes
+from flashsale.pay import serializers
 
 
 class ProductList(generics.ListCreateAPIView):
     queryset = Product.objects.order_by('outer_id')
-    serializer_class = serializes.ProductSerializer
+    serializer_class = serializers.ProductSerializer
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
 
     template_name = "pay/mindex.html"
@@ -86,7 +86,7 @@ class ProductList(generics.ListCreateAPIView):
 
 class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
-    serializer_class = serializes.ProductDetailSerializer
+    serializer_class = serializers.ProductDetailSerializer
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
 
     template_name = "pay/mproduct.html"

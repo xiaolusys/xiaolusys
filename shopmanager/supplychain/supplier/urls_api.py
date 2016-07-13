@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 from django.conf.urls import patterns, include, url
 from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
@@ -35,5 +34,5 @@ router_urls += ([
     ])
 
 urlpatterns = patterns('',
-    url(r'^v1/', include(router_urls, namespace='apis_v1')),
+    url(r'^v1/', include(router_urls, namespace='chain_v1')),
 )

@@ -622,7 +622,7 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
 
 
 
-from flashsale.pay.serializes import ModelProductSerializer
+from flashsale.pay.serializers import ModelProductSerializer
 
 class ModelProductViewSet(viewsets.ModelViewSet):
     """
