@@ -55,7 +55,9 @@ class GroupMamaAdministrator(BaseModel):
 
     @property
     def mama(self):
-        return XiaoluMama.objects.get(id=self.mama_id)
+        if not hasattr(self, '_mama_'):
+            self._mama_ = XiaoluMama.objects.get(id=self.mama_id)
+        return self._mama_
 
     @staticmethod
     def get_or_create(admin, mama_id):
