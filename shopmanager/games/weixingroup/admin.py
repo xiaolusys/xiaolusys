@@ -17,7 +17,7 @@ admin.site.register(XiaoluAdministrator, XiaoluAdministratorAdmin)
 
 class GroupMamaAdministratorAdmin(BaseModelAdmin):
     search_fields = ['admin__id', 'admin__username', 'admin__nick', 'mama_id']
-    list_display = ['id', 'mama_id', 'mama_nick', 'mama_mobile', 'admin__id', 'admin__username', 'admin__nick',  'status']
+    list_display = ['id', 'mama_id', 'mama_nick', 'mama_mobile', 'admin__id', 'admin__username', 'admin__nick', 'status']
     list_filter = ['status']
 
     def admin__id(self, obj):
@@ -37,7 +37,7 @@ class GroupMamaAdministratorAdmin(BaseModelAdmin):
     mama_nick.short_description = u'小鹿妈妈用户名'
 
     def mama_mobile(self, obj):
-        return
+        return obj.mama.mobile
     mama_mobile.short_description = u'小鹿妈妈手机'
 
 
