@@ -50,3 +50,12 @@ class NinePicAdverSerializer(serializers.ModelSerializer):
             "is_pushed",
             "detail_modelids",
             "cate_gory_display")
+
+
+class XiaoluMamaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = XiaoluMama
+        fields = ('id', 'mobile', 'openid', 'province', 'city', 'address', 'referal_from', 'qrcode_link', 'weikefu',
+                  'manager', 'cash', 'pending', 'hasale', 'last_renew_type', 'agencylevel', 'target_complete',
+                  'lowest_uncoushout', 'user_group', 'charge_time', 'renew_time', 'created', 'modified', 'status',
+                  'charge_status', 'progress')

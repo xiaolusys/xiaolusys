@@ -1,8 +1,8 @@
 # coding=utf-8
 from core.models import BaseModel
 from django.db import models
-from django.contrib.auth.models import User
 from flashsale.promotion.models import ActivityEntry
+from flashsale.xiaolumm.models import XiaoluMama
 
 
 class XiaoluAdministrator(BaseModel):
@@ -55,7 +55,7 @@ class GroupMamaAdministrator(BaseModel):
 
     @property
     def mama(self):
-        return User.objects.get(id=self.mama_id)
+        return XiaoluMama.objects.get(id=self.mama_id)
 
     @staticmethod
     def get_or_create(admin, mama_id):
@@ -68,7 +68,7 @@ class GroupFans(BaseModel):
         verbose_name = u'小鹿微信群粉丝'
         verbose_name_plural = u'小鹿微信群粉丝表'
 
-    group = models.ForeignKey(GroupMamaAdministrator)
+    group = models.ForeignKey(GroupMamaAdministrator, related_name='fans')
     user_id = models.IntegerField(null=True, verbose_name=u'关联用户')
     head_img_url = models.CharField(max_length=100, verbose_name=u'用户微信头像')
     nick = models.CharField(max_length=100, verbose_name=u'用户微信昵称')

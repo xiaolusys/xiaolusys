@@ -7,15 +7,19 @@ from rest_framework.response import Response
 from rest_framework import generics, viewsets, permissions, authentication, renderers
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
-from flashsale.promotion.models import ActivityEntry
+from core.weixin.mixins import WeixinAuthMixin
 from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
 from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers
-from core.weixin.mixins import WeixinAuthMixin
-from shopapp.weixin.models import WeixinUserInfo
+from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.serializers import XiaoluMamaSerializer
+from shopapp.weixin.models import WeixinUserInfo
 
 
 class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
+    """
+        小鹿微信群管理员
+    """
     queryset = XiaoluAdministrator.objects.all()
     serializer_class = XiaoluAdministratorSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -24,7 +28,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     @list_route(methods=['POST'])
     def mama_join(self, request):
         if request.user:
-            xiaoumama = XiaoluMama.objects.filter(openid=request.user.username).first()
+            xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
         else:
             # 1. check whether event_id is valid
             self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
@@ -70,6 +74,9 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
 
 
 class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """
+        小鹿微信群
+    """
     queryset = GroupMamaAdministrator.objects.all()
     serializer_class = GroupMamaAdministratorSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -78,7 +85,9 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
     @detail_route(methods=['GET'])
     def get_group_detail(self, request, pk):
         group = get_object_or_404(GroupMamaAdministrator, pk=pk)
-        return Response(group)
+        res = self.get_serializer(group).data
+        res['mama'] = XiaoluMamaSerializer(group.mama).data
+        return Response(res)
 
 
 class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
@@ -98,9 +107,23 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         return self._activity_
 
     @detail_route(methods=['GET'])
-    def get_group_detail(self, request, pk):
+    def get_group_uses(self, request, pk):
         fans = get_object_or_404(GroupFans, pk=pk)
         return Response(fans)
+
+    @list_route(methods=['GET'])
+    def get_group_users(self, request):
+        group_id = request.GET.get('group_id')
+        group = GroupMamaAdministrator.objects.filter(id=group_id).first()
+        if not group:
+            raise exceptions.NotFound(u'指定的小鹿妈妈群不存在')
+        queryset = self.filter_queryset(group.fans.all())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @list_route(methods=['POST'])
     def join(self, request):
