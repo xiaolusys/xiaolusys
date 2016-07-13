@@ -566,7 +566,7 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
     update_model_fields(instance, update_fields=['sys_status'])
 
     real_orderlist = OrderList.objects.filter(id=instance.id).first()
-    if real_orderlist and instance.status == OrderList.APPROVAL:
+    if real_orderlist and instance.sys_status == OrderList.ST_APPROVAL:
         # if the orderlist purchase confirm, then create forecast inbound
         from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
         try:

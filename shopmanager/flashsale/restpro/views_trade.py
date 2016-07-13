@@ -688,6 +688,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
+
         payment = round(sale_trade.get_cash_payment() * 100)
         order_no = sale_trade.tid
         buyer_openid = sale_trade.openid
@@ -699,7 +700,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
             budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
             if not budget_charge_create:
-                raise Exception('用户余额不足')
+                logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s' % (
+                sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
+                raise Exception(u'钱包余额不足')
 
         extra = {}
         if channel == SaleTrade.WX_PUB:
@@ -719,7 +722,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                   'amount': '%d' % payment,
                   'client_ip': settings.PINGPP_CLENTIP,
                   'subject': u'小鹿美美平台交易',
-                  'body': u'订单ID(%s),订单金额(%.2f)' % (sale_trade.id, sale_trade.payment),
+                  'body': u'用户订单金额[%s, %s, %.2f]' % (
+                      sale_trade.buyer_id,
+                      sale_trade.id,
+                      sale_trade.payment),
                   'metadata': dict(color='red'),
                   'extra': extra}
         charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY, **params)

@@ -190,6 +190,14 @@ class SaletradeTestCase(TestCase):
         self.assertEqual(data['charge']['channel'], channel_key)
         self.assertEqual(data['charge']['amount'], int(post_data['payment'] * 100))
 
+    def testWaitPayOrderCharge_V1(self):
+        """ origin charge channel is alipay """
+        response = self.client.post('/rest/v1/trades/372487/charge', {},
+                                    ACCEPT='application/json; q=0.01')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['channel'], 'alipay')
+
     def testWaitPayOrderCharge_V2(self):
         """ origin charge channel is alipay """
         channel = 'wx'
