@@ -3,7 +3,7 @@ __author__ = 'yan.huang'
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from core.admin import BaseModelAdmin
-from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, Activity, ActivityUsers
+from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
 
 
 class XiaoluAdministratorAdmin(BaseModelAdmin):
@@ -32,10 +32,9 @@ class GroupMamaAdministratorAdmin(BaseModelAdmin):
 admin.site.register(GroupMamaAdministrator, GroupMamaAdministratorAdmin)
 
 
-class ActivityAdmin(BaseModelAdmin):
-    search_fields = ['=id', '=name', 'desc']
-    list_display = ['id', 'name', 'homepage', 'begin_time', 'end_time', 'desc', 'content', 'note']
-    list_filter = ['status']
+class ActivityUsersAdmin(BaseModelAdmin):
+    search_fields = ['id', '=activity_id', 'user_id']
+    list_display = ['activity', 'user_id', 'group']
 
 
-admin.site.register(Activity, ActivityAdmin)
+admin.site.register(ActivityUsers, ActivityUsersAdmin)

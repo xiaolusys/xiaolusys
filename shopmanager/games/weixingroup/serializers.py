@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, Activity, ActivityUsers
+from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
+from flashsale.promotion.models import ActivityEntry
 
 
 class XiaoluAdministratorSerializers(serializers.ModelSerializer):
@@ -10,20 +11,18 @@ class XiaoluAdministratorSerializers(serializers.ModelSerializer):
 
 
 class GroupMamaAdministratorSerializers(serializers.ModelSerializer):
-
     class Meta:
         model = GroupMamaAdministrator
 
 
 class GroupFansSerializers(serializers.ModelSerializer):
-
     class Meta:
         model = GroupFans
 
 
-class ActivitySerializers(serializers.ModelSerializer):
+class ActivityEntrySerializers(serializers.ModelSerializer):
     class Meta:
-        model = Activity
+        model = ActivityEntry
 
 
 class ActivityUsersSerializers(serializers.ModelSerializer):

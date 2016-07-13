@@ -8,25 +8,67 @@ from rest_framework import generics, viewsets, permissions, authentication, rend
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
 
-from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, Activity
+from flashsale.promotion.models import ActivityEntry
+from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
 from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers
 from core.weixin.mixins import WeixinAuthMixin
-from shopapp.weixin.models_base import WeixinUserInfo
+from shopapp.weixin.models import WeixinUserInfo
+from flashsale.xiaolumm.models import XiaoluMama
 
 
-class XiaoluAdministratorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewSet):
+class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     queryset = XiaoluAdministrator.objects.all()
     serializer_class = XiaoluAdministratorSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    @list_route(methods=['GET'])
-    def get_xiaolu_administrator(self, request):
+    @list_route(methods=['POST'])
+    def mama_join(self, request):
+        if request.user:
+            mama_id = request.user.id
+        else:
+            # 1. check whether event_id is valid
+            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+            # 2. get openid from cookie
+            openid, unionid = self.get_cookie_openid_and_unoinid(request)
+            if not self.valid_openid(unionid):
+                # 3. get openid from 'debug' or from using 'code' (if code exists)
+                userinfo = self.get_auth_userinfo(request)
+                unionid = userinfo.get("unionid")
+                openid = userinfo.get("openid")
+
+                if not self.valid_openid(unionid):
+                    # 4. if we still dont have openid, we have to do oauth
+                    redirect_url = self.get_snsuserinfo_redirct_url(request)
+                    return redirect(redirect_url)
+            xiaoumama = XiaoluMama.objects.filter(openid=unionid).first()
+            if not xiaoumama:
+                raise exceptions.ValidationError(u'您不是小鹿妈妈或者你的微信号未和小鹿妈妈账号绑定')
+            mama_id = xiaoumama
+        administrastor_id = request.POST.get('administrastor_id')
         if GroupMamaAdministrator.objects.filter(id=request.user.id).exists():
-            admin = GroupMamaAdministrator.objects.filter(id=request.user.id).first().admin
+            admin = GroupMamaAdministrator.objects.filter(mama_id=request.user.id).first().admin
+        elif administrastor_id:
+            admin = GroupMamaAdministrator.objects.filter(id=administrastor_id).first()
+            if not admin:
+                raise exceptions.NotFound(u'指定的管理员不存在')
         else:
             admin = XiaoluAdministrator.get_group_mincnt_admin()
+        group = GroupMamaAdministrator.objects.get_or_create(admin=admin, mama_id=mama_id)
         return Response(admin)
+
+    @list_route(methods=['GET'])
+    def get_xiaolu_administrator(self, request):
+        administrastor_id = request.GET.get('administrastor_id')
+        if GroupMamaAdministrator.objects.filter(id=request.user.id).exists():
+            admin = GroupMamaAdministrator.objects.filter(mama_id=request.user.id).first().admin
+        elif administrastor_id:
+            admin = GroupMamaAdministrator.objects.filter(id=administrastor_id).first()
+            if not admin:
+                raise exceptions.NotFound(u'指定的管理员不存在')
+        else:
+            admin = XiaoluAdministrator.get_group_mincnt_admin()
+        return Response(self.get_serializer(admin).data)
 
 
 class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -45,16 +87,12 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     """
         凉席活动后台支持
     """
-    ACTIVITY_NAME = "LIANGXI"
+    ACTIVITY_NAME = u"7月送万件宝宝凉席活动"
     queryset = GroupFans.objects.all()
-    activity = Activity.objects.filter(name=ACTIVITY_NAME).first()
+    activity = ActivityEntry.objects.filter(title=ACTIVITY_NAME).first()
     serializer_class = GroupFansSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    @list_route(methods=['POST'])
-    def get_xiaolu_administrator(self, request):
-        return Response()
 
     @detail_route(methods=['GET'])
     def get_group_detail(self, request, pk):
@@ -64,9 +102,9 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     @list_route(methods=['POST'])
     def join(self, request):
         form = forms.GroupFansForm(request)
-        if form.is_vailed():
+        if form.is_valid():
             raise exceptions.ValidationError(form.error_message)
-        if self.activity.is_vailed():
+        if not self.activity.is_on():
             raise exceptions.ValidationError(u"凉席活动暂不可使用")
         group_id = form.cleaned_data['group_id']
         # mama_id = form.cleaned_data['mama_id']
@@ -105,5 +143,6 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         else:
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                 userinfo.get('unionid'), userinfo.get('open_id'))
-        self.activity.join(request.user.id, fans.group_id)
-        return Response()
+        ActivityUsers.join(self.activity, request.user.id, fans.group_id)
+        group = GroupMamaAdministrator.objects.get(id=fans.group_id)
+        return Response(GroupMamaAdministratorSerializers(group).data)

@@ -27,7 +27,8 @@ class XiaoluAdministrator(BaseModel):
     def fans_count(self):
         pass
 
-    def get_group_mincnt_admin(self):
+    @staticmethod
+    def get_group_mincnt_admin():
         mincnt = 100000
         res = None
         for admin in XiaoluAdministrator.objects.filter(status=1):
@@ -54,6 +55,10 @@ class GroupMamaAdministrator(BaseModel):
     @property
     def mama(self):
         return User.objects.get(id=self.mama_id)
+
+    @staticmethod
+    def get_or_create(admin, mama_id):
+        GroupMamaAdministrator.objects.get_or_create()
 
 
 class GroupFans(BaseModel):
