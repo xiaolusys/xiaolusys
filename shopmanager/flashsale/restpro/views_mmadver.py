@@ -4,14 +4,16 @@ import random
 import datetime
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+import django_filters
 
+from rest_framework import filters
 from rest_framework import viewsets, permissions, authentication, renderers
 from rest_framework.response import Response
 from rest_framework import exceptions
 
 from . import serializers
 from flashsale.pay.models import Customer
-from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver
+from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver, MamaVebViewConf
 from flashsale.xiaolumm.models import XiaoluMama
 
 
@@ -108,3 +110,29 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException("方法不允许")
+
+
+class MamaVebViewConfFilter(filters.FilterSet):
+    class Meta:
+        model = MamaVebViewConf
+        fields = ['version', "id"]
+
+
+class MamaVebViewConfViewSet(viewsets.ModelViewSet):
+    queryset = MamaVebViewConf.objects.filter(is_valid=True)
+    serializer_class = serializers.MamaVebViewConfSerialize
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = MamaVebViewConfFilter
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED!')
+
+    def update(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED!')
+
+    def partial_update(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED!')
+

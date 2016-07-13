@@ -62,6 +62,7 @@ router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 router.register(r'download', views.AppDownloadLinkViewSet)
 router.register(r'faqs', views_faqs.SaleCategoryViewSet)
 router.register(r'mmexam', views_mmexams.MmexamsViewSet)
+router.register(r'mmwebviewconfig', views_mmadver.MamaVebViewConfViewSet)
 
 #  推广接口注册
 promotion_router = routers.DefaultRouter(trailing_slash=False)
