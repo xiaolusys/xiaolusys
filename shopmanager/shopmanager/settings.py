@@ -183,6 +183,7 @@ INSTALLED_APPS =(
     'games.paint',
     'games.bomb',
     'games.luckyawards',
+    'games.weixingroup',
 
     # 'flashsale.supplier',
     'flashsale.complain',
