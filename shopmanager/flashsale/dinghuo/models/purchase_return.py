@@ -269,6 +269,9 @@ class ReturnGoods(models.Model):
 
         if supplier_id:
             supplier = SaleSupplier.objects.get(id=supplier_id)
+            if ReturnGoods.objects.filter(supplier_id=supplier_id, status__in=[ReturnGoods.CREATE_RG,
+                                                                               ReturnGoods.VERIFY_RG]).exists():
+                return False
             sale_product_ids = [i["id"] for i in supplier.supplier_products.values("id")]
             product_ids = [p["id"] for p in Product.objects.filter(sale_product__in=sale_product_ids).values("id")]
             unreturn_sku_ids = [i["sku_id"] for i in supplier.unreturnsku_set.values("sku_id")]

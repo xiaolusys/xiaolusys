@@ -97,7 +97,7 @@ class ActivityEntry(BaseModel):
         }
 
     def get_html(self, key):
-        htmls = self.extras["html"]
+        htmls = self.extras.get("html",{})
         if key in htmls:
             return htmls[key]
         return None
