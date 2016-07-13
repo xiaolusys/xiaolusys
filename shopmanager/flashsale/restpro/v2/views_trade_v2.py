@@ -842,7 +842,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 discount_fee += self.calc_counpon_discount(coupon_id,**kwargs)
             if pid == CONS.ETS_APPCUT and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
                 discount_fee += CONS.PAY_EXTRAS[pid]['value'] * 100
-        return discount_fee
+        return round(discount_fee)
     
     def calc_extra_budget(self, pay_extras, **kwargs):
         """　支付余额(分) """
@@ -891,7 +891,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for cart in cart_qs:
             if not cart.is_good_enough():
                 return Response({'code':2, 'info':u'商品已被抢光了'})
-            cart_total_fee += cart.price * cart.num * 100
+            cart_total_fee += round(cart.price * cart.num * 100)
             cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
             item_ids.append(cart.item_id)
 
@@ -905,7 +905,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({'code':3,'info':exc.message})
 
         cart_discount = min(cart_discount, cart_total_fee)
-        if discount_fee > cart_discount:
+        if discount_fee - cart_discount > 10:
             logger.warn('cart discount err:params=%s'%(request.REQUEST))
             return Response({'code':4, 'info':u'优惠金额异常'})
 
