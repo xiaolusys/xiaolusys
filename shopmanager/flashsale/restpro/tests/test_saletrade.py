@@ -1,6 +1,9 @@
 # coding:utf-8
-from django.test import TestCase
 import json
+import datetime
+from django.test import TestCase
+
+from flashsale.pay.models import SaleTrade
 
 import logging
 logger = logging.getLogger(__name__)
@@ -13,11 +16,13 @@ class SaletradeTestCase(TestCase):
                 'test.shopback.items.product.json',
                 'test.flashsale.pay.shoppingcart.json',
                 'test.flashsale.pay.useraddress.json',
+                'test.flashsale.pay.saletrade.json',
                 ]
     def setUp(self):
         self.username = 'xiaolu'
         self.password = 'test'
         self.client.login(username=self.username, password=self.password)
+        SaleTrade.objects.filter(id=372487).update(created=datetime.datetime.now())
 
     def addShoppingCart(self):
         pdata = {'num': 1, 'item_id': 40874, 'sku_id': 164886}
@@ -185,8 +190,14 @@ class SaletradeTestCase(TestCase):
         self.assertEqual(data['charge']['channel'], channel_key)
         self.assertEqual(data['charge']['amount'], int(post_data['payment'] * 100))
 
-    # def testShoppingcartBudgetCharge(self):
-    #     pass
+    def testWaitPayOrderCharge_V2(self):
+        """ origin charge channel is alipay """
+        channel = 'wx'
+        response = self.client.post('/rest/v2/trades/372487/charge', {'channel':channel},
+                                    ACCEPT='application/json; q=0.01')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['channel'], channel)
 
 
 
