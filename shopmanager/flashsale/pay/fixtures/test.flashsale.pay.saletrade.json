@@ -34,7 +34,7 @@
     "discount_fee": 0.0,
     "created": "2016-07-13T15:47:06",
     "modified": "2016-07-13T15:47:06",
-    "channel": "alipay_wap",
+    "channel": "alipay",
     "total_fee": 29.9,
     "receiver_state": "\u4e0a\u6d77\u5e02",
     "receiver_name": "\u6d4b\u8bd5\u5730\u57401",

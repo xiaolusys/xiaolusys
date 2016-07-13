@@ -639,7 +639,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
             if not budget_charge_create:
                 logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s'%(sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
-                raise Exception('钱包余额不足')
+                raise Exception(u'钱包余额不足')
         
         extra = {}
         if channel == SaleTrade.WX_PUB:
