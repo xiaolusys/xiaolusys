@@ -1171,7 +1171,14 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="0", hour="*/1"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    }
+    },
+
+    u'定时用户优惠券优惠券过期推送消息': {
+        'task': 'flashsale.coupon.tasks.task_push_msg_pasting_coupon',
+        'schedule': crontab(minute="30", hour="12"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 
 }
 

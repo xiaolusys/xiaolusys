@@ -542,7 +542,7 @@ from flashsale.push.push_usercoupon import user_coupon_release_push
 @task
 def task_release_coupon_push(customer_id):
     """ 特卖用户领取红包 """
-    user_coupon_release_push(customer_id)
+    user_coupon_release_push(customer_id, push_tpl_id=9)
     return
 
 

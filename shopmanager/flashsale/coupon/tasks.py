@@ -269,3 +269,30 @@ def task_update_unionid_download_record(usercoupon):
             nick=customer.nick
         )
         dl_record.save()
+
+
+@task()
+def task_push_msg_pasting_coupon():
+    """
+    推送：　明天过期的没有推送过的优惠券将推送用户告知
+    """
+    from flashsale.coupon.models import UserCoupon
+    from flashsale.push.push_usercoupon import user_coupon_release_push
+
+    today = datetime.datetime.today()
+    tomorow = today + datetime.timedelta(days=1)
+    t_left = datetime.datetime(tomorow.year, tomorow.month, tomorow.day, 0, 0, 0)
+    t_right = t_left + datetime.timedelta(days=1)
+    coupons = UserCoupon.objects.filter(is_pushed=False,
+                                        status=UserCoupon.UNUSED,
+                                        expires_time__gte=t_left,
+                                        expires_time__lt=t_right)
+    customers = coupons.values('customer_id')
+    for customer in customers:
+        coupons.filter(is_pushed=False, customer_id=customer['customer_id'])
+        if coupons.exists():
+            coupon = coupons.first()
+            extra_content = '价值%s' % coupon.value
+            user_coupon_release_push(coupon.customer_id, push_tpl_id=10, extra_content=extra_content)
+            coupons.update(is_pushed=True)
+

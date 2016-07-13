@@ -8,13 +8,13 @@ from flashsale.protocol import constants as protocal_constants
 from flashsale.push.models_message import PushMsgTpl
 
 
-def user_coupon_release_push(customer_id):
+def user_coupon_release_push(customer_id, push_tpl_id=None, extra_content=None):
     """优惠券发放推送"""
-    msg = None
-    tpls = PushMsgTpl.objects.filter(id=9, is_valid=True)
-    if tpls.exists():
-        tpl = tpls[0]
-        msg = tpl.get_emoji_content()
+    tpl = PushMsgTpl.objects.filter(id=push_tpl_id, is_valid=True).first()
+    if not tpl:
+        return
+    tpl_content = tpl.tpl_content.format(extra_content) if extra_content else tpl.tpl_content
+    msg = tpl.get_emoji_content(abs_content=tpl_content)
     if msg:
         target_url = get_target_url(protocal_constants.TARGET_TYPE_HOME_TAB_1)
         mipush_of_android.push_to_account(customer_id,
