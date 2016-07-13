@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework import generics, viewsets, permissions, authentication, renderers
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
-
 from flashsale.promotion.models import ActivityEntry
 from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
 from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers
@@ -25,7 +24,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     @list_route(methods=['POST'])
     def mama_join(self, request):
         if request.user:
-            mama_id = request.user.id
+            xiaoumama = XiaoluMama.objects.filter(openid=request.user.username).first()
         else:
             # 1. check whether event_id is valid
             self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
@@ -36,15 +35,14 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
                 userinfo = self.get_auth_userinfo(request)
                 unionid = userinfo.get("unionid")
                 openid = userinfo.get("openid")
-
                 if not self.valid_openid(unionid):
                     # 4. if we still dont have openid, we have to do oauth
                     redirect_url = self.get_snsuserinfo_redirct_url(request)
                     return redirect(redirect_url)
             xiaoumama = XiaoluMama.objects.filter(openid=unionid).first()
-            if not xiaoumama:
-                raise exceptions.ValidationError(u'您不是小鹿妈妈或者你的微信号未和小鹿妈妈账号绑定')
-            mama_id = xiaoumama
+        if not xiaoumama:
+            raise exceptions.ValidationError(u'您不是小鹿妈妈或者你的微信号未和小鹿妈妈账号绑定')
+        mama_id = xiaoumama.id
         administrastor_id = request.POST.get('administrastor_id')
         if GroupMamaAdministrator.objects.filter(id=request.user.id).exists():
             admin = GroupMamaAdministrator.objects.filter(mama_id=request.user.id).first().admin
@@ -55,7 +53,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         else:
             admin = XiaoluAdministrator.get_group_mincnt_admin()
         group = GroupMamaAdministrator.objects.get_or_create(admin=admin, mama_id=mama_id)
-        return Response(admin)
+        return Response(self.get_serializer(admin).data)
 
     @list_route(methods=['GET'])
     def get_xiaolu_administrator(self, request):
@@ -110,7 +108,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         # mama_id = form.cleaned_data['mama_id']
         group = GroupMamaAdministrator.objects.filter(group_id=group_id).first()
         if not group:
-            raise exceptions.NotFound(u'此妈妈')
+            raise exceptions.NotFound(u'此妈妈尚未加入微信群组')
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
 
         # get openid from cookie
