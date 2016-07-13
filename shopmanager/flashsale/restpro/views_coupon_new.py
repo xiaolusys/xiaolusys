@@ -20,8 +20,17 @@ from flashsale.pay.models import Customer, ShoppingCart, SaleTrade
 from flashsale.pay.tasks import task_release_coupon_push
 from flashsale.promotion.models import XLSampleOrder
 from flashsale.coupon.managers import calculate_value_and_time
+from flashsale.coupon import constants
+from flashsale.pay.models import SaleTrade
 
 logger = logging.getLogger(__name__)
+
+
+def is_old_customer(customer_id):
+    """判断是否是新客户"""
+    return SaleTrade.objects.filter(buyer_id=customer_id,
+                                    status__gte=SaleTrade.WAIT_SELLER_SEND_GOODS,
+                                    status__lte=SaleTrade.TRADE_FINISHED).first()  # 有成功支付订单的
 
 
 def release_tmp_share_coupon(customer):
@@ -31,6 +40,7 @@ def release_tmp_share_coupon(customer):
     if not customer:
         return True
     tmp_coupons = TmpShareCoupon.objects.filter(mobile=customer.mobile, status=False)
+    st = is_old_customer(customer.id)
     for tmp_coupon in tmp_coupons:
         share = OrderShareCoupon.objects.filter(uniq_id=tmp_coupon.share_coupon_id).first()
         if not share:
@@ -40,7 +50,8 @@ def release_tmp_share_coupon(customer):
             continue
         try:
             if tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE:
-                x = UserCoupon.objects.create_order_share_coupon(customer.id, tpl.id, share.uniq_id, ufrom=u'tmp',
+                template_id = constants.LIMIT_ORDER_SHARE_COUPON_TEMPLATE if st else tpl.id
+                x = UserCoupon.objects.create_order_share_coupon(customer.id, template_id, share.uniq_id, ufrom=u'tmp',
                                                                  coupon_value=tmp_coupon.value)
             elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE:
                 UserCoupon.objects.create_active_share_coupon(customer.id, tpl.id, share.uniq_id, ufrom=u'tmp')
@@ -331,16 +342,19 @@ class CouponTemplateViewSet(viewsets.ModelViewSet):
         return Response({})
 
 
-def get_order_or_active_share_template(coupon_type):
+def get_order_or_active_share_template(coupon_type, template_id=None):
     """
     获取订单分享模板
     获取活动分享模板
     """
     now = datetime.datetime.now()
-    tpl = CouponTemplate.objects.filter(
-        coupon_type=coupon_type,
-        status=CouponTemplate.SENDING,
-    ).order_by('-created').first()  # 最新建的一个
+    if not template_id:
+        tpl = CouponTemplate.objects.filter(
+            coupon_type=coupon_type,
+            status=CouponTemplate.SENDING,
+        ).order_by('-created').first()  # 最新建的一个
+    else:
+        tpl = CouponTemplate.objects.filter(id=template_id).first()  # 指定的那个
     if tpl:
         if not tpl.release_start_time <= now <= tpl.release_end_time:
             raise Exception('优惠券模板设置错误:%s' % tpl.id)
@@ -421,7 +435,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
             default_return.update({"code": 4, "msg": "订单不存在"})
             return Response(default_return)
 
-        tpl = get_order_or_active_share_template(CouponTemplate.TYPE_ORDER_SHARE)  # 获取有效的分享模板
+        tpl = get_order_or_active_share_template(CouponTemplate.TYPE_ORDER_SHARE,
+                                                 template_id=constants.ORDER_SHARE_COUPON_TEMPLATE)  # 获取有效的分享模板
         if not tpl:
             default_return.update({"code": 3, "msg": "分享出错"})
             return Response(default_return)
@@ -489,7 +504,11 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
         if not ufrom:
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
 
-        template_id = coupon_share.template_id
+        # 判断当前用户是否有　历史订单
+        st = is_old_customer(customer.id)
+        # 如果有订单的用户　再次领取的分享优惠券为指定的其他优惠券
+        template_id = constants.LIMIT_ORDER_SHARE_COUPON_TEMPLATE if st else coupon_share.template_id
+
         coupon, code, msg = UserCoupon.objects.create_order_share_coupon(customer.id, template_id, uniq_id, ufrom)
         if code != 0:
             default_return.update({"code": code, "msg": msg})
