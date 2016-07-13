@@ -14,7 +14,8 @@ from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.xiaolumm.serializers import XiaoluMamaSerializer
 from shopapp.weixin.models import WeixinUserInfo
-
+import logging
+log = logging.getLogger(__name__)
 
 class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     """
@@ -25,9 +26,9 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    @list_route(methods=['POST'])
+    @list_route(methods=['POST', 'GET'])
     def mama_join(self, request):
-        if request.user:
+        if not request.user.is_anonymous():
             xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
         else:
             # 1. check whether event_id is valid
@@ -42,6 +43,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
                 if not self.valid_openid(unionid):
                     # 4. if we still dont have openid, we have to do oauth
                     redirect_url = self.get_snsuserinfo_redirct_url(request)
+                    log.error("redirect_url:" + redirect_url)
                     return redirect(redirect_url)
             xiaoumama = XiaoluMama.objects.filter(openid=unionid).first()
         if not xiaoumama:
@@ -125,7 +127,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['POST'])
+    @list_route(methods=['POST', 'GET'])
     def join(self, request):
         form = forms.GroupFansForm(request)
         if form.is_valid():
