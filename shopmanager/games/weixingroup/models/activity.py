@@ -64,3 +64,19 @@ class ActivityUsers(BaseModel):
     activity = models.ForeignKey(ActivityEntry)
     user_id = models.IntegerField()
     group = models.ForeignKey('GroupMamaAdministrator')
+
+    @staticmethod
+    def join(activity, user_id, group_id):
+        au = ActivityUsers.objects.filter(activity=activity, user_id=user_id).first()
+        if not au:
+            au = ActivityUsers(activity=activity,
+                               user_id=user_id,
+                               group_id=group_id)
+            au.save()
+        elif au.group_id == group_id:
+            au.group_id = group_id
+            au.save()
+        return au
+
+    def has_joined(self, user_id):
+        return ActivityUsers.objects.filter(user_id=user_id).exists()
