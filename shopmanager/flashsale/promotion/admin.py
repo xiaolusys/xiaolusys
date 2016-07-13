@@ -138,9 +138,9 @@ admin.site.register(ReadPacket, ReadPacketAdmin)
 
 
 class AppDownloadRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'from_customer', 'unionid', 'nick', 'mobile', 'status', 'modified', 'created')
+    list_display = ('id', 'from_customer', 'unionid', 'nick', 'mobile', 'status', 'modified', 'created', 'inner_ufrom')
     list_display_links = ('id', 'from_customer')
-    list_filter = ('created', 'status')
+    list_filter = ('created', 'status', 'inner_ufrom')
     search_fields = ['id', 'mobile', 'from_customer', 'unionid']
     list_per_page = 40
 
