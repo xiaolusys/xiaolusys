@@ -610,6 +610,7 @@ class ProRefunRcdSerializer(serializers.ModelSerializer):
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut
 from flashsale.clickcount.models import ClickCount, Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
+from flashsale.xiaolumm.models_fortune import AwardCarry
 
 
 class XiaoluMamaSerialize(serializers.ModelSerializer):
@@ -625,10 +626,11 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
 class XiaoluMamaInfoSerialize(serializers.ModelSerializer):
     nick = serializers.SerializerMethodField('mama_customer_nick', read_only=True)
     thumbnail = serializers.SerializerMethodField('mama_customer_thumbnail', read_only=True)
+    award = serializers.SerializerMethodField('mama_award_info', read_only=True)
 
     class Meta:
         model = XiaoluMama
-        fields = ("id", "agencylevel", "nick", 'thumbnail', "charge_time")
+        fields = ("id", "agencylevel", "nick", 'thumbnail', "charge_time", "award")
 
     def mama_customer_nick(self, obj):
         customer = obj.get_mama_customer()
@@ -637,6 +639,13 @@ class XiaoluMamaInfoSerialize(serializers.ModelSerializer):
     def mama_customer_thumbnail(self, obj):
         customer = obj.get_mama_customer()
         return customer.thumbnail if customer else ''
+
+    def mama_award_info(self, obj):
+        referal_from_mama_id = self.context['current_mm'].id
+        award_carry = AwardCarry.objects.filter(mama_id=referal_from_mama_id,
+                                                contributor_mama_id=obj.id).first()
+        if award_carry:
+            return award_carry.carry_num / 100.0
 
 
 class CarryLogSerialize(serializers.ModelSerializer):
