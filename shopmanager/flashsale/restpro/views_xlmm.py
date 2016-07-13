@@ -57,7 +57,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.XiaoluMamaSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     MM_LINKID_PATH = 'qrcode/xiaolumm'
 
     def get_owner_queryset(self, request):
@@ -164,41 +164,32 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     @list_route(methods=['get'])
-    def get_referal_full_mama(self, request):
+    def get_referal_mama(self, request):
         """
         当前代理邀请的人数(正式，　非正式)　邀请人的信息（正式非正式）
         """
+        last_renew_type = request.REQUEST.get("last_renew_type") or None
+        if not last_renew_type:
+            return Response([])
+        last_renew_type_map = {
+            "trial": [XiaoluMama.TRIAL],
+            "full": [XiaoluMama.HALF, XiaoluMama.FULL]
+        }
+        last_renew_types = last_renew_type_map[last_renew_type]
         currentmm = self.filter_queryset(self.get_owner_queryset(request)).first()
         if not currentmm:
             return Response([])
         members = self.queryset.filter(referal_from=currentmm.mobile,
                                        charge_status=XiaoluMama.CHARGED,
                                        status=XiaoluMama.EFFECT)
-        full_members = members.filter(last_renew_type__in=[XiaoluMama.HALF, XiaoluMama.FULL])
-        page = self.paginate_queryset(full_members)
+        members = members.filter(last_renew_type__in=last_renew_types)
+        page = self.paginate_queryset(members)
         if page is not None:
-            serializer = serializers.XiaoluMamaInfoSerialize(page, many=True)
+            serializer = serializers.XiaoluMamaInfoSerialize(page, many=True,
+                                                             context={'current_mm': currentmm})
             return self.get_paginated_response(serializer.data)
-        serializer = serializers.XiaoluMamaInfoSerialize(full_members, many=True)
-        return Response(serializer.data)
-
-    @list_route(methods=['get'])
-    def get_referal_trial_mama(self, request):
-        """
-        当前代理邀请的人数(正式，　非正式)　邀请人的信息（正式非正式）
-        """
-        currentmm = self.filter_queryset(self.get_owner_queryset(request)).first()
-        if not currentmm:
-            return Response([])
-        members = self.queryset.filter(referal_from=currentmm.mobile,
-                                       charge_status=XiaoluMama.CHARGED,
-                                       status=XiaoluMama.EFFECT)
-        trial_members = members.filter(last_renew_type=XiaoluMama.TRIAL)
-        page = self.paginate_queryset(trial_members)
-        if page is not None:
-            serializer = serializers.XiaoluMamaInfoSerialize(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = serializers.XiaoluMamaInfoSerialize(trial_members, many=True)
+        serializer = serializers.XiaoluMamaInfoSerialize(members, many=True,
+                                                         context={'current_mm': currentmm})
         return Response(serializer.data)
 
 

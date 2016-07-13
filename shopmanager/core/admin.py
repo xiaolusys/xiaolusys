@@ -176,3 +176,6 @@ class BaseModelAdmin(admin.ModelAdmin):
             url(r'^(.+)/$', wrap(self.detail_view), name='%s_%s_detail' % info),
         ]
         return urlpatterns
+
+    def detail_view(self, request, object_id, form_url='', extra_context=None):
+        return self.detailform_view(request, object_id, form_url, extra_context)

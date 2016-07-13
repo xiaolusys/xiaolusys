@@ -59,8 +59,6 @@ def task_saleorder_update_productskustats_waitingpay_num(sku_id):
             raise task_saleorder_update_productskustats_waitingpay_num.retry(exc=exc)
     else:
         stat = stats[0]
-        logger.error("task_saleorder_update_productskustats_waitingpay_num:" + str(stat.waitingpay_num) + '|total:' +
-                     str(total) + '|' + str(sku_id))
         if stat.waitingpay_num != total:
             stat.waitingpay_num = total
             stat.save(update_fields=["waitingpay_num"])

@@ -9,17 +9,19 @@ from core.models import BaseModel
 from shopback.items.models import Product
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class ActivityEntry(BaseModel):
     """ 商城活动入口 """
 
-    ACT_COUPON  = 'coupon'
+    ACT_COUPON = 'coupon'
     ACT_WEBVIEW = 'webview'
-    ACT_MAMA    = 'mama'
-    ACT_BRAND   = 'brand'
-    ACT_TOP     = 'atop'
-    ACT_TOPIC   = 'topic'
+    ACT_MAMA = 'mama'
+    ACT_BRAND = 'brand'
+    ACT_TOP = 'atop'
+    ACT_TOPIC = 'topic'
 
     ACT_CHOICES = (
         (ACT_WEBVIEW, u'普通活动'),
@@ -61,11 +63,14 @@ class ActivityEntry(BaseModel):
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
 
+    def is_on(self):
+        return self.is_active and self.start_time <= datetime.datetime.now() < self.end_time
+
     @classmethod
     def get_default_activity(cls):
         acts = cls.objects.filter(is_active=True,
                                   end_time__gte=datetime.datetime.now()) \
-            .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND))\
+            .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND)) \
             .order_by('-order_val', '-modified')
         if acts.exists():
             return acts[0]
@@ -82,8 +87,8 @@ class ActivityEntry(BaseModel):
     @classmethod
     def get_landing_effect_activitys(cls, active_time):
         """ 根据时间获取活动列表app首页展示 """
-        acts = cls.get_effect_activitys(active_time)\
-                .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND))
+        acts = cls.get_effect_activitys(active_time) \
+            .exclude(act_type__in=(ActivityEntry.ACT_MAMA, ActivityEntry.ACT_BRAND))
         return acts
 
     def get_shareparams(self, **params):
@@ -97,7 +102,7 @@ class ActivityEntry(BaseModel):
         }
 
     def get_html(self, key):
-        htmls = self.extras.get("html",{})
+        htmls = self.extras.get("html", {})
         if key in htmls:
             return htmls[key]
         return None
