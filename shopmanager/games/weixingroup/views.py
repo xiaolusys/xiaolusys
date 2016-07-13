@@ -48,8 +48,8 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             raise exceptions.ValidationError(u'您不是小鹿妈妈或者你的微信号未和小鹿妈妈账号绑定')
         mama_id = xiaoumama.id
         administrastor_id = request.POST.get('administrastor_id')
-        if GroupMamaAdministrator.objects.filter(id=request.user.id).exists():
-            admin = GroupMamaAdministrator.objects.filter(mama_id=request.user.id).first().admin
+        if GroupMamaAdministrator.objects.filter(mama_id=mama_id).exists():
+            admin = GroupMamaAdministrator.objects.filter(mama_id=mama_id).first().admin
         elif administrastor_id:
             admin = GroupMamaAdministrator.objects.filter(id=administrastor_id).first()
             if not admin:

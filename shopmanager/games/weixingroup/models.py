@@ -7,7 +7,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 
 class XiaoluAdministrator(BaseModel):
     user_id = models.IntegerField(verbose_name=u'关联用户')
-    username = models.IntegerField(verbose_name=u'管理员用户名')
+    username = models.CharField(max_length=64, verbose_name=u'管理员用户名')
     nick = models.IntegerField(verbose_name=u'管理员昵称')
     weixin_qr_img = models.CharField(max_length=255, verbose_name=u'管理员二维码')
     STATUS_CHOICES = ((0, u'初始'),
@@ -90,8 +90,8 @@ class GroupFans(BaseModel):
 class ActivityUsers(BaseModel):
     class Meta:
         app_label = 'weixingroup'
-        verbose_name = u'活动'
-        verbose_name_plural = u'活动列表'
+        verbose_name = u'参与用户'
+        verbose_name_plural = u'参与用户列表'
 
     activity = models.ForeignKey(ActivityEntry)
     user_id = models.IntegerField()
