@@ -66,7 +66,7 @@ def task_saleorder_update_productskustats_waitingpay_num(sku_id):
             stat.save(update_fields=["waitingpay_num"])
 
 @task()
-def task_update_saletrade_status():
+def task_update_saletrade_refund_status():
     from flashsale.pay.models import SaleOrder, SaleRefund
     from django.db.models import Q
     so = SaleOrder.objects.filter(Q(refund_status=SaleRefund.REFUND_SUCCESS)|Q(refund_status=SaleRefund.REFUND_CLOSED),
@@ -74,4 +74,4 @@ def task_update_saletrade_status():
     from flashsale.pay.tasks import tasks_update_sale_trade_status
     for instance in so:
         if instance.status > SaleOrder.WAIT_BUYER_PAY:
-            tasks_update_sale_trade_status.delay(instance.sale_trade_id)
+            tasks_update_sale_trade_status(instance.sale_trade_id)

@@ -1118,7 +1118,7 @@ SHOP_APP_SCHEDULE = {
     },
 
     u'根据saleorder的退款状态更新saletrade的状态':{
-        'task': 'flashsale.pay.tasks_stats.task_update_saletrade_status',
+        'task': 'flashsale.pay.tasks_stats.task_update_saletrade_refund_status',
         'schedule': crontab(minute="0", hour="23"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
