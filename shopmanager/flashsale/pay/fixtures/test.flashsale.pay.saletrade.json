@@ -1,4 +1,48 @@
-[
+[{
+  "fields": {
+    "consign_time": null,
+    "pay_cash": 29.9,
+    "has_budget_paid": false,
+    "pay_time": null,
+    "receiver_address": "\u5e73\u51c9\u8def988\u53f7",
+    "logistics_company": null,
+    "order_type": 0,
+    "receiver_city": "\u4e0a\u6d77\u5e02",
+    "buyer_message": "",
+    "extras_info": {
+      "coupon": "",
+      "ufrom": "",
+      "pay_extras": "",
+      "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/45.0.2454.101 Chrome/45.0.2454.101 Safari/537.36",
+      "mm_linkid": 0
+    },
+    "charge": "ch_X5yj9CzXzLGOTaHaf51ybDO0",
+    "post_fee": 0.0,
+    "tid": "xd1607135785f1f2c6591",
+    "seller_memo": "",
+    "receiver_phone": "",
+    "out_sid": "",
+    "status": 1,
+    "openid": "oMt59uJJBoNRC7Fdv1b5XiOAngdU",
+    "trade_type": 0,
+    "receiver_zip": "",
+    "user_address_id": 112986,
+    "receiver_mobile": "15688965742",
+    "payment": 29.9,
+    "receiver_district": "\u6768\u6d66\u533a",
+    "buyer_nick": "meron@\u5c0f\u9e7f\u7f8e\u7f8e",
+    "discount_fee": 0.0,
+    "created": "2016-07-13T15:47:06",
+    "modified": "2016-07-13T15:47:06",
+    "channel": "alipay_wap",
+    "total_fee": 29.9,
+    "receiver_state": "\u4e0a\u6d77\u5e02",
+    "receiver_name": "\u6d4b\u8bd5\u5730\u57401",
+    "buyer_id": 1
+  },
+  "model": "pay.saletrade",
+  "pk": 372487
+},
 {
   "fields": {
     "consign_time": "2016-04-26T14:48:35",
@@ -86,6 +130,37 @@
   },
   "model": "pay.saletrade",
   "pk": 333231
+},
+{
+  "fields": {
+    "sign_time": null,
+    "consign_time": null,
+    "sku_id": "136471",
+    "refund_status": 0,
+    "refund_id": null,
+    "num": 1,
+    "outer_sku_id": "JSQ158-1-3",
+    "pay_time": null,
+    "title": "\u8774\u8776\u523a\u7ee3\u8fde\u8863\u88d9/\u7c89\u8272",
+    "payment": 29.9,
+    "status": 1,
+    "sku_name": "120",
+    "price": 29.9,
+    "oid": "xo1607135785f1faf09d1",
+    "item_id": "34499",
+    "refund_fee": 0.0,
+    "created": "2016-07-13T15:47:06",
+    "discount_fee": 0.0,
+    "modified": "2016-07-13T15:47:06",
+    "extras": {},
+    "sale_trade": 372487,
+    "total_fee": 29.9,
+    "pic_path": "http://image.xiaolu.so/MG_14643974726241.jpg",
+    "outer_id": "821183680021",
+    "buyer_id": 1
+  },
+  "model": "pay.saleorder",
+  "pk": 415201
 },
 {
   "fields": {

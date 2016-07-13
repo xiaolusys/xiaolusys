@@ -1049,7 +1049,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         _errmsg = {SaleTrade.WAIT_SELLER_SEND_GOODS: u'订单无需重复付款',
                    SaleTrade.TRADE_CLOSED_BY_SYS: u'订单已关闭或超时',
                    'default': u'订单不在可支付状态'}
-        channel = request.data.get('channel','')
+        channel = request.POST.get('channel','')
         instance = self.get_object()
         if channel and channel != instance.channel:
             instance.channel = channel
