@@ -23,6 +23,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
 from . import constants
 from flashsale.xiaolumm.models_advertis import MamaVebViewConf
+from flashsale.coupon.models import OrderShareCoupon
 
 
 class RegisterSerializer(serializers.HyperlinkedModelSerializer):
@@ -388,14 +389,21 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
     status_display = serializers.CharField(source='status_name', read_only=True)
     order_pic = serializers.CharField(read_only=True)
+    red_packer_num = serializers.SerializerMethodField('order_share_red_packer_num', read_only=True)
 
     class Meta:
         model = SaleTrade
         fields = ('id', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display', 'order_pic',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
-                  'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city',
+                  'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city', 'red_packer_num',
                   'receiver_district', 'receiver_address', 'receiver_mobile', 'receiver_phone')
+
+    def order_share_red_packer_num(self, obj):
+        share = OrderShareCoupon.objects.filter(uniq_id=obj.tid).first()
+        if share:
+            return share.remain_num
+        return 0
 
 
 class PackageOrderSerializer(serializers.ModelSerializer):

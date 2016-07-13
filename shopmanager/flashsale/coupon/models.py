@@ -298,6 +298,11 @@ class OrderShareCoupon(BaseModel):
     def template(self):
         return CouponTemplate.objects.filter(id=self.template_id).first()
 
+    @property
+    def remain_num(self):
+        """ 还剩下多少次没领取 """
+        return self.limit_share_count - self.release_count
+
 
 def default_coupon_no():
     return uniqid('%s%s' % ('yhq', datetime.datetime.now().strftime('%y%m%d')))
@@ -386,6 +391,7 @@ class UserCoupon(BaseModel):
     def customer(self):
         if not hasattr(self, "_coupon_customer_"):
             from flashsale.pay.models import Customer
+
             self._coupon_customer_ = Customer.objects.filter(id=self.customer_id).first()
         return self._coupon_customer_
 
@@ -495,6 +501,7 @@ def update_unionid_download_record(sender, instance, created, **kwargs):
     if instance.coupon_type != UserCoupon.TYPE_ORDER_SHARE:  # 非的呢订单分享类型
         return
     from flashsale.coupon.tasks import task_update_unionid_download_record
+
     task_update_unionid_download_record.delay(instance)
 
 
@@ -521,6 +528,7 @@ class TmpShareCoupon(BaseModel):
 
 def update_mobile_download_record(sender, instance, created, **kwargs):
     from flashsale.coupon.tasks import task_update_mobile_download_record
+
     task_update_mobile_download_record.delay(instance)
 
 
