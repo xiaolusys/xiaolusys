@@ -87,10 +87,15 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     """
     ACTIVITY_NAME = u"7月送万件宝宝凉席活动"
     queryset = GroupFans.objects.all()
-    activity = ActivityEntry.objects.filter(title=ACTIVITY_NAME).first()
     serializer_class = GroupFansSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    @property
+    def activity(self):
+        if not hasattr(self, '_activity_'):
+            self._activity_ = ActivityEntry.objects.filter(title=LiangXiActivityViewSet.ACTIVITY_NAME).first()
+        return self._activity_
 
     @detail_route(methods=['GET'])
     def get_group_detail(self, request, pk):
