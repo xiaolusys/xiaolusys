@@ -1,10 +1,12 @@
 # -*- coding:utf-8 -*-
+import time
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db.models import Sum
-from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, \
-    UnReturnSku
+from django.contrib.admin.views.main import ChangeList
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+
 from functools import partial, reduce, update_wrapper
 from core.options import log_action, CHANGE
 from core.admin import BaseModelAdmin
@@ -12,13 +14,16 @@ from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
     PayToPackStats
-import time
+from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, \
+    UnReturnSku, LackGoodOrder
+
 from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter, \
     InBoundCreatorFilter
 from flashsale.dinghuo import permissions as perms
-from django.contrib.admin.views.main import ChangeList
+
 
 from django.http import Http404, HttpResponseRedirect
+
 from shopback.trades.models import PackageSkuItem
 
 class orderdetailInline(admin.TabularInline):
@@ -869,3 +874,29 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
 
 
 admin.site.register(PurchaseOrder, PurchaseOrderAdmin)
+
+
+class LackGoodOrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'supplier', 'product_id', 'sku_id', 'lack_num', 'is_refund',
+                    'refund_time', 'order_group_key', 'status', 'created')
+    search_fields = ('=product_id', '=sku_id', 'order_group_key')
+
+    actions = ['action_refund_manage',]
+
+    def action_refund_manage(self, request, queryset):
+        first_obj = queryset.first()
+        order_group_key = first_obj.order_group_key
+        exclude_qs = queryset.exclude(order_group_key=order_group_key)
+        if exclude_qs.exists():
+            self.message_user(request, u'请选择同一组键对应的缺货单,当前组键:[%s]'% ','.join(set([o.order_group_key for o in queryset])))
+            return HttpResponseRedirect(request.get_full_path())
+
+        return HttpResponseRedirect(reverse('dinghuo_v1:lackgoodorder-refund-manage', args=[order_group_key])+'.html')
+
+    action_refund_manage.short_description = u"缺货商品退款管理"
+
+    def delete_model(self, request, obj):
+        obj.status = obj.DELETE
+        obj.save()
+
+admin.site.register(LackGoodOrder, LackGoodOrderAdmin)

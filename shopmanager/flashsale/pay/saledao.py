@@ -23,5 +23,6 @@ def getUserSkuNumByLast24Hours(user, sku):
 
     for cart in shop_carts:
         order_num += cart.num
-
     return order_num
+
+

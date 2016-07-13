@@ -5,7 +5,7 @@ from .service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
 import logging
 
-logger = logging.getLogger('smsmgr.handler')
+logger = logging.getLogger(__name__)
 
 
 def sendMessage(mobile, title, content, msgType=SMS_NOTIFY_ACTIVITY, SMS_PLATFORM_CODE=''):
@@ -58,3 +58,5 @@ def sendMessage(mobile, title, content, msgType=SMS_NOTIFY_ACTIVITY, SMS_PLATFOR
         SMSPlatform.objects.filter(code=platform_code).update(sendnums=F('sendnums') + int(succnums))
 
     return success
+
+

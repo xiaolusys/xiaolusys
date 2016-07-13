@@ -496,7 +496,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         sku_id_set.update(inbound_details_dict.keys())
         sku_values = []
         productsku_values = ProductSku.objects.filter(id__in=sku_id_set).select_related('product').values(
-            'id', 'product__outer_id', 'product__name', 'properties_name', 'properties_alias', 'product__pic_path'
+            'id', 'product_id', 'product__outer_id', 'product__name', 'properties_name', 'properties_alias', 'product__pic_path'
         )
         # sku_stats_values = ProductSkuStats.objects.filter(sku__in=sku_id_set).extra(
         #     select={'excess_num': "history_quantity + inbound_quantity + return_quantity "
@@ -507,6 +507,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             sku_values.append({
                 'sku_id': sku_val['id'],
                 'outer_id': sku_val['product__outer_id'],
+                'product_id': sku_val['product_id'],
                 'product_name': sku_val['product__name'],
                 'sku_name': sku_val['properties_name'] or sku_val['properties_alias'],
                 'product_img': sku_val['product__pic_path'],
@@ -549,10 +550,13 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         bill_list = services.get_bills_list(purchase_orderid_list)
         total_in_amount = bill_list and sum([br['in_amount'] for br in bill_list]) or 0
         total_out_amount = bill_list and sum([br['out_amount'] for br in bill_list]) or 0
-
         return Response({'aggregate_details': aggregate_details_list,
-                         'bill_data': {'bills': bill_list, 'total_in_amount': total_in_amount,
-                                       'total_out_amount': total_out_amount}},
+                         'order_group_key': services.gen_order_group_key(purchase_orderid_list),
+                         'bill_data': {
+                             'bills': bill_list,
+                             'total_in_amount': total_in_amount,
+                             'total_out_amount': total_out_amount
+                         }},
                         template_name='forecast/aggregate_billing_detail.html')
 
 

@@ -16,7 +16,7 @@ from flashsale.dinghuo.models import OrderList, OrderDetail
 from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress
 from flashsale.pay.models import CustomerShops, CuShopPros
 from common.utils import update_model_fields
-from .service import FlashSaleService
+from .services import FlashSaleService
 from .options import get_user_unionid
 import logging
 

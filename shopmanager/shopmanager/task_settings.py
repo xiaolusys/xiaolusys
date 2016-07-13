@@ -614,6 +614,10 @@ CELERY_ROUTES = {
         'queue': 'frency',
         'routing_key': 'frency.task_register_code',
     },  # 更新物流信息
+    'shopapp.smsmgr.tasks.task_notify_lack_refund': {
+        'queue': 'frency',
+        'routing_key': 'frency.task_notify_lack_refund',
+    },  # 缺货退款通知
     #######################################################
     'shopapp.asynctask.tasks.PrintAsyncTask': {
         'queue': 'async',

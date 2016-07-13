@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+{% load custom_filter %}
+<html lang="en">
+<head>
+    <title>订货缺货单管理/用户订单退款</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css"  href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+    <style>
+    * {
+        padding: 0 0;
+        margin: 0 0;
+    }
+    .chart-area{
+        float:left;
+    }
+    .chart{
+        margin: 30px 5px;
+        float:left;
+    }
+    .btn-group .btn{
+        display: inline;
+    }
+    #panel-left{
+        border-right: 1px solid #ddd;
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>订货缺货单管理
+            <small>订货单组: {{ order_group_key }}</small>
+        </h1>
+    </div>
+    <div class="row " >
+        <div id="panel-left" class="col-xs-4 pull-left">
+            <table class="table">
+                <thead>
+                    <tr><td class="col-xs-2">图片</td>
+                        <td class="col-xs-4">标题</td>
+                        <td class="col-xs-2">规格</td>
+                        <td class="col-xs-2">缺货数</td>
+                        <td class="col-xs-2">已退数</td></tr>
+                </thead>
+                <tbody>
+                {% for good in lack_orders %}
+                    <tr data-id="lackorder-{{good.id}}">
+                        <td>
+                            <div class="thumbnail">
+                            <img src="{{good.product_img}}?imageMogr2/thumbnail/50/format/jpg/quality/90/crop/50x50">
+                            </div>
+                        </td>
+                        <td>{{good.product_name}}</td>
+                        <td>{{good.sku_name}}</td>
+                        <td>{{good.lack_num}}</td>
+                        <td>{{good.refund_num}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="panel-right" class="col-xs-8 pull-right">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="col-xs-2">收货人</th>
+                        <th class="col-xs-2">电话</th>
+                        <th class="col-xs-3">标题</th>
+                        <th class="col-xs-1">件</th>
+                        <th class="col-xs-2">付款日期</th>
+                        <th class="col-xs-2">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for order in sale_orders %}
+                    <tr data-id="lackorder-{{order.lackorder_id}}">
+                        <td>{{order.receiver_name}}</td>
+                        <td>{{order.receiver_mobile}}</td>
+                        <td>{{order.title}}</td>
+                        <td>{{order.num}}</td>
+                        <td>{{order.pay_time}}</td>
+                        <td>
+                            <div class="btn-group">
+                            {% if order.refund_status > 3 %}
+                                已退款
+                            {% else %}
+                            <button class="btn btn-primary btn-refund" >退款</button>
+                            <button class="btn btn-warning btn-confirm hidden" data-lackorder-id="{{order.lackorder_id}}"
+                                    data-saleorder-id="{{order.id}}" data-refund-num="{{order.num}}">
+                                <i class="glyphicon glyphicon-ok"></i>
+                            </button>
+                            {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+<script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
+<script>
+$(function(){
+    var $oTable = $('#panel-right table').dataTable({
+        "select": false,
+        "bAutoWidth": true,
+        "responsive": true,
+        "scrollCollapse": true,
+        "paging": false,
+        "ordering": true,
+        "info": false,
+        "order": [[4,"desc"]],
+        "oLanguage": {
+            "sSearch": "搜索"
+        }
+    })
+
+    $('#panel-left tbody > tr').click(function(){
+        var $that = $(this);
+        $('#panel-left tbody > tr').removeClass('bg-primary');
+        $that.addClass('bg-primary');
+        $('#panel-right tbody > tr:not([data-id='+ $that.attr('data-id') +'])').addClass('hidden');
+        $('#panel-right tbody > tr[data-id='+ $that.attr('data-id') +']').removeClass('hidden');
+    });
+
+    $('.btn-refund').click(function(){
+        $(this).next().toggleClass('hidden');
+    });
+    $('.btn-confirm').click(function(){
+        var $that = $(this);
+        $that.attr('disabled', true);
+        var lackorder_id = $that.attr('data-lackorder-id');
+        var saleorder_id = $that.attr('data-saleorder-id');
+        var refund_num = $that.attr('data-refund-num');
+        console.log('data:', lackorder_id, saleorder_id, refund_num);
+        $.ajax({
+             type: "POST",
+             url: "/apis/dinghuo/v1/lackorder/"+ lackorder_id +"/refund_order",
+             data: JSON.stringify({
+                saleorder_id:saleorder_id,
+                refund_num:refund_num
+             }),
+             dataType: "json",
+             contentType: 'application/json',
+             success: function(resp){
+                $that.attr('disabled', null);
+                if (resp.code == 0){
+                    console.log('debug data:', resp.result.refund_num,  $('#panel-left tbody > tr[data-id=lackorder-'+ lackorder_id +'] > td'));
+                    $('#panel-left tbody > tr[data-id=lackorder-'+ lackorder_id +'] > td')[4].innerHTML = resp.result.refund_num;
+                    $that.removeClass('btn-primary').addClass('btn-success');
+                }else{
+                    alert('退款异常:'+resp.info);
+                }
+             },
+         });
+    });
+})
+</script>
+
+</div>
+</body>
+</html>

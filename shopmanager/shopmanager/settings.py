@@ -14,7 +14,7 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    ('meixqhi', 'xiuqing.mei@huyi.so'),
+    ('meixqhi', 'xiuqing.mei@xiaolumeimei.com'),
 )
 
 MANAGERS = ADMINS

@@ -48,14 +48,14 @@ class SaleRefund(PayBaseModel):
     REFUND_SUCCESS = REFUND_SUCCESS
 
     REFUND_STATUS = (
-        (NO_REFUND, '没有退款'),
-        (REFUND_WAIT_SELLER_AGREE, '退款待审'),
-        (REFUND_WAIT_RETURN_GOODS, '同意申请'),
-        (REFUND_CONFIRM_GOODS, '退货待收'),
-        (REFUND_REFUSE_BUYER, '拒绝退款'),
-        (REFUND_APPROVE, '等待返款'),
-        (REFUND_CLOSED, '退款关闭'),
-        (REFUND_SUCCESS, '退款成功'),
+        (NO_REFUND, u'没有退款'),
+        (REFUND_WAIT_SELLER_AGREE, u'退款待审'),
+        (REFUND_WAIT_RETURN_GOODS, u'同意申请'),
+        (REFUND_CONFIRM_GOODS, u'退货待收'),
+        (REFUND_REFUSE_BUYER, u'拒绝退款'),
+        (REFUND_APPROVE, u'等待返款'),
+        (REFUND_CLOSED, u'退款关闭'),
+        (REFUND_SUCCESS, u'退款成功'),
     )
 
     REFUNDABLE_STATUS = (REFUND_WAIT_SELLER_AGREE,
@@ -81,18 +81,18 @@ class SaleRefund(PayBaseModel):
     SELLER_OUT_STOCK = 3
 
     GOOD_STATUS_CHOICES = (
-        (BUYER_NOT_RECEIVED, '买家未收到货'),
-        (BUYER_RECEIVED, '买家已收到货'),
-        (BUYER_RETURNED_GOODS, '买家已退货'),
-        (SELLER_OUT_STOCK, '卖家缺货'),
+        (BUYER_NOT_RECEIVED, u'买家未收到货'),
+        (BUYER_RECEIVED, u'买家已收到货'),
+        (BUYER_RETURNED_GOODS, u'买家已退货'),
+        (SELLER_OUT_STOCK, u'卖家缺货'),
     )
 
-    id = models.AutoField(primary_key=True, verbose_name='ID')
+    id = models.AutoField(primary_key=True, verbose_name=u'ID')
     refund_no = models.CharField(max_length=32, unique=True,
                                  default=default_refund_no,
-                                 verbose_name='退款编号')
-    trade_id = models.IntegerField(verbose_name='交易ID')
-    order_id = models.IntegerField(verbose_name='订单ID')
+                                 verbose_name=u'退款编号')
+    trade_id = models.IntegerField(verbose_name=u'交易ID')
+    order_id = models.IntegerField(verbose_name=u'订单ID')
 
     buyer_id = models.BigIntegerField(db_index=True, default=0, verbose_name=u"客户ID")
     refund_id = models.CharField(max_length=28, blank=True, db_index=True, verbose_name=u'P++退款编号')
@@ -103,44 +103,46 @@ class SaleRefund(PayBaseModel):
     refund_channel = models.CharField(max_length=16, db_index=True,
                                choices=constants.CHANNEL_CHOICES, blank=True, verbose_name=u'退款方式')
 
-    item_id = models.BigIntegerField(null=True, default=0, verbose_name='商品ID')
-    title = models.CharField(max_length=64, blank=True, verbose_name='出售标题')
+    item_id = models.BigIntegerField(null=True, default=0, verbose_name=u'商品ID')
+    title = models.CharField(max_length=64, blank=True, verbose_name=u'出售标题')
     ware_by = models.IntegerField(db_index=True, default=0, verbose_name=u'退回仓库')
 
-    sku_id = models.BigIntegerField(null=True, default=0, verbose_name='规格ID')
-    sku_name = models.CharField(max_length=64, blank=True, verbose_name='规格标题')
+    sku_id = models.BigIntegerField(null=True, default=0, verbose_name=u'规格ID')
+    sku_name = models.CharField(max_length=64, blank=True, verbose_name=u'规格标题')
+    refund_num = models.IntegerField(default=0, verbose_name=u'退货数量')
 
-    refund_num = models.IntegerField(default=0, verbose_name='退货数量')
+    buyer_nick = models.CharField(max_length=64, blank=True, verbose_name=u'买家昵称')
+    mobile = models.CharField(max_length=20, db_index=True, blank=True, verbose_name=u'手机')
+    phone = models.CharField(max_length=20, blank=True, verbose_name=u'固话')
 
-    buyer_nick = models.CharField(max_length=64, blank=True, verbose_name='买家昵称')
-    mobile = models.CharField(max_length=20, db_index=True, blank=True, verbose_name='手机')
-    phone = models.CharField(max_length=20, blank=True, verbose_name='固话')
+    total_fee   = models.FloatField(default=0.0, verbose_name=u'总费用')
+    payment     = models.FloatField(default=0.0, verbose_name=u'实付')
+    refund_fee  = models.FloatField(default=0.0, verbose_name=u'退款费用')
+    amount_flow = JSONCharMyField(max_length=512, blank=True, default=u'{"desc":""}', verbose_name=u'退款去向')
+    success_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name=u'退款成功时间')
 
-    total_fee = models.FloatField(default=0.0, verbose_name='总费用')
-    payment = models.FloatField(default=0.0, verbose_name='实付')
-    refund_fee = models.FloatField(default=0.0, verbose_name='退款费用')
-    amount_flow = JSONCharMyField(max_length=512, blank=True,
-                                  default='{"desc":""}',
-                                  verbose_name=u'退款去向')
-    success_time = models.DateTimeField(db_index=True, blank=True, null=True, verbose_name='退款成功时间')
+    company_name = models.CharField(max_length=64, blank=True, verbose_name=u'退回快递公司')
+    sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'退回快递单号')
 
-    company_name = models.CharField(max_length=64, blank=True, verbose_name='退回快递公司')
-    sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name='退回快递单号')
-
-    reason = models.TextField(max_length=200, blank=True, verbose_name='退款原因')
+    reason = models.TextField(max_length=200, blank=True, verbose_name=u'退款原因')
     proof_pic = JSONCharMyField(max_length=10240, default={},
                                 blank=True, null=True, verbose_name=u'佐证图片')
-    desc = models.TextField(max_length=1000, blank=True, verbose_name='描述')
-    feedback = models.TextField(max_length=1000, blank=True, verbose_name='审核意见')
+    desc = models.TextField(max_length=1000, blank=True, verbose_name=u'描述')
+    feedback = models.TextField(max_length=1000, blank=True, verbose_name=u'审核意见')
 
-    has_good_return = models.BooleanField(default=False, verbose_name='有退货')
-    has_good_change = models.BooleanField(default=False, verbose_name='有换货')
+    has_good_return = models.BooleanField(default=False, verbose_name=u'有退货')
+    has_good_change = models.BooleanField(default=False, verbose_name=u'有换货')
+    is_lackrefund   = models.BooleanField(default=False, db_index=True, verbose_name=u'缺货自动退款')
+    lackorder_id    = models.IntegerField(null=True, db_index=True, verbose_name=u'缺货单ID')
 
-    good_status = models.IntegerField(db_index=True, choices=GOOD_STATUS_CHOICES,
-                                      default=BUYER_RECEIVED, blank=True, verbose_name='退货商品状态')
-
-    status = models.IntegerField(db_index=True, choices=REFUND_STATUS,
-                                 default=REFUND_WAIT_SELLER_AGREE, blank=True, verbose_name='退款状态')
+    good_status = models.IntegerField(
+        db_index=True, choices=GOOD_STATUS_CHOICES,
+        default=BUYER_RECEIVED, blank=True, verbose_name=u'退货商品状态'
+    )
+    status = models.IntegerField(
+        db_index=True, choices=REFUND_STATUS,
+        default=REFUND_WAIT_SELLER_AGREE, blank=True, verbose_name=u'退款状态'
+    )
 
     objects = SaleRefundManager()
 

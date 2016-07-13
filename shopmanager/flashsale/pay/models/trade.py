@@ -644,11 +644,11 @@ class SaleOrder(PayBaseModel):
 
     buyer_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'买家ID')
 
-    item_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品ID')
+    item_id = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'商品ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'商品标题')
     price = models.FloatField(default=0.0, verbose_name=u'商品单价')
 
-    sku_id = models.CharField(max_length=20, blank=True, verbose_name=u'属性编码')
+    sku_id = models.CharField(max_length=20, db_index=True, blank=True, verbose_name=u'属性编码')
     num = models.IntegerField(null=True, default=0, verbose_name=u'商品数量')
 
     outer_id = models.CharField(max_length=32, blank=True, verbose_name=u'商品外部编码')
@@ -720,6 +720,9 @@ class SaleOrder(PayBaseModel):
 
     @property
     def refundable(self):
+        return self.get_refundable()
+
+    def get_refundable(self):
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
 
     def do_refund(self):

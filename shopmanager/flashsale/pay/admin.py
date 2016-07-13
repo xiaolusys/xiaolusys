@@ -11,7 +11,7 @@ from core.options import log_action, User, ADDITION, CHANGE
 from core.filters import DateFieldListFilter
 from core.admin import ApproxAdmin, BaseModelAdmin
 from core.managers import ApproxCountQuerySet
-from .service import FlashSaleService
+from .services import FlashSaleService
 from .models import (
     SaleTrade,
     SaleOrder,
@@ -273,13 +273,13 @@ from .tasks import notifyTradeRefundTask
 
 
 class SaleRefundAdmin(BaseModelAdmin):
-    list_display = ('id_link', 'refund_no', 'order_no', 'package_sku_item_link_to', 'channel', 'title', 'sku_id', 'refund_fee',
-                    'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status',
-                    'refund_pro_link')
+    list_display = ('id_link', 'refund_no', 'order_no', 'package_sku_item_link_to', 'channel', 'title',
+                    'sku_id', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'success_time',
+                    'order_status', 'is_lackrefund', 'status', 'refund_pro_link')
 
     list_filter = (
-        'status', 'good_status', 'channel', 'has_good_return', 'has_good_change', Filte_By_Reason, "created",
-        "modified")
+        'status', 'good_status', 'channel', 'is_lackrefund', 'has_good_return', 'has_good_change', Filte_By_Reason,
+        "created", "modified")
     list_display_links = ['refund_no']
     search_fields = ['=refund_no', '=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20
