@@ -21,9 +21,9 @@ class PushMsgTpl(BaseModel):
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.tpl_content)
 
-    def get_emoji_content(self):
+    def get_emoji_content(self, abs_content=None):
         """　获取含emoji的内容 """
         from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 
-        message = match_emoji(self.tpl_content)
+        message = match_emoji(abs_content) if abs_content else match_emoji(self.tpl_content)
         return message

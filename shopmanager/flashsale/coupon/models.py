@@ -368,6 +368,7 @@ class UserCoupon(BaseModel):
     uniq_id = models.CharField(unique=True, max_length=32,  # template_id_customer_id_order_coupon_id_(number_of_tpl)
                                verbose_name=u"优惠券唯一标识")
     status = models.IntegerField(default=UNUSED, choices=USER_COUPON_STATUS, verbose_name=u"使用状态")
+    is_pushed = models.BooleanField(default=False, db_index=True, verbose_name=u'是否推送')
     extras = JSONCharMyField(max_length=1024, default=default_coupon_extras, blank=True, null=True,
                              verbose_name=u"附加信息")
     objects = UserCouponManager()
