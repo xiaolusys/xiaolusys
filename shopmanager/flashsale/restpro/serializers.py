@@ -617,8 +617,25 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
     class Meta:
         model = XiaoluMama
         fields = (
-        "id", "get_cash_display", "charge_status", "agencylevel", "manager", "referal_from", "mobile", "weikefu",
-        "charge_time", 'coulde_cashout')
+            "id", "get_cash_display", "charge_status", "agencylevel", "manager", "referal_from", "mobile", "weikefu",
+            "charge_time", 'coulde_cashout')
+
+
+class XiaoluMamaInfoSerialize(serializers.ModelSerializer):
+    nick = serializers.SerializerMethodField('mama_customer_nick', read_only=True)
+    thumbnail = serializers.SerializerMethodField('mama_customer_thumbnail', read_only=True)
+
+    class Meta:
+        model = XiaoluMama
+        fields = ("id", "agencylevel", "nick", 'thumbnail', "charge_time")
+
+    def mama_customer_nick(self, obj):
+        customer = obj.get_mama_customer()
+        return customer.nick if customer else ''
+
+    def mama_customer_thumbnail(self, obj):
+        customer = obj.get_mama_customer()
+        return customer.thumbnail if customer else ''
 
 
 class CarryLogSerialize(serializers.ModelSerializer):

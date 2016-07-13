@@ -163,6 +163,44 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         data = customers.values('id', 'nick', 'thumbnail')
         return Response(data)
 
+    @list_route(methods=['get'])
+    def get_referal_full_mama(self, request):
+        """
+        当前代理邀请的人数(正式，　非正式)　邀请人的信息（正式非正式）
+        """
+        currentmm = self.filter_queryset(self.get_owner_queryset(request)).first()
+        if not currentmm:
+            return Response([])
+        members = self.queryset.filter(referal_from=currentmm.mobile,
+                                       charge_status=XiaoluMama.CHARGED,
+                                       status=XiaoluMama.EFFECT)
+        full_members = members.filter(last_renew_type__in=[XiaoluMama.HALF, XiaoluMama.FULL])
+        page = self.paginate_queryset(full_members)
+        if page is not None:
+            serializer = serializers.XiaoluMamaInfoSerialize(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.XiaoluMamaInfoSerialize(full_members, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def get_referal_trial_mama(self, request):
+        """
+        当前代理邀请的人数(正式，　非正式)　邀请人的信息（正式非正式）
+        """
+        currentmm = self.filter_queryset(self.get_owner_queryset(request)).first()
+        if not currentmm:
+            return Response([])
+        members = self.queryset.filter(referal_from=currentmm.mobile,
+                                       charge_status=XiaoluMama.CHARGED,
+                                       status=XiaoluMama.EFFECT)
+        trial_members = members.filter(last_renew_type=XiaoluMama.TRIAL)
+        page = self.paginate_queryset(trial_members)
+        if page is not None:
+            serializer = serializers.XiaoluMamaInfoSerialize(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.XiaoluMamaInfoSerialize(trial_members, many=True)
+        return Response(serializer.data)
+
 
 class CarryLogViewSet(viewsets.ModelViewSet):
     """
