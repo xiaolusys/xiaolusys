@@ -152,7 +152,7 @@ def get_bills_list(purchase_orderids):
         br_dict['out_amount'] = 0
         br_dict['in_amount']  = 0
         br_dict['type_name'] = bill.get_type_display()
-        br_dict['status_name'] = bill.bill.get_status_display()
+        br_dict['status_name'] = bill.get_status_display()
         br_dict['pay_method_name'] = bill.get_pay_method_display()
         if br_dict['type'] == Bill.PAY:
             br_dict['out_amount'] = br_dict['plan_amount']
