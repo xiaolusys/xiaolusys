@@ -967,7 +967,9 @@ def trigger_mama_deposit_action(obj, *args, **kwargs):
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 from flashsale.pay.models import SaleTrade
 
-signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action, sender=SaleTrade, dispatch_uid="post_save_renew_mama")
+signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
+                                     sender=SaleTrade,
+                                     dispatch_uid="post_save_trigger_mama_deposit_action")
 
 
 # 首单红包，10单红包
