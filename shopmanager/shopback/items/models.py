@@ -642,8 +642,9 @@ class Product(models.Model):
         if self.offshelf_time != offshelf_time:
             self.offshelf_time = offshelf_time
             update_fields.append('offshelf_time')
-        self.save(update_fields=update_fields)
-        return True
+        if update_fields:
+            self.save(update_fields=update_fields)
+            return True
 
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):
