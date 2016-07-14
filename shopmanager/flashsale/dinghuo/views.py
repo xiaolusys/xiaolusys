@@ -1103,21 +1103,21 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def set_stage_state(self, request, pk):
-        from flashsale.finance.models import Bill,BillRelation
+        from flashsale.finance.models import Bill, BillRelation
         from django.db.models import F
         orderlist = get_object_or_404(OrderList, pk=pk)
         sum = 0
         for i in orderlist.order_list.order_by('id'):
             sum += i.buy_unitprice * i.need_arrival_quantity
         if sum != 0:
-            bill_id = BillRelation.objects.filter(object_id=orderlist.id,type=1).first().bill_id
-            if bill_id and orderlist.bill_method==OrderList.PC_COD_TYPE:
-                Bill.objects.filter(id=bill_id).update(plan_amount=F('plan_amount')-sum,status=Bill.STATUS_PENDING)
+            bill_id = BillRelation.objects.filter(object_id=orderlist.id, type=1).first().bill_id
+            if bill_id and orderlist.bill_method == OrderList.PC_COD_TYPE:
+                Bill.objects.filter(id=bill_id).update(plan_amount=F('plan_amount') - sum, status=Bill.STATUS_PENDING)
                 orderlist.stage = OrderList.STAGE_STATE
                 orderlist.save()
                 return Response({"res": True, "data": [sum], "desc": ""})
-            bill=Bill(type=Bill.RECEIVE,status=Bill.STATUS_PENDING,creater_id=request.user.id,plan_amount=sum,pay_method=Bill.TAOBAO_PAY,
-                        supplier=orderlist.supplier)
+            bill = Bill(type=Bill.RECEIVE, status=Bill.STATUS_PENDING, creater_id=request.user.id, plan_amount=sum,
+                        pay_method=Bill.TAOBAO_PAY, supplier=orderlist.supplier)
             bill.save()
             lack_dict = {orderlist.id: BillRelation.TYPE_DINGHUO_RECEIVE}
             bill.relate_to([orderlist], lack_dict)
@@ -1125,11 +1125,11 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         return Response({"res": True, "data": [sum], "desc": ""})
 
     @detail_route(methods=['get'])
-    def get_back_money(self,request, pk):
-        from flashsale.finance.models import Bill,BillRelation
-        billrelation = BillRelation.objects.filter(object_id=pk,type=2).first()
+    def get_back_money(self, request, pk):
+        from flashsale.finance.models import Bill, BillRelation
+        billrelation = BillRelation.objects.filter(object_id=pk, type=2).first()
         if not billrelation:
-            return Response({"res":True,"data":[],"desc":"没有回款记录"})
+            return Response({"res": True, "data": [], "desc": "没有回款记录"})
         plan_amount = billrelation.bill.plan_amount
         transcation_no = billrelation.bill.transcation_no
         note = billrelation.bill.note
@@ -1141,13 +1141,13 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         transaction_no = request.REQUEST.get("transaction_no")
         attachment = request.REQUEST.get("attachment")
         note = request.REQUEST.get("note")
-        from flashsale.finance.models import Bill,BillRelation
+        from flashsale.finance.models import Bill, BillRelation
         orderlist = OrderList.objects.get(id=pk)
-        if orderlist.bill_method==OrderList.PC_COD_TYPE:
-            return Response({"res":False, "data":[pk],"desc":"货到付款不会生成回款记录,回款金额已在付款中扣除"})
-        bill = BillRelation.objects.get(object_id = pk,type=2).bill
-        bill.plan_amount=plan_amount
-        bill.transcation_no=transaction_no
+        if orderlist.bill_method == OrderList.PC_COD_TYPE:
+            return Response({"res": False, "data": [pk], "desc": "货到付款不会生成回款记录,回款金额已在付款中扣除"})
+        bill = BillRelation.objects.get(object_id=pk, type=2).bill
+        bill.plan_amount = plan_amount
+        bill.transcation_no = transaction_no
         bill.status = Bill.STATUS_DEALED
         bill.note = note
         bill.attachment = attachment

@@ -50,11 +50,11 @@ class BillAdmin(admin.ModelAdmin):
     def action_merge(self, request, queryset):
         n = queryset.count()
         try:
-            if Bill.check_merge(queryset):
-                Bill.merge(queryset, request.user)
-                self.message_user(request, u'本次合并%d个账单' % n)
+            Bill.check_merge(queryset)
+            Bill.merge(queryset, request.user)
+            self.message_user(request, u'本次合并%d个账单' % (n,))
         except Exception, e:
-            self.message_user(request, u'本次合并%d个账单' % e.message)
+            self.message_user(request, e.message)
 
     action_merge.short_description = u'合并账单'
 
