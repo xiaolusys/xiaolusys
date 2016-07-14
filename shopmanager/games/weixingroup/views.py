@@ -49,11 +49,11 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         if not xiaoumama:
             raise exceptions.ValidationError(u'您不是小鹿妈妈或者你的微信号未和小鹿妈妈账号绑定')
         mama_id = xiaoumama.id
-        administrastor_id = request.DATA.get('administrastor_id')
+        administrastor_id = request.POST.get('administrastor_id') or request.GET.get('administrastor_id')
         if GroupMamaAdministrator.objects.filter(mama_id=mama_id).exists():
             admin = GroupMamaAdministrator.objects.filter(mama_id=mama_id).first().admin
         elif administrastor_id:
-            admin = GroupMamaAdministrator.objects.filter(admin_id=administrastor_id).first()
+            admin = XiaoluAdministrator.objects.filter(id=administrastor_id).first()
             if not admin:
                 raise exceptions.NotFound(u'指定的管理员不存在')
         else:
@@ -83,11 +83,11 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         if not xiaoumama:
             raise exceptions.ValidationError(u'您不是小鹿妈妈或者你的微信号未和小鹿妈妈账号绑定')
         mama_id = xiaoumama.id
-        administrastor_id = request.DATA.get('administrastor_id')
+        administrastor_id = request.GET.get('administrastor_id')
         if GroupMamaAdministrator.objects.filter(mama_id=mama_id).exists():
             admin = GroupMamaAdministrator.objects.filter(mama_id=mama_id).first().admin
         elif administrastor_id:
-            admin = GroupMamaAdministrator.objects.filter(admin_id=administrastor_id).first()
+            admin = XiaoluAdministrator.objects.filter(id=administrastor_id).first()
             if not admin:
                 raise exceptions.NotFound(u'指定的管理员不存在')
         else:
