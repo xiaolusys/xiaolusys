@@ -604,8 +604,8 @@ class Product(models.Model):
 
     def upshelf_product(self):
         """ 上架产品 """
-        if not self.is_verify:
-            return False
+        # if not self.is_verify:
+        #     return False
         if self.shelf_status != Product.UP_SHELF:
             self.shelf_status = Product.UP_SHELF
             self.save(update_fields=['shelf_status'])
