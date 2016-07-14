@@ -80,6 +80,16 @@ class GroupMamaAdministrator(BaseModel):
     def modified_display(self):
         return self.modified.strftime("%Y-%m-%d")
 
+    @staticmethod
+    def get_or_create(admin, mama_id):
+        g = GroupMamaAdministrator.objects.filter(admin=admin, mama_id=mama_id).first()
+        if not g:
+            g = GroupMamaAdministrator(
+                admin=admin, mama_id=mama_id, group_uni_key=mama_id
+            )
+            g.save()
+        return g
+
 
 class GroupFans(BaseModel):
     class Meta:
