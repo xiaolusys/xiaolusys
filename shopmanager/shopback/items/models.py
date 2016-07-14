@@ -1070,6 +1070,9 @@ class ProductSku(models.Model):
         # return ProductSku.objects.filter(outer_id=outer_sku_id, product_id=product.id).first()
         return ProductSku.objects.get(outer_id=outer_sku_id, product_id=product.id)
 
+    def is_deposite(self):
+        return self.product.outer_id.startswith(DIPOSITE_CODE_PREFIX)
+
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
