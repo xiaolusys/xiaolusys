@@ -101,7 +101,7 @@ class GroupFans(BaseModel):
     user_id = models.IntegerField(null=True, verbose_name=u'关联用户')
     head_img_url = models.CharField(max_length=100, verbose_name=u'用户微信头像')
     nick = models.CharField(max_length=100, verbose_name=u'用户微信昵称')
-    union_id = models.CharField(max_length=100, verbose_name=u'用户微信unionid')
+    union_id = models.CharField(max_length=100, verbose_name=u'用户微信unionid', unique=True)
     open_id = models.CharField(max_length=100, verbose_name=u'用户微信openid')
 
     def create(self, group, user_id, head_img_url, nick, union_id, open_id):
