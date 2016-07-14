@@ -117,6 +117,8 @@ class Bill(BaseModel):
             status=status
         )
         merged_bill.save()
+        for bill in bills:
+            bill.merge_to(merged_bill)
 
     def merge_to(self, bill):
         for bill_relation in self.billrelation_set.all():

@@ -1051,6 +1051,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                    'default': u'订单不在可支付状态'}
         channel = request.POST.get('channel','')
         instance = self.get_object()
+        logger.warn('charge:%s, %s' % (instance.tid, request.POST))
         if channel and channel != instance.channel:
             instance.channel = channel
             instance.save(update_fields=['channel'])
@@ -1061,16 +1062,24 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if not instance.is_payable():
             return Response({'code': 2, 'info': _errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS)})
 
-        if instance.channel == SaleTrade.WALLET:
-            # 小鹿钱包支付
-            response_charge = self.wallet_charge(instance)
-        elif instance.channel == SaleTrade.BUDGET:
-            # 小鹿钱包
-            response_charge = self.budget_charge(instance)
-        else:
-            # pingpp 支付
-            response_charge = self.pingpp_charge(instance)
-        log_action(request.user.id, instance, CHANGE, u'重新支付')
+        try:
+            if instance.channel == SaleTrade.WALLET:
+                # 小鹿钱包支付
+                response_charge = self.wallet_charge(instance)
+            elif instance.channel == SaleTrade.BUDGET:
+                # 小鹿钱包
+                response_charge = self.budget_charge(instance)
+            else:
+                # pingpp 支付
+                response_charge = self.pingpp_charge(instance)
+        except IntegrityError, exc:
+            logger.error('charge duplicate entry:uuid=%s,channel=%s,err=%s' % (
+                instance.tid, instance.channel, exc.message), exc_info=True)
+            return Response({'code': 9, 'info': u'订单重复提交'})
+        except Exception, exc:
+            logger.error('charge error:uuid=%s,channel=%s,err=%s' % (instance.tid, channel, exc.message), exc_info=True)
+            return Response({'code': 6, 'info': exc.message or u'未知支付异常'})
+
         return Response({'code': 0, 'info': u'支付成功','channel':instance.channel,
                          'trade':{'id':instance.id, 'tid':instance.tid, 'channel':instance.channel,},
                          'charge': response_charge})

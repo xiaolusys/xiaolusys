@@ -1,9 +1,11 @@
 # -*- coding:utf8 -*-
 import time
 import datetime
+from django.db.models import F
+from django.db import IntegrityError
+from django.forms.models import model_to_dict
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
-from django.conf import settings
 from django.db import transaction
 
 from rest_framework import viewsets
@@ -30,9 +32,7 @@ from flashsale.coupon import serializers as coupon_serializers
 from . import permissions as perms
 from . import serializers
 from .exceptions import rest_exception
-from django.db.models import F
 from flashsale.pay.saledao import getUserSkuNumByLast24Hours
-from django.forms.models import model_to_dict
 from shopback.items.models import Product, ProductSku
 from core.options import log_action, ADDITION, CHANGE
 from shopapp.weixin import options
@@ -1091,16 +1091,24 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if not instance.is_payable():
             raise exceptions.APIException(_errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS))
 
-        if instance.channel == SaleTrade.WALLET:
-            # 小鹿钱包支付
-            response_charge = self.wallet_charge(instance)
-        elif instance.channel == SaleTrade.BUDGET:
-            # 小鹿钱包
-            response_charge = self.budget_charge(instance)
-        else:
-            # pingpp 支付
-            response_charge = self.pingpp_charge(instance)
-        log_action(request.user.id, instance, CHANGE, u'重新支付')
+        try:
+            if instance.channel == SaleTrade.WALLET:
+                # 小鹿钱包支付
+                response_charge = self.wallet_charge(instance)
+            elif instance.channel == SaleTrade.BUDGET:
+                # 小鹿钱包
+                response_charge = self.budget_charge(instance)
+            else:
+                # pingpp 支付
+                response_charge = self.pingpp_charge(instance)
+        except IntegrityError, exc:
+            logger.error('charge duplicate entry:uuid=%s,channel=%s,err=%s' % (
+                instance.tid, instance.channel, exc.message), exc_info=True)
+            return Response({'code': 9, 'info': u'订单重复提交'})
+        except Exception, exc:
+            logger.error('charge error:uuid=%s,channel=%s,err=%s' % (
+                instance.tid, instance.channel, exc.message), exc_info=True)
+            return Response({'code': 6, 'info': exc.message or u'未知支付异常'})
         return Response(response_charge)
 
     def perform_destroy(self, instance):

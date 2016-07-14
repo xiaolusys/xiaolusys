@@ -75,7 +75,6 @@ class SMSRecord(models.Model):
     platform = models.ForeignKey(SMSPlatform, null=True, default=None, related_name='sms_records', verbose_name=u'短信服务商')
 
     task_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), verbose_name=u'类型')
-
     task_id = models.CharField(null=True, blank=True, default='', max_length=128, verbose_name=u'服务商返回任务ID')
     task_name = models.CharField(null=True, blank=True, default='', max_length=256, verbose_name=u'任务标题')
     mobiles = models.TextField(null=True, blank=True, default='', verbose_name='发送号码')

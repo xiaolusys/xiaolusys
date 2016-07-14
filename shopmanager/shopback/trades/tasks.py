@@ -1000,8 +1000,11 @@ def task_update_package_order(instance):
             package_order = PackageOrder.objects.filter(id=package_order_id).first()
             if not package_order:
                 PackageOrder.create(package_order_id, sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS,
-                                                    instance)
+                                    instance)
             else:
+                logger.error(
+                    'package order send error:' + package_order.id + '|sku item' + str(instance.id) + '|' + str(
+                        package_order.sys_status))
                 PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id,
                                                                      package_order_pid=package_order.pid)
                 package_order.set_redo_sign(save_data=False)
@@ -1209,9 +1212,10 @@ def create_assign_check_log(time_from, uni_key):
 
 def create_stock_not_assign_check_log(time_from, uni_key):
     from shopback.items.models_stats import ProductSkuStats
-    stock_not_assign_num = ProductSkuStats.objects.filter(assign_num__gt=F('history_quantity') + F('inbound_quantity') + F(
-                                                    'adjust_quantity') + F('return_quantity') - F('post_num') - F(
-                                                    'rg_quantity')).count()
+    stock_not_assign_num = ProductSkuStats.objects.filter(
+        assign_num__gt=F('history_quantity') + F('inbound_quantity') + F(
+            'adjust_quantity') + F('return_quantity') - F('post_num') - F(
+            'rg_quantity')).count()
     empty_package_count = 0
     for p in PackageOrder.objects.filter(
             sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS,
@@ -1279,6 +1283,7 @@ def task_schedule_check_stock_not_assign():
 @task()
 def task_schedule_check_waitingpay_cnt():
     realtime_check(SaleOrderSyncLog.SALE_ORDER_WAITING_PAY, create_waitingpay_cnt_check_log)
+
 
 @task()
 def task_schedule_check_shoppingcart_cnt():
