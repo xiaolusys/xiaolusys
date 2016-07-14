@@ -60,6 +60,39 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         group = GroupMamaAdministrator.objects.get_or_create(admin=admin, mama_id=mama_id)
         return Response(self.get_serializer(admin).data)
 
+    @list_route(methods=['POST', 'GET'])
+    def mamawx_join(self, request):
+        if not request.user.is_anonymous():
+            xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
+        else:
+            # 1. check whether event_id is valid
+            self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+            # 2. get openid from cookie
+            openid, unionid = self.get_cookie_openid_and_unoinid(request)
+            if not self.valid_openid(unionid):
+                # 3. get openid from gf'debug' or from using 'code' (if code exists)
+                userinfo = self.get_auth_userinfo(request)
+                unionid = userinfo.get("unionid")
+                openid = userinfo.get("openid")
+                if not self.valid_openid(unionid):
+                    # 4. if we still dont have openid, we have to do oauth
+                    redirect_url = self.get_snsuserinfo_redirct_url(request)
+                    return redirect(redirect_url)
+            xiaoumama = XiaoluMama.objects.filter(openid=unionid).first()
+        if not xiaoumama:
+            raise exceptions.ValidationError(u'您不是小鹿妈妈或者你的微信号未和小鹿妈妈账号绑定')
+        mama_id = xiaoumama.id
+        administrastor_id = request.POST.get('administrastor_id')
+        if GroupMamaAdministrator.objects.filter(mama_id=mama_id).exists():
+            admin = GroupMamaAdministrator.objects.filter(mama_id=mama_id).first().admin
+        elif administrastor_id:
+            admin = GroupMamaAdministrator.objects.filter(id=administrastor_id).first()
+            if not admin:
+                raise exceptions.NotFound(u'指定的管理员不存在')
+        else:
+            admin = XiaoluAdministrator.get_group_mincnt_admin()
+        return redirect("/july_event/html/mama_attenders.html?unionid=" + xiaoumama.openid)
+
     @list_route(methods=['GET'])
     def get_xiaolu_administrator(self, request):
         administrastor_id = request.GET.get('administrastor_id')
@@ -103,7 +136,7 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
         res['admin'] = XiaoluAdministratorSerializers(admin).data
         res['groups'] = self.get_serializer(groups, many=True).data
         res = Response(res)
-        res['Acces-Control-Allow-Origin'] = '*'
+        res['Access-Control-Allow-Origin'] = '*'
         return res
 
 

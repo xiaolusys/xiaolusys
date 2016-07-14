@@ -8,7 +8,7 @@ from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, Acti
 
 class XiaoluAdministratorAdmin(BaseModelAdmin):
     search_fields = ['id', 'user_id', 'name', 'nick']
-    list_display = ['user_id', 'username', 'nick']
+    list_display = ['id', 'user_id', 'username', 'nick']
     list_filter = ['status']
 
 
