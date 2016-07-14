@@ -2,12 +2,14 @@
 import datetime
 import random
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 
 from core.models import BaseModel
 from core.utils.unikey import uniqid
 
 from .. import constants
+import logging
+logger = logging.getLogger(__name__)
 
 def default_forecast_inbound_no(identify_id = None):
     identify_id  = identify_id or uniqid()
@@ -139,8 +141,19 @@ class ForecastInbound(BaseModel):
         self.status = self.ST_CLOSE
 
 
-def modify_forecastinbound_data(sender, instance, created, **kwargs):
+def pre_save_update_forecastinbound_data(sender, instance, raw, *args, **kwargs):
+    logger.info('forecast pre_save:%s, %s'%(raw, instance))
+    detail_list_num = instance.normal_details.values_list('forecast_arrive_num', flat=True)
+    forecast_arrive_num = sum(detail_list_num)
+    instance.total_forecast_num = forecast_arrive_num
 
+pre_save.connect(
+    pre_save_update_forecastinbound_data,
+    sender=ForecastInbound,
+    dispatch_uid='pre_save_update_forecastinbound_data')
+
+def modify_forecastinbound_data(sender, instance, created, *args, **kwargs):
+    logger.info('forecast post_save:%s, %s'%(created, instance))
     if (instance.express_no and
         not instance.delivery_time and
         instance.status == ForecastInbound.ST_APPROVED):
@@ -150,6 +163,11 @@ def modify_forecastinbound_data(sender, instance, created, **kwargs):
     # refresh forecast stats
     from .. import tasks
     tasks.task_forecast_update_stats_data.delay(instance.id)
+
+    # 更新orderlist order_group_key
+    inbound_order_set = instance.relate_order_set.values_list('id', flat=True)
+    from flashsale.dinghuo.tasks import task_update_order_group_key
+    task_update_order_group_key.delay(inbound_order_set)
 
 post_save.connect(
     modify_forecastinbound_data,
@@ -210,11 +228,7 @@ class ForecastInboundDetail(BaseModel):
 
 
 def update_forecastinbound_data(sender, instance, created, **kwargs):
-    forecast_inbound = instance.forecast_inbound
-
-    forecast_num = sum(forecast_inbound.normal_details.values_list('forecast_arrive_num',flat=True))
-    forecast_inbound.total_forecast_num = forecast_num
-    forecast_inbound.save(update_fields=['total_forecast_num'])
+    pass
 
 post_save.connect(
     update_forecastinbound_data,

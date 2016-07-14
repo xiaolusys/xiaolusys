@@ -1,15 +1,9 @@
 # -*- coding:utf-8 -*-
+import datetime
 from celery.task import task
 from shopback.items.models import Product, ProductSku
-from flashsale.dinghuo.models_stats import SupplyChainDataStats
 from flashsale.dinghuo.models import OrderDetail, OrderList
-import functions
-import datetime
-import function_of_task
-import urllib2
-import re
-from django.db import connection
-import sys
+
 from supplychain.supplier.models import SaleProduct
 from core.options import log_action, CHANGE, get_systemoa_user
 
@@ -34,3 +28,7 @@ def task_dinghuo_supplier():
             one_dinghuo.supplier_shop = supplier
             one_dinghuo.save()
             log_action(get_systemoa_user().id, one_dinghuo, CHANGE, u'修改供应商')
+
+
+
+

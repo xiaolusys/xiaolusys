@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import datetime
+from collections import defaultdict
 from django.db import transaction
 from django.forms import model_to_dict
 from django.db.models import Sum, Avg, Min
@@ -14,6 +15,11 @@ from .models import (
     RealInbound,
     RealInboundDetail
 )
+from supplychain.supplier.models import SaleSupplier
+from core.utils import flatten
+
+import logging
+logger = logging.getLogger(__name__)
 
 class AggregateDataException(BaseException):
     pass
@@ -31,33 +37,12 @@ def get_purchaseorder_data(order_id):
         return order_data
 
     order = OrderList.objects.get(id=order_id)
-    order_details = order.order_list.all()
-    detail_dict_list = []
-    for detail in order_details:
-        detail_dict = {
-            'id': detail.id,
-            'product_id': detail.product_id,
-            'sku_id': detail.chichu_id,
-            'product_name': detail.product_name,
-            'sku_name': detail.product_chicun,
-            'purchase_num': detail.buy_quantity
-        }
-        detail_dict_list.append(detail_dict)
-    pt = order.last_pay_date
-    pt = pt and datetime.datetime(pt.year, pt.month, pt.day)
-    order_data = {
-        'id': order.id,
-        'supplier': serializers.SupplierSerializer(order.supplier).data,
-        'purchaser': order.buyer_name,
-        'post_district': order.p_district,
-        'receiver': order.receiver,
-        'created': order.created,
-        'purchase_time': pt,
-        'memo': order.note,
-        'sys_status': order.sys_status,
-        'sys_status_name': order.status_name,
-        'total_detail_num': order.total_detail_num
-    }
+    order_data = model_to_dict(order, fields=[
+        'id', 'supplier_id', 'buyer_name', 'receiver', 'created', 'sys_status',
+        'last_pay_date', 'note', 'purchase_total_num', 'order_group_key'
+    ])
+    orderlist_status_map = dict(OrderList.SYS_STATUS_CHOICES)
+    order_data['sys_status_name'] = orderlist_status_map.get(order_data['sys_status'])
     cache.set(cache_key, order_data, 60)
     return order_data
 
@@ -79,12 +64,13 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     if staff_name and staff_name.strip():
         order_list = order_list.filter(buyer__username=staff_name)
 
-    order_ids = order_list.values_list('id', flat=True)
-    order_dict_list = []
-    for order_id in order_ids:
-        order_dict = get_purchaseorder_data(order_id)
-        order_dict_list.append(order_dict)
-
+    order_dict_list = order_list.values(
+        'id', 'supplier_id', 'buyer_name', 'receiver', 'created', 'sys_status',
+        'last_pay_date', 'note', 'purchase_total_num', 'order_group_key'
+    )
+    orderlist_status_map = dict(OrderList.SYS_STATUS_CHOICES)
+    for order_data in order_dict_list:
+        order_data['status_name'] = orderlist_status_map.get(order_data['sys_status'])
     return order_dict_list
 
 
@@ -152,8 +138,8 @@ def get_bills_list(purchase_orderids):
         br_dict['out_amount'] = 0
         br_dict['in_amount']  = 0
         br_dict['type_name'] = bill.get_type_display()
-        br_dict['status_name'] = bill.get_status_display()
-        br_dict['pay_method_name'] = bill.get_pay_method_display()
+        br_dict['status_name'] = bill.bill.get_status_display()
+        br_dict['pay_method_name'] = br.get_pay_method_display()
         if br_dict['type'] == Bill.PAY:
             br_dict['out_amount'] = br_dict['plan_amount']
         elif br_dict['type'] == Bill.RECEIVE:
@@ -163,7 +149,7 @@ def get_bills_list(purchase_orderids):
 
 @transaction.atomic
 def strip_forecast_inbound(forecast_inbound_id):
-
+    """ 将预测到货单商未到货的商品剥离出来 """
     forecast_inbound = ForecastInbound.objects.get(id=forecast_inbound_id)
 
     # 如果有多个到货单关联一个预测单，需要聚合计算
@@ -208,6 +194,28 @@ def strip_forecast_inbound(forecast_inbound_id):
     return None
 
 
+def recursive_aggragate_orders(order_ids, aggregate_set):
+    """ recursive aggregate orderlist """
+    unorder_ids = []
+    for order_id in order_ids:
+        if order_id in aggregate_set:
+            continue
+        aggregate_set.add(order_id)
+        unorder_ids.append(order_id)
+
+    if not unorder_ids:
+        return
+
+    forecast_inbounds = get_normal_forecast_inbound_by_orderid(unorder_ids)
+    order_ids = forecast_inbounds.values_list('relate_order_set', flat=True)
+    recursive_aggragate_orders(order_ids, aggregate_set)
+
+    # aggregate order from real inbound
+    real_inbounds = get_normal_realinbound_by_orderid(unorder_ids)
+    order_ids = real_inbounds.values_list('relate_order_set', flat=True)
+    recursive_aggragate_orders(order_ids, aggregate_set)
+
+
 class AggregateForcecastOrderAndInbound(object):
 
     def __init__(self, purchase_orders):
@@ -217,8 +225,9 @@ class AggregateForcecastOrderAndInbound(object):
         self.aggregate_set  = set()
         self.supplier_unarrival_dict = {}
 
+    ##################################### discart #####################################
     def recursive_aggragate_order(self, order_id, aggregate_id_set):
-
+        """ discard """
         if order_id in self.aggregate_set:
             return
         self.aggregate_set.add(order_id)
@@ -259,6 +268,38 @@ class AggregateForcecastOrderAndInbound(object):
         aggregate_set_list.extend(self.supplier_unarrival_dict.values())
         return aggregate_set_list
 
+    ##################################### status tag #####################################
+    def is_arrival_timeout(self, forecast_data):
+        tnow = datetime.datetime.now()
+        if forecast_data['status'] in (ForecastInbound.ST_APPROVED, ForecastInbound.ST_DRAFT) and \
+                (not forecast_data['forecast_arrive_time'] or forecast_data['forecast_arrive_time'] < tnow):
+            return True
+        if forecast_data['status'] == ForecastInbound.ST_TIMEOUT:
+            return True
+        return False
+
+    def is_unrecord_logistic(self, forecast_data):
+        return forecast_data['status'] in (ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED) \
+               and forecast_data['express_code'] == '' and forecast_data['express_no'] == ''
+
+    def is_inthedelivery(self, forecast_data):
+        return forecast_data['status'] in (ForecastInbound.ST_DRAFT, ForecastInbound.ST_APPROVED)
+
+    def is_arrival_except(self, forecast_data):
+        return forecast_data['has_lack'] or forecast_data['has_defact'] or \
+               forecast_data['has_overhead'] or forecast_data['has_wrong']
+
+    ##################################### extras func #####################################
+
+    def get_group_keyset(self):
+        return set([ol['order_group_key'] for ol in self.aggregate_orders_dict.values()])
+
+    def flatten_group_keyset(self, group_keyset):
+        key_set = flatten([key.strip('-').split('-') for key in group_keyset if key.strip('-')])
+        return [int(key) for key in key_set]
+
+    ##################################### core section #####################################
+
     def aggregate_data(self):
         """根据供应商的订货单分组
         １，　入仓的订货单根据预测单继续聚合分组；
@@ -267,66 +308,83 @@ class AggregateForcecastOrderAndInbound(object):
         if hasattr(self, '_aggregate_data_'):
             return self._aggregate_data_
 
-        import time
-        start_time = time.time()
         aggregate_dict_list = []
-        aggregate_set_list = self.aggregate_order_set()
+        order_group_keyset = self.get_group_keyset()
+        order_keylist = self.flatten_group_keyset(order_group_keyset)
+        order_keyset  = set(order_keylist)
 
-        print 'time1:', time.time() - start_time
-        start_time = time.time()
-        for aggregate_id_set in aggregate_set_list:
+        supplier_ids = [order['supplier_id'] for order in self.aggregate_orders_dict.values()]
+        supplier_values = SaleSupplier.objects.filter(id__in=supplier_ids).values(
+            'id', 'supplier_name', 'supplier_code')
+        supplier_dict_data = dict([(s['id'], s) for s in supplier_values])
+
+        logger.info('aggregate key len: list=%s, set=%s'%(len(order_keylist), len(order_keyset)))
+        forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=order_keyset)
+        forecast_values = forecast_inbounds.values(
+            'id', 'relate_order_set','supplier_id', 'express_code', 'express_no', 'forecast_arrive_time',
+            'total_forecast_num', 'total_arrival_num', 'purchaser', 'status',
+            'memo', 'has_lack', 'has_defact', 'has_overhead', 'has_wrong'
+        )
+        forecast_status_map = dict(ForecastInbound.STATUS_CHOICES)
+        aggregate_forecast_dict = defaultdict(list)
+        for value in forecast_values:
+            value['status_name'] = forecast_status_map.get(value['status'])
+            aggregate_forecast_dict[value['relate_order_set']].append(value)
+
+        real_inbounds = RealInbound.objects.filter(relate_order_set__in=order_keyset)
+        realinbound_values = real_inbounds.values(
+            'id', 'relate_order_set','supplier_id', 'wave_no', 'ware_house', 'express_code', 'express_no',
+            'creator', 'inspector', 'total_inbound_num', 'total_inferior_num', 'created', 'memo', 'status'
+        )
+        realinbound_status_map = dict(RealInbound.STATUS_CHOICES)
+        aggregate_realinbound_dict = defaultdict(list)
+        for value in realinbound_values:
+            value['status_name'] = realinbound_status_map.get(value['status'])
+            aggregate_realinbound_dict[value['relate_order_set']].append(value)
+
+        # TODO value list出所有的预测单及到货单
+        for group_key in order_group_keyset:
+            aggregate_id_set = self.flatten_group_keyset([group_key])
+            if not aggregate_id_set:
+                continue
             aggregate_orders = []
             for order_id in aggregate_id_set:
-                forecast_inbounds = get_normal_forecast_inbound_by_orderid([order_id])
                 if order_id in self.aggregate_orders_dict:
                     order_dict = self.aggregate_orders_dict[order_id]
                 else:
                     order_dict = get_purchaseorder_data(order_id)
-                order_dict['relate_forecasts'] = forecast_inbounds.values_list('id', flat=True)
                 aggregate_orders.append(order_dict)
 
-            aggregate_forecasts = []
             is_unarrive_intime = False
             is_unrecord_logistic = False
             is_billingable = True
             is_arrivalexcept = False
-
-            real_inbound_qs = get_normal_realinbound_by_orderid(aggregate_id_set)
-            inbounds_data = serializers.SimpleRealInboundSerializer(real_inbound_qs, many=True).data
-            aggregate_inbounds_dict = dict([(ib['id'], ib) for ib in inbounds_data])
-
-            forecast_inbound_qs = get_normal_forecast_inbound_by_orderid(aggregate_id_set)
-            for forecast in forecast_inbound_qs:
-                forecast_data = serializers.SimpleForecastInboundSerializer(forecast).data
-
-                real_inbound_qs = get_normal_realinbound_by_forecastid([forecast.id])
-                inbounds_data = serializers.SimpleRealInboundSerializer(real_inbound_qs, many=True).data
-
-                forecast_data['relate_inbounds']  = real_inbound_qs.values_list('id', flat=True)
-                forecast_data['is_unarrive_intime']   = forecast.is_arrival_timeout()
-                forecast_data['is_unrecord_logistic'] = forecast.is_unrecord_logistic()
+            forecast_orders = flatten([aggregate_forecast_dict.get(key) for key in aggregate_id_set
+                                       if aggregate_forecast_dict.has_key(key)])
+            distinct_forecast_orders = dict([(fo['id'], fo) for fo in forecast_orders]).values()
+            for forecast_data in distinct_forecast_orders:
+                forecast_data['is_unarrive_intime']   = self.is_arrival_timeout(forecast_data)
+                forecast_data['is_unrecord_logistic'] = self.is_unrecord_logistic(forecast_data)
                 is_unarrive_intime |= forecast_data['is_unarrive_intime']
                 is_unrecord_logistic |= forecast_data['is_unrecord_logistic']
-                is_billingable &= not forecast.is_inthedelivery()
-                is_arrivalexcept |= forecast.is_arrival_except()
+                is_billingable &= not self.is_inthedelivery(forecast_data)
+                is_arrivalexcept |= self.is_arrival_except(forecast_data)
 
-                aggregate_forecasts.append(forecast_data)
-                for ib in inbounds_data:
-                    if ib['id'] not in aggregate_inbounds_dict:
-                        aggregate_inbounds_dict.update({ib['id']:ib})
+            realinbound_orders = flatten([aggregate_realinbound_dict.get(key) for key in aggregate_id_set
+                                          if aggregate_realinbound_dict.has_key(key)])
+            distinct_realinbound_orders = dict([(fo['id'], fo) for fo in realinbound_orders]).values()
 
             aggregate_dict_list.append({
+                'order_group_key': group_key,
                 'purchase_orders': aggregate_orders,
-                'forecast_inbounds': aggregate_forecasts,
-                'real_inbounds': aggregate_inbounds_dict.values(),
+                'forecast_inbounds': distinct_forecast_orders,
+                'real_inbounds': distinct_realinbound_orders,
                 'is_unarrive_intime': is_unarrive_intime,
                 'is_unrecord_logistic': is_unrecord_logistic,
                 'is_billingable': is_billingable,
                 'is_arrivalexcept': is_arrivalexcept,
-                'supplier': aggregate_orders[0]['supplier']
+                'supplier': supplier_dict_data.get(aggregate_orders[0]['supplier_id'])
             })
-
-        print 'time2:', time.time() - start_time
         self._aggregate_data_ = aggregate_dict_list
         return self._aggregate_data_
 

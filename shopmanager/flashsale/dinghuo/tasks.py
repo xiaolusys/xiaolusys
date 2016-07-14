@@ -13,7 +13,7 @@ from django.db.models import Max, Sum
 
 import common.constants
 from core.options import log_action, ADDITION, CHANGE
-from flashsale.dinghuo.models import OrderDetail, OrderList
+from flashsale.dinghuo.models import OrderDetail, OrderList, gen_purchase_order_group_key
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, PayToPackStats
 from flashsale.pay.models import SaleOrder
 
@@ -23,9 +23,21 @@ from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
 
 from . import function_of_task, functions
-import logging
 
+import logging
 logger = logging.getLogger(__name__)
+
+
+@task(max_retries=3, default_retry_delay=5)
+def task_update_order_group_key(order_ids):
+    """ order ids 更新 order group key """
+    order_id_set = set()
+    from flashsale.forecast import services
+    services.recursive_aggragate_orders(order_ids, order_id_set)
+
+    order_group_key = gen_purchase_order_group_key(order_id_set)
+    OrderList.objects.filter(id__in=order_id_set).update(order_group_key=order_group_key)
+    logger.info('task_update_order_group_key:order_ids=%s, group_key=%s' % (order_id_set, order_group_key))
 
 
 @task(max_retries=3, default_retry_delay=5)

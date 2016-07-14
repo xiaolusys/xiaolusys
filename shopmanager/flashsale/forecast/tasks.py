@@ -16,6 +16,11 @@ def task_forecast_update_stats_data(finbound_id):
     try:
         forecast_inbound = ForecastInbound.objects.get(id=finbound_id)
 
+        purchase_orders = forecast_inbound.relate_order_set.all()
+        purchase_order  = purchase_orders.first()
+        if not purchase_order:
+            return
+
         stats = ForecastStats.objects.filter(forecast_inbound=forecast_inbound,
                               supplier=forecast_inbound.supplier).first()
         if not stats:
@@ -34,11 +39,11 @@ def task_forecast_update_stats_data(finbound_id):
         stats.lack_num = min(0, forecast_inbound.total_forecast_num - forecast_inbound.total_arrival_num)
         # TODO@meron , real lack maybe summary all details lacknum, not total num
 
-        purchase_orders = forecast_inbound.relate_order_set.all()
+
         purchase_details = services.get_purchaseorder_detail_data(purchase_orders)
         purchase_details_dict = dict([(int(o['chichu_id']), o) for o in purchase_details])
 
-        stats.purchaser = purchase_orders.first().get_buyer_name()
+        stats.purchaser = purchase_order.get_buyer_name()
         total_amount = 0
         for detail in forecast_inbound.normal_details:
             purchase_detail = purchase_details_dict.get(detail.sku_id, {})
