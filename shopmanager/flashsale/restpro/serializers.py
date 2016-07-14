@@ -633,12 +633,20 @@ from flashsale.xiaolumm.models_fortune import AwardCarry
 
 class XiaoluMamaSerialize(serializers.ModelSerializer):
     coulde_cashout = serializers.FloatField(source='get_cash_iters', read_only=True)
+    can_trial = serializers.SerializerMethodField('can_trial_judgement', read_only=True)
 
     class Meta:
         model = XiaoluMama
         fields = (
             "id", "get_cash_display", "charge_status", "agencylevel", "manager", "referal_from", "mobile", "weikefu",
-            "charge_time", 'coulde_cashout', 'last_renew_type')
+            "charge_time", 'coulde_cashout', 'last_renew_type', 'can_trial')
+
+    def can_trial_judgement(self, obj):
+        if obj.last_renew_type == XiaoluMama.TRIAL:
+            return False
+        if obj.charge_status == XiaoluMama.CHARGED:
+            return False
+        return True
 
 
 class XiaoluMamaInfoSerialize(serializers.ModelSerializer):
