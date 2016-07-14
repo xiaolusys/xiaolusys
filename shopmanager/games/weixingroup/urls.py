@@ -7,6 +7,6 @@ from .views import XiaoluAdministratorViewSet, GroupMamaAdministratorViewSet, Li
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'xiaoluadministrator', XiaoluAdministratorViewSet)
 router.register(r'mamagroups', GroupMamaAdministratorViewSet)
-router.register(r'liangxiactivity', LiangXiActivityViewSet)
+router.register(r'liangxi', LiangXiActivityViewSet)
 
 urlpatterns = router.urls
