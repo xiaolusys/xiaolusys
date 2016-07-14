@@ -635,8 +635,7 @@ post_save.connect(update_saleproduct_supplier, SaleProductManageDetail)
 
 
 def sync_product_detail_count(sender, instance, raw, *args, **kwargs):
-    """ 同步：　Productdetail　的　order_weight　字段
-    product_detail
+    """ 同步：　Productdetail　的　数量　字段
     """
     manager = instance.schedule_manage
     detail_count = manager.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL)

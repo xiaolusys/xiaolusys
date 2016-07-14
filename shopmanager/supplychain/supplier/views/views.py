@@ -911,6 +911,9 @@ class ScheduleDetailAPIView(APIView):
                 if typed_value < 0 or typed_value > 100:
                     return Response({'error': '参数错误'})
                 else:
+                    schedule_detail.order_weight = typed_value
+                    schedule_detail.save(update_fields=['order_weight'])
+                    log_action(request.user.id, schedule_detail, CHANGE, u'修改权重: %d' % typed_value)
                     for product in Product.objects.filter(sale_product=_id,
                                                           status='normal'):
                         product_detail, _ = Productdetail.objects.get_or_create(
