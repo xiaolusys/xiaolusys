@@ -21,6 +21,7 @@ class District(PayBaseModel):
     parent_id = models.IntegerField(null=False, default=0, db_index=True, verbose_name=u'父ID')
     name = models.CharField(max_length=32, blank=True, verbose_name=u'地址名')
 
+    zipcode = models.CharField(max_length=16, blank=True, verbose_name=u'邮政编码')
     grade = models.IntegerField(default=0, choices=STAGE_CHOICES, verbose_name=u'等级')
     sort_order = models.IntegerField(default=0, verbose_name=u'优先级')
 
@@ -46,6 +47,22 @@ class District(PayBaseModel):
                 return '%s,%s' % (dist.full_name, self.name)
         return self.name
 
+class DistrictUpdateVersion(PayBaseModel):
+
+    version = models.CharField(max_length=32, unique=True, verbose_name=u'版本号')
+    download_url = models.CharField(max_length=256, blank=True, verbose_name=u'下载链接')
+    hash256 = models.CharField(max_length='128', blank=True, verbose_name=u'hash256值')
+    memo = models.TextField(blank=True, verbose_name=u'备注')
+    status = models.BooleanField(default=False, verbose_name=u'生效')
+
+    class Meta:
+        db_table = 'flashsale_district_version'
+        app_label = 'pay'
+        verbose_name = u'地址/区划版本'
+        verbose_name_plural = u'地址/区划版本更新列表'
+
+    def __unicode__(self):
+        return '<%s, %s>' % (self.id, self.version)
 
 class UserAddress(BaseModel):
     NORMAL = 'normal'
