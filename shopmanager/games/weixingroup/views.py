@@ -120,7 +120,7 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
 
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
-        group = get_object_or_404(GroupMamaAdministrator, pk=pk)
+        group = get_object_or_404(GroupMamaAdministrator, group_uni_key=pk)
         res = self.get_serializer(group).data
         res['mama'] = XiaoluMamaSerializer(group.mama).data
         return Response(res)
@@ -161,13 +161,14 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
         fans = get_object_or_404(GroupFans, pk=pk)
-        group = self.get_serializer(fans.group).data
-        return Response(group)
+        res = self.get_serializer(fans).data
+        res['group'] = GroupMamaAdministratorSerializers(fans.group).data
+        return Response(res)
 
     @list_route(methods=['GET'])
     def get_group_users(self, request):
         group_id = request.GET.get('group_id')
-        group = GroupMamaAdministrator.objects.filter(id=group_id).first()
+        group = GroupMamaAdministrator.objects.filter(group_uni_key=group_id).first()
         if not group:
             raise exceptions.NotFound(u'指定的小鹿妈妈群不存在')
         queryset = self.filter_queryset(group.fans.all())
@@ -178,10 +179,10 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['POST', 'GET'])
+    @list_route(methods=['GET'])
     def join(self, request):
-        form = GroupFansForm(request.DATA)
-        if form.is_valid():
+        form = GroupFansForm(request.GET)
+        if not form.is_valid():
             raise exceptions.ValidationError(form.error_message)
         if not self.activity.is_on():
             raise exceptions.ValidationError(u"凉席活动暂不可使用")
@@ -194,7 +195,6 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
 
         # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
-
         userinfo = {}
         userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
         record = userinfo_records.first()
@@ -204,12 +204,11 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             # get openid from 'debug' or from using 'code' (if code exists)
             userinfo = self.get_auth_userinfo(request)
             unionid = userinfo.get("unionid")
-            openid = userinfo.get("openid")
+
             if not self.valid_openid(unionid):
                 # if we still dont have openid, we have to do oauth
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
-        self.set_cookie_openid_and_unionid(unionid, openid)
         # if user already join a group, change group
         fans = GroupFans.objects.filter(
             union_id=userinfo.get('unionid')
@@ -223,7 +222,10 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         # else:
         if not fans:
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
-                                userinfo.get('unionid'), userinfo.get('open_id'))
-            ActivityUsers.join(self.activity, request.user.id, fans.group_id)
+                                userinfo.get('unionid'), userinfo.get('openid', ''))
+            if request.user.id:
+                ActivityUsers.join(self.activity, request.user.id, fans.group_id)
         group = GroupMamaAdministrator.objects.get(id=fans.group_id)
-        return Response(GroupMamaAdministratorSerializers(group).data)
+        response = Response(GroupMamaAdministratorSerializers(group).data)
+        self.set_cookie_openid_and_unionid(response, unionid, openid)
+        return response

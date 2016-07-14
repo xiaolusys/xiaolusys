@@ -30,7 +30,7 @@ class ProductLocationViewSet(viewsets.ModelViewSet):
     def set_product_location(self, request):
         form = ProductLocationForm(request.POST)
         if not form.is_valid():
-            return exceptions.ValidationError(form.error_messsage)
+            return exceptions.ValidationError(form.error_message)
         product_id = form.cleaned_data['product']
         product = get_object_or_404(Product, id=product_id)
         district_no = form.cleaned_data['district']
