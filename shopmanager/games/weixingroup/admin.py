@@ -59,9 +59,9 @@ class GroupMamaAdministratorAdmin(BaseModelAdmin):
     mama_mobile.short_description = u'小鹿妈妈手机'
 
     def group_link(self, obj):
-        return HOST + "/july_event/html/mama_attenders.html?unionid=" + obj.mama.openid
+        return HOST + "/july_event/html/mama_attender.html?unionid=" + obj.mama.openid
 
-    group_link.short_description = u'小鹿妈妈查看详情'
+    group_link.short_description = u'小鹿妈妈查看凉席活动详情'
 
 
 admin.site.register(GroupMamaAdministrator, GroupMamaAdministratorAdmin)
