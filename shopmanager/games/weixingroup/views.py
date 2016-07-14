@@ -36,7 +36,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             # 2. get openid from cookie
             openid, unionid = self.get_cookie_openid_and_unoinid(request)
             if not self.valid_openid(unionid):
-                # 3. get openid from 'debug' or from using 'code' (if code exists)
+                # 3. get openid from gf'debug' or from using 'code' (if code exists)
                 userinfo = self.get_auth_userinfo(request)
                 unionid = userinfo.get("unionid")
                 openid = userinfo.get("openid")
@@ -79,30 +79,32 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
         小鹿微信群
     """
     queryset = GroupMamaAdministrator.objects.all()
-    serializer_class = GroupMamaAdministratorSerializers
+    serializer_class = MamaGroupsSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     @detail_route(methods=['GET'])
-    def get_group_detail(self, request, pk):
+    def detail(self, request, pk):
         group = get_object_or_404(GroupMamaAdministrator, pk=pk)
         res = self.get_serializer(group).data
         res['mama'] = XiaoluMamaSerializer(group.mama).data
         return Response(res)
 
     @detail_route(methods=['GET'])
-    def get_mama_groups(self, requenst, union_id):
-        mama = XiaoluMama.objects.filter(union_id=union_id).first()
+    def groups(self, requenst, pk):
+        mama = XiaoluMama.objects.filter(openid=pk).first()
         if not mama:
             raise exceptions.NotFound(u'未能找到指定的小鹿妈妈')
-        groups = XiaoluAdministrator.objects.filter(mama_id=mama.id)
+        groups = GroupMamaAdministrator.objects.filter(mama_id=mama.id)
         if not groups.first():
             raise exceptions.NotFound(u'此小鹿妈妈尚未报名到微信群')
         res = {}
         admin = groups.first().admin
         res['admin'] = XiaoluAdministratorSerializers(admin).data
-        res['groups'] = MamaGroupsSerializers(groups).data
-        return Response(res)
+        res['groups'] = self.get_serializer(groups, many=True).data
+        res = Response(res)
+        res['Acces-Control-Allow-Origin'] = '*'
+        return res
 
 
 class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):

@@ -60,6 +60,22 @@ class GroupMamaAdministrator(BaseModel):
             self._mama_ = XiaoluMama.objects.get(id=self.mama_id)
         return self._mama_
 
+    @property
+    def nick(self):
+        return self.mama.get_mama_customer().nick
+
+    @property
+    def head_img_url(self):
+        return self.mama.get_mama_customer().thumbnail
+
+    @property
+    def union_id(self):
+        return self.mama.get_mama_customer().unionid
+
+    @property
+    def open_id(self):
+        return self.mama.get_mama_customer().openid
+
 
 class GroupFans(BaseModel):
     class Meta:

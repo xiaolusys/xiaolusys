@@ -7,7 +7,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pay', '0021_add_salerefund_is_lackrefund_and_lackorder_id'),
         ('weixingroup', '0004_auto_20160713_2022'),
     ]
 
