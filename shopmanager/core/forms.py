@@ -30,7 +30,7 @@ class BaseForm(forms.Form):
         return cleaned_data
 
     @property
-    def error_messsage(self):
+    def error_message(self):
         # todo@hy 应该是as_json然后把key转化成verbose_name
         return self.errors.as_text()
 

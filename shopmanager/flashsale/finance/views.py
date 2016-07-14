@@ -86,7 +86,7 @@ class BillViewSet(viewsets.GenericViewSet):
     def deal(self, request, pk):
         form = forms.DealForm(request.POST)
         if not form.is_valid():
-            raise exceptions.APIException(form.error_messsage)
+            raise exceptions.APIException(form.error_message)
         bill = get_object_or_404(Bill, id=pk)
         for bill_relation in bill.billrelation_set.all():
             relation_object = bill_relation.get_based_object()
