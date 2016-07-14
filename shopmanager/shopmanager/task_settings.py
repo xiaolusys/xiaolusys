@@ -415,20 +415,20 @@ MAMA_CARRY_ROUTES = {
     },
 }
 
-MAMA_REGISTER_ROUTE = {
-    'flashsale.xiaolumm.tasks.task_unitary_mama': {
-        'queue': 'mama',
-        'routing_key': 'mama.task_unitary_mama',
-    },
-    'flashsale.xiaolumm.tasks.task_register_mama': {
-        'queue': 'mama',
-        'routing_key': 'mama.task_register_mama',
-    },
-    'flashsale.xiaolumm.tasks.task_renew_mama': {
-        'queue': 'mama',
-        'routing_key': 'mama.task_renew_mama',
-    },
-}
+# MAMA_REGISTER_ROUTE = {
+#     'flashsale.xiaolumm.tasks.task_unitary_mama': {
+#         'queue': 'mama',
+#         'routing_key': 'mama.task_unitary_mama',
+#     },
+#     'flashsale.xiaolumm.tasks.task_register_mama': {
+#         'queue': 'mama',
+#         'routing_key': 'mama.task_register_mama',
+#     },
+#     'flashsale.xiaolumm.tasks.task_renew_mama': {
+#         'queue': 'mama',
+#         'routing_key': 'mama.task_renew_mama',
+#     },
+# }
 
 MAMA_CARRYRECORD_ROUTES = {
     'flashsale.xiaolumm.tasks_mama_carryrecord.task_awardcarry_update_carryrecord': {

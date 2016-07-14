@@ -924,7 +924,7 @@ class PotentialMama(BaseModel):
         return '%s-%s' % (self.potential_mama, self.referal_mama)
 
 
-def unitary_mama(obj, *args, **kwargs):
+def unitary_mama(obj):
     """
     一元开店
     1. 修改记录为接管状态
@@ -932,10 +932,10 @@ def unitary_mama(obj, *args, **kwargs):
     3. 修改代理等级到 A 类
     """
     from flashsale.xiaolumm.tasks import task_unitary_mama
-    task_unitary_mama.delay(obj)
+    task_unitary_mama(obj)
 
 
-def register_mama(obj, *args, **kwargs):
+def register_mama(obj):
     """
     代理注册
     1. 修改记录为接管状态
@@ -944,23 +944,32 @@ def register_mama(obj, *args, **kwargs):
     4. 填写推荐人
     """
     from flashsale.xiaolumm.tasks import task_register_mama
-    task_register_mama.delay(obj)
+    task_register_mama(obj)
 
 
-def renew_mama(obj, *args, **kwargs):
+def renew_mama(obj):
     """
     代理续费
     1. 更新 renew_time
     """
     from flashsale.xiaolumm.tasks import task_renew_mama
-    task_renew_mama.delay(obj)
 
+    task_renew_mama(obj)
+
+
+def trigger_mama_deposit_action(obj, *args, **kwargs):
+    # 这里的先后顺序不能变　
+    # 先判断是否能续费　在看接管状态
+    renew_mama(obj)
+    unitary_mama(obj)
+    register_mama(obj)
 
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 from flashsale.pay.models import SaleTrade
-signal_saletrade_pay_confirm.connect(unitary_mama, sender=SaleTrade, dispatch_uid="post_save_unitary_mama")
-signal_saletrade_pay_confirm.connect(register_mama, sender=SaleTrade, dispatch_uid="post_save_register_mama")
-signal_saletrade_pay_confirm.connect(renew_mama, sender=SaleTrade, dispatch_uid="post_save_renew_mama")
+
+signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
+                                     sender=SaleTrade,
+                                     dispatch_uid="post_save_trigger_mama_deposit_action")
 
 
 # 首单红包，10单红包
