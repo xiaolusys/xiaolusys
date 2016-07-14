@@ -581,7 +581,7 @@ def mark_unreturn(request):
 def returngoods_add_sku(request):
     form = forms.ReturnGoodsAddSkuForm(request.POST)
     if not form.is_valid():
-        raise Exception(form.error_messsage)
+        raise Exception(form.error_message)
     rg_id = form.cleaned_data['rg_id']
     sku_id = form.cleaned_data['sku_id']
     sku = get_object_or_404(ProductSku, id=sku_id)

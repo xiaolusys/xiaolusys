@@ -104,14 +104,15 @@ class GroupFans(BaseModel):
     union_id = models.CharField(max_length=100, verbose_name=u'用户微信unionid', unique=True)
     open_id = models.CharField(max_length=100, verbose_name=u'用户微信openid')
 
-    def create(self, group, user_id, head_img_url, nick, union_id, open_id):
+    @staticmethod
+    def create(group, user_id, head_img_url, nick, union_id, open_id):
         gf = GroupFans(group=group,
-            user_id=user_id,
-            head_img_url=head_img_url,
-            nick=nick,
-            union_id=union_id,
-            open_id=open_id
-        )
+                       user_id=user_id,
+                       head_img_url=head_img_url,
+                       nick=nick,
+                       union_id=union_id,
+                       open_id=open_id
+                       )
         gf.save()
         return gf
 
@@ -122,6 +123,7 @@ class ActivityUsers(BaseModel):
         verbose_name = u'参与用户'
         verbose_name_plural = u'参与用户列表'
         unique_together = ('activity', 'user_id')
+
     activity = models.ForeignKey(ActivityEntry)
     user_id = models.IntegerField()
     group = models.ForeignKey('GroupMamaAdministrator')
@@ -148,6 +150,7 @@ class ActivityStat(BaseModel):
         app_label = 'weixingroup'
         verbose_name = u'微信活动参与用户统计'
         verbose_name_plural = u'微信活动参与用户统计列表'
+
     activity = models.ForeignKey(ActivityEntry)
     group = models.ForeignKey(GroupMamaAdministrator, related_name='group')
     join_user_cnt = models.IntegerField(default=0, verbose_name=u'微信群参与用户计数')
@@ -157,4 +160,3 @@ class ActivityStat(BaseModel):
         self.join_user_cnt = GroupFans.objects.count()
         self.active_user_cnt = ActivityUsers.objects.filter(activity=self.activity).count()
         self.save()
-
