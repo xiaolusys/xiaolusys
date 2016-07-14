@@ -91,6 +91,7 @@ class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
                 raise exceptions.NotFound(u'指定的管理员不存在')
         else:
             admin = XiaoluAdministrator.get_group_mincnt_admin()
+        group = GroupMamaAdministrator.get_or_create(admin=admin, mama_id=mama_id)
         return redirect("/july_event/html/mama_attender.html?unionid=" + xiaoumama.openid)
 
     @list_route(methods=['GET'])
