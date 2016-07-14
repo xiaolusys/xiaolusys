@@ -234,6 +234,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_address=receiver_address,
                 receiver_mobile=receiver_mobile,
                 receiver_phone=receiver_phone,
+                status=UserAddress.NORMAL,
             )
             if state:  # 创建成功在将原来的地址改为删除状态 (保留地址)
                 new_address.default = UserAddress.objects.get(pk=pk).default  # 赋值原来的默认地址选择
@@ -347,7 +348,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_city=receiver_city,
                 receiver_district=receiver_district,
                 receiver_address=receiver_address,
-                receiver_mobile=receiver_mobile)
+                receiver_mobile=receiver_mobile,
+                status=UserAddress.NORMAL,)
             if default == 'true':  # 设置为默认地址
                 address.set_default_address()
             address.set_logistic_company(logistic_company_code)
