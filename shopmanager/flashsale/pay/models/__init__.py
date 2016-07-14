@@ -1,4 +1,4 @@
-from .address import UserAddress, District, UserAddressChange
+from .address import UserAddress, District, UserAddressChange, DistrictVersion
 from .brand import BrandEntry, BrandProduct
 from .coupon import CouponTemplate, UserCoupon, CouponsPool, default_coupon_no
 from .envelope import Envelop

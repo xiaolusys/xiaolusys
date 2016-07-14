@@ -1,5 +1,8 @@
 # coding: utf-8
+import json
 import datetime
+import hashlib
+from cStringIO import StringIO
 from django.contrib import admin
 from django.db import models
 from django.conf import settings
@@ -11,7 +14,8 @@ from core.options import log_action, User, ADDITION, CHANGE
 from core.filters import DateFieldListFilter
 from core.admin import ApproxAdmin, BaseModelAdmin
 from core.managers import ApproxCountQuerySet
-from .services import FlashSaleService
+from core.upload import upload_public_to_remote, generate_public_url
+from .services import FlashSaleService, get_district_json_data
 from .models import (
     SaleTrade,
     SaleOrder,
@@ -19,6 +23,7 @@ from .models import (
     Customer,
     Register,
     District,
+    DistrictVersion,
     UserAddress,
     SaleRefund,
     UserBudget,
@@ -40,7 +45,7 @@ from django.http import HttpResponse
 import datetime, time
 
 import logging
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 
 class SaleOrderInline(admin.TabularInline):
@@ -218,13 +223,55 @@ admin.site.register(Customer, CustomerAdmin)
 
 
 class DistrictAdmin(ApproxAdmin):
-    list_display = ('id', 'name', 'full_name', 'parent_id', 'grade', 'sort_order')
+    list_display = ('id', 'name', 'full_name', 'parent_id', 'grade', 'zipcode', 'sort_order', 'is_valid')
     search_fields = ['=id', '=parent_id', '^name']
 
-    list_filter = ('grade',)
+    list_filter = ('grade','is_valid')
 
 
 admin.site.register(District, DistrictAdmin)
+
+
+class DistrictVersionAdmin(ApproxAdmin):
+    list_display = ('id', 'version', 'hash256', 'memo', 'status')
+    search_fields = ['=id', '=version', '=hash256']
+
+    list_filter = ('status',)
+
+    def response_change(self, request, obj, *args, **kwargs):
+        # 订单处理页面
+        opts = obj._meta
+        # Handle proxy models automatically created by .only() or .defer()
+        verbose_name = opts.verbose_name
+        if obj._deferred:
+            opts_ = opts.proxy_for_model._meta
+            verbose_name = opts_.verbose_name
+        pk_value = obj._get_pk_val()
+        obj.status = False
+        if not obj.download_url:
+            try:
+                districts_data = get_district_json_data()
+                districts_jsonstring = json.dumps(districts_data,indent=2)
+                string_io = StringIO.StringIO(districts_jsonstring)
+                resp = upload_public_to_remote(obj.gen_filepath(), string_io)
+                obj.hash256 = hashlib.sha1(districts_jsonstring).hexdigest()
+                logger.info('upload public resp:%s' % resp)
+                if resp.status_code != 200:
+                    obj.memo += u'上传返回hash与本地不一致:%s'% resp.text_body
+                    obj.save(update_fields=['memo','hash256'])
+                    raise Exception(u'上传返回hash与本地不一致:%s'% resp.text_body)
+
+                obj.download_url = generate_public_url(obj.gen_filepath())
+                obj.status = True
+                obj.save(update_fields=['download_url','memo','hash256', 'status'])
+            except Exception, exc:
+                self.message_user(request, u"区划版本更新失败：%s" % (exc.message))
+                logger.error(u"区划版本更新失败：%s" % (exc.message), exc_info=True)
+
+        return super(DistrictVersionAdmin, self).response_change(request, obj, *args, **kwargs)
+
+
+admin.site.register(DistrictVersion, DistrictVersionAdmin)
 
 
 class UserAddressAdmin(admin.ModelAdmin):

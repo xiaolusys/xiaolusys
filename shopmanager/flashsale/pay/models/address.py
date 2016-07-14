@@ -21,9 +21,10 @@ class District(PayBaseModel):
     parent_id = models.IntegerField(null=False, default=0, db_index=True, verbose_name=u'父ID')
     name = models.CharField(max_length=32, blank=True, verbose_name=u'地址名')
 
+    zipcode = models.CharField(max_length=16, blank=True, verbose_name=u'邮政编码')
     grade = models.IntegerField(default=0, choices=STAGE_CHOICES, verbose_name=u'等级')
     sort_order = models.IntegerField(default=0, verbose_name=u'优先级')
-
+    is_valid   = models.BooleanField(default=True, verbose_name=u'有效')
     class Meta:
         db_table = 'flashsale_district'
         app_label = 'pay'
@@ -45,6 +46,42 @@ class District(PayBaseModel):
             else:
                 return '%s,%s' % (dist.full_name, self.name)
         return self.name
+
+    @classmethod
+    def latest_version(cls):
+        # TODO 此处需要使用cache并考虑invalidate
+        version = DistrictVersion.get_latest_version_district()
+        if version:
+            return {'version':version.version,
+                    'download_url':version.download_url,
+                    'hash': version.hash256}
+        return {}
+
+
+class DistrictVersion(PayBaseModel):
+
+    version = models.CharField(max_length=32, unique=True, verbose_name=u'版本号')
+    download_url = models.CharField(max_length=256, blank=True, verbose_name=u'下载链接')
+    hash256 = models.CharField(max_length='128', blank=True, verbose_name=u'sha1值')
+    memo = models.TextField(blank=True, verbose_name=u'备注')
+    status = models.BooleanField(default=False, verbose_name=u'生效')
+
+    class Meta:
+        db_table = 'flashsale_district_version'
+        app_label = 'pay'
+        verbose_name = u'地址/区划版本'
+        verbose_name_plural = u'地址/区划版本更新列表'
+
+    def __unicode__(self):
+        return '<%s, %s>' % (self.id, self.version)
+
+    def gen_filepath(self):
+        return 'district/xiaolumm-district-%s.json'%self.version
+
+    @classmethod
+    def get_latest_version_district(cls):
+        latest_version = cls.objects.filter(status=True).order_by('created').first()
+        return latest_version
 
 
 class UserAddress(BaseModel):

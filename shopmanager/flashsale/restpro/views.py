@@ -405,6 +405,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
     >  id:即province ID
     -   /country_list:根据市获得区或者县
     >  id:即country ID
+    >  /latest_version :获取区划最新版本信息
     """
     queryset = District.objects.all()
     serializer_class = serializers.DistrictSerializer  # Create your views here.
@@ -468,6 +469,11 @@ class DistrictViewSet(viewsets.ModelViewSet):
             queryset = District.objects.filter(parent_id=city_id)
             serializer = self.get_serializer(queryset, many=True)
             return Response({"result": True, "data": serializer.data})
+
+    @list_route(methods=['get'])
+    def latest_version(self, request, *args, **kwargs):
+        version = District.latest_version()
+        return Response(version)
 
 
 from core.weixin.mixins import WeixinAuthMixin
