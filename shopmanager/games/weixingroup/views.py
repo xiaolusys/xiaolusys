@@ -9,7 +9,8 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
 from core.weixin.mixins import WeixinAuthMixin
 from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
-from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers
+from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers,\
+    MamaGroupsSerializers
 from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.xiaolumm.serializers import XiaoluMamaSerializer
@@ -87,6 +88,20 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
         group = get_object_or_404(GroupMamaAdministrator, pk=pk)
         res = self.get_serializer(group).data
         res['mama'] = XiaoluMamaSerializer(group.mama).data
+        return Response(res)
+
+    @detail_route(methods=['GET'])
+    def get_mama_groups(self, requenst, union_id):
+        mama = XiaoluMama.objects.filter(union_id=union_id).first()
+        if not mama:
+            raise exceptions.NotFound(u'未能找到指定的小鹿妈妈')
+        groups = XiaoluAdministrator.objects.filter(mama_id=mama.id)
+        if not groups.first():
+            raise exceptions.NotFound(u'此小鹿妈妈尚未报名到微信群')
+        res = {}
+        admin = groups.first().admin
+        res['admin'] = XiaoluAdministratorSerializers(admin).data
+        res['groups'] = MamaGroupsSerializers(groups).data
         return Response(res)
 
 

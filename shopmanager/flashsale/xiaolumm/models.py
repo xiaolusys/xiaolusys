@@ -94,6 +94,9 @@ class XiaoluMama(models.Model):
 
     mobile = models.CharField(max_length=11, db_index=True, blank=False, verbose_name=u"手机")
     openid = models.CharField(max_length=64, blank=False, unique=True, verbose_name=u"UnionID")
+    head_img_url = models.CharField(max_length=100, default=None, null=True, verbose_name=u'用户微信头像')
+    nick = models.CharField(max_length=100, default=None, null=True, verbose_name=u'用户微信昵称')
+    open_id = models.CharField(max_length=100, default=None, null=True, verbose_name=u'用户微信openid')
     province = models.CharField(max_length=24, blank=True, verbose_name=u"省份")
     city = models.CharField(max_length=24, blank=True, verbose_name=u"城市")
     address = models.CharField(max_length=256, blank=True, verbose_name=u"地址")

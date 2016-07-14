@@ -15,6 +15,11 @@ class GroupMamaAdministratorSerializers(serializers.ModelSerializer):
         model = GroupMamaAdministrator
 
 
+class MamaGroupsSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = GroupMamaAdministrator
+
+
 class GroupFansSerializers(serializers.ModelSerializer):
     class Meta:
         model = GroupFans

@@ -50,3 +50,5 @@ class ActivityUsersAdmin(BaseModelAdmin):
 
 
 admin.site.register(ActivityUsers, ActivityUsersAdmin)
+
+
