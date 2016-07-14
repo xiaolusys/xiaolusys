@@ -1625,7 +1625,7 @@ class PackageOrder(models.Model):
                 self.reset_to_new_create()
 
     @staticmethod
-    def create(id, sale_trade, sys_status=None, psi= None):
+    def create(id, sale_trade, sys_status=None, psi=None):
         package_order = PackageOrder(id=id)
         buyer_id, address_id, ware_by_id, order = id.split('-')
         package_order.buyer_id = int(buyer_id)
@@ -1639,9 +1639,12 @@ class PackageOrder(models.Model):
         package_order.order_sku_num = PackageSkuItem.unsend_orders_cnt(int(buyer_id))
         package_order.ready_completion = package_order.order_sku_num == 1
         package_order.save()
+        logger.error('package order begin create: ' + str(package_order.id)+'|psi:'+str(psi) )
+
         if psi:
             PackageSkuItem.objects.filter(id=psi.id).update(package_order_id=package_order.id,
                                                                  package_order_pid=package_order.pid)
+            logger.error('package order finish: ' + str(package_order.id) + '|package_skuitem id:' + str(psi.id) +'| package_skuitem packageorderid:'+ str(psi.package_order_id))
         return package_order
 
     @staticmethod
