@@ -142,6 +142,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
                                                              trade_id=sale_trade.id,
                                                              ufrom=None)
                 # TODO app推送
+
         except Exception, exc:
             return Response({'code': 1, 'info': exc.message})
         else:
