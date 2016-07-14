@@ -6,9 +6,10 @@ from flashsale.xiaolumm.models import XiaoluMama
 
 
 class XiaoluAdministrator(BaseModel):
-    user_id = models.IntegerField(verbose_name=u'关联用户')
-    username = models.CharField(max_length=64, verbose_name=u'管理员用户名')
-    nick = models.IntegerField(verbose_name=u'管理员昵称')
+    user_id = models.IntegerField(verbose_name=u'后台用户id')
+    username = models.CharField(max_length=64, verbose_name=u'管理员后台用户名')
+    nick = models.CharField(max_length=64, verbose_name=u'管理员昵称', null=True, default=None)
+    head_img_url = models.CharField(max_length=256, null=True, default=None, verbose_name=u'管理员头像')
     weixin_qr_img = models.CharField(max_length=255, verbose_name=u'管理员二维码')
     STATUS_CHOICES = ((0, u'初始'),
                       (1, u'有效'),
@@ -21,12 +22,12 @@ class XiaoluAdministrator(BaseModel):
         verbose_name_plural = u'小鹿微信群管理员列表'
 
     @property
-    def mama_count(self):
-        pass
+    def groups_count(self):
+        return self.mama_groups.count()
 
     @property
     def fans_count(self):
-        pass
+        return GroupFans.objects.filter(group__admin_id=self.id).count()
 
     @staticmethod
     def get_group_mincnt_admin():
@@ -42,13 +43,13 @@ class XiaoluAdministrator(BaseModel):
 
 class GroupMamaAdministrator(BaseModel):
     class Meta:
-        unique_together = ('mama_id', 'status')
         app_label = 'weixingroup'
         verbose_name = u'小鹿微信群组'
         verbose_name_plural = u'小鹿微信群组列表'
 
     admin = models.ForeignKey(XiaoluAdministrator, related_name='mama_groups', verbose_name=u'管理员id')
     mama_id = models.IntegerField(verbose_name=u'妈妈用户id')
+    group_uni_key = models.CharField(max_length=128, default=None, null=True, unique=True, verbose_name=u'微信群编号')
     STATUS_CHOICES = ((1, u'有效'),
                       (2, u'作废'),)
     status = models.IntegerField(choices=STATUS_CHOICES, default=1, verbose_name=u'状态')
@@ -59,9 +60,25 @@ class GroupMamaAdministrator(BaseModel):
             self._mama_ = XiaoluMama.objects.get(id=self.mama_id)
         return self._mama_
 
-    @staticmethod
-    def get_or_create(admin, mama_id):
-        GroupMamaAdministrator.objects.get_or_create()
+    @property
+    def nick(self):
+        return self.mama.get_mama_customer().nick
+
+    @property
+    def head_img_url(self):
+        return self.mama.get_mama_customer().thumbnail
+
+    @property
+    def union_id(self):
+        return self.mama.get_mama_customer().unionid
+
+    @property
+    def open_id(self):
+        return self.mama.get_mama_customer().openid
+
+    @property
+    def modified_display(self):
+        return self.modified.strftime("%Y-%m-%d")
 
 
 class GroupFans(BaseModel):
@@ -94,7 +111,7 @@ class ActivityUsers(BaseModel):
         app_label = 'weixingroup'
         verbose_name = u'参与用户'
         verbose_name_plural = u'参与用户列表'
-
+        unique_together = ('activity', 'user_id')
     activity = models.ForeignKey(ActivityEntry)
     user_id = models.IntegerField()
     group = models.ForeignKey('GroupMamaAdministrator')
@@ -114,3 +131,20 @@ class ActivityUsers(BaseModel):
 
     def has_joined(self, user_id):
         return ActivityUsers.objects.filter(user_id=user_id).exists()
+
+
+class ActivityStat(BaseModel):
+    class Meta:
+        app_label = 'weixingroup'
+        verbose_name = u'微信活动参与用户统计'
+        verbose_name_plural = u'微信活动参与用户统计列表'
+    activity = models.ForeignKey(ActivityEntry)
+    group = models.ForeignKey(GroupMamaAdministrator, related_name='group')
+    join_user_cnt = models.IntegerField(default=0, verbose_name=u'微信群参与用户计数')
+    active_user_cnt = models.IntegerField(default=0, verbose_name=u'本次活动激活用户计数')
+
+    def update(self):
+        self.join_user_cnt = GroupFans.objects.count()
+        self.active_user_cnt = ActivityUsers.objects.filter(activity=self.activity).count()
+        self.save()
+
