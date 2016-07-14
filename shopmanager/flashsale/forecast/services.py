@@ -38,9 +38,10 @@ def get_purchaseorder_data(order_id):
 
     order = OrderList.objects.get(id=order_id)
     order_data = model_to_dict(order, fields=[
-        'id', 'supplier_id', 'buyer_name', 'receiver', 'created', 'sys_status',
+        'id', 'buyer_name', 'receiver', 'created', 'sys_status',
         'last_pay_date', 'note', 'purchase_total_num', 'order_group_key'
     ])
+    order_data['supplier_id'] = order.supplier_id
     orderlist_status_map = dict(OrderList.SYS_STATUS_CHOICES)
     order_data['sys_status_name'] = orderlist_status_map.get(order_data['sys_status'])
     cache.set(cache_key, order_data, 60)
@@ -138,7 +139,7 @@ def get_bills_list(purchase_orderids):
         br_dict['out_amount'] = 0
         br_dict['in_amount']  = 0
         br_dict['type_name'] = bill.get_type_display()
-        br_dict['status_name'] = bill.bill.get_status_display()
+        br_dict['status_name'] = bill.get_status_display()
         br_dict['pay_method_name'] = br.get_pay_method_display()
         if br_dict['type'] == Bill.PAY:
             br_dict['out_amount'] = br_dict['plan_amount']

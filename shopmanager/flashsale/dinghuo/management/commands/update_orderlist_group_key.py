@@ -22,5 +22,8 @@ class Command(BaseCommand):
         orderlist = OrderList.objects.filter(created__gte=UPDATE_START_DATE, order_group_key='')
         logger.warn('update orderlist groupkey: order_count=%s' % orderlist.count())
         for order in orderlist:
-            order.save()
+            try:
+                order.save()
+            except Exception,exc:
+                logging.error(exc.message, exc_info=True)
 
