@@ -890,8 +890,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     def logger_request(self, request):
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
-        logger.warn('payment v1: agent=%s, post=%s, cookie=%s' % (
-            request.META.get('HTTP_USER_AGENT'), request.POST, cookies))
+        logger.warn('payment v1:%s agent=%s, post=%s, cookie=%s' % (
+            request.POST.get('uuid'), request.META.get('HTTP_USER_AGENT'), request.POST, cookies))
 
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
