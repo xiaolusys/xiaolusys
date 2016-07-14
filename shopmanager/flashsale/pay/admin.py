@@ -231,7 +231,6 @@ class DistrictAdmin(ApproxAdmin):
 
 admin.site.register(District, DistrictAdmin)
 
-
 class DistrictVersionAdmin(ApproxAdmin):
     list_display = ('id', 'version', 'hash256', 'memo', 'status')
     search_fields = ['=id', '=version', '=hash256']
@@ -257,9 +256,9 @@ class DistrictVersionAdmin(ApproxAdmin):
                 obj.hash256 = hashlib.sha1(districts_jsonstring).hexdigest()
                 logger.info('upload public resp:%s' % resp)
                 if resp.status_code != 200:
-                    obj.memo += u'上传返回hash与本地不一致:%s'% resp.text_body
+                    obj.memo += u'地址数据文件上传异常:%s'% resp.text_body
                     obj.save(update_fields=['memo','hash256'])
-                    raise Exception(u'上传返回hash与本地不一致:%s'% resp.text_body)
+                    raise Exception(u'地址数据文件上传异常:%s'% resp.text_body)
 
                 obj.download_url = generate_public_url(obj.gen_filepath())
                 obj.status = True

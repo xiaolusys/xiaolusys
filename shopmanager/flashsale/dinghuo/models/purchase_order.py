@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def gen_purchase_order_group_key(order_ids):
-    sorted_ids = [int(s) for s in set(order_ids)]
+    sorted_ids = [int(s) for s in order_ids]
     sorted_ids.sort()
     return '-%s-'%('-'.join([str(s) for s in sorted_ids]))
 
@@ -484,6 +484,7 @@ class OrderList(models.Model):
 
 
 def check_with_purchase_order(sender, instance, created, **kwargs):
+    logger.info('post_save check_with_purchase_order: %s' % instance)
     if not instance.order_group_key:
         instance.order_group_key = '-%s-' % instance.id
         instance.save(update_fields=['order_group_key'])
@@ -496,6 +497,7 @@ post_save.connect(
 
 
 def order_list_update_stage(sender, instance, created, **kwargs):
+    logger.info('post_save order_list_update_stage: %s' % instance)
     if instance.stage in [OrderList.STAGE_RECEIVE, OrderList.STAGE_STATE]:
         from flashsale.dinghuo.tasks import task_orderlist_update_self
         task_orderlist_update_self.delay(instance)
@@ -508,6 +510,7 @@ post_save.connect(
 
 
 def update_orderdetail_relationship(sender, instance, created, **kwargs):
+    logger.info('post_save update_orderdetail_relationship: %s' % instance)
     if not created:
         return
 
@@ -520,6 +523,7 @@ post_save.connect(update_orderdetail_relationship, sender=OrderList,
 
 
 def update_purchaseorder_status(sender, instance, created, **kwargs):
+    logger.info('post_save update_purchaseorder_status: %s' % instance)
     from flashsale.dinghuo.models_purchase import PurchaseOrder
     status = None
     if instance.is_open():
@@ -552,7 +556,7 @@ post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='p
 
 def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
     """ 根据status更新sys_status,审核通过后更新预测到货单  """
-
+    logger.info('post_save orderlist_create_forecast_inbound: %s' % instance)
     if instance.stage == OrderList.STAGE_DRAFT:
         instance.sys_status = OrderList.ST_DRAFT
     elif instance.stage == OrderList.STAGE_DELETED:
@@ -565,8 +569,8 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
         instance.sys_status = OrderList.ST_APPROVAL
     update_model_fields(instance, update_fields=['sys_status'])
 
-    real_orderlist = OrderList.objects.filter(id=instance.id).first()
-    if real_orderlist and instance.sys_status == OrderList.ST_APPROVAL:
+    if instance.sys_status == OrderList.ST_APPROVAL:
+        logger.info('orderlist update forecastinbound: %s'% instance)
         # if the orderlist purchase confirm, then create forecast inbound
         from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
         try:
@@ -581,7 +585,6 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
     forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=[instance.id])
     for forecast in forecast_inbounds:
         tasks.task_forecast_update_stats_data.delay(forecast.id)
-
 
 post_save.connect(
     orderlist_create_forecast_inbound,

@@ -338,7 +338,6 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                         'sku_name': product_sku.name,
                         'forecast_arrive_num':forecast_sku.forecast_arrive_num
                     })
-
                 product_data = {
                     'product_id': product.id,
                     'product_code': product.outer_id,
@@ -421,7 +420,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                 forecast.save()
 
         # serializer_data = self.get_serializer(forecast_newobj).data
-        return Response({'redrect_url': reverse('admin:forecast_forecastinbound_changelist')+'?q=%s'%forecast_newobj.id})
+        return Response({'redrect_url': reverse('admin:forecast_forecastinbound_changelist')+'?supplier_id=%s'%forecast_newobj.supplier_id})
 
     @list_route(methods=['get'])
     def dashboard(self, request, *args, **kwargs):
@@ -432,9 +431,11 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         action = data.get('action', 'all')
         staff_name = data.get('staff_name', '')
 
+        logger.info('forecast aggregate start:%s' % datetime.datetime.now())
         purchase_orders = services.filter_pending_purchaseorder(**{'staff_name': staff_name})
+        logger.info('forecast aggregate middle:%s' % datetime.datetime.now())
         aggregate_forecast_obj = services.AggregateForcecastOrderAndInbound(purchase_orders)
-
+        logger.info('forecast aggregate end:%s' % datetime.datetime.now())
         aggregate_list_dict = {
             'unlogisticed': [],
             'unarrived': [],
@@ -476,8 +477,8 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
     def calcstats(self, request, *args, **kwargs):
         """ 采购单与入库单聚合结算 """
 
-        purchase_orderid_str = request.GET.get('order_ids', '')
-        purchase_orderid_list = [int(i) for i in purchase_orderid_str.split(',') if i.strip()]
+        order_group_key = request.GET.get('order_group_key', '')
+        purchase_orderid_list = [int(i) for i in order_group_key.split('-') if i]
 
         orderdetail_values = services.get_purchaseorders_data(purchase_orderid_list)
         inbounddetail_values = services.get_realinbounds_data(purchase_orderid_list)
@@ -496,7 +497,8 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         sku_id_set.update(inbound_details_dict.keys())
         sku_values = []
         productsku_values = ProductSku.objects.filter(id__in=sku_id_set).select_related('product').values(
-            'id', 'product_id', 'product__outer_id', 'product__name', 'properties_name', 'properties_alias', 'product__pic_path'
+            'id', 'product_id', 'product__outer_id', 'product__name',
+            'properties_name', 'properties_alias', 'product__pic_path'
         )
         # sku_stats_values = ProductSkuStats.objects.filter(sku__in=sku_id_set).extra(
         #     select={'excess_num': "history_quantity + inbound_quantity + return_quantity "
@@ -550,14 +552,16 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         bill_list = services.get_bills_list(purchase_orderid_list)
         total_in_amount = bill_list and sum([br['in_amount'] for br in bill_list]) or 0
         total_out_amount = bill_list and sum([br['out_amount'] for br in bill_list]) or 0
-        return Response({'aggregate_details': aggregate_details_list,
-                         'order_group_key': services.gen_order_group_key(purchase_orderid_list),
-                         'bill_data': {
-                             'bills': bill_list,
-                             'total_in_amount': total_in_amount,
-                             'total_out_amount': total_out_amount
-                         }},
-                        template_name='forecast/aggregate_billing_detail.html')
+        return Response(
+            {'aggregate_details': aggregate_details_list,
+             'order_group_key': order_group_key,
+             'bill_data': {
+                 'bills': bill_list,
+                 'total_in_amount': total_in_amount,
+                 'total_out_amount': total_out_amount
+             }},
+            template_name='forecast/aggregate_billing_detail.html'
+        )
 
 
 class ForecastStatsFilter(filters.FilterSet):

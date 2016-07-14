@@ -2,22 +2,26 @@
 import datetime
 from celery import task
 
-from .models import (ForecastInbound,
-                     ForecastInboundDetail,
-                     RealInbound,
-                     RealInboundDetail,
-                     )
+from .models import (
+    ForecastInbound,
+    ForecastInboundDetail,
+    RealInbound,
+    RealInboundDetail,
+)
 from . import  constants
+
 import logging
 logger = logging.getLogger(__name__)
 
 @task(max_retries=3, default_retry_delay=60)
 def api_create_or_update_forecastinbound_by_orderlist(order_list):
+    logger.info('api_create_or_update_forecastinbound: %s'% order_list)
     try:
         from shopback.items.models import Product, ProductSku
         supplier = order_list.supplier
 
-        forecast_ib = ForecastInbound.objects.filter(relate_order_set__in=[order_list.id]).first()
+        orderlist_id = order_list.id
+        forecast_ib = ForecastInbound.objects.filter(relate_order_set__in=[orderlist_id]).first()
         if forecast_ib:
             forecast_ib.express_code = forecast_ib.express_code or order_list.express_company
             forecast_ib.express_no = forecast_ib.express_no or order_list.express_no
@@ -32,13 +36,18 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
         if not forecast_arrive_time:
             forecast_arrive_time = datetime.datetime.now()
         forecast_arrive_time += datetime.timedelta(days=supplier.get_delta_arrive_days())
-
         forecast_ib.forecast_arrive_time = forecast_arrive_time
         forecast_ib.save()
-        forecast_ib.relate_order_set.add(order_list)
+
+        if orderlist_id not in forecast_ib.relate_order_set.values_list('id',flat=True):
+            forecast_ib.relate_order_set.add(order_list)
 
         for order in order_list.order_list.all():
-            forecast_detail = ForecastInboundDetail()
+            forecast_detail = ForecastInboundDetail.objects.filter(forecast_inbound=forecast_ib,
+                                                                   sku_id=order.chichu_id).first()
+            if not forecast_detail:
+                forecast_detail = ForecastInboundDetail(forecast_inbound=forecast_ib,
+                                                        sku_id=order.chichu_id)
             forecast_detail.forecast_inbound = forecast_ib
             forecast_detail.product_id = order.product_id
             forecast_detail.sku_id = order.chichu_id
@@ -51,6 +60,8 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
             if order.buy_quantity <= 0:
                 forecast_detail.status = ForecastInboundDetail.DELETE
             forecast_detail.save()
+
+        forecast_ib.save(update_fields=['total_forecast_num'])
     except Exception, exc:
         raise api_create_or_update_forecastinbound_by_orderlist.retry(exc=exc)
 
@@ -58,6 +69,7 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
 @task(max_retries=3, default_retry_delay=60)
 def api_create_or_update_realinbound_by_inbound(inbound_id):
     """ base on dinghuo inbound complete signal updates """
+    logger.info('api_create_or_update_realinbound: %s' % inbound_id)
     try:
         from flashsale.dinghuo.models import InBound
         from shopback.items.models import ProductSku
@@ -144,6 +156,9 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
             if inbound_sku_dict:
                 forecast_inbound.has_wrong = True
             forecast_inbound.save()
+        # 更新orderlist order_group_key
+        from flashsale.dinghuo.tasks import task_update_order_group_key
+        task_update_order_group_key.delay(inbound_order_set)
     except Exception, exc:
         raise api_create_or_update_realinbound_by_inbound.retry(exc=exc)
 

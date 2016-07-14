@@ -170,6 +170,10 @@ DINGHUO_ROUTES = {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_update_purchasearrangement_initial_book',
     },
+    'flashsale.dinghuo.tasks.task_update_order_group_key': {
+        'queue': 'dinghuo',
+        'routing_key': 'dinghuo.task_update_order_group_key',
+    },
 }
 
 SKU_STATS_ROUTES = {
