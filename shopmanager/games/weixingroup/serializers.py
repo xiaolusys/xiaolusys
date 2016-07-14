@@ -1,14 +1,12 @@
 from rest_framework import serializers
-from django.forms import model_to_dict
 from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
 from flashsale.promotion.models import ActivityEntry
 
 
 class XiaoluAdministratorSerializers(serializers.ModelSerializer):
-    # district = serializers.CharField(source='district.district_no', read_only=True)
-
     class Meta:
         model = XiaoluAdministrator
+        fields = ['user_id', 'username', 'nick', 'head_img_url', 'weixin_qr_img', 'status', 'groups_count']
 
 
 class GroupMamaAdministratorSerializers(serializers.ModelSerializer):
@@ -17,7 +15,6 @@ class GroupMamaAdministratorSerializers(serializers.ModelSerializer):
 
 
 class MamaGroupsSerializers(serializers.ModelSerializer):
-
     class Meta:
         model = GroupMamaAdministrator
         fields = ["id", "created", "modified", "mama_id", "group_uni_key", "status", "admin", "nick", "head_img_url",

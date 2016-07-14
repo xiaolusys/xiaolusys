@@ -8,7 +8,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 class XiaoluAdministrator(BaseModel):
     user_id = models.IntegerField(verbose_name=u'关联用户')
     username = models.CharField(max_length=64, verbose_name=u'管理员用户名')
-    nick = models.IntegerField(verbose_name=u'管理员昵称', null=True, default=None)
+    nick = models.CharField(max_length=64, verbose_name=u'管理员昵称', null=True, default=None)
     head_img_url = models.CharField(max_length=256, null=True, default=None, verbose_name=u'管理员头像')
     weixin_qr_img = models.CharField(max_length=255, verbose_name=u'管理员二维码')
     STATUS_CHOICES = ((0, u'初始'),
@@ -22,7 +22,7 @@ class XiaoluAdministrator(BaseModel):
         verbose_name_plural = u'小鹿微信群管理员列表'
 
     @property
-    def mama_count(self):
+    def groups_count(self):
         return self.mama_groups.count()
 
     @property
