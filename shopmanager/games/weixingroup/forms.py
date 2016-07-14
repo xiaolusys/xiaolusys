@@ -5,4 +5,4 @@ from django.core.validators import RegexValidator
 
 
 class GroupFansForm(BaseForm):
-    group_id = forms.IntegerField(error_messages=u'必须提供微信群ID')
+    group_id = forms.CharField(required=True)
