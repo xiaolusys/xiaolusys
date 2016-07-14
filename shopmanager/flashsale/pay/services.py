@@ -1,9 +1,10 @@
 # -*- coding:utf8 -*-
 import json
 import datetime
+from collections import defaultdict
 
 from common.modelutils import update_model_fields, update_model_change_fields
-from .models import SaleTrade, SaleOrder, SaleRefund, FLASH_SELLER_ID
+from .models import SaleTrade, SaleOrder, SaleRefund, District, FLASH_SELLER_ID
 from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
 from shopapp.weixin.models import MIAOSHA_SELLER_ID
@@ -11,6 +12,30 @@ from shopback.users.models import User
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def recursive_append_child_districts(node, node_maps):
+    child_nodes = node_maps.get(node['id'])
+    if not child_nodes:
+        return node
+    node.setdefault('childs', [])
+    for child_node in child_nodes:
+        node['childs'].append(child_node)
+        recursive_append_child_districts(child_node, node_maps)
+
+
+def get_district_json_data():
+    districts = District.objects.filter(is_valid=True).order_by('parent_id', 'sort_order')
+    districts_values = districts.values('id', 'parent_id', 'name', 'zipcode', 'grade')
+
+    districts_tree_nodes = defaultdict(list)
+    for district in districts_values:
+        districts_tree_nodes[district['parent_id']].append(district)
+
+    root_node = {'id':0 }
+    recursive_append_child_districts(root_node, districts_tree_nodes)
+    return root_node.get('childs', [])
+
 
 class FlashSaleService(LocalService):
     trade = None
