@@ -30,11 +30,16 @@ from flashsale.xiaolumm.models_fortune import MamaFortune
 from flashsale.pay.models import BudgetLog
 from flashsale.xiaolumm.models_fortune import MamaFortune
 from flashsale.coupon.models import UserCoupon, CouponTemplate
+from flashsale.pay.mixins import PayInfoMethodMixin
+from shopback.items.models import Product, ProductSku
+from flashsale.pay.models import SaleTrade
 
 logger = logging.getLogger(__name__)
 
+from flashsale.restpro.v2.views_verifycode_login import validate_mobile
 
-class XiaoluMamaViewSet(viewsets.ModelViewSet):
+
+class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     """
     ### 特卖平台－小鹿妈妈代理API:
     - {prefix}[.format] method:get : 获取登陆用户的代理基本信息
@@ -191,6 +196,112 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         serializer = serializers.XiaoluMamaInfoSerialize(members, many=True,
                                                          context={'current_mm': currentmm})
         return Response(serializer.data)
+
+    def get_full_link(self, link):
+        return urlparse.urljoin(settings.M_SITE_URL, link)
+
+    def get_deposite_product(self):
+        return Product.objects.get(id=2731)
+
+    @list_route(methods=['get'])
+    def get_register_pro_info(self, request):
+        content = request.REQUEST
+        # mama_id = content.get('mama_id', '1')
+        # xlmm = self.get_xiaolumm(request)
+        # register_url = "/m/register/?mama_id={0}".format(mama_id)
+        # if not xlmm or xlmm.progress == XiaoluMama.NONE:  # 为申请或者没有填写资料跳转到邀请函页面
+        # return redirect(register_url)
+        #
+        # if mama_id == xlmm.id or not xlmm.need_pay_deposite():
+        # download_url = '/sale/promotion/appdownload/'
+        # return redirect(download_url)
+
+        product = self.get_deposite_product()
+        serializer = serializers.DepositProductSerializer(product)
+        skus = product.normal_skus
+        deposite_params = [self.calc_deposite_amount_params(request, sku) for sku in skus]
+        return Response({
+            'uuid': self.get_trade_uuid(),
+            'product': serializer.data,
+            'payinfos': deposite_params,
+            # 'referal_mamaid': mama_id,
+            # 'success_url': self.get_full_link(reverse('mama_registerok')),
+            # 'cancel_url': self.get_full_link(reverse('mama_registerfail') + '?mama_id=' + mama_id)
+        })
+
+    def bind_xlmm_info(self, xlmm, mobile, referal_from):
+        if validate_mobile(mobile):
+            xlmm.fill_info(mobile, referal_from)
+        else:
+            raise exceptions.APIException(u'手机号错误')
+        return True
+
+    @list_route(methods=['get', 'post'])
+    def fill_mama_info(self, request):
+        content = request.REQUEST
+        customer = get_object_or_404(Customer, user=request.user)
+        mama_mobile = content.get('mama_mobile') or None
+        mama_id = content.get('mama_id') or None
+        if not mama_mobile:
+            raise exceptions.APIException(u'没有填写手机号哦~')
+        referal_mama = XiaoluMama.objects.filter(id=mama_id).first()
+        xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()
+        if xlmm:
+            # 如果是正式妈妈　并且购买的是试用产品 返回已经是正式妈妈  # 如果没有填写资料 返回需要填写资料
+            if xlmm.mobile is None or (not xlmm.mobile.strip()):
+                referal_from = referal_mama.mobile if referal_mama else ''
+                self.bind_xlmm_info(xlmm, mama_mobile, referal_from)
+        else:  # 创建小鹿妈妈
+            if customer.unionid and customer.unionid.strip():
+                xlmm = XiaoluMama(mobile=mama_mobile,
+                                  openid=customer.unionid,
+                                  referal_from=referal_mama.mobile)
+                xlmm.save()
+            else:
+                raise exceptions.APIException(u'注册妈妈出错啦~')
+        serializer = self.get_serializer(xlmm)
+        return Response(serializer.data)
+
+    @list_route(methods=['get', 'post'])
+    def mama_register_pay(self, request):
+        content = request.REQUEST
+        product_id = content.get('product_id')
+        sku_id = content.get('sku_id')
+        sku_num = int(content.get('num', '1'))
+        customer = get_object_or_404(Customer, user=request.user)
+        product = get_object_or_404(Product, id=product_id)
+        product_sku = get_object_or_404(ProductSku, id=sku_id)
+        payment = int(float(content.get('payment', '0')) * 100)
+        post_fee = int(float(content.get('post_fee', '0')) * 100)
+        discount_fee = int(float(content.get('discount_fee', '0')) * 100)
+        bn_totalfee = int(product_sku.agent_price * sku_num * 100)
+
+        if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
+            raise exceptions.ParseError(u'商品已被抢光啦！')
+
+        bn_payment = bn_totalfee + post_fee - discount_fee
+        if post_fee < 0 or payment <= 0 or abs(payment - bn_payment) > 10:
+            raise exceptions.ParseError(u'付款金额异常')
+        channel = content.get('channel')
+        if channel not in dict(SaleTrade.CHANNEL_CHOICES):
+            raise exceptions.ParseError(u'付款方式有误')
+
+        try:
+            lock_success = Product.objects.lockQuantity(product_sku, sku_num)
+            if not lock_success:
+                raise exceptions.APIException(u'商品库存不足')
+            address = None
+            sale_trade, state = self.create_deposite_trade(content, address, customer)
+            if state:
+                self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
+        except exceptions.APIException, exc:
+            raise exc
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+            Product.objects.releaseLockQuantity(product_sku, sku_num)
+            raise exceptions.APIException(u'订单生成异常')
+        response_charge = self.pingpp_charge(sale_trade, **content)
+        return Response(response_charge)
 
 
 class CarryLogViewSet(viewsets.ModelViewSet):

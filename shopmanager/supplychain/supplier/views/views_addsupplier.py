@@ -130,11 +130,11 @@ def get_target_date_detail(target_date, category):
         chd_posters = ""
     if target_sch.count() > 0:
         if category == "1":
-            all_detail = target_sch[0].nv_detail
+            all_detail = target_sch[0].nv_detail.order_by('-is_promotion','schedule_type')
         elif category == "2":
-            all_detail = target_sch[0].child_detail
+            all_detail = target_sch[0].child_detail.order_by('-is_promotion','schedule_type')
         else:
-            all_detail = target_sch[0].normal_detail
+            all_detail = target_sch[0].normal_detail.order_by('-is_promotion','schedule_type')
         detail_list = []
         for detail in all_detail:
             detail_dict = model_to_dict(detail)

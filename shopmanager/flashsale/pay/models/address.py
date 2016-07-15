@@ -80,7 +80,7 @@ class DistrictVersion(PayBaseModel):
 
     @classmethod
     def get_latest_version_district(cls):
-        latest_version = cls.objects.filter(status=True).order_by('created').first()
+        latest_version = cls.objects.filter(status=True).order_by('-created').first()
         return latest_version
 
 

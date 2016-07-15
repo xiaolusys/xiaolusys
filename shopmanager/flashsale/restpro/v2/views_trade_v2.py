@@ -710,7 +710,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         coupon_id  = form.get('coupon_id','')
         couponids  = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras)
         if couponids:
-            coupon_id = couponids.groupdict().get('couponid','')
+            coupon_id = couponids.groupdict().get('couponid',coupon_id)
         logistics_company_id = form.get('logistics_company_id','').strip()
         logistic_company = None
         if logistics_company_id and logistics_company_id != '0':

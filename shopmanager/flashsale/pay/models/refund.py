@@ -353,9 +353,9 @@ class SaleRefund(PayBaseModel):
         from shopback.items.models import Product
         sorder = SaleOrder.objects.get(id=self.order_id)
         try:
-            morders = Product.objects.filter(id=sorder.item_id)
-            if morders.exists():
-                ware_by = morders[0].ware_by
+            sproduct = Product.objects.filter(id=sorder.item_id).first()
+            if sproduct:
+                ware_by = sproduct.ware_by
                 return WareHouse.objects.get(id=ware_by).address
         except WareHouse.DoesNotExist:
             logger.warn('order product ware_by not found:saleorder=%s' % sorder)

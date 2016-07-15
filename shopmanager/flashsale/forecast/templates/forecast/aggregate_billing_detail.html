@@ -284,7 +284,7 @@ $(function(){
              success: function(resp){
                 $that.attr('disabled', null);
                 if (resp.code == 0){
-                    window.open(resp.redirect_url,'缺货单管理','fullscreen=0,scrollbars=0');
+                    window.open(resp.redirect_url,'缺货单管理','height=800,width=1395,resizable=yes,scrollbars=yes');
                 }else{
                     alert('创建缺货单错误:'+resp.info);
                 }
