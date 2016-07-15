@@ -16,17 +16,25 @@ logger = logging.getLogger(__name__)
 @task(max_retries=3, default_retry_delay=60)
 def api_create_or_update_forecastinbound_by_orderlist(order_list):
     logger.info('api_create_or_update_forecastinbound: %s'% order_list)
+    from flashsale.dinghuo.models import OrderList
     try:
         from shopback.items.models import Product, ProductSku
         supplier = order_list.supplier
 
         orderlist_id = order_list.id
-        forecast_ib = ForecastInbound.objects.filter(relate_order_set__in=[orderlist_id]).first()
-        if forecast_ib:
-            forecast_ib.express_code = forecast_ib.express_code or order_list.express_company
-            forecast_ib.express_no = forecast_ib.express_no or order_list.express_no
-            forecast_ib.save(update_fields=['express_code', 'express_no'])
-            return
+        forecast_ibs = ForecastInbound.objects.filter(relate_order_set__in=[orderlist_id])
+        if forecast_ibs.exists():
+            for forecast_ib in forecast_ibs:
+                order_status_list = set(forecast_ib.relate_order_set.values_list('sys_status',flat=True))
+                if len(order_status_list) == 1 and order_status_list[0] == OrderList.ST_CLOSE:
+                    forecast_ib.status = ForecastInbound.ST_CLOSED
+                elif len(order_status_list) == 1 and order_status_list[0] in (
+                    OrderList.ST_BILLING, OrderList.ST_FINISHED):
+                    forecast_ib.status = ForecastInbound.ST_ARRIVED
+                forecast_ib.express_code = forecast_ib.express_code or order_list.express_company
+                forecast_ib.express_no = forecast_ib.express_no or order_list.express_no
+                forecast_ib.save(update_fields=['express_code', 'express_no', 'status'])
+                return
 
         forecast_ib = ForecastInbound()
         forecast_ib.supplier = supplier

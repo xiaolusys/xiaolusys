@@ -30,8 +30,8 @@ class ForecastInboundDetailInline(admin.TabularInline):
 
 class RealInboundDetailInline(admin.TabularInline):
     model = RealInboundDetail
-
-    fields = ( 'product_img','product_id', 'sku_id', 'product_name', 'arrival_quantity', 'inferior_quantity', 'district', 'status')
+    fields = ( 'product_img','product_id', 'sku_id', 'product_name',
+               'arrival_quantity', 'inferior_quantity', 'district', 'status')
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
@@ -46,15 +46,11 @@ class RealInboundDetailInline(admin.TabularInline):
 
 
 class ForecastInboundAdmin(admin.ModelAdmin):
-    # fieldsets = ((u'用户信息:', {
-    #     'classes': ('expand',),
-    #     'fields': ('user', 'group')
-    # }),)
 
     list_display = (
         'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser',
         'total_forecast_num', 'total_arrival_num', 'has_lack', 'has_defact', 'has_overhead', 'has_wrong',
-        'created', 'arrival_time', 'delivery_time', 'status'
+        'status', 'created', 'arrival_time', 'delivery_time'
     )
     list_filter = ('status', 'ware_house', ('created', DateScheduleFilter),
                    ('forecast_arrive_time',DateScheduleFilter),
@@ -65,7 +61,6 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     filter_horizontal = ('relate_order_set',)
 
     inlines = [ForecastInboundDetailInline]
-
     fieldsets = (
         ('基本信息:', {
          'classes': ('expand',),
@@ -92,7 +87,6 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
             form.base_fields['relate_order_set'].queryset = form.base_fields['relate_order_set'].queryset.filter(
                 supplier=obj.supplier).exclude(status=OrderList.SUBMITTING)
-
         else:
             form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset.filter(
                 status=SaleSupplier.CHARGED)
@@ -110,10 +104,6 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if obj and not obj.purchaser:
             obj.purchaser = request.user.username
-        obj.save()
-
-    def delete_model(self, request, obj):
-        obj.status = obj.ST_CANCELED
         obj.save()
 
     def action_merge_or_split(self, request, queryset):

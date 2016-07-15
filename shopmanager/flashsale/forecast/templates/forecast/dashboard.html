@@ -20,6 +20,10 @@
     .inline {
         display: inline;
     }
+    .popover{
+        max-width:450px;
+        max-height:900px;
+    }
     ul.vertical {
         list-style: none;
         clear: both;
@@ -112,7 +116,7 @@
                 <a href="{% url 'forecast_v1:forecastinbound-dashboard' %}?action=unarrived{% if staff_name %}&staff_name={{staff_name}}{% endif %}">未准时到货
                     <span class="badge">{{unarrived_num}}</span></a>
                 </li>
-                <li role="presentation" {% ifequal action "unbilling" %}class="active"{% endifequal %}>
+                <li role="presentation" {% ifequal action "billingable" %}class="active"{% endifequal %}>
                 <a href="{% url 'forecast_v1:forecastinbound-dashboard' %}?action=billingable{% if staff_name %}&staff_name={{staff_name}}{% endif %}">到货等待结算
                     <span class="badge">{{billingable_num}}</span></a>
                 </li>

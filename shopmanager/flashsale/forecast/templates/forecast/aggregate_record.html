@@ -23,7 +23,8 @@
                         </a>
                         <div class="inline pull-right">
                             {% if order.note %}
-                            <a tabindex="0" role="button" style="color:#333;" data-toggle="popover"  title="订货单备注" data-content="{{order.note}}">
+                            <a tabindex="0" role="button" style="color:#333;" data-toggle="popover"  title="订货单备注"
+                               data-html="true" data-content="<pre>{{order.note}}</pre>">
                                 <i class="glyphicon glyphicon-list-alt"></i>
                             </a>
                             {% endif %}
@@ -46,7 +47,8 @@
                            {% if forecast.is_unarrive_intime %}<i class="glyphicon glyphicon-time"></i>{% endif %}
                            {% if forecast.is_unrecord_logistic %}<i class="glyphicon glyphicon-map-marker"></i>{% endif %}
                            {% if forecast.memo %}
-                            <a tabindex="0" role="button" style="color:#333;"　data-container="body" data-toggle="popover" data-placement="left" title="预测单备注" data-content="{{forecast.memo}}">
+                            <a tabindex="0" role="button" style="color:#333;"　data-container="body" data-toggle="popover" data-html="true"
+                               data-placement="left" title="预测单备注" data-content="<pre>{{forecast.memo}}</pre>">
                                 <i class="glyphicon glyphicon-list-alt"></i>
                             </a>
                             {% endif %}
@@ -67,7 +69,8 @@
                         </a>
                         <div class="inline pull-right">
                             {% if inbound.memo %}
-                            <a tabindex="0" role="button" style="color:#333;" data-container="body" data-toggle="popover" data-placement="left" title="到货单备注" data-content="{{inbound.memo}}">
+                            <a tabindex="0" role="button" style="color:#333;" data-container="body" data-toggle="popover" data-placement="left"
+                               data-html="true" title="到货单备注" data-content="<pre>{{inbound.memo}}</pre>">
                                 <i class="glyphicon glyphicon-list-alt"></i></a>
                             {% endif %}
                         </div>

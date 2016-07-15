@@ -87,7 +87,8 @@ class OrderList(models.Model):
                         (HTKY, u'汇通快递'),
                         (TTKDEX, u'天天快递'),
                         (QFKD, u'全峰快递'),
-                        (DBKD, u'德邦快递'),)
+                        (DBKD, u'德邦快递'),
+                        )
 
     PC_COD_TYPE = 11  # 货到付款
     PC_PREPAID_TYPE = 12  # 预付款
@@ -569,7 +570,7 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
         instance.sys_status = OrderList.ST_APPROVAL
     update_model_fields(instance, update_fields=['sys_status'])
 
-    if instance.sys_status == OrderList.ST_APPROVAL:
+    if instance.sys_status != OrderList.ST_DRAFT:
         logger.info('orderlist update forecastinbound: %s'% instance)
         # if the orderlist purchase confirm, then create forecast inbound
         from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
