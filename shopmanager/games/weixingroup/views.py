@@ -210,6 +210,8 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
         # if user already join a group, change group
+        log.error('fans join')
+        log.error(str(userinfo))
         fans = GroupFans.objects.filter(
             union_id=userinfo.get('unionid')
         ).first()
