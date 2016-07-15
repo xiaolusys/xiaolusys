@@ -14,6 +14,7 @@ from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorS
 from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.xiaolumm.serializers import XiaoluMamaSerializer
+from flashsale.pay.models import Customer
 from shopapp.weixin.models import WeixinUserInfo
 from .forms import GroupFansForm
 import logging
@@ -218,8 +219,14 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         if not fans:
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                     userinfo.get('unionid'), userinfo.get('openid', ''))
+            customer = Customer.objects.filter(unionid=unionid).first()
+            user_id = None
             if request.user.id:
-                ActivityUsers.join(self.activity, request.user.id, fans.group_id)
+                user_id = request.user.id
+            elif customer:
+                user_id = customer.user_id
+            if user_id:
+                ActivityUsers.join(self.activity, user_id, fans.group_id)
         group = GroupMamaAdministrator.objects.get(id=fans.group_id)
         response = redirect("/mall/activity/summer/mat/register?groupId=" + group.group_uni_key)
         self.set_cookie_openid_and_unionid(response, unionid, openid)
