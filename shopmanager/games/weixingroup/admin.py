@@ -68,10 +68,14 @@ admin.site.register(GroupMamaAdministrator, GroupMamaAdministratorAdmin)
 
 
 class ActivityUsersAdmin(BaseModelAdmin):
-    search_fields = ['id', '=activity_id', 'user_id']
-    list_display = ['activity', 'user_id', 'group']
+    search_fields = ['id', '=activity_id', 'user_id', 'group']
+    list_display = ['activity', 'user_id', 'group_link']
 
+    def group_link(self, obj):
+        return '<a href="/admin/weixingroup/groupmamaadministrator?group_uni_key=' + obj.group.group_uni_key + '">'+obj.group.group_uni_key + '</a>'
 
+    group_link.short_description = u'微信群'
+    group_link.allow_tags = True
 admin.site.register(ActivityUsers, ActivityUsersAdmin)
 
 
@@ -79,9 +83,9 @@ class GroupFansAdmin(BaseModelAdmin):
     list_display = ['id', 'group_link', 'user_id', 'nick', 'union_id', 'open_id', 'head_img_url']
 
     def group_link(self, obj):
-        return '<a href="/admin/weixingroup/groupmamaadministrator?group_uni_key=' + obj.group.group_uni_key + '">'
+        return '<a href="/admin/weixingroup/groupmamaadministrator?group_uni_key=' + obj.group.group_uni_key + '">'+obj.group.group_uni_key + '</a>'
 
-    group_link.short_description = u'小鹿妈妈查看凉席活动详情'
+    group_link.short_description = u'微信群'
     group_link.allow_tags = True
 
 
