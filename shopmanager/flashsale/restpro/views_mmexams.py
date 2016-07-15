@@ -261,6 +261,8 @@ class MmexamsViewSet(viewsets.ModelViewSet):
                 result.total_point = total_point
                 update_fields.append("total_point")
             if update_fields:
+                result.modified = datetime.datetime.now()
+                update_fields.append('modified')
                 result.save(update_fields=update_fields)
         else:
             result = Result(
