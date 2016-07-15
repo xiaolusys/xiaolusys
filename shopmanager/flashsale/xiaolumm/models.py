@@ -548,6 +548,21 @@ class XiaoluMama(models.Model):
         }
         return level_map[self.agencylevel]
 
+    def fill_info(self, mobile, referal_from):
+        update_fields = []
+        if self.mobile is None or (not self.mobile.strip()):
+            self.mobile = mobile
+            update_fields.append('mobile')
+        if self.referal_from is None or (not self.mobile.strip()):
+            self.referal_from = referal_from
+            update_fields.append('referal_from')
+        if self.progress != XiaoluMama.PROFILE:
+            self.progress = XiaoluMama.PROFILE
+            update_fields.append('progress')
+        if update_fields:
+            self.save(update_fields=update_fields)
+        return
+
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
