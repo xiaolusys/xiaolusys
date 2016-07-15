@@ -161,8 +161,8 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
 
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
-        fans = get_object_or_404(GroupMamaAdministrator, group_uni_key=pk)
-        return Response(GroupMamaAdministratorSerializers(fans.group).data)
+        group = get_object_or_404(GroupMamaAdministrator, group_uni_key=pk)
+        return Response(GroupMamaAdministratorSerializers(group).data)
 
     @list_route(methods=['GET'])
     def get_group_users(self, request):
@@ -193,8 +193,11 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
         userinfo = {}
-        userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
-        record = userinfo_records.first()
+        if unionid:
+            userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
+            record = userinfo_records.first()
+        else:
+            record = None
         if record:
             userinfo.update({"unionid": record.unionid, "nickname": record.nick, "headimgurl": record.thumbnail})
         else:
@@ -206,17 +209,12 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
         # if user already join a group, change group
-        log.error('fans join')
-        log.error(str(userinfo))
         fans = GroupFans.objects.filter(
             union_id=userinfo.get('unionid')
         ).first()
-        if fans:
-            log.error('fans already exist:unionid' + userinfo.get('unionid'))
         if not fans:
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                     userinfo.get('unionid'), userinfo.get('openid', ''))
-            log.error('fans create:unionid' + userinfo.get('unionid') + '|id:' + str(fans.id))
             if request.user.id:
                 ActivityUsers.join(self.activity, request.user.id, fans.group_id)
         group = GroupMamaAdministrator.objects.get(id=fans.group_id)
