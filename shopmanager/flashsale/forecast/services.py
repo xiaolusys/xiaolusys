@@ -10,7 +10,7 @@ from django.core.cache import cache
 from . import serializers
 from .models import (
     ForecastInbound,
-    default_forecast_inbound_no,
+    gen_subforecast_inbound_no,
     ForecastInboundDetail,
     RealInbound,
     RealInboundDetail
@@ -38,10 +38,11 @@ def get_purchaseorder_data(order_id):
 
     order = OrderList.objects.get(id=order_id)
     order_data = model_to_dict(order, fields=[
-        'id', 'buyer_name', 'receiver', 'created', 'sys_status',
+        'id', 'buyer_name', 'receiver', 'sys_status',
         'last_pay_date', 'note', 'purchase_total_num', 'order_group_key'
     ])
     order_data['supplier_id'] = order.supplier_id
+    order_data['created'] = order.created
     orderlist_status_map = dict(OrderList.SYS_STATUS_CHOICES)
     order_data['sys_status_name'] = orderlist_status_map.get(order_data['sys_status'])
     cache.set(cache_key, order_data, 60)
@@ -71,7 +72,7 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     )
     orderlist_status_map = dict(OrderList.SYS_STATUS_CHOICES)
     for order_data in order_dict_list:
-        order_data['status_name'] = orderlist_status_map.get(order_data['sys_status'])
+        order_data['sys_status_name'] = orderlist_status_map.get(order_data['sys_status'])
     return order_dict_list
 
 
@@ -171,7 +172,7 @@ def strip_forecast_inbound(forecast_inbound_id):
     if sku_delta_dict:
         update_fields = ['supplier_id', 'ware_house', 'express_code', 'express_no']
         new_forecast = ForecastInbound()
-        new_forecast.forecast_no = default_forecast_inbound_no('sub%d' % forecast_inbound.id)
+        new_forecast.forecast_no = gen_subforecast_inbound_no(forecast_inbound.forecast_no)
         for k in update_fields:
             if hasattr(forecast_inbound, k):
                 setattr(new_forecast, k, getattr(forecast_inbound, k))
@@ -320,7 +321,8 @@ class AggregateForcecastOrderAndInbound(object):
         supplier_dict_data = dict([(s['id'], s) for s in supplier_values])
 
         logger.info('aggregate key len: list=%s, set=%s'%(len(order_keylist), len(order_keyset)))
-        forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=order_keyset)
+        forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=order_keyset)\
+            .exclude(status=ForecastInbound.ST_CLOSE)
         forecast_values = forecast_inbounds.values(
             'id', 'relate_order_set','supplier_id', 'express_code', 'express_no', 'forecast_arrive_time',
             'total_forecast_num', 'total_arrival_num', 'purchaser', 'status',
@@ -332,7 +334,8 @@ class AggregateForcecastOrderAndInbound(object):
             value['status_name'] = forecast_status_map.get(value['status'])
             aggregate_forecast_dict[value['relate_order_set']].append(value)
 
-        real_inbounds = RealInbound.objects.filter(relate_order_set__in=order_keyset)
+        real_inbounds = RealInbound.objects.filter(relate_order_set__in=order_keyset)\
+            .exclude(status=RealInbound.CANCELED)
         realinbound_values = real_inbounds.values(
             'id', 'relate_order_set','supplier_id', 'wave_no', 'ware_house', 'express_code', 'express_no',
             'creator', 'inspector', 'total_inbound_num', 'total_inferior_num', 'created', 'memo', 'status'

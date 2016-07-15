@@ -22,8 +22,8 @@
                             <span>#{{order.id}}&nbsp;订货单&nbsp;{{order.created|date:'Y-m-d'}}&nbsp;{{order.sys_status_name}}&nbsp;({{order.purchase_total_num}})</span>
                         </a>
                         <div class="inline pull-right">
-                            {% if order.memo %}
-                            <a tabindex="0" role="button" style="color:#333;" data-toggle="popover"  title="订货单备注" data-content="{{order.memo}}">
+                            {% if order.note %}
+                            <a tabindex="0" role="button" style="color:#333;" data-toggle="popover"  title="订货单备注" data-content="{{order.note}}">
                                 <i class="glyphicon glyphicon-list-alt"></i>
                             </a>
                             {% endif %}
@@ -79,7 +79,6 @@
     </ul>
 </div>
 <div class="panel-footer">
-    <a class="btn btn-sm btn-primary">查看未发货订单</a>
     <a class="btn btn-sm btn-primary pull-right btn-account" data-src="{% url 'forecast_v1:forecastinbound-calcstats' %}?order_group_key={{aggregate_order.order_group_key}}" >开始结算</a>
 </div>
 </div>
