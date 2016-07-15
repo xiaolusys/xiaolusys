@@ -17,7 +17,7 @@ from flashsale.xiaolumm.serializers import XiaoluMamaSerializer
 from shopapp.weixin.models import WeixinUserInfo
 from .forms import GroupFansForm
 import logging
-log = logging.getLogger(__name__)
+log = logging.getLogger('django.request')
 
 class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     """
