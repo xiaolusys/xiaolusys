@@ -73,3 +73,16 @@ class ActivityUsersAdmin(BaseModelAdmin):
 
 
 admin.site.register(ActivityUsers, ActivityUsersAdmin)
+
+
+class GroupFansAdmin(BaseModelAdmin):
+    list_display = ['id', 'group_link', 'user_id', 'nick', 'union_id', 'open_id', 'head_img_url']
+
+    def group_link(self, obj):
+        return '<a href="/admin/weixingroup/groupmamaadministrator?group_uni_key=' + obj.group.group_uni_key + '">'
+
+    group_link.short_description = u'小鹿妈妈查看凉席活动详情'
+    group_link.allow_tags = True
+
+
+admin.site.register(GroupFans, GroupFansAdmin)

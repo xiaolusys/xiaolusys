@@ -9,7 +9,7 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
 from core.weixin.mixins import WeixinAuthMixin
 from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
-from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers,\
+from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers, \
     MamaGroupsSerializers
 from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
@@ -186,9 +186,8 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             raise exceptions.ValidationError(form.error_message)
         if not self.activity.is_on():
             raise exceptions.ValidationError(u"凉席活动暂不可使用")
-        group_id = form.cleaned_data['group_id']
-        # mama_id = form.cleaned_data['mama_id']
-        group = GroupMamaAdministrator.objects.filter(group_uni_key=group_id).first()
+        group_uni_key = form.cleaned_data['group_id']
+        group = GroupMamaAdministrator.objects.filter(group_uni_key=group_uni_key).first()
         if not group:
             raise exceptions.NotFound(u'此妈妈尚未加入微信群组')
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
@@ -199,7 +198,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
         record = userinfo_records.first()
         if record:
-            userinfo.update({"unionid":record.unionid, "nickname":record.nick, "headimgurl":record.thumbnail})
+            userinfo.update({"unionid": record.unionid, "nickname": record.nick, "headimgurl": record.thumbnail})
         else:
             # get openid from 'debug' or from using 'code' (if code exists)
             userinfo = self.get_auth_userinfo(request)
@@ -222,10 +221,13 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         # else:
         if not fans:
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
-                                userinfo.get('unionid'), userinfo.get('openid', ''))
+                                    userinfo.get('unionid'), userinfo.get('openid', ''))
             if request.user.id:
                 ActivityUsers.join(self.activity, request.user.id, fans.group_id)
         group = GroupMamaAdministrator.objects.get(id=fans.group_id)
-        response = Response(GroupMamaAdministratorSerializers(group).data)
+        response = redirect("mall/activity/summer/mat/register?groupId=" + group.group_uni_key)
         self.set_cookie_openid_and_unionid(response, unionid, openid)
         return response
+        # response = Response(GroupMamaAdministratorSerializers(group).data)
+        # self.set_cookie_openid_and_unionid(response, unionid, openid)
+        # return response
