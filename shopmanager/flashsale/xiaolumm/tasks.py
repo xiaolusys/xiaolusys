@@ -1045,7 +1045,6 @@ def task_update_trial_mama_full_member_by_condition(mama):
     检查该妈妈的推荐人是否是　试用用户　
     如果是　试用用户数　
     满足邀请三个188　或者　
-    6个99的妈妈则将该代理转为正式妈妈
     这里用续费天数　判断
     """
     trial_mama = XiaoluMama.objects.filter(mobile=mama.referal_from,
