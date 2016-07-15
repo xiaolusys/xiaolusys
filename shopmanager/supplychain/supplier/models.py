@@ -472,17 +472,17 @@ class SaleProductManage(models.Model):
 
     @property
     def normal_detail(self):
-        return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL).order_by('-created')
+        return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL)
 
     @property
     def nv_detail(self):
         return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL,
-                                           sale_category__contains=u'女装').order_by('-created')
+                                           sale_category__contains=u'女装')
 
     @property
     def child_detail(self):
         return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL,
-                                           sale_category__contains=u'童装').order_by('-created')
+                                           sale_category__contains=u'童装')
 
     def __unicode__(self):
         return '<%s,%s>' % (self.sale_time, self.responsible_person_name)
