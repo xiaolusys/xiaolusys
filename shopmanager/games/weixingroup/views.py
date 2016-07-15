@@ -161,10 +161,8 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
 
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
-        fans = get_object_or_404(GroupFans, pk=pk)
-        res = self.get_serializer(fans).data
-        res['group'] = GroupMamaAdministratorSerializers(fans.group).data
-        return Response(res)
+        fans = get_object_or_404(GroupMamaAdministrator, group_uni_key=pk)
+        return Response(GroupMamaAdministratorSerializers(fans.group).data)
 
     @list_route(methods=['GET'])
     def get_group_users(self, request):
@@ -192,7 +190,6 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         if not group:
             raise exceptions.NotFound(u'此妈妈尚未加入微信群组')
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
-
         # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
         userinfo = {}
@@ -204,7 +201,6 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             # get openid from 'debug' or from using 'code' (if code exists)
             userinfo = self.get_auth_userinfo(request)
             unionid = userinfo.get("unionid")
-
             if not self.valid_openid(unionid):
                 # if we still dont have openid, we have to do oauth
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
@@ -215,13 +211,6 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         fans = GroupFans.objects.filter(
             union_id=userinfo.get('unionid')
         ).first()
-        # 不许换群
-        # if fans:
-        #     fans.group_id = group.id
-        #     fans.head_img_url = userinfo.get('headimgurl')
-        #     fans.nick = userinfo.get('nickname')
-        #     fans.save()
-        # else:
         if fans:
             log.error('fans already exist:unionid' + userinfo.get('unionid'))
         if not fans:
@@ -234,6 +223,3 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         response = redirect("/mall/activity/summer/mat/register?groupId=" + group.group_uni_key)
         self.set_cookie_openid_and_unionid(response, unionid, openid)
         return response
-        # response = Response(GroupMamaAdministratorSerializers(group).data)
-        # self.set_cookie_openid_and_unionid(response, unionid, openid)
-        # return response
