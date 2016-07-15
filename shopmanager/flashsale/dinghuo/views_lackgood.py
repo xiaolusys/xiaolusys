@@ -60,7 +60,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
             else:
                 if lack_sku.is_canceled:
                     lack_sku.lack_num = good['lack_num']
-                    lack_sku.status = LackGoodOrder.NORAML
+                    lack_sku.status = LackGoodOrder.NORMAL
                 else:
                     lack_sku.lack_num = F('lack_num') + good['lack_num']
                 lack_sku.save(update_fields=['supplier','order_group_key','product_id','sku_id','lack_num','status'])
@@ -77,7 +77,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
         from flashsale.pay.models import SaleOrder
 
         lackorder_qs = LackGoodOrder.objects.get_objects_by_order_ids(order_ids)
-        normal_lackvalues = lackorder_qs.filter(status=LackGoodOrder.NORAML).values_list('sku_id', 'id')
+        normal_lackvalues = lackorder_qs.filter(status=LackGoodOrder.NORMAL).values_list('sku_id', 'id')
         lackorder_data = serializers.LackGoodOrderSerializer(lackorder_qs, many=True).data
 
         normal_lackdict = dict(normal_lackvalues)
