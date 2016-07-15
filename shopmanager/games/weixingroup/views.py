@@ -161,8 +161,11 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
 
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
-        group = get_object_or_404(GroupMamaAdministrator, group_uni_key=pk)
-        return Response(GroupMamaAdministratorSerializers(group).data)
+        fans = get_object_or_404(GroupFans, pk=pk)
+        res = self.get_serializer(fans).data
+        res['group'] = GroupMamaAdministratorSerializers(fans.group).data
+        res['mama'] = XiaoluMamaSerializer(fans.group.mama).data
+        return Response(res)
 
     @list_route(methods=['GET'])
     def get_group_users(self, request):
