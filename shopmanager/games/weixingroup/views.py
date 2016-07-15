@@ -16,7 +16,8 @@ from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.xiaolumm.serializers import XiaoluMamaSerializer
 from shopapp.weixin.models import WeixinUserInfo
 from .forms import GroupFansForm
-
+import logging
+log = logging.getLogger(__name__)
 
 class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     """
@@ -171,7 +172,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         group = GroupMamaAdministrator.objects.filter(group_uni_key=group_id).first()
         if not group:
             raise exceptions.NotFound(u'指定的小鹿妈妈群不存在')
-        queryset = self.filter_queryset(group.fans.all())
+        queryset = self.filter_queryset(group.fans.order_by('-id'))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -219,9 +220,12 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         #     fans.nick = userinfo.get('nickname')
         #     fans.save()
         # else:
+        if fans:
+            log.error('fans already exist:unionid' + userinfo.get('unionid'))
         if not fans:
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                     userinfo.get('unionid'), userinfo.get('openid', ''))
+            log.error('fans create:unionid' + userinfo.get('unionid') + '|id:' + str(fans.id))
             if request.user.id:
                 ActivityUsers.join(self.activity, request.user.id, fans.group_id)
         group = GroupMamaAdministrator.objects.get(id=fans.group_id)

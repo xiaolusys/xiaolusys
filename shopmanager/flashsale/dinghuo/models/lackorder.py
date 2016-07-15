@@ -53,6 +53,10 @@ class LackGoodOrder(BaseModel):
         verbose_name = u'订货缺货商品'
         verbose_name_plural = u'订货缺货商品列表'
 
+    def delete(self, using=None):
+        self.status = self.DELETE
+        self.save()
+
     @property
     def product(self):
         return Product.objects.filter(id=self.product_id).first()
