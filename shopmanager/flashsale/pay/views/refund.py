@@ -124,7 +124,7 @@ class RefundPopPageView(APIView):
         sale_refund = get_object_or_404(SaleRefund, pk=pk)
         strade = get_object_or_404(SaleTrade, pk=sale_refund.trade_id)
         sale_order = get_object_or_404(SaleOrder, pk=sale_refund.order_id)
-        merge_trade = get_object_or_404(MergeTrade, tid=strade.tid)
+        # merge_trade = get_object_or_404(MergeTrade, tid=strade.tid)
         refund_dict = model_to_dict(sale_refund)
 
         refund_dict['refundd_message'] = ""
@@ -142,9 +142,9 @@ class RefundPopPageView(APIView):
         refund_dict['payment'] = sale_order.payment
         refund_dict['order_s'] = sale_order.status
         refund_dict['pay_time'] = strade.pay_time
-        refund_dict['merge_trade_status'] = merge_trade.get_status_display()
-        refund_dict['merge_sys_status'] = merge_trade.get_sys_status_display()
-        refund_dict['sys_memo'] = merge_trade.sys_memo
+        # refund_dict['merge_trade_status'] = merge_trade.get_status_display()
+        # refund_dict['merge_sys_status'] = merge_trade.get_sys_status_display()
+        # refund_dict['sys_memo'] = merge_trade.sys_memo
         refund_dict['logistics_company'] = strade.logistics_company
         refund_dict['out_sid'] = strade.out_sid
         refund_dict['logistics_time'] = strade.consign_time
