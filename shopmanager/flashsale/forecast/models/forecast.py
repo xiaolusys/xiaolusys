@@ -30,7 +30,7 @@ class ForecastInbound(BaseModel):
     ST_APPROVED = 'approved'
     ST_ARRIVED = 'arrived'
     ST_TIMEOUT = 'timeout'
-    ST_CLOSE   = 'close'
+    ST_CLOSED   = 'close'
     ST_CANCELED = 'canceled'
 
     STATUS_CHOICES = (
@@ -38,7 +38,7 @@ class ForecastInbound(BaseModel):
         (ST_APPROVED, u'审核'),
         (ST_ARRIVED, u'到货'),
         (ST_TIMEOUT, u'超时关闭'),
-        (ST_CLOSE, u'缺货关闭'),
+        (ST_CLOSED, u'缺货关闭'),
         (ST_CANCELED, u'取消'),
     )
 
@@ -55,7 +55,8 @@ class ForecastInbound(BaseModel):
     ware_house = models.IntegerField(default=constants.WARE_NONE,
                                       choices=constants.WARE_CHOICES,verbose_name=u'所属仓库')
 
-    express_code = models.CharField(max_length=32, blank=True, verbose_name=u'预填快递公司')
+    express_code = models.CharField(max_length=32, choices=constants.EXPRESS_CONPANYS,
+                                    blank=True, verbose_name=u'预填快递公司')
     express_no = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'预填运单号')
     forecast_arrive_time = models.DateTimeField(blank=True, null=True, verbose_name=u'预测到货时间')
 
@@ -85,6 +86,10 @@ class ForecastInbound(BaseModel):
 
     def __unicode__(self):
         return '<%s,%s>' %(self.id, self.supplier and self.supplier.supplier_name or u'未知供应商')
+
+    def delete(self, using=None):
+        self.status = self.ST_CANCELED
+        self.save()
 
     @property
     def status_name(self):
@@ -148,7 +153,7 @@ class ForecastInbound(BaseModel):
         self.status = self.ST_CANCELED
 
     def lackgood_close_update_status(self):
-        self.status = self.ST_CLOSE
+        self.status = self.ST_CLOSED
 
 
 def pre_save_update_forecastinbound_data(sender, instance, raw, *args, **kwargs):
@@ -169,6 +174,12 @@ def modify_forecastinbound_data(sender, instance, created, *args, **kwargs):
         instance.status == ForecastInbound.ST_APPROVED):
         instance.delivery_time = datetime.datetime.now()
         instance.save(update_fields=['delivery_time'])
+
+    if instance.express_no:
+        for order in instance.relate_order_set.filter(express_no=''):
+            order.express_company = instance.express_code
+            order.express_no = instance.express_no
+            order.save(update_fields=['express_company','express_no'])
 
     # refresh forecast stats
     from .. import tasks

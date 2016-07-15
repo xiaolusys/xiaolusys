@@ -2,9 +2,9 @@
 import copy
 import datetime
 import json
-from operator import itemgetter
 import re
 import sys
+from collections import defaultdict
 from django.db.models import F, Q, Sum, Count
 from rest_framework import generics, permissions, renderers, viewsets
 from rest_framework.decorators import list_route, detail_route
@@ -41,6 +41,23 @@ class InBoundViewSet(viewsets.GenericViewSet):
          'text': '未选仓'}, {'value': 1, 'text': '上海仓'}, {'value': 2, 'text': '广州仓'}
     ]
 
+    def get_optimize_forecast_id(self, inbound_skus):
+        forecast_group = defaultdict(list)
+        for id, sku in inbound_skus.iteritems():
+            forecast_group[sku['forecastId']].append(sku['arrival_quantity'])
+
+        forecast_group_sum = dict([(k, sum(v)) for k, v in forecast_group.items()])
+        optimize_groups = {}
+        for forecast_id, arrival_num in forecast_group_sum.items():
+            forecast_data = services.get_forecastinbound_data(forecast_id)
+            delta_num = forecast_data['total_forecast_num'] - forecast_data['total_arrival_num']
+            if delta_num >= arrival_num:
+                optimize_groups[forecast_id] = arrival_num
+        if not optimize_groups:
+            optimize_groups = forecast_group_sum
+        optimize_forecast_id = max(optimize_groups, key=lambda x: optimize_groups.get(x))
+        return optimize_forecast_id
+
     @list_route(methods=['post'])
     def create_inbound(self, request):
         form = forms.CreateInBoundForm(request.POST)
@@ -55,13 +72,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             inbound_skus_dict[sku.id]['product_id'] = sku.product_id
         orderlist_id = form.cleaned_data.get('orderlist_id')
 
-        from collections import defaultdict
-        forecast_group = defaultdict(list)
-        for id, sku in inbound_skus.iteritems():
-            forecast_group[sku['forecastId']].append(sku['arrival_quantity'])
-        forecast_group_sum = dict([(k, sum(v)) for k,v in forecast_group.items()])
-        optimize_forecast_id = max(forecast_group_sum, key=lambda x:forecast_group_sum.get(x))
-
+        optimize_forecast_id = self.get_optimize_forecast_id(inbound_skus)
         forecast_inbound_data = services.get_forecastinbound_data(optimize_forecast_id)
         express_no = form.cleaned_data['express_no']
         relate_orderids = forecast_inbound_data['relate_order_set']

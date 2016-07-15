@@ -71,7 +71,7 @@ def task_forecast_update_stats_data(finbound_id):
         if forecast_inbound.status == ForecastInbound.ST_TIMEOUT:
             stats.status = ForecastStats.CLOSED
             stats.is_timeout = True
-        elif forecast_inbound.status == ForecastInbound.ST_CLOSE:
+        elif forecast_inbound.status == ForecastInbound.ST_CLOSED:
             stats.status = ForecastStats.CLOSED
             stats.is_lackclose = True
         elif forecast_inbound.status == ForecastInbound.ST_CANCELED:

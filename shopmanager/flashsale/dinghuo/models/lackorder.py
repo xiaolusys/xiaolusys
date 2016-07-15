@@ -17,7 +17,7 @@ class LackGoodOrderManager(BaseManager):
         if not order_ids:
             return self.get_queryset().none()
         filter_q = reduce(operator.or_, (Q(order_group_key__contains='-%s-'%x) for x in order_ids))
-        return self.get_queryset().filter(filter_q)
+        return self.get_queryset().filter(filter_q).filter(status=self.model.NORMAL)
 
 
 class LackGoodOrder(BaseModel):

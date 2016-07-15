@@ -39,10 +39,11 @@ def get_purchaseorder_data(order_id):
     order = OrderList.objects.get(id=order_id)
     order_data = model_to_dict(order, fields=[
         'id', 'buyer_name', 'receiver', 'sys_status',
-        'last_pay_date', 'note', 'purchase_total_num', 'order_group_key'
+        'last_pay_date', 'purchase_total_num', 'order_group_key'
     ])
     order_data['supplier_id'] = order.supplier_id
     order_data['created'] = order.created
+    order_data['note'] = order.note
     orderlist_status_map = dict(OrderList.SYS_STATUS_CHOICES)
     order_data['sys_status_name'] = orderlist_status_map.get(order_data['sys_status'])
     cache.set(cache_key, order_data, 60)
@@ -322,7 +323,7 @@ class AggregateForcecastOrderAndInbound(object):
 
         logger.info('aggregate key len: list=%s, set=%s'%(len(order_keylist), len(order_keyset)))
         forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=order_keyset)\
-            .exclude(status=ForecastInbound.ST_CLOSE)
+            .exclude(status=ForecastInbound.ST_CANCELED)
         forecast_values = forecast_inbounds.values(
             'id', 'relate_order_set','supplier_id', 'express_code', 'express_no', 'forecast_arrive_time',
             'total_forecast_num', 'total_arrival_num', 'purchaser', 'status',
