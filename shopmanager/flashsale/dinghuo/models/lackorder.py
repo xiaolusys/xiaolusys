@@ -22,10 +22,10 @@ class LackGoodOrderManager(BaseManager):
 
 class LackGoodOrder(BaseModel):
 
-    NORAML = 'normal'
+    NORMAL = 'normal'
     DELETE = 'delete'
     STATUS_CHOICES = (
-        (NORAML, u'正常'),
+        (NORMAL, u'正常'),
         (DELETE, u'作废'),
     )
 
@@ -41,7 +41,7 @@ class LackGoodOrder(BaseModel):
     refund_time = models.DateTimeField(blank=True,null=True,db_index=True,verbose_name=u'退款时间')
 
     order_group_key = models.CharField(max_length=64,verbose_name=u'订货单组主键')
-    status = models.CharField(max_length=8 ,choices=STATUS_CHOICES,default=NORAML ,verbose_name=u'状态')
+    status = models.CharField(max_length=8 ,choices=STATUS_CHOICES,default=NORMAL ,verbose_name=u'状态')
 
     creator = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'创建者')
     objects = LackGoodOrderManager()
