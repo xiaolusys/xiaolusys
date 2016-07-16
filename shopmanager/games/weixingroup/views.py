@@ -121,6 +121,7 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
     serializer_class = MamaGroupsSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    JOIN_URL = '/sale/weixingroup/liangxi/join/group_id='
 
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
@@ -158,12 +159,16 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    def join(self):
+        """凉席活动同时加入了微信群组"""
+        pass
+
     @detail_route(methods=['GET'])
     def qr_code(self, request, pk):
         group = GroupMamaAdministrator.objects.filter(group_uni_key=pk).first()
         if not group:
             raise exceptions.NotFound(u'指定的小鹿妈妈群不存在')
-        link = '/sale/weixingroup/liangxi/join/group_id=' + group.group_uni_key
+        link = self.JOIN_URL + group.group_uni_key
         return redirect(push_qrcode_to_remote('lx_join' + group.group_uni_key, link))
 
 
