@@ -3,6 +3,7 @@ from core.models import BaseModel
 from django.db import models
 from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
+from django.db.models.signals import post_save
 
 
 class XiaoluAdministrator(BaseModel):
@@ -120,6 +121,14 @@ class GroupFans(BaseModel):
                        )
         gf.save()
         return gf
+
+
+def write_download_unionid_record(sender, instance, created, **kwargs):
+    from .tasks import task_write_download_unionid_record
+    task_write_download_unionid_record.delay(instance)
+
+
+post_save.connect(write_download_unionid_record, sender=GroupFans)
 
 
 class ActivityUsers(BaseModel):
