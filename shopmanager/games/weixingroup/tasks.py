@@ -12,7 +12,7 @@ def task_write_download_unionid_record(fans):
             from_customer=customer.id,
             ufrom=DownloadMobileRecord.ACTIVITY,
             uni_key=uni_key,
-            unionid=fans.unionid,
+            unionid=fans.union_id,
             headimgurl=fans.head_img_url,
             nick=fans.nick
         )
