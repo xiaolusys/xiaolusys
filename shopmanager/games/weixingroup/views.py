@@ -164,7 +164,7 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
         if not group:
             raise exceptions.NotFound(u'指定的小鹿妈妈群不存在')
         link = '/sale/weixingroup/liangxi/join/group_id=' + group.group_uni_key
-        return push_qrcode_to_remote('lx_join' + group.group_uni_key, link)
+        return redirect(push_qrcode_to_remote('lx_join' + group.group_uni_key, link))
 
 
 class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
