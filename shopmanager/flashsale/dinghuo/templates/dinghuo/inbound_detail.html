@@ -167,10 +167,12 @@
                 </td>
                 <td rowspan="{{products_item.detail_length}}">
                     <div class="portfolio-box">
+                        {%if products_item.pic_path%}
                         <a href="{{products_item.product_link}}" target="_blank">
                             <img src="{{products_item.pic_path}}?imageView2/0/w/120"
                                  data-pic-path="{{products_item.pic_path}}" width="120px">
                         </a>
+                        {%endif%}
                     </div>
                 </td>
                 {% endif %}
