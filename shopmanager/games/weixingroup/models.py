@@ -3,6 +3,7 @@ from core.models import BaseModel
 from django.db import models
 from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.pay.models import Customer
 from django.db.models.signals import post_save
 
 
@@ -62,21 +63,25 @@ class GroupMamaAdministrator(BaseModel):
         return self._mama_
 
     @property
+    def customer(self):
+        return Customer.objects.filter(unionid=self.mama.openid).first()
+        # return self.mama.get_mama_customer()
+
+    @property
     def nick(self):
-        customer = self.mama.get_mama_customer()
-        return customer.nick if customer else ''
+        return self.customer.nick if self.customer else ''
 
     @property
     def head_img_url(self):
-        return self.mama.get_mama_customer().thumbnail
+        return self.customer.thumbnail
 
     @property
     def union_id(self):
-        return self.mama.get_mama_customer().unionid
+        return self.customer.unionid
 
     @property
     def open_id(self):
-        return self.mama.get_mama_customer().openid
+        return self.customer.openid
 
     @property
     def fans_count(self):
@@ -121,6 +126,17 @@ class GroupFans(BaseModel):
                        )
         gf.save()
         return gf
+
+    def get_from_customer(self):
+        return self.group.customer
+
+
+def write_download_unionid_record(sender, instance, created, **kwargs):
+    from .tasks import task_write_download_unionid_record
+    task_write_download_unionid_record.delay(instance)
+
+
+post_save.connect(write_download_unionid_record, sender=GroupFans)
 
 
 def write_download_unionid_record(sender, instance, created, **kwargs):
