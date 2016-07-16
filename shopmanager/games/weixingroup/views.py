@@ -218,7 +218,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             union_id=userinfo.get('unionid')
         ).first()
         if not fans:
-            log.error("lx-join:" + str(userinfo) + '|record:' + str(record))
+            # log.error("lx-join:" + str(userinfo) + '|record:' + str(record))
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                     userinfo.get('unionid'), userinfo.get('openid', ''))
             customer = Customer.objects.filter(unionid=unionid).first()
