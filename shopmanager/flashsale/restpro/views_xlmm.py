@@ -253,9 +253,10 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                 self.bind_xlmm_info(xlmm, mama_mobile, referal_from)
         else:  # 创建小鹿妈妈
             if customer.unionid and customer.unionid.strip():
+                referal_mama_mobile = referal_mama.mobile if referal_mama else ''
                 xlmm = XiaoluMama(mobile=mama_mobile,
                                   openid=customer.unionid,
-                                  referal_from=referal_mama.mobile)
+                                  referal_from=referal_mama_mobile)
                 xlmm.save()
             else:
                 raise exceptions.APIException(u'注册妈妈出错啦~')
