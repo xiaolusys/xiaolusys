@@ -18,7 +18,7 @@ class MamaGroupsSerializers(serializers.ModelSerializer):
     class Meta:
         model = GroupMamaAdministrator
         fields = ["id", "created", "modified_display", "mama_id", "group_uni_key", "status", "admin", "nick",
-                  "head_img_url",
+                  "head_img_url", 'fans_count',
                   "union_id", "open_id"]
 
 
