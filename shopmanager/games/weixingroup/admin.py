@@ -88,6 +88,6 @@ class GroupFansAdmin(BaseModelAdmin):
 
     group_link.short_description = u'微信群'
     group_link.allow_tags = True
-
+    group_link.ordering = 'group_id'
 
 admin.site.register(GroupFans, GroupFansAdmin)
