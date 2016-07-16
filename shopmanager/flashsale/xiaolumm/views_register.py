@@ -176,11 +176,14 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
             return redirect(download_url)
 
         product = self.get_deposite_product()
-        deposite_params = self.calc_deposite_amount_params(request, product)
+        sku_188 = product.normal_skus.filter(outer_id='1').first()
+        sku_id = sku_188.id
+        deposite_params = self.calc_deposite_amount_params(request, sku_188)
         return Response({
             'uuid': self.get_trade_uuid(),
             'xlmm': xlmm,
             'product': product,
+            'sku_id': sku_id,
             'payinfos': deposite_params,
             'referal_mamaid': mama_id,
             'success_url': self.get_full_link(reverse('mama_registerok')),
