@@ -128,7 +128,9 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
         group = get_object_or_404(GroupMamaAdministrator, group_uni_key=pk)
         res = self.get_serializer(group).data
         res['mama'] = XiaoluMamaSerializer(group.mama).data
-        return Response(res)
+        res = Response(res)
+        res['Access-Control-Allow-Origin'] = '*'
+        return res
 
     @detail_route(methods=['GET'])
     def groups(self, requenst, pk):
