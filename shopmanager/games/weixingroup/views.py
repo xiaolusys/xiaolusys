@@ -121,7 +121,7 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
     serializer_class = MamaGroupsSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    JOIN_URL = '/sale/weixingroup/liangxi/join/group_id='
+    JOIN_URL = settings.M_SITE_URL + '/sale/weixingroup/liangxi/join/group_id='
 
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
