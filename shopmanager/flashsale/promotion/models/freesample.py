@@ -165,6 +165,8 @@ class AppDownloadRecord(BaseModel):
     @property
     def note(self):
         if self.status == AppDownloadRecord.UNUSE:
+            if self.inner_ufrom == AppDownloadRecord.ACTIVITY:
+                return '感谢活动邀请，马上粉你哦～'
             if self.inner_ufrom == AppDownloadRecord.QRCODE:
                 return '已扫描二维码，马上粉你哦～'
             if self.inner_ufrom == AppDownloadRecord.REDENVELOPE:
