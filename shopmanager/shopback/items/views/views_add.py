@@ -14,6 +14,7 @@ from rest_framework import generics
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
+from rest_framework import exceptions
 
 from common import page_helper
 from flashsale.pay.models import ModelProduct, Productdetail
@@ -28,6 +29,8 @@ from supplychain.supplier.models import SaleSupplier, SaleProduct
 from shopback.items import constants, forms, local_cache
 from shopback.items.models_stats import ProductSkuStats
 
+import logging
+logger = logging.getLogger(__name__)
 
 class AddItemView(generics.ListCreateAPIView):
     queryset = ProductCategory.objects.all()
@@ -115,38 +118,46 @@ class AddItemView(generics.ListCreateAPIView):
             # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
             if (pro_count % 10) == 1 and pro_count > 1:
                 pro_count += 1
-
-            one_product = Product(name=product_name + "/" + color, outer_id=inner_outer_id + str(pro_count),
-                                  model_id=model_pro.id, sale_charger=user.username,
-                                  category=category_item, remain_num=total_remain_num, cost=cost,
-                                  agent_price=agentprice, std_sale_price=price, ware_by=int(ware_by),
-                                  sale_time=shelf_time, pic_path=header_img, sale_product=saleproduct)
-            one_product.save()
-            log_action(user.id, one_product, ADDITION, u'新建一个product_new')
-            pro_count += 1
-            one_product_detail = Productdetail(product=one_product, material=material,
-                                               color=content.get("all_colors", ""),
-                                               wash_instructions=wash_instroduce, note=note)
-            one_product_detail.save()
-            chima_model = ProductSkuContrast(product=one_product, contrast_detail=chi_ma_result)
-            chima_model.save()
-            count = 1
-            for sku in all_sku:
-                barcode = one_product.outer_id + str(count)
-                outer_id = barcode
-                remain_num = content.get(color + "_" + sku + "_remainnum", "")
-                cost = content.get(color + "_" + sku + "_cost", "")
-                price = content.get(color + "_" + sku + "_pricestd", "")
-                agentprice = content.get(color + "_" + sku + "_agentprice", "")
-                one_sku = ProductSku(outer_id=outer_id, product=one_product, remain_num=remain_num, cost=cost,
-                                     std_sale_price=price, agent_price=agentprice,
-                                     properties_name=sku, properties_alias=sku, barcode=barcode)
-                one_sku.save()
-                ProductSkuStats.get_by_sku(one_sku.id)
-                log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
-                count += 1
+            try:
+                one_product = Product(name=product_name + "/" + color, outer_id=inner_outer_id + str(pro_count),
+                                      model_id=model_pro.id, sale_charger=user.username,
+                                      category=category_item, remain_num=total_remain_num, cost=cost,
+                                      agent_price=agentprice, std_sale_price=price, ware_by=int(ware_by),
+                                      sale_time=shelf_time, pic_path=header_img, sale_product=saleproduct)
+                one_product.save()
+                log_action(user.id, one_product, ADDITION, u'新建一个product_new')
+                pro_count += 1
+                one_product_detail = Productdetail(product=one_product, material=material,
+                                                   color=content.get("all_colors", ""),
+                                                   wash_instructions=wash_instroduce, note=note)
+                one_product_detail.save()
+                chima_model = ProductSkuContrast(product=one_product, contrast_detail=chi_ma_result)
+                chima_model.save()
+                count = 1
+                for sku in all_sku:
+                    barcode = one_product.outer_id + str(count)
+                    outer_id = barcode
+                    remain_num = content.get(color + "_" + sku + "_remainnum", "")
+                    cost = content.get(color + "_" + sku + "_cost", "")
+                    price = content.get(color + "_" + sku + "_pricestd", "")
+                    agentprice = content.get(color + "_" + sku + "_agentprice", "")
+                    one_sku = ProductSku(outer_id=outer_id, product=one_product, remain_num=remain_num, cost=cost,
+                                         std_sale_price=price, agent_price=agentprice,
+                                         properties_name=sku, properties_alias=sku, barcode=barcode)
+                    one_sku.save()
+                    ProductSkuStats.get_by_sku(one_sku.id)
+                    log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
+                    count += 1
+            except Exception,exc:
+                logger.error(exc.message or u'商品资料创建错误',exc_info=True)
+                raise exceptions.APIException(u'出错了:%s'% exc.message)
         # 发送　添加供应商总选款的字段　的信号
-        signal_record_supplier_models.send(sender=ModelProduct, obj=model_pro)
+        try:
+            signal_record_supplier_models.send(sender=ModelProduct, obj=model_pro)
+        except Exception, exc:
+            logger.error(exc.message or u'创建商品model异常', exc_info=True)
+            raise exceptions.APIException(u'创建商品model异常:%s' % exc.message)
+
         return Response({"result": "OK", "outer_id": inner_outer_id})
 
 
