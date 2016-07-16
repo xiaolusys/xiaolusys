@@ -78,6 +78,10 @@ class GroupMamaAdministrator(BaseModel):
         return self.mama.get_mama_customer().openid
 
     @property
+    def fans_count(self):
+        return self.fans.count()
+
+    @property
     def modified_display(self):
         return self.modified.strftime("%Y-%m-%d")
 
