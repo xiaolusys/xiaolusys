@@ -8,6 +8,7 @@ from rest_framework import generics, viewsets, permissions, authentication, rend
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
 from core.weixin.mixins import WeixinAuthMixin
+from core.upload.xqrcode import push_qrcode_to_remote
 from .models import XiaoluAdministrator, GroupMamaAdministrator, GroupFans, ActivityUsers
 from .serializers import XiaoluAdministratorSerializers, GroupMamaAdministratorSerializers, GroupFansSerializers, \
     MamaGroupsSerializers
@@ -144,10 +145,32 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
         res['Access-Control-Allow-Origin'] = '*'
         return res
 
+    @detail_route(methods=['GET'])
+    def users(self, request, pk):
+        group = GroupMamaAdministrator.objects.filter(group_uni_key=pk).first()
+        if not group:
+            raise exceptions.NotFound(u'指定的小鹿妈妈群不存在')
+        queryset = self.filter_queryset(group.fans.order_by('-id'))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=['GET'])
+    def qr_code(self, request, pk):
+        group = GroupMamaAdministrator.objects.filter(group_uni_key=pk).first()
+        if not group:
+            raise exceptions.NotFound(u'指定的小鹿妈妈群不存在')
+        link = '/sale/weixingroup/liangxi/join/group_id=' + group.group_uni_key
+        return push_qrcode_to_remote(link)
+
 
 class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     """
         凉席活动后台支持
+        (将凉席活动的代码都放在这里，便于抛弃）
     """
     ACTIVITY_NAME = u"7月送万件宝宝凉席活动"
     queryset = GroupFans.objects.all()
