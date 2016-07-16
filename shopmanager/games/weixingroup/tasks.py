@@ -6,8 +6,8 @@ from flashsale.promotion.models.freesample import DownloadUnionidRecord
 @task()
 def task_write_download_unionid_record(fans):
     customer = fans.get_from_customer()
-    uni_key = '/'.join([str(customer.id), str(fans.unionid)])
-    if not DownloadUnionidRecord.objects.filter(uni_key=uni_key).exist():
+    uni_key = '/'.join([str(customer.id), str(fans.union_id)])
+    if not DownloadUnionidRecord.objects.filter(uni_key=uni_key).exists():
         record = DownloadUnionidRecord(
             from_customer=customer.id,
             ufrom=DownloadUnionidRecord.ACTIVITY,
