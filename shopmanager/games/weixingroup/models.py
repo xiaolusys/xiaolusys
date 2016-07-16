@@ -62,7 +62,8 @@ class GroupMamaAdministrator(BaseModel):
 
     @property
     def nick(self):
-        return self.mama.get_mama_customer().nick
+        customer = self.mama.get_mama_customer()
+        return customer.nick if customer else ''
 
     @property
     def head_img_url(self):
