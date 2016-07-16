@@ -20,6 +20,7 @@ from .forms import GroupFansForm
 import logging
 log = logging.getLogger('django.request')
 
+
 class XiaoluAdministratorViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
     """
         小鹿微信群管理员
@@ -217,6 +218,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             union_id=userinfo.get('unionid')
         ).first()
         if not fans:
+            log.error("lx-join:" + str(userinfo) + '|record:' + str(record))
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                     userinfo.get('unionid'), userinfo.get('openid', ''))
             customer = Customer.objects.filter(unionid=unionid).first()

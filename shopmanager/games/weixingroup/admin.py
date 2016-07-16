@@ -49,7 +49,8 @@ class GroupMamaAdministratorAdmin(BaseModelAdmin):
     admin__nick.short_description = u'小鹿管理员昵称'
 
     def mama_nick(self, obj):
-        return obj.mama.get_mama_customer().nick
+        customer = obj.mama.get_mama_customer()
+        return customer.nick if customer else ''
 
     mama_nick.short_description = u'小鹿妈妈用户名'
 
