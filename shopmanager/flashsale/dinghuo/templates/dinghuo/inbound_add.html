@@ -1,5 +1,5 @@
-{% load custom_filter %}
 <!DOCTYPE html>
+{% load custom_filter %}
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
@@ -186,7 +186,7 @@
                                     <div class="input-group">
                                         <span class="input-group-addon">{{sku.properties_name}}</span>
                                         <input type="number" class="form-control" data-sku-id="{{sku.id}}" data-product-id="{{product.id}}"
-                                               data_forecast_id="{{forecast.id}}" style="width:60px" min="0">
+                                               data-forecast-id="{{forecast.id}}" style="width:60px" min="0">
                                     </div>
                                     {% endif %}
                                     {% endfor %}
@@ -212,7 +212,7 @@
                             <div class="col-md-6">
                                 <div class="input-group">
                                     <span class="input-group-addon">数量</span>
-                                    <input type="number" class="form-control" style="width:60px" min="0">
+                                    <input type="number" class="form-control" data-forecast-id="{{forecast.id}}"　style="width:60px" min="0">
                                 </div>
                             </div>
                         </li>
@@ -306,7 +306,6 @@
                                 <td>
                                     <i class="glyphicon glyphicon-remove"></i>
                                 </td>
-
                             </tr>
                             {{/each}}
                             {{/each}}
@@ -337,7 +336,7 @@
             </div>
         </script>
         <script id="problem-sku-tpl" type="text/html">
-            <tr class="problem sku" data-sku-id="0" data-product-id="0">
+            <tr class="problem sku" data-sku-id="222222" data-product-id="55555" data-forecast-id="{{forecastId}}">
                 <td>
                     <textarea class="name" rows="3" cols="20">{{name}}</textarea>
                 </td>
@@ -452,11 +451,11 @@
                      return;
                  var productId = parseInt($this.attr('data-product-id'));
                  var $tr = $(_.template('tr.sku[data-sku-id="<%= skuId %>"]')({skuId: skuId}), '#form-2');
-                 var forecastinboudnId = parseInt($this.attr('data_forecast_id'));
+                 var forecastinboudnId = parseInt($this.attr('data-forecast-id'));
                  arrivalQuantity = parseInt($this.val()) || 0;
                  if(arrivalQuantity <= 0)
                      return;
-
+                 console.log('data forecast:', forecastinboudnId);
                  if($tr.length > 0){
                      arrivalQuantity = parseInt($tr.find('.arrival-quantity').val()) || 0;
                      inferiorQuantity = parseInt($tr.find('.inferior-quantity').val()) || 0;
@@ -507,10 +506,11 @@
              $('#panel-1').after(template('inbound-tpl', {products: inboundProducts, warehouses: WARE_HOUSES}));
 
              var problemSkuName = _.trim($('.problem textarea', '#pics').val());
+             var forecastId = parseInt($('.problem input[type="number"]', '#pics').attr('data-forecast-id'));
              var problemSkuQuantity = parseInt($('.problem input[type="number"]', '#pics').val());
              if(problemSkuName && problemSkuQuantity)
                  $('table tr.stats', '#form-2').before(template('problem-sku-tpl',
-                    {name: problemSkuName, quantity: problemSkuQuantity}));
+                    {name: problemSkuName, forecastId:forecastId , quantity: problemSkuQuantity}));
 
              quantityChangeHandler('#form-2')();
              $('.portfolio-box img', '#form-2').popover({

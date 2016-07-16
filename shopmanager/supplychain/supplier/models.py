@@ -516,10 +516,12 @@ class SaleProductManageDetail(models.Model):
     )
     SP_BRAND = constants.SP_BRAND
     SP_TOP = constants.SP_TOP
+    SP_TOPIC = constants.SP_TOPIC
     SP_SALE = constants.SP_SALE
     SP_TYPE_CHOICES = (
         (SP_BRAND, u'品牌'),
         (SP_TOP, u'TOP榜'),
+        (SP_TOPIC, u'专题'),
         (SP_SALE, u'特卖'),
     )
 
