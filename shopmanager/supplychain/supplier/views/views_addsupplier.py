@@ -111,7 +111,7 @@ from shopback.items.models import Product
 
 
 def get_target_date_detail(target_date, category):
-    target_sch = SaleProductManage.objects.filter(sale_time=target_date)
+    target_sch = SaleProductManage.objects.filter(sale_time=target_date).order_by('-created')
     try:
         end_time = target_date + datetime.timedelta(days=1)
     except:
