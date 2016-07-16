@@ -77,7 +77,7 @@
             <input type="hidden" name="format" value="json">
             <input type="hidden" name="item_id" value="{{ product.id }}">
             <input type="hidden" name="sku_id"
-                   value="{% if product.normal_skus|length == 1 %}{{ product.normal_skus.0.id }}{% endif %}">
+                   value="{{ sku_id }}">
             <input type="hidden" name="uuid" value="{{ uuid }}">
             <input type="hidden" name="mm_linkid" value="{{ referal_mamaid }}">
             <input type="hidden" name="success_url" value="{{ success_url }}">
