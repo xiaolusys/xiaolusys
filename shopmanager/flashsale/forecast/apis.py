@@ -33,7 +33,7 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
                     forecast_ib.status = ForecastInbound.ST_ARRIVED
                 forecast_ib.express_code = forecast_ib.express_code or order_list.express_company
                 forecast_ib.express_no = forecast_ib.express_no or order_list.express_no
-                forecast_ib.save(update_fields=['express_code', 'express_no', 'status'])
+                forecast_ib.save()
                 return
 
         forecast_ib = ForecastInbound()
@@ -69,7 +69,7 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
                 forecast_detail.status = ForecastInboundDetail.DELETE
             forecast_detail.save()
 
-        forecast_ib.save(update_fields=['total_forecast_num'])
+        forecast_ib.save()
     except Exception, exc:
         raise api_create_or_update_forecastinbound_by_orderlist.retry(exc=exc)
 

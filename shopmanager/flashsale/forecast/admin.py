@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 
-from core.filters import DateScheduleFilter
+from core.filters import DateScheduleFilter, DateFieldListFilter
 from .models import ForecastInbound, ForecastInboundDetail, RealInbound, RealInboundDetail, ForecastStats
 from supplychain.supplier.models import SaleSupplier
 from flashsale.dinghuo.models import OrderList
@@ -45,21 +45,30 @@ class RealInboundDetailInline(admin.TabularInline):
         return super(RealInboundDetailInline, self).formfield_for_dbfield(db_field, **kwargs)
 
 
+STATUS_LABEL_DICT = dict((
+    (ForecastInbound.ST_DRAFT, 'label label-info'),
+    (ForecastInbound.ST_APPROVED, 'label label-success'),
+    (ForecastInbound.ST_ARRIVED, 'label label-primary'),
+    (ForecastInbound.ST_TIMEOUT, 'label label-warning'),
+    (ForecastInbound.ST_CLOSED, 'label label-danger'),
+    (ForecastInbound.ST_CANCELED, 'label label-default'),
+))
+
 class ForecastInboundAdmin(admin.ModelAdmin):
 
     list_display = (
-        'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time', 'purchaser',
-        'total_forecast_num', 'total_arrival_num', 'has_lack', 'has_defact', 'has_overhead', 'has_wrong',
-        'status', 'created', 'arrival_time', 'delivery_time'
+        'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time','total_forecast_num',
+        'total_arrival_num', 'status_label', 'orderlist_link', 'purchaser', 'has_lack', 'has_defact', 'has_overhead',
+        'has_wrong', 'created', 'arrival_time', 'delivery_time'
     )
-    list_filter = ('status', 'ware_house', ('created', DateScheduleFilter),
+    list_filter = ('status', 'ware_house', ('created', DateFieldListFilter),
                    ('forecast_arrive_time',DateScheduleFilter),
                    'has_lack', 'has_defact','has_overhead', 'has_wrong')
 
     search_fields = ['=id', '=forecast_no','=supplier__supplier_name','=express_no','=purchaser']
-
     filter_horizontal = ('relate_order_set',)
-
+    save_on_top = True
+    list_per_page = 25
     inlines = [ForecastInboundDetailInline]
     fieldsets = (
         ('基本信息:', {
@@ -73,6 +82,21 @@ class ForecastInboundAdmin(admin.ModelAdmin):
                     'memo')
         })
     )
+
+    def orderlist_link(self, obj):
+        order_ids = obj.relate_order_set.values_list('id',flat=True)
+        return '<br>'.join(
+            ['<a href="/sale/dinghuo/changedetail/%(id)d" target="_blank">%(id)d</a>' % {'id': oid} for oid in order_ids])
+
+    orderlist_link.allow_tags = True
+    orderlist_link.short_description = u'订货单ID'
+
+    def status_label(self, obj):
+        return '<label class="%s">%s</label>'%(STATUS_LABEL_DICT.get(obj.status), obj.get_status_display())
+
+    status_label.allow_tags = True
+    status_label.short_description = u'状态'
+    status_label.ordering = 'status'
 
     actions = ['action_merge_or_split',
                'action_strip_inbound',
@@ -197,14 +221,11 @@ admin.site.register(ForecastInbound, ForecastInboundAdmin)
 
 
 class ForecastInboundDetailAdmin(admin.ModelAdmin):
-    # fieldsets = ((u'用户信息:', {
-    #     'classes': ('expand',),
-    #     'fields': ('user', 'group')
-    # }),)
 
     list_display = (
         'id','product_name','product_id','forecast_arrive_num'
     )
+    list_filter = ('status', ('created', DateFieldListFilter))
     search_fields = ['product_id']
 
 
@@ -221,13 +242,12 @@ class RealInboundAdmin(admin.ModelAdmin):
         'id','wave_no','forecast_inbound','supplier', 'ware_house', 'creator', 'inspector',
         'total_inbound_num', 'total_inferior_num', 'created', 'status'
     )
-    list_filter = ('status', 'ware_house', ('created', DateScheduleFilter))
+    list_filter = ('status', 'ware_house', ('created', DateFieldListFilter))
     search_fields = ['=id', '=wave_no','^supplier__supplier_name', '=express_no', '=creator']
-
     filter_horizontal = ('relate_order_set',)
+    list_per_page = 25
 
     inlines = [RealInboundDetailInline]
-
     fieldsets = (
         ('基本信息:', {
             'classes': ('expand',),
@@ -276,7 +296,7 @@ class RealInboundDetailAdmin(admin.ModelAdmin):
     list_display = (
         'id','inbound', 'product_name', 'product_id', 'arrival_quantity', 'inferior_quantity', 'district', 'created', 'status'
     )
-    list_filter = ('status', ('created', DateScheduleFilter))
+    list_filter = ('status', ('created', DateFieldListFilter))
     search_fields = ['inbound' ,'product_id', 'product_name']
 
 

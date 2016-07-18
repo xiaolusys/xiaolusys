@@ -148,7 +148,6 @@ class ForecastInbound(BaseModel):
                 self.delivery_time = self.arrival_time
         self.status = self.ST_ARRIVED
 
-
     def unarrive_close_update_status(self):
         self.status = self.ST_CANCELED
 
