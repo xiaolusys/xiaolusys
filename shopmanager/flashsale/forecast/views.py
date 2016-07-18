@@ -586,6 +586,12 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, format=None, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related('supplier')
+        purchase_time_start = request.GET.get('purchase_time_start')
+        if not purchase_time_start:
+            purchase_time_start = datetime.datetime(2016, 6, 1)
+            queryset = queryset.filter(purchase_time__gte=purchase_time_start)
+        purchase_time_end = request.GET.get('purchase_time_end', datetime.datetime.now())
+
         stats_values = queryset.extra(
             select = {
                 'arrival_period': 'IFNULL(TIMESTAMPDIFF(DAY, purchase_time, arrival_time),TIMESTAMPDIFF(DAY, purchase_time,NOW()))',
@@ -604,8 +610,7 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
             'inferior_num', 'lack_num', 'purchase_amount', 'arrival_period', 'delivery_period', 'logistic_period',
             'is_lack', 'is_defact', 'is_overhead', 'is_wrong', 'is_unrecord', 'is_timeouted', 'is_close','status'
         )
-        purchase_time_start = request.GET.get('purchase_time_start',datetime.datetime(2016,6,19))
-        purchase_time_end = request.GET.get('purchase_time_end',datetime.datetime.now())
+
         if format == 'json':
             return Response({'results': stats_values,
                              'purchase_time_start':purchase_time_start,

@@ -877,11 +877,20 @@ admin.site.register(PurchaseOrder, PurchaseOrderAdmin)
 
 
 class LackGoodOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'supplier', 'product_id', 'sku_id', 'lack_num', 'is_refund',
+    list_display = ('id', 'supplier', 'product_id', 'sku_id', 'lack_num', 'refund_num', 'is_refund',
                     'refund_time', 'order_group_key', 'status', 'created')
     search_fields = ('=product_id', '=sku_id', 'order_group_key')
 
     actions = ['action_refund_manage',]
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(LackGoodOrderAdmin, self).get_form(request, obj=obj, **kwargs)
+        if obj and obj.supplier:
+            form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset.filter(
+                id=obj.supplier.id)
+        else:
+            form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset.none()
+        return form
 
     def action_refund_manage(self, request, queryset):
         first_obj = queryset.first()

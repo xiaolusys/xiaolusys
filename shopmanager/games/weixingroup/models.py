@@ -1,6 +1,7 @@
 # coding=utf-8
 from core.models import BaseModel
 from django.db import models
+from django.db.models import Count
 from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.pay.models import Customer
@@ -86,6 +87,13 @@ class GroupMamaAdministrator(BaseModel):
     @property
     def fans_count(self):
         return self.fans.count()
+
+    @property
+    def fans_count_dict(cls):
+        if not hasattr(cls, '_fans_count_dict_'):
+            group_cnt = GroupFans.objects.values("group_id").annotate(total=Count('id'))
+            cls._fans_count_dict_ = {item['group_id']: item['total'] for item in group_cnt}
+        return cls._fans_count_dict_
 
     @property
     def modified_display(self):

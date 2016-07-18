@@ -83,6 +83,14 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div id="chart-datatable" style="width:25%;" class="chart-area chart">
+            <div>数据透视报表</div>
+            <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
+                <a href="javascript:dataTable.filterAll();dc.redrawAll();">reset</a>
+            </div>
+        </div>
+    </div>
 <script type="text/javascript" src="//cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>
 <script type="text/javascript" src="//cdn.bootcss.com/crossfilter/1.3.12/crossfilter.min.js"></script>
 <script type="text/javascript" src="//cdn.bootcss.com/dc/2.0.0-beta.30/dc.min.js"></script>
@@ -281,6 +289,22 @@ chainQuanlityRingChart
   .group(tagsGroup)
   .label(function(d) { return mapNames[d.key] + ':' + d.value;})
   .legend(dc.legend().legendText(function (d) { return mapNames[d.name]+':'+d.data;}));
+
+var dataTable = dc.dataTable("#chart-datatable"),
+    dtDimension    = ndx.dimension(function(d) {return +d.forecast_inbound;}),
+    dtGroupDimension = dtDimension.group(),
+    rank = function (d) { return d.forecast_inbound };
+dataTable
+    .dimension(dtDimension)
+    .group(rank)
+    .columns([function (d) { return d.forecast_inbound },
+              function (d) { return d.purchase_time },
+              function (d) { return d.buyer_name },
+              function (d) { return d.purchaser },
+              function (d) { return d.purchase_num},
+              function (d) { return d.lack_num}])
+    .sortBy(function (d) { return d.purchase_time });
+    //.order(d3.descending);
 
 /* chart
     .width(768)

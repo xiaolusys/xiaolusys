@@ -723,7 +723,12 @@ class SaleOrder(PayBaseModel):
         return self.get_refundable()
 
     def get_refundable(self):
-        return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
+        #return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS?
+        if self.status not in (SaleOrder.WAIT_SELLER_SEND_GOODS, SaleOrder.TRADE_BUYER_SIGNED):
+            return False
+        if self.is_deposit() and self.sale_trade.status not in SaleTrade.REFUNDABLE_STATUS:
+            return False
+        return True
 
     def do_refund(self):
         pass

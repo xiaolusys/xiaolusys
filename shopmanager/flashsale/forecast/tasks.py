@@ -36,7 +36,7 @@ def task_forecast_update_stats_data(finbound_id):
         )
         stats.purchase_num = forecast_inbound.total_forecast_num
         stats.inferior_num = sum(realinbounds_qs.values_list('total_inferior_num',flat=True))
-        stats.lack_num = min(0, forecast_inbound.total_forecast_num - forecast_inbound.total_arrival_num)
+        stats.lack_num = max(0, forecast_inbound.total_forecast_num - forecast_inbound.total_arrival_num)
         # TODO@meron , real lack maybe summary all details lacknum, not total num
 
 

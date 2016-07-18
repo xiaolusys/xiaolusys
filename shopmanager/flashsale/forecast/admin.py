@@ -231,7 +231,7 @@ class RealInboundAdmin(admin.ModelAdmin):
     fieldsets = (
         ('基本信息:', {
             'classes': ('expand',),
-            'fields': ('supplier', 'relate_order_set', 'ware_house')
+            'fields': ('supplier', 'relate_order_set', ('forecast_inbound','ware_house'))
         }),
         ('实际到货状态:', {
             'classes': ('expand',),
@@ -248,11 +248,14 @@ class RealInboundAdmin(admin.ModelAdmin):
                 id=obj.supplier.id)
             form.base_fields['relate_order_set'].queryset = form.base_fields['relate_order_set'].queryset.filter(
                 supplier=obj.supplier).exclude(status=OrderList.SUBMITTING)
+            form.base_fields['forecast_inbound'].queryset = form.base_fields['forecast_inbound'].queryset.filter(
+                supplier=obj.supplier)
         else:
             form.base_fields['supplier'].queryset = form.base_fields['supplier'].queryset\
                 .filter(status=SaleSupplier.CHARGED)
             form.base_fields['relate_order_set'].queryset = form.base_fields['relate_order_set'].queryset \
                 .exclude(status=OrderList.SUBMITTING)
+            form.base_fields['forecast_inbound'].queryset = form.base_fields['forecast_inbound'].queryset.none()
         return form
 
     def get_readonly_fields(self, request, obj=None):
