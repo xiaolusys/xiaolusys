@@ -952,6 +952,9 @@ def task_register_mama(obj):
     if xlmm.renew_time is None:
         update_fields.append("renew_time")
         xlmm.renew_time = now + datetime.timedelta(days=renew_days)
+    if isinstance(xlmm.renew_time, datetime.datetime):
+        xlmm.renew_time = xlmm.renew_time + datetime.timedelta(days=renew_days)
+        update_fields.append("renew_time")
     if xlmm.last_renew_type != last_renew_type:  # 更新试用字段为 False
         update_fields.append("last_renew_type")
         xlmm.last_renew_type = last_renew_type
