@@ -561,14 +561,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def check_before_charge(self, sale_trade):
         """ 支付前参数检查,如优惠券状态检查 """
-        try:
-            coupon_id = sale_trade.extras_info.get('coupon')
-            if coupon_id:
-                user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
-                user_coupon.coupon_basic_check()  # 优惠券基础检查
-                user_coupon.use_coupon(sale_trade.tid)  # 使用优惠券
-        except Exception, exc:
-            logger.error(exc.message, exc_info=True)
+
+        coupon_id = sale_trade.extras_info.get('coupon')
+        if coupon_id:
+            user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
+            user_coupon.coupon_basic_check()  # 优惠券基础检查
+            user_coupon.use_coupon(sale_trade.tid)  # 使用优惠券
 
     def wallet_charge(self, sale_trade, check_coupon=True,  **kwargs):
         """ 妈妈钱包支付实现 """
@@ -633,7 +631,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if check_coupon:
             self.check_before_charge(sale_trade)
         
-        payment       = round(sale_trade.get_cash_payment() * 100)
+        payment       = sale_trade.get_cash_payment()
+        if payment <= 0:
+            raise Exception(u'%s支付金额不能小于0' % sale_trade.get_channel_display().replace(u'支付',u''))
         order_no      = sale_trade.tid
         buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
@@ -657,7 +657,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         elif channel == SaleTrade.UPMP_WAP:
             extra = {"result_url":payback_url}
-
 
         params ={ 'order_no':'%s'%order_no,
                   'app':dict(id=settings.PINGPP_APPID),
@@ -943,7 +942,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         try:
             if channel == SaleTrade.WALLET:
                 # 妈妈钱包支付 2016-4-23 关闭代理钱包支付功能
-                return Response({'code': 7, 'info': u'妈妈钱包支付功能已取消'})
+                return Response({'code': 10, 'info': u'妈妈钱包支付功能已取消'})
                 # response_charge = self.wallet_charge(sale_trade)
             elif channel == SaleTrade.BUDGET:
                 #小鹿钱包

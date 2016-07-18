@@ -689,7 +689,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
 
-        payment = round(sale_trade.get_cash_payment() * 100)
+        payment = sale_trade.get_cash_payment()
         order_no = sale_trade.tid
         buyer_openid = sale_trade.openid
         channel = sale_trade.channel
