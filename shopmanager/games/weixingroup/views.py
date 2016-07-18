@@ -127,15 +127,17 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
     def get_self_info(self, request):
         try:
             customer = request.user.customer
-            mama = XiaoluMama.objects.filter(openid=customer.unionid).first()
+            mama = XiaoluMama.objects.get(openid=customer.unionid)
+            join = GroupMamaAdministrator.objects.filter(mama_id=mama.id, status=1).exists()
             res = {
+                'join': join,
                 'mama_id': mama.id,
                 'union_id': customer.unionid,
                 'url': '/july_event/html/mama_attender.html?unionid=' + customer.unionid
             }
             return Response(res)
         except Exception, e:
-            raise exceptions.ValidationError(u'用户未登录不是小鹿妈妈')
+            raise exceptions.ValidationError(u'用户未登录或不是小鹿妈妈')
 
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
