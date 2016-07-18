@@ -86,6 +86,7 @@ admin.site.register(ActivityUsers, ActivityUsersAdmin)
 
 class GroupFansAdmin(BaseModelAdmin):
     list_display = ['id', 'group_link', 'user_id', 'nick', 'union_id', 'open_id', 'head_img_url']
+    search_fields = ['id', 'group_id', 'nick']
 
     def group_link(self, obj):
         return '<a href="/admin/weixingroup/groupmamaadministrator?group_uni_key=' + obj.group.group_uni_key + '">'+obj.group.group_uni_key + '</a>'

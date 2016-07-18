@@ -428,28 +428,6 @@
             }
         });
     }
-    function set_refund(evt){
-        var dom = $("#btn_return_refund");
-        var url = "/sale/dinghuo/returngoods/set_refund/";
-        var data = {"id": id};
-        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
-        function callback(res) {
-            if (res == "True") {
-                window.location.reload();
-            }
-        }
-    }
-
-    function gen_supplier_return(evt){
-        var url = "/sale/dinghuo/returngoods/set_refund/";
-        var data = {"id": id};
-        $.ajax({"url": url, "data": data, "type": "post", "success": callback});
-        function callback(res) {
-            if (res == "True") {
-                window.location.reload();
-            }
-        }
-    }
     function set_return_goods_sku_send(dom, id, logistic_company, logistic_no){
         var url = "/sale/dinghuo/returngoods/set_return_goods_sku_send/";
         var data = {"id": id, "logistic_company":logistic_company,

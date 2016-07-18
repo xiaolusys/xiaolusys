@@ -219,8 +219,7 @@ def set_return_goods_sku_send(request):
     if not return_goods.transactor_id:
         return {'code': 1, 'msg': '请选择负责人'}
     if return_goods.status == ReturnGoods.VERIFY_RG:
-        return_goods.supply_notify_refund(Bill.TRANSFER_PAY,
-                                          return_goods.sum_amount)
+        # return_goods.supply_notify_refund(Bill.TRANSFER_PAY, return_goods.sum_amount)
         return_goods.delivery_by(logistic_no, logistic_company.id, consigner)
         return {}
     else:
@@ -233,14 +232,6 @@ def set_transactor(request):
     transactor = content.get("transactor", None)
     return_goods = get_object_or_404(ReturnGoods, id=id)
     return_goods.set_transactor(transactor)
-    return HttpResponse(True)
-
-
-def set_refund(request):
-    content = request.REQUEST
-    id = int(content.get("id", None))
-    return_goods = get_object_or_404(ReturnGoods, id=id)
-    return_goods.supply_notify_refund()
     return HttpResponse(True)
 
 
