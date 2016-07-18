@@ -1993,7 +1993,7 @@ def update_productskustats(sender, instance, created, **kwargs):
     Whenever PackageSkuItem changes, PackageSkuItemStats has to change accordingly.
     """
     from shopback.trades.tasks import task_packageskuitem_update_productskustats
-    task_packageskuitem_update_productskustats.delay(instance.sku_id)
+    task_packageskuitem_update_productskustats(instance.sku_id)
 
 
 post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='post_save_update_productskustats')
@@ -2002,7 +2002,7 @@ post_save.connect(update_productskustats, sender=PackageSkuItem, dispatch_uid='p
 def update_productsku_salestats_num(sender, instance, created, **kwargs):
     if created:
         from shopback.trades.tasks import task_packageskuitem_update_productskusalestats_num
-        task_packageskuitem_update_productskusalestats_num.delay(instance.sku_id, instance.pay_time)
+        task_packageskuitem_update_productskusalestats_num(instance.sku_id, instance.pay_time)
 
 
 post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
@@ -2011,7 +2011,7 @@ post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
 
 def update_package_order(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_update_package_order
-    task_update_package_order.delay(instance)
+    task_update_package_order(instance)
 
 
 post_save.connect(update_package_order, sender=PackageSkuItem,
