@@ -35,6 +35,7 @@ from supplychain.supplier.models import (
 from supplychain.supplier import serializers
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,12 +47,13 @@ class ListFilter(Filter):
 
 class SaleSupplierFilter(filters.FilterSet):
     id = ListFilter(name='id')
+    progress = ListFilter(name='progress')
     category = ListFilter(name='category')
     supplier_zone = ListFilter(name='supplier_zone')
 
     class Meta:
         model = SaleSupplier
-        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone']
+        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone', 'progress']
 
 
 class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
@@ -73,14 +75,15 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     def list_filters(self, request, *args, **kwargs):
         categorys = SaleCategory.objects.filter(status=SaleCategory.NORMAL)
         return Response({
-            'categorys': categorys.values_list('id','name','parent_cid','is_parent','sort_order'),
+            'categorys': categorys.values_list('id', 'name', 'parent_cid', 'is_parent', 'sort_order'),
             'supplier_type': SaleSupplier.SUPPLIER_TYPE,
-            'supplier_zone': SupplierZone.objects.values_list('id','name')
+            'progress': SaleSupplier.PROGRESS_CHOICES,
+            'supplier_zone': SupplierZone.objects.values_list('id', 'name')
         })
 
     def list(self, request, *args, **kwargs):
-        ordering = request.REQUEST.get('ordering')
         queryset = self.filter_queryset(self.get_queryset())
+        ordering = request.REQUEST.get('ordering')
         if ordering == 'refund_rate':
             queryset = queryset.extra(select={'refund_rate': 'total_refund_num/total_sale_num'}).order_by(
                 'refund_rate')
@@ -98,6 +101,7 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SaleProductFilter(filters.FilterSet):
     id = ListFilter(name='id')
+    status = ListFilter(name='status')
     sale_supplier = ListFilter(name='sale_supplier')
 
     class Meta:
@@ -115,8 +119,25 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    # filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = SaleProductFilter
+
+    @list_route(methods=['get'])
+    def list_filters(self, request, *args, **kwargs):
+        categorys = SaleCategory.objects.filter(status=SaleCategory.NORMAL)
+        return Response({
+            'status': SaleProduct.STATUS_CHOICES,
+            'categorys': categorys.values_list('id', 'name', 'parent_cid', 'is_parent', 'sort_order'),
+        })
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         raise NotImplemented
@@ -150,7 +171,7 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def aggregate(self, request, *args, **kwargs):
-        sale_date  = request.GET.get('sale_date','')
+        sale_date = request.GET.get('sale_date', '')
         if not sale_date:
             start_date = datetime.date.today() - datetime.timedelta(days=7)
             queryset = self.queryset.filter(sale_time__gte=start_date)
@@ -173,7 +194,7 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
                     'schedule_date': sdate,
                     'product_sum': product_num
                 }
-        aggregate_list = sorted(aggregate_data.values(), key=lambda x:x['schedule_date'],reverse=True)
+        aggregate_list = sorted(aggregate_data.values(), key=lambda x: x['schedule_date'], reverse=True)
         return Response(aggregate_list)
 
     def retrieve(self, request, *args, **kwargs):
