@@ -1010,15 +1010,26 @@ def task_renew_mama(obj):
         return
     if xlmm.last_renew_type == XiaoluMama.TRIAL:  # 试用代理不予续费服务
         return
-    xlmm.last_renew_type = last_renew_type
-    xlmm.renew_time = xlmm.renew_time + datetime.timedelta(days=renew_days)  # 原来的基础上加天数
-    xlmm.save(update_fields=['renew_time', 'last_renew_type'])
+    update_field = []
+    if xlmm.status != XiaoluMama.EFFECT:
+        xlmm.status = XiaoluMama.EFFECT
+        update_field.append('status')
+    if xlmm.last_renew_type != last_renew_type:
+        xlmm.last_renew_type = last_renew_type
+        update_field.append('last_renew_type')
 
-    sys_oa = get_systemoa_user()
-    log_action(sys_oa, xlmm, CHANGE, u'代理续费成功')
-    # 更新订单到交易成功
-    order.status = SaleTrade.TRADE_FINISHED
-    order.save(update_fields=['status'])
+    renew_time = xlmm.renew_time + datetime.timedelta(days=renew_days)
+    if xlmm.renew_time != renew_time:
+        xlmm.renew_time = renew_time
+        update_field.append('renew_time')
+        # 原来的基础上加天数
+    if update_field:
+        xlmm.save(update_fields=update_field)
+        sys_oa = get_systemoa_user()
+        log_action(sys_oa, xlmm, CHANGE, u'代理续费成功')
+        order.status = SaleTrade.TRADE_FINISHED
+        order.save(update_fields=['status'])
+        # 更新订单到交易成功
 
 
 @task()
