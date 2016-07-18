@@ -683,14 +683,14 @@ def cash_Out_Verify(request, id, xlmm):
     sum_carry_out = fortune.carry_cashout
 
     # 差值
-    carry_in_minus_out = sum_carry_in - sum_carry_out
+    carry_in_minus_out = sum_carry_in - sum_carry_out  
+    data=[]
 
-    data_entry = {'id': id, 'xlmm': xlmm, 'value': value, 'status': status, 'mobile': mobile, 'cash': cash,
+    data_entry = {'id': id, 'xlmm': xlmm, 'value': float(value)/100, 'status': status, 'mobile': mobile, 'cash': cash,
                   'shoppings_count': shoppings_count, 'click_nums': click_nums, 'could_cash_out': could_cash_out,
-                  'sum_carry_in': sum_carry_in, 'sum_carry_out': sum_carry_out,
-                  'carry_in_minus_out': carry_in_minus_out}
+                  'sum_carry_in': float(sum_carry_in)/100, 'sum_carry_out': float(sum_carry_out)/100,
+                  'carry_in_minus_out': float(carry_in_minus_out)/100}
     data.append(data_entry)
-
     return render_to_response("mama_cashout_verify.html",
                               {"data": data},
                               context_instance=RequestContext(request))
