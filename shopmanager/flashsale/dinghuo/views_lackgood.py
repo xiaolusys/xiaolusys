@@ -74,20 +74,23 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
         if not order_ids:
             return Response({'code': 1, 'info': '请输入订货单组编号'})
 
-        from flashsale.pay.models import SaleOrder
+        from flashsale.pay.models import SaleOrder, SaleRefund
 
         lackorder_qs = LackGoodOrder.objects.get_objects_by_order_ids(order_ids)
         normal_lackvalues = lackorder_qs.filter(status=LackGoodOrder.NORMAL).values_list('sku_id', 'id')
         lackorder_data = serializers.LackGoodOrderSerializer(lackorder_qs, many=True).data
+        lackorder_ids = [lo[1] for lo in normal_lackvalues]
 
+        refund_order_ids = SaleRefund.objects.filter(lackorder_id__in=lackorder_ids).values_list('order_id', flat=True)
         normal_lackdict = dict(normal_lackvalues)
         normal_skuids   = normal_lackdict.keys()
-        saleorders = SaleOrder.objects.filter(sku_id__in=normal_skuids,status=SaleOrder.WAIT_SELLER_SEND_GOODS)\
+        saleorders = SaleOrder.objects.filter(Q(sku_id__in=normal_skuids, status=SaleOrder.WAIT_SELLER_SEND_GOODS)
+                                              |Q(id__in=refund_order_ids))\
             .select_related('sale_trade').values(
-            'id', 'oid', 'item_id', 'title', 'pic_path', 'sku_name', 'sku_id', 'pay_time',
-            'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id',
-            'sale_trade__buyer_nick', 'sale_trade__receiver_name','sale_trade__total_fee','sale_trade__receiver_mobile'
-        )
+                'id', 'oid', 'item_id', 'title', 'pic_path', 'sku_name', 'sku_id', 'pay_time',
+                'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id',
+                'sale_trade__buyer_nick', 'sale_trade__receiver_name','sale_trade__total_fee','sale_trade__receiver_mobile'
+            )
         saleorder_list = []
         for order in saleorders:
             order['lackorder_id'] = normal_lackdict.get(int(order['sku_id']))

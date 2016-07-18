@@ -253,14 +253,8 @@ class SaleTrade(BaseModel):
         }
 
     def get_cash_payment(self):
-        """ 实际需支付金额 """
-        if not self.has_budget_paid:
-            return self.payment
-
-        if self.pay_cash > 0:
-            return self.pay_cash
-
-        return self.payment
+        """ 实际需支付现金 """
+        return round(self.pay_cash * 100)
 
     def get_buyer_openid(self):
         """ 获取订单用户openid """
