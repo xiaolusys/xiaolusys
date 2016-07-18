@@ -1092,13 +1092,18 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             status = Bill.STATUS_PENDING
         else:                                # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
             status = Bill.STATUS_DELAY
+        if int(plan_amount)==0:
+            return Response({"res": False, "data": [], "desc": "计划金额不能为0"})
         if int(pay_tool) == Bill.SELF_PAY:
             status = Bill.STATUS_COMPLETED
             amount = plan_amount
         pay_method = pay_tool
-        bill = Bill.create([orderlist], Bill.PAY, status, pay_method, plan_amount,amount,orderlist.supplier,
+        try:
+            bill = Bill.create([orderlist], Bill.PAY, status, pay_method, plan_amount,amount,orderlist.supplier,
                            user_id=request.user.id, receive_account=receive_account, receive_name=receive_name,
                            pay_taobao_link=pay_taobao_link,transcation_no=transcation_no)
+        except:
+            return Response({"res": False, "data": [], "desc": "无法写入财务记录"})
 
         if int(pay_way) == OrderList.PC_POD_TYPE:
             orderlist.set_stage_pay(pay_way)

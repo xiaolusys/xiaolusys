@@ -691,7 +691,6 @@ def cash_Out_Verify(request, id, xlmm):
                   'sum_carry_in': float(sum_carry_in)/100, 'sum_carry_out': float(sum_carry_out)/100,
                   'carry_in_minus_out': float(carry_in_minus_out)/100}
     data.append(data_entry)
-    print 'haha'
     return render_to_response("mama_cashout_verify.html",
                               {"data": data},
                               context_instance=RequestContext(request))
