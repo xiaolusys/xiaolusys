@@ -444,7 +444,8 @@ class OrderShareCouponViewSet(viewsets.ModelViewSet):
             logger.warn('customer:{0}, param ufrom is None'.format(customer.id))
         state, order_share = OrderShareCoupon.objects.create_coupon_share(tpl, customer, uniq_id, ufrom)
 
-        share_link = 'mall/order/redpacket?uniq_id={0}&ufrom={1}'.format(order_share.uniq_id, ufrom)
+        share_link = 'rest/v1/users/weixin_login/?next=/mall/order/redpacket?uniq_id={0}&ufrom={1}'.format(
+            order_share.uniq_id, ufrom)
         share_link = urlparse.urljoin(settings.M_SITE_URL, share_link)
         default_return.update({"code": 0, "msg": "分享成功", "share_link": share_link,
                                'title': order_share.title, "description": order_share.description,
