@@ -561,15 +561,19 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def check_before_charge(self, sale_trade):
         """ 支付前参数检查,如优惠券状态检查 """
-        coupon_id = sale_trade.extras_info.get('coupon')
-        if coupon_id:
-            user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
-            user_coupon.coupon_basic_check()  # 优惠券基础检查
-            user_coupon.use_coupon(sale_trade.tid)  # 使用优惠券
+        try:
+            coupon_id = sale_trade.extras_info.get('coupon')
+            if coupon_id:
+                user_coupon = UserCoupon.objects.get(id=coupon_id, customer_id=sale_trade.buyer_id)
+                user_coupon.coupon_basic_check()  # 优惠券基础检查
+                user_coupon.use_coupon(sale_trade.tid)  # 使用优惠券
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
 
-    def wallet_charge(self, sale_trade):
+    def wallet_charge(self, sale_trade, check_coupon=True,  **kwargs):
         """ 妈妈钱包支付实现 """
-        self.check_before_charge(sale_trade)
+        if check_coupon:
+            self.check_before_charge(sale_trade)
         
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
         payment       = round(sale_trade.payment * 100) 
@@ -595,9 +599,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         confirmTradeChargeTask.delay(strade_id)
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
-    def budget_charge(self, sale_trade):
+    def budget_charge(self, sale_trade, check_coupon=True, **kwargs):
         """ 小鹿钱包支付实现 """
-        self.check_before_charge(sale_trade)
+        if check_coupon:
+            self.check_before_charge(sale_trade)
         
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
         payment       = round(sale_trade.payment * 100) 
@@ -623,9 +628,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'info':'订单支付成功', 'order_no':sale_trade.tid,
                 'success_url': success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL}
     
-    def pingpp_charge(self, sale_trade, **kwargs):
+    def pingpp_charge(self, sale_trade, check_coupon=True, **kwargs):
         """ pingpp支付实现 """
-        self.check_before_charge(sale_trade)
+        if check_coupon:
+            self.check_before_charge(sale_trade)
         
         payment       = round(sale_trade.get_cash_payment() * 100)
         order_no      = sale_trade.tid
@@ -1065,19 +1071,19 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         try:
             if instance.channel == SaleTrade.WALLET:
                 # 小鹿钱包支付
-                response_charge = self.wallet_charge(instance)
+                response_charge = self.wallet_charge(instance, check_coupon=False)
             elif instance.channel == SaleTrade.BUDGET:
                 # 小鹿钱包
-                response_charge = self.budget_charge(instance)
+                response_charge = self.budget_charge(instance, check_coupon=False)
             else:
                 # pingpp 支付
-                response_charge = self.pingpp_charge(instance)
+                response_charge = self.pingpp_charge(instance, check_coupon=False)
         except IntegrityError, exc:
-            logger.error('charge duplicate entry:uuid=%s,channel=%s,err=%s' % (
+            logger.error('charge duplicate:%s,channel=%s, err=%s' % (
                 instance.tid, instance.channel, exc.message), exc_info=True)
             return Response({'code': 9, 'info': u'订单重复提交'})
         except Exception, exc:
-            logger.error('charge error:uuid=%s,channel=%s,err=%s' % (instance.tid, channel, exc.message), exc_info=True)
+            logger.error('charge error:%s, channel=%s, err=%s' % (instance.tid, channel, exc.message), exc_info=True)
             return Response({'code': 6, 'info': exc.message or u'未知支付异常'})
 
         return Response({'code': 0, 'info': u'支付成功','channel':instance.channel,
