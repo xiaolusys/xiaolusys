@@ -29,6 +29,10 @@ class XiaoluAdministrator(BaseModel):
         return self.mama_groups.count()
 
     @property
+    def all_groups_count(self):
+        return GroupMamaAdministrator.objects.all().count()
+
+    @property
     def fans_count(self):
         return GroupFans.objects.filter(group__admin_id=self.id).count()
 
