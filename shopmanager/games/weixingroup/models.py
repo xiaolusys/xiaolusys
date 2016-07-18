@@ -55,6 +55,7 @@ class GroupMamaAdministrator(BaseModel):
         verbose_name_plural = u'小鹿微信群组列表'
 
     admin = models.ForeignKey(XiaoluAdministrator, related_name='mama_groups', verbose_name=u'管理员id')
+    # mama = models.ForeignKey(XiaoluMama, verbose_name=u'妈妈用户')
     mama_id = models.IntegerField(verbose_name=u'妈妈用户id')
     group_uni_key = models.CharField(max_length=128, default=None, null=True, unique=True, verbose_name=u'微信群编号')
     STATUS_CHOICES = ((1, u'有效'),
