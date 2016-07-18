@@ -6,7 +6,8 @@ from flashsale.promotion.models import ActivityEntry
 class XiaoluAdministratorSerializers(serializers.ModelSerializer):
     class Meta:
         model = XiaoluAdministrator
-        fields = ['user_id', 'username', 'nick', 'head_img_url', 'weixin_qr_img', 'status', 'groups_count']
+        fields = ['user_id', 'username', 'nick', 'head_img_url', 'weixin_qr_img', 'status', 'groups_count',
+            'all_groups_count']
 
 
 class GroupMamaAdministratorSerializers(serializers.ModelSerializer):
