@@ -123,6 +123,20 @@ class GroupMamaAdministratorViewSet(viewsets.mixins.CreateModelMixin, viewsets.G
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     JOIN_URL = settings.M_SITE_URL + '/sale/weixingroup/liangxi/join?group_id='
 
+    @list_route(methods=['GET'])
+    def get_self_info(self, request):
+        try:
+            customer = request.user.customer
+            mama = XiaoluMama.objects.filter(openid=customer.unionid).first()
+            res = {
+                'mama_id': mama.id,
+                'union_id': customer.unionid,
+                'url': '/july_event/html/mama_attender.html?unionid=' + customer.unionid
+            }
+            return Response(res)
+        except Exception, e:
+            raise exceptions.ValidationError(u'用户未登录不是小鹿妈妈')
+
     @detail_route(methods=['GET'])
     def detail(self, request, pk):
         group = get_object_or_404(GroupMamaAdministrator, group_uni_key=pk)
@@ -243,6 +257,14 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
                 # if we still dont have openid, we have to do oauth
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
+        # if user is xiaolumama, jump to his qr_code page
+        xiaolumama = XiaoluMama.objects.filter(openid=unionid).first()
+        if xiaolumama:
+            mamagroup = GroupMamaAdministrator.objects.filter(mama_id=xiaolumama.id).first()
+            if mamagroup:
+                group = mamagroup
+        else:
+            mamagroup = None
         # if user already join a group, change group
         fans = GroupFans.objects.filter(
             union_id=userinfo.get('unionid')
@@ -251,8 +273,8 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             # log.error("lx-join:" + str(userinfo) + '|record:' + str(record))
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                     userinfo.get('unionid'), userinfo.get('openid', ''))
-            customer = Customer.objects.filter(unionid=unionid).first()
             user_id = None
+            customer = Customer.objects.filter(unionid=unionid).first()
             if request.user.id:
                 user_id = request.user.id
             elif customer:
