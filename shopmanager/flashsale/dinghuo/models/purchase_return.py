@@ -330,6 +330,24 @@ class ReturnGoods(models.Model):
         self.save()
         for d in self.rg_details.filter(type=RGDetail.TYPE_REFUND):
             ProductSku.objects.filter(id=d.skuid).update(quantity=F('quantity') - d.num)
+        self.create_refund_bill()
+
+    def create_refund_bill(self):
+        if self.type == ReturnGoods.TYPE_CHANGE:
+            return
+        from flashsale.finance.models import Bill
+        if self.sum_amount == 0:
+            return
+        bill = Bill(type=Bill.RECEIVE,
+                    status=0,
+                    creater=self.transactor,
+                    pay_method=Bill.TRANSFER_PAY,
+                    plan_amount=self.sum_amount,
+                    note='',
+                    supplier_id=self.supplier_id)
+        bill.save()
+        bill.relate_to([self])
+        return bill
 
     def supply_notify_refund(self, receive_method, amount, note='', pic=None):
         """

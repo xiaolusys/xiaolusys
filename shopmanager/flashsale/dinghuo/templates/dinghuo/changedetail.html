@@ -716,12 +716,16 @@
                     </div>
                     <div id="pay_information1" style="display:none">
                         <label>支付宝账号</label>
-                        <input id="receive_account" placeholder="请输入供应商支付宝账号" class="form-control">
+                        <input id="zhi_account" placeholder="请输入供应商支付宝账号" class="form-control">
                     </div>
                     <div id="pay_information2" style="display:none">
-                        <label>账号</label><input placeholder="请输入供应商银行账号" id="receive_account" class="form-control">
+                        <label>账号</label><input placeholder="请输入供应商银行账号" id="ying_account" class="form-control">
                         <label>姓名</label>
-                        <input placeholder="请输入供应商姓名" id="receive_name" class="form-control">
+                        <input placeholder="请输入供应商姓名" id="ying_name" class="form-control">
+                    </div>
+                    <div id="self_pay" style="display:none">
+                         <label>自付账号</label><input placeholder="请输入自付账号" id="zi_account" class="form-control">
+                        <label>交易流水号</label><input placeholder="请输入交易流水号" id="transcation_no" class="form-control">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1134,22 +1138,22 @@ $(function () {
         press_order();
     });
     $("#pay_chioces").change(function(event){
+            $("#pay_information1").hide();
+            $("#pay_information").hide();
+            $("#pay_information2").hide();          
+            $("#self_pay").hide();
         var val = $(this).val();
-        console.dir(val);
         if (val == 1){
             $("#pay_information1").show();
-            $("#pay_information").hide();
-            $("#pay_information2").hide();
         }
         else if (val == 2){
             $("#pay_information2").show();
-            $("#pay_information1").hide();
-            $("#pay_information").hide();
+        }
+        else if(val == 3){
+            $("#self_pay").show();
         }
         else{
             $("#pay_information").show();
-            $("#pay_information1").hide();
-            $("#pay_information2").hide();
         }
 	});
 	$("#sent_pay_info").click(function(){
@@ -1158,16 +1162,32 @@ $(function () {
         var pay_way = $('#pay_ways').val();
         var pay_tool = $("#pay_chioces").val();
         var money = $("#ol_mon").val();
-        var receive_account = $("#receive_account").val();
-        var receive_name = $("#receive_name").val();
-
+        var receive_account = null;
+        var receive_name = null;
+        var transcation_no = null;
+        if(pay_tool==1){
+            receive_account = $("#zhi_account").val();
+        }
+        if(pay_tool==2){
+             receive_account = $("#ying_account").val();
+            receive_name = $("#ying_name").val();
+        }
+        if(pay_tool==3){
+            receive_account = $("#zi_account").val();
+            transcation_no = $("#transcation_no").val();
+        }
+         console.log(receive_account);
+         console.log(receive_name);
+          console.log(transcation_no);        
         var data = {"orderlist_id":orderlist_id,
                 "pay_way":pay_way,
                 "pay_tool":pay_tool,
                 "money":money,
                 "receive_account":receive_account,
-                "receive_name":receive_name
+                "receive_name":receive_name,
+                "transcation_no": transcation_no
                 };
+                console.log(data);
         $.ajax({
                 url: url,
                 data: data,

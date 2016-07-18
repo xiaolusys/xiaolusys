@@ -53,7 +53,7 @@ class OrderListAdmin(admin.ModelAdmin):
         'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
         'purchase_order_unikey_link')
     list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', 'is_postpay', 'press_num',
-                   'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
+                       'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
     date_hierarchy = 'created'
 

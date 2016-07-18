@@ -1081,26 +1081,58 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         pay_tool = request.REQUEST.get("pay_tool", None)
         orderlist = get_object_or_404(OrderList, id=pk)
         pay_way = request.REQUEST.get("pay_way", None)
-        money = request.REQUEST.get("money", None)
-        from flashsale.finance.models import Bill
+        plan_amount = request.REQUEST.get("money", None)
+        transcation_no = request.REQUEST.get("transcation_no",None)
+        receive_account = request.REQUEST.get("receive_account",None)
+        receive_name = request.REQUEST.get("receive_name",None)
+        pay_taobao_link = request.REQUEST.get("pay_taobao_link",None)
+        amount = .0
+        from flashsale.finance.models import Bill,BillRelation
         if int(pay_way) == OrderList.PC_POD_TYPE:
             status = Bill.STATUS_PENDING
-        else:
-            # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
+        else:                                # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
             status = Bill.STATUS_DELAY
+        if int(plan_amount)==0:
+            return Response({"res": False, "data": [], "desc": "计划金额不能为0"})
+        if int(pay_tool) == Bill.SELF_PAY:
+            status = Bill.STATUS_COMPLETED
+            amount = plan_amount
         pay_method = pay_tool
-        receive_account = request.REQUEST.get("receive_account")
-        receive_name = request.REQUEST.get("receive_name")
-        pay_taobao_link = request.REQUEST.get("pay_taobao_link")
-        bill = Bill.create([orderlist], Bill.PAY, status, pay_method, money, orderlist.supplier,
+        try:
+            bill = Bill.create([orderlist], Bill.PAY, status, pay_method, plan_amount,amount,orderlist.supplier,
                            user_id=request.user.id, receive_account=receive_account, receive_name=receive_name,
-                           pay_taobao_link=pay_taobao_link)
+                           pay_taobao_link=pay_taobao_link,transcation_no=transcation_no)
+        except:
+            return Response({"res": False, "data": [], "desc": "无法写入财务记录"})
+
         if int(pay_way) == OrderList.PC_POD_TYPE:
             orderlist.set_stage_pay(pay_way)
         else:
             orderlist.set_stage_receive(pay_way)
+        if int(pay_tool) == Bill.SELF_PAY:
+            br = BillRelation.objects.filter(bill_id=bill.id,object_id=pk).first()
+            br.set_orderlist_stage()
         return Response({"res": True, "data": [], "desc": ""})
 
+    # @detail_route(methods=['post'])
+    # def create_selfbill(self, request,pk):
+    #     pay_tool = request.REQUEST.get("pay_tool", None)
+    #     orderlist = get_object_or_404(OrderList, id=pk)
+    #     pay_way = request.REQUEST.get("pay_way", None)
+    #     money = request.REQUEST.get("money", None)
+    #     receive_account = request.REQUEST.get("receive_account",None)
+    #     transcation_no = request.REQUEST.get("transcation_no",None)
+    #     from flashsale.finance.models import Bill
+    #     if int(pay_way) == OrderList.PC_POD_TYPE:
+    #         status = Bill.STATUS_PENDING
+    #     else:
+    #         # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
+    #         status = Bill.STATUS_DELAY
+    #     pay_method = pay_tool
+    #     Bill.objects.create(type=Bill.PAY,status=status,pay_method=pay_method,plan_amount=money,
+    #                         amount=money,supplier=orderlist.supplier,creater_id=request.user.id,receive_account=receive_account,
+    #                         transcation_no=transcation_no)
+    #     bill.relate_to([orderlist])
     @detail_route(methods=['post'])
     def set_stage_state(self, request, pk):
         from flashsale.finance.models import Bill, BillRelation
@@ -1137,7 +1169,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def set_bill_dealed(self, request, pk):
-        plan_amount = request.REQUEST.get("amount");
+        plan_amount = request.REQUEST.get("amount")
         transaction_no = request.REQUEST.get("transaction_no")
         attachment = request.REQUEST.get("attachment")
         note = request.REQUEST.get("note")
