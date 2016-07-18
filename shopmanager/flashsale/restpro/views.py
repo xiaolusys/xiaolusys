@@ -112,8 +112,10 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         second_kill = order.second_kill_title()
 
         if second_kill:
+            logger.error(u'SaleRefundViewSet: order_id  %d　second kill,refund forbidden' % order_id)
             raise exceptions.APIException(u'秒杀商品暂不支持退单，请见谅！')
         elif order.status not in (SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.WAIT_SELLER_SEND_GOODS):
+            logger.error(u'SaleRefundViewSet: order_id  %d　status %s,refund forbidden' % (order_id, order.status))
             raise exceptions.APIException(u'订单状态不予退款或退货')
 
         res = refund_Handler(request)
