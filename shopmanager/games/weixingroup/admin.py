@@ -30,7 +30,7 @@ admin.site.register(XiaoluAdministrator, XiaoluAdministratorAdmin)
 class GroupMamaAdministratorAdmin(BaseModelAdmin):
     search_fields = ['admin__id', 'admin__username', 'admin__nick', 'mama_id']
     list_display = ['id', 'mama_id', 'mama_nick', 'mama_mobile', 'admin__id', 'admin__username', 'admin__nick',
-                    'group_uni_key', 'group_link', 'status']
+                    'group_uni_key', 'fans_count_quick', 'group_link', 'status']
     list_filter = ['status']
 
     def admin__id(self, obj):
@@ -58,6 +58,10 @@ class GroupMamaAdministratorAdmin(BaseModelAdmin):
         return obj.mama.mobile
 
     mama_mobile.short_description = u'小鹿妈妈手机'
+
+    def fans_count_quick(self, obj):
+        return obj.fans_count_dict.get(obj.id, 0)
+    fans_count_quick.short_description = u'粉丝数量'
 
     def group_link(self, obj):
         return HOST + "/july_event/html/mama_attender.html?unionid=" + obj.mama.openid
