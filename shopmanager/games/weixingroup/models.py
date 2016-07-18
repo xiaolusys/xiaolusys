@@ -121,7 +121,7 @@ class GroupFans(BaseModel):
         verbose_name_plural = u'小鹿微信群粉丝表'
 
     group = models.ForeignKey(GroupMamaAdministrator, related_name='fans')
-    user_id = models.IntegerField(null=True, verbose_name=u'关联用户')
+    user_id = models.IntegerField(null=True, blank=True, verbose_name=u'关联用户')
     head_img_url = models.CharField(max_length=256, verbose_name=u'用户微信头像')
     nick = models.CharField(max_length=100, verbose_name=u'用户微信昵称')
     union_id = models.CharField(max_length=100, verbose_name=u'用户微信unionid', unique=True)

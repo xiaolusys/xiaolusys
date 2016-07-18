@@ -20,7 +20,7 @@ from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadV
 from .view_refund_supplier import (
     StatisRefundSupView, change_duihuo_status, change_sum_price,
     change_return_goods_memo, modify_return_goods_sku, delete_return_goods_sku,
-    set_return_goods_sku_send, set_transactor, set_refund, export_return_goods,
+    set_return_goods_sku_send, set_transactor, export_return_goods,
     mark_unreturn, returngoods_add_sku, set_return_goods_failed,
     returngoods_deal, ReturnGoodsViewSet)
 import views_wuliu
@@ -186,9 +186,6 @@ urlpatterns = [
     url(r'^returngoods/set_transactor/$',
         staff_member_required(set_transactor),
         name="set_transactor"),
-    url(r'^returngoods/set_refund/$',
-        staff_member_required(set_refund),
-        name="set_refund"),
     url(r'^returngoods/export/$',
         staff_member_required(export_return_goods),
         name="export_return_goods"),
