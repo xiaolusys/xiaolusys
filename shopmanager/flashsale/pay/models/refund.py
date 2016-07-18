@@ -125,7 +125,7 @@ class SaleRefund(PayBaseModel):
     sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'退回快递单号')
 
     reason = models.TextField(max_length=200, blank=True, verbose_name=u'退款原因')
-    proof_pic = JSONCharMyField(max_length=10240, default={},
+    proof_pic = JSONCharMyField(max_length=10240, default=[],
                                 blank=True, null=True, verbose_name=u'佐证图片')
     desc = models.TextField(max_length=1000, blank=True, verbose_name=u'描述')
     feedback = models.TextField(max_length=1000, blank=True, verbose_name=u'审核意见')

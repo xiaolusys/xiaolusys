@@ -284,6 +284,6 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             if user_id:
                 ActivityUsers.join(self.activity, user_id, fans.group_id)
         group = GroupMamaAdministrator.objects.get(id=fans.group_id)
-        response = redirect("/mall/activity/summer/mat/register?groupId=" + group.group_uni_key)
+        response = redirect("/mall/activity/summer/mat/register?groupId=" + group.group_uni_key+'&fansId=' + str(fans.id))
         self.set_cookie_openid_and_unionid(response, unionid, openid)
         return response
