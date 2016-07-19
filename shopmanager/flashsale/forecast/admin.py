@@ -65,7 +65,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
                    ('forecast_arrive_time',DateScheduleFilter),
                    'has_lack', 'has_defact','has_overhead', 'has_wrong')
 
-    search_fields = ['=id', '=forecast_no','=supplier__supplier_name','=express_no','=purchaser']
+    search_fields = ['=id', '=forecast_no','=supplier__supplier_name','=express_no','=purchaser','=relate_order_set__id']
     filter_horizontal = ('relate_order_set',)
     save_on_top = True
     list_per_page = 25
@@ -243,7 +243,7 @@ class RealInboundAdmin(admin.ModelAdmin):
         'total_inbound_num', 'total_inferior_num', 'created', 'status'
     )
     list_filter = ('status', 'ware_house', ('created', DateFieldListFilter))
-    search_fields = ['=id', '=wave_no','^supplier__supplier_name', '=express_no', '=creator']
+    search_fields = ['=id', '=wave_no','^supplier__supplier_name', '=express_no', '=creator','=relate_order_set__id']
     filter_horizontal = ('relate_order_set',)
     list_per_page = 25
 
