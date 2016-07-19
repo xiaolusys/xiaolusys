@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='smsrecord',
             name='mobiles',
-            field=models.TextField(default=b'', null=True, verbose_name=b'\xe5\x8f\x91\xe9\x80\x81\xe5\x8f\xb7\xe7\xa0\x81', db_index=True, blank=True),
+            field=models.CharField(default=b'', max_length=64, verbose_name='\u53d1\u9001\u53f7\u7801', db_index=True, blank=True),
         ),
         migrations.AlterField(
             model_name='smsrecord',
