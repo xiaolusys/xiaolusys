@@ -445,9 +445,9 @@ def task_budgetlog_update_userbudget(budget_log):
     records = bglogs.values('budget_type', 'status').annotate(total=Sum('flow_amount'))
     in_amount, out_amount = 0, 0
     for entry in records:
-        if entry["budget_type"] == BudgetLog.BUDGET_IN and entry['status'] == BudgetLog.CONFIRMED:
+        if entry["budget_type"] == BudgetLog.BUDGET_IN:
             in_amount += entry["total"]
-        if entry["budget_type"] == BudgetLog.BUDGET_OUT and entry['status'] == BudgetLog.CONFIRMED:
+        if entry["budget_type"] == BudgetLog.BUDGET_OUT:
             out_amount += entry["total"]
     cash = in_amount - out_amount
     customers = Customer.objects.filter(id=customer_id)

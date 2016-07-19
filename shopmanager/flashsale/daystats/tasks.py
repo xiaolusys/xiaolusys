@@ -547,7 +547,6 @@ def task_calc_new_user_repeat(start_date, end_date):
     """计算新用户的重复购买率"""
 
     calc_key = 'task_calc_new_user_repeat_%s_%s' % (start_date, end_date)
-
     calc_results = DaystatCalcResult.objects.filter(calc_key=calc_key)
     if calc_results.exists():
         return calc_results[0].calc_result

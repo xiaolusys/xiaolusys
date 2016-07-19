@@ -580,44 +580,62 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, renderers.TemplateHTMLRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     # filter_fields = ('supplier', 'purchase_time', 'buyer_name', 'purchaser')
-    filter_class = ForecastStatsFilter
+    # filter_class = ForecastStatsFilter
     template_name = 'forecast/report_stats.html'
 
 
     def list(self, request, format=None, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related('supplier')
-        purchase_time_start = request.GET.get('purchase_time_start')
-        if not purchase_time_start:
-            purchase_time_start = datetime.datetime(2016, 6, 1)
-            queryset = queryset.filter(purchase_time__gte=purchase_time_start)
-        purchase_time_end = request.GET.get('purchase_time_end', datetime.datetime.now())
+        start_time = request.GET.get('start')
+        end_time   = request.GET.get('end')
+        action = request.GET.get('action')
+        if not start_time:
+            start_time = datetime.datetime(2016, 6, 1)
+        if not end_time:
+            end_time = datetime.datetime.now()
+        if action == 'arrival_time':
+            queryset = queryset.filter(arrival_time__range=(start_time,end_time))
+        elif action == 'forecast_time':
+            queryset = queryset.filter(forecast_inbound__forecast_arrive_time__range=(start_time, end_time))
+        else:
+            action = 'purchase_time'
+            queryset = queryset.filter(purchase_time__range=(start_time, end_time))
 
         stats_values = queryset.extra(
+            tables=('forecast_inbound','forecast_stats'),
+            where=('forecast_stats.forecast_inbound_id = forecast_inbound.id',),
             select = {
-                'arrival_period': 'IFNULL(TIMESTAMPDIFF(DAY, purchase_time, arrival_time),TIMESTAMPDIFF(DAY, purchase_time,NOW()))',
-                'delivery_period': 'IFNULL(TIMESTAMPDIFF(DAY, purchase_time, delivery_time),TIMESTAMPDIFF(DAY, purchase_time,NOW()))',
-                'logistic_period': 'TIMESTAMPDIFF(DAY, delivery_time, arrival_time)',
-                'is_lack': 'has_lack',
-                'is_defact': 'has_defact',
-                'is_overhead': 'has_overhead',
-                'is_wrong': 'has_wrong',
-                'is_unrecord': 'is_unrecordlogistic',
-                'is_timeouted': 'is_timeout',
-                'is_close': 'is_lackclose',
+                'arrival_period': 'IFNULL(TIMESTAMPDIFF(DAY, forecast_stats.purchase_time, forecast_stats.arrival_time),TIMESTAMPDIFF(DAY, forecast_stats.purchase_time,NOW()))',
+                'delivery_period': 'IFNULL(TIMESTAMPDIFF(DAY, forecast_stats.purchase_time, forecast_stats.delivery_time),TIMESTAMPDIFF(DAY, forecast_stats.purchase_time,NOW()))',
+                'logistic_period': 'TIMESTAMPDIFF(DAY, forecast_stats.delivery_time, forecast_stats.arrival_time)',
+                'forecast_arrive_time': 'IFNULL(DATE_FORMAT(forecast_inbound.forecast_arrive_time, "%%Y-%%m-%%d"),"-")',
+                'purchase_time': 'IFNULL(DATE_FORMAT(forecast_stats.purchase_time, "%%Y-%%m-%%d"),"-")',
+                'delivery_time': 'IFNULL(DATE_FORMAT(forecast_stats.delivery_time, "%%Y-%%m-%%d"),"-")',
+                'arrival_time': 'IFNULL(DATE_FORMAT(forecast_stats.arrival_time, "%%Y-%%m-%%d"),"-")',
+                'is_lack': 'forecast_stats.has_lack',
+                'is_defact': 'forecast_stats.has_defact',
+                'is_overhead': 'forecast_stats.has_overhead',
+                'is_wrong': 'forecast_stats.has_wrong',
+                'is_unrecord': 'forecast_stats.is_unrecordlogistic',
+                'is_timeouted': 'forecast_stats.is_timeout',
+                'is_close': 'forecast_stats.is_lackclose',
             }
-        ).values(
+        ).select_related('forecast_inbound').values(
             'id', 'forecast_inbound', 'supplier__supplier_name', 'buyer_name', 'purchaser', 'purchase_num',
             'inferior_num', 'lack_num', 'purchase_amount', 'arrival_period', 'delivery_period', 'logistic_period',
+            'forecast_arrive_time', 'purchase_time', 'delivery_time', 'arrival_time','forecast_inbound__relate_order_set',
             'is_lack', 'is_defact', 'is_overhead', 'is_wrong', 'is_unrecord', 'is_timeouted', 'is_close','status'
         )
 
         if format == 'json':
             return Response({'results': stats_values,
-                             'purchase_time_start':purchase_time_start,
-                             'purchase_time_end':purchase_time_end})
+                             'start_time':start_time,
+                             'end_time':end_time,
+                             'action': action})
         else:
             stats_values = list(stats_values)
             return Response({'results': stats_values,
-                             'purchase_time_start':purchase_time_start,
-                             'purchase_time_end':purchase_time_end})
+                             'start_time':start_time,
+                             'end_time':end_time,
+                             'action': action})
 
