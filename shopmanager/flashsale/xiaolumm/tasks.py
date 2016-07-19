@@ -978,11 +978,19 @@ def task_register_mama(obj):
     # 修改该潜在关系　到转正状态
     uni_key = str(xlmm.id) + '/' + str(mm_linkid)
     protentialmama = PotentialMama.objects.filter(uni_key=uni_key).first()
-    if protentialmama:
-        protentialmama.is_full_member = True
-        protentialmama.save(update_fields=['is_full_member'])
-        sys_oa = get_systemoa_user()
-        log_action(sys_oa, protentialmama, CHANGE, u'注册为正式妈妈,修改is_full_member为true')
+    if not protentialmama:
+        return
+    protentialmama.is_full_member = True
+    protentialmama.save(update_fields=['is_full_member'])
+    sys_oa = get_systemoa_user()
+    log_action(sys_oa, protentialmama, CHANGE, u'注册为正式妈妈,修改is_full_member为true')
+    if not xlmm.referal_from:   # 如果没有填写推荐人　更新推荐人(推荐关系中的推荐人)
+        referal_mama = XiaoluMama.objects.filter(id=protentialmama.referal_mama).first()
+        if not referal_mama:
+            return
+        xlmm.referal_from = referal_mama.mobile
+        xlmm.save(update_fields=['referal_from'])
+        log_action(sys_oa, xlmm, CHANGE, u'注册为正式妈妈,从潜在妈妈列表id: %s 写推荐关系' % protentialmama.id)
 
 
 @task()
