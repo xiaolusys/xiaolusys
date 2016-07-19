@@ -224,5 +224,5 @@ class BillRelation(BaseModel):
         elif self.type == BillRelation.TYPE_DINGHUO_PAY and ol.bill_method == OrderList.PC_COD_TYPE: #在货到付款情况下，订单状态完成
             ol.set_stage_complete()
         elif self.type == BillRelation.TYPE_DINGHUO_PAY and ol.bill_method == OrderList.PC_POD_TYPE: #在付款提货状态下，订单状态为收货
-            ol.set_stage_receive(11)
+            ol.set_stage_receive(13)
         ol.save()
