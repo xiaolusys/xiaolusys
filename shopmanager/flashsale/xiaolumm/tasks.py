@@ -906,6 +906,14 @@ def task_unitary_mama(obj):
     order.status = SaleTrade.TRADE_FINISHED
     order.save(update_fields=['status'])
 
+    from django_statsd.clients import statsd
+    from django.utils.timezone import now, timedelta
+    start = now().date()
+    end = start + timedelta(days=1)
+    statsd.timing('xiaolumm.new_yiyuan_mama_count', XiaoluMama.objects.filter(openid=order_customer.unionid,
+                                                                              charge_status=XiaoluMama.CHARGED,
+                                                                              charge_time__range=(start, end)).count())
+
 
 def update_xlmm_referal_from(protentialmama, xlmm):
     if not (protentialmama and xlmm):
@@ -999,6 +1007,13 @@ def task_register_mama(obj):
         protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
     update_xlmm_referal_from(protentialmama, xlmm)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
 
+    from django_statsd.clients import statsd
+    from django.utils.timezone import now, timedelta
+    start = now().date()
+    end = start + timedelta(days=1)
+    statsd.timing('xiaolumm.new_mama_count', XiaoluMama.objects.filter(openid=order_customer.unionid,
+                                                                       charge_status=XiaoluMama.CHARGED,
+                                                                       charge_time__range=(start, end)).count())
 
 @task()
 def task_renew_mama(obj):
@@ -1048,6 +1063,14 @@ def task_renew_mama(obj):
         order.status = SaleTrade.TRADE_FINISHED
         order.save(update_fields=['status'])
         # 更新订单到交易成功
+
+    from django_statsd.clients import statsd
+    from django.utils.timezone import now, timedelta
+    start = now().date()
+    end = start + timedelta(days=1)
+    statsd.timing('xiaolumm.renew_mama_count', XiaoluMama.objects.filter(openid=order_customer.unionid,
+                                                                         charge_status=XiaoluMama.CHARGED,
+                                                                         charge_time__range=(start, end)).count())
 
 
 @task()
