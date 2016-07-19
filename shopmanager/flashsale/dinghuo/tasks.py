@@ -1647,7 +1647,7 @@ def task_start_booking(pr):
 
     pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
     if not pa:
-        fields = ['package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
+        fields = ['package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'status']
         pa = PurchaseArrangement(uni_key=uni_key, purchase_order_unikey=purchase_order_unikey,
                                  purchase_record_unikey=pr.uni_key, num=pr.need_num)
         utils.copy_fields(pa, pr, fields)
