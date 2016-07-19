@@ -500,6 +500,9 @@
                      arrival_quantity: arrivalQuantity,
                      inferior_quantity: inferiorQuantity
                  }
+                 if (skuId=='222222'){
+                    inboundSkusDict[skuId]['memo'] = name;
+                 }
              });
              return inboundSkusDict;
          }

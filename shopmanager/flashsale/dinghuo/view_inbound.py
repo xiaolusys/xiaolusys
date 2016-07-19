@@ -106,8 +106,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
                                           outer_id=sku.product.outer_id,
                                           properties_name=sku.properties_name,
                                           arrival_quantity=arrival_quantity,
-                                          inferior_quantity=inferior_quantity)
-            if not inbounddetail.sku:
+                                          inferior_quantity=inferior_quantity,
+                                          memo=sku_dict.get('memo', ''))
+            if inbounddetail.sku_id == 222222:
                 inbounddetail.wrong = True
             inbounddetail.save()
             inbounddetails_dict[sku.id] = {
