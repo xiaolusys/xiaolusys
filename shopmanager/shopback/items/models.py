@@ -133,7 +133,7 @@ class Product(models.Model):
     wait_post_num = models.IntegerField(default=0, verbose_name=u'待发数')  # 待发数
     sale_num = models.IntegerField(default=0, verbose_name=u'日出库数')  # 日出库
     reduce_num = models.IntegerField(default=0, verbose_name=u'预减数')  # 下次入库减掉这部分库存
-    lock_num = models.IntegerField(default=0, verbose_name='锁定数')  # 特卖待发货，待付款数量
+    lock_num = models.IntegerField(default=0, verbose_name=u'锁定数')  # 特卖待发货，待付款数量
     inferior_num = models.IntegerField(default=0, verbose_name=u"次品数")  # 保存对应sku的次品数量
 
     cost = models.FloatField(default=0, verbose_name=u'成本价')
@@ -169,7 +169,7 @@ class Product(models.Model):
                                     verbose_name=u'归属采购员')
     storage_charger = models.CharField(max_length=32, db_index=True, blank=True,
                                        verbose_name=u'归属仓管员')
-    sale_product = models.BigIntegerField(db_index=True, default=0, verbose_name='选品ID')
+    sale_product = models.BigIntegerField(db_index=True, default=0, verbose_name=u'选品ID')
     is_verify = models.BooleanField(default=False, verbose_name=u'是否校对')
     shelf_status = models.IntegerField(choices=SHELF_CHOICES, db_index=True,
                                        default=DOWN_SHELF, verbose_name=u'上架状态')
