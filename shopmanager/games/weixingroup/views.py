@@ -265,8 +265,6 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             mamagroup = GroupMamaAdministrator.objects.filter(mama_id=xiaolumama.id).first()
             if mamagroup:
                 group = mamagroup
-        else:
-            mamagroup = None
         # if user already join a group, change group
         fans = GroupFans.objects.filter(
             union_id=userinfo.get('unionid')
