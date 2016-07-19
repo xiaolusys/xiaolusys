@@ -74,10 +74,10 @@ class SMSRecord(models.Model):
     """ 短信平台发送记录 """
     platform = models.ForeignKey(SMSPlatform, null=True, default=None, related_name='sms_records', verbose_name=u'短信服务商')
 
-    task_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), verbose_name=u'类型')
+    task_type = models.CharField(max_length=10, choices=choice_sms_notify_type(), db_index=True, verbose_name=u'类型')
     task_id = models.CharField(null=True, blank=True, default='', max_length=128, verbose_name=u'服务商返回任务ID')
     task_name = models.CharField(null=True, blank=True, default='', max_length=256, verbose_name=u'任务标题')
-    mobiles = models.TextField(null=True, blank=True, default='', verbose_name='发送号码')
+    mobiles = models.TextField(null=True, blank=True, default='', db_index=True, verbose_name='发送号码')
     content = models.CharField(null=True, blank=True, default='', max_length=1000, verbose_name=u'发送内容')
 
     sendtime = models.DateTimeField(null=True, blank=True, verbose_name=u'定时发送时间')
@@ -90,11 +90,11 @@ class SMSRecord(models.Model):
 
     retmsg = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'任务返回结果')
 
-    created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name=u'创建时间')
+    created = models.DateTimeField(null=True, blank=True, db_index=True, auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name=u'修改时间')
 
     memo = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'备注说明')
-    status = models.IntegerField(default=pcfg.SMS_CREATED, choices=SMS_RECORD_STATUS, verbose_name=u'任务返回结果')
+    status = models.IntegerField(default=pcfg.SMS_CREATED, db_index=True, choices=SMS_RECORD_STATUS, verbose_name=u'任务返回结果')
 
     class Meta:
         db_table = 'shop_smsmgr_smsrecord'

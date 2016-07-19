@@ -329,7 +329,7 @@ dataTable
     .group(rank)
     .showGroups(false)
     .columns([
-        { label: mapNames['id'], format: function (d) { return d.id; }},
+        { label: mapNames['id'], format: function (d) { return d.forecast_inbound; }},
         { label: mapNames['supplier__supplier_name'], format: function (d) { return d.supplier__supplier_name; }},
         { label: mapNames['purchase_time'], format: function (d) { return d.purchase_time; }},
         { label: mapNames['delivery_time'], format: function (d) { return d.delivery_time; }},
