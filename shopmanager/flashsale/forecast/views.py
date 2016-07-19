@@ -413,6 +413,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                 forecast_detail.product_name = detail.product_name
                 forecast_detail.product_img = detail.product_img
                 forecast_detail.save()
+            forecast_newobj.save()
 
         for forecast in forecast_qs:
             if forecast.total_detail_num == 0:

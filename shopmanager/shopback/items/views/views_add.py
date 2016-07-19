@@ -145,7 +145,10 @@ class AddItemView(generics.ListCreateAPIView):
                                          std_sale_price=price, agent_price=agentprice,
                                          properties_name=sku, properties_alias=sku, barcode=barcode)
                     one_sku.save()
-                    ProductSkuStats.get_by_sku(one_sku.id)
+                    try:
+                        ProductSkuStats.get_by_sku(one_sku.id)
+                    except Exception, exc:
+                        logger.error('product skustats:new_sku_id=%s, %s'% (one_sku.id ,exc.message) ,exc_info=True)
                     log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
                     count += 1
             except Exception,exc:
