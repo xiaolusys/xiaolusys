@@ -907,6 +907,22 @@ def task_unitary_mama(obj):
     order.save(update_fields=['status'])
 
 
+def update_xlmm_referal_from(protentialmama, xlmm):
+    if not (protentialmama and xlmm):
+        return
+    protentialmama.is_full_member = True
+    protentialmama.save(update_fields=['is_full_member'])
+    sys_oa = get_systemoa_user()
+    log_action(sys_oa, protentialmama, CHANGE, u'注册为正式妈妈,修改is_full_member为true')
+    if not xlmm.referal_from:  # 如果没有填写推荐人　更新推荐人(推荐关系中的推荐人)
+        referal_mama = XiaoluMama.objects.filter(id=protentialmama.referal_mama).first()
+        if not referal_mama:
+            return
+        xlmm.referal_from = referal_mama.mobile
+        xlmm.save(update_fields=['referal_from'])
+        log_action(sys_oa, xlmm, CHANGE, u'注册为正式妈妈,从潜在妈妈列表id: %s 写推荐关系' % protentialmama.id)
+
+
 @task()
 def task_register_mama(obj):
     """
@@ -979,18 +995,9 @@ def task_register_mama(obj):
     uni_key = str(xlmm.id) + '/' + str(mm_linkid)
     protentialmama = PotentialMama.objects.filter(uni_key=uni_key).first()
     if not protentialmama:
-        return
-    protentialmama.is_full_member = True
-    protentialmama.save(update_fields=['is_full_member'])
-    sys_oa = get_systemoa_user()
-    log_action(sys_oa, protentialmama, CHANGE, u'注册为正式妈妈,修改is_full_member为true')
-    if not xlmm.referal_from:   # 如果没有填写推荐人　更新推荐人(推荐关系中的推荐人)
-        referal_mama = XiaoluMama.objects.filter(id=protentialmama.referal_mama).first()
-        if not referal_mama:
-            return
-        xlmm.referal_from = referal_mama.mobile
-        xlmm.save(update_fields=['referal_from'])
-        log_action(sys_oa, xlmm, CHANGE, u'注册为正式妈妈,从潜在妈妈列表id: %s 写推荐关系' % protentialmama.id)
+        # 如果没有　则试图找(potential_mama = 当前mm.id的潜在推荐人)
+        protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
+    update_xlmm_referal_from(protentialmama, xlmm)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
 
 
 @task()

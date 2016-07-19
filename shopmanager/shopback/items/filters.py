@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from core.filters import SimpleListFilter, FieldListFilter
 from shopback.items.models_stats import ProductSkuStats
+from shopback.items.models import Product
+
 
 class ChargerFilter(SimpleListFilter):
     # Human-readable title which will be displayed in the
@@ -210,7 +212,7 @@ class CategoryFilter(SimpleListFilter):
 
 
 class ProductSkuStatsUnusedStockFilter(SimpleListFilter):
-    """按订货单状态过滤"""
+    """按冗余库存数过滤"""
     title = u'冗余库存数'
     parameter_name = 'unused_stock_cnt'
 
@@ -227,14 +229,83 @@ class ProductSkuStatsUnusedStockFilter(SimpleListFilter):
         else:
             if status_id == '1':
                 return queryset.filter(return_quantity__gt=F('sold_num') + F('rg_quantity')
-                                                           - F('history_quantity') - F('adjust_quantity') - F('inbound_quantity') - F(
+                                                           - F('history_quantity') - F('adjust_quantity') - F(
+                    'inbound_quantity') - F(
                     'return_quantity'))
             if status_id == '2':
                 return queryset.filter(return_quantity=F('sold_num') + F('rg_quantity')
-                                                       - F('history_quantity') - F('adjust_quantity') - F('inbound_quantity') - F(
+                                                       - F('history_quantity') - F('adjust_quantity') - F(
+                    'inbound_quantity') - F(
                     'return_quantity'))
             if status_id == '3':
                 return queryset.filter(id__in=ProductSkuStats.redundancies())
+
+
+class ProductVirtualFilter(SimpleListFilter):
+    """按是否虚拟商品过滤"""
+    title = u'虚拟商品'
+    parameter_name = 'product_virtual'
+
+    def lookups(self, request, model_admin):
+        condition = (("1", u'是'),
+                     ("2", u'否'))
+        return condition
+
+    def queryset(self, request, queryset):
+        status_id = self.value()
+        if not status_id:
+            return queryset
+        else:
+            if status_id == '1':
+                return queryset.filter(product__outer_id__startswith='RMB')
+            if status_id == '2':
+                return queryset.exclude(product__outer_id__startswith='RMB')
+
+
+class ProductStatusFilter(SimpleListFilter):
+    """按商品状态过滤"""
+    title = u'商品状态'
+    parameter_name = 'product_status'
+
+    def lookups(self, request, model_admin):
+        condition = (("1", u'正常'),
+                     ("2", u'保留'),
+                     ("3", u'作废'))
+        return condition
+
+    def queryset(self, request, queryset):
+        status_id = self.value()
+        if not status_id:
+            return queryset
+        else:
+            if status_id == '1':
+                return queryset.filter(product__status=Product.NORMAL)
+            if status_id == '2':
+                return queryset.filter(product__status=Product.REMAIN)
+            if status_id == '3':
+                return queryset.filter(product__status=Product.REMAIN)
+
+
+class ProductCategoryFilter(SimpleListFilter):
+    """按商品状态过滤"""
+    title = u'商品类别'
+    parameter_name = 'product_category'
+
+    @property
+    def product_category(self):
+        if not hasattr(self, '_product_category_'):
+            self._product_category_ = ProductCategory.objects.filter(status=ProductCategory.NORMAL)
+        return self._product_category_
+
+    def lookups(self, request, model_admin):
+        return [(p.cid, p.name) for p in ProductCategory.objects.filter(status=ProductCategory.NORMAL)]
+
+    def queryset(self, request, queryset):
+        sid = self.value()
+        if not sid:
+            return queryset
+        else:
+            return queryset.filter(product__category_id=sid)
 
 
 class ProductSkuStatsSupplierIdFilter(SimpleListFilter):
