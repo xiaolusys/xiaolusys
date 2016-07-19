@@ -116,15 +116,21 @@ class SaleStats(BaseModel):
         return return_goods_stats.num if return_goods_stats else 0
 
     @property
-    def is_obsolete_supplier(self):
-        """　判断淘汰的供应商 """
-        if self.record_type == constants.TYPE_SUPPLIER:  # 供应商类型记录
+    def supplier(self):
+        if self.record_type != constants.TYPE_SUPPLIER:  # 供应商类型记录
+            return None
+        if not hasattr(self, '_supplier_'):
             from supplychain.supplier.models import SaleSupplier
 
-            supplier = SaleSupplier.objects.filter(id=self.current_id,
-                                                   progress=SaleSupplier.REJECTED).first()
-            return True if supplier else False
-        return False
+            self._supplier_ = SaleSupplier.objects.filter(id=self.current_id).first()
+        return self._supplier_
+
+    @property
+    def is_obsolete_supplier(self):
+        """　判断淘汰的供应商 """
+        if self.record_type != constants.TYPE_SUPPLIER:  # 供应商类型记录
+            return False
+        return True if self.supplier and self.supplier.progress == 'rejected' else False
 
     class Meta:
         db_table = 'statistics_sale_stats'
