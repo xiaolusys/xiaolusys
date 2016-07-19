@@ -1351,8 +1351,6 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
                 return ordering
 
             # def get_queryset(self, request):
-            #     return
-            # def get_queryset(self, request):
             #     (self.filter_specs, self.has_filters, remaining_lookup_params,
             #      filters_use_distinct) = self.get_filters(request)
             #     qs = self.root_queryset
@@ -1437,9 +1435,13 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     mark_unreturn.short_description = u'标记不可退货'
 
     def skucode(self, obj):
+        sku = obj.sku
+        product = obj.product
+        barcode = sku.barcode.strip() or '%s%s' % (product.outer_id.strip(),
+                                                 sku.outer_id.strip())
         return self.SKU_PREVIEW_TPL % {
             'sku_url': '/admin/items/productsku/%s/' % str(obj.sku_id),
-            'skucode': obj.sku.BARCODE
+            'skucode': barcode
         }
 
     skucode.allow_tags = True
