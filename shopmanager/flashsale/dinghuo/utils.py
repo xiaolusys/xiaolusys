@@ -62,7 +62,9 @@ def copy_fields(to_obj, from_obj, fields):
 
 
 def gen_purchase_detail_unikey(pa):
-    return "%s-%s" % (pa.sku_id, pa.purchase_order_unikey)
+    sku_id = pa.sku_id
+    sku_id = sku_id.strip()
+    return "%s-%s" % (sku_id, pa.purchase_order_unikey)
 
 
 def gen_purchase_record_unikey(psi):
