@@ -252,7 +252,7 @@ class DailyStat(BaseModel):
     @staticmethod
     def get_total_stock():
         from shopback.items.models_stats import ProductSkuStats
-        return ProductSkuStats.objects.filter(product__status=pcfg.NORMAL).aggregate(
+        return ProductSkuStats.objects.exclude(product__outer_id__startswith='RMB').aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0
 
@@ -261,7 +261,7 @@ class DailyStat(BaseModel):
         from django.db import connection
         sql = """SELECT SUM(p.cost * (s.history_quantity + s.adjust_quantity + s.inbound_quantity + s.return_quantity - s.post_num - s.rg_quantity)) AS money
 FROM shop_items_product AS p LEFT JOIN shop_items_productskustats AS s ON p.id = s.product_id
-WHERE p.status = 'normal';"""
+WHERE p.status = 'normal' and not p.outer_id like 'RMB%';"""
         cursor = connection.cursor()
         cursor.execute(sql)
         res = cursor.fetchall()[0][0]
