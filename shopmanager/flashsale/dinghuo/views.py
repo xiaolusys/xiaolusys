@@ -1092,7 +1092,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             status = Bill.STATUS_PENDING
         else:                                # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
             status = Bill.STATUS_DELAY
-        if int(plan_amount)==0:
+        if float(plan_amount)==0:
             return Response({"res": False, "data": [], "desc": "计划金额不能为0"})
         if int(pay_tool) == Bill.SELF_PAY:
             status = Bill.STATUS_COMPLETED
