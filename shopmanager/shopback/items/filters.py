@@ -298,12 +298,15 @@ class ProductCategoryFilter(SimpleListFilter):
         return self._product_category_
 
     def lookups(self, request, model_admin):
-        return [(p.cid, p.name) for p in ProductCategory.objects.filter(status=ProductCategory.NORMAL)]
+        return [(p.cid, p.name) for p in ProductCategory.objects.filter(status=ProductCategory.NORMAL)] + [(-1, u'非优尼世界')]
 
     def queryset(self, request, queryset):
         sid = self.value()
         if not sid:
             return queryset
+        elif sid == '-1':
+            pid = ProductCategory.objects.get(name=u'优尼世界').cid
+            return queryset.exclude(product__category_id=pid)
         else:
             return queryset.filter(product__category_id=sid)
 
