@@ -18,13 +18,29 @@
         margin: 30px 5px;
         float:left;
     }
+    .inline {
+        display: inline;
+    }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="page-header">
         <h1>供应链订货/到货数据统计报表
-            <div class="pull-right "><input name="daterange"></div>
+            <div class="pull-right ">
+                <div class="dropdown inline">
+                  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    {% if action == 'purchase_time' %}订货时间{% elif action == 'arrival_time' %}到货时间{% elif action == 'forecast_time' %}预测时间{% endif %}
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                    <li><a href="/sale/forecast/v1/stats.html?action=purchase_time&start_time={{start_time}}&end_time={{end_time}}">订货时间</a></li>
+                    <li><a href="/sale/forecast/v1/stats.html?action=arrival_time&start_time={{start_time}}&end_time={{end_time}}">到货时间</a></li>
+                    <li><a href="/sale/forecast/v1/stats.html?action=forecast_time&start_time={{start_time}}&end_time={{end_time}}">预测时间</a></li>
+                  </ul>
+                </div>
+                <input class="inline" name="daterange">
+            </div>
         </h1>
     </div>
     <div class="row" >
@@ -84,18 +100,21 @@
         </div>
     </div>
     <div class="row">
-        <div id="chart-datatable" style="width:25%;" class="chart-area chart">
-            <div>数据透视报表</div>
-            <div class="reset" style="visibility: hidden;">range: <span class="filter"></span>
-                <a href="javascript:dataTable.filterAll();dc.redrawAll();">reset</a>
-            </div>
+        <div style="width:100%;" class="chart-area">
+            <div>到货数量 TOP-50 预测到货单列表 </div>
+            <table id="chart-datatable" class="table table-striped chart">
+            </table>
         </div>
     </div>
-<script type="text/javascript" src="//cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>
+    <script src="http://cdn.bootcss.com/d3/3.5.17/d3.js"></script>
+<!--<script type="text/javascript" src="//cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>-->
+<!--<script src="{{STATIC_URL}}forecast/js/d3-4.1.1.js"></script>-->
 <script type="text/javascript" src="//cdn.bootcss.com/crossfilter/1.3.12/crossfilter.min.js"></script>
 <script type="text/javascript" src="//cdn.bootcss.com/dc/2.0.0-beta.30/dc.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver.min.js"></script>
 
 <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/moment.min.js"></script>
 
 <!-- Include Date Range Picker -->
@@ -276,7 +295,18 @@ var mapNames = {
     wrong: '错货',
     unrecord: '未及时催货',
     close: '下单缺货',
-    empty: '无异常'
+    empty: '无异常',
+    id: '预测单ID',
+    supplier__supplier_name: '供应商',
+    purchase_time: '采购日期',
+    delivery_time: '发货日期',
+    arrival_time: '到货日期',
+    forecast_arrive_time: '预测到货日期',
+    buyer_name: '买手',
+    purchaser: '采购',
+    purchase_num: '预测数量',
+    lack_num: '缺货数量',
+    forecast_inbound__relate_order_set:'关联订货单'
 };
 
 chainQuanlityRingChart
@@ -291,20 +321,30 @@ chainQuanlityRingChart
   .legend(dc.legend().legendText(function (d) { return mapNames[d.name]+':'+d.data;}));
 
 var dataTable = dc.dataTable("#chart-datatable"),
-    dtDimension    = ndx.dimension(function(d) {return +d.forecast_inbound;}),
+    dtDimension    = ndx.dimension(function(d) {return '' + d.forecast_inbound;}),
     dtGroupDimension = dtDimension.group(),
     rank = function (d) { return d.forecast_inbound };
 dataTable
     .dimension(dtDimension)
     .group(rank)
-    .columns([function (d) { return d.forecast_inbound },
-              function (d) { return d.purchase_time },
-              function (d) { return d.buyer_name },
-              function (d) { return d.purchaser },
-              function (d) { return d.purchase_num},
-              function (d) { return d.lack_num}])
-    .sortBy(function (d) { return d.purchase_time });
-    //.order(d3.descending);
+    .showGroups(false)
+    .columns([
+        { label: mapNames['id'], format: function (d) { return d.id; }},
+        { label: mapNames['supplier__supplier_name'], format: function (d) { return d.supplier__supplier_name; }},
+        { label: mapNames['purchase_time'], format: function (d) { return d.purchase_time; }},
+        { label: mapNames['delivery_time'], format: function (d) { return d.delivery_time; }},
+        { label: mapNames['arrival_time'], format: function (d) { return d.arrival_time; }},
+        { label: mapNames['forecast_arrive_time'], format: function (d) { return d.forecast_arrive_time; }},
+        { label: mapNames['buyer_name'], format: function (d) { return d.buyer_name; }},
+        { label: mapNames['purchaser'], format: function (d) { return d.purchaser; }},
+        { label: mapNames['purchase_num'], format: function (d) { return d.purchase_num; }},
+        { label: mapNames['lack_num'], format: function (d) { return d.lack_num; }},
+        { label: mapNames['forecast_inbound__relate_order_set'], format: function (d) { return d.forecast_inbound__relate_order_set; }}
+    ])
+    .size(50)
+    .sortBy(function (d) { return d.buyer_name; })
+    .label(function(d) { return mapNames[d.key]})
+    .order(d3.descending);
 
 /* chart
     .width(768)
@@ -328,14 +368,25 @@ chart.yAxis().tickFormat(function(d) {return d3.format(',d')(d+299500);});*/
 dc.renderAll();
 </script>
 <script>
+    function getLinkParam(url,name){
+        var reg = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var r = url.substr(1).match(reg);
+        if (r != null) return unescape(r[1]);
+        return null;
+    }
+
+    function getUrlParam(name) {
+        var local_link = window.location.href;
+        return getLinkParam(local_link,name);
+    }
     $(function(){
         $('input[name="daterange"]').daterangepicker(
         {
             locale: {
               format: 'YYYY-MM-DD'
             },
-            startDate: '{{purchase_time_start}}',
-            endDate: '{{purchase_time_end}}',
+            startDate: '{{start_time}}',
+            endDate: '{{end_time}}',
             ranges: {
                '今日': [moment(), moment()],
                '昨日': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -347,7 +398,8 @@ dc.renderAll();
         },
         function(start, end, label) {
             var path = window.location.pathname;
-            window.location.href = path+'?purchase_time_start='+ start.format('YYYY-MM-DD 00:00:00') + '&purchase_time_end=' + end.format('YYYY-MM-DD 23:59:59');
+            var action = getUrlParam('action');
+            window.location.href = path+'?action='+ action +'&start_time='+ start.format('YYYY-MM-DD 00:00:00') + '&end_time=' + end.format('YYYY-MM-DD 23:59:59');
         });
     })
 </script>

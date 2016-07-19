@@ -493,10 +493,11 @@ class BudgetLog(PayBaseModel):
 
 def budgetlog_update_userbudget(sender, instance, created, **kwargs):
 
-    logger.warning('budgetlog create update userbudget:%s, %s, %s, %s'%
+    logger.warning('budgetlog update:%s, %s, %s, %s'%
                    (instance.customer_id, instance.flow_amount, instance.referal_id, instance.status))
     from flashsale.pay.tasks import task_budgetlog_update_userbudget
     task_budgetlog_update_userbudget(instance)
 
 
-post_save.connect(budgetlog_update_userbudget, sender=BudgetLog)
+post_save.connect(budgetlog_update_userbudget, sender=BudgetLog,
+                  dispatch_uid='post_save_budgetlog_update_userbudget')
