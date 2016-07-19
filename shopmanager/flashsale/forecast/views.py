@@ -586,8 +586,8 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, format=None, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related('supplier')
-        start_time = request.GET.get('start')
-        end_time   = request.GET.get('end')
+        start_time = request.GET.get('start_time')
+        end_time   = request.GET.get('end_time')
         action = request.GET.get('action')
         if not start_time:
             start_time = datetime.datetime(2016, 6, 1)
