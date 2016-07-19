@@ -50,10 +50,13 @@ class SaleSupplierFilter(filters.FilterSet):
     progress = ListFilter(name='progress')
     category = ListFilter(name='category')
     supplier_zone = ListFilter(name='supplier_zone')
+    created_start = django_filters.DateFilter(name="created", lookup_type='gte')
+    created_end = django_filters.DateFilter(name="created", lookup_type='lte')
 
     class Meta:
         model = SaleSupplier
-        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone', 'progress']
+        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone', 'progress',
+                  'created_start', 'created_end']
 
 
 class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
