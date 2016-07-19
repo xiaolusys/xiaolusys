@@ -11,7 +11,7 @@ logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models_fortune import ReferalRelationship, GroupRelationship, UniqueVisitor
 from flashsale.pay.models import Customer
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, PotentialMama
 
 import sys
 
@@ -45,6 +45,13 @@ def task_update_referal_relationship(sale_order):
     if 'mm_linkid' in extra:
         mm_linkid = int(extra['mm_linkid'] or '0')
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
+    if not referal_mm:
+        # 以订单上的推荐id为主　如果没有则　找　潜在用户表中的推荐人记录
+        protentialmama = PotentialMama.objects.filter(potential_mama=mama.id).latest('created')  # 最新创建的
+        if not protentialmama:
+            return
+        referal_mm = XiaoluMama.objects.filter(id=protentialmama.referal_mama).first()
+
     if not referal_mm:  # 没有推荐人　
         return
     if not referal_mm.is_relationshipable():  # 可以记录

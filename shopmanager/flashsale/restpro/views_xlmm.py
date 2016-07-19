@@ -244,19 +244,16 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         mama_id = content.get('mama_id') or None
         if not mama_mobile:
             raise exceptions.APIException(u'没有填写手机号哦~')
-        referal_mama = XiaoluMama.objects.filter(id=mama_id).first()
         xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()
         if xlmm:
             # 如果是正式妈妈　并且购买的是试用产品 返回已经是正式妈妈  # 如果没有填写资料 返回需要填写资料
             if xlmm.mobile is None or (not xlmm.mobile.strip()):
-                referal_from = referal_mama.mobile if referal_mama else ''
+                referal_from = ''  # referal_mama.mobile if referal_mama else ''
                 self.bind_xlmm_info(xlmm, mama_mobile, referal_from)
         else:  # 创建小鹿妈妈
             if customer.unionid and customer.unionid.strip():
-                referal_mama_mobile = referal_mama.mobile if referal_mama else ''
                 xlmm = XiaoluMama(mobile=mama_mobile,
-                                  openid=customer.unionid,
-                                  referal_from=referal_mama_mobile)
+                                  openid=customer.unionid)
                 xlmm.save()
             else:
                 raise exceptions.APIException(u'注册妈妈出错啦~')
