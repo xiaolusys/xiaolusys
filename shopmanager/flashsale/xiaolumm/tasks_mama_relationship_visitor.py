@@ -56,7 +56,8 @@ def task_update_referal_relationship(sale_order):
         return
     if not referal_mm.is_relationshipable():  # 可以记录
         return
-
+    
+    mm_linkid = referal_mm.id
     logger.warn("%s: mm_linkid=%s, to_mama_id=%s" % (get_cur_info(), mm_linkid, to_mama_id))
 
     record = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id).first()
