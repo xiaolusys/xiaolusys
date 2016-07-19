@@ -286,4 +286,25 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         self.set_cookie_openid_and_unionid(response, unionid, openid)
         return response
 
-#
+    @list_route(methods=['GET'])
+    def show_fans(self, request):
+        form = GroupFansForm(request.GET)
+        if not form.is_valid():
+            raise exceptions.ValidationError(form.error_message)
+        group_uni_key = form.cleaned_data['group_id']
+        group = GroupMamaAdministrator.objects.filter(group_uni_key=group_uni_key).first()
+        if not group:
+            raise exceptions.NotFound(u'此妈妈尚未加入微信群组')
+        if not request.user.is_anonymous():
+            xiaoumama = request.user.customer.getXiaolumm() if request.user.customer else None
+        else:
+            raise exceptions.ValidationError(u'粉丝详情请从APP进入页面查看')
+        if not xiaoumama:
+            raise exceptions.ValidationError(u'只有小鹿妈妈可以查看粉丝详情')
+        fans = GroupFans.objects.filter(
+            union_id=xiaoumama.openid
+        ).first()
+        # 纠正成为了他人粉丝的小鹿妈妈
+        if fans.group_id != group:
+            log.error(u'fans become other fans:' + str(fans.id) + '|' + str(fans.group_id) + '|need' + str(group.id))
+        return redirect("/mall/activity/summer/mat/register?groupId=" + group.group_uni_key+'&fansId=' + str(fans.id))
