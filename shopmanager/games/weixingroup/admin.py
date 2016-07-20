@@ -30,7 +30,7 @@ admin.site.register(XiaoluAdministrator, XiaoluAdministratorAdmin)
 class GroupMamaAdministratorAdmin(BaseModelAdmin):
     search_fields = ['admin__id', 'admin__username', 'admin__nick', 'mama_id']
     list_display = ['id', 'mama_id', 'mama_nick', 'mama_mobile', 'admin__id', 'admin__username', 'admin__nick',
-                    'group_uni_key', 'fans_count_quick', 'group_link', 'status']
+                    'group_uni_key', 'fans_count_quick', 'gift_count_quick', 'gifted_count_quick', 'group_link', 'status']
     list_filter = ['status']
 
     def admin__id(self, obj):
@@ -63,6 +63,14 @@ class GroupMamaAdministratorAdmin(BaseModelAdmin):
         return obj.fans_count_dict.get(obj.id, 0)
     fans_count_quick.short_description = u'粉丝数量'
 
+    def gift_count_quick(self, obj):
+        return obj.gift_count_dict.get(obj.id, 0)
+    gift_count_quick.short_description = u'将发券粉丝数'
+
+    def gifted_count_quick(self, obj):
+        return obj.gifted_count_dict.get(obj.id, 0)
+    gifted_count_quick.short_description = u'已发券用户数'
+
     def group_link(self, obj):
         return HOST + "/july_event/html/mama_attender.html?unionid=" + obj.mama.openid
 
@@ -85,7 +93,7 @@ admin.site.register(ActivityUsers, ActivityUsersAdmin)
 
 
 class GroupFansAdmin(BaseModelAdmin):
-    list_display = ['id', 'group_link', 'user_id', 'nick', 'union_id', 'open_id', 'head_img_url']
+    list_display = ['id', 'group_link', 'user_id', 'nick', 'union_id', 'open_id', 'gifted', 'head_img_url']
     search_fields = ['id', 'group_id', 'nick']
 
     def group_link(self, obj):
