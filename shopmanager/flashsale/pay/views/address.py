@@ -58,7 +58,7 @@ class AddressList(APIView):
         user = request.user
         content = request.POST
 
-        customers = Customer.objects.filter(user=user)
+        customers = Customer.objects.filter(user=user).exclude(status=Customer.DELETE)
         if customers.count() == 0:
             return HttpResponseForbidden('NOT EXIST')
 

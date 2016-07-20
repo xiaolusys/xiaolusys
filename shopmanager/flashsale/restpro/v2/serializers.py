@@ -220,7 +220,7 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
                                                agencylevel_desc=XiaoluMama.AGENCY_LEVEL[0][1],
                                                next_agencylevel=XiaoluMama.A_LEVEL,
                                                next_agencylevel_desc=XiaoluMama.AGENCY_LEVEL[2][1])
-        customer = Customer.objects.filter(user=user).first()
+        customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
         if not customer:
             return default_info
         xlmm = customer.getXiaolumm()
