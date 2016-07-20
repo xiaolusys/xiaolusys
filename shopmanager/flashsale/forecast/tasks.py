@@ -68,7 +68,10 @@ def task_forecast_update_stats_data(finbound_id):
         stats.has_wrong = forecast_inbound.has_wrong
         stats.is_unrecordlogistic = forecast_inbound.is_unrecordlogistic
         # timeout stats
-        if forecast_inbound.status == ForecastInbound.ST_TIMEOUT:
+        if forecast_inbound.status == ForecastInbound.ST_TIMEOUT or(
+            forecast_inbound.arrival_time and forecast_inbound.forecast_arrive_time.date()
+                    < forecast_inbound.arrival_time.date()
+        ) :
             stats.status = ForecastStats.EXCEPT
             stats.is_timeout = True
         elif forecast_inbound.status == ForecastInbound.ST_CLOSED:

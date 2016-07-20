@@ -159,10 +159,10 @@ def task_Push_SaleTrade_Finished(pre_days=10):
 
 
 @task(max_retries=3, default_retry_delay=60)
-def confirmTradeChargeTask(sale_trade_id, charge_time=None):
+def confirmTradeChargeTask(sale_trade_id, charge_time=None, charge=None):
     """ 订单确认付款,并更新状态 """
     strade = SaleTrade.objects.get(id=sale_trade_id)
-    strade.charge_confirm(charge_time=charge_time)
+    strade.charge_confirm(charge_time=charge_time, charge=charge)
     saleservice = FlashSaleService(strade)
     saleservice.payTrade()
 
@@ -203,7 +203,7 @@ def notifyTradePayTask(notify):
 
         charge_time = tcharge.time_paid
         strade = SaleTrade.objects.get(tid=order_no)
-        confirmTradeChargeTask(strade.id, charge_time=charge_time)
+        confirmTradeChargeTask(strade.id, charge_time=charge_time, charge=tcharge.charge)
 
     except Exception, exc:
         logger.error('notifyTradePayTask:%s' % exc.message, exc_info=True)
