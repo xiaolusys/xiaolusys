@@ -21,7 +21,7 @@ def gen_subforecast_inbound_no(parent_id):
         .order_by('-forecast_no').first()
     if forecast:
         forecast_id_list = forecast.forecast_no.split('-')
-        if len(forecast_id_list) > 1 and forecast_id_list[-1].isdigit():
+        if len(forecast_id_list) > 1 and forecast_id_list[1].isdigit():
             return '%s-%d'%(forecast_id, int(forecast_id_list[1]) + 1)
     return '%s-1'% forecast_id
 
