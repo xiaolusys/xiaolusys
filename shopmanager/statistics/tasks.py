@@ -85,7 +85,7 @@ def task_update_sale_order_stats_record(sale_order):
     print("record order is ",sale_order.id)
 
     date_field = sale_order.pay_time.date() if sale_order.pay_time else sale_order.created.date()
-
+    pay_time = sale_order.pay_time if sale_order.pay_time else sale_order.created
     if sale_order.stats_not_pay():
         status = constants.NOT_PAY
     elif sale_order.stats_paid():
@@ -110,7 +110,7 @@ def task_update_sale_order_stats_record(sale_order):
             pic_path=sale_order.pic_path,
             num=sale_order.num,
             payment=sale_order.payment,
-            pay_time=sale_order.pay_time,
+            pay_time=pay_time,
             date_field=date_field,
             status=status,
             sale_product=sale_product
@@ -120,7 +120,6 @@ def task_update_sale_order_stats_record(sale_order):
         record.save()
     else:
         # 付款时间取　去订单的付款时间　如果 订单的付款时间为空则默认为订单的创建时间
-        pay_time = sale_order.pay_time if sale_order.pay_time else sale_order.created
         if not pay_time:
             logger.warn(u'task_update_sale_order_stats_record: pay_time is none oid: %s' % sale_order.oid)
         update_fields = []
