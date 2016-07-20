@@ -82,7 +82,7 @@ def get_or_create_customer(buyer_id):
     user_dict = dict(zip(USER_FIELDS, user_tuple))
     t_cursor.close()
     cus_conn.close()
-    buyer = Customer.objects.filter(unionid=buyer_dict['unionid']).first()
+    buyer = Customer.objects.filter(unionid=buyer_dict['unionid']).exclude(status=Customer.DELETE).first()
     if buyer:
         return buyer
     user = User.objects.filter(username=buyer_dict['unionid']).first()

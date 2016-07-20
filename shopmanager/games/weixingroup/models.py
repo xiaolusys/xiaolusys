@@ -70,7 +70,7 @@ class GroupMamaAdministrator(BaseModel):
 
     @property
     def customer(self):
-        return Customer.objects.filter(unionid=self.mama.openid).first()
+        return Customer.objects.filter(unionid=self.mama.openid).exclude(status=Customer.DELETE).first()
         # return self.mama.get_mama_customer()
 
     @property

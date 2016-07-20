@@ -117,7 +117,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
         if not username or not password:
             return Response({"code": 1, "message": u"用户名和密码不全呢！", 'next': ''})
 
-        customers = Customer.objects.filter(mobile=username)
+        customers = Customer.objects.filter(mobile=username).exclude(status=Customer.DELETE)
         if customers.count() == 1:
             # 若是微信授权创建的账户，django user的username不是手机号。
             username = customers[0].user.username

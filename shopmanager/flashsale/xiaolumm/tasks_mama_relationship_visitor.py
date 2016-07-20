@@ -99,7 +99,7 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
     nick, img = '', ''
     unionid = get_unionid_by_openid(openid, appkey)
     if unionid:
-        customer = Customer.objects.filter(unionid=unionid).first()
+        customer = Customer.objects.filter(unionid=unionid).exclude(status=Customer.DELETE).first()
         if not customer:
             from shopapp.weixin.models_base import WeixinUserInfo
             customer = WeixinUserInfo.objects.filter(unionid=unionid).first()
@@ -129,7 +129,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 
 @task()
 def task_login_activate_appdownloadrecord(user):
-    customer = Customer.objects.filter(user=user).first()
+    customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
     if not customer:
         return
 
@@ -170,7 +170,7 @@ def task_login_activate_appdownloadrecord(user):
  
 @task()
 def task_login_create_appdownloadrecord(user):
-    customer = Customer.objects.filter(user=user).first()
+    customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
     if not customer:
         return
 
@@ -182,7 +182,7 @@ def task_login_create_appdownloadrecord(user):
     if len(mobile) != 11:
         return
 
-    mobile_customer = Customer.objects.filter(mobile=mobile,unionid='').first()
+    mobile_customer = Customer.objects.filter(mobile=mobile,unionid='').exclude(status=Customer.DELETE).first()
     if not mobile_customer:
         return
 

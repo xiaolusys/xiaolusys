@@ -159,12 +159,12 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         page = self.paginate_queryset(xlmm_fans)
         if page is not None:
             fans_cusids = [p.fans_cusid for p in page]
-            customers = Customer.objects.filter(id__in=fans_cusids)
+            customers = Customer.objects.filter(id__in=fans_cusids).exclude(status=Customer.DELETE)
             data = customers.values('id', 'nick', 'thumbnail')
             return self.get_paginated_response(data)
 
         fans_cusids = [cus[0] for cus in xlmm_fans.values('fans_cusid')]
-        customers = Customer.objects.filter(id__in=fans_cusids)
+        customers = Customer.objects.filter(id__in=fans_cusids).exclude(status=Customer.DELETE)
         data = customers.values('id', 'nick', 'thumbnail')
         return Response(data)
 

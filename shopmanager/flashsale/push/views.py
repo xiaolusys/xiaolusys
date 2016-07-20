@@ -54,7 +54,7 @@ class PushViewSet(viewsets.ModelViewSet):
         regid = validated_data['regid']
 
         customer = None
-        rows = Customer.objects.filter(user=request.user)
+        rows = Customer.objects.filter(user=request.user).exclude(status=Customer.DELETE)
         if rows:
             customer = rows[0]
         if not customer:

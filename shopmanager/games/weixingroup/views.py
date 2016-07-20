@@ -274,7 +274,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                     userinfo.get('unionid'), userinfo.get('openid', ''))
             user_id = None
-            customer = Customer.objects.filter(unionid=unionid).first()
+            customer = Customer.objects.filter(unionid=unionid).exclude(status=Customer.DELETE).first()
             if request.user.id:
                 user_id = request.user.id
             elif customer:

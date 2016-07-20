@@ -102,7 +102,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     def get_customer(self, request):
         if not hasattr(self,'__customer__'):
-            self.__customer__ = Customer.objects.filter(user=request.user).first()
+            self.__customer__ = Customer.objects.filter(user=request.user).exclude(status=Customer.DELETE).first()
         return self.__customer__
 
     def list(self, request, *args, **kwargs):
@@ -497,7 +497,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
     def get_customer(self, request):
         if not hasattr(self, '__customer__'):
-            self.__customer__ = Customer.objects.filter(user=request.user).first()
+            self.__customer__ = Customer.objects.filter(user=request.user).exclude(status=Customer.DELETE).first()
         return self.__customer__
 
     def get_xlmm(self,request):
@@ -1159,7 +1159,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_customer(self, request):
-        customer = Customer.objects.filter(user=request.user.id).first()
+        customer = Customer.objects.filter(user=request.user.id).exclude(status=Customer.DELETE).first()
         return customer
 
     def get_owner_queryset(self, request):
