@@ -873,8 +873,8 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
         modelstats.save()
     else:
         # 聚合　同一上架时间　同个选品的　同个状态的　状态对应数量　和状态对应金额　并修改该记录的
-        salerecord = SaleOrderStatsRecord.objects.filter(create__gte=upshelf_time,
-                                                         create__lt=offshelf_time,
+        salerecord = SaleOrderStatsRecord.objects.filter(pay_time__gte=upshelf_time,
+                                                         pay_time__lt=offshelf_time,
                                                          sale_product=sale_product)
         # 每个状态分组　计算
         annotate_res = salerecord.values('status').annotate(s_num=Sum("num"), s_payment=Sum("payment"))
