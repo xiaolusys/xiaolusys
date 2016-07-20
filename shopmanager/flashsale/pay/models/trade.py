@@ -344,12 +344,13 @@ class SaleTrade(BaseModel):
         statsd.incr('xiaolumm.postpay_amount', self.payment)
         signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=self)
 
-    def charge_confirm(self, charge_time=None):
+    def charge_confirm(self, charge_time=None, charge=charge):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
         trade_close = self.is_closed()
         self.status = self.WAIT_SELLER_SEND_GOODS
+        self.charge = charge or self.charge
         self.pay_time = charge_time or datetime.datetime.now()
-        update_model_fields(self, update_fields=['status', 'pay_time'])
+        update_model_fields(self, update_fields=['status', 'pay_time', 'charge'])
 
         for order in self.sale_orders.all():
             order.status = order.WAIT_SELLER_SEND_GOODS
