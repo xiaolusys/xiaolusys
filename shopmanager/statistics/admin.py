@@ -3,7 +3,7 @@ from django.contrib import admin
 from core.utils.modelutils import get_class_fields
 from statistics.models import SaleOrderStatsRecord, SaleStats, ProductStockStat
 from statistics import constants
-from statistics.models import DailyStat
+from statistics.models import DailyStat, ModelStats
 
 
 class SaleStatsAdmin(admin.ModelAdmin):
@@ -120,3 +120,36 @@ class DailyStatAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DailyStat, DailyStatAdmin)
+
+
+class ModelStatsAdmin(admin.ModelAdmin):
+    list_display = (
+        "model_id",
+        "sale_product",
+        "schedule_manage_id",
+        "upshelf_time",
+        "offshelf_time",
+        "category",
+        "supplier",
+        "model_name",
+        "category_name",
+        "pic_url",
+        "supplier_name",
+        "pay_num",
+        "no_pay_num",
+        "cancel_num",
+        "out_stock_num",
+        "return_good_num",
+        "payment",
+        "agent_price",
+        "cost"
+    )
+    list_per_page = 50
+    list_filter = (
+        "upshelf_time",
+        "offshelf_time"
+    )
+    search_fields = ['model_id', 'sale_product', "model_name", 'supplier', 'supplier_name']
+
+
+admin.site.register(ModelStats, ModelStatsAdmin)
