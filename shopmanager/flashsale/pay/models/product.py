@@ -317,7 +317,7 @@ class ModelProduct(BaseTagModel):
             'offshelf_time': self.offshelf_time,
             'properties':self.properties,
             'watermark_op': '',
-            'item_marks': ['包邮'],
+            'item_marks': [u'包邮'],
         }
 
     @property
@@ -368,12 +368,12 @@ class ModelProduct(BaseTagModel):
         return {
             'tables': p_tables,
             'metrics': {
-                'table':[
-                    [u'厚度指数', u'偏薄', u'适中',u'偏厚',u'加厚' ],
-                    [u'弹性指数', u'无弹性', u'微弹性',u'适中', u'强弹性'],
-                    [u'触感指数', u'偏硬', u'柔软', u'适中', u'超柔'],
-                ],
-                'choices':[2,3,2]
+                # 'table':[
+                #     [u'厚度指数', u'偏薄', u'适中',u'偏厚',u'加厚' ],
+                #     [u'弹性指数', u'无弹性', u'微弹性',u'适中', u'强弹性'],
+                #     [u'触感指数', u'偏硬', u'柔软', u'适中', u'超柔'],
+                # ],
+                # 'choices':[2,3,2]
             },
         }
 

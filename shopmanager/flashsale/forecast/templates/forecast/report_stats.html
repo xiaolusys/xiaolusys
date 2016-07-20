@@ -166,7 +166,7 @@ var ndx = crossfilter(initial(spendData)),
 // var trendDimension = ndx.dimension(function(d) {return [d.Expt, d.purchase_period]; });
 // var trendGroup = runDimension.group().reduceSum(function(d) { return +d.Speed; });
 
-var supplierDim  = ndx.dimension(function(d) {return d.supplier__supplier_name}),
+var supplierDim  = ndx.dimension(function(d) {return d.supplier_name}),
     supplierAmountGroup = supplierDim.group().reduceSum(function(d) {return +d.purchase_amount;});
 
 supplierRowChart
@@ -297,7 +297,7 @@ var mapNames = {
     close: '下单缺货',
     empty: '无异常',
     id: '预测单ID',
-    supplier__supplier_name: '供应商',
+    supplier_name: '供应商',
     purchase_time: '采购日期',
     delivery_time: '发货日期',
     arrival_time: '到货日期',
@@ -306,7 +306,7 @@ var mapNames = {
     purchaser: '采购',
     purchase_num: '预测数量',
     lack_num: '缺货数量',
-    forecast_inbound__relate_order_set:'关联订货单'
+    relate_orders:'关联订货单'
 };
 
 chainQuanlityRingChart
@@ -330,7 +330,7 @@ dataTable
     .showGroups(false)
     .columns([
         { label: mapNames['id'], format: function (d) { return d.forecast_inbound; }},
-        { label: mapNames['supplier__supplier_name'], format: function (d) { return d.supplier__supplier_name; }},
+        { label: mapNames['supplier_name'], format: function (d) { return d.supplier_name; }},
         { label: mapNames['purchase_time'], format: function (d) { return d.purchase_time; }},
         { label: mapNames['delivery_time'], format: function (d) { return d.delivery_time; }},
         { label: mapNames['arrival_time'], format: function (d) { return d.arrival_time; }},
@@ -339,7 +339,7 @@ dataTable
         { label: mapNames['purchaser'], format: function (d) { return d.purchaser; }},
         { label: mapNames['purchase_num'], format: function (d) { return d.purchase_num; }},
         { label: mapNames['lack_num'], format: function (d) { return d.lack_num; }},
-        { label: mapNames['forecast_inbound__relate_order_set'], format: function (d) { return d.forecast_inbound__relate_order_set; }}
+        { label: mapNames['relate_orders'], format: function (d) { return d.relate_orders; }}
     ])
     .size(50)
     .sortBy(function (d) { return d.buyer_name; })

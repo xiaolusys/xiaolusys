@@ -74,7 +74,7 @@ def task_forecast_update_stats_data(finbound_id):
         elif forecast_inbound.status == ForecastInbound.ST_CLOSED:
             stats.status = ForecastStats.CLOSED
             stats.is_lackclose = True
-        elif forecast_inbound.status == ForecastInbound.ST_CANCELED:
+        elif forecast_inbound.status == ForecastInbound.ST_CANCELED or forecast_inbound.total_forecast_num==0:
             stats.status = ForecastStats.CLOSED
         elif forecast_inbound.status == ForecastInbound.ST_APPROVED:
             stats.status = ForecastStats.STAGING
