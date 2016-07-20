@@ -794,14 +794,15 @@ def judgement_schedule_manager(managers, saleorderstatsrecord):
 
 
 @task()
-def task_statsrecord_update_model_stats(saleorderstatsrecord):
+def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
     """
     订单明细记录更新款式统计
     saleorderstatsrecord: SaleOrderStatsRecord instance
     """
     # 上下架时间的确定
     sale_product = saleorderstatsrecord.sale_product
-    detail_review_time = datetime.datetime.now() - datetime.timedelta(days=60)
+    review_days = review_days if review_days else 60
+    detail_review_time = datetime.datetime.now() - datetime.timedelta(days=review_days)
     sale_manager_details = SaleProductManageDetail.objects.filter(design_take_over=SaleProductManageDetail.TAKEOVER,
                                                                   sale_product_id=sale_product,
                                                                   created__gte=detail_review_time)
