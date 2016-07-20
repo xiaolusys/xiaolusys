@@ -35,11 +35,7 @@ class PayInfoMethodMixin(object):
     def get_user_profile(self, request):
         if hasattr(self, '_customer'):
             return self._customer
-        customers = Customer.objects.filter(user=request.user).exclude(status=Customer.DELETE)
-        if customers.exists():
-            self._customer = customers[0]
-        else:
-            self._customer = None
+        self._customer = Customer.objects.normal_customer.filter(user=request.user).first()
         return self._customer
 
     def get_xiaolumm(self, request):

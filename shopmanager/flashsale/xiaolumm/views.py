@@ -847,7 +847,7 @@ def get_Deposit_Trade(openid, mobile):
         payment = 118
         outer_id = 'RMB118'
 
-        customer = Customer.objects.filter(unionid=openid).exclude(status=Customer.DELETE)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
+        customer = Customer.objects.normal_customer.filter(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
         if customer.exists():
             sale_orders = SaleOrder.objects.filter(outer_id=outer_id, payment=payment,
                                                    refund_status=SaleRefund.NO_REFUND,

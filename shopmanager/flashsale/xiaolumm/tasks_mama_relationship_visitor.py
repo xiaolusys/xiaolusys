@@ -129,7 +129,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 
 @task()
 def task_login_activate_appdownloadrecord(user):
-    customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
+    customer = Customer.objects.normal_customer.filter(user=user).first()
     if not customer:
         return
 
@@ -170,7 +170,7 @@ def task_login_activate_appdownloadrecord(user):
  
 @task()
 def task_login_create_appdownloadrecord(user):
-    customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
+    customer = Customer.objects.normal_customer.filter(user=user).first()
     if not customer:
         return
 
@@ -182,7 +182,7 @@ def task_login_create_appdownloadrecord(user):
     if len(mobile) != 11:
         return
 
-    mobile_customer = Customer.objects.filter(mobile=mobile,unionid='').exclude(status=Customer.DELETE).first()
+    mobile_customer = Customer.objects.normal_customer.filter(mobile=mobile,unionid='').first()
     if not mobile_customer:
         return
 
