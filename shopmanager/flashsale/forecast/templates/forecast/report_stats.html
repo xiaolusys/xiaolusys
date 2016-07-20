@@ -321,15 +321,15 @@ chainQuanlityRingChart
   .legend(dc.legend().legendText(function (d) { return mapNames[d.name]+':'+d.data;}));
 
 var dataTable = dc.dataTable("#chart-datatable"),
-    dtDimension    = ndx.dimension(function(d) {return '' + d.forecast_inbound;}),
+    dtDimension    = ndx.dimension(function(d) {return '' + d.forecast_inbound_id;}),
     dtGroupDimension = dtDimension.group(),
-    rank = function (d) { return d.forecast_inbound };
+    rank = function (d) { return d.forecast_inbound_id };
 dataTable
     .dimension(dtDimension)
     .group(rank)
     .showGroups(false)
     .columns([
-        { label: mapNames['id'], format: function (d) { return d.forecast_inbound; }},
+        { label: mapNames['id'], format: function (d) { return d.forecast_inbound_id; }},
         { label: mapNames['supplier_name'], format: function (d) { return d.supplier_name; }},
         { label: mapNames['purchase_time'], format: function (d) { return d.purchase_time; }},
         { label: mapNames['delivery_time'], format: function (d) { return d.delivery_time; }},
@@ -343,7 +343,6 @@ dataTable
     ])
     .size(50)
     .sortBy(function (d) { return d.buyer_name; })
-    .label(function(d) { return mapNames[d.key]})
     .order(d3.descending);
 
 /* chart

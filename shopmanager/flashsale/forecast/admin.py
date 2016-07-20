@@ -100,6 +100,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     actions = ['action_merge_or_split',
                'action_strip_inbound',
+               'action_arrival_finished',
                'action_timeout_reforecast',
                'action_close_unarrival']
 
@@ -132,7 +133,9 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     def action_merge_or_split(self, request, queryset):
 
-        unapproved_qs = queryset.exclude(status__in=(ForecastInbound.ST_DRAFT,ForecastInbound.ST_APPROVED))
+        unapproved_qs = queryset.exclude(status__in=(ForecastInbound.ST_DRAFT,
+                                                     ForecastInbound.ST_APPROVED,
+                                                     ForecastInbound.ST_ARRIVED))
         if unapproved_qs.exists():
             self.message_user(request, u"＊＊＊＊＊＊＊＊＊合并拆分预测到货单必须都在草稿或审核状态＊＊＊＊＊＊＊＊＊!")
             return HttpResponseRedirect(request.get_full_path())
@@ -197,11 +200,13 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     action_timeout_reforecast.short_description = u"超时重新预测到货"
 
+
     def action_close_unarrival(self, request, queryset):
 
-        unapproved_qs = queryset.exclude(status=ForecastInbound.ST_APPROVED)
-        if unapproved_qs.exists():
-            self.message_user(request, u"＊＊＊预测单缺货关闭需在审核状态下处理＊＊＊!")
+        unapproved_qs = queryset.filter(status__in=(ForecastInbound.ST_DRAFT,
+                                                     ForecastInbound.ST_APPROVED))
+        if not unapproved_qs.exists():
+            self.message_user(request, u"＊＊＊预测单缺货关闭需在草稿审核状态下处理＊＊＊!")
             return HttpResponseRedirect(request.get_full_path())
 
         close_forecast_ids = ','.join([str(obj.id) for obj in unapproved_qs])
@@ -215,6 +220,26 @@ class ForecastInboundAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(request.get_full_path())
 
     action_close_unarrival.short_description = u"商家缺货无法到货"
+
+
+    def action_arrival_finished(self, request, queryset):
+
+        unarrived_qs = queryset.filter(status=ForecastInbound.ST_ARRIVED)
+        if not unarrived_qs.exists():
+            self.message_user(request, u"＊＊＊预测单缺货关闭需在审核状态下处理＊＊＊!")
+            return HttpResponseRedirect(request.get_full_path())
+
+        finished_forecast_ids = ','.join([str(obj.id) for obj in unarrived_qs])
+        for obj in unarrived_qs:
+            obj.inbound_arrive_confirm_finish()
+            obj.save(update_fields=['status'])
+            log_action(request.user.id, obj, CHANGE, u'预测单标记已完成')
+
+        self.message_user(request, u"＊＊＊到货已完成预测单列表:%s ＊＊＊" % finished_forecast_ids)
+
+        return HttpResponseRedirect(request.get_full_path())
+
+    action_arrival_finished.short_description = u"到货标记完成"
 
 
 admin.site.register(ForecastInbound, ForecastInboundAdmin)
