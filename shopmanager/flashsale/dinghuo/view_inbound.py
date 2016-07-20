@@ -337,6 +337,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
             forecast_list.append({
                 'id': forecast.id,
+                'relate_order_ids': ','.join([str(s) for s in forecast.relate_order_set.values_list('id', flat=True)]),
                 'total_detail_num': forecast.total_detail_num,
                 'products': forecast_product_list
             })

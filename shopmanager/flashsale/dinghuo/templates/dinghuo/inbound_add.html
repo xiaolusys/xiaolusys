@@ -130,15 +130,18 @@
             width:0;
             height:0;
             position:fixed;
-            left:80px;
+            left:120px;
             top:50%;
             bottom:50%;
          }
          .bar-inner{
             width:160px;
             height:600px;
-            margin-left:-80px;
+            margin-left:-120px;
             margin-top:-200px
+         }
+         .nav>li>a {
+            padding: 10px 5px;
          }
         </style>
     </head>
@@ -152,7 +155,7 @@
                   {% for forecast in forecasts %}
                   <li role="presentation" {% if forloop.first %}class="active"{% endif %} data-role="tab" data-id="#panel-body-{{forecast.id}}">
                       <a href="#panel-body-{{forecast.id}}" >
-                          <label class="inline">#{{forecast.id}}&nbsp;预测单&nbsp;({{forecast.total_detail_num}})</label>
+                          <label class="inline">#{{forecast.relate_order_ids}}&nbsp;预测单&nbsp;({{forecast.total_detail_num}})</label>
                           <span class="inline" ><i class="glyphicon {% if forloop.first %}glyphicon-ok{% endif %}"></i></span>
                       </a>
                   </li>
