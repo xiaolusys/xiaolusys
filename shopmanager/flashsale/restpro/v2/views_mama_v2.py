@@ -30,13 +30,13 @@ logger = logging.getLogger(__name__)
 
 def get_customer_id(user):
     # return 19 # debug test
-    customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
+    customer = Customer.objects.normal_customer.filter(user=user).first()
     if customer:
         return customer.id
     return None
 
 def get_mama_id(user):
-    customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
+    customer = Customer.objects.normal_customer.filter(user=user).first()
     mama_id = None
     if customer:
         xlmm = customer.getXiaolumm()
@@ -97,7 +97,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         statsd.incr('xiaolumm.mamafortune_count')
 
         # fortunes = self.get_owner_queryset(request)
-        customer = Customer.objects.filter(user=request.user).exclude(status=Customer.DELETE).first()
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
         mama_id = None
         xlmm = None
         if customer:

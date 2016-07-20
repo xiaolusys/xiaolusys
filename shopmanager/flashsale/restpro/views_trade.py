@@ -95,7 +95,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         """创建购物车数据"""
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         data = request.data
-        customer_user = Customer.objects.filter(user=request.user).exclude(status=Customer.DELETE)
+        customer_user = Customer.objects.normal_customer.filter(user=request.user)
 
         if customer_user.count() == 0:
             return Response({"result": "0"})  # 登录过期

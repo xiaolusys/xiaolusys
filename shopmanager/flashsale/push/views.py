@@ -53,10 +53,7 @@ class PushViewSet(viewsets.ModelViewSet):
         device_id = validated_data.get('device_id') or ''
         regid = validated_data['regid']
 
-        customer = None
-        rows = Customer.objects.filter(user=request.user).exclude(status=Customer.DELETE)
-        if rows:
-            customer = rows[0]
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
         if not customer:
             return Response({'user_account': ''})
 
