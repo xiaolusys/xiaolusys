@@ -822,19 +822,6 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
     if not product:
         logger.error(u'task_statsrecord_update_model_stats %s item product not found ' % saleorderstatsrecord.id)
         return
-    model_id = product.model_id
-    pic_url = product.pic_path if product else None
-    agent_price = product.agent_price if product else 0
-    cost = product.cost if product else 0
-
-    category = product.category
-    category_id = category.cid if category else 0
-    category_name = category.__unicode__() if category else None
-
-    sal_p, supplier = product.pro_sale_supplier()
-    supplier_id = supplier.id if supplier else 0
-    supplier_name = supplier.supplier_name if supplier else None
-    model_name = sal_p.title if sal_p else None
 
     schedule_manage_id = manager_res['manager_id']
     upshelf_time = manager_res['upshelf_time']
@@ -850,6 +837,20 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
         constants.RETURN_GOODS: 'return_good_num',
     }
     if not modelstats:
+        model_id = product.model_id
+        pic_url = product.pic_path if product else None
+        agent_price = product.agent_price if product else 0
+        cost = product.cost if product else 0
+
+        category = product.category
+        category_id = category.cid if category else 0
+        category_name = category.__unicode__() if category else None
+
+        sal_p, supplier = product.pro_sale_supplier()
+        supplier_id = supplier.id if supplier else 0
+        supplier_name = supplier.supplier_name if supplier else None
+        model_name = sal_p.title if sal_p else None
+        
         modelstats = ModelStats(
             model_id=model_id,
             sale_product=sale_product,
