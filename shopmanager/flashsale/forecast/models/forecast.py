@@ -16,13 +16,13 @@ def default_forecast_inbound_no(identify_id = None):
     return 'fid'+datetime.datetime.now().strftime('%Y%m%d') + identify_id
 
 def gen_subforecast_inbound_no(parent_id):
-    forecast_id = ''.join(parent_id.split('-')[0:-1])
+    forecast_id = parent_id.split('-')[0]
     forecast = ForecastInbound.objects.filter(forecast_no__startswith=forecast_id)\
         .order_by('-forecast_no').first()
     if forecast:
         forecast_id_list = forecast.forecast_no.split('-')
         if len(forecast_id_list) > 1 and forecast_id_list[-1].isdigit():
-            return '%s-%d'%(forecast_id, int(forecast_id_list[-1]) + 1)
+            return '%s-%d'%(forecast_id, int(forecast_id_list[1]) + 1)
     return '%s-1'% forecast_id
 
 class ForecastInbound(BaseModel):
