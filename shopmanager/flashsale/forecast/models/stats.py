@@ -10,11 +10,13 @@ class ForecastStats(BaseModel):
 
     STAGING = 'staging'
     ARRIVAL = 'arrival'
+    EXCEPT  = 'except'
     CLOSED  = 'closed'
     STATUS_CHOICES = (
         (STAGING, u'待收货'),
         (ARRIVAL, u'已到货'),
-        (CLOSED, u'已关闭'),
+        (EXCEPT, u'异常关闭'),
+        (CLOSED, u'取消'),
     )
 
     forecast_inbound = models.OneToOneField('forecast.ForecastInbound', verbose_name=u'预测单')
