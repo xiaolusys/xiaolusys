@@ -127,6 +127,7 @@ class GroupFans(BaseModel):
     nick = models.CharField(max_length=100, verbose_name=u'用户微信昵称')
     union_id = models.CharField(max_length=100, verbose_name=u'用户微信unionid', unique=True)
     open_id = models.CharField(max_length=100, verbose_name=u'用户微信openid')
+    gifted = models.IntegerField(null=True, verbose_name=u'获取赠品', help_text=u'1凉席')
 
     @staticmethod
     def create(group, user_id, head_img_url, nick, union_id, open_id):
@@ -169,6 +170,7 @@ class ActivityUsers(BaseModel):
 
     activity = models.ForeignKey(ActivityEntry)
     user_id = models.IntegerField()
+    gifted = models.IntegerField(null=True, verbose_name=u'获取赠品', help_text=u'1凉席')
     group = models.ForeignKey('GroupMamaAdministrator')
 
     @staticmethod

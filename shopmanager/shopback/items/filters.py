@@ -230,13 +230,11 @@ class ProductSkuStatsUnusedStockFilter(SimpleListFilter):
             if status_id == '1':
                 return queryset.filter(return_quantity__gt=F('sold_num') + F('rg_quantity')
                                                            - F('history_quantity') - F('adjust_quantity') - F(
-                    'inbound_quantity') - F(
-                    'return_quantity'))
+                    'inbound_quantity'))
             if status_id == '2':
                 return queryset.filter(return_quantity=F('sold_num') + F('rg_quantity')
                                                        - F('history_quantity') - F('adjust_quantity') - F(
-                    'inbound_quantity') - F(
-                    'return_quantity'))
+                    'inbound_quantity'))
             if status_id == '3':
                 return queryset.filter(id__in=ProductSkuStats.redundancies())
 

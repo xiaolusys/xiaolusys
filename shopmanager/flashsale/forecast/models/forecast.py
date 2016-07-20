@@ -30,6 +30,7 @@ class ForecastInbound(BaseModel):
     ST_APPROVED = 'approved'
     ST_ARRIVED = 'arrived'
     ST_TIMEOUT = 'timeout'
+    ST_FINISHED = 'finished'
     ST_CLOSED   = 'close'
     ST_CANCELED = 'canceled'
 
@@ -147,6 +148,11 @@ class ForecastInbound(BaseModel):
             if self.delivery_time > self.arrival_time:
                 self.delivery_time = self.arrival_time
         self.status = self.ST_ARRIVED
+
+    def inbound_arrive_confirm_finish(self):
+        if self.status != self.ST_ARRIVED:
+            raise Exception(u'预测单非到货状态，无法完成')
+        self.status = ForecastInbound.ST_FINISHED
 
     def unarrive_close_update_status(self):
         self.status = self.ST_CANCELED
