@@ -3,9 +3,9 @@ __author__ = 'jie.lin'
 from django.conf.urls import patterns, include, url
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_exempt
-from statistics.views_pay import SaleNumberStatiticsView
+from statistics.views import SaleNumberStatiticsView
 from rest_framework import routers
-from statistics.views_stats import SaleStatsViewSet
+from statistics.views import SaleStatsViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'salestats', SaleStatsViewSet)

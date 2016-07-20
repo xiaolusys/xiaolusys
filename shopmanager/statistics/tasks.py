@@ -10,7 +10,8 @@ from supplychain.supplier.models import SupplierCharge, SaleSupplier
 from flashsale.pay.models import SaleOrder, ModelProduct
 from statistics import constants
 
-from statistics.models import SaleStats, ProductStockStat
+from statistics.models import SaleStats, ProductStockStat, ModelStats, SaleOrderStatsRecord
+from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ def task_update_sale_order_stats_record(sale_order):
     更新统计模块的 SaleOrderStatsRecord 记录
     """
     from statistics.models import SaleOrderStatsRecord
+    print("record order is ",sale_order.id)
 
     date_field = sale_order.pay_time.date() if sale_order.pay_time else sale_order.created.date()
 
@@ -97,6 +99,8 @@ def task_update_sale_order_stats_record(sale_order):
     else:
         return
     record = SaleOrderStatsRecord.objects.filter(oid=sale_order.oid).first()
+    product = get_product(sale_order.outer_id)
+    sale_product = product.sale_product if product else 0
     if not record:
         record = SaleOrderStatsRecord(
             oid=sale_order.oid,
@@ -108,21 +112,29 @@ def task_update_sale_order_stats_record(sale_order):
             payment=sale_order.payment,
             pay_time=sale_order.pay_time,
             date_field=date_field,
-            status=status
+            status=status,
+            sale_product=sale_product
         )
         if status == constants.RETURN_GOODS:
             record.return_goods = constants.HAS_RETURN
         record.save()
     else:
+        # 付款时间取　去订单的付款时间　如果 订单的付款时间为空则默认为订单的创建时间
+        pay_time = sale_order.pay_time if sale_order.pay_time else sale_order.created
+        update_fields = []
         if record.status != status:
             record.status = status
-            update_fields = ['status']
-            if record.date_field != date_field:
-                record.date_field = date_field
-                update_fields.append('date_field')
-            if status == constants.RETURN_GOODS:
-                record.return_goods = constants.HAS_RETURN
-                update_fields.append('return_goods')
+            update_fields.append('status')
+        if record.date_field != date_field:
+            record.date_field = date_field
+            update_fields.append('date_field')
+        if status == constants.RETURN_GOODS:
+            record.return_goods = constants.HAS_RETURN
+            update_fields.append('return_goods')
+        if record.pay_time != pay_time:
+            record.pay_time = pay_time
+            update_fields.append('pay_time')
+        if update_fields:
             record.save(update_fields=update_fields)
 
 
@@ -222,6 +234,10 @@ def get_model_id(product_outer_id):
         return product.model_id
     logger.warn(u'get_model_id not found the product_outer_id is %s' % product_outer_id)
     return None
+
+
+def get_product(product_outer_id):
+    return Product.objects.filter(outer_id=product_outer_id).first()
 
 
 def get_supplier_id(model_id):
@@ -746,5 +762,128 @@ def task_update_agg_stock_stats(stock_stats, time_from, time_to, upper_timely_ty
 @task()
 def task_xiaolu_daily_stat():
     from statistics.models import DailyStat
+
     now = datetime.datetime.now()
     DailyStat.create(now)
+
+
+def judgement_schedule_manager(managers, saleorderstatsrecord):
+    """
+    managers: 排期管理的对象列表
+    pay_time: 订单付款时间
+    """
+    target_manager = []
+    for manager in managers:
+        if not isinstance(manager.upshelf_time, datetime.datetime):
+            continue
+        # 将距离现在最近的时间添加
+        x = saleorderstatsrecord.pay_time - manager.upshelf_time
+        if x.days < 0:  # 订单创建时间　在　上架时间　之前（不合理） 注意这里的订单不能使用创建时间
+            continue
+        seconds = x.seconds
+        target_manager.append({'manager_id': manager.id,
+                               'seconds': seconds,
+                               'upshelf_time': manager.upshelf_time,
+                               'offshelf_time': manager.offshelf_time})
+    a = sorted(target_manager, key=lambda k: k['seconds'], reverse=False)
+    # 取出最小的seconds( 获取最近的时间)
+    if not a:
+        logger.error(u'judgement_schedule_manager %s no in managers shelf time !' % saleorderstatsrecord.id)
+        return None
+    return a[0]
+
+
+@task()
+def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
+    """
+    订单明细记录更新款式统计
+    saleorderstatsrecord: SaleOrderStatsRecord instance
+    """
+    # 上下架时间的确定
+    sale_product = saleorderstatsrecord.sale_product
+    review_days = review_days if review_days else 60
+    detail_review_time = datetime.datetime.now() - datetime.timedelta(days=review_days)
+    sale_manager_details = SaleProductManageDetail.objects.filter(design_take_over=SaleProductManageDetail.TAKEOVER,
+                                                                  sale_product_id=sale_product,
+                                                                  created__gte=detail_review_time)
+    # 所有相关的　选品排期明细
+    if not sale_manager_details.exists():
+        logger.warn(u'task_statsrecord_update_model_stats :%s '
+                    u' sale manager detail not found or not in 60days' % saleorderstatsrecord)
+        return
+    # 取出　排期管理
+    managers = [sale_manager_detail.schedule_manage for sale_manager_detail in sale_manager_details]
+    manager_res = judgement_schedule_manager(managers, saleorderstatsrecord)  # 上下架时间判定
+    if not manager_res:
+        logger.error(u'task_statsrecord_update_model_stats : %s '
+                     u' manager schedule not found .' % saleorderstatsrecord.id)
+        return
+    product = get_product(saleorderstatsrecord.outer_id)
+    if not product:
+        logger.error(u'task_statsrecord_update_model_stats %s item product not found ' % saleorderstatsrecord.id)
+        return
+    model_id = product.model_id
+    pic_url = product.pic_path if product else None
+    agent_price = product.agent_price if product else 0
+    cost = product.cost if product else 0
+
+    category = product.category
+    category_id = category.cid if category else 0
+    category_name = category.__unicode__() if category else None
+
+    sal_p, supplier = product.pro_sale_supplier()
+    supplier_id = supplier.id if supplier else 0
+    supplier_name = supplier.supplier_name if supplier else None
+    model_name = sal_p.title if sal_p else None
+
+    schedule_manage_id = manager_res['manager_id']
+    upshelf_time = manager_res['upshelf_time']
+    offshelf_time = manager_res['offshelf_time']
+
+    uni_key = str(sale_product) + '/' + str(schedule_manage_id)
+    modelstats = ModelStats.objects.filter(uni_key=uni_key).first()
+    status_map = {
+        constants.NOT_PAY: 'no_pay_num',
+        constants.PAID: 'pay_num',
+        constants.CANCEL: 'cancel_num',
+        constants.OUT_STOCK: 'out_stock_num',
+        constants.RETURN_GOODS: 'return_good_num',
+    }
+    if not modelstats:
+        modelstats = ModelStats(
+            model_id=model_id,
+            sale_product=sale_product,
+            schedule_manage_id=schedule_manage_id,
+            upshelf_time=upshelf_time,
+            offshelf_time=offshelf_time,
+            category=category_id,
+            supplier=supplier_id,
+            model_name=model_name,
+            category_name=category_name,
+            pic_url=pic_url,
+            supplier_name=supplier_name,
+            agent_price=agent_price,
+            cost=cost,
+            uni_key=uni_key
+        )
+        modelstats.payment = saleorderstatsrecord.payment
+        modelstats.__setattr__(status_map[saleorderstatsrecord.status], saleorderstatsrecord.num)
+        modelstats.save()
+    else:
+        # 聚合　同一上架时间　同个选品的　同个状态的　状态对应数量　和状态对应金额　并修改该记录的
+        salerecord = SaleOrderStatsRecord.objects.filter(create__gte=upshelf_time,
+                                                         create__lt=offshelf_time,
+                                                         sale_product=sale_product)
+        # 每个状态分组　计算
+        annotate_res = salerecord.values('status').annotate(s_num=Sum("num"), s_payment=Sum("payment"))
+        update_fields = []
+        for status_res in annotate_res:
+            status = status_res.get('status')  # 获取分组状态
+            num = status_res.get('s_num') or 0  # 该状态的数量
+            payment = status_res.get('s_payment') or 0  # 交易额
+            if status == constants.PAID:  # 是已经支付的状态才去保存payment字段
+                update_fields.append('payment')
+                modelstats.payment = payment
+            modelstats.__setattr__(status_map[status], num)  # 设置对应状态属性数值
+            update_fields.append(status_map[status])  # 添加保存字段
+        modelstats.save(update_fields=update_fields)

@@ -525,6 +525,10 @@ STATISTICS_ROUTES = {
     'statistics.tasks.task_update_agg_stock_stats': {
         'queue': 'statistics',
         'routing_key': 'statistics.task_update_agg_stock_stats',
+    },
+    'statistics.tasks.task_statsrecord_update_model_stats': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_statsrecord_update_model_stats',
     }
 }
 

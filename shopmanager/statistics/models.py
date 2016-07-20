@@ -40,6 +40,7 @@ class SaleOrderStatsRecord(BaseModel):
     status = models.IntegerField(choices=stat_status_choices(), db_index=True, verbose_name=u'状态')
     return_goods = models.IntegerField(default=constants.NO_RETURN, choices=return_goods_choices(),
                                        verbose_name=u'退货标记')
+    sale_product = models.BigIntegerField(default=0, db_index=True, verbose_name=u'选品id')
 
     class Meta:
         db_table = 'statistics_sale_order_stats_record'
@@ -55,6 +56,50 @@ def update_salestats(sender, instance, created, **kwargs):
 
 
 post_save.connect(update_salestats, sender=SaleOrderStatsRecord, dispatch_uid='post_save_update_salestats')
+
+#
+# def update_salestats(sender, instance, created, **kwargs):
+#     from statistics.tasks import task_statsrecord_update_model_stats
+#
+#     task_statsrecord_update_model_stats.delay(instance)
+#
+#
+# post_save.connect(update_salestats, sender=SaleOrderStatsRecord, dispatch_uid='post_save_update_salestats')
+
+
+class ModelStats(BaseModel):
+    """
+    某个款式　在某个上下架时间　的　各个状态的　数量
+    """
+    model_id = models.BigIntegerField(db_index=True, verbose_name=u'款式id')
+    sale_product = models.BigIntegerField(db_index=True, verbose_name=u'选品id')
+    schedule_manage_id = models.IntegerField(db_index=True, default=0, verbose_name=u'排期管理id')
+    upshelf_time = models.DateTimeField(db_index=True, verbose_name=u'上架时间')
+    offshelf_time = models.DateTimeField(db_index=True, verbose_name=u'下架时间')
+    category = models.CharField(max_length=64, db_index=True, verbose_name=u'产品类别')
+    supplier = models.IntegerField(db_index=True, verbose_name=u'供应商')
+
+    model_name = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'标题')
+    category_name = models.CharField(max_length=64, db_index=True, verbose_name=u'产品类别名称')
+    pic_url = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
+    supplier_name = models.CharField(max_length=128, blank=True, db_index=True, verbose_name=u'供应商名称')
+
+    pay_num = models.IntegerField(default=0, verbose_name=u'付款数量')
+    no_pay_num = models.IntegerField(default=0, verbose_name=u'未付款数量')
+    cancel_num = models.IntegerField(default=0, verbose_name=u'发货前退款数量')
+    out_stock_num = models.IntegerField(default=0, verbose_name=u'缺货退款数量')
+    return_good_num = models.IntegerField(default=0, verbose_name=u'退货退款数量')
+
+    payment = models.FloatField(default=0, verbose_name=u'销售额')
+    agent_price = models.FloatField(default=0, verbose_name=u'出售价(件)')
+    cost = models.FloatField(default=0, verbose_name=u'成本价')
+    uni_key = models.CharField(max_length=64, unique=True, db_index=True, blank=True, verbose_name=u'uni_key')
+
+    class Meta:
+        db_table = 'statistics_model_stats'
+        app_label = 'statistics'
+        verbose_name = u'款式统计表'
+        verbose_name_plural = u'款式统计列表'
 
 
 class SaleStats(BaseModel):
@@ -116,15 +161,21 @@ class SaleStats(BaseModel):
         return return_goods_stats.num if return_goods_stats else 0
 
     @property
-    def is_obsolete_supplier(self):
-        """　判断淘汰的供应商 """
-        if self.record_type == constants.TYPE_SUPPLIER:  # 供应商类型记录
+    def supplier(self):
+        if self.record_type != constants.TYPE_SUPPLIER:  # 供应商类型记录
+            return None
+        if not hasattr(self, '_supplier_'):
             from supplychain.supplier.models import SaleSupplier
 
-            supplier = SaleSupplier.objects.filter(id=self.current_id,
-                                                   progress=SaleSupplier.REJECTED).first()
-            return True if supplier else False
-        return False
+            self._supplier_ = SaleSupplier.objects.filter(id=self.current_id).first()
+        return self._supplier_
+
+    @property
+    def is_obsolete_supplier(self):
+        """　判断淘汰的供应商 """
+        if self.record_type != constants.TYPE_SUPPLIER:  # 供应商类型记录
+            return False
+        return True if self.supplier and self.supplier.progress == 'rejected' else False
 
     class Meta:
         db_table = 'statistics_sale_stats'
