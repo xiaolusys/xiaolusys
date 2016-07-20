@@ -1004,7 +1004,11 @@ def task_register_mama(obj):
     protentialmama = PotentialMama.objects.filter(uni_key=uni_key).first()
     if not protentialmama:
         # 如果没有　则试图找(potential_mama = 当前mm.id的潜在推荐人)
-        protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
+        try:
+            protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
+        except PotentialMama.DoesNotExist:
+            logger.warn(u'task_register_mama: %s can not found referal !' % xlmm.id)
+
     update_xlmm_referal_from(protentialmama, xlmm)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
 
     from django_statsd.clients import statsd
