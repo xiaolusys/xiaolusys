@@ -2,6 +2,7 @@
 import os
 import json
 import datetime
+from collections import  defaultdict
 
 from django.db import models
 from django.db import transaction
@@ -574,7 +575,7 @@ class ForecastStatsFilter(filters.FilterSet):
         fields = ['purchase_time_start', 'purchase_time_end']
 
 class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ForecastStats.objects.all()
+    queryset = ForecastStats.objects.exclude(status=ForecastStats.CLOSED)
     authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.ForecastStatsSerializer
@@ -583,7 +584,6 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
     # filter_fields = ('supplier', 'purchase_time', 'buyer_name', 'purchaser')
     # filter_class = ForecastStatsFilter
     template_name = 'forecast/report_stats.html'
-
 
     def list(self, request, format=None, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related('supplier')
@@ -622,20 +622,31 @@ class ForecastStatsViewSet(viewsets.ReadOnlyModelViewSet):
                 'is_close': 'forecast_stats.is_lackclose',
             }
         ).select_related('forecast_inbound').values(
-            'id', 'forecast_inbound', 'supplier__supplier_name', 'buyer_name', 'purchaser', 'purchase_num',
+            'id', 'forecast_inbound_id', 'supplier__supplier_name', 'buyer_name', 'purchaser', 'purchase_num',
             'inferior_num', 'lack_num', 'purchase_amount', 'arrival_period', 'delivery_period', 'logistic_period',
-            'forecast_arrive_time', 'purchase_time', 'delivery_time', 'arrival_time','forecast_inbound__relate_order_set',
+            'forecast_arrive_time', 'purchase_time', 'delivery_time', 'arrival_time',
             'is_lack', 'is_defact', 'is_overhead', 'is_wrong', 'is_unrecord', 'is_timeouted', 'is_close','status'
         )
 
+        order_values_list = queryset.values_list('id', 'forecast_inbound__relate_order_set')
+        order_values_dict = defaultdict(list)
+        for id, order_id in order_values_list:
+            order_values_dict[id].append(order_id)
+
+        stats_values_list = []
+        for stats in stats_values:
+            stats['supplier_name'] = stats.pop('supplier__supplier_name')
+            stats['relate_orders'] = ','.join([str(s) for s in order_values_dict.get(stats['id'])])
+            stats_values_list.append(stats)
+
         if format == 'json':
-            return Response({'results': stats_values,
+            return Response({'results': stats_values_list,
                              'start_time':start_time,
                              'end_time':end_time,
                              'action': action})
         else:
             stats_values = list(stats_values)
-            return Response({'results': stats_values,
+            return Response({'results': stats_values_list,
                              'start_time':start_time,
                              'end_time':end_time,
                              'action': action})
