@@ -23,7 +23,7 @@ from . import serializers
 from flashsale.clickcount.models import Clicks
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import Customer
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans, FansNumberRecord
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans, FansNumberRecord, PotentialMama
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models_fortune import MamaFortune
@@ -172,6 +172,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def get_referal_mama(self, request):
         """
         当前代理邀请的人数(正式，　非正式)　邀请人的信息（正式非正式）
+        一元试用的从潜在用户列表中获取
         """
         last_renew_type = request.REQUEST.get("last_renew_type") or None
         if not last_renew_type:
@@ -187,7 +188,12 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         members = self.queryset.filter(referal_from=currentmm.mobile,
                                        charge_status=XiaoluMama.CHARGED,
                                        status=XiaoluMama.EFFECT)
-        members = members.filter(last_renew_type__in=last_renew_types)
+        if last_renew_type == 'trial':
+            potential_mamas = PotentialMama.objects.filter(referal_mama=currentmm.id,
+                                                           is_full_member=False).values('potential_mama')
+            members = XiaoluMama.objects.filter(id__in=potential_mamas)
+        if last_renew_type == 'full':
+            members = members.filter(last_renew_type__in=last_renew_types)
         page = self.paginate_queryset(members)
         if page is not None:
             serializer = serializers.XiaoluMamaInfoSerialize(page, many=True,
