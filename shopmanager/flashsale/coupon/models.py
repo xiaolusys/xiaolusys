@@ -392,7 +392,7 @@ class UserCoupon(BaseModel):
         if not hasattr(self, "_coupon_customer_"):
             from flashsale.pay.models import Customer
 
-            self._coupon_customer_ = Customer.objects.filter(id=self.customer_id).exclude(status=Customer.DELETE).first()
+            self._coupon_customer_ = Customer.objects.normal_customer.filter(id=self.customer_id).first()
         return self._coupon_customer_
 
     def self_template(self):

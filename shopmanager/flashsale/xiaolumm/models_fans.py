@@ -29,7 +29,7 @@ class XlmmFans(BaseModel):
     def getCustomer(self):
         """ 获取粉丝在特卖客户列表中的信息 """
         if not hasattr(self, '_fans_customer_'):
-            self._fans_customer_ = Customer.objects.filter(id=self.fans_cusid).exclude(status=Customer.DELETE).first()
+            self._fans_customer_ = Customer.objects.normal_customer.filter(id=self.fans_cusid).first()
         return self._fans_customer_
 
     def fans_description(self):

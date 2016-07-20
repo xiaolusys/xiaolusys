@@ -129,3 +129,12 @@ class SaleRefundManager(BaseManager):
             refund.save()
             signal_saletrade_refund_post.send(sender=self.model, obj=refund)
             return refund, True
+
+
+class CustomerManager(BaseManager):
+
+    @property
+    def normal_customer(self):
+        queryset = super(CustomerManager, self).get_queryset()
+        return queryset.filter(status=self.model.NORMAL).order_by('-created')
+

@@ -22,10 +22,10 @@ from shopback.trades.models import PackageSkuItem
 
 
 def get_customer_id(user):
-    customers = Customer.objects.filter(user=user).exclude(status=Customer.DELETE)
+    customer = Customer.objects.normal_customer.filter(user=user).first()
     customer_id = None
-    if customers.count() > 0:
-        customer_id = customers[0].id
+    if customer:
+        customer_id = customer.id
     #customer_id = 19 # debug test
     return customer_id
 

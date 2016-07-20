@@ -28,19 +28,18 @@ from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, Le
 from flashsale.promotion.models import ActivityEntry
 
 def get_customer_id(user):
-    customers = Customer.objects.filter(user=user).exclude(status=Customer.DELETE)
+    customer = Customer.objects.normal_customer.filter(user=user).first()
     customer_id = None
-    if customers.count() > 0:
-        customer_id = customers[0].id
+    if customer:
+        customer_id = customer.id
     #customer_id = 19 # debug test
     return customer_id
 
 
 def get_mama_id(user):
-    customers = Customer.objects.filter(user=user).exclude(status=Customer.DELETE)
+    customer = Customer.objects.normal_customer.filter(user=user).first()
     mama_id = None
-    if customers.count() > 0:
-        customer = customers[0]
+    if customer:
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id

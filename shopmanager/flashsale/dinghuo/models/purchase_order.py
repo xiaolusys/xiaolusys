@@ -58,7 +58,7 @@ class OrderList(models.Model):
         (ST_DRAFT, u'草稿'),
         (ST_APPROVAL, u'已审核'),
         (ST_BILLING, u'结算中'),
-        (ST_FINISHED, u'已结算'),
+        (ST_FINISHED, u'已完成'),
         (ST_CLOSE, u'已取消'),
     )
 
@@ -489,7 +489,6 @@ def check_with_purchase_order(sender, instance, created, **kwargs):
     if not instance.order_group_key:
         instance.order_group_key = '-%s-' % instance.id
         instance.save(update_fields=['order_group_key'])
-
 
 post_save.connect(
     check_with_purchase_order,

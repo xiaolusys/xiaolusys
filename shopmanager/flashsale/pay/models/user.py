@@ -10,7 +10,7 @@ from .base import PayBaseModel
 from .envelope import Envelop
 from .. import constants
 from core.options import log_action, CHANGE
-
+from .. import managers
 from django.db.models.signals import post_save
 
 import logging
@@ -134,6 +134,7 @@ class Customer(BaseModel):
 
     status = models.IntegerField(choices=USER_STATUS_CHOICES, default=NORMAL, verbose_name=u'状态')
 
+    objects = managers.CustomerManager()
     #     first_paytime   = models.DateTimeField(null=True,blank=True,verbose_name=u'首次购买日期')
     #     latest_paytime  = models.DateTimeField(null=True,blank=True,verbose_name=u'最近购买日期')
 

@@ -450,7 +450,7 @@ def task_budgetlog_update_userbudget(budget_log):
         if entry["budget_type"] == BudgetLog.BUDGET_OUT:
             out_amount += entry["total"]
     cash = in_amount - out_amount
-    customers = Customer.objects.filter(id=customer_id).exclude(status=Customer.DELETE)
+    customers = Customer.objects.normal_customer.filter(id=customer_id)
     try:
         if not customers.exists():
             logger.warn('customer %s　not exists when create user budget!' %

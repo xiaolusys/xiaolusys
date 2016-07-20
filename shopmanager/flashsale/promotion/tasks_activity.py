@@ -260,23 +260,17 @@ def task_appdownloadrecord_update_fans(record):
     customer_mobile = record.mobile
     customer = None
     if customer_unionid:
-        customers = Customer.objects.filter(unionid=customer_unionid).exclude(status=Customer.DELETE)
-        if customers.count() > 0:
-            customer = customers[0]
+        customer = Customer.objects.normal_customer.filter(unionid=customer_unionid).first()
     elif customer_mobile:
-        customers = Customer.objects.filter(mobile=customer_mobile,unionid='').exclude(status=Customer.DELETE)
-        if customers.count() > 0:
-            customer = customers[0]
+        customer = Customer.objects.normal_customer.filter(mobile=customer_mobile, unionid='').first()
     if not customer:
         return
     
     referal_customer_id = record.from_customer
-    customers = Customer.objects.filter(id=referal_customer_id).exclude(status=Customer.DELETE)
-    if customers.count() <= 0:
+    referal_customer = Customer.objects.normal_customer.filter(id=referal_customer_id).first()
+    if not referal_customer:
         return
-    referal_customer = customers[0]
 
-    
     from_mama = referal_customer.getXiaolumm()
     mama_id, mama_customer_id = None, None
     if from_mama:
