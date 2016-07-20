@@ -53,7 +53,7 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
             return self._xlmm
         if not request.user or request.user.is_anonymous():
             return None
-        customer = Customer.objects.filter(user_id=request.user.id).first()
+        customer = Customer.objects.filter(user_id=request.user.id).exclude(status=Customer.DELETE).first()
         if not customer or not customer.unionid.strip():
             return None
         xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)

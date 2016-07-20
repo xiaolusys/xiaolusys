@@ -163,9 +163,12 @@ class ForecastInbound(BaseModel):
 
 def pre_save_update_forecastinbound_data(sender, instance, raw, *args, **kwargs):
     logger.info('forecast pre_save:%s, %s'%(raw, instance))
+    from .inbound import RealInbound
     detail_list_num = instance.normal_details.values_list('forecast_arrive_num', flat=True)
-    forecast_arrive_num = sum(detail_list_num)
-    instance.total_forecast_num = forecast_arrive_num
+    arrival_list_num = instance.real_inbound_manager.exclude(status=RealInbound.CANCELED)\
+        .values_list('total_inbound_num', flat=True)
+    instance.total_forecast_num = sum(detail_list_num)
+    instance.total_arrival_num = sum(arrival_list_num)
 
 pre_save.connect(
     pre_save_update_forecastinbound_data,

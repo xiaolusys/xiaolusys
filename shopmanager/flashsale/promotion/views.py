@@ -157,7 +157,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         else:
             openid, unionid = self.get_openid_and_unionid_by_customer(request)
 
-        cus = Customer.objects.filter(id=from_customer)
+        cus = Customer.objects.filter(id=from_customer).exclude(status=Customer.DELETE)
         referal = cus[0] if cus.exists() else None
         title = u'小鹿美美邀您闹元宵'
 
@@ -229,7 +229,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             # expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
             # XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
 
-            custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
+            custs = Customer.objects.filter(id=from_customer).exclude(status=Customer.DELETE)  # 用户是否存在
             # cust = custs[0] if custs.exists() else ''
             # if cust:  # 给分享人（存在）则计数邀请数量
             # participates = XLInviteCode.objects.filter(mobile=cust.mobile)
@@ -266,7 +266,7 @@ class APPDownloadView(WeixinAuthMixin, View):
         """
         获取当前访问用户
         """
-        customers = Customer.objects.filter(Q(unionid=unionid) | Q(mobile=mobile))
+        customers = Customer.objects.filter(Q(unionid=unionid) | Q(mobile=mobile)).exclude(status=Customer.DELETE)
         if customers.exists():
             return customers[0]
         return None
@@ -671,7 +671,7 @@ class PromotionShortResult(PromotionResultMixin, APIView):
         items = []
         order_list = self.get_orders(None, None)
         customer_ids = [item.customer_id for item in order_list]
-        wx_users = Customer.objects.filter(id__in=customer_ids)
+        wx_users = Customer.objects.filter(id__in=customer_ids).exclude(status=Customer.DELETE)
         for user in wx_users:
             items.append(self.get_date_tuple(user))
         return HttpResponse(json.dumps(items))

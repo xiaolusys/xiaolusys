@@ -113,7 +113,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             else:
                 return Response({"result": "OK", "code": 0, "info": "OK"})
 
-        customers = Customer.objects.filter(mobile=mobile)
+        customers = Customer.objects.filter(mobile=mobile).exclude(status=Customer.DELETE)
         if customers.exists():
             return Response({"result": "0", "code": 0, "info": "手机已注册"})
 
@@ -161,7 +161,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         reg = Register.objects.filter(vmobile=mobile)
         reg_pass = reg.filter(mobile_pass=True)
-        already_exist = Customer.objects.filter(mobile=mobile)
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(status=Customer.DELETE)
         if already_exist.count() > 0:
             return Response({"result": "0"})  # 已经有用户了
         if reg.count() == 0:
@@ -193,7 +193,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     def change_pwd_code(self, request):
         """忘记密码时获取验证码"""
         mobile = request.data['vmobile']
-        already_exist = Customer.objects.filter(mobile=mobile)
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(status=Customer.DELETE)
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if already_exist.count() == 0:
@@ -243,12 +243,12 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
         if not mobile or not passwd1 or not passwd2 or not verify_code or passwd2 != passwd1:
             return Response({"result": "2"})
-        already_exist = Customer.objects.filter(mobile=mobile)
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(status=Customer.DELETE)
         if not already_exist.exists():
             user = request.user
             if not user or user.is_anonymous():
                 return Response({"result": "1"})  # 尚无用户或者手机未绑定
-            already_exist = Customer.objects.filter(user=user)
+            already_exist = Customer.objects.filter(user=user).exclude(status=Customer.DELETE)
         customer = already_exist[0]
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
@@ -335,7 +335,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             if not user_agent or user_agent.find('MicroMessenger') < 0:
                 return Response({"code": 0, "result": "login", "next": next_url})  # 登录不是来自微信，直接返回登录成功
 
-            customers = Customer.objects.filter(user=user1)
+            customers = Customer.objects.filter(user=user1).exclude(status=Customer.DELETE)
             if customers.count() == 0 or customers[0].is_wxauth():
                 return Response({"code": 0, "result": "login", "next": next_url})  # 如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
 
@@ -802,7 +802,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
         if not mobile or not verify_code or len(mobile) == 0 or len(verify_code) == 0:
             return Response({"code": 2, "result": "2", "info": "手机验证码不对"})
-        already_exist = Customer.objects.filter(mobile=mobile)
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(status=Customer.DELETE)
         if already_exist.count() > 0:
             return Response({"code": 1, "result": "1", "info": "已经绑定用户"})
         django_user = request.user

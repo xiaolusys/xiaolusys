@@ -193,6 +193,8 @@ def strip_forecast_inbound(forecast_inbound_id):
                 forecast_detail.product_name = detail.product_name
                 forecast_detail.product_img = detail.product_img
                 forecast_detail.save()
+
+        new_forecast.save()
         return new_forecast
     return None
 

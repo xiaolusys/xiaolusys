@@ -35,7 +35,7 @@ class PayInfoMethodMixin(object):
     def get_user_profile(self, request):
         if hasattr(self, '_customer'):
             return self._customer
-        customers = Customer.objects.filter(user=request.user)
+        customers = Customer.objects.filter(user=request.user).exclude(status=Customer.DELETE)
         if customers.exists():
             self._customer = customers[0]
         else:

@@ -192,7 +192,7 @@ class SaleRefund(PayBaseModel):
 
         strade = self.sale_trade
         sorder = self.sale_order
-        customer = Customer.objects.filter(id=strade.buyer_id).first()
+        customer = Customer.objects.filter(id=strade.buyer_id).exclude(status=Customer.DELETE).first()
 
         payment = round(self.refund_fee * 100, 0)
         xlmm  = XiaoluMama.objects.filter(openid=customer.unionid).first()

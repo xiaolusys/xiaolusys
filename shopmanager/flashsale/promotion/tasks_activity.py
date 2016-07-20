@@ -260,18 +260,18 @@ def task_appdownloadrecord_update_fans(record):
     customer_mobile = record.mobile
     customer = None
     if customer_unionid:
-        customers = Customer.objects.filter(unionid=customer_unionid)
+        customers = Customer.objects.filter(unionid=customer_unionid).exclude(status=Customer.DELETE)
         if customers.count() > 0:
             customer = customers[0]
     elif customer_mobile:
-        customers = Customer.objects.filter(mobile=customer_mobile,unionid='')
+        customers = Customer.objects.filter(mobile=customer_mobile,unionid='').exclude(status=Customer.DELETE)
         if customers.count() > 0:
             customer = customers[0]
     if not customer:
         return
     
     referal_customer_id = record.from_customer
-    customers = Customer.objects.filter(id=referal_customer_id)
+    customers = Customer.objects.filter(id=referal_customer_id).exclude(status=Customer.DELETE)
     if customers.count() <= 0:
         return
     referal_customer = customers[0]

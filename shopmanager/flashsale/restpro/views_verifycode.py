@@ -83,9 +83,9 @@ def get_customer(request, mobile):
     """
     user = request.user
     if user and user.is_authenticated():
-        customers = Customer.objects.filter(user=user)
+        customers = Customer.objects.filter(user=user).exclude(status=Customer.DELETE)
     else:
-        customers = Customer.objects.filter(mobile=mobile)
+        customers = Customer.objects.filter(mobile=mobile).exclude(status=Customer.DELETE)
     if customers.count() > 0:
         return customers[0]
     return None
@@ -104,7 +104,7 @@ def customer_exists(mobile):
     """
     check customer existance by mobile.
     """
-    customers = Customer.objects.filter(mobile=mobile)
+    customers = Customer.objects.filter(mobile=mobile).exclude(status=Customer.DELETE)
     if customers.count() > 0:
         return True
     return False

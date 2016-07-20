@@ -274,7 +274,7 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
             fans = GroupFans.create(group, request.user.id, userinfo.get('headimgurl'), userinfo.get('nickname'),
                                     userinfo.get('unionid'), userinfo.get('openid', ''))
             user_id = None
-            customer = Customer.objects.filter(unionid=unionid).first()
+            customer = Customer.objects.filter(unionid=unionid).exclude(status=Customer.DELETE).first()
             if request.user.id:
                 user_id = request.user.id
             elif customer:
@@ -304,7 +304,13 @@ class LiangXiActivityViewSet(WeixinAuthMixin, viewsets.GenericViewSet):
         fans = GroupFans.objects.filter(
             union_id=xiaoumama.openid
         ).first()
+        if not fans:
+            # 妈妈都成为自己的粉丝
+            customer = xiaoumama.get_mama_customer()
+            fans = GroupFans.create(group, customer.user.id, customer.thumbnail, customer.nick,
+                                    customer.unionid, customer.openid)
+            ActivityUsers.join(self.activity, customer.user.id, fans.group_id)
         # 纠正成为了他人粉丝的小鹿妈妈
-        if fans.group_id != group:
+        elif fans.group_id != group:
             log.error(u'fans become other fans:' + str(fans.id) + '|' + str(fans.group_id) + '|need' + str(group.id))
         return redirect("/mall/activity/summer/mat/register?groupId=" + group.group_uni_key+'&fansId=' + str(fans.id))

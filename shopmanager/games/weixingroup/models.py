@@ -70,7 +70,7 @@ class GroupMamaAdministrator(BaseModel):
 
     @property
     def customer(self):
-        return Customer.objects.filter(unionid=self.mama.openid).first()
+        return Customer.objects.filter(unionid=self.mama.openid).exclude(status=Customer.DELETE).first()
         # return self.mama.get_mama_customer()
 
     @property
@@ -99,6 +99,27 @@ class GroupMamaAdministrator(BaseModel):
             group_cnt = GroupFans.objects.values("group_id").annotate(total=Count('id'))
             cls._fans_count_dict_ = {item['group_id']: item['total'] for item in group_cnt}
         return cls._fans_count_dict_
+
+    @property
+    def gifted_count_dict(cls):
+        """
+            已发礼物的用户数
+        """
+        if not hasattr(cls, '_gifted_count_dict_'):
+            # group_cnt = GroupFans.objects.exclude(gifted=None).values("group_id").annotate(total=Count('id'))
+            group_cnt = ActivityUsers.objects.exclude(gifted=None).values("group_id").annotate(total=Count('id'))
+            cls._gifted_count_dict_ = {item['group_id']: item['total'] for item in group_cnt}
+        return cls._gifted_count_dict_
+
+    @property
+    def gift_count_dict(cls):
+        """
+            将发礼物的粉丝数
+        """
+        if not hasattr(cls, '_gift_count_dict_'):
+            group_cnt = GroupFans.objects.exclude(gifted=None).values("group_id").annotate(total=Count('id'))
+            cls._gift_count_dict_ = {item['group_id']: item['total'] for item in group_cnt}
+        return cls._gift_count_dict_
 
     @property
     def modified_display(self):
