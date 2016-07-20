@@ -121,6 +121,8 @@ def task_update_sale_order_stats_record(sale_order):
     else:
         # 付款时间取　去订单的付款时间　如果 订单的付款时间为空则默认为订单的创建时间
         pay_time = sale_order.pay_time if sale_order.pay_time else sale_order.created
+        if not pay_time:
+            logger.warn(u'task_update_sale_order_stats_record: pay_time is none oid: %s' % sale_order.oid)
         update_fields = []
         if record.status != status:
             record.status = status
