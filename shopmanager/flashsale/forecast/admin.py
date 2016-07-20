@@ -52,6 +52,7 @@ STATUS_LABEL_DICT = dict((
     (ForecastInbound.ST_TIMEOUT, 'label label-warning'),
     (ForecastInbound.ST_CLOSED, 'label label-danger'),
     (ForecastInbound.ST_CANCELED, 'label label-default'),
+    (ForecastInbound.ST_FINISHED, 'label')
 ))
 
 class ForecastInboundAdmin(admin.ModelAdmin):

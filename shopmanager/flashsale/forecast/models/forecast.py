@@ -38,6 +38,7 @@ class ForecastInbound(BaseModel):
         (ST_DRAFT, u'草稿'),
         (ST_APPROVED, u'审核'),
         (ST_ARRIVED, u'到货'),
+        (ST_FINISHED, u'已完成'),
         (ST_TIMEOUT, u'超时关闭'),
         (ST_CLOSED, u'缺货关闭'),
         (ST_CANCELED, u'取消'),
