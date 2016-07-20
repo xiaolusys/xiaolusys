@@ -733,7 +733,7 @@ class InBoundAdmin(admin.ModelAdmin):
     fieldsets = ((
                      u'详情', {
                          'classes': ('expand',),
-                         'fields': ('express_no', 'sent_from', 'memo')
+                         'fields': ('express_no', 'sent_from', 'memo','forecast_inbound_id')
                      }
                  ),)
 

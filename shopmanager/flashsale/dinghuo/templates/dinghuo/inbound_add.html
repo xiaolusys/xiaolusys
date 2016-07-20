@@ -18,7 +18,9 @@
         <script src="/static/wap/js/template.js"></script>
         <script src="/static/bootstrap-select/bootstrap-select.min.js"></script>
         <style>
-
+         .inline{
+            display: inline;
+         }
          .typeahead:focus {
              border: 2px solid #0097cf;
          }
@@ -150,8 +152,8 @@
                   {% for forecast in forecasts %}
                   <li role="presentation" {% if forloop.first %}class="active"{% endif %} data-role="tab" data-id="#panel-body-{{forecast.id}}">
                       <a href="#panel-body-{{forecast.id}}" >
-                          <label>#{{forecast.id}}&nbsp;预测单&nbsp;({{forecast.total_detail_num}})</label>
-                          <span class="pull-right" ><i class="glyphicon {% if forloop.first %}glyphicon-ok{% endif %}"></i></span>
+                          <label class="inline">#{{forecast.id}}&nbsp;预测单&nbsp;({{forecast.total_detail_num}})</label>
+                          <span class="inline" ><i class="glyphicon {% if forloop.first %}glyphicon-ok{% endif %}"></i></span>
                       </a>
                   </li>
                   {% endfor %}
