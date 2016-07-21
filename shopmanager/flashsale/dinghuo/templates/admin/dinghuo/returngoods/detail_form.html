@@ -166,11 +166,17 @@
                         <td rowspan={{products_item.detail_length}}><a href="/admin/items/product?id={{products_item.id}}" target="_blank">{{products_item.id}}</a></td>
                         <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
                         <td rowspan="{{products_item.detail_length}}">
+                            {%if detail.wrong_desc %}
+                                <div class="portfolio-box">
+                                {{ detail.wrong_desc }}
+                            {%else%}
                             <div class="portfolio-box">
                                 <a href="{{products_item.product_link}}" target="_blank">
                                     <img src="{{products_item.pic_path}}?imageView2/0/w/120" data-pic-path="{{products_item.pic_path}}" width="120px">
                                 </a>
                             </div>
+                            </div>
+                            {%endif%}
                         </td>
                         {%endif%}
                         <td><a href="/admin/items/productsku?id={{detail.skuid}}" target="_blank">{{detail.skuid}}</a></td>

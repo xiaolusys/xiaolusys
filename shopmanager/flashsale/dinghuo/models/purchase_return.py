@@ -113,6 +113,9 @@ class ReturnGoods(models.Model):
         for product in products:
             product.detail_sku_ids = [sku.id for sku in product.detail_skus]
             product.detail_length = len(product.detail_sku_ids)
+            
+
+
         for detail in self.rg_details.all():
             for product in products:
                 if detail.skuid in product.detail_sku_ids:
@@ -212,7 +215,7 @@ class ReturnGoods(models.Model):
         rg_details = []
         return_inbound_ids = []
         # inbounddetail 中存在sku_id=0的情况，为了防止异常
-        for detail in InBoundDetail.objects.filter(inbound_id__in=inbound_ids, wrong=False).filter(
+        for detail in InBoundDetail.objects.filter(inbound_id__in=inbound_ids).filter(
                         Q(out_stock=True) | Q(inferior_quantity__gt=0)):# | Q(wrong=True)):
             rg_detail = RGDetail(
                 skuid=detail.sku_id,
@@ -222,6 +225,8 @@ class ReturnGoods(models.Model):
                 type=RGDetail.TYPE_CHANGE,
                 src=detail.inbound_id
             )
+            if detail.wrong:
+                rg_detail.wrong_desc = detail.memo
             rg_details.append(rg_detail)
             return_inbound_ids.append(detail.inbound_id)
         if not rg_details:
@@ -500,6 +505,8 @@ class RGDetail(models.Model):
                     (TYPE_CHANGE, u'退货更换'))
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
     src = models.IntegerField(default=0, verbose_name=u"来源", help_text=u"0或入库单id")
+    wrong_desc = models.CharField(default='', max_length=100, verbose_name=u"错货描述", help_text=u"0或入库单id")
+
     class Meta:
         db_table = 'flashsale_dinghuo_rg_detail'
         app_label = 'dinghuo'

@@ -94,7 +94,12 @@ admin.site.register(ActivityUsers, ActivityUsersAdmin)
 
 class GroupFansAdmin(BaseModelAdmin):
     list_display = ['id', 'group_link', 'user_id', 'nick', 'union_id', 'open_id', 'gifted', 'head_img_url']
-    search_fields = ['id', 'group_id', 'nick']
+    search_fields = ['id', 'group__id', 'group__group_uni_key', 'group__mama_id', 'nick']
+
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['group__id', 'group__group_uni_key', 'group__mama_id']:
+            return True
+        return super(GroupFansAdmin, self).lookup_allowed(lookup, value)
 
     def group_link(self, obj):
         return '<a href="/admin/weixingroup/groupmamaadministrator?group_uni_key=' + obj.group.group_uni_key + '">'+obj.group.group_uni_key + '</a>'

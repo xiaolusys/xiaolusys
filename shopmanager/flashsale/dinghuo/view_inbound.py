@@ -94,11 +94,13 @@ class InBoundViewSet(viewsets.GenericViewSet):
         inbound.save()
         
         inbounddetails_dict = {}
+        wrong_sku_id = 222222
         for sku in ProductSku.objects.select_related('product').filter(
                 id__in=inbound_skus_dict.keys()):
             sku_dict = inbound_skus_dict[sku.id]
             arrival_quantity = sku_dict.get('arrival_quantity') or 0
             inferior_quantity = sku_dict.get('inferior_quantity') or 0
+            memo = sku_dict.get('memo', '')
             inbounddetail = InBoundDetail(inbound=inbound,
                                           product=sku.product,
                                           sku=sku,
@@ -106,8 +108,9 @@ class InBoundViewSet(viewsets.GenericViewSet):
                                           outer_id=sku.product.outer_id,
                                           properties_name=sku.properties_name,
                                           arrival_quantity=arrival_quantity,
-                                          inferior_quantity=inferior_quantity)
-            if not inbounddetail.sku:
+                                          inferior_quantity=inferior_quantity,
+                                          memo=memo)
+            if inbounddetail.sku_id == wrong_sku_id:
                 inbounddetail.wrong = True
             inbounddetail.save()
             inbounddetails_dict[sku.id] = {
