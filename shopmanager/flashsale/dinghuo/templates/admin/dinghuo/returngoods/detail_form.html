@@ -166,9 +166,9 @@
                         <td rowspan={{products_item.detail_length}}><a href="/admin/items/product?id={{products_item.id}}" target="_blank">{{products_item.id}}</a></td>
                         <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
                         <td rowspan="{{products_item.detail_length}}">
-                            {%if products_item.wrong_desc %}
+                            {%if detail.wrong_desc %}
                                 <div class="portfolio-box">
-                                {{products_item.wrong_desc}}
+                                {{ detail.wrong_desc }}
                             {%else%}
                             <div class="portfolio-box">
                                 <a href="{{products_item.product_link}}" target="_blank">

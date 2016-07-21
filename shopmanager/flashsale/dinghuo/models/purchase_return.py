@@ -114,9 +114,7 @@ class ReturnGoods(models.Model):
             product.detail_sku_ids = [sku.id for sku in product.detail_skus]
             product.detail_length = len(product.detail_sku_ids)
             
-        for detail in self.rg_details.all():
-            if detail.wrong_desc != '':
-                product.wrong_desc = detail.wrong_desc
+
 
         for detail in self.rg_details.all():
             for product in products:
