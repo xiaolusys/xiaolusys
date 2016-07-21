@@ -124,17 +124,12 @@ admin.site.register(DailyStat, DailyStatAdmin)
 
 class ModelStatsAdmin(admin.ModelAdmin):
     list_display = (
-        "model_id",
-        "sale_product",
-        "schedule_manage_id",
-        "upshelf_time",
-        "offshelf_time",
-        "category",
-        "supplier",
-        "model_name",
+        "pic_display",
+        "model_name_display",
+        "model_sale_link",
+        "schedule_manager_info",
         "category_name",
-        "pic_url",
-        "supplier_name",
+        "supplier_link",
         "pay_num",
         "no_pay_num",
         "cancel_num",
@@ -150,6 +145,43 @@ class ModelStatsAdmin(admin.ModelAdmin):
         "offshelf_time"
     )
     search_fields = ['model_id', 'sale_product', "model_name", 'supplier', 'supplier_name']
+
+    def model_name_display(self, obj):
+        return '<p style="width: 30%;">{0}</p>'.format(obj.model_name)
+
+    def supplier_link(self, obj):
+        return '<p><a href="/admin/supplier/salesupplier/?id={0}" target="_blank">{1}</a></p>'.format(obj.supplier,
+                                                                                                      obj.supplier_name)
+
+    def model_sale_link(self, obj):
+        return '<p><a href="/admin/items/product/?model_id={0}" target="_blank">库存款式</a></p></br>' \
+               '<p><a href="/admin/supplier/saleproduct/?id={1}" target="_blank">选品款式</a></p>'.format(obj.model_id,
+                                                                                                      obj.sale_product)
+
+    def schedule_manager_info(self, obj):
+        return '<p><a href="/admin/supplier/saleproductmanage/{0}" target="_blank">具体排期</a></p>' \
+               '</br><p>{1}</p></br><p>{2}</p></br>'.format(
+            obj.schedule_manage_id,
+            obj.upshelf_time,
+            obj.offshelf_time)
+
+    def pic_display(self, obj):
+        return '<img src="{0}" width="90px" height="150px"/>'.format(obj.pic_url)
+
+    model_name_display.allow_tags = True
+    model_name_display.short_description = u'名称'
+
+    pic_display.allow_tags = True
+    pic_display.short_description = u'图片'
+
+    schedule_manager_info.allow_tags = True
+    schedule_manager_info.short_description = u'排期信息'
+
+    model_sale_link.allow_tags = True
+    model_sale_link.short_description = u'款式/选品信息'
+
+    supplier_link.allow_tags = True
+    supplier_link.short_description = u'供应商信息'
 
 
 admin.site.register(ModelStats, ModelStatsAdmin)
