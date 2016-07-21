@@ -208,6 +208,20 @@ def update_parent_sale_stats(sender, instance, created, **kwargs):
 post_save.connect(update_parent_sale_stats, sender=SaleStats, dispatch_uid='post_save_update_parent_sale_stats')
 
 
+def update_supplier_figure(sender, instance, created, **kwargs):
+    # 日报　供应商类型　
+    if instance.record_type != constants.TYPE_SUPPLIER:
+        return
+    if instance.timely_type != constants.TIMELY_TYPE_DATE:
+        return
+    from supplychain.supplier.tasks import task_calculate_supplier_stats_data
+
+    task_calculate_supplier_stats_data.delay(instance)
+
+
+post_save.connect(update_supplier_figure, sender=SaleStats, dispatch_uid='post_save_update_supplier_figure')
+
+
 class ProductStockStat(BaseModel):
     parent_id = models.CharField(max_length=32, db_index=True, blank=True, null=True, verbose_name=u'上一级id')
     current_id = models.CharField(max_length=32, db_index=True, blank=True, null=True, verbose_name=u'级别对应instance_id')
@@ -303,6 +317,7 @@ class DailyStat(BaseModel):
     @staticmethod
     def get_total_stock():
         from shopback.items.models_stats import ProductSkuStats
+
         return ProductSkuStats.objects.exclude(product__outer_id__startswith='RMB').aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0
@@ -310,6 +325,7 @@ class DailyStat(BaseModel):
     @staticmethod
     def get_total_amount():
         from django.db import connection
+
         sql = """SELECT SUM(p.cost * (s.history_quantity + s.adjust_quantity + s.inbound_quantity + s.return_quantity - s.post_num - s.rg_quantity)) AS money
 FROM shop_items_product AS p LEFT JOIN shop_items_productskustats AS s ON p.id = s.product_id
 WHERE p.status = 'normal' and not p.outer_id like 'RMB%';"""
@@ -322,6 +338,7 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%';"""
     @staticmethod
     def get_total_order_amount(time_begin, time_end):
         from flashsale.pay.models import SaleOrder, SaleTrade
+
         return SaleOrder.objects.filter(pay_time__range=(time_begin, time_end),
                                         status__in=[2, 3, 4, 5, 6], refund_status=0,
                                         sale_trade__order_type=SaleTrade.SALE_ORDER).aggregate(n=Sum('payment')).get(
@@ -330,5 +347,6 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%';"""
     @staticmethod
     def get_total_purchase(time_begin, time_end):
         from flashsale.finance.models import Bill
+
         return Bill.objects.filter(status=Bill.STATUS_COMPLETED, created__range=(time_begin, time_end)).aggregate(
             n=Sum('amount')).get('n') or 0

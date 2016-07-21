@@ -71,7 +71,10 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    ordering_fields = ('id', 'total_refund_num', 'total_sale_num', 'created', 'modified')
+    ordering_fields = ('id', 'total_refund_num', 'total_sale_num', 'created', 'modified',
+                       'figures__payment',
+                       'figures__return_good_rate',
+                       'figures__out_stock_num')
     filter_class = SaleSupplierFilter
 
     @list_route(methods=['get'])
@@ -106,10 +109,14 @@ class SaleProductFilter(filters.FilterSet):
     id = ListFilter(name='id')
     status = ListFilter(name='status')
     sale_supplier = ListFilter(name='sale_supplier')
+    min_price = django_filters.NumberFilter(name="price", lookup_type='gte')
+    max_price = django_filters.NumberFilter(name="price", lookup_type='lte')
 
     class Meta:
         model = SaleProduct
-        fields = ['id', 'sale_supplier', 'sale_category', 'sale_supplier__supplier_name', 'status']
+        fields = ['id', 'sale_supplier', 'sale_category',
+                  'sale_supplier__supplier_name', 'status',
+                  'min_price', 'max_price']
 
 
 class SaleProductViewSet(viewsets.ModelViewSet):
