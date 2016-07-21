@@ -29,6 +29,9 @@ def task_update_tpl_released_coupon_nums(template):
     elif template.id == 67:
         statsd.timing('coupon.share_released_count',
                       UserCoupon.objects.filter(template_id=template.id, start_use_time__range=(start, end)).count())
+    elif template.id == 86:
+        statsd.timing('coupon.old_customer_share_released_count',
+                      UserCoupon.objects.filter(template_id=template.id, start_use_time__range=(start, end)).count())
     return
 
 
@@ -80,6 +83,9 @@ def task_update_coupon_use_count(coupon, trade_tid):
                                                                        finished_time__range=(start, end)).count())
     elif coupon.template_id == 67:
         statsd.timing('coupon.share_used_count', coupons.filter(template_id=tpl.id, status=UserCoupon.USED,
+                                                                finished_time__range=(start, end)).count())
+    elif coupon.template_id == 86:
+        statsd.timing('coupon.old_customer_share_used_count', coupons.filter(template_id=tpl.id, status=UserCoupon.USED,
                                                                 finished_time__range=(start, end)).count())
     return
 
