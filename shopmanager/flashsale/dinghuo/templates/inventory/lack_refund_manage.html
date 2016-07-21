@@ -150,9 +150,8 @@ $(function(){
              success: function(resp){
                 $that.attr('disabled', null);
                 if (resp.code == 0){
-                    console.log('debug data:', resp.result.refund_num,  $('#panel-left tbody > tr[data-id=lackorder-'+ lackorder_id +'] > td'));
                     $('#panel-left tbody > tr[data-id=lackorder-'+ lackorder_id +'] > td')[4].innerHTML = resp.result.refund_num;
-                    $that.removeClass('btn-primary').addClass('btn-success');
+                    $that.removeClass('btn-warning').addClass('btn-success').attr('disabled', true);
                 }else{
                     alert('退款异常:'+resp.info);
                 }
