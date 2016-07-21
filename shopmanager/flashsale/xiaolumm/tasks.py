@@ -910,8 +910,7 @@ def task_unitary_mama(obj):
     from django.utils.timezone import now, timedelta
     start = now().date()
     end = start + timedelta(days=1)
-    statsd.timing('xiaolumm.new_yiyuan_mama_count', XiaoluMama.objects.filter(openid=order_customer.unionid,
-                                                                              charge_status=XiaoluMama.CHARGED,
+    statsd.timing('xiaolumm.new_yiyuan_mama_count', XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED,
                                                                               charge_time__range=(start, end)).count())
 
 
@@ -1015,8 +1014,7 @@ def task_register_mama(obj):
     from django.utils.timezone import now, timedelta
     start = now().date()
     end = start + timedelta(days=1)
-    statsd.timing('xiaolumm.new_mama_count', XiaoluMama.objects.filter(openid=order_customer.unionid,
-                                                                       charge_status=XiaoluMama.CHARGED,
+    statsd.timing('xiaolumm.new_mama_count', XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED,
                                                                        charge_time__range=(start, end)).count())
 
 @task()
@@ -1072,8 +1070,7 @@ def task_renew_mama(obj):
     from django.utils.timezone import now, timedelta
     start = now().date()
     end = start + timedelta(days=1)
-    statsd.timing('xiaolumm.renew_mama_count', XiaoluMama.objects.filter(openid=order_customer.unionid,
-                                                                         charge_status=XiaoluMama.CHARGED,
+    statsd.timing('xiaolumm.renew_mama_count', XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED,
                                                                          charge_time__range=(start, end)).count())
 
 
