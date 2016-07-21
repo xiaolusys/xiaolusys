@@ -1039,7 +1039,7 @@
                     total_amount_num += parseFloat(amount_num);
                 }
                 if (parseInt(arrival_num)) {
-                    total_arrival_num += parseInt(arrival_num);
+                    total_arrival_num += parseFloat(arrival_num);
                 }
                 if (parseInt(inferior_num)) {
                     total_inferior_num += parseInt(inferior_num);
@@ -1050,7 +1050,7 @@
             }
             $('#total_quantity_num').val(total_quantity_num.toString());
             $('#total_amount_num').val(total_amount_num.toFixed(2).toString());
-            $('#total_arrival_num').val(total_arrival_num.toString());
+            $('#total_arrival_num').val(total_arrival_num.toFixed(2).toString());
             $('#total_inferior_num').val(total_inferior_num.toString());
             $('#total_wait_post_num').val(total_wait_post_num.toString());
         }
