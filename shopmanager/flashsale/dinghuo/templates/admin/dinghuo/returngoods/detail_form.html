@@ -167,14 +167,14 @@
                         <td rowspan="{{products_item.detail_length}}">{{products_item.title}}</td>
                         <td rowspan="{{products_item.detail_length}}">
                             {%if products_item.wrong_desc %}
+                                <div class="portfolio-box">
+                                {{products_item.wrong_desc}}
+                            {%else%}
                             <div class="portfolio-box">
                                 <a href="{{products_item.product_link}}" target="_blank">
                                     <img src="{{products_item.pic_path}}?imageView2/0/w/120" data-pic-path="{{products_item.pic_path}}" width="120px">
                                 </a>
                             </div>
-                            {%else%}
-                            <div class="portfolio-box">
-                                {{products_item.wrong_desc}}
                             </div>
                             {%endif%}
                         </td>
