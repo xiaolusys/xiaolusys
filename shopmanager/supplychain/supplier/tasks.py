@@ -11,7 +11,8 @@ from celery.task import task
 from celery.task.sets import subtask
 from .models import SaleProduct, SaleSupplier, SaleCategory
 import logging
-
+from django.db.models import Sum
+from supplychain.supplier.models import SupplierFigure
 logger = logging.getLogger('celery.handler')
 
 ZHE_ITEM_NO_RE = re.compile('^.+ze(?P<item_no>[0-9]{16,22})')
@@ -677,3 +678,66 @@ class CrawBBWItemsTask(CrawTask):
             self.crawBrands(craw_url, category=category_name)
             
                         
+@task()
+def task_calculate_supplier_stats_data(stats_record):
+    """
+    stats: statistics app SaleStats instance
+    """
+    supplier_id = stats_record.current_id
+    from statistics.models import SaleStats
+    from statistics import constants
+
+    supplier = SaleSupplier.objects.filter(id=supplier_id).first()
+    if not supplier:
+        logger.warn(u'task_calculate_supplier_stats_data stats record %s supplier not found' % stats_record.id)
+        return
+    statss_res = SaleStats.objects.filter(
+        current_id=supplier_id,
+        record_type=stats_record.record_type,
+        timely_type=stats_record.timely_type).values('status').annotate(s_num=Sum('num'),
+                                                                        s_payment=Sum('payment'))  # 同一个供应商　所有的日报
+    num_status_map = {
+        constants.NOT_PAY: 'no_pay_num',
+        constants.PAID: 'pay_num',
+        constants.CANCEL: 'cancel_num',
+        constants.OUT_STOCK: 'out_stock_num',
+        constants.RETURN_GOODS: 'return_good_num',
+    }
+    amount_status_map = {
+        constants.NOT_PAY: '',  # 不写
+        constants.PAID: 'payment',
+        constants.CANCEL: 'cancel_amount',
+        constants.OUT_STOCK: 'out_stock_amount',
+        constants.RETURN_GOODS: 'return_good_amount',
+    }
+    figure = SupplierFigure.objects.filter(supplier_id=supplier.id).first()
+    if figure:
+        update_fields = []
+        for stats_res in statss_res:
+            if hasattr(figure, num_status_map[stats_res['status']]):
+                if figure.__getattribute__(num_status_map[stats_res['status']]) != stats_res['s_num']:
+                    figure.__setattr__(num_status_map[stats_res['status']], stats_res['s_num'])
+                    update_fields.append(num_status_map[stats_res['status']])
+            if hasattr(figure, amount_status_map[stats_res['status']]):
+                if figure.__getattribute__(amount_status_map[stats_res['status']]) != stats_res['s_payment']:
+                    figure.__setattr__(amount_status_map[stats_res['status']], stats_res['s_payment'])
+                    update_fields.append(amount_status_map[stats_res['status']])
+                figure.__setattr__(amount_status_map[stats_res['status']], stats_res['s_payment'])
+        # 计算 退货率
+        trade_num = figure.return_good_num + figure.pay_num
+        return_good_rate = round(float(figure.return_good_num) / trade_num, 4) if trade_num > 0 else 0
+        if figure.return_good_rate != return_good_rate:
+            figure.return_good_rate = return_good_rate
+            update_fields.append('return_good_rate')
+        figure.save(update_fields=update_fields)
+    else:
+        figure = SupplierFigure(supplier=supplier)
+        for stats_res in statss_res:
+            if hasattr(figure, num_status_map[stats_res['status']]):
+                figure.__setattr__(num_status_map[stats_res['status']], stats_res['s_num'])
+            if hasattr(figure, amount_status_map[stats_res['status']]):
+                figure.__setattr__(amount_status_map[stats_res['status']], stats_res['s_payment'])
+        # 计算 退货率
+        trade_num = figure.return_good_num + figure.pay_num
+        figure.return_good_rate = round(float(figure.return_good_num) / trade_num, 4) if trade_num > 0 else 0
+        figure.save()

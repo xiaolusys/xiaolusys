@@ -4,7 +4,8 @@ from .models import (
     SaleCategory,
     SaleProduct,
     SaleProductManage,
-    SaleProductManageDetail
+    SaleProductManageDetail,
+    SupplierFigure
 )
 from rest_framework import serializers
 
@@ -37,16 +38,36 @@ class SaleCategorySerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'full_name', 'created', 'modified')
 
 
+class SupplierFigureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupplierFigure
+        fields = (
+            'schedule_num',
+            'no_pay_num',
+            'pay_num',
+            'cancel_num',
+            'out_stock_num',
+            'return_good_num',
+            'return_good_rate',
+            'payment',
+            'cancel_amount',
+            'out_stock_amount',
+            'return_good_amount',
+            'avg_post_days',
+        )
+
+
 class SaleSupplierSerializer(serializers.ModelSerializer):
     # category = SaleCategorySerializer()
     status = SupplierStatusField()
     progress = ProgressField()
     refund_rate = serializers.SerializerMethodField("calculate_refund_rate", read_only=True)
+    figures = SupplierFigureSerializer(read_only=True)
 
     class Meta:
         model = SaleSupplier
         fields = ('id', 'supplier_name', 'supplier_code', 'brand_url', 'total_sale_num', 'refund_rate',
-                  'progress', 'category', 'status', 'created', 'modified', 'memo')
+                  'progress', 'category', 'status', 'created', 'modified', 'memo', 'figures')
 
     def calculate_refund_rate(self, obj):
         """ 计算供应商的退货率 """

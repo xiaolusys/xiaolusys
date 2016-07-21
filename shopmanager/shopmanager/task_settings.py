@@ -37,6 +37,7 @@ CELERY_IMPORTS = (
     'flashsale.forecast.apis',
     'flashsale.dinghuo.tasks',
     'supplychain.supplier.tasks_sync_shelf_time',
+    'supplychain.supplier.tasks',
 )
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -529,6 +530,10 @@ STATISTICS_ROUTES = {
     'statistics.tasks.task_statsrecord_update_model_stats': {
         'queue': 'statistics',
         'routing_key': 'statistics.task_statsrecord_update_model_stats',
+    },
+    'supplychain.supplier.tasks.task_calculate_supplier_stats_data': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_calculate_supplier_stats_data',
     }
 }
 
