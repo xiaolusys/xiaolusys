@@ -352,7 +352,7 @@ class OrderList(models.Model):
         OrderGuarantee(purchase_order=self, desc=desc).save()
         self.press_num = self.guarantees.count()
         self.arrival_process = OrderList.ARRIVAL_PRESSED
-        self.save(update_fields=['press_num'])
+        self.save(update_fields=['press_num', 'arrival_process'])
 
     def set_stat(self):
         if self.stage in [OrderList.STAGE_DRAFT, OrderList.STAGE_CHECKED, OrderList.STAGE_DELETED]:
