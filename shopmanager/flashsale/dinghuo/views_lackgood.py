@@ -1,5 +1,5 @@
 # coding:utf-8
-
+import datetime
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import F, Q, Sum, Count
@@ -75,13 +75,14 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
             return Response({'code': 1, 'info': '请输入订货单组编号'})
 
         from flashsale.pay.models import SaleOrder, SaleRefund
-
+        logger.warning('debug-refund-time1:%s'% datetime.datetime.now())
         lackorder_qs = LackGoodOrder.objects.get_objects_by_order_ids(order_ids)
         normal_lackvalues = lackorder_qs.filter(status=LackGoodOrder.NORMAL).values_list('sku_id', 'id')
         lackorder_data = serializers.LackGoodOrderSerializer(lackorder_qs, many=True).data
         lackorder_ids = [lo[1] for lo in normal_lackvalues]
-
+        logger.warning('debug-refund-time2:%s'% datetime.datetime.now())
         refund_order_ids = SaleRefund.objects.filter(lackorder_id__in=lackorder_ids).values_list('order_id', flat=True)
+        logger.warning('debug-refund-time3:%s'% datetime.datetime.now())
         normal_lackdict = dict(normal_lackvalues)
         normal_skuids   = normal_lackdict.keys()
         saleorders = SaleOrder.objects.filter(Q(sku_id__in=normal_skuids, status=SaleOrder.WAIT_SELLER_SEND_GOODS)
@@ -91,6 +92,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
                 'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id',
                 'sale_trade__buyer_nick', 'sale_trade__receiver_name','sale_trade__total_fee','sale_trade__receiver_mobile'
             )
+        logger.warning('debug-refund-time4:%s'% datetime.datetime.now())
         saleorder_list = []
         for order in saleorders:
             order['lackorder_id'] = normal_lackdict.get(int(order['sku_id']))
@@ -99,6 +101,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
             order['total_fee'] = order.pop('sale_trade__total_fee')
             order['receiver_mobile'] = order.pop('sale_trade__receiver_mobile')
             saleorder_list.append(order)
+        logger.warning('debug-refund-time5:%s'% datetime.datetime.now())
         return Response({'lack_orders': lackorder_data,
                          'sale_orders': saleorder_list,
                          'order_group_key': pk},
