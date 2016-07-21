@@ -360,6 +360,10 @@ def task_collect_mobile_download_record(instance):
     """
     uni_key = '/'.join([str(instance.from_customer), str(instance.mobile)])
     appdownload = AppDownloadRecord.objects.filter(uni_key=uni_key).first()
+    customer = Customer.objects.normal_customer.filter(mobile=instance.mobile).first()
+    if customer:
+        if instance.from_customer == customer.id:  # 来自用户等于用户本人　不去写　总下载记录表
+            return
     if not appdownload:
         customer = Customer.objects.filter(mobile=instance.mobile, status=Customer.NORMAL).first()
         unionid = customer.unionid if customer else ''
@@ -390,6 +394,10 @@ def task_collect_union_download_record(instance):
     """
     uni_key = '/'.join([str(instance.from_customer), str(instance.unionid)])
     appdownload = AppDownloadRecord.objects.filter(uni_key=uni_key).first()
+    customer = Customer.objects.normal_customer.filter(unionid=instance.unionid).first()
+    if customer:
+        if instance.from_customer == customer.id:  # 来自用户等于用户本人　不去写　总下载记录表
+            return
     if not appdownload:
         unionid = instance.unionid
         headimgurl = instance.headimgurl
