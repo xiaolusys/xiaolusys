@@ -82,7 +82,6 @@ def task_update_sale_order_stats_record(sale_order):
     更新统计模块的 SaleOrderStatsRecord 记录
     """
     from statistics.models import SaleOrderStatsRecord
-    print("record order is ",sale_order.id)
 
     date_field = sale_order.pay_time.date() if sale_order.pay_time else sale_order.created.date()
     pay_time = sale_order.pay_time if sale_order.pay_time else sale_order.created

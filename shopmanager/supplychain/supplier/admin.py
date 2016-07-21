@@ -13,7 +13,8 @@ from .models import (
     SaleProduct,
     SaleSupplier,
     SaleCategory,
-    SupplierCharge
+    SupplierCharge,
+    SupplierFigure
 )
 
 from .forms import SaleSupplierForm
@@ -866,3 +867,28 @@ class SaleProductManageAdmin(admin.ModelAdmin):
         return form
 
 admin.site.register(SaleProductManage, SaleProductManageAdmin)
+
+
+class SupplierFigureAdmin(admin.ModelAdmin):
+    list_display = (
+        'supplier',
+        'schedule_num',
+        'no_pay_num',
+        'pay_num',
+        'cancel_num',
+        'out_stock_num',
+        'return_good_num',
+        'return_good_rate',
+        'payment',
+        'cancel_amount',
+        'out_stock_amount',
+        'return_good_amount',
+        'avg_post_days'
+    )
+    list_filter = ('created', 'modified')
+    search_fields = ['supplier', ]
+    readonly_fields = ['supplier']
+
+admin.site.register(SupplierFigure, SupplierFigureAdmin)
+
+
