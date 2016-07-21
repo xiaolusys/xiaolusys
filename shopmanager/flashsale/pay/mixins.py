@@ -166,6 +166,7 @@ class PayInfoMethodMixin(object):
             from shopapp.weixin.options import get_openid_by_unionid
             openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
             params.update({
+                'order_type': order_type,
                 'buyer_nick': customer.nick,
                 'buyer_message': form.get('buyer_message', ''),
                 'payment': float(form.get('payment')),

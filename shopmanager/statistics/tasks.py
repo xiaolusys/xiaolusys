@@ -868,7 +868,8 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
             cost=cost,
             uni_key=uni_key
         )
-        modelstats.payment = saleorderstatsrecord.payment
+        if saleorderstatsrecord.status == constants.PAID:  # 是已经支付的状态才去保存payment字段
+            modelstats.payment = saleorderstatsrecord.payment
         modelstats.__setattr__(status_map[saleorderstatsrecord.status], saleorderstatsrecord.num)
         modelstats.save()
     else:
