@@ -1586,7 +1586,7 @@ class PackageOrder(models.Model):
 
     def update_relase_package_sku_item(self):
         if not self.is_sent():
-            if PackageSkuItem.objects.filter(package_order_id=self.id, assign_status=PackageSkuItem.ASSIGNED)\
+            if PackageSkuItem.objects.filter(package_order_id=self.id, assign_status=PackageSkuItem.ASSIGNED) \
                     .exists():
                 self.set_redo_sign(save_data=False)
                 self.reset_sku_item_num()
@@ -1594,21 +1594,27 @@ class PackageOrder(models.Model):
             else:
                 self.reset_to_new_create()
 
-
     def reset_sku_item_num(self):
-        sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
-                                                  assign_status=PackageSkuItem.ASSIGNED)
-        sku_num = sku_items.count()
-        order_sku_num = PackageSkuItem.unsend_orders_cnt(self.buyer_id)
-        if order_sku_num > 0:
-            ready_completion = sku_num == order_sku_num
+        if self.is_sent():
+            sku_num = PackageSkuItem.objects.filter(package_order_id=self.id,
+                                                    assign_status=PackageSkuItem.FINISHED).count()
+            change = self.sku_num != sku_num
+            self.sku_num = sku_num
+            return change
         else:
-            ready_completion = 0
-        change = self.sku_num != sku_num or self.order_sku_num != order_sku_num or ready_completion != self.ready_completion
-        self.sku_num = sku_num
-        self.order_sku_num = order_sku_num
-        self.ready_completion = ready_completion
-        return change
+            sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
+                                                      assign_status=PackageSkuItem.ASSIGNED)
+            sku_num = sku_items.count()
+            order_sku_num = PackageSkuItem.unsend_orders_cnt(self.buyer_id)
+            if order_sku_num > 0:
+                ready_completion = sku_num == order_sku_num
+            else:
+                ready_completion = 0
+            change = self.sku_num != sku_num or self.order_sku_num != order_sku_num or ready_completion != self.ready_completion
+            self.sku_num = sku_num
+            self.order_sku_num = order_sku_num
+            self.ready_completion = ready_completion
+            return change
 
     def refresh(self):
         """
@@ -1639,12 +1645,13 @@ class PackageOrder(models.Model):
         package_order.order_sku_num = PackageSkuItem.unsend_orders_cnt(int(buyer_id))
         package_order.ready_completion = package_order.order_sku_num == 1
         package_order.save()
-        logger.error('package order begin create: ' + str(package_order.id)+'|psi:'+str(psi) )
+        logger.error('package order begin create: ' + str(package_order.id) + '|psi:' + str(psi))
 
         if psi:
             PackageSkuItem.objects.filter(id=psi.id).update(package_order_id=package_order.id,
-                                                                 package_order_pid=package_order.pid)
-            logger.error('package order finish: ' + str(package_order.id) + '|package_skuitem id:' + str(psi.id) +'| package_skuitem packageorderid:'+ str(psi.package_order_id))
+                                                            package_order_pid=package_order.pid)
+            logger.error('package order finish: ' + str(package_order.id) + '|package_skuitem id:' + str(
+                psi.id) + '| package_skuitem packageorderid:' + str(psi.package_order_id))
         return package_order
 
     @staticmethod
@@ -1681,7 +1688,7 @@ class PackageOrder(models.Model):
         res = id + '-' + str(now_num)
         while True:
             if PackageOrder.objects.filter(id=res, sys_status__in=
-                    [PackageOrder.FINISHED_STATUS, PackageOrder.WAIT_CUSTOMER_RECEIVE]).exists():
+            [PackageOrder.FINISHED_STATUS, PackageOrder.WAIT_CUSTOMER_RECEIVE]).exists():
                 logger.error('gen_new_package_id error: sku order smaller than count:' + str(res))
                 now_num += 1
                 res = id + '-' + str(now_num)
@@ -1962,7 +1969,7 @@ class PackageSkuItem(BaseModel):
     def reset_assign_status(self):
         package_order = self.package_order
         PackageSkuItem.objects.filter(id=self.id).update(assign_status=0, package_order_id=None, package_order_pid=None)
-        #logging.error("update_relase_package_sku_item:" + str(self.id))
+        # logging.error("update_relase_package_sku_item:" + str(self.id))
         if package_order:
             package_order.update_relase_package_sku_item()
         self.package_order_id = None
@@ -2032,9 +2039,9 @@ def check_saleorder_sync(sender, instance, created, **kwargs):
         from shopback.trades.tasks import task_saleorder_check_packageskuitem
         task_saleorder_check_packageskuitem.delay()
 
+
 post_save.connect(check_saleorder_sync, sender=PackageSkuItem,
                   dispatch_uid='post_save_check_saleorder_sync')
-
 
 
 def get_package_address_dict(package_order):
