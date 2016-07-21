@@ -57,14 +57,14 @@ def update_salestats(sender, instance, created, **kwargs):
 
 post_save.connect(update_salestats, sender=SaleOrderStatsRecord, dispatch_uid='post_save_update_salestats')
 
-#
-# def update_salestats(sender, instance, created, **kwargs):
-#     from statistics.tasks import task_statsrecord_update_model_stats
-#
-#     task_statsrecord_update_model_stats.delay(instance)
-#
-#
-# post_save.connect(update_salestats, sender=SaleOrderStatsRecord, dispatch_uid='post_save_update_salestats')
+
+def update_model_salestats(sender, instance, created, **kwargs):
+    from statistics.tasks import task_statsrecord_update_model_stats
+
+    task_statsrecord_update_model_stats.delay(instance)
+
+
+post_save.connect(update_model_salestats, sender=SaleOrderStatsRecord, dispatch_uid='post_save_update_model_salestats')
 
 
 class ModelStats(BaseModel):
