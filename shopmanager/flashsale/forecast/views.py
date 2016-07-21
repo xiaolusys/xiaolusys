@@ -388,8 +388,9 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             forecast_newobj = ForecastInbound(supplier=forecast_obj.supplier)
             forecast_objdict = model_to_dict(forecast_obj)
             for name ,value in forecast_objdict.iteritems():
-                if name not in ('purchaser', 'supplier', 'ware_house'):continue
+                if name not in ('purchaser', 'ware_house'):continue
                 setattr(forecast_newobj,name,value)
+            forecast_newobj.supplier = forecast_obj.supplier
             forecast_newobj.forecast_arrive_time = forecast_arrive_time
             forecast_newobj.save()
 
