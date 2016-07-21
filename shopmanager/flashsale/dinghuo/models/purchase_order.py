@@ -675,8 +675,7 @@ def update_productskustats_inbound_quantity(sender, instance, created,
                                             **kwargs):
     # Note: chichu_id is actually the id of related ProductSku record.
     from flashsale.dinghuo.tasks import task_orderdetail_update_productskustats_inbound_quantity
-    task_orderdetail_update_productskustats_inbound_quantity.delay(
-        instance.chichu_id)
+    task_orderdetail_update_productskustats_inbound_quantity(instance.chichu_id)
 
 
 post_save.connect(
