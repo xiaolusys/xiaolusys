@@ -421,6 +421,18 @@ class SaleProduct(BaseTagModel):
             self._item_products_ = Product.objects.filter(sale_product=self.id, status=Product.NORMAL)
         return self._item_products_
 
+    @property
+    def sale_product_figures(self):
+        """选品的统计数据"""
+        if not hasattr(self, '_sale_product_figure_'):
+            from statistics.models import ModelStats
+            # 最近一次上架
+            try:
+                self._sale_product_figure_ = ModelStats.objects.filter(sale_product=self.id).latest('upshelf_time')
+            except ModelStats.DoesNotExist:
+                self._sale_product_figure_ = None
+        return self._sale_product_figure_
+
 
 def update_saleproduct_supplier(sender, instance, **kwargs):
     """
