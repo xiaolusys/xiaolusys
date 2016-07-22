@@ -76,7 +76,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
         if not order_ids:
             return Response({'code': 1, 'info': '请输入订货单组编号'})
 
-        from flashsale.pay.models import SaleOrder, SaleRefund
+        from flashsale.pay.models import SaleOrder, SaleTrade, SaleRefund
         logger.warning('debug-refund-time1:%s'% datetime.datetime.now())
         lackorder_qs = LackGoodOrder.objects.get_objects_by_order_ids(order_ids)
         normal_lackvalues = lackorder_qs.filter(status=LackGoodOrder.NORMAL).values_list('sku_id', 'id')
@@ -89,19 +89,19 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
         normal_skuids   = normal_lackdict.keys()
         saleorders = SaleOrder.objects.filter(Q(sku_id__in=normal_skuids, status=SaleOrder.WAIT_SELLER_SEND_GOODS)
                                               |Q(id__in=refund_order_ids))\
-            .select_related('sale_trade').values(
+            .values(
                 'id', 'oid', 'item_id', 'title', 'pic_path', 'sku_name', 'sku_id', 'pay_time',
-                'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id',
-                'sale_trade__buyer_nick', 'sale_trade__receiver_name','sale_trade__total_fee','sale_trade__receiver_mobile'
+                'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id'
             )
         logger.warning('debug-refund-time4:%s'% datetime.datetime.now())
         saleorder_list = []
         for order in saleorders:
-            order['lackorder_id'] = normal_lackdict.get(int(order['sku_id']))
-            order['buyer_nick'] = order.pop('sale_trade__buyer_nick')
-            order['receiver_name'] = order.pop('sale_trade__receiver_name')
-            order['total_fee'] = order.pop('sale_trade__total_fee')
-            order['receiver_mobile'] = order.pop('sale_trade__receiver_mobile')
+            saletrade = SaleTrade.objects.get(id=order['sale_trade_id'])
+            order['lackorder_id']  = normal_lackdict.get(int(order['sku_id']))
+            order['buyer_nick']    = saletrade.buyer_nick
+            order['receiver_name'] = saletrade.receiver_name
+            order['total_fee']     = saletrade.total_fee
+            order['receiver_mobile'] = saletrade.receiver_mobile
             saleorder_list.append(order)
         logger.warning('debug-refund-time5:%s'% datetime.datetime.now())
         return Response({'lack_orders': lackorder_data,

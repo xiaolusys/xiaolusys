@@ -436,13 +436,17 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             for k,v in data.iteritems():
                 data[k] = int(v)
 
-        forecast_order_skuids = set([o['sku_id'] for o in forecast_data_list])
         forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=orderlist_ids)
         forecast_inbounds_orderlist = forecast_inbounds.values_list('id', 'relate_order_set')
         forecast_obj = forecast_inbounds.first()
         if not forecast_obj:
             raise exceptions.APIException('no forecast inbound found')
 
+        if not forecast_data_list:
+            return Response({'redirect_url': reverse(
+                'admin:forecast_forecastinbound_changelist') + '?supplier_id=%s' %forecast_obj.supplier_id})
+
+        forecast_order_skuids = set([o['sku_id'] for o in forecast_data_list])
         forecast_detail_values= ForecastInboundDetail.objects.filter(forecast_inbound__in=forecast_inbounds,
                                              sku_id__in=forecast_order_skuids,
                                              forecast_inbound__status=ForecastInbound.ST_ARRIVED,

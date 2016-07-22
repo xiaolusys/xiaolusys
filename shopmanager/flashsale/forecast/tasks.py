@@ -81,7 +81,7 @@ def task_forecast_update_stats_data(finbound_id):
             stats.status = ForecastStats.CLOSED
         elif forecast_inbound.status == ForecastInbound.ST_APPROVED:
             stats.status = ForecastStats.STAGING
-        elif forecast_inbound.status == ForecastInbound.ST_ARRIVED:
+        elif forecast_inbound.status in (ForecastInbound.ST_ARRIVED, ForecastInbound.ST_FINISHED):
             stats.status = ForecastStats.ARRIVAL
         stats.save()
     except Exception,exc:
