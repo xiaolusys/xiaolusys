@@ -18,8 +18,8 @@ from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
 from rest_framework import filters
-from django_filters import Filter
-from django_filters.fields import Lookup
+from rest_framework.parsers import JSONParser
+from rest_framework.decorators import parser_classes
 import django_filters
 
 from rest_framework.views import APIView
@@ -27,6 +27,7 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, Browsab
 
 from common.utils import get_admin_name
 from core.options import log_action, ADDITION, CHANGE
+from core.utils import flatten
 from shopback.items.models import Product, ProductSku, ProductLocation, ProductSkuStats
 from supplychain.supplier.models import SaleProduct
 
@@ -356,19 +357,16 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                          'supplier': forecast_details and forecast_details[0]['supplier'] or {}
                          },template_name='forecast/forecast_manage.html')
 
-    # def parse_forecast_data(self, data):
-
-
     @list_route(methods=['post'])
     def create_or_split_forecast(self, request, *args, **kwargs):
 
         content = request.POST
-        datas = json.loads(content.get('forecast_data','{}'))
-        forecast_ids  = set()
+        datas = json.loads(content.get('forecast_data', '{}'))
+        forecast_ids = set()
         forecast_data_list = []
-        logger.debug('data:%s'% datas)
+        logger.debug('data:%s' % datas)
         for kstr, num in datas.iteritems():
-            sku_id, product_id, forecast_id, k1,k2 = kstr.split('-')
+            sku_id, product_id, forecast_id, k1, k2 = kstr.split('-')
             forecast_ids.add(int(forecast_id))
             forecast_data_list.append([int(sku_id), int(product_id), int(forecast_id), int(num)])
 
@@ -384,12 +382,12 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException('no forecast inbound found')
 
         with transaction.atomic():
-            forecast_arrive_time = content.get('forecast_arrive_time',None)
+            forecast_arrive_time = content.get('forecast_arrive_time', None)
             forecast_newobj = ForecastInbound(supplier=forecast_obj.supplier)
             forecast_objdict = model_to_dict(forecast_obj)
-            for name ,value in forecast_objdict.iteritems():
-                if name not in ('purchaser', 'ware_house'):continue
-                setattr(forecast_newobj,name,value)
+            for name, value in forecast_objdict.iteritems():
+                if name not in ('purchaser', 'ware_house'): continue
+                setattr(forecast_newobj, name, value)
             forecast_newobj.supplier = forecast_obj.supplier
             forecast_newobj.forecast_arrive_time = forecast_arrive_time
             forecast_newobj.save()
@@ -399,13 +397,13 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
 
             for obj in forecast_data_list:
                 detail = ForecastInboundDetail.objects.filter(forecast_inbound_id=obj[2],
-                                                            product_id=obj[1], sku_id=obj[0]).first()
+                                                              product_id=obj[1], sku_id=obj[0]).first()
                 if not detail or detail.forecast_arrive_num < obj[3]:
-                    raise exceptions.APIException('trans num bigger than forecast arrive num:%s'%(obj))
+                    raise exceptions.APIException('trans num bigger than forecast arrive num:%s' % (obj))
                 if detail.forecast_arrive_num <= obj[3]:
                     detail.status = ForecastInboundDetail.DELETE
                 detail.forecast_arrive_num = models.F('forecast_arrive_num') - obj[3]
-                detail.save(update_fields=['forecast_arrive_num','status'])
+                detail.save(update_fields=['forecast_arrive_num', 'status'])
 
                 forecast_detail = ForecastInboundDetail()
                 forecast_detail.forecast_inbound = forecast_newobj
@@ -420,10 +418,77 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         for forecast in forecast_qs:
             if forecast.total_detail_num == 0:
                 forecast.unarrive_close_update_status()
-                forecast.save()
+            forecast.save(update_fields=['total_forecast_num','total_arrival_num'])
 
         # serializer_data = self.get_serializer(forecast_newobj).data
-        return Response({'redrect_url': reverse('admin:forecast_forecastinbound_changelist')+'?supplier_id=%s'%forecast_newobj.supplier_id})
+        return Response({'redirect_url': reverse(
+            'admin:forecast_forecastinbound_changelist') + '?supplier_id=%s' % forecast_newobj.supplier_id})
+
+
+    @list_route(methods=['post'])
+    @parser_classes(JSONParser)
+    def create_or_split_multiforecast(self, request, *args, **kwargs):
+
+        datas = request.data
+        orderlist_ids = [int(s) for s in datas.get('order_group_key').split('-') if s.isdigit()]
+        forecast_data_list = datas.get('forecast_orders')
+        for data in forecast_data_list:
+            for k,v in data.iteritems():
+                data[k] = int(v)
+
+        forecast_order_skuids = set([o['sku_id'] for o in forecast_data_list])
+        forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=orderlist_ids)
+        forecast_inbounds_orderlist = forecast_inbounds.values_list('id', 'relate_order_set')
+        forecast_obj = forecast_inbounds.first()
+        if not forecast_obj:
+            raise exceptions.APIException('no forecast inbound found')
+
+        forecast_detail_values= ForecastInboundDetail.objects.filter(forecast_inbound__in=forecast_inbounds,
+                                             sku_id__in=forecast_order_skuids,
+                                             forecast_inbound__status=ForecastInbound.ST_ARRIVED,
+                                             status=ForecastInboundDetail.NORMAL)\
+                            .values('sku_id', 'product_name', 'product_img', 'forecast_inbound_id', 'forecast_arrive_num')
+        forecast_details_dict = defaultdict(list)
+        for forecast_detail in forecast_detail_values:
+            forecast_details_dict[forecast_detail['sku_id']].append(forecast_detail)
+
+        forecast_ids = set([fo['forecast_inbound_id'] for fo in flatten(forecast_details_dict.values())])
+
+        with transaction.atomic():
+            forecast_arrive_time = datetime.datetime.now() + datetime.timedelta(days=3)
+            forecast_newobj = ForecastInbound(supplier=forecast_obj.supplier)
+            forecast_objdict = model_to_dict(forecast_obj)
+            for name ,value in forecast_objdict.iteritems():
+                if name not in ('purchaser', 'ware_house'):continue
+                setattr(forecast_newobj,name,value)
+            forecast_newobj.supplier = forecast_obj.supplier
+            forecast_newobj.forecast_arrive_time = forecast_arrive_time
+            forecast_newobj.save()
+
+            relate_orderlist_ids = set([s[1] for s in forecast_inbounds_orderlist if s[0] in forecast_ids])
+            for orderlist_id in relate_orderlist_ids:
+                forecast_newobj.relate_order_set.add(orderlist_id)
+
+            # TODO@meron
+            for obj in forecast_data_list:
+                forecast_details_list = forecast_details_dict.get(obj['sku_id'], [])
+                total_forecast_num = sum([s['forecast_arrive_num'] for s in forecast_details_list])
+                print total_forecast_num, obj
+                if total_forecast_num < obj['num']:
+                    raise exceptions.APIException(u'新建数量不能大于总预测数量')
+                detail = forecast_details_list[0]
+                forecast_detail = ForecastInboundDetail()
+                forecast_detail.forecast_inbound = forecast_newobj
+                forecast_detail.product_id = obj['product_id']
+                forecast_detail.sku_id = obj['sku_id']
+                forecast_detail.forecast_arrive_num = obj['num']
+                forecast_detail.product_name = detail['product_name']
+                forecast_detail.product_img = detail['product_img']
+                forecast_detail.save()
+            forecast_newobj.save()
+
+        # serializer_data = self.get_serializer(forecast_newobj).data
+        return Response({'redirect_url': reverse('admin:forecast_forecastinbound_changelist')+'?supplier_id=%s'%forecast_newobj.supplier_id})
 
     @list_route(methods=['get'])
     def dashboard(self, request, *args, **kwargs):
@@ -485,8 +550,13 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
 
         orderdetail_values = services.get_purchaseorders_data(purchase_orderid_list)
         inbounddetail_values = services.get_realinbounds_data(purchase_orderid_list)
+        order_sku_map_keys = services.get_purchaseorders_sku_map_keys(purchase_orderid_list)
 
-        order_details_dict = dict([(int(od['chichu_id']), od) for od in orderdetail_values])
+        order_details_dict = {}
+        for od in orderdetail_values:
+            sku_id = int(od['chichu_id'])
+            order_details_dict[sku_id] = od
+
         inbound_details_dict = {}
         for ib_detail in inbounddetail_values:
             order_details_dict.setdefault(ib_detail['sku_id'],{
@@ -548,6 +618,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                 'return_num': return_num,
                 'return_inferior_num': rg_detail and rg_detail['inferior_num'] or 0,
                 'return_amount': max(unwork_num * per_price, 0),
+                'orderlist_ids': order_sku_map_keys.get(sku_id)
             })
             aggregate_details_list.append(sku_detail)
 

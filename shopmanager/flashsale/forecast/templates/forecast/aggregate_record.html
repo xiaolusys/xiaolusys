@@ -39,7 +39,7 @@
                 {% for forecast in aggregate_order.forecast_inbounds %}
                 <li class="list-group-item">
                    <div class="row">
-                       <a href="{% url 'admin:forecast_forecastinbound_change' forecast.id %}" target="_blank">
+                       <a href="{% url 'admin:forecast_forecastinbound_change' forecast.id %}" class="{% if forecast.status == 'finished' %}gloomy{% endif %}" target="_blank">
                            <span>#{{forecast.id}}&nbsp;预测单&nbsp;{{ forecast.forecast_arrive_time|date:'Y-m-d' }}&nbsp;{{forecast.status_name}}
                                &nbsp;({{forecast.total_forecast_num}} / {{forecast.total_arrival_num}})</span>
                        </a>

@@ -123,7 +123,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            return self.readonly_fields + ('status', 'ware_house', 'forecast_no', 'purchaser', 'status',
+            return self.readonly_fields + ('ware_house', 'forecast_no', 'purchaser',
                                             'has_lack', 'has_defact', 'has_overhead', 'has_wrong')
         return self.readonly_fields
 

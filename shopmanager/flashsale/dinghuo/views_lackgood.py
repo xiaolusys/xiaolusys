@@ -47,22 +47,24 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
         lackorder_qs = LackGoodOrder.objects.get_objects_by_order_ids(order_ids)
         lack_goods = data.get('lack_goods')
         for good in lack_goods:
+            good_num = int(good['num'])
+            if good_num <= 0: continue
             lack_sku = lackorder_qs.filter(sku_id=good['sku_id']).first()
             if not lack_sku:
                 lack_sku = LackGoodOrder(supplier=supplier,
                                          order_group_key=order_group_key,
                                          product_id=good['product_id'],
                                          sku_id=good['sku_id'],
-                                         lack_num=good['lack_num'],
+                                         lack_num=good_num,
                                          creator=creator)
                 lack_sku.save()
                 # TODO logaction
             else:
                 if lack_sku.is_canceled:
-                    lack_sku.lack_num = good['lack_num']
+                    lack_sku.lack_num = good_num
                     lack_sku.status = LackGoodOrder.NORMAL
                 else:
-                    lack_sku.lack_num = F('lack_num') + good['lack_num']
+                    lack_sku.lack_num = F('lack_num') + good_num
                 lack_sku.save(update_fields=['supplier','order_group_key','product_id','sku_id','lack_num','status'])
 
         return Response({'code':0, 'info':u'保存成功','redirect_url':'/apis/dinghuo/v1/lackorder/%s/refund_manage.html'%order_group_key})

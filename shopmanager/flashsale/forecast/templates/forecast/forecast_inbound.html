@@ -303,7 +303,7 @@
 
              if(stagingInboundRecords.length > 0){
                  $.ajax({
-                     url: '/sale/forecast/v1/staging/save_staging_records',
+                     url: '/apis/forecast/v1/staging/save_staging_records',
                      type: 'post',
                      dataType: 'json',
                      data: {staging_records: JSON.stringify(stagingInboundRecords), forecast_inbound_id: forecastInboundId}
@@ -363,7 +363,7 @@
                  });
                  function callback(){
                      $.ajax({
-                         url: '/sale/forecast/v1/staging',
+                         url: '/apis/forecast/v1/staging',
                          type: 'post',
                          dataType: 'json',
                          data: {
