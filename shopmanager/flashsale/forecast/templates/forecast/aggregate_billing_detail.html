@@ -35,7 +35,14 @@
                              src="{{detail.product_img}}?imageMogr2/thumbnail/35/format/jpg/quality/90/crop/35x35"/>
                         </div>
                     </td>
-                    <td>{{detail.outer_id}}</td>
+                    <td>
+                        <p>{{detail.outer_id}}</p>
+                        <p>
+                            {% for oid in detail.orderlist_ids %}
+                            <a href="/sale/dinghuo/changedetail/{{oid}}/" target="_blank">{{oid}}</a>
+                            {% endfor %}
+                        </p>
+                    </td>
                     <td>{{detail.product_name}}:{{detail.sku_name}}</td>
                     <td >{{detail.buy_num}}</td>
                     <td >{{detail.arrival_num}}</td>
@@ -84,6 +91,7 @@
         </div>
         <div class="panel-footer">
             <button type="button" class="btn btn-primary btn-create-lackorder" >创建缺货单</button>
+            <button type="button" class="btn btn-success btn-strip-forecast" >新建到货异常预测单</button>
         </div>
     </div>
     <div class="panel panel-default tab-pane" id="panel-2">
@@ -254,14 +262,11 @@ $(function(){
         "info":     false,
     });
 
-    $('.btn-create-lackorder').click(function(){
-        var $that = $(this);
-        $that.attr('disabled','true');
+    function selectedCallback(callback){
         var $sInput,
             orderObj,
             i=0,
-            lackGoods = [],
-            retParam = {},
+            goods = [],
             $selectInputs = $('#table-1 tbody > tr.selected').find('input');
 
         for (i=0; i<$selectInputs.length; i++){
@@ -269,28 +274,74 @@ $(function(){
             orderObj = {
                 product_id: $sInput.attr('data-product-id'),
                 sku_id: $sInput.attr('data-sku-id'),
-                lack_num: $sInput.val(),
+                num: $sInput.val(),
             };
-            lackGoods.push(orderObj);
+            goods.push(orderObj);
         }
-        retParam.order_group_key = $('input[name=order_group_key]').val();
-        retParam.lack_goods = lackGoods;
-        console.log('debugn post:', retParam);
-        $.ajax({
-             type: "POST",
-             url: "/apis/dinghuo/v1/lackorder/multi_create",
-             data: JSON.stringify(retParam),
-             dataType: "json",
-             contentType: 'application/json',
-             success: function(resp){
-                $that.attr('disabled', null);
-                if (resp.code == 0){
+
+        callback(goods);
+    }
+
+    $('.btn-create-lackorder').click(function(){
+        var $that = $(this);
+        selectedCallback(function(goods){
+            var retParam = {};
+            if (goods.length > 0 && !confirm("确认对"+ goods.length +"件商品缺货退款处理吗")){
+                return;
+            }
+            $that.attr('disabled','true');
+            retParam.order_group_key = $('input[name=order_group_key]').val();
+            retParam.lack_goods = goods;
+            console.log('debugn post:', retParam);
+            $.ajax({
+                 type: "POST",
+                 url: "/apis/dinghuo/v1/lackorder/multi_create",
+                 data: JSON.stringify(retParam),
+                 dataType: "json",
+                 contentType: 'application/json',
+                 success: function(resp){
+                    $that.attr('disabled', null);
+                    if (resp.code == 0){
+                        window.open(resp.redirect_url,'缺货单管理','height=800,width=1395,resizable=yes,scrollbars=yes');
+                    }else{
+                        alert('创建缺货单错误:'+resp.info);
+                    }
+                 },
+             });
+        });
+    });
+
+    $('.btn-strip-forecast').click(function(){
+        var $that = $(this);
+        selectedCallback(function(goods){
+            var retParam = {};
+            if (goods.length > 0 && !confirm("确认将"+ goods.length +"件商品新建预测单吗")){
+                return;
+            }
+            $that.attr('disabled','true');
+            retParam.order_group_key = $('input[name=order_group_key]').val();
+            retParam.forecast_orders = goods;
+            console.log('debugn post:', retParam);
+            $.ajax({
+                 type: "POST",
+                 url: "/apis/forecast/v1/manage/create_or_split_multiforecast",
+                 data: JSON.stringify(retParam),
+                 dataType: "json",
+                 contentType: 'application/json',
+                 success: function(resp){
+                    $that.attr('disabled', null);
                     window.open(resp.redirect_url,'缺货单管理','height=800,width=1395,resizable=yes,scrollbars=yes');
-                }else{
-                    alert('创建缺货单错误:'+resp.info);
-                }
-             },
-         });
+                 },
+                 error:function(err){
+                    var resp = JSON.parse(err.responseText);
+                    if (typeof(resp.detail) != 'undefined'){
+                        alert(resp.detail);
+                    }else{
+                        alert('未知异常');
+                    }
+                 }
+             });
+        });
     });
 })
 </script>

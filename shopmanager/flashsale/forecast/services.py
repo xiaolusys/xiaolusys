@@ -38,14 +38,14 @@ def get_purchaseorder_data(order_id):
 
     order = OrderList.objects.get(id=order_id)
     order_data = model_to_dict(order, fields=[
-        'id', 'buyer_name', 'receiver', 'sys_status',
+        'id', 'buyer_name', 'receiver', 'sys_status','stage',
         'last_pay_date', 'purchase_total_num', 'order_group_key'
     ])
     order_data['supplier_id'] = order.supplier_id
     order_data['created'] = order.created
     order_data['note'] = order.note
-    orderlist_status_map = dict(OrderList.SYS_STATUS_CHOICES)
-    order_data['sys_status_name'] = orderlist_status_map.get(order_data['sys_status'])
+    orderlist_status_map = dict(OrderList.STAGE_CHOICES)
+    order_data['sys_status_name'] = orderlist_status_map.get(order_data['stage'])
     cache.set(cache_key, order_data, 60)
     return order_data
 
@@ -62,18 +62,18 @@ def filter_pending_purchaseorder(staff_name=None,  **kwargs):
     """ 通过采购员名称获取订货单 """
     from flashsale.dinghuo.models import OrderList, OrderDetail
     order_list = OrderList.objects.filter(
-        sys_status__in=[OrderList.ST_APPROVAL, OrderList.ST_BILLING]
+        stage__in=OrderList.STAGING_STAGES
     )
     if staff_name and staff_name.strip():
         order_list = order_list.filter(buyer__username=staff_name)
 
     order_dict_list = order_list.values(
         'id', 'supplier_id', 'buyer_name', 'receiver', 'created', 'sys_status',
-        'last_pay_date', 'note', 'purchase_total_num', 'order_group_key'
+        'last_pay_date', 'note', 'purchase_total_num', 'order_group_key', 'stage'
     )
-    orderlist_status_map = dict(OrderList.SYS_STATUS_CHOICES)
+    orderlist_status_map = dict(OrderList.STAGE_CHOICES)
     for order_data in order_dict_list:
-        order_data['sys_status_name'] = orderlist_status_map.get(order_data['sys_status'])
+        order_data['sys_status_name'] = orderlist_status_map.get(order_data['stage'])
     return order_dict_list
 
 
@@ -106,6 +106,15 @@ def get_purchaseorders_data(purchase_orderid_list):
         min_created=Min('created'),
     )
     return orderdetail_values
+
+def get_purchaseorders_sku_map_keys(purchase_orderid_list):
+    from flashsale.dinghuo.models import OrderList, OrderDetail
+    orderdetail_qs = OrderDetail.objects.filter(orderlist__in=purchase_orderid_list)
+    orderdetail_values_list = orderdetail_qs.values_list('chichu_id','orderlist__id')
+    sku_map_keys = defaultdict(list)
+    for sku_id, order_id in orderdetail_values_list:
+        sku_map_keys[int(sku_id)].append(order_id)
+    return sku_map_keys
 
 def get_realinbounds_data(purchase_orderid_list):
     inbound_qs = get_normal_realinbound_by_orderid(purchase_orderid_list)
@@ -325,7 +334,7 @@ class AggregateForcecastOrderAndInbound(object):
 
         logger.info('aggregate key len: list=%s, set=%s'%(len(order_keylist), len(order_keyset)))
         forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=order_keyset)\
-            .exclude(status=ForecastInbound.ST_CANCELED)
+            .exclude(status__in=(ForecastInbound.ST_CANCELED,ForecastInbound.ST_TIMEOUT))
         forecast_values = forecast_inbounds.values(
             'id', 'relate_order_set','supplier_id', 'express_code', 'express_no', 'forecast_arrive_time',
             'total_forecast_num', 'total_arrival_num', 'purchaser', 'status',
@@ -384,7 +393,9 @@ class AggregateForcecastOrderAndInbound(object):
             aggregate_dict_list.append({
                 'order_group_key': group_key,
                 'purchase_orders': aggregate_orders,
-                'forecast_inbounds': distinct_forecast_orders,
+                'forecast_inbounds': sorted(distinct_forecast_orders,
+                    key= lambda x:x['status'], cmp= lambda x,y: -1 if x==ForecastInbound.ST_FINISHED else
+                    (y==ForecastInbound.ST_FINISHED and -1 or 1)),
                 'real_inbounds': distinct_realinbound_orders,
                 'is_unarrive_intime': is_unarrive_intime,
                 'is_unrecord_logistic': is_unrecord_logistic,

@@ -252,7 +252,7 @@ $(function(){
             type:'post',
             data: params,
             success: function(resp){
-                window.location.href = resp.redrect_url;
+                window.location.href = resp.redirect_url;
             },
             error:function(err){
                 var resp = JSON.parse(err.responseText);

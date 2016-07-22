@@ -14,8 +14,11 @@
     a:visited {
         color: #000;
     }
-    a.clicked:visited{
+    a:clicked{
         color:  #f69c55;
+    }
+    a.gloomy{
+        color: rgba(102, 102, 102, 0.25);
     }
     .inline {
         display: inline;
@@ -88,6 +91,12 @@
     }
     #table-1 >tbody > tr.selected {
         background-color: #777;
+    }
+    table tr td > p{
+        margin: 0 0 ;
+    }
+    table td p > a{
+        text-decoration: underline;
     }
     input[type=number]{
         line-height: 30px;

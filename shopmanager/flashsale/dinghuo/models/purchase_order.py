@@ -181,6 +181,8 @@ class OrderList(models.Model):
                      (STAGE_STATE, u'结算'),
                      (STAGE_COMPLETED, u'完成'),
                      (STAGE_DELETED, u'删除'))
+
+    STAGING_STAGES = [STAGE_CHECKED, STAGE_PAY, STAGE_RECEIVE,STAGE_STATE] # 待处理状态
     # 改进原状态一点小争议和妥协造成的状态字段冗余 TODO@hy
     stage = models.IntegerField(db_index=True, choices=STAGE_CHOICES, default=0, verbose_name=u'进度')
     # 冗余字段 避免过多查询
@@ -557,19 +559,19 @@ post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='p
 def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
     """ 根据status更新sys_status,审核通过后更新预测到货单  """
     logger.info('post_save orderlist_create_forecast_inbound: %s' % instance)
-    if instance.stage == OrderList.STAGE_DRAFT:
-        instance.sys_status = OrderList.ST_DRAFT
-    elif instance.stage == OrderList.STAGE_DELETED:
-        instance.sys_status = OrderList.ST_CLOSE
-    elif instance.stage == OrderList.STAGE_COMPLETED:
-        instance.sys_status = OrderList.ST_FINISHED
-    elif instance.stage == OrderList.STAGE_STATE:
-        instance.sys_status = OrderList.ST_BILLING
-    else:
-        instance.sys_status = OrderList.ST_APPROVAL
-    update_model_fields(instance, update_fields=['sys_status'])
+    # if instance.stage == OrderList.STAGE_DRAFT:
+    #     instance.sys_status = OrderList.ST_DRAFT
+    # elif instance.stage == OrderList.STAGE_DELETED:
+    #     instance.sys_status = OrderList.ST_CLOSE
+    # elif instance.stage == OrderList.STAGE_COMPLETED:
+    #     instance.sys_status = OrderList.ST_FINISHED
+    # elif instance.stage == OrderList.STAGE_STATE:
+    #     instance.sys_status = OrderList.ST_BILLING
+    # else:
+    #     instance.sys_status = OrderList.ST_APPROVAL
+    # update_model_fields(instance, update_fields=['sys_status'])
 
-    if instance.sys_status != OrderList.ST_DRAFT:
+    if instance.stage != OrderList.STAGE_DRAFT:
         logger.info('orderlist update forecastinbound: %s'% instance)
         # if the orderlist purchase confirm, then create forecast inbound
         from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
