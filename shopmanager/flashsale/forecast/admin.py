@@ -172,9 +172,9 @@ class ForecastInboundAdmin(admin.ModelAdmin):
 
     def action_timeout_reforecast(self, request, queryset):
 
-        unapproved_qs = queryset.exclude(status=ForecastInbound.ST_APPROVED)
-        if unapproved_qs.exists():
-            self.message_user(request, u"＊＊＊重新预测到货需在审核状态下处理＊＊＊!")
+        staging_qs = queryset.filter(status__in=(ForecastInbound.ST_APPROVED, ForecastInbound.ST_DRAFT))
+        if not staging_qs.exists():
+            self.message_user(request, u"＊＊＊重新预测到货需在草稿或审核状态下处理＊＊＊!")
             return HttpResponseRedirect(request.get_full_path())
 
         new_forecast_obj_list = []
@@ -187,14 +187,16 @@ class ForecastInboundAdmin(admin.ModelAdmin):
                     continue
                 log_action(request.user.id, new_forecast, ADDITION, u'超时重新预测到货,原单(id:%s)' % (obj.id))
                 new_forecast_obj_list.append(new_forecast)
-                new_forecast.memo += u"超时重新预测,上次预测时间:%.19s \n" % obj.forecast_arrive_time
+                new_forecast.memo += u">>> 超时重新预测,上次预测时间:%.19s \n" % obj.forecast_arrive_time
                 new_forecast.save(update_fields=['memo'])
-
                 obj.status = ForecastInbound.ST_TIMEOUT
                 obj.save(update_fields=['status'])
         except Exception, exc:
             self.message_user(request, u"创建出错:%s" % exc.message)
-        self.message_user(request, u"＊＊＊超时预测到货单重新预测成功,子预测单列表:%s ＊＊＊" %
+        if not new_forecast_obj_list:
+            self.message_user(request, u"＊＊＊ 没有超时的预测单需要重新预测 ＊＊＊")
+        else:
+            self.message_user(request, u"＊＊＊超时预测到货单重新预测成功,子预测单列表:%s ＊＊＊" %
                           (','.join([str(obj.id) for obj in new_forecast_obj_list])))
 
         return HttpResponseRedirect(request.get_full_path())
