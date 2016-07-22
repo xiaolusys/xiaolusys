@@ -1,6 +1,6 @@
 # coding=utf-8
 from rest_framework import serializers
-from statistics.models import SaleStats
+from statistics.models import SaleStats, ModelStats
 
 
 class StatsSerializer(serializers.ModelSerializer):
@@ -50,3 +50,46 @@ class StatsAllNumSerializer(serializers.ModelSerializer):
                   'return_goods_num',
                   'no_pay_num',
                   'obsolete_supplier')
+
+
+class ModelStatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelStats
+        fields = (
+            'model_id',
+            'sale_product',
+            'schedule_manage_id',
+            'upshelf_time',
+            'offshelf_time',
+            'category',
+            'supplier',
+            'model_name',
+            'category_name',
+            'pic_url',
+            'supplier_name',
+            'pay_num',
+            'no_pay_num',
+            'cancel_num',
+            'out_stock_num',
+            'return_good_num',
+            'payment',
+            'agent_price',
+            'cost',
+        )
+
+
+class ModelStatsSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelStats
+        fields = (
+            'model_id',
+            'schedule_manage_id',
+            'upshelf_time',
+            'offshelf_time',
+            'pay_num',
+            'no_pay_num',
+            'cancel_num',
+            'out_stock_num',
+            'return_good_num',
+            'payment',
+        )
