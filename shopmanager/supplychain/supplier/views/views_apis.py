@@ -275,7 +275,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
-    ordering_fields = ('order_weight', )
+    ordering_fields = ('order_weight', 'is_promotion', 'sale_category')
     filter_class = SaleScheduleDetailFilter
 
     def list(self, request, schedule_id=None, *args, **kwargs):
