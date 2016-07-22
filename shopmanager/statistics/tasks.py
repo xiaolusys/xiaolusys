@@ -801,7 +801,7 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
     """
     # 上下架时间的确定
     sale_product = saleorderstatsrecord.sale_product
-    review_days = review_days if review_days else 60
+    review_days = review_days if review_days else 180
     detail_review_time = datetime.datetime.now() - datetime.timedelta(days=review_days)
     sale_manager_details = SaleProductManageDetail.objects.filter(design_take_over=SaleProductManageDetail.TAKEOVER,
                                                                   sale_product_id=sale_product,
@@ -836,6 +836,12 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
         constants.OUT_STOCK: 'out_stock_num',
         constants.RETURN_GOODS: 'return_good_num',
     }
+    # 聚合　同一上架时间　同个选品的　同个状态的　状态对应数量　和状态对应金额　并修改该记录的
+    salerecord = SaleOrderStatsRecord.objects.filter(pay_time__gte=upshelf_time,
+                                                     pay_time__lt=offshelf_time,
+                                                     sale_product=sale_product)
+    # 每个状态分组　计算
+    annotate_res = salerecord.values('status').annotate(s_num=Sum("num"), s_payment=Sum("payment"))
     if not modelstats:
         model_id = product.model_id
         pic_url = product.pic_path if product else None
@@ -867,17 +873,15 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
             cost=cost,
             uni_key=uni_key
         )
-        if saleorderstatsrecord.status == constants.PAID:  # 是已经支付的状态才去保存payment字段
-            modelstats.payment = saleorderstatsrecord.payment
-        modelstats.__setattr__(status_map[saleorderstatsrecord.status], saleorderstatsrecord.num)
+        for status_res in annotate_res:
+            status = status_res.get('status')  # 获取分组状态
+            num = status_res.get('s_num') or 0  # 该状态的数量
+            payment = status_res.get('s_payment') or 0  # 交易额
+            if status == constants.PAID:  # 是已经支付的状态才去保存payment字段
+                modelstats.payment = payment
+            modelstats.__setattr__(status_map[status], num)  # 设置对应状态属性数值
         modelstats.save()
     else:
-        # 聚合　同一上架时间　同个选品的　同个状态的　状态对应数量　和状态对应金额　并修改该记录的
-        salerecord = SaleOrderStatsRecord.objects.filter(pay_time__gte=upshelf_time,
-                                                         pay_time__lt=offshelf_time,
-                                                         sale_product=sale_product)
-        # 每个状态分组　计算
-        annotate_res = salerecord.values('status').annotate(s_num=Sum("num"), s_payment=Sum("payment"))
         update_fields = []
         for status_res in annotate_res:
             status = status_res.get('status')  # 获取分组状态
