@@ -22,6 +22,12 @@ router_urls += ([
     url(r'^saleschedule/(?P<schedule_id>[0-9]+)/product$',
         views.SaleScheduleDetailViewSet.as_view({'post': 'create'}),
         name='saleschedule-product-create'),
+
+    url(r'^saleschedule/(?P<schedule_id>[0-9]+)/product/(?P<pk>[0-9]+)$',
+        views.SaleScheduleDetailViewSet.as_view({'delete': 'destroy'}),
+        name='saleschedule-product-delete'),
+
+
     url(r'^saleschedule/(?P<schedule_id>[0-9]+)/product/(?P<pk>[0-9]+)$',
         views.SaleScheduleDetailViewSet.as_view({'get': 'retrieve'}),
         name='saleschedule-product-detail'),
@@ -31,6 +37,10 @@ router_urls += ([
     url(r'^saleschedule/(?P<schedule_id>[0-9]+)/modify_manage_detail/(?P<pk>[0-9]+)$',
         views.SaleScheduleDetailViewSet.as_view({'patch': 'modify_manage_detail'}),
         name='saleschedule-product-modify-manage-detail'),
+
+    url(r'^saleschedule/(?P<schedule_id>[0-9]+)/adjust_order_weight/(?P<pk>[0-9]+)$',
+        views.SaleScheduleDetailViewSet.as_view({'patch': 'adjust_order_weight'}),
+        name='saleschedule-product-adjust-order-weight'),
     ])
 
 urlpatterns = patterns('',

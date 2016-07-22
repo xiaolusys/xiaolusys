@@ -603,7 +603,8 @@ class SaleProductManageDetail(models.Model):
             ('pic_rating', u'作图评分'),
             ('add_product', u'加入库存商品'),
             ('eliminate_product', u'淘汰排期商品'),
-            ('reset_head_img', u'重置头图')
+            ('reset_head_img', u'重置头图'),
+            ('delete_schedule_detail', u'删除排期明细记录'),
         ]
 
     def __unicode__(self):
