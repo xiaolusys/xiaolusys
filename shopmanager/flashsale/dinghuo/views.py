@@ -1101,6 +1101,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             status = Bill.STATUS_COMPLETED
             amount = plan_amount
         pay_method = pay_tool
+        if pay_method=='0':
+            return Response({"res": False, "data": [], "desc": "请选择支付方式"})
         try:
             bill = Bill.create([orderlist], Bill.PAY, status, pay_method, plan_amount,amount,orderlist.supplier,
                            user_id=request.user.id, receive_account=receive_account, receive_name=receive_name,
