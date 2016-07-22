@@ -28,7 +28,7 @@ admin.site.register(XiaoluAdministrator, XiaoluAdministratorAdmin)
 
 
 class GroupMamaAdministratorAdmin(BaseModelAdmin):
-    search_fields = ['admin__id', 'admin__username', 'admin__nick', 'mama_id']
+    search_fields = ['id', 'admin__id', 'admin__username', 'admin__nick', 'mama_id']
     list_display = ['id', 'mama_id', 'mama_nick', 'mama_mobile', 'admin__id', 'admin__username', 'admin__nick',
                     'group_uni_key', 'fans_count_quick', 'gift_count_quick', 'gifted_count_quick', 'group_link', 'status']
     list_filter = ['status']
