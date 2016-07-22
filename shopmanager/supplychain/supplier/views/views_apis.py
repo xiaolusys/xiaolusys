@@ -172,7 +172,9 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
     queryset = SaleProductManage.objects.all()
     serializer_class = serializers.SimpleSaleProductManageSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,
+                          permissions.IsAdminUser,
+                          permissions.DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = SaleProductManageFilter
@@ -256,13 +258,21 @@ class SaleScheduleDetailFilter(filters.FilterSet):
 
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     """
-    ###排期管理商品REST API接口：
-    -
+    ### 排期管理商品REST API接口：
+    - /apis/chain/v1/saleschedule/<schedule_id>/product/<schedule_detail_id>:
+      method: delete (授权用户可以删除)
+    - /apis/chain/v1/saleschedule/<schedule_id>/adjust_order_weight/<schedule_detail_id>:
+      method: patch
+      args:
+        移动方向: `direction`
+         plus: 向上
+         minus: 向下　
+         移动距离: `distance`
     """
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     ordering_fields = ('order_weight', )
@@ -281,7 +291,11 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
-        raise NotImplemented
+        if request.user.has_perm('supplier.delete_schedule_detail'):
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     @parser_classes(JSONParser)
     @transaction.atomic()
@@ -312,3 +326,43 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         log_action(request.user, instance, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
         self.perform_update(serializer)
         return Response(serializer.data)
+
+    def adjust_order_weight(self, request, schedule_id, pk, *args, **kwargs):
+        """
+        调整排序字段
+        当前id : instance id
+        移动方向: plus  minus
+        移动距离: distance
+        """
+        direction = request.data.get('direction') or None
+        distance = request.data.get('distance') or None
+        instance = get_object_or_404(SaleProductManageDetail, id=pk)
+        if not (direction and distance):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        queryset = self.queryset.filter(schedule_manage=instance.schedule_manage,
+                                        today_use_status=SaleProductManageDetail.NORMAL).order_by('order_weight')
+        if direction == 'plus':  # 变大
+            heiger_details = queryset.filter(order_weight__gt=instance.order_weight)
+            if heiger_details.count() <= 0:
+                raise exceptions.APIException(u'已经最大了')
+            # 当前order_weight 和　目标order_weight 之间的　instance 需要变化
+            zone_details = heiger_details.filter(order_weight__lte=instance.order_weight + int(distance))
+            abs_distance = zone_details.count()
+            for detail in zone_details:
+                detail.order_weight -= 1
+                detail.save(update_fields=['order_weight'])
+            instance.order_weight = instance.order_weight + abs_distance
+            instance.save(update_fields=['order_weight'])
+
+        elif direction == 'minus':  # 变小
+            lower_details = queryset.filter(order_weight__lt=instance.order_weight)
+            if lower_details.count() <= 0:
+                raise exceptions.APIException(u'已经最小了')
+            zone_details = lower_details.filter(order_weight__gte=instance.order_weight - int(distance))
+            abs_distance = zone_details.count()
+            for detail in zone_details:
+                detail.order_weight += 1
+                detail.save(update_fields=['order_weight'])
+            instance.order_weight = instance.order_weight - abs_distance
+            instance.save(update_fields=['order_weight'])
+        return Response(status=status.HTTP_200_OK)

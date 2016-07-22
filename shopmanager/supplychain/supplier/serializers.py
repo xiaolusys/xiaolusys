@@ -126,19 +126,22 @@ class SaleProductUpdateSerializer(serializers.ModelSerializer):
             'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num',
             'orderlist_show_memo')
 
+from statistics.serializers import ModelStatsSimpleSerializer
+
 
 class SimpleSaleProductSerializer(serializers.ModelSerializer):
     sale_supplier = SaleSupplierSerializer(read_only=True)
     sale_category = SaleCategorySerializer(read_only=True)
     status = StatusField()
     contactor = serializers.CharField(source='contactor.username', read_only=True)
+    latest_figures = ModelStatsSimpleSerializer(source='sale_product_figures', read_only=True)
 
     class Meta:
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link','status', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo',
-            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num'
+            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures'
             )
 
 
