@@ -89,6 +89,7 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.exclude(progress=SaleSupplier.REJECTED)
         ordering = request.REQUEST.get('ordering')
         if ordering == 'refund_rate':
             queryset = queryset.extra(select={'refund_rate': 'total_refund_num/total_sale_num'}).order_by(
@@ -142,6 +143,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.exclude(status=SaleProduct.REJECTED)  # 排除淘汰的产品
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -275,7 +277,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, permissions.DjangoModelPermissions, permissions.IsAdminUser)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
-    ordering_fields = ('order_weight', )
+    ordering_fields = ('order_weight', 'is_promotion', 'sale_category')
     filter_class = SaleScheduleDetailFilter
 
     def list(self, request, schedule_id=None, *args, **kwargs):
@@ -302,7 +304,10 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     def create_manage_detail(self, request, schedule_id, *args, **kwargs):
         sale_product_id = request.data.get('sale_product_id') or None
         sale_products = SaleProduct.objects.filter(id__in=sale_product_id)
+        details = SaleProductManageDetail.objects.filter(schedule_manage_id=schedule_id,
+                                                         today_use_status=SaleProductManageDetail.NORMAL)
         for sale_product in sale_products:
+            order_weight = details.count() + 1
             request.data.update({
                 "schedule_manage": schedule_id,
                 "sale_product_id": sale_product.id,
@@ -310,7 +315,8 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
                 "today_use_status": SaleProductManageDetail.NORMAL,
                 "pic_path": sale_product.pic_url,
                 "product_link": sale_product.product_link,
-                "sale_category": sale_product.sale_category.full_name
+                "sale_category": sale_product.sale_category.full_name,
+                "order_weight": order_weight
             })
             serializer = serializers.SaleProductManageDetailSimpleSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)

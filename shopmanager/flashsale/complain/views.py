@@ -84,3 +84,9 @@ class ComplainViewSet(viewsets.ModelViewSet):
         reply = content.get('reply', '')
         complain.respond(request.user.username, reply)
         return Response({"res": True})
+
+    @detail_route(methods=["post"])
+    def close(self, request, pk=None):
+        complain = get_object_or_404(Complain, id=pk)
+        complain.close(request.user.username)
+        return Response({"res": True})
