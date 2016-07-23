@@ -244,6 +244,10 @@ class InBoundViewSet(viewsets.GenericViewSet):
 
     def get_forecast_inbounds(self, express_no, orderlist_id):
         from flashsale.forecast.models import ForecastInbound
+        if orderlist_id.isdigit():
+            orderlist_id = int(orderlist_id)
+        else:
+            orderlist_id = 0
         order_list = OrderList.objects.filter(Q(id=orderlist_id) | Q(express_no=express_no)) \
             .exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
                                  OrderList.CLOSED, OrderList.TO_PAY]).first()
@@ -259,17 +263,21 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if supplier:
             forecast_qs = ForecastInbound.objects.filter(supplier=supplier,
                 status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT,ForecastInbound.ST_ARRIVED)
-            ).exclude(status=ForecastInbound.ST_ARRIVED,has_lack=False,has_defact=False).order_by('-status')
+            ).exclude(status=ForecastInbound.ST_ARRIVED,has_lack=False,has_defact=False).order_by('-status','created')
             for fi in forecast_qs:
-                if fi.express_no == express_no or fi.id == int(orderlist_id):
+                if fi.express_no == express_no or fi.id == orderlist_id:
                     forecast_inbounds.insert(0, fi)
                     continue
+                is_find_obj = False
                 order_values = fi.relate_order_set.values('id','express_no')
                 for order in order_values:
                     if order['id'] == orderlist_id or order['express_no'] == express_no:
                         forecast_inbounds.insert(0, fi)
+                        is_find_obj = True
                         continue
-                forecast_inbounds.append(fi)
+
+                if not is_find_obj:
+                    forecast_inbounds.append(fi)
         return forecast_inbounds
 
     def list(self, request, *args, **kwargs):
@@ -278,9 +286,10 @@ class InBoundViewSet(viewsets.GenericViewSet):
             if not form.cleaned_data.get('express_no'):
                 return Response({}, template_name='dinghuo/inbound_add.html')
             return Response({"error_message": form.errors.as_text()}, template_name='dinghuo/inbound_add.html')
-        if not form.cleaned_data['orderlist_id'] or not form.cleaned_data['express_no']:
+        orderlist_id = form.cleaned_data['orderlist_id']
+        if not orderlist_id or not form.cleaned_data['express_no']:
             return Response({"error_message": form.errors.as_text()}, template_name='dinghuo/inbound_add.html')
-        forecast_inbounds = self.get_forecast_inbounds(form.cleaned_data['express_no'], form.cleaned_data['orderlist_id'])
+        forecast_inbounds = self.get_forecast_inbounds(form.cleaned_data['express_no'], orderlist_id)
         if not forecast_inbounds:
             return Response({"error_message": form.errors.as_text()}, template_name='dinghuo/inbound_add.html')
         supplier = forecast_inbounds[0].supplier
