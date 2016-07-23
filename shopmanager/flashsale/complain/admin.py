@@ -25,7 +25,7 @@ class ComplainAdmin(BaseModelAdmin):
 
     def selfactions(self, obj):
         if obj.status == Complain.CREATED:
-            return '''<button type="button" id="respond_{complain_id}" class="respond">回复</button>'''.format(
+            return '''<button type="button" id="respond_{complain_id}" class="respond">回复</button><button type="button" id="close_{complain_id}" class="complain_close">关闭</button>'''.format(
                 complain_id=obj.id)
         return ''
 

@@ -47,7 +47,7 @@
 {% endif %}
 
 {% block coltype %}flex{% endblock %}
-
+{% block content_title %}<h1>投诉建议</h1>{% endblock %}
 {% block content %}
   <div id="content-main">
     {% block object-tools %}
@@ -151,6 +151,29 @@ $(document).ready(function () {
       }
     }
     $('#btn_respond').click(respond_to);
+    $('.complain_close').click(function(evt){
+        var dom = evt.target;
+        var complain_id = dom.id.substring("close_".length,dom.id.length);
+        var url = "/rest/v1/complain/" + complain_id+"/close";
+        var data = {id:complain_id};
+        $.ajax({
+            url: url,
+            data: data,
+            "type": "post",
+            success: callback,
+            error: function(){
+              alert("回复失败");
+            }
+        });
+        function callback(res) {
+          if (res.res) {
+              window.location.reload();
+          }
+          else{
+            alert(res);
+          }
+        }
+    });
 });
 </script>
 {% endblock %}
