@@ -6,6 +6,7 @@ from django.db.models.signals import pre_save, post_save
 from django.db.models import F
 
 from shopback.warehouse import WARE_SH, WARE_CHOICES
+
 logger = logging.getLogger('django.request')
 
 # This is the commit time, and also the time we start.
@@ -22,8 +23,8 @@ class ProductSkuStats(models.Model):
 
     STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
 
-    #sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'SKUID')
-    #product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
+    # sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'SKUID')
+    # product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
     sku = models.OneToOneField('ProductSku', null=True, verbose_name=u'SKU')
     product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
     # ware_by = models.IntegerField(default=WARE_SH, db_index=True, choices=WARE_CHOICES, verbose_name=u'所属仓库')
@@ -140,9 +141,13 @@ class ProductSkuStats(models.Model):
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
             arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
             'chichu_id').distinct()]
-        has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in ProductSkuStats.objects.filter(sku_id__in=order_skus,
-            sold_num__lt=F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F('return_quantity')\
-            - F('rg_quantity')).values('id', 'product_id')]
+        has_nouse_stock_sku_product = [(stat['id'], stat['product_id']) for stat in
+                                       ProductSkuStats.objects.filter(sku_id__in=order_skus,
+                                                                      sold_num__lt=F('history_quantity') + F(
+                                                                          'adjust_quantity') + F(
+                                                                          'inbound_quantity') + F('return_quantity') \
+                                                                                   - F('rg_quantity')).values('id',
+                                                                                                              'product_id')]
         has_nouse_stock_products = {product_id for (_id, product_id) in has_nouse_stock_sku_product}
         products = Product.objects.filter(id__in=has_nouse_stock_products)
         product_dict = {p.id: p for p in products}
@@ -150,7 +155,7 @@ class ProductSkuStats(models.Model):
         return_ids = []
         for id, pro in sku_product:
             if pro.sale_time and pro.offshelf_time and not datetime.datetime(pro.sale_time.year, pro.sale_time.month,
-                                 pro.sale_time.day) < datetime.datetime.now() < pro.offshelf_time:
+                                                                             pro.sale_time.day) < datetime.datetime.now() < pro.offshelf_time:
                 return_ids.append(id)
         return return_ids
 
@@ -162,6 +167,15 @@ class ProductSkuStats(models.Model):
     @staticmethod
     def update_adjust_num(sku_id, adjust_quantity):
         ProductSkuStats.objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
+
+    @staticmethod
+    def get_auto_sale_stock():
+        from shopback.categorys.models import ProductCategory
+        from shopback.trades.models import Product
+        pid = ProductCategory.objects.get(name=u'优尼世界').cid
+        return ProductSkuStats.objects.filter(product__status=Product.NORMAL).filter(return_quantity__gt=F('sold_num') + F('rg_quantity')
+                                                                  - F('history_quantity') - F('adjust_quantity') - F(
+            'inbound_quantity')).exclude(product__category_id=pid).exclude(product__outer_id__startswith='RMB')
 
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
@@ -182,6 +196,7 @@ def update_productsku(sender, instance, created, **kwargs):
     from shopback.items.tasks import task_productskustats_update_productsku
     task_productskustats_update_productsku.delay(instance)
 
+
 post_save.connect(update_productsku, sender=ProductSkuStats, dispatch_uid='post_save_productskustats_update_productsku')
 
 
@@ -194,6 +209,7 @@ def product_sku_stats_agg(sender, instance, created, **kwargs):
     except Exception, exc:
         logger.error(exc.message)
 
+
 post_save.connect(product_sku_stats_agg, sender=ProductSkuStats, dispatch_uid='post_save_product_sku_stats')
 
 
@@ -203,6 +219,7 @@ class InferiorSkuStats(models.Model):
         app_label = 'items'
         verbose_name = u'次品记录'
         verbose_name_plural = u'次品库存列表'
+
     STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
     sku = models.OneToOneField('ProductSku', null=True, verbose_name=u'SKU')
     product = models.ForeignKey('Product', null=True, verbose_name=u'商品')
@@ -236,7 +253,8 @@ class InferiorSkuStats(models.Model):
         stat = InferiorSkuStats(sku_id=sku.id, product_id=sku.product_id)
         stat.save()
         stat.rg_quantity = RGDetail.get_inferior_total(sku_id, PRODUCT_SKU_STATS_COMMIT_TIME)
-        stat.return_quantity = RefundProduct.get_total(sku_id, can_reuse=False, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
+        stat.return_quantity = RefundProduct.get_total(sku_id, can_reuse=False,
+                                                       begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
         stat.inbound_quantity = InBoundDetail.get_inferior_total(sku_id, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
         if stat.realtime_quantity < 0 and real_quantity_zreo:
             stat.history_quantity = -stat.realtime_quantity

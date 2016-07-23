@@ -7,17 +7,19 @@ from .models import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, Rea
     XLInviteCount, ActivityEntry, ActivityProduct
 from core.filters import DateFieldListFilter
 from core.admin import ApproxAdmin
+from flashsale.promotion.models.stocksale import StockSale, ActivityStockSale, BatchStockSale
 
 
 class ActivityProductInline(admin.TabularInline):
     model = ActivityProduct
     fields = ('product_name', 'product_img', 'model_id', 'start_time', 'end_time',)
 
+
 class ActivityProductAdmin(ApproxAdmin):
-    list_display = ('id','activity', 'product_name', 'product_img', 'model_id', 'start_time', 'end_time')
+    list_display = ('id', 'activity', 'product_name', 'product_img', 'model_id', 'start_time', 'end_time')
 
     list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))
-    search_fields = ['product_name','=model_id', '=activity']
+    search_fields = ['product_name', '=model_id', '=activity']
     list_per_page = 25
 
     formfield_overrides = {
@@ -25,7 +27,9 @@ class ActivityProductAdmin(ApproxAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
     }
 
+
 admin.site.register(ActivityProduct, ActivityProductAdmin)
+
 
 class ActivityEntryAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'act_type', 'start_time', 'end_time', 'created', 'is_active')
@@ -33,7 +37,7 @@ class ActivityEntryAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'act_type',
                    ('start_time', DateFieldListFilter),
                    ('created', DateFieldListFilter))
-    search_fields = ['=id','title']
+    search_fields = ['=id', 'title']
     list_per_page = 25
 
     inlines = [ActivityProductInline]
@@ -43,7 +47,9 @@ class ActivityEntryAdmin(admin.ModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
     }
 
+
 admin.site.register(ActivityEntry, ActivityEntryAdmin)
+
 
 class XLFreeSampleAdmin(admin.ModelAdmin):
     list_display = ('id', 'outer_id', 'name', 'expiried', 'pic_url', 'sale_url')
@@ -197,3 +203,102 @@ class DownloadUnionidRecordAdmin(admin.ModelAdmin):
 
 admin.site.register(DownloadUnionidRecord, DownloadUnionidRecordAdmin)
 
+
+class StockSaleAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'sale_product__name',
+        'sale_product_link',
+        'product__name',
+        'product__link',
+        'product__sku_link',
+        'quantity',
+        'batch',
+        'day_batch_num',
+        'status',
+        'stock_safe'
+    )
+    list_filter = ('batch', 'day_batch_num', 'status', 'stock_safe')
+    search_fields = ('id', 'batch__id', 'sale_product__id', 'sale_product__name', 'product__id', 'product__outerid', 'product__name')
+    list_select_related = True
+    def lookup_allowed(self, lookup, value):
+        if lookup in ['batch__id', 'sale_product__id', 'sale_product__name', 'product__id', 'product__outerid', 'product__name']:
+            return True
+        return super(StockSaleAdmin, self).lookup_allowed(lookup, value)
+
+    def sale_product__name(self, obj):
+        return obj.sale_product.title if obj.sale_product else ''
+    sale_product__name.short_description = u'选品名称'
+
+    def product__outerid(self, obj):
+        return obj.product.outer_id
+    product__outerid.short_description = u'商品编码'
+
+    def product__name(self, obj):
+        return obj.product.name
+    product__name.short_description = u'商品名称'
+
+    def sale_product_link(self, obj):
+        return '<a href="/admin/supplier/saleproduct?id=%s" target="_blank">%s</a>' % (
+            obj.sale_product_id, obj.sale_product_id) if obj.sale_product else ''
+
+    sale_product_link.short_description = u'选品id'
+    sale_product_link.allow_tags = True
+    sale_product_link.admin_order_field = 'sale_product_id'
+
+    def product__link(self, obj):
+        return '<a href="/admin/items/product?id=%s" target="_blank">%s</a>' % (
+            obj.product_id, obj.product_id)
+    product__link.short_description = u'商品id'
+    product__link.allow_tags = True
+    product__link.admin_order_field = 'product_id'
+
+    def product__sku_link(self, obj):
+        return '<a href="/admin/items/productsku?product_id=%s" target="_blank">%s</a>' % (
+            obj.product_id, obj.sku_num)
+    product__sku_link.short_description = u'商品SKU数'
+    product__sku_link.allow_tags = True
+
+
+admin.site.register(StockSale, StockSaleAdmin)
+
+
+class ActivityStockSaleAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'activity',
+        'batch',
+        'day_batch_num',
+        'onshelf_time',
+        'offshelf_time',
+        'stock_sales_link',
+        'total',
+        'product_total',
+        'sku_total',
+        'stock_total',
+    )
+    list_filter = ('activity', 'onshelf_time')
+    search_fields = ('id',)
+
+    def stock_sales_link(self, obj):
+        link = '/admin/promotion/stocksale?day_batch_num=%s&batch_id=%s' % (obj.day_batch_num, obj.batch_id)
+        return '<a href="%(link)s">%(show_text)d</a>' % {'link': link, 'show_text': obj.product_total}
+    stock_sales_link.short_description = u'商品总数'
+    stock_sales_link.allow_tags = True
+admin.site.register(ActivityStockSale, ActivityStockSaleAdmin)
+
+
+class BatchStockSaleAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'status',
+        'total',
+        'product_total',
+        'sku_total',
+        'stock_total',
+        'expected_time',
+    )
+    list_filter = ('status',)
+    search_fields = ('id', )
+
+admin.site.register(BatchStockSale, BatchStockSaleAdmin)
