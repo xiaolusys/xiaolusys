@@ -1,15 +1,9 @@
 # coding=utf-8
-import os, urlparse
 
-from rest_framework.decorators import detail_route, list_route
-from rest_framework import exceptions
-from rest_framework import mixins
-from rest_framework import permissions
-from rest_framework.response import Response
 from rest_framework import renderers
-from rest_framework import authentication
-from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.decorators import list_route
+from rest_framework.response import Response
 
 from flashsale.promotion.models import ActivityProduct, ActivityEntry
 from flashsale.promotion.serializers import ActivityProductSerializer
@@ -81,7 +75,7 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_promotion_topic_pics(self, request):
-        from views_activity import get_customer
+        from flashsale.promotion.views.views_activity import get_customer
         customer = get_customer(request)
 
         content = request.REQUEST
