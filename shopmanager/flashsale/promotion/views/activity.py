@@ -24,9 +24,9 @@ from flashsale.promotion.models import ActivityEntry
 from shopback.items.models import Product
 from shopapp.weixin.options import get_openid_by_unionid
 
-from .models import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
-from serializers import RedEnvelopeSerializer, AwardWinnerSerializer
-from utils import  get_application
+from flashsale.promotion.models import XLSampleApply, XLSampleOrder, RedEnvelope, AwardWinner
+from flashsale.promotion.serializers import RedEnvelopeSerializer, AwardWinnerSerializer
+from flashsale.promotion.utils import get_application
 
 import logging
 
@@ -82,7 +82,7 @@ class JoinView(WeixinAuthMixin, APIView):
         content = request.GET
         ufrom = content.get("ufrom", "")
         from_customer = content.get("from_customer", "")
-        mama_id = content.get("mama_id","")
+        mama_id = content.get("mama_id", "")
 
         # the following is for debug
         # if ufrom == 'app':
@@ -128,7 +128,7 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
                 # 4. if we still dont have openid, we have to do oauth
                 redirect_url = self.get_wxauth_redirct_url(request)
                 return redirect(redirect_url)
-            #logger.warn("baseauth: %s" % userinfo)
+                # logger.warn("baseauth: %s" % userinfo)
 
         # now we already have openid, we check whether application exists.
         application_count = XLSampleApply.objects.filter(user_openid=openid, event_id=event_id).count()
@@ -172,7 +172,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
                 return redirect(redirect_url)
 
             # now we have userinfo
-            #logger.warn("snsauth: %s" % userinfo)
+            # logger.warn("snsauth: %s" % userinfo)
             from .tasks_activity import task_userinfo_update_application
             task_userinfo_update_application.delay(userinfo)
 
@@ -214,7 +214,7 @@ class AppJoinView(WeixinAuthMixin, APIView):
         else:
             key = 'activate'
 
-        #logger.warn("AppJoinView: customer=%s, event_id=%s, key=%s, openid=%s" % (customer.nick, event_id, key, openid))
+        # logger.warn("AppJoinView: customer=%s, event_id=%s, key=%s, openid=%s" % (customer.nick, event_id, key, openid))
 
         html = activity_entry.get_html(key)
         response = redirect(html)
@@ -242,7 +242,7 @@ class WebJoinView(APIView):
             if application_count > 0:
                 key = 'download'
 
-        #logger.warn("WebJoinView: event_id=%s, key=%s" % (event_id, key))
+        # logger.warn("WebJoinView: event_id=%s, key=%s" % (event_id, key))
 
         html = activity_entry.get_html(key)
         return redirect(html)
@@ -304,8 +304,8 @@ class ApplicationView(WeixinAuthMixin, APIView):
                 pass
 
         end_time = int(time.mktime(activity_entry.end_time.timetuple()) * 1000)
-        #logger.warn("ApplicationView GET: end_time=%s, mobile_required:%s, openid:%s, mobile:%s, customer:%s" % (
-        #end_time, mobile_required, openid, mobile, customer))
+        # logger.warn("ApplicationView GET: end_time=%s, mobile_required:%s, openid:%s, mobile:%s, customer:%s" % (
+        # end_time, mobile_required, openid, mobile, customer))
 
         res_data = {"applied": applied, "img": img, "nick": nick, "end_time": end_time,
                     "mobile_required": mobile_required}
@@ -370,11 +370,10 @@ class ApplicationView(WeixinAuthMixin, APIView):
         if mobile:
             params.update({"mobile": mobile})
         if customer and ufrom == "app":
-            params.update({"customer_id":customer.id,"status": XLSampleApply.ACTIVED})
-
+            params.update({"customer_id": customer.id, "status": XLSampleApply.ACTIVED})
 
         if application_count <= 0:
-            #logger.warn("ApplicationView post: application_count=%s, create sampleapply record" % application_count)
+            # logger.warn("ApplicationView post: application_count=%s, create sampleapply record" % application_count)
             application = XLSampleApply(event_id=event_id, **params)
             application.save()
 
@@ -434,8 +433,8 @@ class MainView(APIView):
         envelope_serializer = RedEnvelopeSerializer(envelopes, many=True)
         winner_serializer = AwardWinnerSerializer(latest_five, many=True)
 
-        #cards = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
-        cards = [0,0,0,0,0,0,0,0,0]
+        # cards = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+        cards = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         num_cards = 0
         for item in envelope_serializer.data:
             if item['type'] == 'card' and item['status'] == 'open':
@@ -448,12 +447,12 @@ class MainView(APIView):
         envelopes = envelope_serializer.data
         num_of_envelope = len(envelopes)
         for item in inactive_applications:
-            envelopes.append({"headimgurl": item.headimgurl, "nick": item.nick, "type":"inactive"})
+            envelopes.append({"headimgurl": item.headimgurl, "nick": item.nick, "type": "inactive"})
 
-        #cards,num_cards = [1, 1, 1, 1, 1, 1, 1, 1, 1],9
+        # cards,num_cards = [1, 1, 1, 1, 1, 1, 1, 1, 1],9
 
         data = {"cards": cards, "envelopes": envelopes, "num_of_envelope": num_of_envelope,
-                "award_list": winner_serializer.data, "award_left": award_left, "num_cards":num_cards}
+                "award_list": winner_serializer.data, "award_left": award_left, "num_cards": num_cards}
 
         response = Response(data)
         response["Access-Control-Allow-Origin"] = "*"
@@ -489,7 +488,7 @@ class OpenEnvelopeView(APIView):
         num_cards = RedEnvelope.objects.filter(event_id=event_id, customer_id=customer_id, type=1, status=1).count()
 
         data = serializer.data
-        data.update({"num_cards":num_cards})
+        data.update({"num_cards": num_cards})
 
         response = Response(data)
         response["Access-Control-Allow-Origin"] = "*"
@@ -504,7 +503,7 @@ class StatsView(APIView):
     def get(self, request, event_id, *args, **kwargs):
         customer = Customer.objects.get(user=request.user)
         customer_id = customer.id
-        #customer_id = 1  # debug
+        # customer_id = 1  # debug
         envelopes = RedEnvelope.objects.filter(customer_id=customer_id, event_id=event_id)
         invite_num = envelopes.count()
 
@@ -527,12 +526,11 @@ class StatsView(APIView):
             else:
                 status = 0
         except AwardWinner.DoesNotExist:
-            status =0
+            status = 0
 
-        response = Response({"invite_num": invite_num, "total": total, "cards": cards, "status":status})
+        response = Response({"invite_num": invite_num, "total": total, "cards": cards, "status": status})
         response["Access-Control-Allow-Origin"] = "*"
         return response
-
 
 
 class GetAwardView(APIView):
@@ -549,13 +547,13 @@ class GetAwardView(APIView):
         customer_id = customer.id
         buyer_id = str(customer_id)
 
-        #coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
-        code,msg = 0,""
-        #if coups.count() <= 0:
+        # coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
+        code, msg = 0, ""
+        # if coups.count() <= 0:
         cou, code, msg = UserCoupon.objects.create_normal_coupon(buyer_id=customer, template_id=template_id)
 
         if code == 0:
-            winner = AwardWinner.objects.get(customer_id=customer_id,event_id=event_id)
+            winner = AwardWinner.objects.get(customer_id=customer_id, event_id=event_id)
             winner.status = 1
             winner.save()
 

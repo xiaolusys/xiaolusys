@@ -343,6 +343,14 @@ class Product(models.Model):
         keys = self.name.split('/')
         return len(keys) > 1 and keys[1] or keys[0]
 
+    @property
+    def stats(self):
+        return self.productskustats_set.all()
+
+    @property
+    def realtime_quantity(self):
+        return sum([s.realtime_quantity for s in self.productskustats_set.all()])
+
     def pro_sale_supplier(self):
         """ 返回产品的选品和供应商　"""
         try:
@@ -360,6 +368,13 @@ class Product(models.Model):
             return sal_p.contactor  # 返回接洽人
         else:
             return self.sale_charger + "未关联"
+
+    def get_sale_product(self):
+        """ 返回产品的选品"""
+        try:
+            return SaleProduct.objects.get(pk=self.sale_product)
+        except SaleProduct.DoesNotExist:
+            return None
 
     def get_supplier(self):
         return SaleProduct.objects.get(id=self.sale_product).sale_supplier
