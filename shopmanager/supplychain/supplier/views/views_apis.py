@@ -302,7 +302,10 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     def create_manage_detail(self, request, schedule_id, *args, **kwargs):
         sale_product_id = request.data.get('sale_product_id') or None
         sale_products = SaleProduct.objects.filter(id__in=sale_product_id)
+        details = SaleProductManageDetail.objects.filter(schedule_manage_id=schedule_id,
+                                                         today_use_status=SaleProductManageDetail.NORMAL)
         for sale_product in sale_products:
+            order_weight = details.count() + 1
             request.data.update({
                 "schedule_manage": schedule_id,
                 "sale_product_id": sale_product.id,
@@ -310,7 +313,8 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
                 "today_use_status": SaleProductManageDetail.NORMAL,
                 "pic_path": sale_product.pic_url,
                 "product_link": sale_product.product_link,
-                "sale_category": sale_product.sale_category.full_name
+                "sale_category": sale_product.sale_category.full_name,
+                "order_weight": order_weight
             })
             serializer = serializers.SaleProductManageDetailSimpleSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
