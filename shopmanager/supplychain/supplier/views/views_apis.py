@@ -89,6 +89,7 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.exclude(progress=SaleSupplier.REJECTED)
         ordering = request.REQUEST.get('ordering')
         if ordering == 'refund_rate':
             queryset = queryset.extra(select={'refund_rate': 'total_refund_num/total_sale_num'}).order_by(
@@ -142,6 +143,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.exclude(status=SaleProduct.REJECTED)  # 排除淘汰的产品
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
