@@ -49,3 +49,9 @@ class Complain(models.Model):
         self.status = Complain.REPLIED
         self.reply_time = datetime.datetime.now()
         return self.save()
+
+    def close(self, custom_serviced_name):
+        self.reply_time = datetime.datetime.now()
+        self.custom_serviced = custom_serviced_name
+        self.status = Complain.CLOSED
+        self.save()
