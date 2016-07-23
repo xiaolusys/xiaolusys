@@ -866,6 +866,8 @@ class ProductAdmin(ApproxAdmin):
             try:
                 sale_pro = SaleProduct.objects.get(id=pro.sale_product)
                 supplier_id = sale_pro.sale_supplier.id
+                if not rg.can_return(supplier_id=supplier_id):
+                    break
             except SaleProduct.DoesNotExist:
                 supplier_id = 0
             rg.supplier_id = supplier_id  # 找到供应商

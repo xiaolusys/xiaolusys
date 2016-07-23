@@ -239,6 +239,36 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         return Response({"res": res, "coupon_message": coupon_message})
 
     @list_route(methods=['get'])
+    def coupon_able(self, request):
+        default_return = collections.defaultdict(usable_coupon=[], disable_coupon=[], info='', code=0)
+        content = request.REQUEST
+        cart_ids = content.get("cart_ids", None)
+        if not cart_ids:
+            default_return.update({'info': '购物车为空!', 'code': 1})
+            return Response(default_return)
+        cart_ids = cart_ids.split(',')  # 购物车id
+        carts = ShoppingCart.objects.filter(id__in=cart_ids)
+        product_ids = []  # 购物车中的产品id
+        total_fee = 0  # 购物车总费用
+        for cart in carts:
+            total_fee += cart.price * cart.num
+            product_ids.append(cart.item_id)
+        queryset = self.get_owner_queryset(request)  # customer coupons
+        queryset = self.list_unpast_coupon(queryset)  # customer not past coupon
+        usable_set = []
+        disable_set = []
+        for coupon in queryset:
+            try:
+                coupon.check_user_coupon(product_ids=product_ids, use_fee=total_fee)  # 验证优惠券
+                usable_set.append(coupon)
+            except AssertionError:
+                disable_set.append(coupon)
+        usable_serialier = self.get_serializer(usable_set, many=True)
+        disable_serialier = self.get_serializer(disable_set, many=True)
+        default_return.update({'usable_coupon': usable_serialier.data, 'disable_coupon': disable_serialier.data})
+        return Response(default_return)
+
+    @list_route(methods=['get'])
     def get_usercoupons_by_template(self, request):
         """
         :arg template_id
