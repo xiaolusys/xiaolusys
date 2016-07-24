@@ -631,7 +631,7 @@ class ModelProductAdmin(ApproxAdmin):
     fieldsets = (('基本信息:', {'classes': ('expand',),
                             'fields': (('name', 'salecategory'),
                                        ('head_imgs', 'content_imgs')
-                                       , ('status'))}),)
+                                       , 'extras', ('status'))}),)
     search_fields = ['name', '=id']
     list_per_page = 50
 
