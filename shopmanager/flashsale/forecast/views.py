@@ -418,7 +418,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         for forecast in forecast_qs:
             if forecast.total_detail_num == 0:
                 forecast.unarrive_close_update_status()
-            forecast.save(update_fields=['total_forecast_num','total_arrival_num'])
+            forecast.save()
 
         # serializer_data = self.get_serializer(forecast_newobj).data
         return Response({'redirect_url': reverse(
