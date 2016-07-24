@@ -76,7 +76,7 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_promotion_topic_pics(self, request):
-        from flashsale.promotion.views.views_activity import get_customer
+        from flashsale.promotion.views import get_customer
         customer = get_customer(request)
 
         content = request.REQUEST
