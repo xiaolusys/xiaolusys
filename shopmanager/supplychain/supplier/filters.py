@@ -165,7 +165,7 @@ class CategoryFilter(SimpleListFilter):
                     return queryset.filter(category__in=cate_ids)
 
 
-from models_buyer_group import BuyerGroup
+from .models import BuyerGroup
 from django.contrib.auth.models import User
 
 

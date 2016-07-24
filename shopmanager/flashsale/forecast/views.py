@@ -418,7 +418,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         for forecast in forecast_qs:
             if forecast.total_detail_num == 0:
                 forecast.unarrive_close_update_status()
-            forecast.save(update_fields=['total_forecast_num','total_arrival_num'])
+            forecast.save()
 
         # serializer_data = self.get_serializer(forecast_newobj).data
         return Response({'redirect_url': reverse(
@@ -449,13 +449,12 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
         forecast_order_skuids = set([o['sku_id'] for o in forecast_data_list])
         forecast_detail_values= ForecastInboundDetail.objects.filter(forecast_inbound__in=forecast_inbounds,
                                              sku_id__in=forecast_order_skuids,
-                                             forecast_inbound__status=ForecastInbound.ST_ARRIVED,
+                                             forecast_inbound__status__in=(ForecastInbound.ST_ARRIVED,ForecastInbound.ST_FINISHED),
                                              status=ForecastInboundDetail.NORMAL)\
                             .values('sku_id', 'product_name', 'product_img', 'forecast_inbound_id', 'forecast_arrive_num')
         forecast_details_dict = defaultdict(list)
         for forecast_detail in forecast_detail_values:
             forecast_details_dict[forecast_detail['sku_id']].append(forecast_detail)
-
         forecast_ids = set([fo['forecast_inbound_id'] for fo in flatten(forecast_details_dict.values())])
 
         with transaction.atomic():
@@ -477,7 +476,6 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
             for obj in forecast_data_list:
                 forecast_details_list = forecast_details_dict.get(obj['sku_id'], [])
                 total_forecast_num = sum([s['forecast_arrive_num'] for s in forecast_details_list])
-                print total_forecast_num, obj
                 if total_forecast_num < obj['num']:
                     raise exceptions.APIException(u'新建数量不能大于总预测数量')
                 detail = forecast_details_list[0]

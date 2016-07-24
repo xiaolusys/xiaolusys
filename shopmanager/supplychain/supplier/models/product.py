@@ -1,0 +1,155 @@
+# -*- coding:utf-8 -*-
+from django.core.cache import cache
+from django.db import models
+from django.db.models.signals import pre_save, post_save
+
+from core.models import BaseTagModel
+from core.utils import update_model_fields
+
+class SaleProduct(BaseTagModel):
+    MANUAL = 'manual'
+    MANUALINPUT = 'manualinput'
+    TAOBAO = 'taobao'
+    TMALL = 'tianmao'
+    ZHEBABAI = 'zhe800'
+    XIAOHER = 'xiaoher'
+    VIP = 'vip'
+    JHS = 'jhs'
+    BBW = 'bbw'
+
+    PLATFORM_CHOICE = (
+        (MANUAL, u'手工录入'),
+        (MANUALINPUT, u'线下店'),
+        (TAOBAO, u'淘宝'),
+        (TMALL, u'天猫'),
+        (ZHEBABAI, u'折800'),
+        (XIAOHER, u'小荷特卖'),
+        (VIP, u'唯品会'),
+        (JHS, u'聚划算'),
+        (BBW, u'贝贝网'),
+    )
+
+    WAIT = 'wait'
+    SELECTED = 'selected'
+    PURCHASE = 'purchase'
+    PASSED = 'passed'
+    SCHEDULE = 'scheduling'
+    IGNORED = 'ignored'
+    REJECTED = 'rejected'
+    STATUS_CHOICES = (
+        (WAIT, u'待选'),
+        (SELECTED, u'入围'),
+        (PURCHASE, u'取样'),
+        (PASSED, u'通过'),
+        (SCHEDULE, u'排期'),
+        (REJECTED, u'淘汰'),
+        (IGNORED, u'忽略'),
+    )
+
+    outer_id = models.CharField(max_length=64, blank=True,
+                                # default=lambda: 'OO%s' % int(time.time() * 10 ** 3),
+                                verbose_name=u'外部ID')
+    title = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'标题')
+    price = models.FloatField(default=0, verbose_name=u'价格')
+    pic_url = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
+    product_link = models.CharField(max_length=512, blank=True, verbose_name=u'商品外部链接')
+
+    sale_supplier = models.ForeignKey('supplier.SaleSupplier', null=True, related_name='supplier_products', verbose_name=u'供货商')
+    sale_category = models.ForeignKey('supplier.SaleCategory', null=True, related_name='category_products', verbose_name=u'类别')
+    platform = models.CharField(max_length=16, blank=True, default=MANUAL,
+                                choices=PLATFORM_CHOICE, verbose_name=u'来自平台')
+
+    hot_value = models.IntegerField(default=0, verbose_name=u'热度值')
+    voting = models.BooleanField(default=False, verbose_name=u'参与投票')
+    sale_price = models.FloatField(default=0, verbose_name=u'采购价')
+    on_sale_price = models.FloatField(default=0, verbose_name=u'售价')
+    std_sale_price = models.FloatField(default=0, verbose_name=u'吊牌价')
+    product_material = models.CharField(max_length=16, blank=True, verbose_name=u'商品材质')
+    memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
+    is_changed = models.BooleanField(default=False, db_index=True, verbose_name=u'排期改动')
+
+    status = models.CharField(max_length=16, blank=True,
+                              choices=STATUS_CHOICES, default=WAIT, verbose_name=u'状态')
+
+    contactor = models.ForeignKey('auth.User', null=True, related_name='sale_products', verbose_name=u'接洽人')
+    librarian = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'资料员')
+    buyer = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'采购员')
+
+    sale_time = models.DateTimeField(null=True, blank=True, verbose_name=u'上架日期')
+    reserve_time = models.DateTimeField(null=True, blank=True, verbose_name=u'预留时间')
+    supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
+    remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
+    orderlist_show_memo = models.BooleanField(default=False, verbose_name=u'订货详情显示备注')
+
+    class Meta:
+        db_table = 'supplychain_supply_product'
+        unique_together = ("outer_id", "platform")
+        app_label = 'supplier'
+        verbose_name = u'特卖/选品'
+        verbose_name_plural = u'特卖/选品列表'
+        permissions = [
+            ("sale_product_mgr", u"特卖商品管理"),
+            ("schedule_manage", u"排期管理")
+        ]
+
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.id, self.title)
+
+    @property
+    def item_products(self):
+        if not hasattr(self, '_item_products_'):
+            from shopback.items.models import Product
+            self._item_products_ = Product.objects.filter(sale_product=self.id, status=Product.NORMAL)
+        return self._item_products_
+
+
+def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
+    try:
+        product = SaleProduct.objects.get(id=instance.id)
+        # 如果上架时间修改，则重置is_verify
+        if (product.status == SaleProduct.SCHEDULE and
+                (product.sale_time != instance.sale_time or product.status != instance.status)):
+            instance.is_changed = True
+            update_model_fields(instance, update_fields=['is_changed'])
+    except SaleProduct.DoesNotExist:
+        pass
+
+
+pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
+
+
+class HotProduct(models.Model):
+    SELECTED = 0
+    PASSED = 1
+    MANUFACTURE = 2
+    SALE = 3
+    CLOSE = 4
+    CANCEL = 5
+    STATUS_CHOICES = ((SELECTED, u'入围'),
+                      (PASSED, u'待生产'),
+                      (MANUFACTURE, u'生产'),
+                      (SALE, u'开卖'),
+                      (CLOSE, u'结束'),  # 全状态结束
+                      (CANCEL, u'作废'))  # 中断
+
+    name = models.CharField(max_length=128, verbose_name=u'名称')
+    proid = models.IntegerField(default=0, db_index=True, verbose_name=u'产品ID')
+    pic_pth = models.CharField(max_length=512, verbose_name=u'图片链接')
+    site_url = models.CharField(max_length=512, verbose_name=u'站点链接')
+    price = models.FloatField(default=0.0, verbose_name=u'预售价格')
+    hot_value = models.IntegerField(default=0, verbose_name=u'热度值')
+    voting = models.BooleanField(default=False, verbose_name=u'参与投票')
+    memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
+    status = models.IntegerField(default=0, choices=STATUS_CHOICES, verbose_name=u'爆款状态')
+    contactor = models.BigIntegerField(null=True, db_index=True, verbose_name=u'接洽人')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
+
+    class Meta:
+        db_table = 'supplychain_hot_product'
+        app_label = 'supplier'
+        verbose_name = u'特卖/爆款表'
+        verbose_name_plural = u'特卖/爆款列表'
+
+    def __unicode__(self):
+        return self.name

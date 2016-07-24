@@ -12,10 +12,12 @@ class District(PayBaseModel):
     THIRD_STAGE = 3
     FOURTH_STAGE = 4
 
-    STAGE_CHOICES = ((FIRST_STAGE, u'1'),
-                     (SECOND_STAGE, u'2'),
-                     (THIRD_STAGE, u'3'),
-                     (FOURTH_STAGE, u'4'),)
+    STAGE_CHOICES = (
+        (FIRST_STAGE, u'省'),
+        (SECOND_STAGE, u'市'),
+        (THIRD_STAGE, u'区/县'),
+        (FOURTH_STAGE, u'街道'),
+    )
 
     id = models.AutoField(primary_key=True, verbose_name=u'ID')
     parent_id = models.IntegerField(null=False, default=0, db_index=True, verbose_name=u'父ID')

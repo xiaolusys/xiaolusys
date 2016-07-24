@@ -2,8 +2,7 @@
 from django.views.generic import View
 from django.http import HttpResponse
 import json
-from supplychain.supplier.models import SaleProduct
-from supplychain.supplier.models_hots import HotProduct
+from supplychain.supplier.models import SaleProduct, HotProduct
 
 
 class HotProductView(View):

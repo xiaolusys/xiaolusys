@@ -5,7 +5,7 @@ from .envelope import Envelop
 from .external import TradeCharge
 from .faq import SaleFaq, FaqMainCategory, FaqsDetailCategory
 from .poster import GoodShelf, default_chd_poster, default_wen_poster
-from .product import Productdetail, ModelProduct
+from .product import Productdetail, ModelProduct, default_modelproduct_extras_tpl
 from .refund import SaleRefund, default_refund_no
 from .score import Integral, IntegralLog
 from .share import CustomShare

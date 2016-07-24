@@ -49,9 +49,10 @@ class Productdetail(PayBaseModel):
     content_imgs = models.TextField(blank=True, verbose_name=u'内容照(多张请换行)')
 
     mama_discount = models.IntegerField(default=100, choices=DISCOUNT_CHOICE, verbose_name=u'妈妈折扣')
+    is_seckill = models.BooleanField(db_index=True, default=False, verbose_name=u'秒杀')
+
     is_recommend = models.BooleanField(db_index=True, default=False, verbose_name=u'专区推荐')
-    is_seckill = models.BooleanField(db_index=True, default=False, verbose_name=u'是否秒杀')
-    is_sale = models.BooleanField(db_index=True, default=False, verbose_name=u'特价商品')
+    is_sale = models.BooleanField(db_index=True, default=False, verbose_name=u'专场')
     order_weight = models.IntegerField(db_index=True, default=8, choices=WEIGHT_CHOICE, verbose_name=u'权值')
     buy_limit = models.BooleanField(db_index=True, default=False, verbose_name=u'是否限购')
     per_limit = models.IntegerField(default=5, choices=BUY_LIMIT_CHOICE, verbose_name=u'限购数量')
@@ -96,6 +97,14 @@ class Productdetail(PayBaseModel):
             return True
         return False
 
+def default_modelproduct_extras_tpl():
+    return {
+        "saleinfos": {
+            "is_product_buy_limit": True,
+            "per_limit_buy_num": 3,
+        },
+        "properties": {},
+    }
 
 class ModelProduct(BaseTagModel):
     NORMAL = '0'
@@ -112,25 +121,20 @@ class ModelProduct(BaseTagModel):
     name = models.CharField(max_length=64, db_index=True, verbose_name=u'款式名称')
 
     head_imgs = models.TextField(blank=True, verbose_name=u'题头照(多张请换行)')
-
     content_imgs = models.TextField(blank=True, verbose_name=u'内容照(多张请换行)')
 
-    buy_limit = models.BooleanField(default=False, verbose_name=u'是否限购')
-    per_limit = models.IntegerField(default=5, verbose_name=u'限购数量')
-
-    # sale_time = models.DateField(null=True, blank=True, db_index=True, verbose_name=u'上架日期')
-
-    # category_id = models.IntegerField(default=0, db_index=True, verbose_name=u'分类ID')
+    salecategory = models.ForeignKey('supplier.SaleCategory', null=True, default=None,
+                                     related_name='model_product_set', verbose_name=u'分类')
     # lowest_agent_price = models.IntegerField(default=5, verbose_name=u'最低出售价')
     # lowest_std_sale_price = models.IntegerField(default=5, verbose_name=u'最低吊牌价')
 
+    extras  = JSONCharMyField(max_length=5000, default=default_modelproduct_extras_tpl, verbose_name=u'附加信息')
     status = models.CharField(max_length=16, db_index=True,
                               choices=STATUS_CHOICES,
                               default=NORMAL, verbose_name=u'状态')
 
     class Meta:
         db_table = 'flashsale_modelproduct'
-        unique_together = ("id", "name")
         app_label = 'pay'
         verbose_name = u'特卖商品/款式'
         verbose_name_plural = u'特卖商品/款式列表'
@@ -375,13 +379,6 @@ class ModelProduct(BaseTagModel):
                 # ],
                 # 'choices':[2,3,2]
             },
-        }
-
-    @property
-    def extras(self):
-        return {
-            'is_product_buy_limit': True,
-            'per_limit_buy_num': 3,
         }
 
 

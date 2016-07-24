@@ -23,10 +23,8 @@ from . import serializers
 
 from supplychain.supplier.models import SaleProduct
 from flashsale.pay.models import Customer
-from supplychain.supplier.models_praise import SalePraise
+from supplychain.supplier.models import SalePraise, HotProduct
 from common.modelutils import update_model_fields
-
-from supplychain.supplier.models_hots import HotProduct
 
 
 class SaleProductViewSet(viewsets.ModelViewSet):
