@@ -4,26 +4,30 @@ from django.db import models
 from core.ormcache.managers import CacheManager
 from shopback import paramconfig as pcfg
 from auth import apis
-import logging
 
-logger = logging.getLogger('categorys.handler')
+from core.models import BaseModel
+
+import logging
+logger = logging.getLogger(__name__)
+
 CAT_STATUS = (
     (pcfg.NORMAL, u'正常'),
     (pcfg.DELETE, u'删除'),
 )
 
-
-class Category(models.Model):
+class Category(BaseModel):
     NORMAL = pcfg.NORMAL
     DELETE = pcfg.DELETE
 
-    cid = models.IntegerField(primary_key=True)
-    parent_cid = models.IntegerField(null=True, db_index=True)
+    cid = models.IntegerField(primary_key=True, verbose_name=u'类目ID')
+    parent_cid = models.IntegerField(null=True, db_index=True , verbose_name=u'父类目ID')
 
-    name = models.CharField(max_length=32, blank=True)
-    is_parent = models.BooleanField(default=True)
-    status = models.CharField(max_length=7, choices=CAT_STATUS, default=NORMAL)
-    sort_order = models.IntegerField(null=True)
+    name = models.CharField(max_length=32, blank=True, verbose_name=u'类目名')
+    grade = models.IntegerField(default=0, db_index=True, verbose_name=u'类目等级')
+
+    is_parent = models.BooleanField(default=True, verbose_name=u'父类目')
+    status = models.CharField(max_length=7, choices=CAT_STATUS, default=NORMAL, verbose_name=u'状态')
+    sort_order = models.IntegerField(null=True, verbose_name=u'权值')
 
     class Meta:
         db_table = 'shop_categorys_category'
@@ -50,20 +54,31 @@ class Category(models.Model):
         return category
 
 
-class ProductCategory(models.Model):
+class ProductCategory(BaseModel):
+
     NORMAL = pcfg.NORMAL
     DELETE = pcfg.DELETE
 
-    cid = models.AutoField(primary_key=True, verbose_name=u'类目ID')
+    FIRST_GRADE = 1
+    SECOND_GRADE = 2
+    THIRD_GRADE = 3
+    FOURTH_GRADE = 4
+
+    GRADE_CHOICES = (
+        (FIRST_GRADE, u'一级'),
+        (SECOND_GRADE, u'二级'),
+        (THIRD_GRADE, u'三级'),
+        (FOURTH_GRADE, u'四级')
+    )
+    cid  = models.AutoField(primary_key=True, verbose_name=u'类目ID')
+    # cid = models.IntegerField(unique=True,null=False, verbose_name=u'类目ID')
     parent_cid = models.IntegerField(null=False, verbose_name=u'父类目ID')
     name = models.CharField(max_length=32, blank=True, verbose_name=u'类目名')
 
+    grade = models.IntegerField(default=0, choices=GRADE_CHOICES, db_index=True, verbose_name=u'等级')
     is_parent = models.BooleanField(default=True, verbose_name=u'有子类目')
     status = models.CharField(max_length=7, choices=CAT_STATUS, default=pcfg.NORMAL, verbose_name=u'状态')
-    sort_order = models.IntegerField(default=0, db_index=True, verbose_name=u'优先级')
-
-    cache_enabled = True
-    objects = CacheManager()
+    sort_order = models.IntegerField(default=0, db_index=True, verbose_name=u'权值')
 
     class Meta:
         db_table = 'shop_categorys_productcategory'

@@ -11,6 +11,7 @@ class RebetaSchemaCache(cacheable.LocalCacheable):
 
     def load(self):
         data = []
+        # TODO 要考虑数据变更及model更新产生异常
         for row in AgencyOrderRebetaScheme.objects.filter(
                 status=AgencyOrderRebetaScheme.NORMAL):
             data.append({'id': row.id, 'name': row.name})
@@ -30,6 +31,7 @@ class ProductCategoryCache(cacheable.LocalCacheable):
 
     def load(self):
         data = []
+        # TODO 要考虑数据变更及model更新产生异常
         for row in ProductCategory.objects.filter(is_parent=True).exclude(
                 name__in=self.EX_NAMES).order_by('cid'):
             data.append({'id': row.cid, 'name': unicode(row)})

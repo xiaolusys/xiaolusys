@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>新增商品-美容养生</title>
+    <link href="http://cdn.bootcss.com/select2/3.5.2/select2.min.css" rel="stylesheet"/>
+    <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="http://admin.xiaolumm.com/static/jquery/jquery-1.8.13.min.js"></script>
+    <script type="text/javascript" src="js/main_category.js"></script>
+    <script type="text/javascript" src="js/get_category.js"></script>
+    <script type="text/javascript" src="http://cdn.bootcss.com/select2/3.5.1/select2.min.js"></script>
+    <script type="text/javascript" src="http://cdn.bootcss.com/select2/3.5.1/select2_locale_zh-CN.js"></script>
+    <script type="text/javascript" src="http://cdn.bootcss.com/select2/3.5.1/select2_locale_zh-CN.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://admin.xiaolumm.com/static/jquery/jquery-ui-1.10.1.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
+    <link href="/static/jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="/static/jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="/static/jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="/static/jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    <style>
+        .panel-success .row {
+            margin-top: 20px;
+        }
+        .category {
+            height: 100%;
+            padding: 0px 0px;
+        }
+        .checkbox-inline {
+            width: 100px;
+        }
+        .panel-body .row{
+            margin-top: 0px;
+        }
+        .panel-select div.row{
+            margin-top: 20px;
+        }
+        div.panel-body + div.panel-body{
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+<div class="container" style="margin-top: 30px">
+    <form action="#" method="post">
+    <input type="hidden"  name="saleproduct_id" value="{{saleproduct.id}}" placeholder="...">
+    <div class="panel panel-success">
+        <div class="panel-heading">
+            <h3 class="panel-title">填写商品信息 <small>({{supplier.supplier_name}})</small></h3>
+        </div>
+        <div class="panel-body">
+            <div class="row" style="margin-bottom:10px;">
+                <div class="form-group col-xs-12">
+                    <label for="first_category">选择分类</label>
+                </div>
+                <div class="col-xs-4">
+                    <select  class="form-control category" id="first_category" placeholder="一级类目">
+                    </select>
+                </div>
+                <div class="col-xs-4">
+                    <select class="form-control category" id="second_category" placeholder="二级类目">
+                    </select>
+                </div>
+                <div class="col-xs-4">
+                    <select class="form-control category" id="third_category" name="category_id" placeholder="三级类目">
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-xs-6">
+                    <label for="product_name">产品名称</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="...">
+                </div>
+                <div class="form-group col-xs-6">
+                    <label for="note">备注</label>
+                    <input type="text" class="form-control" id="memo" name="memo" placeholder="...">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-xs-6">
+                    <label for="sale_time">上架时间</label>
+                    <input type="text" id="sale_time" name="sale_time" class="form-control datepicker"
+                           value="{{saleproduct.sale_time|date:'Y-m-d'}}" readonly/>
+                </div>
+                <div class="form-group col-xs-6">
+                    <label for="head_img">头图</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="head_img" id="header_img_content"
+                               aria-describedby="basic-addon2">
+                        <div class="input-group-addon" id="basic-addon2" style="padding:0 0;">
+                            <div id="container">
+                                <a class="btn btn-default" id="pickfiles" href="javascript:void(0)">
+                                    <i class="glyphicon glyphicon-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="form-group col-xs-6">
+                    <label for="qs_code">生产许可证编号:</label>
+                    <input type="text" class="form-control" id="qs_code" name="qs_code" placeholder="...">
+                </div>
+                <div class="form-group col-xs-6">
+                    <label for="qhby_code">产品标准号:</label>
+                    <input type="text" class="form-control" id="qhby_code" name="qhby_code"  placeholder="...">
+                </div>
+            </div>
+        </div>
+        <div class="panel-body panel-select">
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="slight">
+                        <label>
+                            规格类别
+                        </label>
+                    </div>
+                    <div class="slight">
+                        <input type="text" class="form-control color-add" size="10" maxlength="10" placeholder="添加类别">
+                    </div>
+                    <div class="slight">
+                        <a class="btn btn-primary" id="color-add">添加</a>
+                    </div>
+                </div>
+                <div class="col-md-10 checkbox-group" style="padding-left:31px">
+                    <div class="row bg-danger">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="经典">
+                            经典
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="黑苦荞">
+                            黑苦荞
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="茉莉花">
+                            茉莉花
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="雪菊">
+                            雪菊
+                        </label>
+                    </div>
+                    <div class="row bg-primary">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="百合干">
+                            百合干
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="焦决明子">
+                            焦决明子
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="柠檬干">
+                            柠檬干
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="枸杞">
+                            枸杞
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="金银花">
+                            金银花
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="牛蒡茶">
+                            牛蒡茶
+                        </label>
+                    </div>
+                    <div class="row bg-info">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="桂花">
+                            桂花
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="苦丁茶">
+                            苦丁茶
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="山楂干">
+                            山楂干
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="荷叶茶">
+                            荷叶茶
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="洛神花">
+                            洛神花
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" class="color-choose" value="胎菊">
+                            胎菊
+                        </label>
+                    </div>
+                    <div class="row" id="other-colors">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-body panel-form">
+            <table class="table table-striped" id="table-color-selected">
+                <thead>
+                <th>
+                    规格名称
+                </th>
+                <!--
+                <th>
+                    供应商货号/编码
+                </th>
+                -->
+                <th width="15%">
+                    预留数
+                </th>
+                <th width="15%">
+                    成本价
+                </th>
+                <th width="15%">
+                    吊牌价
+                </th>
+                <th width="15%">
+                    出售价
+                </th>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel-footer">
+            <button id="submit" class="btn btn-primary create_product" >生成新款</button>
+        </div>
+    </div>
+    </form>
+    <div style="display:none" id="success" class="col-md-12">
+        <div class="alert-success">
+            队列全部文件处理完毕
+        </div>
+    </div>
+    <div class="col-md-12 ">
+        <table class="table table-striped table-hover text-left" style="margin-top:40px;display:none">
+            <thead>
+            <tr>
+                <th class="col-md-4">Filename</th>
+                <th class="col-md-2">Size</th>
+                <th class="col-md-6">Detail</th>
+            </tr>
+            </thead>
+            <tbody id="fsUploadProgress">
+            </tbody>
+        </table>
+    </div>
+</div>
+<input hidden="" id="domain" value="http://image.xiaolu.so/">
+<input hidden="" id="uptoken_url" value="/mm/qiniu/?format=json">
+{% verbatim %}
+<script id="color-tr-template" type="text/html">
+    {{ each colors as one_color i}}
+    <tr class="color-data" data-name="{{ one_color.id }}">
+        <td >
+            <span class="color-name">{{ one_color.label }}</span>
+        </td>
+        <td><input type="text" id="{{ one_color.id }}_remainnum" class="form-control c_remainnum"/></td>
+        <td><input type="text" id="{{ one_color.id }}_cost" class="form-control c_cost"/></td>
+        <td><input type="text" id="{{ one_color.id }}_pricestd"  class="form-control c_pricestd"/></td>
+        <td><input type="text" id="{{ one_color.id }}_agentprice" class="form-control c_agentprice"/></td>
+    </tr>
+    {{/each}}
+</script>
+<script id="color-choose-templte" type="text/html">
+    <label class="checkbox-inline">
+        <input type="checkbox" class="color-choose" value="{{ color }}" checked>
+        {{ color }}
+    </label>
+</script>
+{% endverbatim %}
+<script type="text/javascript" src="/static/wap/js/sweet-alert.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/main_category.js?v=1.2"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/get_category.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_model.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}wap/js/template.js"></script>
+<script type="text/javascript" src="http://cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+<script type="text/javascript" src="http://cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/ui.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/qiniu.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/main.js"></script>
+<script>
+function dynamicGenerateColor() {
+    var all_color = $("input.color-choose:checked"),
+        color = [],
+        count = 0;
+    $.each(all_color, function (index, one_color) {
+        color[count++] = one_color.defaultValue;
+    });
+
+    if (count == 0) {
+        $('#table-color-selected tbody').html("");
+        return
+    }
+    var result = {
+        title: '渲染',
+        colors: _.map(color, function(el){
+            return {id: String(el), label: el};
+        }),
+    };
+    console.log('color data:', color, result);
+    var html = template('color-tr-template', result);
+    $('#table-color-selected tbody').html(html);
+
+    $(".c_remainnum:first").change(function(){
+        $('input[id$=remainnum]').val($(this).val());
+    });
+    $(".c_cost:first").change(function(){
+        $('input[id$=cost]').val($(this).val());
+    });
+    $(".c_pricestd:first").change(function(){
+        $('input[id$=pricestd]').val($(this).val());
+    });
+    $(".c_agentprice:first").change(function(){
+        $('input[id$=agentprice]').val($(this).val());
+    });
+}
+$(function(){
+    $('input.datepicker').datepicker({
+        dateFormat: 'yy-mm-dd',
+    });
+
+    $("#color-add").click(function () {
+        var colortext = $(".color-add").val().trim().replace(/[\/<>#:@()*+\$!]+/g, '');
+        $(".color-add").val(colortext);
+        if (colortext.length > 0) {
+            $("#other-colors").append(template("color-choose-templte", {"color": colortext}));
+            $(".color-choose").click(dynamicGenerateColor);
+            dynamicGenerateColor();
+        }else{
+            swal("填写空白", "(^_^)", "warning");
+        }
+    });
+
+    $('input.color-choose').click(function(){
+        dynamicGenerateColor();
+    })
+
+    function getColorValues(){
+        var $colorsTr = $('tr.color-data'),
+            colorObjList = [];
+        $.each($colorsTr, function(index, elem){
+            var $elem = $(elem);
+            var obj = {
+                name: $elem.attr('data-name'),
+                remain_num: $elem.find('input.c_remainnum').val(),
+                cost: $elem.find('input.c_cost').val(),
+                std_sale_price: $elem.find('input.c_pricestd').val(),
+                agent_price: $elem.find('input.c_agentprice').val(),
+            };
+            colorObjList.push(obj);
+        });
+        return colorObjList;
+    }
+
+    $('form').submit(function(e){
+        e.preventDefault();
+        var form = $(this);
+        var callback = function(resp,status,xhr){
+            swal(resp.info, "(^_^)", "warning");
+        }
+
+        var form_array = form.serializeArray();
+        var params = {};
+        var hasAllValue = true;
+        var colorObjs = getColorValues();
+        if(colorObjs.length == 0){
+            swal("请至少选个一个规格类目", "(^_^)", "warning");
+            return;
+        }
+
+        $.each(form_array,function(i, n){
+            params[n['name']] = n['value'].trim();
+            hasAllValue &= n['value'].trim()!=''? 1:0;
+        });
+        if (!hasAllValue){
+            console.log('color objects:', params);
+            swal("请填写必填参数", "(^_^)", "warning");
+            return;
+        }
+        params.products = colorObjs;
+        $('.create_product').attr('disabled',true);
+        $.ajax({
+            type:'post',
+            url:'/apis/items/v1/product/multi_create',
+            data:JSON.stringify(params),
+            dataType: "json",
+            contentType: 'application/json',
+            success:callback ,
+            error:function(err){
+                $('.create_product').attr('disabled',null);
+                swal('保存出错：'+err.responseText, "(^_^)", "error");
+            }
+        });
+        return false;
+    });
+});
+</script>
+</body>
+</html>

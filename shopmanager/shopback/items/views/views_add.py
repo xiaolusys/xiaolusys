@@ -15,6 +15,7 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import exceptions
+from rest_framework.decorators import detail_route, list_route
 
 from common import page_helper
 from flashsale.pay.models import ModelProduct, Productdetail
@@ -35,11 +36,14 @@ logger = logging.getLogger(__name__)
 class AddItemView(generics.ListCreateAPIView):
     queryset = ProductCategory.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
-    template_name = "items/add_item.html"
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        return Response({"v": "v"})
+        return Response({"v": "v"}, template_name='items/add_item.html')
+
+    @list_route(methods=['get'])
+    def health(self, request, *args, **kwargs):
+        return Response({"v": "v"}, template_name='items/add_item_health.html')
 
     # @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -80,7 +84,7 @@ class AddItemView(generics.ListCreateAPIView):
         else:
             return Response({"result": "类别错误"})
 
-        count = 1
+        count = Product.objects.filter(outer_id__startswith=outer_id).count() or 1
         while True:
             inner_outer_id = outer_id + "%03d" % count
             product_ins = Product.objects.filter(outer_id__startswith=inner_outer_id).first()
@@ -171,7 +175,6 @@ class GetCategory(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         result_data = {}
-
         root_category = self.queryset.filter(parent_cid=0)
         temp = {}
         for category in root_category:
@@ -186,8 +189,7 @@ class GetCategory(generics.ListCreateAPIView):
                 for t_category in third_child_category:
                     third_temp[t_category.cid] = t_category.name
                 if third_child_category.count() > 0:
-                    result_data["0," + str(category.cid) + "," + str(
-                        c_category.cid)] = third_temp
+                    result_data["0," + str(category.cid) + "," + str(c_category.cid)] = third_temp
             result_data["0," + str(category.cid)] = child_temp
         result_data['0'] = temp
         return Response(result_data)

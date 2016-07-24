@@ -14,7 +14,11 @@ from .models import (
     SaleSupplier,
     SaleCategory,
     SupplierCharge,
-    SupplierFigure
+    SupplierFigure,
+    HotProduct,
+    SupplierZone,
+    BuyerGroup,
+    SalePraise,
 )
 
 from .forms import SaleSupplierForm
@@ -22,9 +26,8 @@ from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter, Suppl
 from core.filters import DateFieldListFilter
 from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
-from models_hots import HotProduct
 from supplychain.supplier.models import SaleProduct, SaleProductManage, SaleProductManageDetail
-from .models import SupplierZone
+
 from shopback.items.models import Product
 from django.contrib.auth.models import User
 
@@ -577,7 +580,6 @@ class SaleProductAdmin(ApproxAdmin):
     status_link.short_description = u"状态／操作"
 
     def select_Contactor(self, obj):
-        from models_buyer_group import BuyerGroup
 
         buyer_groups = (0, 1, 2, 3)
         name = str(obj.contactor)
@@ -750,8 +752,6 @@ class SaleProductAdmin(ApproxAdmin):
 
 admin.site.register(SaleProduct, SaleProductAdmin)
 
-from models_buyer_group import BuyerGroup
-
 
 class BuyerGroupAdmin(admin.ModelAdmin):
     list_display = ('id', 'buyer_name', 'buyer_group', 'created')
@@ -761,8 +761,6 @@ class BuyerGroupAdmin(admin.ModelAdmin):
 
 
 admin.site.register(BuyerGroup, BuyerGroupAdmin)
-
-from models_praise import SalePraise
 
 
 class SalePraiseAdmin(admin.ModelAdmin):

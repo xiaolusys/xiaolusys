@@ -117,10 +117,18 @@ class ModelProductSerializer(serializers.ModelSerializer):
     content_imgs = JsonListField(read_only=True, required=False)
     is_single_spec = serializers.BooleanField(read_only=True)
     is_sale_out = serializers.BooleanField(read_only=True)
-
+    buy_limit = serializers.SerializerMethodField()
+    per_limit = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
+        extra_kwargs = { 'buy_limit': {}, 'per_limit': {} }
         fields = ('id', 'name', 'head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
+
+    def get_buy_limit(self, obj):
+        return False
+
+    def get_per_limit(self, obj):
+        return 3
 
 
 class ActivityProductSerializer(serializers.ModelSerializer):
@@ -596,7 +604,7 @@ class SaleProductSerializer(serializers.ModelSerializer):
         model = SaleProduct
 
 
-from supplychain.supplier.models_hots import HotProduct
+from supplychain.supplier.models import HotProduct
 
 
 class HotProductSerializer(serializers.ModelSerializer):
@@ -825,6 +833,10 @@ class SaleFaqerializer(serializers.ModelSerializer):
 
 
 class ModelProductV2Serializer(serializers.ModelSerializer):
+    extras = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
         fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras') #
+
+    def get_extras(self, obj):
+        return obj.extras.get('saleinfos',{})

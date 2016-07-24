@@ -3,7 +3,6 @@ from .models import Product, ProductSku, Item, DepositeDistrict, ProductLocation
 from shopback.categorys.models import Category
 from shopback.users.models import User
 
-
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category

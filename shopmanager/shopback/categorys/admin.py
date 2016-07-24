@@ -15,7 +15,7 @@ admin.site.register(Category, CategoryAdmin)
 
 
 class ProductCategoryAdmin(admin.ModelAdmin):
-    list_display = ('cid', 'parent_cid', 'full_name', 'is_parent', 'status', 'sort_order')
+    list_display = ('cid', 'parent_cid', 'full_name', 'grade', 'is_parent', 'status', 'sort_order')
 
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
