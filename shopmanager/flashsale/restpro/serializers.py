@@ -120,7 +120,6 @@ class ModelProductSerializer(serializers.ModelSerializer):
     per_limit = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
-        extra_kwargs = { 'buy_limit': {}, 'per_limit': {} }
         fields = ('id', 'name', 'head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
 
     def get_buy_limit(self, obj):
@@ -133,17 +132,25 @@ class SimpleModelProductSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     is_single_spec = serializers.BooleanField(read_only=True)
     is_sale_out = serializers.BooleanField(read_only=True)
+    head_imgs = serializers.SerializerMethodField()
+    content_imgs = serializers.SerializerMethodField()
     buy_limit = serializers.SerializerMethodField()
     per_limit = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
-        fields = ('id', 'name', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
+        fields = ('id', 'name', 'is_single_spec', 'is_sale_out', 'head_imgs', 'content_imgs','buy_limit', 'per_limit')
 
     def get_buy_limit(self, obj):
         return False
 
     def get_per_limit(self, obj):
         return 3
+
+    def get_head_imgs(self, obj):
+        return []
+
+    def get_content_imgs(self, obj):
+        return []
 
 class ActivityProductSerializer(serializers.ModelSerializer):
 
@@ -206,7 +213,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     name = serializers.SerializerMethodField(read_only=True)
     category = ProductCategorySerializer(read_only=True)
     #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
-    product_model = ModelProductSerializer(read_only=True)
+    product_model = ModelProductSerializer(source="get_product_model", read_only=True)
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
     is_saleopen = serializers.BooleanField(source='sale_open', read_only=True)
     is_newgood = serializers.BooleanField(source='new_good', read_only=True)
@@ -221,6 +228,8 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
                   'watermark_op', 'web_url', 'sale_product')
 
     def get_name(self, obj):
+        if obj.is_flatten:
+            return obj.name
         return obj.name.split('/')[0]
 
 
