@@ -266,12 +266,6 @@ class ReturnGoods(models.Model):
         #                                                       ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
         #                                                       ReturnGoods.SUCCEED_RG]).exists()
 
-        if sku:
-            not_in_unreturn = not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
-            onshelf = datetime.datetime.now() < ProductSku.objects.get(
-                id=sku).product.offshelf_time < datetime.datetime.now() + datetime.timedelta(days=7)
-            return not_in_unreturn and not onshelf
-
         if supplier_id:
             supplier = SaleSupplier.objects.get(id=supplier_id)
             if ReturnGoods.objects.filter(supplier_id=supplier_id, status__in=[ReturnGoods.CREATE_RG,
@@ -287,6 +281,12 @@ class ReturnGoods(models.Model):
                                                       'return_quantity') \
                                                                - F('rg_quantity')).exclude(
                 sku__id__in=unreturn_sku_ids).exists()
+        
+        if sku:
+            not_in_unreturn = not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
+            onshelf = datetime.datetime.now() < ProductSku.objects.get(
+                id=sku).product.offshelf_time < datetime.datetime.now() + datetime.timedelta(days=7)
+            return not_in_unreturn and not onshelf
 
     @staticmethod
     def get_user_by_supplier(supplier_id):
