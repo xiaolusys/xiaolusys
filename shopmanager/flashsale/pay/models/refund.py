@@ -393,7 +393,7 @@ class SaleRefund(PayBaseModel):
         if self.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and self.good_status == SaleRefund.BUYER_RECEIVED:
             from shopback.refunds.models import REFUND_REASON
 
-            if self.reason in [REFUND_REASON[3][1], REFUND_REASON[4][1]]:  # 质量原因/错发/漏发
+            if self.reason in [REFUND_REASON[3][1], REFUND_REASON[4][1], REFUND_REASON[10][1]]:  # 质量原因/错发/漏发/七天无理由
                 self.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
                 self.save(update_fields=['status'])
             return True
