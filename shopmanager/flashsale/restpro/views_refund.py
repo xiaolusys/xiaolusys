@@ -1,4 +1,5 @@
 # coding=utf-8
+import datetime
 import math
 import logging
 from core.options import log_action, ADDITION, CHANGE
@@ -184,6 +185,13 @@ def refund_Handler(request):
         # 创建退款单
         if refund:
             return {"code": 8, "info": "申请已经提交!", "apply_fee": refund_fee}
+        if int(reason) == 10 and order.status == SaleOrder.TRADE_BUYER_SIGNED:
+            # 如果是七天无理由退货　判定是否是签收后　七天以内
+            now = datetime.datetime.now()
+            d = (now - order.sign_time).days
+            if d > 7:
+                return {"code": 10, "info": "您的订单已经超过七天,请选择重选原因申请", "apply_fee": 0}
+
         create_refund(user=user, reason=reason, num=num, refund_fee=refund_fee, desc=desc, good_status=good_status,
                       order=order, modify=modify, proof_pic=proof_p, refund_channel=refund_channel)
 
