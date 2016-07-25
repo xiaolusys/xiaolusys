@@ -122,7 +122,6 @@ class UserAddress(BaseModel):
         verbose_name_plural = u'特卖用户/地址列表'
 
     def __unicode__(self):
-
         return '<%s,%s>' % (self.id, self.cus_uid)
 
     def set_default_address(self):
@@ -148,6 +147,23 @@ class UserAddress(BaseModel):
                 changed = True
                 setattr(self, attr, val.strip())
         return changed
+
+class UserSingleAddress(BaseModel):
+    receiver_state = models.CharField(max_length=16, blank=True,verbose_name=u'省')
+    receiver_city = models.CharField(max_length=16, blank=True,verbose_name=u'市')
+    receiver_district = models.CharField(max_length=16, blank=True, verbose_name=u'区')
+    receiver_address = models.CharField(max_length=128, blank=True, verbose_name=u'详细地址')
+    receiver_zip = models.CharField(max_length=10, blank=True, verbose_name=u'邮编')
+    uni_key = models.CharField(max_length=64, unique=True, verbose_name=u'完整地址唯一KEY')
+    address_hash = models.CharField(max_length=128, blank=True, db_index=True, verbose_name=u'地址哈希')
+    note_id = models.IntegerField(default=0, verbose_name=u'完整地址ID')
+
+    class Meta:
+        db_table = 'flashsale_single_address'
+        app_label = 'pay'
+        verbose_name=u'特卖用户/唯一地址'
+        verbose_name_plural = u'特卖用户/唯一地址列表'
+
 
 
 class UserAddressChange(BaseModel):

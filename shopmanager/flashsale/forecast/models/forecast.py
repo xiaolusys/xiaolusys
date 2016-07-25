@@ -219,7 +219,7 @@ class ForecastInboundDetail(BaseModel):
 
     forecast_inbound = models.ForeignKey(ForecastInbound, related_name='details_manager', verbose_name=u'关联预测单')
 
-    product_id = models.IntegerField(verbose_name=u'商品ID')
+    product_id = models.IntegerField(db_index=True, verbose_name=u'商品ID')
     sku_id = models.IntegerField(verbose_name=u'规格ID')
     forecast_arrive_num = models.IntegerField(verbose_name='预测到货数量')
 
@@ -230,6 +230,7 @@ class ForecastInboundDetail(BaseModel):
 
     class Meta:
         db_table = 'forecast_inbound_detail'
+        unique_together = ('sku_id', 'forecast_inbound')
         app_label = 'forecast'
         verbose_name = u'预测到货明细'
         verbose_name_plural = u'预测到货明细列表'
