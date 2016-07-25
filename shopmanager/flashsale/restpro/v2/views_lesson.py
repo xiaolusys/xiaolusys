@@ -66,13 +66,20 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     """
     Return lesson topics.
     ### 小鹿妈妈/主题课程接口
-    - address: /rest/lesson/lessontopic
+    - address1: /rest/lesson/lessontopic
       主题课程list  
       method: get  
       args:  
       `lesson_type`: 课程类型filter（3:基础课程,0: 课程,1: 实战, 2:知识）  
       `ordering`: 排序（num_attender：　参加人数排序, created：　创建时间排序 ）  
 
+    - address2: /rest/lesson/lessontopic/extra_data  
+      接口附加信息  
+      method: get  
+      args:  
+      `lesson_type`: 课程类型filter（3:基础课程,0: 课程,1: 实战, 2:知识）  
+      return:  
+      `total_num_attender`: 有效主题的总参加人数  
     """
     paginate_by = 10
     page_query_param = 'page'
@@ -88,6 +95,13 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     ordering_fields = ('num_attender', 'created', 'modified', 'lesson_type')
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    @list_route(methods=['get'])
+    def extra_data(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        total_num_attender = queryset.filter(status=LessonTopic.STATUS_EFFECT).aggregate(
+            s_num_attender=Sum('num_attender')).get('s_num_attender') or 0
+        return Response({'total_num_attender': total_num_attender})
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
