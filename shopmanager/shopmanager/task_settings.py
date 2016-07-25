@@ -1196,7 +1196,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-
+    u'定时设定APP下载用户是否注册': {
+        'task': 'flashsale.promotion.tasks.task_update_appdownload_record',
+        'schedule': crontab(minute="30", hour="0"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 }
 
 CELERYBEAT_SCHEDULE = {}
