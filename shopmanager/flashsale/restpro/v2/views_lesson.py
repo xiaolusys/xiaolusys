@@ -14,7 +14,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import exceptions
 from rest_framework.views import APIView
-
+from rest_framework import filters
 from flashsale.pay.models import Customer
 from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models import XiaoluMama
@@ -55,10 +55,24 @@ def get_xiaolu_university_activity_entry():
     return None
     
     
+class LessonTopicFilter(filters.FilterSet):
+
+    class Meta:
+        model = LessonTopic
+        fields = ['lesson_type']
+
 
 class LessonTopicViewSet(viewsets.ModelViewSet):
     """
     Return lesson topics.
+    ### 小鹿妈妈/主题课程接口
+    - address: /rest/lesson/lessontopic
+      主题课程list  
+      method: get  
+      args:  
+      `lesson_type`: 课程类型filter（3:基础课程,0: 课程,1: 实战, 2:知识）  
+      `ordering`: 排序（num_attender：　参加人数排序, created：　创建时间排序 ）  
+
     """
     paginate_by = 10
     page_query_param = 'page'
@@ -69,15 +83,21 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     serializer_class = lesson_serializers.LessonTopicSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
+    filter_class = LessonTopicFilter
+    ordering_fields = ('num_attender', 'created', 'modified', 'lesson_type')
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
-        topics = self.paginate_queryset(self.queryset)
-        serializer = lesson_serializers.LessonTopicSerializer(topics, many=True)
-        res = self.get_paginated_response(serializer.data)
-        #res['Access-Control-Allow-Origin'] = '*'
-        return res
-        
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
