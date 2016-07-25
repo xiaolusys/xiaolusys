@@ -281,7 +281,7 @@ class ReturnGoods(models.Model):
                                                       'return_quantity') \
                                                                - F('rg_quantity')).exclude(
                 sku__id__in=unreturn_sku_ids).exists()
-        
+
         if sku:
             not_in_unreturn = not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
             onshelf = datetime.datetime.now() < ProductSku.objects.get(

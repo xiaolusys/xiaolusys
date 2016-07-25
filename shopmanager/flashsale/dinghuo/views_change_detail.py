@@ -264,7 +264,7 @@ def generate_return_goods(request):
     supplier = request.REQUEST.get("supplier", None)
     stype = request.REQUEST.get("type", 0)
     try:
-        ss = SaleSupplier.objects.filter(supplier_name=supplier).first()
+        ss = SaleSupplier.objects.get(Q(supplier_name=supplier) | Q(id=supplier))
     except Exception, msg:
         return HttpResponse(json.dumps({"res": False, "data": [], "desc": "供应商不存在"}))
     try:
