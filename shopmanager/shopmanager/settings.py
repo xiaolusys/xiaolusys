@@ -492,7 +492,7 @@ if not DEBUG:
     LOGGER_HANDLERS = [
         ('shopback', 'sentry'),
         ('shopapp', 'sentry'),
-        ('flashsale', 'sentry,file'),
+        ('flashsale', 'sentry'),
         ('core', 'sentry'),
         ('auth', 'sentry'),
         ('supplychain', 'sentry'),
@@ -536,11 +536,9 @@ if not DEBUG:
         'handlers': {
             'file': {
                 'level': 'DEBUG',
-                'class': 'logging.RotatingFileHandler',
+                'class': 'logging.FileHandler',
                 'filename': '/tmp/django-debug.log',
-                'maxBytes': 1024 * 1024 * 200,  # 200 MB
-                'backupCount': 5,
-                'formatter': 'verbose'
+                'formatter': 'simple'
             },
             'sentry': {
                 'level': 'WARN',
