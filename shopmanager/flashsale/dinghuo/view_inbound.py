@@ -55,7 +55,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if not optimize_groups:
             optimize_groups = forecast_group_sum
         optimize_forecast_id = max(optimize_groups, key=lambda x: optimize_groups.get(x))
-        logger.warning('inbound:optimize_forecast_id=%s, optimize_groups=%s'%(optimize_forecast_id, optimize_groups))
+        logger.warning('inbound:optimize_forecast_id=%s, forecast_group=%s, optimize_groups=%s'%(
+            optimize_forecast_id, dict(forecast_group), optimize_groups))
         return optimize_forecast_id
 
     @list_route(methods=['post'])
