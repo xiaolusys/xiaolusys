@@ -26,10 +26,12 @@ class LessonTopic(BaseModel):
     STATUS_CANCELED = 2
     STATUS_TYPES = ((STATUS_EFFECT, u'有效'), (STATUS_CANCELED, u'取消'))
 
+    LESSON_NEWEST_COURSE = 3
     LESSON_COURSE = 0
     LESSON_PRACTICE = 1
     LESSON_KNOWLEDGE = 2
-    LESSON_TYPES = ((LESSON_COURSE, u'课程'), (LESSON_PRACTICE, u'实战'), (LESSON_KNOWLEDGE, u'知识'))
+    LESSON_TYPES = ((LESSON_NEWEST_COURSE, u'基础课程'), (LESSON_COURSE, u'课程'),
+                    (LESSON_PRACTICE, u'实战'), (LESSON_KNOWLEDGE, u'知识'))
 
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
     description = models.TextField(max_length=512, blank=True, verbose_name=u'课程描述')
