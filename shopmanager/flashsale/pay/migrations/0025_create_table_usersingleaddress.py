@@ -7,8 +7,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pay', '0023_change_refund_proofpic_default'),
+        ('pay', '0024_add_field_extras_salecategory'),
     ]
+
 
     operations = [
         migrations.CreateModel(
