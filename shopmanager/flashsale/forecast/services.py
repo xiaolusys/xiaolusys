@@ -393,9 +393,7 @@ class AggregateForcecastOrderAndInbound(object):
             aggregate_dict_list.append({
                 'order_group_key': group_key,
                 'purchase_orders': aggregate_orders,
-                'forecast_inbounds': sorted(distinct_forecast_orders,
-                    key= lambda x:x['status'], cmp= lambda x,y: -1 if x==ForecastInbound.ST_FINISHED else
-                    (y==ForecastInbound.ST_FINISHED and -1 or 1)),
+                'forecast_inbounds': distinct_forecast_orders,
                 'real_inbounds': distinct_realinbound_orders,
                 'is_unarrive_intime': is_unarrive_intime,
                 'is_unrecord_logistic': is_unrecord_logistic,

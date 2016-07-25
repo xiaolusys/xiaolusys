@@ -45,6 +45,7 @@ from django.http import HttpResponse
 import datetime, time
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -66,8 +67,10 @@ class SaleOrderInline(admin.TabularInline):
 
 
 class SaleOrderAdmin(ApproxAdmin):
-    list_display = ('id', 'show_trade', 'package_sku_item_link_to', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'pay_time',
-                    'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
+    list_display = (
+    'id', 'show_trade', 'package_sku_item_link_to', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment',
+    'pay_time',
+    'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -81,7 +84,7 @@ class SaleOrderAdmin(ApproxAdmin):
     show_trade.short_description = '订单ID'
 
     def get_readonly_fields(self, request, obj=None):
-        return self.readonly_fields + ('sale_trade', 'oid' , 'buyer_id')
+        return self.readonly_fields + ('sale_trade', 'oid', 'buyer_id')
 
     PACKAGE_SKU_ITEM_LINK = (
         '<a href="%(pki_url)s" target="_blank">'
@@ -92,6 +95,7 @@ class SaleOrderAdmin(ApproxAdmin):
             'pki_url': '/admin/trades/packageskuitem/?oid=%s' % obj.oid,
             'oid': obj.oid
         }
+
     package_sku_item_link_to.allow_tags = True
     package_sku_item_link_to.short_description = u'SKU交易单号'
 
@@ -106,7 +110,8 @@ class SaleTradeAdmin(BaseModelAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (
-        'status', 'channel', 'has_budget_paid', 'order_type', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+        'status', 'channel', 'has_budget_paid', 'order_type', ('pay_time', DateFieldListFilter),
+        ('created', DateFieldListFilter))
     search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
 
     inlines = [SaleOrderInline]
@@ -152,9 +157,10 @@ class SaleTradeAdmin(BaseModelAdmin):
     def id_link(self, obj):
         return ('<a href="%(url)s" target="_blank">'
                 '%(show_text)s</a>') % {
-                'url': '/admin/pay/saletrade/%d/' % obj.id,
-                'show_text': str(obj.id)
-            }
+                   'url': '/admin/pay/saletrade/%d/' % obj.id,
+                   'show_text': str(obj.id)
+               }
+
     id_link.allow_tags = True
     id_link.short_description = u"ID"
 
@@ -226,10 +232,11 @@ class DistrictAdmin(ApproxAdmin):
     list_display = ('id', 'name', 'full_name', 'parent_id', 'grade', 'zipcode', 'sort_order', 'is_valid')
     search_fields = ['=id', '=parent_id', '^name']
 
-    list_filter = ('grade','is_valid')
+    list_filter = ('grade', 'is_valid')
 
 
 admin.site.register(District, DistrictAdmin)
+
 
 class DistrictVersionAdmin(ApproxAdmin):
     list_display = ('id', 'version', 'hash256', 'memo', 'status')
@@ -250,19 +257,19 @@ class DistrictVersionAdmin(ApproxAdmin):
         if not obj.download_url:
             try:
                 districts_data = get_district_json_data()
-                districts_jsonstring = json.dumps(districts_data,indent=2)
+                districts_jsonstring = json.dumps(districts_data, indent=2)
                 string_io = StringIO.StringIO(districts_jsonstring)
                 resp = upload_public_to_remote(obj.gen_filepath(), string_io)
                 obj.hash256 = hashlib.sha1(districts_jsonstring).hexdigest()
                 logger.info('upload public resp:%s' % resp)
                 if resp.status_code != 200:
-                    obj.memo += u'地址数据文件上传异常:%s'% resp.text_body
-                    obj.save(update_fields=['memo','hash256'])
-                    raise Exception(u'地址数据文件上传异常:%s'% resp.text_body)
+                    obj.memo += u'地址数据文件上传异常:%s' % resp.text_body
+                    obj.save(update_fields=['memo', 'hash256'])
+                    raise Exception(u'地址数据文件上传异常:%s' % resp.text_body)
 
                 obj.download_url = generate_public_url(obj.gen_filepath())
                 obj.status = True
-                obj.save(update_fields=['download_url','memo','hash256', 'status'])
+                obj.save(update_fields=['download_url', 'memo', 'hash256', 'status'])
             except Exception, exc:
                 self.message_user(request, u"区划版本更新失败：%s" % (exc.message))
                 logger.error(u"区划版本更新失败：%s" % (exc.message), exc_info=True)
@@ -336,6 +343,7 @@ class SaleRefundAdmin(BaseModelAdmin):
                    'url': '/admin/pay/salerefund/%d/' % obj.id,
                    'show_text': str(obj.id)
                }
+
     id_link.allow_tags = True
     id_link.short_description = u"ID"
 
@@ -352,6 +360,7 @@ class SaleRefundAdmin(BaseModelAdmin):
             'pki_url': '/admin/trades/packageskuitem/?sale_order_id=%s' % obj.order_id,
             'oid': obj.order_id
         }
+
     package_sku_item_link_to.allow_tags = True
     package_sku_item_link_to.short_description = u'SKU交易单号'
 
@@ -370,10 +379,12 @@ class SaleRefundAdmin(BaseModelAdmin):
             from shopback.refunds.models import RefundProduct
             refundpro = RefundProduct.objects.filter(out_sid=obj.sid).first()
             if refundpro:
-                html = "<a href='/admin/refunds/refundproduct/?out_sid={0}' style='color:green'>{0}></a>".format(obj.sid)
+                html = "<a href='/admin/refunds/refundproduct/?out_sid={0}' style='color:green'>{0}></a>".format(
+                    obj.sid)
             else:
                 html = "<a style='color:red'>{0}</a>".format(obj.sid)
         return html
+
     refund_pro_link.allow_tags = True
     refund_pro_link.short_description = "退回快递单号"
 
@@ -544,6 +555,7 @@ class SaleRefundAdmin(BaseModelAdmin):
             'pki_url': '/admin/trades/packageskuitem/?sale_order_id=%s' % obj.order_id,
             'order_id': obj.order_id
         }
+
     pki_link_to.allow_tags = True
     pki_link_to.short_description = u'交易单ID'
 
@@ -621,17 +633,22 @@ class BrandProductInline(admin.TabularInline):
     fields = ('product_name', 'product_img', 'model_id', 'start_time', 'end_time',)
 
 
-
 class ModelProductAdmin(ApproxAdmin):
-    list_display = ('id', 'name', 'sale_time', 'salecategory','status', 'created')
+    list_display = ('id', 'name', 'sale_time', 'salecategory', 'status', 'created')
 
-    list_filter = ( 'status',
+    list_filter = ('status',
+                   'is_flatten',
                    ('created', DateFieldListFilter))
     # -------------- 页面布局 --------------
-    fieldsets = (('基本信息:', {'classes': ('expand',),
-                            'fields': (('name', 'salecategory'),
-                                       ('head_imgs', 'content_imgs')
-                                       , 'extras', ('status'))}),)
+    fieldsets = (('基本信息:',
+                  {'classes': ('expand',),
+                   'fields': (
+                       ('name', 'salecategory'),
+                       ('head_imgs', 'content_imgs')
+                       , 'extras', ('status', 'is_flatten')
+                   )
+                   }),
+                 )
     search_fields = ['name', '=id']
     list_per_page = 50
 
@@ -657,6 +674,7 @@ class GoodShelfAdmin(admin.ModelAdmin):
     preview_link.allow_tags = True
     preview_link.short_description = u"预览"
 
+
 admin.site.register(GoodShelf, GoodShelfAdmin)
 
 
@@ -679,7 +697,7 @@ class BrandEntryAdmin(admin.ModelAdmin):
 
 
 class BrandProductAdmin(ApproxAdmin):
-    list_display = ('id','brand_name', 'product_name', 'product_img', 'model_id', 'start_time', 'end_time')
+    list_display = ('id', 'brand_name', 'product_name', 'product_img', 'model_id', 'start_time', 'end_time')
 
     list_filter = (('start_time', DateFieldListFilter), ('end_time', DateFieldListFilter))
     search_fields = ['brand_name']
@@ -713,7 +731,6 @@ class IntegralLogAdmin(admin.ModelAdmin):
 
 
 admin.site.register(IntegralLog, IntegralLogAdmin)
-
 
 ######################################################################
 
@@ -812,7 +829,7 @@ admin.site.register(UserBudget, UserBudgetAdmin)
 
 class BudgetLogAdmin(admin.ModelAdmin):
     list_display = (
-    'id', 'customer_id', 'flow_amount', 'budget_type', 'budget_log_type', 'referal_id', 'created', 'status')
+        'id', 'customer_id', 'flow_amount', 'budget_type', 'budget_log_type', 'referal_id', 'created', 'status')
     list_display_links = ('id',)
 
     list_filter = ('budget_type', 'budget_log_type', 'status', 'modified')
@@ -857,10 +874,11 @@ class SaleFaqAdmin(admin.ModelAdmin):
 
 admin.site.register(SaleFaq, SaleFaqAdmin)
 
+
 class SaleOrderSyncLogAdmin(admin.ModelAdmin):
     list_display = ('id', 'time_from', 'time_to', 'target_num', 'actual_num', 'type', 'status', 'modified', 'created')
 
-    list_filter = ('type','status')
-    
-admin.site.register(SaleOrderSyncLog, SaleOrderSyncLogAdmin)    
-    
+    list_filter = ('type', 'status')
+
+
+admin.site.register(SaleOrderSyncLog, SaleOrderSyncLogAdmin)

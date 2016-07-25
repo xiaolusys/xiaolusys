@@ -85,7 +85,7 @@ class SaleCategory(BaseModel):
         parant_cat = SaleCategory.objects.filter(cid=self.parent_cid).first()
         cnt = 0
         while parant_cat and cnt < 10:
-            tmp_cat = SaleCategory.objects.filter(cid=parant_cat.parent_cid)
+            tmp_cat = SaleCategory.objects.filter(cid=parant_cat.parent_cid).first()
             if not tmp_cat:
                 return parant_cat
             parant_cat = tmp_cat
