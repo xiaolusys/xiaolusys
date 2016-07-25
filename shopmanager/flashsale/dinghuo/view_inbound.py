@@ -44,8 +44,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
     def get_optimize_forecast_id(self, inbound_skus):
         forecast_group = defaultdict(list)
         for id, sku in inbound_skus.iteritems():
-            forecast_group[sku['forecastId']].append(sku['arrival_quantity'])
-
+            forecast_group[int(sku['forecastId'])].append(int(sku['arrival_quantity']))
         forecast_group_sum = dict([(k, sum(v)) for k, v in forecast_group.items()])
         optimize_groups = {}
         for forecast_id, arrival_num in forecast_group_sum.items():
@@ -56,6 +55,8 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if not optimize_groups:
             optimize_groups = forecast_group_sum
         optimize_forecast_id = max(optimize_groups, key=lambda x: optimize_groups.get(x))
+        logger.warning('inbound:optimize_forecast_id=%s, forecast_group=%s, optimize_groups=%s'%(
+            optimize_forecast_id, dict(forecast_group), optimize_groups))
         return optimize_forecast_id
 
     @list_route(methods=['post'])
