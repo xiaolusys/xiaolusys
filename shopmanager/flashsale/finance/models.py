@@ -96,8 +96,8 @@ class Bill(BaseModel):
         if Bill.STATUS_COMPLETED in {b.status for b in bills}:
             raise Exception(u"不能合并已经完成的账单")
         pay_method_set = {b.pay_method for b in bills}
-        if Bill.SELF_PAY in pay_method_set or Bill.ALI_PAY in pay_method_set:
-            raise Exception(u"自付和代付不能合单")
+        if Bill.SELF_PAY in pay_method_set:
+            raise Exception(u"有自付不能合单")
 
     @staticmethod
     def merge(bills, creater):

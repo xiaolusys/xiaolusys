@@ -16,7 +16,7 @@ from cStringIO import StringIO
 class BillAdmin(admin.ModelAdmin):
     list_display = (
         'show_id', 'supplier', 'type', 'show_relation_objects', 'plan_amount', 'amount', 'show_creater', 'pay_method',
-        'created', 'status', 'note')
+        'created', 'modified', 'status', 'note')
     search_fields = ['id', "transcation_no", "supplier__id", "supplier__supplier_name", "billrelation__object_id"]
     list_filter = ["type", "status", "pay_method", ('created', DateFieldListFilter)]
     readonly_fields = ('creater', 'supplier')
