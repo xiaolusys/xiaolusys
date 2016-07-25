@@ -303,15 +303,13 @@ class XiaoluMama(models.Model):
             )
             if state:
                 rebeta_scheme = self.get_Mama_Order_Rebeta_Scheme(product_ins)
-                if isinstance(rebeta_scheme, AgencyOrderRebetaScheme):
-                    rebeta_scheme = rebeta_scheme.id
                 rebeta_amount = rebeta_scheme.get_scheme_rebeta(
                     agencylevel=self.agencylevel,
                     payment=order_payment
                 )
                 order_detail.pay_time = order.pay_time
                 order_detail.order_amount = order_payment
-                order_detail.scheme_id = rebeta_scheme
+                order_detail.scheme_id = rebeta_scheme.id
                 order_detail.rebeta_amount = rebeta_amount
                 order_detail.save()
             return order_detail.rebeta_amount
