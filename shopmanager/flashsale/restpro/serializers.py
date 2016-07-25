@@ -110,7 +110,6 @@ class ProductdetailSerializer(serializers.ModelSerializer):
         fields = ('head_imgs', 'content_imgs', 'mama_discount', 'is_recommend',
                   'buy_limit', 'per_limit', 'mama_rebeta', 'material', 'wash_instructions', 'note', 'color')
 
-
 class ModelProductSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     head_imgs = JsonListField(read_only=True, required=False)
@@ -130,6 +129,21 @@ class ModelProductSerializer(serializers.ModelSerializer):
     def get_per_limit(self, obj):
         return 3
 
+class SimpleModelProductSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    is_single_spec = serializers.BooleanField(read_only=True)
+    is_sale_out = serializers.BooleanField(read_only=True)
+    buy_limit = serializers.SerializerMethodField()
+    per_limit = serializers.SerializerMethodField()
+    class Meta:
+        model = ModelProduct
+        fields = ('id', 'name', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
+
+    def get_buy_limit(self, obj):
+        return False
+
+    def get_per_limit(self, obj):
+        return 3
 
 class ActivityProductSerializer(serializers.ModelSerializer):
 
@@ -188,7 +202,7 @@ class BrandPortalSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
+
     name = serializers.SerializerMethodField(read_only=True)
     category = ProductCategorySerializer(read_only=True)
     #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
@@ -201,7 +215,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'url', 'name', 'outer_id', 'category', 'pic_path', 'remain_num', 'is_saleout', 'head_img',
+        fields = ('id', 'name', 'outer_id', 'category', 'pic_path', 'remain_num', 'is_saleout', 'head_img',
                   'is_saleopen', 'is_newgood', 'std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 'memo',
                   'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id",
                   'watermark_op', 'web_url', 'sale_product')
@@ -220,16 +234,26 @@ class ProductSimpleSerializer(serializers.ModelSerializer):
 
 
 class SimpleProductSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField(read_only=True)
     category = ProductCategorySerializer(read_only=True)
     #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
-    product_model = ModelProductSerializer(source="get_product_model", read_only=True)
+    product_model = SimpleModelProductSerializer(source="get_product_model", read_only=True)
+    is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
+    is_saleopen = serializers.BooleanField(source='sale_open', read_only=True)
+    is_newgood = serializers.BooleanField(source='new_good', read_only=True)
+    watermark_op = serializers.CharField(read_only=True)
+    web_url = serializers.CharField(source='get_weburl', read_only=True)
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'outer_id', 'category', 'pic_path', 'head_img',
-                  'std_sale_price', 'agent_price', 'sale_time', 'offshelf_time',
-                  'lowest_price', 'product_lowest_price', 'product_model')
+        fields = ('id', 'name', 'outer_id', 'category', 'pic_path', 'head_img','std_sale_price', 'agent_price'
+                  , 'sale_time', 'offshelf_time', 'lowest_price', 'product_lowest_price', 'product_model',
+                  'is_saleout', 'is_saleopen', 'is_newgood', 'is_flatten', 'watermark_op', 'web_url')
 
+    def get_name(self, obj):
+        if obj.is_flatten:
+            return obj.name
+        return obj.name.split('/')[0]
 
 class DepositProductSerializer(serializers.ModelSerializer):
     normal_skus = ProductSkuSerializer(many=True, read_only=True)
@@ -833,10 +857,34 @@ class SaleFaqerializer(serializers.ModelSerializer):
 
 
 class ModelProductV2Serializer(serializers.ModelSerializer):
+
+    detail_content = serializers.SerializerMethodField()
     extras = serializers.SerializerMethodField()
+    sku_info = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
         fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras') #
 
+    def get_detail_content(self, obj):
+        content = obj.detail_content
+        if obj.is_flatten:
+            request = self.context.get('request')
+            product_id = request.GET.get('product_id', None)
+            if product_id.isdigit():
+                product = obj.products.filter(id=product_id).first()
+                content['name'] = product.name
+                content['head_imgs'] = [product.pic_path]
+        return content
+
     def get_extras(self, obj):
         return obj.extras.get('saleinfos',{})
+
+    def get_sku_info(self, obj):
+        if obj.is_flatten:
+            request = self.context.get('request')
+            product_id = request.GET.get('product_id',None)
+            if product_id.isdigit():
+                product = obj.products.filter(id=product_id).first()
+                return obj.product_simplejson(product)
+        return obj.sku_info
+

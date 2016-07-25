@@ -156,6 +156,7 @@ class Product(models.Model):
     sync_stock = models.BooleanField(default=True, verbose_name=u'库存同步')
     is_assign = models.BooleanField(default=False, verbose_name=u'取消警告')
     post_check = models.BooleanField(default=False, verbose_name=u'需扫描')
+    is_flatten = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
     is_watermark = models.BooleanField(default=False, verbose_name=u'图片水印')
     status = models.CharField(max_length=16, db_index=True,
                               choices=ONLINE_PRODUCT_STATUS,

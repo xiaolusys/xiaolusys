@@ -13,7 +13,7 @@ from .base import PayBaseModel, BaseModel
 from shopback.items.models import Product, ProductSkuContrast, ContrastContent
 from ..signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
-from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM
+from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM, PROPERTY_NAMES
 
 import logging
 logger = logging.getLogger(__name__)
@@ -107,11 +107,13 @@ def default_modelproduct_extras_tpl():
     }
 
 class ModelProduct(BaseTagModel):
+
     NORMAL = '0'
     DELETE = '1'
-    STATUS_CHOICES = ((NORMAL, u'正常'),
-                      (DELETE, u'作废'))
-
+    STATUS_CHOICES = (
+        (NORMAL, u'正常'),
+        (DELETE, u'作废')
+    )
     # UP_SHELF = 1
     # DOWN_SHELF = 0
 
@@ -128,6 +130,7 @@ class ModelProduct(BaseTagModel):
     # lowest_agent_price = models.IntegerField(default=5, verbose_name=u'最低出售价')
     # lowest_std_sale_price = models.IntegerField(default=5, verbose_name=u'最低吊牌价')
 
+    is_flatten = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
     extras  = JSONCharMyField(max_length=5000, default=default_modelproduct_extras_tpl, verbose_name=u'附加信息')
     status = models.CharField(max_length=16, db_index=True,
                               choices=STATUS_CHOICES,
@@ -175,7 +178,7 @@ class ModelProduct(BaseTagModel):
     def item_product(self):
         if not hasattr(self, '__first_product__'):
             product = self.products.first()
-            if not product or not product.detail:
+            if not product:
                 return None
             self.__first_product__ = product
         return self.__first_product__
@@ -264,7 +267,7 @@ class ModelProduct(BaseTagModel):
     def properties(self):
         """ 商品属性 """
         product = self.item_product
-        if not product:
+        if not product or not product.detail:
             return {}
         detail = product.detail
         return {
@@ -273,6 +276,20 @@ class ModelProduct(BaseTagModel):
             "note": detail.note,
             "color": detail.color
         }
+
+    @property
+    def attributes(self):
+        product = self.item_product
+        if not product:
+            return {}
+        detail = product.detail
+        prop_value_list = [('model_code', self.model_code)]
+        if detail:
+            for key in [('material', 'wash_instructions', 'note', 'color')]:
+                prop_value_list.append((key, getattr(detail, key)))
+        for item in self.extras.get('properties', {}).iteritems():
+            prop_value_list.append(item)
+        return [{'name': PROPERTY_NAMES.get(prop[0]), 'value':prop[1]} for prop in prop_value_list]
 
     @property
     def products(self):
@@ -313,6 +330,7 @@ class ModelProduct(BaseTagModel):
             'is_sale_out': self.is_sale_out,
             'is_recommend':self.is_recommend,
             'is_saleopen': self.is_saleopen,
+            'is_flatten': self.is_flatten,
             'is_newsales': self.is_newsales,
             'lowest_agent_price': self.lowest_agent_price,
             'lowest_std_sale_price': self.lowest_std_sale_price,
@@ -330,7 +348,6 @@ class ModelProduct(BaseTagModel):
         products = self.products
         for p in products:
             product_list.append(self.product_simplejson(p))
-
         return product_list
 
     def format_contrast2table(self, origin_contrast):
@@ -355,7 +372,6 @@ class ModelProduct(BaseTagModel):
 
     @property
     def comparison(self):
-
         p_tables = []
         uni_set  = set()
         try:
@@ -370,6 +386,7 @@ class ModelProduct(BaseTagModel):
         except Exception, exc:
             logger.error(exc.message,exc_info=True)
         return {
+            'attributes': self.attributes,
             'tables': p_tables,
             'metrics': {
                 # 'table':[

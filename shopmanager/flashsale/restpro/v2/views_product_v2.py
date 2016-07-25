@@ -72,6 +72,13 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             json.dumps(key_maps, sort_keys=True).encode('utf-8')
         ])).hexdigest()
 
+    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    def retrieve(self, request, *args, **kwargs):
+        """ 获取用户订单及订单明细列表 """
+        instance = self.get_object()
+        data = self.get_serializer(instance, context={'request': request}).data
+        return Response(data)
+
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -95,7 +102,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
       - page_size=n (n >= 1)
     """
     queryset = Product.objects.all()
-    serializer_class = serializers.ProductSerializer
+    serializer_class = serializers.SimpleProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
@@ -317,7 +324,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def details(self, request, pk, *args, **kwargs):
         """ 商品明细，包含详细规格信息 """
         instance = self.get_object()
-        product_dict = self.get_serializer(instance).data
+        product_dict = serializers.ProductSerializer(instance).data
         # 设置商品规格信息
         normal_skusdict = serializers.ProductSkuSerializer(instance.normal_skus, many=True)
         product_dict['normal_skus'] = normal_skusdict.data

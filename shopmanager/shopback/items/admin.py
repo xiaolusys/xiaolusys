@@ -144,6 +144,7 @@ class ProductAdmin(ApproxAdmin):
                    'status',
                    ('sale_time', DateScheduleFilter),
                    'ware_by',
+                   'is_flatten',
                    'sync_stock',
                    'is_split',
                    'is_match',
@@ -334,21 +335,20 @@ class ProductAdmin(ApproxAdmin):
 
     # --------设置页面布局----------------
     fieldsets = (('商品基本信息:', {
-        'classes': ('expand',),
-        'fields':
-            (('outer_id', 'category'), ('name', 'pic_path'),
-             ('collect_num', 'warn_num', 'remain_num', 'wait_post_num',
-              'reduce_num'),
-             ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
-             ('sale_time', 'upshelf_time', 'offshelf_time'),
-             ('cost', 'std_sale_price', 'agent_price'),
-             ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
-    }),
-                 ('商品系统设置:', {
+                    'classes': ('expand',),
+                    'fields':
+                        (('outer_id', 'category'), ('name', 'pic_path'),
+                         ('collect_num', 'warn_num', 'remain_num', 'wait_post_num',
+                          'reduce_num'),
+                         ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
+                         ('sale_time', 'upshelf_time', 'offshelf_time'),
+                         ('cost', 'std_sale_price', 'agent_price'),
+                         ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
+                }),
+                ('商品系统设置:', {
                      'classes': ('collapse',),
-                     'fields': (('weight', 'sync_stock', 'is_assign',
-                                 'is_split', 'is_match', 'post_check', 'is_verify',
-                                 'is_watermark'), ('barcode', 'match_reason'),
+                     'fields': (('weight', 'sync_stock', 'is_assign','is_split', 'is_match', 'post_check', 'is_verify',
+                                 'is_watermark', 'is_flatten'), ('barcode', 'match_reason'),
                                 ('sale_charger', 'storage_charger'),
                                 ('buyer_prompt', 'memo'))
                  }),)
@@ -379,7 +379,7 @@ class ProductAdmin(ApproxAdmin):
             return self.readonly_fields + (
                 'model_id', 'sale_product', 'collect_num', 'warn_num',
                 'lock_num', 'inferior_num', 'wait_post_num', 'sale_charger',
-                'storage_charger', 'shelf_status', 'status')
+                'storage_charger', 'shelf_status', 'status', 'is_flatten')
         return self.readonly_fields
 
     def get_actions(self, request):
