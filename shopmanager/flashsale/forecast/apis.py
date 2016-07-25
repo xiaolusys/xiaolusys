@@ -26,7 +26,7 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
         if forecast_ibs.exists():
             for forecast_ib in forecast_ibs:
                 order_status_list = set(forecast_ib.relate_order_set.values_list('sys_status',flat=True))
-                if len(order_status_list) == 1 and list(order_status_list)[0] in OrderList.STAGE_DELETED:
+                if len(order_status_list) == 1 and list(order_status_list)[0] == OrderList.STAGE_DELETED:
                     forecast_ib.status = ForecastInbound.ST_CANCELED
                 elif len(order_status_list) == 1 and list(order_status_list)[0] in (
                     OrderList.STAGE_STATE, OrderList.STAGE_COMPLETED):

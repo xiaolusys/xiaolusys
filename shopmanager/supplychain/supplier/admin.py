@@ -295,7 +295,7 @@ admin.site.register(SaleSupplier, SaleSupplierAdmin)
 
 
 class SaleCategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'parent_cid', 'full_name', 'is_parent', 'status', 'sort_order', 'created')
+    list_display = ('id', 'cid', 'parent_cid', 'full_name', 'is_parent', 'status', 'sort_order', 'created')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     def full_name(self, obj):
@@ -396,7 +396,7 @@ class SaleProductAdmin(ApproxAdmin):
             # test_link = test_link.format(obj.outer_id, obj.title, obj.pic_url, obj.sale_supplier, obj.sale_price,
             #                              obj.std_sale_price,
             #                              u'加入样品库')
-            test_link += u'<br><br><a href="/static/add_item.html?supplier_id={0}&saleproduct={1}" class="btn" target="_blank" >{2}</a>' \
+            test_link += u'<br><br><a href="/apis/items/v1/product?supplier_id={0}&saleproduct={1}" class="btn" target="_blank" >{2}</a>' \
                          u'<a href="/supplychain/supplier/bdproduct/{1}/" class="btn" target="_blank" >{3}</a>'
             history_sale = u'加入库存商品'
             if Product.objects.filter(sale_product=obj.id).exists():

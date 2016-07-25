@@ -1,6 +1,7 @@
 # coding:utf-8
-
 from django.db import transaction
+from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
 
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -17,7 +18,7 @@ from shopback.categorys.models import ProductCategory
 from shopback.items.models import (Product, ProductSku, ProductSchedule,
                                    ProductSkuContrast, ContrastContent, ProductSkuStats)
 from core.options import log_action, ADDITION, CHANGE
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory
 
 from shopback.items import constants, forms, local_cache
 from flashsale.pay.models import ModelProduct
@@ -33,13 +34,26 @@ class ProductManageViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
-        return Response({"v": "v"}, template_name='items/add_item.html')
+        supplier_id = request.GET.get('supplier_id')
+        saleproduct_id = request.GET.get('saleproduct')
+        saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
+        firstgrade_cat =saleproduct and saleproduct.sale_category.get_firstgrade_category()
+        if firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_HEALTH):
+            return redirect(reverse('items_v1:modelproduct-health')+'?supplier_id=%s&saleproduct=%s'%(supplier_id, saleproduct_id))
+        elif firstgrade_cat and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
+                                                constants.CATEGORY_WEMON ,
+                                                constants.CATEGORY_ACCESSORY)):
+            return redirect('/static/add_item.html?supplier_id=%s&saleproduct=%s'%(supplier_id, saleproduct_id))
+        return Response({
+                "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
+                "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
+            }, template_name='items/add_item.html')
 
     @list_route(methods=['get'])
     def health(self, request, *args, **kwargs):
         data = request.GET
-        supplier_id = data.get('supplier_id')
-        saleproduct_id = data.get('saleproduct')
+        supplier_id = data.get('supplier_id') or 0
+        saleproduct_id = data.get('saleproduct') or 0
 
         return Response({
                 "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
