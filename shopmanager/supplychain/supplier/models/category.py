@@ -80,3 +80,17 @@ class SaleCategory(BaseModel):
                 level_1_category_name = (categories.get(pid) or
                                          {}).get('name') or ''
         return level_1_category_name, level_2_category_name
+
+    def get_firstgrade_category(self):
+        parant_cat = SaleCategory.objects.filter(cid=self.parent_cid).first()
+        cnt = 0
+        while parant_cat and cnt < 10:
+            tmp_cat = SaleCategory.objects.filter(cid=parant_cat.parent_cid)
+            if not tmp_cat:
+                return parant_cat
+            parant_cat = tmp_cat
+            cnt += 1
+        return None
+
+
+

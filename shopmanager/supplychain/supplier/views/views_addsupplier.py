@@ -268,7 +268,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         supplier_id = sale_product.sale_supplier_id
         contactor_name = sale_product.contactor.username
         add_product_url = '%s?%s' % (
-            '/static/add_item.html',
+            '/apis/items/v1/product',
             urllib.urlencode({'supplier_id': supplier_id,
                               'saleproduct': sale_product_id}))
 
@@ -418,7 +418,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
 
             saleproduct = SaleProduct.objects.get(pk=int(sale_product_id))
             add_product_url = '%s?%s' % (
-                '/static/add_item.html',
+                '/apis/items/v1/product',
                 urllib.urlencode({'supplier_id': saleproduct.sale_supplier_id,
                                   'saleproduct': sale_product_id}))
             return Response({'add_product_url': add_product_url})
