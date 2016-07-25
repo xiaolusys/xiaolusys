@@ -10,6 +10,7 @@ class Migration(migrations.Migration):
         ('pay', '0024_add_field_extras_salecategory'),
     ]
 
+
     operations = [
         migrations.CreateModel(
             name='UserSingleAddress',
