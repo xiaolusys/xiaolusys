@@ -383,7 +383,7 @@ admin.site.register(NinePicAdver, NinePicAdverAdmin)
 
 
 class AgencyOrderRebetaSchemeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'modified', 'is_default', 'status')
+    list_display = ('id', 'name', 'is_default', 'status', 'created', 'modified')
     search_fields = ['name', 'id']
     list_filter = ('is_default', 'status')
 
