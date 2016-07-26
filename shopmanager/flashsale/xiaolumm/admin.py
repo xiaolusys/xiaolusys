@@ -500,8 +500,8 @@ admin.site.register(GroupRelationship, GroupRelationshipAdmin)
 
 
 class ClickPlanAdmin(admin.ModelAdmin):
-    list_display = ('name', 'order_rules', 'status')
-
+    list_display = ('name', 'order_rules', 'start_time', 'end_time', 'status', 'default', 'created')
+    list_filter = ('default', 'status',)
 
 admin.site.register(ClickPlan, ClickPlanAdmin)
 

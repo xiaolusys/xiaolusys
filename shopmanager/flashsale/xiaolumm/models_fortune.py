@@ -472,14 +472,28 @@ class ClickPlan(BaseModel):
     order_rules = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'规则')
     max_order_num = models.IntegerField(default=0, verbose_name=u'最大订单人数')
 
+    start_time = models.DateTimeField(blank=True,null=True,db_index=True, verbose_name=u'生效时间')
+    end_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'结束时间')
+
     status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
+    default = models.BooleanField(default=False, verbose_name=u'缺省设置')
 
     class Meta:
         db_table = 'flashsale_xlmm_click_plan'
         app_label = 'xiaolumm'
+        ordering = ['-created']
         verbose_name = u'V2/点击计划'
         verbose_name_plural = u'V2/点击计划列表'
 
+    @classmethod
+    def get_active_clickplan(cls):
+        time_now = datetime.datetime.now()
+        plan = cls.objects.filter(status=0, end_time__gte=time_now,
+                start_time__lte=time_now).order_by('-created').first()
+        if plan:
+            return plan
+        default = cls.objects.filter(status=0, default=True).first()
+        return default
 
 class ClickCarry(BaseModel):
     STATUS_TYPES = ((1, u'预计收益'), (2, u'确定收益'), (3, u'已取消'),)

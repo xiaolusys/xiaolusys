@@ -162,10 +162,7 @@ def get_active_click_plan():
 
     from flashsale.xiaolumm.models_fortune import ClickPlan
 
-    click_plans = ClickPlan.objects.filter(status=0)
-    if click_plans.count() > 0:
-        return click_plans[0]
-    return ClickPlan.objects.get(id=1)
+    return ClickPlan.get_active_clickplan()
 
 
 def plan_for_price_limit_name(order_num, carry_plan_id):
