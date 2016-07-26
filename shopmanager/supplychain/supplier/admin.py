@@ -884,7 +884,7 @@ class SupplierFigureAdmin(admin.ModelAdmin):
         'avg_post_days'
     )
     list_filter = ('created', 'modified')
-    search_fields = ['supplier', ]
+    search_fields = ['supplier__supplier_name', ]
     readonly_fields = ['supplier']
 
 admin.site.register(SupplierFigure, SupplierFigureAdmin)
