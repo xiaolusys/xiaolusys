@@ -23,7 +23,7 @@ class AgencyOrderRebetaScheme(models.Model):
                                     verbose_name=u'商品价格返利设置')
     price_active = models.BooleanField(default=False, verbose_name=u'价格返利生效')
 
-    start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'生效时间')
+    start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'结束时间')
 
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
@@ -43,11 +43,6 @@ class AgencyOrderRebetaScheme(models.Model):
 
     @classmethod
     def get_default_scheme(cls):
-        time_now = datetime.datetime.now()
-        schema = cls.objects.filter(status=cls.NORMAL, start_time__lte=time_now,
-                end_time__gte=time_now).order_by('-created').first()
-        if schema:
-            return schema
         default = cls.objects.filter(status=cls.NORMAL, is_default=True).first()
         return default
 
