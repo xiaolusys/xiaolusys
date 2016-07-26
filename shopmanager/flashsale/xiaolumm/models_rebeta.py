@@ -1,4 +1,6 @@
 # -*- encoding:utf-8 -*-
+import datetime
+
 from django.db import models
 from core.fields import JSONCharMyField
 
@@ -21,6 +23,9 @@ class AgencyOrderRebetaScheme(models.Model):
                                     verbose_name=u'商品价格返利设置')
     price_active = models.BooleanField(default=False, verbose_name=u'价格返利生效')
 
+    start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'生效时间')
+    end_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'结束时间')
+
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'修改时间')
 
@@ -38,17 +43,19 @@ class AgencyOrderRebetaScheme(models.Model):
 
     @classmethod
     def get_default_scheme(cls):
-        qs = cls.objects.filter(status=cls.NORMAL, is_default=True)
-        if qs.exists():
-            return qs[0]
-        return None
+        time_now = datetime.datetime.now()
+        schema = cls.objects.filter(status=cls.NORMAL, start_time__lte=time_now,
+                end_time__gte=time_now).order_by('-created').first()
+        if schema:
+            return schema
+        default = cls.objects.filter(status=cls.NORMAL, is_default=True).first()
+        return default
 
     def get_scheme_rebeta(self, **kwargs):
         """ 根据订单支付金额，商品价格，小鹿妈妈等级，获取返利金额 """
         agency_level = '%d' % kwargs.get('agencylevel', 0)
         payment = kwargs.get('payment', 0)
         rebeta_rate = self.agency_rebetas.get(agency_level, [0, 0])
-        rebeta_amount = 0
         if rebeta_rate[0] > 0:
             rebeta_amount = payment * rebeta_rate[0]
         else:

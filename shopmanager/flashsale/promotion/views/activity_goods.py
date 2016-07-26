@@ -51,7 +51,7 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
         # ActivityProduct.objects.filter(brand=brand).delete()
         if activity:
             activity.activity_products.all().delete()
-            activity.extras = None
+            activity.extras = {}
             activity.save()
         else:
             return Response({"code": 1, "info": "需要先建立这些商品的推广专题-Pay › 特卖/推广专题入口 "})

@@ -490,11 +490,20 @@ class ProductScheduleView(generics.ListCreateAPIView):
     warehouses = [{'id': Product.WARE_NONE, 'name': u'未选仓'}, {'id': Product.WARE_SH, 'name': u'上海仓'},
                   {'id': Product.WARE_GZ, 'name': u'广州仓'}]
     warehouse_mapping = {row['id']: row['name'] for row in warehouses}
-    categories = local_cache.product_category_cache.categories
-    category_mapping = {row['id']: row['name'] for row in local_cache.product_category_cache.categories}
     sale_types = [{'id': row[0], 'name': row[1]} for row in constants.SALE_TYPES]
     sale_type_mapping = {row[0]: row[1] for row in constants.SALE_TYPES}
-    schemas = local_cache.rebeta_schema_cache.schemas
+
+    @property
+    def categories(self):
+        return local_cache.product_category_cache.categories
+
+    @property
+    def schemas(self):
+        return local_cache.rebeta_schema_cache.schemas
+
+    @property
+    def category_mapping(self):
+        return {row['id']: row['name'] for row in self.schemas}
 
     @classmethod
     def product_to_item(cls, row):
