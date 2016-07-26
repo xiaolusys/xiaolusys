@@ -285,7 +285,7 @@ class ModelProduct(BaseTagModel):
         detail = product.detail
         prop_value_list = [('model_code', self.model_code)]
         if detail:
-            for key in [('material', 'wash_instructions', 'note', 'color')]:
+            for key in ('material', 'wash_instructions', 'note', 'color'):
                 prop_value_list.append((key, getattr(detail, key)))
         for item in self.extras.get('properties', {}).iteritems():
             prop_value_list.append(item)
