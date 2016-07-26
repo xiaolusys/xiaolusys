@@ -3,7 +3,7 @@
 from django.db import models
 from django.db.models.signals import post_save
 from core.models import BaseModel
-from .managers import XlmmFansManager
+from flashsale.xiaolumm.managers import XlmmFansManager
 from flashsale.pay.models import Customer
 
 

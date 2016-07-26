@@ -1,32 +1,30 @@
 # encoding:utf-8
-import re
 import datetime
+
 from django.contrib import admin
-from django.db.models import Q
-from flashsale.xiaolumm.models import UserGroup
-from django.contrib.admin.views.main import ChangeList
+from django.contrib.auth.models import User
+from django.db.models import Sum
 
 from core.admin import ApproxAdmin
 from core.filters import DateFieldListFilter
-
-from .models import (
+from flashsale.clickcount.models import ClickCount
+from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from flashsale.xiaolumm.models import (
     XiaoluMama,
     AgencyLevel,
     CashOut,
     CarryLog,
     OrderRedPacket,
     MamaDayStats,
-    AgencyOrderRebetaScheme,
-    PotentialMama
+    PotentialMama,
+    UserGroup
 )
+from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from . import forms
-from flashsale.mmexam.models import Result
-from flashsale.clickcount.models import ClickCount
-from flashsale.clickrebeta.models import StatisticsShoppingByDay
-from django.db.models import Sum
-from django.contrib.auth.models import User
 from .filters import UserNameFilter
-from models_advertis import MamaVebViewConf
+from .models.models_rebeta import AgencyOrderRebetaScheme
+from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, TeamCarryTotalRecord, \
+    CarryTotalRecord
 
 
 class XiaoluMamaAdmin(ApproxAdmin):
@@ -341,7 +339,7 @@ class MamaDayStatsAdmin(ApproxAdmin):
 
 admin.site.register(MamaDayStats, MamaDayStatsAdmin)
 
-from models_advertis import XlmmAdvertis, NinePicAdver
+from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
 
 
 class XlmmAdvertisAdmin(admin.ModelAdmin):
@@ -390,7 +388,7 @@ class AgencyOrderRebetaSchemeAdmin(admin.ModelAdmin):
 
 admin.site.register(AgencyOrderRebetaScheme, AgencyOrderRebetaSchemeAdmin)
 
-from .models_fans import FansNumberRecord, XlmmFans
+from flashsale.xiaolumm.models.models_fans import FansNumberRecord, XlmmFans
 
 
 class XlmmFansAdmin(admin.ModelAdmin):
@@ -408,7 +406,7 @@ class FansNumberRecordAdmin(admin.ModelAdmin):
 
 admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
 
-from models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
+from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
     ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, \
     UniqueVisitor, DailyStats
 
@@ -503,6 +501,7 @@ class ClickPlanAdmin(admin.ModelAdmin):
     list_display = ('name', 'order_rules', 'start_time', 'end_time', 'status', 'default', 'created')
     list_filter = ('default', 'status',)
 
+
 admin.site.register(ClickPlan, ClickPlanAdmin)
 
 
@@ -523,41 +522,53 @@ class DailyStatsAdmin(admin.ModelAdmin):
 
 admin.site.register(DailyStats, DailyStatsAdmin)
 
+from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, \
+    TopicAttendRecord
 
-from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, TopicAttendRecord
 
 class LessonTopicAdmin(admin.ModelAdmin):
     list_display = ('title', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')
     search_fields = ('title',)
-    list_filter = ('lesson_type','status',)
+    list_filter = ('lesson_type', 'status',)
+
+
 admin.site.register(LessonTopic, LessonTopicAdmin)
 
 
 class InstructorAdmin(admin.ModelAdmin):
     list_display = ('name', 'title', 'introduction', 'num_lesson', 'num_attender', 'status', 'modified', 'created')
-    search_fields = ('name', 'introduction', )
+    search_fields = ('name', 'introduction',)
     list_filter = ('status',)
+
+
 admin.site.register(Instructor, InstructorAdmin)
 
 
 class LessonAdmin(admin.ModelAdmin):
     list_display = ('title', 'instructor_name', 'num_attender', 'effect_num_attender',
                     'num_score', 'start_time', 'status', 'modified', 'created')
-    search_fields = ('title', 'instructor_name', )
+    search_fields = ('title', 'instructor_name',)
     list_filter = ('status',)
+
+
 admin.site.register(Lesson, LessonAdmin)
 
 
 class LessonAttendRecordAdmin(admin.ModelAdmin):
     list_display = ('lesson_id', 'title', 'student_nick', 'num_score', 'status', 'modified', 'created')
-    search_fields = ('title', )
+    search_fields = ('title',)
     list_filter = ('status',)
+
+
 admin.site.register(LessonAttendRecord, LessonAttendRecordAdmin)
+
 
 class TopicAttendRecordAdmin(admin.ModelAdmin):
     list_display = ('topic_id', 'title', 'student_nick', 'lesson_attend_record_id', 'status', 'modified', 'created')
-    search_fields = ('title', )
+    search_fields = ('title',)
     list_filter = ('status',)
+
+
 admin.site.register(TopicAttendRecord, TopicAttendRecordAdmin)
 
 
@@ -587,7 +598,56 @@ class MamaVebViewConfAdmin(admin.ModelAdmin):
     list_filter = ("is_valid",
                    'created',
                    'modified')
-    search_fields = ("version", )
+    search_fields = ("version",)
 
 
 admin.site.register(MamaVebViewConf, MamaVebViewConfAdmin)
+
+
+class MamaCarryTotalAdmin(admin.ModelAdmin):
+    list_display = (
+        'stat_time', "mama_id", 'mama_nick', 'thumbnail_pic', 'mobile', 'total', 'duration_total', 'history_total',
+        'history_num', 'duration_num', 'carry_records', 'total_rank_delay', 'duration_rank_delay'
+    )
+    list_filter = ()
+    search_fields = ("mama",)
+
+    def thumbnail_pic(self, obj):
+        return '<img src="%s"/>' % (obj.thumbnail,)
+    thumbnail_pic.short_description = u'头像'
+    thumbnail_pic.allow_tags = True
+
+admin.site.register(MamaCarryTotal, MamaCarryTotalAdmin)
+
+
+class MamaTeamCarryTotalAdmin(admin.ModelAdmin):
+    list_display = ('stat_time', "mama_id", 'mama_nick', 'thumbnail', 'mobile', 'total', 'duration_total',
+                    'num', 'duration_num', 'total_rank_delay', 'duration_rank_delay'
+                    )
+    list_filter = ()
+    search_fields = ("mama",)
+
+
+admin.site.register(MamaTeamCarryTotal, MamaTeamCarryTotalAdmin)
+
+
+class CarryTotalRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        'stat_time', "mama_id", 'duration_total', 'history_total',
+        'history_num', 'duration_num', 'carry_records', 'total_rank', 'duration_rank'
+    )
+    list_filter = ()
+    search_fields = ("mama",)
+
+
+admin.site.register(CarryTotalRecord, CarryTotalRecordAdmin)
+
+
+class TeamCarryTotalRecordAdmin(admin.ModelAdmin):
+    list_display = ('stat_time', "mama_id", 'total', 'duration_total',
+                    'num', 'duration_num', 'total_rank', 'duration_rank')
+    list_filter = ()
+    search_fields = ("mama",)
+
+
+admin.site.register(TeamCarryTotalRecord, TeamCarryTotalRecordAdmin)

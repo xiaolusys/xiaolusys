@@ -1,14 +1,13 @@
 # -*- encoding:utf-8 -*-
 import datetime
-from celery.task import task
-from flashsale.xiaolumm import util_description
-
 import logging
+
+from celery.task import task
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fans import XlmmFans
-from flashsale.pay.models import Customer, BudgetLog, UserBudget
+from flashsale.xiaolumm.models.models_fans import XlmmFans
+from flashsale.pay.models import Customer, BudgetLog
 from flashsale.promotion.models import RedEnvelope, XLSampleApply, AwardWinner, AppDownloadRecord, \
     DownloadMobileRecord, DownloadUnionidRecord
 from utils import get_application

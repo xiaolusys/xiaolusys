@@ -1,30 +1,26 @@
 # coding=utf-8
-import os, urlparse
-import datetime
+
+import logging
 
 from django.conf import settings
-from django.shortcuts import get_object_or_404, redirect
-from django.db.models import Sum, Count
-
-from rest_framework import viewsets
-from rest_framework.decorators import detail_route, list_route
-from rest_framework.response import Response
-from rest_framework import permissions
-from rest_framework import renderers
+from django.shortcuts import redirect
 from rest_framework import authentication
 from rest_framework import exceptions
+from rest_framework import permissions
+from rest_framework import renderers
+from rest_framework import viewsets
+from rest_framework.decorators import list_route
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters
 from flashsale.pay.models import Customer
-from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models import XiaoluMama
 from . import lesson_serializers
 
-import logging
 logger = logging.getLogger(__name__)
 
 
-from flashsale.xiaolumm.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
+from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
 from flashsale.promotion.models import ActivityEntry
 
 def get_customer_id(user):
@@ -181,7 +177,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-from rest_framework.pagination import PageNumberPagination
+
 class InstructorViewSet(viewsets.ModelViewSet):
     """
     Return instructors.

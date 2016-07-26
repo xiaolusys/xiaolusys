@@ -1,21 +1,23 @@
 # -*- encoding:utf8 -*-
-import datetime, calendar
+import calendar
+import datetime
+import logging
+
 from celery.task import task
-from django.db.models import F, Sum
 from django.contrib.auth.models import User
+from django.db import transaction
+from django.db.models import F, Sum
+
+from core.options import get_systemoa_user
 from core.options import log_action, CHANGE
-from common.modelutils import update_model_fields
-from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.clickcount.models import ClickCount
+from flashsale.clickrebeta.models import StatisticsShopping
+from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from flashsale.xiaolumm.models import MamaDayStats
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, OrderRedPacket, CashOut, PotentialMama
 from shopapp.weixin.models import WXOrder
-from flashsale.xiaolumm.models import MamaDayStats
-from flashsale.clickrebeta.models import StatisticsShoppingByDay
-from django.db import transaction
 from shopback.trades.models import MergeTrade, MergeBuyerTrade
-from core.options import get_systemoa_user
 
-import logging
 logger = logging.getLogger(__name__)
 
 __author__ = 'meixqhi'
@@ -1095,7 +1097,7 @@ def task_mama_postphone_renew_time_by_active():
     """
     妈妈(正式)当天有活跃度情况下续费时间向后添加一天
     """
-    from flashsale.xiaolumm.models_fortune import ActiveValue
+    from flashsale.xiaolumm.models.models_fortune import ActiveValue
     mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
                                       agencylevel__gte=XiaoluMama.VIP_LEVEL,
                                       last_renew_type=XiaoluMama.FULL,  # 年费用户才添加天数

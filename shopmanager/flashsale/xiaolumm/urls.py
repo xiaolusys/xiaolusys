@@ -12,6 +12,8 @@ from . import views_xlmm_active, views_xlmm_adver, views_cashout
 from flashsale.pay.decorators import weixin_xlmm_auth
 from flashsale.pay import constants
 from core.weixin.decorators import weixin_authlogin_required
+from .views_rank import MamaCarryTotalViewSet, MamaTeamCarryTotalViewSet
+
 
 urlpatterns = patterns('',
                        url(r'^$', views.landing),

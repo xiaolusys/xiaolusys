@@ -288,6 +288,15 @@ post_save.connect(carryrecord_update_mamafortune,
                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_mamafortune')
 
 
+def carryrecord_update_carrytotal(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks_mama_carry_total import task_carryrecord_update_carrytotal
+    task_carryrecord_update_carrytotal.delay(instance.mama_id)
+
+
+post_save.connect(carryrecord_update_carrytotal,
+                  sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_carrytotal')
+
+
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'Web直接订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
     STATUS_TYPES = ((0, u'待付款'), (1, u'预计收益'), (2, u'确定收益'), (3, u'买家取消'),)

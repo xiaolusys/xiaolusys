@@ -1,19 +1,20 @@
 # -*- coding:utf-8 -*-
-import random
 import datetime
+import logging
+import random
+
 from django.conf import settings
-from django.db import models
 from django.contrib.auth.models import User as DjangoUser
+from django.db import models
+from django.db.models.signals import post_save
 
 from core.models import BaseModel
+from core.options import log_action, CHANGE
 from .base import PayBaseModel
 from .envelope import Envelop
 from .. import constants
-from core.options import log_action, CHANGE
 from .. import managers
-from django.db.models.signals import post_save
 
-import logging
 logger = logging.getLogger(__name__)
 
 class Register(PayBaseModel):
@@ -174,7 +175,7 @@ class Customer(BaseModel):
     def get_referal_xlmm(self):
         """ 获取推荐当前用户的小鹿妈妈 """
         if not hasattr(self, '_customer_referal_mama_'):
-            from flashsale.xiaolumm.models_fans import XlmmFans
+            from flashsale.xiaolumm.models.models_fans import XlmmFans
             from flashsale.xiaolumm.models import XiaoluMama
 
             xlmm_fan = XlmmFans.objects.filter(fans_cusid=self.id).first()

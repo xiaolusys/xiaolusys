@@ -24,6 +24,7 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_fortune',
     'flashsale.xiaolumm.tasks_mama_relationship_visitor',
     'flashsale.xiaolumm.tasks_mama_carryrecord',
+    'flashsale.xiaolumm.tasks_mama_carry_total',
     'flashsale.xiaolumm.tasks_mama_clickcarry',
     'flashsale.xiaolumm.tasks_mama_dailystats',
     'flashsale.xiaolumm.tasks_mama_push',
@@ -93,6 +94,7 @@ CELERY_QUEUES = (
     Queue('statistics', routing_key='statistics.#'),
     Queue('logistics', routing_key='logistics.#'),
     Queue('dinghuo', routing_key='dinghuo.#'),
+    Queue('carrytotal', routing_key='carrytotal.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
@@ -448,6 +450,25 @@ MAMA_CARRYRECORD_ROUTES = {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_clickcarry_update_carryrecord',
     },
+
+}
+MAMA_CARRYTOTAL_ROUTES = {
+    'flashsale.xiaolumm.tasks_mama_carry_total.task_carryrecord_update_carrytotal': {
+        'queue': 'carrytotal',
+        'routing_key': 'carrytotal.task_carryrecord_update_carrytotal',
+    },
+    'flashsale.xiaolumm.tasks_mama_carry_total.task_update_carry_total_ranking': {
+        'queue': 'carrytotal',
+        'routing_key': 'carrytotal.task_update_carry_total_ranking',
+    },
+    'flashsale.xiaolumm.tasks_mama_carry_total.task_update_carry_duration_total_ranking': {
+        'queue': 'carrytotal',
+        'routing_key': 'carrytotal.task_update_carry_duration_total_ranking',
+    },
+    'flashsale.xiaolumm.tasks_mama_carry_total.task_update_team_carry_total': {
+        'queue': 'carrytotal',
+        'routing_key': 'carrytotal.task_update_team_carry_total',
+    },
 }
 
 FLASHSALE_COUPON_ROUTES = {
@@ -700,6 +721,7 @@ CELERY_ROUTES.update(MAMA_FORTUNE_ROUTES)
 CELERY_ROUTES.update(MAMA_RELATIONSHIP_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRY_ROUTES)
 CELERY_ROUTES.update(MAMA_CARRYRECORD_ROUTES)
+CELERY_ROUTES.update(MAMA_CARRYTOTAL_ROUTES)
 # CELERY_ROUTES.update(MAMA_REGISTER_ROUTE)
 CELERY_ROUTES.update(SKU_STATS_ROUTES)
 CELERY_ROUTES.update(FLASHSALE_COUPON_ROUTES)

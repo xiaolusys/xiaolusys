@@ -1,38 +1,38 @@
 # coding=utf-8
-import logging
-import os, urlparse, collections
+import collections
 import datetime
 import decimal
-from django.shortcuts import get_object_or_404
-from django.forms import model_to_dict
-from django.db.models import Sum, Count
-from django.conf import settings
+import logging
+import os
+import urlparse
 
-from rest_framework import viewsets
-from rest_framework.decorators import detail_route, list_route
-from rest_framework.response import Response
-from rest_framework import permissions
-from rest_framework import renderers
+from django.conf import settings
+from django.db.models import Sum, Count
+from django.forms import model_to_dict
+from django.shortcuts import get_object_or_404
 from rest_framework import authentication
 from rest_framework import exceptions
-from rest_framework import status
+from rest_framework import permissions
+from rest_framework import renderers
+from rest_framework import viewsets
+from rest_framework.decorators import list_route
 from rest_framework.exceptions import APIException
 from flashsale.restpro import permissions as perms
-from . import serializers
-
-from flashsale.clickcount.models import Clicks
+from rest_framework.response import Response
 from core.options import log_action, ADDITION, CHANGE
-from flashsale.pay.models import Customer
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans, FansNumberRecord, PotentialMama
 from flashsale.clickcount.models import ClickCount
+from flashsale.clickcount.models import Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models_fortune import MamaFortune
-from flashsale.pay.models import BudgetLog
-from flashsale.xiaolumm.models_fortune import MamaFortune
 from flashsale.coupon.models import UserCoupon, CouponTemplate
 from flashsale.pay.mixins import PayInfoMethodMixin
-from shopback.items.models import Product, ProductSku
+from flashsale.pay.models import BudgetLog
+from flashsale.pay.models import Customer
 from flashsale.pay.models import SaleTrade
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, PotentialMama
+from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
+from flashsale.xiaolumm.models.models_fortune import MamaFortune
+from shopback.items.models import Product, ProductSku
+from . import serializers
 
 logger = logging.getLogger(__name__)
 

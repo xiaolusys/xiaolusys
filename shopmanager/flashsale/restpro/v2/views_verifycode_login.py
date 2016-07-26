@@ -1,23 +1,20 @@
 # -*- coding:utf-8 -*-
-import os
-import re
-import urllib
-import time
 import datetime
-from django.conf import settings
-from django.contrib.auth.models import User as DjangoUser
-from django.contrib.auth import authenticate, login, logout
+import logging
+import re
+import time
 
+from django.conf import settings
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User as DjangoUser
 from rest_framework import views
 from rest_framework.response import Response
 
-from flashsale.pay.models import Register, Customer
-from shopapp.smsmgr.tasks import task_register_code
 from core.weixin.options import gen_wxlogin_sha1_sign
+from flashsale.pay.models import Register, Customer
+from flashsale.xiaolumm.models.models_fans import login_activate_appdownloadrecord
+from shopapp.smsmgr.tasks import task_register_code
 
-from flashsale.xiaolumm.models_fans import login_activate_appdownloadrecord
-
-import logging
 logger = logging.getLogger('django.request')
 
 PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)

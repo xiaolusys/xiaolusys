@@ -1,28 +1,26 @@
 # -*- coding:utf-8 -*-
 import datetime
 from random import choice
-from django.db import models
-from django.db.models import Sum
+
 from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
+from django.db import models
+from django.db.models import Sum
 
 from shopapp.weixin.models import UserGroup
-from .managers import XiaoluMamaManager
+from flashsale.xiaolumm.managers import XiaoluMamaManager
+
 # Create your models here.
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
 from common.modelutils import update_model_fields
 from core.models import BaseModel
 from flashsale.clickcount.models import ClickCount
-from .models_rebeta import AgencyOrderRebetaScheme
-from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
-from .models_fans import XlmmFans, FansNumberRecord
-from .models_lesson import LessonTopic,Instructor,Lesson,LessonAttendRecord,TopicAttendRecord
-from . import ccp_schema
-from . import constants
-from .models_fortune import MamaFortune
+from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
+from flashsale.xiaolumm import ccp_schema
+from flashsale.xiaolumm import constants
+from flashsale.xiaolumm.models.models_fortune import MamaFortune
 from django.db.models.signals import post_save
-from core.options import log_action, CHANGE
 
 import logging
 
@@ -72,7 +70,7 @@ class XiaoluMama(models.Model):
     VIP4_LEVEL = 14
     VIP6_LEVEL = 16
     VIP8_LEVEL = 18
-    
+
     AGENCY_LEVEL = (
         (INNER_LEVEL, u"普通"),
         (VIP_LEVEL, "VIP1"),
@@ -97,7 +95,7 @@ class XiaoluMama(models.Model):
     province = models.CharField(max_length=24, blank=True, verbose_name=u"省份")
     city = models.CharField(max_length=24, blank=True, verbose_name=u"城市")
     address = models.CharField(max_length=256, blank=True, verbose_name=u"地址")
-    referal_from = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u"推荐人")
+    referal_from = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u"推荐人", help_text=u"妈妈的id")
 
     qrcode_link = models.CharField(max_length=256, blank=True, verbose_name=u"二维码")
     weikefu = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u"微客服")
@@ -425,7 +423,7 @@ class XiaoluMama(models.Model):
         return self.get_Mama_Deposite_Amount()
 
     def is_cashoutable(self):
-        if self.agencylevel >=self.VIP_LEVEL and \
+        if self.agencylevel >= self.VIP_LEVEL and \
                         self.charge_status == self.CHARGED and self.status == self.EFFECT and \
                         self.last_renew_type > XiaoluMama.TRIAL:  # 最后续费类型大于　试用类型　可以提现
             return True
@@ -436,7 +434,7 @@ class XiaoluMama(models.Model):
                self.charge_status == self.CHARGED and self.status == self.EFFECT
 
     def is_click_countable(self):
-        if self.agencylevel >=self.VIP_LEVEL and \
+        if self.agencylevel >= self.VIP_LEVEL and \
                         self.charge_status == self.CHARGED and self.status == self.EFFECT:
             return True
         return False
@@ -491,6 +489,22 @@ class XiaoluMama(models.Model):
             self._mama_fortune_ = MamaFortune.objects.filter(mama_id=self.id).first()
         return self._mama_fortune_
 
+    def get_lv_team_member_ids(self):
+        """
+            获取下二级用户
+        """
+        from .models_fortune import ReferalRelationship
+        lv1_id = [self.id]
+        lv2_ids = [i['referal_to_mama_id'] for i in
+                   ReferalRelationship.objects.filter(referal_from_mama_id=self.id).values('referal_to_mama_id')]
+        lv3_ids = [i['referal_to_mama_id'] for i in
+                   ReferalRelationship.objects.filter(referal_from_mama_id__in=lv2_ids).values('referal_to_mama_id')]
+        return lv1_id, lv2_ids, lv3_ids
+
+    def get_team_member_ids(self):
+        a, b, c = self.get_lv_team_member_ids()
+        return a + b + c
+
     def upgrade_agencylevel_by_cashout(self):
         """ 代理 升级 提现满足条件升级（仅仅从Ａ类升级到VIP1）
         :type
@@ -521,7 +535,7 @@ class XiaoluMama(models.Model):
             upper_level = level_map[self.agencylevel]
         except KeyError:  # 没有找到升级值返回False
             return False
-        if upper_level != level:    # 要升级的等级　和指定升级的等级不一致　则不处理
+        if upper_level != level:  # 要升级的等级　和指定升级的等级不一致　则不处理
             return False
         if self.agencylevel < XiaoluMama.VIP_LEVEL:  # 当前等级小于2则返回false
             return False
@@ -560,6 +574,35 @@ class XiaoluMama(models.Model):
         if update_fields:
             self.save(update_fields=update_fields)
         return
+
+    @staticmethod
+    def ranking_list_income():
+        """
+            个人收入排行榜
+        """
+
+        return []
+
+    @staticmethod
+    def ranking_list_turnover():
+        """
+            个人交易额排行榜
+        """
+        return []
+
+    @staticmethod
+    def ranking_list_team_income():
+        """
+            团队收入排行榜
+        """
+        return []
+
+    @staticmethod
+    def ranking_list_team_turnover():
+        """
+           团队交易额排行榜
+        """
+        return []
 
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
@@ -904,7 +947,7 @@ class CarryLog(models.Model):
         return des
 
 
-from . import signals
+from flashsale.xiaolumm import signals
 
 
 def push_Pending_Carry_To_Cash(obj, *args, **kwargs):
@@ -976,6 +1019,7 @@ def trigger_mama_deposit_action(obj, *args, **kwargs):
     renew_mama(obj)
     unitary_mama(obj)
     register_mama(obj)
+
 
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 from flashsale.pay.models import SaleTrade

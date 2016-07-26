@@ -1,18 +1,17 @@
 # -*- encoding:utf-8 -*-
 
+import logging
+
 from celery.task import task
 from django.db import IntegrityError
-from flashsale.xiaolumm import util_description
 
-import logging
+from flashsale.xiaolumm import util_description
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import OrderCarry, AwardCarry, ReferalRelationship
-from flashsale.pay.models import SaleOrder, Customer
+from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry, ReferalRelationship
+from flashsale.pay.models import Customer
 from flashsale.xiaolumm import util_unikey
-
-from flashsale.xiaolumm.models import PotentialMama
 
 import sys
 
@@ -196,7 +195,7 @@ def task_referal_update_awardcarry(relationship):
 
 @task()
 def task_group_update_awardcarry(relationship):
-    from flashsale.xiaolumm.models_fortune import AwardCarry, ReferalRelationship, GroupRelationship
+    from flashsale.xiaolumm.models.models_fortune import AwardCarry, ReferalRelationship, GroupRelationship
 
     from_mama_id = relationship.leader_mama_id
     to_mama_id = relationship.member_mama_id
@@ -230,7 +229,6 @@ def task_group_update_awardcarry(relationship):
 
 
 from flashsale.xiaolumm.models import XiaoluMama
-from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
 
 
 def get_self_mama(unionid):
@@ -261,7 +259,7 @@ def task_order_trigger(sale_order):
         # 2) if customer is coming from a mama's share link; 
         if via_app:
             # check fan's relationship
-            from flashsale.xiaolumm.models_fans import XlmmFans
+            from flashsale.xiaolumm.models.models_fans import XlmmFans
 
             fans_records = XlmmFans.objects.filter(fans_cusid=customer_id, created__lt=sale_order.created)
             if fans_records.count() > 0:

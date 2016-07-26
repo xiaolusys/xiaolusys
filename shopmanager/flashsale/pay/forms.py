@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from django import forms
+
 from .models import Envelop, CustomShare, Productdetail
 
 
@@ -27,7 +28,7 @@ class CustomShareForm(forms.ModelForm):
         exclude = ()
 
 try:
-    from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+    from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 except ImportError:
     func_rebeta_scheme_list = lambda: ('0', '未设置返利计划')
 else:
