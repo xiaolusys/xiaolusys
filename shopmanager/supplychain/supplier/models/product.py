@@ -102,6 +102,13 @@ class SaleProduct(BaseTagModel):
             self._item_products_ = Product.objects.filter(sale_product=self.id, status=Product.NORMAL)
         return self._item_products_
 
+    def sale_product_figures(self):
+        """ 选品排期数据 """
+        if not hasattr(self, '_product_figures_'):
+            from statistics.models import ModelStats
+            self._product_figures_ = ModelStats.objects.filter(sale_product=self.id).first()
+        return self._product_figures_
+
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
     try:
