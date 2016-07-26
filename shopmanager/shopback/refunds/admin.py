@@ -5,7 +5,7 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User as DjangoUser
 from shopback.refunds.models import Refund, RefundProduct
-from shopback.trades.models import MergeTrade,PackageOrder
+from shopback.trades.models import MergeTrade,PackageOrder,PackageSkuItem
 from flashsale.pay.models import SaleTrade
 from shopback.items.models import Product, ProductSku
 import datetime, time
@@ -121,12 +121,12 @@ class RefundProductAdmin(admin.ModelAdmin):
     def trade_id_display(self, obj):
 
         # mt = MergeTrade.objects.filter(tid=obj.trade_id).first()
-        po = PackageOrder.objects.filter(tid=obj.trade_id).first()
+        po = PackageSkuItem.objects.filter(sale_trade_id=obj.trade_id).first()
         if po:
             st = SaleTrade.objects.filter(tid=obj.trade_id).first()
             trade = u'{0}<br><br>' \
                     u'<a href="/admin/trades/packageorder/?pid={1}" target="_blank">订单</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' \
-                    u'<a href="/admin/pay/salerefund/?q={2}" target="_blank">退款单</a>'.format(obj.trade_id,po.pid,st.receiver_mobile)
+                    u'<a href="/admin/pay/salerefund/?q={2}" target="_blank">退款单</a>'.format(obj.trade_id,po.package_order_pid,st.receiver_mobile)
             return trade
         # if mt:
         #     st = SaleTrade.objects.filter(tid=mt.tid).first()
