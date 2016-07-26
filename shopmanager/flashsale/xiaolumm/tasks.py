@@ -909,6 +909,10 @@ def task_unitary_mama(obj):
     from django_statsd.clients import statsd
     from flashsale.pay.models import SaleOrder
     from shopback.items.models import DIPOSITE_CODE_PREFIX
+<<<<<<< HEAD
+=======
+    import datetime
+>>>>>>> d1e534fd1c0f2495ac1f4ad304ec6abc1b90b712
     pre_date = datetime.date.today()
     time_from = datetime.datetime(pre_date.year, pre_date.month, pre_date.day)
     time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
@@ -1076,6 +1080,19 @@ def task_renew_mama(obj):
         order.save(update_fields=['status'])
         # 更新订单到交易成功
 
+<<<<<<< HEAD
+=======
+    from django_statsd.clients import statsd
+    from flashsale.pay.models import SaleOrder
+    from shopback.items.models import DIPOSITE_CODE_PREFIX
+    import datetime
+    pre_date = datetime.date.today()
+    time_from = datetime.datetime(pre_date.year, pre_date.month, pre_date.day)
+    time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
+    statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
+                                                                        pay_time__range=(time_from, time_to)).count())
+
+>>>>>>> d1e534fd1c0f2495ac1f4ad304ec6abc1b90b712
 
 @task()
 def task_mama_postphone_renew_time_by_active():
