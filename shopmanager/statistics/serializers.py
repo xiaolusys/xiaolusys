@@ -79,6 +79,8 @@ class ModelStatsSerializer(serializers.ModelSerializer):
 
 
 class ModelStatsSimpleSerializer(serializers.ModelSerializer):
+    return_good_rate = serializers.SerializerMethodField('calculate_return_good_rate', read_only=True)
+
     class Meta:
         model = ModelStats
         fields = (
@@ -92,4 +94,12 @@ class ModelStatsSimpleSerializer(serializers.ModelSerializer):
             'out_stock_num',
             'return_good_num',
             'payment',
+            'return_good_rate'
         )
+
+    def calculate_return_good_rate(self, obj):
+        """
+        计算记录款式的退货率
+        """
+        t = obj.return_good_num + obj.pay_num
+        return round(float(obj.return_good_num) / t, 4) if t > 0 else 0
