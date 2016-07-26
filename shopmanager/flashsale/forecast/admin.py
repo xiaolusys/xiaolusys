@@ -135,8 +135,7 @@ class ForecastInboundAdmin(admin.ModelAdmin):
     def action_merge_or_split(self, request, queryset):
 
         unapproved_qs = queryset.exclude(status__in=(ForecastInbound.ST_DRAFT,
-                                                     ForecastInbound.ST_APPROVED,
-                                                     ForecastInbound.ST_ARRIVED))
+                                                     ForecastInbound.ST_APPROVED))
         if unapproved_qs.exists():
             self.message_user(request, u"＊＊＊＊＊＊＊＊＊合并拆分预测到货单必须都在草稿或审核状态＊＊＊＊＊＊＊＊＊!")
             return HttpResponseRedirect(request.get_full_path())
@@ -251,7 +250,7 @@ admin.site.register(ForecastInbound, ForecastInboundAdmin)
 class ForecastInboundDetailAdmin(admin.ModelAdmin):
 
     list_display = (
-        'id','product_name','product_id','forecast_arrive_num'
+        'id', 'forecast_inbound', 'product_name', 'product_id', 'forecast_arrive_num'
     )
     list_filter = ('status', ('created', DateFieldListFilter))
     search_fields = ['product_id']

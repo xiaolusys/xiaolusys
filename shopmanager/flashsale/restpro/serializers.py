@@ -114,13 +114,12 @@ class ModelProductSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     head_imgs = JsonListField(read_only=True, required=False)
     content_imgs = JsonListField(read_only=True, required=False)
-    is_single_spec = serializers.BooleanField(read_only=True)
     is_sale_out = serializers.BooleanField(read_only=True)
     buy_limit = serializers.SerializerMethodField()
     per_limit = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
-        fields = ('id', 'name', 'head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
+        fields = ('id', 'name', 'head_imgs', 'content_imgs', 'is_sale_out', 'is_flatten', 'buy_limit', 'per_limit')
 
     def get_buy_limit(self, obj):
         return False
@@ -138,7 +137,7 @@ class SimpleModelProductSerializer(serializers.ModelSerializer):
     per_limit = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
-        fields = ('id', 'name', 'is_single_spec', 'is_sale_out', 'head_imgs', 'content_imgs','buy_limit', 'per_limit')
+        fields = ('id', 'name', 'is_single_spec', 'is_sale_out', 'head_imgs', 'content_imgs', 'is_flatten', 'buy_limit', 'per_limit')
 
     def get_buy_limit(self, obj):
         return False
