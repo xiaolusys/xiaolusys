@@ -29,15 +29,15 @@ from flashsale.pay.models import (
 )
 from flashsale.coupon.models import UserCoupon
 from flashsale.coupon import serializers as coupon_serializers
-from . import permissions as perms
+from flashsale.restpro import permissions as perms
 from . import serializers
-from .exceptions import rest_exception
+from flashsale.restpro.exceptions import rest_exception
 from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from shopback.items.models import Product, ProductSku
 from core.options import log_action, ADDITION, CHANGE
 from shopapp.weixin import options
 from common.utils import update_model_fields
-from . import constants as CONS
+from flashsale.restpro import constants as CONS
 import logging
 import decimal
 

@@ -7,29 +7,29 @@ from django.views.decorators.cache import cache_page
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from rest_framework import routers
-from . import views
-from . import views_user
-from . import views_product
-from . import views_trade
-from . import views_share
-from . import views_coupon_new
-from . import views_integral
-from . import views_portal
+from flashsale.restpro.v1 import views
+from flashsale.restpro.v1 import views_user
+from flashsale.restpro.v1 import views_product
+from flashsale.restpro.v1 import views_trade
+from flashsale.restpro.v1 import views_share
+from flashsale.restpro.v1 import views_coupon_new
+from flashsale.restpro.v1 import views_integral
+from flashsale.restpro.v1 import views_portal
+from flashsale.restpro.v1 import views_wuliu
+from flashsale.restpro.v1 import views_praise
+from flashsale.restpro.v1 import views_pro_ref
+from flashsale.restpro.v1 import views_xlmm
+from flashsale.restpro.v1 import views_mmadver
+from flashsale.restpro.v1 import views_wuliu_new
+from flashsale.restpro.v1 import views_cushops
+from flashsale.restpro.v1 import views_promotion
+from flashsale.restpro.v1 import views_login_v2
+from flashsale.restpro.v1 import views_faqs
+from flashsale.restpro.v1 import views_mmexams
+
 from flashsale.pay.views import weixin_login, weixin_test, weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 from flashsale.push import views as views_push
-
-from . import views_wuliu
-from . import views_praise
-from . import views_pro_ref
-from . import views_xlmm
-from . import views_mmadver
-from . import views_wuliu_new
-from . import views_cushops
-from . import views_promotion
-from . import views_login_v2
-from . import views_faqs
-from . import views_mmexams
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)

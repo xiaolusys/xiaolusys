@@ -17,7 +17,7 @@ from rest_framework import authentication
 from rest_framework import exceptions
 from rest_framework import status
 from rest_framework.exceptions import APIException
-from . import permissions as perms
+from flashsale.restpro import permissions as perms
 from . import serializers
 
 from flashsale.clickcount.models import Clicks

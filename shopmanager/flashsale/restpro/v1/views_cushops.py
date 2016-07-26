@@ -12,7 +12,7 @@ from django.forms import model_to_dict
 from rest_framework.decorators import detail_route, list_route
 
 from shopback.items.models import Product
-from . import permissions as perms
+from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.pay.models import Customer, CustomerShops, CuShopPros

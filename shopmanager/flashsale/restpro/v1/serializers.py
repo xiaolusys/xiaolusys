@@ -21,7 +21,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
-from . import constants
+from flashsale.restpro import constants
 from flashsale.xiaolumm.models_advertis import MamaVebViewConf
 from flashsale.coupon.models import OrderShareCoupon
 
