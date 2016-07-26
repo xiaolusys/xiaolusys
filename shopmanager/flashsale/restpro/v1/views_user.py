@@ -31,7 +31,7 @@ from core.utils.httputils import get_client_ip
 
 from flashsale.pay.models import Register, Customer, Integral, BudgetLog, UserBudget
 from shopapp.smsmgr.tasks import task_register_code
-from . import permissions as perms
+from flashsale.restpro import permissions as perms
 from . import serializers
 import logging
 

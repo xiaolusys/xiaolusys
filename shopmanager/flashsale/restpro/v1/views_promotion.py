@@ -18,7 +18,7 @@ from rest_framework import authentication
 from rest_framework import status
 from rest_framework import viewsets
 
-from . import permissions as perms
+from flashsale.restpro import permissions as perms
 from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
 from . import serializers
 from flashsale.pay.models import Customer

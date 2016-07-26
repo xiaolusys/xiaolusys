@@ -29,7 +29,7 @@ from flashsale.pay.models import (
     UserAddressChange
 )
 
-from . import permissions as perms
+from flashsale.restpro import permissions as perms
 from . import serializers
 from core.utils import regex
 
