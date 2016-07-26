@@ -289,7 +289,7 @@ class ModelProduct(BaseTagModel):
                 prop_value_list.append((key, getattr(detail, key)))
         for item in self.extras.get('properties', {}).iteritems():
             prop_value_list.append(item)
-        return [{'name': PROPERTY_NAMES.get(prop[0]), 'value':prop[1]} for prop in prop_value_list]
+        return [{'name': PROPERTY_NAMES.get(prop[0]), 'value':prop[1]} for prop in prop_value_list if prop[1].strip()]
 
     @property
     def products(self):

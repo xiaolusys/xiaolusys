@@ -256,7 +256,7 @@ class SimpleProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ('id', 'name', 'outer_id', 'category', 'pic_path', 'head_img','std_sale_price', 'agent_price'
                   , 'sale_time', 'offshelf_time', 'lowest_price', 'product_lowest_price', 'product_model', 'model_id',
-                  'is_saleout', 'is_saleopen', 'is_newgood', 'is_flatten', 'watermark_op', 'web_url')
+                  'is_saleout', 'is_saleopen', 'is_newgood', 'watermark_op', 'web_url')
 
     def get_name(self, obj):
         if obj.is_flatten:
@@ -878,7 +878,7 @@ class ModelProductV2Serializer(serializers.ModelSerializer):
         if obj.is_flatten:
             request = self.context.get('request')
             product_id = request.GET.get('product_id', None)
-            if product_id.isdigit():
+            if product_id and product_id.isdigit():
                 product = obj.products.filter(id=product_id).first()
                 content['name'] = product.name
                 content['head_imgs'] = [product.pic_path]
@@ -891,7 +891,7 @@ class ModelProductV2Serializer(serializers.ModelSerializer):
         if obj.is_flatten:
             request = self.context.get('request')
             product_id = request.GET.get('product_id',None)
-            if product_id.isdigit():
+            if  product_id and product_id.isdigit():
                 product = obj.products.filter(id=product_id).first()
                 return obj.product_simplejson(product)
         return obj.sku_info
