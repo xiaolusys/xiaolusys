@@ -221,7 +221,7 @@ class ForecastInboundDetail(BaseModel):
 
     product_id = models.IntegerField(db_index=True, verbose_name=u'商品ID')
     sku_id = models.IntegerField(verbose_name=u'规格ID')
-    forecast_arrive_num = models.IntegerField(verbose_name='预测到货数量')
+    forecast_arrive_num = models.IntegerField(default=0,verbose_name='预测到货数量')
 
     product_name = models.CharField(max_length=128, blank=True, verbose_name=u'商品全称')
     product_img = models.CharField(max_length=256, blank=True, verbose_name=u'商品图片')

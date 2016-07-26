@@ -405,11 +405,12 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                 detail.forecast_arrive_num = models.F('forecast_arrive_num') - obj[3]
                 detail.save(update_fields=['forecast_arrive_num', 'status'])
 
-                forecast_detail = ForecastInboundDetail()
-                forecast_detail.forecast_inbound = forecast_newobj
+                forecast_detail = ForecastInboundDetail.objects.filter(forecast_inbound=forecast_newobj,
+                                                        sku_id=obj[0]).first()
+                if not forecast_detail:
+                    forecast_detail = ForecastInboundDetail(forecast_inbound=forecast_newobj, sku_id=obj[0])
                 forecast_detail.product_id = obj[1]
-                forecast_detail.sku_id = obj[0]
-                forecast_detail.forecast_arrive_num = obj[3]
+                forecast_detail.forecast_arrive_num = forecast_detail.forecast_arrive_num + obj[3]
                 forecast_detail.product_name = detail.product_name
                 forecast_detail.product_img = detail.product_img
                 forecast_detail.save()

@@ -64,7 +64,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         for k, v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
                 key_maps[k] = v
-
         return hashlib.sha1(u'.'.join([
             view_instance.__module__,
             view_instance.__class__.__name__,
