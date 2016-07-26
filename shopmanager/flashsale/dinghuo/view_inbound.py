@@ -244,6 +244,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
         return orderlists
 
     def get_forecast_inbounds(self, express_no, orderlist_id):
+        """ 根据订单号及快递单号找到未到货预测单,　如果没有找到则列出所有未完成预测单 """
         from flashsale.forecast.models import ForecastInbound
         if orderlist_id.isdigit():
             orderlist_id = int(orderlist_id)
@@ -253,6 +254,12 @@ class InBoundViewSet(viewsets.GenericViewSet):
             .exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI,
                                  OrderList.CLOSED, OrderList.TO_PAY]).first()
         supplier = None
+        forecast_inbounds = ForecastInbound.objects.filter(
+            Q(relate_order_set=orderlist_id) | Q(express_no=express_no),
+            status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT))
+        if forecast_inbounds.exists():
+            return forecast_inbounds
+
         forecast_inbounds = []
         if order_list:
             supplier = order_list.supplier
@@ -261,6 +268,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 Q(id=orderlist_id) | Q(express_no=express_no)).first()
             if forecast_inbound:
                 supplier = forecast_inbound.supplier
+
         if supplier:
             forecast_qs = ForecastInbound.objects.filter(supplier=supplier,
                 status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT,ForecastInbound.ST_ARRIVED)
@@ -276,7 +284,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
                         forecast_inbounds.insert(0, fi)
                         is_find_obj = True
                         continue
-
                 if not is_find_obj:
                     forecast_inbounds.append(fi)
         return forecast_inbounds
