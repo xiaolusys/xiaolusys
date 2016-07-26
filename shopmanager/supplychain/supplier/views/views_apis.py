@@ -52,6 +52,7 @@ class SaleSupplierFilter(filters.FilterSet):
     supplier_zone = ListFilter(name='supplier_zone')
     created_start = django_filters.DateFilter(name="created", lookup_type='gte')
     created_end = django_filters.DateFilter(name="created", lookup_type='lte')
+    supplier_name = django_filters.CharFilter(name="supplier_name", lookup_type='contains')
 
     class Meta:
         model = SaleSupplier

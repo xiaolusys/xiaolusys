@@ -285,11 +285,11 @@ class ModelProduct(BaseTagModel):
         detail = product.detail
         prop_value_list = [('model_code', self.model_code)]
         if detail:
-            for key in ('material', 'wash_instructions', 'note', 'color'):
+            for key in ('material', 'color', 'wash_instructions', 'note'):
                 prop_value_list.append((key, getattr(detail, key)))
         for item in self.extras.get('properties', {}).iteritems():
             prop_value_list.append(item)
-        return [{'name': PROPERTY_NAMES.get(prop[0]), 'value':prop[1]} for prop in prop_value_list]
+        return [{'name': PROPERTY_NAMES.get(prop[0]), 'value':prop[1]} for prop in prop_value_list if prop[1].strip()]
 
     @property
     def products(self):
@@ -326,7 +326,6 @@ class ModelProduct(BaseTagModel):
             'model_code': self.model_code,
             'head_imgs': self.head_images,
             'content_imgs': self.content_images,
-            'is_single_spec': self.is_single_spec,
             'is_sale_out': self.is_sale_out,
             'is_recommend':self.is_recommend,
             'is_saleopen': self.is_saleopen,

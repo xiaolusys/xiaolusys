@@ -21,7 +21,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
-from . import constants
+from flashsale.restpro import constants
 from flashsale.xiaolumm.models_advertis import MamaVebViewConf
 from flashsale.coupon.models import OrderShareCoupon
 
@@ -114,13 +114,12 @@ class ModelProductSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     head_imgs = JsonListField(read_only=True, required=False)
     content_imgs = JsonListField(read_only=True, required=False)
-    is_single_spec = serializers.BooleanField(read_only=True)
     is_sale_out = serializers.BooleanField(read_only=True)
     buy_limit = serializers.SerializerMethodField()
     per_limit = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
-        fields = ('id', 'name', 'head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
+        fields = ('id', 'name', 'head_imgs', 'content_imgs', 'is_sale_out', 'is_flatten', 'buy_limit', 'per_limit')
 
     def get_buy_limit(self, obj):
         return False
@@ -138,7 +137,7 @@ class SimpleModelProductSerializer(serializers.ModelSerializer):
     per_limit = serializers.SerializerMethodField()
     class Meta:
         model = ModelProduct
-        fields = ('id', 'name', 'is_single_spec', 'is_sale_out', 'head_imgs', 'content_imgs','buy_limit', 'per_limit')
+        fields = ('id', 'name', 'is_single_spec', 'is_sale_out', 'head_imgs', 'content_imgs', 'is_flatten', 'buy_limit', 'per_limit')
 
     def get_buy_limit(self, obj):
         return False
@@ -257,7 +256,7 @@ class SimpleProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ('id', 'name', 'outer_id', 'category', 'pic_path', 'head_img','std_sale_price', 'agent_price'
                   , 'sale_time', 'offshelf_time', 'lowest_price', 'product_lowest_price', 'product_model', 'model_id',
-                  'is_saleout', 'is_saleopen', 'is_newgood', 'is_flatten', 'watermark_op', 'web_url')
+                  'is_saleout', 'is_saleopen', 'is_newgood', 'watermark_op', 'web_url')
 
     def get_name(self, obj):
         if obj.is_flatten:
@@ -879,7 +878,7 @@ class ModelProductV2Serializer(serializers.ModelSerializer):
         if obj.is_flatten:
             request = self.context.get('request')
             product_id = request.GET.get('product_id', None)
-            if product_id.isdigit():
+            if product_id and product_id.isdigit():
                 product = obj.products.filter(id=product_id).first()
                 content['name'] = product.name
                 content['head_imgs'] = [product.pic_path]
@@ -892,7 +891,7 @@ class ModelProductV2Serializer(serializers.ModelSerializer):
         if obj.is_flatten:
             request = self.context.get('request')
             product_id = request.GET.get('product_id',None)
-            if product_id.isdigit():
+            if  product_id and product_id.isdigit():
                 product = obj.products.filter(id=product_id).first()
                 return obj.product_simplejson(product)
         return obj.sku_info

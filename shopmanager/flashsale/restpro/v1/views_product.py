@@ -29,12 +29,12 @@ from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
 
-from . import permissions as perms
+from flashsale.restpro import permissions as perms
 from . import serializers
 
 from core.options import log_action, ADDITION, CHANGE
 
-from . import constants
+from flashsale.restpro import constants
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.pay.models import CustomerShops, CuShopPros
 

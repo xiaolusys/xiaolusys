@@ -37,7 +37,7 @@ from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
 
-from flashsale.restpro import serializers
+from flashsale.restpro.v1 import serializers
 from flashsale.restpro.v2 import serializers as serializersv2
 
 CACHE_VIEW_TIMEOUT = 30

@@ -33,7 +33,7 @@ from flashsale.pay.models import (
 )
 from flashsale.coupon.models import UserCoupon
 from flashsale.restpro import permissions as perms
-from flashsale.restpro import serializers
+from . import serializers
 from shopback.items.models import Product, ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.logistics.models import LogisticsCompany
@@ -1129,7 +1129,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return Response({"code": 0, "info": "订单已删除"})
 
 
-from flashsale.restpro.views_refund import refund_Handler
+from flashsale.restpro.v1.views_refund import refund_Handler
 
 class SaleOrderViewSet(viewsets.ModelViewSet):
     """

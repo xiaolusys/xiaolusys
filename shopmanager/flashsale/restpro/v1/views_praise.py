@@ -18,7 +18,7 @@ from rest_framework import status
 import hashlib
 import datetime
 
-from . import permissions as perms
+from flashsale.restpro import permissions as perms
 from . import serializers
 
 from supplychain.supplier.models import SaleProduct
