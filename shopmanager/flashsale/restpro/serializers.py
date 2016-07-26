@@ -256,7 +256,7 @@ class SimpleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'outer_id', 'category', 'pic_path', 'head_img','std_sale_price', 'agent_price'
-                  , 'sale_time', 'offshelf_time', 'lowest_price', 'product_lowest_price', 'product_model',
+                  , 'sale_time', 'offshelf_time', 'lowest_price', 'product_lowest_price', 'product_model', 'model_id',
                   'is_saleout', 'is_saleopen', 'is_newgood', 'is_flatten', 'watermark_op', 'web_url')
 
     def get_name(self, obj):
