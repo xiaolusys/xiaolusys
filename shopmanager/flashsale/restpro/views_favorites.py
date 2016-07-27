@@ -17,11 +17,11 @@ class FavoritesViewSet(viewsets.ModelViewSet):
     ## GET /rest/v1/favorites 获取用户商品收藏列表
 
     ## POST /rest/v1/favorites 添加收藏
-    ### params: 
+    ### params:
     - `model_id` modelproduct id
 
     ## DELETE /rest/v1/favorites 取消收藏
-    ### params: 
+    ### params:
     - `model_id`
     """
 
@@ -29,7 +29,6 @@ class FavoritesViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.FavoritesSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-
 
     def list(self, request, *args, **kwargs):
         customer = Customer.getCustomerByUser(user=request.user)
@@ -41,7 +40,6 @@ class FavoritesViewSet(viewsets.ModelViewSet):
         queryset = self.paginate_queryset(queryset)
         serializers = self.get_serializer(queryset, many=True)
         return Response(serializers.data)
-
 
     def create(self, request, *args, **kwargs):
         customer = Customer.getCustomerByUser(user=request.user)
@@ -56,7 +54,6 @@ class FavoritesViewSet(viewsets.ModelViewSet):
         if not modelproduct:
             return Response({"code": 1, "info": u"参数错误,没有该商品"})
 
-
         favorite = Favorites.objects.filter(customer_id=customer.id, model_id=model_id)
         if favorite.count() > 0:
             return Response({"code": 1, "info": u"添加失败，商品已经收藏"})
@@ -64,9 +61,12 @@ class FavoritesViewSet(viewsets.ModelViewSet):
         favorite = Favorites()
         favorite.customer = customer
         favorite.model = modelproduct
+        favorite.name = modelproduct.name
+        favorite.head_imgs = modelproduct.head_imgs
+        favorite.lowest_agent_price = modelproduct.lowest_agent_price
+        favorite.lowest_std_sale_price = modelproduct.lowest_std_sale_price
         favorite.save()
         return Response({"code": 0, "info": u"添加成功"})
-
 
     def delete(self, request, *args, **kwargs):
         customer = Customer.getCustomerByUser(user=request.user)
@@ -79,4 +79,3 @@ class FavoritesViewSet(viewsets.ModelViewSet):
 
         Favorites.objects.filter(customer_id=customer.id, model_id=model_id).delete()
         return Response({"code": 0, "info": u"取消收藏成功"})
-
