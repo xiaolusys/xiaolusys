@@ -308,9 +308,11 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             except:
                 zhutu = ""
         color_list = ''
-        if all_product[0].details:
-            color_list = all_product[0].details.color
-
+        try:
+            if all_product[0].details:
+                color_list = all_product[0].details.color
+        except Exception, exc:
+            pass
         # productdetail
         schema_mapping = {i['id']: i['name']
                           for i in rebeta_schema_cache.schemas}
