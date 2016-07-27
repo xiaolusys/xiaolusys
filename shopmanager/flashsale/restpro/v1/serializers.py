@@ -1,8 +1,11 @@
 # coding=utf-8
 import datetime
 
+from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
+from rest_framework import serializers
+
+from flashsale.coupon.models import OrderShareCoupon
 from flashsale.pay.models import BrandEntry, BrandProduct
-from shopback.items.models import Product, ProductSku, ProductCategory
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,
@@ -17,12 +20,14 @@ from flashsale.pay.models import (
     UserBudget
 )
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
+from flashsale.xiaolumm.models import XiaoluMama
+from shopback.items.models import Product, ProductSku, ProductCategory
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
 from flashsale.restpro import constants
-from flashsale.xiaolumm.models_advertis import MamaVebViewConf
+from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from flashsale.coupon.models import OrderShareCoupon
 
 
@@ -668,7 +673,7 @@ class ProRefunRcdSerializer(serializers.ModelSerializer):
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut
 from flashsale.clickcount.models import ClickCount, Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models_fortune import AwardCarry
+from flashsale.xiaolumm.models.models_fortune import AwardCarry
 
 
 class XiaoluMamaSerialize(serializers.ModelSerializer):
@@ -753,7 +758,7 @@ class CashOutSerialize(serializers.ModelSerializer):
         fields = ('id', "xlmm", "value_money", "get_status_display", "status", "created")
 
 
-from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver
+from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
 
 
 class XlmmAdvertisSerialize(serializers.ModelSerializer):
@@ -797,7 +802,7 @@ class CuShopProsSerialize(serializers.ModelSerializer):
                   "carry_amount", 'position', 'sale_num', 'modified', 'created', 'offshelf_time')
 
 
-from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
+from flashsale.promotion.models import XLSampleSku, XLFreeSample, XLSampleOrder
 
 
 class XLSampleOrderSerialize(serializers.ModelSerializer):

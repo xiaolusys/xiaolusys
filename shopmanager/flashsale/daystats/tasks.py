@@ -1,27 +1,27 @@
 # coding:utf8 
 from __future__ import division
+
 import datetime
+import logging
 from calendar import monthrange
-from django.db.models import F, Sum
+
 from celery.task import task
 from django.conf import settings
+from django.db.models import Sum
 
 from common.utils import year_month_range
-from flashsale.clickcount.models import Clicks, ClickCount
-from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models import CarryLog
-from flashsale.pay.models import Customer
-from flashsale.pay.models import SaleRefund
-from .models import DailyStat, PopularizeCost
+from flashsale.clickcount.models import Clicks
 from flashsale.clickcount.models import UserClicks
-from flashsale.xiaolumm.models import XiaoluMama
-from flashsale.xiaolumm.models_fortune import CarryRecord
-from shopapp.weixin.options import get_unionid_by_openid
+from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
-from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
+from flashsale.pay.models import SaleRefund
+from flashsale.xiaolumm.models import CarryLog
+from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models.models_fortune import CarryRecord
+from shopapp.weixin.options import get_unionid_by_openid
 from shopback.categorys.models import ProductCategory
-
-import logging
+from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
+from .models import DailyStat, PopularizeCost
 
 logger = logging.getLogger('celery.handler')
 
@@ -57,7 +57,7 @@ def task_Push_Sales_To_DailyStat(target_date):
                 if uclicks[0].click_start_time.date() < target_date:
                     total_old_visiter_num += 1
 
-    from flashsale.pay.models import SaleOrder,SaleTrade
+    from flashsale.pay.models import SaleTrade
     order_stats = SaleTrade.objects.filter(pay_time__range=(df, dt))
     total_payment = order_stats.aggregate(total_payment=Sum('payment')).get('total_payment') or 0
     total_order_num = order_stats.count()
@@ -1036,10 +1036,6 @@ def task_calc_sale_product(start_date, end_date, category="0"):
     except Exception, exc:
         raise task_calc_sale_product.retry(exc=exc)
     return {"nv_data": nv_data, "child_data": child_data}
-
-
-from django.core.serializers.json import DjangoJSONEncoder
-import json
 
 
 @task(max_retries=1, default_retry_delay=5)

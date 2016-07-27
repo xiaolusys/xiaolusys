@@ -1,43 +1,33 @@
 # -*- coding:utf-8 -*-
-import re
-import json
 import datetime
+import json
+import logging
+import re
 import urllib
 import urlparse
-from django.conf import settings
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.shortcuts import redirect, render_to_response
-from django.views.generic import View
-from django.template import RequestContext
-from django.contrib.auth.models import User
-from django.db.models import Sum
-from celery import chain
 
+from celery import chain
+from django.contrib.auth.models import User
+from django.http import HttpResponse, Http404
+from django.shortcuts import redirect, render_to_response
+from django.template import RequestContext
+from django.views.generic import View
+from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
-from rest_framework.response import Response
-from django_statsd.clients import statsd
 
+from common.modelutils import update_model_fields
+from core.options import log_action, CHANGE
 from core.weixin.mixins import WeixinAuthMixin
-
-from shopapp.weixin.views import get_user_openid, valid_openid
-from shopapp.weixin.models import WXOrder, WeiXinUser
-from shopapp.weixin.service import WeixinUserService
-from shopapp.weixin.options import get_unionid_by_openid
-from core.options import log_action, ADDITION, CHANGE
-from flashsale.pay.options import set_cookie_openid, get_cookie_openid, get_user_unionid
+from flashsale.clickcount import tasks as ctasks
 from flashsale.clickcount.models import Clicks, ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay, StatisticsShopping
-from flashsale.clickcount import tasks as ctasks
-from common.modelutils import update_model_fields
-
-from .models import XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
 from flashsale.pay.models import SaleTrade, Customer, SaleRefund, Envelop, SaleOrder
+from shopapp.weixin.models import WeiXinUser
+from shopapp.weixin.options import get_unionid_by_openid
+from shopapp.weixin.views import valid_openid
+from .models import XiaoluMama, CashOut, CarryLog
 from .serializers import CashOutSerializer, CarryLogSerializer
-from models_advertis import XlmmAdvertis
-
-import logging
 
 logger = logging.getLogger('django.request')
 
@@ -697,10 +687,9 @@ def cash_Out_Verify(request, id, xlmm):
 
 
 from django.db import transaction
-from django.db.models import F
 from django.conf import settings
 from shopapp.weixin.models import WeixinUnionID
-from flashsale.xiaolumm.models_fortune import MamaFortune
+from flashsale.xiaolumm.models.models_fortune import MamaFortune
 
 
 @transaction.atomic
@@ -768,7 +757,7 @@ def cash_reject(request, data):
     return HttpResponse('server error')
 
 
-from django.db.models import Avg, Count, Sum
+from django.db.models import Sum
 
 
 def manage_Summar(date_time):
@@ -902,7 +891,7 @@ def mama_Verify_Action(request):
     return HttpResponse(res)
 
 
-from .models_fans import XlmmFans
+from flashsale.xiaolumm.models.models_fans import XlmmFans
 
 
 def handler_fans_nick():

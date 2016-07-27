@@ -1,37 +1,26 @@
 # -*- coding:utf-8 -*-
 
-import json
-import datetime
-import urllib
+import logging
+import re
 import urlparse
-from django.db import models
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, Http404
-from django.shortcuts import redirect, render_to_response, get_object_or_404
-from django.views.generic import View
-from django.template import RequestContext
-from django.contrib.auth.models import User
-
-from rest_framework.views import APIView
+from django.shortcuts import redirect, get_object_or_404
 from rest_framework import authentication
+from rest_framework import exceptions
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework.response import Response
-from rest_framework import exceptions
+from rest_framework.views import APIView
 
 from core.weixin.mixins import WeixinAuthMixin
-
-from flashsale.pay.options import get_user_unionid, valid_openid
 from flashsale.pay.mixins import PayInfoMethodMixin
-from flashsale.pay.models import Customer, SaleTrade, SaleOrder, Register
-from shopback.items.models import ProductSku
+from flashsale.pay.models import Customer, SaleTrade
 from flashsale.xiaolumm.models import XiaoluMama
-from shopapp.weixin.models import WeiXinUser
-from shopback.items.models import Product
 from shopapp.weixin.options import get_openid_by_unionid
-import re
-import logging
+from shopback.items.models import Product
+from shopback.items.models import ProductSku
 
 logger = logging.getLogger(__name__)
 
@@ -259,7 +248,7 @@ class MamaFailView(APIView):
         return Response(response)
 
 
-from .models_fortune import ReferalRelationship
+from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
 
 
 class MamaInvitationRes(APIView):

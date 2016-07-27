@@ -1,9 +1,11 @@
 # coding=utf-8
 import datetime
+
 from django.core.management.base import BaseCommand
-from flashsale.xiaolumm.models_fortune import ActiveValue
-from flashsale.xiaolumm.models import XiaoluMama
+
 from common.utils import update_model_fields
+from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models.models_fortune import ActiveValue
 
 
 class Command(BaseCommand):

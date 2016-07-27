@@ -10,14 +10,15 @@ select count(*) from flashsale_tongji_shopping where linkid<=134 and linkid>0 an
 select count(*) from flashsale_tongji_shopping where linkid>134 and shoptime between '2015-03-01' and '2015-04-01' ;
 
 """
+import datetime
+import json
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
-import json
-from django.http import HttpResponse
-from django.core.serializers.json import DjangoJSONEncoder
-import datetime
 
 
 @csrf_exempt

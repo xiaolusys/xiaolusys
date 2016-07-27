@@ -1,36 +1,33 @@
 # coding:utf-8
 import datetime
 import json
+import logging
 import urllib
 
-from django.core.paginator import Paginator, EmptyPage
+from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
-
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import Q
 from django.utils.safestring import mark_safe
-
-from rest_framework import generics
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
-from rest_framework import permissions
-from rest_framework.response import Response
 from rest_framework import exceptions
-from rest_framework.decorators import detail_route, list_route
+from rest_framework import generics
+from rest_framework import permissions
+from rest_framework.decorators import list_route
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.response import Response
 
 from common import page_helper
+from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ModelProduct, Productdetail
 from flashsale.pay.signals import signal_record_supplier_models
-from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from shopback.categorys.models import ProductCategory
+from shopback.items import constants, forms, local_cache
 from shopback.items.models import (Product, ProductSku, ProductSchedule,
                                    ProductSkuContrast, ContrastContent)
-from core.options import log_action, ADDITION, CHANGE
+from shopback.items.models_stats import ProductSkuStats
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 
-from shopback.items import constants, forms, local_cache
-from shopback.items.models_stats import ProductSkuStats
-
-import logging
 logger = logging.getLogger(__name__)
 
 class AddItemView(generics.ListCreateAPIView):

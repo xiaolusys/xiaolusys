@@ -1,22 +1,22 @@
 # coding=utf-8
-import os, urlparse, random, urllib
 import datetime
-from rest_framework import viewsets, permissions, authentication, renderers, views
-from rest_framework.response import Response
-from rest_framework import exceptions
-from . import serializers
-
+import random
+import urllib
+import urlparse
+from django.db.models import F
 from django.conf import settings
-from django.shortcuts import get_object_or_404
 from django.forms import model_to_dict
-from rest_framework.decorators import detail_route, list_route
-
+from django.shortcuts import get_object_or_404
+from rest_framework import exceptions
+from rest_framework import viewsets, permissions, authentication
+from rest_framework.decorators import list_route
+from rest_framework.response import Response
 from shopback.items.models import Product
-from flashsale.restpro import permissions as perms
-from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.pay.models import Customer, CustomerShops, CuShopPros
-from django.db.models import F
+from flashsale.restpro import permissions as perms
+from . import serializers
 
 
 class CustomerShopsViewSet(viewsets.ModelViewSet):

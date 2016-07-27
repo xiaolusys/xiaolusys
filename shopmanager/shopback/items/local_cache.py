@@ -2,7 +2,7 @@
 from django.core.cache import cache
 
 from common import cacheable
-from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from shopback.categorys.models import ProductCategory
 
 

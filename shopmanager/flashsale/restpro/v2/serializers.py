@@ -1,13 +1,12 @@
 # coding=utf-8
-import datetime
-import json
 import collections
+import datetime
 import random
+
 from django.conf import settings
 from django.forms import model_to_dict
 from rest_framework import serializers
-
-from flashsale.xiaolumm.models_fortune import (
+from flashsale.xiaolumm.models.models_fortune import (
     MamaFortune,
     CarryRecord,
     OrderCarry,
@@ -19,8 +18,8 @@ from flashsale.xiaolumm.models_fortune import (
     UniqueVisitor,
     DailyStats,
 )
-
-from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme, calculate_price_carry
+from rest_framework import serializers
+from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme, calculate_price_carry
 
 from flashsale.pay.models import BrandEntry, BrandProduct
 from shopback.items.models import Product, ProductSku, ProductCategory
@@ -42,25 +41,30 @@ from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.restpro import constants
-from flashsale.xiaolumm.models_advertis import MamaVebViewConf
+from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from flashsale.coupon.models import OrderShareCoupon
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut
 from flashsale.clickcount.models import ClickCount, Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models_fortune import AwardCarry
-from flashsale.xiaolumm.models_fans import XlmmFans
+from flashsale.xiaolumm.models.models_fortune import AwardCarry
+from flashsale.xiaolumm.models.models_fans import XlmmFans
 from flashsale.promotion.models import AppDownloadRecord
 from shopapp.weixin.models import WXOrder
 from supplychain.supplier.models import SaleProduct
 from supplychain.supplier.models import HotProduct
 from shopback.refunds.models_refund_rate import ProRefunRcord
 from flashsale.pay.models import IntegralLog, Integral
-from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver
+from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
 from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
 from flashsale.pay.models import BudgetLog
 from flashsale.pay.models import FaqMainCategory, FaqsDetailCategory, SaleFaq
 from flashsale.apprelease.models import AppRelease
 from flashsale.pay.models import CustomerShops, CuShopPros
+from flashsale.pay.models import Customer
+from flashsale.restpro import constants
+from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme, calculate_price_carry
+from shopback.items.models import Product
 
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
@@ -208,6 +212,9 @@ class UniqueVisitorSerializer(serializers.ModelSerializer):
     class Meta:
         model = UniqueVisitor
         fields = ('mama_id', 'visitor_nick', 'visitor_img', 'visitor_description', 'uni_key', 'modified', 'created')
+
+
+from flashsale.xiaolumm.models.models_fans import XlmmFans
 
 
 class XlmmFansSerializer(serializers.ModelSerializer):
@@ -574,6 +581,7 @@ class PosterSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:goodshelf-detail')
     wem_posters = JSONParseField(read_only=True, required=False)
     chd_posters = JSONParseField(read_only=True, required=False)
+
     # activity = ActivityEntrySerializer(source='get_activity', read_only=True)
     # brand_promotion = BrandEntrySerializer(source='get_brands', read_only=True, many=True)
 
@@ -1132,4 +1140,3 @@ class ModelProductV2Serializer(serializers.ModelSerializer):
                 product = obj.products.filter(id=product_id).first()
                 return obj.product_simplejson(product)
         return obj.sku_info
-

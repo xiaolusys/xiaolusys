@@ -1,13 +1,14 @@
 # -*- encoding:utf-8 -*-
 
-from celery.task import task
-from django.db.models import F, Sum
-from django.db import IntegrityError
-from flashsale.xiaolumm.models_fortune import DailyStats, UniqueVisitor, OrderCarry, CarryRecord
-from flashsale.xiaolumm import util_unikey
 import datetime
-
 import logging
+
+from celery.task import task
+from django.db import IntegrityError
+from django.db.models import F, Sum
+
+from flashsale.xiaolumm import util_unikey
+from flashsale.xiaolumm.models.models_fortune import DailyStats, UniqueVisitor, OrderCarry, CarryRecord
 
 logger = logging.getLogger('celery.handler')
 

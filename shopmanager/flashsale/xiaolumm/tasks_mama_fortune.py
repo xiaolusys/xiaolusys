@@ -1,19 +1,19 @@
 # -*- encoding:utf-8 -*-
 
-from django.db.models import F, Sum
-from django.db import IntegrityError
-from celery.task import task
-
 import logging
+
+from celery.task import task
+from django.db import IntegrityError
+from django.db.models import Sum
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, CarryRecord, \
+from flashsale.xiaolumm.models.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, CarryRecord, \
     GroupRelationship, MAMA_FORTUNE_HISTORY_LAST_DAY
 from flashsale.xiaolumm.models import CashOut
-from flashsale.xiaolumm.models_fans import XlmmFans
+from flashsale.xiaolumm.models.models_fans import XlmmFans
 
-import sys, datetime, time
+import sys, datetime
 
 
 def get_cur_info():

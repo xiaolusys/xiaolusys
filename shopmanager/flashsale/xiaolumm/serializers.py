@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
-from models import CashOut, CarryLog, XiaoluMama, NinePicAdver
+from models.models import CashOut, CarryLog, XiaoluMama
+from models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
+from models.models_advertis import NinePicAdver
 from rest_framework import serializers
 
 
@@ -59,3 +61,32 @@ class XiaoluMamaSerializer(serializers.ModelSerializer):
                   'manager', 'cash', 'pending', 'hasale', 'last_renew_type', 'agencylevel', 'target_complete',
                   'lowest_uncoushout', 'user_group', 'charge_time', 'renew_time', 'created', 'modified', 'status',
                   'charge_status', 'progress')
+
+
+class MamaCarryTotalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MamaCarryTotal
+        fields = (
+            'mama', 'mama_nick', 'thumbnail', 'mobile', 'total', 'total_display', 'num', 'total', 'rank')
+
+
+class ActivityMamaCarryTotalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MamaCarryTotal
+        fields = (
+            'mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_num', 'stat_time', 'total',
+            'duration_total', 'duration_total_display', 'rank')
+
+
+class MamaTeamCarryTotalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MamaTeamCarryTotal
+        fields = ('mama', 'mama_nick', 'thumbnail', 'mobile', 'num', 'total', 'duration_total', 'rank')
+
+
+class ActivityMamaTeamCarryTotalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MamaTeamCarryTotal
+        fields = (
+            'mama', 'mama_nick', 'thumbnail', 'mobile', 'stat_time', 'duration_num', 'duration_total',
+            'duration_total_display', 'rank')

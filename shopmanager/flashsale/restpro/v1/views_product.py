@@ -1,42 +1,35 @@
 # -*- coding:utf-8 -*-
-import os
-import json
 import datetime
 import hashlib
-import urlparse
+import json
+import os
 import random
-from django.conf import settings
-from django.shortcuts import get_object_or_404
-from django.db.models import Q
-from django.core.urlresolvers import reverse
-from django.forms import model_to_dict
+import urlparse
 
+from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.db.models import Q
+from django.forms import model_to_dict
+from django.shortcuts import get_object_or_404
+from rest_framework import authentication
+from rest_framework import exceptions
 from rest_framework import generics
+from rest_framework import permissions
+from rest_framework import renderers
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
-from rest_framework import permissions
 from rest_framework.response import Response
-from rest_framework import renderers
-from rest_framework import authentication
-from rest_framework import status
-from rest_framework import exceptions
 from rest_framework_extensions.cache.decorators import cache_response
-
-from shopback.items.models import Product
-from shopback.categorys.models import ProductCategory
-from flashsale.pay.models import GoodShelf, ModelProduct, Productdetail, BrandProduct, Customer
+from flashsale.pay.models import GoodShelf, BrandProduct, Customer
 from flashsale.promotion.models import ActivityEntry
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.mmexam.models import DressProduct
-
-from flashsale.restpro import permissions as perms
-from . import serializers
-
 from core.options import log_action, ADDITION, CHANGE
-
-from flashsale.restpro import constants
-from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.pay.models import CustomerShops, CuShopPros
+from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
+from shopback.items.models import Product
+from flashsale.restpro import constants
+from flashsale.restpro.v1 import serializers
 
 CACHE_VIEW_TIMEOUT = 30
 
@@ -677,7 +670,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         shop_product_num = len(product_ids)
 
-        from flashsale.xiaolumm.models_rebeta import calculate_price_carry
+        from flashsale.xiaolumm.models.models_rebeta import calculate_price_carry
         products = []
 
         for pro in queryset:

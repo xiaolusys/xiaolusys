@@ -1,6 +1,7 @@
 # coding:utf-8
 
 from django.db import models
+
 from core.managers import BaseManager
 
 
@@ -42,7 +43,7 @@ class XiaoluMamaManager(BaseManager):
 
 class XlmmFansManager(BaseManager):
     def record_fans_num(self, xlmm, xlmm_cusid):
-        from flashsale.xiaolumm.models_fans import FansNumberRecord
+        from flashsale.xiaolumm.models.models_fans import FansNumberRecord
 
         recod, state = FansNumberRecord.objects.get_or_create(xlmm=xlmm, xlmm_cusid=xlmm_cusid)
         if not state:

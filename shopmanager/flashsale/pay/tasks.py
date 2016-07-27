@@ -1,26 +1,23 @@
 # -*- encoding:utf-8 -*-
-import time
 import datetime
-import calendar
-from django.conf import settings
-from django.db import models
-from django.db import transaction
-from celery.task import task
-from celery.task.sets import subtask
-
-from core.options import log_action, ADDITION, CHANGE
-from shopback.items.models import ProductSku
-from shopback.users.models import User
-from shopapp.weixin.models import WeiXinUser, WeixinUnionID
-from flashsale.dinghuo.models import OrderList, OrderDetail
-from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress
-from flashsale.pay.models import CustomerShops, CuShopPros
-from common.utils import update_model_fields
-from .services import FlashSaleService
-from .options import get_user_unionid
 import logging
 
 import pingpp
+from celery.task import task
+from django.conf import settings
+from django.db import models
+from django.db import transaction
+
+from common.utils import update_model_fields
+from core.options import log_action
+from flashsale.dinghuo.models import OrderList, OrderDetail
+from flashsale.pay.models import CustomerShops, CuShopPros
+from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress
+from shopapp.weixin.models import WeiXinUser
+from shopback.items.models import ProductSku
+from .options import get_user_unionid
+from .services import FlashSaleService
+
 pingpp.api_key = settings.PINGPP_APPKEY
 
 __author__ = 'meixqhi'
@@ -125,7 +122,7 @@ def task_Merge_Sale_Customer(user, code):
         logger.debug(exc.message, exc_info=True)
 
 
-from shopback.trades.models import MergeTrade, MergeOrder
+from shopback.trades.models import MergeTrade
 
 
 @task()
@@ -383,7 +380,7 @@ def task_Pull_Red_Envelope(pre_day=7):
 
 
 from django.db.models import Q
-from flashsale.xiaolumm.models_fans import XlmmFans
+from flashsale.xiaolumm.models.models_fans import XlmmFans
 from flashsale.promotion.models import AppDownloadRecord
 from shopapp.weixin.models import WeixinUnionID
 from django.conf import settings
@@ -827,7 +824,7 @@ def task_add_product_to_customer_shop(customer):
     if not xlmm:
         return
     from supplychain.supplier.models import SaleProductManageDetail
-    from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+    from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
     from shopback.items.models import Product
     rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
     today_date = datetime.date.today()
