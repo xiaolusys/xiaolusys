@@ -211,10 +211,11 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     material_status = MaterialStatusField()
     design_take_over = DesignTakeStatusField()
     today_use_status = ManageDetailUseStatusField()
+    supplier_id = serializers.IntegerField(source='sale_product.sale_supplier.id', read_only=True)
 
     class Meta:
         model = SaleProductManageDetail
-        fields = ('id', 'sale_product_id', 'product_name', 'product_pic', 'product_link', 'design_person', 'order_weight','model_id',
+        fields = ('id', 'supplier_id', 'sale_product_id', 'product_name', 'product_pic', 'product_link', 'design_person', 'order_weight','model_id',
                   'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
                   'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
                   'created', 'modified')
