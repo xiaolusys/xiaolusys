@@ -1,29 +1,26 @@
 # coding:utf-8
+import logging
+
+from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.shortcuts import redirect
-from django.core.urlresolvers import reverse
-
-from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
-from rest_framework import permissions
-from rest_framework.response import Response
-from rest_framework import exceptions
 from rest_framework import authentication
-from rest_framework.decorators import detail_route, list_route
+from rest_framework import exceptions
+from rest_framework import permissions
+from rest_framework import viewsets
+from rest_framework.decorators import list_route
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.response import Response
 
-from flashsale.pay.models import ModelProduct, Productdetail, default_modelproduct_extras_tpl
-from flashsale.pay.signals import signal_record_supplier_models
-from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
-from shopback.categorys.models import ProductCategory
-from shopback.items.models import (Product, ProductSku, ProductSchedule,
-                                   ProductSkuContrast, ContrastContent, ProductSkuStats)
-from core.options import log_action, ADDITION, CHANGE
-from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory
-
-from shopback.items import constants, forms, local_cache
+from core.options import log_action, ADDITION
 from flashsale.pay.models import ModelProduct
+from flashsale.pay.models import default_modelproduct_extras_tpl
+from flashsale.pay.signals import signal_record_supplier_models
+from shopback.categorys.models import ProductCategory
+from shopback.items import constants
+from shopback.items.models import (Product, ProductSku, ProductSkuStats)
+from supplychain.supplier.models import SaleSupplier, SaleProduct
 
-import logging
 logger = logging.getLogger(__name__)
 
 class ProductManageViewSet(viewsets.ModelViewSet):

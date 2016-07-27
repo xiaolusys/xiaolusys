@@ -1,14 +1,14 @@
 # -*- encoding:utf-8 -*-
 
-from django.db.models import F
-from celery.task import task
-from flashsale.xiaolumm import util_description
-
 import logging
+
+from celery.task import task
+
+from flashsale.xiaolumm import util_description
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import OrderCarry, ClickCarry, UniqueVisitor, ClickPlan
+from flashsale.xiaolumm.models.models_fortune import OrderCarry, ClickCarry, UniqueVisitor, ClickPlan
 from flashsale.xiaolumm import util_unikey
 
 import sys
@@ -160,7 +160,7 @@ def get_active_click_plan():
     we have to make sure only 1 active plan exists.
     """
 
-    from flashsale.xiaolumm.models_fortune import ClickPlan
+    from flashsale.xiaolumm.models.models_fortune import ClickPlan
 
     return ClickPlan.get_active_clickplan()
 

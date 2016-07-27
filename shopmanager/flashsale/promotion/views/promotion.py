@@ -1,37 +1,33 @@
 # -*- coding:utf-8 -*-
-import os, urlparse
 import datetime
-import re
 import json
-import random
+import logging
+import os
+import re
+import urlparse
 
 from django.conf import settings
-from django.views.generic import View
-from django.shortcuts import redirect, render_to_response
-from django.template import RequestContext
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Sum, Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Sum, Count, Q
-
-from rest_framework.views import APIView
+from django.shortcuts import redirect, render_to_response
+from django.template import RequestContext
+from django.views.generic import View
 from rest_framework import permissions, authentication
 from rest_framework import renderers
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from core.utils.modelutils import update_model_fields
 from core.weixin.mixins import WeixinAuthMixin
 from core.weixin.signals import signal_weixin_snsauth_response
-from core.utils.modelutils import update_model_fields
-
-from flashsale.pay.models import Customer
-from flashsale.promotion.models import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder, ReadPacket
-from flashsale.promotion.models import XLInviteCode, XLReferalRelationship
-from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.coupon.models import UserCoupon
-from flashsale.promotion import constants
-from flashsale.apprelease.models import AppRelease
+from flashsale.pay.models import Customer
+from flashsale.promotion.models import XLInviteCode, XLReferalRelationship
+from flashsale.promotion.models import XLSampleApply, XLFreeSample, XLSampleOrder, ReadPacket
+from flashsale.xiaolumm.models.models_fans import XlmmFans
 
-import logging
 logger = logging.getLogger('django.request')
 
 CARTOON_DIGIT_IMAGES = [
@@ -553,9 +549,6 @@ class XlSampleOrderView(View):
                                                     "title": title,
                                                     "not_apply": not_apply_message},
                                   context_instance=RequestContext(request))
-
-
-from shopapp.weixin.models import WeiXinUser, get_Unionid
 
 
 class CusApplyOrdersView(APIView):

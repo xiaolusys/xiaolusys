@@ -1,15 +1,13 @@
 # -*- encoding:utf-8 -*-
 
-from django.db.models import F
-from django.db import IntegrityError
-from celery.task import task
-from flashsale.xiaolumm import util_description
-
 import logging
+
+from celery.task import task
+from django.db import IntegrityError
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import ReferalRelationship, GroupRelationship, UniqueVisitor
+from flashsale.xiaolumm.models.models_fortune import ReferalRelationship, GroupRelationship, UniqueVisitor
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, PotentialMama
 
@@ -123,7 +121,7 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
 
 
 from flashsale.promotion.models import AppDownloadRecord
-from flashsale.xiaolumm.models_fans import XlmmFans
+from flashsale.xiaolumm.models.models_fans import XlmmFans
 from flashsale.xiaolumm.models import XiaoluMama
 
 

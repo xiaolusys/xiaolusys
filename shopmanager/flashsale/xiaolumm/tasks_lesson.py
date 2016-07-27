@@ -1,16 +1,16 @@
 # -*- encoding:utf-8 -*-
 
+import logging
+
 from celery.task import task
 from django.db.models import Sum
-from django.db import IntegrityError
-from flashsale.xiaolumm import util_description
 
-import logging
+from flashsale.xiaolumm import util_description
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_lesson import LessonAttendRecord, LessonTopic, Lesson, Instructor, TopicAttendRecord
-from flashsale.xiaolumm.models_fortune import AwardCarry
+from flashsale.xiaolumm.models.models_lesson import LessonAttendRecord, LessonTopic, Lesson, Instructor, TopicAttendRecord
+from flashsale.xiaolumm.models.models_fortune import AwardCarry
 from flashsale.xiaolumm import util_unikey
 from flashsale.xiaolumm.models import XiaoluMama
 

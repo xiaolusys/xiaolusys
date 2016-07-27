@@ -1,15 +1,12 @@
 # -*- encoding:utf-8 -*-
 
-from django.db.models import F
-from celery.task import task
-from flashsale.xiaolumm import util_description
-
 import logging
+
+from celery.task import task
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import CarryRecord, OrderCarry, AwardCarry, ClickCarry
-from flashsale.pay.models import SaleOrder
+from flashsale.xiaolumm.models.models_fortune import CarryRecord
 
 import sys
 

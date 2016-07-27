@@ -120,7 +120,7 @@ def gen_activevalue_description(value_type):
         "推荐小鹿妈妈活跃值 +%d",
         "粉丝活跃值 +%d",
     ]
-    from flashsale.xiaolumm.models_fortune import ActiveValue
+    from flashsale.xiaolumm.models.models_fortune import ActiveValue
     value_num = ActiveValue.VALUE_MAP[str(value_type)]
 
     return desc[value_type] % value_num

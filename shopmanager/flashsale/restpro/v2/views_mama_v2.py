@@ -1,30 +1,28 @@
 # coding=utf-8
-import logging
-import os, urlparse
-import time
 import datetime
+import logging
+import os
+import time
+import urlparse
 
 from django.conf import settings
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
-from rest_framework.decorators import detail_route, list_route
-from rest_framework.response import Response
-from rest_framework import permissions
-from rest_framework import renderers
+from django.db.models import Sum, Count
+from django_statsd.clients import statsd
 from rest_framework import authentication
 from rest_framework import exceptions
+from rest_framework import permissions
+from rest_framework import renderers
+from rest_framework import viewsets
+from rest_framework.decorators import list_route
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from flashsale.restpro import permissions as perms
-from . import serializers
 from flashsale.pay.models import Customer, ModelProduct
-
-from django.db.models import Sum, Count
-
-from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
+from flashsale.restpro import permissions as perms
+from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
     AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor, DailyStats
+from . import serializers
 
-from django_statsd.clients import statsd
 logger = logging.getLogger(__name__)
 
 
@@ -461,7 +459,7 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
 
 
 
-from flashsale.xiaolumm.models_fans import XlmmFans
+from flashsale.xiaolumm.models.models_fans import XlmmFans
 
 class XlmmFansViewSet(viewsets.ModelViewSet):
     """

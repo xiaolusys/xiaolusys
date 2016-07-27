@@ -2,12 +2,14 @@
 """　
 九张图
 """
+import datetime
+
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models_advertis import NinePicAdver
-import datetime
+
 from core.options import log_action, ADDITION
+from flashsale.xiaolumm.models.models_advertis import NinePicAdver
 
 
 class NinepicView(APIView):

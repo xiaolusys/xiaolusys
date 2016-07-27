@@ -291,7 +291,10 @@ class ReturnGoods(models.Model):
     @staticmethod
     def get_user_by_supplier(supplier_id):
         r = OrderList.objects.filter(supplier_id=supplier_id).values('buyer_id').annotate(s=Count('buyer_id'))
-
+        from django.contrib.auth.models import Group
+        g = Group.objects.get(name=u'小鹿订货员')
+        uids = [u['id'] for u in g.user_set.values('id')]
+        r = list(set(uids) - set(r))
         def get_max_from_list(l):
             max_i = 0
             buyer_id = None
@@ -300,7 +303,6 @@ class ReturnGoods(models.Model):
                     max_i = i['s']
                     buyer_id = i['buyer_id']
             return buyer_id
-
         return get_max_from_list(r)
 
     def set_stat(self):

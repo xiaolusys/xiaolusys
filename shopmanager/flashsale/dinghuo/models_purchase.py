@@ -162,6 +162,7 @@ post_save.connect(sync_purchase_arrangement, sender=PurchaseRecord, dispatch_uid
 
 def adjust_purchase_arrangement_overbooking(sender, instance, created, **kwargs):
     """
+        处理超订
     """
     if not instance.is_overbooked():
         return
@@ -173,8 +174,6 @@ post_save.connect(adjust_purchase_arrangement_overbooking, sender=PurchaseRecord
 
 
 def start_booking(sender, instance, created, **kwargs):
-    """
-    """
     if not instance.need_booking():
         return
     

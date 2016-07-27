@@ -1,7 +1,7 @@
 # coding=utf-8
 from rest_framework import serializers
 
-from flashsale.xiaolumm.models_lesson import (
+from flashsale.xiaolumm.models.models_lesson import (
     LessonTopic,
     Instructor,
     Lesson,
