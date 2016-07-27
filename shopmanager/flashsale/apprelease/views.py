@@ -35,12 +35,13 @@ class addNewReleaseView(APIView):
         version = content.get('version', None)
         release_time = content.get('release_time', None)
         qrcode_link = content.get('qrcode_link', None)
+        version_code = content.get('version_code', None)
+        hash_value = content.get('hash_value', None)
         memo = content.get('memo', None)
         now = datetime.datetime.now()
         release_time = datetime.datetime.strptime(release_time, '%Y-%m-%d %H:%M:%S') if release_time else now
-        old_rels = AppRelease.objects.all().order_by('-release_time')
-        if old_rels.exists():
-            old_rel = old_rels[0]
+        old_rel = AppRelease.objects.all().order_by('-release_time').first()
+        if old_rel:
             before_release_time = old_rel.release_time
             if release_time < before_release_time:
                 message = '存在版本号为{0}发布时间为{1},该时间大于{2},不予发布！'.format(old_rel.version, before_release_time, release_time)
@@ -48,14 +49,22 @@ class addNewReleaseView(APIView):
                                                           "download_link": download_link,
                                                           "qrcode_link": qrcode_link},
                                           context_instance=RequestContext(request))
-            if old_rel.version == version:
+            if old_rel.version == version or old_rel.hash_value == hash_value:
                 message = '版本号{0}已经存在！'.format(old_rel.version)
                 return render_to_response(self.template, {"message": message,
                                                           "download_link": download_link,
                                                           "qrcode_link": qrcode_link},
                                           context_instance=RequestContext(request))
-        AppRelease.objects.create(download_link=download_link, qrcode_link=qrcode_link,
-                                  version=version, release_time=release_time, memo=memo)
+        app = AppRelease(
+            download_link=download_link,
+            qrcode_link=qrcode_link,
+            release_time=release_time,
+            memo=memo,
+            hash_value=hash_value,
+            version=version,
+            version_code=version_code
+        )
+        app.save()
         return redirect(constants.RELESE_SUCCESS_PAGE)
 
 

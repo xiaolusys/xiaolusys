@@ -50,8 +50,10 @@
             <div style="margin-top: 30px">
                 <form action="" method="post" onsubmit="return check()">
                     <div class="input-group col-md-12">
-                        <span class="input-group-addon">版本号</span>
+                        <span class="input-group-addon">版本</span>
                         <input type="text" name="version" id="version" class="form-control">
+                        <span class="input-group-addon">版本号</span>
+                        <input type="text" name="version_code" id="version_code" class="form-control">
                         <span class="input-group-addon">发布时间</span>
                         <input type="text" name="release_time" id="release_time" readonly="readonly"
                                class="form-control datepicker" aria-describedby="basic-addon1">
@@ -62,6 +64,11 @@
                         </a>
                         <input type="text" name="download_link" id="download_link" readonly="readonly"
                                value="{{ download_link }}"
+                               class="form-control">
+                    </div>
+                    <div class="input-group col-md-6" style="margin-top: 20px">
+                        <input type="text" name="hash_value" id="hash_value" readonly="readonly"
+                               value="{{ hash_value }}"
                                class="form-control">
                     </div>
 
@@ -111,6 +118,9 @@
             var release_time = $("#release_time").val();
             var download_link = $("#download_link").val();
             var qrcode_link = $("#qrcode_link").val();
+
+            var version_code = $("#version_code").val();
+            var hash_value = $("#hash_value").val();
             console.log(version, release_time, download_link);
             if (version && release_time && download_link && qrcode_link) {
                 return true
