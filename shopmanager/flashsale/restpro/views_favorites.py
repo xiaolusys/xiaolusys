@@ -1,6 +1,8 @@
 # encoding=utf8
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
 
 from flashsale.pay.models.favorites import Favorites
 from flashsale.pay.models.product import ModelProduct
@@ -24,7 +26,9 @@ class FavoritesViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Favorites.objects.all()
-    serializer_class = serializers.FavoritesSerializer  
+    serializer_class = serializers.FavoritesSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
 
 
     def list(self, request, *args, **kwargs):
