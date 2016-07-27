@@ -295,7 +295,7 @@ admin.site.register(SaleSupplier, SaleSupplierAdmin)
 
 
 class SaleCategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cid', 'parent_cid', 'full_name', 'is_parent', 'status', 'sort_order', 'created')
+    list_display = ('cid', 'parent_cid', 'full_name', 'grade', 'is_parent', 'status', 'sort_order', 'created')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     def full_name(self, obj):
@@ -307,7 +307,7 @@ class SaleCategoryAdmin(admin.ModelAdmin):
     ordering = ['parent_cid', '-sort_order', ]
 
     list_filter = ('status', 'is_parent')
-    search_fields = ['id', 'parent_cid', 'name']
+    search_fields = ['=id', '=parent_cid', '=name']
 
 
 admin.site.register(SaleCategory, SaleCategoryAdmin)
