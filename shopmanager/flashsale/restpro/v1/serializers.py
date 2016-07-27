@@ -19,6 +19,7 @@ from flashsale.pay.models import (
     CustomShare,
     UserBudget
 )
+from flashsale.pay.models.favorites import Favorites
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from flashsale.xiaolumm.models import XiaoluMama
 from shopback.items.models import Product, ProductSku, ProductCategory
@@ -900,4 +901,26 @@ class ModelProductV2Serializer(serializers.ModelSerializer):
                 product = obj.products.filter(id=product_id).first()
                 return obj.product_simplejson(product)
         return obj.sku_info
+
+
+class FavoritesSerializer(serializers.ModelSerializer):
+
+    modelproduct = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Favorites
+        fields = ('id', 'modelproduct', 'created')
+
+    def get_modelproduct(self, obj):
+        model_id = obj.model_id
+        mp = ModelProduct.objects.filter(id=model_id).first()
+        if mp:
+            return {
+                'id': mp.id,
+                'name': mp.name,
+                'head_imgs': mp.head_imgs,
+                'lowest_agent_price': mp.lowest_agent_price,
+                'lowest_std_sale_price': mp.lowest_std_sale_price,
+            }
+        return None
 
