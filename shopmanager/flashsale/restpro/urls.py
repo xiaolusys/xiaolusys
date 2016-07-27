@@ -15,6 +15,7 @@ from . import views_share
 from . import views_coupon_new
 from . import views_integral
 from . import views_portal
+from . import views_favorites
 from flashsale.pay.views import weixin_login, weixin_test, weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 from flashsale.push import views as views_push
@@ -40,6 +41,7 @@ router.register(r'posters', views_product.PosterViewSet)
 router.register(r'products', views_product.ProductViewSet)
 router.register(r'activitys', views_product.ActivityViewSet)
 router.register(r'carts', views_trade.ShoppingCartViewSet)
+router.register(r'favorites', views_favorites.FavoritesViewSet)
 router.register(r'trades', views_trade.SaleTradeViewSet)
 router.register(r'wxorders', views_trade.WXOrderViewSet)
 router.register(r'portal', views_portal.PortalViewSet)
