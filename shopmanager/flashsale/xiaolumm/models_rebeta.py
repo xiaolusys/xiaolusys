@@ -21,7 +21,7 @@ class AgencyOrderRebetaScheme(models.Model):
     price_rebetas = JSONCharMyField(max_length=10240, blank=True,
                                     default={"1": {"10": 0}},
                                     verbose_name=u'商品价格返利设置')
-    price_active = models.BooleanField(default=False, verbose_name=u'价格返利生效')
+    price_active = models.BooleanField(default=False, verbose_name=u'根据商品价格返利')
 
     start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'结束时间')
