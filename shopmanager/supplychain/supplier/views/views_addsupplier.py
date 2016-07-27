@@ -283,7 +283,6 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                 'show_buyer_btn': request.user.has_perm('supplier.add_product'),
                 'contactor_name': contactor_name
             })
-        color_list = all_product[0].details.color
         sku_list = ""
         for one_sku in all_product[0].normal_skus:
             sku_list += (one_sku.properties_alias + " | ")
@@ -308,6 +307,9 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                 zhutu = all_product[0].details.head_imgs.split()[0]
             except:
                 zhutu = ""
+        color_list = ''
+        if all_product[0].details:
+            color_list = all_product[0].details.color
 
         # productdetail
         schema_mapping = {i['id']: i['name']
