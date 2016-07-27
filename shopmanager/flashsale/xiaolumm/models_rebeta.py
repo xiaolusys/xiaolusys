@@ -16,10 +16,10 @@ class AgencyOrderRebetaScheme(models.Model):
     name = models.CharField(max_length=64, blank=True, verbose_name=u'计划名称')
 
     agency_rebetas = JSONCharMyField(max_length=10240, blank=True,
-                                     default={"1": [0, 0]},
+                                     default={"1": 0},
                                      verbose_name=u'代理等级返利设置')
     price_rebetas = JSONCharMyField(max_length=10240, blank=True,
-                                    default=[{"100": {"1": [0, 0]}}],
+                                    default={"1": {"10": 0}},
                                     verbose_name=u'商品价格返利设置')
     price_active = models.BooleanField(default=False, verbose_name=u'价格返利生效')
 
@@ -50,18 +50,18 @@ class AgencyOrderRebetaScheme(models.Model):
         """ 根据订单支付金额，商品价格，小鹿妈妈等级，获取返利金额 """
         agency_level = '%d' % kwargs.get('agencylevel', 0)
         payment = kwargs.get('payment', 0)
-        rebeta_rate = self.agency_rebetas.get(agency_level, [0, 0])
-        if rebeta_rate[0] > 0:
-            rebeta_amount = payment * rebeta_rate[0]
-        else:
-            rebeta_amount = max(rebeta_rate[1] * 100, 0)
+        rebeta_rate = self.agency_rebetas.get(agency_level, 0)
+        rebeta_amount = payment * rebeta_rate
 
         if rebeta_amount > payment:
-            raise Exception('返利金额超过实际支付')
+            raise Exception(u'返利金额超过实际支付金额')
 
         return rebeta_amount
 
     def calculate_carry(self, agencylevel, payment):
+        if not self.price_active:
+            return self.get_scheme_rebeta(agencylevel=agencylevel, payment=payment)
+
         carry_rules = self.price_rebetas.get(str(agencylevel))
         payment = int(round(int(payment) * 0.1) * 10)
 
