@@ -136,7 +136,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 refund = apis.api_create_refund_order(
                     user_id, saleorder_id, 0, refund_num, refund_fee, refund_channel,
-                    desc=u'订单缺货自动退款,有张优惠券', good_status=SaleRefund.SELLER_OUT_STOCK,
+                    desc=u'订单缺货自动退款,补发10优惠券', good_status=SaleRefund.SELLER_OUT_STOCK,
                     modify=None, proof_pic=None, is_lackrefund=True, lackorder_id=lack_order.id
                 )
                 refund.refund_approve()
@@ -152,6 +152,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
                 # TODO app推送
 
         except Exception, exc:
+            logger.error('lackrefund-error:%s'%exc.message, exc_info=True)
             return Response({'code': 1, 'info': exc.message})
         else:
             # 发送短信

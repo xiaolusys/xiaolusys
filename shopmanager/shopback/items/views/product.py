@@ -143,6 +143,8 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                     name=content['name'],
                     head_imgs=content['head_img'],
                     sale_time=content['sale_time'],
+                    salecategory=saleproduct.sale_category,
+                    is_flatten=True,
                     extras=extras,
                 )
                 model_pro.save()
@@ -166,7 +168,8 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                         ware_by=supplier.ware_by,
                         sale_time=content['sale_time'],
                         pic_path=content['head_img'],
-                        sale_product=saleproduct.id
+                        sale_product=saleproduct.id,
+                        is_flatten=True,
                     )
                     one_product.save()
                     log_action(creator.id, one_product, ADDITION, u'新建一个product_new')

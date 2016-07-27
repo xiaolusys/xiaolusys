@@ -35,8 +35,8 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
                 forecast_ib.express_no = forecast_ib.express_no or order_list.express_no
                 forecast_ib.save()
                 return
-        # if delete not create forecast
-        if order_list.stage == OrderList.STAGE_DELETED:
+        # if delete or account or complete not create forecast
+        if order_list.stage in (OrderList.STAGE_DELETED, OrderList.STAGE_COMPLETED, OrderList.STAGE_STATE):
             return
 
         forecast_ib = ForecastInbound()

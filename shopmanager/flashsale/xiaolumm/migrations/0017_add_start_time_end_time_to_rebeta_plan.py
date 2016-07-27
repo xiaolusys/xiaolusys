@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0015_create_mamavebviewconf'),
+        ('xiaolumm', '0016_alter_nic_array_and_lesson_type'),
     ]
 
     operations = [

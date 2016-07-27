@@ -1,15 +1,17 @@
 # -*- coding:utf-8 -*-
 import time
+from cStringIO import StringIO
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.contrib.admin.views.main import ChangeList
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 
 from functools import partial, reduce, update_wrapper
 from core.options import log_action, CHANGE
 from core.admin import BaseModelAdmin
+from core.utils import  CSVUnicodeWriter, gen_cvs_tuple
 from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
@@ -58,6 +60,12 @@ class OrderListAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
 
     list_per_page = 25
+
+    class Media:
+        css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
+        js = ("https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
+              "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js", "js/admin_js.js",
+              "js/dinghuo_orderlist.js")
 
     def queryset(self, request):
         qs = super(OrderListAdmin, self).queryset(request)
@@ -190,6 +198,19 @@ class OrderListAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('status', 'supplier_shop',)
         return self.readonly_fields
 
+    def get_actions(self, request):
+
+        user = request.user
+        actions = super(OrderListAdmin, self).get_actions(request)
+
+        if user.is_superuser:
+            return actions
+        else:
+            del actions["action_quick_complete"]
+            return actions
+
+    def get_changelist(self, request, **kwargs):
+        return OrderListChangeList
 
     # 批量审核
     # def test_order_action(self, request, queryset):
@@ -266,28 +287,31 @@ class OrderListAdmin(admin.ModelAdmin):
 
     action_receive_money.short_description = u'收款（批量）'
 
-    actions = ['verify_order_action', 'action_quick_complete', 'action_receive_money']
+    def export_orderlist_action(self, request, queryset):
+        """ 导出订货单信息 """
 
-    def get_actions(self, request):
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') > -1
+        dump_fields = [('id', u'订货单ID'),('supplier__supplier_name', u'供应商'),
+                       ('buyer__username', u'采购员'),
+                       ('purchase_total_num', u'订货数量'),('order_amount', u'订货金额'),
+                       ('created', u'创建时间'),('paid_time', u'付款日期'),
+                       ('receive_time', u'收货日期'),('stage', u'状态')]
+        orderlist_csvdata = []
+        orderlist_csvdata.append([f[1] for f in dump_fields])
+        orderlist_values = queryset.values_list(*[d[0] for d in dump_fields])
+        for order in orderlist_values:
+            orderlist_csvdata.append(('%s'%v for v in order))
+        tmpfile = StringIO()
+        writer = CSVUnicodeWriter(tmpfile, encoding=is_windows and "gbk" or 'utf8')
+        writer.writerows(orderlist_csvdata)
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=orderlist-%s.csv' % str(int(time.time()))
+        return response
 
-        user = request.user
-        actions = super(OrderListAdmin, self).get_actions(request)
+    export_orderlist_action.short_description = u'订货单信息导出'
 
-        if user.is_superuser:
-            return actions
-        else:
-            del actions["action_quick_complete"]
-            return actions
-
-    def get_changelist(self, request, **kwargs):
-        return OrderListChangeList
-
-    class Media:
-        css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
-        js = ("https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
-              "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js", "js/admin_js.js",
-              "js/dinghuo_orderlist.js")
-
+    actions = ['verify_order_action', 'action_quick_complete', 'action_receive_money', 'export_orderlist_action']
 
 class OrderListChangeList(ChangeList):
     def get_queryset(self, request):
