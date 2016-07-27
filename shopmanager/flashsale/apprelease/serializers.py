@@ -17,6 +17,11 @@ class AppReleaseSerialize(serializers.ModelSerializer):
             "version",
             "status",
             "release_time",
+            'status',
+            'release_time',
+            'auto_update',
+            'hash_value',
+            'version_code',
             "memo")
 
     def qrcode_link_func(self, obj):
