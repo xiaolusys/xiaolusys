@@ -59,23 +59,12 @@ class ProductCategory(BaseModel):
     NORMAL = pcfg.NORMAL
     DELETE = pcfg.DELETE
 
-    FIRST_GRADE = 1
-    SECOND_GRADE = 2
-    THIRD_GRADE = 3
-    FOURTH_GRADE = 4
-
-    GRADE_CHOICES = (
-        (FIRST_GRADE, u'一级'),
-        (SECOND_GRADE, u'二级'),
-        (THIRD_GRADE, u'三级'),
-        (FOURTH_GRADE, u'四级')
-    )
     cid  = models.AutoField(primary_key=True, verbose_name=u'类目ID')
     # cid = models.IntegerField(unique=True,null=False, verbose_name=u'类目ID')
     parent_cid = models.IntegerField(null=False, verbose_name=u'父类目ID')
     name = models.CharField(max_length=32, blank=True, verbose_name=u'类目名')
 
-    grade = models.IntegerField(default=0, choices=GRADE_CHOICES, db_index=True, verbose_name=u'等级')
+    grade = models.IntegerField(default=0, db_index=True, verbose_name=u'类目级别')
     is_parent = models.BooleanField(default=True, verbose_name=u'有子类目')
     status = models.CharField(max_length=7, choices=CAT_STATUS, default=pcfg.NORMAL, verbose_name=u'状态')
     sort_order = models.IntegerField(default=0, db_index=True, verbose_name=u'权值')
