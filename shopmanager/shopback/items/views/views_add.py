@@ -444,35 +444,44 @@ class BatchSetTime(generics.ListCreateAPIView):
         add_kill_title = content.get("add_kill_title", None)
         all_product = target_product.split(",")
         pros = Product.objects.filter(id__in=all_product)
-        if add_kill_title is not None and int(add_kill_title) == 1:  # 添加秒杀标题
+        if add_kill_title and int(add_kill_title) == 1:  # 添加秒杀标题
             self.add_kill_title(pros, request.user.id)
-        elif add_kill_title is not None and int(add_kill_title) == 0:  # 移除秒杀
+        elif add_kill_title and int(add_kill_title) == 0:  # 移除秒杀
             self.remove_kill_title(pros, request.user.id)
         for pro in pros:
             properties = []
+            product_detail, state = Productdetail.objects.get_or_create(
+                product=pro)
+            update_detail = False
             for k, v in request.data.iteritems():
                 k = str(k)
                 if k in ("offshelf_time", "sale_time", "ware_by",
                          "agent_price") and v == "":
                     continue
                 if hasattr(pro, k):
-                    if k == 'is_watermark':
+                    if k == 'is_watermark' and v:
                         setattr(pro, k, int(v))
-                    else:
-                        setattr(pro, k, v)
+                    if k == 'is_sale' and v:
+                        setattr(pro, k, int(v))
                     properties.append((Product._meta.get_field(
                         k).verbose_name.title(), v))
 
                 if k == 'agent_price':
                     pro.pskus.update(agent_price=v)
+
                 if k == 'rebeta_scheme_id' and v != '':
-                    product_detail, state = Productdetail.objects.get_or_create(
-                        product=pro)
                     product_detail.rebeta_scheme_id = v
-                    product_detail.save()
-                    properties.append((Productdetail._meta.get_field(
-                        k).verbose_name.title(), v))
+                    update_detail = True
+                if k == 'is_sale' and v != '':
+                    product_detail.is_sale = int(v)
+                    update_detail = True
             pro.save()
+
+            if update_detail:
+                product_detail.save()
+                properties.append((Productdetail._meta.get_field(
+                    k).verbose_name.title(), v))
+
             if k:
                 log_action(request.user.id, pro, CHANGE,
                            u'批量设置产品:%s' % (','.join('%s＝%s' % p
