@@ -52,7 +52,7 @@ class AgencyOrderRebetaScheme(models.Model):
         return default
 
     @classmethod
-    def ACTIVE_SCHEME_ID_MAP(cls):
+    def get_active_scheme_keymap(cls):
         """ 缓存佣金计划 id: scheme 字典 """
         if not hasattr(cls, '_agency_rebeta_schemes_'):
             scheme_maps = cache.get(cls.REBETA_SCHEME_CACHE_KEY)
@@ -66,7 +66,7 @@ class AgencyOrderRebetaScheme(models.Model):
     @classmethod
     def get_rebeta_scheme(cls, scheme_id):
         """ 通过计划id获取佣金计划 """
-        scheme_maps = cls.ACTIVE_SCHEME_ID_MAP
+        scheme_maps = cls.get_active_scheme_keymap()
         rebeta_scheme = scheme_maps.get(scheme_id)
         if rebeta_scheme:
             return rebeta_scheme
