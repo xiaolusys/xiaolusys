@@ -26,7 +26,7 @@ from flashsale.restpro.v1 import views_promotion
 from flashsale.restpro.v1 import views_login_v2
 from flashsale.restpro.v1 import views_faqs
 from flashsale.restpro.v1 import views_mmexams
-
+from flashsale.restpro.v1 import views_favorites
 from flashsale.pay.views import weixin_login, weixin_test, weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 from flashsale.push import views as views_push
@@ -40,6 +40,7 @@ router.register(r'posters', views_product.PosterViewSet)
 router.register(r'products', views_product.ProductViewSet)
 router.register(r'activitys', views_product.ActivityViewSet)
 router.register(r'carts', views_trade.ShoppingCartViewSet)
+router.register(r'favorites', views_favorites.FavoritesViewSet)
 router.register(r'trades', views_trade.SaleTradeViewSet)
 router.register(r'wxorders', views_trade.WXOrderViewSet)
 router.register(r'portal', views_portal.PortalViewSet)
@@ -179,6 +180,7 @@ lesson_router.register(r'lessonattendrecord', views_lesson.LessonAttendRecordVie
 urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
     url(r'^v1/', include(router_urls, namespace='v1')),
+    url(r'^v1/lesson/', include(lesson_router.urls, namespace='v1_lesson')),
     url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^v2/', include(v2_router_urls, namespace='v2')),
@@ -189,7 +191,7 @@ urlpatterns = patterns('',
     url(r'^v2/reset_password', views_verifycode_login.ResetPasswordView.as_view()),
     url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
     url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
-    url(r'^v2/potential_fans', views_mama_v2.PotentialFansView.as_view()),                       
+    url(r'^v2/potential_fans', views_mama_v2.PotentialFansView.as_view()),
     url(r'^lesson/', include(lesson_router.urls, namespace='lesson')),
     url(r'^lesson/snsauth/', views_lesson.WeixinSNSAuthJoinView.as_view()),
     url(r'^packageskuitem', views_packageskuitem.PackageSkuItemView.as_view()),

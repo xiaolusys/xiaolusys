@@ -259,10 +259,9 @@ class XiaoluMama(models.Model):
         """ 获取妈妈佣金返利计划 """
         product_detail = product.detail
         scheme_id = product_detail and product_detail.rebeta_scheme_id or 0
-        scheme = AgencyOrderRebetaScheme.objects.filter(id=scheme_id).first()
-        if scheme:
-            return scheme
-        return AgencyOrderRebetaScheme.get_default_scheme()
+        scheme = AgencyOrderRebetaScheme.get_rebeta_scheme(scheme_id)
+        return scheme
+
 
     def get_Mama_Order_Rebeta(self, order):
         # 如果订单来自小鹿特卖平台

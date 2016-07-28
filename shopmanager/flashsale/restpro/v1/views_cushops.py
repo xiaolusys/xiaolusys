@@ -97,8 +97,8 @@ def save_pro_info(product, user):
 
     shop_pro, pro_state = CuShopPros.objects.get_or_create(customer=customer.id, shop=shop.id, product=pro.id)
     kwargs = {'agencylevel': xlmm.agencylevel,
-              'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
-    rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+              'product_price_yuan': float(pro.agent_price)} if xlmm and pro.agent_price else {}
+    rebet_amount = rebt.calculate_carry(**kwargs) if kwargs else 0  # 计算佣金
 
     if isinstance(pro.sale_time, datetime.date):
         offshelf_time = pro.sale_time + datetime.timedelta(days=2)
@@ -182,12 +182,11 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         shop_pros = self.get_owner_up_pros(request)
         data = []
-        rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
         customer = get_object_or_404(Customer, user=request.user)
         try:
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
         except XiaoluMama.DoesNotExist:
-            xlmm = False
+            raise exceptions.APIException(u'请先申请成为小鹿妈妈')
         for shop_pro in shop_pros:
             pro = Product.objects.get(id=shop_pro.product)  # 产品信息
             if pro.status == Product.NORMAL and pro.shelf_status == Product.UP_SHELF:  # 正常使用状态和上架状态的产品
@@ -197,9 +196,11 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
                 sale_num = pro_dic['remain_num'] * 19 + random.choice(xrange(19))
                 pro_dic['sale_num'] = sale_num
                 pro_dic['product'] = pro_dic['id']
-                kwargs = {'agencylevel': xlmm.agencylevel,
-                          'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
-                rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+
+                rebeta_scheme_id = pro.detail and pro.detail.rebeta_scheme_id or 0
+                rebate = AgencyOrderRebetaScheme.get_rebeta_scheme(rebeta_scheme_id)
+                rebet_amount = rebate.calculate_carry(xlmm.agencylevel, float(pro.agent_price))  # 计算佣金
+
                 pro_dic['status'] = shop_pro.pro_status
                 pro_dic['rebet_amount'] = rebet_amount
                 data.append(pro_dic)

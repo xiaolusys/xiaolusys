@@ -98,9 +98,8 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
     # each order can only generate carry once for one type.
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_id)
 
-    order_carrys = OrderCarry.objects.filter(uni_key=uni_key)
-    if order_carrys.count() > 0:
-        order_carry = order_carrys[0]
+    order_carry = OrderCarry.objects.filter(uni_key=uni_key).first()
+    if order_carry:
         if order_carry.status != status:
             # We only update status change. We assume no price/value change.
             # We dont do updates on changes other than status change.
@@ -111,7 +110,6 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
     try:
         order_value = order.payment * 100
         carry_num = carry_amount
-
 
         sku_name = order.title
         sku_img = order.pic_path
@@ -294,7 +292,7 @@ def task_order_trigger(sale_order):
             carry_amount = int(carry_amount * 1.08) # 8 percent boost for app orders
         else:
             carry_amount = int(carry_amount * 1.1) # 10 percent boost for app orders
-        
+
     #logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
 
     task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,

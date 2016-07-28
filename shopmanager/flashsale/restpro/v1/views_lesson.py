@@ -16,20 +16,22 @@ from rest_framework.views import APIView
 from rest_framework import filters
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
-from . import lesson_serializers
+from . import serializers
 
 logger = logging.getLogger(__name__)
 
-
 from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
 from flashsale.promotion.models import ActivityEntry
+from core.weixin.mixins import WeixinAuthMixin
+from shopapp.weixin.models_base import WeixinUserInfo
+
 
 def get_customer_id(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
     customer_id = None
     if customer:
         customer_id = customer.id
-    #customer_id = 19 # debug test
+    # customer_id = 19 # debug test
     return customer_id
 
 
@@ -40,7 +42,7 @@ def get_mama_id(user):
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
-    #mama_id = 5 # debug test
+    # mama_id = 5 # debug test
     return mama_id
 
 
@@ -50,10 +52,9 @@ def get_xiaolu_university_activity_entry():
     if records.count() > 0:
         return records[0]
     return None
-    
-    
-class LessonTopicFilter(filters.FilterSet):
 
+
+class LessonTopicFilter(filters.FilterSet):
     class Meta:
         model = LessonTopic
         fields = ['lesson_type']
@@ -84,7 +85,7 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     max_paginate_by = 100
 
     queryset = LessonTopic.objects.all()
-    serializer_class = lesson_serializers.LessonTopicSerializer
+    serializer_class = serializers.LessonTopicSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
@@ -129,9 +130,9 @@ class LessonViewSet(viewsets.ModelViewSet):
     max_paginate_by = 100
 
     queryset = Lesson.objects.all()
-    serializer_class = lesson_serializers.LessonSerializer
+    serializer_class = serializers.LessonSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
@@ -140,21 +141,21 @@ class LessonViewSet(viewsets.ModelViewSet):
         lesson_id = content.get("lesson_id")
         if lesson_id:
             return self.queryset.filter(id=lesson_id)
-        
+
         return self.queryset.filter(status=Lesson.STATUS_EFFECT)
-    
+
     def list(self, request, *args, **kwargs):
         query_set = self.get_queryset(request)
         datalist = self.paginate_queryset(query_set)
 
         customer_id = get_customer_id(request.user)
-        #customer_id = 0 # debug
+        # customer_id = 0 # debug
         for entry in datalist:
             entry.customer_idx = customer_id % 5
 
-        serializer = lesson_serializers.LessonSerializer(datalist, many=True)
+        serializer = serializers.LessonSerializer(datalist, many=True)
         res = self.get_paginated_response(serializer.data)
-        #res['Access-Control-Allow-Origin'] = '*'
+        # res['Access-Control-Allow-Origin'] = '*'
         return res
 
     @list_route(methods=['get'])
@@ -162,11 +163,11 @@ class LessonViewSet(viewsets.ModelViewSet):
         lesson_id = request.GET.get("lesson_id")
         lesson = self.queryset.filter(id=lesson_id).first()
         if lesson:
-            serializer = lesson_serializers.LessonSerializer(lesson)
+            serializer = serializers.LessonSerializer(lesson)
             res = Response(serializer.data)
         else:
             res = Response({"code": 1, "msg": "no data"})
-        #res['Access-Control-Allow-Origin'] = '*'
+        # res['Access-Control-Allow-Origin'] = '*'
         return res
 
     def create(self, request, *args, **kwargs):
@@ -189,16 +190,16 @@ class InstructorViewSet(viewsets.ModelViewSet):
     max_paginate_by = 100
 
     queryset = Instructor.objects.all()
-    serializer_class = lesson_serializers.InstructorSerializer
+    serializer_class = serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated, )
+    # permission_classes = (permissions.IsAuthenticated, )
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
         records = self.paginate_queryset(self.queryset.order_by('status'))
-        serializer = lesson_serializers.InstructorSerializer(records, many=True)
+        serializer = serializers.InstructorSerializer(records, many=True)
         res = self.get_paginated_response(serializer.data)
-        #res['Access-Control-Allow-Origin'] = '*'
+        # res['Access-Control-Allow-Origin'] = '*'
         return res
 
     @list_route(methods=['get'])
@@ -209,14 +210,14 @@ class InstructorViewSet(viewsets.ModelViewSet):
         mama = mamas.first()
         if mama:
             me = self.queryset.filter(mama_id=mama.id).first()
-            serializer = lesson_serializers.InstructorSerializer(me)
+            serializer = serializers.InstructorSerializer(me)
             res = Response(serializer.data)
         else:
             res = Response()
 
-        #res['Access-Control-Allow-Origin'] = '*'
+        # res['Access-Control-Allow-Origin'] = '*'
         return res
-    
+
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
@@ -241,9 +242,9 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     max_paginate_by = 100
 
     queryset = LessonAttendRecord.objects.all()
-    serializer_class = lesson_serializers.LessonAttendRecordSerializer
+    serializer_class = serializers.LessonAttendRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated, )
+    # permission_classes = (permissions.IsAuthenticated, )
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
@@ -263,12 +264,11 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         query_set = self.get_queryset(request)
         topics = self.paginate_queryset(query_set)
-        serializer = lesson_serializers.LessonAttendRecordSerializer(topics, many=True)
+        serializer = serializers.LessonAttendRecordSerializer(topics, many=True)
         res = self.get_paginated_response(serializer.data)
-        #res['Access-Control-Allow-Origin'] = '*'
+        # res['Access-Control-Allow-Origin'] = '*'
         return res
 
-        
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
@@ -279,9 +279,6 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
 
-from core.weixin.mixins import WeixinAuthMixin
-from shopapp.weixin.models_base import WeixinUserInfo
-
 class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
     """
     Lesson signup.
@@ -291,7 +288,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
 
     def get(self, request, *args, **kwargs):
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
-        
+
         # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
@@ -299,7 +296,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
         record = userinfo_records.first()
         if record:
-            userinfo.update({"unionid":record.unionid, "nickname":record.nick, "headimgurl":record.thumbnail})
+            userinfo.update({"unionid": record.unionid, "nickname": record.nick, "headimgurl": record.thumbnail})
         else:
             # get openid from 'debug' or from using 'code' (if code exists)
             userinfo = self.get_auth_userinfo(request)
@@ -318,16 +315,18 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
             lesson_id = content.get("lesson_id")
             if lesson_id:
                 from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
+
                 task_create_lessonattendrecord.delay(lesson_id, userinfo)
                 html = "%s?lesson_id=%s&unionid=%s" % (activity_entry.get_html(key), lesson_id, unionid)
-            
+
         if key == "apply":
             from flashsale.xiaolumm.tasks_lesson import task_create_instructor_application
+
             task_create_instructor_application.delay(userinfo)
             html = "%s?unionid=%s" % (activity_entry.get_html(key), unionid)
-        
+
         response = redirect(html)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
-        
+
         return response
 

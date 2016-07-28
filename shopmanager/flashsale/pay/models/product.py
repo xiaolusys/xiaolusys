@@ -42,7 +42,7 @@ class Productdetail(PayBaseModel):
                       (TWENTY_PERCENT, u'返利百分之20'),
                       (THIRTY_PERCENT, u'返利百分之30'),)
 
-    product = models.OneToOneField(Product, primary_key=True, auto_created=True,
+    product = models.OneToOneField(Product, primary_key=True, 
                                    related_name='details', verbose_name=u'库存商品')
 
     head_imgs = models.TextField(blank=True, verbose_name=u'题头照(多张请换行)')
@@ -229,6 +229,14 @@ class ModelProduct(BaseTagModel):
         if not product or not product.detail:
             return False
         return product.offshelf_time
+
+    @property
+    def shelf_status(self):
+        """上架状态"""
+        product = self.item_product
+        if not product:
+            return 0
+        return product.shelf_status
 
     @property
     def is_saleopen(self):

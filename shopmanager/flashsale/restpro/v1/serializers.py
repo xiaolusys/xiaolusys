@@ -19,6 +19,7 @@ from flashsale.pay.models import (
     CustomShare,
     UserBudget
 )
+from flashsale.pay.models.favorites import Favorites
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from flashsale.xiaolumm.models import XiaoluMama
 from shopback.items.models import Product, ProductSku, ProductCategory
@@ -29,6 +30,13 @@ from rest_framework import serializers
 from flashsale.restpro import constants
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from flashsale.coupon.models import OrderShareCoupon
+
+from flashsale.xiaolumm.models.models_lesson import (
+    LessonTopic,
+    Instructor,
+    Lesson,
+    LessonAttendRecord,
+)
 
 
 class RegisterSerializer(serializers.HyperlinkedModelSerializer):
@@ -901,3 +909,64 @@ class ModelProductV2Serializer(serializers.ModelSerializer):
                 return obj.product_simplejson(product)
         return obj.sku_info
 
+
+class FavoritesSerializer(serializers.ModelSerializer):
+
+    modelproduct = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Favorites
+        fields = ('id', 'modelproduct', 'created')
+
+    def get_modelproduct(self, obj):
+        model = ModelProduct.objects.filter(id=obj.model_id).first()
+        if model:
+            return {
+                'id': obj.model_id,
+                'name': obj.name,
+                'head_img': obj.head_img,
+                'lowest_agent_price': obj.lowest_agent_price,
+                'lowest_std_sale_price': obj.lowest_std_sale_price,
+                'shelf_status': model.shelf_status,
+            }
+        return None
+
+
+class LessonTopicSerializer(serializers.ModelSerializer):
+    lesson_type_display = serializers.CharField(read_only=True)
+    status_display = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = LessonTopic
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    start_time_display = serializers.CharField(read_only=True)
+    status_display = serializers.CharField(read_only=True)
+    is_started = serializers.IntegerField(read_only=True)
+    m_static_url = serializers.CharField(read_only=True)
+
+    class Meta:
+        extra_kwargs = {'customer_idx': {'read_only': True}}
+        model = Lesson
+        fields = ('id', 'lesson_topic_id', 'title', 'description', 'content_link', 'instructor_id',
+                  'instructor_name', 'instructor_title', 'instructor_image', 'num_attender',
+                  'num_score', 'start_time_display', 'qrcode_links', 'status', 'status_display',
+                  'is_started', 'customer_idx', 'm_static_url')
+
+
+class InstructorSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(read_only=True)
+    apply_date = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Instructor
+
+
+class LessonAttendRecordSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(read_only=True)
+    signup_time = serializers.CharField(read_only=True)
+    signup_date = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = LessonAttendRecord

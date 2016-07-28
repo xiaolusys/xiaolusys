@@ -843,8 +843,8 @@ def task_add_product_to_customer_shop(customer):
         if not pro:
             continue
         kwargs = {'agencylevel': xlmm.agencylevel,
-                  'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
-        rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+                  'product_price_yuan': float(pro.agent_price)} if xlmm and pro.agent_price else {}
+        rebet_amount = rebt.calculate_carry(**kwargs) if kwargs else 0  # 计算佣金
         cu_shop_prods = CuShopPros.objects.filter(customer=shop.customer)
         cu_shop_prod = cu_shop_prods.filter(product=pro.id).first()  # 该用户该产品
         if not cu_shop_prod:
