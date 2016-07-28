@@ -3,8 +3,12 @@ import datetime
 
 from django.db import models
 from django.core.cache import cache
+from django.db.models.signals import pre_save, post_save
+
 from core.fields import JSONCharMyField
 
+import logging
+logger = logging.getLogger(__name__)
 
 class AgencyOrderRebetaScheme(models.Model):
     """ 代理订单返利模板：代理等级返利设置始终生效，如果商品价格返利选上，则先查找价格返利，然后才查询代理等级返利 """
@@ -102,3 +106,11 @@ class AgencyOrderRebetaScheme(models.Model):
 
         return 0
 
+def invalid_agency_orderebeta_cache(sender, instance, created, **kwargs):
+    logger.info('invalid_agency_orderebeta_cache：%s'% instance)
+    cache_key = AgencyOrderRebetaScheme.REBETA_SCHEME_CACHE_KEY
+    cache.delete(cache_key)
+
+post_save.connect(invalid_agency_orderebeta_cache,
+                  sender=AgencyOrderRebetaScheme,
+                  dispatch_uid='post_save_invalid_agency_orderebeta_cache')
