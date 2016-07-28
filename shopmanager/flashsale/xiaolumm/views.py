@@ -29,7 +29,8 @@ from shopapp.weixin.views import valid_openid
 from .models import XiaoluMama, CashOut, CarryLog
 from .serializers import CashOutSerializer, CarryLogSerializer
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
+json_logger = logging.getLogger('service.xiaolumm')
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
 WEB_SHARE_URL = "{site_url}/mall/?mm_linkid={mm_linkid}&ufrom={ufrom}"
@@ -520,6 +521,12 @@ class ClickLogView(WeixinAuthMixin, View):
         next_page = content.get('next', None)
         # print 'next_page:', next_page
         # logger.error('next_page %s-path:%s' % (next_page, content))
+        click_time = datetime.datetime.now()
+        json_logger.info({
+            'type': 'click', 'mm_linkid': linkid, 'click_time': click_time,
+            'http_referal': request.META.get('HTTP_REFERER'),
+            'http_agent': request.META.get('HTTP_USER_AGENT')
+        })
         if not self.is_from_weixin(request):
             share_url = get_share_url(next_page=next_page, mm_linkid=linkid, ufrom='web')
             response = redirect(share_url)
@@ -532,7 +539,12 @@ class ClickLogView(WeixinAuthMixin, View):
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
 
-        click_time = datetime.datetime.now()
+        json_logger.info({
+            'type': 'auth_click', 'mm_linkid': linkid, 'click_time': click_time,
+            'openid':openid, 'unionid':unionid,
+            'http_referal': request.META.get('HTTP_REFERER'),
+            'http_agent': request.META.get('HTTP_USER_AGENT')
+        })
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time, settings.WXPAY_APPID),
               ctasks.task_Update_User_Click.s())()
 
