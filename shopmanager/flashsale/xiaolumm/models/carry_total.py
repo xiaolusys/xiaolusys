@@ -12,6 +12,8 @@ from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, Aw
 
 # 在下次活动前设置此处，以自动重设变更统计时间
 STAT_TIME = datetime.datetime(2016, 7, 24)
+
+
 # if datetime.datetime.now() < datetime.datetime(2016, 7, 28) \
 # else datetime.datetime(2016, 7, 28)
 
@@ -135,7 +137,7 @@ class MamaCarryTotal(BaseModel):
                                                        status=XiaoluMama.EFFECT).values('id')]
         exist_ids = [m['mama_id'] for m in MamaCarryTotal.objects.filter(stat_time=STAT_TIME).values('mama_id')]
         mama_ids = list(set(mama_ids) - set(exist_ids))
-        #res = []
+        # res = []
         for mama_id in mama_ids:
             m = MamaCarryTotal(mama_id=mama_id)
             m.history_total = m.get_history_total()
@@ -146,17 +148,17 @@ class MamaCarryTotal(BaseModel):
             m.history_num = OrderCarry.objects.filter(mama_id=mama_id, status=2, created__lt=STAT_TIME).count()
             m.duration_num = OrderCarry.objects.filter(mama_id=mama_id, status=2, created__gte=STAT_TIME).count()
             m.save()
-        #res.append(m)
-        #MamaCarryTotal.objects.bulk_create(res)
+            # res.append(m)
+            # MamaCarryTotal.objects.bulk_create(res)
 
     @staticmethod
     def stat_history_total(mama_id):
         """
             历史总金额为OrderCarry,AwardCarry,ClickCarry
         """
-        rank = MamaCarryTotal.objects.get_or_create(mama_id=mama_id)
+        rank = MamaCarryTotal.get_by_mama_id(mama_id)
         rank.history_total = rank.get_history_total()
-        rank.save('history_total', 'modified')
+        rank.save(update_fields=['history_total', 'modified'])
 
     @staticmethod
     def update_ranking(mama_id, stat_history=False):
@@ -219,13 +221,13 @@ class MamaCarryTotal(BaseModel):
         MamaCarryTotal.batch_generate()
         i = 1
         rank = 1
-        last_value = 0
+        last_value = None
         res = {}
         for m in MamaCarryTotal.objects.order_by((F('duration_total') + F('history_total')
                                                   ).desc()).values('mama_id',
                                                                    'duration_total',
                                                                    'history_total'):
-            if m['duration_total'] + m['history_total'] < last_value:
+            if last_value is None or m['duration_total'] + m['history_total'] < last_value:
                 last_value = m['duration_total'] + m['history_total']
                 rank = i
             res[m['mama_id']] = rank
@@ -237,10 +239,10 @@ class MamaCarryTotal(BaseModel):
         MamaCarryTotal.batch_generate()
         i = 1
         rank = 1
-        last_value = 0
+        last_value = None
         res = {}
         for m in MamaCarryTotal.objects.order_by((F('duration_total')).desc()).values('mama_id', 'duration_total'):
-            if m['duration_total'] < last_value:
+            if last_value is None or m['duration_total'] < last_value:
                 last_value = m['duration_total']
                 rank = i
             res[m['mama_id']] = rank
@@ -264,6 +266,7 @@ def update_carry_total_ranking(sender, instance, created, **kwargs):
     if datetime.datetime.now() > STAT_TIME:
         task_update_carry_total_ranking.delay()
         task_update_carry_duration_total_ranking.delay()
+
 
 post_save.connect(update_carry_total_ranking,
                   sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_ranking')
@@ -325,10 +328,18 @@ class MamaTeamCarryTotal(BaseModel):
         return self._rank_
 
     @property
+    def total_rank(self):
+        return self.total_rank_delay if self.total_rank_delay else 0
+
+    @property
+    def duration_rank(self):
+        return self.duration_rank_delay if self.duration_rank_delay else 0
+
+    @property
     def mama_ids(self):
         if not hasattr(self, '_mama_ids'):
-            self._mama_ids_ = MamaTeamCarryTotal.get_team_ids(self.mama_id)
-            # self._mama_ids_ = [m['mama_id'] for m in self.members.values('mama_id')]
+            # self._mama_ids_ = MamaTeamCarryTotal.get_team_ids(self.mama_id)
+            self._mama_ids_ = [m['mama_id'] for m in self.members.values('mama_id')]
         return self._mama_ids_
 
     @property
@@ -351,6 +362,17 @@ class MamaTeamCarryTotal(BaseModel):
         return MamaTeamCarryTotal.objects.filter(mama_id=mama_id).first()
 
     @staticmethod
+    def move_other_stat_to_record():
+        moves = []
+        dels = []
+        for i in MamaTeamCarryTotal.objects.exclude(stat_time=STAT_TIME).prefetch_related('members'):
+            c = TeamCarryTotalRecord.create(i, save=False)
+            dels.append(i.mama_id)
+            moves.append(c)
+        TeamCarryTotalRecord.objects.bulk_create(moves)
+        MamaTeamCarryTotal.objects.filter(mama_id__in=dels).delete()
+
+    @staticmethod
     def generate(mama_id):
         mama_ids = MamaTeamCarryTotal.get_team_ids(mama_id)
         m = MamaTeamCarryTotal(
@@ -365,10 +387,28 @@ class MamaTeamCarryTotal(BaseModel):
 
     @staticmethod
     def batch_generate():
+        MamaTeamCarryTotal.move_other_stat_to_record()
         MamaCarryTotal.batch_generate()
         mids = [m['mama_id'] for m in MamaCarryTotal.objects.values('mama_id')]
-        for mama_id in mids:
+        tmids = [m['mama_id'] for m in MamaTeamCarryTotal.objects.values('mama_id')]
+        left_ids = list(set(mids)- set(tmids))
+        for mama_id in left_ids:
             MamaTeamCarryTotal.generate(mama_id)
+
+    @staticmethod
+    def update_or_create(mama_id):
+        if not MamaTeamCarryTotal.objects.filter(mama_id=mama_id).exists():
+            return MamaTeamCarryTotal.generate(mama_id)
+        m = MamaTeamCarryTotal.objects.filter(mama_id=mama_id).first()
+        mama_ids = MamaTeamCarryTotal.get_team_ids(mama_id)
+        m.restat(mama_ids)
+        m.save()
+        now_mama_ids = [i['mama_id'] for i in m.members.values('mama_id')]
+        left_mama_ids = list(set(mama_ids)-set(now_mama_ids))
+        for mama in MamaCarryTotal.objects.filter(mama_id__in=left_mama_ids):
+            m.members.add(mama)
+        m.save()
+        return
 
     def restat(self, mama_ids):
         res = MamaCarryTotal.objects.filter(mama_id__in=mama_ids).aggregate(
@@ -394,7 +434,6 @@ class MamaTeamCarryTotal(BaseModel):
         for team in mama.teams.all():
             team.refresh_data()
 
-
     @staticmethod
     def get_ranking_list():
         return MamaTeamCarryTotal.objects.order_by((F('total')).desc())
@@ -402,7 +441,6 @@ class MamaTeamCarryTotal(BaseModel):
     @staticmethod
     def get_duration_ranking_list():
         return MamaTeamCarryTotal.objects.order_by((F('duration_total')).desc())
-
 
     @staticmethod
     def reset_rank():
@@ -417,7 +455,7 @@ class MamaTeamCarryTotal(BaseModel):
                 rank = i
             res[m['mama_id']] = rank
             i += 1
-        multi_update(MamaTeamCarryTotal, 'mama_id', 'total_rank', res)
+        multi_update(MamaTeamCarryTotal, 'mama_id', 'total_rank_delay', res)
 
     @staticmethod
     def reset_rank_duration():
@@ -432,7 +470,7 @@ class MamaTeamCarryTotal(BaseModel):
                 rank = i
             res[m['mama_id']] = rank
             i += 1
-        multi_update(MamaTeamCarryTotal, 'mama_id', 'duration_rank', res)
+        multi_update(MamaTeamCarryTotal, 'mama_id', 'duration_rank_delay', res)
 
 
 class CarryTotalRecord(BaseModel):
@@ -515,3 +553,20 @@ class TeamCarryTotalRecord(BaseModel):
         app_label = 'xiaolumm'
         verbose_name = u'妈妈团队收益排名记录'
         verbose_name_plural = u'妈妈团队收益排名记录'
+
+    @staticmethod
+    def create(team_carry_total, save=True):
+        record = TeamCarryTotalRecord(
+            mama_id=team_carry_total.mama_id,
+            stat_time=team_carry_total.stat_time,
+            total_rank=team_carry_total.total_rank,
+            duration_rank=team_carry_total.duration_rank,
+            total=team_carry_total.total,
+            duration_total=team_carry_total.duration_total,
+            num=team_carry_total.num,
+            duration_num=team_carry_total.duration_num,
+            mama_ids=[]#team_carry_total.mama_ids,
+        )
+        if save:
+            record.save()
+        return record
