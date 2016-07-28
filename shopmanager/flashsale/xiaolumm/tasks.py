@@ -864,7 +864,12 @@ def task_unitary_mama(obj):
     xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
     if not xlmm:  # 代理
         return
-    if xlmm.charge_status == XiaoluMama.CHARGED:   # 如果是接管的不处理
+    flag = 0
+    if xlmm.charge_status == XiaoluMama.UNCHARGE:  # 如果是没有接管的可以试用
+        flag = 1
+    if xlmm.charge_status == XiaoluMama.CHARGED and xlmm.status == XiaoluMama.FROZEN and xlmm.last_renew_type == XiaoluMama.TRIAL:
+        flag = 1
+    if flag != 1:
         return
     update_fields = []
     now = datetime.datetime.now()
@@ -1068,8 +1073,11 @@ def task_renew_mama(obj):
     if xlmm.last_renew_type != last_renew_type:
         xlmm.last_renew_type = last_renew_type
         update_field.append('last_renew_type')
+    if xlmm.status == XiaoluMama.EFFECT:  # 如果是有效状态则在原来的时间上面累加
+        renew_time = xlmm.renew_time + datetime.timedelta(days=renew_days)
+    else:  # 其他状态则从现在时间算起
+        renew_time = datetime.datetime.now() + datetime.timedelta(days=renew_days)
 
-    renew_time = xlmm.renew_time + datetime.timedelta(days=renew_days)
     if xlmm.renew_time != renew_time:
         xlmm.renew_time = renew_time
         update_field.append('renew_time')

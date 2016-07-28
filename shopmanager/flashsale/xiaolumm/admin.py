@@ -35,7 +35,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
                     'charge_link', 'group_select', 'click_state', 'exam_pass', 'progress', 'hasale', 'charge_time',
                     'status', 'referal_from', 'mama_Verify')
     list_filter = (
-        'progress', 'agencylevel', 'manager', 'status', 'charge_status', 'hasale', ('charge_time', DateFieldListFilter),
+        'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale', ('charge_time', DateFieldListFilter),
         'user_group')
     list_display_links = ('id', 'mama_data_display',)
     search_fields = ['=id', '=mobile', '=manager', 'weikefu', '=openid', '=referal_from']

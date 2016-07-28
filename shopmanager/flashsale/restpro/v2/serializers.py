@@ -19,7 +19,6 @@ from flashsale.xiaolumm.models.models_fortune import (
     DailyStats,
 )
 from rest_framework import serializers
-from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme, calculate_price_carry
 
 from flashsale.pay.models import BrandEntry, BrandProduct
 from shopback.items.models import Product, ProductSku, ProductCategory
@@ -246,23 +245,12 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
                   'in_customer_shop', 'shop_product_num',
                   "level_info")
 
-    @property
-    def agency_rebeta_schemes_maps(self):
-        if not hasattr(self, '_agency_rebeta_schemes_'):
-            orderrebeta_qs = AgencyOrderRebetaScheme.objects.filter(status=AgencyOrderRebetaScheme.NORMAL)
-            self._agency_rebeta_schemes_ = dict([(rb.id, rb) for rb in orderrebeta_qs])
-            return self._agency_rebeta_schemes_
-        return self._agency_rebeta_schemes_
-
-    def mama_agency_level_info(self, user):
+    def mama_agency_level_info(self, xlmm):
         default_info = collections.defaultdict(agencylevel=XiaoluMama.INNER_LEVEL,
                                                agencylevel_desc=XiaoluMama.AGENCY_LEVEL[0][1],
                                                next_agencylevel=XiaoluMama.A_LEVEL,
                                                next_agencylevel_desc=XiaoluMama.AGENCY_LEVEL[2][1])
-        customer = Customer.objects.normal_customer.filter(user=user).first()
-        if not customer:
-            return default_info
-        xlmm = customer.getXiaolumm()
+
         if not xlmm:
             return default_info
         next_agencylevel, next_agencylevel_desc = xlmm.next_agencylevel_info()
@@ -275,15 +263,15 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
         return default_info
 
     def agencylevel_info(self, obj):
-        user = self.context['request'].user
-        info = self.mama_agency_level_info(user)
+        xlmm = self.context['xlmm']
+        rebeta = self.context['rebeta']
+        info = self.mama_agency_level_info(xlmm)
         sale_num = obj.remain_num * 19 + random.choice(xrange(19))
         sale_num_des = '{0}人在卖'.format(sale_num)
-        rebeta_scheme_id = obj.detail or obj.detail.rebeta_scheme_id or 0
-        rebate = self.agency_rebeta_schemes_maps.get(rebeta_scheme_id)
-        rebet_amount = rebate and rebate.calculate_carry(info['agencylevel'], obj.agent_price) or 0
+
+        rebet_amount = calculate_price_carry(info['agencylevel'], obj.agent_price, rebeta.price_rebetas)
         rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
-        next_rebet_amount = rebate and rebate.calculate_carry(info['next_agencylevel'], obj.agent_price) or 0
+        next_rebet_amount = calculate_price_carry(info['next_agencylevel'], obj.agent_price, rebeta.price_rebetas)
         next_rebet_amount_des = '佣 ￥{0}.00'.format(next_rebet_amount)
         info.update({
             "sale_num": sale_num,

@@ -196,9 +196,12 @@ class XlmmExit(object):
         xlmm.pending = 0
         xlmm.manager = 0
         xlmm.charge_time = None
+        xlmm.renew_time = None
+        xlmm.last_renew_type = XiaoluMama.FULL
         update_model_fields(xlmm,
                             update_fields=['cash', 'agencylevel', 'charge_status', 'target_complete', 'hasale',
-                                           'user_group', 'referal_from', 'pending', 'manager', 'charge_time'])
+                                           'user_group', 'referal_from', 'pending', 'manager', 'charge_time',
+                                           'renew_time', 'last_renew_type'])
         return xlmm
 
     def xlmm_buy_cash(self, xlmm):
