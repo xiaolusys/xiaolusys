@@ -247,12 +247,12 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
                   "level_info")
 
     @property
-    def agency_rebate_info(self):
-        if not hasattr(self, '_agency_rebate_info_'):
-            rebate = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
-            self._agency_rebate_info_ = model_to_dict(rebate)
-            return self._agency_rebate_info_
-        return self._agency_rebate_info_
+    def agency_rebate_schemes(self):
+        if not hasattr(self, '_agency_rebate_schemes_'):
+            orderrebeta_qs = AgencyOrderRebetaScheme.objects.filter(status=AgencyOrderRebetaScheme.NORMAL)
+            self._agency_rebate_info_ = dict([(rb.id, rb) for rb in orderrebeta_qs])
+            return self._agency_rebate_schemes_
+        return self._agency_rebate_schemes_
 
     def mama_agency_level_info(self, user):
         default_info = collections.defaultdict(agencylevel=XiaoluMama.INNER_LEVEL,
@@ -279,10 +279,11 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
         info = self.mama_agency_level_info(user)
         sale_num = obj.remain_num * 19 + random.choice(xrange(19))
         sale_num_des = '{0}人在卖'.format(sale_num)
-        rebate = self.agency_rebate_info
-        rebet_amount = calculate_price_carry(info['agencylevel'], obj.agent_price, rebate['price_rebetas'])
+        rebeta_scheme_id = obj.detail or obj.detail.rebeta_scheme_id or 0
+        rebate = self.agency_rebate_schemes.get(rebeta_scheme_id)
+        rebet_amount = rebate and rebate.calculate_carry(info['agencylevel'], obj.agent_price) or 0
         rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
-        next_rebet_amount = calculate_price_carry(info['next_agencylevel'], obj.agent_price, rebate['price_rebetas'])
+        next_rebet_amount = rebate and rebate.calculate_carry(info['next_agencylevel'], obj.agent_price) or 0
         next_rebet_amount_des = '佣 ￥{0}.00'.format(next_rebet_amount)
         info.update({
             "sale_num": sale_num,
