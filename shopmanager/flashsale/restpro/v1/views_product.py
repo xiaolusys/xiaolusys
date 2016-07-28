@@ -656,25 +656,22 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def choice_query_2_dict(self, queryset, customer, agencylevel):
         carry_policy = {}
         try:
-            rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
-            carry_policy = rebt.price_rebetas
+            orderrebeta_qs = AgencyOrderRebetaScheme.objects.filter(status=AgencyOrderRebetaScheme.NORMAL)
+            carry_policy = dict([(rb.id, rb) for rb in orderrebeta_qs])
         except AgencyOrderRebetaScheme.DoesNotExist:
             pass
 
-        shop_products = CuShopPros.objects.filter(customer=customer.id, pro_status=CuShopPros.UP_SHELF).values(
-            "product")
+        shop_products = CuShopPros.objects.filter(customer=customer.id,
+                                                  pro_status=CuShopPros.UP_SHELF).values("product")
         # shop_products = CuShopPros.objects.filter(customer=19,pro_status=CuShopPros.UP_SHELF).values("product")
         product_ids = set()
         for item in shop_products:
             product_ids.add(item["product"])
 
         shop_product_num = len(product_ids)
-
-        from flashsale.xiaolumm.models.models_rebeta import calculate_price_carry
-        products = []
-
         for pro in queryset:
-            rebet_amount = calculate_price_carry(agencylevel, pro.agent_price, carry_policy)
+            rebeta_scheme = carry_policy.get(pro.carry_scheme)
+            rebet_amount  = rebeta_scheme and rebeta_scheme.calculate_carry(agencylevel, pro.agent_price) or 0
 
             # 预留数 * 97(质数)+(97内的随机数) = (模拟)销量　
             sale_num = pro.remain_num * 19 + random.choice(xrange(19))
