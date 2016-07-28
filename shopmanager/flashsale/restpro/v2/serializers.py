@@ -247,12 +247,12 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
                   "level_info")
 
     @property
-    def agency_rebate_schemes(self):
-        if not hasattr(self, '_agency_rebate_schemes_'):
+    def agency_rebeta_schemes_maps(self):
+        if not hasattr(self, '_agency_rebeta_schemes_'):
             orderrebeta_qs = AgencyOrderRebetaScheme.objects.filter(status=AgencyOrderRebetaScheme.NORMAL)
-            self._agency_rebate_info_ = dict([(rb.id, rb) for rb in orderrebeta_qs])
-            return self._agency_rebate_schemes_
-        return self._agency_rebate_schemes_
+            self._agency_rebeta_schemes_ = dict([(rb.id, rb) for rb in orderrebeta_qs])
+            return self._agency_rebeta_schemes_
+        return self._agency_rebeta_schemes_
 
     def mama_agency_level_info(self, user):
         default_info = collections.defaultdict(agencylevel=XiaoluMama.INNER_LEVEL,
@@ -280,7 +280,7 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
         sale_num = obj.remain_num * 19 + random.choice(xrange(19))
         sale_num_des = '{0}人在卖'.format(sale_num)
         rebeta_scheme_id = obj.detail or obj.detail.rebeta_scheme_id or 0
-        rebate = self.agency_rebate_schemes.get(rebeta_scheme_id)
+        rebate = self.agency_rebeta_schemes_maps.get(rebeta_scheme_id)
         rebet_amount = rebate and rebate.calculate_carry(info['agencylevel'], obj.agent_price) or 0
         rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
         next_rebet_amount = rebate and rebate.calculate_carry(info['next_agencylevel'], obj.agent_price) or 0
