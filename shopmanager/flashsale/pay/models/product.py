@@ -42,7 +42,7 @@ class Productdetail(PayBaseModel):
                       (TWENTY_PERCENT, u'返利百分之20'),
                       (THIRTY_PERCENT, u'返利百分之30'),)
 
-    product = models.OneToOneField(Product, primary_key=True, 
+    product = models.OneToOneField(Product, primary_key=True,
                                    related_name='details', verbose_name=u'库存商品')
 
     head_imgs = models.TextField(blank=True, verbose_name=u'题头照(多张请换行)')

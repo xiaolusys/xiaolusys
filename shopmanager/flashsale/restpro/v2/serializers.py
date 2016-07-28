@@ -264,25 +264,17 @@ class ProductSimpleSerializerV2(serializers.ModelSerializer):
 
     def agencylevel_info(self, obj):
         xlmm = self.context['xlmm']
-        rebeta = self.context['rebeta']
         info = self.mama_agency_level_info(xlmm)
         sale_num = obj.remain_num * 19 + random.choice(xrange(19))
         sale_num_des = '{0}人在卖'.format(sale_num)
 
-        rebeta_scheme_id = obj.detail and obj.detail.rebeta_scheme_id or 0
-        rebate = AgencyOrderRebetaScheme.get_rebeta_scheme(rebeta_scheme_id)
-        rebet_amount = rebate and rebate.calculate_carry(info['agencylevel'], obj.agent_price) or 0
-
-        rebet_amount_des = '佣 ￥{0}.00'.format(rebet_amount)
-        next_rebet_amount = rebate and rebate.calculate_carry(info['next_agencylevel'], obj.agent_price) or 0
-        next_rebet_amount_des = '佣 ￥{0}.00'.format(next_rebet_amount)
         info.update({
             "sale_num": sale_num,
             "sale_num_des": sale_num_des,
-            "rebet_amount": rebet_amount,
-            "rebet_amount_des": rebet_amount_des,
-            "next_rebet_amount": next_rebet_amount,
-            "next_rebet_amount_des": next_rebet_amount_des
+            "rebet_amount": obj.rebet_amount,
+            "rebet_amount_des": obj.rebet_amount_des,
+            "next_rebet_amount": obj.next_rebet_amount,
+            "next_rebet_amount_des": obj.next_rebet_amount_des
         })
         return info
 
