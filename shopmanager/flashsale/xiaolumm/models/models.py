@@ -105,7 +105,7 @@ class XiaoluMama(models.Model):
     pending = models.IntegerField(default=0, verbose_name=u"冻结佣金")
 
     hasale = models.BooleanField(default=False, verbose_name=u"有购买")
-    last_renew_type = models.IntegerField(choices=RENEW_TYPE, default=365, verbose_name=u"最近续费类型")
+    last_renew_type = models.IntegerField(choices=RENEW_TYPE, default=365, db_index=True, verbose_name=u"最近续费类型")
 
     agencylevel = models.IntegerField(default=INNER_LEVEL, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")

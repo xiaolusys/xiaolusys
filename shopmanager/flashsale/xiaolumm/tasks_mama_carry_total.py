@@ -37,13 +37,16 @@ def task_schedule_update_carry_total_ranking():
     logger.warn("task_schedule_update_carry_total_ranking: %s" % (get_cur_info(),))
     MamaCarryTotal.reset_rank()
     MamaCarryTotal.reset_rank_duration()
-
+    MamaCarryTotal.reset_de_rank()
+    MamaCarryTotal.reset_activite_rank()
 
 @task()
 def task_schedule_update_team_carry_total_ranking():
     logger.warn(" task_schedule_update_carry_total_ranking: %s" % (get_cur_info(),))
     MamaTeamCarryTotal.reset_rank()
     MamaTeamCarryTotal.reset_rank_duration()
+    MamaTeamCarryTotal.reset_de_rank()
+    MamaTeamCarryTotal.reset_activite_rank()
 
 
 @single_instance_task(timeout=TIMEOUT, prefix='flashsale.xiaolumm.tasks_mama_carry_total.')

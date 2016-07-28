@@ -71,7 +71,8 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
 
     @list_route(methods=['GET'])
     def activity_carry_total_rank(self, request):
-        top = MamaCarryTotal.get_duration_ranking_list()[0:10]
+        # top = MamaCarryTotal.get_duration_ranking_list()[0:10]
+        top = MamaCarryTotal.get_activity_ranking_list()[0:10]
         top = list(top)
         i = 1
         for t in top:
@@ -88,11 +89,14 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
             raise exceptions.ValidationError(u'用户未登录或并非小鹿妈妈')
         mama_carry = MamaCarryTotal.objects.get(pk=mama.id)
         res = ActivityMamaCarryTotalSerializer(mama_carry).data
-        res['rank_add'] = -5
+        res['rank'] = mama_carry.activite_rank
+        res['rank_add'] = 0
         team = MamaTeamCarryTotal.objects.get(pk=mama_carry.mama_id)
         res['recommended_quantity'] = team.members.count()
         res['team_total'] = team.duration_total
         res['team_num'] = team.duration_num
+        res['activite_num'] = int(res['recommended_quantity']/2)
+        # res['invitate_num'] = 0
         return Response(res)
 
 
@@ -157,7 +161,7 @@ class MamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
 
     @list_route(methods=['GET'])
     def activity_carry_total_rank(self, request):
-        top = MamaTeamCarryTotal.get_duration_ranking_list()[0:10]
+        top = MamaTeamCarryTotal.get_activity_ranking_list()[0:10]
         top = list(top)
         i = 1
         for t in top:
