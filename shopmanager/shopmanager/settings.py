@@ -535,7 +535,7 @@ if not DEBUG:
             },
             'json': {
                 '()': 'core.logger.JsonFormatter',
-                'format': '%(levelname)s %(asctime)s ',
+                'format': '%(levelname)s %(asctime)s  %(message)s'
             },
         },
         'handlers': {
