@@ -8,7 +8,6 @@ TIMEOUT = 15 * 60 if not settings.DEBUG else 15
 
 @task()
 def task_carryrecord_update_carrytotal(mama_id):
-    return 
     MamaCarryTotal.update_ranking(mama_id)
 
 
