@@ -36,7 +36,7 @@ def task_update_second_level_ordercarry_by_trial(potential, order_carry):
     if potential.is_full_member:  # 已经是正式的代理则return
         return
     carry_type = 3  # 下属订单类型
-    parent_mama_id = potential.referal_from_mama_id  # 上级代理
+    parent_mama_id = potential.referal_mama  # 上级代理
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_carry.order_id)
     record = OrderCarry.objects.filter(uni_key=uni_key).first()
     if record > 0:
