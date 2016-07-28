@@ -909,7 +909,7 @@ class FavoritesSerializer(serializers.ModelSerializer):
 
     def get_modelproduct(self, obj):
         return {
-            'id': obj.id,
+            'id': obj.model_id,
             'name': obj.name,
             'head_img': obj.head_img,
             'lowest_agent_price': obj.lowest_agent_price,
