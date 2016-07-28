@@ -71,7 +71,7 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
 
     @list_route(methods=['GET'])
     def activity_carry_total_rank(self, request):
-        top = MamaCarryTotal.get_ranking_list()[0:10]
+        top = MamaCarryTotal.get_duration_ranking_list()[0:10]
         top = list(top)
         i = 1
         for t in top:
@@ -157,7 +157,7 @@ class MamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
 
     @list_route(methods=['GET'])
     def activity_carry_total_rank(self, request):
-        top = MamaTeamCarryTotal.get_ranking_list()[0:10]
+        top = MamaTeamCarryTotal.get_duration_ranking_list()[0:10]
         top = list(top)
         i = 1
         for t in top:
