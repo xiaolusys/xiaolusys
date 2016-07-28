@@ -3,6 +3,7 @@ build:
   environment:
     - TARGET=staging
   commands:
+    - mkdir -p /data/log
     - cd shopmanager;python manage.py migrate --noinput
     - python manage.py test -t . --keepdb
   when:
