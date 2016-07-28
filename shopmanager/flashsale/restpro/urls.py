@@ -180,6 +180,7 @@ lesson_router.register(r'lessonattendrecord', views_lesson.LessonAttendRecordVie
 urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
     url(r'^v1/', include(router_urls, namespace='v1')),
+    url(r'^v1/lesson/', include(lesson_router.urls, namespace='v1_lesson')),
     url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^v2/', include(v2_router_urls, namespace='v2')),
