@@ -911,7 +911,7 @@ class FavoritesSerializer(serializers.ModelSerializer):
         return {
             'id': obj.id,
             'name': obj.name,
-            'head_imgs': obj.head_imgs,
+            'head_img': obj.head_img,
             'lowest_agent_price': obj.lowest_agent_price,
             'lowest_std_sale_price': obj.lowest_std_sale_price,
         }
