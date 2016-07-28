@@ -365,16 +365,16 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         shop_product_num = len(product_ids)
         xlmm = customer.getXiaolumm()
         from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
-
+        next_agentinfo = xlmm.next_agencylevel_info()
         for pro in queryset:
             pro.in_customer_shop = 1 if pro.id in product_ids else 0
             rebeta_scheme_id = pro.detail and pro.detail.rebeta_scheme_id or 0
             rebate_scheme = AgencyOrderRebetaScheme.get_rebeta_scheme(rebeta_scheme_id)
             pro.rebet_amount = rebate_scheme.calculate_carry(xlmm.agencylevel, pro.agent_price)
             pro.rebet_amount_des = u'佣 ￥{0}.00'.format(pro.rebet_amount)
-            next_agentinfo = xlmm.next_agencylevel_info()
+
             pro.next_rebet_amount = rebate_scheme and rebate_scheme.calculate_carry(
-                next_agentinfo['next_agencylevel'],  pro.agent_price) or 0
+                next_agentinfo[0],  pro.agent_price) or 0
             pro.next_rebet_amount_des = u'佣 ￥{0}.00'.format(pro.next_rebet_amount)
 
         if sort_field in ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']:
