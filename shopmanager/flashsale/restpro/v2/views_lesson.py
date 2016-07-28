@@ -2,6 +2,7 @@
 
 import logging
 
+from django.db.models import Sum
 from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework import authentication
