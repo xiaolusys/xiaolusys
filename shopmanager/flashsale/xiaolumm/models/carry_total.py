@@ -11,7 +11,7 @@ from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, Aw
     MAMA_FORTUNE_HISTORY_LAST_DAY
 
 # 在下次活动前设置此处，以自动重设变更统计时间
-STAT_TIME = datetime.datetime(2016, 7, 20)
+STAT_TIME = datetime.datetime(2016, 7, 24)
 # if datetime.datetime.now() < datetime.datetime(2016, 7, 28) \
 # else datetime.datetime(2016, 7, 28)
 
@@ -21,8 +21,8 @@ class MamaCarryTotal(BaseModel):
     history_total = models.IntegerField(default=0, verbose_name=u'历史收益总额', help_text=u'单位为分')
     stat_time = models.DateTimeField(default=STAT_TIME, verbose_name=u'统计起始时间')
     duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
-    history_num = models.IntegerField(default=0, db_index=True, verbose_name=u'团队订单数量')
-    duration_num = models.IntegerField(default=0, verbose_name=u'活动期间团队订单数量')
+    history_num = models.IntegerField(default=0, db_index=True, verbose_name=u'历史订单数量')
+    duration_num = models.IntegerField(default=0, verbose_name=u'活动订单数量')
     carry_records = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'每日收益关联')
     total_rank_delay = models.IntegerField(default=0, verbose_name=u'总排名', help_text=u'单位为分,每日更新，从cache中可实时更新')
     duration_rank_delay = models.IntegerField(default=0, verbose_name=u'活动期排名', help_text=u'单位为分，每日更新，从cache中可实时更新')
@@ -91,7 +91,7 @@ class MamaCarryTotal(BaseModel):
             total=Sum('confirmed_click_price')).get('total') or 0
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
         history_confirmed = fortune.history_confirmed if fortune else 0
-        history_cash_out = CashOut.objects.filter(status=CashOut.COMPLETED,
+        history_cash_out = CashOut.objects.filter(xlmm=self.mama_id, status=CashOut.COMPLETED,
                                                   approve_time__lt=MAMA_FORTUNE_HISTORY_LAST_DAY).aggregate(
             total=Sum('value')).get('total') or 0
         return order_carry_sum + award_carry_sum + click_carry_sum + history_confirmed + history_cash_out
@@ -135,7 +135,7 @@ class MamaCarryTotal(BaseModel):
                                                        status=XiaoluMama.EFFECT).values('id')]
         exist_ids = [m['mama_id'] for m in MamaCarryTotal.objects.filter(stat_time=STAT_TIME).values('mama_id')]
         mama_ids = list(set(mama_ids) - set(exist_ids))
-        res = []
+        #res = []
         for mama_id in mama_ids:
             m = MamaCarryTotal(mama_id=mama_id)
             m.history_total = m.get_history_total()
@@ -145,8 +145,9 @@ class MamaCarryTotal(BaseModel):
             m.duration_total = sum([c.carry_num for c in records])
             m.history_num = OrderCarry.objects.filter(mama_id=mama_id, status=2, created__lt=STAT_TIME).count()
             m.duration_num = OrderCarry.objects.filter(mama_id=mama_id, status=2, created__gte=STAT_TIME).count()
-            res.append(m)
-        MamaCarryTotal.objects.bulk_create(res)
+            m.save()
+        #res.append(m)
+        #MamaCarryTotal.objects.bulk_create(res)
 
     @staticmethod
     def stat_history_total(mama_id):
@@ -260,8 +261,9 @@ def multi_update(model_class, key_attr, value_attr, res):
 def update_carry_total_ranking(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_mama_carry_total import task_update_carry_total_ranking, \
         task_update_carry_duration_total_ranking
-    task_update_carry_total_ranking.delay()
-    task_update_carry_duration_total_ranking.delay()
+    if datetime.datetime.now() > STAT_TIME:
+        task_update_carry_total_ranking.delay()
+        task_update_carry_duration_total_ranking.delay()
 
 post_save.connect(update_carry_total_ranking,
                   sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_ranking')
@@ -269,8 +271,9 @@ post_save.connect(update_carry_total_ranking,
 
 def update_team_carry_total(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_mama_carry_total import task_update_team_carry_total
-    for team in instance.teams.all():
-        task_update_team_carry_total.delay(team.mama_id)
+    if datetime.datetime.now() > STAT_TIME:
+        for team in instance.teams.all():
+            task_update_team_carry_total.delay(team.mama_id)
 
 
 post_save.connect(update_team_carry_total,
@@ -360,6 +363,13 @@ class MamaTeamCarryTotal(BaseModel):
         m.save()
         return m
 
+    @staticmethod
+    def batch_generate():
+        MamaCarryTotal.batch_generate()
+        mids = [m['mama_id'] for m in MamaCarryTotal.objects.values('mama_id')]
+        for mama_id in mids:
+            MamaTeamCarryTotal.generate(mama_id)
+
     def restat(self, mama_ids):
         res = MamaCarryTotal.objects.filter(mama_id__in=mama_ids).aggregate(
             total=Sum('history_total') + Sum('duration_total'),
@@ -392,6 +402,7 @@ class MamaTeamCarryTotal(BaseModel):
     @staticmethod
     def get_duration_ranking_list():
         return MamaTeamCarryTotal.objects.order_by((F('duration_total')).desc())
+
 
     @staticmethod
     def reset_rank():

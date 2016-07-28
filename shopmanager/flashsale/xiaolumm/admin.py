@@ -606,17 +606,32 @@ admin.site.register(MamaVebViewConf, MamaVebViewConfAdmin)
 
 class MamaCarryTotalAdmin(admin.ModelAdmin):
     list_display = (
-        'stat_time', "mama_id", 'mama_nick', 'thumbnail_pic', 'mobile', 'total', 'duration_total', 'history_total',
+        'stat_time', "mama_id_admin", 'mama_nick_admin', 'thumbnail_pic', 'mobile_admin', 'total_admin', 'duration_total', 'history_total',
         'history_num', 'duration_num', 'carry_records', 'total_rank_delay', 'duration_rank_delay'
     )
     list_filter = ()
     search_fields = ("mama",)
 
     def thumbnail_pic(self, obj):
-        return '<img src="%s"/>' % (obj.thumbnail,)
+        return '<img style="width:50px;height:50px;" src="%s"/>' % (obj.thumbnail,)
     thumbnail_pic.short_description = u'头像'
     thumbnail_pic.allow_tags = True
 
+    def mama_nick_admin(self, obj):
+        return obj.mama_nick
+    mama_nick_admin.short_description = u'昵称'
+
+    def mama_id_admin(self, obj):
+        return obj.mama_id
+    mama_id_admin.short_description = u'ID'
+
+    def mobile_admin(self, obj):
+        return obj.mobile
+    mobile_admin.short_description = u'手机'
+
+    def total_admin(self, obj):
+        return obj.total
+    total_admin.short_description = u'总额'
 admin.site.register(MamaCarryTotal, MamaCarryTotalAdmin)
 
 
