@@ -83,16 +83,27 @@ input[type=checkbox]{
         <div class="panel-body">
             <div class="row">
                 <div class="col-xs-1">
-                    <div class="checkbox">
-	                    <label>
-	                      <input type="checkbox" id="sec_kill_products"> 秒杀
-	                    </label>
+                    <div >
+	                    <select id="sec_kill_products">
+                            <option value="">－秒杀－</option>
+                            <option value="1">是</option>
+                            <option value="0">否</option>
+                        </select>
 	                </div>
-                    <div class="checkbox">
-                        <label>
-                          <input type="checkbox" id="is_watermark"> 水印
-                        </label>
+                    <div >
+                        <select id="is_watermark">
+                            <option value="">－水印－</option>
+                            <option value="1">是</option>
+                            <option value="0">否</option>
+                        </select>
                     </div>
+                    <div >
+	                    <select id="is_sale">
+                            <option value="">－专场－</option>
+                            <option value="1">是</option>
+                            <option value="0">否</option>
+                        </select>
+	                </div>
                 </div>
                 <div class="col-xs-2">
                     <input type="text" id="shelf_time" class="form-control" placeholder="设置上架日期" readonly/>
@@ -234,8 +245,9 @@ input[type=checkbox]{
                 }
             });
 
-            var add_kill_title = 0;
-            var is_watermark = 0;
+            var add_kill_title = $("#sec_kill_products").val();
+            var is_watermark = $("#is_watermark").val();
+            var is_sale      = $("#is_sale").val();
             var unshelf_time = $("#unshelf_time").val();//下架时间
             var shelf_time = $("#shelf_time").val();//上架时间
             var ware_by = $("#setting_ware_by").val();//所选仓库
@@ -247,12 +259,6 @@ input[type=checkbox]{
                 swal("您好！", "请选择商品", "warning");
                 return;
             }
-            if ($("#is_watermark").prop("checked")) {
-                is_watermark = 1;
-            }
-            if ($("#sec_kill_products").prop("checked")) {
-                add_kill_title = 1;
-            }
             if (price != '' && !parseFloat(price)){
                 swal("您好！", "商品价格输入有误", "warning");
                 return;
@@ -261,13 +267,13 @@ input[type=checkbox]{
             var data = {
                 "product_list": checked_product,
                 "add_kill_title": add_kill_title,
-
                 "offshelf_time": unshelf_time,
                 "sale_time": shelf_time,
                 "ware_by": ware_by,
                 "agent_price": price,
                 "rebeta_scheme_id": rebeta_scheme,
-                "is_watermark": is_watermark
+                "is_watermark": is_watermark,
+                "is_sale": is_sale,
             };
             console.log("data:", data);
             $.ajax({

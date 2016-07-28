@@ -292,11 +292,14 @@ class ModelProduct(BaseTagModel):
             return {}
         detail = product.detail
         prop_value_list = [('model_code', self.model_code)]
-        if detail:
+        model_properties = self.extras.get('properties', {})
+        for item in model_properties.iteritems():
+            prop_value_list.append(item)
+
+        if not model_properties and detail:
             for key in ('material', 'color', 'wash_instructions', 'note'):
                 prop_value_list.append((key, getattr(detail, key)))
-        for item in self.extras.get('properties', {}).iteritems():
-            prop_value_list.append(item)
+
         return [{'name': PROPERTY_NAMES.get(prop[0]), 'value':prop[1]} for prop in prop_value_list if prop[1].strip()]
 
     @property
