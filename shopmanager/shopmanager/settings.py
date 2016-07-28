@@ -490,6 +490,7 @@ if not DEBUG:
     MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN
 
     LOGGER_HANDLERS = [
+        ('service', 'jsonfile'),
         ('shopback', 'sentry'),
         ('shopapp', 'sentry'),
         ('flashsale', 'sentry'),
@@ -532,13 +533,23 @@ if not DEBUG:
             'simple': {
                 'format': '%(levelname)s %(asctime)s %(message)s'
             },
+            'json': {
+                '()': 'core.logger.JsonFormatter',
+                'format': '%(levelname)s %(asctime)s ',
+            },
         },
         'handlers': {
             'file': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
-                'filename': '/tmp/django-debug.log',
+                'filename': '/data/log/django-debug.log',
                 'formatter': 'simple'
+            },
+            'jsonfile': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': '/data/log/django-service-json.log',
+                'formatter': 'json'
             },
             'sentry': {
                 'level': 'WARN',
