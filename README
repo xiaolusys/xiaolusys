@@ -40,3 +40,11 @@ post请求: 请求参数接受参数为json格式,
 ################# 编码车市 ##############
 商城API接口测试代码实例用户统一使用用户帐号： xiaolu / 2016xiaoluyear ，
 测试用户信息位于： flashsale/pay/fixtures/test.flashsale.customer.json
+
+################# 日志 ##############
+现在日志分debug日志，跟业务统计日志两类，
+debug日志的记录方法未变，业务日志的记录方法是logger name 已 service开头：
+import logging
+json_logger = logging.getLogger('service.[业务名称]')
+# type  记录类型必须要加上根据内部规划取名
+json_logger.info({'type':'click', 'name':'meron', 'age':'20', 'ip':'192.0.0.1'})
