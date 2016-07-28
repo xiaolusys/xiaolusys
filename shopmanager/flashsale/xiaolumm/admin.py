@@ -35,7 +35,8 @@ class XiaoluMamaAdmin(ApproxAdmin):
                     'charge_link', 'group_select', 'click_state', 'exam_pass', 'progress', 'hasale', 'charge_time',
                     'status', 'referal_from', 'mama_Verify')
     list_filter = (
-        'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale', ('charge_time', DateFieldListFilter),
+        'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale',
+        ('charge_time', DateFieldListFilter),
         'user_group')
     list_display_links = ('id', 'mama_data_display',)
     search_fields = ['=id', '=mobile', '=manager', 'weikefu', '=openid', '=referal_from']
@@ -606,38 +607,47 @@ admin.site.register(MamaVebViewConf, MamaVebViewConfAdmin)
 
 class MamaCarryTotalAdmin(admin.ModelAdmin):
     list_display = (
-        'stat_time', "mama_id_admin", 'mama_nick_admin', 'thumbnail_pic', 'mobile_admin', 'total_admin', 'duration_total', 'history_total',
-        'history_num', 'duration_num', 'carry_records', 'total_rank_delay', 'duration_rank_delay'
+        'stat_time', "mama_id_admin", 'mama_nick_admin', 'thumbnail_pic', 'mobile_admin', 'total_admin',
+        'duration_total', 'expect_total', 'history_total', 'history_num', 'duration_num', 'expect_num',
+        'total_rank_delay', 'duration_rank_delay', 'de_rank_delay',
     )
     list_filter = ()
     search_fields = ("mama",)
 
     def thumbnail_pic(self, obj):
         return '<img style="width:50px;height:50px;" src="%s"/>' % (obj.thumbnail,)
+
     thumbnail_pic.short_description = u'头像'
     thumbnail_pic.allow_tags = True
 
     def mama_nick_admin(self, obj):
         return obj.mama_nick
+
     mama_nick_admin.short_description = u'昵称'
 
     def mama_id_admin(self, obj):
         return obj.mama_id
+
     mama_id_admin.short_description = u'ID'
 
     def mobile_admin(self, obj):
         return obj.mobile
+
     mobile_admin.short_description = u'手机'
 
     def total_admin(self, obj):
         return obj.total
+
     total_admin.short_description = u'总额'
+
+
 admin.site.register(MamaCarryTotal, MamaCarryTotalAdmin)
 
 
 class MamaTeamCarryTotalAdmin(admin.ModelAdmin):
     list_display = ('stat_time', "mama_id", 'mama_nick', 'thumbnail', 'mobile', 'total', 'duration_total',
-                    'num', 'duration_num', 'total_rank_delay', 'duration_rank_delay'
+                    'expect_total', 'num', 'duration_num', 'expect_num', 'last_renew_type',
+                    'total_rank_delay', 'duration_rank_delay', 'de_rank_delay',
                     )
     list_filter = ()
     search_fields = ("mama",)
