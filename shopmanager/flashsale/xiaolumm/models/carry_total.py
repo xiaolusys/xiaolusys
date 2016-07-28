@@ -22,6 +22,8 @@ class MamaCarryTotal(BaseModel):
     mama = models.OneToOneField(XiaoluMama, primary_key=True)
     last_renew_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=365, db_index=True,
                                           verbose_name=u"最近续费类型")
+    agencylevel = models.IntegerField(default=XiaoluMama.INNER_LEVEL, db_index=True, choices=XiaoluMama.AGENCY_LEVEL,
+                                      verbose_name=u"代理类别")
     history_total = models.IntegerField(default=0, verbose_name=u'历史收益总额', help_text=u'单位为分')
     history_confirm = models.BooleanField(default=False, verbose_name=u'历史收益确认', help_text=u'单位为分')
     stat_time = models.DateTimeField(default=STAT_TIME, db_index=True, verbose_name=u'统计起始时间')
@@ -111,7 +113,7 @@ class MamaCarryTotal(BaseModel):
         if type(mama) != XiaoluMama:
             mama = XiaoluMama.objects.get(id=mama)
         mama_id = mama.id
-        rank = MamaCarryTotal(mama_id=mama_id, last_renew_type=mama.last_renew_type)
+        rank = MamaCarryTotal(mama_id=mama_id, last_renew_type=mama.last_renew_type, agencylevel=mama.agencylevel)
         rank.set_data()
         rank.save()
         return rank
@@ -262,10 +264,11 @@ class MamaCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaCarryTotal.objects.order_by((F('duration_total') + F('history_total')
-                                                  ).desc()).values('mama_id',
-                                                                   'duration_total',
-                                                                   'history_total'):
+        for m in MamaCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+                (F('duration_total') + F('history_total')
+                 ).desc()).values('mama_id',
+                                  'duration_total',
+                                  'history_total'):
             if last_value is None or m['duration_total'] + m['history_total'] < last_value:
                 last_value = m['duration_total'] + m['history_total']
                 rank = i
@@ -280,7 +283,8 @@ class MamaCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaCarryTotal.objects.order_by((F('duration_total')).desc()).values('mama_id', 'duration_total'):
+        for m in MamaCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+                (F('duration_total')).desc()).values('mama_id', 'duration_total'):
             if last_value is None or m['duration_total'] < last_value:
                 last_value = m['duration_total']
                 rank = i
@@ -295,8 +299,9 @@ class MamaCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaCarryTotal.objects.order_by((F('duration_total') + F('expect_total')
-                                                  ).desc()).values('mama_id', 'duration_total', 'expect_total'):
+        for m in MamaCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+                (F('duration_total') + F('expect_total')
+                 ).desc()).values('mama_id', 'duration_total', 'expect_total'):
             if last_value is None or m['duration_total'] + m['expect_total'] < last_value:
                 last_value = m['duration_total'] + m['expect_total']
                 rank = i
@@ -311,8 +316,9 @@ class MamaCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaCarryTotal.objects.filter(last_renew_type=XiaoluMama.TRIAL).order_by(
-                (F('duration_total') + F('expect_total')).desc()).values('mama_id', 'duration_total', 'expect_total'):
+        for m in MamaCarryTotal.objects.filter(last_renew_type=XiaoluMama.TRIAL).exclude(
+                agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+            (F('duration_total') + F('expect_total')).desc()).values('mama_id', 'duration_total', 'expect_total'):
             if last_value is None or m['duration_total'] + m['expect_total'] < last_value:
                 last_value = m['duration_total'] + m['expect_total']
                 rank = i
@@ -359,6 +365,8 @@ class MamaTeamCarryTotal(BaseModel):
     mama = models.OneToOneField(XiaoluMama, primary_key=True)
     last_renew_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=365, db_index=True,
                                           verbose_name=u"最近续费类型")
+    agencylevel = models.IntegerField(default=XiaoluMama.INNER_LEVEL, db_index=True, choices=XiaoluMama.AGENCY_LEVEL,
+                                      verbose_name=u"代理类别")
     total = models.IntegerField(default=0, verbose_name=u'团队收益总额', help_text=u'单位为分')
     num = models.IntegerField(default=0, verbose_name=u'团队订单数量')
     duration_num = models.IntegerField(default=0, verbose_name=u'活动期间团队订单数量')
@@ -375,6 +383,7 @@ class MamaTeamCarryTotal(BaseModel):
                                         help_text=u'单位为分，每日更新，从cache中可实时更新')
     activite_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'特定活动排名',
                                               help_text=u'单位为分，每日更新，从cache中可实时更新,包含duration_total')
+
     # mama_ids = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'相关妈妈')
 
     class Meta:
@@ -469,7 +478,8 @@ class MamaTeamCarryTotal(BaseModel):
         mama_ids = mama.get_team_member_ids()
         m = MamaTeamCarryTotal(
             mama_id=mama_id,
-            last_renew_type=mama.last_renew_type
+            last_renew_type=mama.last_renew_type,
+            agencylevel=mama.agencylevel
         )
         m.restat(mama_ids)
         m.save()
@@ -551,7 +561,8 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.order_by((F('total')).desc()).values('mama_id', 'total'):
+        for m in MamaTeamCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+                (F('total')).desc()).values('mama_id', 'total'):
             if last_value is None or m['total'] < last_value:
                 last_value = m['total']
                 rank = i
@@ -566,7 +577,8 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.order_by((F('duration_total')).desc()).values('mama_id', 'duration_total'):
+        for m in MamaTeamCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+                (F('duration_total')).desc()).values('mama_id', 'duration_total'):
             if last_value is None or m['duration_total'] < last_value:
                 last_value = m['duration_total']
                 rank = i
@@ -581,8 +593,9 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.order_by((F('expect_total')
-                                                      ).desc()).values('mama_id', 'expect_total'):
+        for m in MamaTeamCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by((F('expect_total')
+                                                                                                  ).desc()).values(
+            'mama_id', 'expect_total'):
             if last_value is None or m['expect_total'] < last_value:
                 last_value = m['expect_total']
                 rank = i
@@ -597,7 +610,8 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.filter(last_renew_type=XiaoluMama.TRIAL).order_by(
+        for m in MamaTeamCarryTotal.objects.filter(last_renew_type=XiaoluMama.TRIAL).exclude(
+                agencylevel=XiaoluMama.INNER_LEVEL).order_by(
                 (F('expect_total')).desc()).values('mama_id', 'expect_total'):
             if last_value is None or m['expect_total'] < last_value:
                 last_value = m['expect_total']
@@ -613,6 +627,10 @@ class CarryTotalRecord(BaseModel):
         活动记录
     """
     mama = models.ForeignKey(XiaoluMama)
+    last_renew_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=365, db_index=True,
+                                          verbose_name=u"最近续费类型")
+    agencylevel = models.IntegerField(default=XiaoluMama.INNER_LEVEL, db_index=True, choices=XiaoluMama.AGENCY_LEVEL,
+                                      verbose_name=u"代理类别")
     stat_time = models.DateTimeField(verbose_name=u'统计时间', db_index=True)
     total_rank = models.IntegerField(default=0, verbose_name=u'总额排名')
     duration_rank = models.IntegerField(default=0, verbose_name=u'活动期间排名')
@@ -636,6 +654,8 @@ class CarryTotalRecord(BaseModel):
     def create(carry_total, save=True):
         record = CarryTotalRecord(
             mama_id=carry_total.mama_id,
+            last_renew_type=carry_total.last_renew_type,
+            agencylevel=carry_total.agencylevel,
             stat_time=carry_total.stat_time,
             total_rank=carry_total.total_rank,
             duration_rank=carry_total.duration_rank,
@@ -678,6 +698,10 @@ class TeamCarryTotalRecord(BaseModel):
         活动记录
     """
     mama = models.ForeignKey(XiaoluMama)
+    last_renew_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=365, db_index=True,
+                                          verbose_name=u"最近续费类型")
+    agencylevel = models.IntegerField(default=XiaoluMama.INNER_LEVEL, db_index=True, choices=XiaoluMama.AGENCY_LEVEL,
+                                      verbose_name=u"代理类别")
     stat_time = models.DateTimeField(default=STAT_TIME, db_index=True, verbose_name=u'统计起始时间')
     total_rank = models.IntegerField(default=0, verbose_name=u'总额排名')
     duration_rank = models.IntegerField(default=0, verbose_name=u'活动期间排名')
@@ -701,6 +725,8 @@ class TeamCarryTotalRecord(BaseModel):
     def create(team_carry_total, save=True):
         record = TeamCarryTotalRecord(
             mama_id=team_carry_total.mama_id,
+            last_renew_type=team_carry_total.last_renew_type,
+            agencylevel=team_carry_total.agencylevel,
             stat_time=team_carry_total.stat_time,
             total_rank=team_carry_total.total_rank,
             duration_rank=team_carry_total.duration_rank,
@@ -708,7 +734,7 @@ class TeamCarryTotalRecord(BaseModel):
             duration_total=team_carry_total.duration_total,
             num=team_carry_total.num,
             duration_num=team_carry_total.duration_num,
-            mama_ids=team_carry_total.mama_ids,
+            mama_ids=team_carry_total.mama_ids
         )
         if save:
             record.save()
