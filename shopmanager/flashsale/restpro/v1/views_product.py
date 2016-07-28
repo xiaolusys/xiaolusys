@@ -654,12 +654,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     def choice_query_2_dict(self, queryset, customer, agencylevel):
-        carry_policy = {}
-        try:
-            orderrebeta_qs = AgencyOrderRebetaScheme.objects.filter(status=AgencyOrderRebetaScheme.NORMAL)
-            carry_policy = dict([(rb.id, rb) for rb in orderrebeta_qs])
-        except AgencyOrderRebetaScheme.DoesNotExist:
-            pass
 
         shop_products = CuShopPros.objects.filter(customer=customer.id,
                                                   pro_status=CuShopPros.UP_SHELF).values("product")
@@ -670,7 +664,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         shop_product_num = len(product_ids)
         for pro in queryset:
-            rebeta_scheme = carry_policy.get(pro.carry_scheme)
+            rebeta_scheme_id = pro.detail and pro.detail.rebeta_scheme_id or 0
+            rebeta_scheme = AgencyOrderRebetaScheme.get_rebeta_scheme(rebeta_scheme_id)
             rebet_amount  = rebeta_scheme and rebeta_scheme.calculate_carry(agencylevel, pro.agent_price) or 0
 
             # 预留数 * 97(质数)+(97内的随机数) = (模拟)销量　
