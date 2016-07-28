@@ -56,12 +56,15 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         mama = MamaCarryTotal.objects.get(pk=mama.id)
         res = self.get_serializer(mama).data
-        res['rank_add'] = -5
+        res['rank_add'] = 0
+        res['rank'] = mama.total_rank
         return Response(res)
 
     def retrieve(self, request, pk):
-        res = self.get_serializer(MamaCarryTotal.objects.get(pk=pk)).data
-        res['rank_add'] = -5
+        mama = MamaCarryTotal.objects.get(pk=pk)
+        res = self.get_serializer(mama).data
+        res['rank_add'] = 0
+        res['rank'] = mama.total_rank
         return Response(res)
 
     @detail_route(methods=['GET'])
@@ -92,10 +95,10 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
         res['rank'] = mama_carry.activite_rank
         res['rank_add'] = 0
         team = MamaTeamCarryTotal.objects.get(pk=mama_carry.mama_id)
-        res['recommended_quantity'] = team.members.count()
-        res['team_total'] = team.duration_total
+        res['recommended_quantity'] = max(team.members.count() - 1, 0)
+        res['team_total'] = team.expect_total
         res['team_num'] = team.duration_num
-        res['activite_num'] = int(res['recommended_quantity']/2)
+        res['activite_num'] = mama.get_activite_num()
         # res['invitate_num'] = 0
         return Response(res)
 

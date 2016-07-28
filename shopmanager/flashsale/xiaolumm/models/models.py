@@ -262,7 +262,6 @@ class XiaoluMama(models.Model):
         scheme = AgencyOrderRebetaScheme.get_rebeta_scheme(scheme_id)
         return scheme
 
-
     def get_Mama_Order_Rebeta(self, order):
         # 如果订单来自小鹿特卖平台
         if hasattr(order, 'item_id'):
@@ -503,6 +502,16 @@ class XiaoluMama(models.Model):
     def get_team_member_ids(self):
         a, b, c = self.get_lv_team_member_ids()
         return a + b + c
+
+    def get_activite_num(self):
+        from .models_fortune import CarryRecord
+        i = 0
+        for mmid in self.get_team_member_ids():
+            t = CarryRecord.objects.filter(mama_id=mmid).values('carry_num'). \
+                    aggregate(total=Sum('carry_num')).get('total') or 0
+            if t > 0:
+                i += 1
+        return i
 
     def upgrade_agencylevel_by_cashout(self):
         """ 代理 升级 提现满足条件升级（仅仅从Ａ类升级到VIP1）
