@@ -27,6 +27,58 @@ def get_cur_info():
 
 
 @task()
+def task_update_second_level_ordercarry_by_trial(potential, order_carry):
+    """
+    这里的potential 是　PotentialMama instance (并且必须是is_full_member=False的)　因为转正的有转正的task写记录　不从这里写
+    代理（试用／正式） <==　试用代理　<==　订单
+    试用代理作为下级代理　给上级代理的　佣金记录
+    """
+    if potential.is_full_member:  # 已经是正式的代理则return
+        return
+    carry_type = 3  # 下属订单类型
+    parent_mama_id = potential.referal_from_mama_id  # 上级代理
+    uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_carry.order_id)
+    record = OrderCarry.objects.filter(uni_key=uni_key).first()
+    if record > 0:
+        if record.status != order_carry.status:
+            record.status = order_carry.status
+            record.save(update_fields=['status'])
+        return
+
+    mama_id = parent_mama_id
+    order_id = order_carry.order_id
+    order_value = order_carry.order_value
+    carry_num = order_carry.carry_num * 0.2  # 20 percent carry
+
+    sku_name = order_carry.sku_name
+    sku_img = order_carry.sku_img
+
+    contributor_nick = potential.nick
+    contributor_img = potential.thumbnail
+    contributor_id = potential.potential_mama  # 被推荐妈妈id
+
+    if mama_id == contributor_id:
+        # parent cant be myself; stop recursive invoking
+        return
+
+    agency_level = order_carry.agency_level
+    carry_plan_name = order_carry.carry_plan_name
+
+    date_field = order_carry.date_field
+    status = order_carry.status
+    carry_description = util_description.get_ordercarry_description(second_level=True)
+
+    record = OrderCarry(mama_id=mama_id, order_id=order_id, order_value=order_value,
+                        carry_num=carry_num, carry_type=carry_type, sku_name=sku_name,
+                        carry_description=carry_description, sku_img=sku_img,
+                        contributor_nick=contributor_nick,
+                        contributor_img=contributor_img, contributor_id=contributor_id,
+                        agency_level=agency_level, carry_plan_name=carry_plan_name,
+                        date_field=date_field, uni_key=uni_key, status=status)
+    record.save()
+
+
+@task()
 def task_update_second_level_ordercarry(referal_relationship, order_carry):
     print "%s, mama_id: %s" % (get_cur_info(), order_carry.mama_id)
 

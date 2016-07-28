@@ -491,22 +491,22 @@ if not DEBUG:
 
     LOGGER_HANDLERS = [
         ('service', 'jsonfile'),
-        ('shopback', 'sentry'),
-        ('shopapp', 'sentry'),
-        ('flashsale', 'sentry'),
-        ('core', 'sentry'),
-        ('auth', 'sentry'),
-        ('supplychain', 'sentry'),
-        ('statistics', 'sentry'),
+        ('shopback', 'sentry,file'),
+        ('shopapp', 'sentry,file'),
+        ('flashsale', 'sentry,file'),
+        ('core', 'sentry,file'),
+        ('auth', 'sentry,file'),
+        ('supplychain', 'sentry,file'),
+        ('statistics', 'sentry,file'),
         ('django.request', 'sentry,file'),
-        ('sentry.errors', 'sentry'),
-        ('celery.handler', 'sentry'),
-        ('notifyserver.handler', 'sentry'),
-        ('yunda.handler', 'sentry'),
-        ('mail.handler', 'sentry'),
-        ('xhtml2pdf', 'sentry'),
-        ('restapi.errors', 'sentry'),
-        ('weixin.proxy', 'sentry'),
+        ('sentry.errors', 'sentry,file'),
+        ('celery.handler', 'sentry,file'),
+        ('notifyserver.handler', 'sentry,file'),
+        ('yunda.handler', 'sentry,file'),
+        ('mail.handler', 'sentry,file'),
+        ('xhtml2pdf', 'sentry,file'),
+        ('restapi.errors', 'sentry,file'),
+        ('weixin.proxy', 'sentry,file'),
     ]
 
     LOGGER_TEMPLATE = {
@@ -542,13 +542,13 @@ if not DEBUG:
             'file': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
-                'filename': '/data/log/django-debug.log',
-                'formatter': 'simple'
+                'filename': '/data/log/django/debug-info.log',
+                'formatter': 'json'
             },
             'jsonfile': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
-                'filename': '/data/log/django-service-json.log',
+                'filename': '/data/log/django/service-info.log',
                 'formatter': 'json'
             },
             'sentry': {
