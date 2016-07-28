@@ -908,10 +908,14 @@ class FavoritesSerializer(serializers.ModelSerializer):
         fields = ('id', 'modelproduct', 'created')
 
     def get_modelproduct(self, obj):
-        return {
-            'id': obj.model_id,
-            'name': obj.name,
-            'head_img': obj.head_img,
-            'lowest_agent_price': obj.lowest_agent_price,
-            'lowest_std_sale_price': obj.lowest_std_sale_price,
-        }
+        model = ModelProduct.objects.filter(id=obj.model_id).first()
+        if model:
+            return {
+                'id': obj.model_id,
+                'name': obj.name,
+                'head_img': obj.head_img,
+                'lowest_agent_price': obj.lowest_agent_price,
+                'lowest_std_sale_price': obj.lowest_std_sale_price,
+                'shelf_status': model.shelf_status,
+            }
+        return None

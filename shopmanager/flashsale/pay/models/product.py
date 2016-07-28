@@ -231,6 +231,14 @@ class ModelProduct(BaseTagModel):
         return product.offshelf_time
 
     @property
+    def shelf_status(self):
+        """上架状态"""
+        product = self.item_product
+        if not product:
+            return 0
+        return product.shelf_status
+
+    @property
     def is_saleopen(self):
         """ 是否新售 """
         product = self.item_product
