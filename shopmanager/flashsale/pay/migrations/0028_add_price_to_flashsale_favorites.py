@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='favorites',
-            name='head_imgs',
+            name='head_img',
             field=models.TextField(verbose_name='\u9898\u5934\u7167(\u591a\u5f20\u8bf7\u6362\u884c)', blank=True),
         ),
         migrations.AddField(

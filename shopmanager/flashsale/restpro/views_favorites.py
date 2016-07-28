@@ -58,11 +58,14 @@ class FavoritesViewSet(viewsets.ModelViewSet):
         if favorite.count() > 0:
             return Response({"code": 1, "info": u"添加失败，商品已经收藏"})
 
+        head_imgs = modelproduct.head_imgs.splitlines()
+        head_img = head_imgs[0] if head_imgs else ''
+
         favorite = Favorites()
         favorite.customer = customer
         favorite.model = modelproduct
         favorite.name = modelproduct.name
-        favorite.head_imgs = modelproduct.head_imgs
+        favorite.head_img = head_img
         favorite.lowest_agent_price = modelproduct.lowest_agent_price
         favorite.lowest_std_sale_price = modelproduct.lowest_std_sale_price
         favorite.save()
