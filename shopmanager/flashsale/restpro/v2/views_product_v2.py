@@ -364,12 +364,18 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         product_ids = set(product_ids)
         shop_product_num = len(product_ids)
         xlmm = customer.getXiaolumm()
-        from flashsale.xiaolumm.models.models_rebeta import calculate_price_carry, AgencyOrderRebetaScheme
-        rebeta = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
+        from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 
         for pro in queryset:
             pro.in_customer_shop = 1 if pro.id in product_ids else 0
-            pro.rebet_amount = calculate_price_carry(xlmm.agencylevel, pro.agent_price, rebeta.price_rebetas)
+            rebeta_scheme_id = pro.detail and pro.detail.rebeta_scheme_id or 0
+            rebate_scheme = AgencyOrderRebetaScheme.get_rebeta_scheme(rebeta_scheme_id)
+            pro.rebet_amount = rebate_scheme.calculate_carry(xlmm.agencylevel, pro.agent_price)
+            pro.rebet_amount_des = u'佣 ￥{0}.00'.format(pro.rebet_amount)
+
+            pro.next_rebet_amount = rebate_scheme and rebate_scheme.calculate_carry(
+                    xlmm.mama_agency_level_info['next_agencylevel'],  pro.agent_price) or 0
+            pro.next_rebet_amount_des = u'佣 ￥{0}.00'.format(pro.next_rebet_amount)
 
         if sort_field in ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']:
             queryset = sorted(queryset, key=lambda k: getattr(k, sort_field), reverse=True)
@@ -377,7 +383,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.paginate_queryset(queryset)
         serializer = serializersv2.ProductSimpleSerializerV2(queryset, many=True,
                                                              context={'request': request,
-                                                                      'rebeta': rebeta,
                                                                       'xlmm': xlmm,
                                                                       "shop_product_num": shop_product_num})
         return self.get_paginated_response(serializer.data)
