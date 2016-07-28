@@ -2,6 +2,7 @@
 import datetime
 
 from django.db import models
+from django.core.cache import cache
 from core.fields import JSONCharMyField
 
 
@@ -13,6 +14,10 @@ class AgencyOrderRebetaScheme(models.Model):
         (CANCEL, u'关闭'),
         (NORMAL, u'使用')
     )
+
+    CACHE_TIME = 24 * 60 * 60
+    REBETA_SCHEME_CACHE_KEY = '%s.%s'%(__name__, 'AgencyOrderRebetaScheme')
+
     name = models.CharField(max_length=64, blank=True, verbose_name=u'计划名称')
 
     agency_rebetas = JSONCharMyField(max_length=10240, blank=True,
@@ -46,10 +51,31 @@ class AgencyOrderRebetaScheme(models.Model):
         default = cls.objects.filter(status=cls.NORMAL, is_default=True).first()
         return default
 
-    def get_scheme_rebeta(self, **kwargs):
+    @classmethod
+    def ACTIVE_SCHEME_ID_MAP(cls):
+        """ 缓存佣金计划 id: scheme 字典 """
+        if not hasattr(cls, '_agency_rebeta_schemes_'):
+            scheme_maps = cache.get(cls.REBETA_SCHEME_CACHE_KEY)
+            if not scheme_maps:
+                orderrebeta_qs = AgencyOrderRebetaScheme.objects.filter(status=AgencyOrderRebetaScheme.NORMAL)
+                scheme_maps = dict([(rb.id, rb) for rb in orderrebeta_qs])
+                cache.set(cls.REBETA_SCHEME_CACHE_KEY, scheme_maps, cls.CACHE_TIME)
+            cls._agency_rebeta_schemes_ = scheme_maps
+        return cls._agency_rebeta_schemes_
+
+    @classmethod
+    def get_rebeta_scheme(cls, scheme_id):
+        """ 通过计划id获取佣金计划 """
+        scheme_maps = cls.ACTIVE_SCHEME_ID_MAP
+        rebeta_scheme = scheme_maps.get(scheme_id)
+        if rebeta_scheme:
+            return rebeta_scheme
+        return cls.get_default_scheme()
+
+    def get_scheme_rebeta(self, agencylevel=None, payment=None):
         """ 根据订单支付金额，商品价格，小鹿妈妈等级，获取返利金额 """
-        agency_level = '%d' % kwargs.get('agencylevel', 0)
-        payment = kwargs.get('payment', 0)
+        agency_level = '%d' % (agencylevel or 0)
+        payment = payment or 0
         rebeta_rate = self.agency_rebetas.get(agency_level, 0)
         rebeta_amount = payment * rebeta_rate
 
@@ -58,12 +84,12 @@ class AgencyOrderRebetaScheme(models.Model):
 
         return rebeta_amount
 
-    def calculate_carry(self, agencylevel, payment):
+    def calculate_carry(self, agencylevel, product_price_yuan):
         if not self.price_active:
-            return self.get_scheme_rebeta(agencylevel=agencylevel, payment=payment)
+            return self.get_scheme_rebeta(agencylevel=agencylevel, payment=product_price_yuan)
 
         carry_rules = self.price_rebetas.get(str(agencylevel))
-        payment = int(round(int(payment) * 0.1) * 10)
+        payment = int(round(int(product_price_yuan) * 0.1) * 10)
 
         MAX_PAYMENT = 200
         if payment > MAX_PAYMENT:
@@ -76,29 +102,3 @@ class AgencyOrderRebetaScheme(models.Model):
 
         return 0
 
-
-def calculate_price_carry(agencylevel, payment_yuan, policy):
-    """
-    payment_yuan: payment in YUAN
-    policy: whole carry policy (a dict)
-
-    return carry in YUAN.
-    """
-
-    carry_rules = policy.get(str(agencylevel))
-
-    if not carry_rules:
-        return 0
-
-    payment = int(round(int(payment_yuan) * 0.1) * 10)
-
-    MAX_PAYMENT = 200  # YUAN
-    if payment > MAX_PAYMENT:
-        payment = MAX_PAYMENT
-
-    key = str(payment)
-    if key in carry_rules:
-        carry = carry_rules[key]
-        return carry
-
-    return 0
