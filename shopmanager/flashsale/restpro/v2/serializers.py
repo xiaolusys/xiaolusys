@@ -41,11 +41,9 @@ from shopback.trades.models import TradeWuliu, PackageOrder
 from flashsale.restpro import constants
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from flashsale.coupon.models import OrderShareCoupon
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, MamaCarryTotal, XlmmFans
 from flashsale.clickcount.models import ClickCount, Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models.models_fortune import AwardCarry
-from flashsale.xiaolumm.models.models_fans import XlmmFans
 from flashsale.promotion.models import AppDownloadRecord
 from shopapp.weixin.models import WXOrder
 from supplychain.supplier.models import SaleProduct
@@ -60,9 +58,6 @@ from flashsale.apprelease.models import AppRelease
 from flashsale.pay.models import CustomerShops, CuShopPros
 from flashsale.pay.models import Customer
 from flashsale.restpro import constants
-from flashsale.xiaolumm.models import XiaoluMama
-from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
-from shopback.items.models import Product
 
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
@@ -95,8 +90,9 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
             tmp_des.append(u'活跃度不足')
             could_cash_out = 0
         cashout_reason = u' '.join(tmp_des) + u'不能提现'
-
+        total_rank = MamaCarryTotal.get_by_mama_id(xlmm.id).total_rank
         return {
+            "total_rank": total_rank,
             "invite_url": invite_url,
             "agencylevel": xlmm.agencylevel,
             "agencylevel_display": xlmm.get_agencylevel_display(),
@@ -210,9 +206,6 @@ class UniqueVisitorSerializer(serializers.ModelSerializer):
     class Meta:
         model = UniqueVisitor
         fields = ('mama_id', 'visitor_nick', 'visitor_img', 'visitor_description', 'uni_key', 'modified', 'created')
-
-
-from flashsale.xiaolumm.models.models_fans import XlmmFans
 
 
 class XlmmFansSerializer(serializers.ModelSerializer):
