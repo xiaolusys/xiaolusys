@@ -169,10 +169,10 @@ class MamaCarryTotal(BaseModel):
             total=Sum('carry_num')).get('total') or 0
         click_carry_sum = ClickCarry.objects.filter(mama_id=self.mama_id, created__range=(
             MAMA_FORTUNE_HISTORY_LAST_DAY, STAT_TIME)).aggregate(
-            total=Sum('confirmed_click_price')).get('total') or 0
+            total=Sum('total_value')).get('total') or 0
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
         history_confirmed = fortune.history_confirmed if fortune else 0
-        history_cash_out = CashOut.objects.filter(xlmm=self.mama_id, status=CashOut.COMPLETED,
+        history_cash_out = CashOut.objects.filter(xlmm=self.mama_id, status=CashOut.APPROVED,
                                                   approve_time__lt=MAMA_FORTUNE_HISTORY_LAST_DAY).aggregate(
             total=Sum('value')).get('total') or 0
         return order_carry_sum + award_carry_sum + click_carry_sum + history_confirmed + history_cash_out

@@ -513,6 +513,7 @@ class ClickPlan(BaseModel):
         default = cls.objects.filter(status=0, default=True).first()
         return default
 
+
 class ClickCarry(BaseModel):
     STATUS_TYPES = ((1, u'预计收益'), (2, u'确定收益'), (3, u'已取消'),)
 
