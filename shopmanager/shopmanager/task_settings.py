@@ -416,6 +416,10 @@ MAMA_CARRY_ROUTES = {
         'queue': 'mama',
         'routing_key': 'mama.task_update_second_level_ordercarry',
     },
+    'flashsale.xiaolumm.tasks_mama.task_update_second_level_ordercarry_by_trial': {
+        'queue': 'mama',
+        'routing_key': 'mama.task_update_second_level_ordercarry_by_trial',
+    },
     'flashsale.xiaolumm.tasks_mama.task_order_trigger': {
         'queue': 'mama',
         'routing_key': 'mama.task_order_trigger',
