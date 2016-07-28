@@ -21,13 +21,13 @@ STAT_TIME = datetime.datetime(2016, 7, 24)
 class MamaCarryTotal(BaseModel):
     mama = models.OneToOneField(XiaoluMama, primary_key=True)
     history_total = models.IntegerField(default=0, verbose_name=u'历史收益总额', help_text=u'单位为分')
-    stat_time = models.DateTimeField(default=STAT_TIME, verbose_name=u'统计起始时间')
+    stat_time = models.DateTimeField(default=STAT_TIME, db_index=True, verbose_name=u'统计起始时间')
     duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
     history_num = models.IntegerField(default=0, db_index=True, verbose_name=u'历史订单数量')
     duration_num = models.IntegerField(default=0, verbose_name=u'活动订单数量')
     carry_records = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'每日收益关联')
-    total_rank_delay = models.IntegerField(default=0, verbose_name=u'总排名', help_text=u'单位为分,每日更新，从cache中可实时更新')
-    duration_rank_delay = models.IntegerField(default=0, verbose_name=u'活动期排名', help_text=u'单位为分，每日更新，从cache中可实时更新')
+    total_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'总排名', help_text=u'单位为分,每日更新，从cache中可实时更新')
+    duration_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名', help_text=u'单位为分，每日更新，从cache中可实时更新')
 
     class Meta:
         db_table = 'xiaolumm_carry_total'
@@ -289,10 +289,10 @@ class MamaTeamCarryTotal(BaseModel):
     num = models.IntegerField(default=0, verbose_name=u'团队订单数量')
     duration_num = models.IntegerField(default=0, verbose_name=u'活动期间团队订单数量')
     duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
-    stat_time = models.DateTimeField(default=STAT_TIME, verbose_name=u'统计起始时间')
+    stat_time = models.DateTimeField(default=STAT_TIME, db_index=True, verbose_name=u'统计起始时间')
     members = models.ManyToManyField(MamaCarryTotal, related_name='teams')
-    total_rank_delay = models.IntegerField(default=0, verbose_name=u'总排名', help_text=u'单位为分,每日更新，从cache中可实时更新')
-    duration_rank_delay = models.IntegerField(default=0, verbose_name=u'活动期排名', help_text=u'单位为分，每日更新，从cache中可实时更新')
+    total_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'总排名', help_text=u'单位为分,每日更新，从cache中可实时更新')
+    duration_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名', help_text=u'单位为分，每日更新，从cache中可实时更新')
 
     # mama_ids = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'相关妈妈')
 
@@ -478,7 +478,7 @@ class CarryTotalRecord(BaseModel):
         活动记录
     """
     mama = models.ForeignKey(XiaoluMama)
-    stat_time = models.DateTimeField(verbose_name=u'统计时间')
+    stat_time = models.DateTimeField(verbose_name=u'统计时间', db_index=True)
     total_rank = models.IntegerField(default=0, verbose_name=u'总额排名')
     duration_rank = models.IntegerField(default=0, verbose_name=u'活动期间排名')
     history_total = models.IntegerField(default=0, verbose_name=u'历史收益总额', help_text=u'单位为分')
@@ -486,6 +486,8 @@ class CarryTotalRecord(BaseModel):
     history_num = models.IntegerField(default=0, db_index=True, verbose_name=u'团队订单数量')
     duration_num = models.IntegerField(default=0, verbose_name=u'活动期间团队订单数量')
     carry_records = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'每日收益关联')
+    record_time = models.DateTimeField(null=True, db_index=True, verbose_name=u'记录批次时间')
+    type = models.IntegerField(default=0, db_index=True, choices=((0, u'每周统计'), (1, u'活动统计')))
 
     class Meta:
         db_table = 'xiaolumm_carry_total_record'
@@ -539,7 +541,7 @@ class TeamCarryTotalRecord(BaseModel):
         活动记录
     """
     mama = models.ForeignKey(XiaoluMama)
-    stat_time = models.DateTimeField(default=STAT_TIME, verbose_name=u'统计起始时间')
+    stat_time = models.DateTimeField(default=STAT_TIME, db_index=True, verbose_name=u'统计起始时间')
     total_rank = models.IntegerField(default=0, verbose_name=u'总额排名')
     duration_rank = models.IntegerField(default=0, verbose_name=u'活动期间排名')
     total = models.IntegerField(default=0, verbose_name=u'团队收益总额', help_text=u'单位为分')
@@ -547,6 +549,8 @@ class TeamCarryTotalRecord(BaseModel):
     num = models.IntegerField(default=0, db_index=True, verbose_name=u'团队订单数量')
     duration_num = models.IntegerField(default=0, verbose_name=u'活动期间团队订单数量')
     mama_ids = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'相关妈妈')
+    record_time = models.DateTimeField(null=True, db_index=True, verbose_name=u'记录批次时间')
+    type = models.IntegerField(default=0, db_index=True, choices=((0, u'每周统计'), (1, u'活动统计')))
 
     class Meta:
         db_table = 'xiaolumm_team_carry_total_record'
@@ -565,7 +569,7 @@ class TeamCarryTotalRecord(BaseModel):
             duration_total=team_carry_total.duration_total,
             num=team_carry_total.num,
             duration_num=team_carry_total.duration_num,
-            mama_ids=[]#team_carry_total.mama_ids,
+            mama_ids=team_carry_total.mama_ids,
         )
         if save:
             record.save()
