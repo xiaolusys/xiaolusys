@@ -291,7 +291,7 @@ function verify_action(id) {
             text: '你确定修改该预览审核状态吗？',
             type: "",
             showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/logo.png",
+            imageUrl: "http://img.xiaolumeimei.com/logo.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: "确定",
             cancelButtonText: "取消"

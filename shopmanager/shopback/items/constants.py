@@ -35,9 +35,9 @@ PROPERTY_NAMES = dict((
     ('model_code', u'商品编码'),
     ('material', u'商品材质'),
     ('wash_instructions', u'洗涤说明'),
-    ('note', u'备注'),
+    ('note', u'备注说明'),
     ('color', u'可选颜色'),
-    ('qs_code', u'生产许可证编号'),
+    ('qs_code', u'生产许可证'),
     ('qhby_code', u'产品标准号'),
 ))
 

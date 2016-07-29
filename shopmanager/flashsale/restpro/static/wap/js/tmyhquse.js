@@ -125,7 +125,7 @@ function copon_judeg(coupon_id, pro_num) {
             text: '确定选择这张优惠券吗？',
             type: "",
             showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/logo.png",
+            imageUrl: "http://img.xiaolumeimei.com/logo.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: "确定",
             cancelButtonText: "取消"
@@ -232,7 +232,7 @@ function pop_info() {
             text: '您暂时还没有优惠券哦~',
             type: "",
             showCancelButton: false,
-            imageUrl: "http://image.xiaolu.so/logo.png",
+            imageUrl: "http://img.xiaolumeimei.com/logo.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: "返回",
             cancelButtonText: "取消"
