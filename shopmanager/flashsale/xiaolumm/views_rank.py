@@ -80,6 +80,8 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
         top = list(top)
         for t in top:
             res[top.index(t)]['duration_rank'] = t.activite_rank
+            res[top.index(t)]['duration_num'] = t.duration_num + t.expect_num
+            res[top.index(t)]['duration_total'] = t.duration_total + t.expect_total
         return Response(res)
 
     @list_route(methods=['GET'])
@@ -169,4 +171,6 @@ class MamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
         top = list(top)
         for t in top:
             res[top.index(t)]['duration_rank'] = t.activite_rank
+            res[top.index(t)]['duration_num'] = t.expect_num
+            res[top.index(t)]['duration_total'] = t.expect_total
         return Response(res)

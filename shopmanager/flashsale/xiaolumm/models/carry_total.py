@@ -200,7 +200,8 @@ class MamaCarryTotal(BaseModel):
         MamaCarryTotal.move_other_stat_to_record()
         mama_ids = [i['id']
                     for i in XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
-                                                       status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).values('id')]
+                                                       status=XiaoluMama.EFFECT,
+                                                       charge_status=XiaoluMama.CHARGED).values('id')]
         exist_ids = [m['mama_id'] for m in MamaCarryTotal.objects.filter(stat_time=STAT_TIME).values('mama_id')]
         mama_ids = list(set(mama_ids) - set(exist_ids))
         # res = []
@@ -242,18 +243,21 @@ class MamaCarryTotal(BaseModel):
     ############################## VIEW API ############################
     @staticmethod
     def get_ranking_list():
-        return MamaCarryTotal.objects.order_by((F('duration_total') + F('history_total')).desc())
+        return MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
+            (F('duration_total') + F('history_total')).desc())
 
     @staticmethod
     def get_duration_ranking_list():
-        return MamaCarryTotal.objects.order_by((F('duration_total')).desc())
+        return MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
+            (F('duration_total')).desc())
 
     @staticmethod
     def get_activity_ranking_list():
         """
             一元开店，取一元妈妈活动总收益（预期收益+确定收益）排名
         """
-        return MamaCarryTotal.objects.filter(last_renew_type=XiaoluMama.TRIAL).order_by(
+        return MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
+                                             last_renew_type=XiaoluMama.TRIAL).order_by(
             (F('duration_total') + F('expect_total')).desc())
 
     ############################## TASK API ############################
@@ -264,7 +268,7 @@ class MamaCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+        for m in MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
                 (F('duration_total') + F('history_total')
                  ).desc()).values('mama_id',
                                   'duration_total',
@@ -283,7 +287,7 @@ class MamaCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+        for m in MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
                 (F('duration_total')).desc()).values('mama_id', 'duration_total'):
             if last_value is None or m['duration_total'] < last_value:
                 last_value = m['duration_total']
@@ -299,7 +303,7 @@ class MamaCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+        for m in MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
                 (F('duration_total') + F('expect_total')
                  ).desc()).values('mama_id', 'duration_total', 'expect_total'):
             if last_value is None or m['duration_total'] + m['expect_total'] < last_value:
@@ -316,7 +320,8 @@ class MamaCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaCarryTotal.objects.filter(last_renew_type=XiaoluMama.TRIAL).exclude(
+        for m in MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
+                                               last_renew_type=XiaoluMama.TRIAL).exclude(
                 agencylevel=XiaoluMama.INNER_LEVEL).order_by(
             (F('duration_total') + F('expect_total')).desc()).values('mama_id', 'duration_total', 'expect_total'):
             if last_value is None or m['duration_total'] + m['expect_total'] < last_value:
@@ -543,15 +548,17 @@ class MamaTeamCarryTotal(BaseModel):
 
     @staticmethod
     def get_ranking_list():
-        return MamaTeamCarryTotal.objects.order_by((F('total')).desc())
+        return MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by((F('total')).desc())
 
     @staticmethod
     def get_duration_ranking_list():
-        return MamaTeamCarryTotal.objects.order_by((F('duration_total')).desc())
+        return MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
+            (F('duration_total')).desc())
 
     @staticmethod
     def get_activity_ranking_list():
-        return MamaTeamCarryTotal.objects.filter(last_renew_type=XiaoluMama.TRIAL).order_by(
+        return MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
+                                                 last_renew_type=XiaoluMama.TRIAL).order_by(
             (F('expect_total')).desc())
 
     @staticmethod
@@ -561,7 +568,7 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+        for m in MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
                 (F('total')).desc()).values('mama_id', 'total'):
             if last_value is None or m['total'] < last_value:
                 last_value = m['total']
@@ -577,7 +584,7 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+        for m in MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
                 (F('duration_total')).desc()).values('mama_id', 'duration_total'):
             if last_value is None or m['duration_total'] < last_value:
                 last_value = m['duration_total']
@@ -593,8 +600,8 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.exclude(agencylevel=XiaoluMama.INNER_LEVEL).order_by((F('expect_total')
-                                                                                                  ).desc()).values(
+        for m in MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by((F('expect_total')
+                                                                                                     ).desc()).values(
             'mama_id', 'expect_total'):
             if last_value is None or m['expect_total'] < last_value:
                 last_value = m['expect_total']
@@ -610,9 +617,10 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.filter(last_renew_type=XiaoluMama.TRIAL).exclude(
+        for m in MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
+                                                   last_renew_type=XiaoluMama.TRIAL).exclude(
                 agencylevel=XiaoluMama.INNER_LEVEL).order_by(
-                (F('expect_total')).desc()).values('mama_id', 'expect_total'):
+            (F('expect_total')).desc()).values('mama_id', 'expect_total'):
             if last_value is None or m['expect_total'] < last_value:
                 last_value = m['expect_total']
                 rank = i

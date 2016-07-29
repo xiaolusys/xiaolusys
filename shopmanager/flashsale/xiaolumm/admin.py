@@ -609,7 +609,7 @@ class MamaCarryTotalAdmin(admin.ModelAdmin):
     list_display = (
         'stat_time', "mama_id_admin", 'mama_nick_admin', 'thumbnail_pic', 'mobile_admin', 'total_admin',
         'duration_total', 'expect_total', 'history_total', 'history_num', 'duration_num', 'expect_num',
-        'total_rank_delay', 'duration_rank_delay', 'de_rank_delay',
+        'total_rank_delay', 'duration_rank_delay', 'de_rank_delay', 'activite_rank_delay'
     )
     list_filter = ()
     search_fields = ("mama",)
@@ -647,7 +647,7 @@ admin.site.register(MamaCarryTotal, MamaCarryTotalAdmin)
 class MamaTeamCarryTotalAdmin(admin.ModelAdmin):
     list_display = ('stat_time', "mama_id", 'mama_nick', 'thumbnail', 'mobile', 'total', 'duration_total',
                     'expect_total', 'num', 'duration_num', 'expect_num', 'last_renew_type',
-                    'total_rank_delay', 'duration_rank_delay', 'de_rank_delay',
+                    'total_rank_delay', 'duration_rank_delay', 'de_rank_delay', 'activite_rank_delay'
                     )
     list_filter = ()
     search_fields = ("mama",)
