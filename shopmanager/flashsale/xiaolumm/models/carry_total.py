@@ -200,7 +200,7 @@ class MamaCarryTotal(BaseModel):
         MamaCarryTotal.move_other_stat_to_record()
         mama_ids = [i['id']
                     for i in XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
-                                                       status=XiaoluMama.EFFECT).values('id')]
+                                                       status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).values('id')]
         exist_ids = [m['mama_id'] for m in MamaCarryTotal.objects.filter(stat_time=STAT_TIME).values('mama_id')]
         mama_ids = list(set(mama_ids) - set(exist_ids))
         # res = []
