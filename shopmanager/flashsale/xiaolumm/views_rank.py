@@ -171,7 +171,7 @@ class MamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
         # 前台html已经提交了 只好适应一下补两句代码
         top = list(top)
         for t in top:
-            res[top.index(t)]['duration_rank'] = t.activite_rank
+            res[top.index(t)]['rank'] = t.activite_rank
             res[top.index(t)]['duration_num'] = t.expect_num
             res[top.index(t)]['duration_total'] = t.expect_total
             res[top.index(t)]['duration_total_display'] = float('%.2f' % (t.expect_total * 0.01))
