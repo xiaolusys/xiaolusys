@@ -73,7 +73,7 @@ function del_shop(id) {
             text: "删掉的商品可能被别人抢走哦～\n要删除吗？",
             type: "",
             showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/logo.png",
+            imageUrl: "http://img.xiaolumeimei.com/logo.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: '删除',
             cancelButtonText: '先留着'

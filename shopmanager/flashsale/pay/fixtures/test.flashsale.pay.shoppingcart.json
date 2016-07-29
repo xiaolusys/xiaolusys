@@ -13,7 +13,7 @@
     "total_fee": 49.9,
     "item_id": "40601",
     "sku_name": "160",
-    "pic_path": "http://image.xiaolu.so/MG_1461577111148_2.jpg",
+    "pic_path": "http://img.xiaolumeimei.com/MG_1461577111148_2.jpg",
     "buyer_id": 1
   },
   "model": "pay.shoppingcart",
@@ -33,7 +33,7 @@
     "total_fee": 99.9,
     "item_id": "40873",
     "sku_name": "L",
-    "pic_path": "http://image.xiaolu.so/MG_14615708116541.jpg",
+    "pic_path": "http://img.xiaolumeimei.com/MG_14615708116541.jpg",
     "buyer_id": 1
   },
   "model": "pay.shoppingcart",

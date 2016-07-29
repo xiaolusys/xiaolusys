@@ -283,7 +283,7 @@ function Confirm_Refund() { //确认提交 物流信息  到　服务器
             text: "确定提交物流信息么？",
             type: "",
             showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/logo.png",
+            imageUrl: "http://img.xiaolumeimei.com/logo.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: "确定",
             cancelButtonText: "取消"

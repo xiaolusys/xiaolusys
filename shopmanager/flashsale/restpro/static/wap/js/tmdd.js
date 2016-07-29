@@ -212,7 +212,7 @@ function Cancel_order(suffix) {
             text: mess,
             type: "",
             showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/logo.png",
+            imageUrl: "http://img.xiaolumeimei.com/logo.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: "确定",
             cancelButtonText: "取消"
@@ -273,7 +273,7 @@ function Confirm_Sign_For(oid) {
             text: "订单准备签收啦~ 确认收货么？",
             type: "",
             showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/logo.png",
+            imageUrl: "http://img.xiaolumeimei.com/logo.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: "确定",
             cancelButtonText: "取消"

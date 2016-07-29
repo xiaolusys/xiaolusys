@@ -284,7 +284,7 @@ var cart_timer = function () {
                             text: "亲,5分钟后购物车的商品将被清空，去购物车结算吗？",
                             type: "",
                             showCancelButton: true,
-                            imageUrl: "http://image.xiaolu.so/logo.png",
+                            imageUrl: "http://img.xiaolumeimei.com/logo.png",
                             confirmButtonColor: '#DD6B55',
                             confirmButtonText: '去购物车',
                             cancelButtonText: '取消'
