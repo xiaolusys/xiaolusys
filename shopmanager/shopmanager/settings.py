@@ -552,7 +552,7 @@ if not DEBUG:
                 'formatter': 'json'
             },
             'sentry': {
-                'level': 'WARN',
+                'level': 'ERROR',
                 'class': 'raven.contrib.django.handlers.SentryHandler'
             },
             'console': {
@@ -561,7 +561,7 @@ if not DEBUG:
                 'formatter': 'simple'
             },
             'mail_admins': {
-                'level': 'INFO',
+                'level': 'ERROR',
                 'class': 'django.utils.log.AdminEmailHandler',
                 'include_html': True,
             }

@@ -11,7 +11,7 @@ from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, Aw
     MAMA_FORTUNE_HISTORY_LAST_DAY
 
 # 在下次活动前设置此处，以自动重设变更统计时间
-STAT_TIME = datetime.datetime(2016, 7, 24)
+STAT_TIME = datetime.datetime(2016, 7, 29)
 
 
 # if datetime.datetime.now() < datetime.datetime(2016, 7, 28) \

@@ -464,6 +464,14 @@ class OrderList(models.Model):
         if br:
             return br.bill
 
+    def get_bills(self):
+        from flashsale.finance.models import BillRelation
+        br = BillRelation.objects.filter(object_id=self.id, type__in=[1,2])
+        bill = [i.bill for i in br]
+        if bill:
+            return bill
+
+
     def update_stage(self):
         if self.stage == OrderList.STAGE_RECEIVE:
             change = self.set_stat()
@@ -473,10 +481,10 @@ class OrderList(models.Model):
                 self.save()
         elif self.stage == OrderList.STAGE_STATE:
             change = self.set_stat()
-            bill = self.get_bill()
+            bill = self.get_bills()
             if self.lack is False and not self.is_postpay:
                 self.set_stage_complete()
-            elif bill and bill.is_finished():
+            elif bill and all([i.is_finished() for i in bill]):
                 self.set_stage_complete()
             elif change:
                 self.save()
