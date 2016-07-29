@@ -198,15 +198,20 @@ class MamaCarryTotal(BaseModel):
             2/对不存在该统计时间的mamaid，生成新排名记录
         """
         MamaCarryTotal.move_other_stat_to_record()
-        mama_ids = [i['id']
-                    for i in XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
-                                                       status=XiaoluMama.EFFECT,
-                                                       charge_status=XiaoluMama.CHARGED).values('id')]
+        mama_data = {i['id']: i
+                     for i in XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
+                                                        status=XiaoluMama.EFFECT,
+                                                        charge_status=XiaoluMama.CHARGED).values('id',
+                                                                                                 'last_renew_type',
+                                                                                                 'agencylevel')}
+        mama_ids = mama_data.keys()
         exist_ids = [m['mama_id'] for m in MamaCarryTotal.objects.filter(stat_time=STAT_TIME).values('mama_id')]
+
         mama_ids = list(set(mama_ids) - set(exist_ids))
         # res = []
         for mama_id in mama_ids:
-            m = MamaCarryTotal(mama_id=mama_id)
+            m = MamaCarryTotal(mama_id=mama_id, last_renew_type=mama_data[mama_id].get('last_renew_type', 365),
+                               agencylevel=mama_data[mama_id].get('agencylevel', 1))
             m.set_data()
             m.save()
 
@@ -322,7 +327,7 @@ class MamaCarryTotal(BaseModel):
         res = {}
         for m in MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
                                                last_renew_type=XiaoluMama.TRIAL).exclude(
-                agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+            agencylevel=XiaoluMama.INNER_LEVEL).order_by(
             (F('duration_total') + F('expect_total')).desc()).values('mama_id', 'duration_total', 'expect_total'):
             if last_value is None or m['duration_total'] + m['expect_total'] < last_value:
                 last_value = m['duration_total'] + m['expect_total']
@@ -617,7 +622,7 @@ class MamaTeamCarryTotal(BaseModel):
         last_value = None
         res = {}
         for m in MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
-            (F('expect_total')).desc()).values('mama_id', 'expect_total'):
+                (F('expect_total')).desc()).values('mama_id', 'expect_total'):
             if last_value is None or m['expect_total'] < last_value:
                 last_value = m['expect_total']
                 rank = i
