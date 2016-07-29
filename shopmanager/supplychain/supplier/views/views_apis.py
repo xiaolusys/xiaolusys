@@ -123,8 +123,11 @@ class SaleProductFilter(filters.FilterSet):
 
 class SaleProductViewSet(viewsets.ModelViewSet):
     """
-    ###排期管理商品REST API接口：
-    - 列表过滤条件: sale_supplier, sale_category
+    ### 排期管理商品REST API接口：
+    - {prefix}: 选品
+    - {prefix}/list_filters: 列表过滤条件
+    method: get
+    return: {'status':[...], 'categorys':[...]}
     """
     queryset = SaleProduct.objects.all()
     serializer_class = serializers.SimpleSaleProductSerializer
@@ -132,6 +135,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    ordering_fields = ('created', 'modified', 'sale_time', 'remain_num', 'hot_value')
     filter_class = SaleProductFilter
 
     @list_route(methods=['get'])
