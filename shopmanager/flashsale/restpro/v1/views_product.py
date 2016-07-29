@@ -187,15 +187,15 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         active_obj = self.get_object()
 
         params = {}
-        if active_obj.login_required:
-            if request.user and request.user.is_authenticated():
-                customer = get_object_or_404(Customer, user=request.user.id)
-                params.update({'customer': customer})
-                mama = customer.getXiaolumm()
-                if mama:
-                    params.update({'mama_id': mama.id})
-                else:
-                    params.update({'mama_id': 1})
+        # if active_obj.login_required:
+        if request.user and request.user.is_authenticated():
+            customer = get_object_or_404(Customer, user=request.user.id)
+            params.update({'customer': customer})
+            mama = customer.getXiaolumm()
+            if mama:
+                params.update({'mama_id': mama.id})
+            else:
+                params.update({'mama_id': 1})
         if not params:
             params.update({'customer': {},'mama_id': 1})
 

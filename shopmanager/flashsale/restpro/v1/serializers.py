@@ -695,11 +695,12 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
             "charge_time", 'coulde_cashout', 'last_renew_type', 'can_trial')
 
     def can_trial_judgement(self, obj):
-        if obj.last_renew_type == XiaoluMama.TRIAL:
-            return False
-        if obj.charge_status == XiaoluMama.CHARGED:
-            return False
-        return True
+        """ 判断是否可以试用 """
+        if obj.charge_status == XiaoluMama.UNCHARGE:
+            return True
+        if obj.charge_status == XiaoluMama.CHARGED and obj.status == XiaoluMama.FROZEN and obj.last_renew_type == XiaoluMama.TRIAL:
+            return True
+        return False
 
 
 class XiaoluMamaInfoSerialize(serializers.ModelSerializer):
