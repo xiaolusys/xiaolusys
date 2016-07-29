@@ -77,6 +77,7 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
         top = MamaCarryTotal.get_activity_ranking_list()[0:100]
         res = ActivityMamaCarryTotalSerializer(top, many=True).data
         # 前台html已经提交了 只好适应一下补两句代码
+        top = list(top)
         for t in top:
             res[top.index(t)]['duration_rank'] = t.activite_rank
         return Response(res)
@@ -165,6 +166,7 @@ class MamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
         top = MamaTeamCarryTotal.get_activity_ranking_list()[0:100]
         res = ActivityMamaTeamCarryTotalSerializer(top, many=True).data
         # 前台html已经提交了 只好适应一下补两句代码
+        top = list(top)
         for t in top:
             res[top.index(t)]['duration_rank'] = t.activite_rank
         return Response(res)
