@@ -70,7 +70,7 @@ class XiaoluMama(models.Model):
     VIP4_LEVEL = 14
     VIP6_LEVEL = 16
     VIP8_LEVEL = 18
-
+    STAFF_LEVEL = -1
     AGENCY_LEVEL = (
         (INNER_LEVEL, u"普通"),
         (VIP_LEVEL, "VIP1"),
@@ -79,6 +79,7 @@ class XiaoluMama(models.Model):
         (VIP4_LEVEL, "VIP4"),
         (VIP6_LEVEL, "VIP6"),
         (VIP8_LEVEL, "VIP8"),
+        (STAFF_LEVEL, u"职员")
     )
     TRIAL = 15
     HALF = 183
