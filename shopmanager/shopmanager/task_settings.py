@@ -1235,7 +1235,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时更新妈妈团队排名30分钟': {
-        'task': 'flashsale.xiaolumm.tasks_mama_carry_total.task_schedule_update_carry_total_ranking',
+        'task': 'flashsale.xiaolumm.tasks_mama_carry_total.task_schedule_update_team_carry_total_ranking',
         'schedule': crontab(minute="*/30"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
