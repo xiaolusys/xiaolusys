@@ -557,8 +557,7 @@ class MamaTeamCarryTotal(BaseModel):
 
     @staticmethod
     def get_activity_ranking_list():
-        return MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
-                                                 last_renew_type=XiaoluMama.TRIAL).order_by(
+        return MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
             (F('expect_total')).desc())
 
     @staticmethod
@@ -617,9 +616,7 @@ class MamaTeamCarryTotal(BaseModel):
         rank = 1
         last_value = None
         res = {}
-        for m in MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
-                                                   last_renew_type=XiaoluMama.TRIAL).exclude(
-                agencylevel=XiaoluMama.INNER_LEVEL).order_by(
+        for m in MamaTeamCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL).order_by(
             (F('expect_total')).desc()).values('mama_id', 'expect_total'):
             if last_value is None or m['expect_total'] < last_value:
                 last_value = m['expect_total']
