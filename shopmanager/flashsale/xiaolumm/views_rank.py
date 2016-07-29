@@ -74,14 +74,12 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
 
     @list_route(methods=['GET'])
     def activity_carry_total_rank(self, request):
-        # top = MamaCarryTotal.get_duration_ranking_list()[0:10]
-        top = MamaCarryTotal.get_activity_ranking_list()[0:10]
-        top = list(top)
-        i = 1
+        top = MamaCarryTotal.get_activity_ranking_list()[0:100]
+        res = ActivityMamaCarryTotalSerializer(top, many=True).data
+        # 前台html已经提交了 只好适应一下补两句代码
         for t in top:
-            t._rank_ = i
-            i += 1
-        return Response(ActivityMamaCarryTotalSerializer(top, many=True).data)
+            res[top.index(t)]['duration_rank'] = t.activite_rank
+        return Response(res)
 
     @list_route(methods=['GET'])
     def activity_self_rank(self, request):
@@ -164,10 +162,9 @@ class MamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
 
     @list_route(methods=['GET'])
     def activity_carry_total_rank(self, request):
-        top = MamaTeamCarryTotal.get_activity_ranking_list()[0:10]
-        top = list(top)
-        i = 1
+        top = MamaTeamCarryTotal.get_activity_ranking_list()[0:100]
+        res = ActivityMamaTeamCarryTotalSerializer(top, many=True).data
+        # 前台html已经提交了 只好适应一下补两句代码
         for t in top:
-            t._rank_ = i
-            i += 1
-        return Response(ActivityMamaTeamCarryTotalSerializer(top, many=True).data)
+            res[top.index(t)]['duration_rank'] = t.activite_rank
+        return Response(res)
