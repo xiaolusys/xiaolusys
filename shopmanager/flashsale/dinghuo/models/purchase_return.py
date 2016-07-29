@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import datetime
+import random
 from django.db import models
 from django.db.models import Sum, Count, F, Q
 from django.db.models.signals import post_save
@@ -10,6 +11,7 @@ from supplychain.supplier.models import SaleSupplier, SaleProduct
 from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
 from .purchase_order import OrderList
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,7 +55,8 @@ class ReturnGoods(models.Model):
     status = models.IntegerField(default=0, choices=RG_STATUS, db_index=True, verbose_name=u"状态")
     TYPE_COMMON = 0
     TYPE_CHANGE = 1
-    type = models.IntegerField(default=0, choices=((TYPE_COMMON, u'退货回款'), (TYPE_CHANGE, u'退货更换')), verbose_name=u'退货类型')
+    type = models.IntegerField(default=0, choices=((TYPE_COMMON, u'退货回款'), (TYPE_CHANGE, u'退货更换')),
+                               verbose_name=u'退货类型')
     REFUND_STATUS = ((0, u"未付"), (1, u"已完成"), (2, u"部分支付"), (3, u"已关闭"))
     refund_status = models.IntegerField(default=0, choices=REFUND_STATUS, db_index=True, verbose_name=u"退款状态")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
@@ -113,8 +116,6 @@ class ReturnGoods(models.Model):
         for product in products:
             product.detail_sku_ids = [sku.id for sku in product.detail_skus]
             product.detail_length = len(product.detail_sku_ids)
-            
-
 
         for detail in self.rg_details.all():
             for product in products:
@@ -210,13 +211,14 @@ class ReturnGoods(models.Model):
         :return:
         """
         from flashsale.dinghuo.models.inbound import InBound, InBoundDetail
-        inbounds = InBound.objects.filter(supplier_id=supplier_id).exclude(status__in=[InBound.COMPLETE_RETURN, InBound.INVALID])
+        inbounds = InBound.objects.filter(supplier_id=supplier_id).exclude(
+            status__in=[InBound.COMPLETE_RETURN, InBound.INVALID])
         inbound_ids = [i.id for i in inbounds]
         rg_details = []
         return_inbound_ids = []
         # inbounddetail 中存在sku_id=0的情况，为了防止异常
         for detail in InBoundDetail.objects.filter(inbound_id__in=inbound_ids).filter(
-                        Q(out_stock=True) | Q(inferior_quantity__gt=0)):# | Q(wrong=True)):
+                        Q(out_stock=True) | Q(inferior_quantity__gt=0)):  # | Q(wrong=True)):
             rg_detail = RGDetail(
                 skuid=detail.sku_id,
                 num=detail.out_stock_cnt,
@@ -277,7 +279,8 @@ class ReturnGoods(models.Model):
             return ProductSkuStats.objects.filter(product__id__in=product_ids,
                                                   product__offshelf_time__lt=datetime.datetime.now() - datetime.timedelta(
                                                       days=10),
-                                                  sold_num__lt=F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F(
+                                                  sold_num__lt=F('history_quantity') + F('adjust_quantity') + F(
+                                                      'inbound_quantity') + F(
                                                       'return_quantity') \
                                                                - F('rg_quantity')).exclude(
                 sku__id__in=unreturn_sku_ids).exists()
@@ -290,11 +293,12 @@ class ReturnGoods(models.Model):
 
     @staticmethod
     def get_user_by_supplier(supplier_id):
-        r = OrderList.objects.filter(supplier_id=supplier_id).values('buyer_id').annotate(s=Count('buyer_id'))
         from django.contrib.auth.models import Group
         g = Group.objects.get(name=u'小鹿订货员')
         uids = [u['id'] for u in g.user_set.values('id')]
-        r = list(set(uids) - set(r))
+        r = OrderList.objects.filter(supplier_id=supplier_id, buyer_id__in=uids).values('buyer_id').annotate(
+            s=Count('buyer_id'))
+
         def get_max_from_list(l):
             max_i = 0
             buyer_id = None
@@ -303,7 +307,10 @@ class ReturnGoods(models.Model):
                     max_i = i['s']
                     buyer_id = i['buyer_id']
             return buyer_id
-        return get_max_from_list(r)
+        res = get_max_from_list(r)
+        if not res:
+            res = uids[random.randint(0, len(uids)-1)]
+        return
 
     def set_stat(self):
         self.rg_details.filter(num=0, inferior_num=0).delete()
@@ -476,6 +483,7 @@ def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
         for rg in instance.rg_details.all():
             task_update_product_sku_stat_rg_quantity.delay(rg.skuid)
 
+
 post_save.connect(update_product_sku_stat_rg_quantity,
                   sender=ReturnGoods,
                   dispatch_uid='post_save_update_product_sku_stat_rg_quantity')
@@ -572,6 +580,3 @@ class UnReturnSku(BaseModel):
         app_label = 'dinghuo'
         verbose_name = u'不可退货商品明细表'
         verbose_name_plural = u'不可退货商品明细列表'
-
-
-
