@@ -4,12 +4,12 @@ import logging
 
 from celery.task import task
 from django.db import IntegrityError
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, CarryRecord, \
-    GroupRelationship, MAMA_FORTUNE_HISTORY_LAST_DAY
+from flashsale.xiaolumm.models.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, \
+    CarryRecord, GroupRelationship, MAMA_FORTUNE_HISTORY_LAST_DAY
 from flashsale.xiaolumm.models import CashOut
 from flashsale.xiaolumm.models.models_fans import XlmmFans
 
@@ -63,17 +63,19 @@ CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016, 3, 30, 23, 59, 59)
 
 @task(max_retries=3, default_retry_delay=6)
 def task_cashout_update_mamafortune(mama_id):
-    cashout_sum = CashOut.objects.filter(xlmm=mama_id,approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).values('status').annotate(total=Sum('value'))
-    approved_total,pending_total = 0,0
+    cashout_sum = CashOut.objects.filter(xlmm=mama_id, approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).values(
+        'status').annotate(total=Sum('value'))
+    approved_total, pending_total = 0, 0
     for record in cashout_sum:
         if record['status'] == CashOut.APPROVED:
-            approved_total  = record['total']
+            approved_total = record['total']
         if record['status'] == CashOut.PENDING:
             pending_total = record['total']
-    
+
     effect_cashout = approved_total + pending_total
-    
-    logger.warn("%s - mama_id: %s, effect_cashout: %s|pending:%s,approved:%s" % (get_cur_info(), mama_id, effect_cashout, pending_total, approved_total))
+
+    logger.warn("%s - mama_id: %s, effect_cashout: %s|pending:%s,approved:%s" % (
+        get_cur_info(), mama_id, effect_cashout, pending_total, approved_total))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]
@@ -237,3 +239,56 @@ def task_update_mamafortune_order_num(mama_id):
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune ordernum | mama_id: %s" % (mama_id))
             raise task_update_mamafortune_order_num.retry(exc=exc)
+
+
+@task(max_retries=3, default_retry_delay=6)
+def task_send_activite_award(mama_id):
+    from flashsale.xiaolumm.models import XiaoluMama
+    mama = XiaoluMama.objects.filter(id=mama_id, last_renew_type=XiaoluMama.TRIAL).first()
+    if not mama:
+        return
+    data = {
+        20: 20,
+        50: 60,
+        100: 120,
+        200: 300
+    }
+    data_desc = {
+        20: u'满20人奖20元',
+        50: u'满50人再奖60元',
+        100: u'满100人再奖120元',
+        200: u'满200人再奖300元'
+    }
+    activite_num = mama.get_activite_num()
+    from flashsale.xiaolumm.models.models_fortune import AwardCarry
+    for num in data:
+        if activite_num >= num:
+            uni_key = 'activite_award_%d_%d' % (num, mama.id)
+            AwardCarry.send_award(mama, data[num], u'激活奖励', data_desc[num], uni_key)
+
+
+@task(max_retries=3, default_retry_delay=6)
+def task_first_order_send_award(mama):
+    from flashsale.xiaolumm.models.models_fortune import AwardCarry
+    sum_res = OrderCarry.objects.filter(mama_id=mama.id).values('status').annotate(cnt=Count('id'))
+    sum_dict = {item['status']: item['cnt'] for item in sum_res}
+    uni_key = 'trial_first_order_award_%d' % (mama.id,)
+    repeat = AwardCarry.objects.filter(uni_key=uni_key).first()
+    if not sum_dict.get(1) and not sum_dict.get(2):
+        if repeat and repeat.status != 3:
+            repeat.status = 3
+            repeat.save()
+    elif sum_dict.get(2):
+        if repeat:
+            if repeat.status != 2:
+                repeat.status = 2
+                repeat.save()
+        else:
+            AwardCarry.send_award(mama, 5, u'首单奖励', u'一元小鹿妈妈首单奖励', uni_key)
+    elif sum_dict[1]:
+        if repeat:
+            if repeat.status != 1:
+                repeat.status = 1
+                repeat.save()
+        else:
+            AwardCarry.send_award(mama, 5, u'首单奖励', u'一元小鹿妈妈首单奖励', uni_key)

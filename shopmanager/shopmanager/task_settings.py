@@ -290,6 +290,10 @@ MAMA_FORTUNE_ROUTES = {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_mama_level',
     },
+    'flashsale.xiaolumm.tasks_mama_fortune.task_send_activite_award': {
+        'queue': 'mamafortune',
+        'routing_key': 'mamafortune.task_send_activite_award',
+    },
 }
 
 MAMA_RELATIONSHIP_ROUTES = {
@@ -453,6 +457,10 @@ MAMA_CARRYRECORD_ROUTES = {
     'flashsale.xiaolumm.tasks_mama_carryrecord.task_clickcarry_update_carryrecord': {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_clickcarry_update_carryrecord',
+    },
+    'flashsale.xiaolumm.tasks_mama_fortune.task_first_order_send_award': {
+        'queue': 'carryrecord',
+        'routing_key': 'carryrecord.task_first_order_send_award',
     },
 
 }
