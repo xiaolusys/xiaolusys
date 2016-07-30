@@ -191,6 +191,7 @@ INSTALLED_APPS =(
     'flashsale.finance',
     'flashsale.xiaolumm',
     'flashsale.dinghuo',
+    'flashsale.workorder',
     'flashsale.clickcount',
     'flashsale.clickrebeta',
     'flashsale.mmexam',
