@@ -1561,9 +1561,12 @@ post_save.connect(invalid_contrast_maps_cache,
 
 
 class ImageWaterMark(models.Model):
+
+    NORMAL   = 1
+    CANCELED = 0
     STATUSES = (
-        (1, u'使用'),
-        (0, u'作废')
+        (NORMAL, u'使用'),
+        (CANCELED, u'作废')
     )
     url = models.CharField(max_length=128, verbose_name=u'图片链接')
     remark = models.TextField(blank=True, default='', verbose_name=u'备注')
