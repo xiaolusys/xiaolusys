@@ -20,6 +20,7 @@ class WorkOrderAdmin(admin.ModelAdmin):
 
     readonly_fields = ['modified_time']
 
+
     def confirm_finished(self, request, queryset):
         for p in queryset:
             if p.status != WorkOrder.STATUS_FINISHED:
