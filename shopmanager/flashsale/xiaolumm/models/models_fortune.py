@@ -3,12 +3,12 @@ from django.db import models
 from core.models import BaseModel
 from django.db.models.signals import post_save
 from django.conf import settings
-
 import datetime, urlparse
 
 from core.fields import JSONCharMyField
 
 import logging
+
 logger = logging.getLogger('django.request')
 
 
@@ -128,7 +128,7 @@ class MamaFortune(BaseModel):
     def mama_event_link(self):
         """ 活动页面链接 """
         activity_link = 'pages/featuredEvent.html'
-        
+
         return settings.M_SITE_URL + settings.M_STATIC_URL + activity_link
 
     @property
@@ -155,14 +155,12 @@ class MamaFortune(BaseModel):
     @property
     def xlmm(self):
         if not hasattr(self, '_xiaolumm_xlmm_'):
-            from flashsale.xiaolumm.models import XiaoluMama
-
+            from flashsale.xiaolumm.models.models import XiaoluMama
             self._xiaolumm_xlmm_ = XiaoluMama.objects.filter(id=self.mama_id).first()
         return self._xiaolumm_xlmm_
 
 
 def copy_history_cash(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.models import XiaoluMama
     m = XiaoluMama.objects.filter(id=instance.mama_id).first()
     if m and m.cash != instance.history_confirmed:
         instance.history_confirmed = m.cash
@@ -207,10 +205,9 @@ post_save.connect(confirm_previous_dailystats,
 
 
 class CarryRecord(BaseModel):
-
     PENDING = 1
     CONFIRMED = 2
-    CANCEL  = 3
+    CANCEL = 3
 
     STATUS_TYPES = ((PENDING, u'预计收益'),
                     (CONFIRMED, u'确定收益'),
@@ -359,6 +356,11 @@ class OrderCarry(BaseModel):
         """
         return None
 
+    @property
+    def mama(self):
+        from flashsale.xiaolumm.models.models import XiaoluMama
+        return XiaoluMama.objects.get(id=self.mama_id)
+
     def is_direct_or_fans_carry(self):
         return self.carry_type == 1 or self.carry_type == 2
 
@@ -370,6 +372,18 @@ def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
 
 post_save.connect(ordercarry_update_carryrecord,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_carryrecord')
+
+
+# 首单奖励
+def ordercarry_send_first_award(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_fortune
+    from flashsale.xiaolumm.models.models import XiaoluMama
+    if instance.mama.last_renew_type == XiaoluMama.TRIAL:
+        tasks_mama_fortune.task_first_order_send_award.delay(instance.mama)
+
+
+post_save.connect(ordercarry_send_first_award,
+                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_send_first_alwad')
 
 
 def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
@@ -425,16 +439,16 @@ post_save.connect(ordercarry_update_order_number,
 
 
 class AwardCarry(BaseModel):
-    AWARD_TYPES = ((1, u'直荐奖励'), (2, u'团队奖励'), (3, u'授课奖金'),)
+    AWARD_TYPES = ((1, u'直荐奖励'), (2, u'团队奖励'), (3, u'授课奖金'), (4, u'任务奖励'))
     STATUS_TYPES = ((1, u'预计收益'), (2, u'确定收益'), (3, u'已取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     carry_num = models.IntegerField(default=0, verbose_name=u'奖励金额')
     carry_type = models.IntegerField(default=0, choices=AWARD_TYPES, verbose_name=u'奖励类型')  # 直接推荐奖励/团队成员奖励
     carry_description = models.CharField(max_length=64, blank=True, verbose_name=u'描述')
-    contributor_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
-    contributor_img = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')
-    contributor_mama_id = models.BigIntegerField(default=0, verbose_name=u'贡献者mama_id')
+    contributor_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'贡献者昵称')
+    contributor_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'贡献者头像')
+    contributor_mama_id = models.BigIntegerField(default=0, null=True, verbose_name=u'贡献者mama_id')
     carry_plan_name = models.CharField(max_length=32, blank=True, verbose_name=u'佣金计划')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
@@ -470,6 +484,25 @@ class AwardCarry(BaseModel):
         """
         return None
 
+    @staticmethod
+    def send_award(mama, num, name, description, uni_key):
+        repeat_one = AwardCarry.objects.filter(uni_key=uni_key).first()
+        if repeat_one:
+            if repeat_one.status == 3:
+                AwardCarry.objects.filter(uni_key=uni_key).update(status=1)
+            return repeat_one
+        ac = AwardCarry(
+            mama_id=mama.id,
+            carry_num=num*100,
+            carry_type=4,
+            date_field=datetime.datetime.now(),
+            carry_plan_name=name,
+            carry_description=description,
+            uni_key=uni_key,
+            status=1
+        )
+        ac.save()
+        return ac
 
 def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
@@ -490,7 +523,7 @@ class ClickPlan(BaseModel):
     order_rules = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'规则')
     max_order_num = models.IntegerField(default=0, verbose_name=u'最大订单人数')
 
-    start_time = models.DateTimeField(blank=True,null=True,db_index=True, verbose_name=u'生效时间')
+    start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'生效时间')
     end_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'结束时间')
 
     status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
@@ -507,7 +540,7 @@ class ClickPlan(BaseModel):
     def get_active_clickplan(cls):
         time_now = datetime.datetime.now()
         plan = cls.objects.filter(status=0, end_time__gte=time_now,
-                start_time__lte=time_now).order_by('-created').first()
+                                  start_time__lte=time_now).order_by('-created').first()
         if plan:
             return plan
         default = cls.objects.filter(status=0, default=True).first()
@@ -575,14 +608,19 @@ post_save.connect(clickcarry_update_carryrecord,
 
 def confirm_previous_clickcarry(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_clickcarry
+    from flashsale.xiaolumm import tasks_mama_fortune
+    from flashsale.xiaolumm.models.models import XiaoluMama
     if created:
         mama_id = instance.mama_id
         date_field = instance.date_field
         tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry.delay(mama_id, date_field, 2)
-
+        mama = XiaoluMama.objects.get(id=mama_id)
+        for mm_id in mama.get_parent_mama_ids():
+            tasks_mama_fortune.task_send_activite_award.delay(mm_id)
 
 post_save.connect(confirm_previous_clickcarry,
                   sender=ClickCarry, dispatch_uid='post_save_confirm_previous_clickcarry')
+
 
 def gauge_active_mama(sender, instance, created, **kwargs):
     from django_statsd.clients import statsd
