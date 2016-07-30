@@ -34,6 +34,7 @@ class LessonTopic(BaseModel):
                     (LESSON_PRACTICE, u'实战'), (LESSON_KNOWLEDGE, u'知识'))
 
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
+    cover_image = models.CharField(max_length=256, blank=True, verbose_name=u'课程封面图')
     description = models.TextField(max_length=512, blank=True, verbose_name=u'课程描述')
 
     num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
@@ -49,7 +50,7 @@ class LessonTopic(BaseModel):
     @property
     def status_display(self):
         return get_choice_name(LessonTopic.STATUS_TYPES, self.status)
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_lesson_topic'
         app_label = 'xiaolumm'
@@ -59,7 +60,7 @@ class LessonTopic(BaseModel):
     def __unicode__(self):
         return "%s:%s" % (self.lesson_type, self.title)
 
-    
+
 class Instructor(BaseModel):
     STATUS_EFFECT = 1
     STATUS_PENDING = 2
@@ -75,7 +76,7 @@ class Instructor(BaseModel):
     num_lesson = models.IntegerField(default=0, verbose_name=u'总课时')
     num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
     status = models.IntegerField(default=STATUS_PENDING, choices=STATUS_TYPES, verbose_name=u'状态')
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_instructor'
         app_label = 'xiaolumm'
@@ -92,14 +93,14 @@ class Instructor(BaseModel):
     @property
     def apply_date(self):
         return self.created.date()
-    
+
 
 class Lesson(BaseModel):
     STATUS_EFFECT = 1
     STATUS_FINISHED = 2
     STATUS_CANCELED = 3
     STATUS_TYPES = ((STATUS_EFFECT, u'有效'), (STATUS_FINISHED, u'已完成'), (STATUS_CANCELED, u'取消'))
-    
+
     lesson_topic_id = models.IntegerField(default=0, db_index=True, verbose_name=u'课程主题ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
     description = models.TextField(max_length=512, blank=True, verbose_name=u'课程描述')
@@ -109,7 +110,7 @@ class Lesson(BaseModel):
     instructor_name = models.CharField(max_length=32, blank=True, verbose_name=u'讲师昵称')
     instructor_title = models.CharField(max_length=64, blank=True, verbose_name=u'讲师头衔')
     instructor_image = models.CharField(max_length=256, blank=True, verbose_name=u'讲师头像')
-    
+
     num_attender = models.IntegerField(default=0, verbose_name=u'总听课人数')
     effect_num_attender = models.IntegerField(default=0, verbose_name=u'有效听课人数')
     num_score = models.IntegerField(default=0, verbose_name=u'课程评分')
@@ -117,10 +118,10 @@ class Lesson(BaseModel):
 
     # at most 10 qrcode_links
     qrcode_links = JSONCharMyField(max_length=1024, default={}, blank=True, verbose_name=u'群二维码链接')
-    
+
     # uni_key: lesson_topic_id + instructor_id + start_time
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
-    
+
     status = models.IntegerField(db_index=True, default=1, choices=STATUS_TYPES, verbose_name=u'状态')
 
     @property
@@ -155,7 +156,7 @@ class Lesson(BaseModel):
         if self.effect_num_attender >= 400:
             base_carry = 10000
         return base_carry
-        
+
     def customer_idx(self):
         return None
 
@@ -164,7 +165,7 @@ class Lesson(BaseModel):
 
     def is_confirmed(self):
         return self.status == Lesson.STATUS_FINISHED
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_lesson'
         app_label = 'xiaolumm'
@@ -192,23 +193,23 @@ post_save.connect(lesson_update_instructor_payment,
 
 class LessonAttendRecord(BaseModel):
     STATUS_EFFECT = 1
-    STATUS_CANCELED = 2 
+    STATUS_CANCELED = 2
     STATUS_TYPES = ((STATUS_EFFECT, u'有效'), (STATUS_CANCELED, u'无效'))
-    
+
     lesson_id = models.IntegerField(default=0, db_index=True, verbose_name=u'课程ID')
     title = models.CharField(max_length=128, blank=True, verbose_name=u'课程主题')
-    
+
     student_unionid = models.CharField(max_length=64, db_index=True, verbose_name=u"学员UnionID")
     student_nick = models.CharField(max_length=64, verbose_name=u"学员昵称")
     student_image = models.CharField(max_length=256, verbose_name=u"学员头像")
-    
+
     num_score = models.IntegerField(default=0, verbose_name=u'课程评分')
-    
+
     # uni_key = lesson_id + student_unionid
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u"唯一ID")
 
     status = models.IntegerField(default=2, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_lesson_attend_record'
         app_label = 'xiaolumm'
@@ -237,7 +238,7 @@ class LessonAttendRecord(BaseModel):
         second = self.created.second
         return "%02d:%02d:%02d" % (hour,minute,second)
 
-    
+
 def lessonattendrecord_create_topicattendrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_lesson import task_lessonattendrecord_create_topicattendrecord
     task_lessonattendrecord_create_topicattendrecord.delay(instance)
@@ -248,11 +249,11 @@ post_save.connect(lessonattendrecord_create_topicattendrecord,
 def update_lesson_attender_num(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_lesson import task_update_lesson_attender_num
     task_update_lesson_attender_num.delay(instance.lesson_id)
-    
+
 post_save.connect(update_lesson_attender_num,
                   sender=LessonAttendRecord, dispatch_uid='post_save_update_lesson_attender_num')
 
-                  
+
 class TopicAttendRecord(BaseModel):
     STATUS_EFFECT = 1
     STATUS_CANCELED = 2
@@ -265,16 +266,16 @@ class TopicAttendRecord(BaseModel):
     student_unionid = models.CharField(max_length=64, db_index=True, verbose_name=u"学员UnionID")
     student_nick = models.CharField(max_length=64, blank=True, verbose_name=u"学员昵称")
     student_image = models.CharField(max_length=256, blank=True, verbose_name=u"学员头像")
-    
+
     # uni_key = topic_id + student_unionid + year + week_num
     # This means a person can only attend the same topic once per week.
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u"唯一ID")
 
     # TopicAttendRecord must be generated by a LessonAttendRecord
     lesson_attend_record_id = models.IntegerField(default=0, verbose_name=u'课程参加记录ID')
-    
+
     status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_topic_attend_record'
         app_label = 'xiaolumm'

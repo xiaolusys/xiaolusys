@@ -528,7 +528,7 @@ from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Les
 
 
 class LessonTopicAdmin(admin.ModelAdmin):
-    list_display = ('title', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')
+    list_display = ('title', 'cover_image', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')
     search_fields = ('title',)
     list_filter = ('lesson_type', 'status',)
 
