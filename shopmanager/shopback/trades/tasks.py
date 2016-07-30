@@ -1002,9 +1002,7 @@ def task_update_package_order(instance):
                 PackageOrder.create(package_order_id, sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS,
                                     instance)
             else:
-                logger.error(
-                    'package order send error:' + package_order.id + '|sku item' + str(instance.id) + '|' + str(
-                        package_order.sys_status))
+
                 PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id,
                                                                      package_order_pid=package_order.pid)
                 package_order.set_redo_sign(save_data=False)
@@ -1013,10 +1011,16 @@ def task_update_package_order(instance):
                 package_order.save()
         else:
             package_order = PackageOrder.objects.get(id=instance.package_order_id)
-            package_order.set_redo_sign(save_data=False)
-            package_order.reset_package_address()
-            package_order.reset_sku_item_num()
-            package_order.save()
+            if package_order.is_sent():
+                logger.error(
+                    'package order already send:' + package_order.id + '|sku item' + str(instance.id) + '|' + str(
+                        package_order.sys_status))
+                instance.clear_order_info()
+            else:
+                package_order.set_redo_sign(save_data=False)
+                package_order.reset_package_address()
+                package_order.reset_sku_item_num()
+                package_order.save()
     elif instance.assign_status == PackageSkuItem.CANCELED:
         if instance.package_order_id:
             package_order = PackageOrder.objects.get(id=instance.package_order_id)

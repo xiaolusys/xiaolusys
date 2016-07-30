@@ -1645,13 +1645,9 @@ class PackageOrder(models.Model):
         package_order.order_sku_num = PackageSkuItem.unsend_orders_cnt(int(buyer_id))
         package_order.ready_completion = package_order.order_sku_num == 1
         package_order.save()
-        logger.error('package order begin create: ' + str(package_order.id) + '|psi:' + str(psi))
-
         if psi:
             PackageSkuItem.objects.filter(id=psi.id).update(package_order_id=package_order.id,
                                                             package_order_pid=package_order.pid)
-            logger.error('package order finish: ' + str(package_order.id) + '|package_skuitem id:' + str(
-                psi.id) + '| package_skuitem packageorderid:' + str(psi.package_order_id))
         return package_order
 
     @staticmethod
@@ -1969,14 +1965,12 @@ class PackageSkuItem(BaseModel):
     def reset_assign_status(self):
         package_order = self.package_order
         PackageSkuItem.objects.filter(id=self.id).update(assign_status=0, package_order_id=None, package_order_pid=None)
-        # logging.error("update_relase_package_sku_item:" + str(self.id))
         if package_order:
             package_order.update_relase_package_sku_item()
         self.package_order_id = None
         self.package_order_pid = None
         self.assign_status = PackageSkuItem.NOT_ASSIGNED
         self.save()
-        logging.error("update_relase_package_sku_item finished:" + str(self.id))
 
     def reset_assign_package(self):
         if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
