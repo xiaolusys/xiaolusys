@@ -56,6 +56,11 @@ def task_update_carry_duration_total_ranking():
 
 
 @single_instance_task(timeout=TIMEOUT, prefix='flashsale.xiaolumm.tasks_mama_carry_total.')
-def task_update_team_carry_total(mama_id):
+def task_update_team_carry_total2(mama_id):
     return
+    MamaTeamCarryTotal.get_by_mama_id(mama_id).refresh_data()
+
+
+@task()
+def task_update_team_carry_total(mama_id):
     MamaTeamCarryTotal.get_by_mama_id(mama_id).refresh_data()
