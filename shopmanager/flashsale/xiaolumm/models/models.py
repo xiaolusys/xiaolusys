@@ -488,6 +488,17 @@ class XiaoluMama(models.Model):
             self._mama_fortune_ = MamaFortune.objects.filter(mama_id=self.id).first()
         return self._mama_fortune_
 
+    def get_parent_mama_ids(self):
+        from .models_fortune import ReferalRelationship
+        res = []
+        parent = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
+        if parent:
+            res.append(parent.referal_from_mama_id)
+            pp = ReferalRelationship.objects.filter(referal_to_mama_id=parent.id).first()
+            if pp:
+                res.append(pp.referal_from_mama_id)
+        return res
+
     def get_lv_team_member_ids(self):
         """
             获取下二级用户
@@ -504,10 +515,16 @@ class XiaoluMama(models.Model):
         a, b, c = self.get_lv_team_member_ids()
         return a + b + c
 
+    def get_invite_ids(self):
+        from .models_fortune import ReferalRelationship
+        return [i['referal_to_mama_id'] for i in
+                   ReferalRelationship.objects.filter(referal_from_mama_id=self.id).values('referal_to_mama_id')]
+
     def get_activite_num(self):
         from .models_fortune import CarryRecord
         i = 0
-        for mmid in self.get_team_member_ids():
+        mmids = self.get_invite_ids()
+        for mmid in mmids:
             t = CarryRecord.objects.filter(mama_id=mmid).values('carry_num'). \
                     aggregate(total=Sum('carry_num')).get('total') or 0
             if t > 0:
