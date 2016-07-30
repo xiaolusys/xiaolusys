@@ -4,6 +4,7 @@ import datetime
 import random
 
 from django.conf import settings
+from django.db.models import Sum
 from django.forms import model_to_dict
 from rest_framework import serializers
 from flashsale.xiaolumm.models.models_fortune import (
@@ -58,11 +59,12 @@ from flashsale.apprelease.models import AppRelease
 from flashsale.pay.models import CustomerShops, CuShopPros
 from flashsale.pay.models import Customer
 from flashsale.restpro import constants
+from flashsale.xiaolumm.models.models_fortune import MAMA_FORTUNE_HISTORY_LAST_DAY
 
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
     cash_value = serializers.FloatField(source='cash_num_display', read_only=True)
-    carry_value = serializers.FloatField(source='carry_num_display', read_only=True)
+    carry_value = serializers.SerializerMethodField('carry_num_display_new', read_only=True)
     extra_info = serializers.SerializerMethodField('gen_extra_info', read_only=True)
 
     class Meta:
@@ -72,6 +74,14 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
                   'carry_pending_display', 'carry_confirmed_display', 'carry_cashout_display',
                   'mama_event_link', 'history_last_day', 'today_visitor_num', 'modified', 'created',
                   "extra_info")
+
+    def carry_num_display_new(self, obj):
+        """ 累计收益数 """
+        his_confirmed_cash_out = CashOut.objects.filter(xlmm=obj.mama_id, status=CashOut.APPROVED,
+                                                        approve_time__lt=MAMA_FORTUNE_HISTORY_LAST_DAY).aggregate(
+            total=Sum('value')).get('total') or 0
+        total = obj.carry_num_display() + float(his_confirmed_cash_out * 0.01)
+        return float('%.2f' % (total))
 
     def gen_extra_info(self, obj):
         customer = self.context['customer']
@@ -91,6 +101,10 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
             could_cash_out = 0
         cashout_reason = u' '.join(tmp_des) + u'不能提现'
         total_rank = MamaCarryTotal.get_by_mama_id(xlmm.id).total_rank
+        his_confirmed_cash_out = CashOut.objects.filter(xlmm=xlmm.id, status=CashOut.APPROVED,
+                                                        approve_time__lt=MAMA_FORTUNE_HISTORY_LAST_DAY).aggregate(
+            total=Sum('value')).get('total') or 0
+
         return {
             "total_rank": total_rank,
             "invite_url": invite_url,
@@ -102,7 +116,8 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
             "next_level_exam_url": next_level_exam_url,
             "thumbnail": customer.thumbnail if customer else '',
             "could_cash_out": could_cash_out,
-            "cashout_reason": cashout_reason
+            "cashout_reason": cashout_reason,
+            "his_confirmed_cash_out": his_confirmed_cash_out
         }
 
 
