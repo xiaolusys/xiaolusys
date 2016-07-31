@@ -538,7 +538,6 @@ def task_update_product_sku_stats(product_sku_stats):
     when the instance attr change save to stats .
     """
     if not (product_sku_stats.product and product_sku_stats.sku):
-        logger.error(u'task_update_product_sku_stats %s product product or sku is None' % product_sku_stats.id)
         return
     sku = product_sku_stats.sku
     sku_outer_id = product_sku_stats.sku.outer_id
@@ -546,7 +545,6 @@ def task_update_product_sku_stats(product_sku_stats):
     product_id = product.outer_id
     date_field = product_sku_stats.product.sale_time
     if not date_field:
-        logger.error(u'task_update_product_sku_stats %s product sale time is None' % product_sku_stats.id)
         return
     quantity = product_sku_stats.realtime_quantity  # ProductSkuStats realtime_quantity
     inferior_num = product_sku_stats.inferior_num
@@ -628,7 +626,6 @@ def task_update_parent_stock_stats(stock_stats):
     if stock_stats.record_type >= constants.TYPE_AGG:  # 买手上级别不从本task 更新
         return
     if not parent_id:  # # 没有父级别id
-        logger.error(u'task_update_parent_sale_stats: parent_id is None, current id  is %s' % stock_stats.current_id)
         return
     if stock_stats.timely_type != constants.TIMELY_TYPE_DATE:
         return
