@@ -405,7 +405,6 @@ def task_update_parent_sale_stats(sale_stats):
     if sale_stats.record_type >= constants.TYPE_AGG:  # 买手上级别不从本task 更新
         return
     if not parent_id:  # # 没有父级别id
-        logger.error(u'task_update_parent_sale_stats: parent_id is None, current id  is %s' % sale_stats.current_id)
         return
     if sale_stats.timely_type != constants.TIMELY_TYPE_DATE:
         return
@@ -433,13 +432,13 @@ def task_update_parent_sale_stats(sale_stats):
                 grand_parent_id, name, pic_path = get_parent_id_name_and_pic_path(record_type, parent_id, date_field)
                 # 供应商级别更新bd级别的 bd没有找到 则return
                 if sale_stats.record_type == constants.TYPE_SUPPLIER and grand_parent_id is None:
-                    logger.error(u'task_update_parent_sale_stats: '
-                                 u' bd user not found , the supplier is %s' % sale_stats.current_id)
+                    logger.warn(u'task_update_parent_sale_stats: '
+                                u' bd user not found , the supplier is %s' % sale_stats.current_id)
                     return
                 # 更新款式级别的父级别 即 供应商级别 供应商为空的时候返回
                 if sale_stats.record_type == constants.TYPE_MODEL and parent_id is None:
-                    logger.error(u'task_update_parent_sale_stats: '
-                                 u' model supplier not found, the model is %s' % sale_stats.current_id)
+                    logger.warn(u'task_update_parent_sale_stats: '
+                                u' model supplier not found, the model is %s' % sale_stats.current_id)
                     return
                 st = SaleStats(
                     parent_id=grand_parent_id,
@@ -538,7 +537,6 @@ def task_update_product_sku_stats(product_sku_stats):
     when the instance attr change save to stats .
     """
     if not (product_sku_stats.product and product_sku_stats.sku):
-        logger.error(u'task_update_product_sku_stats %s product product or sku is None' % product_sku_stats.id)
         return
     sku = product_sku_stats.sku
     sku_outer_id = product_sku_stats.sku.outer_id
@@ -546,7 +544,6 @@ def task_update_product_sku_stats(product_sku_stats):
     product_id = product.outer_id
     date_field = product_sku_stats.product.sale_time
     if not date_field:
-        logger.error(u'task_update_product_sku_stats %s product sale time is None' % product_sku_stats.id)
         return
     quantity = product_sku_stats.realtime_quantity  # ProductSkuStats realtime_quantity
     inferior_num = product_sku_stats.inferior_num
@@ -628,7 +625,6 @@ def task_update_parent_stock_stats(stock_stats):
     if stock_stats.record_type >= constants.TYPE_AGG:  # 买手上级别不从本task 更新
         return
     if not parent_id:  # # 没有父级别id
-        logger.error(u'task_update_parent_sale_stats: parent_id is None, current id  is %s' % stock_stats.current_id)
         return
     if stock_stats.timely_type != constants.TIMELY_TYPE_DATE:
         return
@@ -856,7 +852,7 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
         supplier_id = supplier.id if supplier else 0
         supplier_name = supplier.supplier_name if supplier else None
         model_name = sal_p.title if sal_p else None
-        
+
         modelstats = ModelStats(
             model_id=model_id,
             sale_product=sale_product,
