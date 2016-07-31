@@ -161,6 +161,7 @@ class MamaFortune(BaseModel):
 
 
 def copy_history_cash(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.models import XiaoluMama
     m = XiaoluMama.objects.filter(id=instance.mama_id).first()
     if m and m.cash != instance.history_confirmed:
         instance.history_confirmed = m.cash

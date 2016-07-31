@@ -841,10 +841,10 @@ class SaleProductManageDetailInline(admin.TabularInline):
 
 
 class SaleProductManageAdmin(admin.ModelAdmin):
-    list_display = ('sale_time', 'product_num', 'responsible_person_name', 'lock_status', 'created', 'modified')
+    list_display = ('sale_time', 'product_num', 'schedule_type', 'responsible_person_name', 'lock_status', 'created', 'modified')
     inlines = [SaleProductManageDetailInline]
-    list_filter = (('sale_time', DateFieldListFilter),)
-    search_fields = ['product_num', ]
+    list_filter = (('sale_time', DateFieldListFilter), 'schedule_type')
+    search_fields = ['product_num', 'responsible_person_name']
     date_hierarchy = 'sale_time'
 
     def custom_product_list(self, obj):
