@@ -300,7 +300,9 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if request.user.has_perm('supplier.delete_schedule_detail'):
             instance = self.get_object()
+            manager = instance.schedule_manage
             self.perform_destroy(instance)
+            manager.save(update_fields=['product_num'])
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
