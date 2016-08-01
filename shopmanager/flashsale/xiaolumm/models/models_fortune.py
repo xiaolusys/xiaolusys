@@ -288,7 +288,7 @@ post_save.connect(carryrecord_update_mamafortune,
 
 def carryrecord_update_carrytotal(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_mama_carry_total import task_carryrecord_update_carrytotal
-    logger.warn("post_save_carryrecord_update_carrytotal run:") + str(instance.mama_id) + str(datetime.datetime.now())
+    logger.warn("post_save_carryrecord_update_carrytotal run:" + str(instance.mama_id) + str(datetime.datetime.now()))
     task_carryrecord_update_carrytotal.delay(instance.mama_id)
 
 
