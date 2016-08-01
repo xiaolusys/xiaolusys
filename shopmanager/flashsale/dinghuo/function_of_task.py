@@ -380,7 +380,7 @@ def daily_data_stats_update():
                             'sale_num'] + daily_order.trade_general_time * daily_order.sale_num) / all_sale_num
                         daily_order.sale_num = all_sale_num
                         daily_order.trade_general_time = trade_time
-                        daily_order.cost_of_product = decimal.Decimal(daily_order.cost_of_product) + cost
+                        daily_order.cost_of_product = float(decimal.Decimal(daily_order.cost_of_product)) + float(cost)
                         daily_order.sale_cost_of_product = decimal.Decimal(
                             daily_order.sale_cost_of_product) + sale_price
                     daily_order.inferior_num = get_inferior_num_by_product_id(pro_id)
