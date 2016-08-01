@@ -63,20 +63,19 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     """
     Return lesson topics.
     ### 小鹿妈妈/主题课程接口
-    - address1: /rest/lesson/lessontopic
-      主题课程list  
-      method: get  
-      args:  
-      `lesson_type`: 课程类型filter（3:基础课程,0: 课程,1: 实战, 2:知识）  
-      `ordering`: 排序（num_attender：　参加人数排序, created：　创建时间排序 ）  
+    - [/rest/lesson/lessontopic](/rest/lesson/lessontopic) 主题课程list:
+        1. method: get
+            * 可过滤字段: `lesson_type`: 课程类型（3:基础课程,0: 课程,1: 实战, 2:知识）
+            * 可排序字段: `ordering`: 排序（num_attender：　参加人数排序, created：　创建时间排序 ）
+        2. method: patch:
+            * patch 指定id  {'num_attender': 1}
+            * 参数: `num_attender`: 阅读数量 值: 1
 
-    - address2: /rest/lesson/lessontopic/extra_data  
-      接口附加信息  
-      method: get  
-      args:  
-      `lesson_type`: 课程类型filter（3:基础课程,0: 课程,1: 实战, 2:知识）  
-      return:  
-      `total_num_attender`: 有效主题的总参加人数  
+    - [/rest/lesson/lessontopic/extra_data](/rest/lesson/lessontopic/extra_data) 接口附加信息:
+        1. method: get
+            * 可过滤字段: `lesson_type`: 课程类型（3:基础课程,0: 课程,1: 实战, 2:知识）
+            * 可排序字段: `ordering`: 排序（num_attender：　参加人数排序, created：　创建时间排序 ）
+            * return: `total_num_attender`: 有效主题的总参加人数
     """
     paginate_by = 10
     page_query_param = 'page'
@@ -113,10 +112,20 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
     def update(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        if request.data.get('num_attender'):
+            request.data.update({'num_attender': instance.num_attender + 1})
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+        else:
+            serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
 
 
 class LessonViewSet(viewsets.ModelViewSet):
