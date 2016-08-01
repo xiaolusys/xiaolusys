@@ -1699,10 +1699,11 @@ def task_purchaserecord_sync_purchasearrangement_status(pr):
             pa.save(update_fields=['status', 'modified'])
         return
     else:
-        try:
-            create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
-        except IntegrityError as exc:
-            raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
+        #try:
+        #    create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
+        #except IntegrityError as exc:
+        #    raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
+        raise task_purchaserecord_sync_purchasearrangement_status.retry(exc='PA not found')
 
 
 @task()
