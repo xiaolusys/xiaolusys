@@ -1635,6 +1635,15 @@ def task_purchasearrangement_update_purchasedetail(pa):
                 pd.save(update_fields=['need_num', 'extra_num', 'unit_price', 'modified'])
 
 
+def create_purchasearrangement_with_integrity(purchase_order_unikey, pr):
+    uni_key = utils.gen_purchase_arrangement_unikey(purchase_order_unikey, pr.uni_key)
+    fields = ['package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'status']
+    pa = PurchaseArrangement(uni_key=uni_key, purchase_order_unikey=purchase_order_unikey,
+                             purchase_record_unikey=pr.uni_key, num=pr.need_num)
+    utils.copy_fields(pa, pr, fields)
+    pa.save()
+
+    
 @task()
 def task_start_booking(pr):
     # print "debug: %s" % utils.get_cur_info()
@@ -1647,11 +1656,7 @@ def task_start_booking(pr):
 
     pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
     if not pa:
-        fields = ['package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'status']
-        pa = PurchaseArrangement(uni_key=uni_key, purchase_order_unikey=purchase_order_unikey,
-                                 purchase_record_unikey=pr.uni_key, num=pr.need_num)
-        utils.copy_fields(pa, pr, fields)
-        pa.save()
+        create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
     else:
         pa.num = pr.need_num
         pa.status = PurchaseRecord.EFFECT
@@ -1677,7 +1682,7 @@ def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
         pa.save(update_fields=['num', 'modified'])
 
 
-@task()
+@task(max_retries=3, default_retry_delay=6)
 def task_purchaserecord_sync_purchasearrangement_status(pr):
     # print "debug: %s" % utils.get_cur_info()
 
@@ -1685,13 +1690,19 @@ def task_purchaserecord_sync_purchasearrangement_status(pr):
         return
 
     purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
-
-    records = PurchaseArrangement.objects.filter(purchase_record_unikey=pr.uni_key,
-                                                 purchase_order_unikey=purchase_order_unikey)
-    for record in records:
-        if record.status != pr.status:
-            record.status = pr.status
-            record.save(update_fields=['status', 'modified'])
+    uni_key = utils.gen_purchase_arrangement_unikey(purchase_order_unikey, pr.uni_key)
+    
+    pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
+    if pa:
+        if pa.status != pr.status:
+            pa.status = pr.status
+            pa.save(update_fields=['status', 'modified'])
+        return
+    else:
+        try:
+            create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
+        except IntegrityError as exc:
+            raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
 
 
 @task()
