@@ -319,7 +319,7 @@ class UserBudgetSerialize(serializers.HyperlinkedModelSerializer):
 
 
 class CustomerSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:customer-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:customer-detail')
     user_id = serializers.CharField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     xiaolumm = XiaoluMamaSerializer(source='getXiaolumm', read_only=True)
@@ -552,7 +552,7 @@ class DepositProductSerializer(serializers.ModelSerializer):
 
 
 class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:product-detail')
     category = ProductCategorySerializer(read_only=True)
     product_model = ModelProductSerializer(read_only=True)
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
@@ -570,7 +570,7 @@ class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PosterSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:goodshelf-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:goodshelf-detail')
     wem_posters = JSONParseField(read_only=True, required=False)
     chd_posters = JSONParseField(read_only=True, required=False)
 
@@ -614,7 +614,7 @@ class LogisticsCompanySerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:shoppingcart-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:shoppingcart-detail')
     status = serializers.ChoiceField(choices=ShoppingCart.STATUS_CHOICE)
     item_weburl = serializers.CharField(source='get_item_weburl', read_only=True)
 
@@ -626,7 +626,7 @@ class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
-    # url = serializers.HyperlinkedIdentityField(view_name='v1:saleorder-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='rest_v1:saleorder-detail')
     status = serializers.ChoiceField(choices=SaleOrder.ORDER_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     refund_status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
@@ -686,7 +686,7 @@ def generate_refund_choices(obj):
 
 
 class SaleOrderDetailSerializer(serializers.HyperlinkedModelSerializer):
-    # url = serializers.HyperlinkedIdentityField(view_name='v1:saleorder-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='rest_v1:saleorder-detail')
     status = serializers.ChoiceField(choices=SaleOrder.ORDER_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     refund_status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
@@ -713,9 +713,9 @@ class SaleOrderDetailSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
-    # url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='rest_v1:saletrade-detail')
     orders = SaleOrderSerializer(source='sale_orders', many=True, read_only=True)
-    # orders = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-saleorder')
+    # orders = serializers.HyperlinkedIdentityField(view_name='rest_v1:saletrade-saleorder')
     channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
     logistics_company = LogisticsCompanySerializer(read_only=True)
@@ -760,7 +760,7 @@ class PackageOrderSerializer(serializers.ModelSerializer):
 
 
 class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
-    # url = serializers.HyperlinkedIdentityField(view_name='v2:saletrade-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='rest_v2:saletrade-detail')
     orders = serializers.SerializerMethodField('gen_sale_orders', read_only=True)
     # TODO 根据订单信息，显示未分包商品及已分包商品列表
     channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
@@ -815,7 +815,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:salerefund-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:salerefund-detail')
     good_status = serializers.ChoiceField(choices=SaleRefund.GOOD_STATUS_CHOICES)
     status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -834,7 +834,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:useraddress-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:useraddress-detail')
     status = serializers.ChoiceField(choices=UserAddress.STATUS_CHOICES)
 
     class Meta:
@@ -845,7 +845,7 @@ class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class DistrictSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:district-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:district-detail')
 
     class Meta:
         model = District
@@ -853,7 +853,7 @@ class DistrictSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserIntegralSerializer(serializers.HyperlinkedModelSerializer):
-    # url = serializers.HyperlinkedIdentityField(view_name='v1:user-intergral')
+    # url = serializers.HyperlinkedIdentityField(view_name='rest_v1:user-intergral')
 
     class Meta:
         model = Integral
@@ -861,7 +861,7 @@ class UserIntegralSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserIntegralLogSerializer(serializers.HyperlinkedModelSerializer):
-    # url = serializers.HyperlinkedIdentityField(view_name='v1:user-IntegralLog')
+    # url = serializers.HyperlinkedIdentityField(view_name='rest_v1:user-IntegralLog')
 
     class Meta:
         model = IntegralLog
@@ -877,7 +877,7 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
 
 
 class WXOrderSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:wxorder-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:wxorder-detail')
     order_status_display = serializers.CharField(source='get_order_status_display', read_only=True)
 
     class Meta:
@@ -891,7 +891,7 @@ class WXOrderSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class CustomShareSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='v1:customshare-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:customshare-detail')
 
     class Meta:
         model = CustomShare
