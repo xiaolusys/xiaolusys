@@ -37,8 +37,8 @@ CACHE_VIEW_TIMEOUT = 30
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###特卖海报API：
-    - {prefix}/today[.format]: 获取今日特卖海报;
-    - {prefix}/previous[.format]: 获取昨日特卖海报;
+    * 获取今日特卖海报: [/rest/v1/posters/today](/rest/v1/posters/today);
+    * 获取昨日特卖海报: [/rest/v1/posters/previous](/rest/v1/posters/previous);
     """
     queryset = GoodShelf.objects.filter(is_active=True)
     serializer_class = serializers.PosterSerializer
@@ -220,7 +220,9 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ##特卖商品API：
+    ## __特卖商品API__：
+    * 最新版本: [/rest/v2/products](/rest/v2/products)
+    ---
     > ### /promote_today[.format]: 获取今日推荐商品列表;
     > ### /promote_previous[.format]: 获取昨日推荐商品列表;
     > ### /promote_today_paging：获取今日推荐商品分页列表;

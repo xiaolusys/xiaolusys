@@ -3,7 +3,7 @@ import djcelery
 
 ########################################################################################################################
 #说明:新增queue或定时任务需要注意的地方
-#新增queue
+#新增queue, 并将queue配置到.drone.yml　启动参数里
 #1.CELERY_IMPORTS 增加task实现所在路径
 #2.CELERY_QUEUES 增加queue
 #3.参考SKU_STATS_ROUTES增加queue专有的route比如your_ROUTES,
