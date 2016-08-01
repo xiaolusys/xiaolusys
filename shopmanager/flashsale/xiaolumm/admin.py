@@ -579,7 +579,7 @@ class PotentialMamaAdmin(admin.ModelAdmin):
                     "nick",
                     "thumbnail",
                     "uni_key",
-                    "is_full_member")
+                    "is_full_member","modified","created")
 
     list_filter = ("is_full_member",
                    'created',
