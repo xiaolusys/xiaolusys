@@ -131,14 +131,15 @@ class MamaCarryTotal(BaseModel):
         mama_id = self.mama_id
         if query_history:
             self.set_history_data()
-        sum_res = CarryRecord.objects.filter(date_field__gte=STAT_TIME, mama_id=mama_id).exclude(status=CarryRecord.CANCEL).\
+        sum_res = CarryRecord.objects.filter(date_field__gte=STAT_TIME, mama_id=mama_id).exclude(
+            status=CarryRecord.CANCEL). \
             values('status').annotate(total=Sum('carry_num'))
         sum_dict = {entry["status"]: entry["total"] for entry in sum_res}
         self.duration_total = sum_dict.get(CarryRecord.CONFIRMED, 0)
         self.expect_total = sum_dict.get(CarryRecord.PENDING, 0)
         if self.duration_total + self.expect_total:
             records = CarryRecord.objects.filter(date_field__gte=STAT_TIME, mama_id=mama_id,
-                                             status__in=[CarryRecord.PENDING, CarryRecord.CONFIRMED])
+                                                 status__in=[CarryRecord.PENDING, CarryRecord.CONFIRMED])
             self.carry_records = [c.id for c in records]
             sum_res = OrderCarry.objects.filter(mama_id=mama_id, status__in=[1, 2], created__gte=STAT_TIME). \
                 values('status').annotate(total=Count('id'))
@@ -165,22 +166,26 @@ class MamaCarryTotal(BaseModel):
             return MamaCarryTotal.generate(mama_id)
         return MamaCarryTotal.objects.get(mama_id=mama_id)
 
-    def get_history_total(self):
-        order_carry_sum = OrderCarry.objects.filter(mama_id=self.mama_id, created__range=(
-            MAMA_FORTUNE_HISTORY_LAST_DAY, STAT_TIME)).aggregate(
-            total=Sum('carry_num')).get('total') or 0
-        award_carry_sum = AwardCarry.objects.filter(mama_id=self.mama_id, created__range=(
-            MAMA_FORTUNE_HISTORY_LAST_DAY, STAT_TIME)).aggregate(
-            total=Sum('carry_num')).get('total') or 0
-        click_carry_sum = ClickCarry.objects.filter(mama_id=self.mama_id, created__range=(
-            MAMA_FORTUNE_HISTORY_LAST_DAY, STAT_TIME)).aggregate(
-            total=Sum('total_value')).get('total') or 0
+    def get_history_total(self):  # 排除324
+        #     order_carry_sum = OrderCarry.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
+        #                                                 created__lt=STAT_TIME, status=2).aggregate(
+        #         total=Sum('carry_num')).get('total') or 0
+        #     award_carry_sum = AwardCarry.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
+        #                                                 created__lt=STAT_TIME, status=2).aggregate(
+        #         total=Sum('carry_num')).get('total') or 0
+        #     click_carry_sum = ClickCarry.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
+        #                                                 created__lt=STAT_TIME, status=2).aggregate(
+        #         total=Sum('total_value')).get('total') or 0
+        cr_history = CarryRecord.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
+                                                date_field__lt=STAT_TIME, status=2).aggregate(carry=Sum('carry_num'))
+        CarryRecord.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY, )
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
         history_confirmed = fortune.history_confirmed if fortune else 0
         history_cash_out = CashOut.objects.filter(xlmm=self.mama_id, status=CashOut.APPROVED,
                                                   approve_time__lt=MAMA_FORTUNE_HISTORY_LAST_DAY).aggregate(
             total=Sum('value')).get('total') or 0
-        return order_carry_sum + award_carry_sum + click_carry_sum + history_confirmed + history_cash_out
+        return cr_history + history_confirmed + history_cash_out
+        # return order_carry_sum + award_carry_sum + click_carry_sum + history_confirmed + history_cash_out
 
     @staticmethod
     def move_other_stat_to_record():
