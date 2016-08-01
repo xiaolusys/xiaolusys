@@ -630,6 +630,23 @@ class XiaoluMama(models.Model):
         """
         return []
 
+    def update_renew_day(self, days):
+        """
+        修改该代理的下次续费时间
+        """
+        now = datetime.datetime.now()
+        update_fields = ['renew_time']
+        if isinstance(self.renew_time, datetime.datetime):
+            renew_time = self.renew_time + datetime.timedelta(days=days)
+        else:
+            renew_time = now + datetime.timedelta(days=days)
+        self.renew_time = renew_time
+        if renew_time > now and self.status == XiaoluMama.FROZEN:
+            self.status = XiaoluMama.EFFECT
+            update_fields.append('status')
+        self.save(update_fields=update_fields)
+        return True
+
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune

@@ -638,6 +638,14 @@ class CashOutViewSet(viewsets.ModelViewSet):
         `0`: 取消成功  
         `1`: 取消失败  
         `2`: 提现记录不存在  
+    - [/rest/v1/pmt/cashout/exchange_deposit](/rest/v1/pmt/cashout/exchange_deposit) 用户使用代理钱包续费代理时间;
+        1. method: post
+        2. args:
+            * `exchange_type`: half: 半年(99元), full: 一年(188元)
+        3. return:
+            * {"code": 0, "info": "兑换成功!"}
+            * {"code": 1, "info": "参数错误!"}
+            * {"code": 2, "info": "余额不足"}
     """
     queryset = CashOut.objects.all().order_by('-created')
     serializer_class = serializers.CashOutSerialize
@@ -822,6 +830,39 @@ class CashOutViewSet(viewsets.ModelViewSet):
             default_return.update({"info": "成功兑换%s张优惠券" % success_num})
             return Response(default_return)
         default_return.update({"code": 5, "info": "兑换出错:%s" % '/'.join(msgs)})
+        return Response(default_return)
+
+    @list_route(methods=['post'])
+    def exchange_deposit(self, request):
+        """
+        代理钱包余额兑换代理费用(续费)
+        """
+        exchange_type = request.data.get('exchange_type') or None
+        exchange_type_map = {'half': 99, 'full': 188}
+        days_map = {'half': XiaoluMama.HALF, 'full': XiaoluMama.FULL}
+
+        customer, xlmm = self.get_customer_and_xlmm(request)
+        default_return = collections.defaultdict(code=0, info='兑换成功!')
+        if exchange_type not in exchange_type_map:
+            default_return.update({"code": 1, "info": "参数错误!"})
+            return Response(default_return)
+        deposit = exchange_type_map[exchange_type]
+        could_cash_out, _ = self.get_mamafortune(xlmm.id)  # 可提现的金额(元)
+
+        if deposit > could_cash_out:
+            default_return.update({"code": 2, "info": "余额不足"})
+            return Response(default_return)
+
+        cash = CashOut(xlmm=xlmm.id,
+                       value=deposit * 100,
+                       approve_time=datetime.datetime.now(),
+                       status=CashOut.APPROVED)
+        cash.save()
+        log_action(request.user, cash, ADDITION, u'用户妈妈钱包兑换代理续费')
+        # 延迟 XiaoluMama instance 的续费时间　如果续费时间大于当前时间并且　当前instance 是冻结的则解冻
+        days = days_map[exchange_type]
+        xlmm.update_renew_day(days)
+        log_action(request.user, xlmm, CHANGE, u'用户妈妈钱包兑换代理续费修改字段')
         return Response(default_return)
 
 
