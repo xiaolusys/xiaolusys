@@ -310,7 +310,7 @@ class ReturnGoods(models.Model):
         res = get_max_from_list(r)
         if not res:
             res = uids[random.randint(0, len(uids)-1)]
-        return
+        return res
 
     def set_stat(self):
         self.rg_details.filter(num=0, inferior_num=0).delete()
