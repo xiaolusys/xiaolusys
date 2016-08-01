@@ -8,6 +8,7 @@ from django.db.models.signals import post_save, pre_save
 
 from core.models import BaseModel
 from core.utils.unikey import uniqid
+from core.utils import update_model_fields
 
 from .. import constants
 import logging
@@ -198,7 +199,7 @@ def modify_forecastinbound_data(sender, instance, created, *args, **kwargs):
         for order in instance.relate_order_set.filter(Q(express_no='/')|Q(express_no='')):
             order.express_company = instance.express_code
             order.express_no      = instance.express_no
-            order.save(update_fields=['express_company','express_no'])
+            update_model_fields(order, update_fields=['express_company','express_no'])
 
     # refresh forecast stats
     from .. import tasks
