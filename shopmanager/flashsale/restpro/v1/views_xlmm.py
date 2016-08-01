@@ -15,7 +15,7 @@ from rest_framework import exceptions
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.exceptions import APIException
 from flashsale.restpro import permissions as perms
 from rest_framework.response import Response
@@ -57,6 +57,21 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     `mci`: 确定收入  
     `cash`: 账户现金  
     `mama_link`: 专属链接
+    - [/rest/v1/pmt/xlmm/1461/new_mama_task_info](/rest/v1/pmt/xlmm/1461/new_mama_task_info)　代理id为1461的新手任务信息：
+        1.  method: get
+        2.  return describe:
+            * `first_fans_record`: 粉丝任务
+            * `first_carry_record`: 收益任务
+            * `first_coupon_share`: 订单红包分享任务
+            * `first_commission`: 佣金任务
+            * `first_mama_recommend`: 代理推荐任务(这里是潜在妈妈邀请)
+        3.  error return (HTTP 500 Internal Server Error):
+            * {
+                "detail": "妈妈未找到"
+            }
+            * {
+                "detail": "参数错误"
+            }
     """
     queryset = XiaoluMama.objects.all()
     serializer_class = serializers.XiaoluMamaSerialize
@@ -306,6 +321,45 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             raise exceptions.APIException(u'订单生成异常')
         response_charge = self.pingpp_charge(sale_trade, **content)
         return Response(response_charge)
+
+    @detail_route(methods=['get'])
+    def new_mama_task_info(self, request, pk, *args, **kwargs):
+        """
+        :arg pk XiaoluMama instance id
+        :return
+        {
+            'first_carry_record': False,
+            'first_fans_record': False,
+            'first_coupon_share': False,
+            'first_mama_recommend': False,
+            'first_commission',
+            'tutorial_link': ''
+        }
+        """
+        default_return = collections.defaultdict(first_carry_record=False,
+                                                 first_fans_record=False,
+                                                 first_coupon_share=False,
+                                                 first_mama_recommend=False,
+                                                 first_commission=False)
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = self.queryset.filter(openid=customer.unionid).first()
+        if not xlmm:
+            raise exceptions.APIException('妈妈未找到')
+        if xlmm.id != int(pk):
+            raise exceptions.APIException('参数错误')
+        from flashsale.xiaolumm.models.models_fortune import CarryRecord, \
+            OrderCarry
+        from flashsale.coupon.models import OrderShareCoupon
+        from flashsale.xiaolumm.models import XlmmFans, PotentialMama
+
+        default_return.update({'first_carry_record': CarryRecord.objects.filter(mama_id=xlmm.id).exists()})
+        default_return.update({'first_fans_record': XlmmFans.objects.filter(xlmm=xlmm.id).exists()})
+        default_return.update(
+            {'first_coupon_share': OrderShareCoupon.objects.filter(share_customer=customer.id).exists()})
+
+        default_return.update({'first_mama_recommend': PotentialMama.objects.filter(referal_mama=xlmm.id).exists()})
+        default_return.update({'first_commission': OrderCarry.objects.filter(mama_id=xlmm.id).exists()})
+        return Response(default_return)
 
 
 class CarryLogViewSet(viewsets.ModelViewSet):

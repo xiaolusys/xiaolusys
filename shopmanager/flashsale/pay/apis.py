@@ -21,7 +21,8 @@ def api_create_refund_order(user_id, order_id, reason, num, refund_fee, refund_c
         proof_pic=proof_pic,
     )
     if state:
-        log_action(user_id, refund, ADDITION, u'创建退款单')
+        return refund
+    log_action(user_id, refund, ADDITION, u'创建退款单')
 
     update_fields = []
     for name, value in kwargs.iteritems():

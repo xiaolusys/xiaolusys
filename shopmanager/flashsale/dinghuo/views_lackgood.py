@@ -139,6 +139,7 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
                     desc=u'订单缺货自动退款,补发10优惠券', good_status=SaleRefund.SELLER_OUT_STOCK,
                     modify=None, proof_pic=None, is_lackrefund=True, lackorder_id=lack_order.id
                 )
+            if not refund.is_refundapproved():
                 refund.refund_approve()
 
                 lack_order.refund_num += refund_num
