@@ -23,6 +23,8 @@ def get_cur_info():
 
 @task()
 def task_carryrecord_update_carrytotal(mama_id):
+    import datetime
+    logger.warn("task_carryrecord_update_carrytotal run:") + str(mama_id) + str(datetime.datetime.now())
     MamaCarryTotal.update_ranking(mama_id)
 
 
