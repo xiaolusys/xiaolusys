@@ -1966,13 +1966,14 @@ class PackageSkuItem(BaseModel):
 
     def reset_assign_status(self):
         package_order = self.package_order
-        PackageSkuItem.objects.filter(id=self.id).update(assign_status=0, package_order_id=None, package_order_pid=None)
-        if package_order:
-            package_order.update_relase_package_sku_item()
         self.package_order_id = None
         self.package_order_pid = None
         self.assign_status = PackageSkuItem.NOT_ASSIGNED
         self.save()
+        # PackageSkuItem.objects.filter(id=self.id).update(assign_status=0, package_order_id=None, package_order_pid=None)
+        if package_order:
+            package_order.update_relase_package_sku_item()
+
 
     def reset_assign_package(self):
         if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
