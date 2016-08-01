@@ -278,6 +278,12 @@ class DailyStat(BaseModel):
     """
     total_stock = models.FloatField(default=0, verbose_name=u'总库存')
     total_amount = models.FloatField(default=0, verbose_name=u'总金额')
+    total_youni_stock = models.FloatField(default=0, verbose_name=u'总优尼库存')
+    total_youni_amount = models.FloatField(default=0, verbose_name=u'总优尼金额')
+    total_noyouni_stock = models.FloatField(default=0, verbose_name=u'非优尼库存')
+    total_noyouni_amount = models.FloatField(default=0, verbose_name=u'非优尼金额')
+    # total_xiaolu_stock = models.FloatField(default=0, verbose_name=u'小鹿标准库存')
+    # total_xiaolu_amount = models.FloatField(default=0, verbose_name=u'小鹿标准金额')
     total_order = models.FloatField(default=0, verbose_name=u'月订单总营收')
     total_purchase = models.FloatField(default=0, verbose_name=u'月采购总支出')
     daytime = models.DateTimeField(verbose_name=u'统计日')
@@ -317,8 +323,10 @@ class DailyStat(BaseModel):
     @staticmethod
     def get_total_stock():
         from shopback.items.models_stats import ProductSkuStats
+        from shopback.items.models import Product
 
-        return ProductSkuStats.objects.exclude(product__outer_id__startswith='RMB').aggregate(
+        return ProductSkuStats.objects.exclude(product__outer_id__startswith='RMB',
+                                               product__status=Product.NORMAL).aggregate(
             n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
                 'rg_quantity') - Sum('post_num')).get('n') or 0
 
@@ -336,6 +344,52 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%';"""
         return res
 
     @staticmethod
+    def get_noyouni_stock():
+        from shopback.items.models_stats import ProductSkuStats
+        from shopback.items.models import Product
+        return ProductSkuStats.objects.filter(product__status=Product.NORMAL).exclude(
+            product__outer_id__startswith='RMB').exclude(product__category_id=1).aggregate(
+            n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
+                'rg_quantity') - Sum('post_num')).get('n') or 0
+
+    @staticmethod
+    def get_noyouni_total_amount():
+        from django.db import connection
+
+        sql = """SELECT SUM(p.cost * (s.history_quantity + s.adjust_quantity + s.inbound_quantity + s.return_quantity - s.post_num - s.rg_quantity)) AS money
+FROM shop_items_product AS p LEFT JOIN shop_items_productskustats AS s ON p.id = s.product_id
+WHERE p.status = 'normal' and not p.outer_id like 'RMB%' and not p.category_id=1;"""
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        res = cursor.fetchall()[0][0]
+        cursor.close()
+        return res
+
+
+    @staticmethod
+    def get_youni_stock():
+        from shopback.items.models_stats import ProductSkuStats
+        from shopback.items.models import Product
+        return ProductSkuStats.objects.filter(product__status=Product.NORMAL, product__category_id=1).exclude(
+            product__outer_id__startswith='RMB').aggregate(
+            n=Sum("history_quantity") + Sum('adjust_quantity') + Sum('inbound_quantity') + Sum('return_quantity') - Sum(
+                'rg_quantity') - Sum('post_num')).get('n') or 0
+
+    @staticmethod
+    def get_youni_total_amount():
+        from django.db import connection
+
+        sql = """SELECT SUM(p.cost * (s.history_quantity + s.adjust_quantity + s.inbound_quantity + s.return_quantity - s.post_num - s.rg_quantity)) AS money
+FROM shop_items_product AS p LEFT JOIN shop_items_productskustats AS s ON p.id = s.product_id
+WHERE p.status = 'normal' and not p.outer_id like 'RMB%' and p.category_id=1;"""
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        res = cursor.fetchall()[0][0]
+        cursor.close()
+        return res
+
+
+    @staticmethod
     def get_total_order_amount(time_begin, time_end):
         from flashsale.pay.models import SaleOrder, SaleTrade
 
@@ -347,6 +401,10 @@ WHERE p.status = 'normal' and not p.outer_id like 'RMB%';"""
     @staticmethod
     def get_total_purchase(time_begin, time_end):
         from flashsale.finance.models import Bill
-
-        return Bill.objects.filter(status=Bill.STATUS_COMPLETED, created__range=(time_begin, time_end)).aggregate(
+        r = Bill.objects.filter(status=Bill.STATUS_COMPLETED, created__range=(time_begin, time_end),
+                                type=Bill.RECEIVE).aggregate(
             n=Sum('amount')).get('n') or 0
+        p = Bill.objects.filter(status=Bill.STATUS_COMPLETED, created__range=(time_begin, time_end),
+                                type=Bill.PAY).aggregate(
+            n=Sum('amount')).get('n') or 0
+        return p - r
