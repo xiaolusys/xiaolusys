@@ -177,7 +177,7 @@ class MamaCarryTotal(BaseModel):
         #                                                 created__lt=STAT_TIME, status=2).aggregate(
         #         total=Sum('total_value')).get('total') or 0
         cr_history = CarryRecord.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
-                                                date_field__lt=STAT_TIME, status=2).aggregate(carry=Sum('carry_num'))
+                                                date_field__lt=STAT_TIME, status=2).aggregate(carry=Sum('carry_num')).get('carry') or 0
         CarryRecord.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY, )
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
         history_confirmed = fortune.history_confirmed if fortune else 0
