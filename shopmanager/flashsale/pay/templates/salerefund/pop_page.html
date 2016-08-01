@@ -30,13 +30,14 @@
         {% else %}
             <span>{{ refund.channel }} </span>
         {% endifequal %}
-        <br><br/>
+        <br>
+        <br>
         {% ifequal refund.refundd_message|slice:"3" '[1]' %}
             <span style="background:#ECEC2C ;">{{ refund.refundd_message }}</span>
         {% else %}
             <span style="background:#5BB75B ;">{{ refund.refundd_message }}</span>
         {% endifequal %}
-        <br/>
+        <br>
 
         <span class="label label-info" style="padding: 1px">付款时间：</span>&nbsp&nbsp{{ refund.pay_time }}<br>
         <span class="label label-info" style="padding: 1px">订单状态：</span>&nbsp&nbsp{{ refund.order_status }}<br>
