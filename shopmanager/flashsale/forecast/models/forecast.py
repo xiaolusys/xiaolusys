@@ -1,4 +1,5 @@
 # coding:utf-8
+import re
 import datetime
 import random
 from django.db import models
@@ -95,6 +96,14 @@ class ForecastInbound(BaseModel):
     def delete(self, using=None):
         self.status = self.ST_CANCELED
         self.save()
+
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
+        if self.express_no:
+            self.express_no = re.sub(r'\W', '', self.express_no)
+
 
     @property
     def status_name(self):
