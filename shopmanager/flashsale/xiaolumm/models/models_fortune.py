@@ -616,6 +616,7 @@ def confirm_previous_clickcarry(sender, instance, created, **kwargs):
         mama_id = instance.mama_id
         date_field = instance.date_field
         tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry.delay(mama_id, date_field, 2)
+        tasks_mama_clickcarry.task_confirm_previous_order_clickcarry.delay(mama_id, date_field, 7)
         mama = XiaoluMama.objects.get(id=mama_id)
         for mm_id in mama.get_parent_mama_ids():
             tasks_mama_fortune.task_send_activite_award.delay(mm_id)
