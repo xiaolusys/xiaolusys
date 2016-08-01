@@ -50,6 +50,32 @@ def get_cur_info():
     return f.f_code.co_name
 
 
+def confirm_clickcarry(click_carry, mama_id, date_field):
+    """
+    Get confirmed order number and write back to clickcarry.
+    """
+
+    confirmed_order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field, status=2, carry_num__gt=0).exclude(
+        carry_type=3).values('contributor_id').distinct().count()
+    price, limit, name = plan_for_price_limit_name(confirmed_order_num, click_carry.carry_plan_id)
+    click_num = click_carry.click_num
+    if not click_carry.is_confirmed():
+        # first time confirm, we have to double-check the click_num
+        click_num = UniqueVisitor.objects.filter(mama_id=mama_id, date_field=date_field).count()
+        click_carry.click_num = click_num
+
+    if click_num > limit:
+        click_num = limit
+
+    total_value = click_num * price
+    click_carry.confirmed_order_num = confirmed_order_num
+    click_carry.confirmed_click_price = price
+    click_carry.confirmed_click_limit = limit
+    click_carry.total_value = total_value
+    click_carry.status = 2  # confirm
+    click_carry.save()
+
+    
 @task()
 def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_days):
     """
@@ -78,6 +104,20 @@ def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_d
         click_carry.total_value = total_value
         click_carry.status = 2  # confirm
         click_carry.save()
+
+@task()
+def task_confirm_previous_order_clickcarry(mama_id, today_date_field, num_days):
+    end_date_field = today_date_field - datetime.timedelta(days=num_days)
+    
+    click_carrys = ClickCarry.objects.filter(mama_id=mama_id, date_field__lte=end_date_field, status=1,
+                                             init_order_num__gt=0).order_by('-date_field')[:7]
+
+    for click_carry in click_carrys:
+        date_field = click_carry.date_field
+        pending_order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field, status=1).exclude(
+            carry_type=3).values('contributor_id').distinct().count()
+        if pending_order_num == 0:
+            confirm_clickcarry(click_carry, mama_id, date_field)
 
 
 def create_clickcarry_upon_click(mama_id, date_field):
@@ -126,32 +166,6 @@ def update_clickcarry_upon_order(click_carry, mama_id, date_field):
         click_carry.init_click_limit = limit
         click_carry.total_value = total_value
         click_carry.save()
-
-
-def confirm_clickcarry(click_carry, mama_id, date_field):
-    """
-    Get confirmed order number and write back to clickcarry.
-    """
-
-    confirmed_order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field, status=2, carry_num__gt=0).exclude(
-        carry_type=3).values('contributor_id').distinct().count()
-    price, limit, name = plan_for_price_limit_name(confirmed_order_num, click_carry.carry_plan_id)
-    click_num = click_carry.click_num
-    if not click_carry.is_confirmed():
-        # first time confirm, we have to double-check the click_num
-        click_num = UniqueVisitor.objects.filter(mama_id=mama_id, date_field=date_field).count()
-        click_carry.click_num = click_num
-
-    if click_num > limit:
-        click_num = limit
-
-    total_value = click_num * price
-    click_carry.confirmed_order_num = confirmed_order_num
-    click_carry.confirmed_click_price = price
-    click_carry.confirmed_click_limit = limit
-    click_carry.total_value = total_value
-    click_carry.status = 2  # confirm
-    click_carry.save()
 
 
 def get_active_click_plan():

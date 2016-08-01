@@ -101,9 +101,6 @@ class ForecastInbound(BaseModel):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
-        if self.express_no:
-            self.express_no = re.sub(r'\W', '', self.express_no)
-
 
     @property
     def status_name(self):
@@ -182,6 +179,7 @@ def pre_save_update_forecastinbound_data(sender, instance, raw, *args, **kwargs)
         .values_list('total_inbound_num', flat=True)
     instance.total_forecast_num = sum(detail_list_num)
     instance.total_arrival_num = sum(arrival_list_num)
+    instance.express_no = re.sub(r'\W', '', instance.express_no)
 
 pre_save.connect(
     pre_save_update_forecastinbound_data,
@@ -194,12 +192,12 @@ def modify_forecastinbound_data(sender, instance, created, *args, **kwargs):
         not instance.delivery_time and
         instance.status == ForecastInbound.ST_APPROVED):
         instance.delivery_time = datetime.datetime.now()
-        instance.save(update_fields=['delivery_time'])
+        ForecastInbound.objects.filter(id=instance.id).update(delivery_time=instance.delivery_time)
 
     if instance.express_no:
         for order in instance.relate_order_set.filter(Q(express_no='/')|Q(express_no='')):
             order.express_company = instance.express_code
-            order.express_no = instance.express_no
+            order.express_no      = instance.express_no
             order.save(update_fields=['express_company','express_no'])
 
     # refresh forecast stats
