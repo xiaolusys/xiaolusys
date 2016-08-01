@@ -2,6 +2,7 @@
 import datetime
 import random
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save, pre_save
 
 from core.models import BaseModel
@@ -187,7 +188,7 @@ def modify_forecastinbound_data(sender, instance, created, *args, **kwargs):
         instance.save(update_fields=['delivery_time'])
 
     if instance.express_no:
-        for order in instance.relate_order_set.filter(express_no=''):
+        for order in instance.relate_order_set.filter(Q(express_no='/')|Q(express_no='')):
             order.express_company = instance.express_code
             order.express_no = instance.express_no
             order.save(update_fields=['express_company','express_no'])

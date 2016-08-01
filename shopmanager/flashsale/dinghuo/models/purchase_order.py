@@ -182,7 +182,7 @@ class OrderList(models.Model):
                      (STAGE_COMPLETED, u'完成'),
                      (STAGE_DELETED, u'删除'))
 
-    STAGING_STAGES = [STAGE_CHECKED, STAGE_PAY, STAGE_RECEIVE,STAGE_STATE] # 待处理状态
+    STAGING_STAGES = [STAGE_CHECKED, STAGE_PAY, STAGE_RECEIVE] # 待处理状态
     # 改进原状态一点小争议和妥协造成的状态字段冗余 TODO@hy
     stage = models.IntegerField(db_index=True, choices=STAGE_CHOICES, default=0, verbose_name=u'进度')
     # 冗余字段 避免过多查询
