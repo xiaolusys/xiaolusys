@@ -992,7 +992,9 @@ def refund_update_order_info(sender, obj, *args, **kwargs):
         trade_oid = obj.get_oid()
         normal_status_list = MergeTrade.WAIT_WEIGHT_STATUS
         normal_status_list.append(MergeTrade.ON_THE_FLY_STATUS)
-        mtrade = MergeTrade.objects.get(tid=trade_tid)
+        mtrade = MergeTrade.objects.get(tid=trade_tid).first()
+        if not mtrade:
+            return
         morders = MergeOrder.objects.filter(oid=trade_oid,
                                             merge_trade__user=mtrade.user,
                                             merge_trade__sys_status__in=normal_status_list,
