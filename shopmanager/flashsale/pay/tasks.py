@@ -13,6 +13,7 @@ from core.options import log_action
 from flashsale.dinghuo.models import OrderList, OrderDetail
 from flashsale.pay.models import CustomerShops, CuShopPros
 from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress
+from flashsale.pay.models.score import IntegralLog, Integral
 from shopapp.weixin.models import WeiXinUser
 from shopback.items.models import ProductSku
 from .options import get_user_unionid
@@ -864,4 +865,77 @@ def task_add_product_to_customer_shop(customer):
                                 pro_category=pro.category.cid,
                                 offshelf_time=pro.offshelf_time)
             cu_pro.save()
+
+
+@task()
+def task_add_user_order_integral(sale_order):
+    """
+    :arg sale_order : SaleOrder instance
+    add user integral by sale_order
+    """
+    if sale_order.is_deposit():  # 代理费(虚拟商品)不需要生成积分
+        return
+    if sale_order.status < SaleOrder.WAIT_SELLER_SEND_GOODS or sale_order.status > SaleOrder.TRADE_CLOSED:
+        # 订单状态小于已经付款　　大于　退款关闭　不添加积分
+        return
+    order_id = sale_order.id
+    pic_link = sale_order.pic_path
+    trade_id = sale_order.sale_trade_id
+    order_status = sale_order.status
+    order_content = {
+        "order_id": str(order_id),
+        "pic_link": str(pic_link),
+        "trade_id": str(trade_id),
+        "order_status": str(order_status)
+    }
+    trade = SaleTrade.objects.get(id=sale_order.sale_trade_id)  # 由订单找交易
+    cus = Customer.objects.get(id=trade.buyer_id)  # 由交易的buyer_id找
+    buyer_id = trade.buyer_id  # 用户ID
+    integral_log = IntegralLog.objects.filter(integral_user=buyer_id,
+                                              in_out=IntegralLog.LOG_IN,
+                                              order_id=sale_order.id).first()
+
+    if sale_order.status in (SaleOrder.WAIT_SELLER_SEND_GOODS,
+                             SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                             SaleOrder.TRADE_BUYER_SIGNED,
+                             SaleOrder.TRADE_FINISHED):  # 已经付款　已经发货　确认签收　交易成功
+        if integral_log:
+            if sale_order.status == SaleOrder.TRADE_FINISHED:  # 交易成功　积分确定
+                integral_log.log_status = IntegralLog.CONFIRM
+                integral_log.save(update_fields=['log_status'])
+        else:  # 还没有积分记录
+            integral_log = IntegralLog(integral_user=buyer_id,
+                                       order_id=sale_order.id,
+                                       mobile=cus.mobile,
+                                       log_value=int(sale_order.payment),
+                                       order=order_content,
+                                       log_status=IntegralLog.PENDING,
+                                       log_type=IntegralLog.ORDER_INTEGRA,
+                                       in_out=IntegralLog.LOG_IN)
+            integral_log.save()
+    elif sale_order.status == SaleOrder.TRADE_CLOSED:  # 退款关闭的 积分要取消掉
+        if integral_log:
+            integral_log.log_status = IntegralLog.CANCEL  # 取消积分
+            integral_log.save(update_fields=['log_status'])
+
+
+@task()
+def task_calculate_total_order_integral(integral_log):
+    """
+    :arg integral_log IntegralLog instance
+    calculate the IntegralLog user total point
+    """
+    user = integral_log.integral_user
+    logs = IntegralLog.objects.filter(integral_user=user, log_status=IntegralLog.CONFIRM)
+    in_out = logs.values('in_out').annotate(t_log_value=Sum('log_value'))
+    total_point = 0
+    for d in in_out:
+        if d['in_out'] == IntegralLog.LOG_IN:
+            total_point = total_point + d['t_log_value']
+        elif d['in_out'] == IntegralLog.LOG_OUT:
+            total_point = total_point - d['t_log_value']
+    user_intergral = Integral.objects.filter(integral_user=user).first()
+    if user_intergral:
+        user_intergral.integral_value = total_point
+        user_intergral.save(update_fields=['integral_value'])
 

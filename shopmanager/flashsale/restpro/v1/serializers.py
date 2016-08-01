@@ -17,7 +17,9 @@ from flashsale.pay.models import (
     Register,
     GoodShelf,
     CustomShare,
-    UserBudget
+    UserBudget,
+    IntegralLog,
+    Integral
 )
 from flashsale.pay.models.favorites import Favorites
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
@@ -586,26 +588,29 @@ class DistrictSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'url', 'parent_id', 'name', 'grade', 'sort_order')
 
 
-from flashsale.pay.models import IntegralLog, Integral
-
-
 class UserIntegralSerializer(serializers.HyperlinkedModelSerializer):
-    # url = serializers.HyperlinkedIdentityField(view_name='v1:user-intergral')
-
     class Meta:
         model = Integral
-        fields = ('id', 'integral_user', 'integral_value')
+        fields = ('id',
+                  'integral_user',
+                  'integral_value')
 
 
 class UserIntegralLogSerializer(serializers.HyperlinkedModelSerializer):
-    # url = serializers.HyperlinkedIdentityField(view_name='v1:user-IntegralLog')
+    order_info = JSONParseField(source='order', read_only=True)
 
     class Meta:
         model = IntegralLog
-        fields = (
-        'id', 'integral_user', 'mobile', 'order_info', 'log_value', 'log_status', 'log_type', 'in_out', 'created',
-        'modified')
-
+        fields = ('id',
+                  'integral_user',
+                  'mobile',
+                  'order_info',
+                  'log_value',
+                  'log_status',
+                  'log_type',
+                  'in_out',
+                  'created',
+                  'modified')
 
 
 class TradeWuliuSerializer(serializers.ModelSerializer):

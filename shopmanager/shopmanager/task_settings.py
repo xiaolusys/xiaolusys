@@ -31,6 +31,7 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_lesson',
     'flashsale.promotion.tasks_activity',
     'flashsale.pay.tasks_stats',
+    'flashsale.pay.tasks',
     'shopback.items.tasks_stats',
     'shopback.items.tasks',
     'statistics.tasks',
@@ -91,6 +92,7 @@ CELERY_QUEUES = (
     Queue('carryrecord', routing_key='carryrecord.#'),
     Queue('skustats', routing_key='skustats.#'),
     Queue('coupon', routing_key='coupon.#'),
+    Queue('integral', routing_key='integral.#'),
     Queue('statistics', routing_key='statistics.#'),
     Queue('logistics', routing_key='logistics.#'),
     Queue('dinghuo', routing_key='dinghuo.#'),
@@ -530,6 +532,17 @@ FLASHSALE_COUPON_ROUTES = {
     },
 }
 
+FLASHSALE_INTEGRAL_ROUTES = {
+    'flashsale.pay.tasks.task_add_user_order_integral': {
+        'queue': 'integral',
+        'routing_key': 'integral.task_add_user_order_integral',
+    },
+    'flashsale.pay.tasks.task_calculate_total_order_integral': {
+        'queue': 'integral',
+        'routing_key': 'integral.task_calculate_total_order_integral',
+    },
+}
+
 STATISTICS_ROUTES = {
     'statistics.tasks.task_statistics_product_sale_num': {
         'queue': 'statistics',
@@ -741,6 +754,7 @@ CELERY_ROUTES.update(MAMA_CARRYTOTAL_ROUTES)
 # CELERY_ROUTES.update(MAMA_REGISTER_ROUTE)
 CELERY_ROUTES.update(SKU_STATS_ROUTES)
 CELERY_ROUTES.update(FLASHSALE_COUPON_ROUTES)
+CELERY_ROUTES.update(FLASHSALE_INTEGRAL_ROUTES)
 CELERY_ROUTES.update(STATISTICS_ROUTES)
 CELERY_ROUTES.update(LOGISTICS_ROUTES)
 CELERY_ROUTES.update(APIS_ROUTES)

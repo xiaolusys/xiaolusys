@@ -1,15 +1,8 @@
 # coding=utf-8
-import json
 from django.db import models
 from core.fields import JSONCharMyField
 from .base import PayBaseModel
-
-
-"""
-用户  积分 模块
-用户ID：SaleTrade 中的  buyer_id  也即是：models_user 中的  Customer  id '客户ID'
-
-"""
+from django.db.models.signals import post_save
 
 
 class Integral(PayBaseModel):
@@ -23,7 +16,7 @@ class Integral(PayBaseModel):
         verbose_name_plural = u"特卖用户/积分列表"
 
     def __unicode__(self):
-        return '<%s>' % (self.id)
+        return '<%s-%s>' % (self.id, self.integral_user)
 
 
 class IntegralLog(PayBaseModel):
@@ -47,9 +40,7 @@ class IntegralLog(PayBaseModel):
     log_status = models.IntegerField(choices=INTEGRAL_STATUS, verbose_name=u'记录状态')
     log_type = models.IntegerField(choices=LOG_TYPE, verbose_name=u'积分类型')
     in_out = models.IntegerField(choices=IN_OUT, verbose_name=u'积分收支')
-    order = JSONCharMyField(max_length=10240, blank=True,
-                            default='[{"order_id":"","pic_link":"","trade_id":"","order_status":""}]',
-                            verbose_name=u'订单信息')
+    order = JSONCharMyField(max_length=10240, blank=True, default={}, verbose_name=u'订单信息')
 
     class Meta:
         unique_together = ('integral_user', 'order_id')
@@ -59,13 +50,15 @@ class IntegralLog(PayBaseModel):
         verbose_name_plural = u"特卖用户/积分记录列表"
 
     def __unicode__(self):
-        return '<%s>' % (self.id)
+        return '<%s-%s>' % (self.id, self.order_id)
 
-    @property
-    def order_info(self):
-        if len(self.order) == 1:
-            info = json.dumps(self.order[0])
-            return json.loads(info)
-        else:
-            return {}
 
+def calculate_total_order_integral(sender, instance, created, **kwargs):
+    from flashsale.pay.tasks import task_calculate_total_order_integral
+    # 计算总积分到用户积分
+
+    task_calculate_total_order_integral.delay(instance)
+
+
+post_save.connect(calculate_total_order_integral, sender=IntegralLog,
+                  dispatch_uid='post_save_calculate_total_order_integral')
