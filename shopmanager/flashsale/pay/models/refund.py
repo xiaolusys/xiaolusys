@@ -183,6 +183,11 @@ class SaleRefund(PayBaseModel):
         sorder = self.sale_order()
         return sorder.oid
 
+    @property
+    def is_refundapproved(self):
+        """　是否已同意退款 """
+        return self.status in (self.REFUND_APPROVE, self.REFUND_SUCCESS)
+
     @transaction.atomic
     def refund_wallet_approve(self):
         """ deprecated 退款至妈妈钱包 """

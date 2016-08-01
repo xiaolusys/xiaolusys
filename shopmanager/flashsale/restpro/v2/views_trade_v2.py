@@ -713,7 +713,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         pay_extras   = form.get('pay_extras','')
         budget_payment = self.calc_extra_budget(pay_extras)
         coupon_id  = form.get('coupon_id','')
-        couponids  = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras)
+        couponids  = re.compile('.*couponid:(?P<couponid>\d+)').match(pay_extras)
         if couponids:
             coupon_id = couponids.groupdict().get('couponid',coupon_id)
         logistics_company_id = form.get('logistics_company_id','').strip()
