@@ -927,7 +927,13 @@ def task_calculate_total_order_integral(integral_log):
     """
     user = integral_log.integral_user
     logs = IntegralLog.objects.filter(integral_user=user, log_status=IntegralLog.CONFIRM)
-    total_point = logs.aggregate(t_point=Sum('log_value')).get('t_point') or 0
+    in_out = logs.values('in_out').annotate(t_log_value=Sum('log_value'))
+    total_point = 0
+    for d in in_out:
+        if d['in_out'] == IntegralLog.LOG_IN:
+            total_point = total_point + d['t_log_value']
+        elif d['in_out'] == IntegralLog.LOG_OUT:
+            total_point = total_point - d['t_log_value']
     user_intergral = Integral.objects.filter(integral_user=user).first()
     if user_intergral:
         user_intergral.integral_value = total_point
