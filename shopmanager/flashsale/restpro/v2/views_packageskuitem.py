@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 
 from flashsale.pay.models import Customer
 from flashsale.restpro import permissions as perms
-from . import packageskuitem_serializers
+from .serializers import packageskuitem_serializers
 
 import logging
 logger = logging.getLogger(__name__)

@@ -7,10 +7,11 @@ from rest_framework import routers
 
 # 2016-3-2 v2
 from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login, views_packageskuitem
-from flashsale.restpro.v2 import views_trade_v2, views_product_v2
-from flashsale.xiaolumm import views_rank, views_message
+from flashsale.restpro.v2 import views_trade_v2, views_product_v2, views_category
+
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
+v2_router.register(r'categorys', views_category.SaleCategoryViewSet)
 v2_router.register(r'carts', views_trade_v2.ShoppingCartViewSet)
 v2_router.register(r'products', views_product_v2.ProductViewSet)
 v2_router.register(r'modelproducts', views_product_v2.ModelProductV2ViewSet)
