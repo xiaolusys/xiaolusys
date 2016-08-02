@@ -18,6 +18,8 @@ class SaleCategory(BaseModel):
     CAT_STATUS = ((NORMAL, u'正常'),
                   (DELETE, u'删除'))
 
+    FIRST_GRADE = 1
+
     SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
 
     cid = models.IntegerField(null=False, default=default_salecategory_cid, unique=True, verbose_name=u'类目ID')
@@ -82,6 +84,9 @@ class SaleCategory(BaseModel):
         return level_1_category_name, level_2_category_name
 
     def get_firstgrade_category(self):
+        if self.grade == self.FIRST_GRADE:
+            return self
+
         parant_cat = SaleCategory.objects.filter(cid=self.parent_cid).first()
         cnt = 0
         while parant_cat and cnt < 10:
