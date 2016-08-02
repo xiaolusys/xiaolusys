@@ -277,6 +277,15 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
          plus: 向上
          minus: 向下　
          移动距离: `distance`
+    - [/apis/chain/v1/saleschedule/**schedule_id**/update_assign_worker]() 分配任务;
+        * method: post
+        * args:
+            1. `manager_detail_ids`: 排期明细的id  例如: [8772, 8773, 8774],
+            2. `reference_user`: 资料人的id　例如: 1,
+            3. `photo_user`: 平面制作人的id 例如: 1
+        * return:
+            1. 没有权限: {"detail": "You do not have permission to perform this action."}
+            2. 请求成功: http status = 206
     """
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
