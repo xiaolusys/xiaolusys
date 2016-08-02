@@ -75,6 +75,36 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
         return "%0.2f" % (obj.total_refund_num / obj.total_sale_num) if obj.total_sale_num > 0 else "0.0"
 
 
+class SaleSupplierFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleSupplier
+        fields = ("supplier_name",
+                  "supplier_code",
+                  "description",
+                  "brand_url",
+                  "main_page",
+                  "product_link",
+                  "platform",
+                  "category",
+                  "speciality",
+                  "contact",
+                  "phone",
+                  "mobile",
+                  "fax",
+                  "zip_code",
+                  "email",
+                  "address",
+                  "account_bank",
+                  "account_no",
+                  "memo",
+                  "status",
+                  "progress",
+                  "supplier_type",
+                  "supplier_zone",
+                  "buyer",
+                  "ware_by")
+
+
 class PlatformField(serializers.Field):
     def to_representation(self, obj):
         for record in SaleProduct.PLATFORM_CHOICE:

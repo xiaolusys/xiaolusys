@@ -62,16 +62,32 @@ class SaleSupplierFilter(filters.FilterSet):
                   'created_start', 'created_end']
 
 
-class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
+class SaleSupplierViewSet(viewsets.ModelViewSet):
     """
-    ###供应商REST API接口：
-    - 列表过滤条件: category, supplier_name, supplier_type, supplier_zone
-    - /list_filters: 获取供应商过滤条件
+    ### 供应商REST API接口：
+    - [/apis/chain/v1/supplier](/apis/chain/v1/supplier) 供应商列表:
+        1. 可过滤字段:
+            * `id`: 供应商id
+            * `category`: 类别
+            * `supplier_name`:　名称
+            * `supplier_type`:　类型
+            * `supplier_zone`:　地区
+            * `progress`:　进度
+            * `created_start`:　最早创建时间
+            * `created_end`:　最迟创建时间
+        2. 可排序字段:
+            * `id`: 供应商id
+            * `created`: 创建时间
+            * `modified`: 修改时间
+            * `figures__payment`: 销售额
+            * `figures__return_good_rate`: 退货率
+            * `figures__out_stock_num`: 缺货率
+    - [/apis/chain/v1/supplier/list_filters](/apis/chain/v1/supplier/list_filters): 获取供应商过滤条件
     """
     queryset = SaleSupplier.objects.all()
     serializer_class = serializers.SaleSupplierSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     ordering_fields = ('id', 'total_refund_num', 'total_sale_num', 'created', 'modified',
@@ -87,7 +103,9 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
             'categorys': categorys.values_list('id', 'name', 'parent_cid', 'is_parent', 'sort_order'),
             'supplier_type': SaleSupplier.SUPPLIER_TYPE,
             'progress': SaleSupplier.PROGRESS_CHOICES,
-            'supplier_zone': SupplierZone.objects.values_list('id', 'name')
+            'supplier_zone': SupplierZone.objects.values_list('id', 'name'),
+            'platform': SaleSupplier.PLATFORM_CHOICE,
+            'ware_by': SaleSupplier.WARE_CHOICES,
         })
 
     def list(self, request, *args, **kwargs):
@@ -107,6 +125,16 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = serializers.SaleSupplierFormSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def destroy(self, request, *args, **kwargs):
+        raise exceptions.APIException('method not allowed!')
 
 
 class SaleProductFilter(filters.FilterSet):
