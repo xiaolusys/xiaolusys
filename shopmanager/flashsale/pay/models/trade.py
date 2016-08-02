@@ -550,6 +550,20 @@ def category_trade_stat(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 
 
+def update_customer_first_paytime(sender, obj, **kwargs):
+    """
+    订单支付后，检测用户是否第一次购买，如果是，更新用户第一次购买时间
+    """
+    saletrade = obj
+    customer = saletrade.order_buyer
+    if not customer.first_paytime:
+        customer.first_paytime = saletrade.pay_time
+        customer.save()
+
+
+signal_saletrade_pay_confirm.connect(update_customer_first_paytime, sender=SaleTrade)
+
+
 def push_msg_mama(sender, obj, **kwargs):
     """专属链接有人下单后则推送消息给代理"""
     from flashsale.xiaolumm.tasks_mama_push import task_push_mama_order_msg
