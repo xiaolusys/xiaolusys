@@ -45,12 +45,11 @@ from common.utils import (gen_cvs_tuple,
 import logging
 
 # fang  2015-8-19
+import re   
 from shopback.trades.models import TradeWuliu
 from shopback.trades.tasks import send_package_task, send_package_call_Back
 
 logger = logging.getLogger('django.request')
-
-import re
 
 PHONE_RE = re.compile('^(1[0-9]{10}|([0-9]{3,4}-)?[0-9-]{6,8})$')
 
@@ -1047,8 +1046,10 @@ class MergeOrderChangeList(ChangeList):
 
 
 class MergeOrderAdmin(ApproxAdmin):
-    list_display = ('id', 'package_sku_item_link_to', 'merge_trade_link', 'outer_id', 'outer_sku_id', 'sku_properties_name', 'price', 'num',
-                    'payment', 'gift_type', 'pay_time', 'refund_status', 'trade_status_link', 'sys_status')
+    list_display = (
+    'id', 'package_sku_item_link_to', 'merge_trade_link', 'outer_id', 'outer_sku_id', 'sku_properties_name', 'price',
+    'num',
+    'payment', 'gift_type', 'pay_time', 'refund_status', 'trade_status_link', 'sys_status')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -1093,6 +1094,7 @@ class MergeOrderAdmin(ApproxAdmin):
             'pki_url': '/admin/trades/packageskuitem/?oid=%s' % obj.oid,
             'oid': obj.oid
         }
+
     package_sku_item_link_to.allow_tags = True
     package_sku_item_link_to.short_description = u'SKU交易单号'
 
@@ -1261,10 +1263,11 @@ admin.site.register(TradeWuliu, WuliuAdmin)
 
 
 class PackageOrderAdmin(admin.ModelAdmin):
-    list_display = ('pid', 'id', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
-                    'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
-                    'is_send_sms', 'has_refund',  'ware_by', 'created', 'send_time', 'weight_time',
-                    'consign_time', 'weight', 'merge_trade_id')
+    list_display = (
+    'pid', 'id', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile',
+    'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
+    'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
+    'consign_time', 'weight', 'merge_trade_id')
 
     search_fields = ['pid', 'id', 'out_sid', 'receiver_name', 'receiver_mobile']
     list_filter = ('sys_status', 'ware_by', 'status', 'redo_sign', 'is_qrcode', ('weight_time', DateFieldListFilter),)
@@ -1303,6 +1306,7 @@ class PackageOrderAdmin(admin.ModelAdmin):
 
     def logistics_company_name(self, obj):
         return obj.logistics_company.name if obj.logistics_company else ''
+
     logistics_company_name.short_description = u"物流公司"
 
     actions = ['push_package_to_scan']
@@ -1328,7 +1332,8 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id_link_to', 'sku_link_to', 'num', 'price',
         'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link')
 
-    search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid', 'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
+    search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid',
+                     'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
     list_filter = ('assign_status', 'status', 'ware_by')
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
@@ -1340,12 +1345,13 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
 
     def purchase_order_unikey_link(self, obj):
         if obj.purchase_order_unikey:
-            return '<a href="/admin/dinghuo/orderlist/?purchase_order_unikey=%s" target="_blank"> %s </a>' % (obj.purchase_order_unikey,obj.purchase_order_unikey)
+            return '<a href="/admin/dinghuo/orderlist/?purchase_order_unikey=%s" target="_blank"> %s </a>' % (
+            obj.purchase_order_unikey, obj.purchase_order_unikey)
         return ''
-    
+
     purchase_order_unikey_link.allow_tags = True
     purchase_order_unikey_link.short_description = u'订货单'
-    
+
     def get_actions(self, request):
         return [i for i in super(PackageSkuItemAdmin, self).get_actions(request) if i != 'delete_selected']
 
@@ -1361,14 +1367,13 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
     package_order_link_to.short_description = u'包裹SKU'
 
     def sale_trade_id_link(self, obj):
-        return '<a href="%(url)s" target="_blank"> %(text)s</a>' %{
+        return '<a href="%(url)s" target="_blank"> %(text)s</a>' % {
             'url': '/admin/pay/saletrade/?tid=%s' % obj.sale_trade_id,
             'text': obj.sale_trade_id
         }
 
     sale_trade_id_link.allow_tags = True
     sale_trade_id_link.short_description = u'交易单号'
-
 
     def package_sku_item_link_to(self, obj):
         if obj.package_order_pid:
@@ -1390,6 +1395,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
             'sale_order_url': '/admin/pay/saleorder/%d/' % obj.sale_order_id,
             'sale_order_id': obj.sale_order_id
         }
+
     sale_order_link_to.allow_tags = True
     sale_order_link_to.short_description = u'sku交易单'
 
@@ -1402,6 +1408,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
             'sku_url': '/admin/items/productskustats?sku_id=%s' % obj.sku_id,
             'skucode': obj.sku_id
         }
+
     sku_id_link_to.allow_tags = True
     sku_id_link_to.short_description = u'SKU库存'
 
@@ -1410,6 +1417,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
             'sku_url': '/admin/items/productsku/%s/' % obj.sku_id,
             'skucode': obj.product_sku.BARCODE
         }
+
     sku_link_to.allow_tags = True
     sku_link_to.short_description = u'sku条码'
 
@@ -1418,10 +1426,11 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         '%(product_title)s</a>')
 
     def product_title_link_to(self, obj):
-        return self.PRODUCT_LINK %{
-            'product_url':'/admin/items/product/%d/' % obj.product_sku.product.id,
-            'product_title':obj.title
+        return self.PRODUCT_LINK % {
+            'product_url': '/admin/items/product/%d/' % obj.product_sku.product.id,
+            'product_title': obj.title
         }
+
     product_title_link_to.allow_tags = True
     product_title_link_to.short_description = u'商品名称'
 
