@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplier', '0020_add_unique_salecategory_cid'),
+        ('supplier', '0021_add_action_user_field'),
     ]
 
     operations = [

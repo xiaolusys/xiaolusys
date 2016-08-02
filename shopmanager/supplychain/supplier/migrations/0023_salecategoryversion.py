@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplier', '0021_add_catpic_grade_status_to_salecategory'),
+        ('supplier', '0022_add_catpic_grade_status_to_salecategory'),
     ]
 
     operations = [
