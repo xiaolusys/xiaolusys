@@ -163,7 +163,7 @@ class SaleProductList(generics.ListCreateAPIView):
                 if k == 'title':
                     v = v + "-" + supplier.supplier_name
                 if k == 'orderlist_show_memo':
-                    v = v and True or False
+                    v = v.lower() in ('on', 'true')
                 hasattr(sproduct, k) and setattr(sproduct, k, v)
         sproduct.sale_supplier = supplier
         sproduct.status = sproduct.status or SaleProduct.SELECTED
@@ -273,7 +273,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
             if not hasattr(instance, k):
                 continue
             if k == 'orderlist_show_memo':
-                instance.orderlist_show_memo = v == 'true' and True or False
+                instance.orderlist_show_memo = v.lower() in ('on', 'true')
                 instance.save(update_fields=['orderlist_show_memo'])
             update_field_labels.append('%s:%s' % (
                 SaleProduct._meta.get_field(k).verbose_name.title(), v))
@@ -518,8 +518,8 @@ class FetchAndCreateProduct(APIView):
                 v = SaleCategory.objects.get(id=v)
             if k == 'sale_time' and not v:
                 continue
-            if k == 'orderlist_show_memo' and v == 'on':
-                v = True
+            if k == 'orderlist_show_memo':
+                v = v.lower() in ('on', 'true')
             hasattr(sproduct, k) and setattr(sproduct, k, v)
         if supplier_sku:
             sproduct.supplier_sku = supplier_sku.strip()
