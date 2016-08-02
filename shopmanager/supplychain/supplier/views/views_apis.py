@@ -71,7 +71,7 @@ class SaleSupplierViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SaleSupplier.objects.all()
     serializer_class = serializers.SaleSupplierSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     ordering_fields = ('id', 'total_refund_num', 'total_sale_num', 'created', 'modified',
@@ -134,7 +134,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     queryset = SaleProduct.objects.all()
     serializer_class = serializers.SimpleSaleProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     ordering_fields = ('created', 'modified', 'sale_time', 'remain_num', 'hot_value')
@@ -277,6 +277,15 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
          plus: 向上
          minus: 向下　
          移动距离: `distance`
+    - [/apis/chain/v1/saleschedule/**schedule_id**/update_assign_worker]() 分配任务;
+        * method: post
+        * args:
+            1. `manager_detail_ids`: 排期明细的id  例如: [8772, 8773, 8774],
+            2. `reference_user`: 资料人的id　例如: 1,
+            3. `photo_user`: 平面制作人的id 例如: 1
+        * return:
+            1. 没有权限: {"detail": "You do not have permission to perform this action."}
+            2. 请求成功: http status = 206
     """
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
@@ -381,3 +390,20 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
             instance.order_weight = instance.order_weight - abs_distance
             instance.save(update_fields=['order_weight'])
         return Response(status=status.HTTP_200_OK)
+
+    @parser_classes(JSONParser)
+    @transaction.atomic()
+    def update_assign_worker(self, request, *args, **kwargs):
+        if not request.user.has_perm('supplier.delete_schedule_detail'):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        manager_detail_ids = request.data.get('manager_detail_ids') or []
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(id__in=manager_detail_ids)
+        partial = kwargs.pop('partial', True)
+        for q in queryset:
+            serializer = serializers.ManageDetailAssignWorkerSerializer(q, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            log_action(request.user, q, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
+        return Response(status=status.HTTP_206_PARTIAL_CONTENT)
+

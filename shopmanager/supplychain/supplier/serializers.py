@@ -8,6 +8,7 @@ from .models import (
     SupplierFigure
 )
 from rest_framework import serializers
+from django.contrib.auth.models import User
 
 
 class SupplierStatusField(serializers.Field):
@@ -108,7 +109,7 @@ class SaleProductSerializer(serializers.ModelSerializer):
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
-            'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
+            'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
             'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num',
             'orderlist_show_memo')
 
@@ -123,9 +124,10 @@ class SaleProductUpdateSerializer(serializers.ModelSerializer):
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
-            'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
+            'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
             'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num',
             'orderlist_show_memo')
+
 
 from statistics.serializers import ModelStatsSimpleSerializer
 
@@ -140,10 +142,10 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleProduct
         fields = (
-            'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link','status', 'sale_supplier', 'contactor',
+            'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'status', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo',
             'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures'
-            )
+        )
 
 
 class SimpleSaleProductManageSerializer(serializers.ModelSerializer):
@@ -200,9 +202,9 @@ class ManageDetailUseStatusField(serializers.Field):
 
 
 class SaleProductManageDetailSerializer(serializers.ModelSerializer):
-
     # sale_category = SaleCategorySerializer()
     product_name = serializers.CharField(source='sale_product.title', read_only=True)
+    supplier_name = serializers.CharField(source='sale_product.sale_supplier.supplier_name', read_only=True)
     product_purchase_price = serializers.CharField(source='sale_product.sale_price', read_only=True)
     product_sale_price = serializers.CharField(source='sale_product.on_sale_price', read_only=True)
     product_origin_price = serializers.CharField(source='sale_product.std_sale_price', read_only=True)
@@ -213,17 +215,45 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     design_take_over = DesignTakeStatusField()
     today_use_status = ManageDetailUseStatusField()
     supplier_id = serializers.IntegerField(source='sale_product.sale_supplier.id', read_only=True)
+    reference_username = serializers.SerializerMethodField('reference_user_name', read_only=True)
+    photo_username = serializers.SerializerMethodField('photo_user_name', read_only=True)
 
     class Meta:
         model = SaleProductManageDetail
-        fields = ('id', 'supplier_id', 'sale_product_id', 'product_name', 'product_pic', 'product_link', 'design_person', 'order_weight','model_id',
-                  'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
-                  'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
-                  'created', 'modified')
+        fields = (
+            'id', 'supplier_id', 'sale_product_id', 'product_name', 'product_pic', 'product_link', 'design_person',
+            'order_weight', 'model_id', 'supplier_name',
+            'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
+            'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
+            'reference_username', 'photo_username',
+            'created', 'modified')
+
+    def reference_user_name(self, obj):
+        """ 资料录入人 """
+        try:
+            woker = User.objects.get(id=obj.reference_user)
+            full_name = ''.join([woker.last_name, woker.first_name])
+            return full_name if full_name else woker.username
+        except User.DoesNotExist:
+            return ''
+
+    def photo_user_name(self, obj):
+        """ 平面制作人 """
+        try:
+            woker = User.objects.get(id=obj.photo_user)
+            full_name = ''.join([woker.last_name, woker.first_name])
+            return full_name if full_name else woker.username
+        except User.DoesNotExist:
+            return ''
+
+
+class ManageDetailAssignWorkerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleProductManageDetail
+        fields = ('id', 'reference_user', 'photo_user', 'modified')
 
 
 class SaleProductManageDetailSimpleSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = SaleProductManageDetail
 
