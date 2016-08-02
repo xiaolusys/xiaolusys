@@ -21,9 +21,9 @@ def single_instance_task(timeout, prefix=''):
                     return func(*args, **kwargs)
                 finally:
                     release_lock()
-            else:
-                logger = logging.getLogger('celery.handler')
-                logger.error('the task %s is executing.' % func.__name__)
+            # else:
+            #    logger = logging.getLogger('celery.handler')
+            #    logger.error('the task %s is executing.' % func.__name__)
 
         result = task(name='%s%s' % (prefix, func.__name__))(decorate)
         if settings.DEBUG:
@@ -60,4 +60,3 @@ def single_record_task(timeout, prefix=''):
         return result
 
     return task_exc
-

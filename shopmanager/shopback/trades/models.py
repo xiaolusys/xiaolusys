@@ -1015,7 +1015,7 @@ def refund_update_order_info(sender, obj, *args, **kwargs):
 
                 Product.objects.reduceLockNumByCode(morder.outer_id, morder.outer_sku_id, morder.num)
     except Exception, exc:
-        logger.error('order refund signal:%s' % exc.message)
+        logger.warn('order refund signal:%s' % exc.message)
 
 
 signals.order_refund_signal.connect(refund_update_order_info, sender=MergeOrder)

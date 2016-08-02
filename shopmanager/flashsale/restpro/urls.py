@@ -159,9 +159,6 @@ v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
 v2_router.register(r'sharecoupon', views_coupon_new.OrderShareCouponViewSet)
 v2_router.register(r'tmpsharecoupon', views_coupon_new.TmpShareCouponViewset)
 
-v2_router.register(r'rank', views_rank.MamaCarryTotalViewSet)
-v2_router.register(r'teamrank', views_rank.MamaTeamCarryTotalViewSet)
-v2_router.register(r'message', views_message.XlmmMessageViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += ([

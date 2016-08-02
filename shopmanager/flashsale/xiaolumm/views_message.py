@@ -12,17 +12,9 @@ from core.utils.modelutils import get_class_fields
 
 class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin):
     """
-    - {prefix}/method: `get`  获取用户的投诉列表
-    - {prefix}/method: `post` 创建用户的投诉条目　　
-        -  com_type     类型 :   `0`: 购物问题;
-                                `1`: 订单相关;
-                                `2`: 意见/建议;
-                                `4`: 售后问题;
-                                `3`: 其他
-        -  com_title    标题 default 问题反馈
-        -  com_content  内容
-        -  contact_way  联系方式
-    - reply method: `post`  回复
+    - list: `get`  小鹿妈妈消息
+    - self_list: `get` 获取自己的小鹿妈妈消息
+    - <messageid>/read: `get` 设置消息为已读
     """
     queryset = XlmmMessage.objects.filter(dest=None)
     serializer_class = XlmmMessageSerializers
