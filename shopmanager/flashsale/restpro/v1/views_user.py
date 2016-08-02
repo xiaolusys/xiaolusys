@@ -340,7 +340,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 return Response({"code": 0, "result": "login", "next": next_url})  # 如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
 
             params = {'appid': settings.WXPAY_APPID,
-                      'redirect_uri': ('{0}{1}?next={2}').format(settings.M_SITE_URL, reverse('v1:xlmm-wxauth'),
+                      'redirect_uri': ('{0}{1}?next={2}').format(settings.M_SITE_URL, reverse('rest_v1:xlmm-wxauth'),
                                                                  next_url),
                       'response_type': 'code',
                       'scope': 'snsapi_base',
@@ -871,7 +871,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         # 这里的公众账号　访问地址要带上用户的信息　例如customer
         return Response({'auth_link': urlparse.urljoin(settings.M_SITE_URL,
-                                                       reverse('v1:user-budget-bang', kwargs={'pk': customer.id})),
+                                                       reverse('rest_v1:user-budget-bang', kwargs={'pk': customer.id})),
                          'auth_msg': '将图片二维码图片保存本地后，打开微信扫一扫从相册选取二维码图片'})
 
     @list_route(methods=['post'])

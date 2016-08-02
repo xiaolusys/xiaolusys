@@ -134,7 +134,7 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
                 'scope': 'snsapi_base',
                 'state': '135',
                 'redirect_uri': ('{0}{1}?next={2}').format(settings.M_SITE_URL,
-                                                           reverse('v2:xlmm-wxauth'),
+                                                           reverse('rest_v2:xlmm-wxauth'),
                                                            next_url)
             }
             next_url = gen_weixin_redirect_url(params)

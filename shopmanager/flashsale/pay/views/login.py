@@ -43,7 +43,7 @@ def flashsale_login(request):
 
 
 def productlist_redirect(request):
-    return HttpResponseRedirect(urljoin(settings.M_SITE_URL, reverse('v1:weixin-login')))
+    return HttpResponseRedirect(urljoin(settings.M_SITE_URL, reverse('rest_v1:weixin-login')))
 
 
 @weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL, '/pages/denglu.html'))
