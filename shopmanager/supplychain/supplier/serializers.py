@@ -62,17 +62,29 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
     # category = SaleCategorySerializer()
     status = SupplierStatusField()
     progress = ProgressField()
-    refund_rate = serializers.SerializerMethodField("calculate_refund_rate", read_only=True)
     figures = SupplierFigureSerializer(read_only=True)
+    zone_name = serializers.CharField(source='zone.name', read_only=True)
 
     class Meta:
         model = SaleSupplier
-        fields = ('id', 'supplier_name', 'supplier_code', 'brand_url', 'total_sale_num', 'refund_rate',
-                  'progress', 'category', 'status', 'created', 'modified', 'memo', 'figures')
-
-    def calculate_refund_rate(self, obj):
-        """ 计算供应商的退货率 """
-        return "%0.2f" % (obj.total_refund_num / obj.total_sale_num) if obj.total_sale_num > 0 else "0.0"
+        fields = ('id',
+                  'supplier_name',
+                  'supplier_code',
+                  'brand_url',
+                  "product_link",
+                  'total_sale_num',
+                  "description",
+                  'progress',
+                  "mobile",
+                  'category',
+                  "address",
+                  'status',
+                  'created',
+                  'modified',
+                  'memo',
+                  'figures',
+                  'zone_name',
+                  'get_ware_by_display')
 
 
 class SaleSupplierFormSerializer(serializers.ModelSerializer):
@@ -103,6 +115,36 @@ class SaleSupplierFormSerializer(serializers.ModelSerializer):
                   "supplier_zone",
                   "buyer",
                   "ware_by")
+
+    def validate(self, data):
+        """
+        """
+        if data.has_key('mobile') and (data['mobile'] == None or data['mobile'] == u''):
+            raise serializers.ValidationError("手机号不能为空!")
+        if data.has_key('contact') and (data['contact'] == None or data['contact'] == u''):
+            raise serializers.ValidationError("联系人不能为空!")
+        return data
+
+    def validate_supplier_name(self, value):
+        """
+        #  validate_<model 的字段>  这中写法对该字段进行校验
+        supplier_name　检查供应商名称字段
+        """
+        if None == value or value.isdigit():
+            raise serializers.ValidationError("供应商名称不能为纯数字!")
+        return value
+
+    def validate_supplier_type(self, value):
+        t = [x[0] for x in self.Meta.model.SUPPLIER_TYPE]
+        if value not in t:
+            raise serializers.ValidationError("供应商类型错误!")
+        return value
+
+    def validate_ware_by(self, value):
+        t = [x[0] for x in self.Meta.model.WARE_CHOICES]
+        if value not in t:
+            raise serializers.ValidationError("仓库选择错误!")
+        return value
 
 
 class PlatformField(serializers.Field):
