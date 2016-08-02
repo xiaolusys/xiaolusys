@@ -157,7 +157,7 @@ class MamaCarryTotal(BaseModel):
         mama_id = self.mama_id
         self.history_total = self.get_history_total()
         self.history_num = OrderCarry.objects.filter(mama_id=mama_id, status=2, created__lt=STAT_TIME).count()
-        self.history_confirm = CarryRecord.objects.filter(date_field__lte=STAT_TIME, mama_id=mama_id,
+        self.history_confirm = CarryRecord.objects.filter(date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY, date_field__lte=STAT_TIME, mama_id=mama_id,
                                                           status=CarryRecord.PENDING).exists()
 
     @staticmethod
@@ -177,7 +177,7 @@ class MamaCarryTotal(BaseModel):
         #                                                 created__lt=STAT_TIME, status=2).aggregate(
         #         total=Sum('total_value')).get('total') or 0
         cr_history = CarryRecord.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
-                                                date_field__lt=STAT_TIME, status=2).aggregate(carry=Sum('carry_num')).get('carry') or 0
+                                                date_field__lt=STAT_TIME, status__in=[1, 2]).aggregate(carry=Sum('carry_num')).get('carry') or 0
         CarryRecord.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY, )
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
         history_confirmed = fortune.history_confirmed if fortune else 0
