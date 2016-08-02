@@ -1015,7 +1015,7 @@ def refund_update_order_info(sender, obj, *args, **kwargs):
 
                 Product.objects.reduceLockNumByCode(morder.outer_id, morder.outer_sku_id, morder.num)
     except Exception, exc:
-        logger.error('order refund signal:%s' % exc.message)
+        logger.warn('order refund signal:%s' % exc.message)
 
 
 signals.order_refund_signal.connect(refund_update_order_info, sender=MergeOrder)
@@ -1986,7 +1986,7 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def get_not_assign_num(sku_id):
-        return PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).count()
+        return PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).aggregate(total=Sum('num')).get('total') or 0
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED

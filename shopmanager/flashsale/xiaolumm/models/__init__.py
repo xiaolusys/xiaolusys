@@ -5,3 +5,4 @@ from models_fortune import MamaFortune, DailyStats, CarryRecord, OrderCarry, Awa
 from models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, TopicAttendRecord
 from models_rebeta import AgencyOrderRebetaScheme
 from carry_total import MamaCarryTotal
+from message import XlmmMessage, XlmmMessageRel
