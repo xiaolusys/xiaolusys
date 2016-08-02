@@ -41,7 +41,9 @@ logger = logging.getLogger(__name__)
 
 class ListFilter(Filter):
     def filter(self, qs, value):
-        value_list = value.split(u',')
+        value_list = [s for s in value.split(u',') if s]
+        if not value_list:
+            return qs
         return super(ListFilter, self).filter(qs, Lookup(value_list, 'in'))
 
 
