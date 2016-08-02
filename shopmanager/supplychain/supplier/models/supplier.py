@@ -4,6 +4,7 @@ from django.db import models
 
 from supplychain.supplier.managers import SaleSupplierManager
 
+
 class SaleSupplier(models.Model):
     CHARGED = 'charged'
     UNCHARGE = 'uncharge'
@@ -156,7 +157,7 @@ class SaleSupplier(models.Model):
 
     @property
     def charge_buyer(self):
-        charge = SupplierCharge.objects.filter(supplier_id=self.id,status=SupplierCharge.EFFECT).first()
+        charge = SupplierCharge.objects.filter(supplier_id=self.id, status=SupplierCharge.EFFECT).first()
         if charge:
             return charge.employee
         return None
@@ -172,6 +173,11 @@ class SaleSupplier(models.Model):
     def get_default_unrecord_supplier(cls):
         return SaleSupplier.objects.filter(id=1).first()
 
+    @property
+    def zone(self):
+        if not hasattr(self, '_supplier_zone_'):
+            self._supplier_zone_ = SupplierZone.objects.filter(id=self.supplier_zone).first()
+        return self._supplier_zone_
 
 
 class SupplierCharge(models.Model):
