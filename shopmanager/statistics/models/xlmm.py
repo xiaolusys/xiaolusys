@@ -59,19 +59,25 @@ class XlmmDailyStat(BaseModel):
         return XiaoluMama.objects.filter(status='effect').count()
 
     def get_new_join(self):
-        return XiaoluMama.objects.filter(status='effect', created__gte=self.date_field).count()
+        return XiaoluMama.objects.filter(status='effect', created__range=(
+            self.date_field, self.date_field + datetime.timedelta(days=1))).count()
 
     def get_new_activite(self):
-        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, activite__gte=self.date_field)
+        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, activite_time__range=(
+            self.date_field, self.date_field + datetime.timedelta(days=1))).count()
 
     def get_new_award(self):
-        return CarryRecord.objects.filter(carry_type=3, created__gte=self.date_field).count()
+        return CarryRecord.objects.filter(carry_type=3, created__range=(
+            self.date_field, self.date_field + datetime.timedelta(days=1))).count()
 
     def get_new_trial(self):
-        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, created__gte=self.date_field)
+        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, created__range=(
+            self.date_field, self.date_field + datetime.timedelta(days=1))).count()
 
     def get_new_trial_activite(self):
-        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, active_time__gte=self.date_field)
+        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, active_time__range=(
+            self.date_field, self.date_field + datetime.timedelta(days=1))).count()
 
     def get_new_trial_hasale(self):
-        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, hasale_time__gte=self.date_field)
+        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, hasale_time__range=(
+            self.date_field, self.date_field + datetime.timedelta(days=1))).count()

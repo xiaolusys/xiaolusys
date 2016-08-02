@@ -537,6 +537,20 @@ class XiaoluMama(models.Model):
                 i += 1
         return i
 
+    def get_invite_potential_mama_ids(self):
+        return [p['potential_mama'] for p in PotentialMama.objects.filter(referal_mama=self.id).values('potential_mama')]
+
+    def get_active_invite_potential_mama_ids(self):
+        from .models_fortune import CarryRecord
+        res = []
+        mmids = self.get_invite_potential_mama_ids()
+        for mmid in mmids:
+            t = CarryRecord.objects.filter(mama_id=mmid).values('carry_num'). \
+                    aggregate(total=Sum('carry_num')).get('total') or 0
+            if t > 0:
+                res.append(mmid)
+        return res
+
     def upgrade_agencylevel_by_cashout(self):
         """ 代理 升级 提现满足条件升级（仅仅从Ａ类升级到VIP1）
         :type
