@@ -346,7 +346,7 @@ class SaleProductAdmin(ApproxAdmin):
                    , ('sale_supplier', 'sale_category')
                    , ('platform', 'hot_value','status','is_changed')
                    , ('sale_time', 'reserve_time', 'contactor')
-                   , ('memo',), ('voting',)
+                   , ('memo',), ('voting','orderlist_show_memo')
                    )}),)
 
     # def sale_info(self, obj):

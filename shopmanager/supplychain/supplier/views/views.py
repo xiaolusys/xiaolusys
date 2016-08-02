@@ -145,6 +145,8 @@ class SaleProductList(generics.ListCreateAPIView):
         data = request.data
         supplier_id = data["supplier"]
         supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
+
+        print 'data:', data
         if not supplier.is_active():
             return Response({'code': 1,
                              'error_response': '供应商已被淘汰，不能添加商品',
@@ -160,8 +162,8 @@ class SaleProductList(generics.ListCreateAPIView):
                     v = SaleCategory.objects.get(id=v)
                 if k == 'title':
                     v = v + "-" + supplier.supplier_name
-                if k == 'orderlist_show_memo' and v == 'on':
-                    v = True
+                if k == 'orderlist_show_memo':
+                    v = v.lower() in ('on', 'true')
                 hasattr(sproduct, k) and setattr(sproduct, k, v)
         sproduct.sale_supplier = supplier
         sproduct.status = sproduct.status or SaleProduct.SELECTED
@@ -271,12 +273,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
             if not hasattr(instance, k):
                 continue
             if k == 'orderlist_show_memo':
-                if v == 'on':
-                    v = True
-                    instance.orderlist_show_memo = True
-                else:
-                    v = False
-                    instance.orderlist_show_memo = False
+                instance.orderlist_show_memo = v.lower() in ('on', 'true')
                 instance.save(update_fields=['orderlist_show_memo'])
             update_field_labels.append('%s:%s' % (
                 SaleProduct._meta.get_field(k).verbose_name.title(), v))
@@ -521,8 +518,8 @@ class FetchAndCreateProduct(APIView):
                 v = SaleCategory.objects.get(id=v)
             if k == 'sale_time' and not v:
                 continue
-            if k == 'orderlist_show_memo' and v == 'on':
-                v = True
+            if k == 'orderlist_show_memo':
+                v = v.lower() in ('on', 'true')
             hasattr(sproduct, k) and setattr(sproduct, k, v)
         if supplier_sku:
             sproduct.supplier_sku = supplier_sku.strip()

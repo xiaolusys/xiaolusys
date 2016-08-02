@@ -16,7 +16,7 @@ class SaleCategory(BaseModel):
     DELETE = 'delete'
 
     CAT_STATUS = ((NORMAL, u'正常'),
-                  (DELETE, u'删除'))
+                  (DELETE, u'未使用'))
 
     FIRST_GRADE = 1
 

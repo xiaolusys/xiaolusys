@@ -102,6 +102,7 @@ class SaleProductSerializer(serializers.ModelSerializer):
     status = StatusField()
     platform = PlatformField()
     sale_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    orderlist_show_memo = serializers.NullBooleanField()
 
     class Meta:
         model = SaleProduct
