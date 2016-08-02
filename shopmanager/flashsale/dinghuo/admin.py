@@ -247,15 +247,13 @@ class OrderListAdmin(admin.ModelAdmin):
                 psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
                 psi_total = psi_res['total'] or 0
                 psis_total += psi_total
-                
             ods_res = OrderDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey).aggregate(total=Sum('buy_quantity'))
             ods_total = ods_res['total'] or 0
             if psis_total != ods_total:
                 log_action(request.user.id, p, CHANGE, u'数量不对，审核失败')
                 break
-            
-            if p.status != u'审核':
-                p.set_stage_verify(is_postpay=True)
+            if p.stage < OrderList.STAGE_CHECKED:
+                p.set_stage_verify()
                 log_action(request.user.id, p, CHANGE, u'审核订货单')
                 self.message_user(request, u'已成功审核!')
         return HttpResponseRedirect(request.get_full_path())
