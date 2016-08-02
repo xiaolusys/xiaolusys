@@ -349,3 +349,10 @@ def task_order_trigger(sale_order):
 
     task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
                                  carry_scheme.name, via_app)
+
+@task()
+def carryrecord_update_xiaolumama_active_hasale(mmid):
+    from flashsale.xiaolumm.models import CarryRecord
+    active = CarryRecord.objects.filter(mama_id=mmid, carry_type=2, status__in=[1, 2]).exists()
+    if active:
+        XiaoluMama.objects.get(id=mmid).set_active()

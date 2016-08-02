@@ -761,6 +761,8 @@ def task_xiaolu_daily_stat():
 
     now = datetime.datetime.now()
     DailyStat.create(now)
+    from statistics.models import XlmmDailyStat
+    XlmmDailyStat.create(now)
 
 
 def judgement_schedule_manager(managers, saleorderstatsrecord):

@@ -185,8 +185,7 @@ class SaleStats(BaseModel):
 
 
 def update_parent_sale_stats(sender, instance, created, **kwargs):
-    from statistics.tasks import task_update_parent_sale_stats, task_update_agg_sale_stats
-    from tasks import gen_date_ftt_info, find_upper_timely_type
+    from statistics.tasks import task_update_parent_sale_stats, task_update_agg_sale_stats, gen_date_ftt_info, find_upper_timely_type
 
     if instance.record_type <= constants.TYPE_AGG:  #
         # 小于买手级别的  都要更新 周\月\季度\年度细分
@@ -248,8 +247,7 @@ class ProductStockStat(BaseModel):
 
 
 def update_parent_stock_stats(sender, instance, created, **kwargs):
-    from statistics.tasks import task_update_parent_stock_stats, task_update_agg_stock_stats
-    from tasks import gen_date_ftt_info, find_upper_timely_type
+    from statistics.tasks import task_update_parent_stock_stats, task_update_agg_stock_stats, gen_date_ftt_info, find_upper_timely_type
 
     if instance.record_type <= constants.TYPE_AGG:  #
         # 小于买手级别的  都要更新 周\月\季度\年度细分

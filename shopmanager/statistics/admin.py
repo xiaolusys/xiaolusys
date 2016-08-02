@@ -1,7 +1,7 @@
 # coding=utf-8
 from django.contrib import admin
 from core.utils.modelutils import get_class_fields
-from statistics.models import SaleOrderStatsRecord, SaleStats, ProductStockStat
+from statistics.models import SaleOrderStatsRecord, SaleStats, ProductStockStat, XlmmDailyStat
 from statistics import constants
 from statistics.models import DailyStat, ModelStats
 
@@ -189,3 +189,18 @@ class ModelStatsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ModelStats, ModelStatsAdmin)
+
+
+class XlmmDailyStatAdmin(admin.ModelAdmin):
+    list_display = (
+        'total', 'new_join', 'new_pay', 'new_activite', 'new_hasale', 'new_trial', 'new_trial_activite',
+        'new_trial_hasale', 'new_task', 'new_lesson', 'new_award', 'date_field', 'created'
+    )
+    list_per_page = 50
+    list_filter = (
+        "created",
+    )
+    search_fields = ['created']
+
+
+admin.site.register(XlmmDailyStat, XlmmDailyStatAdmin)

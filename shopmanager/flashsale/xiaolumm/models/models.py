@@ -104,6 +104,9 @@ class XiaoluMama(models.Model):
     pending = models.IntegerField(default=0, verbose_name=u"冻结佣金")
 
     hasale = models.BooleanField(default=False, verbose_name=u"有购买")
+    hasale_time = models.DateTimeField(null=True, verbose_name=u"有购买时间")
+    active = models.BooleanField(default=False, verbose_name=u"已激活", help_text=u'有获得收益')
+    active_time = models.DateTimeField(null=True, verbose_name=u"激活时间")
     last_renew_type = models.IntegerField(choices=RENEW_TYPE, default=365, db_index=True, verbose_name=u"最近续费类型")
 
     agencylevel = models.IntegerField(default=INNER_LEVEL, db_index=True, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
@@ -385,6 +388,11 @@ class XiaoluMama(models.Model):
 
         return MM_CLICK_DAY_BASE_COUNT + MM_CLICK_PER_ORDER_PLUS_COUNT * ordernum
 
+    def set_active(self):
+        self.active = True
+        self.activetime = datetime.datetime.now()
+        self.save()
+
     def push_carrylog_to_cash(self, clog):
 
         if self.id != clog.xlmm or clog.status == CarryLog.CONFIRMED:
@@ -516,7 +524,7 @@ class XiaoluMama(models.Model):
     def get_invite_ids(self):
         from .models_fortune import ReferalRelationship
         return [i['referal_to_mama_id'] for i in
-                   ReferalRelationship.objects.filter(referal_from_mama_id=self.id).values('referal_to_mama_id')]
+                ReferalRelationship.objects.filter(referal_from_mama_id=self.id).values('referal_to_mama_id')]
 
     def get_activite_num(self):
         from .models_fortune import CarryRecord
