@@ -79,7 +79,7 @@ class AddItemView(generics.ListCreateAPIView):
         elif category_item.cid == 9:
             outer_id = "100" + "%05d" % int(supplier)
         else:
-            return Response({"result": "类别错误"})
+            return Response({"result": "请补全三级类目信息"})
 
         count = Product.objects.filter(outer_id__startswith=outer_id).count() or 1
         while True:
