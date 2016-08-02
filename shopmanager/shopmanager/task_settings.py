@@ -608,6 +608,15 @@ LOGISTICS_ROUTES = {
         'queue': 'logistics',
         'routing_key': 'logistics.SaveWuliu_by_packetid',
     },
+    'flashsale.restpro.tasks.SaveReturnWuliu_by_packetid':{                             #by huanzi 根据物流号和物流公司更新物流状态写入数据库
+        'queue':'logistics',
+        'routing_key': 'logistics.SaveReturnWuliu_by_packetid',
+    },
+    'flashsale.restpro.tasks.get_third_apidata_by_packetid_return':{                            #by huanzi  调用第三方api 查得最新物流状态
+        'queue':'logistics',
+        'routing_key': 'logistics.get_third_apidata_by_packetid_return',
+    }
+
 }
 
 CELERY_ROUTES = {
@@ -1189,7 +1198,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-
+    u'定时更新客户退货的物流信息': {                                          #by huazi
+        'task': 'flashsale.restpro.tasks.update_all_return_logistics',
+        'schedule': crontab(),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     u'根据saleorder的退款状态更新saletrade的状态':{
         'task': 'flashsale.pay.tasks_stats.task_update_saletrade_refund_status',
         'schedule': crontab(minute="0", hour="23"),

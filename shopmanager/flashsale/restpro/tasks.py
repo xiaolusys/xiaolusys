@@ -9,7 +9,8 @@ from django.contrib.auth.models import User as DjangoUser
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopPros
 from shopback.items.models import Product
-from shopback.trades.models import TradeWuliu, PackageSkuItem
+from flashsale.pay.models import SaleRefund
+from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.v1.views_cushops import save_pro_info
 
 import logging
@@ -158,6 +159,19 @@ def get_third_apidata_by_packetid(packetid, company_code):
     SaveWuliu_by_packetid.delay(packetid, content)  # 异步任务，存储物 流信息到数据库
     return
 
+@task()
+def get_third_apidata_by_packetid_return(packetid, company_code):   #by huazi
+    """ 使用包裹id访问第三方api 获取退货物流参数 并保存到本地数据库　"""
+
+    # 快递编码(快递公司编码)
+    exType = company_code if company_code is not None else default_post
+    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': packetid, 'key': apikey,
+            'uid': uid}
+    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
+    content = json.loads(req.read())
+    SaveReturnWuliu_by_packetid.delay(packetid,content)
+    return
+
 @task(max_retries=3, default_retry_delay=5)
 def SaveWuliu_only(tid, content):
     """
@@ -203,6 +217,30 @@ def SaveWuliu_by_packetid(packetid, content):
                                       out_sid=content['order'], errcode=content['errcode'],
                                       content=da['content'], time=da['time'])
 
+@task(max_retries=3, default_retry_delay=5)  #by huazi
+def SaveReturnWuliu_by_packetid(packetid, content):
+    """
+        用户点击物流信息，进行物流信息存入数据库。
+    """
+    wulius = ReturnWuLiu.objects.filter(out_sid=packetid).order_by("-time")
+    datalen = len(content['data'])
+    data = content['data']
+    alread_count = wulius.count()
+    if alread_count >= datalen:  # 已有记录条数大于等于接口给予条数只是更新状态到最后一条记录中
+        if wulius.exists():
+            wuliu = wulius[0]
+            wuliu.status = int(content['status'])
+            wuliu.save()
+            # print "写入成功"
+    else:  # 如果接口数据大于已经存储的条数　则创建　多出来的条目　
+        if wulius.exists():
+            wulius.delete()  # 删除旧数据
+        for da in data:  # 保存新数据
+            ReturnWuLiu.objects.create(tid='', status=content['status'], logistics_company=content['name'],
+                                      out_sid=content['order'], errcode=content['errcode'],
+                                      content=da['content'], time=da['time'])
+            # print "写入成功"
+
 @task()
 def update_all_logistics():
     from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid
@@ -227,6 +265,24 @@ def update_all_logistics():
     logger = logging.getLogger(__name__)
     logger.warn('update_all_logistics trades counts=%d, update counts=%d' % (sale_trades.count(), num))
 
+@task()
+def update_all_return_logistics():     #by huazi
+    from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid_return
+    salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                                        SaleRefund.REFUND_CONFIRM_GOODS])
+    from shopback.logistics.models import LogisticsCompany
+    for i in salerefunds:
+        if i.company_name:
+            company_id = LogisticsCompany.objects.filter(name=i.company_name).first()
+            if not company_id:
+                lc = LogisticsCompany.objects.values("name")
+                head = i.company_name.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')
+                sim = [j['name'] for j in lc if j['name'].find(head)!=-1]
+                if len(sim):
+                    company_id = LogisticsCompany.objects.get(name=sim[0])
+            if company_id and i.sid:
+                get_third_apidata_by_packetid_return(i.sid,company_id.code)
+    logger.warn('update_all_return_logistics')
 
 @task()
 def prods_position_handler():
