@@ -97,14 +97,14 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
         res['rank'] = mama_carry.activite_rank
         res['rank_add'] = 0
         team = MamaTeamCarryTotal.objects.get(pk=mama_carry.mama_id)
-        res['recommended_quantity'] = team.members.count()
+        res['recommended_quantity'] = len(mama.get_invite_potential_mama_ids())
         res['team_total'] = team.expect_total
         res['team_rank'] = team.activite_rank
         res['team_total_display'] = float('%.2f' % (team.expect_total * 0.01))
         res['duration_total'] = mama_carry.duration_total + mama_carry.expect_total
         res['duration_total_display'] = float('%.2f' % (mama_carry.expect_total * 0.01))
         res['team_num'] = team.duration_num
-        res['activite_num'] = mama.get_activite_num()
+        res['activite_num'] = len(mama.get_active_invite_potential_mama_ids())
         # res['invitate_num'] = 0
         return Response(res)
 
