@@ -434,6 +434,10 @@ MAMA_CARRY_ROUTES = {
         'queue': 'mama',
         'routing_key': 'mama.task_order_trigger',
     },
+    'flashsale.xiaolumm.tasks_mama.carryrecord_update_xiaolumama_active_hasale': {
+        'queue': 'mama',
+        'routing_key': 'mama.carryrecord_update_xiaolumama_active_hasale',
+    },
 }
 
 # MAMA_REGISTER_ROUTE = {
