@@ -9,4 +9,5 @@ urlpatterns = patterns('',
     url(r'^forecast/', include('flashsale.forecast.urls')),
     url(r'^items/', include('shopback.items.urls_api')),
     url(r'^statistics/', include('statistics.urls_api')),
+    url(r'^auth/', include('auth.urls_api')),
 )
