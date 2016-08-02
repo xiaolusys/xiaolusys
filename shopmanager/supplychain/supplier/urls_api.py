@@ -41,6 +41,10 @@ router_urls += ([
     url(r'^saleschedule/(?P<schedule_id>[0-9]+)/adjust_order_weight/(?P<pk>[0-9]+)$',
         views.SaleScheduleDetailViewSet.as_view({'patch': 'adjust_order_weight'}),
         name='saleschedule-product-adjust-order-weight'),
+
+    url(r'^saleschedule/(?P<schedule_id>[0-9]+)/update_assign_worker$',
+        views.SaleScheduleDetailViewSet.as_view({'post': 'update_assign_worker'}),
+        name='saleschedule-product-update-assign-worker'),
     ])
 
 urlpatterns = patterns('',

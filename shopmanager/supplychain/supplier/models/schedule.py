@@ -121,6 +121,8 @@ class SaleProductManageDetail(models.Model):
     pic_rating = models.FloatField(blank=True, null=True, verbose_name=u'作图评分')
     is_approved = models.SmallIntegerField(default=0, verbose_name=u'审核通过')
     is_promotion = models.BooleanField(default=False, verbose_name=u'推广商品')
+    reference_user = models.BigIntegerField(default=0, db_index=True, verbose_name=u"资料录入人")
+    photo_user = models.BigIntegerField(default=0, db_index=True, verbose_name=u"平面制作人")
     order_weight = models.IntegerField(db_index=True, default=8, choices=WEIGHT_CHOICE, verbose_name=u'权值')
 
     class Meta:
@@ -136,6 +138,7 @@ class SaleProductManageDetail(models.Model):
             ('eliminate_product', u'淘汰排期商品'),
             ('reset_head_img', u'重置头图'),
             ('delete_schedule_detail', u'删除排期明细记录'),
+            ('distribute_schedule_detail', u'排期管理任务分配'),
         ]
 
     def __unicode__(self):

@@ -19,6 +19,7 @@ from flashsale.xiaolumm.models import (
     PotentialMama,
     UserGroup
 )
+from flashsale.xiaolumm.models.message import XlmmMessage
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from . import forms
 from .filters import UserNameFilter
@@ -528,7 +529,8 @@ from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Les
 
 
 class LessonTopicAdmin(admin.ModelAdmin):
-    list_display = ('title', 'cover_image', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')
+    list_display = (
+        'title', 'cover_image', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')
     search_fields = ('title',)
     list_filter = ('lesson_type', 'status',)
 
@@ -676,3 +678,17 @@ class TeamCarryTotalRecordAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TeamCarryTotalRecord, TeamCarryTotalRecordAdmin)
+
+
+class XlmmMessageAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', "content_link", 'content', 'dest', 'status', 'creator', 'created')
+    list_filter = ()
+    search_fields = ('id', "title", '=content_link')
+    add_form_template = 'admin/xiaolumm/message/add_form.html'
+    def to_mama(self, obj):
+        return u'全体小鹿妈妈'
+
+    to_mama.short_description = u'接收人'
+
+
+admin.site.register(XlmmMessage, XlmmMessageAdmin)

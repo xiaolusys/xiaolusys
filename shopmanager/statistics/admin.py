@@ -110,6 +110,10 @@ class DailyStatAdmin(admin.ModelAdmin):
         'daytime',
         'total_stock',
         'total_amount',
+        'total_youni_stock',
+        'total_youni_amount',
+        'total_noyouni_stock',
+        'total_noyouni_amount',
         'total_order',
         'total_purchase',
         'note'
