@@ -8,7 +8,7 @@ from rest_framework import routers
 # 2016-3-2 v2
 from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login, views_packageskuitem
 from flashsale.restpro.v2 import views_trade_v2, views_product_v2, views_category
-
+from flashsale.xiaolumm import views_rank, views_message
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'categorys', views_category.SaleCategoryViewSet)

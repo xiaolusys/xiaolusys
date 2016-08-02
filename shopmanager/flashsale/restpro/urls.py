@@ -132,8 +132,6 @@ router_urls += format_suffix_patterns([
 # 2016-3-2 v2
 from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login, views_packageskuitem
 from flashsale.restpro.v2 import views_trade_v2, views_product_v2
-from flashsale.xiaolumm import views_rank, views_message
-
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'carts', views_trade_v2.ShoppingCartViewSet)
