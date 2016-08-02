@@ -3,8 +3,13 @@ __author__ = 'huazi'
 from django.db import models
 from django.contrib.auth.models import User
 import datetime
+from django.db.models.signals import post_save
+import logging
+logger = logging.getLogger(__name__)
+
 
 class WorkOrder(models.Model):
+
 
     STATUS_PENDING = 0
     STATUS_DEALING = 1
@@ -67,7 +72,9 @@ class WorkOrder(models.Model):
     creater = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'创建人')
     dealer = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'处理人')
     created_time = models.DateTimeField(auto_now_add=True, db_index=True,verbose_name=u'提交日期')
+    start_time = models.DateTimeField(null=True,db_index=True, verbose_name=u'开始处理日期')
     modified_time = models.DateTimeField(null=True,db_index=True, verbose_name=u'处理日期')
+    closed_time = models.DateTimeField(null=True,db_index=True, verbose_name=u'关闭日期')
 
     class Meta:
         db_table = 'flashsale_workorder'
@@ -113,6 +120,23 @@ class WorkOrder(models.Model):
         """设置工单为已完成"""
         self.status = WorkOrder.STATUS_FINISHED
         self.save(update_fields=['status'])
+
+def work_order_update_time(sender, instance, created, **kwargs):
+    logger.info('post_save workorder: %s' % instance)
+    if instance.status == WorkOrder.STATUS_DEALING:
+        WorkOrder.objects.filter(id=instance.id).update(start_time = datetime.datetime.now())
+    elif instance.status == WorkOrder.STATUS_DEALED:
+        WorkOrder.objects.filter(id=instance.id).update(modified_time = datetime.datetime.now())
+    elif instance.status == WorkOrder.STATUS_FINISHED:
+        WorkOrder.objects.filter(id=instance.id).update(closed_time = datetime.datetime.now())
+    if instance.is_valid == WorkOrder.NO:
+        WorkOrder.objects.filter(id=instance.id).update(closed_time = datetime.datetime.now())
+
+
+post_save.connect(
+    work_order_update_time,
+    sender=WorkOrder,
+    dispatch_uid='post_save_update_stage')
 
 
 
