@@ -607,7 +607,7 @@ class ForecastManageViewSet(viewsets.ModelViewSet):
                         round(float(odetail['total_price']) / odetail['buy_quantity'], 2) or 0
             unwork_num = odetail['buy_quantity'] - arrived_num + return_num
             inferior_num = inbound_detail and inbound_detail['inferior_quantity'] or 0
-            unarrival_num = max(0, odetail['buy_quantity'] - arrived_num)
+            unarrival_num = max(0, odetail['buy_quantity'] + inferior_num - arrived_num)
             excess_num  = abs(min(0, odetail['buy_quantity'] - arrived_num + inferior_num))
             # 如果到货超出预订，则计算未到货数量时需考虑次品
             sku_detail.update({

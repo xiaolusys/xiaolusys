@@ -15,14 +15,16 @@ logger = logging.getLogger(__name__)
 
 
 def recursive_append_child_districts(node, node_maps):
-    child_nodes = node_maps.get(node['id'])
+    copy_node = node.copy()
+    child_nodes = node_maps.get(copy_node['id'])
     if not child_nodes:
-        return node
-    node.setdefault('childs', [])
-    for child_node in child_nodes:
-        node['childs'].append(child_node)
-        recursive_append_child_districts(child_node, node_maps)
+        return copy_node
 
+    copy_node.setdefault('childs', [])
+    for child_node in child_nodes:
+        child_node = recursive_append_child_districts(child_node, node_maps)
+        copy_node['childs'].append(child_node)
+    return copy_node
 
 def get_district_json_data():
     districts = District.objects.filter(is_valid=True).order_by('parent_id', 'sort_order')
@@ -32,9 +34,8 @@ def get_district_json_data():
     for district in districts_values:
         districts_tree_nodes[district['parent_id']].append(district)
 
-    root_node = {'id':0 }
-    recursive_append_child_districts(root_node, districts_tree_nodes)
-    return root_node.get('childs', [])
+    node_tree = recursive_append_child_districts({'id':0 }, districts_tree_nodes)
+    return node_tree.get('childs', [])
 
 
 class FlashSaleService(LocalService):

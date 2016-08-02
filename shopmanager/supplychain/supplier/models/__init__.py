@@ -1,5 +1,5 @@
 from .supplier import SaleSupplier, SupplierCharge, SupplierZone
-from .category import SaleCategory
+from .category import SaleCategory, SaleCategoryVersion
 from .product import SaleProduct, HotProduct
 from .praise import SalePraise
 from .schedule import SaleProductManage, SaleProductManageDetail, SaleProductSku, SaleProductPicRatingMemo

@@ -32,12 +32,26 @@ class FavoritesViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         customer = Customer.getCustomerByUser(user=request.user)
+        shelf_status = request.GET.get('shelf_status', None)
 
         if not customer:
             return Response({"code": 7, "info": u"用户未找到"})  # 登录过期
 
         queryset = self.queryset.filter(customer_id=customer.id).order_by('-created')
-        queryset = self.paginate_queryset(queryset)
+
+        result = []
+        if shelf_status:
+            try:
+                shelf_status = int(shelf_status)
+            except Exception:
+                return Response({"code": 1, "info": u"参数错误"})
+            for qs in queryset:
+                if qs.model.shelf_status == shelf_status:
+                    result.append(qs)
+        else:
+            result = queryset
+
+        queryset = self.paginate_queryset(result)
         serializers = self.get_serializer(queryset, many=True)
         return Response(serializers.data)
 

@@ -258,7 +258,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
             Q(relate_order_set=orderlist_id) | Q(express_no=express_no),
             status__in=(ForecastInbound.ST_APPROVED,ForecastInbound.ST_DRAFT))
         if forecast_inbounds.exists():
-            return forecast_inbounds
+            return forecast_inbounds.distinct()
 
         forecast_inbounds = []
         if order_list:

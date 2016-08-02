@@ -17,6 +17,13 @@
                 <label class="control-label" for="dt">结束日期:</label>
                 <input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ end_date }}"/>
             </div>
+            <div class="col-xs-2">
+                <label class="control-label">周期</label>
+                <select name="category" class="form-control">
+                   <option value="month" {% if category == 'month' %} selected {% endif %}>按月</option>
+                   <option value="week" {% if category == 'week' %} selected {% endif %}>按周</option>
+                </select>
+            </div>
             <div class="col-xs-1">
                 <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
             </div>
@@ -29,10 +36,21 @@
             <thead>
             <th>新增(用户数)复购率(%)</th>
             {% for month in month_range %}
-                <th>{{ month }}月份</th>
+                <th>{{ month }}</th>
             {% endfor %}
             </thead>
             <tbody>
+            {% for row in customer_repeat_buy_data %}
+            <tr>
+                {% for col in row %}
+                {% if forloop.counter == 1 %}
+                <td>{{ row.0 }}</td>
+                {% else %}
+                <td>{{ col.0 }}({{ col.1 }}%)</td>
+                {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>

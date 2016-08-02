@@ -1,18 +1,23 @@
 # -*- coding:utf-8 -*-
-import datetime
 import re
+import json
+import hashlib
+import datetime
+from cStringIO import StringIO
 
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 
-from core.options import log_action, ADDITION, CHANGE
 from core.admin import ApproxAdmin
+from core.options import log_action, ADDITION, CHANGE
+from core.upload import upload_public_to_remote, generate_public_url
 from .models import (
     SaleProduct,
     SaleSupplier,
     SaleCategory,
+    SaleCategoryVersion,
     SupplierCharge,
     SupplierFigure,
     HotProduct,
@@ -30,6 +35,9 @@ from supplychain.supplier.models import SaleProduct, SaleProductManage, SaleProd
 
 from shopback.items.models import Product
 from django.contrib.auth.models import User
+
+import logging
+logger = logging.getLogger(__name__)
 
 class SaleSupplierChangeList(ChangeList):
 
@@ -295,7 +303,7 @@ admin.site.register(SaleSupplier, SaleSupplierAdmin)
 
 
 class SaleCategoryAdmin(admin.ModelAdmin):
-    list_display = ('cid', 'parent_cid', 'full_name', 'grade', 'is_parent', 'status', 'sort_order', 'created')
+    list_display = ('cid', 'parent_cid', 'category_pic_display', 'full_name', 'grade', 'is_parent', 'status', 'sort_order', 'created')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     def full_name(self, obj):
@@ -309,8 +317,56 @@ class SaleCategoryAdmin(admin.ModelAdmin):
     list_filter = ('status', 'is_parent')
     search_fields = ['=id', '=parent_cid', '=name']
 
+    def category_pic_display(self, obj):
+        return '<img src="%s" style="width:40px;height:40px;">'%obj.cat_pic
+
+    category_pic_display.allow_tags = True
+    category_pic_display.short_description = u"类目图片"
+
 
 admin.site.register(SaleCategory, SaleCategoryAdmin)
+
+
+class SaleCategoryVersionAdmin(ApproxAdmin):
+    list_display = ('id', 'version', 'sha1', 'memo', 'status')
+    search_fields = ['=id', '=version', '=sha1']
+
+    list_filter = ('status',)
+
+    def response_change(self, request, obj, *args, **kwargs):
+        # 订单处理页面
+        opts = obj._meta
+        # Handle proxy models automatically created by .only() or .defer()
+        verbose_name = opts.verbose_name
+        if obj._deferred:
+            opts_ = opts.proxy_for_model._meta
+            verbose_name = opts_.verbose_name
+        pk_value = obj._get_pk_val()
+        obj.status = False
+        if not obj.download_url:
+            try:
+                category_data = SaleCategory.get_salecategory_jsontree()
+                districts_jsonstring = json.dumps(category_data, indent=2)
+                string_io = StringIO(districts_jsonstring)
+                resp = upload_public_to_remote(obj.gen_filepath(), string_io)
+                obj.sha1 = hashlib.sha1(districts_jsonstring).hexdigest()
+                logger.info('upload salecategory resp:%s' % resp)
+                if resp.status_code != 200:
+                    obj.memo += u'分类数据文件上传异常:%s' % resp.text_body
+                    obj.save(update_fields=['memo', 'sha1'])
+                    raise Exception(u'分类数据文件上传异常:%s' % resp.text_body)
+
+                obj.download_url = generate_public_url(obj.gen_filepath())
+                obj.status = True
+                obj.save(update_fields=['download_url', 'memo', 'sha1', 'status'])
+            except Exception, exc:
+                self.message_user(request, u"类目版本更新失败：%s" % (exc.message))
+                logger.error(u"类目版本更新失败：%s" % (exc.message), exc_info=True)
+
+        return super(SaleCategoryVersionAdmin, self).response_change(request, obj, *args, **kwargs)
+
+
+admin.site.register(SaleCategoryVersion, SaleCategoryVersionAdmin)
 
 
 class SupplierZoneAdmin(admin.ModelAdmin):

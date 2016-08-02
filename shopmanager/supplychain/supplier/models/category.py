@@ -1,15 +1,47 @@
 # -*- coding:utf-8 -*-
 
+from collections import defaultdict
+
+from django.db.models.signals import pre_save, post_save
 from django.core.cache import cache
 from django.db import models
 
 from core.models import BaseModel
+
+import logging
+logger = logging.getLogger(__name__)
+
+def recursive_append_child_salecategorys(node, node_maps):
+    copy_node = node.copy()
+    child_nodes = node_maps.get(copy_node['cid'])
+    if not child_nodes:
+        return copy_node
+
+    copy_node.setdefault('childs', [])
+    for child_node in child_nodes:
+        child_node = recursive_append_child_salecategorys(child_node, node_maps)
+        copy_node['childs'].append(child_node)
+    return copy_node
+
+
+def get_salecategory_json_data():
+    districts = SaleCategory.objects.filter(status=SaleCategory.NORMAL).order_by('parent_cid', 'sort_order')
+    districts_values = districts.values('cid', 'parent_cid', 'name', 'cat_pic', 'grade')
+
+    salecategorys_tree_nodes = defaultdict(list)
+    for district in districts_values:
+        salecategorys_tree_nodes[district['parent_cid']].append(district)
+
+    node_tree = recursive_append_child_salecategorys({'cid':0 }, salecategorys_tree_nodes)
+    return node_tree.get('childs', [])
+
 
 def default_salecategory_cid():
     sc = SaleCategory.objects.order_by('-cid').first()
     if sc:
         return sc.cid + 1
     return 1
+
 
 class SaleCategory(BaseModel):
     NORMAL = 'normal'
@@ -19,12 +51,14 @@ class SaleCategory(BaseModel):
                   (DELETE, u'未使用'))
 
     FIRST_GRADE = 1
-
+    CACHE_TIME  = 24 * 60 * 60
+    CACHE_KEY   = '%s.%s'%(__name__, 'SaleCategory')
     SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
 
     cid = models.IntegerField(null=False, default=default_salecategory_cid, unique=True, verbose_name=u'类目ID')
     parent_cid = models.IntegerField(null=False, db_index=True, verbose_name=u'父类目ID')
     name = models.CharField(max_length=64, blank=True, verbose_name=u'类目名')
+    cat_pic = models.CharField(max_length=256, blank=True, verbose_name=u'展示图片')
 
     grade     = models.IntegerField(default=0, db_index=True, verbose_name=u'类目等级')
     is_parent = models.BooleanField(default=True, verbose_name=u'父类目')
@@ -97,5 +131,57 @@ class SaleCategory(BaseModel):
             cnt += 1
         return None
 
+    @classmethod
+    def latest_version(cls):
+        # TODO 此处需要使用cache并考虑invalidate
+        version = SaleCategoryVersion.get_latest_version()
+        if version:
+            return {'version': version.version,
+                    'download_url': version.download_url,
+                    'sha1': version.sha1}
+        return {}
+
+    @classmethod
+    def get_salecategory_jsontree(cls):
+        if not hasattr(cls, '_salecategory_'):
+            cache_value = cache.get(cls.CACHE_KEY)
+            if not cache_value:
+                cache_value = get_salecategory_json_data()
+                cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
+            cls._salecategory_ = cache_value
+        return cls._salecategory_
 
 
+def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
+    logger.info('salecategory: invalid cachekey %s'% SaleCategory.CACHE_KEY)
+    cache.delete(SaleCategory.CACHE_KEY)
+
+post_save.connect(invalid_salecategory_data_cache,
+                  sender=SaleCategory,
+                  dispatch_uid='post_save_invalid_salecategory_data_cache')
+
+
+class SaleCategoryVersion(BaseModel):
+
+    version = models.CharField(max_length=32, unique=True, verbose_name=u'版本号')
+    download_url = models.CharField(max_length=256, blank=True, verbose_name=u'下载链接')
+    sha1 = models.CharField(max_length='128', blank=True, verbose_name=u'sha1值')
+    memo = models.TextField(blank=True, verbose_name=u'备注')
+    status = models.BooleanField(default=False, verbose_name=u'生效')
+
+    class Meta:
+        db_table = 'supplychain_salecategory_version'
+        app_label = 'supplier'
+        verbose_name = u'特卖类目版本'
+        verbose_name_plural = u'特卖类目版本更新列表'
+
+    def __unicode__(self):
+        return '<%s, %s>' % (self.id, self.version)
+
+    def gen_filepath(self):
+        return 'category/xiaolumm-category-%s.json'%self.version
+
+    @classmethod
+    def get_latest_version(cls):
+        latest_version = cls.objects.filter(status=True).order_by('-created').first()
+        return latest_version
