@@ -281,7 +281,7 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         time_to = datetime.datetime(carry_date.year, carry_date.month, carry_date.day, 23, 59, 59)
         shopings = StatisticsShopping.objects.filter(linkid=xlmm.id,
                                                      status__in=(
-                                                     StatisticsShopping.WAIT_SEND, StatisticsShopping.FINISHED),
+                                                         StatisticsShopping.WAIT_SEND, StatisticsShopping.FINISHED),
                                                      shoptime__range=(time_from, time_to))
 
         rebeta_fee = shopings.aggregate(total_rebeta=Sum('tichengcount')).get('total_rebeta') or 0
@@ -329,7 +329,7 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         time_to = datetime.datetime(carry_date.year, carry_date.month, carry_date.day, 23, 59, 59)
         shopings = StatisticsShopping.objects.filter(linkid=cl.order_num,
                                                      status__in=(
-                                                     StatisticsShopping.WAIT_SEND, StatisticsShopping.FINISHED),
+                                                         StatisticsShopping.WAIT_SEND, StatisticsShopping.FINISHED),
                                                      shoptime__range=(time_from, time_to))
 
         calc_fee = shopings.aggregate(total_amount=Sum('rebetamount')).get('total_amount') or 0
@@ -498,7 +498,7 @@ def task_AgencySubsidy_MamaContribu(target_date):  # 每天 写入记录
                                                                 log_type=CarryLog.AGENCY_SUBSIDY)
             if not state and carry_log_f.status != CarryLog.PENDING:
                 continue
-            #             carry_log_f.xlmm       = xlmm.id  # 锁定本代理
+            # carry_log_f.xlmm       = xlmm.id  # 锁定本代理
             #             carry_log_f.order_num  = sub_xlmm.id      # 这里写的是子代理的ID
             carry_log_f.buyer_nick = xlmm.mobile
             carry_log_f.carry_type = CarryLog.CARRY_IN
@@ -855,7 +855,7 @@ def task_unitary_mama(obj):
     :type obj: SaleTrade instance
     """
     from flashsale.pay.models import SaleTrade
-    if not(obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
+    if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
         return
     order = obj.sale_orders.all().first()
     if not order.is_1_deposit():  # 不是一元开店不做处理
@@ -922,7 +922,8 @@ def task_unitary_mama(obj):
     time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
     statsd.timing('xiaolumm.new_yiyuan_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
                                                                              payment=1.0,
-                                                                             pay_time__range=(time_from, time_to)).count())
+                                                                             pay_time__range=(
+                                                                             time_from, time_to)).count())
 
     statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
                                                                         pay_time__range=(time_from, time_to)).count())
@@ -950,7 +951,7 @@ def task_register_mama(obj):
     :type obj: SaleTrade instance
     """
     from flashsale.pay.models import SaleTrade
-    if not(obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
+    if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
         return
     order = obj.sale_orders.all().first()
     if not (order.is_99_deposit() or order.is_188_deposit()):  # 非代理注册　订单不处理
@@ -980,7 +981,7 @@ def task_register_mama(obj):
     if xlmm.charge_status != XiaoluMama.CHARGED:
         update_fields.append('charge_status')
         xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
-    if not xlmm.charge_time:    # 如果没有接管时间　则赋值现在时间
+    if not xlmm.charge_time:  # 如果没有接管时间　则赋值现在时间
         update_fields.append("charge_time")
         xlmm.charge_time = now  # 接管时间
     if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类
@@ -999,7 +1000,7 @@ def task_register_mama(obj):
     mm_linkid = obj.extras_info.get('mm_linkid') or None
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
     if referal_mm:
-        if not xlmm.referal_from:   # 如果没有填写推荐人　更新推荐人
+        if not xlmm.referal_from:  # 如果没有填写推荐人　更新推荐人
             update_fields.append("referal_from")
             xlmm.referal_from = referal_mm.mobile
     if update_fields:
@@ -1038,13 +1039,14 @@ def task_register_mama(obj):
     statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
                                                                         pay_time__range=(time_from, time_to)).count())
 
+
 @task()
 def task_renew_mama(obj):
     """
     :type obj: SaleTrade instance
     """
     from flashsale.pay.models import SaleTrade
-    if not(obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
+    if not (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
         return
     order = obj.sale_orders.all().first()
 
@@ -1062,7 +1064,7 @@ def task_renew_mama(obj):
     xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
     if not xlmm:  # 代理
         return
-    if xlmm.charge_status != XiaoluMama.CHARGED:   # 如果不是接管的不处理
+    if xlmm.charge_status != XiaoluMama.CHARGED:  # 如果不是接管的不处理
         return
     if xlmm.last_renew_type == XiaoluMama.TRIAL:  # 试用代理不予续费服务
         return
@@ -1098,7 +1100,8 @@ def task_renew_mama(obj):
         time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
         statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
                                                                             pay_time__range=(
-                                                                            time_from, time_to)).count())
+                                                                                time_from, time_to)).count())
+
 
 @task()
 def task_mama_postphone_renew_time_by_active():
@@ -1137,7 +1140,7 @@ def task_update_trial_mama_full_member_by_condition(mama):
                                            agencylevel__gte=XiaoluMama.VIP_LEVEL,
                                            charge_status=XiaoluMama.CHARGED)  # 推荐人邀请的正式妈妈
     if join_mamas.count() >= 3:  # 满足条件
-        trial_mama.last_renew_type = XiaoluMama.HALF    # 转正为半年的类型
+        trial_mama.last_renew_type = XiaoluMama.HALF  # 转正为半年的类型
         trial_mama.renew_time = trial_mama.renew_time + datetime.timedelta(days=XiaoluMama.HALF)
         trial_mama.save(update_fields=['last_renew_type', 'renew_time'])
         sys_oa = get_systemoa_user()

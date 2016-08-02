@@ -238,6 +238,11 @@ class CarryRecord(BaseModel):
     def __unicode__(self):
         return '%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num)
 
+    @property
+    def mama(self):
+        from flashsale.xiaolumm.models import XiaoluMama
+        return XiaoluMama.objects.get(id=self.mama_id)
+
     def carry_type_name(self):
         return get_choice_name(self.CARRY_TYPES, self.carry_type)
 
@@ -282,9 +287,19 @@ def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
     tasks_mama_dailystats.task_carryrecord_update_dailystats.delay(instance.mama_id, instance.date_field)
 
 
+
+
 post_save.connect(carryrecord_update_mamafortune,
                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_mamafortune')
 
+
+def carryrecord_update_xiaolumama_active_hasale(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama
+    if not instance.mama.active:
+        tasks_mama.carryrecord_update_xiaolumama_active_hasale.delay(instance.mama_id)
+
+post_save.connect(carryrecord_update_xiaolumama_active_hasale,
+                  sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_xiaolumama_active_hasale')
 
 def carryrecord_update_carrytotal(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_mama_carry_total import task_carryrecord_update_carrytotal
