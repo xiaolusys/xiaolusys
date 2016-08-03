@@ -12,10 +12,15 @@ class Command(BaseCommand):
         start_day = datetime(2015, 1, 1)
 
         items = SaleTrade.objects.filter(pay_time__isnull=False, pay_time__gt=start_day).values('buyer_id').annotate(min_pay_time=Min('pay_time'))
-        for item in items:
+        total_count = items.count()
+
+        for i, item in enumerate(items):
             pay_time = item['min_pay_time']
             buyer_id = item['buyer_id']
 
-            customer = Customer.objects.get(id=buyer_id)
-            customer.first_paytime = pay_time
-            customer.save()
+            print '%s/%s' % (i, total_count), buyer_id
+
+            customer = Customer.objects.filter(id=buyer_id).first()
+            if customer:
+                customer.first_paytime = pay_time
+                customer.save()
