@@ -285,7 +285,7 @@ def update_productskustats_refund_quantity(sender, instance, created, **kwargs):
     if sku_id:
         RefundProduct.objects.filter(id=instance.id).update(sku_id=sku_id)
         task_refundproduct_update_productskustats_return_quantity.delay(sku_id)
-        task_update_inferiorsku_return_quantity.delay(instance.sku_id)
+        task_update_inferiorsku_return_quantity.delay(sku_id)
     else:
         logger.error(u"RefundProduct update_productskustats_refund_quantity error :" + str(RefundProduct.id))
 

@@ -104,16 +104,65 @@ def set_pacakges_attr():
 #     for merge_trade in MergeTrade.objects.filter(status=):
 #
 #     return
+from django.utils.datastructures import SortedDict
+# def set_package_merge_order_id():
+#     for package in PackageOrder.objects.filter(merge_trade_id=None):
+#         trades = set([])
+#         for sale_order in SaleOrder.objects.filter(package_order_id=package.id):
+#             trades.add(sale_order.sale_trade)
+#
+#         for item in package.sku_items:PackageOrder.gen_new_package_id
+#             tid = item.sale_order.sale_trade.tid
+#             MergeTrade.objects()
+import datetime
+from shopback.trades.models import PackageOrder, PackageSkuItem
 
-def set_package_merge_order_id():
-    for package in PackageOrder.objects.filter(merge_trade_id=None):
-        trades = set([])
-        for sale_order in SaleOrder.objects.filter(package_order_id=package.id):
-            trades.add(sale_order.sale_trade)
-
-        for item in package.sku_items:
-            tid = item.sale_order.sale_trade.tid
-            MergeTrade.objects()
+oid_dict = {}
+# 注意防重  运单号相同情况的处理。
+for item in PackageSkuItem.objects.filter(oids__in=oid_dict.keys()):
+    if not item.package_order:
+        item.assign_status = 2
+        trade = item.sale_trade
+        package_order_id = PackageOrder.gen_new_package_id(trade.buyer_id, trade.user_address_id, item.productsku.ware_by)
+        package = PackageOrder.objects.filter(id=package_order_id).first()
+        if not package:
+            package = PackageOrder.create(package_order_id, trade, PackageOrder.WAIT_PREPARE_SEND_STATUS,
+                                    item)
+        else:
+            package.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
+            package.save()
+    elif item.package_order and item.package_order.package_sku_item.count()==1:
+        if item.package_order.is_sent():
+            item.package_order.out_sid = oid_dict.get(item.id)
+            item.package_order.save()
+    elif item.package_order and item.package_order.package_sku_item.count()>1:
+        if item.package_order.is_sent():
+            package = PackageOrder.objects.filter(id__startswith=item.package_order_id[:item.package_order_id.rindex('-')]).exclude(sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS]).first()
+            if package:
+                if package.package_sku_items.exclude(id=item.id).exists():
+                    next_package_id = package.id[:package.id.rindex('-')+1] + str(int(package.id[package.id.rindex('-')+1:]) + 1)
+                    new_package = PackageOrder.create(id, item.sale_trade)
+                    package.package_sku_items.exclude(id=item.id).update(package_order_id=next_package_id)
+                item.package_order_id = package.id
+                package.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
+                package.status = 'WAIT_BUYER_CONFIRM_GOODS'
+                package.out_sid = oid_dict.get(item.oid)
+                package.weight_time = datetime.datetime.now()
+                package.save()
+            else:
+                package = item.package_order
+                trade = item.sale_trade
+                now_package_id = PackageOrder.gen_new_package_id(trade.buyer_id, trade.user_address_id, item.productsku.ware_by)
+                now_package = PackageOrder.create(now_package_id, item.sale_trade)
+                item.package_order_id = now_package.id
+                now_package.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
+                now_package.status = 'WAIT_BUYER_CONFIRM_GOODS'
+                now_package.out_sid = oid_dict.get(item.oid)
+                now_package.weight_time = datetime.datetime.now()
+                now_package.save()
+                item.save()
+    else:
+        item.clear_order_info()
 
 
 if __name__=='__main__':
