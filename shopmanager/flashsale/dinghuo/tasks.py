@@ -1686,8 +1686,8 @@ def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
 def task_purchaserecord_sync_purchasearrangement_status(pr):
     # print "debug: %s" % utils.get_cur_info()
 
-    if not pr.is_booked():
-        return
+    #if not pr.is_booked():
+    #    return
 
     purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
     uni_key = utils.gen_purchase_arrangement_unikey(purchase_order_unikey, pr.uni_key)
