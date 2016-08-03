@@ -25,20 +25,13 @@ class Migration(migrations.Migration):
                 ('modified', models.DateTimeField(auto_now=True, verbose_name='\u4fee\u6539\u65e5\u671f', null=True)),
                 ('errcode', models.CharField(max_length=64, verbose_name='\u9519\u8bef\u4ee3\u7801', blank=True)),
                 ('remark', models.CharField(max_length=64, verbose_name='\u5907\u6ce8', blank=True)),
+                ('icon', models.CharField(max_length=256, verbose_name='\u7269\u6d41\u516c\u53f8\u56fe\u6807', blank=True)),
+                ('rid', models.CharField(db_index=True, max_length=32, verbose_name='\u9000\u8d27\u5355ID', blank=True)),
             ],
             options={
                 'db_table': 'shop_returns_wuliudetail',
                 'verbose_name': '\u9000\u8d27\u7269\u6d41\u8ddf\u8e2a',
                 'verbose_name_plural': '\u9000\u8d27\u7269\u6d41\u8ddf\u8e2a\u5217\u8868',
             },
-        ),
-        migrations.RemoveField(
-            model_name='packageorder',
-            name='merged',
-        ),
-        migrations.AddField(
-            model_name='packageorder',
-            name='can_send_time',
-            field=models.DateTimeField(null=True, verbose_name='\u53ef\u53d1\u8d27\u65f6\u95f4', db_column=b'merged', blank=True),
         ),
     ]

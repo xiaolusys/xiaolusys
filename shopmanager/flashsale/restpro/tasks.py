@@ -160,7 +160,7 @@ def get_third_apidata_by_packetid(packetid, company_code):
     return
 
 @task()
-def get_third_apidata_by_packetid_return(packetid, company_code):   #by huazi
+def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huazi
     """ 使用包裹id访问第三方api 获取退货物流参数 并保存到本地数据库　"""
 
     # 快递编码(快递公司编码)
@@ -169,7 +169,7 @@ def get_third_apidata_by_packetid_return(packetid, company_code):   #by huazi
             'uid': uid}
     req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
     content = json.loads(req.read())
-    SaveReturnWuliu_by_packetid.delay(packetid,content)
+    SaveReturnWuliu_by_packetid.delay(rid,packetid,content)
     return
 
 @task(max_retries=3, default_retry_delay=5)
@@ -218,7 +218,7 @@ def SaveWuliu_by_packetid(packetid, content):
                                       content=da['content'], time=da['time'])
 
 @task(max_retries=3, default_retry_delay=5)  #by huazi
-def SaveReturnWuliu_by_packetid(packetid, content):
+def SaveReturnWuliu_by_packetid(rid,packetid, content):
     """
         用户点击物流信息，进行物流信息存入数据库。
     """
@@ -236,7 +236,7 @@ def SaveReturnWuliu_by_packetid(packetid, content):
         if wulius.exists():
             wulius.delete()  # 删除旧数据
         for da in data:  # 保存新数据
-            ReturnWuLiu.objects.create(tid='', status=content['status'], logistics_company=content['name'],
+            ReturnWuLiu.objects.create(tid='', rid=rid,status=content['status'], logistics_company=content['name'],
                                       out_sid=content['order'], errcode=content['errcode'],
                                       content=da['content'], time=da['time'])
             # print "写入成功"
@@ -281,7 +281,7 @@ def update_all_return_logistics():     #by huazi
                 if len(sim):
                     company_id = LogisticsCompany.objects.get(name=sim[0])
             if company_id and i.sid:
-                get_third_apidata_by_packetid_return(i.sid,company_id.code)
+                get_third_apidata_by_packetid_return(i.id,i.sid,company_id.code)
     logger.warn('update_all_return_logistics')
 
 @task()

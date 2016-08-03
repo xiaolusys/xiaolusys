@@ -1200,7 +1200,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时更新客户退货的物流信息': {                                          #by huazi
         'task': 'flashsale.restpro.tasks.update_all_return_logistics',
-        'schedule': crontab(),
+        'schedule': crontab(minute="0", hour="6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },

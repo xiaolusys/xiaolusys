@@ -1243,6 +1243,7 @@ class TradeWuliu(models.Model):
 
 class ReturnWuLiu(models.Model):
     tid = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'原单ID')
+    rid = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'退货单ID')
     out_sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流编号')
     logistics_company = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流公司')
     status = models.IntegerField(default=0, db_index=True, choices=REPLAY_TRADE__WULIU_STATUS, verbose_name=u'物流状态')

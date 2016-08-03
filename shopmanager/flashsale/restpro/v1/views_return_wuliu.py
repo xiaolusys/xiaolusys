@@ -16,7 +16,8 @@ from django.shortcuts import get_object_or_404
 from flashsale.pay.models import Customer, SaleTrade
 from shopback import paramconfig as pacg
 from shopback.logistics.models import LogisticsCompany
-
+import logging
+logger = logging.getLogger('lacked_wuliu_company_name')
 class ReturnWuliuViewSet(viewsets.ModelViewSet):
     """
     {prefix}/get_wuliu_by_tid: 由tid获取退货物流信息
@@ -119,15 +120,17 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
         if company_id:
             return company_id.code
         else:
+            logger.warn(company_name)
             return None
 
     @list_route(methods=['get'])
     def get_wuliu_company_code(self, request):
         company_name = request.REQUEST.get("company_name",None)
         if company_name is None:
+
             return Response([])
         else:
-            return Response([{'company_name':company_name,'company_id':self.get_company_code(company_name)}])
+            return Response({'company_name':company_name,'company_id':self.get_company_code(company_name)})
 
     @list_route(methods=['get'])
     def get_wuliu_by_packetid(self, request):
