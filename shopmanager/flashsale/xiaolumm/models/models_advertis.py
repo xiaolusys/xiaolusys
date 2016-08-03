@@ -125,7 +125,7 @@ class MamaVebViewConf(BaseModel):
     class Meta:
         db_table = 'flashsale_xlmm_webview_config'
         app_label = 'xiaolumm'
-        verbose_name = u'客户端妈妈页面webview配置表'
-        verbose_name_plural = u'客户端妈妈页面webview配置列表'
+        verbose_name = u'客户端妈妈页面配置表'
+        verbose_name_plural = u'客户端妈妈页面配置列表'
 
 
