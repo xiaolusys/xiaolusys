@@ -18,7 +18,8 @@ class Command(BaseCommand):
             pay_time = item['min_pay_time']
             buyer_id = item['buyer_id']
 
-            print '%s/%s' % (i, total_count), buyer_id
+            if i % 1000 == 0:
+                print '%s/%s' % (i, total_count), buyer_id
 
             customer = Customer.objects.filter(id=buyer_id).first()
             if customer:
