@@ -6,6 +6,7 @@ from shopback.trades.models import MergeTrade, MergeOrder
 from common.utils import update_model_fields
 from shopback.users.models import User
 from core.options import log_action, User as DjangoUser, ADDITION, CHANGE
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 
 def releaseRegularOutstockTrade(trade, num_maps=None):
@@ -42,7 +43,7 @@ def releaseRegularOutstockTrade(trade, num_maps=None):
     if len(ware_set) == 1:
         t.ware_by = ware_set.pop()
     else:
-        t.ware_by = MergeTrade.WARE_NONE
+        t.ware_by = WARE_NONE
         t.sys_memo += u'[物流：请拆单或选择始发仓]'
         t.append_reason_code(pcfg.DISTINCT_RULE_CODE)
 

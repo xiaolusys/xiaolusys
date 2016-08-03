@@ -31,7 +31,7 @@ from supplychain.supplier.models import (
     SaleProductPicRatingMemo
 )
 from supplychain.supplier.models import SaleProduct
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from . import forms
 
 
@@ -45,7 +45,7 @@ class AddSupplierView(generics.ListCreateAPIView):
         process_choice = SaleSupplier.PROGRESS_CHOICES
         all_category = SaleCategory.objects.filter()
         zones = SupplierZone.objects.all()
-        ware_bys = [{'value': i, 'text': j} for i, j in SaleSupplier.WARE_CHOICES]
+        ware_bys = [{'value': i, 'text': j} for i, j in WARE_CHOICES]
 
         return Response({"platform_choice": platform_choice,
                          "all_category": all_category,

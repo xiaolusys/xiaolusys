@@ -9,7 +9,7 @@ from core.utils.unikey import uniqid
 from supplychain.supplier.models import SaleSupplier
 from shopback.items.models import Product, ProductSku
 
-from .. import constants
+from shopback.warehouse import constants
 
 def default_inbound_ware_no():
     return datetime.datetime.now().strftime('%Y%m%d') + '-1'

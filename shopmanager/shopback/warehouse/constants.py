@@ -16,6 +16,8 @@ def receipt_type_choice():
 WARE_NONE = 0
 WARE_SH = 1
 WARE_GZ = 2
+WARE_COMPANY = 3
 WARE_CHOICES = ((WARE_NONE, u'未选仓'),
                 (WARE_SH, u'上海仓'),
-                (WARE_GZ, u'广州仓'))
+                (WARE_GZ, u'广州仓'),
+                (WARE_COMPANY, u'公司仓'),)

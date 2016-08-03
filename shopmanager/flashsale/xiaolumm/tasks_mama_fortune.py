@@ -270,7 +270,7 @@ def task_send_activite_award(mama_id):
 @task(max_retries=3, default_retry_delay=6)
 def task_first_order_send_award(mama):
     from flashsale.xiaolumm.models.models_fortune import AwardCarry
-    sum_res = OrderCarry.objects.filter(mama_id=mama.id).values('status').annotate(cnt=Count('id'))
+    sum_res = OrderCarry.objects.filter(mama_id=mama.id, created__gte=mama.created).values('status').annotate(cnt=Count('id'))
     sum_dict = {item['status']: item['cnt'] for item in sum_res}
     uni_key = 'trial_first_order_award_%d' % (mama.id,)
     repeat = AwardCarry.objects.filter(uni_key=uni_key).first()

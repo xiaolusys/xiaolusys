@@ -23,7 +23,7 @@ from django_filters import Filter
 from django_filters.fields import Lookup
 from core.options import get_systemoa_user, log_action
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from supplychain.supplier.models import (
     SaleSupplier,
     SaleProduct,
@@ -133,7 +133,7 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
             'progress': SaleSupplier.PROGRESS_CHOICES,
             'supplier_zone': SupplierZone.objects.values_list('id', 'name'),
             'platform': SaleSupplier.PLATFORM_CHOICE,
-            'ware_by': SaleSupplier.WARE_CHOICES,
+            'ware_by': WARE_CHOICES,
             'status': SaleSupplier.STATUS_CHOICES,
         })
 

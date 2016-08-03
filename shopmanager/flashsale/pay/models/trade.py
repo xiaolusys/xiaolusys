@@ -23,7 +23,7 @@ from core.utils.modelutils import update_model_fields
 from .address import UserAddress
 from .refund import SaleRefund
 from .user import Customer, UserBudget
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 import logging
 logger = logging.getLogger(__name__)
 
@@ -491,7 +491,7 @@ class SaleTrade(BaseModel):
                 continue
             if product:
                 ware_by &= product.ware_by
-        return ware_by or Product.WARE_NONE
+        return ware_by or WARE_NONE
 
     @property
     def package_orders(self):
@@ -838,7 +838,7 @@ class SaleOrder(PayBaseModel):
         if product:
             ware_by = product.ware_by
             return ware_by
-        return Product.WARE_NONE
+        return WARE_NONE
 
     def stats_post_goods(self):
         return self.status in (SaleOrder.WAIT_BUYER_CONFIRM_GOODS,

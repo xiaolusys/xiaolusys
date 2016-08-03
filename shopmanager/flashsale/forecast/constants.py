@@ -28,13 +28,5 @@ EXPRESS_CONPANYS = (
     (OTHER, u'其它快递'),
 )
 
-WARE_NONE = 0
-WARE_SH = 1
-WARE_GZ = 2
-WARE_CHOICES = (
-    (WARE_NONE, u'未选仓'),
-    (WARE_SH, u'上海仓'),
-    (WARE_GZ, u'广州仓')
-)
-
+from shopback.warehouse.constants import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 UNRECORD_PRODUCTID_TUPLE = (55555, 222222)
