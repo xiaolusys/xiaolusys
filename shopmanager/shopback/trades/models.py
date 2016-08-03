@@ -1239,6 +1239,32 @@ class TradeWuliu(models.Model):
         return '<%d,%s,%s,%s>' % (self.id, self.status, self.content, dict(REPLAY_TRADE_STATUS).get(self.status, ''))
 
 
+class ReturnWuLiu(models.Model):
+    tid = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'原单ID')
+    rid = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'退货单ID')
+    out_sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流编号')
+    logistics_company = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流公司')
+    status = models.IntegerField(default=0, db_index=True, choices=REPLAY_TRADE__WULIU_STATUS, verbose_name=u'物流状态')
+    time = models.DateTimeField(null=True, db_index=True, auto_now_add=False, verbose_name=u'时间')
+    content = models.CharField(max_length=640, blank=True, verbose_name=u'物流详情')
+    created = models.DateTimeField(null=True, db_index=True, auto_now_add=True, verbose_name=u'记录日期')
+    modified = models.DateTimeField(null=True, auto_now=True, blank=True, verbose_name=u'修改日期')
+    errcode = models.CharField(max_length=64, blank=True, verbose_name=u'错误代码')
+    remark = models.CharField(max_length=64, blank=True, verbose_name=u'备注')
+    icon = models.CharField(max_length=256, blank=True, verbose_name=u'物流公司图标')
+
+
+    class Meta:
+        db_table = 'shop_returns_wuliudetail'
+        app_label = 'trades'
+        verbose_name = u'退货物流跟踪'
+        verbose_name_plural = u'退货物流跟踪列表'
+
+    def __unicode__(self):
+        return '<%d,%s,%s,%s>' % (self.id, self.status, self.content, dict(REPLAY_TRADE_STATUS).get(self.status, ''))
+
+
+
 class PackageOrder(models.Model):
     WARE_SH = 1
     WARE_GZ = 2

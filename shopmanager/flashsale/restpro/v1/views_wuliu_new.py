@@ -8,7 +8,7 @@ from shopback.trades.models import TradeWuliu
 from shopback.items.models import Product
 import datetime
 from . import serializers
-from flashsale.restpro.tasks import SaveWuliu_only, SaveWuliu_by_packetid, get_third_apidata, get_third_apidata_by_packetid
+from flashsale.restpro.tasks import SaveWuliu_only, SaveWuliu_by_packetid, get_third_apidata, get_third_apidata_by_packetid,get_third_apidata_by_packetid_return
 from rest_framework import viewsets
 from rest_framework import renderers
 from django.shortcuts import get_object_or_404
