@@ -33,7 +33,7 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
     @list_route(methods=['get'])
     def self_list(self, request):
         try:
-            mama = request.admin.customer.get_getXiaolumm()
+            mama = request.admin.customer.getXiaolumm()
         except:
             raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
         queryset = XlmmMessage.get_msg_list(mama.id,)
@@ -47,7 +47,7 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
     @detail_route(methods=['GET', 'POST'])
     def read(self, request, pk):
         try:
-            mama = request.admin.customer.get_getXiaolumm()
+            mama = request.admin.customer.getXiaolumm()
         except:
             raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
         message = get_object_or_404(XlmmMessage, pk=pk)

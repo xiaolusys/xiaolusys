@@ -58,7 +58,7 @@ class SaleSupplierFilter(filters.FilterSet):
 
     class Meta:
         model = SaleSupplier
-        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone', 'progress',
+        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone', 'progress', "mobile",
                   'created_start', 'created_end']
 
 
@@ -66,22 +66,50 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
     """
     ### 供应商REST API接口：
     - [/apis/chain/v1/supplier](/apis/chain/v1/supplier) 供应商列表:
-        1. 可过滤字段:
-            * `id`: 供应商id
-            * `category`: 类别
-            * `supplier_name`:　名称
-            * `supplier_type`:　类型
-            * `supplier_zone`:　地区
-            * `progress`:　进度
-            * `created_start`:　最早创建时间
-            * `created_end`:　最迟创建时间
-        2. 可排序字段:
-            * `id`: 供应商id
-            * `created`: 创建时间
-            * `modified`: 修改时间
-            * `figures__payment`: 销售额
-            * `figures__return_good_rate`: 退货率
-            * `figures__out_stock_num`: 缺货率
+        * method: GET
+            1. 可过滤字段:
+                * `id`: 供应商id
+                * `category`: 类别
+                * `supplier_name`:　名称
+                * `supplier_type`:　类型
+                * `supplier_zone`:　地区
+                * `progress`:　进度
+                * `created_start`:　最早创建时间
+                * `created_end`:　最迟创建时间
+            2. 可排序字段:
+                * `id`: 供应商id
+                * `created`: 创建时间
+                * `modified`: 修改时间
+                * `figures__payment`: 销售额
+                * `figures__return_good_rate`: 退货率
+                * `figures__out_stock_num`: 缺货率
+        * method: POST
+            1. 参数解释:
+                * `supplier_name`: "小林的店铺2" 供应商名称  非空&唯一
+                * `supplier_code`: "" 品牌缩写
+                * `description`: ""　品牌简介
+                * `brand_url`: ""　商标图片
+                * `main_page`: ""　品牌主页
+                * `product_link`: ""　商品链接
+                * `platform`: ""　来自平台
+                * `category`: 1　类别
+                * `speciality`: ""　特长
+                * `contact`: "linjie"　联系人 (非空)
+                * `phone`: "",
+                * `mobile`: "13739234188"　(非空)
+                * `fax`: ""　传真
+                * `zip_code`: ""　其他联系方式
+                * `email`: ""　邮箱
+                * `address`: "上海..."　(非空)
+                * `account_bank`: ""　汇款银行
+                * `account_no`: ""　汇款帐号
+                * `memo`: ""　备注
+                * `status`: ""　状态
+                * `progress`: ""　进度
+                * `supplier_type`: 0　
+                * `supplier_zone`: 1, (非空)
+                * `ware_by`:  1　(非空) 0:未选仓　1: 上海仓 2: 广州仓
+        * method: PATCH
     - [/apis/chain/v1/supplier/list_filters](/apis/chain/v1/supplier/list_filters): 获取供应商过滤条件
     """
     queryset = SaleSupplier.objects.all()
@@ -106,6 +134,7 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
             'supplier_zone': SupplierZone.objects.values_list('id', 'name'),
             'platform': SaleSupplier.PLATFORM_CHOICE,
             'ware_by': SaleSupplier.WARE_CHOICES,
+            'status': SaleSupplier.STATUS_CHOICES,
         })
 
     def list(self, request, *args, **kwargs):
@@ -127,6 +156,8 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        user = request.user
+        request.data.update({"buyer": user.id})
         serializer = serializers.SaleSupplierFormSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -135,6 +166,15 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         raise exceptions.APIException('method not allowed!')
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = serializers.SaleSupplierFormSerializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        log_action(request.user, instance, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
+        return Response(serializer.data)
 
 
 class SaleProductFilter(filters.FilterSet):

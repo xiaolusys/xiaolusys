@@ -122,7 +122,6 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
 
 from flashsale.promotion.models import AppDownloadRecord
 from flashsale.xiaolumm.models.models_fans import XlmmFans
-from flashsale.xiaolumm.models import XiaoluMama
 
 
 @task()
@@ -137,7 +136,10 @@ def task_login_activate_appdownloadrecord(user):
         logger.warn("activate appdownload: already a fan")
         return
 
-    self_mama = customer.getXiaolumm()
+    self_mama = None
+    if customer.unionid:
+        self_mama = XiaoluMama.objects.filter(openid=customer.unionid,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED,last_renew_type__gt=XiaoluMama.TRIAL).first()
+        
     if self_mama:
         # XiaoluMama can't be a fan of any others.
         logger.warn("activate appdownload: already a mama")
