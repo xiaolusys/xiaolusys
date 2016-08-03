@@ -25,6 +25,7 @@ from auth import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
 from flashsale.restpro.local_cache import image_watermark_cache
+from flashsale.pay.tasks import task_product_upshelf_notify_favorited_customer
 
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category, ProductCategory
@@ -702,6 +703,8 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
                 product_skus = product.normal_skus
                 for sku in product_skus:
                     task_product_upshelf_update_productskusalestats.delay(sku.id)
+
+                task_product_upshelf_notify_favorited_customer(product)
 
             elif instance.shelf_status == Product.DOWN_SHELF:
 
