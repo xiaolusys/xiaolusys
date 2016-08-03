@@ -27,8 +27,9 @@ from shopback.items.models import (Product, ProductSku, ProductSchedule,
                                    ProductSkuContrast, ContrastContent)
 from shopback.items.models_stats import ProductSkuStats
 from supplychain.supplier.models import SaleSupplier, SaleProduct
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 logger = logging.getLogger(__name__)
+
 
 class AddItemView(generics.ListCreateAPIView):
     queryset = ProductCategory.objects.all()
@@ -384,7 +385,7 @@ class BatchSetTime(generics.ListCreateAPIView):
                          "model_id": model_id,
                          "target_shelf_date": target_shelf_date,
                          "cates": cates,
-                         "ware_by": Product.WARE_CHOICES,
+                         "ware_by": WARE_CHOICES,
                          "rebeta_schemes": rebeta_schemes,
                          "p_cates": p_cates})
 
@@ -489,8 +490,8 @@ class ProductScheduleView(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = 'items/product_schedule.html'
 
-    warehouses = [{'id': Product.WARE_NONE, 'name': u'未选仓'}, {'id': Product.WARE_SH, 'name': u'上海仓'},
-                  {'id': Product.WARE_GZ, 'name': u'广州仓'}]
+    warehouses = [{'id': WARE_NONE, 'name': u'未选仓'}, {'id': WARE_SH, 'name': u'上海仓'},
+                  {'id': WARE_GZ, 'name': u'广州仓'}]
     warehouse_mapping = {row['id']: row['name'] for row in warehouses}
     sale_types = [{'id': row[0], 'name': row[1]} for row in constants.SALE_TYPES]
     sale_type_mapping = {row[0]: row[1] for row in constants.SALE_TYPES}

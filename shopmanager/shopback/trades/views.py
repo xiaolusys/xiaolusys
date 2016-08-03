@@ -46,9 +46,8 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, Browsab
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from renderers import *
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from . import forms, serializers
-
 logger = logging.getLogger('django.request')
 
 
@@ -577,7 +576,7 @@ class CheckOrderView(APIView):
              'need_manual_merge': trade.has_reason_code(
                  pcfg.MULTIPLE_ORDERS_CODE),
              'shippings': dict(SHIPPING_TYPE_CHOICE),
-             'ware_list': MergeTrade.WARE_CHOICES})
+             'ware_list': WARE_CHOICES})
         return Response({"object": {'trade': trade_dict,
                                     'logistics': logistics}})
         # 'shippings33':dict(SHIPPING_TYPE_CHOICE)  }
@@ -620,7 +619,7 @@ class CheckOrderView(APIView):
                 check_msg.append(u"订单商品编码与库存商品编码不一致")
             if trade.is_force_wlb:
                 check_msg.append(u"订单由物流宝发货")
-            if trade.ware_by == MergeTrade.WARE_NONE:
+            if trade.ware_by == WARE_NONE:
                 check_msg.append(u"请选择仓库")
             if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,
                                         pcfg.WAIT_PREPARE_SEND_STATUS):

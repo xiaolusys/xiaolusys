@@ -33,6 +33,7 @@ from flashsale.finance.models import BillRelation, Bill
 from rest_framework import generics, permissions, renderers, viewsets
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from rest_framework.decorators import list_route, detail_route
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from . import forms
 
 
@@ -467,7 +468,7 @@ def export_return_goods(request):
             'product_link': saleproduct.product_link
         }
 
-    warehouse_stats = dict.fromkeys([Product.WARE_SH, Product.WARE_GZ], 0)
+    warehouse_stats = dict.fromkeys([WARE_SH, WARE_GZ], 0)
     for product in rg.products_item_sku():
         for detail_item in product.detail_items:
             num = detail_item.num
@@ -486,7 +487,7 @@ def export_return_goods(request):
             supplier_sku = saleproduct_dict.get('supplier_sku') or ''
             product_link = saleproduct_dict.get('product_link') or ''
 
-            if product.ware_by in [Product.WARE_SH, Product.WARE_GZ]:
+            if product.ware_by in [WARE_SH, WARE_GZ]:
                 warehouse_stats[product.ware_by] += 1
 
             all_quantity += num
@@ -518,7 +519,7 @@ def export_return_goods(request):
     row += 1
     worksheet.write(row, 0, '寄件地址:', bold_format)
     ware = max(warehouse_stats.items(), key=lambda x: x[1])[0]
-    if ware == Product.WARE_SH:
+    if ware == WARE_SH:
         warehouse = '上海市佘山镇吉业路245号5号楼'
     else:
         warehouse = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼'

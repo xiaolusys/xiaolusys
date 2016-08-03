@@ -14,9 +14,12 @@ from shopback.refunds.models import REFUND_STATUS
 from .models import (SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS, TRADE_TYPE,
                      COD_STATUS, SHIPPING_TYPE_CHOICE, PRIORITY_TYPE,
                      SYS_ORDER_STATUS, TAOBAO_ORDER_STATUS, GIFT_TYPE)
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+
 
 def default_dirtytrade_tid():
     return 'DD%d' % int(time.time() * 10 ** 5)
+
 
 class DirtyMergeTrade(models.Model):
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
@@ -64,7 +67,7 @@ class DirtyMergeTrade(models.Model):
     WARE_NONE = 0
     WARE_SH = 1
     WARE_GZ = 2
-    WARE_CHOICES = ((WARE_NONE, u'未选仓'), (WARE_SH, u'上海仓'), (WARE_GZ, u'广州仓'))
+    WARE_CHOICES = WARE_CHOICES
 
     tid = models.CharField(max_length=32,
                            default=default_dirtytrade_tid,
@@ -262,6 +265,7 @@ class DirtyMergeTrade(models.Model):
 
 def default_dirtyorder_oid():
     return 'DO%d' % int(time.time() * 10 ** 5)
+
 
 class DirtyMergeOrder(models.Model):
     NO_REFUND = pcfg.NO_REFUND

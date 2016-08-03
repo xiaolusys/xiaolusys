@@ -8,6 +8,7 @@ from shopback.items.models import Product
 from shopback.signals import confirm_trade_signal
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 import logging
 
 logger = logging.getLogger("celery.handler")
@@ -48,7 +49,7 @@ class InitHandler(BaseHandler):
         
         merge_trade.ware_by = merge_trade.get_trade_assign_ware()
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
-        if merge_trade.ware_by == MergeTrade.WARE_NONE:
+        if merge_trade.ware_by == WARE_NONE:
             merge_trade.sys_memo += '，请选择所属仓库'
             merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
             

@@ -4,6 +4,7 @@ from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
 from common.modelutils import update_model_fields
 from shopback.logistics.models import LogisticsCompany
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 import logging
 
 logger = logging.getLogger('celery.handler')
@@ -110,13 +111,13 @@ class LogisticsHandler(BaseHandler):
             if merge_trade.is_force_wlb:
                 merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
             # 如果订单属于广州仓，则默认发韵达
-            if merge_trade.ware_by == MergeTrade.WARE_GZ:
+            if merge_trade.ware_by == WARE_GZ:
                 merge_trade.logistics_company = self.getGZLogisticCompany(merge_trade)
             else:
                 merge_trade.logistics_company = self.getSHLogisticCompany(merge_trade)
             update_model_fields(merge_trade, update_fields=['logistics_company', 'ware_by'])
 
-            if merge_trade.ware_by == MergeTrade.WARE_NONE:
+            if merge_trade.ware_by == WARE_NONE:
                 raise Exception(u'请拆单或选择始发仓')
         except Exception, exc:
             merge_trade.sys_memo += u'[物流：%s]' % exc.message

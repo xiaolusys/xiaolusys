@@ -9,6 +9,7 @@ from .models import (
 )
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 
 class SupplierStatusField(serializers.Field):
@@ -141,7 +142,7 @@ class SaleSupplierFormSerializer(serializers.ModelSerializer):
         return value
 
     def validate_ware_by(self, value):
-        t = [x[0] for x in self.Meta.model.WARE_CHOICES]
+        t = [x[0] for x in WARE_CHOICES]
         if value not in t:
             raise serializers.ValidationError("仓库选择错误!")
         return value

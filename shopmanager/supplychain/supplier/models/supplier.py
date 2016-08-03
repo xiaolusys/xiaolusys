@@ -3,6 +3,7 @@ from django.core.cache import cache
 from django.db import models
 
 from supplychain.supplier.managers import SaleSupplierManager
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 
 class SaleSupplier(models.Model):
@@ -71,13 +72,6 @@ class SaleSupplier(models.Model):
                      (WHOLESALER, u'经销批发'),
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
-
-    WARE_NONE = 0
-    WARE_SH = 1
-    WARE_GZ = 2
-    WARE_CHOICES = ((WARE_NONE, u'未选仓'),
-                    (WARE_SH, u'上海仓'),
-                    (WARE_GZ, u'广州仓'))
 
     supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')

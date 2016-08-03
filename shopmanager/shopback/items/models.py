@@ -32,7 +32,7 @@ from shopback.archives.models import Deposite, DepositeDistrict
 from shopback.users.models import DjangoUser, User
 from supplychain.supplier.models import SaleProduct
 from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from . import constants, managers
 
 import logging
@@ -104,13 +104,6 @@ class Product(models.Model):
     DOWN_SHELF = 0
     SHELF_CHOICES = ((UP_SHELF, u'已上架'),
                      (DOWN_SHELF, u'未上架'))
-
-    WARE_NONE = 0
-    WARE_SH = 1
-    WARE_GZ = 2
-    WARE_CHOICES = ((WARE_NONE, u'未选仓'),
-                    (WARE_SH, u'上海仓'),
-                    (WARE_GZ, u'广州仓'))
 
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
