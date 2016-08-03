@@ -20,7 +20,23 @@ CACHE_VIEW_TIMEOUT = 30
 
 class SaleCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
-        ##特卖选品类目：
+        ## 特卖选品类目API：
+        - Model:
+            * `{
+                "grade": 类目等级,
+                "cat_pic": 展示图,
+                "parent_cid": 父ID,
+                "name": 类目名,
+                "cid": 类目ID
+              }`
+        ***
+        - [获取类目信息列表: /rest/v2/categorys](/rest/v2/categorys)
+        - [获取类目最新版本信息: /rest/v2/categorys/latest_version](/rest/v2/categorys/latest_version)
+            * `{
+                "version": 版本号,
+                "download_url": 下载链接,
+                "sha1": sha1值
+            }`
     """
     queryset = SaleCategory.objects.all()
     serializer_class = serializers.SaleCategorySerializer
