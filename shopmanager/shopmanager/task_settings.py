@@ -472,6 +472,10 @@ MAMA_CARRYRECORD_ROUTES = {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_first_order_send_award',
     },
+    'flashsale.xiaolumm.tasks_mama_fortune.task_new_guy_task_complete_send_award': {
+        'queue': 'carryrecord',
+        'routing_key': 'carryrecord.task_new_guy_task_complete_send_award',
+    },
 
 }
 MAMA_CARRYTOTAL_ROUTES = {

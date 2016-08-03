@@ -104,6 +104,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         his_confirmed_cash_out = CashOut.objects.filter(xlmm=xlmm.id, status=CashOut.APPROVED,
                                                         approve_time__lt=MAMA_FORTUNE_HISTORY_LAST_DAY).aggregate(
             total=Sum('value')).get('total') or 0
+        his_confirmed_cash_out = float(his_confirmed_cash_out * 0.01)
 
         return {
             "total_rank": total_rank,

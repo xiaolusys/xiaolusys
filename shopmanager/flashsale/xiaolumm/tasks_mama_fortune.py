@@ -292,3 +292,30 @@ def task_first_order_send_award(mama):
                 repeat.save()
         else:
             AwardCarry.send_award(mama, 5, u'首单奖励', u'一元小鹿妈妈首单奖励', uni_key)
+
+
+@task(max_retries=3, default_retry_delay=6)
+def task_new_guy_task_complete_send_award(mama):
+    """
+    发送新手任务奖励: 新妈妈发5元，推荐妈妈发10元
+    """
+    from flashsale.xiaolumm.models import AwardCarry, XiaoluMama, PotentialMama
+
+    active_time = datetime.datetime(2016, 7, 29, 10, 0, 0)
+    if isinstance(mama.charge_time, datetime.datetime) and mama.charge_time >= active_time:
+        uni_key = 'new_guy_task_complete_award_%d' % (mama.id,)
+        AwardCarry.send_award(mama, 5, u'新手任务奖励', u'新手妈妈完成新手任务奖励', uni_key, status=2)  # 确定收益
+        referal_mama = XiaoluMama.objects.filter(referal_from=mama.referal_from).first()
+        if not referal_mama:
+            # 当前妈妈的的潜在关系列表中　第一条记录
+            potential = PotentialMama.objects.filter(potential_mama=mama.id).order_by('created').first()
+            referal_mama = XiaoluMama.objects.filter(id=potential.referal_mama).first()
+        if not referal_mama:
+            return
+        uni_key = 'new_guy_task_complete_award_%d' % (referal_mama.id,)
+        customer = mama.get_mama_customer()
+        AwardCarry.send_award(referal_mama, 10, u'新手任务奖励', u'新手推荐人完成新手任务推荐人奖励', uni_key,
+                              status=2,
+                              contributor_nick=customer.nick,
+                              contributor_img=customer.thumbnail,
+                              contributor_mama_id=mama.id)  # 确定收益
