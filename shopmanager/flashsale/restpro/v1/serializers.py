@@ -26,7 +26,7 @@ from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from flashsale.xiaolumm.models import XiaoluMama
 from shopback.items.models import Product, ProductSku, ProductCategory
 from shopback.logistics.models import LogisticsCompany
-from shopback.trades.models import TradeWuliu, PackageOrder
+from shopback.trades.models import TradeWuliu, PackageOrder, ReturnWuLiu
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
 from flashsale.restpro import constants
@@ -618,6 +618,10 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
         model = TradeWuliu
         exclude = ()
 
+class ReturnWuliuSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReturnWuLiu
+        exclude = ()
 
 from shopapp.weixin.models import WXOrder
 
