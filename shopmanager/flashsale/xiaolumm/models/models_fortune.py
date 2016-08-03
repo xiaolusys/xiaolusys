@@ -502,7 +502,8 @@ class AwardCarry(BaseModel):
         return None
 
     @staticmethod
-    def send_award(mama, num, name, description, uni_key):
+    def send_award(mama, num, name, description, uni_key, status=1,
+                   contributor_nick=None, contributor_img=None, contributor_mama_id=None):
         repeat_one = AwardCarry.objects.filter(uni_key=uni_key).first()
         if repeat_one:
             if repeat_one.status == 3:
@@ -516,7 +517,10 @@ class AwardCarry(BaseModel):
             carry_plan_name=name,
             carry_description=description,
             uni_key=uni_key,
-            status=1
+            status=status,
+            contributor_nick=contributor_nick,
+            contributor_img=contributor_img,
+            contributor_mama_id=contributor_mama_id
         )
         ac.save()
         return ac

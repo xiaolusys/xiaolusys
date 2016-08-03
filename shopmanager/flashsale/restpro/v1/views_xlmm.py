@@ -336,6 +336,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             'tutorial_link': ''
         }
         """
+        from flashsale.xiaolumm.models import MamaVebViewConf
+
         default_return = collections.defaultdict(first_carry_record=False,
                                                  first_fans_record=False,
                                                  first_coupon_share=False,
@@ -359,6 +361,22 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         default_return.update({'first_mama_recommend': PotentialMama.objects.filter(referal_mama=xlmm.id).exists()})
         default_return.update({'first_commission': OrderCarry.objects.filter(mama_id=xlmm.id).exists()})
+
+        conf = MamaVebViewConf.objects.filter(version='new_guy_task').first()  # 新手任务配置后台记录
+        extra = conf.extra
+
+        if extra['first_mama_recommend_show'] == 0:  # 推荐妈妈不显示的时候则将　first_mama_recommend　置为true
+            default_return.update({'first_mama_recommend': True})
+
+        task_all_complete = True if False not in default_return.values() else False
+
+        default_return.update(extra)  # 最后更新后台的配置否则影响task_all_complete 的判断
+        if task_all_complete:  # 任务全部完成
+            default_return.update({'page_pop': 0})
+            # task 发送奖金
+            from flashsale.xiaolumm.tasks_mama_fortune import task_new_guy_task_complete_send_award
+
+            task_new_guy_task_complete_send_award.delay(xlmm)
         return Response(default_return)
 
 
