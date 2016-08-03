@@ -43,7 +43,7 @@ from flashsale.restpro import constants as CONS
 
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask, tasks_set_address_priority_logistics_code
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 import logging
 logger = logging.getLogger(__name__)
 
@@ -309,7 +309,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 continue
             if product:
                 ware_by &= product.ware_by
-        return ware_by or Product.WARE_NONE
+        return ware_by or WARE_NONE
 
     def get_selectable_logistics(self, ware_by, default_company_code=''):
         logistics = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)

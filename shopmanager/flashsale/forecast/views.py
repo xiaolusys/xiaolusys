@@ -40,7 +40,7 @@ from .models import (
     ForecastStats
 )
 from . import serializers
-from . import constants
+from shopback.warehouse import constants
 from . import services
 
 import logging

@@ -29,7 +29,7 @@ from flashsale.dinghuo.models_stats import SupplyChainDataStats
 from shopback.archives.models import DepositeDistrict
 from shopback.items.models import Product, ProductCategory, ProductSku, ProductStock, ProductLocation
 from supplychain.supplier.models import SaleProduct, SaleSupplier
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from . import forms, functions, functions2view, models
 
 
@@ -1949,7 +1949,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                              'sent_from': InBound.SUPPLIER}
                             for k in sorted(express_no_dict.keys())],
             'ware_choices': [{'value': v,
-                              'text': t} for v, t in Product.WARE_CHOICES]
+                              'text': t} for v, t in WARE_CHOICES]
         }
         form = forms.EditInBoundForm(request.GET)
         if not form.is_valid():

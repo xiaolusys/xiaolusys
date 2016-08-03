@@ -45,7 +45,7 @@ from flashsale.dinghuo import functions2view
 
 from flashsale.dinghuo.models import ReturnGoods, RGDetail
 from supplychain.supplier.models import SaleProduct, SaleSupplier
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 import logging
 
 logger = logging.getLogger('django.request')
@@ -254,7 +254,7 @@ class ProductAdmin(ApproxAdmin):
 
     def ware_select(self, obj):
 
-        wares = self.model.WARE_CHOICES
+        wares = WARE_CHOICES
 
         cat_list = ["<select class='ware_select' pid='%s'>" % obj.id]
         cat_list.append("<option value=''>-------------</option>")

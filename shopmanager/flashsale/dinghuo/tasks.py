@@ -21,7 +21,7 @@ from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
-
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_COMPANY, WARE_CHOICES
 from . import function_of_task, functions
 
 import logging
@@ -1122,7 +1122,7 @@ def _get_suppliers():
             supplier = supplier_mapping.get(supplier_id) or {
                 'id': supplier_id,
                 'supplier_name': '未知',
-                'ware_by': SaleSupplier.WARE_SH,
+                'ware_by': WARE_SH,
                 'buyer_id': 0,
                 'products': []
             }
@@ -1246,7 +1246,7 @@ def get_suppliers(pay_time_threshold):
         default_supplier_dict = {
             'id': supplier_id,
             'name': '未知',
-            'ware_by': SaleSupplier.WARE_SH,
+            'ware_by': WARE_SH,
             'products': []
         }
         supplier_dict = new_suppliers_dict.setdefault(supplier_id,
@@ -1279,9 +1279,11 @@ def create_orderlist(supplier):
         if last_pay_time and last_pay_time > common.constants.MIN_DATETIME:
             orderlist.last_pay_date = last_pay_time.date()
         if ware_by:
-            if ware_by == SaleSupplier.WARE_SH:
+            if ware_by == WARE_SH:
                 orderlist.p_district = OrderList.NEAR
-            elif ware_by == SaleSupplier.WARE_GZ:
+            elif ware_by == WARE_COMPANY:
+                orderlist.p_district = OrderList.NEAR
+            elif ware_by == WARE_GZ:
                 orderlist.p_district = OrderList.GUANGDONG
         if old_orderlist:
             if old_orderlist.buyer_id:

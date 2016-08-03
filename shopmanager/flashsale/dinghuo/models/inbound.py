@@ -257,7 +257,7 @@ class InBound(models.Model):
         #     self.save()
         wrong_str = u'错货%d件' % (self.error_cnt,) if self.wrong else ''
         more = self.all_arrival_quantity - self.all_allocate_quantity
-        more_str = u'多货%d件' %(more,) if more>0 else '' 
+        more_str = u'多货%d件' %(more,) if more>0 else ''
         return u"共%d件SKU（%d正品%d次品%s%s），分配了%d件进订货单" % (self.all_quantity, self.all_arrival_quantity,
                                                     self.all_inferior_quantity, wrong_str, more_str, self.all_allocate_quantity)
 

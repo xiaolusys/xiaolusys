@@ -23,7 +23,7 @@ from common.utils import (parse_datetime,
 from flashsale.pay.models import SaleTrade
 from flashsale import pay
 import logging
-from shopback.warehouse import WARE_SH, WARE_CHOICES
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 logger = logging.getLogger('django.request')
 
@@ -175,9 +175,7 @@ class MergeTrade(models.Model):
     WARE_NONE = 0
     WARE_SH = 1
     WARE_GZ = 2
-    WARE_CHOICES = ((WARE_NONE, u'未选仓'),
-                    (WARE_SH, u'上海仓'),
-                    (WARE_GZ, u'广州仓'))
+    WARE_CHOICES = WARE_CHOICES
 
     id = models.AutoField(primary_key=True, verbose_name=u'订单ID')
     tid = models.CharField(max_length=32,
@@ -1244,13 +1242,7 @@ class TradeWuliu(models.Model):
 class PackageOrder(models.Model):
     WARE_SH = 1
     WARE_GZ = 2
-    WARE_CHOICES = ((WARE_SH, u'上海仓'),
-                    (WARE_GZ, u'广州仓'))
-
-    # PKG_CONFIRM = 'PKG_CONFIRM'
-    # PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
-    # PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
-    #                           (PKG_CONFIRM, u'已确定'))
+    WARE_CHOICES = WARE_CHOICES
     pid = models.AutoField(verbose_name=u'包裹单号', primary_key=True)
     id = models.CharField(max_length=100, verbose_name=u'包裹码', unique=True)
     tid = models.CharField(max_length=32, verbose_name=u'参考交易单号')
@@ -1974,7 +1966,6 @@ class PackageSkuItem(BaseModel):
         if package_order:
             package_order.update_relase_package_sku_item()
 
-
     def reset_assign_package(self):
         if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
             self.clear_order_info()
@@ -1986,7 +1977,8 @@ class PackageSkuItem(BaseModel):
 
     @staticmethod
     def get_not_assign_num(sku_id):
-        return PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).aggregate(total=Sum('num')).get('total') or 0
+        return PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED).aggregate(
+            total=Sum('num')).get('total') or 0
 
     def is_finished(self):
         return self.assign_status == PackageSkuItem.FINISHED
