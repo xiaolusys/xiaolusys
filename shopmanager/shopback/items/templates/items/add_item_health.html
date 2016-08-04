@@ -290,6 +290,18 @@
 <script type="text/javascript" src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}script/main.js"></script>
 <script>
+function setCategorys(){
+    var urlParams = parseUrlParams(window.location.href);
+    supplier_id = urlParams["supplier_id"];
+    saleproduct_id = urlParams["saleproduct"];
+    if(!supplier_id || !saleproduct_id){
+        alert("请从选品列表进来");
+        return;
+    }
+    saleproduct = get_sale_product(saleproduct_id);
+    get_category(saleproduct.product_category);
+}
+
 function dynamicGenerateColor() {
     var all_color = $("input.color-choose:checked"),
         color = [],
@@ -325,6 +337,23 @@ function dynamicGenerateColor() {
         $('input[id$=agentprice]').val($(this).val());
     });
 }
+function getColorValues(){
+    var $colorsTr = $('tr.color-data'),
+        colorObjList = [];
+    $.each($colorsTr, function(index, elem){
+        var $elem = $(elem);
+        var obj = {
+            name: $elem.attr('data-name'),
+            remain_num: $elem.find('input.c_remainnum').val(),
+            cost: $elem.find('input.c_cost').val(),
+            std_sale_price: $elem.find('input.c_pricestd').val(),
+            agent_price: $elem.find('input.c_agentprice').val(),
+        };
+        colorObjList.push(obj);
+    });
+    return colorObjList;
+}
+
 $(function(){
     $('input.datepicker').datepicker({
         dateFormat: 'yy-mm-dd',
@@ -346,22 +375,7 @@ $(function(){
         dynamicGenerateColor();
     })
 
-    function getColorValues(){
-        var $colorsTr = $('tr.color-data'),
-            colorObjList = [];
-        $.each($colorsTr, function(index, elem){
-            var $elem = $(elem);
-            var obj = {
-                name: $elem.attr('data-name'),
-                remain_num: $elem.find('input.c_remainnum').val(),
-                cost: $elem.find('input.c_cost').val(),
-                std_sale_price: $elem.find('input.c_pricestd').val(),
-                agent_price: $elem.find('input.c_agentprice').val(),
-            };
-            colorObjList.push(obj);
-        });
-        return colorObjList;
-    }
+    setCategorys()
 
     $('form').submit(function(e){
         e.preventDefault();
