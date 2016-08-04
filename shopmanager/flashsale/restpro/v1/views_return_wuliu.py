@@ -136,8 +136,10 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
     def get_wuliu_by_packetid(self, request):
         content = request.REQUEST
         packetid = content.get("packetid", None)
-        company_code = content.get("company_code", None)
-        if packetid is None:
+        company_name = content.get("company_name",None)
+        company_code = self.get_company_code(company_name)
+        # company_code = content.get("company_code", None)
+        if packetid is None or company_code is None:
             return Response([])
         queryset = ReturnWuLiu.objects.filter(out_sid=int(packetid)).order_by("-time")
         if queryset.exists():

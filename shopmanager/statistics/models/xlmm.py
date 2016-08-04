@@ -40,8 +40,8 @@ class XlmmDailyStat(BaseModel):
         )
 
         x.new_join = x.get_new_join()
-        x.new_pay = 0
-        x.new_activite = 0
+        x.new_pay = x.get_new_pay()
+        x.new_activite = x.get_new_activite()
         x.new_hasale = 0
 
         x.new_trial = x.get_new_trial()
@@ -62,8 +62,13 @@ class XlmmDailyStat(BaseModel):
         return XiaoluMama.objects.filter(status='effect', created__range=(
             self.date_field, self.date_field + datetime.timedelta(days=1))).count()
 
+    def get_new_pay(self):
+        from flashsale.pay.models import SaleTrade, SaleOrder
+        return SaleTrade.objects.filter(order_type=2, pay_time__range=(
+            self.date_field, self.date_field + datetime.timedelta(days=1))).count()
+
     def get_new_activite(self):
-        return XiaoluMama.objects.filter(last_renew_type=XiaoluMama.TRIAL, activite_time__range=(
+        return XiaoluMama.objects.filter(active_time__range=(
             self.date_field, self.date_field + datetime.timedelta(days=1))).count()
 
     def get_new_award(self):
