@@ -107,6 +107,7 @@ class PayInfoMethodMixin(object):
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
         payment = int(sale_trade.payment * 100)
+        print "payment: ", payment
         buyer_openid = sale_trade.openid
         order_no = sale_trade.tid
         channel = sale_trade.channel
@@ -177,7 +178,8 @@ class PayInfoMethodMixin(object):
                 'charge': '',
                 'status': SaleTrade.WAIT_BUYER_PAY,
                 'openid': openid,
-                'extras_info': {'mm_linkid': form.get('mm_linkid', '0'), 'ufrom': form.get('ufrom', '')}
+                'extras_info': {'mm_linkid': form.get('mm_linkid', '0'), 'ufrom': form.get('ufrom', '')
+                                , 'wallet_renew_deposit': form.get('wallet_renew_deposit', '')}
             })
         for k, v in params.iteritems():
             hasattr(sale_trade, k) and setattr(sale_trade, k, v)

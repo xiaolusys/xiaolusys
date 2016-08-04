@@ -31,12 +31,24 @@ from flashsale.pay.models import SaleTrade
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, PotentialMama
 from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
+from flashsale.pay import constants
 from shopback.items.models import Product, ProductSku
 from . import serializers
 
 logger = logging.getLogger(__name__)
 
 from flashsale.restpro.v2.views_verifycode_login import validate_mobile
+
+
+def get_mamafortune(mama_id):
+    """　获取可提现金额 活跃值 """
+    try:
+        fortune = MamaFortune.objects.get(mama_id=mama_id)
+        could_cash_out = fortune.cash_num_display()
+        active_value_num = fortune.active_value_num
+    except Exception, exc:
+        raise APIException(u'{0}'.format(exc.message))
+    return could_cash_out, active_value_num
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
@@ -281,13 +293,19 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         product_id = content.get('product_id')
         sku_id = content.get('sku_id')
         sku_num = int(content.get('num', '1'))
-        customer = get_object_or_404(Customer, user=request.user)
         product = get_object_or_404(Product, id=product_id)
         product_sku = get_object_or_404(ProductSku, id=sku_id)
         payment = int(float(content.get('payment', '0')) * 100)
         post_fee = int(float(content.get('post_fee', '0')) * 100)
         discount_fee = int(float(content.get('discount_fee', '0')) * 100)
         bn_totalfee = int(product_sku.agent_price * sku_num * 100)
+        wallet_renew_deposit = content.get('wallet_renew_deposit', 0)
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
+
+        if float(wallet_renew_deposit) > 0:  # 续费押金
+            could_cash_out, _ = get_mamafortune(xlmm.id)  # 可提现的金额(元)
+            payment += could_cash_out * 100
 
         if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
             raise exceptions.ParseError(u'商品已被抢光啦！')
@@ -637,9 +655,9 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         return Response({'shops': serializer.data, "clicks": clicks, "click_money": click_money})
 
 
-class CashOutViewSet(viewsets.ModelViewSet):
+class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     """
-    ## 特卖平台－小鹿妈妈购体现记录API:  
+    ### 特卖平台－小鹿妈妈购提现记录API:
     - {prefix}[.format]: 获取登陆用户的提现记录  
     - {prefix} method[post][arg:choice("c1":80,"c2":200)]: 创建提现记录  
         :return `code`  
@@ -686,16 +704,6 @@ class CashOutViewSet(viewsets.ModelViewSet):
         # could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
         return Response({"could_cash_out": could_cash_out})
 
-    def get_mamafortune(self, mama_id):
-        """　获取活跃值 """
-        try:
-            fortune = MamaFortune.objects.get(mama_id=mama_id)
-            could_cash_out = fortune.cash_num_display()
-            active_value_num = fortune.active_value_num
-        except Exception, exc:
-            raise APIException(u'{0}'.format(exc.message))
-        return could_cash_out, active_value_num
-
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         page = self.paginate_queryset(queryset)
@@ -720,7 +728,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
             value = int(decimal.Decimal(cashout_amount) * 100)
         else:
             return 0, {"code": 1, "msg": '提现金额不能为0'}
-        could_cash_out, active_value_num = self.get_mamafortune(xlmm.id)
+        could_cash_out, active_value_num = get_mamafortune(xlmm.id)
         if active_value_num < 100:
             return 0, {"code": 4, 'msg': '活跃值不足'}  # 活跃值不够
         if self.queryset.filter(status=CashOut.PENDING, xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
@@ -807,7 +815,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         if not xlmm:
             default_return.update({"code": 3, "info": "用户异常"})
             return Response(default_return)
-        could_cash_out, _ = self.get_mamafortune(xlmm.id)  # 可提现的金额
+        could_cash_out, _ = get_mamafortune(xlmm.id)  # 可提现的金额
         exchange_amount = int(exchange_num) * tpl.value
         if exchange_amount > could_cash_out:
             default_return.update({"code": 4, "info": "兑换额超过余额"})
@@ -861,7 +869,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
             default_return.update({"code": 1, "info": "参数错误!"})
             return Response(default_return)
         deposit = exchange_type_map[exchange_type]
-        could_cash_out, _ = self.get_mamafortune(xlmm.id)  # 可提现的金额(元)
+        could_cash_out, _ = get_mamafortune(xlmm.id)  # 可提现的金额(元)
 
         if deposit > could_cash_out:
             default_return.update({"code": 2, "info": "余额不足"})
