@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>新增商品-美容养生</title>
+    <title>新增商品-配饰箱包</title>
     <link href="http://cdn.bootcss.com/select2/3.5.2/select2.min.css" rel="stylesheet"/>
     <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
 
@@ -101,13 +101,19 @@
         </div>
         <div class="panel-body">
             <div class="row">
+                <div class="form-group col-xs-12">
+                    <label for="material">商品材质:</label>
+                    <input type="text" class="form-control" id="material" name="property.material" placeholder="...">
+                </div>
+            </div>
+            <div class="row">
                 <div class="form-group col-xs-6">
-                    <label for="qs_code">生产许可证编号:</label>
-                    <input type="text" class="form-control" id="qs_code" name="property.qs_code" placeholder="...">
+                    <label for="fashion">流行元素:</label>
+                    <input type="text" class="form-control" id="fashion" name="property.fashion"  placeholder="...">
                 </div>
                 <div class="form-group col-xs-6">
-                    <label for="qhby_code">产品标准号:</label>
-                    <input type="text" class="form-control" id="qhby_code" name="property.qhby_code"  placeholder="...">
+                    <label for="shoulder">肩带样式:</label>
+                    <input type="text" class="form-control" id="shoulder" name="property.shoulder"  placeholder="...">
                 </div>
             </div>
         </div>
@@ -129,72 +135,40 @@
                 <div class="col-md-10 checkbox-group" style="padding-left:31px">
                     <div class="row bg-danger">
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="经典">
-                            经典
+                            <input type="checkbox" class="color-choose" value="经典"> 经典
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="黑苦荞">
-                            黑苦荞
+                            <input type="checkbox" class="color-choose" value="黑色"> 黑色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="茉莉花">
-                            茉莉花
+                            <input type="checkbox" class="color-choose" value="红色"> 红色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="雪菊">
-                            雪菊
-                        </label>
-                    </div>
-                    <div class="row bg-primary">
-                        <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="百合干">
-                            百合干
+                            <input type="checkbox" class="color-choose" value="黄色"> 黄色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="焦决明子">
-                            焦决明子
+                            <input type="checkbox" class="color-choose" value="白色"> 白色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="柠檬干">
-                            柠檬干
+                            <input type="checkbox" class="color-choose" value="宝蓝色" > 宝蓝色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="枸杞">
-                            枸杞
+                            <input type="checkbox" class="color-choose" value="橙红色"> 橙红色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="金银花">
-                            金银花
+                            <input type="checkbox" class="color-choose" value="橙黄色"> 橙黄色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="牛蒡茶">
-                            牛蒡茶
-                        </label>
-                    </div>
-                    <div class="row bg-info">
-                        <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="桂花">
-                            桂花
+                            <input type="checkbox" class="color-choose" value="橙色"> 橙色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="苦丁茶">
-                            苦丁茶
+                            <input type="checkbox" class="color-choose" value="淡黄色"> 淡黄色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="山楂干">
-                            山楂干
+                            <input type="checkbox" class="color-choose" value="粉红色"> 粉红色
                         </label>
                         <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="荷叶茶">
-                            荷叶茶
-                        </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="洛神花">
-                            洛神花
-                        </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" class="color-choose" value="胎菊">
-                            胎菊
+                            <input type="checkbox" class="color-choose" value="咖啡色"> 咖啡色
                         </label>
                     </div>
                     <div class="row" id="other-colors">

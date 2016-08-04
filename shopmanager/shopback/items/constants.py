@@ -17,7 +17,7 @@ SALE_TYPES = (
 SCHEDULE_API_TYPE_PRICE = 1
 SCHEDULE_API_TYPE_SECKILL = 2
 SCHEDULE_API_TYPE_WATERMARK = 3
-SCHEDULE_API_TYPE_STATUS = 4
+SCHEDULE_API_TYPE_STATUS = 5
 
 #商城商品详情页
 MALL_PRODUCT_TEMPLATE_URL = '/mall/product/details/{0}'
@@ -26,14 +26,17 @@ MALL_PRODUCT_TEMPLATE_URL = '/mall/product/details/{0}'
 SKU_CONSTANTS_SORT_MAP = 'SMLXSXMXLXXL0A1B2C3D4E5F60708090951011213141516171819'
 
 
-CATEGORY_CHILDREN = '1'
-CATEGORY_WEMON    = '2'
-CATEGORY_HEALTH   = '3'
-CATEGORY_ACCESSORY= '4'
+CATEGORY_CHILDREN  = '1'
+CATEGORY_WEMON     = '2'
+CATEGORY_HEALTH    = '3'
+CATEGORY_ACCESSORY = '4'
+CATEGORY_BAGS      = '6'
 
 PROPERTY_NAMES = dict((
     ('model_code', u'商品编码'),
     ('material', u'商品材质'),
+    ('fashion', u'流行元素'),
+    ('shoulder', u'肩带款式'),
     ('wash_instructions', u'洗涤说明'),
     ('note', u'备注说明'),
     ('color', u'可选颜色'),
