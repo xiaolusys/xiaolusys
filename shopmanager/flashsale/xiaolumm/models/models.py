@@ -393,6 +393,11 @@ class XiaoluMama(models.Model):
         self.activetime = datetime.datetime.now()
         self.save()
 
+    def set_hasale(self):
+        self.set_hasale = True
+        self.set_hasaletime = datetime.datetime.now()
+        self.save()
+
     def push_carrylog_to_cash(self, clog):
 
         if self.id != clog.xlmm or clog.status == CarryLog.CONFIRMED:
