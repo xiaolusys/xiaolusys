@@ -287,8 +287,6 @@ def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
     tasks_mama_dailystats.task_carryrecord_update_dailystats.delay(instance.mama_id, instance.date_field)
 
 
-
-
 post_save.connect(carryrecord_update_mamafortune,
                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_mamafortune')
 
@@ -298,8 +296,10 @@ def carryrecord_update_xiaolumama_active_hasale(sender, instance, created, **kwa
     if not instance.mama.active:
         tasks_mama.carryrecord_update_xiaolumama_active_hasale.delay(instance.mama_id)
 
+
 post_save.connect(carryrecord_update_xiaolumama_active_hasale,
                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_xiaolumama_active_hasale')
+
 
 def carryrecord_update_carrytotal(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_mama_carry_total import task_carryrecord_update_carrytotal
@@ -511,7 +511,7 @@ class AwardCarry(BaseModel):
             return repeat_one
         ac = AwardCarry(
             mama_id=mama.id,
-            carry_num=num*100,
+            carry_num=num * 100,
             carry_type=4,
             date_field=datetime.datetime.now().date(),
             carry_plan_name=name,
@@ -524,6 +524,7 @@ class AwardCarry(BaseModel):
         )
         ac.save()
         return ac
+
 
 def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
@@ -640,6 +641,7 @@ def confirm_previous_clickcarry(sender, instance, created, **kwargs):
         for mm_id in mama.get_parent_mama_ids():
             tasks_mama_fortune.task_send_activite_award.delay(mm_id)
 
+
 post_save.connect(confirm_previous_clickcarry,
                   sender=ClickCarry, dispatch_uid='post_save_confirm_previous_clickcarry')
 
@@ -651,6 +653,7 @@ def gauge_active_mama(sender, instance, created, **kwargs):
         active_mama_count = ClickCarry.objects.filter(date_field=date_field).count()
         key = "clickcarry.active_mama"
         statsd.timing(key, active_mama_count)
+
 
 post_save.connect(gauge_active_mama, sender=ClickCarry, dispatch_uid='post_save_gauge_active_mama')
 
