@@ -1485,7 +1485,7 @@ def task_purchasearrangement_update_purchaserecord_book_num(pa):
 
     res = PurchaseArrangement.objects.filter(
         purchase_record_unikey=pa.purchase_record_unikey,
-        purchase_order_status=PurchaseOrder.BOOKED).aggregate(total=Sum('num'))
+        purchase_order_status__gte=PurchaseOrder.BOOKED).aggregate(total=Sum('num'))
 
     booked_num = res['total'] or 0
 
