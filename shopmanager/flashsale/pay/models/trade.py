@@ -516,7 +516,7 @@ def add_renew_deposit_record(sender, obj, **kwargs):
     if order.is_1_deposit():
         return
 
-    from flashsale.xiaolumm.models import CashOut, XiaoluMama
+    from flashsale.xiaolumm.models import CashOut, XiaoluMama, MamaFortune
     from core.options import log_action, ADDITION
     from shopback.items.models import ProductSku
 
@@ -528,11 +528,18 @@ def add_renew_deposit_record(sender, obj, **kwargs):
     cash = deposit_price - order.payment
     if cash <= 0:
         return
+    cash_value = cash * 100
     cash = CashOut(xlmm=xlmm.id,
-                   value=cash * 100,
+                   value=0,
                    approve_time=datetime.datetime.now(),
                    status=CashOut.APPROVED)
     cash.save()
+    cash.value = cash_value
+    from core.utils.modelutils import update_model_fields
+    update_model_fields(cash, update_fields=['value'])
+    f = MamaFortune.objects.get(mama_id=xlmm.id)
+    f.carry_cashout += cash_value
+    f.save(update_fields=['carry_cashout'])
     log_action(customer.user, cash, ADDITION, u'用户妈妈钱包兑换代理续费')
 
 
