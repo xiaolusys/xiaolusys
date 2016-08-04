@@ -1572,7 +1572,7 @@ def task_orderdetail_update_orderlist(od):
             return
 
         p_district = OrderList.NEAR
-        if supplier.ware_by == WARE_GZ:
+        if supplier.ware_by == SaleSupplier.WARE_GZ:
             p_district = OrderList.GUANGDONG
         now = datetime.datetime.now()
         ol = OrderList(purchase_order_unikey=od.purchase_order_unikey, order_amount=od.total_price,
@@ -1688,6 +1688,7 @@ def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
 def task_purchaserecord_sync_purchasearrangement_status(pr):
     # print "debug: %s" % utils.get_cur_info()
 
+    purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
     pa = PurchaseArrangement.objects.filter(oid=pr.oid).first()
     if pa:
         if pa.status != pr.status:
