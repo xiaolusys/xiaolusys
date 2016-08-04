@@ -32,6 +32,10 @@ class XlmmFans(BaseModel):
             self._fans_customer_ = Customer.objects.normal_customer.filter(id=self.fans_cusid).first()
         return self._fans_customer_
 
+    @staticmethod
+    def get_by_customer_id(cusid):
+        return XlmmFans.objects.filter(fans_cusid=cusid).first()
+
     def fans_description(self):
         if self.xlmm_cusid == self.refreal_cusid:
             return u"通过您的分享成为粉丝"
@@ -41,6 +45,24 @@ class XlmmFans(BaseModel):
         if not self.fans_nick:
             return u"匿名用户"
         return self.fans_nick
+
+    def change_mama(self, mama):
+        old_mama = self.xlmm
+        self.xlmm = mama.id
+        self.xlmm_cusid = mama.get_Mama_customer().id
+        self.save()
+        FansChangeMamaRecord.create(self, old_mama, self.xlmm)
+
+    @staticmethod
+    def bind_mama(customer, mama):
+        if customer.get_xiaolumm():
+            raise Exception(u'小鹿妈妈不能成为粉丝')
+        if not XlmmFans.objects.filter(fans_cusid=customer.id).first():
+            # 没有粉丝则建立粉丝
+            XlmmFans(xlmm=mama.id, xlmm_cusid=mama.get_Mama_customer().id, refreal_cusid=mama.get_Mama_customer().id,
+                     fans_cusid=customer.id, fans_nick=customer.nick, fans_thumbnail=customer.thumbnail).save()
+        else:
+            raise Exception(u'此粉丝已经绑定过小鹿妈妈')
 
 
 def update_activevalue(sender, instance, created, **kwargs):
@@ -95,8 +117,23 @@ def login_activate_appdownloadrecord(user):
     a fan of the related user.
     """
 
-    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_activate_appdownloadrecord, task_login_create_appdownloadrecord
+    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_login_activate_appdownloadrecord, \
+        task_login_create_appdownloadrecord
     task_login_activate_appdownloadrecord.delay(user)
-    #task_login_create_appdownloadrecord.delay()
+    # task_login_create_appdownloadrecord.delay()
 
 
+class FansChangeMamaRecord(BaseModel):
+    fans = models.ForeignKey(XlmmFans, verbose_name=u'粉丝')
+    old_xlmm = models.BigIntegerField(verbose_name=u'原小鹿妈妈id')
+    new_xlmm = models.BigIntegerField(verbose_name=u'新小鹿妈妈id')
+
+    class Meta:
+        db_table = 'flashsale_xlmm_fans_change_mama'
+        app_label = 'xiaolumm'
+        verbose_name = u'粉丝更换妈妈记录'
+        verbose_name_plural = u'粉丝更换妈妈记录'
+
+    @staticmethod
+    def create(fans, old_xlmm, new_xlmm):
+        return FansChangeMamaRecord(fans, old_xlmm, new_xlmm).save()
