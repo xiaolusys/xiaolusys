@@ -11,14 +11,14 @@ import datetime
 
 class WorkOrderAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'problem_title','problem_type','problem_desc','status','is_valid','problem_back',
-        'created_time','start_time','modified_time','closed_time','creater',"dealer"
+        'id', 'problem_title','problem_type','problem_desc','status','is_valid','dealed_part','raised_part','problem_back',
+        'created_time','start_time','modified_time','closed_time','creater',"dealer","content_imgs"
     )
     search_fields = ['id']
     list_filter = [('created_time',DateFieldListFilter)]
     # actions = ['start_deal','confirm_finished']
 
-    list_filter = ["status", "is_valid", ('created_time', DateFieldListFilter),("modified_time",DateFieldListFilter)]
+    list_filter = ["status", "is_valid", ('created_time', DateFieldListFilter),("modified_time",DateFieldListFilter),"raised_part","dealed_part"]
 
     readonly_fields = ['modified_time','start_time','closed_time']
 
