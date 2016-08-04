@@ -109,6 +109,7 @@ class OrderList(models.Model):
     buyer_name = models.CharField(default="", max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
     bill_method = models.IntegerField(choices=PURCHASE_PAYMENT_TYPE, default=PC_COD_TYPE, verbose_name=u'付款类型')
+    is_postpay = models.BooleanField(default=False, verbose_name=u'后付')
     supplier_name = models.CharField(default="",
                                      blank=True,
                                      max_length=128,
@@ -198,7 +199,7 @@ class OrderList(models.Model):
     arrival_process = models.IntegerField(choices=ARRIVAL_CHOICES, default=ARRIVAL_NOT, verbose_name=u'到货处理')
     purchase_total_num = models.IntegerField(default=0, verbose_name=u'订购总件数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
-    is_postpay = models.BooleanField(default=False, verbose_name=u'后付')
+
     purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'订货单标识')
     order_group_key = models.CharField(max_length=128, db_index=True, blank=True, verbose_name=u'订货单分组键')
 
@@ -410,9 +411,9 @@ class OrderList(models.Model):
     def set_stage_pay(self, pay_way=13):
         # 付款提货 进入付款状态
         self.bill_method = pay_way
+        self.is_postpay = pay_way == 11
         self.stage = OrderList.STAGE_PAY
         self.pay_time = datetime.datetime.now()
-        self.is_postpay = False
         self.save()
 
     def set_stage_receive(self, pay_way=11):
@@ -424,7 +425,7 @@ class OrderList(models.Model):
         self.status = OrderList.QUESTION_OF_QUANTITY
         if not self.receive_time:
             self.receive_time = datetime.datetime.now()
-        self.is_postpay = True
+        self.is_postpay = pay_way == 11
         self.save()
 
     def set_stage_state(self):
