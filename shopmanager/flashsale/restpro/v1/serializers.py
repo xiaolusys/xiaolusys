@@ -938,6 +938,7 @@ class FavoritesSerializer(serializers.ModelSerializer):
                 'lowest_agent_price': obj.lowest_agent_price,
                 'lowest_std_sale_price': obj.lowest_std_sale_price,
                 'shelf_status': model.shelf_status,
+                'web_url': model.item_product.get_weburl(),
             }
         return None
 
