@@ -76,7 +76,7 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
             res['status'] = query.get_status_display()
             res['errcode'] = query.errcode
             res['data'].append({"content":query.content,"time":query.time})
-            return res
+        return res
 
     # @list_route(methods=['get'])
     # def get_return_wuliu_by_tid(self, request):
