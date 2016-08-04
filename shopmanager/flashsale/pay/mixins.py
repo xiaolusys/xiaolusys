@@ -107,7 +107,6 @@ class PayInfoMethodMixin(object):
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
         payment = int(sale_trade.payment * 100)
-        print "payment: ", payment
         buyer_openid = sale_trade.openid
         order_no = sale_trade.tid
         channel = sale_trade.channel

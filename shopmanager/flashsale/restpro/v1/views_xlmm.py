@@ -31,7 +31,6 @@ from flashsale.pay.models import SaleTrade
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, PotentialMama
 from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
-from flashsale.pay import constants
 from shopback.items.models import Product, ProductSku
 from . import serializers
 
