@@ -1572,7 +1572,7 @@ def task_orderdetail_update_orderlist(od):
             return
 
         p_district = OrderList.NEAR
-        if supplier.ware_by == SaleSupplier.WARE_GZ:
+        if supplier.ware_by == WARE_GZ:
             p_district = OrderList.GUANGDONG
         now = datetime.datetime.now()
         ol = OrderList(purchase_order_unikey=od.purchase_order_unikey, order_amount=od.total_price,
