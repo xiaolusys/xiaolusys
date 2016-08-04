@@ -66,7 +66,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='rest_v1:customer-detail')
     user_id = serializers.CharField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
-    xiaolumm = XiaoluMamaSerializer(source='getXiaolumm', read_only=True)
+    xiaolumm = XiaoluMamaSerializer(source='get_charged_mama', read_only=True)
     user_budget = UserBudgetSerialize(source='getBudget', read_only=True)
     has_usable_password = serializers.BooleanField(source='user.has_usable_password', read_only=True)
     has_password = serializers.BooleanField(source='has_user_password', read_only=True)

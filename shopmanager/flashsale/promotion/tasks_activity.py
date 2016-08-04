@@ -306,7 +306,7 @@ def task_create_appdownloadrecord_with_userinfo(from_customer, userinfo):
     from_customer = int(from_customer)
     unionid = userinfo.get("unionid")
     nick = userinfo.get("nickname")
-    headimgurl = userinfo.get("headimgurl")
+    headimgurl = userinfo.get("headimgurl") or ''
     uni_key = '/'.join([str(from_customer), str(unionid)])
     unioindown = DownloadUnionidRecord.objects.filter(uni_key=uni_key).first()
     if not unioindown:
