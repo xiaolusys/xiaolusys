@@ -534,7 +534,7 @@ class XiaoluMama(models.Model):
     def get_activite_num(self):
         from .models_fortune import CarryRecord
         i = 0
-        mmids = self.get_invite_ids()
+        mmids = self.get_invite_ids() + self.get_invite_potential_mama_ids()
         for mmid in mmids:
             t = CarryRecord.objects.filter(mama_id=mmid).values('carry_num'). \
                     aggregate(total=Sum('carry_num')).get('total') or 0
