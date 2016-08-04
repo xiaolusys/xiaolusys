@@ -1,4 +1,5 @@
 # coding=utf-8
+import datetime
 from .models import (
     SaleSupplier,
     SaleCategory,
@@ -10,6 +11,15 @@ from .models import (
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+from django.db.models import Count
+
+
+class JSONParseField(serializers.Field):
+    def to_representation(self, obj):
+        return obj
+
+    def to_internal_value(self, data):
+        return data
 
 
 class SupplierStatusField(serializers.Field):
@@ -84,6 +94,32 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
                   'modified',
                   'memo',
                   'figures',
+                  'zone_name',
+                  'get_ware_by_display')
+
+
+class SaleSupplierSimpleSerializer(serializers.ModelSerializer):
+    status = SupplierStatusField()
+    progress = ProgressField()
+    zone_name = serializers.CharField(source='zone.name', read_only=True)
+
+    class Meta:
+        model = SaleSupplier
+        fields = ('id',
+                  'supplier_name',
+                  'supplier_code',
+                  'brand_url',
+                  "product_link",
+                  'total_sale_num',
+                  "description",
+                  'progress',
+                  "mobile",
+                  'category',
+                  "address",
+                  'status',
+                  'created',
+                  'modified',
+                  'memo',
                   'zone_name',
                   'get_ware_by_display')
 
@@ -206,18 +242,19 @@ from statistics.serializers import ModelStatsSimpleSerializer
 
 
 class SimpleSaleProductSerializer(serializers.ModelSerializer):
-    sale_supplier = SaleSupplierSerializer(read_only=True)
+    sale_supplier = SaleSupplierSimpleSerializer(read_only=True)
     sale_category = SaleCategorySerializer(read_only=True)
     status = StatusField()
     contactor = serializers.CharField(source='contactor.username', read_only=True)
     latest_figures = ModelStatsSimpleSerializer(source='sale_product_figures', read_only=True)
+    total_figures = JSONParseField(source='total_sale_product_figures', read_only=True)
 
     class Meta:
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'status', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo',
-            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures'
+            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures', 'total_figures'
         )
 
 
@@ -232,13 +269,70 @@ class SimpleSaleProductManageSerializer(serializers.ModelSerializer):
 
 
 class SaleProductManageSerializer(serializers.ModelSerializer):
-    # category = SaleCategorySerializer()
-    sale_suppliers = SaleSupplierSerializer(many=True)
+    sale_suppliers = SaleSupplierSimpleSerializer(many=True)
+    figures = serializers.SerializerMethodField('detail_info_calculate', read_only=True)
 
     class Meta:
         model = SaleProductManage
         fields = ('id', 'schedule_type', 'sale_time', 'sale_suppliers', 'product_num', 'upshelf_time', 'offshelf_time',
-                  'responsible_person_name', 'responsible_people_id', 'lock_status', 'created', 'modified')
+                  'responsible_person_name', 'responsible_people_id', 'lock_status', 'figures',
+                  'created', 'modified')
+
+    def detail_info_calculate(self, obj):
+        """
+        # 每个供应商有多少产品入选
+        """
+        data = obj.sale_suppliers.values('category').annotate(num=Count('id'))  # is id  not cid
+        categorys = [i['category'] for i in data]
+        cas = SaleCategory.objects.filter(id__in=set(categorys))
+        c_d = {}
+        for x in cas:
+            c_d.update({x.id: x.__unicode__()})
+        for i in data:
+            i.update({'category_name': c_d[i['category']]})
+
+        category_product_nums = {}
+        details = []
+        for d in obj.manage_schedule.all():
+            details.append(d.sale_product)
+            if not category_product_nums.has_key(d.sale_category):
+                category_product_nums[d.sale_category] = 1
+            else:
+                category_product_nums[d.sale_category] += 1
+        supplier_product_nums = {}
+        # 50 以下　　50-100　100-150  >150
+        price_zone_num = {}
+        for detail in details:
+            if not supplier_product_nums.has_key(detail.sale_supplier.supplier_name):
+                supplier_product_nums[detail.sale_supplier.supplier_name] = 1
+            else:
+                supplier_product_nums[detail.sale_supplier.supplier_name] += 1
+            if 0 <= detail.on_sale_price <= 50:
+                if not price_zone_num.has_key('<50'):
+                    price_zone_num['<50'] = 1
+                else:
+                    price_zone_num['<50'] += 1
+
+            elif 50 < detail.on_sale_price <= 100:
+                if not price_zone_num.has_key('50-100'):
+                    price_zone_num['50-100'] = 1
+                else:
+                    price_zone_num['50-100'] += 1
+
+            elif 100 < detail.on_sale_price <= 150:
+                if not price_zone_num.has_key('<50'):
+                    price_zone_num['100-150'] = 1
+                else:
+                    price_zone_num['100-150'] += 1
+            else:
+                if not price_zone_num.has_key('>150'):
+                    price_zone_num['>150'] = 1
+                else:
+                    price_zone_num['>150'] += 1
+        return {'category_supplier_num': data,
+                'category_product_nums': category_product_nums,
+                'supplier_product_nums': supplier_product_nums,
+                'price_zone_num': price_zone_num}
 
 
 class MaterialStatusField(serializers.Field):
