@@ -875,11 +875,14 @@ class ProductNumAssignView(APIView):
 
             items_dict_list.append(item_dict)
 
-        assign_tpl_string = render_to_string('items/product_assign_warn.html', {'items_list': items_dict_list,
-                                                                                'outer_id': outer_id,
-                                                                                'outer_sku_id': outer_sku_id,
-                                                                                'real_num': real_num,
-                                                                                'lday_num': lday_num})
+        assign_tpl_string = render_to_string('items/product_assign_warn.html',
+                                             {
+                                                 'items_list': items_dict_list,
+                                                 'outer_id': outer_id,
+                                                 'outer_sku_id': outer_sku_id,
+                                                 'real_num': real_num,
+                                                 'lday_num': lday_num
+                                             })
 
         return Response({'id': product.id,
                          'outer_id': outer_id,

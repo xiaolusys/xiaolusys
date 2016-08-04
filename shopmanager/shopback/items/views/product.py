@@ -37,6 +37,9 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         firstgrade_cat =saleproduct and saleproduct.sale_category.get_firstgrade_category()
         if firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_HEALTH):
             return redirect(reverse('items_v1:modelproduct-health')+'?supplier_id=%s&saleproduct=%s'%(supplier_id, saleproduct_id))
+        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_BAGS):
+            return redirect(reverse('items_v1:modelproduct-bags') + '?supplier_id=%s&saleproduct=%s' % (
+                supplier_id, saleproduct_id))
         elif firstgrade_cat and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
                                                 constants.CATEGORY_WEMON ,
                                                 constants.CATEGORY_ACCESSORY)):
@@ -57,6 +60,19 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                 "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
             },
             template_name='items/add_item_health.html'
+        )
+
+    @list_route(methods=['get'])
+    def bags(self, request, *args, **kwargs):
+        data = request.GET
+        supplier_id = data.get('supplier_id') or 0
+        saleproduct_id = data.get('saleproduct') or 0
+
+        return Response({
+            "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
+            "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
+            },
+            template_name='items/add_item_bags.html'
         )
 
     @list_route(methods=['post'])
@@ -109,6 +125,9 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         if category_item.parent_cid == 3:
             first_outer_id = u"3"
             outer_id = first_outer_id + str(category_item.cid) + "%05d" % supplier.id
+        elif category_item.parent_cid == 6:
+            first_outer_id = u"6"
+            outer_id = first_outer_id + str(category_item.cid) + "%05d" % supplier.id
         elif category_item.parent_cid == 5:
             first_outer_id = u"9"
             outer_id = first_outer_id + str(category_item.cid) + "%05d" % supplier.id
@@ -131,10 +150,11 @@ class ProductManageViewSet(viewsets.ModelViewSet):
             return exceptions.APIException(u"编码生成错误")
         try:
             extras = default_modelproduct_extras_tpl()
-            extras['properties'].update({
-                'qs_code': content['qs_code'],
-                'qhby_code': content['qhby_code']
-            })
+            for key ,value in content.iteritems():
+                if key.startswith('property.'):
+                    name = key.replace('property.', '')
+                    extras['properties'].update({name: value})
+            print 'debug properties:', extras
             with transaction.atomic():
                 model_pro = ModelProduct(
                     name=content['name'],
