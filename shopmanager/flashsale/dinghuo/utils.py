@@ -68,6 +68,7 @@ def gen_purchase_detail_unikey(pa):
 
 
 def gen_purchase_record_unikey(psi):
+    from flashsale.dinghuo.models_purchase import PurchaseRecord
     #return "%s-%s" % (psi.oid, psi.num_of_purchase_try)
     prev_unikey = "%s-%s" % (psi.oid, psi.num_of_purchase_try)
     pr = PurchaseRecord.objects.filter(uni_key=prev_unikey).first()
