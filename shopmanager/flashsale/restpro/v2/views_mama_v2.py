@@ -8,12 +8,13 @@ import urlparse
 from django.conf import settings
 from django.db.models import Sum, Count
 from django_statsd.clients import statsd
+from django.shortcuts import get_object_or_404
 from rest_framework import authentication
 from rest_framework import exceptions
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -21,6 +22,7 @@ from flashsale.pay.models import Customer, ModelProduct
 from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
     AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor, DailyStats
+from flashsale.xiaolumm.models import XiaoluMama
 from . import serializers
 
 logger = logging.getLogger(__name__)
@@ -492,6 +494,22 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
+    @list_route(methods='POST')
+    def change_mama(self, request):
+        new_mama_id = request.Data.get('new_mama_id')
+        fans = XlmmFans.get_by_customer_id(request.customer.id)
+        new_mama = get_object_or_404(XiaoluMama, pk=new_mama_id)
+        if new_mama.id == fans.xlmm:
+            raise exceptions.ValidationError(u'更换的新妈妈ID与原小鹿妈妈ID必须不一致')
+        fans.change_mama(new_mama)
+        return Response(True)
+
+    @detail_route(methods='POST')
+    def bind_mama(self, request, pk):
+        cus = request.user.customer
+        mama = get_object_or_404(XiaoluMama, pk=pk)
+        XlmmFans.bind_mama(cus, mama)
+        return Response(True)
 
 
 def match_data(from_date, end_date, visitors, orders):
