@@ -503,6 +503,43 @@ class SaleTrade(BaseModel):
         return package_list
 
 
+def add_renew_deposit_record(sender, obj, **kwargs):
+    """
+    押金续费:　使用代理钱包混合支付的情况
+    """
+    if not obj.is_Deposite_Order():
+        return
+    wallet_renew_deposit = obj.extras_info.get('wallet_renew_deposit') or 0
+    if float(wallet_renew_deposit) <= 0:  # 不是续费类型的
+        return
+    order = obj.sale_orders.all().first()
+    if order.is_1_deposit():
+        return
+
+    from flashsale.xiaolumm.models import CashOut, XiaoluMama
+    from core.options import log_action, ADDITION
+    from shopback.items.models import ProductSku
+
+    sku = ProductSku.objects.get(id=order.sku_id)
+    deposit_price = sku.agent_price
+
+    customer = Customer.objects.get(id=obj.buyer_id)
+    xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()
+    cash = deposit_price - order.payment
+    if cash <= 0:
+        return
+    cash = CashOut(xlmm=xlmm.id,
+                   value=cash * 100,
+                   approve_time=datetime.datetime.now(),
+                   status=CashOut.APPROVED)
+    cash.save()
+    log_action(customer.user, cash, ADDITION, u'用户妈妈钱包兑换代理续费')
+
+
+signal_saletrade_pay_confirm.connect(add_renew_deposit_record, sender=SaleTrade,
+                                     dispatch_uid=u'trade_pay_confirm_add_renew_deposit_record')
+
+
 def record_supplier_args(sender, obj, **kwargs):
     """ 随支付成功信号 更新供应商的销售额，销售数量
         :arg obj -> SaleTrade instance

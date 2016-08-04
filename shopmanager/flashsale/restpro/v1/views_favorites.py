@@ -53,7 +53,7 @@ class FavoritesViewSet(viewsets.ModelViewSet):
 
         queryset = self.paginate_queryset(result)
         serializers = self.get_serializer(queryset, many=True)
-        return Response(serializers.data)
+        return self.get_paginated_response(serializers.data)
 
     def create(self, request, *args, **kwargs):
         customer = Customer.getCustomerByUser(user=request.user)
@@ -90,7 +90,7 @@ class FavoritesViewSet(viewsets.ModelViewSet):
         if not customer:
             return Response({"code": 7, "info": u"用户未找到"})
 
-        model_id = request.data.get('model_id', None)
+        model_id = request.data.get('model_id', None) or request.query_params.get('model_id')
         if not model_id:
             return Response({"code": 1, "info": u"参数错误"})
 

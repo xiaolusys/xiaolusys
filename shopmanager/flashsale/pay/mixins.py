@@ -177,7 +177,8 @@ class PayInfoMethodMixin(object):
                 'charge': '',
                 'status': SaleTrade.WAIT_BUYER_PAY,
                 'openid': openid,
-                'extras_info': {'mm_linkid': form.get('mm_linkid', '0'), 'ufrom': form.get('ufrom', '')}
+                'extras_info': {'mm_linkid': form.get('mm_linkid', '0'), 'ufrom': form.get('ufrom', '')
+                                , 'wallet_renew_deposit': form.get('wallet_renew_deposit', '')}
             })
         for k, v in params.iteritems():
             hasattr(sale_trade, k) and setattr(sale_trade, k, v)
