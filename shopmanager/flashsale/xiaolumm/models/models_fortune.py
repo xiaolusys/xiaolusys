@@ -513,7 +513,7 @@ class AwardCarry(BaseModel):
             mama_id=mama.id,
             carry_num=num*100,
             carry_type=4,
-            date_field=datetime.datetime.now(),
+            date_field=datetime.datetime.now().date(),
             carry_plan_name=name,
             carry_description=description,
             uni_key=uni_key,
