@@ -88,4 +88,4 @@ def task_product_upshelf_notify_favorited_customer(product):
     customer_ids = model.favorites_set.values('customer_id')
 
     for customer_id in customer_ids:
-        push_product.push_product_to_customer(customer_id)
+        push_product.push_product_to_customer(customer_id, model)

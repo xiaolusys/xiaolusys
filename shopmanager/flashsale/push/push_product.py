@@ -8,19 +8,16 @@ from flashsale.protocol import constants as protocal_constants
 from flashsale.push.models_message import PushMsgTpl
 
 
-def push_product_to_customer(customer_id):
-    target_url = get_target_url(protocal_constants.TARGET_TYPE_HOME_TAB_1)
+def push_product_to_customer(customer_id, modelproduct):
+    product_url = modelproduct.item_product.get_weburl()
+    params = {'product_id': product_url}
+    target_url = get_target_url(protocal_constants.TARGET_TYPE_PRODUCT, params=params)
     msg = None
 
-    mstpls = PushMsgTpl.objects.filter(id=11, is_valid=True)
-    if mstpls.exists():
-        mstpl = mstpls[0]
-        msg = mstpl.get_emoji_content()
+    mstpl = PushMsgTpl.objects.filter(id=11, is_valid=True).first()
+    if mstpl:
+        msg = mstpl.get_emoji_content().format(modelproduct.name)
 
     if msg is not None:
-        mipush_of_android.push_to_account(customer_id,
-                                          {'target_url': target_url},
-                                          description=msg)
-        mipush_of_ios.push_to_account(customer_id,
-                                      {'target_url': target_url},
-                                      description=msg)
+        mipush_of_android.push_to_account(customer_id, {'target_url': target_url}, description=msg)
+        mipush_of_ios.push_to_account(customer_id, {'target_url': target_url}, description=msg)
