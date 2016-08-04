@@ -52,10 +52,15 @@ class XlmmMessage(AdminModel):
 
         return
 
+    def set_read(self, mama):
+        rel = mama.rel_messages.filter(message_id=self.id)
+        rel.read = True
+        rel.save()
+
 
 class XlmmMessageRel(BaseModel):
-    message = models.ForeignKey(XlmmMessage)
-    mama = models.ForeignKey(XiaoluMama, verbose_name=u'接受者')
+    message = models.ForeignKey(XlmmMessage, related_name='rel_messages')
+    mama = models.ForeignKey(XiaoluMama, related_name='rel_messages', verbose_name=u'接受者')
     read = models.BooleanField(default=True, verbose_name=u'状态')
 
     class Meta:

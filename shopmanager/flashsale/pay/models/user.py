@@ -160,16 +160,23 @@ class Customer(BaseModel):
             return customers[0]
         return None
 
+    def get_xiaolumm(self, ):
+        if not self.unionid:
+            return None
+        if not hasattr(self, '_xiaolumm_'):
+            from flashsale.xiaolumm.models import XiaoluMama
+            self._xiaolumm_ = XiaoluMama.objects.filter(openid=self.unionid).first()
+        return self._xiaolumm_
+
     def getXiaolumm(self):
         """ 获取当前用户对应的小鹿妈妈 """
         if not self.unionid:
             return None
         if not hasattr(self, '_customer_mama_'):
             from flashsale.xiaolumm.models import XiaoluMama
-
             self._customer_mama_ = XiaoluMama.objects.filter(
-                openid=self.unionid,status=XiaoluMama.EFFECT,
-                charge_status=XiaoluMama.CHARGED).first()
+                    openid=self.unionid,status=XiaoluMama.EFFECT,
+                    charge_status=XiaoluMama.CHARGED).first()
         return self._customer_mama_
 
     def get_referal_xlmm(self):
