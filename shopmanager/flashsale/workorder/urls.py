@@ -5,7 +5,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from views import workorder
 
 urlpatterns = [
-    url(r'workorder/(?P<pk>[0-9]+)/$', workorder.wk, name='wk')
+    url(r'push_images/$', workorder.wk, name='wk')
 ]
 
 urlpatterns += format_suffix_patterns(urlpatterns)

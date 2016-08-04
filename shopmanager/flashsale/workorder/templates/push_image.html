@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <p>nmb</p>
+    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}wap/css/sweet-alert.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.css" rel="stylesheet">
+    <script src="http://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+    <script src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+    <script src="{{ STATIC_URL }}script/qiniu.js"></script>
+    <script src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
+    <script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js?v=0.1"></script>
+</head>
+<body>
+    <div class="form-group">
+        <label class="control-label">附件:</label>
+        <input type="hidden" id="pickfiles">
+        <ul id="files" class="uploader"></ul>
+    </div>
+</body>
+</html>
+<script>
+         $(function(){
+             $('#files').uploader({
+                 fileButton: 'pickfiles',
+                 domain: 'http://img.xiaolumeimei.com/',
+                 imageOp: 'imageMogr2/thumbnail/220/crop/220x220/format/jpg',
+                 maxLength: 1,
+                 width: 100,
+                 height: 100
+             });
+             });
+</script>
