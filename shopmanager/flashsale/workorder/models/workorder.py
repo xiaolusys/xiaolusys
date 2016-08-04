@@ -61,10 +61,30 @@ class WorkOrder(models.Model):
         (SUPPLYCHAIN,u'供应链'),
         (WARHOUSE,u'仓库')
     )
+    ADMINISTRATION = 1
+    TECHNICAL = 2
+    PROMOTION = 3
+    FINANCE = 4
+    CSTMSVS = 5
+    SUPPLYCHAIN = 6
+    WARHOUSE = 7
+    PART_TYPE=(
+        (ADMINISTRATION,u'行政部'),
+        (TECHNICAL,u'技术部'),
+        (PROMOTION,u'推广部'),
+        (FINANCE,u'财务部'),
+        (CSTMSVS,u'客服部'),
+        (SUPPLYCHAIN,u'供应链部'),
+        (WARHOUSE,u'仓库部')
+    )
+
     id = models.AutoField(verbose_name=u'工单编号',primary_key=True)
     problem_title = models.TextField(max_length=32, blank=True, verbose_name=u'问题标题')
     problem_type = models.IntegerField(choices=PRBM_TYPE,blank=True, verbose_name=u'问题类型')
     problem_desc = models.TextField(max_length=1024, blank=True, verbose_name=u'问题描述')
+    raised_part = models.IntegerField(choices=PART_TYPE,blank=True, verbose_name=u'提出部门')
+    dealed_part = models.IntegerField(choices=PART_TYPE,blank=True, verbose_name=u'处理部门')
+    content_imgs = models.TextField(blank=True, verbose_name=u'图片URL链接(多张请换行)')
     status = models.IntegerField(choices=STATUS_CHOICES, default=STATUS_PENDING,verbose_name=u'工单处理状态')
     is_valid = models.IntegerField(choices=VALID_CHOICES, default=YES,verbose_name=u'工单状态')
     level = models.IntegerField(choices=LEVEL,blank=False, default=COMMON,verbose_name=u'工单等级')
@@ -120,6 +140,13 @@ class WorkOrder(models.Model):
         """设置工单为已完成"""
         self.status = WorkOrder.STATUS_FINISHED
         self.save(update_fields=['status'])
+
+    @property
+    def get_url(self):
+        """获取多张图片url"""
+        content_imgs = self.content_imgs
+        content_imgs = content_imgs.split('\n')
+        return content_imgs
 
 def work_order_update_time(sender, instance, created, **kwargs):
     logger.info('post_save workorder: %s' % instance)

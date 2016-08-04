@@ -35,6 +35,7 @@
     {% if has_absolute_url %}<li><a href="{{ absolute_url }}" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif %}
     {% endblock %}
   </ul>
+
 {% endif %}{% endif %}
 {% endblock %}
 <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form" novalidate>{% csrf_token %}{% block form_top %}{% endblock %}
@@ -48,10 +49,13 @@
     </p>
     {{ adminform.form.non_field_errors }}
 {% endif %}
-
+<a href="/sale/workorder/push_images/" target="_black"> 传图链接</a>
 {% block field_sets %}
 {% for fieldset in adminform %}
   {% include "admin/includes/fieldset.html" %}
+  {% for i in original.get_url%}
+    <img src={{i}}/>
+    {%endfor%}
 {% endfor %}
 {% endblock %}
 
