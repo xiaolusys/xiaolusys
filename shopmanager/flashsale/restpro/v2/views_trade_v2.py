@@ -459,7 +459,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     - {path}/{pk}: 获取订单详情, 请传入参数 device :支付类型 (app ,app支付), (wap, wap支付), (web, 网页支付);
     - {path}/{pk}/charge[.formt]:支付待支付订单,可传入支付方式: channel;
     - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
-    > - cart_ids：购物车明细ID，如 `100,101,...` 
+    > - cart_ids：购物车明细ID，如 `100,101,...`
     > - addr_id:客户地址ID
     > - channel:支付方式
     > - payment：付款金额
@@ -469,9 +469,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:couponid:2
     > - uuid：系统分配唯一ID
     > - logistics_company_id: 快递公司id
-    > - 返回结果：{'code':0,'info':'ok','charge':{...}},请求成功code=0,失败code大于0,错误信息info 
+    > - 返回结果：{'code':0,'info':'ok','charge':{...}},请求成功code=0,失败code大于0,错误信息info
     - {path}/buynow_create[.formt]:立即支付订单接口
-    > - item_id：商品ID，如 `100,101,...` 
+    > - item_id：商品ID，如 `100,101,...`
     > - sku_id:规格ID
     > - num:购买数量
     > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:conponid:2
@@ -483,13 +483,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     # renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
-    
+
     filter_fields = ('tid',)
     paginate_by = 15
     page_query_param = 'page'
     paginate_by_param = 'page_size'
     max_paginate_by = 100
-    
+
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(buyer_id=customer.id,
@@ -506,7 +506,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return None
         xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
         return xiaolumms.count() > 0 and xiaolumms[0] or None
-        
+
     def list(self, request, *args, **kwargs):
         """ 获取用户订单列表 """
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -524,7 +524,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         data = serializers.SaleTradeDetailSerializer(instance,context={'request': request}).data
         data['extras'].update(channels=get_channel_list(request))
         return Response(data)
-    
+
     @list_route(methods=['get'])
     def waitpay(self, request, *args, **kwargs):
         """ 获取用户待支付订单列表 """
@@ -537,7 +537,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     @list_route(methods=['get'])
     def waitsend(self, request, *args, **kwargs):
         """ 获取用户待发货订单列表 """
@@ -551,14 +551,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-    
+
     def check_before_charge(self, sale_trade):
         """ 支付前参数检查,如优惠券状态检查 """
 
@@ -572,14 +572,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 妈妈钱包支付实现 """
         if check_coupon:
             self.check_before_charge(sale_trade)
-        
+
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
-        payment       = round(sale_trade.payment * 100) 
+        payment       = round(sale_trade.payment * 100)
         buyer_unionid = buyer.unionid
         strade_id     = sale_trade.id
         buyer_nick    = sale_trade.buyer_nick
         channel       = sale_trade.channel
-        
+
         xlmm = XiaoluMama.objects.get(openid=buyer_unionid)
         urows = XiaoluMama.objects.filter(
             openid=buyer_unionid,
@@ -596,14 +596,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         #确认付款后保存
         confirmTradeChargeTask.delay(strade_id)
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
-    
+
     def budget_charge(self, sale_trade, check_coupon=True, **kwargs):
         """ 小鹿钱包支付实现 """
         if check_coupon:
             self.check_before_charge(sale_trade)
-        
+
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
-        payment       = round(sale_trade.payment * 100) 
+        payment       = round(sale_trade.payment * 100)
         strade_id     = sale_trade.id
         channel       = sale_trade.channel
 
@@ -625,12 +625,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return {'channel':channel,'success':True,'id':sale_trade.id,
                 'info':'订单支付成功', 'order_no':sale_trade.tid,
                 'success_url': success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL}
-    
+
     def pingpp_charge(self, sale_trade, check_coupon=True, **kwargs):
         """ pingpp支付实现 """
         if check_coupon:
             self.check_before_charge(sale_trade)
-        
+
         payment       = sale_trade.get_cash_payment()
         if payment <= 0:
             raise Exception(u'%s支付金额不能小于0' % sale_trade.get_channel_display().replace(u'支付',u''))
@@ -646,15 +646,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if not budget_charge_create:
                 logger.error('budget payment err:tid=%s, payment=%s, budget_payment=%s'%(sale_trade.tid, sale_trade.payment, sale_trade.budget_payment))
                 raise Exception(u'钱包余额不足')
-        
+
         extra = {}
         if channel == SaleTrade.WX_PUB:
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
-        
+
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":payback_url,
                      "cancel_url":cancel_url}
-        
+
         elif channel == SaleTrade.UPMP_WAP:
             extra = {"result_url":payback_url}
 
@@ -754,7 +754,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
 
         return sale_trade,True
-    
+
     def create_Saleorder_By_Shopcart(self,saletrade,cart_qs):
         """ 根据购物车创建订单明细方法 """
         total_fee = saletrade.total_fee
@@ -782,11 +782,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                  sku_name=sku.properties_alias,
                  status=SaleTrade.WAIT_BUYER_PAY
             )
-        
+
         #关闭购物车
         for cart in cart_qs:
             cart.close_cart(release_locknum=False)
-    
+
     def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
         """ 根据商品明细创建订单明细方法 """
         total_fee = saletrade.total_fee
@@ -808,7 +808,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
              sku_name=sku.properties_alias,
              status=SaleTrade.WAIT_BUYER_PAY
         )
-    
+
     def parse_entry_params(self, pay_extras):
         """ pid:1:value:2;pid:2:value:3:conponid:2 """
         if not pay_extras:
@@ -833,7 +833,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(u'优惠券未找到')
         user_coupon.check_user_coupon(product_ids=item_ids, use_fee=payment / 100.0)
         return round(user_coupon.value * 100)
-    
+
     def calc_extra_discount(self, pay_extras, **kwargs):
         """　优惠信息(分) """
         pay_extra_list = self.parse_entry_params(pay_extras)
@@ -848,7 +848,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if pid == CONS.ETS_APPCUT and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
                 discount_fee += CONS.PAY_EXTRAS[pid]['value'] * 100
         return round(discount_fee)
-    
+
     def calc_extra_budget(self, pay_extras, **kwargs):
         """　支付余额(分) """
         pay_extra_list = self.parse_entry_params(pay_extras)
@@ -960,8 +960,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return Response({'code':0, 'info':u'支付成功', 'channel':channel,
                          'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel},
                          'charge':response_charge})
-            
-        
+
+
     @list_route(methods=['post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
@@ -970,7 +970,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sku_id   = CONTENT.get('sku_id')
         sku_num  = int(CONTENT.get('num','1'))
         pay_extras = CONTENT.get('pay_extras')
-        
+
         customer        = get_object_or_404(Customer,user=request.user)
         product         = get_object_or_404(Product,id=item_id)
         product_sku     = get_object_or_404(ProductSku,id=sku_id)
@@ -979,12 +979,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)
         discount_fee    = round(float(CONTENT.get('discount_fee','0')) * 100)
         bn_totalfee     = round(product_sku.agent_price * sku_num * 100)
-        
+
         xlmm            = self.get_xlmm(request)
         bn_discount     = product_sku.calc_discount_fee(xlmm) * sku_num
         if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
             raise exceptions.ParseError(u'商品已被抢光啦！')
-        
+
         coupon_id = CONTENT.get('coupon_id', '')
         user_coupon = None
         if coupon_id:
@@ -1002,12 +1002,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         bn_discount = min(bn_discount, bn_totalfee)
         if discount_fee > bn_discount:
             raise exceptions.ParseError(u'优惠金额异常')
-        
+
         bn_payment      = bn_totalfee + post_fee - bn_discount
-        if (post_fee < 0 or payment < 0 or abs(payment - bn_payment) > 10 
+        if (post_fee < 0 or payment < 0 or abs(payment - bn_payment) > 10
             or abs(total_fee - bn_totalfee) > 10):
             raise exceptions.ParseError(u'付款金额异常')
-        
+
         addr_id  = CONTENT.get('addr_id')
         address = UserAddress.objects.filter(id=addr_id, cus_uid=customer.id).first()
         if not address:
@@ -1016,7 +1016,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         channel  = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')
-        
+
         try:
             lock_success =  Product.objects.lockQuantity(product_sku,sku_num)
             if not lock_success:

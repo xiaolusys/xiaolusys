@@ -25,12 +25,12 @@ from auth import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
 from flashsale.restpro.local_cache import image_watermark_cache
-from flashsale.pay.tasks import task_product_upshelf_notify_favorited_customer
 
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category, ProductCategory
 from shopback.archives.models import Deposite, DepositeDistrict
 from shopback.users.models import DjangoUser, User
+from shopback.items.tasks_stats import task_product_upshelf_notify_favorited_customer
 from supplychain.supplier.models import SaleProduct
 from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
 
@@ -704,7 +704,7 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
                 for sku in product_skus:
                     task_product_upshelf_update_productskusalestats.delay(sku.id)
 
-                task_product_upshelf_notify_favorited_customer(product)
+                task_product_upshelf_notify_favorited_customer.delay(product)
 
             elif instance.shelf_status == Product.DOWN_SHELF:
 

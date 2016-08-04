@@ -194,7 +194,7 @@ SKU_STATS_ROUTES = {
         'queue': 'skustats',
         'routing_key': 'skustats.task_shoppingcart_update_productskustats_shoppingcart_num',
     },
-     'flashsale.pay.tasks_stats.task_saleorder_update_productskustats_waitingpay_num': {
+    'flashsale.pay.tasks_stats.task_saleorder_update_productskustats_waitingpay_num': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_saleorder_update_productskustats_waitingpay_num',
     },
@@ -213,6 +213,10 @@ SKU_STATS_ROUTES = {
     'flashsale.dinghuo.tasks.task_inbounddetail_update_productsku_inbound_quantity': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_inbounddetail_update_productsku_inbound_quantity',
+    },
+    'shopback.items.tasks_stats.task_product_upshelf_notify_favorited_customer': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_product_upshelf_notify_favorited_customer',
     },
 }
 
@@ -401,7 +405,7 @@ MAMA_CARRY_ROUTES = {
     'flashsale.xiaolumm.tasks_mama_clickcarry.task_confirm_previous_order_clickcarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_confirm_previous_order_clickcarry',
-    },    
+    },
     'flashsale.xiaolumm.tasks_mama_clickcarry.task_visitor_increment_clickcarry': {
         'queue': 'mama',
         'routing_key': 'mama.task_visitor_increment_clickcarry',
