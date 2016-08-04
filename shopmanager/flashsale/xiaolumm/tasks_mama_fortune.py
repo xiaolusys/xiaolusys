@@ -244,7 +244,7 @@ def task_update_mamafortune_order_num(mama_id):
 @task(max_retries=3, default_retry_delay=6)
 def task_send_activite_award(mama_id):
     from flashsale.xiaolumm.models import XiaoluMama
-    mama = XiaoluMama.objects.filter(id=mama_id, last_renew_type=XiaoluMama.TRIAL).first()
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
     if not mama:
         return
     data = {
