@@ -2,6 +2,8 @@ from django.db import IntegrityError
 from django.db.models import Sum
 from celery.task import task
 
+from flashsale.push import push_product
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -78,3 +80,12 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
     else:
         logger.warn("RepeatDownshelf- productskusalestat/init_waitassign_num | sku_id: %s, sale_end_time: %s" % (
             sku_id, sale_end_time))
+
+
+@task()
+def task_product_upshelf_notify_favorited_customer(product):
+    model = product.product_model
+    customer_ids = model.favorites_set.values('customer_id')
+
+    for customer_id in customer_ids:
+        push_product.push_product_to_customer(customer_id)

@@ -38,7 +38,6 @@ class FavoritesViewSet(viewsets.ModelViewSet):
             return Response({"code": 7, "info": u"用户未找到"})  # 登录过期
 
         queryset = self.queryset.filter(customer_id=customer.id).order_by('-created')
-        import ipdb;ipdb.set_trace();
 
         result = []
         if shelf_status:
