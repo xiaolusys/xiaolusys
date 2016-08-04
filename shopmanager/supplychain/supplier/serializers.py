@@ -12,6 +12,14 @@ from django.contrib.auth.models import User
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
 
+class JSONParseField(serializers.Field):
+    def to_representation(self, obj):
+        return obj
+
+    def to_internal_value(self, data):
+        return data
+
+
 class SupplierStatusField(serializers.Field):
     def to_representation(self, obj):
         for record in SaleSupplier.STATUS_CHOICES:
@@ -64,6 +72,33 @@ class SaleSupplierSerializer(serializers.ModelSerializer):
     status = SupplierStatusField()
     progress = ProgressField()
     figures = SupplierFigureSerializer(read_only=True)
+    zone_name = serializers.CharField(source='zone.name', read_only=True)
+
+    class Meta:
+        model = SaleSupplier
+        fields = ('id',
+                  'supplier_name',
+                  'supplier_code',
+                  'brand_url',
+                  "product_link",
+                  'total_sale_num',
+                  "description",
+                  'progress',
+                  "mobile",
+                  'category',
+                  "address",
+                  'status',
+                  'created',
+                  'modified',
+                  'memo',
+                  'figures',
+                  'zone_name',
+                  'get_ware_by_display')
+
+
+class SaleSupplierSimpleSerializer(serializers.ModelSerializer):
+    status = SupplierStatusField()
+    progress = ProgressField()
     zone_name = serializers.CharField(source='zone.name', read_only=True)
 
     class Meta:
@@ -206,18 +241,19 @@ from statistics.serializers import ModelStatsSimpleSerializer
 
 
 class SimpleSaleProductSerializer(serializers.ModelSerializer):
-    sale_supplier = SaleSupplierSerializer(read_only=True)
+    sale_supplier = SaleSupplierSimpleSerializer(read_only=True)
     sale_category = SaleCategorySerializer(read_only=True)
     status = StatusField()
     contactor = serializers.CharField(source='contactor.username', read_only=True)
     latest_figures = ModelStatsSimpleSerializer(source='sale_product_figures', read_only=True)
+    total_figures = JSONParseField(source='total_sale_product_figures', read_only=True)
 
     class Meta:
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'status', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo',
-            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures'
+            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures', 'total_figures'
         )
 
 

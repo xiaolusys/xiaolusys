@@ -1,10 +1,12 @@
 # -*- coding:utf-8 -*-
 from django.core.cache import cache
 from django.db import models
+from django.db.models import Sum
 from django.db.models.signals import pre_save, post_save
 
 from core.models import BaseTagModel
 from core.utils import update_model_fields
+
 
 class SaleProduct(BaseTagModel):
     MANUAL = 'manual'
@@ -108,6 +110,18 @@ class SaleProduct(BaseTagModel):
             from statistics.models import ModelStats
             self._product_figures_ = ModelStats.objects.filter(sale_product=self.id).first()
         return self._product_figures_
+
+    def total_sale_product_figures(self):
+        """ 选品总销售额退货率计算 """
+        if not hasattr(self, '_product_total_figures_'):
+            from statistics.models import ModelStats
+            stats = ModelStats.objects.filter(sale_product=self.id)
+            agg = stats.aggregate(s_p=Sum('pay_num'), s_rg=Sum('return_good_num'))
+            p_n = agg['s_p']
+            rg = agg['s_rg']
+            rat = round(float(rg) / p_n, 4) if p_n > 0 else 0
+            self._product_total_figures_ = {'total_pay_num': p_n, 'total_rg_rate': rat}
+        return self._product_total_figures_
 
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
