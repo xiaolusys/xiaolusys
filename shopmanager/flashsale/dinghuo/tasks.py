@@ -1688,13 +1688,7 @@ def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
 def task_purchaserecord_sync_purchasearrangement_status(pr):
     # print "debug: %s" % utils.get_cur_info()
 
-    #if not pr.is_booked():
-    #    return
-
-    purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
-    uni_key = utils.gen_purchase_arrangement_unikey(purchase_order_unikey, pr.uni_key)
-    
-    pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
+    pa = PurchaseArrangement.objects.filter(oid=pr.oid).first()
     if pa:
         if pa.status != pr.status:
             pa.status = pr.status
