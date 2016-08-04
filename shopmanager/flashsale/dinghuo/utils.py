@@ -68,7 +68,8 @@ def gen_purchase_detail_unikey(pa):
 
 
 def gen_purchase_record_unikey(psi):
-    return "%s-%s" % (psi.oid, psi.num_of_purchase_try)
+    #return "%s-%s" % (psi.oid, psi.num_of_purchase_try)
+    return psi.oid
 
 
 def gen_purchase_order_unikey(pr):
