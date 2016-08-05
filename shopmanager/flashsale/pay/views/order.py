@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 
-from shopback.items.models import Product, ProductSku, ProductCategory
+from shopback.items.models import Product, ProductSku
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
 
 from  django.db.models import Q

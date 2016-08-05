@@ -132,12 +132,12 @@ router_urls += format_suffix_patterns([
         name="user-budget-bang"),
 ])
 
-from flashsale.restpro.v2 import views_lesson
+from flashsale.restpro.v2 import views as views_v2
 lesson_router = routers.DefaultRouter(trailing_slash=False)
-lesson_router.register(r'lessontopic', views_lesson.LessonTopicViewSet)
-lesson_router.register(r'lesson', views_lesson.LessonViewSet)
-lesson_router.register(r'instructor', views_lesson.InstructorViewSet)
-lesson_router.register(r'lessonattendrecord', views_lesson.LessonAttendRecordViewSet)
+lesson_router.register(r'lessontopic', views_v2.LessonTopicViewSet)
+lesson_router.register(r'lesson', views_v2.LessonViewSet)
+lesson_router.register(r'instructor', views_v2.InstructorViewSet)
+lesson_router.register(r'lessonattendrecord', views_v2.LessonAttendRecordViewSet)
 
 urlpatterns = patterns('',
     url(r'^', include(router_urls, namespace='rest_v1')),

@@ -915,18 +915,19 @@ def task_unitary_mama(obj):
 
     from django_statsd.clients import statsd
     from flashsale.pay.models import SaleOrder
-    from shopback.items.models import DIPOSITE_CODE_PREFIX
+    from shopback.items.models import Product
 
     pre_date = datetime.date.today()
     time_from = datetime.datetime(pre_date.year, pre_date.month, pre_date.day)
     time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
-    statsd.timing('xiaolumm.new_yiyuan_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
-                                                                             payment=1.0,
-                                                                             pay_time__range=(
-                                                                             time_from, time_to)).count())
+    statsd.timing('xiaolumm.new_yiyuan_mama_count', SaleOrder.objects.filter(
+        outer_id__startswith=Product.DIPOSITE_CODE_PREFIX,
+        payment=1.0,
+        pay_time__range=(
+        time_from, time_to)).count())
 
-    statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
-                                                                        pay_time__range=(time_from, time_to)).count())
+    statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(
+        outer_id__startswith=Product.DIPOSITE_CODE_PREFIX, pay_time__range=(time_from, time_to)).count())
 
 
 def update_xlmm_referal_from(protentialmama, xlmm):
@@ -1032,12 +1033,13 @@ def task_register_mama(obj):
     statsd.timing('xiaolumm.new_mama_count', XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED,
                                                                        charge_time__range=(start, end)).count())
     from flashsale.pay.models import SaleOrder
-    from shopback.items.models import DIPOSITE_CODE_PREFIX
+    from shopback.items.models import Product
     pre_date = datetime.date.today()
     time_from = datetime.datetime(pre_date.year, pre_date.month, pre_date.day)
     time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
-    statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
-                                                                        pay_time__range=(time_from, time_to)).count())
+    statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(
+        outer_id__startswith=Product.DIPOSITE_CODE_PREFIX,
+        pay_time__range=(time_from, time_to)).count())
 
 
 @task()
@@ -1094,13 +1096,12 @@ def task_renew_mama(obj):
 
         from django_statsd.clients import statsd
         from flashsale.pay.models import SaleOrder
-        from shopback.items.models import DIPOSITE_CODE_PREFIX
+        from shopback.items.models import Product
         pre_date = datetime.date.today()
         time_from = datetime.datetime(pre_date.year, pre_date.month, pre_date.day)
         time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
-        statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(outer_id__startswith=DIPOSITE_CODE_PREFIX,
-                                                                            pay_time__range=(
-                                                                                time_from, time_to)).count())
+        statsd.timing('xiaolumm.payed_mama_count', SaleOrder.objects.filter(
+            outer_id__startswith=Product.DIPOSITE_CODE_PREFIX, pay_time__range=(time_from, time_to)).count())
 
 
 @task()

@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 from core.models import BaseModel
 from shopback.items.models import ProductSku, Product, ProductSkuStats
 from supplychain.supplier.models import SaleSupplier, SaleProduct
-from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
 from .purchase_order import OrderList
 import logging
 
@@ -474,8 +473,7 @@ class ReturnGoods(models.Model):
 
 
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
-    from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
-    if instance.created >= PRODUCT_SKU_STATS_COMMIT_TIME and instance.status in [
+    if instance.created >= ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME and instance.status in [
         ReturnGoods.REFUND_RG, ReturnGoods.DELIVER_RG,
         ReturnGoods.SUCCEED_RG
     ]:
@@ -548,7 +546,7 @@ class RGDetail(models.Model):
         return u'入仓单<%d>' % self.src
 
     @staticmethod
-    def get_inferior_total(sku_id, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME):
+    def get_inferior_total(sku_id, begin_time=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME):
         res = RGDetail.objects.filter(skuid=sku_id, created__gt=begin_time,
                                       return_goods__status__in=[ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
                                                                 ReturnGoods.SUCCEED_RG]).aggregate(

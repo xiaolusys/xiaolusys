@@ -14,8 +14,7 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
                                       OrderDetailInBoundDetail)
-from shopback.archives.models import DepositeDistrict
-from shopback.items.models import Product,ProductSku, ProductCategory, ProductSku, ProductStock, ProductLocation
+from shopback.items.models import Product,ProductSku
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from . import forms, functions, functions2view, models
 from django.shortcuts import get_object_or_404

@@ -5,7 +5,7 @@ from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from core.filters import SimpleListFilter, FieldListFilter
-from shopback.items.models_stats import ProductSkuStats
+from shopback.items.models import ProductSkuStats
 from shopback.items.models import Product
 
 

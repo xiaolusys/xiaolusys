@@ -131,55 +131,22 @@ router_urls += format_suffix_patterns([
         name="user-budget-bang"),
 ])
 
-# 2016-3-2 v2
-from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login, views_packageskuitem
-from flashsale.restpro.v2 import views_trade_v2, views_product_v2
 
-v2_router = routers.DefaultRouter(trailing_slash=False)
-v2_router.register(r'carts', views_trade_v2.ShoppingCartViewSet)
-v2_router.register(r'products', views_product_v2.ProductViewSet)
-v2_router.register(r'modelproducts', views_product_v2.ModelProductV2ViewSet)
-v2_router.register(r'trades', views_trade_v2.SaleTradeViewSet)
-v2_router.register(r'orders', views_trade_v2.SaleOrderViewSet)
-v2_router.register(r'fortune', views_mama_v2.MamaFortuneViewSet)
-v2_router.register(r'carry', views_mama_v2.CarryRecordViewSet)
-v2_router.register(r'ordercarry', views_mama_v2.OrderCarryViewSet)
-v2_router.register(r'awardcarry', views_mama_v2.AwardCarryViewSet)
-v2_router.register(r'clickcarry', views_mama_v2.ClickCarryViewSet)
-v2_router.register(r'activevalue', views_mama_v2.ActiveValueViewSet)
-v2_router.register(r'referal', views_mama_v2.ReferalRelationshipViewSet)
-v2_router.register(r'group', views_mama_v2.GroupRelationshipViewSet)
-v2_router.register(r'visitor', views_mama_v2.UniqueVisitorViewSet)
-v2_router.register(r'fans', views_mama_v2.XlmmFansViewSet)
-v2_router.register(r'dailystats', views_mama_v2.DailyStatsViewSet)
+from flashsale.restpro.v2 import views as views_v2
 
-
-v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
-v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
-v2_router.register(r'sharecoupon', views_coupon_new.OrderShareCouponViewSet)
-v2_router.register(r'tmpsharecoupon', views_coupon_new.TmpShareCouponViewset)
-
-
-v2_router_urls = v2_router.urls
-v2_router_urls += ([
-
-])
-
-from flashsale.restpro.v2 import views_lesson
 lesson_router = routers.DefaultRouter(trailing_slash=False)
-lesson_router.register(r'lessontopic', views_lesson.LessonTopicViewSet)
-lesson_router.register(r'lesson', views_lesson.LessonViewSet)
-lesson_router.register(r'instructor', views_lesson.InstructorViewSet)
-lesson_router.register(r'lessonattendrecord', views_lesson.LessonAttendRecordViewSet)
+lesson_router.register(r'lessontopic', views_v2.LessonTopicViewSet)
+lesson_router.register(r'lesson', views_v2.LessonViewSet)
+lesson_router.register(r'instructor', views_v2.InstructorViewSet)
+lesson_router.register(r'lessonattendrecord', views_v2.LessonAttendRecordViewSet)
 
-from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login, views_packageskuitem
 
 urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^lesson/', include(lesson_router.urls, namespace='lesson')),
-    url(r'^lesson/snsauth/', views_lesson.WeixinSNSAuthJoinView.as_view()),
-    url(r'^packageskuitem', views_packageskuitem.PackageSkuItemView.as_view()),
+    url(r'^lesson/snsauth/', views_v2.WeixinSNSAuthJoinView.as_view()),
+    url(r'^packageskuitem', views_v2.PackageSkuItemView.as_view()),
 
     url(r'^v1/', include('flashsale.restpro.v1.urls')),
     url(r'^v2/', include('flashsale.restpro.v2.urls')),

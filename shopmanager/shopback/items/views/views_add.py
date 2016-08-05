@@ -18,14 +18,14 @@ from rest_framework.response import Response
 
 from common import page_helper
 from core.options import log_action, ADDITION, CHANGE
-from flashsale.pay.models import ModelProduct, Productdetail
+from flashsale.pay.models import ModelProduct, Productdetail, default_modelproduct_extras_tpl
 from flashsale.pay.signals import signal_record_supplier_models
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from shopback.categorys.models import ProductCategory
 from shopback.items import constants, forms, local_cache
 from shopback.items.models import (Product, ProductSku, ProductSchedule,
-                                   ProductSkuContrast, ContrastContent)
-from shopback.items.models_stats import ProductSkuStats
+                                   ProductSkuContrast, ContrastContent,
+                                   ProductSkuStats)
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 logger = logging.getLogger(__name__)
@@ -58,11 +58,11 @@ class AddItemView(generics.ListCreateAPIView):
         wash_instroduce = content.get("wash_instroduce", "")
         header_img = content.get("header_img", "")
         ware_by = content.get("ware_by", "")
-        saleproduct = content.get("saleproduct", "")
-        sale_products = SaleProduct.objects.filter(id=saleproduct)
-        if sale_products.count() == 0:
+        saleproduct_id = content.get("saleproduct", "")
+        saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
+        if not saleproduct:
             return Response({"result": "选品ID错误"})
-        supplier = str(sale_products[0].sale_supplier.id)
+        supplier = str(saleproduct.sale_supplier.id)
 
         if product_name == "" or category == "" or wash_instroduce == "" \
                 or shelf_time == "" or material == "" or supplier == "" \
@@ -91,7 +91,25 @@ class AddItemView(generics.ListCreateAPIView):
             count += 1
         if len(inner_outer_id) > 12:
             return Response({"result": "编码生成错误"})
-        model_pro = ModelProduct(name=product_name, head_imgs=header_img, sale_time=shelf_time)
+
+        extras = default_modelproduct_extras_tpl()
+        extras.setdefault('properties', {})
+        for key in ('note', 'wash_instroduce', 'material', 'all_colors'):
+            value = content.get(key)
+            if value:
+                if key == 'all_colors': key='color'
+                extras['properties'][key] = value
+        # TODO@MERON
+        model_pro = ModelProduct(
+            name=product_name,
+            head_imgs=header_img,
+            onshelf_time=shelf_time,
+            salecategory=saleproduct.sale_category,
+            is_flatten=False,
+            lowest_agent_price=round(min([float(v) for k,v in content.items() if k.endswith('_agentprice')]), 2),
+            lowest_std_sale_price=round(min([float(v) for k,v in content.items() if k.endswith('_pricestd')]),2),
+            extras=extras,
+        )
         model_pro.save()
         log_action(user.id, model_pro, ADDITION, u'新建一个modelproduct new')
         all_colors = content.get("all_colors", "").split(",")
@@ -125,7 +143,7 @@ class AddItemView(generics.ListCreateAPIView):
                                       model_id=model_pro.id, sale_charger=user.username,
                                       category=category_item, remain_num=total_remain_num, cost=cost,
                                       agent_price=agentprice, std_sale_price=price, ware_by=int(ware_by),
-                                      sale_time=shelf_time, pic_path=header_img, sale_product=saleproduct)
+                                      sale_time=shelf_time, pic_path=header_img, sale_product=saleproduct.id)
                 one_product.save()
                 log_action(user.id, one_product, ADDITION, u'新建一个product_new')
                 pro_count += 1
@@ -143,8 +161,8 @@ class AddItemView(generics.ListCreateAPIView):
                     cost = content.get(color + "_" + sku + "_cost", "")
                     price = content.get(color + "_" + sku + "_pricestd", "")
                     agentprice = content.get(color + "_" + sku + "_agentprice", "")
-                    one_sku = ProductSku(outer_id=outer_id, product=one_product, remain_num=remain_num, cost=cost,
-                                         std_sale_price=price, agent_price=agentprice,
+                    one_sku = ProductSku(outer_id=outer_id, product=one_product, remain_num=remain_num,
+                                         cost=cost, std_sale_price=price, agent_price=agentprice,
                                          properties_name=sku, properties_alias=sku, barcode=barcode)
                     one_sku.save()
                     log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')

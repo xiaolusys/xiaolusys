@@ -24,9 +24,7 @@ from shopback.items.models import (Item,
                                    ProductSku,
                                    ProductLocation,
                                    ProductDaySale,
-                                   ProductScanStorage,
-                                   APPROVE_STATUS,
-                                   ONLINE_PRODUCT_STATUS)
+                                   ProductScanStorage)
 from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask, updateItemNum
@@ -786,7 +784,7 @@ class ProductOrSkuStatusMdView(APIView):
 
         log_action(request.user.id, queryset[0].product, CHANGE,
                    u'更改规格库存状态:%s,%s' % (outer_sku_id or sku_id,
-                                        dict(ONLINE_PRODUCT_STATUS).get(status)))
+                                        dict(Product.STATUS_CHOICES).get(status)))
 
         return Response({'updates_num': row})
 
@@ -865,7 +863,7 @@ class ProductNumAssignView(APIView):
             item_dict['outer_id'] = item.outer_id
             item_dict['seller_nick'] = item.user.nick
             item_dict['sync_stock'] = item.sync_stock and 1 or 0
-            item_dict['approve_status'] = dict(APPROVE_STATUS).get(item.approve_status, '')
+            item_dict['approve_status'] = dict(Item.APPROVE_STATUS).get(item.approve_status, '')
             item_dict['with_hold_quantity'] = item.with_hold_quantity
             item_dict['has_showcase'] = item.has_showcase and 1 or 0
             item_dict['num'] = item.num

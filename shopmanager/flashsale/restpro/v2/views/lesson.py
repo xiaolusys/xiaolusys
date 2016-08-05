@@ -1,7 +1,5 @@
 # coding=utf-8
 
-import logging
-
 from django.db.models import Sum
 from django.conf import settings
 from django.shortcuts import redirect
@@ -16,8 +14,9 @@ from rest_framework.views import APIView
 from rest_framework import filters
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
-from .serializers import lesson_serializers
+from ..serializers import lesson_serializers
 
+import logging
 logger = logging.getLogger(__name__)
 
 

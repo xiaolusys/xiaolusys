@@ -1,5 +1,5 @@
 # coding: utf-8
-import logging
+
 import datetime
 from django.db import models
 from django.db.models.signals import pre_save, post_save
@@ -7,11 +7,43 @@ from django.db.models import F
 
 from shopback.warehouse import WARE_SH, WARE_CHOICES
 
-logger = logging.getLogger('django.request')
+import logging
+logger = logging.getLogger(__name__)
 
 # This is the commit time, and also the time we start.
 # after switch, we can't update product sku quantity any more!!!
-PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 20, 01, 00, 00)
+
+class ProductDaySale(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    day_date = models.DateField(verbose_name=u'销售日期')
+    sale_time = models.DateField(null=True, verbose_name=u'上架日期')
+
+    user_id = models.BigIntegerField(null=False, verbose_name=u'店铺用户ID')
+    product_id = models.IntegerField(null=False, verbose_name='商品ID')
+    sku_id = models.IntegerField(null=True, verbose_name='规格ID')
+    outer_id = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='商品编码')
+
+    sale_num = models.IntegerField(default=0, verbose_name='销售数量')
+    sale_payment = models.FloatField(default=0.0, verbose_name='销售金额')
+    sale_refund = models.FloatField(default=0.0, verbose_name='退款金额')
+
+    confirm_num = models.IntegerField(default=0, verbose_name='成交数量')
+    confirm_payment = models.FloatField(default=0.0, verbose_name='成交金额')
+
+    class Meta:
+        db_table = 'shop_items_daysale'
+        unique_together = ("day_date", "user_id", "product_id", "sku_id")
+        app_label = 'items'
+        verbose_name = u'商品销量统计'
+        verbose_name_plural = u'商品销量统计'
+
+    def __unicode__(self):
+        return '<%s,%s,%d,%d,%s>' % (self.id,
+                                     self.day_date,
+                                     self.user_id,
+                                     self.product_id,
+                                     str(self.sku_id))
 
 
 class ProductSkuStats(models.Model):
@@ -22,6 +54,7 @@ class ProductSkuStats(models.Model):
         verbose_name_plural = u'SKU库存列表'
 
     STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
+    PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 20, 01, 00, 00)
 
     # sku_id = models.IntegerField(null=True, unique=True, verbose_name=u'SKUID')
     # product_id = models.IntegerField(null=True, db_index=True, verbose_name=u'商品ID')
@@ -111,7 +144,7 @@ class ProductSkuStats(models.Model):
 
     @property
     def properties_name(self):
-        from shopback.items.models import ProductSku
+        from .product import ProductSku
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
 
@@ -137,7 +170,7 @@ class ProductSkuStats(models.Model):
         :return:
         """
         from flashsale.dinghuo.models import OrderDetail
-        from shopback.items.models import Product
+        from .product import Product
         order_skus = [o['chichu_id'] for o in OrderDetail.objects.filter(
             arrival_time__gt=(datetime.datetime.now() - datetime.timedelta(days=20)), arrival_quantity__gt=0).values(
             'chichu_id').distinct()]
@@ -161,7 +194,7 @@ class ProductSkuStats(models.Model):
 
     @staticmethod
     def filter_by_supplier(supplier_id):
-        from shopback.items.models import Product
+        from .product import Product
         return [p['id'] for p in Product.get_by_supplier(supplier_id).values('id')]
 
     @staticmethod
@@ -171,7 +204,7 @@ class ProductSkuStats(models.Model):
     @staticmethod
     def get_auto_sale_stock():
         from shopback.categorys.models import ProductCategory
-        from shopback.trades.models import Product
+        from .product import Product
         pid = ProductCategory.objects.get(name=u'优尼世界').cid
         return ProductSkuStats.objects.filter(product__status=Product.NORMAL).filter(return_quantity__gt=F('sold_num') + F('rg_quantity')
                                                                   - F('history_quantity') - F('adjust_quantity') - F(
@@ -245,7 +278,7 @@ class InferiorSkuStats(models.Model):
 
     @staticmethod
     def create(sku_id, real_quantity_zreo=False):
-        from shopback.items.models import ProductSku
+        from .product import ProductSku
         from shopback.refunds.models import RefundProduct
         from flashsale.dinghuo.models import RGDetail, InBoundDetail
         sku = ProductSku.objects.get(id=sku_id)
@@ -302,7 +335,7 @@ class ProductSkuSaleStats(models.Model):
 
     @property
     def properties_name(self):
-        from shopback.items.models import ProductSku
+        from .product import ProductSku
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return ':'.join([product_sku.properties_name, product_sku.properties_alias])
 
@@ -310,3 +343,27 @@ class ProductSkuSaleStats(models.Model):
 def gen_productsksalestats_unikey(sku_id):
     count = ProductSkuSaleStats.objects.filter(sku_id=sku_id, status=ProductSkuSaleStats.ST_FINISH).count()
     return "%s-%s" % (sku_id, count)
+
+
+class ItemNumTaskLog(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    user_id = models.CharField(max_length=64, blank=True, verbose_name='店铺ID')
+    outer_id = models.CharField(max_length=64, blank=True, verbose_name='商品编码')
+    sku_outer_id = models.CharField(max_length=64, blank=True, verbose_name='规格编码')
+
+    num = models.IntegerField(verbose_name='同步数量')
+
+    start_at = models.DateTimeField(null=True, blank=True, verbose_name='同步期始')
+    end_at = models.DateTimeField(null=True, blank=True, verbose_name='同步期末')
+
+    class Meta:
+        db_table = 'shop_items_itemnumtasklog'
+        app_label = 'items'
+        verbose_name = u'库存同步日志'
+        verbose_name_plural = u'库存同步日志'
+
+    def __unicode__(self):
+        return '<%s,%s,%d>' % (self.outer_id,
+                               self.sku_outer_id,
+                               self.num)

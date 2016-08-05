@@ -10,7 +10,7 @@ from django.db import transaction
 
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
-from shopback.items.models import Product, ProductSku, DIPOSITE_CODE_PREFIX
+from shopback.items.models import Product, ProductSku
 from shopback.users.models import User
 from flashsale.pay import managers
 from flashsale.pay import constants as CONST
@@ -28,7 +28,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 FLASH_SELLER_ID = 'flashsale'
-AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
+AGENCY_DIPOSITE_CODE = Product.DIPOSITE_CODE_PREFIX
 TIME_FOR_PAYMENT = 25 * 60
 
 

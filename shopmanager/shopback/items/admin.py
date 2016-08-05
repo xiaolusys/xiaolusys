@@ -34,7 +34,7 @@ from common.utils import gen_cvs_tuple, CSVUnicodeWriter, update_model_fields
 from flashsale.pay.models import Productdetail
 from flashsale.pay.forms import ProductdetailForm
 from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
-from shopback.items.models_stats import InferiorSkuStats
+from shopback.items.models import InferiorSkuStats
 from shopback.items.filters import ProductSkuStatsSupplierIdFilter, ProductSkuStatsSupplierNameFilter, \
     ProductSkuStatsUnusedStockFilter
 from flashsale.dinghuo.models import orderdraft

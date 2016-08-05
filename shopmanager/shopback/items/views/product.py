@@ -151,6 +151,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
             return exceptions.APIException(u"编码生成错误")
         try:
             extras = default_modelproduct_extras_tpl()
+            extras.setdefault('properties', {})
             for key ,value in content.iteritems():
                 if key.startswith('property.'):
                     name = key.replace('property.', '')
@@ -165,9 +166,11 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                 model_pro = ModelProduct(
                     name=content['name'],
                     head_imgs=content['head_img'],
-                    sale_time=content['sale_time'],
+                    onshelf_time=content['sale_time'],
                     salecategory=saleproduct.sale_category,
                     is_flatten=is_flatten,
+                    lowest_agent_price=round(min([float(p['agent_price']) for p in products_data]),2),
+                    lowest_std_sale_price=round(min([float(p['std_sale_price']) for p in products_data]), 2),
                     extras=extras,
                 )
                 model_pro.save()

@@ -27,7 +27,8 @@ from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       OrderDetailInBoundDetail, ReturnGoods, RGDetail)
 from flashsale.dinghuo.models_stats import SupplyChainDataStats
 from shopback.archives.models import DepositeDistrict
-from shopback.items.models import Product, ProductCategory, ProductSku, ProductStock, ProductLocation
+from shopback.items.models import Product, ProductSku, ProductStock, ProductLocation
+from shopback.categorys.models import ProductCategory
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from . import forms, functions, functions2view, models
