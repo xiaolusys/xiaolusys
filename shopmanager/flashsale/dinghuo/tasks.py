@@ -1546,6 +1546,8 @@ def task_purchasedetail_update_orderdetail(pd):
 
         od.save()
     else:
+        if od.stage > 0:
+            return
         if od.total_price != total_price or od.buy_quantity != total:
             od.buy_quantity = total
             od.buy_unitprice = pd.unit_price_display
