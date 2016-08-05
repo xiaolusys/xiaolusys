@@ -964,17 +964,3 @@ class SupplierFigureAdmin(admin.ModelAdmin):
     readonly_fields = ['supplier']
 
 admin.site.register(SupplierFigure, SupplierFigureAdmin)
-
-
-def a():
-    from supplychain.supplier.models import SaleProductManage
-
-    dtate = datetime.date(2016, 8, 6)
-    managers = SaleProductManage.objects.filter(sale_time__gte=dtate)
-    for m in managers:
-        ds = m.manage_schedule.all()
-        i = 1
-        for d in ds:
-            d.order_weight = i
-            i += 1
-            d.save()
