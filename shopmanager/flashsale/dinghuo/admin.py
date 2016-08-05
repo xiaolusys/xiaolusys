@@ -45,7 +45,7 @@ class orderdetailInline(admin.TabularInline):
 class OrderListAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'sys_status',
+        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'stage',
                    'purchase_order_unikey')
     }),)
     inlines = [orderdetailInline]

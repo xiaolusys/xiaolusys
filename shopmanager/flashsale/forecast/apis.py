@@ -13,14 +13,62 @@ from . import  constants
 import logging
 logger = logging.getLogger(__name__)
 
+def orderlist_change_forecastinbound(order_list):
+    logger.info('orderlist_change_forecastinbound start: %s'% order_list)
+    from shopback.items.models import Product, ProductSku
+    supplier = order_list.supplier
+    orderlist_id = order_list.id
+    first_create = True
+    try:
+        forecast_ib = ForecastInbound.objects.get(supplier=supplier,
+                                                  relate_order_set__in=[orderlist_id])
+        first_create = False
+    except ForecastInbound.DoesNotExist:
+        forecast_ib = ForecastInbound(supplier=supplier)
+    except Exception, exc:
+        logger.error('forecastinbound: orderlist=%s ,refresh error: %s'% (order_list, exc.message), exc_info=True)
+        return
+
+    forecast_ib.ware_house = supplier.ware_by
+    forecast_ib.purchaser = order_list.buyer and order_list.buyer.username or order_list.buyer_name
+    forecast_arrive_time = order_list.last_pay_date
+    if not forecast_arrive_time:
+        forecast_arrive_time = datetime.datetime.now()
+    forecast_arrive_time += datetime.timedelta(days=supplier.get_delta_arrive_days())
+    forecast_ib.forecast_arrive_time = forecast_arrive_time
+    forecast_ib.save()
+
+    if first_create:
+        forecast_ib.relate_order_set.add(order_list)
+
+    for order in order_list.order_list.all():
+        forecast_detail = ForecastInboundDetail.objects.filter(forecast_inbound=forecast_ib,
+                                                               sku_id=order.chichu_id).first()
+        if not forecast_detail:
+            forecast_detail = ForecastInboundDetail(forecast_inbound=forecast_ib,
+                                                    sku_id=order.chichu_id)
+        forecast_detail.forecast_inbound = forecast_ib
+        forecast_detail.product_id = order.product_id
+        forecast_detail.sku_id = order.chichu_id
+
+        product = Product.objects.filter(id=order.product_id).first()
+        product_sku = ProductSku.objects.filter(id=order.chichu_id).first()
+        forecast_detail.product_name = '%s:%s' % (product.name, product_sku.name)
+        forecast_detail.product_img = product.pic_path
+        forecast_detail.forecast_arrive_num = order.buy_quantity
+        if order.buy_quantity <= 0:
+            forecast_detail.status = ForecastInboundDetail.DELETE
+        forecast_detail.save()
+
+    forecast_ib.save()
+    logger.info('orderlist_change_forecastinbound end: %s' % order_list)
+
+
 @task(max_retries=3, default_retry_delay=60)
-def api_create_or_update_forecastinbound_by_orderlist(order_list):
-    logger.info('api_create_or_update_forecastinbound: %s'% order_list)
+def api_create_or_update_forecastinbound_by_orderlist(order_list, force_update=False):
+    logger.info('api_create_or_update_forecastinbound start: %s'% order_list)
     from flashsale.dinghuo.models import OrderList
     try:
-        from shopback.items.models import Product, ProductSku
-        supplier = order_list.supplier
-
         orderlist_id = order_list.id
         forecast_ibs = ForecastInbound.objects.filter(relate_order_set__in=[orderlist_id])
         if forecast_ibs.exists():
@@ -34,47 +82,19 @@ def api_create_or_update_forecastinbound_by_orderlist(order_list):
                 forecast_ib.express_code = forecast_ib.express_code or order_list.express_company
                 forecast_ib.express_no = forecast_ib.express_no or order_list.express_no
                 forecast_ib.save()
+            if not force_update:
+                logger.info('api_create_or_update_forecastinbound update: %s' % order_list)
                 return
         # if delete or account or complete not create forecast
         if order_list.stage in (OrderList.STAGE_DELETED, OrderList.STAGE_COMPLETED, OrderList.STAGE_STATE):
+            logger.info('api_create_or_update_forecastinbound exit: %s, %s' % (order_list, order_list.stage))
             return
 
-        forecast_ib = ForecastInbound()
-        forecast_ib.supplier = supplier
-        forecast_ib.ware_house  = supplier.ware_by
-        forecast_ib.purchaser  = order_list.buyer and order_list.buyer.username or order_list.buyer_name
-        forecast_arrive_time = order_list.last_pay_date
-        if not forecast_arrive_time:
-            forecast_arrive_time = datetime.datetime.now()
-        forecast_arrive_time += datetime.timedelta(days=supplier.get_delta_arrive_days())
-        forecast_ib.forecast_arrive_time = forecast_arrive_time
-        forecast_ib.save()
-
-        if orderlist_id not in forecast_ib.relate_order_set.values_list('id',flat=True):
-            forecast_ib.relate_order_set.add(order_list)
-
-        for order in order_list.order_list.all():
-            forecast_detail = ForecastInboundDetail.objects.filter(forecast_inbound=forecast_ib,
-                                                                   sku_id=order.chichu_id).first()
-            if not forecast_detail:
-                forecast_detail = ForecastInboundDetail(forecast_inbound=forecast_ib,
-                                                        sku_id=order.chichu_id)
-            forecast_detail.forecast_inbound = forecast_ib
-            forecast_detail.product_id = order.product_id
-            forecast_detail.sku_id = order.chichu_id
-
-            product = Product.objects.filter(id=order.product_id).first()
-            product_sku = ProductSku.objects.filter(id=order.chichu_id).first()
-            forecast_detail.product_name = '%s:%s'%(product.name, product_sku.name)
-            forecast_detail.product_img = product.pic_path
-            forecast_detail.forecast_arrive_num = order.buy_quantity
-            if order.buy_quantity <= 0:
-                forecast_detail.status = ForecastInboundDetail.DELETE
-            forecast_detail.save()
-
-        forecast_ib.save()
+        orderlist_change_forecastinbound(order_list)
     except Exception, exc:
         raise api_create_or_update_forecastinbound_by_orderlist.retry(exc=exc)
+
+    logger.info('api_create_or_update_forecastinbound end: %s' % order_list)
 
 
 @task(max_retries=3, default_retry_delay=60)
