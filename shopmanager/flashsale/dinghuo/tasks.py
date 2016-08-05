@@ -23,7 +23,6 @@ from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_COMPANY, WARE_CHOICES
 from . import function_of_task, functions
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -1546,7 +1545,6 @@ def task_purchasedetail_update_orderdetail(pd):
 
         od.save()
     else:
-        from flashsale.dinghuo.models import OrderList
         if od.orderlist_id and OrderList.objects.get(id=od.orderlist_id).stage > 0:
             return
         if od.total_price != total_price or od.buy_quantity != total:
