@@ -34,6 +34,7 @@ class XlmmDailyStat(BaseModel):
         """
         daytime = datetime.datetime(daytime.year, daytime.month, daytime.day)
         daytime -= datetime.timedelta(days=1)
+        daytime = daytime.date()
         x = XlmmDailyStat(
             total=XlmmDailyStat.get_total(),
             date_field=daytime
