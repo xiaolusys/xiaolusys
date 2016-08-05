@@ -494,17 +494,17 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-    @list_route(methods='POST')
+    @list_route(methods=['POST', 'GET'])
     def change_mama(self, request):
-        new_mama_id = request.Data.get('new_mama_id')
-        fans = XlmmFans.get_by_customer_id(request.customer.id)
+        new_mama_id = request.REQUEST.get('new_mama_id')
+        fans = XlmmFans.get_by_customer_id(request.user.customer.id)
         new_mama = get_object_or_404(XiaoluMama, pk=new_mama_id)
         if new_mama.id == fans.xlmm:
             raise exceptions.ValidationError(u'更换的新妈妈ID与原小鹿妈妈ID必须不一致')
         fans.change_mama(new_mama)
         return Response(True)
 
-    @detail_route(methods='POST')
+    @detail_route(methods=['POST'])
     def bind_mama(self, request, pk):
         cus = request.user.customer
         mama = get_object_or_404(XiaoluMama, pk=pk)
