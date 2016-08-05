@@ -1546,7 +1546,8 @@ def task_purchasedetail_update_orderdetail(pd):
 
         od.save()
     else:
-        if od.stage > 0:
+        from flashsale.dinghuo.models import OrderList
+        if od.orderlist_id and OrderList.objects.get(id=od.orderlist_id).stage > 0:
             return
         if od.total_price != total_price or od.buy_quantity != total:
             od.buy_quantity = total

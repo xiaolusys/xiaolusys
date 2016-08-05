@@ -43,7 +43,7 @@ class XlmmMessage(AdminModel):
         if not begin and not end:
             # 无需分页
             res1 = list(queryset.exclude(id__in=messages.keys()))
-            res2 = list(queryset)
+            res2 = list(queryset.filter(id__in=messages.keys()))
             for r in res2:
                 r._read_ = True
             return res1 + res2
