@@ -920,7 +920,27 @@ class SaleProductManageAdmin(admin.ModelAdmin):
             form.base_fields['sale_suppliers'].queryset = form.base_fields['sale_suppliers'].queryset.none()
         return form
 
+
 admin.site.register(SaleProductManage, SaleProductManageAdmin)
+
+
+class SaleProductManageDetailAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'sale_product_id',
+        'pic_path_show',
+        'order_weight'
+    )
+    list_filter = ('sale_category', 'schedule_manage')
+    ordering = ('order_weight', )
+
+    def pic_path_show(self, obj):
+        return u'<img src="{0}" with="40px" height="70px"">'.format(obj.pic_path)
+
+    pic_path_show.allow_tags = True
+    pic_path_show.short_description = "图片"
+
+admin.site.register(SaleProductManageDetail, SaleProductManageDetailAdmin)
 
 
 class SupplierFigureAdmin(admin.ModelAdmin):

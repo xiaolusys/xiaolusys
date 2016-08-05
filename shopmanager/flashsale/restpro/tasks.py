@@ -169,6 +169,8 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
             'uid': uid}
     req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
     content = json.loads(req.read())
+    # logger.warn("看看物流数据")
+    # logger.warn(content)
     SaveReturnWuliu_by_packetid.delay(rid,packetid,content)
     return
 
@@ -222,6 +224,7 @@ def SaveReturnWuliu_by_packetid(rid,packetid, content):
     """
         用户点击物流信息，进行物流信息存入数据库。
     """
+    # logger.warn("开始执行准备写入数据库的函数了")
     wulius = ReturnWuLiu.objects.filter(out_sid=packetid).order_by("-time")
     datalen = len(content['data'])
     data = content['data']
@@ -239,8 +242,10 @@ def SaveReturnWuliu_by_packetid(rid,packetid, content):
             ReturnWuLiu.objects.create(tid='', rid=rid,status=content['status'], logistics_company=content['name'],
                                       out_sid=content['order'], errcode=content['errcode'],
                                       content=da['content'], time=da['time'])
-            # print "写入成功"
+            # logger.warn("数据库里面有记录更新记录写入成功")
 
+
+#
 @task()
 def update_all_logistics():
     from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid
@@ -271,7 +276,9 @@ def update_all_return_logistics():     #by huazi
     salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                                         SaleRefund.REFUND_CONFIRM_GOODS])
     from shopback.logistics.models import LogisticsCompany
+    # logger.warn(len(salerefunds))
     for i in salerefunds:
+        # logger.warn('遍历salerefunds')
         if i.company_name:
             company_id = LogisticsCompany.objects.filter(name=i.company_name).first()
             if not company_id:
@@ -281,7 +288,9 @@ def update_all_return_logistics():     #by huazi
                 if len(sim):
                     company_id = LogisticsCompany.objects.get(name=sim[0])
             if company_id and i.sid:
-                get_third_apidata_by_packetid_return(i.id,i.sid,company_id.code)
+                # logging.warn("物流公司代码和物流单号都存在")
+                get_third_apidata_by_packetid_return(i.id,i.sid,company_id.express_key)
+                logging.warn("物流公司express_key%s,物流单号%s" % (company_id.express_key,i.sid))
     logger.warn('update_all_return_logistics')
 
 @task()

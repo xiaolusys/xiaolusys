@@ -406,7 +406,7 @@ class OrderList(models.Model):
         self.checked_time = datetime.datetime.now()
         if is_postpay:
             self.is_postpay = True
-        self.save(update_fields=['stage', 'status', 'is_postpay'])
+        self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time'])
 
     def set_stage_pay(self, pay_way=13):
         # 付款提货 进入付款状态

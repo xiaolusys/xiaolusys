@@ -284,6 +284,10 @@ MAMA_FORTUNE_ROUTES = {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_invite_num',
     },
+    'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_invite_trial_num': {
+        'queue': 'mamafortune',
+        'routing_key': 'mamafortune.task_update_mamafortune_invite_trial_num',
+    },
     'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_fans_num': {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_fans_num',

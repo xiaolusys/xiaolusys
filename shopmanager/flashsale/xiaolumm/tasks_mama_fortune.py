@@ -4,7 +4,7 @@ import logging
 
 from celery.task import task
 from django.db import IntegrityError
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F
 
 logger = logging.getLogger('celery.handler')
 
@@ -158,7 +158,7 @@ def task_update_mamafortune_invite_num(mama_id):
     if mamas.count() > 0:
         mama = mamas[0]
         if mama.invite_num != invite_num:
-            mamas.update(invite_num=invite_num)
+            mamas.update(invite_num=invite_num, invite_all_num=F('invite_trial_num') + invite_num)
             # mama.invite_num=invite_num
             # mama.save()
     else:
@@ -168,6 +168,16 @@ def task_update_mamafortune_invite_num(mama_id):
             logger.warn("IntegrityError - MamaFortune invitenum | mama_id: %s" % (mama_id))
             raise task_update_mamafortune_invite_num.retry(exc=exc)
 
+@task()
+def task_update_mamafortune_invite_trial_num(mama_id):
+    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    from flashsale.xiaolumm.models import PotentialMama
+    records = PotentialMama.objects.filter(referal_mama=mama_id, is_full_member=False)
+    invite_trial_num = records.count()
+    fortune = MamaFortune.get_by_mamaid(mama_id)
+    fortune.invite_trial_num = invite_trial_num
+    fortune.invite_all_num = invite_trial_num + fortune.invite_num
+    fortune.save()
 
 @task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_mama_level(mama_id):
