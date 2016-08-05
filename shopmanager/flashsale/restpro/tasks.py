@@ -164,8 +164,8 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
     """ 使用包裹id访问第三方api 获取退货物流参数 并保存到本地数据库　"""
 
     # 快递编码(快递公司编码)
-    exType = company_code if company_code is not None else default_post
-    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': packetid, 'key': apikey,
+    # exType = company_code if company_code is not None else default_post
+    data = {'id': company_code, 'order': packetid, 'key': apikey,
             'uid': uid}
     req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
     content = json.loads(req.read())
