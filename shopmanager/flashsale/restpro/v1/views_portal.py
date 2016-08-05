@@ -16,9 +16,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 
 from flashsale.pay.models import GoodShelf, BrandEntry, BrandProduct
 
-
 from . import serializers
-
 
 CACHE_VIEW_TIMEOUT = 60
 
