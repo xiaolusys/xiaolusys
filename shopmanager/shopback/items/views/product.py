@@ -115,6 +115,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         content = request.data
         creator = request.user
         saleproduct_id = content.get("saleproduct_id", "")
+        products_data  = content.get('products')
         saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
         if not saleproduct:
             return exceptions.APIException(u"选品ID错误")
@@ -154,14 +155,19 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                 if key.startswith('property.'):
                     name = key.replace('property.', '')
                     extras['properties'].update({name: value})
-            print 'debug properties:', extras
+            is_flatten = False
+            if len(products_data) == 1:
+                skus_data = products_data[0].get('skus', [])
+                if not skus_data or len(skus_data) == 1:
+                    is_flatten = True
+
             with transaction.atomic():
                 model_pro = ModelProduct(
                     name=content['name'],
                     head_imgs=content['head_img'],
                     sale_time=content['sale_time'],
                     salecategory=saleproduct.sale_category,
-                    is_flatten=True,
+                    is_flatten=is_flatten,
                     extras=extras,
                 )
                 model_pro.save()
@@ -186,7 +192,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                         sale_time=content['sale_time'],
                         pic_path=content['head_img'],
                         sale_product=saleproduct.id,
-                        is_flatten=True,
+                        is_flatten=is_flatten,
                     )
                     one_product.save()
                     log_action(creator.id, one_product, ADDITION, u'新建一个product_new')

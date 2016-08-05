@@ -60,10 +60,8 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_today_poster(self):
         target_date = self.get_latest_right_date(datetime.date.today())
-        posters = self.queryset.filter(active_time__year=target_date.year,
-                                       active_time__month=target_date.month,
-                                       active_time__day=target_date.day)
-        return posters.count() and posters[0] or None
+        poster = self.queryset.filter(active_time__lte=target_date).order_by('-active_time').first()
+        return poster
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_porter_cache_key')
     def list(self, request, *args, **kwargs):
