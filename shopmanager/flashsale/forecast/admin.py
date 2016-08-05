@@ -103,7 +103,8 @@ class ForecastInboundAdmin(admin.ModelAdmin):
                'action_strip_inbound',
                'action_arrival_finished',
                'action_timeout_reforecast',
-               'action_close_unarrival']
+               'action_close_unarrival',
+               'action_purchaseorder_refresh_data']
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ForecastInboundAdmin, self).get_form(request, obj=obj, **kwargs)
@@ -242,6 +243,30 @@ class ForecastInboundAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(request.get_full_path())
 
     action_arrival_finished.short_description = u"到货标记完成"
+
+    def action_purchaseorder_refresh_data(self, request, queryset):
+
+        draft_qs = queryset.filter(status=ForecastInbound.ST_DRAFT)
+        if not draft_qs.exists():
+            self.message_user(request, u"＊＊＊刷新数据需要在草稿状态下处理＊＊＊!")
+            return HttpResponseRedirect(request.get_full_path())
+
+        from flashsale.forecast.apis import orderlist_change_forecastinbound
+        finished_forecast_ids = ''
+        for obj in draft_qs:
+            if obj.relate_order_set.count() > 1:
+                self.message_user(request, u"＊＊＊预测单(%s)关联多个订货单，不能刷新!!!＊＊＊" % obj)
+                continue
+            orderlist = obj.relate_order_set.first()
+            orderlist_change_forecastinbound(orderlist)
+            log_action(request.user.id, obj, CHANGE, u'预测单数据重新刷新')
+            finished_forecast_ids += ', %s'% obj.id
+
+        self.message_user(request, u"＊＊＊已刷新预测单列表:%s ＊＊＊" % finished_forecast_ids)
+
+        return HttpResponseRedirect(request.get_full_path())
+
+    action_purchaseorder_refresh_data.short_description = u"根据订货单刷新预测单"
 
 
 admin.site.register(ForecastInbound, ForecastInboundAdmin)

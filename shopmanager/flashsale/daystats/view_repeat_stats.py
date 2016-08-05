@@ -97,14 +97,16 @@ def calc_customer_repeat_buy(start_date, end_date, category='month'):
                 i1 = new_customers[row]['data']
                 i2 = orders[col]['data']
                 num = len(i1 & i2)
+                data = num
+            else:
+                i1 = rowdata[col][row+1]
+                i2 = rowdata[col][col+1]
                 try:
-                    percent = int((num * 1.0 / len(i1)) * 100)
+                    percent = round((i1 * 1.0 / i2) * 100, 2)
                 except Exception:
                     percent = 0
-            else:
-                num = 0
-                percent = 0
-            coldata.append((num, percent))
+                data = '%s%%' % percent
+            coldata.append(data)
         rowdata.append(coldata)
     return rowdata
 

@@ -797,16 +797,19 @@ class SaleOrder(PayBaseModel):
         now_time = datetime.datetime.now()
         consign_time = self.consign_time
         sign_time = self.sign_time
+
         if self.refund_status in SaleRefund.REFUNDABLE_STATUS:
             return False
-        delta_days = consign_time and (now_time - consign_time).days or 0
-        if (self.status == self.WAIT_BUYER_CONFIRM_GOODS
-            and (delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
+
+        delta_days = consign_time and (now_time - consign_time).days or 0  # 距离发货天数
+
+        if (self.status == self.WAIT_BUYER_CONFIRM_GOODS  # 等待签收
+            and (delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):  # 发货超过14天
             return True
-        elif (self.status == self.TRADE_BUYER_SIGNED
+        elif (self.status == self.TRADE_BUYER_SIGNED  # 已经签收
               and (not sign_time
-                   or (now_time - sign_time).days > CONST.ORDER_SIGNED_TO_FINISHED_DAYS
-                   or delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):
+                   or (now_time - sign_time).days > CONST.ORDER_SIGNED_TO_FINISHED_DAYS  # 签收超过7天
+                   or delta_days > CONST.ORDER_WAIT_CONFIRM_TO_FINISHED_DAYS)):  # 发货超过14天
             return True
         return False
 
