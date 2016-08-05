@@ -267,7 +267,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         content = request.REQUEST
         customer = get_object_or_404(Customer, user=request.user)
         mama_mobile = content.get('mama_mobile') or None
-        mama_id = content.get('mama_id') or None
+        if (not customer.unionid) or (not customer.unionid.strip()):
+            raise exceptions.APIException(u'没有授权微信登陆哦~')
         if not mama_mobile:
             raise exceptions.APIException(u'没有填写手机号哦~')
         xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()

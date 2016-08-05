@@ -168,6 +168,17 @@ class Customer(BaseModel):
             self._xiaolumm_ = XiaoluMama.objects.filter(openid=self.unionid).first()
         return self._xiaolumm_
 
+    def get_charged_mama(self):
+        """ 获取当前用户对应的小鹿妈妈 """
+        if not self.unionid:
+            return None
+        if not hasattr(self, '_charged_mama_'):
+            from flashsale.xiaolumm.models import XiaoluMama
+
+            self._charged_mama_ = XiaoluMama.objects.filter(openid=self.unionid,
+                                                            charge_status=XiaoluMama.CHARGED).first()
+        return self._charged_mama_
+
     def getXiaolumm(self):
         """ 获取当前用户对应的小鹿妈妈 """
         if not self.unionid:

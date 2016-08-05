@@ -30,6 +30,7 @@ v2_router.register(r'fans', views_mama_v2.XlmmFansViewSet)
 v2_router.register(r'dailystats', views_mama_v2.DailyStatsViewSet)
 
 from flashsale.restpro.v1 import views_coupon_new
+
 v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
 v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
 v2_router.register(r'sharecoupon', views_coupon_new.OrderShareCouponViewSet)
@@ -51,6 +52,7 @@ v2_router_urls += format_suffix_patterns([
 ])
 
 from flashsale.restpro.v2 import views_lesson
+
 lesson_router = routers.DefaultRouter(trailing_slash=False)
 lesson_router.register(r'lessontopic', views_lesson.LessonTopicViewSet)
 lesson_router.register(r'lesson', views_lesson.LessonViewSet)
@@ -58,6 +60,6 @@ lesson_router.register(r'instructor', views_lesson.InstructorViewSet)
 lesson_router.register(r'lessonattendrecord', views_lesson.LessonAttendRecordViewSet)
 
 urlpatterns = patterns('',
-    url(r'^', include(v2_router_urls, namespace='rest_v2')),
-    url(r'^mama/', include(v2_router_urls)),
-)
+                       url(r'^', include(v2_router_urls, namespace='rest_v2')),
+                       url(r'^mama/', include(v2_router_urls)),
+                       )

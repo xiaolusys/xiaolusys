@@ -938,4 +938,3 @@ def task_calculate_total_order_integral(integral_log):
     if user_intergral:
         user_intergral.integral_value = total_point
         user_intergral.save(update_fields=['integral_value'])
-
