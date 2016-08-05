@@ -39,7 +39,7 @@ def get_mama_id(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
     mama_id = None
     if customer:
-        xlmm = customer.get_xiaolumm()
+        xlmm = customer.get_charged_mama()
         if xlmm:
             mama_id = xlmm.id
     #mama_id = 5 # debug test
@@ -101,7 +101,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         mama_id = None
         xlmm = None
         if customer:
-            xlmm = customer.get_xiaolumm()
+            xlmm = customer.get_charged_mama()
             if xlmm:
                 mama_id = xlmm.id
         fortunes = self.queryset.filter(mama_id=mama_id)
