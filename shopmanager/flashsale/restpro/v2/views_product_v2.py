@@ -363,7 +363,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         product_ids = map(lambda x: x['product'], shop_products)
         product_ids = set(product_ids)
         shop_product_num = len(product_ids)
-        xlmm = customer.get_xiaolumm()
+        xlmm = customer.get_charged_mama()
         from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
         next_agentinfo = xlmm.next_agencylevel_info()
         for pro in queryset:
