@@ -110,9 +110,8 @@ class LogisticsCompany(models.Model):
     reg_mail_no = models.CharField(max_length=500, blank=True, verbose_name='单号匹配规则')
     district = models.TextField(blank=True, verbose_name='服务区域(,号分隔)')
     priority = models.IntegerField(null=True, default=0, verbose_name='优先级')
-
     status = models.BooleanField(default=True, verbose_name='使用')
-
+    express_key = models.CharField(max_length=64, blank=True, verbose_name='快递公司代码')
     class Meta:
         db_table = 'shop_logistics_company'
         app_label = 'logistics'

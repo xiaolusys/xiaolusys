@@ -118,7 +118,7 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
             if len(sim):
                 company_id = LogisticsCompany.objects.get(name=sim[0])
         if company_id:
-            return company_id.code
+            return company_id.express_key
         else:
             logger.warn(company_name)
             return None
@@ -137,9 +137,10 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         packetid = content.get("packetid", None)
         company_name = content.get("company_name",None)
+        rid = content.get("rid",None)
         company_code = self.get_company_code(company_name)
         # company_code = content.get("company_code", None)
-        if packetid is None or company_code is None:
+        if packetid is None or company_code is None or rid is None:
             return Response([])
         queryset = ReturnWuLiu.objects.filter(out_sid=int(packetid)).order_by("-time")
         if queryset.exists():
@@ -156,11 +157,11 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
                 res = self.packet_data(queryset)
                 return Response(res)
             else:  #更新物流
-                get_third_apidata_by_packetid_return(packetid, company_code)
+                get_third_apidata_by_packetid_return(rid, packetid, company_code)
                 res = self.packet_data(queryset)
                 return Response(res)
         else:
-            get_third_apidata_by_packetid_return(packetid, company_code)
+            get_third_apidata_by_packetid_return(rid, packetid, company_code)
             res = self.packet_data(queryset)
             return Response(res)
 

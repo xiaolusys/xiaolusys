@@ -1050,7 +1050,6 @@ class StatProductSaleView(APIView):
                     'pic_path': pic_path,
                     'title': product.title,
                     'sale_num': sale.sale_num,
-                    'sale_num': sale.sale_num,
                     'sale_payment': sale.sale_payment,
                     'sale_refund': sale.sale_refund,
                     'confirm_num': sale.confirm_num,
