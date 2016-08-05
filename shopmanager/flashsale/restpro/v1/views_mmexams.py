@@ -83,7 +83,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         customer = get_customer(request)
         if not customer:
             return Response({"code": 2, "info": "请登陆后重试!", "exam_info": ''})
-        xlmm = customer.getXiaolumm()
+        xlmm = customer.get_xiaolumm()
         is_xlmm = 1 if xlmm else 0  # 是否是小鹿妈妈
         fans_num = xlmm_fans_num(xlmm)
         invite_num = xlmm_invite_num(xlmm)
@@ -188,7 +188,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         mmexam = get_xlmm_exam()
         if not mmexam:
             return Response({"code": 2, "info": "没有开放的考试！"})
-        xlmm = customer.getXiaolumm()
+        xlmm = customer.get_xiaolumm()
         if not xlmm:
             return Response({"code": 3, "info": "请申请成为小鹿妈妈后参加考试！"})
         content = request.REQUEST
@@ -230,7 +230,7 @@ class MmexamsViewSet(viewsets.ModelViewSet):
         """
         default_result = {"total_point": 0, "is_passed": 0}
         customer = get_customer(request)
-        xlmm = customer.getXiaolumm()
+        xlmm = customer.get_xiaolumm()
         if not customer:
             return Response({"code": 1, "info": "请登陆后重试！",
                              "exam_result": default_result})

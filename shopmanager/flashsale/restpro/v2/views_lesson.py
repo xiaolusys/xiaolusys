@@ -37,7 +37,7 @@ def get_mama_id(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
     mama_id = None
     if customer:
-        xlmm = customer.getXiaolumm()
+        xlmm = customer.get_xiaolumm()
         if xlmm:
             mama_id = xlmm.id
     #mama_id = 5 # debug test

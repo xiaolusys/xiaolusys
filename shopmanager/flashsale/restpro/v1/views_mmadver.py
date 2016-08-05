@@ -69,7 +69,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         获取代理专属链接
         """
         customer = Customer.objects.get(user=request.user)
-        xlmm = customer.getXiaolumm()
+        xlmm = customer.get_xiaolumm()
         if xlmm:
             if model_id:
                 return os.path.join(settings.M_SITE_URL,

@@ -191,7 +191,7 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         if request.user and request.user.is_authenticated():
             customer = get_object_or_404(Customer, user=request.user.id)
             params.update({'customer': customer})
-            mama = customer.getXiaolumm()
+            mama = customer.get_xiaolumm()
             if mama:
                 params.update({'mama_id': mama.id})
             else:
