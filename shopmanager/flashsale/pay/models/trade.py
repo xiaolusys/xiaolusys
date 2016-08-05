@@ -424,7 +424,7 @@ class SaleTrade(BaseModel):
         new_sale_order.sku_name = sku.properties_alias
         new_sale_order.title = product.name
         new_sale_order.pic_path = product.pic_path
-        new_sale_order.pay_time = datetime.datetime.now()
+        new_sale_order.pay_time = old_sale_order.pay_time
         new_sale_order.refund_id = None
         new_sale_order.refund_fee = 0
         new_sale_order.refund_status = SaleRefund.NO_REFUND

@@ -67,6 +67,8 @@ class MamaFortune(BaseModel):
 
     fans_num = models.IntegerField(default=0, verbose_name=u'粉丝数')
     invite_num = models.IntegerField(default=0, verbose_name=u'邀请数')
+    invite_trial_num = models.IntegerField(default=0, verbose_name=u'试用妈妈邀请数')
+    invite_all_num = models.IntegerField(default=0, verbose_name=u'总邀请数')
     order_num = models.IntegerField(default=0, verbose_name=u'订单数')
 
     carry_pending = models.IntegerField(default=0, verbose_name=u'待确定收益')
@@ -90,6 +92,15 @@ class MamaFortune(BaseModel):
 
     def __unicode__(self):
         return '%s,%s' % (self.mama_id, self.mama_name)
+
+    @staticmethod
+    def get_by_mamaid(mama_id):
+        fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
+        if fortune:
+            return fortune
+        fortune = MamaFortune(mama_id=mama_id)
+        fortune.save()
+        return fortune
 
     def mama_level_display(self):
         return get_choice_name(self.MAMA_LEVELS, self.mama_level)
