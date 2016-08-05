@@ -379,9 +379,15 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if request.user.has_perm('supplier.delete_schedule_detail'):
             instance = self.get_object()
+            delete_order_weight = instance.order_weight
             manager = instance.schedule_manage
             self.perform_destroy(instance)
             manager.save(update_fields=['product_num'])
+            # 删除之后　要给　大于delete_order_weight 减去1　方便后面排序接口
+            schedule_details = manager.manage_schedule.filter(order_weight__gt=delete_order_weight)
+            for schedule_detail in schedule_details:
+                schedule_detail.order_weight -= 1
+                schedule_detail.save(update_fields=['order_weight'])
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
