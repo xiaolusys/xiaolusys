@@ -25,8 +25,7 @@ from flashsale.pay.models import ModelProduct
 from flashsale.restpro.v2 import serializers as serializers_v2
 
 CACHE_VIEW_TIMEOUT = 30
-'id', 'name', 'category_id', 'lowest_agent_price', 'lowest_std_sale_price',
-'is_saleout', 'is_favorite', 'sale_state', 'head_img', 'web_url', 'watermark_op'
+
 class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     """
         ## 特卖商品(聚合)列表API：
