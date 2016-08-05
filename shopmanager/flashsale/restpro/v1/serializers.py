@@ -261,11 +261,11 @@ class SimpleProductSerializer(serializers.ModelSerializer):
     category = ProductCategorySerializer(read_only=True)
     #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
     product_model = SimpleModelProductSerializer(source="get_product_model", read_only=True)
-    is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
+    is_saleout  = serializers.SerializerMethodField(read_only=True)
     is_saleopen = serializers.BooleanField(source='sale_open', read_only=True)
-    is_newgood = serializers.BooleanField(source='new_good', read_only=True)
+    is_newgood  = serializers.BooleanField(source='new_good', read_only=True)
     watermark_op = serializers.CharField(read_only=True)
-    web_url = serializers.CharField(source='get_weburl', read_only=True)
+    web_url     = serializers.CharField(source='get_weburl', read_only=True)
 
     class Meta:
         model = Product
@@ -277,6 +277,12 @@ class SimpleProductSerializer(serializers.ModelSerializer):
         if obj.is_flatten:
             return obj.name
         return obj.name.split('/')[0]
+
+    def get_is_saleout(self, obj):
+        product_model = obj.product_model
+        if product_model:
+            return product_model.is_sale_out
+        return False
 
 class DepositProductSerializer(serializers.ModelSerializer):
     normal_skus = ProductSkuSerializer(many=True, read_only=True)

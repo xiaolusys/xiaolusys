@@ -186,10 +186,12 @@ class ModelProduct(BaseTagModel):
     @property
     def is_sale_out(self):
         """ 是否卖光 """
-        all_sale_out = True
-        for product in self.products:
-            all_sale_out &= product.is_sale_out()
-        return all_sale_out
+        if not hasattr(self, '_is_saleout_'):
+            all_sale_out = True
+            for product in self.products:
+                all_sale_out &= product.is_sale_out()
+            self._is_saleout_ = all_sale_out
+        return self._is_saleout_
 
     @property
     def model_code(self):
