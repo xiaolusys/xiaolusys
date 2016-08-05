@@ -194,9 +194,11 @@ class Product(models.Model):
         """ 获取商品款式 """
         if self.model_id == 0:
             return None
-        from flashsale.pay.models import ModelProduct
-        pmodel = ModelProduct.objects.filter(id=self.model_id).first()
-        return pmodel
+        if not hasattr(self, '_model_product_'):
+            from flashsale.pay.models import ModelProduct
+
+            self._model_product_ = ModelProduct.objects.filter(id=self.model_id).first()
+        return self._model_product_
 
     product_model = property(get_product_model)
 
@@ -636,7 +638,7 @@ class Product(models.Model):
             return True
         return False
 
-    def update_shelf_time(self, upshelf_time, offshelf_time):
+    def update_shelf_time(self, upshelf_time, offshelf_time, is_sale):
         """ 更新上下架时间 """
         if self.shelf_status == Product.UP_SHELF:  # 正在上架的产品不去　更新　上下架时间
             return False
@@ -652,6 +654,9 @@ class Product(models.Model):
         if self.offshelf_time != offshelf_time:
             self.offshelf_time = offshelf_time
             update_fields.append('offshelf_time')
+        if self.detail and self.detail.is_sale != is_sale:
+            self.detail.is_sale = is_sale
+            self.detail.save(update_fields=['is_sale'])
         if update_fields:
             self.save(update_fields=update_fields)
             return True

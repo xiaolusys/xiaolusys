@@ -964,5 +964,3 @@ class SupplierFigureAdmin(admin.ModelAdmin):
     readonly_fields = ['supplier']
 
 admin.site.register(SupplierFigure, SupplierFigureAdmin)
-
-
