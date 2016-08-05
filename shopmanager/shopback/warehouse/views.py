@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
 from shopapp.smsmgr.tasks import task_notify_package_post
-
+from flashsale.pay.models import SaleOrder
 logger = logging.getLogger('django.request')
 
 
@@ -138,7 +138,6 @@ class PackageScanCheckView(APIView):
             return Response(u'运单号未找到订单')
         except PackageOrder.MultipleObjectsReturned:
             return Response(u'结果返回多个订单')
-
         order_items = self.get_item_from_package(package)
 
         return Response({'package_no': package.out_sid,
@@ -165,6 +164,11 @@ class PackageScanCheckView(APIView):
             return Response(u'需重打物流单')
         if not PackageScanCheckView.check_address_right(package_order):
             return Response(u'地址错误不予放行')
+        oids = [p.oid for p in package_order.package_sku_items.filter(assign_status=1)]
+        for s in SaleOrder.objects.filter(oid__in=oids):
+            if not s.need_send():
+                logger.error(u'有订单已被取消仍要求发货:' + str(s.id))
+                return Response(u'有订单已被取消：' + str(s.id))
         package_order.sys_status = PackageOrder.WAIT_SCAN_WEIGHT_STATUS
         package_order.scanner = request.user.username
         package_order.save()
