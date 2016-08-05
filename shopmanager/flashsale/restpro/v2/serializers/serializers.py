@@ -5,8 +5,9 @@ import random
 
 from django.conf import settings
 from django.db.models import Sum
-from django.forms import model_to_dict
+
 from rest_framework import serializers
+
 from flashsale.xiaolumm.models.models_fortune import (
     MamaFortune,
     CarryRecord,
@@ -19,9 +20,8 @@ from flashsale.xiaolumm.models.models_fortune import (
     UniqueVisitor,
     DailyStats,
 )
-from rest_framework import serializers
 from flashsale.pay.models import BrandEntry, BrandProduct
-from shopback.items.models import Product, ProductSku, ProductCategory
+from shopback.items.models import Product, ProductSku
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,
@@ -33,34 +33,39 @@ from flashsale.pay.models import (
     Register,
     GoodShelf,
     CustomShare,
-    UserBudget
+    UserBudget,
+    District,
+    UserAddress,
+    IntegralLog,
+    Integral,
+    BudgetLog,
+    FaqMainCategory,
+    FaqsDetailCategory,
+    SaleFaq,
+    CustomerShops,
+    CuShopPros,
 )
-from flashsale.pay.models import District, UserAddress
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder
-from flashsale.restpro import constants
+from shopback.categorys.models import ProductCategory
+from shopapp.weixin.models import WXOrder
+from supplychain.supplier.models import SaleProduct, HotProduct
+from shopback.refunds.models_refund_rate import ProRefunRcord
+
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
-from flashsale.coupon.models import OrderShareCoupon
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, MamaCarryTotal, XlmmFans
+from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
+from flashsale.xiaolumm.models.models_fortune import MAMA_FORTUNE_HISTORY_LAST_DAY
+
+from flashsale.coupon.models import OrderShareCoupon
 from flashsale.clickcount.models import ClickCount, Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.promotion.models import AppDownloadRecord
-from shopapp.weixin.models import WXOrder
-from supplychain.supplier.models import SaleProduct
-from supplychain.supplier.models import HotProduct
-from shopback.refunds.models_refund_rate import ProRefunRcord
-from flashsale.pay.models import IntegralLog, Integral
-from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
-from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
-from flashsale.pay.models import BudgetLog
-from flashsale.pay.models import FaqMainCategory, FaqsDetailCategory, SaleFaq
-from flashsale.apprelease.models import AppRelease
-from flashsale.pay.models import CustomerShops, CuShopPros
-from flashsale.pay.models import Customer
-from flashsale.restpro import constants
-from flashsale.xiaolumm.models.models_fortune import MAMA_FORTUNE_HISTORY_LAST_DAY
 
+from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
+from flashsale.apprelease.models import AppRelease
+from flashsale.restpro import constants
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
     cash_value = serializers.FloatField(source='cash_num_display', read_only=True)
@@ -1100,36 +1105,3 @@ class SaleFaqerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleFaq
         fields = ('id', 'main_category', 'detail_category', 'question', 'answer')
-
-
-class ModelProductV2Serializer(serializers.ModelSerializer):
-    detail_content = serializers.SerializerMethodField()
-    extras = serializers.SerializerMethodField()
-    sku_info = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ModelProduct
-        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras')  #
-
-    def get_detail_content(self, obj):
-        content = obj.detail_content
-        if obj.is_flatten:
-            request = self.context.get('request')
-            product_id = request.GET.get('product_id', None)
-            if product_id.isdigit():
-                product = obj.products.filter(id=product_id).first()
-                content['name'] = product.name
-                content['head_imgs'] = [product.pic_path]
-        return content
-
-    def get_extras(self, obj):
-        return obj.extras.get('saleinfos', {})
-
-    def get_sku_info(self, obj):
-        if obj.is_flatten:
-            request = self.context.get('request')
-            product_id = request.GET.get('product_id', None)
-            if product_id.isdigit():
-                product = obj.products.filter(id=product_id).first()
-                return obj.product_simplejson(product)
-        return obj.sku_info

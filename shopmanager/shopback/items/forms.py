@@ -8,7 +8,7 @@ from django import forms
 
 from core.forms import BaseForm
 
-from .models import Product, ProductSku, DepositeDistrict
+from .models import Product, ProductSku
 from . import constants
 
 

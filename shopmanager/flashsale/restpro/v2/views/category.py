@@ -14,7 +14,7 @@ from rest_framework import exceptions
 from rest_framework_extensions.cache.decorators import cache_response
 
 from supplychain.supplier.models import SaleCategory
-from . import serializers
+from .. import serializers
 
 CACHE_VIEW_TIMEOUT = 30
 
@@ -23,6 +23,7 @@ class SaleCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         ## 特卖选品类目API：
         - Model:
             * `{
+                "id": 款式ID,
                 "grade": 类目等级,
                 "cat_pic": 展示图,
                 "parent_cid": 父ID,

@@ -108,32 +108,50 @@ def default_modelproduct_extras_tpl():
 
 class ModelProduct(BaseTagModel):
 
-    NORMAL = '0'
-    DELETE = '1'
+    NORMAL = 'normal'
+    DELETE = 'delete'
     STATUS_CHOICES = (
         (NORMAL, u'正常'),
         (DELETE, u'作废')
     )
-    # UP_SHELF = 1
-    # DOWN_SHELF = 0
 
-    # SHELF_CHOICES = ((UP_SHELF,u'已上架'),
-    #                 (DOWN_SHELF,u'未上架'))
+    ON_SHELF = 'on'
+    OFF_SHELF = 'off'
+    SHELF_CHOICES = (
+        (ON_SHELF,u'已上架'),
+        (OFF_SHELF,u'未上架')
+    )
 
     name = models.CharField(max_length=64, db_index=True, verbose_name=u'款式名称')
 
     head_imgs = models.TextField(blank=True, verbose_name=u'题头照(多张请换行)')
     content_imgs = models.TextField(blank=True, verbose_name=u'内容照(多张请换行)')
 
+    # TODO@meron　类目根据选品类目更新
     salecategory = models.ForeignKey('supplier.SaleCategory', null=True, default=None,
-                                     related_name='model_product_set', verbose_name=u'分类')
-    # lowest_agent_price = models.IntegerField(default=5, verbose_name=u'最低出售价')
-    # lowest_std_sale_price = models.IntegerField(default=5, verbose_name=u'最低吊牌价')
+                                     related_name='modelproduct_set', verbose_name=u'分类')
 
-    is_flatten = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
+    lowest_agent_price = models.FloatField(default=0.0, verbose_name=u'最低售价')
+    lowest_std_sale_price = models.FloatField(default=0.0, verbose_name=u'最低原价')
+
+    is_onsale    = models.BooleanField(default=False, db_index=True, verbose_name=u'特价/秒杀')
+    is_recommend = models.BooleanField(default=False, db_index=True, verbose_name=u'推荐商品')
+    is_topic     = models.BooleanField(default=False, db_index=True, verbose_name=u'专题商品')
+    is_flatten   = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
+    is_watermark = models.BooleanField(default=False, db_index=True, verbose_name=u'图片水印')
+
+    shelf_status = models.CharField(max_length=8, choices=SHELF_CHOICES,
+                                    default=OFF_SHELF, db_index=True, verbose_name=u'上架状态')
+    onshelf_time  = models.DateTimeField(default=None, blank=True, db_index=True, null=True, verbose_name=u'上架时间')
+    offshelf_time = models.DateTimeField(default=None, blank=True, db_index=True, null=True, verbose_name=u'下架时间')
+
+    order_weight = models.IntegerField(db_index=True, default=50, verbose_name=u'权值')
+    rebeta_scheme_id = models.IntegerField(default=0, verbose_name=u'返利计划ID')
+    saleproduct  = models.ForeignKey('supplier.SaleProduct', null=True, default=None,
+                                     related_name='modelproduct_set', verbose_name=u'特卖选品')
+
     extras  = JSONCharMyField(max_length=5000, default=default_modelproduct_extras_tpl, verbose_name=u'附加信息')
-    status = models.CharField(max_length=16, db_index=True,
-                              choices=STATUS_CHOICES,
+    status = models.CharField(max_length=16, db_index=True, choices=STATUS_CHOICES,
                               default=NORMAL, verbose_name=u'状态')
 
     class Meta:
@@ -200,13 +218,13 @@ class ModelProduct(BaseTagModel):
             return ''
         return product.outer_id[0:-1]
 
-    @property
-    def is_recommend(self):
-        """ 是否推荐 """
-        product = self.item_product
-        if not product or not product.detail:
-            return False
-        return product.detail.is_recommend
+    # @property
+    # def is_recommend(self):
+    #     """ 是否推荐 """
+    #     product = self.item_product
+    #     if not product or not product.detail:
+    #         return False
+    #     return product.detail.is_recommend
 
     @property
     def sale_time(self):
@@ -224,21 +242,21 @@ class ModelProduct(BaseTagModel):
             return {}
         return {'id': product.category_id}
 
-    @property
-    def offshelf_time(self):
-        """ 下架时间 """
-        product = self.item_product
-        if not product or not product.detail:
-            return False
-        return product.offshelf_time
+    # @property
+    # def offshelf_time(self):
+    #     """ 下架时间 """
+    #     product = self.item_product
+    #     if not product or not product.detail:
+    #         return False
+    #     return product.offshelf_time
 
-    @property
-    def shelf_status(self):
-        """上架状态"""
-        product = self.item_product
-        if not product:
-            return 0
-        return product.shelf_status
+    # @property
+    # def shelf_status(self):
+    #     """上架状态"""
+    #     product = self.item_product
+    #     if not product:
+    #         return 0
+    #     return product.shelf_status
 
     @property
     def is_saleopen(self):
@@ -256,53 +274,43 @@ class ModelProduct(BaseTagModel):
             return False
         return product.new_good()
 
-    @property
-    def lowest_agent_price(self):
-        """ 最低售价 """
-        lowest_price = 0
-        for product in self.products:
-            if lowest_price == 0:
-                lowest_price = product.lowest_price()
-            else:
-                lowest_price = min(lowest_price, product.lowest_price())
-        return lowest_price
+    # @property
+    # def lowest_agent_price(self):
+    #     """ 最低售价 """
+    #     lowest_price = 0
+    #     for product in self.products:
+    #         if lowest_price == 0:
+    #             lowest_price = product.lowest_price()
+    #         else:
+    #             lowest_price = min(lowest_price, product.lowest_price())
+    #     return lowest_price
 
-    @property
-    def lowest_std_sale_price(self):
-        """ 最低吊牌价 """
-        product = self.item_product
-        return product and product.std_sale_price or 0
+    # @property
+    # def lowest_std_sale_price(self):
+    #     """ 最低吊牌价 """
+    #     product = self.item_product
+    #     return product and product.std_sale_price or 0
 
     @property
     def properties(self):
         """ 商品属性 """
-        product = self.item_product
-        if not product or not product.detail:
-            return {}
-        detail = product.detail
-        return {
-            "material": detail.material,
-            "wash_instructions": detail.wash_instructions,
-            "note": detail.note,
-            "color": detail.color
-        }
+        return {}
 
     @property
     def attributes(self):
         product = self.item_product
         if not product:
-            return {}
+            return []
         detail = product.detail
-        prop_value_list = [('model_code', self.model_code)]
+        prop_value_dict = {'model_code': self.model_code}
         model_properties = self.extras.get('properties', {})
-        for item in model_properties.iteritems():
-            prop_value_list.append(item)
+        prop_value_dict.update(model_properties)
 
         if not model_properties and detail:
             for key in ('material', 'color', 'wash_instructions', 'note'):
-                prop_value_list.append((key, getattr(detail, key)))
+                prop_value_dict.update(key=getattr(detail, key))
 
-        return [{'name': PROPERTY_NAMES.get(prop[0]), 'value':prop[1]} for prop in prop_value_list if prop[1].strip()]
+        return [{'name': PROPERTY_NAMES.get(key), 'value':value} for key, value in prop_value_dict.iteritems() if value.strip()]
 
     @property
     def products(self):
@@ -411,7 +419,7 @@ class ModelProduct(BaseTagModel):
         }
 
 
-def create_Model_Product(sender, obj, **kwargs):
+def modelproduct_update_supplier_info(sender, obj, **kwargs):
     pro = obj.item_product
     if isinstance(pro, Product):
         sal_p, supplier = pro.pro_sale_supplier()
@@ -420,4 +428,5 @@ def create_Model_Product(sender, obj, **kwargs):
             update_model_fields(supplier, update_fields=['total_select_num'])
 
 
-signal_record_supplier_models.connect(create_Model_Product, sender=ModelProduct)
+signal_record_supplier_models.connect(modelproduct_update_supplier_info,
+    sender=ModelProduct, dispatch_uid='post_save_modelproduct_update_supplier_info')

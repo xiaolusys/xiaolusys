@@ -912,8 +912,8 @@ def task_packageskuitem_update_productskustats(sku_id):
     -- Zifei 2016-04-18
     """
 
-    from shopback.items.models_stats import ProductSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
-    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=PRODUCT_SKU_STATS_COMMIT_TIME). \
+    from shopback.items.models import ProductSkuStats
+    sum_res = PackageSkuItem.objects.filter(sku_id=sku_id, pay_time__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME). \
         exclude(assign_status=PackageSkuItem.CANCELED).values("assign_status").annotate(total=Sum('num'))
     wait_assign_num, assign_num, post_num = 0, 0, 0
 
@@ -958,7 +958,7 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     print 'task_packageskuitem_update_productskusalestats_num:'
     print sku_id
     print pay_time
-    from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
+    from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
     sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id, sale_start_time__lte=pay_time,
                                                     status=ProductSkuSaleStats.ST_EFFECT)
     if not sale_stats.exists():
@@ -1180,7 +1180,7 @@ def task_packageorder_send_check_packageorder():
 
 def create_shoppingcart_cnt_check_log(time_from, uni_key):
     from flashsale.pay.models import ShoppingCart
-    from shopback.items.models_stats import ProductSkuStats
+    from shopback.items.models import ProductSkuStats
     actual_num = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL).aggregate(n=Sum('num')).get('n') or 0
     target_num = ProductSkuStats.objects.aggregate(n=Sum('shoppingcart_num')).get('n') or 0
     time_to = time_from + datetime.timedelta(hours=1)
@@ -1193,7 +1193,7 @@ def create_shoppingcart_cnt_check_log(time_from, uni_key):
 
 
 def create_waitingpay_cnt_check_log(time_from, uni_key):
-    from shopback.items.models_stats import ProductSkuStats
+    from shopback.items.models import ProductSkuStats
     actual_num = SaleOrder.objects.filter(status=SaleOrder.WAIT_BUYER_PAY).aggregate(n=Sum("num")).get('n') or 0
     target_num = ProductSkuStats.objects.aggregate(n=Sum('waitingpay_num')).get('n') or 0
     time_to = time_from + datetime.timedelta(hours=1)
@@ -1206,7 +1206,7 @@ def create_waitingpay_cnt_check_log(time_from, uni_key):
 
 
 def create_assign_check_log(time_from, uni_key):
-    from shopback.items.models_stats import ProductSkuStats
+    from shopback.items.models import ProductSkuStats
     actual_num = PackageSkuItem.objects.filter(assign_status=1).aggregate(n=Sum('num')).get('n') or 0
     target_num = ProductSkuStats.objects.aggregate(n=Sum('assign_num')).get('n') or 0
     time_to = time_from + datetime.timedelta(hours=1)
@@ -1219,7 +1219,7 @@ def create_assign_check_log(time_from, uni_key):
 
 
 def create_stock_not_assign_check_log(time_from, uni_key):
-    from shopback.items.models_stats import ProductSkuStats
+    from shopback.items.models import ProductSkuStats
     stock_not_assign_num = ProductSkuStats.objects.filter(
         assign_num__gt=F('history_quantity') + F('inbound_quantity') + F(
             'adjust_quantity') + F('return_quantity') - F('post_num') - F(

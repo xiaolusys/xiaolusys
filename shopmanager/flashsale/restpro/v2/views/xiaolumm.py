@@ -23,7 +23,8 @@ from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
     AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor, DailyStats
 from flashsale.xiaolumm.models import XiaoluMama
-from . import serializers
+
+from .. import serializers
 
 logger = logging.getLogger(__name__)
 

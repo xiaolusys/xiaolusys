@@ -11,13 +11,14 @@ from rest_framework import views
 from rest_framework.response import Response
 
 from core.weixin.options import gen_wxlogin_sha1_sign
+from core.utils.regex import REGEX_MOBILE
 from flashsale.pay.models import Register, Customer
 from flashsale.xiaolumm.models.models_fans import login_activate_appdownloadrecord
 from shopapp.smsmgr.tasks import task_register_code
 
 logger = logging.getLogger('django.request')
 
-PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
+PHONE_NUM_RE = re.compile(REGEX_MOBILE, re.IGNORECASE)
 TIME_LIMIT = 360
 RESEND_TIME_LIMIT = 180
 SYSTEMOA_ID = 641

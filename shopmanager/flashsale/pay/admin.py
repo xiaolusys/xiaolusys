@@ -634,23 +634,38 @@ class BrandProductInline(admin.TabularInline):
 
 
 class ModelProductAdmin(ApproxAdmin):
-    list_display = ('id', 'name', 'sale_time', 'salecategory', 'status', 'created')
+    list_display = ('id', 'name', 'sale_time', 'salecategory', 'is_onsale', 'is_recommend', 'is_topic',
+                    'is_flatten', 'status', 'shelf_status', 'onshelf_time', 'offshelf_time',
+                    'lowest_agent_price', 'lowest_std_sale_price', 'order_weight', 'created')
 
     list_filter = ('status',
+                   'shelf_status',
+                   'is_onsale',
+                   'is_recommend',
+                   'is_topic',
                    'is_flatten',
+                   ('onshelf_time', DateFieldListFilter),
                    ('created', DateFieldListFilter))
     # -------------- 页面布局 --------------
     fieldsets = (('基本信息:',
                   {'classes': ('expand',),
                    'fields': (
                        ('name', 'salecategory'),
-                       ('head_imgs', 'content_imgs')
-                       , 'extras', ('status', 'is_flatten')
+                       ('is_onsale', 'is_recommend', 'is_topic', 'is_flatten'),
+                       ('shelf_status', 'onshelf_time', 'offshelf_time'),
+                       ('order_weight', 'rebeta_scheme_id', 'status'),
+                       ('head_imgs', 'content_imgs'),
+                       ('extras',),
                    )
                    }),
                  )
     search_fields = ['name', '=id']
     list_per_page = 50
+
+    def get_readonly_fields(self, request, obj=None):
+        if request.user.is_superuser:
+            self.readonly_fields += ('onshelf_time', 'offshelf_time')
+        return self.readonly_fields
 
 
 admin.site.register(ModelProduct, ModelProductAdmin)

@@ -1,9 +1,9 @@
 # coding=utf-8
+import os
+import re
 import collections
 import datetime
 import decimal
-import logging
-import os
 import urlparse
 
 from django.conf import settings
@@ -34,10 +34,19 @@ from flashsale.xiaolumm.models.models_fortune import MamaFortune
 from shopback.items.models import Product, ProductSku
 from . import serializers
 
+import logging
 logger = logging.getLogger(__name__)
 
-from flashsale.restpro.v2.views_verifycode_login import validate_mobile
+from core.utils.regex import REGEX_MOBILE
+PHONE_NUM_RE = re.compile(REGEX_MOBILE, re.IGNORECASE)
 
+def validate_mobile(mobile):
+    """
+    check mobile format
+    """
+    if re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
+        return True
+    return False
 
 def get_mamafortune(mama_id):
     """　获取可提现金额 活跃值 """

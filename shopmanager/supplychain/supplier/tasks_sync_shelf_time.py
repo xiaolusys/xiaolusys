@@ -37,19 +37,20 @@ def task_sync_shelf_time_from_manager():
         detail_sale_products = details.values('sale_product_id')
         systemoa = get_systemoa_user()
 
-        def update_pro_shelf_time(upshelf_time, offshelf_time):
+        def update_pro_shelf_time(upshelf_time, offshelf_time, is_sale):
             def _wrapper(p):
-                print upshelf_time, offshelf_time
-                state = p.update_shelf_time(upshelf_time, offshelf_time)
+                state = p.update_shelf_time(upshelf_time, offshelf_time, is_sale)
                 if state:
                     log_action(systemoa, p, CHANGE, u'系统自动同步排期时间')
 
             return _wrapper
 
+        # 排期类型是特卖类型　才在首页显示(is_sale==False)
+        is_sale = False if manager.schedule_type == SaleProductManage.SP_SALE else True
         try:
             for sale_product in detail_sale_products:
                 pros = Product.items_by_sale_product_id(sale_product['sale_product_id'])
-                map(update_pro_shelf_time(manager.upshelf_time, manager.offshelf_time), pros)  # 更新上下架时间
+                map(update_pro_shelf_time(manager.upshelf_time, manager.offshelf_time, is_sale), pros)  # 更新上下架时间
         except Exception as exc:
             raise task_sync_shelf_time_from_manager.retry(countdown=60 * 10, exc=exc)
 

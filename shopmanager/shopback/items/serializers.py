@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Product, ProductSku, Item, DepositeDistrict, ProductLocation
+from .models import Product, ProductSku, Item, ProductLocation
+from shopback.archives.models import DepositeDistrict
 from shopback.categorys.models import Category
 from shopback.users.models import User
 

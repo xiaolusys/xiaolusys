@@ -24,7 +24,8 @@ from flashsale.pay.models import (
 from flashsale.pay.models.favorites import Favorites
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from flashsale.xiaolumm.models import XiaoluMama
-from shopback.items.models import Product, ProductSku, ProductCategory
+from shopback.items.models import Product, ProductSku
+from shopback.categorys.models import ProductCategory
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder, ReturnWuLiu
 from flashsale.xiaolumm.models import XiaoluMama
@@ -891,40 +892,6 @@ class SaleFaqerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleFaq
         fields = ('id', 'main_category', 'detail_category', 'question', 'answer')
-
-
-class ModelProductV2Serializer(serializers.ModelSerializer):
-
-    detail_content = serializers.SerializerMethodField()
-    extras = serializers.SerializerMethodField()
-    sku_info = serializers.SerializerMethodField()
-    class Meta:
-        model = ModelProduct
-        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras') #
-
-    def get_detail_content(self, obj):
-        content = obj.detail_content
-        if obj.is_flatten:
-            request = self.context.get('request')
-            product_id = request.GET.get('product_id', None)
-            if product_id and product_id.isdigit():
-                product = obj.products.filter(id=product_id).first()
-                content['name'] = product.name
-                content['head_imgs'] = [product.pic_path]
-        return content
-
-    def get_extras(self, obj):
-        return obj.extras.get('saleinfos',{})
-
-    def get_sku_info(self, obj):
-        if obj.is_flatten:
-            request = self.context.get('request')
-            product_id = request.GET.get('product_id',None)
-            if  product_id and product_id.isdigit():
-                product = obj.products.filter(id=product_id).first()
-                return obj.product_simplejson(product)
-        return obj.sku_info
-
 
 class FavoritesSerializer(serializers.ModelSerializer):
 

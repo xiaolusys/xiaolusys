@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 @task()
 def task_productsku_create_productskustats(sku_id, product_id):
-    from shopback.items.models_stats import ProductSkuStats
+    from shopback.items.models import ProductSkuStats
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
         stat = ProductSkuStats(sku_id=sku_id,product_id=product_id)
@@ -22,9 +22,8 @@ def task_product_upshelf_update_productskusalestats(sku_id):
     """
     Recalculate and update init_waitassign_num,sale_start_time.
     """
-    from shopback.items.models import ProductSku
-    from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats, gen_productsksalestats_unikey
-
+    from shopback.items.models import ProductSku, ProductSkuStats, \
+        ProductSkuSaleStats, gen_productsksalestats_unikey
 
     product = ProductSku.objects.get(id=sku_id).product
     product_id = product.id
@@ -57,8 +56,8 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
     """
     Recalculate and update sale_end_time,status.
     """
-    from shopback.items.models import ProductSku
-    from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats, gen_productsksalestats_unikey
+    from shopback.items.models import ProductSku, ProductSkuStats, \
+        ProductSkuSaleStats, gen_productsksalestats_unikey
 
     product = ProductSku.objects.get(id=sku_id).product
     product_id = product.id

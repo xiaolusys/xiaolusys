@@ -1,15 +1,13 @@
 # *_* coding=utf-8 *_*
+import datetime
+
 from rest_framework import generics
-from shopback.categorys.models import ProductCategory
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
-from .tasks import task_calc_performance_by_user, task_calc_performance_by_supplier, task_calc_sale_product
-import datetime
-from supplychain.supplier.models import SaleCategory
-from shopback.items.models import Product, ProductCategory
+
+from shopback.items.models import Product
 import flashsale.dinghuo.utils as tools_util
-import collections
 
 
 class ProductInputStatView(generics.ListCreateAPIView):

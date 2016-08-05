@@ -1,12 +1,5 @@
 # coding: utf-8
 
-"""
-淘宝普通平台模型:
-Product:系统内部商品，唯一对应多家店铺的商品外部编码,
-ProductSku:淘宝平台商品sku，
-Item:淘宝平台商品，
-"""
-
 import collections
 import datetime
 import json
@@ -31,31 +24,14 @@ from shopback.categorys.models import Category, ProductCategory
 from shopback.archives.models import Deposite, DepositeDistrict
 from shopback.users.models import DjangoUser, User
 from shopback.items.tasks_stats import task_product_upshelf_notify_favorited_customer
-from supplychain.supplier.models import SaleProduct
-from shopback.items.models_stats import ProductSkuStats, ProductSkuSaleStats
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
-from . import constants, managers
+
+from supplychain.supplier.models import SaleProduct
+
+from .. import constants, managers
 
 import logging
 logger = logging.getLogger(__name__)
-
-APPROVE_STATUS = (
-    (pcfg.ONSALE_STATUS, u'在售'),
-    (pcfg.INSTOCK_STATUS, u'库中'),
-)
-
-ONLINE_PRODUCT_STATUS = (
-    (pcfg.NORMAL, u'使用'),
-    (pcfg.REMAIN, u'待用'),
-    (pcfg.DELETE, u'作废'),
-)
-
-PRODUCT_STATUS = (
-    (pcfg.NORMAL, u'使用'),
-    (pcfg.DELETE, u'作废'),
-)
-# 押金编码前缀
-DIPOSITE_CODE_PREFIX = 'RMB'
 
 
 class ProductDefectException(Exception):
@@ -100,6 +76,11 @@ class Product(models.Model):
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
+    STATUS_CHOICES = (
+        (pcfg.NORMAL, u'使用'),
+        (pcfg.REMAIN, u'待用'),
+        (pcfg.DELETE, u'作废'),
+    )
 
     UP_SHELF = 1
     DOWN_SHELF = 0
@@ -107,6 +88,7 @@ class Product(models.Model):
                      (DOWN_SHELF, u'未上架'))
 
     ProductCodeDefect = ProductDefectException
+    DIPOSITE_CODE_PREFIX = 'RMB'  # 押金商品编码前缀
     PRODUCT_CODE_DELIMITER = '.'
     MALL_PRODUCT_TEMPLATE_URL = constants.MALL_PRODUCT_TEMPLATE_URL
     NO_PIC_PATH = '/static/img/nopic.jpg'
@@ -153,7 +135,7 @@ class Product(models.Model):
     is_flatten = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
     is_watermark = models.BooleanField(default=False, verbose_name=u'图片水印')
     status = models.CharField(max_length=16, db_index=True,
-                              choices=ONLINE_PRODUCT_STATUS,
+                              choices=STATUS_CHOICES,
                               default=pcfg.NORMAL, verbose_name=u'商品状态')
 
     match_reason = models.CharField(max_length=80, blank=True, verbose_name=u'匹配原因')
@@ -194,9 +176,11 @@ class Product(models.Model):
         """ 获取商品款式 """
         if self.model_id == 0:
             return None
-        from flashsale.pay.models import ModelProduct
-        pmodel = ModelProduct.objects.filter(id=self.model_id).first()
-        return pmodel
+        if not hasattr(self, '_model_product_'):
+            from flashsale.pay.models import ModelProduct
+
+            self._model_product_ = ModelProduct.objects.filter(id=self.model_id).first()
+        return self._model_product_
 
     product_model = property(get_product_model)
 
@@ -261,7 +245,7 @@ class Product(models.Model):
         return self.sale_out
 
     def is_deposite(self):
-        return self.outer_id.startswith(DIPOSITE_CODE_PREFIX)
+        return self.outer_id.startswith(self.DIPOSITE_CODE_PREFIX)
 
     def is_onshelf(self):
         return self.shelf_status == self.UP_SHELF
@@ -323,7 +307,7 @@ class Product(models.Model):
             skus_json.append(sku.json)
         model_dict = model_to_dict(self)
         model_dict.update({'category': self.category or {},
-                           'status': dict(ONLINE_PRODUCT_STATUS).get(self.status, ''),
+                           'status': self.get_status_display(),
                            'districts': self.get_district_list(),
                            'barcode': self.BARCODE,
                            'skus': skus_json
@@ -474,14 +458,18 @@ class Product(models.Model):
         return self.warn_num > 0 and self.warn_num >= sync_num
 
     def get_district_list(self):
+        from .storage import ProductLocation
         locations = ProductLocation.objects.filter(product_id=self.id)
         return list(set([(l.district.parent_no, l.district.district_no) for l in locations]))
 
     def get_district_info(self):
         if not hasattr(self, '_district_info_'):
-            district_ids = [i['district'] for i in ProductLocation.objects.filter(product_id=self.id).values('district').distinct()]
+            from .storage import ProductLocation
+            locations = ProductLocation.objects.filter(product_id=self.id).values('district').distinct()
+            district_ids = [i['district'] for i in locations]
             if district_ids:
-                self._district_info_ = ','.join([str(d) for d in DepositeDistrict.objects.filter(id__in=district_ids)])
+                deposites = DepositeDistrict.objects.filter(id__in=district_ids)
+                self._district_info_ = ','.join([str(d) for d in deposites])
             else:
                 self._district_info_ = ''
         return self._district_info_
@@ -636,7 +624,7 @@ class Product(models.Model):
             return True
         return False
 
-    def update_shelf_time(self, upshelf_time, offshelf_time):
+    def update_shelf_time(self, upshelf_time, offshelf_time, is_sale):
         """ 更新上下架时间 """
         if self.shelf_status == Product.UP_SHELF:  # 正在上架的产品不去　更新　上下架时间
             return False
@@ -652,6 +640,9 @@ class Product(models.Model):
         if self.offshelf_time != offshelf_time:
             self.offshelf_time = offshelf_time
             update_fields.append('offshelf_time')
+        if self.detail and self.detail.is_sale != is_sale:
+            self.detail.is_sale = is_sale
+            self.detail.save(update_fields=['is_sale'])
         if update_fields:
             self.save(update_fields=update_fields)
             return True
@@ -676,6 +667,7 @@ def delete_pro_record_supplier(sender, instance, created, **kwargs):
 
 
 post_save.connect(delete_pro_record_supplier, Product)
+
 
 from shopback.signals import signal_product_upshelf,signal_product_downshelf
 
@@ -723,12 +715,6 @@ def update_mama_shop_down_shelf(sender, instance, raw, *args, **kwargs):
 pre_save.connect(update_mama_shop_down_shelf, sender=Product, dispatch_uid='post_save_update_mama_shop_down_shelf')
 
 
-def custom_sort(a, b):
-    c = ContrastContent.objects.get(name=a[0])
-    d = ContrastContent.objects.get(name=b[0])
-    return int(c.sid) - int(d.sid)
-
-
 class ProductSku(models.Model):
     """ 记录库存商品规格属性类 """
 
@@ -745,6 +731,11 @@ class ProductSku(models.Model):
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
+    STATUS_CHOICES = (
+        (pcfg.NORMAL, u'使用'),
+        (pcfg.REMAIN, u'待用'),
+        (pcfg.DELETE, u'作废'),
+    )
 
     outer_id = models.CharField(max_length=32, blank=False, verbose_name=u'编码')
     barcode = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='条码')
@@ -787,7 +778,7 @@ class ProductSku(models.Model):
     post_check = models.BooleanField(default=False, verbose_name='需扫描')
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name='创建时间')
     modified = models.DateTimeField(null=True, blank=True, auto_now=True, verbose_name='修改时间')
-    status = models.CharField(max_length=10, db_index=True, choices=ONLINE_PRODUCT_STATUS,
+    status = models.CharField(max_length=10, db_index=True, choices=STATUS_CHOICES,
                               default=pcfg.NORMAL, verbose_name='规格状态')  # normal,delete
 
     match_reason = models.CharField(max_length=80, blank=True, verbose_name='匹配原因')
@@ -805,15 +796,15 @@ class ProductSku(models.Model):
     @property
     def stat(self):
         if not hasattr(self, '_stat_'):
+            from .stats import ProductSkuStats
             self._stat_ = ProductSkuStats.get_by_sku(self.id)
         return self._stat_
 
     @property
     def obj_active_sku_salestats(self):
-        try:
-            return ProductSkuSaleStats.objects.get(sku_id=self.id,status=ProductSkuSaleStats.ST_EFFECT)
-        except ProductSkuSaleStats.DoesNotExist:
-            return None
+        from .stats import ProductSkuSaleStats
+        sku_stats = ProductSkuSaleStats.objects.filter(sku_id=self.id,status=ProductSkuSaleStats.ST_EFFECT).first()
+        return sku_stats
 
     @property
     def realtime_quantity(self):
@@ -827,6 +818,7 @@ class ProductSku(models.Model):
 
     @property
     def real_inferior_quantity(self):
+        from .stats import ProductSkuStats
         return ProductSkuStats.get_by_sku(self.id).inferior_num
 
     @property
@@ -902,7 +894,6 @@ class ProductSku(models.Model):
             sku_name = self.properties_alias or self.properties_name
             display_sku = contrast[sku_name]
             display_sku = display_sku.items()
-            display_sku.sort(cmp=custom_sort)
             result_data = collections.OrderedDict()
             for p in display_sku:
                 result_data[p[0]] = p[1]
@@ -1042,11 +1033,13 @@ class ProductSku(models.Model):
 
     @property
     def district(self):
+        from .storage import ProductLocation
         location = ProductLocation.objects.filter(product_id=self.product.id, sku_id=self.id).first()
         if location:
             return location.district
 
     def get_district_list(self):
+        from .storage import ProductLocation
         locations = ProductLocation.objects.filter(product_id=self.product.id, sku_id=self.id)
         return [(l.district.parent_no, l.district.district_no) for l in locations]
 
@@ -1083,7 +1076,7 @@ class ProductSku(models.Model):
         return ProductSku.objects.get(outer_id=outer_sku_id, product_id=product.id)
 
     def is_deposite(self):
-        return self.product.outer_id.startswith(DIPOSITE_CODE_PREFIX)
+        return self.product.outer_id.startswith(self.DIPOSITE_CODE_PREFIX)
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
@@ -1147,468 +1140,3 @@ def upshelf_product_clear_locknum(sender, product_list, *args, **kwargs):
 
 
 signal_product_upshelf.connect(upshelf_product_clear_locknum, sender=Product)
-
-
-class Item(models.Model):
-    """ 淘宝线上商品 """
-
-    num_iid = models.CharField(primary_key=True, max_length=64, verbose_name='商品ID')
-    user = models.ForeignKey(User, null=True, related_name='items', verbose_name='店铺')
-    category = models.ForeignKey(Category, null=True, related_name='items', verbose_name='淘宝分类')
-    product = models.ForeignKey(Product, null=True, related_name='items', verbose_name='关联库存商品')
-
-    outer_id = models.CharField(max_length=64, blank=True, verbose_name='外部编码')
-    num = models.IntegerField(null=True, verbose_name='数量')
-    sync_stock = models.BooleanField(default=True, verbose_name='库存同步')
-
-    seller_cids = models.CharField(max_length=126, blank=True, verbose_name='卖家分类')
-    approve_status = models.CharField(max_length=20, choices=APPROVE_STATUS, blank=True,
-                                      verbose_name='在售状态')  # onsale,instock
-    type = models.CharField(max_length=12, blank=True, verbose_name='商品类型')
-    valid_thru = models.IntegerField(null=True, verbose_name='有效期')
-
-    with_hold_quantity = models.IntegerField(default=0, verbose_name='拍下未付款数')
-    delivery_time = models.DateTimeField(null=True, blank=True, verbose_name='发货时间')
-
-    price = models.CharField(max_length=12, blank=True, verbose_name='价格')
-    postage_id = models.BigIntegerField(null=True, verbose_name='运费模板ID')
-
-    has_showcase = models.BooleanField(default=False, verbose_name='橱窗推荐')
-    modified = models.DateTimeField(null=True, blank=True, verbose_name='修改时间')
-
-    list_time = models.DateTimeField(null=True, blank=True, verbose_name='上架时间')
-    delist_time = models.DateTimeField(null=True, blank=True, verbose_name='下架时间')
-
-    has_discount = models.BooleanField(default=False, verbose_name='有折扣')
-
-    props = models.TextField(blank=True, verbose_name='商品属性')
-    title = models.CharField(max_length=148, blank=True, verbose_name='商品标题')
-    property_alias = models.TextField(blank=True, verbose_name='自定义属性')
-
-    has_invoice = models.BooleanField(default=False, verbose_name='有发票')
-    pic_url = models.URLField(blank=True, verbose_name='商品图片')
-    detail_url = models.URLField(blank=True, verbose_name='详情链接')
-
-    last_num_updated = models.DateTimeField(null=True, blank=True, verbose_name='最后库存同步日期')  # 该件商品最后库存同步日期
-
-    desc = models.TextField(blank=True, verbose_name='商品描述')
-    skus = models.TextField(blank=True, verbose_name='规格')
-    status = models.BooleanField(default=True, verbose_name='使用')
-
-    class Meta:
-        db_table = 'shop_items_item'
-        app_label = 'items'
-        verbose_name = u'线上商品'
-        verbose_name_plural = u'线上商品列表'
-
-    def __unicode__(self):
-        return '<%s,%s,%s>' % (self.num_iid, self.outer_id, self.title)
-
-    @property
-    def sku_list(self):
-        try:
-            return json.loads(self.skus)
-        except:
-            return {}
-
-    @property
-    def property_alias_dict(self):
-        property_list = self.property_alias.split(';')
-        property_dict = {}
-        for p in property_list:
-            if p:
-                r = p.split(':')
-                property_dict['%s:%s' % (r[0], r[1])] = r[2]
-        return property_dict
-
-    @classmethod
-    def get_or_create(cls, user_id, num_iid, force_update=False):
-        item, state = Item.objects.get_or_create(num_iid=num_iid)
-        if state or force_update:
-            try:
-                response = apis.taobao_item_get(num_iid=num_iid, tb_user_id=user_id)
-                item_dict = response['item_get_response']['item']
-                item = Item.save_item_through_dict(user_id, item_dict)
-
-            except Exception, exc:
-                logger.error('商品更新出错(num_iid:%s)' % str(num_iid), exc_info=True)
-        return item
-
-    @classmethod
-    def save_item_through_dict(cls, user_id, item_dict):
-
-        category = Category.get_or_create(user_id, item_dict['cid'])
-        if item_dict.has_key('outer_id') and item_dict['outer_id']:
-            products = Product.objects.filter(outer_id=item_dict['outer_id'])
-            product = None
-            if products.count() > 0:
-                product = products[0]
-                product.name = product.name or item_dict['title']
-                product.pic_path = product.pic_path or item_dict['pic_url']
-                product.save()
-        else:
-            # logger.warn('item has no outer_id(num_iid:%s)'%str(item_dict['num_iid']))
-            product = None
-
-        item, state = cls.objects.get_or_create(num_iid=item_dict['num_iid'])
-        skus = item_dict.get('skus', None)
-        item_dict['skus'] = skus and skus or item.skus
-        for k, v in item_dict.iteritems():
-            hasattr(item, k) and setattr(item, k, v)
-
-        if not item.last_num_updated:
-            item.last_num_updated = datetime.datetime.now()
-
-        item.user = User.objects.get(visitor_id=user_id)
-        item.product = product
-        item.category = category
-        item.status = True
-        item.save()
-        return item
-
-
-class SkuProperty(models.Model):
-    """
-        规格属性
-    """
-
-    num_iid = models.BigIntegerField(verbose_name='商品ID')
-    sku_id = models.BigIntegerField(verbose_name='规格ID')
-    outer_id = models.CharField(max_length=32, null=True, blank=True, verbose_name='编码')
-
-    properties_name = models.CharField(max_length=512, null=True, blank=True, verbose_name='规格名称')
-    properties = models.CharField(max_length=512, null=True, blank=True, verbose_name='规格')
-    created = models.DateTimeField(null=True, blank=True, verbose_name='创建日期')
-
-    with_hold_quantity = models.IntegerField(default=0, verbose_name='拍下未付款数')
-    sku_delivery_time = models.DateTimeField(null=True, blank=True, verbose_name='发货时间')
-
-    modified = models.DateTimeField(null=True, blank=True, verbose_name='修改日期')
-    price = models.FloatField(default=0.0, verbose_name='价格')
-
-    quantity = models.IntegerField(default=0, verbose_name='数量')
-    status = models.CharField(max_length=10, blank=True, choices=PRODUCT_STATUS, verbose_name='状态')
-
-    class Meta:
-        db_table = 'shop_items_skuproperty'
-        unique_together = ("num_iid", "sku_id")
-        app_label = 'items'
-        verbose_name = u'线上商品规格'
-        verbose_name_plural = u'线上商品规格列表'
-
-    @property
-    def properties_alias(self):
-        return ''.join([p.split(':')[3] for p in self.properties_name.split(';') if p])
-
-    @classmethod
-    def save_or_update(cls, sku_dict):
-
-        sku, state = cls.objects.get_or_create(num_iid=sku_dict.pop('num_iid'),
-                                               sku_id=sku_dict.pop('sku_id'))
-        for k, v in sku_dict.iteritems():
-            if k == 'outer_id' and not v: continue
-            hasattr(sku, k) and setattr(sku, k, v)
-        sku.save()
-        return sku
-
-
-class ProductLocation(models.Model):
-    """ 库存商品库位信息 """
-    product_id = models.IntegerField(db_index=True, verbose_name='商品ID')
-    sku_id = models.IntegerField(db_index=True, blank=True, null=True, verbose_name='规格ID')
-
-    outer_id = models.CharField(max_length=32, null=False, blank=True, verbose_name='商品编码')
-    name = models.CharField(max_length=64, null=False, blank=True, verbose_name='商品名称')
-
-    outer_sku_id = models.CharField(max_length=32, null=False, blank=True, verbose_name='规格编码')
-    properties_name = models.CharField(max_length=64, null=False, blank=True, verbose_name='规格属性')
-
-    district = models.ForeignKey(DepositeDistrict,
-                                 related_name='product_locations',
-                                 verbose_name='关联库位')
-
-    @staticmethod
-    def set_product_district(product, district):
-        ProductLocation.objects.filter(product_id=product.id).exclude(district=district).delete()
-        res = []
-        for sku in product.prod_skus.all():
-            p, state = ProductLocation.objects.get_or_create(product_id=product.id,
-                            sku_id=sku.id,
-                            outer_id=product.outer_id,
-                            outer_sku_id=product.outer_id,
-                            name=product.title(),
-                            properties_name=sku.properties_name,
-                            district=district)
-            res.append(p)
-        return res
-
-    class Meta:
-        db_table = 'shop_items_productlocation'
-        unique_together = ("product_id", "sku_id", "district")
-        app_label = 'items'
-        verbose_name = u'商品库位'
-        verbose_name_plural = u'商品库位列表'
-
-
-class ItemNumTaskLog(models.Model):
-    id = models.AutoField(primary_key=True)
-
-    user_id = models.CharField(max_length=64, blank=True, verbose_name='店铺ID')
-    outer_id = models.CharField(max_length=64, blank=True, verbose_name='商品编码')
-    sku_outer_id = models.CharField(max_length=64, blank=True, verbose_name='规格编码')
-
-    num = models.IntegerField(verbose_name='同步数量')
-
-    start_at = models.DateTimeField(null=True, blank=True, verbose_name='同步期始')
-    end_at = models.DateTimeField(null=True, blank=True, verbose_name='同步期末')
-
-    class Meta:
-        db_table = 'shop_items_itemnumtasklog'
-        app_label = 'items'
-        verbose_name = u'库存同步日志'
-        verbose_name_plural = u'库存同步日志'
-
-    def __unicode__(self):
-        return '<%s,%s,%d>' % (self.outer_id,
-                               self.sku_outer_id,
-                               self.num)
-
-
-class ProductDaySale(models.Model):
-    id = models.AutoField(primary_key=True)
-
-    day_date = models.DateField(verbose_name=u'销售日期')
-    sale_time = models.DateField(null=True, verbose_name=u'上架日期')
-
-    user_id = models.BigIntegerField(null=False, verbose_name=u'店铺用户ID')
-    product_id = models.IntegerField(null=False, verbose_name='商品ID')
-    sku_id = models.IntegerField(null=True, verbose_name='规格ID')
-    outer_id = models.CharField(max_length=64, blank=True, db_index=True, verbose_name='商品编码')
-
-    sale_num = models.IntegerField(default=0, verbose_name='销售数量')
-    sale_payment = models.FloatField(default=0.0, verbose_name='销售金额')
-    sale_refund = models.FloatField(default=0.0, verbose_name='退款金额')
-
-    confirm_num = models.IntegerField(default=0, verbose_name='成交数量')
-    confirm_payment = models.FloatField(default=0.0, verbose_name='成交金额')
-
-    class Meta:
-        db_table = 'shop_items_daysale'
-        unique_together = ("day_date", "user_id", "product_id", "sku_id")
-        app_label = 'items'
-        verbose_name = u'商品销量统计'
-        verbose_name_plural = u'商品销量统计'
-
-    def __unicode__(self):
-        return '<%s,%s,%d,%d,%s>' % (self.id,
-                                     self.day_date,
-                                     self.user_id,
-                                     self.product_id,
-                                     str(self.sku_id))
-
-
-class ProductScanStorage(models.Model):
-    DELETE = -1
-    PASS = 1
-    WAIT = 0
-    SCAN_STATUS = ((DELETE, u'已删除'),
-                   (WAIT, u'未入库'),
-                   (PASS, u'已入库'))
-
-    product_id = models.IntegerField(null=True, verbose_name=u'商品ID')
-    sku_id = models.IntegerField(null=True, verbose_name=u'规格ID')
-
-    qc_code = models.CharField(max_length=32, blank=True, verbose_name=u'商品编码')
-    sku_code = models.CharField(max_length=32, blank=True, verbose_name=u'规格编码')
-    barcode = models.CharField(max_length=32, blank=True, verbose_name=u'商品条码')
-
-    product_name = models.CharField(max_length=32, blank=True, verbose_name=u'商品名称')
-    sku_name = models.CharField(max_length=32, blank=True, verbose_name=u'规格名称')
-
-    scan_num = models.IntegerField(null=False, default=0, verbose_name=u'扫描次数')
-
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
-
-    wave_no = models.CharField(max_length=32, blank=True, verbose_name=u'批次号')
-    status = models.IntegerField(null=False, default=WAIT, choices=SCAN_STATUS, verbose_name=u'状态')
-
-    class Meta:
-        db_table = 'shop_items_scan'
-        unique_together = ("wave_no", "product_id", "sku_id")
-        app_label = 'items'
-        verbose_name = u'扫描入库商品'
-        verbose_name_plural = u'扫描入库商品列表'
-
-    def __unicode__(self):
-        return '<%s,%s,%d>' % (self.id,
-                               self.barcode,
-                               self.scan_num)
-
-
-from core.fields import JSONCharMyField
-
-SKU_DEFAULT = {
-    "L": {
-        "1": 1,
-        "2": "2",
-        "3": "3"
-    },
-    "M": {
-        "1": 1,
-        "2": "2",
-        "3": "3"
-    }
-}
-
-
-class ProductSkuContrast(models.Model):
-    """ 商品规格尺寸参数 """
-    product = models.OneToOneField(Product, primary_key=True, related_name='contrast',
-                                   verbose_name=u'商品ID')
-    contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=SKU_DEFAULT, verbose_name=u'对照表详情')
-    created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
-    modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
-
-    cache_enabled = True
-    objects = managers.CacheManager()
-
-    class Meta:
-        db_table = 'shop_items_productskucontrast'
-        app_label = 'items'
-        verbose_name = u'对照内容表'
-        verbose_name_plural = u'对照内容表'
-
-    @classmethod
-    def format_contrast(cls, origin_contrast):
-        result_data = {}
-        constants_maps = ContrastContent.contrast_maps()
-        for k1, v1 in origin_contrast.items():
-            temp_dict = {}
-            for k2, v2 in v1.items():
-                content = constants_maps.get(k2, k2)
-                temp_dict[content] = v2
-            result_data[k1] = temp_dict
-        return result_data
-
-    @property
-    def get_correspond_content(self):
-        return ProductSkuContrast.format_contrast(self.contrast_detail)
-
-    def __unicode__(self):
-        return '<%s,%s>' % (self.product_id, self.contrast_detail)
-
-def default_contrast_cid():
-    max_constrast = ContrastContent.objects.order_by('-id').first()
-    if max_constrast:
-        return str( max_constrast.id + 1)
-    return '1'
-
-def gen_contrast_cache_key(key_name):
-    return hashlib.sha1('%s.%s'%(__name__, key_name)).hexdigest()
-
-class ContrastContent(models.Model):
-    NORMAL = 'normal'
-    DELETE = 'delete'
-    PRODUCT_CONTRAST_STATUS = (
-        (NORMAL, u'使用'),
-        (DELETE, u'作废')
-    )
-    cid = models.CharField(max_length=32, default=default_contrast_cid, db_index=True, verbose_name=u'对照表内容ID')
-    name = models.CharField(max_length=32, unique=True, verbose_name=u'对照表内容')
-    sid = models.IntegerField(default=0, verbose_name=u'排列顺序')
-    status = models.CharField(max_length=32, choices=PRODUCT_CONTRAST_STATUS,
-                              db_index=True, default=NORMAL, verbose_name=u'状态')
-    created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
-    modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
-
-    cache_enabled = True
-    objects = managers.CacheManager()
-
-    class Meta:
-        db_table = 'shop_items_contrastcontent'
-        unique_together = ("cid", "name")
-        app_label = 'items'
-        verbose_name = u'对照内容字典'
-        verbose_name_plural = u'对照内容字典'
-
-    def __unicode__(self):
-        return '<%s,%s>' % (self.cid, self.name)
-
-    @classmethod
-    def contrast_maps(cls):
-        cache_key  = gen_contrast_cache_key(cls.__name__)
-        cache_contrast = cache.get(cache_key)
-        if not cache_contrast:
-            contrasts = cls.objects.filter(status=cls.NORMAL).values_list('cid', 'name')
-            cache_contrast = dict(contrasts)
-            cache.set(cache_key, cache_contrast, 24 * 60 * 60)
-            logger.warn('contrast dictionary cache not hit: key=%s'% cache_key)
-        return cache_contrast
-
-
-def invalid_contrast_maps_cache(sender, instance, created, **kwargs):
-    cache_key = gen_contrast_cache_key(instance.__class__.__name__)
-    cache.delete(cache_key)
-
-post_save.connect(invalid_contrast_maps_cache,
-                  sender=ContrastContent,
-                  dispatch_uid='post_save_invalid_contrast_maps_cache')
-
-
-class ImageWaterMark(models.Model):
-
-    NORMAL   = 1
-    CANCELED = 0
-    STATUSES = (
-        (NORMAL, u'使用'),
-        (CANCELED, u'作废')
-    )
-    url = models.CharField(max_length=128, verbose_name=u'图片链接')
-    remark = models.TextField(blank=True, default='', verbose_name=u'备注')
-    update_time = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
-    status = models.SmallIntegerField(choices=STATUSES, verbose_name=u'状态')
-
-    cache_enabled = True
-    objects = managers.CacheManager()
-
-    class Meta:
-        db_table = u'image_watermark'
-        app_label = 'items'
-        verbose_name = u'图片水印'
-        verbose_name_plural = u'图片水印'
-
-
-class ProductSchedule(AdminModel):
-    r"""
-    商品排期
-    """
-    SCHEDULE_TYPE_CHOICES = [
-        (1, u'原始排期'),
-        (2, u'秒杀排期')
-    ]
-
-    STATUS_CHOICES = [
-        (0, u'无效'),
-        (1, u'有效')
-    ]
-
-    product = models.ForeignKey('Product', related_name='schedules', verbose_name=u'关联商品')
-    onshelf_datetime = models.DateTimeField(verbose_name=u'上架时间')
-    onshelf_date = models.DateField(verbose_name=u'上架日期')
-    onshelf_hour = models.IntegerField(verbose_name=u'上架时间')
-    offshelf_datetime = models.DateTimeField(verbose_name=u'下架时间')
-    offshelf_date = models.DateField(verbose_name=u'下架日期')
-    offshelf_hour = models.IntegerField(verbose_name=u'下架时间')
-    schedule_type = models.SmallIntegerField(choices=SCHEDULE_TYPE_CHOICES, default=1, verbose_name=u'排期类型')
-    status = models.SmallIntegerField(choices=STATUS_CHOICES, default=1, verbose_name=u'状态')
-    sale_type = models.SmallIntegerField(choices=constants.SALE_TYPES, default=1, verbose_name=u'促销类型')
-
-    cache_enabled = True
-    objects = managers.CacheManager()
-
-    class Meta:
-        db_table = 'shop_items_schedule'
-        app_label = 'items'
-        verbose_name = u'商品上下架排期管理'
-        verbose_name_plural = u'商品上下架排期管理列表'

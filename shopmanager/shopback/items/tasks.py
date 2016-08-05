@@ -13,7 +13,7 @@ from django.contrib.admin.models import CHANGE
 
 from shopback import paramconfig as pcfg
 from shopback.items.models import Item, Product, ProductSku, SkuProperty, \
-    ItemNumTaskLog, ProductDaySale
+    ItemNumTaskLog, ProductDaySale, ProductSkuStats, InferiorSkuStats
 from shopback.fenxiao.models import FenxiaoProduct
 from shopback.orders.models import Order, Trade
 from shopback.trades.models import MergeOrder, MergeTrade, Refund
@@ -1036,7 +1036,7 @@ def task_relase_package_sku_item(stat):
 
 @task()
 def task_productsku_update_productskustats(sku_id, product_id):
-    from shopback.items.models_stats import ProductSkuStats
+
     stats = ProductSkuStats.objects.filter(sku_id=sku_id)
     if stats.count() <= 0:
         stat = ProductSkuStats(sku_id=sku_id, product_id=product_id)
@@ -1045,9 +1045,9 @@ def task_productsku_update_productskustats(sku_id, product_id):
 
 @task()
 def task_update_productskustats_inferior_num(sku_id):
-    from shopback.items.models_stats import ProductSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
     from flashsale.dinghuo.models import InBoundDetail, RGDetail, ReturnGoods
-    inferior_num = InBoundDetail.objects.filter(sku_id=sku_id, checked=True, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME). \
+    inferior_num = InBoundDetail.objects.filter(sku_id=sku_id, checked=True,
+                                                created__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME). \
         aggregate(n=Sum("inferior_quantity")).get('n', 0)
     inferior_num_add = inferior_num if inferior_num else 0
     inferior_num_plus = RGDetail.get_inferior_total(sku_id)
@@ -1058,9 +1058,8 @@ def task_update_productskustats_inferior_num(sku_id):
 
 @task()
 def task_update_inferiorsku_rg_quantity(sku_id):
-    from shopback.items.models_stats import InferiorSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
     from flashsale.dinghuo.models import RGDetail
-    rg_quantity = RGDetail.get_inferior_total(sku_id, PRODUCT_SKU_STATS_COMMIT_TIME)
+    rg_quantity = RGDetail.get_inferior_total(sku_id, ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
     stat = InferiorSkuStats.get_by_sku(sku_id)
     if stat.rg_quantity != rg_quantity:
         stat.rg_quantity = rg_quantity
@@ -1069,9 +1068,9 @@ def task_update_inferiorsku_rg_quantity(sku_id):
 
 @task()
 def task_update_inferiorsku_return_quantity(sku_id):
-    from shopback.items.models_stats import InferiorSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
     from shopback.refunds.models import RefundProduct
-    quantity = RefundProduct.get_total(sku_id, can_reuse=False, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
+    quantity = RefundProduct.get_total(sku_id, can_reuse=False,
+                                       begin_time=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
     stat = InferiorSkuStats.get_by_sku(sku_id)
     if stat.return_quantity != quantity:
         stat.return_quantity = quantity
@@ -1080,9 +1079,9 @@ def task_update_inferiorsku_return_quantity(sku_id):
 
 @task()
 def task_update_inferiorsku_inbound_quantity(sku_id):
-    from shopback.items.models_stats import InferiorSkuStats, PRODUCT_SKU_STATS_COMMIT_TIME
     from flashsale.dinghuo.models import InBoundDetail
-    quantity = InBoundDetail.get_inferior_total(sku_id, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
+    quantity = InBoundDetail.get_inferior_total(
+        sku_id, begin_time=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
     stat = InferiorSkuStats.get_by_sku(sku_id)
     if stat.inbound_quantity != quantity:
         stat.inbound_quantity = quantity

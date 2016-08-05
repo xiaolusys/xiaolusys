@@ -309,9 +309,8 @@ def handler_Refund_Send_Num():
 def task_refundproduct_update_productskustats_return_quantity(sku_id):
     from shopback.refunds.models import RefundProduct
     from shopback.items.models import ProductSkuStats, ProductSku
-    from shopback.items.models_stats import PRODUCT_SKU_STATS_COMMIT_TIME
 
-    sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
+    sum_res = RefundProduct.objects.filter(sku_id=sku_id, created__gt=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME, can_reuse=True)\
         .aggregate(total=Sum('num'))
     total = sum_res["total"] or 0
     stat = ProductSkuStats.get_by_sku(sku_id)
