@@ -54,7 +54,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
             shop = queryset[0]
             customer = shop.get_customer()
             if customer:
-                xlmm = customer.getXiaolumm()
+                xlmm = customer.get_xiaolumm()
                 if xlmm:
                     mm_linkid = xlmm.id
             shop_info = model_to_dict(shop)
@@ -87,7 +87,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
 def save_pro_info(product, user):
     """ 保存商品信息到店铺商品中 """
     customer = get_object_or_404(Customer, user=user)
-    xlmm = customer.getXiaolumm()
+    xlmm = customer.get_xiaolumm()
     rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
     pro = get_object_or_404(Product, id=int(product))
     shop, shop_state = CustomerShops.objects.get_or_create(customer=customer.id)
