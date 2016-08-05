@@ -46,7 +46,7 @@ import logging
 
 # fang  2015-8-19
 import re   
-from shopback.trades.models import TradeWuliu
+from shopback.trades.models import TradeWuliu,ReturnWuLiu
 from shopback.trades.tasks import send_package_task, send_package_call_Back
 
 logger = logging.getLogger('django.request')
@@ -1260,6 +1260,14 @@ class WuliuAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TradeWuliu, WuliuAdmin)
+
+class ReturnWuliuAdmin(admin.ModelAdmin):
+    list_display = ('id', 'tid', "rid",'logistics_company', 'out_sid', 'status', 'time', 'content', 'created',)
+    search_fields = ['tid', 'out_sid']
+    list_filter = ('status',)
+
+
+admin.site.register(ReturnWuLiu, ReturnWuliuAdmin)
 
 
 class PackageOrderAdmin(admin.ModelAdmin):
