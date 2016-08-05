@@ -320,7 +320,7 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
                     price_zone_num['50-100'] += 1
 
             elif 100 < detail.on_sale_price <= 150:
-                if not price_zone_num.has_key('<50'):
+                if not price_zone_num.has_key('100-150'):
                     price_zone_num['100-150'] = 1
                 else:
                     price_zone_num['100-150'] += 1
