@@ -499,6 +499,8 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
         new_mama_id = request.REQUEST.get('new_mama_id')
         fans = XlmmFans.get_by_customer_id(request.user.customer.id)
         new_mama = get_object_or_404(XiaoluMama, pk=new_mama_id)
+        if not fans:
+            XlmmFans.bind_mama(request.user.customer, new_mama)
         if new_mama.id == fans.xlmm:
             raise exceptions.ValidationError(u'更换的新妈妈ID与原小鹿妈妈ID必须不一致')
         fans.change_mama(new_mama)
