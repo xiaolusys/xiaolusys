@@ -57,7 +57,7 @@ class PortalViewSet(viewsets.ReadOnlyModelViewSet):
         return ldate
 
     def get_today_poster(self):
-        target_date = self.get_latest_right_date(datetime.date.today())
+        target_date = datetime.date.today()
         poster = self.queryset.filter(active_time__lte=target_date).order_by('-active_time').first()
         return poster
 
