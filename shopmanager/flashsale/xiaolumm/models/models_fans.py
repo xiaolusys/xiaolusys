@@ -55,7 +55,7 @@ class XlmmFans(BaseModel):
 
     @staticmethod
     def bind_mama(customer, mama):
-        if customer.get_xiaolumm():
+        if customer.get_xiaolumm() and customer.get_xiaolumm().last_renew_type != 15:
             raise Exception(u'小鹿妈妈不能成为粉丝')
         if not XlmmFans.objects.filter(fans_cusid=customer.id).first():
             # 没有粉丝则建立粉丝
