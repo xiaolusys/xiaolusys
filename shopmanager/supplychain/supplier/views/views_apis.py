@@ -462,7 +462,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     @parser_classes(JSONParser)
     @transaction.atomic()
     def update_assign_worker(self, request, *args, **kwargs):
-        if not request.user.has_perm('supplier.delete_schedule_detail'):
+        if not request.user.has_perm('supplier.distribute_schedule_detail'):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         manager_detail_ids = request.data.get('manager_detail_ids') or []
         queryset = self.filter_queryset(self.get_queryset())
