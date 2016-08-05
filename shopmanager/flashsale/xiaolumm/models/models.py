@@ -107,6 +107,7 @@ class XiaoluMama(models.Model):
     hasale_time = models.DateTimeField(null=True, verbose_name=u"有购买时间")
     active = models.BooleanField(default=False, verbose_name=u"已激活", help_text=u'有获得收益')
     active_time = models.DateTimeField(null=True, verbose_name=u"激活时间")
+
     last_renew_type = models.IntegerField(choices=RENEW_TYPE, default=365, db_index=True, verbose_name=u"最近续费类型")
 
     agencylevel = models.IntegerField(default=INNER_LEVEL, db_index=True, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
@@ -526,7 +527,7 @@ class XiaoluMama(models.Model):
         a, b, c = self.get_lv_team_member_ids()
         return a + b + c
 
-    def get_invite_ids(self):
+    def get_invite_normal_mama_ids(self):
         from .models_fortune import ReferalRelationship
         return [i['referal_to_mama_id'] for i in
                 ReferalRelationship.objects.filter(referal_from_mama_id=self.id).values('referal_to_mama_id')]
@@ -534,7 +535,7 @@ class XiaoluMama(models.Model):
     def get_activite_num(self):
         from .models_fortune import CarryRecord
         i = 0
-        mmids = self.get_invite_ids() + self.get_invite_potential_mama_ids()
+        mmids = self.get_invite_normal_mama_ids() + self.get_invite_potential_mama_ids()
         for mmid in mmids:
             t = CarryRecord.objects.filter(mama_id=mmid).values('carry_num'). \
                     aggregate(total=Sum('carry_num')).get('total') or 0
@@ -1046,6 +1047,17 @@ class PotentialMama(BaseModel):
 
     def __unicode__(self):
         return '%s-%s' % (self.potential_mama, self.referal_mama)
+
+
+def update_mamafortune_invite_trial_num(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_fortune
+    mama_id = instance.referal_mama
+    print 'aaaaaaaa'
+    tasks_mama_fortune.task_update_mamafortune_invite_trial_num.delay(mama_id)
+
+
+post_save.connect(update_mamafortune_invite_trial_num,
+                  sender=PotentialMama, dispatch_uid='post_save_update_mamafortune_invite_trial_num')
 
 
 def unitary_mama(obj):

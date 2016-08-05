@@ -84,6 +84,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
     group_select.allow_tags = True
     group_select.short_description = u"所属群组"
 
+
     def total_inout_item(self, obj):
 
         mm_clogs = CarryLog.objects.filter(xlmm=obj.id)  # .exclude(log_type=CarryLog.ORDER_RED_PAC)
@@ -416,7 +417,7 @@ from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, O
 class MamaFortuneAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'mama_name', 'mama_level', 'cash_num_display', 'carry_num_display',
                     'carry_pending_display', 'carry_confirmed_display', 'order_num',
-                    'fans_num', 'invite_num', 'modified', 'created')
+                    'fans_num', 'invite_num', 'invite_trial_num', 'invite_all_num', 'modified', 'created')
     search_fields = ['=mama_id', '=mama_name']
 
 
