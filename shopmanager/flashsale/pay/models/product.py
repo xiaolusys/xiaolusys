@@ -101,6 +101,22 @@ class Productdetail(PayBaseModel):
             return True
         return False
 
+    def update_weight_and_recommend(self, is_topic, order_weight, is_recommend):
+        p_detail_update_fields = []
+        if self.is_sale != is_topic:
+            self.is_sale = is_topic
+            p_detail_update_fields.append('is_sale')
+        if self.order_weight != order_weight:
+            self.order_weight = order_weight
+            p_detail_update_fields.append('order_weight')
+        if self.is_recommend != is_recommend:
+            self.is_recommend = is_recommend
+            p_detail_update_fields.append('is_recommend')
+        if p_detail_update_fields:
+            self.save(update_fields=p_detail_update_fields)
+            return True
+
+
 def default_modelproduct_extras_tpl():
     return {
         "saleinfos": {
@@ -109,6 +125,7 @@ def default_modelproduct_extras_tpl():
         },
         "properties": {},
     }
+
 
 class ModelProduct(BaseTagModel):
 
@@ -475,22 +492,11 @@ def update_product_details_info(sender, instance, created, **kwargs):
         # change the item product shelf time and product detail is_sale order_weight and is_recommend in same time
         def _wrapper(p):
             state = p.update_shelf_time(upshelf_time, offshelf_time)
-            if p.detail:
-                p_detail_update_fields = []
-                if p.detail.is_sale != is_topic:
-                    p.detail.is_sale = is_topic
-                    p_detail_update_fields.append('is_sale')
-                if p.detail.order_weight != instance.order_weight:
-                    p.detail.order_weight = instance.order_weight
-                    p_detail_update_fields.append('order_weight')
-                if p.detail.is_recommend != instance.is_recommend:
-                    p.detail.is_recommend = instance.is_recommend
-                    p_detail_update_fields.append('is_recommend')
-                if p_detail_update_fields:
-                    p.detail.save(update_fields=p_detail_update_fields)
-                    log_action(systemoa, p.detail, CHANGE, u'系统自动同步is_sale')
             if state:
                 log_action(systemoa, p, CHANGE, u'系统自动同步排期时间')
+            if p.detail:
+                p.detail.update_weight_and_recommend(is_topic, instance.order_weight, instance.is_recommend)
+                log_action(systemoa, p.detail, CHANGE, u'系统自动同步is_sale')
 
         return _wrapper
 
