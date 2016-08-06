@@ -88,7 +88,7 @@ class SaleCategory(BaseModel):
 
     def save(self, *args, **kwargs):
         """ repair cid: [parent_cid]-cid """
-        if self.parent_cid == self.ROOT_ID:
+        if self.parent_cid != self.ROOT_ID:
             parent_cat = SaleCategory.objects.filter(cid=self.parent_cid).first()
             self.grade = parent_cat.grade + 1
             self.cid   = '%s-%s'%(parent_cat.cid.strip(self.DELIMITER_CHAR),
