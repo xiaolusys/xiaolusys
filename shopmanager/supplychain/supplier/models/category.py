@@ -37,10 +37,10 @@ def get_salecategory_json_data():
 
 
 def default_salecategory_cid():
-    sc = SaleCategory.objects.order_by('-cid').first()
+    sc = SaleCategory.objects.order_by('-id').first()
     if sc:
-        return sc.cid + 1
-    return 1
+        return '%d' % (sc.id + 1)
+    return '1'
 
 
 class SaleCategory(BaseModel):
@@ -54,9 +54,12 @@ class SaleCategory(BaseModel):
     CACHE_TIME  = 24 * 60 * 60
     CACHE_KEY   = '%s.%s'%(__name__, 'SaleCategory')
     SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
+    DELIMITER_CHAR   = '-'
 
-    cid = models.IntegerField(null=False, default=default_salecategory_cid, unique=True, verbose_name=u'类目ID')
-    parent_cid = models.IntegerField(null=False, db_index=True, verbose_name=u'父类目ID')
+    cid = models.CharField(max_length= 32 ,null=False, blank=False,
+                           default=default_salecategory_cid, unique=True, verbose_name=u'类目ID')
+    parent_cid = models.CharField(max_length=32 ,null=False, blank=False,
+                                  default='0', db_index=True, verbose_name=u'父类目ID')
     name = models.CharField(max_length=64, blank=True, verbose_name=u'类目名')
     cat_pic = models.CharField(max_length=256, blank=True, verbose_name=u'展示图片')
 
@@ -83,9 +86,11 @@ class SaleCategory(BaseModel):
         return '%s / %s' % (p_cat, self.name)
 
     def save(self, *args, **kwargs):
-        if self.parent_cid > 0 :
+        if self.parent_cid == '0':
             parent_cat = SaleCategory.objects.filter(cid=self.parent_cid).first()
             self.grade = parent_cat.grade + 1
+            self.cid   = '%s-%s'%(parent_cat.cid.strip(self.DELIMITER_CHAR),
+                                  self.cid.split(self.DELIMITER_CHAR)[-1])
         return super(SaleCategory, self).save(*args, **kwargs)
 
     @classmethod
