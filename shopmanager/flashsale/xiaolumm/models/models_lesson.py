@@ -150,7 +150,9 @@ class Lesson(BaseModel):
         return settings.M_STATIC_URL
 
     def carry(self):
-        base_carry = 6000 # 6000 cents == 60RMB
+        base_carry = 3000 # 6000 cents == 60RMB
+        if self.effect_num_attender >= 100:
+            base_carry = 6000
         if self.effect_num_attender >= 300:
             base_carry = 8000
         if self.effect_num_attender >= 400:
