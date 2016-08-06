@@ -332,7 +332,7 @@ class ModelProduct(BaseTagModel):
 
         if not model_properties and detail:
             for key in ('material', 'color', 'wash_instructions', 'note'):
-                prop_value_dict.update(key=getattr(detail, key))
+                prop_value_dict[key] = getattr(detail, key)
 
         return [{'name': PROPERTY_NAMES.get(key), 'value':value} for key, value in prop_value_dict.iteritems() if value.strip()]
 
