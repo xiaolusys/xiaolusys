@@ -650,7 +650,7 @@ class ModelProductAdmin(ApproxAdmin):
     fieldsets = (('基本信息:',
                   {'classes': ('expand',),
                    'fields': (
-                       ('name', 'salecategory'),
+                       ('name', 'salecategory', 'saleproduct'),
                        ('is_onsale', 'is_recommend', 'is_topic', 'is_flatten'),
                        ('shelf_status', 'onshelf_time', 'offshelf_time'),
                        ('order_weight', 'rebeta_scheme_id', 'status'),
@@ -659,6 +659,7 @@ class ModelProductAdmin(ApproxAdmin):
                    )
                    }),
                  )
+    readonly_fields = ('saleproduct', )
     search_fields = ['name', '=id']
     list_per_page = 50
 

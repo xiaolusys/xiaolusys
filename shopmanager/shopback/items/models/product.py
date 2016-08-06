@@ -624,7 +624,7 @@ class Product(models.Model):
             return True
         return False
 
-    def update_shelf_time(self, upshelf_time, offshelf_time, is_sale):
+    def update_shelf_time(self, upshelf_time, offshelf_time):
         """ 更新上下架时间 """
         if self.shelf_status == Product.UP_SHELF:  # 正在上架的产品不去　更新　上下架时间
             return False
@@ -640,9 +640,6 @@ class Product(models.Model):
         if self.offshelf_time != offshelf_time:
             self.offshelf_time = offshelf_time
             update_fields.append('offshelf_time')
-        if self.detail and self.detail.is_sale != is_sale:
-            self.detail.is_sale = is_sale
-            self.detail.save(update_fields=['is_sale'])
         if update_fields:
             self.save(update_fields=update_fields)
             return True
