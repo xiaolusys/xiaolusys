@@ -245,7 +245,7 @@ class Product(models.Model):
         return self.sale_out
 
     def is_deposite(self):
-        return self.outer_id.startswith(self.DIPOSITE_CODE_PREFIX)
+        return self.outer_id.startswith(Product.DIPOSITE_CODE_PREFIX)
 
     def is_onshelf(self):
         return self.shelf_status == self.UP_SHELF
@@ -1076,7 +1076,7 @@ class ProductSku(models.Model):
         return ProductSku.objects.get(outer_id=outer_sku_id, product_id=product.id)
 
     def is_deposite(self):
-        return self.product.outer_id.startswith(self.DIPOSITE_CODE_PREFIX)
+        return self.product.outer_id.startswith(Product.DIPOSITE_CODE_PREFIX)
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
