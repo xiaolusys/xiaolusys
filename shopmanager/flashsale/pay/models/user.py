@@ -160,7 +160,7 @@ class Customer(BaseModel):
             return customers[0]
         return None
 
-    def get_xiaolumm(self, ):
+    def get_xiaolumm(self):
         if not self.unionid:
             return None
         if not hasattr(self, '_xiaolumm_'):
