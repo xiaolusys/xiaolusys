@@ -1,13 +1,11 @@
 # coding: utf-8
 
-import urlparse
 import datetime
 
 from django.conf import settings
 from rest_framework import serializers
 
 from flashsale.pay.models import ModelProduct
-from shopback.items.models import Product
 from flashsale.restpro.local_cache import image_watermark_cache
 
 class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
@@ -16,7 +14,7 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
     category_id = serializers.IntegerField(source='salecategory.id', read_only=True)
     is_saleout  = serializers.BooleanField(source='is_sale_out',read_only=True)
     sale_state  = serializers.SerializerMethodField(read_only=True)
-    web_url     = serializers.SerializerMethodField(read_only=True)
+    web_url     = serializers.CharField(source='get_web_url',read_only=True)
     watermark_op = serializers.SerializerMethodField(read_only=True)
     is_favorite = serializers.SerializerMethodField(read_only=True)
 
@@ -30,9 +28,6 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
                 (not obj.onshelf_time or obj.onshelf_time > datetime.datetime.now()):
             return 'will'
         return obj.shelf_status
-
-    def get_web_url(self, obj):
-        return urlparse.urljoin(settings.M_SITE_URL, Product.MALL_PRODUCT_TEMPLATE_URL.format(obj.id))
 
     def get_watermark_op(self, obj):
         if not obj.is_watermark:

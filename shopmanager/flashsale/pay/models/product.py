@@ -1,8 +1,10 @@
 # -*- coding:utf-8 -*-
 import json
 import datetime
+import urlparse
 from django.db import models
 from django.db.models import F
+from django.conf import settings
 
 from tagging.fields import TagField
 from common.utils import update_model_fields
@@ -210,6 +212,9 @@ class ModelProduct(BaseTagModel):
                 all_sale_out &= product.is_sale_out()
             self._is_saleout_ = all_sale_out
         return self._is_saleout_
+
+    def get_web_url(self):
+        return urlparse.urljoin(settings.M_SITE_URL, Product.MALL_PRODUCT_TEMPLATE_URL.format(self.id))
 
     @property
     def model_code(self):

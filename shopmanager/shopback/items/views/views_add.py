@@ -105,6 +105,7 @@ class AddItemView(generics.ListCreateAPIView):
             head_imgs=header_img,
             onshelf_time=shelf_time,
             salecategory=saleproduct.sale_category,
+            saleproduct=saleproduct,
             is_flatten=False,
             lowest_agent_price=round(min([float(v) for k,v in content.items() if k.endswith('_agentprice')]), 2),
             lowest_std_sale_price=round(min([float(v) for k,v in content.items() if k.endswith('_pricestd')]),2),
