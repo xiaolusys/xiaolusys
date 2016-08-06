@@ -59,7 +59,7 @@ class XlmmFans(BaseModel):
             raise Exception(u'小鹿妈妈不能成为粉丝')
         if not XlmmFans.objects.filter(fans_cusid=customer.id).first():
             # 没有粉丝则建立粉丝
-            XlmmFans(xlmm=mama.id, xlmm_cusid=mama.get_Mama_customer().id, refreal_cusid=mama.get_Mama_customer().id,
+            XlmmFans(xlmm=mama.id, xlmm_cusid=mama.get_mama_customer().id, refreal_cusid=mama.get_mama_customer().id,
                      fans_cusid=customer.id, fans_nick=customer.nick, fans_thumbnail=customer.thumbnail).save()
         else:
             raise Exception(u'此粉丝已经绑定过小鹿妈妈')

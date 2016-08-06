@@ -69,6 +69,13 @@ class MamaFortune(BaseModel):
     invite_num = models.IntegerField(default=0, verbose_name=u'邀请数')
     invite_trial_num = models.IntegerField(default=0, verbose_name=u'试用妈妈邀请数')
     invite_all_num = models.IntegerField(default=0, verbose_name=u'总邀请数')
+    active_normal_num = models.IntegerField(default=0, verbose_name=u'普通妈妈激活数')
+    active_trial_num = models.IntegerField(default=0, verbose_name=u'试用妈妈激活数')
+    active_all_num = models.IntegerField(default=0, verbose_name=u'总激活数')
+    hasale_normal_num = models.IntegerField(default=0, verbose_name=u'出货普通妈妈数')
+    hasale_trial_num = models.IntegerField(default=0, verbose_name=u'出货试用妈妈数')
+    hasale_all_num = models.IntegerField(default=0, verbose_name=u'出货妈妈总数')
+
     order_num = models.IntegerField(default=0, verbose_name=u'订单数')
 
     carry_pending = models.IntegerField(default=0, verbose_name=u'待确定收益')
@@ -181,6 +188,16 @@ def copy_history_cash(sender, instance, created, **kwargs):
 
 post_save.connect(copy_history_cash,
                   sender=MamaFortune, dispatch_uid='post_save_copy_history_cash')
+
+
+def send_activite_award(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_fortune
+    if instance.active_trial_num >= 20:
+        tasks_mama_fortune.task_send_activite_award.delay(instance.mama_id)
+
+post_save.connect(send_activite_award,
+                  sender=MamaFortune, dispatch_uid='post_save_copy_history_cash')
+
 
 
 class DailyStats(BaseModel):
@@ -408,7 +425,7 @@ def ordercarry_send_first_award(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.models.models import XiaoluMama
     if instance.mama.last_renew_type == XiaoluMama.TRIAL:
         tasks_mama_fortune.task_first_order_send_award.delay(instance.mama)
-
+    tasks_mama_fortune.task_update_mamafortune_hasale_num.delay(instance.mama_id)
 
 post_save.connect(ordercarry_send_first_award,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_send_first_alwad')
@@ -650,7 +667,7 @@ def confirm_previous_clickcarry(sender, instance, created, **kwargs):
         tasks_mama_clickcarry.task_confirm_previous_order_clickcarry.delay(mama_id, date_field, 7)
         mama = XiaoluMama.objects.get(id=mama_id)
         for mm_id in mama.get_parent_mama_ids():
-            tasks_mama_fortune.task_send_activite_award.delay(mm_id)
+            tasks_mama_fortune.task_update_mamafortune_active_num.delay(mm_id)
 
 
 post_save.connect(confirm_previous_clickcarry,
