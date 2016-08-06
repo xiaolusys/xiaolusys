@@ -751,7 +751,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         cash_type = request.REQUEST.get('choice', None)
         cashout_amount = request.REQUEST.get('cashout_amount', None)
         customer, xlmm = self.get_customer_and_xlmm(request)
-
+        if not xlmm.is_cashoutable():
+            return Response({"code": 5, 'msg': '试用妈妈不可提现哦~'})
         value, msg = self.verify_cashout(cash_type, cashout_amount, customer, xlmm)
         if value <= 0:
             return Response(msg)
