@@ -21,7 +21,8 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ModelProduct
         fields = ('id', 'url', 'name', 'category_id', 'lowest_agent_price', 'lowest_std_sale_price',
-                  'is_saleout', 'is_favorite', 'sale_state', 'head_img', 'web_url', 'watermark_op')
+                  'onshelf_time', 'offshelf_time', 'is_saleout', 'is_favorite', 'sale_state',
+                  'head_img', 'web_url', 'watermark_op')
 
     def get_sale_state(self, obj):
         if obj.shelf_status == obj.OFF_SHELF and \
