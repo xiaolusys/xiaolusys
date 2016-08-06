@@ -293,7 +293,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
             'pic_url': instance.pic_url,
             'sale_time': sale_time,
             'product_category': self.get_category_mapping().get(
-                instance.sale_category_id) or {},
+                str(instance.sale_category_id)) or {},
             'on_sale_price': instance.on_sale_price or '',
             'std_sale_price': instance.std_sale_price or '',
             'sale_price': instance.sale_price or '',
@@ -303,7 +303,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
 
     @classmethod
     def get_category_mapping(cls):
-        cache_key = 'category_mapping'
+        cache_key = '%s.get_category_mapping'%__name__
 
         def _load():
             parent_product_categories = {}
@@ -311,8 +311,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                     parent_cid=constants.XIAOLU_ROOT_CATEGORY_ID,
                     is_parent=True,
                     status='normal'):
-                parent_product_categories[
-                    str(product_category.cid)] = product_category
+                parent_product_categories[product_category.cid] = product_category
 
             product_categories = {}
             for product_category in ProductCategory.objects.filter(
@@ -336,7 +335,6 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                     'level_2_id': parent_product_category.cid,
                     'level_1_id': constants.XIAOLU_ROOT_CATEGORY_ID
                 }
-
             parent_sale_categories = {}
             for sale_category in SaleCategory.objects.filter(parent_cid=0,
                                                              is_parent=True,

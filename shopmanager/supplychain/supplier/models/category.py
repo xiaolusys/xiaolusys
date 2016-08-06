@@ -105,17 +105,17 @@ class SaleCategory(BaseModel):
 
     @classmethod
     def get_category_names(cls, cid):
-        # categories = cache.get(cls.SALEPRODUCT_CATEGORY_CACHE_KEY)
-        # if not categories:
-        categories = {}
-        for category in cls.objects.filter(
-                status=u'normal').order_by('created'):
-            categories[str(category.id)] = {
-                'cid': category.id,
-                'pid': category.parent_cid or 0,
-                'name': category.name
-            }
-            # cache.set(cls.SALEPRODUCT_CATEGORY_CACHE_KEY, categories)
+        categories = cache.get(cls.SALEPRODUCT_CATEGORY_CACHE_KEY)
+        if not categories:
+            categories = {}
+            for category in cls.objects.filter(
+                    status=u'normal').order_by('created'):
+                categories[str(category.id)] = {
+                    'cid': str(category.id),
+                    'pid': str(category.parent_cid or 0),
+                    'name': category.name
+                }
+            cache.set(cls.SALEPRODUCT_CATEGORY_CACHE_KEY, categories)
         level_1_category_name, level_2_category_name = ('-',) * 2
         category = categories.get(str(cid))
         if category:
@@ -166,6 +166,7 @@ class SaleCategory(BaseModel):
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
     logger.info('salecategory: invalid cachekey %s'% SaleCategory.CACHE_KEY)
     cache.delete(SaleCategory.CACHE_KEY)
+    cache.delete(SaleCategory.SALEPRODUCT_CATEGORY_CACHE_KEY)
 
 post_save.connect(invalid_salecategory_data_cache,
                   sender=SaleCategory,
