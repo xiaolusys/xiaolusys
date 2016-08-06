@@ -2,17 +2,17 @@
 from django.core.cache import cache
 from django.db import models
 from django.db.models.signals import pre_save, post_save
-
+from core.options import get_systemoa_user, log_action, CHANGE
 from core.utils import update_model_fields
 from .. import constants
 from .product import SaleProduct
 
-class SaleProductManage(models.Model):
 
+class SaleProductManage(models.Model):
     SP_BRAND = constants.SP_BRAND
-    SP_TOP   = constants.SP_TOP
+    SP_TOP = constants.SP_TOP
     SP_TOPIC = constants.SP_TOPIC
-    SP_SALE  = constants.SP_SALE
+    SP_SALE = constants.SP_SALE
     SP_TYPE_CHOICES = (
         (SP_BRAND, u'品牌'),
         (SP_TOP, u'TOP榜'),
@@ -20,7 +20,7 @@ class SaleProductManage(models.Model):
         (SP_SALE, u'特卖'),
     )
 
-    schedule_type = models.CharField(max_length=16,default=SP_SALE,
+    schedule_type = models.CharField(max_length=16, default=SP_SALE,
                                      choices=SP_TYPE_CHOICES, db_index=True, verbose_name=u'排期类型')
     sale_suppliers = models.ManyToManyField('supplier.SaleSupplier', blank=True, verbose_name=u'排期供应商')
     sale_time = models.DateField(db_index=True, verbose_name=u'排期日期')
@@ -65,6 +65,26 @@ class SaleProductManage(models.Model):
         if self.product_num != detail_count:
             self.product_num = detail_count
         return super(SaleProductManage, self).save(*args, **kwargs)
+
+
+def update_model_product_shelf_time(sender, instance, raw, *args, **kwargs):
+    from flashsale.pay.models import ModelProduct
+
+    if not instance.lock_status:  # do not sync shelf time and schedule type if this instance not locked
+        return
+    action_user = get_systemoa_user()
+    sale_product_ids = instance.manage_schedule.values('sale_product_id')
+    is_topic = False if instance.schedule_type == SaleProductManage.SP_SALE else True
+    ModelProduct.update_schedule_manager_info(action_user,
+                                              sale_product_ids,
+                                              instance.upshelf_time,
+                                              instance.offshelf_time,
+                                              is_topic)
+
+
+post_save.connect(update_model_product_shelf_time,
+                  sender=SaleProductManage,
+                  dispatch_uid=u'post_save_update_model_product_shelf_time')
 
 
 class SaleProductManageDetail(models.Model):
@@ -162,6 +182,7 @@ class SaleProductManageDetail(models.Model):
     def product_model_id(self):
         if not hasattr(self, '_model_id_'):
             from shopback.items.models import Product
+
             self._model_id_ = Product.objects.filter(sale_product=self.sale_product_id, status=Product.NORMAL).first()
         return self._model_id_.model_id if self._model_id_ else 0
 
@@ -193,21 +214,26 @@ class SaleProductManageDetail(models.Model):
     def item_products(self):
         if not hasattr(self, '_item_products_'):
             from shopback.items.models import Product
+
             self._item_products_ = Product.objects.filter(sale_product=self.sale_product_id, status=Product.NORMAL)
         return self._item_products_
 
 
-def sync_product_detail_order_weight(sender, instance, raw, *args, **kwargs):
-    """ 同步：　Productdetail　的　order_weight　字段
-    product_detail
+def sync_md_weight_promotion(sender, instance, raw, *args, **kwargs):
     """
-    pros = instance.item_products
-    for pro in pros:
-        if pro.details:
-            pro.details.update_order_weight(instance.order_weight)
+    sync ModelProduct order_weight and is_recommend field
+    """
+    from flashsale.pay.models import ModelProduct
 
-post_save.connect(sync_product_detail_order_weight, SaleProductManageDetail,
-                  dispatch_uid='post_save_sync_product_detail_order_weight')
+    md = ModelProduct.objects.filter(saleproduct=instance.sale_product_id).first()
+    if not md:
+        return
+    md.update_schedule_detail_info(instance.order_weight, instance.is_promotion)
+
+
+post_save.connect(sync_md_weight_promotion, SaleProductManageDetail,
+                  dispatch_uid='post_save_sync_md_weight_promotion')
+
 
 def update_saleproduct_supplier(sender, instance, **kwargs):
     """
@@ -249,6 +275,7 @@ def sync_product_detail_count(sender, instance, raw, *args, **kwargs):
     if manager.product_num != detail_count:
         manager.product_num = detail_count
         manager.save(update_fields=['product_num'])
+
 
 post_save.connect(sync_product_detail_count, SaleProductManageDetail,
                   dispatch_uid='post_save_sync_product_detail_count')
