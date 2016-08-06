@@ -24,6 +24,9 @@ from flashsale.pay.models import ModelProduct
 
 from flashsale.restpro.v2 import serializers as serializers_v2
 
+import logging
+logger = logging.getLogger('service.restpro')
+
 CACHE_VIEW_TIMEOUT = 30
 
 class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
@@ -46,8 +49,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         ***
         - [获取特卖商品列表: /rest/v2/modelproducts](/rest/v2/modelproducts)
             * 查询参数: cid = 类目cid
-        - 获取特卖商品详情: /rest/v2/modelproducts/[modelproduct_id]
-
+        - [今日特卖: /rest/v2/modelproducts/today](/rest/v2/modelproducts/today)
+        - [昨日特卖: /rest/v2/modelproducts/yesterday](/rest/v2/modelproducts/yesterday)
+        - [即将上新: /rest/v2/modelproducts/tomorrow](/rest/v2/modelproducts/tomorrow)
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers_v2.SimpleModelProductSerializer
@@ -92,7 +96,12 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset.filter(status=ModelProduct.NORMAL, is_topic=False)
 
     def list(self, request, *args, **kwargs):
+
         cid  = request.GET.get('cid')
+        logger.info({'stype': 'modelproduct' ,
+                     'path': request.get_full_path(),
+                     'cid': cid,
+                     'buyer': request.user and request.user.id or 0})
         queryset = self.filter_queryset(self.get_queryset())
         onshelf_qs = self.get_normal_qs(queryset).filter(shelf_status=ModelProduct.ON_SHELF)
         if cid:
@@ -142,8 +151,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def today(self, request, *args, **kwargs):
         """ 今日商品列表分页接口 """
-        from django_statsd.clients import statsd
-        statsd.incr('xiaolumm.home_page')
+        logger.info({'stype': 'modelproduct',
+                     'path': request.get_full_path(),
+                     'buyer': request.user and request.user.id or 0})
         today_dt = self.get_lastest_date(datetime.date.today())
         return self.get_pagination_response_by_date(request, today_dt, only_upshelf=True)
 
@@ -151,6 +161,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def yesterday(self, request, *args, **kwargs):
         """ 昨日特卖列表分页接口 """
+        logger.info({'stype': 'modelproduct',
+                     'path': request.get_full_path(),
+                     'buyer': request.user and request.user.id or 0})
         yesterday_dt = self.get_lastest_date(datetime.date.today() - datetime.timedelta(days=1))
         return self.get_pagination_response_by_date(request, yesterday_dt, only_upshelf=False)
 
@@ -158,6 +171,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def tomorrow(self, request, *args, **kwargs):
         """ 昨日特卖列表分页接口 """
+        logger.info({'stype': 'modelproduct',
+                     'path': request.get_full_path(),
+                     'buyer': request.user and request.user.id or 0})
         tomorrow_dt = self.get_lastest_date(datetime.date.today() + datetime.timedelta(days=1), predict=True)
         return self.get_pagination_response_by_date(request, tomorrow_dt, only_upshelf=False)
 
