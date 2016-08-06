@@ -34,7 +34,7 @@ class XlmmMessage(AdminModel):
         :param mama_id:
         :return:
         """
-        queryset = XlmmMessage.objects.filter(status=1).filter(Q(dest=None) | Q(dest=str(mama_id)))
+        queryset = XlmmMessage.objects.filter(status=1, dest__in=[None, '', str(mama_id)])
         rel_queryset = XlmmMessageRel.objects.filter(mama_id=mama_id, read=True)
         if limit_time:
             queryset = queryset.filter(created__gt=limit_time)
