@@ -41,6 +41,7 @@ class LessonTopic(BaseModel):
     content_link = models.CharField(max_length=256, blank=True, verbose_name=u'内容链接')
 
     lesson_type = models.IntegerField(default=0, choices=LESSON_TYPES, verbose_name=u'类型')
+    is_show = models.BooleanField(default=False, db_index=True, verbose_name=u'是否显示')
     status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
 
     @property

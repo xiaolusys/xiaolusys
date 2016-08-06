@@ -55,7 +55,7 @@ class LessonTopicFilter(filters.FilterSet):
 
     class Meta:
         model = LessonTopic
-        fields = ['lesson_type']
+        fields = ['lesson_type', 'is_show']
 
 
 class LessonTopicViewSet(viewsets.ModelViewSet):
@@ -100,6 +100,7 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(is_show=True)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
