@@ -529,8 +529,8 @@ class AwardCarry(BaseModel):
             carry_description=description,
             uni_key=uni_key,
             status=status,
-            contributor_nick=contributor_nick if contributor_nick else mama.get_Mama_customer().nick,
-            contributor_img=contributor_img if contributor_img else mama.get_Mama_customer().thumbnail,
+            contributor_nick=contributor_nick if contributor_nick else mama.get_mama_customer().nick,
+            contributor_img=contributor_img if contributor_img else mama.get_mama_customer().thumbnail,
             contributor_mama_id=contributor_mama_id if contributor_mama_id else mama.id
         )
         ac.save()

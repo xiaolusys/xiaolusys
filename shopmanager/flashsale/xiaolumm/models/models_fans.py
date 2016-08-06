@@ -49,7 +49,7 @@ class XlmmFans(BaseModel):
     def change_mama(self, mama):
         old_mama = self.xlmm
         self.xlmm = mama.id
-        self.xlmm_cusid = mama.get_Mama_customer().id
+        self.xlmm_cusid = mama.get_mama_customer().id
         self.save()
         FansChangeMamaRecord.create(self, old_mama, self.xlmm)
 
