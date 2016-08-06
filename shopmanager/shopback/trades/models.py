@@ -824,7 +824,7 @@ class MergeOrder(models.Model):
         try:
             return Product.objects.get(outer_id=self.outer_id).ware_by
         except:
-            return Product.WARE_NONE
+            return WARE_NONE
 
     @classmethod
     def get_yesterday_orders_totalnum(cls, shop_user_id, outer_id, outer_sku_id):
