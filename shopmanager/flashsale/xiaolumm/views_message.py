@@ -8,6 +8,7 @@ from rest_framework import generics, viewsets, permissions, authentication, rend
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import detail_route, list_route
 from core.utils.modelutils import get_class_fields
+from collections import OrderedDict
 
 
 class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin):
@@ -24,11 +25,8 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @list_route(methods=['get'])
     def self_list(self, request):
@@ -36,20 +34,22 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
             mama = request.user.customer.get_xiaolumm()
         except:
             raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
-        queryset, unread_cnt = XlmmMessage.get_msg_list(mama.id,)
+        if not mama:
+            raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
+        queryset, unread_cnt = XlmmMessage.get_msg_list(mama.id)
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        res = {'data': serializer.data, 'unread_cnt': unread_cnt}
-        return Response(res)
+        serializer = self.get_serializer(page, many=True)
+        res = self.get_paginated_response(serializer.data)
+        res.data['unread_cnt'] = unread_cnt
+        return res
 
     @detail_route(methods=['GET', 'POST'])
     def read(self, request, pk):
         try:
             mama = request.user.customer.get_xiaolumm()
         except:
+            raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
+        if not mama:
             raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
         message = get_object_or_404(XlmmMessage, pk=pk)
         if message.dest and message.dest != mama:
