@@ -1052,7 +1052,6 @@ class PotentialMama(BaseModel):
 def update_mamafortune_invite_trial_num(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     mama_id = instance.referal_mama
-    print 'aaaaaaaa'
     tasks_mama_fortune.task_update_mamafortune_invite_trial_num.delay(mama_id)
 
 
