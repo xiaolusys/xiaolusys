@@ -496,7 +496,6 @@ def update_product_details_info(sender, instance, created, **kwargs):
                 log_action(systemoa, p, CHANGE, u'系统自动同步排期时间')
             if p.detail:
                 p.detail.update_weight_and_recommend(is_topic, instance.order_weight, instance.is_recommend)
-                log_action(systemoa, p.detail, CHANGE, u'系统自动同步is_sale')
 
         return _wrapper
 
