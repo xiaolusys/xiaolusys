@@ -41,10 +41,6 @@ class FavoritesViewSet(viewsets.ModelViewSet):
 
         result = []
         if shelf_status:
-            try:
-                shelf_status = int(shelf_status)
-            except Exception:
-                return Response({"code": 1, "info": u"参数错误"})
             for qs in queryset:
                 if qs.model.shelf_status == shelf_status:
                     result.append(qs)
