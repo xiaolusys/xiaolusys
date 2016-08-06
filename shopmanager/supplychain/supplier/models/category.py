@@ -88,6 +88,10 @@ class SaleCategory(BaseModel):
             self.grade = parent_cat.grade + 1
         return super(SaleCategory, self).save(*args, **kwargs)
 
+    @classmethod
+    def get_normal_categorys(cls):
+        return cls.objects.filter(status=cls.NORMAL)
+
     @property
     def full_name(self):
         return self.__unicode__()

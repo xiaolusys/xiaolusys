@@ -464,7 +464,7 @@ class FetchAndCreateProduct(APIView):
 
         supplier = get_object_or_404(SaleSupplier, pk=pk)
         tsoup, response = getBeaSoupByCrawUrl(fetch_url)
-        categorys = SaleCategory.objects.all()
+        categorys = SaleCategory.get_normal_categorys().filter(is_parent=False).order_by('parent_cid')
         sale_category = serializers.SaleCategorySerializer(categorys, many=True).data
 
         data = {
