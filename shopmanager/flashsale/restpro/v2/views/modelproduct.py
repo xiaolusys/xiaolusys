@@ -45,6 +45,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
               }`
         ***
         - [获取特卖商品列表: /rest/v2/modelproducts](/rest/v2/modelproducts)
+            * 查询参数: cid = cid
         - 获取特卖商品详情: /rest/v2/modelproducts/[modelproduct_id]
 
     """
@@ -92,16 +93,36 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset.filter(status=ModelProduct.NORMAL, is_topic=False)
 
     def list(self, request, *args, **kwargs):
-        category_id  = request.GET.get('category_id')
-        if category_id and not category_id.isdigit():
-            raise exceptions.APIException(u'非法的类目ID')
-
+        cid  = request.GET.get('cid')
         queryset = self.filter_queryset(self.get_queryset())
         onshelf_qs = self.get_normal_qs(queryset).filter(shelf_status=ModelProduct.ON_SHELF)
-        if category_id:
-            onshelf_qs = onshelf_qs.filter(salecategory=category_id)
+        if cid:
+            onshelf_qs = onshelf_qs.filter(salecategory__cid__startswith=cid)
 
         page = self.paginate_queryset(onshelf_qs)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    @list_route(methods=['get'])
+    def today(self, request, *args, **kwargs):
+        """ 今日商品列表分页接口 """
+        from django_statsd.clients import statsd
+        statsd.incr('xiaolumm.home_page')
+        today_dt = self.get_today_date()
+        return self.get_pagination_response_by_date(request, today_dt, only_upshelf=True)
+
+    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    @list_route(methods=['get'])
+    def yesterday(self, request, *args, **kwargs):
+        """ 昨日特卖列表分页接口 """
+        yesterday_dt = self.get_yesterday_date()
+        return self.get_pagination_response_by_date(request, yesterday_dt, only_upshelf=False)
+
+    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    @list_route(methods=['get'])
+    def tomorrow(self, request, *args, **kwargs):
+        """ 昨日特卖列表分页接口 """
+        tomorrow_dt = self.get_tomorrow_date()
+        return self.get_pagination_response_by_date(request, tomorrow_dt, only_upshelf=False)
 
