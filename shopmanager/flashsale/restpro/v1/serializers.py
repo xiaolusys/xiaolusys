@@ -931,6 +931,11 @@ class FavoritesSerializer(serializers.ModelSerializer):
     def get_modelproduct(self, obj):
         model = ModelProduct.objects.filter(id=obj.model_id).first()
         if model:
+            product = model.item_product
+            if product:
+                web_url = product.get_weburl()
+            else:
+                web_url = ''
             return {
                 'id': obj.model_id,
                 'name': obj.name,
@@ -938,7 +943,7 @@ class FavoritesSerializer(serializers.ModelSerializer):
                 'lowest_agent_price': obj.lowest_agent_price,
                 'lowest_std_sale_price': obj.lowest_std_sale_price,
                 'shelf_status': model.shelf_status,
-                'web_url': model.item_product.get_weburl(),
+                'web_url': web_url,
             }
         return None
 
