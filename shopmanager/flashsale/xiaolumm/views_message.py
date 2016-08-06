@@ -36,13 +36,14 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
             mama = request.user.customer.get_xiaolumm()
         except:
             raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
-        queryset = XlmmMessage.get_msg_list(mama.id,)
+        queryset, unread_cnt = XlmmMessage.get_msg_list(mama.id,)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        res = {'data': serializer.data, 'unread_cnt': unread_cnt}
+        return Response(res)
 
     @detail_route(methods=['GET', 'POST'])
     def read(self, request, pk):
@@ -51,7 +52,7 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
         except:
             raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
         message = get_object_or_404(XlmmMessage, pk=pk)
-        if message.mama != mama:
-            raise exceptions.ValidationError(u'无法修改')
+        if message.dest and message.dest != mama:
+            raise exceptions.ValidationError(u'无法修改和自己无关的消息')
         message.set_read(mama)
         return Response({'id': message.id})
