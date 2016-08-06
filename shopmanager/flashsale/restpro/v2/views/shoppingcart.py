@@ -15,6 +15,8 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+
 
 from flashsale.pay.models import (
     SaleTrade,
@@ -299,7 +301,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 continue
             if product:
                 ware_by &= product.ware_by
-        return ware_by or Product.WARE_NONE
+        return ware_by or WARE_NONE
 
     def get_selectable_logistics(self, ware_by, default_company_code=''):
         logistics = LogisticsCompany.get_logisticscompanys_by_warehouse(ware_by)
