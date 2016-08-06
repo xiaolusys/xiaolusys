@@ -533,7 +533,7 @@ class LessonTopicAdmin(admin.ModelAdmin):
     list_display = (
         'title', 'cover_image', 'description', 'num_attender', 'lesson_type', 'status', 'modified', 'created')
     search_fields = ('title',)
-    list_filter = ('lesson_type', 'status',)
+    list_filter = ('lesson_type', 'status', 'is_show')
 
 
 admin.site.register(LessonTopic, LessonTopicAdmin)
