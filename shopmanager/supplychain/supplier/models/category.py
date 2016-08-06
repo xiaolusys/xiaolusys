@@ -55,11 +55,12 @@ class SaleCategory(BaseModel):
     CACHE_KEY   = '%s.%s'%(__name__, 'SaleCategory')
     SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
     DELIMITER_CHAR   = '-'
+    ROOT_ID = '0'
 
     cid = models.CharField(max_length= 32 ,null=False, blank=False,
                            default=default_salecategory_cid, unique=True, verbose_name=u'类目ID')
     parent_cid = models.CharField(max_length=32 ,null=False, blank=False,
-                                  default='0', db_index=True, verbose_name=u'父类目ID')
+                                  default=ROOT_ID, db_index=True, verbose_name=u'父类目ID')
     name = models.CharField(max_length=64, blank=True, verbose_name=u'类目名')
     cat_pic = models.CharField(max_length=256, blank=True, verbose_name=u'展示图片')
 
@@ -77,7 +78,7 @@ class SaleCategory(BaseModel):
 
     def __unicode__(self):
 
-        if not self.parent_cid:
+        if self.parent_cid == self.ROOT_ID:
             return self.name
         try:
             p_cat = self.__class__.objects.get(cid=self.parent_cid)
@@ -86,7 +87,8 @@ class SaleCategory(BaseModel):
         return '%s / %s' % (p_cat, self.name)
 
     def save(self, *args, **kwargs):
-        if self.parent_cid == '0':
+        """ repair cid: [parent_cid]-cid """
+        if self.parent_cid == self.ROOT_ID:
             parent_cat = SaleCategory.objects.filter(cid=self.parent_cid).first()
             self.grade = parent_cat.grade + 1
             self.cid   = '%s-%s'%(parent_cat.cid.strip(self.DELIMITER_CHAR),
@@ -103,19 +105,19 @@ class SaleCategory(BaseModel):
 
     @classmethod
     def get_category_names(cls, cid):
-        categories = cache.get(cls.SALEPRODUCT_CATEGORY_CACHE_KEY)
-        if not categories:
-            categories = {}
-            for category in cls.objects.filter(
-                    status=u'normal').order_by('created'):
-                categories[category.id] = {
-                    'cid': category.id,
-                    'pid': category.parent_cid or 0,
-                    'name': category.name
-                }
-            cache.set(cls.SALEPRODUCT_CATEGORY_CACHE_KEY, categories)
+        # categories = cache.get(cls.SALEPRODUCT_CATEGORY_CACHE_KEY)
+        # if not categories:
+        categories = {}
+        for category in cls.objects.filter(
+                status=u'normal').order_by('created'):
+            categories[str(category.id)] = {
+                'cid': category.id,
+                'pid': category.parent_cid or 0,
+                'name': category.name
+            }
+            # cache.set(cls.SALEPRODUCT_CATEGORY_CACHE_KEY, categories)
         level_1_category_name, level_2_category_name = ('-',) * 2
-        category = categories.get(cid)
+        category = categories.get(str(cid))
         if category:
             pid = category['pid']
             if not pid:
