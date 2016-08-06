@@ -147,7 +147,7 @@ class SaleSupplierAdmin(ApproxAdmin):
     def category_list(self):
         if hasattr(self, "categorys"):
             return self.categorys
-        self.categorys = SaleCategory.objects.all()
+        self.categorys = SaleCategory.get_normal_categorys()
         return self.categorys
 
     def get_changelist(self, request, **kwargs):
@@ -156,7 +156,7 @@ class SaleSupplierAdmin(ApproxAdmin):
     def category_select(self, obj):
         categorys = self.category_list()
         cat_list = ["<select class='category_select' sid='%s'>" % obj.id]
-        cat_list.append("<option value=''>-------------------</option>")
+        cat_list.append("<option value='%s'>%s</option>"%(obj.category and obj.category.id or '', obj.category or '-----------'))
         for cat in categorys:
             if obj.category == cat:
                 cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
@@ -496,7 +496,8 @@ class SaleProductAdmin(ApproxAdmin):
 
         categorys = self.category_list
         cat_list = ["<select class='sale_category_select' spid='%s'>" % obj.id]
-        cat_list.append("<option value=''>------------</option>")
+        cat_list.append("<option value='%s'>%s</option>"%(obj.sale_category and obj.sale_category.id or '',
+                                                          obj.sale_category or '-----------'))
         for cat in categorys:
             if obj and obj.sale_category == cat:
                 cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
@@ -699,7 +700,7 @@ class SaleProductAdmin(ApproxAdmin):
         """
         Returns the ChangeList class for use on the changelist page.
         """
-        self.category_list = SaleCategory.objects.all()
+        self.category_list = SaleCategory.get_normal_categorys().filter(is_parent=False).order_by('parent_cid')
 
         return super(SaleProductAdmin, self).get_changelist(request, **kwargs)
 
