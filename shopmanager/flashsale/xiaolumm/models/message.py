@@ -44,18 +44,24 @@ class XlmmMessage(AdminModel):
             # 无需分页
             res1 = list(queryset.exclude(id__in=messages.keys()))
             res2 = list(queryset.filter(id__in=messages.keys()))
+            unread_cnt = queryset.exclude(id__in=messages.keys()).count()
             for r in res2:
                 r._read_ = True
-            return res1 + res2
+            return res1 + res2, unread_cnt
         else:
+            # todo@hy 分页
             cnt = queryset.exclude(id__in=messages.keys()).count()
 
         return
 
     def set_read(self, mama):
-        rel = mama.rel_messages.filter(message_id=self.id)
-        rel.read = True
-        rel.save()
+        rel = mama.rel_messages.filter(message_id=self.id).first()
+        if not rel:
+            rel = XlmmMessageRel(message=self, mama=mama, read=True)
+            rel.save()
+        else:
+            rel.read = True
+            rel.save()
 
 
 class XlmmMessageRel(BaseModel):
@@ -64,6 +70,7 @@ class XlmmMessageRel(BaseModel):
     read = models.BooleanField(default=True, verbose_name=u'状态')
 
     class Meta:
+        unique_together = ('mama', 'message')
         app_label = 'xiaolumm'
         db_table = 'xiaolumm_message_rel'
         verbose_name = u'小鹿妈妈个人消息状态'
