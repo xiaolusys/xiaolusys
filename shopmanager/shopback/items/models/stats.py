@@ -284,10 +284,11 @@ class InferiorSkuStats(models.Model):
         sku = ProductSku.objects.get(id=sku_id)
         stat = InferiorSkuStats(sku_id=sku.id, product_id=sku.product_id)
         stat.save()
-        stat.rg_quantity = RGDetail.get_inferior_total(sku_id, PRODUCT_SKU_STATS_COMMIT_TIME)
+        stat.rg_quantity = RGDetail.get_inferior_total(sku_id, ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
         stat.return_quantity = RefundProduct.get_total(sku_id, can_reuse=False,
-                                                       begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
-        stat.inbound_quantity = InBoundDetail.get_inferior_total(sku_id, begin_time=PRODUCT_SKU_STATS_COMMIT_TIME)
+                                                       begin_time=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
+        stat.inbound_quantity = InBoundDetail.get_inferior_total(
+            sku_id, begin_time=ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME)
         if stat.realtime_quantity < 0 and real_quantity_zreo:
             stat.history_quantity = -stat.realtime_quantity
         stat.save()
