@@ -37,7 +37,8 @@ class Command(BaseCommand):
             mp.rebeta_scheme_id = pdetail and pdetail.rebeta_scheme_id
             mp.order_weight = pdetail and pdetail.order_weight
             mp.shelf_status = first_product and first_product.shelf_status==1 and ModelProduct.ON_SHELF or ModelProduct.OFF_SHELF
-            mp.onshelf_time = first_product and first_product.upshelf_time or first_product.sale_time + datetime.timedelta(seconds=10*60*60)
+            mp.onshelf_time = first_product and first_product.upshelf_time or \
+                              first_product.sale_time and datetime.datetime.combine(first_product.sale_time, datetime.time(10, 0,0))
             mp.offshelf_time = first_product and first_product.offshelf_time
             mp.save()
             cnt += 1
@@ -66,8 +67,8 @@ class Command(BaseCommand):
             mp.rebeta_scheme_id = pdetail and pdetail.rebeta_scheme_id
             mp.order_weight = pdetail and pdetail.order_weight
             mp.shelf_status = first_product and first_product.shelf_status == 1 and ModelProduct.ON_SHELF or ModelProduct.OFF_SHELF
-            mp.onshelf_time = first_product and first_product.upshelf_time or first_product.sale_time + datetime.timedelta(
-                seconds=10 * 60 * 60)
+            mp.onshelf_time = first_product and first_product.upshelf_time or \
+                              first_product.sale_time and datetime.datetime.combine(first_product.sale_time, datetime.time(10, 0,0))
             mp.offshelf_time = first_product and first_product.offshelf_time
             mp.save()
             cnt += 1

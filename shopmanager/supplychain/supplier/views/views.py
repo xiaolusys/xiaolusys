@@ -312,7 +312,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                     is_parent=True,
                     status='normal'):
                 parent_product_categories[
-                    product_category.cid] = product_category
+                    str(product_category.cid)] = product_category
 
             product_categories = {}
             for product_category in ProductCategory.objects.filter(
@@ -341,8 +341,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
             for sale_category in SaleCategory.objects.filter(parent_cid=0,
                                                              is_parent=True,
                                                              status='normal'):
-                parent_sale_categories[sale_category.id] = sale_category
-
+                parent_sale_categories[str(sale_category.id)] = sale_category
             sale_categories = {}
             for sale_category in SaleCategory.objects.filter(status='normal'):
                 parent_category = parent_sale_categories.get(
@@ -352,7 +351,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                 else:
                     full_name = '%s/%s' % (parent_category.name,
                                            sale_category.name)
-                sale_categories[sale_category.id] = product_categories.get(
+                sale_categories[str(sale_category.id)] = product_categories.get(
                     full_name) or {}
             return sale_categories
 
