@@ -168,6 +168,7 @@ def task_update_mamafortune_invite_num(mama_id):
             logger.warn("IntegrityError - MamaFortune invitenum | mama_id: %s" % (mama_id))
             raise task_update_mamafortune_invite_num.retry(exc=exc)
 
+
 @task()
 def task_update_mamafortune_invite_trial_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
@@ -178,6 +179,7 @@ def task_update_mamafortune_invite_trial_num(mama_id):
     fortune.invite_trial_num = invite_trial_num
     fortune.invite_all_num = invite_trial_num + fortune.invite_num
     fortune.save()
+
 
 @task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_mama_level(mama_id):
@@ -251,12 +253,53 @@ def task_update_mamafortune_order_num(mama_id):
             raise task_update_mamafortune_order_num.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=6)
+@task()
+def task_update_mamafortune_active_num(mama_id):
+    from flashsale.xiaolumm.models import XiaoluMama
+    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+
+    fortune = MamaFortune.get_by_mamaid(mama_id)
+    update_fields = ['active_normal_num', 'active_trial_num', 'active_all_num']
+    before_modify_data = {f: getattr(fortune, f) for f in update_fields}
+    mama = fortune.xlmm
+    mmids = mama.get_invite_normal_mama_ids() + mama.get_invite_potential_mama_ids()
+
+    fortune.active_normal_num = XiaoluMama.objects.filter(id__in=mmids, active=True,
+                                                          last_renew_type__in=[365, 183]).count()
+    fortune.active_trial_num = XiaoluMama.objects.filter(id__in=mmids, active=True, last_renew_type=15).count()
+    fortune.active_all_num = XiaoluMama.objects.filter(id__in=mmids, active=True).count()
+    after_modify_data = {f: getattr(fortune, f) for f in update_fields}
+    if before_modify_data != after_modify_data:
+        fortune.save()
+
+
+@task()
+def task_update_mamafortune_hasale_num(mama_id):
+    from flashsale.xiaolumm.models import XiaoluMama
+    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+
+    fortune = MamaFortune.get_by_mamaid(mama_id)
+    mama = fortune.xlmm
+    update_fields = ['hasale_normal_num', 'hasale_trial_num', 'hasale_all_num']
+    before_modify_data = {f: getattr(fortune, f) for f in update_fields}
+    mmids = mama.get_invite_normal_mama_ids() + mama.get_invite_potential_mama_ids()
+    fortune.hasale_normal_num = XiaoluMama.objects.filter(id__in=mmids, hasale=True,
+                                                          last_renew_type__in=[365, 183]).count()
+    fortune.hasale_trial_num = XiaoluMama.objects.filter(id__in=mmids, hasale=True, last_renew_type=15).count()
+    fortune.hasale_all_num = XiaoluMama.objects.filter(id__in=mmids, hasale=True).count()
+    after_modify_data = {f: getattr(fortune, f) for f in update_fields}
+    if before_modify_data != after_modify_data:
+        fortune.save()
+
+
+@task()
 def task_send_activite_award(mama_id):
     from flashsale.xiaolumm.models import XiaoluMama
+    from flashsale.xiaolumm.models.models_fortune import AwardCarry
     mama = XiaoluMama.objects.filter(id=mama_id).first()
     if not mama:
         return
+    fortune = MamaFortune.get_by_mamaid(mama_id)
     data = {
         20: 20,
         50: 60,
@@ -269,10 +312,8 @@ def task_send_activite_award(mama_id):
         100: u'满100人再奖120元',
         200: u'满200人再奖300元'
     }
-    activite_num = mama.get_activite_num()
-    from flashsale.xiaolumm.models.models_fortune import AwardCarry
     for num in data:
-        if activite_num >= num:
+        if fortune.active_trial_num >= num:
             uni_key = 'activite_award_%d_%d' % (num, mama.id)
             AwardCarry.send_award(mama, data[num], u'激活奖励', data_desc[num], uni_key)
 
@@ -280,7 +321,8 @@ def task_send_activite_award(mama_id):
 @task(max_retries=3, default_retry_delay=6)
 def task_first_order_send_award(mama):
     from flashsale.xiaolumm.models.models_fortune import AwardCarry
-    sum_res = OrderCarry.objects.filter(mama_id=mama.id, created__gte=mama.created).values('status').annotate(cnt=Count('id'))
+    sum_res = OrderCarry.objects.filter(mama_id=mama.id, created__gte=mama.created).values('status').annotate(
+        cnt=Count('id'))
     sum_dict = {item['status']: item['cnt'] for item in sum_res}
     uni_key = 'trial_first_order_award_%d' % (mama.id,)
     repeat = AwardCarry.objects.filter(uni_key=uni_key).first()
