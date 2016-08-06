@@ -168,6 +168,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                     head_imgs=content['head_img'],
                     onshelf_time=content['sale_time'],
                     salecategory=saleproduct.sale_category,
+                    saleproduct=saleproduct,
                     is_flatten=is_flatten,
                     lowest_agent_price=round(min([float(p['agent_price']) for p in products_data]),2),
                     lowest_std_sale_price=round(min([float(p['std_sale_price']) for p in products_data]), 2),

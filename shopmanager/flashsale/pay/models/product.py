@@ -1,13 +1,17 @@
 # -*- coding:utf-8 -*-
 import json
 import datetime
+import urlparse
 from django.db import models
 from django.db.models import F
+from django.conf import settings
+from django.db.models.signals import post_save
 
 from tagging.fields import TagField
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
 from core.models import BaseTagModel
+from core.options import get_systemoa_user, log_action, CHANGE
 from .base import PayBaseModel, BaseModel
 
 from shopback.items.models import Product, ProductSkuContrast, ContrastContent
@@ -97,6 +101,22 @@ class Productdetail(PayBaseModel):
             return True
         return False
 
+    def update_weight_and_recommend(self, is_topic, order_weight, is_recommend):
+        p_detail_update_fields = []
+        if self.is_sale != is_topic:
+            self.is_sale = is_topic
+            p_detail_update_fields.append('is_sale')
+        if self.order_weight != order_weight:
+            self.order_weight = order_weight
+            p_detail_update_fields.append('order_weight')
+        if self.is_recommend != is_recommend:
+            self.is_recommend = is_recommend
+            p_detail_update_fields.append('is_recommend')
+        if p_detail_update_fields:
+            self.save(update_fields=p_detail_update_fields)
+            return True
+
+
 def default_modelproduct_extras_tpl():
     return {
         "saleinfos": {
@@ -105,6 +125,7 @@ def default_modelproduct_extras_tpl():
         },
         "properties": {},
     }
+
 
 class ModelProduct(BaseTagModel):
 
@@ -210,6 +231,9 @@ class ModelProduct(BaseTagModel):
                 all_sale_out &= product.is_sale_out()
             self._is_saleout_ = all_sale_out
         return self._is_saleout_
+
+    def get_web_url(self):
+        return urlparse.urljoin(settings.M_SITE_URL, Product.MALL_PRODUCT_TEMPLATE_URL.format(self.id))
 
     @property
     def model_code(self):
@@ -393,30 +417,98 @@ class ModelProduct(BaseTagModel):
     @property
     def comparison(self):
         p_tables = []
-        uni_set  = set()
+        uni_set = set()
         try:
             for p in self.products:
                 contrast_origin = p.contrast.contrast_detail
                 uni_key = ''.join(sorted(contrast_origin.keys()))
                 if uni_key not in uni_set:
                     uni_set.add(uni_key)
-                    p_tables.append({'table':self.format_contrast2table(contrast_origin)})
+                    p_tables.append({'table': self.format_contrast2table(contrast_origin)})
         except ProductSkuContrast.DoesNotExist:
-            logger.warn('ProductSkuContrast not exists:%s'%(p.outer_id))
+            logger.warn('ProductSkuContrast not exists:%s' % (p.outer_id))
         except Exception, exc:
-            logger.error(exc.message,exc_info=True)
+            logger.error(exc.message, exc_info=True)
         return {
             'attributes': self.attributes,
             'tables': p_tables,
             'metrics': {
                 # 'table':[
-                #     [u'厚度指数', u'偏薄', u'适中',u'偏厚',u'加厚' ],
+                # [u'厚度指数', u'偏薄', u'适中',u'偏厚',u'加厚' ],
                 #     [u'弹性指数', u'无弹性', u'微弹性',u'适中', u'强弹性'],
                 #     [u'触感指数', u'偏硬', u'柔软', u'适中', u'超柔'],
                 # ],
                 # 'choices':[2,3,2]
             },
         }
+
+    @classmethod
+    def update_schedule_manager_info(cls,
+                                     action_user,
+                                     sale_product_ids,
+                                     upshelf_time,
+                                     offshelf_time,
+                                     is_topic):
+        """
+        更新上下架时间和专题类型
+        """
+        mds = cls.objects.filter(saleproduct__in=sale_product_ids, status=cls.NORMAL)
+        for md in mds:
+            update_fields = []
+            if md.onshelf_time != upshelf_time:
+                md.onshelf_time = upshelf_time
+                update_fields.append('onshelf_time')
+            if md.offshelf_time != offshelf_time:
+                md.offshelf_time = offshelf_time
+                update_fields.append('offshelf_time')
+            if md.is_topic != is_topic:
+                md.is_topic = is_topic
+                update_fields.append('is_topic')
+            if update_fields:
+                md.save(update_fields=update_fields)
+                log_action(action_user, md, CHANGE, u'同步上下架时间和专题类型')
+
+    def update_schedule_detail_info(self, order_weight, is_recommend):
+        """更新权重和是否推广字段"""
+        update_fields = []
+        if self.order_weight != order_weight:
+            self.order_weight = order_weight
+            update_fields.append('order_weight')
+        if self.is_recommend != is_recommend:
+            self.is_recommend = is_recommend
+            update_fields.append('is_recommend')
+        if update_fields:
+            self.save(update_fields=update_fields)
+            return True
+
+
+def update_product_details_info(sender, instance, created, **kwargs):
+    """
+    同步更新products details
+    """
+    systemoa = get_systemoa_user()
+
+    def update_pro_shelf_time(upshelf_time, offshelf_time, is_topic):
+        # change the item product shelf time and product detail is_sale order_weight and is_recommend in same time
+        def _wrapper(p):
+            state = p.update_shelf_time(upshelf_time, offshelf_time)
+            if state:
+                log_action(systemoa, p, CHANGE, u'系统自动同步排期时间')
+            if p.detail:
+                p.detail.update_weight_and_recommend(is_topic, instance.order_weight, instance.is_recommend)
+                log_action(systemoa, p.detail, CHANGE, u'系统自动同步is_sale')
+
+        return _wrapper
+
+    # 更新产品item Product信息
+    try:
+        map(update_pro_shelf_time(instance.onshelf_time,
+                                  instance.offshelf_time, instance.is_topic), instance.products)
+    except Exception as exc:
+        logger.error(exc)
+
+post_save.connect(update_product_details_info, sender=ModelProduct,
+                  dispatch_uid=u'post_save_update_product_details_info')
 
 
 def modelproduct_update_supplier_info(sender, obj, **kwargs):
@@ -429,4 +521,4 @@ def modelproduct_update_supplier_info(sender, obj, **kwargs):
 
 
 signal_record_supplier_models.connect(modelproduct_update_supplier_info,
-    sender=ModelProduct, dispatch_uid='post_save_modelproduct_update_supplier_info')
+                                      sender=ModelProduct, dispatch_uid='post_save_modelproduct_update_supplier_info')
