@@ -47,7 +47,19 @@ class ProgressField(serializers.Field):
 class SaleCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleCategory
-        fields = ('id', 'name', 'full_name', 'created', 'modified')
+        fields = (
+            'id',
+            'cid',
+            'parent_cid',
+            'name',
+            'cat_pic',
+            'grade',
+            'is_parent',
+            'sort_order',
+            'status',
+            'created',
+            'modified'
+        )
 
 
 class SupplierFigureSerializer(serializers.ModelSerializer):
