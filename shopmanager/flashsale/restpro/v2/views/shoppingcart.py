@@ -37,30 +37,11 @@ from shopback.logistics.models import LogisticsCompany
 from flashsale.restpro import constants as CONS
 
 from flashsale.xiaolumm.models import XiaoluMama
+from .trade import is_from_weixin, get_channel_list
+
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-def is_from_weixin(request):
-    user_agent = request.META.get('HTTP_USER_AGENT')
-    if user_agent and re.search('MicroMessenger', user_agent, re.IGNORECASE):
-        return True
-    return False
-
-def get_channel_list(request):
-    content = request.REQUEST
-    is_in_weixin = is_from_weixin(request)
-    is_in_wap = content.get('device', 'wap') == 'wap'
-    channel_list = []
-    if is_in_wap:
-        if is_in_weixin:
-            channel_list.append({'id': 'wx_pub', 'name': u'微信支付', 'payable': True, 'msg': ''})
-        channel_list.append({'id': 'alipay_wap', 'name': u'支付宝', 'payable': True, 'msg': ''})
-    else:
-        channel_list.append({'id': 'wx', 'name': u'微信支付', 'payable': True, 'msg': ''})
-        channel_list.append({'id': 'alipay', 'name': u'支付宝', 'payable': True, 'msg': ''})
-    return channel_list
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
