@@ -2,7 +2,7 @@
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import CashOut, XiaoluMama, CarryLog
+from flashsale.xiaolumm.models import CashOut, XiaoluMama, CarryLog
 import datetime
 from core.options import log_action, CHANGE
 from django.db.models import Sum

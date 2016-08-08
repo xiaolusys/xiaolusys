@@ -1,13 +1,11 @@
 # coding: utf-8
 from django.conf.urls import patterns, include, url
-from django.views.generic.base import TemplateView
-from django.views.decorators.cache import cache_page
-from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
+from rest_framework.urlpatterns import format_suffix_patterns
 
 # 2016-3-2 v2
 from . import views
-from flashsale.xiaolumm import views_rank, views_message
+from flashsale.xiaolumm.views import views_rank, views_message
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'categorys', views.SaleCategoryViewSet)
