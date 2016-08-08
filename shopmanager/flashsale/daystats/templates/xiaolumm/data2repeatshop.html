@@ -8,12 +8,12 @@
 {% block container %}
     <form class="form-horizontal" role="form" method="GET" action="/sale/daystats/stats_repeat/">
         <div class="row" style="margin-top: 40px">
-            <div class="col-xs-4">
+            <div class="col-xs-3">
                 <label class="control-label" for="df">开始日期:</label>
                 <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
                        value="{{ start_date }}"/>
             </div>
-            <div class="col-xs-4">
+            <div class="col-xs-3">
                 <label class="control-label" for="dt">结束日期:</label>
                 <input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ end_date }}"/>
             </div>
@@ -22,6 +22,13 @@
                 <select name="category" class="form-control">
                    <option value="month" {% if category == 'month' %} selected {% endif %}>按月</option>
                    <option value="week" {% if category == 'week' %} selected {% endif %}>按周</option>
+                </select>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label">用户群</label>
+                <select name="user_type" class="form-control">
+                   <option value="all" {% if user_type == 'all' %} selected {% endif %}>所有用户</option>
+                   <option value="xiaolumm" {% if user_type == 'xiaolumm' %} selected {% endif %}>小鹿妈妈</option>
                 </select>
             </div>
             <div class="col-xs-1">

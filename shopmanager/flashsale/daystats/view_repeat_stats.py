@@ -66,7 +66,7 @@ def generate_date_range(start, end, category='month'):
             start = next_week(start)
 
 
-def calc_customer_repeat_buy(start_date, end_date, category='month'):
+def calc_customer_repeat_buy(start_date, end_date, category='month', user_type='all'):
     date_range = list(generate_date_range(start_date, end_date, category=category))
 
     repeat_num = len(date_range)
@@ -75,13 +75,24 @@ def calc_customer_repeat_buy(start_date, end_date, category='month'):
     new_customers = []
 
     for start_date, end_date in date_range:
-        customers = Customer.objects.filter(first_paytime__gt=start_date, first_paytime__lt=end_date).values('id')
+        if user_type == 'all':
+            customers = Customer.objects.filter(first_paytime__gt=start_date, first_paytime__lt=end_date).values('id')
+            data = set([x['id'] for x in customers])
+        elif user_type == 'xiaolumm':
+            sql = """SELECT flashsale_customer.id
+                     FROM flashsale_customer
+                     join xiaolumm_xiaolumama on flashsale_customer.unionid=xiaolumm_xiaolumama.openid
+                     where flashsale_customer.first_paytime >= "%s" and flashsale_customer.first_paytime < "%s"
+                     order by flashsale_customer.first_paytime desc""" % (start_date, end_date)
+            customers = Customer.objects.raw(sql)
+            data = set([x.id for x in customers])
         new_customers.append({
             'date': start_date,
-            'data': set([x['id'] for x in customers])
+            'data': data,
         })
 
-        trades = SaleTrade.objects.filter(pay_time__isnull=False, pay_time__gt=start_date, pay_time__lt=end_date).values('buyer_id')
+        trades = SaleTrade.objects.filter(
+            pay_time__isnull=False, pay_time__gt=start_date, pay_time__lt=end_date).values('buyer_id')
         orders.append({
             'date': start_date,
             'data': set([x['buyer_id'] for x in trades])
@@ -119,6 +130,8 @@ class StatsRepeatView(View):
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
         category = content.get('category', 'month')
+        user_type = content.get('user_type', 'all')
+
         if start_time_str:
             year, month, day = start_time_str.split('-')
             start_date = datetime.datetime(int(year), int(month), int(day))
@@ -139,7 +152,8 @@ class StatsRepeatView(View):
         # send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)  # 计算小鹿妈妈购买
         # task_id_sale = task_calc_package.delay(start_date, end_date)  # 计算包裹数量
 
-        customer_repeat_buy_data = calc_customer_repeat_buy(start_date, end_date, category=category)
+        customer_repeat_buy_data = calc_customer_repeat_buy(
+            start_date, end_date, category=category, user_type=user_type)
         return render_to_response(
             "xiaolumm/data2repeatshop.html",
             {
@@ -151,6 +165,7 @@ class StatsRepeatView(View):
                 "end_date": end_date.date(),
                 "month_range": range(1, len(customer_repeat_buy_data)+1),
                 'category': category,
+                'user_type': user_type,
             },
             context_instance=RequestContext(request)
         )
