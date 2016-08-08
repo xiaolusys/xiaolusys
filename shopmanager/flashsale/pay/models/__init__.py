@@ -14,3 +14,4 @@ from .shoppingcart import ShoppingCart
 from .trade import SaleTrade, SaleOrder, SaleOrderSyncLog, genTradeUniqueid, FLASH_SELLER_ID, \
     default_oid, gen_uuid_trade_tid, default_extras
 from .user import Register, Customer, UserBudget, BudgetLog, genCustomerNickname
+from .favorites import Favorites

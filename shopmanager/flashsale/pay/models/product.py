@@ -17,7 +17,7 @@ from .base import PayBaseModel, BaseModel
 from shopback.items.models import Product, ProductSkuContrast, ContrastContent
 from ..signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
-from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM, PROPERTY_NAMES
+from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM, PROPERTY_NAMES, PROPERTY_KEYMAP
 
 import logging
 logger = logging.getLogger(__name__)
@@ -334,7 +334,11 @@ class ModelProduct(BaseTagModel):
             for key in ('material', 'color', 'wash_instructions', 'note'):
                 prop_value_dict[key] = getattr(detail, key)
 
-        return [{'name': PROPERTY_NAMES.get(key), 'value':value} for key, value in prop_value_dict.iteritems() if value.strip()]
+        attrs = sorted(prop_value_dict.items(), key=lambda x: PROPERTY_KEYMAP.get(x[0], 100))
+        PROPERTY_NAME_DICT = dict(PROPERTY_NAMES)
+        attr_dict = [{'name': PROPERTY_NAME_DICT.get(key), 'value': value} for key, value in attrs if value.strip()]
+
+        return attr_dict
 
     @property
     def products(self):

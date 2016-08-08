@@ -40,7 +40,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                 "lowest_agent_price": 最低出售价,
                 "lowest_std_sale_price": 标准出售价,
                 "is_saleout": 是否售光,
-                "is_favorite": 是否收藏,
                 "sale_state": 在售状态(will:即将开售,　on:在售, off:下架),
                 "head_img": 头图,
                 "web_url": app商品详情链接,
@@ -49,6 +48,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         ***
         - [获取特卖商品列表: /rest/v2/modelproducts](/rest/v2/modelproducts)
             * 查询参数: cid = 类目cid
+
         - [今日特卖: /rest/v2/modelproducts/today](/rest/v2/modelproducts/today)
         - [昨日特卖: /rest/v2/modelproducts/yesterday](/rest/v2/modelproducts/yesterday)
         - [即将上新: /rest/v2/modelproducts/tomorrow](/rest/v2/modelproducts/tomorrow)
@@ -75,9 +75,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             json.dumps(key_maps, sort_keys=True).encode('utf-8')
         ])).hexdigest()
 
-    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    # @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     def retrieve(self, request, *args, **kwargs):
-        """ 获取用户订单及订单明细列表 """
+        """ 获取用户订单及订单明细列表, 因为包含用户定制信息，该接口 """
         instance = self.get_object()
         data = serializers_v2.ModelProductSerializer(instance, context={'request': request}).data
         return Response(data)

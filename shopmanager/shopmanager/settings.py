@@ -261,7 +261,7 @@ if os.environ.get('TARGET') in ('staging',):
         'default': {
             'ENGINE': 'django.db.backends.mysql',
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'test_xiaoludb',  # Or path to database file if using sqlite3.
+            'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
             'USER': 'xiaoludev',  # Not used with sqlite3.
             'PASSWORD': 'Xiaolu_test123',  # Not used with sqlite3.
             'HOST': 'rm-bp17ea269uu21f9i1.mysql.rds.aliyuncs.com',

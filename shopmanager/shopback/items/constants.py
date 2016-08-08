@@ -32,18 +32,19 @@ CATEGORY_HEALTH    = '3'
 CATEGORY_ACCESSORY = '4'
 CATEGORY_BAGS      = '6'
 
-PROPERTY_NAMES = dict((
+PROPERTY_NAMES = (
     ('model_code', u'商品编码'),
     ('material', u'商品材质'),
     ('fashion', u'流行元素'),
     ('shoulder', u'肩带款式'),
-    ('wash_instructions', u'洗涤说明'),
-    ('note', u'备注说明'),
     ('color', u'可选颜色'),
+    ('wash_instructions', u'洗涤说明'),
     ('qs_code', u'生产许可证'),
     ('qhby_code', u'产品标准号'),
-))
+    ('note', u'备注说明'),
+)
 
+PROPERTY_KEYMAP = dict([(key[0], index) for index, key in enumerate(PROPERTY_NAMES)])
 
 
 
