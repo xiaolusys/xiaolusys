@@ -37,7 +37,7 @@ from shopback.logistics.models import LogisticsCompany
 from flashsale.restpro import constants as CONS
 
 from flashsale.xiaolumm.models import XiaoluMama
-from .trade import is_from_weixin, get_channel_list
+from .trade import get_channel_list
 
 
 import logging
@@ -298,7 +298,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return lg_dict_list
 
     def get_charge_channels(self, request, total_payment):
-        return get_channel_list(request)
+        return get_channel_list(request, self.get_customer(request))
 
     def check_coupon(self, request, real_payment, cart_itemid_str):
         customer = self.get_customer(request)
