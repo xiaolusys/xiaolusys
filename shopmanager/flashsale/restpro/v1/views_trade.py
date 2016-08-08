@@ -889,9 +889,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return budget_amount
 
     def logger_request(self, request):
+        data = request.POST
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
-        logger.warn('payment v1:%s agent=%s, post=%s, cookie=%s' % (
-            request.POST.get('uuid'), request.META.get('HTTP_USER_AGENT'), request.POST, cookies))
+        logger.info({'code': 0, 'info': u'付款请求', 'channel': data.get('channel'),
+                     'user_agent':request.META.get('HTTP_USER_AGENT'), 'cookies':cookies,
+                     'stype': 'restpro.trade', 'tid': data.get('uuid')})
 
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
