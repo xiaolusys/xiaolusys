@@ -32,7 +32,7 @@ def get_salecategory_json_data():
     for district in districts_values:
         salecategorys_tree_nodes[district['parent_cid']].append(district)
 
-    node_tree = recursive_append_child_salecategorys({'cid':0 }, salecategorys_tree_nodes)
+    node_tree = recursive_append_child_salecategorys({'cid':'0' }, salecategorys_tree_nodes)
     return node_tree.get('childs', [])
 
 
