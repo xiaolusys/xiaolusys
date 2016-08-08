@@ -1100,41 +1100,41 @@ def task_auto_shelf_prods():
     1. 自动上架产品：　已经审核的产品　并且在下架状态的产品　修改状态到上架
     2. 自动下架产品：　并且在上架状态的产品　修改状态到下架状态
     """
-    # try:
+    try:
 
-    systemoa = get_systemoa_user()
-    offshelf_models = ModelProduct.offshelf_right_now_models()
-    onshelf_models = ModelProduct.offshelf_right_now_models()
+        systemoa = get_systemoa_user()
+        offshelf_models = ModelProduct.offshelf_right_now_models()
+        onshelf_models = ModelProduct.offshelf_right_now_models()
 
-    onshelf_pros = Product.upshelf_right_now_products()  # 要立即上架的产品
-    offshelf_pros = Product.offshelf_right_now_products()  # 要立即下架的产品
+        onshelf_pros = Product.upshelf_right_now_products()  # 要立即上架的产品
+        offshelf_pros = Product.offshelf_right_now_products()  # 要立即下架的产品
 
-    logger.warn(u'执行自动下架款式任务 task_up_shelf_prods: 款式数量: %s' % offshelf_models.count())
-    for off_md in offshelf_models:
-        state_off = off_md.offshelf_model()
-        if state_off:
-            log_action(systemoa, off_md, CHANGE, u'系统自动下架款式')
+        logger.warn(u'执行自动下架款式任务 task_up_shelf_prods: 款式数量: %s' % offshelf_models.count())
+        for off_md in offshelf_models:
+            state_off = off_md.offshelf_model()
+            if state_off:
+                log_action(systemoa, off_md, CHANGE, u'系统自动下架款式')
 
-    logger.warn(u'执行自动下架产品任务 task_off_shelf_prods: 产品数量: %s' % offshelf_pros.count())
-    for off_pro in offshelf_pros:
-        state = off_pro.offshelf_product()  # 执行下架动作
-        if state:  # 上架成功　打log
-            log_action(systemoa, off_pro, CHANGE, u'系统自动下架修改该产品到下架状态')
+        logger.warn(u'执行自动下架产品任务 task_off_shelf_prods: 产品数量: %s' % offshelf_pros.count())
+        for off_pro in offshelf_pros:
+            state = off_pro.offshelf_product()  # 执行下架动作
+            if state:  # 上架成功　打log
+                log_action(systemoa, off_pro, CHANGE, u'系统自动下架修改该产品到下架状态')
 
-    logger.warn(u'执行自动上架款式任务 task_up_shelf_prods: 款式数量: %s' % onshelf_models.count())
-    for on_md in onshelf_models:
-        state_on = on_md.upshelf_model()
-        if state_on:
-            log_action(systemoa, on_md, CHANGE, u'系统自动上架款式')
+        logger.warn(u'执行自动上架款式任务 task_up_shelf_prods: 款式数量: %s' % onshelf_models.count())
+        for on_md in onshelf_models:
+            state_on = on_md.upshelf_model()
+            if state_on:
+                log_action(systemoa, on_md, CHANGE, u'系统自动上架款式')
 
-    logger.warn(u'执行自动上架产品任务 task_up_shelf_prods: 产品数量: %s' % onshelf_pros.count())
-    for on_pro in onshelf_pros:
-        state = on_pro.upshelf_product()  # 执行上架动作
-        if state:  # 上架成功　打log
-            log_action(systemoa, on_pro, CHANGE, u'系统自动上架修改该产品到上架状态')
+        logger.warn(u'执行自动上架产品任务 task_up_shelf_prods: 产品数量: %s' % onshelf_pros.count())
+        for on_pro in onshelf_pros:
+            state = on_pro.upshelf_product()  # 执行上架动作
+            if state:  # 上架成功　打log
+                log_action(systemoa, on_pro, CHANGE, u'系统自动上架修改该产品到上架状态')
 
-    # except Exception as exc:
-    #     raise task_auto_shelf_prods.retry(countdown=60 * 5, exc=exc)
+    except Exception as exc:
+        raise task_auto_shelf_prods.retry(countdown=60 * 5, exc=exc)
 
 
 @task()
