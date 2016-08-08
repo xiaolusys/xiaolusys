@@ -162,6 +162,7 @@ class SaleCategory(BaseModel):
         if not cache_value:
             cache_value = get_salecategory_json_data()
             cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
+        return cache_value
 
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
     logger.info('salecategory: invalid cachekey %s'% SaleCategory.CACHE_KEY)
