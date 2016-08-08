@@ -5,7 +5,7 @@ import datetime
 from django.conf import settings
 from rest_framework import serializers
 
-from flashsale.pay.models import ModelProduct
+from flashsale.pay.models import ModelProduct, Favorites, Customer
 from flashsale.restpro.local_cache import image_watermark_cache
 
 class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
@@ -16,12 +16,11 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
     sale_state  = serializers.SerializerMethodField(read_only=True)
     web_url     = serializers.CharField(source='get_web_url',read_only=True)
     watermark_op = serializers.SerializerMethodField(read_only=True)
-    is_favorite = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ModelProduct
         fields = ('id', 'url', 'name', 'category_id', 'lowest_agent_price', 'lowest_std_sale_price',
-                  'onshelf_time', 'offshelf_time', 'is_saleout', 'is_favorite', 'sale_state',
+                  'onshelf_time', 'offshelf_time', 'is_saleout', 'sale_state',
                   'head_img', 'web_url', 'watermark_op')
 
     def get_sale_state(self, obj):
@@ -35,18 +34,17 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
             return ''
         return image_watermark_cache.latest_qs or ''
 
-    def get_is_favorite(self, obj):
-        return False
-
 
 class ModelProductSerializer(serializers.ModelSerializer):
 
     detail_content = serializers.SerializerMethodField()
     extras = serializers.SerializerMethodField()
     sku_info = serializers.SerializerMethodField()
+    custom_info = serializers.SerializerMethodField()
+
     class Meta:
         model = ModelProduct
-        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras') #
+        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras', 'custom_info') #
 
     def get_detail_content(self, obj):
         content = obj.detail_content
@@ -70,3 +68,13 @@ class ModelProductSerializer(serializers.ModelSerializer):
                 product = obj.products.filter(id=product_id).first()
                 return obj.product_simplejson(product)
         return obj.sku_info
+
+    def get_custom_info(self, obj):
+        request = self.context['request']
+        if not request.user.is_authenticated():
+            return {'is_favorite': False}
+        customer = Customer.objects.filter(user=request.user).first()
+        if not customer:
+            return {'is_favorite': False}
+        favorite = Favorites.objects.filter(customer=customer, model=obj)
+        return {'is_favorite': favorite and True or False}
