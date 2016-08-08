@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 
 import datetime
 from django.db.models import Min
-from shopback.items.models import Product
+from shopback.items.models import Product, ProductSku
 from flashsale.pay.models import ModelProduct
 from supplychain.supplier.models import SaleCategory, SaleProduct
 
@@ -26,7 +26,8 @@ class Command(BaseCommand):
             if not first_product:
                 continue
             saleproduct = SaleProduct.objects.filter(id=first_product.sale_product).first()
-            aggregate_data = products.aggregate(min_agent_price=Min('agent_price'),
+            productskus = ProductSku.objects.filter(product__model_id=mp.id, status=ProductSku.NORMAL)
+            aggregate_data = productskus.aggregate(min_agent_price=Min('agent_price'),
                                            min_std_sale_price=Min('std_sale_price'))
             mp.lowest_agent_price = aggregate_data.get('min_agent_price')
             mp.lowest_std_sale_price = aggregate_data.get('min_std_sale_price')
@@ -56,8 +57,9 @@ class Command(BaseCommand):
             if not first_product:
                 continue
             saleproduct = SaleProduct.objects.filter(id=first_product.sale_product).first()
-            aggregate_data = products.aggregate(min_agent_price=Min('agent_price'),
-                                                min_std_sale_price=Min('std_sale_price'))
+            productskus = ProductSku.objects.filter(product__model_id=mp.id, status=ProductSku.NORMAL)
+            aggregate_data = productskus.aggregate(min_agent_price=Min('agent_price'),
+                                                   min_std_sale_price=Min('std_sale_price'))
             mp.lowest_agent_price = aggregate_data.get('min_agent_price')
             mp.lowest_std_sale_price = aggregate_data.get('min_std_sale_price')
             mp.salecategory = saleproduct and saleproduct.sale_category

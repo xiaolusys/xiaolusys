@@ -16,6 +16,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import permissions
 from rest_framework.response import Response
+from rest_framework import exceptions
 from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
@@ -34,6 +35,8 @@ from flashsale.mmexam.models import DressProduct
 
 from flashsale.restpro.v1 import serializers
 from flashsale.restpro.v2 import serializers as serializersv2
+
+from shopback.items import constants as itemcons
 
 CACHE_VIEW_TIMEOUT = 30
 
@@ -157,13 +160,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_custom_qs(self, queryset):
-        return queryset.filter(status=Product.NORMAL, outer_id__endswith='1').exclude(details__is_sale=True)
+        return queryset.filter(status=Product.NORMAL, outer_id__endswith=itemcons.MALL_PRODUCT_ENDCODE).exclude(details__is_sale=True)
 
     def get_female_qs(self, queryset):
-        return self.get_custom_qs(queryset).filter(outer_id__startswith='8')
+        return self.get_custom_qs(queryset).filter(outer_id__startswith=itemcons.MALL_FEMALE_STARTCODE)
 
     def get_child_qs(self, queryset):
-        return self.get_custom_qs(queryset).filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='1'))
+        return self.get_custom_qs(queryset).filter(Q(outer_id__startswith=itemcons.MALL_CHILD_STARTCODE)
+                                                   | Q(outer_id__startswith=itemcons.MALL_PARENT_STARTCODE))
 
     def get_downshelf_deadline(self, obj_list, cur_date):
         deadline = datetime.datetime.combine(cur_date, datetime.datetime.min.time())\
@@ -302,15 +306,17 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         content = request.REQUEST
         category = int(content.get('category', 0))  # 1童装2女装
         sort_field = content.get('sort_field', 'id')  # 排序字段
+        if not request.user.is_authenticated():
+            raise exceptions.APIException(u'请登录后访问')
         customer = get_object_or_404(Customer, user=request.user)
-        queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
-
+        queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF,
+                                              status=Product.NORMAL, outer_id__endswith='1')
         if category == 1:
-            queryset = self.get_child_qs(queryset)
+            queryset = queryset.filter(outer_id__startswith=itemcons.MALL_CHILD_STARTCODE)
         elif category == 2:
-            queryset = self.get_female_qs(queryset)
+            queryset = queryset.filter(outer_id__startswith=itemcons.MALL_FEMALE_STARTCODE)
         else:
-            queryset = self.get_custom_qs(queryset)
+            queryset = queryset
 
         extra_str = 'remain_num - lock_num > 0'
         queryset = queryset.extra(where={extra_str})  # 没有卖光的 不是秒杀产品的

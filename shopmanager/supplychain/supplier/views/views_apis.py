@@ -177,6 +177,53 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class SaleCategoryViewSet(viewsets.ModelViewSet):
+    """
+    ### 特卖/选品类目 API
+    - GET /apis/chain/v1/salescategory
+    - GET /apis/chain/v1/salescategory/[salecategory_id]
+    - POST /apis/chain/v1/salescategory
+    - PUT /apis/chain/v1/salescategory/[salecategory_id]
+    - DELETE /apis/chain/v1/salescategory/[salecategory_id]
+    """
+    queryset = SaleCategory.objects.all()
+    serializer_class = serializers.SaleCategorySerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    filter_backends = (filters.OrderingFilter,)
+    ordering_fields = '__all__'
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = serializers.SaleCategorySerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk, format=None):
+        salecategory = SaleCategory.objects.filter(id=pk).first()
+        if salecategory:
+            salecategory.delete()
+            log_action(request.user, salecategory, DELETION, u'删除分类')
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def put(self, request, pk, format=None):
+        salecategory = SaleCategory.objects.filter(id=pk).first()
+        if salecategory:
+            serializer = serializers.SaleCategorySerializer(salecategory, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                log_action(request.user, salecategory, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
+                return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class SaleProductFilter(filters.FilterSet):
     id = ListFilter(name='id')
     status = ListFilter(name='status')

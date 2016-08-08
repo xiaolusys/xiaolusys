@@ -55,20 +55,20 @@ class SaleCategory(BaseModel):
                   (DELETE, u'未使用'))
 
     FIRST_GRADE = 1
-    CACHE_TIME  = 24 * 60 * 60
-    CACHE_KEY   = '%s.%s'%(__name__, 'SaleCategory')
+    CACHE_TIME = 24 * 60 * 60
+    CACHE_KEY = '%s.%s' % (__name__, 'SaleCategory')
     SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
-    DELIMITER_CHAR   = '-'
+    DELIMITER_CHAR = '-'
     ROOT_ID = '0'
 
-    cid = models.CharField(max_length= 32 ,null=False, blank=False,
+    cid = models.CharField(max_length=32, null=False, blank=False,
                            default=default_salecategory_cid, unique=True, verbose_name=u'类目ID')
-    parent_cid = models.CharField(max_length=32 ,null=False, blank=False,
+    parent_cid = models.CharField(max_length=32, null=False, blank=False,
                                   default=ROOT_ID, db_index=True, verbose_name=u'父类目ID')
     name = models.CharField(max_length=64, blank=True, verbose_name=u'类目名')
     cat_pic = models.CharField(max_length=256, blank=True, verbose_name=u'展示图片')
 
-    grade     = models.IntegerField(default=0, db_index=True, verbose_name=u'类目等级')
+    grade = models.IntegerField(default=0, db_index=True, verbose_name=u'类目等级')
     is_parent = models.BooleanField(default=True, verbose_name=u'父类目')
     sort_order = models.IntegerField(default=0, verbose_name=u'权值')
 

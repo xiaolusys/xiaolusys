@@ -99,10 +99,13 @@ class AgencyOrderRebetaScheme(models.Model):
         if payment > MAX_PAYMENT:
             payment = MAX_PAYMENT
 
-        key = str(payment)
-        if key in carry_rules:
-            carry = carry_rules[key]
-            return carry
+        key_list = map(int, carry_rules.keys())
+        key_list.append(payment)
+        key_list.sort()
+        real_index = key_list.index(payment)
+        if real_index > 0:
+            calc_payment = key_list[real_index - 1]
+            return carry_rules.get(str(calc_payment))
 
         return 0
 

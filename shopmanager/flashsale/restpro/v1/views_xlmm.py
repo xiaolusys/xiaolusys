@@ -381,7 +381,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         default_return['data'].append({'complete': carry_record, 'desc': u'获得第一笔收益', 'show': True})
         default_return['data'].append({'complete': fans_record, 'desc': u'发展第一个粉丝', 'show': True})
-        default_return['data'].append({'complete': coupon_share, 'desc': u'发展第一个粉丝', 'show': True})
+        default_return['data'].append({'complete': coupon_share, 'desc': u'分享第一个红包', 'show': True})
         default_return['data'].append({'complete': commission, 'desc': u'赚取第一笔佣金', 'show': True})
         default_return['data'].append({'complete': mama_recommend, 'desc': u'发展第一个代理', 'show': True})
 
