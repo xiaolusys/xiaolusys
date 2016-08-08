@@ -56,13 +56,13 @@ def is_from_weixin(request):
         return True
     return False
 
-def get_channel_list(request):
+def get_channel_list(request, customer):
     content = request.REQUEST
     is_in_weixin = is_from_weixin(request)
     is_in_wap = content.get('device', 'wap') == 'wap'
     channel_list = []
     if is_in_wap:
-        if is_in_weixin:
+        if is_in_weixin and customer.unionid:
             channel_list.append({'id': 'wx_pub', 'name': u'微信支付', 'payable': True, 'msg': ''})
         channel_list.append({'id': 'alipay_wap', 'name': u'支付宝', 'payable': True, 'msg': ''})
     else:
@@ -145,7 +145,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 获取用户订单及订单明细列表 """
         instance   = self.get_object()
         data = serializers.SaleTradeDetailSerializer(instance,context={'request': request}).data
-        data['extras'].update(channels=get_channel_list(request))
+        data['extras'].update(channels=get_channel_list(request, self.get_customer(request)))
         return Response(data)
 
     @list_route(methods=['get'])

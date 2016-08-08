@@ -52,6 +52,7 @@ class SaleCategorySerializer(serializers.ModelSerializer):
             'cid',
             'parent_cid',
             'name',
+            'full_name',
             'cat_pic',
             'grade',
             'is_parent',
