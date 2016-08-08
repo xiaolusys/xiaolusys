@@ -152,7 +152,7 @@ class ModelProduct(BaseTagModel):
     salecategory = models.ForeignKey('supplier.SaleCategory', null=True, default=None,
                                      related_name='modelproduct_set', verbose_name=u'分类')
 
-    lowest_agent_price = models.FloatField(default=0.0, verbose_name=u'最低售价')
+    lowest_agent_price = models.FloatField(default=0.0, db_index=True, verbose_name=u'最低售价')
     lowest_std_sale_price = models.FloatField(default=0.0, verbose_name=u'最低原价')
 
     is_onsale    = models.BooleanField(default=False, db_index=True, verbose_name=u'特价/秒杀')
