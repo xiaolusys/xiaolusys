@@ -37,7 +37,11 @@ def get_salecategory_json_data():
 
 
 def default_salecategory_cid():
-    sc = SaleCategory.objects.order_by('-id').first()
+    """ 请做异常处理，避免model结构改变时无法migrate """
+    try:
+        sc = SaleCategory.objects.order_by('-id').first()
+    except:
+        return None
     if sc:
         return '%d' % (sc.id + 1)
     return '1'
