@@ -43,7 +43,7 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns(
     '',
-    url(r'^customer/$', views_customer.CustomerView.as_view()),
+    url(r'^customer/$', views_customer.index),
 )
 
 
