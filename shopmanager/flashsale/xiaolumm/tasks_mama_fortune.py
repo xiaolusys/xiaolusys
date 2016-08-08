@@ -355,7 +355,7 @@ def task_new_guy_task_complete_send_award(mama):
 
     active_time = datetime.datetime(2016, 7, 22, 10, 0, 0)
     if isinstance(mama.charge_time, datetime.datetime) and mama.charge_time >= active_time:
-        uni_key = 'new_guy_task_complete_award_%d' % (mama.id,)
+        uni_key = 'new_guy_task_complete_award_5_%d' % (mama.id,)
         AwardCarry.send_award(mama, 5, u'新手任务奖励', u'新手妈妈完成新手任务奖励', uni_key, status=2)  # 确定收益
         referal_mama = XiaoluMama.objects.filter(referal_from=mama.referal_from).first()
         if not referal_mama:
@@ -364,7 +364,7 @@ def task_new_guy_task_complete_send_award(mama):
             referal_mama = XiaoluMama.objects.filter(id=potential.referal_mama).first()
         if not referal_mama:
             return
-        uni_key = 'new_guy_task_complete_award_%d' % (referal_mama.id,)
+        uni_key = 'new_guy_task_complete_award_10_%d' % (referal_mama.id,)
         customer = mama.get_mama_customer()
         AwardCarry.send_award(referal_mama, 10, u'新手任务奖励', u'新手推荐人完成新手任务推荐人奖励', uni_key,
                               status=2,
