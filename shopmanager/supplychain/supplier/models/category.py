@@ -154,14 +154,10 @@ class SaleCategory(BaseModel):
 
     @classmethod
     def get_salecategory_jsontree(cls):
-        if not hasattr(cls, '_salecategory_'):
-            cache_value = cache.get(cls.CACHE_KEY)
-            if not cache_value:
-                cache_value = get_salecategory_json_data()
-                cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
-            cls._salecategory_ = cache_value
-        return cls._salecategory_
-
+        cache_value = cache.get(cls.CACHE_KEY)
+        if not cache_value:
+            cache_value = get_salecategory_json_data()
+            cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
 
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
     logger.info('salecategory: invalid cachekey %s'% SaleCategory.CACHE_KEY)
