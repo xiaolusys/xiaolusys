@@ -170,6 +170,9 @@ class Product(models.Model):
             else:
                 sale_time = datetime.datetime.combine(self.sale_time, datetime.time.min)
             self.offshelf_time = sale_time + datetime.timedelta(days=2)
+        if isinstance(self.upshelf_time, datetime.datetime):
+            if self.sale_time != self.upshelf_time.date():
+                self.sale_time = self.upshelf_time.date()
         return super(Product, self).save(*args, **kwargs)
 
     def get_product_model(self):
