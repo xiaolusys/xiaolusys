@@ -32,12 +32,16 @@ def get_salecategory_json_data():
     for district in districts_values:
         salecategorys_tree_nodes[district['parent_cid']].append(district)
 
-    node_tree = recursive_append_child_salecategorys({'cid':0 }, salecategorys_tree_nodes)
+    node_tree = recursive_append_child_salecategorys({'cid':'0' }, salecategorys_tree_nodes)
     return node_tree.get('childs', [])
 
 
 def default_salecategory_cid():
-    sc = SaleCategory.objects.order_by('-id').first()
+    """ 请做异常处理，避免model结构改变时无法migrate """
+    try:
+        sc = SaleCategory.objects.order_by('-id').first()
+    except:
+        return None
     if sc:
         return '%d' % (sc.id + 1)
     return '1'
@@ -158,6 +162,7 @@ class SaleCategory(BaseModel):
         if not cache_value:
             cache_value = get_salecategory_json_data()
             cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
+        return cache_value
 
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
     logger.info('salecategory: invalid cachekey %s'% SaleCategory.CACHE_KEY)
