@@ -49,7 +49,7 @@ def check_template_release_nums(tpl, template_id):
     """ 优惠券发放数量检查 """
     from flashsale.coupon.models import UserCoupon
 
-    coupons = UserCoupon.objects.filter(template_id=int(template_id))
+    coupons = UserCoupon.objects.filter(template_id=int(template_id)).exclude(status=UserCoupon.CANCEL)
     tpl_release_count = coupons.count()  # 当前模板的优惠券条数
     if tpl_release_count > tpl.prepare_release_num:  # 如果大于定义的限制领取数量
         return None, 3, u"优惠券已经发完了"
