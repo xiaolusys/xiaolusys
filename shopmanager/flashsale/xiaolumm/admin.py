@@ -454,11 +454,15 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 
 
 class AwardCarryAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'carry_num', 'carry_type', 'contributor_nick',
-                    'contributor_img', 'contributor_mama_id', 'status')
+    list_display = ('mama_id', 'carry_num', 'carry_type', 'carry_description', 'contributor_nick',
+                    'contributor_img_html', 'contributor_mama_id', 'status')
     list_filter = ('status', 'carry_type',)
     search_fields = ('=mama_id', '=contributor_nick',)
 
+    def contributor_img_html(self, obj):
+        return '<img src="%s">' % (obj.contributor_img_html,)
+    contributor_img_html.short_description = u'头像'
+    contributor_img_html.allow_tags = True
 
 admin.site.register(AwardCarry, AwardCarryAdmin)
 

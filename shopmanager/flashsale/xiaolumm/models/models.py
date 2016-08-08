@@ -391,12 +391,12 @@ class XiaoluMama(models.Model):
 
     def set_active(self):
         self.active = True
-        self.activetime = datetime.datetime.now()
+        self.active_time = datetime.datetime.now()
         self.save()
 
     def set_hasale(self):
-        self.set_hasale = True
-        self.set_hasaletime = datetime.datetime.now()
+        self.hasale = True
+        self.hasale_time = datetime.datetime.now()
         self.save()
 
     def push_carrylog_to_cash(self, clog):

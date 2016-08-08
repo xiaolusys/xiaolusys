@@ -309,6 +309,10 @@ class DailyStat(BaseModel):
             total_amount=total_amount,
             total_order=total_order,
             total_purchase=total_purchase,
+            total_youni_stock=DailyStat.get_youni_stock(),
+            total_youni_amount=DailyStat.get_youni_total_amount(),
+            total_noyouni_stock=DailyStat.get_noyouni_stock(),
+            total_noyouni_amount=DailyStat.get_noyouni_total_amount(),
             daytime=daytime
         ).save()
         return
