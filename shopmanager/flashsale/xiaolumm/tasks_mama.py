@@ -355,11 +355,11 @@ def carryrecord_update_xiaolumama_active_hasale(mmid):
     from flashsale.xiaolumm.models import CarryRecord
     mama = XiaoluMama.objects.get(id=mmid)
     if not mama.active:
-        active = CarryRecord.objects.filter(mama_id=mmid, carry_type=1, status__in=[1, 2]).exists()
+        active = CarryRecord.objects.filter(mama_id=mmid, carry_type=CarryRecord.CR_CLICK, status__in=[1, 2]).exists()
         if active:
             mama.set_active()
     if not mama.hasale:
-        hasale = CarryRecord.objects.filter(mama_id=mmid, carry_type=2, status__in=[1, 2]).exists()
+        hasale = CarryRecord.objects.filter(mama_id=mmid, carry_type=CarryRecord.CR_ORDER, status__in=[1, 2]).exists()
         if hasale:
             mama.set_hasale()
     # if hasale and mama.hasale != hasale:
