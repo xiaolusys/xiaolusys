@@ -1,5 +1,5 @@
 # coding=utf-8
-
+import datetime
 from django.db.models import Sum
 from django.conf import settings
 from django.shortcuts import redirect
@@ -8,7 +8,7 @@ from rest_framework import exceptions
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import viewsets
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
 from flashsale.promotion.models import ActivityEntry
+
 
 def get_customer_id(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
@@ -127,6 +128,59 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
+    @detail_route(methods=['get'])
+    def get_instructor_lesson(self, request, pk, *args, **kwargs):
+        """
+        获取讲师课程
+        """
+        mama_id = get_mama_id(request.user)
+        customer = Customer.objects.filter(user=request.user).first()
+        redirect_url = request.data.get('next') or None
+        instruct_status = request.data.get('instruct_status') or 1
+        if not mama_id or not customer:
+            if redirect_url:
+                return redirect(redirect_url)
+            return Response({'code': 1, 'info': '您还不是小鹿妈妈哦~',
+                             'lesson_attend_record_url': '', 'lesson': {}, 'lesson_attend_rcds': []})
+        # 查看讲师记录
+        instructor = Instructor.objects.filter(mama_id=mama_id).first()
+        if instructor:
+            instructor.update_status(status=int(instruct_status))
+        else:  # 没有则创建讲师记录
+            instructor = Instructor.create_instruct(
+                name=customer.nick,
+                title='特聘讲师',
+                image=customer.thumbnail,
+                introduction='',
+                mama_id=mama_id,
+                status=instruct_status)
+        topic = self.get_object()
+        lesson_uni_key = '-'.join([str(topic.id), str(mama_id)])
+        # uni_key: lesson_topic_id + instructor_id
+        lesson = Lesson.objects.filter(uni_key=lesson_uni_key).first()
+        if not lesson:
+            lesson = Lesson.create_instruct_lesson(
+                lesson_topic_id=topic.id,
+                title=topic.title,
+                description=topic.description,
+                content_link=topic.content_link,
+                instructor_id=instructor.id,
+                instructor_name=instructor.name,
+                instructor_title=instructor.title,
+                instructor_image=instructor.image,
+                start_time=datetime.datetime.now(),
+                uni_key=lesson_uni_key,
+                status=1)
+        lesson_attend_rcds = LessonAttendRecord.objects.filter(lesson_id=lesson.id)
+        attend_serializer = lesson_serializers.LessonAttendRecordSerializer(lesson_attend_rcds, many=True)
+        serialiser = lesson_serializers.LessonSerializer(lesson)
+        return Response({'code': 0, 'info': '获取课程成功~',
+                         'lesson_attend_record_url': '{0}/rest/v1/users/weixin_login/?next={0}{1}'.format(
+                             settings.M_SITE_URL,
+                             '/static/wap/lessons/html/lesson-sign.html?lesson_id=%s' % lesson.id),
+                         'lesson': serialiser.data,
+                         'lesson_attend_rcds': attend_serializer.data})
+
 
 class LessonViewSet(viewsets.ModelViewSet):
     """
@@ -143,17 +197,13 @@ class LessonViewSet(viewsets.ModelViewSet):
     #permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    def get_queryset(self, request):
-        content = request.GET
-
-        lesson_id = content.get("lesson_id")
-        if lesson_id:
-            return self.queryset.filter(id=lesson_id)
-        
-        return self.queryset.filter(status=Lesson.STATUS_EFFECT)
-    
     def list(self, request, *args, **kwargs):
-        query_set = self.get_queryset(request)
+        lesson_id = request.REQUEST.get("lesson_id")
+        if lesson_id:
+            query_set = self.queryset.filter(id=lesson_id)
+        else:
+            query_set = self.queryset.filter(status=Lesson.STATUS_EFFECT)
+
         datalist = self.paginate_queryset(query_set)
 
         customer_id = get_customer_id(request.user)
@@ -177,6 +227,20 @@ class LessonViewSet(viewsets.ModelViewSet):
             res = Response({"code": 1, "msg": "no data"})
         #res['Access-Control-Allow-Origin'] = '*'
         return res
+
+    @detail_route(methods=['get'])
+    def lesson_sign(self, request, pk, *args, **kwargs):
+        lesson = self.get_object()
+        from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
+
+        customer = Customer.objects.filter(user=request.user).first()
+        if not customer:
+            return Response({'code': 1, 'info': '您还没有登陆哦~'})
+        userinfo = {'unionid': customer.unionid,
+                    'nickname': customer.nick,
+                    'headimgurl': customer.thumbnail}
+        task_create_lessonattendrecord.delay(lesson.id, userinfo)
+        return Response({'code': 0, 'info': '签到成功!'})
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
