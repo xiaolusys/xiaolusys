@@ -32,6 +32,11 @@ CATEGORY_HEALTH    = '3'
 CATEGORY_ACCESSORY = '4'
 CATEGORY_BAGS      = '6'
 
+MALL_PRODUCT_ENDCODE = '1'
+MALL_PARENT_STARTCODE = '1'
+MALL_CHILD_STARTCODE = '9'
+MALL_FEMALE_STARTCODE = '8'
+
 PROPERTY_NAMES = (
     ('model_code', u'商品编码'),
     ('material', u'商品材质'),
