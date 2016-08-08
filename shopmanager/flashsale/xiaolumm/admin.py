@@ -84,7 +84,6 @@ class XiaoluMamaAdmin(ApproxAdmin):
     group_select.allow_tags = True
     group_select.short_description = u"所属群组"
 
-
     def total_inout_item(self, obj):
 
         mm_clogs = CarryLog.objects.filter(xlmm=obj.id)  # .exclude(log_type=CarryLog.ORDER_RED_PAC)
@@ -417,7 +416,9 @@ from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, O
 class MamaFortuneAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'mama_name', 'mama_level', 'cash_num_display', 'carry_num_display',
                     'carry_pending_display', 'carry_confirmed_display', 'order_num',
-                    'fans_num', 'invite_num', 'invite_trial_num', 'invite_all_num', 'modified', 'created')
+                    'fans_num', 'invite_num', 'invite_trial_num', 'invite_all_num', 'active_normal_num',
+                    'active_trial_num', 'active_all_num', 'hasale_normal_num', 'hasale_trial_num', 'modified',
+                    'created')
     search_fields = ['=mama_id', '=mama_name']
 
 
@@ -582,7 +583,7 @@ class PotentialMamaAdmin(admin.ModelAdmin):
                     "nick",
                     "thumbnail",
                     "uni_key",
-                    "is_full_member","modified","created")
+                    "is_full_member", "modified", "created")
 
     list_filter = ("is_full_member",
                    'created',
@@ -686,6 +687,7 @@ class XlmmMessageAdmin(admin.ModelAdmin):
     list_filter = ()
     search_fields = ('id', "title", '=content_link')
     add_form_template = 'admin/xiaolumm/message/add_form.html'
+
     def to_mama(self, obj):
         return u'全体小鹿妈妈'
 
