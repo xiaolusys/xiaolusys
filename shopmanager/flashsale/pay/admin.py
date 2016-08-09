@@ -68,14 +68,14 @@ class SaleOrderInline(admin.TabularInline):
 
 class SaleOrderAdmin(ApproxAdmin):
     list_display = (
-    'id', 'show_trade', 'package_sku_item_link_to', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment',
-    'pay_time',
-    'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
+    'id', 'show_trade', 'package_sku_item_link_to', 'outer_id', 'title',
+    'outer_sku_id', 'sku_name', 'payment', 'pay_time','num', 'discount_fee',
+    'refund_fee', 'refund_status', 'status', 'sign_time', 'item_id')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('sign_time', DateFieldListFilter))
-    search_fields = ['=id', '=oid', '=sale_trade__tid', '=sale_trade__receiver_mobile', '=outer_id']
+    search_fields = ['=id', '^oid', '=sale_trade__tid', '=sale_trade__receiver_mobile', '=outer_id']
 
     def show_trade(self, obj):
         return '<a href="/admin/pay/saletrade/?id=%(trade_id)d">%(trade_id)d</a>' % {'trade_id': obj.sale_trade_id}

@@ -23,7 +23,7 @@ from common.utils import CSVUnicodeWriter
 from core.options import log_action, CHANGE, ADDITION
 from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDetailInBoundDetail, InBoundDetail, \
     InBound, ReturnGoods
-import functions
+from .. import functions
 from shopback.items.models import Product, ProductSku, ProductStock
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from flashsale.finance.models import Bill, BillRelation  # 财务记录model

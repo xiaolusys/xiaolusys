@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+{% load custom_filter %}
+<html lang="en">
+<head>
+    <title>采购绩效统计</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css"  href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+    <style>
+    * {
+        padding: 0 0;
+        margin: 0 0;
+    }
+    .chart-area{
+        float:left;
+    }
+    .chart{
+        margin: 30px 5px;
+        float:left;
+    }
+    .btn-group .btn{
+        display: inline;
+    }
+    #panel-left{
+        border-right: 1px solid #ddd;
+    }
+    .thumbnail{
+        margin-bottom: 0px;
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>买手绩效统计
+            <small>5天未到货统计，缺货退款统计，退货统计</small>
+            <div class="pull-right ">
+                <input class="inline" name="daterange">
+            </div>
+        </h1>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">5天未到货统计</div>
+      <div class="panel-body">
+        <table class="table table-striped">
+            <thead>
+                <tr><td class="col-xs-4">采购员</td>
+                    <td class="col-xs-4">5天未发货订单规格数量(颜色)</td>
+                    <td class="col-xs-4">5天未发货订单商品数量</td>
+                </tr>
+            </thead>
+            <tbody>
+            {% for stats in unpost_stats %}
+                <tr >
+                    <td>{{stats.0}}</td>
+                    <td>{{stats.1}}</td>
+                    <td>{{stats.2}}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">缺货退款统计</div>
+      <div class="panel-body">
+        <table class="table table-striped">
+            <thead>
+                <tr><td class="col-xs-4">采购员</td>
+                    <td class="col-xs-4">缺货退款规格数量(颜色)</td>
+                    <td class="col-xs-4">缺货退款订单商品数量</td>
+                </tr>
+            </thead>
+            <tbody>
+            {% for stats in lackrefund_stats %}
+                <tr >
+                    <td>{{stats.0}}</td>
+                    <td>{{stats.1}}</td>
+                    <td>{{stats.2}}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">退货统计</div>
+      <div class="panel-body">
+        <table class="table table-striped">
+            <thead>
+                <tr><td class="col-xs-3">采购员</td>
+                    <td class="col-xs-3">退库存规格数量(颜色)</td>
+                    <td class="col-xs-3">退库存商品数量</td>
+                    <td class="col-xs-3">退库存失败数量</td>
+                </tr>
+            </thead>
+            <tbody>
+            {% for stats in returngoods_stats %}
+                <tr >
+                    <td>{{stats.0}}</td>
+                    <td>{{stats.1}}</td>
+                    <td>{{stats.2}}</td>
+                    <td>{{stats.3}}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+<script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/moment.min.js"></script>
+
+<!-- Include Date Range Picker -->
+<script type="text/javascript" src="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap-daterangepicker/2.1.23/daterangepicker.min.css" />
+<script>
+$(function(){
+    $('input[name="daterange"]').daterangepicker(
+        {
+            locale: {
+              format: 'YYYY-MM-DD'
+            },
+            startDate: '{{start_time}}',
+            endDate: '{{end_time}}',
+            ranges: {
+               '今日': [moment(), moment()],
+               '昨日': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+               '过去七天': [moment().subtract(6, 'days'), moment()],
+               '过去一月': [moment().subtract(29, 'days'), moment()],
+               '本月': [moment().startOf('month'), moment().endOf('month')],
+               '上个月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        },
+        function(start, end, label) {
+            var path = window.location.pathname;
+            window.location.href = path+'?start_time='+ start.format('YYYY-MM-DD') + '&end_time=' + end.format('YYYY-MM-DD');
+        }
+    );
+})
+</script>
+
+</div>
+</body>
+</html>

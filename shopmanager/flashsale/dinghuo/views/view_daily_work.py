@@ -2,9 +2,8 @@
 __author__ = 'yann'
 
 import datetime
-import functions
+from .. import functions
 import json
-import re
 
 from django.contrib.auth.models import User
 from django.db import connection
@@ -334,7 +333,7 @@ from rest_framework import generics
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
-import function_of_task_optimize
+from .. import function_of_task_optimize
 
 
 class SkuAPIView(generics.ListCreateAPIView):

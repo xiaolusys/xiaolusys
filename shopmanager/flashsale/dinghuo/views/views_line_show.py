@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
-from .models import SaleInventoryStat
+from ..models import SaleInventoryStat
 from django.forms import model_to_dict
 import datetime
 import json
