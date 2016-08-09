@@ -458,6 +458,8 @@ class ModelProduct(BaseTagModel):
         """
         mds = cls.objects.filter(saleproduct__in=sale_product_ids, status=cls.NORMAL)
         for md in mds:
+            if md.shelf_status == cls.ON_SHELF:  # 如果是已经上架状态的款式则不去同步时间和专题类型
+                continue
             update_fields = []
             if md.onshelf_time != upshelf_time:
                 md.onshelf_time = upshelf_time
@@ -484,6 +486,42 @@ class ModelProduct(BaseTagModel):
         if update_fields:
             self.save(update_fields=update_fields)
             return True
+
+    @classmethod
+    def upshelf_right_now_models(cls):
+        """需要立即上架的款式"""
+        now = datetime.datetime.now()  # 现在时间在上架时间和下架时间之间　状态为正常 处于下架状态
+        return cls.objects.filter(
+            onshelf_time__lte=now, offshelf_time__gt=now,
+            status=cls.NORMAL,
+            shelf_status=cls.OFF_SHELF,
+            upshelf_time__isnull=False,
+            offshelf_time__isnull=False)
+
+    @classmethod
+    def offshelf_right_now_models(cls):
+        """需要立即下架的款式"""
+        now = datetime.datetime.now()  # 下架时间小于现在（在这之前就应该下架）　　状态正常　且处于　上架状态　的　产品
+        return cls.objects.filter(
+            offshelf_time__lte=now,
+            status=cls.NORMAL,
+            shelf_status=cls.ON_SHELF)
+
+    def upshelf_model(self):
+        """ 上架款式 """
+        if self.shelf_status != ModelProduct.ON_SHELF:
+            self.shelf_status = ModelProduct.ON_SHELF
+            self.save(update_fields=['shelf_status'])
+            return True
+        return False
+
+    def offshelf_model(self):
+        """ 下架款式 """
+        if self.shelf_status != ModelProduct.OFF_SHELF:
+            self.shelf_status = ModelProduct.OFF_SHELF
+            self.save(update_fields=['shelf_status'])
+            return True
+        return False
 
 
 def update_product_details_info(sender, instance, created, **kwargs):
