@@ -530,12 +530,10 @@ class AwardCarry(BaseModel):
         return None
 
     @staticmethod
-    def send_award(mama, num, name, description, uni_key, status=1, carry_type=4,
+    def send_award(mama, num, name, description, uni_key, status, carry_type,
                    contributor_nick=None, contributor_img=None, contributor_mama_id=None):
         repeat_one = AwardCarry.objects.filter(uni_key=uni_key).first()
         if repeat_one:
-            if repeat_one.status == 3:
-                AwardCarry.objects.filter(uni_key=uni_key).update(status=1)
             return repeat_one
         ac = AwardCarry(
             mama_id=mama.id,
