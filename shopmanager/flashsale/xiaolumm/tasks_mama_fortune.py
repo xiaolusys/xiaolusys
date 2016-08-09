@@ -293,7 +293,7 @@ def task_update_mamafortune_hasale_num(mama_id):
 
 
 @task()
-def task_send_activite_award(mama_id):
+def task_send_activate_award(mama_id):
     from flashsale.xiaolumm.models import XiaoluMama
     from flashsale.xiaolumm.models.models_fortune import AwardCarry
     mama = XiaoluMama.objects.filter(id=mama_id).first()

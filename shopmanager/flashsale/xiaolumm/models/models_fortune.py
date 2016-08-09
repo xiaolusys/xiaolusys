@@ -198,13 +198,13 @@ post_save.connect(copy_history_cash,
                   sender=MamaFortune, dispatch_uid='post_save_copy_history_cash')
 
 
-def send_activite_award(sender, instance, created, **kwargs):
+def send_activate_award(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     if instance.invite_trial_num >= 2:
-        tasks_mama_fortune.task_send_activite_award.delay(instance.mama_id)
+        tasks_mama_fortune.task_send_activate_award.delay(instance.mama_id)
 
-post_save.connect(send_activite_award,
-                  sender=MamaFortune, dispatch_uid='post_save_copy_history_cash')
+post_save.connect(send_activate_award,
+                  sender=MamaFortune, dispatch_uid='post_save_send_activate_award')
 
 
 
