@@ -133,7 +133,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
     click_state.short_description = u"妈妈统计"
 
     def mama_Verify(self, obj):
-        from .views import get_Deposit_Trade
+        from flashsale.xiaolumm.views.views import get_Deposit_Trade
 
         trade = get_Deposit_Trade(obj.openid, obj.mobile)
         if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE and trade is not None:  # 该代理没有管理员 并且没有被接管
