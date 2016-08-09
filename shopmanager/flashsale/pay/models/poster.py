@@ -67,10 +67,10 @@ class GoodShelf(PayBaseModel):
     def get_cat_imgs(self):
         return [
             {'id': 5, 'name': u'童装专区',
-             'cat_img': 'http://img.xiaolumeimei.com/top101469803077209child.png',
+             'cat_img': 'http://img.xiaolumeimei.com/top101470714441794child.jpg',
              'cat_link': '/mall/product/list/child'},
             {'id': 8, 'name': u'女装专区',
-             'cat_img': 'http://img.xiaolumeimei.com/top101469803308483women.png',
+             'cat_img': 'http://img.xiaolumeimei.com/top101470714481475women.jpg',
              'cat_link': '/mall/product/list/lady'},
         ]
 
