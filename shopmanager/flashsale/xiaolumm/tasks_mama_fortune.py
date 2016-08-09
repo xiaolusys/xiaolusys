@@ -319,7 +319,7 @@ def task_send_activite_award(mama_id):
         200: u'已邀请200位店主,再奖300元!'
     }
     for num in data:
-        if fortune.active_trial_num >= num:
+        if fortune.invite_trial_num >= num:
             uni_key = 'activite_award_%d_%d' % (num, mama.id)
             AwardCarry.send_award(mama, data[num], u'激活奖励', data_desc[num], uni_key, status=2, carry_type=7)
 
