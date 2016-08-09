@@ -495,7 +495,7 @@ class ModelProduct(BaseTagModel):
             onshelf_time__lte=now, offshelf_time__gt=now,
             status=cls.NORMAL,
             shelf_status=cls.OFF_SHELF,
-            upshelf_time__isnull=False,
+            onshelf_time__isnull=False,
             offshelf_time__isnull=False)
 
     @classmethod
