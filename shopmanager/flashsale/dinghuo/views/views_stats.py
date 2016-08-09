@@ -1,5 +1,5 @@
 
-import datetime
+from datetime import datetime, time, timedelta
 from collections import defaultdict
 from django.db.models import Sum
 
@@ -55,12 +55,12 @@ class PurchaseStatsApiView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        dt = datetime.datetime.today()
+        dt = datetime.now().date()
         start_dt = request.GET.get('start_time')
         end_dt   = request.GET.get('end_time')
 
-        start_dt = start_dt and datetime.datetime.strptime(start_dt,'%Y-%m-%d') or dt - datetime.timedelta(days=7)
-        end_dt   = end_dt and datetime.datetime.strptime(end_dt, '%Y-%m-%d') or dt
+        start_dt = start_dt and datetime.combine(datetime.strptime(start_dt,'%Y-%m-%d'), time.min) or dt - timedelta(days=7)
+        end_dt   = end_dt and datetime.combine(datetime.strptime(end_dt, '%Y-%m-%d'), time.max) or datetime.combine(dt, time.max)
 
         unpost_stats = []
         lackrefund_stats = []
