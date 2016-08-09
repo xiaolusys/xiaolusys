@@ -12,7 +12,7 @@ from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, Aw
 
 # 在下次活动前设置此处，以自动重设变更统计时间
 STAT_TIME = datetime.datetime(2016, 7, 29)
-
+STAT_END_TIME = datetime.datetime(2016, 8, 13)
 
 # if datetime.datetime.now() < datetime.datetime(2016, 7, 28) \
 # else datetime.datetime(2016, 7, 28)
@@ -131,7 +131,7 @@ class MamaCarryTotal(BaseModel):
         mama_id = self.mama_id
         if query_history:
             self.set_history_data()
-        sum_res = CarryRecord.objects.filter(date_field__gte=STAT_TIME, mama_id=mama_id).exclude(
+        sum_res = CarryRecord.objects.filter(date_field__range=(STAT_TIME, STAT_END_TIME), mama_id=mama_id).exclude(
             status=CarryRecord.CANCEL). \
             values('status').annotate(total=Sum('carry_num'))
         sum_dict = {entry["status"]: entry["total"] for entry in sum_res}
@@ -166,26 +166,13 @@ class MamaCarryTotal(BaseModel):
             return MamaCarryTotal.generate(mama_id)
         return MamaCarryTotal.objects.get(mama_id=mama_id)
 
-    def get_history_total(self):  # 排除324
-        #     order_carry_sum = OrderCarry.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
-        #                                                 created__lt=STAT_TIME, status=2).aggregate(
-        #         total=Sum('carry_num')).get('total') or 0
-        #     award_carry_sum = AwardCarry.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
-        #                                                 created__lt=STAT_TIME, status=2).aggregate(
-        #         total=Sum('carry_num')).get('total') or 0
-        #     click_carry_sum = ClickCarry.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
-        #                                                 created__lt=STAT_TIME, status=2).aggregate(
-        #         total=Sum('total_value')).get('total') or 0
+    def get_history_total(self):
         cr_history = CarryRecord.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY,
                                                 date_field__lt=STAT_TIME, status__in=[1, 2]).aggregate(carry=Sum('carry_num')).get('carry') or 0
-        CarryRecord.objects.filter(mama_id=self.mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY, )
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
         history_confirmed = fortune.history_confirmed if fortune else 0
-        history_cash_out = CashOut.objects.filter(xlmm=self.mama_id, status=CashOut.APPROVED,
-                                                  approve_time__lt=MAMA_FORTUNE_HISTORY_LAST_DAY).aggregate(
-            total=Sum('value')).get('total') or 0
+        history_cash_out = fortune.history_cash_out
         return cr_history + history_confirmed + history_cash_out
-        # return order_carry_sum + award_carry_sum + click_carry_sum + history_confirmed + history_cash_out
 
     @staticmethod
     def move_other_stat_to_record():
@@ -347,12 +334,21 @@ class MamaCarryTotal(BaseModel):
 
 
 def multi_update(model_class, key_attr, value_attr, res):
+    if not res:
+        raise Exception('set values res empty')
     sql_begin = 'UPDATE %s SET %s = CASE %s ' % (model_class._meta.db_table, value_attr, key_attr)
     sql_whens = ['WHEN ' + str(id) + ' THEN ' + str(res[id]) for id in res]
     sql_end = ' END'
-    sql = sql_begin + ' '.join(sql_whens) + sql_end
+    sql_whens_list = []
+    # 至多一次更新2000W,更多要更新数据库架构啦
+    SLICE_LEN = 20000
+    for i in range(0, 1000):
+        slice = sql_whens[i*SLICE_LEN: i*SLICE_LEN + SLICE_LEN]
+        sql_whens_list.append(slice)
     cursor = connection.cursor()
-    cursor.execute(sql)
+    for item in sql_whens_list:
+        sql = sql_begin + ' '.join(item) + sql_end
+        cursor.execute(sql)
     cursor.close()
 
 
@@ -669,7 +665,7 @@ class CarryTotalRecord(BaseModel):
         verbose_name_plural = u'小鹿妈妈收益排名记录'
 
     @staticmethod
-    def create(carry_total, save=True):
+    def create(carry_total, save=True, record_time=None, type=0):
         record = CarryTotalRecord(
             mama_id=carry_total.mama_id,
             last_renew_type=carry_total.last_renew_type,
@@ -682,6 +678,8 @@ class CarryTotalRecord(BaseModel):
             history_num=carry_total.history_num,
             duration_num=carry_total.duration_num,
             carry_records=carry_total.carry_records,
+            record_time=datetime.datetime.now() if record_time is None else record_time,
+            type=type
         )
         if save:
             record.save()
@@ -696,7 +694,8 @@ class CarryTotalRecord(BaseModel):
                 mama=m,
                 total_rank=rank,
                 history_total=m.history_total,
-                duration_total=m.duration_total
+                duration_total=m.duration_total,
+                type=1
             ).save()
             rank += 1
         duration_rank = 1
@@ -709,6 +708,23 @@ class CarryTotalRecord(BaseModel):
             c.duration_rank = duration_rank
             c.save()
             duration_rank += 1
+
+    @staticmethod
+    def snapshot_per_week(record_week):
+        """
+            record_week: 统计的周
+        :param record_week:
+        :return:
+        """
+        moves = []
+        for i in MamaCarryTotal.objects.filter(stat_time=STAT_TIME):
+            c = CarryTotalRecord.create(i, save=False, record_time=record_week, type=1)
+            moves.append(c)
+        CarryTotalRecord.objects.bulk_create(moves)
+
+
+def get_week_begin():
+    return datetime.datetime.now().date() - datetime.timedelta(days=datetime.datetime.now().weekday())
 
 
 class TeamCarryTotalRecord(BaseModel):
@@ -757,3 +773,4 @@ class TeamCarryTotalRecord(BaseModel):
         if save:
             record.save()
         return record
+
