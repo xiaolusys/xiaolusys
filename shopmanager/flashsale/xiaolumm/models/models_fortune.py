@@ -200,7 +200,7 @@ post_save.connect(copy_history_cash,
 
 def send_activite_award(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    if instance.active_trial_num >= 20:
+    if instance.invite_trial_num >= 2:
         tasks_mama_fortune.task_send_activite_award.delay(instance.mama_id)
 
 post_save.connect(send_activite_award,
