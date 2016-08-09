@@ -347,8 +347,9 @@ def multi_update(model_class, key_attr, value_attr, res):
         sql_whens_list.append(slice)
     cursor = connection.cursor()
     for item in sql_whens_list:
-        sql = sql_begin + ' '.join(item) + sql_end
-        cursor.execute(sql)
+        if item:
+            sql = sql_begin + ' '.join(item) + sql_end
+            cursor.execute(sql)
     cursor.close()
 
 
