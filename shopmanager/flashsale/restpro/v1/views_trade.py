@@ -891,7 +891,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def logger_request(self, request):
         data = request.POST
         cookies = dict([(k, v) for k, v in request.COOKIES.items() if k in ('mm_linkid', 'ufrom')])
-        logger.info({'code': 0, 'info': u'付款请求', 'channel': data.get('channel'),
+        logger.info({'code': 0, 'info': u'付款请求v2', 'channel': data.get('channel'),
                      'user_agent':request.META.get('HTTP_USER_AGENT'), 'cookies':cookies,
                      'stype': 'restpro.trade', 'tid': data.get('uuid'), 'payment': data.get('payment')})
 
