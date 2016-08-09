@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 from rest_framework import generics, viewsets, permissions, authentication, renderers
 from rest_framework.decorators import detail_route, list_route
-from .models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
-from .serializers import *
+from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
+from flashsale.xiaolumm.serializers import *
 import logging
 
 log = logging.getLogger('django.request')

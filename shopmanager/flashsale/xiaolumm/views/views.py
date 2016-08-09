@@ -26,8 +26,8 @@ from flashsale.pay.models import SaleTrade, Customer, SaleRefund, Envelop, SaleO
 from shopapp.weixin.models import WeiXinUser
 from shopapp.weixin.options import get_unionid_by_openid
 from shopapp.weixin.views import valid_openid
-from .models import XiaoluMama, CashOut, CarryLog
-from .serializers import CashOutSerializer, CarryLogSerializer
+from flashsale.xiaolumm.models import XiaoluMama, CashOut, CarryLog
+from flashsale.xiaolumm.serializers import CashOutSerializer, CarryLogSerializer
 
 logger = logging.getLogger(__name__)
 json_logger = logging.getLogger('service.xiaolumama')
@@ -889,7 +889,7 @@ def create_coupon(sale_orders):
     return cou
 
 
-from .tasks import task_mama_Verify_Action
+from flashsale.xiaolumm.tasks import task_mama_Verify_Action
 
 
 @csrf_exempt

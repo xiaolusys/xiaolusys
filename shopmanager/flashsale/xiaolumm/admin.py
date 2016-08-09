@@ -460,7 +460,7 @@ class AwardCarryAdmin(admin.ModelAdmin):
     search_fields = ('=mama_id', '=contributor_nick',)
 
     def contributor_img_html(self, obj):
-        return '<img src="%s">' % (obj.contributor_img_html,)
+        return '<img src="%s">' % (obj.contributor_img,)
     contributor_img_html.short_description = u'头像'
     contributor_img_html.allow_tags = True
 

@@ -1,7 +1,7 @@
 # coding=utf-8
 __author__ = 'yan.huang'
-from .models.message import XlmmMessage
-from .serializers import XlmmMessageSerializers
+from flashsale.xiaolumm.models.message import XlmmMessage
+from flashsale.xiaolumm.serializers import XlmmMessageSerializers
 from rest_framework.response import Response
 from rest_framework import exceptions
 from rest_framework import generics, viewsets, permissions, authentication, renderers

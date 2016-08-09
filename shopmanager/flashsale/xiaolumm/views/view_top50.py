@@ -2,7 +2,7 @@
 __author__ = 'linjie'
 
 import datetime
-from .models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.clickcount.models import ClickCount, WeekCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 from django.db import connection, transaction

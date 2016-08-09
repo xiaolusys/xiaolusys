@@ -1,17 +1,17 @@
 from django.conf.urls import patterns, url
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
-from django.views.generic import TemplateView
 from django.views.decorators.cache import cache_page
-
+from django.views.generic import TemplateView
 from rest_framework import routers
 
-from . import views, views_duokefu, views_top100_iter, views_xlmminfo, views_order_percent, top_view_api
-from . import views_register
-from . import views_xlmm_active, views_xlmm_adver, views_cashout
-from flashsale.pay.decorators import weixin_xlmm_auth
-from flashsale.pay import constants
 from core.weixin.decorators import weixin_authlogin_required
+from flashsale.pay import constants
+from flashsale.pay.decorators import weixin_xlmm_auth
+from flashsale.xiaolumm.views import views_top100_iter
+from . import top_view_api
+from views import views, views_duokefu, views_xlmminfo, views_order_percent
+from views import views_register
+from views import views_xlmm_active, views_xlmm_adver, views_cashout
 
 urlpatterns = patterns('',
                        url(r'^$', views.landing),
@@ -95,7 +95,7 @@ urlpatterns = patterns('',
 
                        )
 
-from flashsale.xiaolumm.views_advertis import NinePicAdverViewSet
+from flashsale.xiaolumm.views.views_advertis import NinePicAdverViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'ninepic', NinePicAdverViewSet)
