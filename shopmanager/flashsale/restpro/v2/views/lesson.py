@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from rest_framework import filters
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm import util_unikey
 from ..serializers import lesson_serializers
 
 import logging
@@ -235,12 +236,15 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         customer = Customer.objects.filter(user=request.user).first()
         if not customer:
-            return Response({'code': 1, 'info': '您还没有登陆哦~'})
+            return Response({'code': 1, 'info': '您还没有登陆哦~', 'attend_record': {}})
         userinfo = {'unionid': customer.unionid,
                     'nickname': customer.nick,
                     'headimgurl': customer.thumbnail}
         task_create_lessonattendrecord.delay(lesson.id, userinfo)
-        return Response({'code': 0, 'info': '签到成功!'})
+        uni_key = util_unikey.gen_lessonattendrecord_unikey(lesson.id, customer.unionid)
+        record = LessonAttendRecord.objects.filter(uni_key=uni_key).first()
+        serializer = lesson_serializers.LessonAttendRecordSerializer(record)
+        return Response({'code': 0, 'info': '签到成功!', 'attend_record': serializer.data})
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
