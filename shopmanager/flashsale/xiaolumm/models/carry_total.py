@@ -171,7 +171,7 @@ class MamaCarryTotal(BaseModel):
                                                 date_field__lt=STAT_TIME, status__in=[1, 2]).aggregate(carry=Sum('carry_num')).get('carry') or 0
         fortune = MamaFortune.objects.filter(mama_id=self.mama_id).first()
         history_confirmed = fortune.history_confirmed if fortune else 0
-        history_cash_out = fortune.history_cash_out
+        history_cash_out = fortune.history_cashout
         return cr_history + history_confirmed + history_cash_out
 
     @staticmethod
