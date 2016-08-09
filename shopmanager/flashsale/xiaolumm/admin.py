@@ -455,7 +455,7 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 
 class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'carry_description', 'contributor_nick',
-                    'contributor_img_html', 'contributor_mama_id', 'status')
+                    'contributor_img_html', 'contributor_mama_id', 'status', 'modified', 'created')
     list_filter = ('status', 'carry_type',)
     search_fields = ('=mama_id', '=contributor_nick',)
 
