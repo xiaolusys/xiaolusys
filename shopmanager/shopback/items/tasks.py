@@ -1104,7 +1104,7 @@ def task_auto_shelf_prods():
 
         systemoa = get_systemoa_user()
         offshelf_models = ModelProduct.offshelf_right_now_models()
-        onshelf_models = ModelProduct.offshelf_right_now_models()
+        onshelf_models = ModelProduct.upshelf_right_now_models()
 
         onshelf_pros = Product.upshelf_right_now_products()  # 要立即上架的产品
         offshelf_pros = Product.offshelf_right_now_products()  # 要立即下架的产品
