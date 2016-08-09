@@ -301,50 +301,44 @@ def task_send_activite_award(mama_id):
         return
     fortune = MamaFortune.get_by_mamaid(mama_id)
     data = {
-        20: 20,
-        50: 60,
+          2: 5,
+          5: 10,
+         10: 15,
+         20: 20,
+         50: 30,
         100: 120,
         200: 300
     }
     data_desc = {
-        20: u'满20人奖20元',
-        50: u'满50人再奖60元',
-        100: u'满100人再奖120元',
-        200: u'满200人再奖300元'
+          2: u'已邀请2位店主,奖5元!',
+          5: u'已邀请5位店主,再奖10元!',
+         10: u'已邀请10位店主,再奖15元!',
+         20: u'已邀请20位店主,再奖20元!',
+         50: u'已邀请50位店主,再奖30元!',
+        100: u'已邀请100位店主,再奖120元!',
+        200: u'已邀请200位店主,再奖300元!'
     }
     for num in data:
         if fortune.active_trial_num >= num:
             uni_key = 'activite_award_%d_%d' % (num, mama.id)
-            AwardCarry.send_award(mama, data[num], u'激活奖励', data_desc[num], uni_key)
+            AwardCarry.send_award(mama, data[num], u'激活奖励', data_desc[num], uni_key, status=2, carry_type=7)
 
 
 @task(max_retries=3, default_retry_delay=6)
 def task_first_order_send_award(mama):
     from flashsale.xiaolumm.models.models_fortune import AwardCarry
-    sum_res = OrderCarry.objects.filter(mama_id=mama.id, created__gte=mama.created).values('status').annotate(
-        cnt=Count('id'))
-    sum_dict = {item['status']: item['cnt'] for item in sum_res}
+    
+    oc = OrderCarry.objects.filter(mama_id=mama.id, created__gte=mama.created).exclude(carry_type=3).exclude(status=0).exclude(status=3).first()
+    if not oc:
+        return
+    
     uni_key = 'trial_first_order_award_%d' % (mama.id,)
     repeat = AwardCarry.objects.filter(uni_key=uni_key).first()
-    if not sum_dict.get(1) and not sum_dict.get(2):
-        if repeat and repeat.status != 3:
-            repeat.status = 3
-            repeat.save()
-    elif sum_dict.get(2):
-        if repeat:
-            if repeat.status != 2:
-                repeat.status = 2
-                repeat.save()
-        else:
-            AwardCarry.send_award(mama, 5, u'首单奖励', u'一元小鹿妈妈首单奖励', uni_key)
-    elif sum_dict[1]:
-        if repeat:
-            if repeat.status != 1:
-                repeat.status = 1
-                repeat.save()
-        else:
-            AwardCarry.send_award(mama, 5, u'首单奖励', u'一元小鹿妈妈首单奖励', uni_key)
+    if repeat:
+        return
 
+    AwardCarry.send_award(mama, 5, u'首单奖励', u'首单奖励,继续加油！', uni_key, status=2, carry_type=5)
+    
 
 @task(max_retries=3, default_retry_delay=6)
 def task_new_guy_task_complete_send_award(mama):
@@ -356,7 +350,7 @@ def task_new_guy_task_complete_send_award(mama):
     active_time = datetime.datetime(2016, 7, 22, 10, 0, 0)
     if isinstance(mama.charge_time, datetime.datetime) and mama.charge_time >= active_time:
         uni_key = 'new_guy_task_complete_award_5_%d' % (mama.id,)
-        AwardCarry.send_award(mama, 10, u'新手任务奖励', u'新手妈妈完成新手任务奖励', uni_key, status=2)  # 确定收益
+        AwardCarry.send_award(mama, 10, u'新手任务奖励', u'完成新手任务奖励', uni_key, status=2, carry_type=4)  # 确定收益
 
         referal_mama = XiaoluMama.objects.filter(referal_from=mama.referal_from).first()
         if not referal_mama:
@@ -367,8 +361,8 @@ def task_new_guy_task_complete_send_award(mama):
             return
         uni_key = 'new_guy_task_complete_award_10_%d' % (referal_mama.id,)
         customer = mama.get_mama_customer()
-        AwardCarry.send_award(referal_mama, 10, u'新手任务奖励', u'新手推荐人完成新手任务推荐人奖励', uni_key,
-                              status=2,
+        AwardCarry.send_award(referal_mama, 10, u'新手任务奖励', u'推荐妈妈完成新手任务奖励', uni_key,
+                              status=2, carry_type=6,
                               contributor_nick=customer.nick,
                               contributor_img=customer.thumbnail,
                               contributor_mama_id=mama.id)  # 确定收益

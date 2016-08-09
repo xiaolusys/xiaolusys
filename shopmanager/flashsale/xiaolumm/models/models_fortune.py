@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.db import models
+from django.db.models import Sum
 from core.models import BaseModel
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -84,6 +85,7 @@ class MamaFortune(BaseModel):
 
     history_pending = models.IntegerField(default=0, verbose_name=u'历史待确定收益')
     history_confirmed = models.IntegerField(default=0, verbose_name=u'历史已确定收益')
+    history_cashout = models.IntegerField(default=0, verbose_name=u'历史已提现收益')
     history_last_day = models.DateField(default=MAMA_FORTUNE_HISTORY_LAST_DAY, verbose_name=u'历史结束日期')
 
     active_value_num = models.IntegerField(default=0, verbose_name=u'活跃值')
@@ -156,6 +158,12 @@ class MamaFortune(BaseModel):
     @property
     def app_download_qrcode_url(self):
         return self.extras['qrcode_url']['app_download_qrcode_url']
+
+    def get_history_cash_out(self):
+        from flashsale.xiaolumm.models import CashOut
+        history_last_day= self.history_last_day or MAMA_FORTUNE_HISTORY_LAST_DAY
+        return CashOut.objects.filter(xlmm=self.mama_id, status=CashOut.APPROVED, approve_time__lt=history_last_day
+                                      ).aggregate(total=Sum('value')).get('total') or 0
 
     def update_extras_qrcode_url(self, **kwargs):
         """ 更新附加里面的二维码链接信息 """
@@ -484,7 +492,7 @@ post_save.connect(ordercarry_update_order_number,
 
 
 class AwardCarry(BaseModel):
-    AWARD_TYPES = ((1, u'直荐奖励'), (2, u'团队奖励'), (3, u'授课奖金'), (4, u'任务奖励'))
+    AWARD_TYPES = ((1, u'直荐奖励'),(2, u'团队奖励'),(3, u'授课奖金'),(4, u'新手任务'),(5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'))
     STATUS_TYPES = ((1, u'预计收益'), (2, u'确定收益'), (3, u'已取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
@@ -530,17 +538,15 @@ class AwardCarry(BaseModel):
         return None
 
     @staticmethod
-    def send_award(mama, num, name, description, uni_key, status=1,
+    def send_award(mama, num, name, description, uni_key, status, carry_type,
                    contributor_nick=None, contributor_img=None, contributor_mama_id=None):
         repeat_one = AwardCarry.objects.filter(uni_key=uni_key).first()
         if repeat_one:
-            if repeat_one.status == 3:
-                AwardCarry.objects.filter(uni_key=uni_key).update(status=1)
             return repeat_one
         ac = AwardCarry(
             mama_id=mama.id,
             carry_num=num * 100,
-            carry_type=4,
+            carry_type=carry_type,
             date_field=datetime.datetime.now().date(),
             carry_plan_name=name,
             carry_description=description,
