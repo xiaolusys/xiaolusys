@@ -95,6 +95,33 @@ class Instructor(BaseModel):
     def apply_date(self):
         return self.created.date()
 
+    def update_status(self, status):
+        if self.status != status:
+            self.status = status
+            self.save(update_fields=['status'])
+            return True
+        return False
+
+    @classmethod
+    def create_instruct(cls,
+                        name,
+                        title,
+                        image,
+                        introduction,
+                        mama_id,
+                        status):
+        instruct = cls.objects.filter(mama_id=mama_id).first()
+        if instruct:
+            return instruct
+        instruct = cls(name=name,
+                       title=title,
+                       image=image,
+                       introduction=introduction,
+                       mama_id=mama_id,
+                       status=status)
+        instruct.save()
+        return instruct
+
 
 class Lesson(BaseModel):
     STATUS_EFFECT = 1
@@ -124,6 +151,15 @@ class Lesson(BaseModel):
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
 
     status = models.IntegerField(db_index=True, default=1, choices=STATUS_TYPES, verbose_name=u'状态')
+
+    class Meta:
+        db_table = 'flashsale_xlmm_lesson'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿大学/课程'
+        verbose_name_plural = u'小鹿大学/课程列表'
+
+    def __unicode__(self):
+        return "%s:%s:%s" % (self.title, self.instructor_name, self.start_time)
 
     @property
     def status_display(self):
@@ -169,14 +205,36 @@ class Lesson(BaseModel):
     def is_confirmed(self):
         return self.status == Lesson.STATUS_FINISHED
 
-    class Meta:
-        db_table = 'flashsale_xlmm_lesson'
-        app_label = 'xiaolumm'
-        verbose_name = u'小鹿大学/课程'
-        verbose_name_plural = u'小鹿大学/课程列表'
+    @classmethod
+    def create_instruct_lesson(cls,
+                               lesson_topic_id,
+                               title,
+                               description,
+                               content_link,
+                               instructor_id,
+                               instructor_name,
+                               instructor_title,
+                               instructor_image,
+                               start_time,
+                               uni_key,
+                               status):
+        lesson = cls.objects.filter(uni_key=uni_key).first()
+        if lesson:
+            return lesson
+        lesson = cls(lesson_topic_id=lesson_topic_id,
+                     title=title,
+                     description=description,
+                     content_link=content_link,
+                     instructor_id=instructor_id,
+                     instructor_name=instructor_name,
+                     instructor_title=instructor_title,
+                     instructor_image=instructor_image,
+                     start_time=start_time,
+                     uni_key=uni_key,
+                     status=status)
+        lesson.save()
+        return lesson
 
-    def __unicode__(self):
-        return "%s:%s:%s" % (self.title, self.instructor_name, self.start_time)
 
 def lesson_update_instructor_attender_num(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_lesson import task_lesson_update_instructor_attender_num
