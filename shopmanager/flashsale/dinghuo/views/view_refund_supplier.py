@@ -22,7 +22,7 @@ import json
 import datetime
 import common.utils
 from core.options import log_action, ADDITION, CHANGE
-from tasks import calcu_refund_info_by_pro_v2
+from ..tasks import calcu_refund_info_by_pro_v2
 from shopback.logistics.models import LogisticsCompany
 
 logger = logging.getLogger('django.request')
@@ -34,7 +34,7 @@ from rest_framework import generics, permissions, renderers, viewsets
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from rest_framework.decorators import list_route, detail_route
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
-from . import forms
+from .. import forms
 
 
 def get_sale_product(sale_product):

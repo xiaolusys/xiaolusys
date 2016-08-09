@@ -11,11 +11,11 @@ from rest_framework import authentication
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import parser_classes
 
-from .models import LackGoodOrder, OrderList
+from ..models import LackGoodOrder, OrderList
 from flashsale.pay.models import SaleOrder, SaleRefund
 from flashsale.coupon.models import UserCoupon
 from flashsale.coupon.constants import LACK_REFUND_COUPON_TEMPLATE_ID
-from . import serializers
+from .. import serializers
 
 from flashsale.pay import apis
 

@@ -16,11 +16,11 @@ from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       OrderDetailInBoundDetail)
 from shopback.items.models import Product,ProductSku
 from supplychain.supplier.models import SaleProduct, SaleSupplier
-from . import forms, functions, functions2view, models
+from .. import forms, functions, functions2view, models
 from django.shortcuts import get_object_or_404
 from django.shortcuts import HttpResponseRedirect
 
-from . import services
+from .. import services
 
 import logging
 logger = logging.getLogger(__name__)

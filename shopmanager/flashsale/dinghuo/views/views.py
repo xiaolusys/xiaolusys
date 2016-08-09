@@ -31,7 +31,7 @@ from shopback.items.models import Product, ProductSku, ProductStock, ProductLoca
 from shopback.categorys.models import ProductCategory
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
-from . import forms, functions, functions2view, models
+from .. import forms, functions, functions2view, models
 
 
 def search_product(request):
