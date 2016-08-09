@@ -92,7 +92,7 @@ def task_cashout_update_mamafortune(mama_id):
 
 @task(max_retries=3, default_retry_delay=6)
 def task_carryrecord_update_mamafortune(mama_id):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
     carrys = CarryRecord.objects.filter(mama_id=mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY).values(
         'status').annotate(carry=Sum('carry_num'))
@@ -103,14 +103,12 @@ def task_carryrecord_update_mamafortune(mama_id):
         elif entry["status"] == 2:  # confirmed
             carry_confirmed = entry["carry"]
 
-    fortunes = MamaFortune.objects.filter(mama_id=mama_id)
-    if fortunes.count() > 0:
-        fortune = fortunes[0]
+    fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
+    if fortune:
         if fortune.carry_pending != carry_pending or fortune.carry_confirmed != carry_confirmed:
-            fortunes.update(carry_pending=carry_pending, carry_confirmed=carry_confirmed)
-            # fortune.carry_pending   = carry_pending
-            # fortune.carry_confirmed = carry_confirmed
-            # fortune.save()
+            fortune.carry_pending   = carry_pending
+            fortune.carry_confirmed = carry_confirmed
+            fortune.save(update_fields=['carry_pending','carry_confirmed'])
     else:
         try:
             create_mamafortune_with_integrity(mama_id, carry_pending=carry_pending, carry_confirmed=carry_confirmed)
