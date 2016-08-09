@@ -5,10 +5,10 @@
 用户：负责记录用户优惠券持有状态,使用价值等信息
 """
 import datetime
-
+import random
 from django.db import models
 from django.db.models.signals import post_save
-
+from flashsale.coupon import tasks
 from flashsale.pay.options import uniqid
 from core.models import BaseModel
 from core.fields import JSONCharMyField
@@ -220,6 +220,58 @@ class CouponTemplate(BaseModel):
         # 检查产品后检查分类(检查设置了绑定产品并且绑定了类目的情况)
         self.check_category(product_ids)
 
+    def can_send(self):
+        coupons = UserCoupon.objects.filter(template_id=self.id)
+        tpl_release_count = coupons.count()  # 当前模板的优惠券条数
+        return tpl_release_count > self.prepare_release_num
+
+    def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id=None, cashout_id=None):
+        uniqs = [str(tpl.id), str(tpl.coupon_type), str(customer_id)]
+        if tpl.coupon_type == CouponTemplate.TYPE_NORMAL:  # 普通类型 1
+            uniqs = uniqs
+
+        elif tpl.coupon_type == CouponTemplate.TYPE_ORDER_BENEFIT and trade_id:  # 下单红包 2
+            uniqs.append(str(trade_id))
+
+        elif tpl.coupon_type == CouponTemplate.TYPE_ORDER_SHARE and share_id:  # 订单分享 3
+            uniqs.append(str(share_id))
+
+        elif tpl.coupon_type == CouponTemplate.TYPE_MAMA_INVITE and trade_id:  # 推荐专享 4
+            uniqs.append(str(trade_id))  # 一个专属链接可以有多个订单
+
+        elif tpl.coupon_type == CouponTemplate.TYPE_COMPENSATE and refund_trade_id:  # 售后补偿 5
+            uniqs.append(str(refund_trade_id))
+
+        elif tpl.coupon_type == CouponTemplate.TYPE_ACTIVE_SHARE and share_id:  # 活动分享 6
+            uniqs.append(str(share_id))
+
+        elif tpl.coupon_type == CouponTemplate.TYPE_CASHOUT_EXCHANGE and cashout_id:  # 优惠券兑换　7
+            uniqs.append(str(cashout_id))
+        else:
+            raise Exception('Template type is tpl.coupon_type : %s !' % tpl.coupon_type)
+        return '_'.join(uniqs)
+
+    def calculate_value_and_time(tpl):
+        """
+        计算发放优惠券价值和开始使用时间和结束时间
+        """
+        value = tpl.value  # 默认取模板默认值
+        if tpl.is_random_val and tpl.min_val and tpl.max_val:  # 如果设置了随机值则选取随机值
+            value = float('%.1f' % random.uniform(tpl.max_val, tpl.min_val))  # 生成随机的value
+
+        expires_time = tpl.use_deadline
+        start_use_time = datetime.datetime.now()
+        if tpl.is_flextime:  # 如果是弹性时间
+            # 断言设置弹性时间的时候 仅仅设置一个 定制日期  否则报错
+            assert (tpl.limit_after_release_days == 0 or tpl.use_after_release_days == 0)
+            if tpl.limit_after_release_days:  # 发放后多少天内可用 days 使用时间即 领取时间 过期时间为领取时间+ days
+                expires_time = start_use_time + datetime.timedelta(days=tpl.limit_after_release_days)
+            if tpl.use_after_release_days:  # 发放多少天后可用 即开始时间 为 模板开始发放的时间+use_after_release_days
+                start_use_time = start_use_time + datetime.timedelta(days=tpl.use_after_release_days)
+                expires_time = tpl.use_deadline
+            assert (start_use_time < expires_time)  # 断言开始时间 < 结束时间
+        return value, start_use_time, expires_time
+
 
 def default_share_extras():
     return {
@@ -334,7 +386,8 @@ class UserCoupon(BaseModel):
     USED = 1
     FREEZE = 2
     PAST = 3
-    USER_COUPON_STATUS = ((UNUSED, u"未使用"), (USED, u"已使用"), (FREEZE, u"冻结中"), (PAST, u"已经过期"))
+    CANCEL = 4 # 不该发而发了之后回退操作，算。
+    USER_COUPON_STATUS = ((UNUSED, u"未使用"), (USED, u"已使用"), (FREEZE, u"冻结中"), (PAST, u"已经过期"), (CANCEL, u'已经取消'))
 
     WX = u'wx'
     PYQ = u'pyq'
@@ -495,6 +548,30 @@ class UserCoupon(BaseModel):
             self.save(update_fields=['status'])
             return True
         return False
+
+    @staticmethod
+    def send_coupon(customer, tpl, ufrom=None):
+        if not tpl.can_send():
+            raise Exception(u'优惠券已发送完毕')
+        uniq_id = tpl.make_uniq_id(customer.id)
+        value, start_use_time, expires_time = tpl.calculate_value_and_time()
+        extras = {'user_info': {'id': customer.id, 'nick': customer.nick, 'thumbnail': customer.thumbnail}}
+        cou = UserCoupon.objects.filter(uniq_id=uniq_id).first()
+        if cou:
+            raise Exception(u'优惠券已发送过')
+        cou = UserCoupon.objects.create(template_id=tpl.id,
+                                        title=tpl.title,
+                                        coupon_type=tpl.coupon_type,
+                                        customer_id=customer.id,
+                                        value=value,
+                                        start_use_time=start_use_time,
+                                        expires_time=expires_time,
+                                        ufrom=ufrom,
+                                        uniq_id=uniq_id,
+                                        extras=extras)
+        # update the release num
+        tasks.task_update_tpl_released_coupon_nums.delay(tpl)
+        return cou
 
 
 def update_unionid_download_record(sender, instance, created, **kwargs):

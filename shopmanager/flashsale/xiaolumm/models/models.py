@@ -487,12 +487,27 @@ class XiaoluMama(models.Model):
 
         return qrcode_url
 
+    def get_customer(self):
+        """ 获取妈妈的特卖用户对象 """
+        if not hasattr(self, '_customer_'):
+            from flashsale.pay.models import Customer
+            self._customer_ = Customer.objects.filter(unionid=self.openid).first()
+        return self._customer_
+
     def get_mama_customer(self):
         """ 获取妈妈的特卖用户对象 """
         if not hasattr(self, '_mama_customer_'):
             from flashsale.pay.models import Customer
             self._mama_customer_ = Customer.objects.filter(unionid=self.openid, status=Customer.NORMAL).first()
         return self._mama_customer_
+
+    @property
+    def nick(self):
+        return self.get_mama_customer().nick if self.get_mama_customer() else ''
+
+    @property
+    def thumbnail(self):
+        return self.get_mama_customer().thumbnail if self.get_mama_customer() else ''
 
     @property
     def mama_fortune(self):
