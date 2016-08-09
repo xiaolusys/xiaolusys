@@ -57,7 +57,7 @@ class MamaCarryTotal(BaseModel):
 
     @property
     def mama_nick(self):
-        return self.mama.get_mama_customer().nick
+        return self.mama.get_customer().nick
 
     @property
     def num(self):
@@ -65,15 +65,15 @@ class MamaCarryTotal(BaseModel):
 
     @property
     def thumbnail(self):
-        return self.mama.get_mama_customer().thumbnail
+        return self.mama.get_customer().thumbnail
 
     @property
     def mobile(self):
-        return self.mama.get_mama_customer().mobile
+        return self.mama.get_customer().mobile
 
     @property
     def phone(self):
-        return self.mama.get_mama_customer().phone
+        return self.mama.get_customer().phone
 
     @property
     def rank(self):
