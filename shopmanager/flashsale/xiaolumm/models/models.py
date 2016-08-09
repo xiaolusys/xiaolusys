@@ -708,6 +708,31 @@ post_save.connect(update_trial_mama_full_member_by_condition,
                   sender=XiaoluMama, dispatch_uid='post_save_update_trial_mama_full_member_by_condition')
 
 
+def created_instructor_for_mama(sender, instance, created, **kwargs):
+    """
+    为小鹿妈妈创建讲师
+    """
+    if instance.charge_status == XiaoluMama.CHARGED and instance.status == XiaoluMama.EFFECT:
+        from flashsale.xiaolumm.models import Instructor
+        customer = instance.get_customer()
+        if not customer:
+            return
+        instructor = Instructor.objects.filter(mama_id=instance.id).first()
+        if instructor:
+            instructor.update_status(status=Instructor.STATUS_EFFECT)  # 改为合格
+        else:  # 没有则创建讲师记录
+            Instructor.create_instruct(
+                name=customer.nick,
+                title='特聘讲师',
+                image=customer.thumbnail,
+                introduction='',
+                mama_id=instance.id,
+                status=Instructor.STATUS_EFFECT)
+
+# post_save.connect(created_instructor_for_mama, sender=XiaoluMama,
+#                   dispatch_uid=u'post_save_created_instructor_for_mama')
+
+
 class AgencyLevel(models.Model):
     category = models.CharField(max_length=11, unique=True, blank=False, verbose_name=u"类别")
     deposit = models.IntegerField(default=0, verbose_name=u"押金(元)")

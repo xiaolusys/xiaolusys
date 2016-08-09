@@ -356,7 +356,8 @@ def task_new_guy_task_complete_send_award(mama):
     active_time = datetime.datetime(2016, 7, 22, 10, 0, 0)
     if isinstance(mama.charge_time, datetime.datetime) and mama.charge_time >= active_time:
         uni_key = 'new_guy_task_complete_award_5_%d' % (mama.id,)
-        AwardCarry.send_award(mama, 5, u'新手任务奖励', u'新手妈妈完成新手任务奖励', uni_key, status=2)  # 确定收益
+        AwardCarry.send_award(mama, 10, u'新手任务奖励', u'新手妈妈完成新手任务奖励', uni_key, status=2)  # 确定收益
+
         referal_mama = XiaoluMama.objects.filter(referal_from=mama.referal_from).first()
         if not referal_mama:
             # 当前妈妈的的潜在关系列表中　第一条记录
@@ -371,3 +372,4 @@ def task_new_guy_task_complete_send_award(mama):
                               contributor_nick=customer.nick,
                               contributor_img=customer.thumbnail,
                               contributor_mama_id=mama.id)  # 确定收益
+
