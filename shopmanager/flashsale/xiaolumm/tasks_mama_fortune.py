@@ -366,9 +366,10 @@ def task_new_guy_task_complete_send_award(mama):
         if not referal_mama:
             return
         uni_key = 'new_guy_task_complete_award_10_%d' % (referal_mama.id,)
-        customer = referal_mama.get_mama_customer()
+        customer = mama.get_mama_customer()
         AwardCarry.send_award(referal_mama, 10, u'新手任务奖励', u'新手推荐人完成新手任务推荐人奖励', uni_key,
                               status=2,
                               contributor_nick=customer.nick,
                               contributor_img=customer.thumbnail,
                               contributor_mama_id=mama.id)  # 确定收益
+
