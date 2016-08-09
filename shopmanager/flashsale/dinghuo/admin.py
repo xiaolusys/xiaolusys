@@ -768,7 +768,7 @@ class InBoundAdmin(admin.ModelAdmin):
     list_per_page = 20
 
     def show_creator(self, obj):
-        from flashsale.dinghuo.view_inbound import InBoundViewSet
+        from flashsale.dinghuo.views import InBoundViewSet
         return InBoundViewSet.get_username(obj.creator)
 
     show_creator.short_description = u'创建人'
