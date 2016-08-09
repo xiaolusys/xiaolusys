@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.db import models
+from django.db.models import Sum
 from core.models import BaseModel
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -84,6 +85,7 @@ class MamaFortune(BaseModel):
 
     history_pending = models.IntegerField(default=0, verbose_name=u'历史待确定收益')
     history_confirmed = models.IntegerField(default=0, verbose_name=u'历史已确定收益')
+    history_cashout = models.IntegerField(default=0, verbose_name=u'历史已提现收益')
     history_last_day = models.DateField(default=MAMA_FORTUNE_HISTORY_LAST_DAY, verbose_name=u'历史结束日期')
 
     active_value_num = models.IntegerField(default=0, verbose_name=u'活跃值')
@@ -156,6 +158,12 @@ class MamaFortune(BaseModel):
     @property
     def app_download_qrcode_url(self):
         return self.extras['qrcode_url']['app_download_qrcode_url']
+
+    def get_history_cash_out(self):
+        from flashsale.xiaolumm.models import CashOut
+        history_last_day= self.history_last_day or MAMA_FORTUNE_HISTORY_LAST_DAY
+        return CashOut.objects.filter(xlmm=self.mama_id, status=CashOut.APPROVED, approve_time__lt=history_last_day
+                                      ).aggregate(total=Sum('value')).get('total') or 0
 
     def update_extras_qrcode_url(self, **kwargs):
         """ 更新附加里面的二维码链接信息 """
