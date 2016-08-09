@@ -484,7 +484,7 @@ post_save.connect(ordercarry_update_order_number,
 
 
 class AwardCarry(BaseModel):
-    AWARD_TYPES = ((1, u'直荐奖励'), (2, u'团队奖励'), (3, u'授课奖金'), (4, u'任务奖励'))
+    AWARD_TYPES = ((1, u'直荐奖励'),(2, u'团队奖励'),(3, u'授课奖金'),(4, u'新手任务'),(5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'))
     STATUS_TYPES = ((1, u'预计收益'), (2, u'确定收益'), (3, u'已取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
@@ -530,17 +530,15 @@ class AwardCarry(BaseModel):
         return None
 
     @staticmethod
-    def send_award(mama, num, name, description, uni_key, status=1,
+    def send_award(mama, num, name, description, uni_key, status, carry_type,
                    contributor_nick=None, contributor_img=None, contributor_mama_id=None):
         repeat_one = AwardCarry.objects.filter(uni_key=uni_key).first()
         if repeat_one:
-            if repeat_one.status == 3:
-                AwardCarry.objects.filter(uni_key=uni_key).update(status=1)
             return repeat_one
         ac = AwardCarry(
             mama_id=mama.id,
             carry_num=num * 100,
-            carry_type=4,
+            carry_type=carry_type,
             date_field=datetime.datetime.now().date(),
             carry_plan_name=name,
             carry_description=description,
