@@ -38,7 +38,7 @@ class InBoundCreatorFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         from flashsale.dinghuo.models import InBound
-        from flashsale.dinghuo.view_inbound import InBoundViewSet
+        from flashsale.dinghuo.views import InBoundViewSet
         user_ids = [x['creator'] for x in InBound.objects.all().values('creator').distinct()]
 
         tmp = []
