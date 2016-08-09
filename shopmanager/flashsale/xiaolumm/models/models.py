@@ -729,8 +729,8 @@ def created_instructor_for_mama(sender, instance, created, **kwargs):
                 mama_id=instance.id,
                 status=Instructor.STATUS_EFFECT)
 
-post_save.connect(created_instructor_for_mama, sender=XiaoluMama,
-                  dispatch_uid=u'post_save_created_instructor_for_mama')
+# post_save.connect(created_instructor_for_mama, sender=XiaoluMama,
+#                   dispatch_uid=u'post_save_created_instructor_for_mama')
 
 
 class AgencyLevel(models.Model):
