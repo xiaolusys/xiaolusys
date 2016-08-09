@@ -325,8 +325,9 @@
     <div class="col-lg-8">
         <strong>供应商:</strong>
         {% if orderlist.supplier %}
-        <a href="/admin/supplier/salesupplier/?id={{ orderlist.supplier.id }}" target="_blank">{{orderlist.supplier.supplier_name }}</a>
+        <a href="/admin/supplier/salesupplier/?id={{ orderlist.supplier.id }}" target="_blank">{{orderlist.supplier.supplier_name }}</a><br/>
         {% endif %}
+        <strong>供应商品牌:{{ orderlist.supplier.supplier_code }}</strong><br/>
         <p class="alert alert-success" role="alert"><strong>供应商地址:{{orderlist.supplier.address}}
         </strong><br/><strong>供应商电话:{{orderlist.supplier.phone}}</strong><br/>
             <strong>供应商手机:{{orderlist.supplier.mobile}}</strong><br/>

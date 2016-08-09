@@ -14,7 +14,7 @@ class WorkOrderAdmin(admin.ModelAdmin):
         'id', 'problem_title','problem_type','problem_desc','status','is_valid','dealed_part','raised_part','problem_back',
         'created_time','start_time','modified_time','closed_time','creater',"dealer","content_imgs"
     )
-    search_fields = ['id']
+    search_fields = ['id','creater','dealer','dealed_part','raised_part','status']
     list_filter = [('created_time',DateFieldListFilter)]
     # actions = ['start_deal','confirm_finished']
 
