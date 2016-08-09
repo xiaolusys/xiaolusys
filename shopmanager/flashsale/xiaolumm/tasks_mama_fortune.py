@@ -345,21 +345,25 @@ def task_new_guy_task_complete_send_award(mama):
     """
     发送新手任务奖励: 新妈妈发5元，推荐妈妈发10元
     """
-    from flashsale.xiaolumm.models import AwardCarry, XiaoluMama, PotentialMama
+    from flashsale.xiaolumm.models import AwardCarry, XiaoluMama, PotentialMama, ReferalRelationship
 
     active_time = datetime.datetime(2016, 7, 22, 10, 0, 0)
     if isinstance(mama.charge_time, datetime.datetime) and mama.charge_time >= active_time:
         uni_key = 'new_guy_task_complete_award_5_%d' % (mama.id,)
         AwardCarry.send_award(mama, 10, u'新手任务奖励', u'完成新手任务奖励', uni_key, status=2, carry_type=4)  # 确定收益
 
-        referal_mama = XiaoluMama.objects.filter(referal_from=mama.referal_from).first()
+        referal_mama = None
+        rr = ReferalRelationship.objects.filter(referal_to_mama_id=mama.id).first()
+        if rr:
+            referal_mama = XiaoluMama.objects.filter(id=rr.referal_from_mama_id).first()
+        
         if not referal_mama:
             # 当前妈妈的的潜在关系列表中　第一条记录
             potential = PotentialMama.objects.filter(potential_mama=mama.id).order_by('created').first()
             referal_mama = XiaoluMama.objects.filter(id=potential.referal_mama).first()
         if not referal_mama:
             return
-        uni_key = 'new_guy_task_complete_award_10_%d' % (referal_mama.id,)
+        uni_key = 'new_guy_task_complete_award_10_%d' % mama.id
         customer = mama.get_mama_customer()
         AwardCarry.send_award(referal_mama, 10, u'新手任务奖励', u'推荐妈妈完成新手任务奖励', uni_key,
                               status=2, carry_type=6,
