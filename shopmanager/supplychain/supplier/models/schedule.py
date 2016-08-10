@@ -219,20 +219,20 @@ class SaleProductManageDetail(models.Model):
         return self._item_products_
 
 
-def sync_md_weight_promotion(sender, instance, raw, *args, **kwargs):
+def sync_md_weight(sender, instance, raw, *args, **kwargs):
     """
-    sync ModelProduct order_weight and is_recommend field
+    sync ModelProduct order_weight
     """
     from flashsale.pay.models import ModelProduct
 
     md = ModelProduct.objects.filter(saleproduct=instance.sale_product_id).first()
     if not md:
         return
-    md.update_schedule_detail_info(instance.order_weight, instance.is_promotion)
+    md.update_schedule_detail_info(instance.order_weight)
 
 
-post_save.connect(sync_md_weight_promotion, SaleProductManageDetail,
-                  dispatch_uid='post_save_sync_md_weight_promotion')
+post_save.connect(sync_md_weight, SaleProductManageDetail,
+                  dispatch_uid='post_save_sync_md_weight')
 
 
 def update_saleproduct_supplier(sender, instance, **kwargs):
