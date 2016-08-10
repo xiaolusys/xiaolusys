@@ -614,17 +614,29 @@ def tongji_trade_source(sender, obj, **kwargs):
     1. 来自小鹿妈妈或者小鹿妈妈分享的链接
     2. 来自直接购买
     """
-    from django_statsd.clients import statsd
+    from flashsale.pay.tasks import task_tongji_trade_source
+    task_tongji_trade_source.delay()
 
-    saletrade = obj
-    customer = saletrade.order_buyer
-
-    if customer.get_xiaolumm() or saletrade.extras_info.get('mm_linkid', 0):
-        statsd.incr('xiaolumm.postpay_from_xiaolumama_count')
-    else:
-        statsd.incr('xiaolumm.postpay_from_direct_count')
 
 signal_saletrade_pay_confirm.connect(tongji_trade_source, sender=SaleTrade)
+
+
+def tongji_trade_pay_channel(sender, obj, **kwargs):
+    """
+    统计订单支付方式：微信，支付宝等
+    """
+    from django_statsd.clients import statsd
+
+    channel = obj.channel
+    now = datetime.datetime.today()
+    today = datetime.datetime(now.year, now.month, now.day)
+
+    key = 'xiaolumm.paychannel_from_%s' % channel
+    trades_count = SaleTrade.objects.filter(pay_time__gte=today, channel=channel).count()
+    statsd.timing(key, trades_count)
+
+
+signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
 
 
 def push_msg_mama(sender, obj, **kwargs):
