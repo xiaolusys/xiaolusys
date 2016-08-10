@@ -700,10 +700,13 @@ class UnReturnSkuAdmin(admin.ModelAdmin):
     product_name.short_description = '商品名称'
 
     def sku_properties_name(self, obj):
-        return '<a href="/admin/items/productskustats/?sku_id=%(sku_id)d">%(properties_name)s</a>' % {
-            'sku_id': obj.sku.id,
-            'properties_name': obj.sku.properties_name or obj.sku.properties_alias or ''
-        }
+        if obj.sku:
+            return '<a href="/admin/items/productskustats/?sku_id=%(sku_id)d">%(properties_name)s</a>' % {
+                'sku_id': obj.sku.id,
+                'properties_name': obj.sku.properties_name or obj.sku.properties_alias or ''
+            }
+        else:
+            return ''
 
     sku_properties_name.allow_tags = True
     sku_properties_name.short_description = '规格'
