@@ -1119,17 +1119,19 @@ def task_auto_shelf_prods():
         onshelf_pros = onshelf_pros.filter(sale_product__in=sale_product_ids)
 
         logger.warn({
-            'task_offshelf_models': {'ids': [x[0] for x in offshelf_models.values_list('id')],
-                                     'count': offshelf_models.count()}
-        })  # 下架款式log记录
+            'action': 'auto_off_shelf_models',
+            'auto_off_shelf_models_ids': ','.join([str(x[0]) for x in offshelf_models.values_list('id')]),
+            'auto_off_shelf_models_count': offshelf_models.count()})  # 下架款式log记录
+
         for off_md in offshelf_models:
             state_off = off_md.offshelf_model()
             if state_off:
                 log_action(systemoa, off_md, CHANGE, u'系统自动下架款式')
 
         logger.warn({
-            'task_offshelf_pros': {'ids': [x[0] for x in offshelf_pros.values_list('id')],
-                                   'count': offshelf_pros.count()}
+            'action': 'auto_off_shelf_pros',
+            'auto_off_shelf_pros_ids': ','.join([str(x[0]) for x in offshelf_pros.values_list('id')]),
+            'auto_off_shelf_pros_count': offshelf_pros.count()
         })  # 下架产品log记录
 
         for off_pro in offshelf_pros:
@@ -1138,8 +1140,9 @@ def task_auto_shelf_prods():
                 log_action(systemoa, off_pro, CHANGE, u'系统自动下架修改该产品到下架状态')
 
         logger.warn({
-            'task_onshelf_models': {'ids': [x[0] for x in onshelf_models.values_list('id')],
-                                    'count': onshelf_models.count()}
+            'action': 'auto_on_shelf_models',
+            'auto_on_shelf_models_ids': ','.join([str(x[0]) for x in onshelf_models.values_list('id')]),
+            'auto_on_shelf_models_count': onshelf_models.count()
         })  # 上架款式log记录
 
         for on_md in onshelf_models:
@@ -1148,8 +1151,9 @@ def task_auto_shelf_prods():
                 log_action(systemoa, on_md, CHANGE, u'系统自动上架款式')
 
         logger.warn({
-            'task_onshelf_pros': {'ids': [x[0] for x in onshelf_pros.values_list('id')],
-                                  'count': onshelf_pros.count()}
+            'action': 'auto_on_shelf_prods',
+            'auto_on_shelf_prods_ids': ','.join([str(x[0]) for x in onshelf_pros.values_list('id')]),
+            'auto_on_shelf_prods_count': onshelf_pros.count()
         })
 
         for on_pro in onshelf_pros:
