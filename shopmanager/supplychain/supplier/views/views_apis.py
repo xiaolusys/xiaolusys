@@ -1,13 +1,15 @@
 # -*- coding:utf8 -*-
+import re
 import time
 import json
 import datetime
+import urlparse
 import django_filters
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.db import transaction
-
+from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import detail_route, list_route
@@ -33,6 +35,7 @@ from supplychain.supplier.models import (
     SaleProductManageDetail
 )
 from supplychain.supplier import serializers
+from supplychain.basic import fetch_urls
 
 import logging
 
@@ -241,15 +244,26 @@ class SaleProductFilter(filters.FilterSet):
 class SaleProductViewSet(viewsets.ModelViewSet):
     """
     ### 排期管理商品REST API接口：
-    - {prefix}: 选品
-    - {prefix}/list_filters: 列表过滤条件
-    method: get
-    return: {'status':[...], 'categorys':[...]}
+    - [/apis/chain/v1/saleproduct](/apis/chain/v1/saleproduct): 选品列表
+        * method: get
+        * method: post
+        * method: patch
+        * method: delete
+
+    - [/apis/chain/v1/saleproduct/list_filters](/apis/chain/v1/saleproduct/list_filters): 列表过滤条件
+        * method: get
+        * return: {'status':[...], 'categorys':[...]}
+
+    ### 抓取其他平台产品参数接口
+    - [/apis/chain/v1/supplier/fetch_platform_product/29128](/apis/chain/v1/supplier/fetch_platform_product/29128?fetch_url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fspm%3Da310p.7395725.1998460392.1.IxL35J%26id%3D531297154104)
+        * method: get
+        * args:
+            1. `fetch_url`: 抓取的网址链接(urlquote)例如: 'https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fspm%3Da310p.7395725.1998460392.1.IxL35J%26id%3D531297154104'
     """
     queryset = SaleProduct.objects.all()
     serializer_class = serializers.SimpleSaleProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     ordering_fields = ('created', 'modified', 'sale_time', 'remain_num', 'hot_value')
@@ -261,7 +275,27 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         return Response({
             'status': SaleProduct.STATUS_CHOICES,
             'categorys': categorys.values_list('id', 'name', 'parent_cid', 'is_parent', 'sort_order'),
+            'platform': SaleSupplier.PLATFORM_CHOICE
         })
+
+    @list_route(methods=['get'])
+    def fetch_platform_product(self, request):
+        supplier_id = request.GET.get('supplier_id') or 0
+        fetch_url = request.GET.get('fetch_url', '').strip()
+        if not fetch_url or not fetch_url.startswith(('http://', 'https://')):
+            raise exceptions.APIException(u'请输入合法的URL')
+        supplier = get_object_or_404(SaleSupplier, pk=int(supplier_id))
+        tsoup, response = fetch_urls.getBeaSoupByCrawUrl(fetch_url)
+        data = {
+            'sale_supplier': supplier.id,
+            'title': fetch_urls.getItemTitle(tsoup),
+            'pic_url': fetch_urls.getItemPic(fetch_url, tsoup),
+            'price': fetch_urls.getItemPrice(tsoup),
+            'fetch_url': fetch_url,
+            'sale_category': supplier.category.id if supplier.category else None,
+            'supplier_sku': fetch_urls.supplier_sku(fetch_url, tsoup)
+        }
+        return Response(data)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -274,7 +308,30 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
-        raise NotImplemented
+        if request.user.has_perm('supplier.delete_sale_product'):
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+    def create(self, request, *args, **kwargs):
+        request.data.update({
+            'outer_id': 'OO%d' % time.time(),
+            'contactor': request.user.id
+        })
+        serializer = serializers.ModifySaleProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 
 class SaleProductManageFilter(filters.FilterSet):
@@ -527,4 +584,3 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
             self.perform_update(serializer)
             log_action(request.user, q, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
         return Response(status=status.HTTP_206_PARTIAL_CONTENT)
-
