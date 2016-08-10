@@ -19,7 +19,7 @@ from flashsale.xiaolumm.models import (
     PotentialMama,
     UserGroup
 )
-from flashsale.xiaolumm.models.message import XlmmMessage
+from flashsale.xiaolumm.models.message import XlmmMessage, XlmmMessageRel
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from . import forms
 from .filters import UserNameFilter
@@ -699,3 +699,9 @@ class XlmmMessageAdmin(admin.ModelAdmin):
 
 
 admin.site.register(XlmmMessage, XlmmMessageAdmin)
+
+class XlmmMessageRelAdmin(admin.ModelAdmin):
+    list_display = ('id', 'message', 'mama')
+    list_filter = ('message',)
+    
+admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
