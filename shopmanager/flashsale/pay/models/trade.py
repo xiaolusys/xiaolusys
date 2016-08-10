@@ -608,6 +608,37 @@ def update_customer_first_paytime(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(update_customer_first_paytime, sender=SaleTrade)
 
 
+def tongji_trade_source(sender, obj, **kwargs):
+    """
+    统计付款订单来源，发送到 OneAPM
+    1. 来自小鹿妈妈或者小鹿妈妈分享的链接
+    2. 来自直接购买
+    """
+    from flashsale.pay.tasks import task_tongji_trade_source
+    task_tongji_trade_source.delay()
+
+
+signal_saletrade_pay_confirm.connect(tongji_trade_source, sender=SaleTrade)
+
+
+def tongji_trade_pay_channel(sender, obj, **kwargs):
+    """
+    统计订单支付方式：微信，支付宝等
+    """
+    from django_statsd.clients import statsd
+
+    channel = obj.channel
+    now = datetime.datetime.today()
+    today = datetime.datetime(now.year, now.month, now.day)
+
+    key = 'xiaolumm.paychannel_from_%s' % channel
+    trades_count = SaleTrade.objects.filter(pay_time__gte=today, channel=channel).count()
+    statsd.timing(key, trades_count)
+
+
+signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
+
+
 def push_msg_mama(sender, obj, **kwargs):
     """专属链接有人下单后则推送消息给代理"""
     from flashsale.xiaolumm.tasks_mama_push import task_push_mama_order_msg

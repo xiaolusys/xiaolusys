@@ -217,6 +217,10 @@ SKU_STATS_ROUTES = {
         'queue': 'skustats',
         'routing_key': 'skustats.task_product_upshelf_notify_favorited_customer',
     },
+    'flashsale.pay.tasks.task_tongji_trade_source': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_tongji_trade_source',
+    },
 }
 
 
