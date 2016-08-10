@@ -271,6 +271,17 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
         )
 
 
+class ModifySaleProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SaleProduct
+
+    def validate_title(self, value):
+        if value is None or not value.strip():
+            raise serializers.ValidationError("选品标题不能为空!")
+        return value
+
+
 class SimpleSaleProductManageSerializer(serializers.ModelSerializer):
     # category = SaleCategorySerializer()
 
