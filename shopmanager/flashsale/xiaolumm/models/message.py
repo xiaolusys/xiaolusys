@@ -18,8 +18,8 @@ class XlmmMessage(AdminModel):
     class Meta:
         app_label = 'xiaolumm'
         db_table = 'xiaolumm_message'
-        verbose_name = u'小鹿妈妈消息'
-        verbose_name_plural = u'小鹿妈妈消息列表'
+        verbose_name = u'妈妈消息/通知'
+        verbose_name_plural = u'妈妈消息/通知列表'
 
     @property
     def read(self):
@@ -74,5 +74,5 @@ class XlmmMessageRel(BaseModel):
         unique_together = ('mama', 'message')
         app_label = 'xiaolumm'
         db_table = 'xiaolumm_message_rel'
-        verbose_name = u'小鹿妈妈个人消息状态'
-        verbose_name_plural = u'小鹿妈妈个人消息状态列表'
+        verbose_name = u'妈妈消息/阅读状态'
+        verbose_name_plural = u'妈妈消息/阅读状态列表'
