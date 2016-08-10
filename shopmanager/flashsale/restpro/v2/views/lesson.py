@@ -176,9 +176,8 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
         attend_serializer = lesson_serializers.LessonAttendRecordSerializer(lesson_attend_rcds, many=True)
         serialiser = lesson_serializers.LessonSerializer(lesson)
         return Response({'code': 0, 'info': '获取课程成功~',
-                         'lesson_attend_record_url': '{0}/rest/v1/users/weixin_login/?next={0}{1}'.format(
-                             settings.M_SITE_URL,
-                             '/static/wap/lessons/html/lesson-sign.html?lesson_id=%s' % lesson.id),
+                         'lesson_attend_record_url': '{0}/rest/lesson/snsauth/?lesson_id={1}&key=signup'.format(
+                             settings.M_SITE_URL, lesson.id),
                          'lesson': serialiser.data,
                          'lesson_attend_rcds': attend_serializer.data})
 
