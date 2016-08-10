@@ -12,7 +12,7 @@ class WeixinPush(object):
         self.api = WeiXinAPI()
 
     def push(self, customer, template_id, template_data, to_url):
-        openid = customer.unionid
+        openid = customer.openid
         if not openid:
             return None
         logger.info({
