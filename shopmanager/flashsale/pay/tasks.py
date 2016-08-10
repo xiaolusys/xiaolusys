@@ -938,3 +938,46 @@ def task_calculate_total_order_integral(integral_log):
     if user_intergral:
         user_intergral.integral_value = total_point
         user_intergral.save(update_fields=['integral_value'])
+
+
+@task()
+def task_tongji_trade_source():
+    from django_statsd.clients import statsd
+    from django.db import connection
+    cursor = connection.cursor()
+
+    now = datetime.datetime.today()
+    today = datetime.datetime(now.year, now.month, now.day).strftime('%Y-%m-%d')
+
+    # 有　mm_linkid，是小鹿妈妈分享的链接
+    sql = """
+        SELECT count(*) FROM xiaoludb.flashsale_trade
+        where extras_info not REGEXP '"mm_linkid": 0'
+        and pay_time > %s
+    """
+    cursor.execute(sql, today)
+    share_trades_count = cursor.fetchone()[0]
+
+    # 没有 mm_linkid，但是买家是小鹿妈妈
+    sql = """
+        SELECT count(*)
+        FROM xiaoludb.flashsale_trade
+        join xiaoludb.flashsale_customer on flashsale_customer.id=flashsale_trade.buyer_id
+        join xiaoludb.xiaolumm_xiaolumama on flashsale_customer.unionid=xiaolumm_xiaolumama.openid
+        where flashsale_trade.pay_time > %s
+        and flashsale_trade.extras_info REGEXP '"mm_linkid": 0'
+    """
+    cursor.execute(sql, today)
+    xiaolumm_trades_count = cursor.fetchone()[0]
+
+    # 今日所有订单
+    sql = """
+        SELECT count(*) FROM xiaoludb.flashsale_trade
+        where pay_time > %s
+    """
+    cursor.execute(sql, today)
+    all_trades_count = cursor.fetchone()[0]
+    direct_count = all_trades_count - share_trades_count - xiaolumm_trades_count
+
+    statsd.timing('xiaolumm.postpay_from_xiaolumama_count', share_trades_count + xiaolumm_trades_count)
+    statsd.timing('xiaolumm.postpay_from_direct_count', direct_count)

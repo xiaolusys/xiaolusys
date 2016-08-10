@@ -14,10 +14,9 @@ from core.admin import BaseModelAdmin
 from core.utils import  CSVUnicodeWriter, gen_cvs_tuple
 from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
-from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
-    PayToPackStats
 from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, \
-    UnReturnSku, LackGoodOrder
+    UnReturnSku, LackGoodOrder, SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
+    PayToPackStats, PackageBackOrderStats
 
 from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter, \
     InBoundCreatorFilter
@@ -409,7 +408,7 @@ class SupplyChainDataStatsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SupplyChainDataStats, SupplyChainDataStatsAdmin)
-from flashsale.dinghuo.models_stats import DailyStatsPreview
+from flashsale.dinghuo.models import DailyStatsPreview
 
 
 class DailyStatsPreviewAdmin(admin.ModelAdmin):
@@ -477,7 +476,7 @@ class ProductSkuDetailAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ProductSkuDetail, ProductSkuDetailAdmin)
-from flashsale.dinghuo.models_stats import RecordGroupPoint
+from flashsale.dinghuo.models import RecordGroupPoint
 
 
 class RecordGroupPointAdmin(admin.ModelAdmin):
@@ -934,3 +933,10 @@ class LackGoodOrderAdmin(admin.ModelAdmin):
         obj.save()
 
 admin.site.register(LackGoodOrder, LackGoodOrderAdmin)
+
+class PackageBackOrderStatsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'day_date', 'purchaser', 'three_backorder_num', 'five_backorder_num', 'fifteen_backorder_num', 'created')
+    search_fields = ('=id', 'purchaser__username')
+    list_filter = [("created", DateFieldListFilter)]
+
+admin.site.register(PackageBackOrderStats, PackageBackOrderStatsAdmin)

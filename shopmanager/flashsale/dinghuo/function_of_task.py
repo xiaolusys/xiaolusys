@@ -3,9 +3,8 @@ __author__ = 'yann'
 import datetime
 import functions
 import time
-from flashsale.dinghuo.models_stats import SupplyChainStatsOrder, DailySupplyChainStatsOrder
 from shopback.items.models import Product, ProductSku
-from flashsale.dinghuo.models import OrderDetail
+from flashsale.dinghuo.models import OrderDetail, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 
 
 def get_daily_order_stats(prev_day):

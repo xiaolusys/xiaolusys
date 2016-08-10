@@ -5,7 +5,6 @@ from django.shortcuts import HttpResponse, render_to_response, HttpResponseRedir
 from flashsale.dinghuo.tasks import task_stats_product, task_stats_daily_product, task_stats_daily_order_by_group, \
     task_send_daily_message, task_write_supply_name
 from django.template import RequestContext
-from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 import time
 from shopback.items.models import Product
 from django.db import connection

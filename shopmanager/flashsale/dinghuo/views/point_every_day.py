@@ -6,7 +6,7 @@ __author__ = 'yann'
 from django.shortcuts import render_to_response, HttpResponse
 from django.template import RequestContext
 from django.views.generic import View
-from flashsale.dinghuo.models_stats import RecordGroupPoint
+from flashsale.dinghuo.models import RecordGroupPoint
 import datetime
 from django.db.models import Sum
 from django.core import serializers

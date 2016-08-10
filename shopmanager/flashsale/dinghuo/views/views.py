@@ -24,8 +24,9 @@ from flashsale.dinghuo import paramconfig as pcfg
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
-                                      OrderDetailInBoundDetail, ReturnGoods, RGDetail)
-from flashsale.dinghuo.models_stats import SupplyChainDataStats
+                                      OrderDetailInBoundDetail,
+                                      ReturnGoods, RGDetail,
+                                      SupplyChainDataStats)
 from shopback.archives.models import DepositeDistrict
 from shopback.items.models import Product, ProductSku, ProductStock, ProductLocation
 from shopback.categorys.models import ProductCategory

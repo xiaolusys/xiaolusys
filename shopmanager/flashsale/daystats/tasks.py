@@ -13,7 +13,7 @@ from common.utils import year_month_range
 from flashsale.clickcount.models import Clicks
 from flashsale.clickcount.models import UserClicks
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
+from flashsale.dinghuo.models import DailySupplyChainStatsOrder
 from flashsale.pay.models import SaleRefund
 from flashsale.xiaolumm.models import CarryLog
 from flashsale.xiaolumm.models import XiaoluMama

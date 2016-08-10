@@ -2,19 +2,21 @@
 from __future__ import division
 
 __author__ = 'yann'
-
-from celery.task import task
-import datetime
 import re
 import sys
 import urllib2
+import datetime
+from collections import defaultdict
+
+from celery.task import task
 from django.db import connection
 from django.db.models import Max, Sum
+from django.contrib.auth.models import User
 
 import common.constants
 from core.options import log_action, ADDITION, CHANGE
-from flashsale.dinghuo.models import OrderDetail, OrderList, gen_purchase_order_group_key
-from flashsale.dinghuo.models_stats import SupplyChainDataStats, PayToPackStats
+from flashsale.dinghuo.models import OrderDetail, OrderList,  SupplyChainDataStats, \
+    PayToPackStats, PackageBackOrderStats, gen_purchase_order_group_key
 from flashsale.pay.models import SaleOrder
 
 from shopback import paramconfig as pcfg
@@ -235,7 +237,7 @@ def get_supply_name2(name):
         return ""
 
 
-from flashsale.dinghuo.models_stats import RecordGroupPoint
+from flashsale.dinghuo.models import RecordGroupPoint
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 
 
@@ -786,7 +788,7 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
     return data
 
 
-from flashsale.dinghuo.models_stats import DailyStatsPreview, DailySupplyChainStatsOrder
+from flashsale.dinghuo.models import DailyStatsPreview, DailySupplyChainStatsOrder
 
 
 @task()
@@ -2049,3 +2051,50 @@ def task_inbound_check_inferior():
     if not log:
         create_inbound_inferior_check_log(time_from, uni_key)
         task_inbound_check_inferior.delay()
+
+
+def get_orderdetail_buyer_maping(start_time, end_time):
+    start_time = start_time - datetime.timedelta(days=90)
+    end_time = end_time + datetime.timedelta(days=30)
+    orderdetails = OrderDetail.objects.filter(orderlist__created__range=(start_time, end_time))
+    detail_buyer_values_list = orderdetails.values_list('product_id', 'orderlist__buyer').distinct()
+    return dict(detail_buyer_values_list)
+
+@task()
+def task_save_package_backorder_stats():
+    logger.info('task_save_package_backorder_stats start')
+    from shopback.trades.models import PackageSkuItem
+
+    now = datetime.datetime.now()
+    stats_day_list = [(3, 'three_backorder_num'), (5, 'five_backorder_num'), (15, 'fifteen_backorder_num')]
+    purchaser_map = get_orderdetail_buyer_maping(now - datetime.timedelta(days=max([ds[0] for ds in stats_day_list])) , now)
+
+    q = PackageSkuItem.objects.filter(
+        assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]
+    )
+    for day, day_field in stats_day_list:
+        day_dt = now - datetime.timedelta(days=day)
+        sku_id_set = q.filter(pay_time__lte=day_dt).values_list('sku_id', flat=True).distinct()
+        sku_product_map = dict(ProductSku.objects.filter(id__in=sku_id_set).values_list('id', 'product_id'))
+
+        order_values_list = q.filter(pay_time__lte=day_dt).values_list('sku_id', 'oid', 'num')
+        purchaser_dict = {}
+        for sku_id, oid, num in order_values_list:
+            purchaser = purchaser_map.get(str(sku_product_map.get(int(sku_id))))
+            purchaser_dict.setdefault(purchaser, {'num':0, 'orders': []})
+            purchaser_dict[purchaser]['num'] += num
+            purchaser_dict[purchaser]['orders'].append(oid)
+
+        logger.info('%s, %s'%(day_dt, purchaser_dict))
+        for purchaser , stats in purchaser_dict.items():
+            backorder = PackageBackOrderStats.objects.filter(day_date=now, purchaser_id=purchaser).first()
+            if not backorder:
+                backorder = PackageBackOrderStats(day_date=now, purchaser_id=purchaser)
+            setattr(backorder, day_field, stats['num'])
+            order_ids = backorder.backorder_ids and backorder.backorder_ids.split(',') or []
+            order_ids.extend(stats['orders'])
+            backorder.backorder_ids = ','.join(set(order_ids))
+            backorder.save()
+
+    logger.info('task_save_package_backorder_stats end')
+

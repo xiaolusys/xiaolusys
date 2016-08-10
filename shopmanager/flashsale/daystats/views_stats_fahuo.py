@@ -5,7 +5,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 import datetime
 from calendar import monthrange
-from flashsale.dinghuo.models_stats import DailyStatsPreview
+from flashsale.dinghuo.models import DailyStatsPreview
 from django.forms.models import model_to_dict
 
 
