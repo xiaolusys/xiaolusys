@@ -939,4 +939,10 @@ class PackageBackOrderStatsAdmin(admin.ModelAdmin):
     search_fields = ('=id', 'purchaser__username')
     list_filter = [("created", DateFieldListFilter)]
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(PackageBackOrderStatsAdmin, self).get_form(request, obj=obj, **kwargs)
+        form.base_fields['purchaser'].queryset = form.base_fields['purchaser'].queryset.filter(
+            id=obj and obj.purchaser and obj.purchaser.id)
+        return form
+
 admin.site.register(PackageBackOrderStats, PackageBackOrderStatsAdmin)

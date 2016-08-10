@@ -2,11 +2,15 @@
 """
 代理相关推送
 """
+import logging
 from flashsale.push.mipush import mipush_of_ios, mipush_of_android
 from flashsale.push import constants as push_constants
 from flashsale.protocol import get_target_url
 from flashsale.protocol import constants as protocal_constants
 from flashsale.push.models_message import PushMsgTpl
+
+
+logger = logging.getLogger('service')
 
 
 def push_msg_to_mama(message):
@@ -33,6 +37,12 @@ def push_msg_to_mama(message):
             mipush_of_ios.push_to_account(customer_id,
                                           {'target_url': target_url},
                                           description=msg)
+            logger.info({
+                'action': 'push.mipush.push_msg_to_mama',
+                'customer': customer_id,
+                'msg': msg,
+                'target_url': target_url,
+            })
 
     return _wrapper
 
@@ -54,5 +64,3 @@ def push_msg_to_topic_mama(message):
         mipush_of_ios.push_to_topic(push_constants.TOPIC_XLMM_VIP,
                                     {'target_url': target_url},
                                     description=message)
-
-

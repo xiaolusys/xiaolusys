@@ -91,7 +91,8 @@ class SaleProduct(BaseTagModel):
         verbose_name_plural = u'特卖/选品列表'
         permissions = [
             ("sale_product_mgr", u"特卖商品管理"),
-            ("schedule_manage", u"排期管理")
+            ("schedule_manage", u"排期管理"),
+            ("delete_sale_product", u"删除选品")
         ]
 
     def __unicode__(self):
