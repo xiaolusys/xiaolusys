@@ -1130,6 +1130,8 @@ def task_update_trial_mama_full_member_by_condition(mama):
     满足邀请三个188　或者　
     这里用续费天数　判断
     """
+    if True:
+        return 
     trial_mama = XiaoluMama.objects.filter(mobile=mama.referal_from,
                                            status=XiaoluMama.EFFECT,  # 自接管后　15天　变为冻结
                                            last_renew_type=XiaoluMama.TRIAL).first()  # 推荐人(试用用户并且是有效状态的)
