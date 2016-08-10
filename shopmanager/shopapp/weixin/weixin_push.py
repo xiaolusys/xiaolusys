@@ -1,5 +1,9 @@
 # encoding=utf8
+import logging
 from shopapp.weixin.weixin_apis import WeiXinAPI
+
+
+logger = logging.getLogger('service')
 
 
 class WeixinPush(object):
@@ -8,10 +12,16 @@ class WeixinPush(object):
         self.api = WeiXinAPI()
 
     def push(self, customer, template_id, template_data, to_url):
-        # openid = customer.unionid
-        openid = 'opNiZv0ZRVFN7zTSpKqqKv7mfUDY'
+        openid = customer.unionid
         if not openid:
             return None
+        logger.info({
+            'action': 'push.weixinpush',
+            'customer': customer.id,
+            'openid': openid,
+            'template_id': template_id,
+            'to_url': to_url,
+        })
         return self.api.sendTemplate(openid, template_id, to_url, template_data)
 
     def push_trade_pay_notify(self, saletrade):
@@ -23,7 +33,7 @@ class WeixinPush(object):
         {{Remark.DATA}}
         """
         customer = saletrade.order_buyer
-        template_id = '0FQKLtn23GBk2MH1lYijRcXIQ3X-akznqr9Ls3M_Ka0'
+        template_id = 'K3R9wpw_yC2aXEW1PP6586l9UhMjXMwn_-Is4xcgjuA'
         template_data = {
             'first': {
                 'value': u'亲爱的用户%s，您的订单已支付成功' % customer.nick,
@@ -64,7 +74,7 @@ class WeixinPush(object):
             saletrade.receiver_address,
             saletrade.receiver_mobile,
         )
-        template_id = 'taKqanBT9aAIBang0cwIkmQVpA-B2uzz0gaNSa-MxNM'
+        template_id = 'ioBWcEsY40yg3NAQPnzE4LxfuHFFS20JnnAlVr96LXs'
         template_data = {
             'first': {
                 'value': u'亲爱的用户%s，您的商品已发货' % customer.nick,
@@ -103,7 +113,7 @@ class WeixinPush(object):
         {{remark.DATA}}
         """
         customer = salerefund.get_refund_customer()
-        template_id = 'L1CvKWo1m3lZ041kD5Ym-aUbSpNhc-eIs2WUHywKp78'
+        template_id = 'S9cIRfdDTM9yKeMTOj-HH5FPw79OofsfK6G4VRbKYQQ'
         template_data = {
             'first': {
                 'value': u'亲爱的用户%s，您购买的商品「%s」已经退款' % (customer.nick, salerefund.title),
@@ -124,3 +134,6 @@ class WeixinPush(object):
         }
         to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % salerefund.sale_trade.id
         return self.push(customer, template_id, template_data, to_url)
+
+
+weixin_push = WeixinPush()

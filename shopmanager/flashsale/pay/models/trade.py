@@ -608,6 +608,20 @@ def update_customer_first_paytime(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(update_customer_first_paytime, sender=SaleTrade)
 
 
+def push_trade_pay_notify(sender, obj, **kwargs):
+    """
+    订单支付成功推送
+    """
+    from flashsale.push.tasks import task_push_trade_pay_notify
+    saletrade = obj
+    customer = saletrade.order_buyer
+    if customer.unionid:
+        task_push_trade_pay_notify.delay(obj)
+
+
+signal_saletrade_pay_confirm.connect(push_trade_pay_notify, sender=SaleTrade)
+
+
 def tongji_trade_source(sender, obj, **kwargs):
     """
     统计付款订单来源，发送到 OneAPM
