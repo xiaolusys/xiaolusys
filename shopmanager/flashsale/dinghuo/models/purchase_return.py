@@ -565,7 +565,7 @@ class UnReturnSku(BaseModel):
     EFFECT = 1
     INVALIED = 2
     supplier = models.ForeignKey(SaleSupplier, null=True, verbose_name=u"供应商")
-    sale_product = models.ForeignKey(SaleProduct, null=True, verbose_name=u"供应商")
+    sale_product = models.ForeignKey(SaleProduct, null=True, verbose_name=u"关联选品")
     product = models.ForeignKey(Product, null=True, verbose_name=u"商品")
     sku = models.ForeignKey(ProductSku, null=True, verbose_name=u"sku")
     creater = models.ForeignKey(User, verbose_name=u'创建人')

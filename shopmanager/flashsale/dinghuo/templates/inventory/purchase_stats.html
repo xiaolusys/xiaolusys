@@ -91,10 +91,11 @@
       <div class="panel-body">
         <table class="table table-striped">
             <thead>
-                <tr><td class="col-xs-3">采购员</td>
+                <tr><td class="col-xs-2">采购员</td>
                     <td class="col-xs-3">退库存规格数量(颜色)</td>
-                    <td class="col-xs-3">退库存商品数量</td>
-                    <td class="col-xs-3">退库存失败数量</td>
+                    <td class="col-xs-2">总应退货件数</td>
+                    <td class="col-xs-2">实际退货件数</td>
+                    <td class="col-xs-3">退货比例</td>
                 </tr>
             </thead>
             <tbody>
@@ -104,6 +105,7 @@
                     <td>{{stats.1}}</td>
                     <td>{{stats.2}}</td>
                     <td>{{stats.3}}</td>
+                    <td>{{stats.4}}</td>
                 </tr>
             {% endfor %}
             </tbody>

@@ -2,6 +2,7 @@
 from datetime import datetime, time, timedelta
 from collections import defaultdict
 from django.db.models import Sum
+from django.contrib.auth.models import User
 
 from rest_framework.views import APIView
 from rest_framework import permissions
@@ -12,11 +13,8 @@ from shopback.items.models import Product, ProductSku
 from flashsale.pay.models import SaleOrder
 from flashsale.pay.models import SaleRefund
 from flashsale.dinghuo.models import OrderList, OrderDetail, ReturnGoods, RGDetail
+from flashsale.dinghuo.tasks import get_orderdetail_buyer_maping
 
-def get_orderdetail_buyer_maping(start_time, end_time):
-    orderdetails = OrderDetail.objects.filter(orderlist__created__range=(start_time, end_time))
-    detail_buyer_values_list = orderdetails.values_list('product_id', 'orderlist__buyer__username').distinct()
-    return dict(detail_buyer_values_list)
 
 def get_saleorder_stats(start_dt, end_dt): #, refund_status=0
     sorders = SaleOrder.objects.filter(pay_time__range=(start_dt, end_dt))\
@@ -67,6 +65,7 @@ class PurchaseStatsApiView(APIView):
         returngoods_stats = []
 
         buyer_map = get_orderdetail_buyer_maping(start_dt, end_dt)
+        buyer_name_map = dict(User.objects.filter(id__in=buyer_map.values()).values_list('id', 'username'))
         order_stats = get_saleorder_stats(start_dt, end_dt)
         buyercount_dict = defaultdict(list)
         for stats in order_stats:
@@ -74,7 +73,7 @@ class PurchaseStatsApiView(APIView):
             buyercount_dict[buyer].append(stats)
 
         for buyer, counts in buyercount_dict.items():
-            unpost_stats.append([buyer, len(set([i['item_id'] for i in counts])), sum([i['total_num'] for i in counts])])
+            unpost_stats.append([buyer_name_map.get(buyer), len(set([i['item_id'] for i in counts])), sum([i['total_num'] for i in counts])])
 
         refund_stats = get_lackrefund_stats(start_dt, end_dt)
         refundcount_dict = defaultdict(list)
@@ -82,7 +81,7 @@ class PurchaseStatsApiView(APIView):
             buyer = buyer_map.get(str(stats['item_id']))
             refundcount_dict[buyer].append(stats)
         for buyer, counts in refundcount_dict.items():
-            lackrefund_stats.append([buyer, len(set([i['item_id'] for i in counts])), sum([i['total_num'] for i in counts])])
+            lackrefund_stats.append([buyer_name_map.get(buyer), len(set([i['item_id'] for i in counts])), sum([i['total_num'] for i in counts])])
 
         return_stats = get_returngoods_stats(start_dt, end_dt)
         sku_values_list = ProductSku.objects.filter(id__in=[rs['skuid'] for rs in return_stats]).values_list('id', 'product_id')
@@ -92,18 +91,21 @@ class PurchaseStatsApiView(APIView):
             product_id = sku_dict.get(stats['skuid'])
             if not product_id: continue
             buyer = buyer_map.get(str(product_id))
-            fail_num = 0
+            returned_num = 0
             stats['product_id'] = product_id
             stats['return_num'] = stats['num'] + stats['inferior_num']
-            if stats['return_goods__status'] == 5:
-                fail_num = stats['return_num']
-            stats.update(fail_num=fail_num)
+            if stats['return_goods__status'] in (ReturnGoods.SUCCEED_RG, ReturnGoods.REFUND_RG, ReturnGoods.DELIVER_RG):
+                returned_num = stats['return_num']
+            stats.update(returned_num=returned_num)
             returncount_dict[buyer].append(stats)
 
         for buyer, counts in returncount_dict.items():
-            returngoods_stats.append([buyer, len(set([i['product_id'] for i in counts])),
-                                      sum([i['return_num'] for i in counts]),
-                                      sum([i['fail_num'] for i in counts])])
+            return_count = sum([i['return_num'] for i in counts])
+            returned_count = sum([i['returned_num'] for i in counts])
+            returngoods_stats.append([buyer_name_map.get(buyer), len(set([i['product_id'] for i in counts])),
+                                      return_count,
+                                      returned_count,
+                                      '%.3f'% (return_count > 0 and returned_count * 1.0 / return_count or 0)])
 
         return Response({
                         'start_time':start_dt,

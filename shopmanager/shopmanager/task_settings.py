@@ -1269,7 +1269,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-
+    u'每日统计订单延时发货数量': {
+        'task': 'flashsale.dinghuo.tasks.task_save_package_backorder_stats',
+        'schedule': crontab(minute="30", hour="23"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
     u'定时自动上下架库存商品': {
         'task': 'shopback.items.tasks.task_auto_shelf_prods',
         'schedule': crontab(minute="0", hour="*/1"),
