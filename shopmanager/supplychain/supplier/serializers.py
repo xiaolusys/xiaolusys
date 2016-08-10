@@ -387,6 +387,7 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source='sale_product.sale_supplier.supplier_name', read_only=True)
     product_purchase_price = serializers.CharField(source='sale_product.sale_price', read_only=True)
     product_sale_price = serializers.CharField(source='sale_product.on_sale_price', read_only=True)
+    product_contactor = serializers.CharField(source='sale_product.contactor', read_only=True)
     product_origin_price = serializers.CharField(source='sale_product.std_sale_price', read_only=True)
     product_pic = serializers.CharField(source='sale_product.pic_url', read_only=True)
     product_link = serializers.CharField(source='sale_product.product_link', read_only=True)
@@ -405,7 +406,7 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
             'order_weight', 'model_id', 'supplier_name',
             'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
             'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
-            'reference_username', 'photo_username',
+            'reference_username', 'photo_username', 'product_contactor',
             'created', 'modified')
 
     def reference_user_name(self, obj):
