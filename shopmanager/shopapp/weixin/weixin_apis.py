@@ -42,6 +42,7 @@ class WeiXinAPI(object):
     _create_qrcode_uri = "/cgi-bin/qrcode/create"
     _media_get_uri = "/cgi-bin/media/get"
     _js_ticket_uri = "/cgi-bin/ticket/getticket"
+    _template_send_uri = '/cgi-bin/message/template/send'
 
     # 微信小店接口
     _merchant_get_uri = "/merchant/get"
@@ -179,6 +180,16 @@ class WeiXinAPI(object):
     def getFollowersID(self, next_openid=''):
         return self.handleRequest(self._get_followers_uri, {'next_openid': next_openid},
                                   method='GET')
+
+    def sendTemplate(self, openid, template_id, to_url, data):
+        params = {
+            'touser': openid,
+            'template_id': template_id,
+            'url': to_url,
+            'data': data,
+        }
+        params = json.dumps(params)
+        return self.handleRequest(self._template_send_uri, params, method='POST')
 
     def createMenu(self, params):
         assert type(params) == dict
