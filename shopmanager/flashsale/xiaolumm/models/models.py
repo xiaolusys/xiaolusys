@@ -521,9 +521,10 @@ class XiaoluMama(models.Model):
         parent = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
         if parent:
             res.append(parent.referal_from_mama_id)
-            pp = ReferalRelationship.objects.filter(referal_to_mama_id=parent.id).first()
-            if pp:
-                res.append(pp.referal_from_mama_id)
+        if self.last_renew_type == XiaoluMama.TRIAL:
+            parent = PotentialMama.objects.filter(potential_mama=self.id).first()
+            if parent:
+                res.append(parent.referal_mama)
         return res
 
     def get_lv_team_member_ids(self):

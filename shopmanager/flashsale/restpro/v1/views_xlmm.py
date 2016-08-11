@@ -116,7 +116,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             'nick': mama.get_customer().nick,
             'thumbnail':mama.get_customer().thumbnail
         }
-        return res
+        return Response(res)
 
     @list_route(methods=['get'])
     def list_base_data(self, request):
