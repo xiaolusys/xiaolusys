@@ -688,7 +688,7 @@ admin.site.register(TeamCarryTotalRecord, TeamCarryTotalRecordAdmin)
 
 
 class XlmmMessageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', "content_link", 'content', 'dest', 'status', 'creator', 'created')
+    list_display = ('id', 'title', "content_link", 'content', 'dest', 'status', 'read_count', 'creator', 'created')
     list_filter = ()
     search_fields = ('id', "title", '=content_link')
     add_form_template = 'admin/xiaolumm/message/add_form.html'
