@@ -502,6 +502,14 @@ class XiaoluMama(models.Model):
         return self._mama_customer_
 
     @property
+    def customer_id(self):
+        from flashsale.pay.models import Customer
+        c = Customer.objects.filter(unionid=self.openid).first()
+        if c:
+            return c.id
+        return 0
+    
+    @property
     def nick(self):
         return self.get_mama_customer().nick if self.get_mama_customer() else ''
 
