@@ -733,7 +733,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         log_action(request.user.id, instance, CHANGE, u'取消订单')
-        return Response(data={"ok": True})
+        return Response({"code": 0, "info":u'订单已取消'})
 
     @detail_route(methods=['post'])
     def confirm_sign(self, request, *args, **kwargs):
@@ -761,7 +761,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def undisplay(self, request, *args, **kwargs):
         """ 不显示订单 """
         instance = self.get_object()
-        # TODO
+        self.perform_destroy(instance)
         return Response({"code": 0, "info": "订单已删除"})
 
 
