@@ -5,6 +5,9 @@ from django.db.models import Q
 from django.db.models.signals import post_save
 from flashsale.xiaolumm.models import XiaoluMama
 
+import logging
+logger = logging.getLogger('django.request')
+
 
 class XlmmMessage(AdminModel):
     title = models.CharField(max_length=500, verbose_name=u'消息标题')
@@ -87,5 +90,6 @@ def read_stats(sender, instance, created, **kwargs):
     read_count = XlmmMessageRel.objects.filter(message=instance.message).count()
     key = "MamaNotificationMessage.%d" % instance.message.id
     statsd.timing(key, read_count)
+    logger.error("read_stats: %s, %d" % (key, read_count))
 
 post_save.connect(read_stats, sender=XlmmMessageRel, dispatch_uid='post_save_xlmmmessagerel_read_stats')
