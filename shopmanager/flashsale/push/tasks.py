@@ -3,7 +3,7 @@
 from celery.task import task
 
 from .mipush import mipush_of_ios, mipush_of_android
-from shopapp.weixin.weixin_push import weixin_push
+from shopapp.weixin.weixin_push import WeiXinAPI
 
 
 @task(max_retries=3, default_retry_delay=5)
@@ -20,4 +20,5 @@ def unsubscribe(platform, regid, topic):
 
 @task()
 def task_push_trade_pay_notify(saletrade):
+    weixin_push = WeiXinAPI()
     weixin_push.push_trade_pay_notify(saletrade)
