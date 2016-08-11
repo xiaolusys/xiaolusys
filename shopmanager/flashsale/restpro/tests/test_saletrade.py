@@ -63,7 +63,7 @@ class SaletradeTestCase(TestCase):
                                    ACCEPT='application/json; q=0.01')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertEqual(len(data), 1)
+        self.assertGreater(len(data), 0)
         self.assertEqual(data[0]['num'], self.cart_data['num'])
         return data
 
