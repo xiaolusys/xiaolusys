@@ -12,9 +12,10 @@ class WeixinPush(object):
 
     def __init__(self):
         self.api = WeiXinAPI()
+        self.api.setAccountId(appKey=settings.WXPAY_APPID)
 
     def push(self, customer, template_id, template_data, to_url):
-        openid = get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
+        openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
         if not openid:
             return None
         logger.info({
