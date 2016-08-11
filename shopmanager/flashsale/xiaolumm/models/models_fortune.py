@@ -782,6 +782,20 @@ class ReferalRelationship(BaseModel):
         else:
             return None
 
+    @classmethod
+    def create_relationship_by_potential(cls, potential_record):
+        """ 通过潜在妈妈列表中的记录创建推荐关系 """
+        # 先查看是否有推荐关系存在(被推荐人　potential_record.potential_mama 潜在妈妈)
+        ship = cls.objects.filter(referal_to_mama_id=potential_record.potential_mama).first()
+        if ship:
+            return ship, False
+        ship = cls(referal_from_mama_id=potential_record.referal_mama,
+                   referal_to_mama_id=potential_record.potential_mama,
+                   referal_to_mama_nick=potential_record.nick,
+                   referal_to_mama_img=potential_record.thumbnail)
+        ship.save()
+        return ship, True
+
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
     if not created:
