@@ -18,10 +18,11 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.xlmm_response import make_response, SUCCESS_RESPONSE
 from flashsale.pay.models import Customer, ModelProduct
 from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
-    AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor, DailyStats
+    AwardCarry, ReferalRelationship, GroupRelationship, UniqueVisitor, DailyStats
 from flashsale.xiaolumm.models import XiaoluMama
 
 from .. import serializers
@@ -36,6 +37,7 @@ def get_customer_id(user):
         return customer.id
     return None
 
+
 def get_mama_id(user):
     customer = Customer.objects.normal_customer.filter(user=user).first()
     mama_id = None
@@ -43,17 +45,17 @@ def get_mama_id(user):
         xlmm = customer.get_charged_mama()
         if xlmm:
             mama_id = xlmm.id
-    #mama_id = 5 # debug test
+    # mama_id = 5 # debug test
     return mama_id
 
 
 def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field, exclude_statuses=None):
-    qset = queryset.filter(mama_id=mama_id,date_field__gte=from_date,date_field__lte=end_date)
+    qset = queryset.filter(mama_id=mama_id, date_field__gte=from_date, date_field__lte=end_date)
 
     if exclude_statuses:
         for ex in exclude_statuses:
             qset = qset.exclude(status=ex)
-    
+
     qset = qset.values('date_field').annotate(today_carry=Sum(sum_field))
     sum_dict = {}
     for entry in qset:
@@ -72,8 +74,9 @@ def add_day_carry(datalist, queryset, sum_field, scale=0.01, exclude_statuses=No
     end_date = datalist[0].date_field
     from_date = datalist[-1].date_field
     ### search database to group dates and get carry_num for each group
-    sum_dict = get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field, exclude_statuses=exclude_statuses)
-    
+    sum_dict = get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field,
+                                        exclude_statuses=exclude_statuses)
+
     for entry in datalist:
         key = entry.date_field
         if key in sum_dict:
@@ -87,6 +90,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.MamaFortuneSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
@@ -148,7 +152,8 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
             params = {'from_customer': customer_id, "time_str": int(time.time())}
             share_link = "/sale/promotion/appdownload/?from_customer={from_customer}"
             share_link = urlparse.urljoin(settings.M_SITE_URL, share_link).format(**params)
-            file_name = os.path.join('qrcode/mm_appdownload', 'from_customer_{from_customer}_{time_str}.jpg'.format(**params))
+            file_name = os.path.join('qrcode/mm_appdownload',
+                                     'from_customer_{from_customer}_{time_str}.jpg'.format(**params))
             qrcode_url = push_qrcode_to_remote(file_name, share_link)
             if mama_fortune:
                 kwargs = {"app_download_qrcode_url": qrcode_url}
@@ -168,6 +173,7 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CarryRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request, exclude_statuses=None):
@@ -177,15 +183,14 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
         # we dont return canceled record
         if exclude_statuses:
             for ex in exclude_statuses:
-               qset = qset.exclude(status=ex)
-               
-        return qset.order_by('-date_field', '-created')
+                qset = qset.exclude(status=ex)
 
+        return qset.order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         statsd.incr('xiaolumm.mama_carryrecord_count')
 
-        exclude_statuses = [3,]
+        exclude_statuses = [3, ]
         datalist = self.get_owner_queryset(request, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
         sum_field = 'carry_num'
@@ -218,13 +223,14 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.OrderCarrySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request, carry_type, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
         if carry_type == "direct":
             return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
-        
+
         qset = self.queryset.filter(mama_id=mama_id)
         if exclude_statuses:
             for ex in exclude_statuses:
@@ -232,12 +238,12 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         return qset.order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
-        exclude_statuses = [0, 3] # not show unpaid/canceled orders
+        exclude_statuses = [0, 3]  # not show unpaid/canceled orders
 
         carry_type = request.REQUEST.get("carry_type", "all")
         if carry_type == "direct":
-            exclude_statuses = None # show all orders excpet indirect ones
-            
+            exclude_statuses = None  # show all orders excpet indirect ones
+
         datalist = self.get_owner_queryset(request, carry_type, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
 
@@ -265,6 +271,7 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ClickCarrySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
@@ -297,6 +304,7 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.AwardCarrySerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
@@ -329,6 +337,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ActiveValueSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request, exclude_statuses=None):
@@ -339,13 +348,13 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
         if exclude_statuses:
             for ex in exclude_statuses:
                 qset = qset.exclude(status=ex)
-               
+
         return qset.order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         statsd.incr('xiaolumm.mama_active_count')
 
-        exclude_statuses = [3,]
+        exclude_statuses = [3, ]
         datalist = self.get_owner_queryset(request, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
 
@@ -372,6 +381,7 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReferalRelationshipSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
@@ -403,6 +413,7 @@ class GroupRelationshipViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.GroupRelationshipSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
@@ -420,7 +431,6 @@ class GroupRelationshipViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
 
-
 class UniqueVisitorViewSet(viewsets.ModelViewSet):
     """
     given from=0 (or omit), we return today's visitors;
@@ -430,23 +440,24 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     page_query_param = 'page'
     paginate_by_param = 'page_size'
     max_paginate_by = 100
-    
+
     queryset = UniqueVisitor.objects.all()
     serializer_class = serializers.UniqueVisitorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
         content = request.REQUEST
-        days_from = int(content.get("from",0))
-        
+        days_from = int(content.get("from", 0))
+
         date_field = datetime.datetime.now().date()
         if days_from > 0:
             date_field = date_field - datetime.timedelta(days=days_from)
 
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id,date_field=date_field).order_by('-created')
+        return self.queryset.filter(mama_id=mama_id, date_field=date_field).order_by('-created')
 
     def list(self, request, *args, **kwargs):
         statsd.incr('xiaolumm.mama_uniquevisitor_count')
@@ -461,8 +472,8 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
 
-
 from flashsale.xiaolumm.models.models_fans import XlmmFans
+
 
 class XlmmFansViewSet(viewsets.ModelViewSet):
     """
@@ -476,6 +487,7 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.XlmmFansSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
@@ -484,7 +496,6 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         statsd.incr('xiaolumm.mama_fans_count')
-
 
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)
@@ -495,24 +506,31 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-    @list_route(methods=['POST', 'GET'])
+    @list_route(methods=['POST'])
     def change_mama(self, request):
         new_mama_id = request.REQUEST.get('new_mama_id')
         fans = XlmmFans.get_by_customer_id(request.user.customer.id)
         new_mama = get_object_or_404(XiaoluMama, pk=new_mama_id)
         if not fans:
-            XlmmFans.bind_mama(request.user.customer, new_mama)
+            try:
+                XlmmFans.bind_mama(request.user.customer, new_mama)
+            except Exception, e0:
+                raise exceptions.ValidationError(make_response(e0.message))
         if new_mama.id == fans.xlmm:
-            raise exceptions.ValidationError(u'更换的新妈妈ID与原小鹿妈妈ID必须不一致')
+            raise exceptions.ValidationError(make_response(u'更换的新妈妈ID与原小鹿妈妈ID必须不一致'))
         fans.change_mama(new_mama)
-        return Response(True)
+        return Response(SUCCESS_RESPONSE)
 
-    @detail_route(methods=['POST'])
+    @detail_route(methods=['POST', 'GET'])
     def bind_mama(self, request, pk):
         cus = request.user.customer
         mama = get_object_or_404(XiaoluMama, pk=pk)
-        XlmmFans.bind_mama(cus, mama)
-        return Response(True)
+        try:
+            XlmmFans.bind_mama(cus, mama)
+        except Exception, e0:
+            # raise exceptions.ValidationError(e0.message)
+            raise exceptions.ValidationError(make_response(e0.message))
+        return Response(SUCCESS_RESPONSE)
 
 
 def match_data(from_date, end_date, visitors, orders):
@@ -520,22 +538,22 @@ def match_data(from_date, end_date, visitors, orders):
     match visitors/orders data according to date range.
     """
     data = []
-    i,j = 0,0
-    maxi,maxj = len(visitors), len(orders)
-    
+    i, j = 0, 0
+    maxi, maxj = len(visitors), len(orders)
+
     from_date = from_date + datetime.timedelta(1)
     while from_date <= end_date:
-        visitor_num, order_num, carry = 0,0,0
+        visitor_num, order_num, carry = 0, 0, 0
         if i < maxi and visitors[i]["date_field"] == from_date:
             visitor_num = visitors[i]["visitor_num"]
             i += 1
-            
+
         if j < maxj and orders[j]["date_field"] == from_date:
             order_num, carry = orders[j]["order_num"], orders[j]["carry"]
             j += 1
-            
-        entry = {"date_field":from_date, "visitor_num":visitor_num, 
-                 "order_num": order_num, "carry":float('%.2f' % (carry * 0.01))}
+
+        entry = {"date_field": from_date, "visitor_num": visitor_num,
+                 "order_num": order_num, "carry": float('%.2f' % (carry * 0.01))}
         data.append(entry)
         from_date += datetime.timedelta(1)
     return data
@@ -556,42 +574,45 @@ class OrderCarryVisitorView(APIView):
     serializer_class = serializers.UniqueVisitorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get(self, request):
         content = request.REQUEST
-        days_from = int(content.get("from",0))
-        days_length   = int(content.get("days",1))
+        days_from = int(content.get("from", 0))
+        days_length = int(content.get("days", 1))
 
         mama_id = get_mama_id(request.user)
 
         today_date = datetime.datetime.now().date()
         end_date = today_date - datetime.timedelta(days_from)
-        from_date = today_date - datetime.timedelta(days_from+days_length)
+        from_date = today_date - datetime.timedelta(days_from + days_length)
 
-        visitors = self.queryset.filter(mama_id=mama_id, date_field__gt=from_date, date_field__lte=end_date).order_by('date_field').values('date_field').annotate(visitor_num=Count('pk'))
-        orders = OrderCarry.objects.filter(mama_id=mama_id,date_field__gt=from_date,date_field__lte=end_date).order_by('date_field').values('date_field').annotate(order_num=Count('pk'),carry=Sum('carry_num'))
+        visitors = self.queryset.filter(mama_id=mama_id, date_field__gt=from_date, date_field__lte=end_date).order_by(
+            'date_field').values('date_field').annotate(visitor_num=Count('pk'))
+        orders = OrderCarry.objects.filter(mama_id=mama_id, date_field__gt=from_date,
+                                           date_field__lte=end_date).order_by('date_field').values(
+            'date_field').annotate(order_num=Count('pk'), carry=Sum('carry_num'))
 
         data = match_data(from_date, end_date, visitors, orders)
         return Response(data)
 
 
-
 def fill_data(data, from_date, end_date):
     res = []
-    i = len(data)-1
-    
+    i = len(data) - 1
+
     while from_date <= end_date:
-        visitor_num, order_num, carry = 0,0,0
-        if i>=0 and data[i]["date_field"] == str(from_date):
-            visitor_num, order_num, carry = data[i]["today_visitor_num"], data[i]["today_order_num"], data[i]["today_carry_num"]
-            i = i-1
-        entry = {"date_field":from_date, "visitor_num":visitor_num, "order_num": order_num, "carry":carry}
+        visitor_num, order_num, carry = 0, 0, 0
+        if i >= 0 and data[i]["date_field"] == str(from_date):
+            visitor_num, order_num, carry = data[i]["today_visitor_num"], data[i]["today_order_num"], data[i][
+                "today_carry_num"]
+            i = i - 1
+        entry = {"date_field": from_date, "visitor_num": visitor_num, "order_num": order_num, "carry": carry}
         res.append(entry)
         from_date += datetime.timedelta(1)
-    
-    return res
 
+    return res
 
 
 class DailyStatsViewSet(viewsets.ModelViewSet):
@@ -611,37 +632,38 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.DailyStatsSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request, from_date, end_date):
         mama_id = get_mama_id(request.user)
 
-        return self.queryset.filter(mama_id=mama_id, date_field__gte=from_date,date_field__lte=end_date).order_by('-date_field','-created')
+        return self.queryset.filter(mama_id=mama_id, date_field__gte=from_date, date_field__lte=end_date).order_by(
+            '-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         content = request.REQUEST
-        days_from = int(content.get("from",0))
-        days_length   = int(content.get("days",1))
+        days_from = int(content.get("from", 0))
+        days_length = int(content.get("days", 1))
 
         today_date = datetime.datetime.now().date()
         end_date = today_date - datetime.timedelta(days=days_from)
-        from_date = end_date - datetime.timedelta(days=days_length-1)
-        
+        from_date = end_date - datetime.timedelta(days=days_length - 1)
+
         datalist = self.get_owner_queryset(request, from_date, end_date)
         datalist = self.paginate_queryset(datalist)
 
         serializer = serializers.DailyStatsSerializer(datalist, many=True)
         res = fill_data(serializer.data, from_date, end_date)
-        
+
         return self.get_paginated_response(res)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
 
-
-
 from flashsale.pay.serializers import ModelProductSerializer
+
 
 class ModelProductViewSet(viewsets.ModelViewSet):
     """
@@ -659,19 +681,19 @@ class ModelProductViewSet(viewsets.ModelViewSet):
     serializer_class = ModelProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, category):
         today_date = datetime.datetime.now().date()
         last_date = today_date - datetime.timedelta(days=1)
-        queryset = self.queryset.filter(sale_time__gte=last_date,sale_time__lte=today_date)
+        queryset = self.queryset.filter(sale_time__gte=last_date, sale_time__lte=today_date)
 
         category = int(category)
         if category > 0:
             queryset = queryset.filter(category=category)
 
         return queryset.order_by('-sale_time')
-
 
     def list(self, request, *args, **kwargs):
         statsd.incr('xiaolumm.mama_productselection_count')
@@ -685,13 +707,13 @@ class ModelProductViewSet(viewsets.ModelViewSet):
         serializer = ModelProductSerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)
 
-    
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
-    
+
 
 from rest_framework import generics
 from flashsale.promotion.models import AppDownloadRecord
+
 
 class PotentialFansView(generics.GenericAPIView):
     paginate_by = 10
@@ -705,8 +727,9 @@ class PotentialFansView(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         customer_id = get_customer_id(request.user)
-        #customer_id = 1
-        records = AppDownloadRecord.objects.filter(from_customer=customer_id,status=AppDownloadRecord.UNUSE).order_by('-created')
+        # customer_id = 1
+        records = AppDownloadRecord.objects.filter(from_customer=customer_id, status=AppDownloadRecord.UNUSE).order_by(
+            '-created')
         datalist = self.paginate_queryset(records)
         serializer = serializers.AppDownloadRecordSerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)
