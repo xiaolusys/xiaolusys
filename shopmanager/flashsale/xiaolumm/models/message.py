@@ -90,6 +90,6 @@ def read_stats(sender, instance, created, **kwargs):
     read_count = XlmmMessageRel.objects.filter(message=instance.message).count()
     key = "MamaNotificationMessage.%d" % instance.message.id
     statsd.timing(key, read_count)
-    logger.error("read_stats: %s, %d" % (key, read_count))
+    #logger.error("read_stats: %s, %d" % (key, read_count))
 
 post_save.connect(read_stats, sender=XlmmMessageRel, dispatch_uid='post_save_xlmmmessagerel_read_stats')
