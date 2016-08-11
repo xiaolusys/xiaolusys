@@ -163,6 +163,27 @@ class AppDownloadRecord(BaseModel):
         return self.status == AppDownloadRecord.USED
 
     @property
+    def from_mama(self):
+        from flashsale.pay.models import Customer
+        from flashsale.xiaolumm.models import XiaoluMama
+
+        c = Customer.objects.filter(id=self.from_customer).first()
+        if c:
+            m = XiaoluMama.objects.filter(openid=c.unionid).first()
+            if m:
+                return m.id
+        return 0
+            
+    @property
+    def fans_customer(self):
+        from flashsale.pay.models import Customer
+        if self.unionid:
+            c = Customer.objects.filter(unionid=self.unionid).first()
+            if c:
+                return c.id
+        return 0
+
+    @property
     def note(self):
         if self.status == AppDownloadRecord.UNUSE:
             if self.inner_ufrom == AppDownloadRecord.ACTIVITY:

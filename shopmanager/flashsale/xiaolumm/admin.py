@@ -32,7 +32,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
     user_groups = []
 
     form = forms.XiaoluMamaForm
-    list_display = ('id', 'mama_data_display', 'get_cash_display', 'total_inout_item', 'weikefu', 'agencylevel',
+    list_display = ('id', 'customer_id', 'mama_data_display', 'get_cash_display', 'total_inout_item', 'last_renew_type', 'agencylevel',
                     'charge_link', 'group_select', 'click_state', 'exam_pass', 'progress', 'hasale', 'charge_time',
                     'status', 'referal_from', 'mama_Verify')
     list_filter = (
