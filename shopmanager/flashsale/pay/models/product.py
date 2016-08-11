@@ -138,6 +138,7 @@ class ModelProduct(BaseTagModel):
 
     ON_SHELF = 'on'
     OFF_SHELF = 'off'
+    WILL_SHELF = 'will' # 即将上新
     SHELF_CHOICES = (
         (ON_SHELF,u'已上架'),
         (OFF_SHELF,u'未上架')
@@ -257,6 +258,13 @@ class ModelProduct(BaseTagModel):
         if not product or not product.detail:
             return None
         return product.sale_time
+
+    @property
+    def sale_state(self):
+        if self.shelf_status == self.OFF_SHELF and \
+                (not self.onshelf_time or self.onshelf_time > datetime.datetime.now()):
+            return self.WILL_SHELF
+        return self.shelf_status
 
     @property
     def category(self):
@@ -385,6 +393,7 @@ class ModelProduct(BaseTagModel):
             'category': self.category,
             'sale_time': self.sale_time,
             'offshelf_time': self.offshelf_time,
+            'sale_state': self.sale_state,
             'properties':self.properties,
             'watermark_op': '',
             'item_marks': [u'包邮'],
