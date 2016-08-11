@@ -1,3 +1,4 @@
+# encoding=utf8
 # Django settings for shopmanager project.
 import sys
 import os
