@@ -1347,8 +1347,7 @@ class PackageOrder(models.Model):
     is_lgtype = models.BooleanField(default=False, verbose_name=u'速递')
     lg_aging = models.DateTimeField(null=True, blank=True, verbose_name=u'速递送达时间')
     lg_aging_type = models.CharField(max_length=20, blank=True, verbose_name=u'速递类型')
-    out_sid = models.CharField(max_length=64, db_index=True,
-                               blank=True, verbose_name=u'物流编号')
+    out_sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流编号')
     logistics_company = models.ForeignKey(LogisticsCompany, null=True,
                                           blank=True, verbose_name=u'物流公司')
     # 仓库信息
@@ -1389,6 +1388,10 @@ class PackageOrder(models.Model):
 
     def is_sent(self):
         return self.sys_status in [PackageOrder.FINISHED_STATUS, PackageOrder.WAIT_CUSTOMER_RECEIVE]
+
+    @property
+    def receiver_address_detail(self):
+        return str(self.receiver_state) + str(self.receiver_city) + str(self.receiver_district) + str(self.receiver_address)
 
     def copy_order_info(self, sale_trade):
         """从package_order或者sale_trade复制信息"""
