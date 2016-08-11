@@ -2,7 +2,7 @@
 from django.db import models
 from core.models import AdminModel, BaseModel
 from django.db.models import Q
-
+from django.db.models.signals import post_save
 from flashsale.xiaolumm.models import XiaoluMama
 
 
@@ -21,6 +21,10 @@ class XlmmMessage(AdminModel):
         verbose_name = u'妈妈消息/通知'
         verbose_name_plural = u'妈妈消息/通知列表'
 
+    @property
+    def read_count(self):
+        return self.rel_messages.all().count()
+        
     @property
     def read(self):
         if not hasattr(self, '_read_'):
@@ -76,3 +80,12 @@ class XlmmMessageRel(BaseModel):
         db_table = 'xiaolumm_message_rel'
         verbose_name = u'妈妈消息/阅读状态'
         verbose_name_plural = u'妈妈消息/阅读状态列表'
+
+
+def read_stats(sender, instance, created, **kwargs):
+    from django_statsd.clients import statsd
+    read_count = XlmmMessageRel.objects.filter(message=instance.message).count()
+    key = "MamaNotificationMessage.%d" % instance.message.id
+    statsd.timing(key, read_count)
+
+post_save.connect(read_stats, sender=XlmmMessageRel, dispatch_uid='post_save_xlmmmessagerel_read_stats')
