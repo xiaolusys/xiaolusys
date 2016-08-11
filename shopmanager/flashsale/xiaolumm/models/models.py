@@ -676,6 +676,8 @@ class XiaoluMama(models.Model):
         """
         修改该代理的下次续费时间
         """
+        if days not in [XiaoluMama.HALF, XiaoluMama.FULL]:
+            raise AssertionError(u'续费天数异常')
         now = datetime.datetime.now()
         update_fields = ['renew_time']
         if isinstance(self.renew_time, datetime.datetime):
@@ -686,6 +688,9 @@ class XiaoluMama(models.Model):
         if renew_time > now and self.status == XiaoluMama.FROZEN:
             self.status = XiaoluMama.EFFECT
             update_fields.append('status')
+        if self.last_renew_type != days:  # days  对应 HALF　FULL
+            self.last_renew_type = days
+            update_fields.append('last_renew_type')
         self.save(update_fields=update_fields)
         return True
 
@@ -1088,6 +1093,30 @@ class PotentialMama(BaseModel):
 
     def __unicode__(self):
         return '%s-%s' % (self.potential_mama, self.referal_mama)
+
+    def update_full_member(self):
+        """ 妈妈成为正式妈妈　切换is_full_member状态为True """
+        if not self.is_full_member:
+            self.is_full_member = True
+            self.save(update_fields=['is_full_member'])
+            return True
+        return False
+
+
+def update_mama_relationship(sender, instance, created, **kwargs):
+    if not instance.is_full_member:
+        return
+    from flashsale.xiaolumm.models import ReferalRelationship
+
+    ship, state = ReferalRelationship.create_relationship_by_potential(instance)
+    if state:
+        from core.options import log_action, CHANGE, get_systemoa_user
+        sys_oa = get_systemoa_user()
+        log_action(sys_oa, ship, CHANGE, u'通过潜在关系创建推荐关系记录')
+
+
+post_save.connect(update_mama_relationship,
+                  sender=PotentialMama, dispatch_uid='post_save_update_mama_relationship')
 
 
 def update_mamafortune_invite_trial_num(sender, instance, created, **kwargs):
