@@ -1,6 +1,8 @@
 # encoding=utf8
 import logging
+from django.conf import settings
 from shopapp.weixin.weixin_apis import WeiXinAPI
+from shopapp.weixin.options import get_openid_by_unionid
 
 
 logger = logging.getLogger('service')
@@ -12,7 +14,7 @@ class WeixinPush(object):
         self.api = WeiXinAPI()
 
     def push(self, customer, template_id, template_data, to_url):
-        openid = customer.openid
+        openid = get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         if not openid:
             return None
         logger.info({

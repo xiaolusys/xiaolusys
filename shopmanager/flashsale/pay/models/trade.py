@@ -615,7 +615,7 @@ def push_trade_pay_notify(sender, obj, **kwargs):
     from flashsale.push.tasks import task_push_trade_pay_notify
     saletrade = obj
     customer = saletrade.order_buyer
-    if customer.openid:
+    if customer.unionid:
         task_push_trade_pay_notify.delay(obj)
 
 
