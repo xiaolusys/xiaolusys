@@ -137,6 +137,3 @@ class WeixinPush(object):
         }
         to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % salerefund.sale_trade.id
         return self.push(customer, template_id, template_data, to_url)
-
-
-weixin_push = WeixinPush()
