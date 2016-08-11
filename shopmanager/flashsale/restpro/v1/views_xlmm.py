@@ -106,6 +106,18 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def create(self, request, *args, **kwargs):
         return Response()
 
+    @detail_route()
+    def base_info(self, request, pk):
+        mama = get_object_or_404(XiaoluMama, pk=pk)
+        if not mama:
+            raise exceptions.ValidationError(u'此用户并非小鹿妈妈')
+        res = {
+            'mama_id': mama.id,
+            'nick': mama.get_customer().nick,
+            'thumbnail':mama.get_customer().thumbnail
+        }
+        return res
+
     @list_route(methods=['get'])
     def list_base_data(self, request):
         """
