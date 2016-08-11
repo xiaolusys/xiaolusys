@@ -627,7 +627,6 @@ class TmpShareCouponViewset(viewsets.ModelViewSet):
             return Response(default_return)
 
         coupon_share = OrderShareCoupon.objects.filter(uniq_id=uniq_id).first()
-
         if not coupon_share:
             default_return.update({"code": 4, "msg": "没有找到该分享"})
             return Response(default_return)
