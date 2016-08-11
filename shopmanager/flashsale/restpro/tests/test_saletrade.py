@@ -19,17 +19,15 @@ class SaletradeTestCase(TestCase):
                 'test.flashsale.pay.saletrade.json',
                 ]
     def setUp(self):
-        self.username = 'xiaolu'
-        self.password = 'test'
-        self.client.login(username=self.username, password=self.password)
+        self.cart_data = {'num': 2, 'item_id': 40874, 'sku_id': 164886}
+        self.cart_ids = [422913, 422912]
+        self.client.login(username='xiaolu', password='test')
         SaleTrade.objects.filter(id=372487).update(created=datetime.datetime.now())
 
     def addShoppingCart(self):
-        pdata = {'num': 1, 'item_id': 40874, 'sku_id': 164886}
         response = self.client.post('/rest/v1/carts',
-                                    pdata,
+                                    self.cart_data,
                                     ACCEPT='application/json; q=0.01')
-
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertEqual(data['code'], 0)
@@ -37,7 +35,6 @@ class SaletradeTestCase(TestCase):
     def getShoppingCarts(self):
         response = self.client.get('/rest/v1/carts',
                                    ACCEPT='application/json; q=0.01')
-
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertGreater(len(data), 0)
@@ -53,9 +50,8 @@ class SaletradeTestCase(TestCase):
         return data
 
     def addShoppingCart_V2(self):
-        pdata = {'num': 3, 'item_id': 40874, 'sku_id': 164886}
         response = self.client.post('/rest/v2/carts',
-                                    pdata,
+                                    self.cart_data,
                                     ACCEPT='application/json; q=0.01')
 
         self.assertEqual(response.status_code, 200)
@@ -65,18 +61,16 @@ class SaletradeTestCase(TestCase):
     def getShoppingCarts_V2(self):
         response = self.client.get('/rest/v2/carts',
                                    ACCEPT='application/json; q=0.01')
-
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertGreater(len(data), 0)
-        self.assertEqual(data[0]['num'], 3)
+        self.assertEqual(data[0]['num'], self.cart_data['num'])
         return data
 
     def getCartPayinfo_V2(self, cart_ids=''):
         response = self.client.get('/rest/v2/carts/carts_payinfo',
                                    {'cart_ids': cart_ids, 'device': 'wap'},
                                    ACCEPT='application/json; q=0.01')
-
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         return data
@@ -119,17 +113,15 @@ class SaletradeTestCase(TestCase):
         self.assertGreater(len(data),0)
         return data[0]
 
-
     def testShoppingcartAlipayCharge_V1(self):
 
-        cart_ids = '422913,422912'
         addr     = self.getUserAddress()
-        scp_info = self.getCartPayinfo(cart_ids=cart_ids)
+        scp_info = self.getCartPayinfo(cart_ids=self.cart_ids)
         channel = 'alipay'
         self.assertTrue(scp_info['alipay_payable'])
         post_data = {
             'uuid': scp_info['uuid'],
-            'cart_ids': cart_ids,
+            'cart_ids': self.cart_ids,
             'payment':scp_info['total_payment'],
             'post_fee':scp_info['post_fee'],
             'discount_fee':scp_info['discount_fee'],
@@ -154,9 +146,8 @@ class SaletradeTestCase(TestCase):
 
 
     def testShoppingcartAlipayCharge_V2(self):
-        cart_ids = '422913,422912'
         addr = self.getUserAddress()
-        scp_info = self.getCartPayinfo_V2(cart_ids=cart_ids)
+        scp_info = self.getCartPayinfo_V2(cart_ids=self.cart_ids)
         channel_key = 'alipay_wap'
         channel = None
         for cn in scp_info['channels']:
@@ -167,7 +158,7 @@ class SaletradeTestCase(TestCase):
 
         post_data = {
             'uuid': scp_info['uuid'],
-            'cart_ids': cart_ids,
+            'cart_ids': self.cart_ids,
             'payment': scp_info['total_payment'],
             'post_fee': scp_info['post_fee'],
             'discount_fee': scp_info['discount_fee'],
@@ -189,6 +180,7 @@ class SaletradeTestCase(TestCase):
         self.assertEqual(data['code'], 0)
         self.assertEqual(data['charge']['channel'], channel_key)
         self.assertEqual(data['charge']['amount'], int(post_data['payment'] * 100))
+
 
     def testWaitPayOrderCharge_V1(self):
         """ origin charge channel is alipay """

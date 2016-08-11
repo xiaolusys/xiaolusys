@@ -497,13 +497,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         user_agent = request.META.get('HTTP_USER_AGENT')
         CONTENT  = request.REQUEST
         tuuid    = CONTENT.get('uuid')
-        customer = get_object_or_404(Customer,user=request.user)
+        customer = Customer.objects.filter(user=request.user).first()
         cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
         cart_qs = ShoppingCart.objects.filter(
             id__in=[i for i in cart_ids if i.isdigit()],
             buyer_id=customer.id
         )
-        #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
+        # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
             logger.warn({'code':1, 'message':u'购物车已结算', 'stype':'restpro.trade',
                          'tid':tuuid ,'data':'%s'%CONTENT})
