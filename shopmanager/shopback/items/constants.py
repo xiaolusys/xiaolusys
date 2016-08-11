@@ -47,6 +47,7 @@ PROPERTY_NAMES = (
     ('qs_code', u'生产许可证'),
     ('qhby_code', u'产品标准号'),
     ('note', u'备注说明'),
+    ('memo', u'备注说明'),
 )
 
 PROPERTY_KEYMAP = dict([(key[0], index) for index, key in enumerate(PROPERTY_NAMES)])

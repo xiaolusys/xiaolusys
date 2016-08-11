@@ -626,10 +626,8 @@
                          $('.sale_product_order_weight_' + sale_product_id).html(result.sale_product_order_weight);
                          $('.sale_product_price_' + sale_product_id).html(result.sale_product_price);
                          $('.sale_product_rebeta_schema_' + sale_product_id).html(result.sale_product_rebeta_schema);
-                         if (result.single_model) {
-                             $(".preview_page_" + sale_product_id).attr("href", "/static/wap/pages/shangpinxq.html?id=" + result.product_id);
-                         } else {
-                             $(".preview_page_" + sale_product_id).attr("href", "/static/wap/tongkuan.html?id=" + result.model_id);
+                         if (result.model_id) {
+                             $(".preview_page_" + sale_product_id).attr("href", "/mall/product/details/" + result.model_id);
                          }
                          $(".chuantu_page_" + sale_product_id).attr("href", "/mm/add_aggregeta/?search_model=" + result.model_id);
                          buyer_spans.push(SPAN_TPL({value: '选品负责：' + result.contactor_name}));
