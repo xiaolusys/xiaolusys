@@ -701,7 +701,7 @@ class XlmmMessageAdmin(admin.ModelAdmin):
 admin.site.register(XlmmMessage, XlmmMessageAdmin)
 
 class XlmmMessageRelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'message', 'mama')
+    list_display = ('id', 'message', 'mama', 'modified', 'created')
     list_filter = ('message',)
     
 admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
