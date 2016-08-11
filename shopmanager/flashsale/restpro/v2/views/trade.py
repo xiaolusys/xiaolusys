@@ -488,7 +488,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cookies = dict([(k,v) for k,v in request.COOKIES.items() if k in ('mm_linkid','ufrom')])
         logger.info({'code': 0, 'message': u'付款请求v1', 'channel': data.get('channel'),
                      'user_agent':request.META.get('HTTP_USER_AGENT'), 'cookies':cookies,
-                     'stype': 'restpro.trade', 'tid': data.get('uuid'), 'payment': data.get('payment')})
+                     'stype': 'restpro.trade', 'tid': data.get('uuid'), 'data': str(data)})
 
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
@@ -498,11 +498,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         CONTENT  = request.REQUEST
         tuuid    = CONTENT.get('uuid')
         customer = Customer.objects.filter(user=request.user).first()
-        cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
+        cart_ids = [i for i in CONTENT.get('cart_ids','').split(',') if i.isdigit()]
         cart_qs = ShoppingCart.objects.filter(
-            id__in=[i for i in cart_ids if i.isdigit()],
+            id__in=cart_ids,
             buyer_id=customer.id
         )
+        logger.info('debug cartcharge:%s, %s, %s'%(tuuid, cart_ids, cart_qs))
         # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
             logger.warn({'code':1, 'message':u'购物车已结算', 'stype':'restpro.trade',

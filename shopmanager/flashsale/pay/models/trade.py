@@ -5,7 +5,7 @@ import urlparse
 from django.db import models
 from django.db.models import F
 from django.shortcuts import get_object_or_404
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.db import transaction
 
 from .base import PayBaseModel, BaseModel
@@ -1018,6 +1018,11 @@ def order_trigger(sender, instance, created, **kwargs):
 
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 
+def logger_trigger(sender, instance, **kwargs):
+
+    logger.info('debug saleorder:%s, %s, %s' % (instance.sale_trade.tid, instance.sale_trade.buyer_id, instance.item_id))
+
+pre_save.connect(logger_trigger, sender=SaleOrder, dispatch_uid='pre_save_logger_trigger')
 
 def update_package_sku_item(sender, instance, created, **kwargs):
     """ 更新PackageSkuItem状态 """
