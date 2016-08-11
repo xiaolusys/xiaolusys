@@ -1272,7 +1272,7 @@ admin.site.register(ReturnWuLiu, ReturnWuliuAdmin)
 
 class PackageOrderAdmin(admin.ModelAdmin):
     list_display = (
-    'pid', 'id', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile', 'receiver_address',
+    'pid', 'id', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile', 'receiver_address_info',
     'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
     'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
     'consign_time', 'weight', 'merge_trade_id')
@@ -1282,6 +1282,10 @@ class PackageOrderAdmin(admin.ModelAdmin):
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
+
+    def receiver_address_info(self, obj):
+        return obj.receiver_address_detail
+    receiver_address_info.short_description = u'详细地址'
 
     def push_package_to_scan(self, request, queryset):
         try:
