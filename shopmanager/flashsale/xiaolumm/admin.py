@@ -430,7 +430,7 @@ class CarryRecordAdmin(admin.ModelAdmin):
         'mama_id', 'carry_num_display', 'date_field', 'carry_description', 'carry_type', 'status', 'modified',
         'created')
     search_fields = ['=mama_id', '^carry_description']
-    list_filter = ('status', 'carry_type',)
+    list_filter = ('status', 'carry_type', ('created', DateFieldListFilter))
 
 
 admin.site.register(CarryRecord, CarryRecordAdmin)
@@ -441,7 +441,7 @@ class OrderCarryAdmin(admin.ModelAdmin):
                     'carry_plan_name', 'carry_description',
                     'sku_name', 'sku_img', 'contributor_nick',
                     'contributor_id', 'date_field', 'status', 'modified', 'created')
-    list_filter = ('status', 'carry_type',)
+    list_filter = ('status', 'carry_type', ('date_field', DateFieldListFilter), ('created', DateFieldListFilter))
     search_fields = ('=mama_id', '=order_id', '^carry_description', '=contributor_nick',)
 
     def get_changelist(self, request, **kwargs):
@@ -456,7 +456,7 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'carry_description', 'contributor_nick',
                     'contributor_img_html', 'contributor_mama_id', 'status', 'modified', 'created')
-    list_filter = ('status', 'carry_type',)
+    list_filter = ('status', 'carry_type',('created', DateFieldListFilter))
     search_fields = ('=mama_id', '=contributor_nick',)
 
     def contributor_img_html(self, obj):
@@ -473,7 +473,7 @@ class ClickCarryAdmin(admin.ModelAdmin):
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
                     'status', 'date_field', 'modified', 'created')
     search_fields = ('=mama_id',)
-    list_filter = ('status',)
+    list_filter = ('status',('created', DateFieldListFilter))
 
 
 admin.site.register(ClickCarry, ClickCarryAdmin)
@@ -517,6 +517,7 @@ class UniqueVisitorAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'visitor_nick', 'visitor_img', 'uni_key', 'date_field',
                     'modified', 'created')
     search_fields = ('mama_id', 'visitor_nick')
+    list_filter = (('created', DateFieldListFilter),)
 
 
 admin.site.register(UniqueVisitor, UniqueVisitorAdmin)
