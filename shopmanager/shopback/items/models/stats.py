@@ -8,7 +8,9 @@ from django.db.models import F
 from shopback.warehouse import WARE_SH, WARE_CHOICES
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 # This is the commit time, and also the time we start.
 # after switch, we can't update product sku quantity any more!!!
@@ -199,16 +201,20 @@ class ProductSkuStats(models.Model):
 
     @staticmethod
     def update_adjust_num(sku_id, adjust_quantity):
-        ProductSkuStats.objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
+        stat = ProductSkuStats.objects.get(sku_id=sku_id)
+        stat.adjust_quantity = adjust_quantity
+        stat.save()
+        # ProductSkuStats.objects.filter(sku_id=sku_id).update(adjust_quantity=adjust_quantity)
 
     @staticmethod
     def get_auto_sale_stock():
         from shopback.categorys.models import ProductCategory
         from .product import Product
         pid = ProductCategory.objects.get(name=u'优尼世界').cid
-        return ProductSkuStats.objects.filter(product__status=Product.NORMAL).filter(return_quantity__gt=F('sold_num') + F('rg_quantity')
-                                                                  - F('history_quantity') - F('adjust_quantity') - F(
-            'inbound_quantity')).exclude(product__category_id=pid).exclude(product__outer_id__startswith='RMB')
+        return ProductSkuStats.objects.filter(product__status=Product.NORMAL).filter(
+            return_quantity__gt=F('sold_num') + F('rg_quantity')
+                                - F('history_quantity') - F('adjust_quantity') - F(
+                'inbound_quantity')).exclude(product__category_id=pid).exclude(product__outer_id__startswith='RMB')
 
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):

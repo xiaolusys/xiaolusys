@@ -46,7 +46,7 @@ router_urls += ([
     url(r'^saleschedule/(?P<schedule_id>[0-9]+)/update_assign_worker$',
         views.SaleScheduleDetailViewSet.as_view({'post': 'update_assign_worker'}),
         name='saleschedule-product-update-assign-worker'),
-    ])
+])
 
 urlpatterns = patterns('',
     url(r'^v1/', include(router_urls, namespace='chain_v1')),

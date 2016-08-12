@@ -488,7 +488,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cookies = dict([(k,v) for k,v in request.COOKIES.items() if k in ('mm_linkid','ufrom')])
         logger.info({'code': 0, 'message': u'付款请求v1', 'channel': data.get('channel'),
                      'user_agent':request.META.get('HTTP_USER_AGENT'), 'cookies':cookies,
-                     'stype': 'restpro.trade', 'tid': data.get('uuid'), 'payment': data.get('payment')})
+                     'stype': 'restpro.trade', 'tid': data.get('uuid'), 'data': str(data)})
 
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
@@ -497,13 +497,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         user_agent = request.META.get('HTTP_USER_AGENT')
         CONTENT  = request.REQUEST
         tuuid    = CONTENT.get('uuid')
-        customer = get_object_or_404(Customer,user=request.user)
-        cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
+        customer = Customer.objects.filter(user=request.user).first()
+        cart_ids = [i for i in CONTENT.get('cart_ids','').split(',') if i.isdigit()]
         cart_qs = ShoppingCart.objects.filter(
-            id__in=[i for i in cart_ids if i.isdigit()],
+            id__in=cart_ids,
             buyer_id=customer.id
         )
-        #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
+        # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
             logger.warn({'code':1, 'message':u'购物车已结算', 'stype':'restpro.trade',
                          'tid':tuuid ,'data':'%s'%CONTENT})
@@ -733,7 +733,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         log_action(request.user.id, instance, CHANGE, u'取消订单')
-        return Response(data={"ok": True})
+        return Response({"code": 0, "info":u'订单已取消'})
 
     @detail_route(methods=['post'])
     def confirm_sign(self, request, *args, **kwargs):
@@ -761,7 +761,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def undisplay(self, request, *args, **kwargs):
         """ 不显示订单 """
         instance = self.get_object()
-        # TODO
+        self.perform_destroy(instance)
         return Response({"code": 0, "info": "订单已删除"})
 
 

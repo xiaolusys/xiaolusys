@@ -12,9 +12,8 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='rest_v2:modelproduct-detail')
     category_id = serializers.IntegerField(source='salecategory.id', read_only=True)
-    is_saleout  = serializers.BooleanField(source='is_sale_out',read_only=True)
-    sale_state  = serializers.SerializerMethodField(read_only=True)
-    web_url     = serializers.CharField(source='get_web_url',read_only=True)
+    is_saleout  = serializers.BooleanField(source='is_sale_out', read_only=True)
+    web_url     = serializers.CharField(source='get_web_url', read_only=True)
     watermark_op = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -22,12 +21,6 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'url', 'name', 'category_id', 'lowest_agent_price', 'lowest_std_sale_price',
                   'onshelf_time', 'offshelf_time', 'is_saleout', 'sale_state',
                   'head_img', 'web_url', 'watermark_op')
-
-    def get_sale_state(self, obj):
-        if obj.shelf_status == obj.OFF_SHELF and \
-                (not obj.onshelf_time or obj.onshelf_time > datetime.datetime.now()):
-            return 'will'
-        return obj.shelf_status
 
     def get_watermark_op(self, obj):
         if not obj.is_watermark:
@@ -78,3 +71,4 @@ class ModelProductSerializer(serializers.ModelSerializer):
             return {'is_favorite': False}
         favorite = Favorites.objects.filter(customer=customer, model=obj)
         return {'is_favorite': favorite and True or False}
+

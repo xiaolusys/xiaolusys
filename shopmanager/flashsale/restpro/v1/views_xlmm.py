@@ -909,6 +909,11 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         days = days_map[exchange_type]
         xlmm.update_renew_day(days)
         log_action(request.user, xlmm, CHANGE, u'用户妈妈钱包兑换代理续费修改字段')
+        potential = PotentialMama.objects.filter(potential_mama=xlmm.id).first()    # 续费的潜在妈妈
+        if potential:
+            state = potential.update_full_member()  # 续费转正
+            if state:
+                log_action(request.user, potential, CHANGE, u'用户钱包兑换妈妈续费转正')
         return Response(default_return)
 
 
