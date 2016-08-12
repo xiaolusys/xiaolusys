@@ -189,7 +189,7 @@
                                     {% for sku in product.skus %}
                                     {% if sku.is_required %}
                                     <div class="input-group">
-                                        <span class="input-group-addon">{{sku.properties_name}}</span>
+                                        <span class="input-group-addon">{{sku.properties_name}}<em class="bg-primary">{{sku.forecast_arrive_num}}</em></span>
                                         <input type="number" class="form-control" data-sku-id="{{sku.id}}" data-product-id="{{product.id}}"
                                                data-forecast-id="{{forecast.id}}" style="width:60px" min="0">
                                     </div>
