@@ -59,8 +59,8 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
                     mm_linkid = xlmm.id
             shop_info = model_to_dict(shop)
 
-            link = '/mall?mm_linkid={0}'.format(mm_linkid)
-            preview_link = 'mall?mm_linkid={0}'.format(mm_linkid)
+            link = '/mall/?mm_linkid={0}'.format(mm_linkid)
+            preview_link = 'mall/?mm_linkid={0}'.format(mm_linkid)
 
             link = urllib.quote(link)
             next_link = 'm/{0}?next='.format(mm_linkid) + link
