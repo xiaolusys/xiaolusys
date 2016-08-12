@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0033_mamafortune_history_cashout'),
+        ('xiaolumm', '0036_add_device_version_fields'),
     ]
 
     operations = [

@@ -27,12 +27,12 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
     @list_route(methods=['GET'])
     def carry_total_rank(self, request):
         top = WeekMamaCarryTotal.get_ranking_list()[0:10]
-        top = list(top)
-        i = 1
-        for t in top:
-            t._rank_ = i
-            i += 1
         return Response(self.get_serializer(top, many=True).data)
+        queryset = WeekMamaCarryTotal.get_ranking_list()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
     @list_route(methods=['GET'])
     def carry_duration_rank(self, request):

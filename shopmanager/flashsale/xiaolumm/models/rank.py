@@ -2,17 +2,25 @@
 import datetime
 from django.db import models
 from django.db.models import Sum, F, Count, Q
+from django.db.models.signals import post_save
 from flashsale.xiaolumm.models import XiaoluMama, MamaFortune
 from flashsale.xiaolumm.models.models_fortune import CarryRecord
-from flashsale.xiaolumm.models.carry_total import BaseMamaCarryTotal, BaseMamaTeamCarryTotal, multi_update
+from flashsale.xiaolumm.models.carry_total import BaseMamaCarryTotal, BaseMamaTeamCarryTotal, multi_update, RankRedis
+import logging
+
+logger = logging.getLogger('django.request')
 
 """
     carry_total开发的时候需求认识不够清晰，做的过于复杂
     目前看来，排名只有两类，一类是总额排名，一类是活动期排名，从对象角度说，是个人排名和团队排名，把握这几点即可
+
+    所有人都会在WeekMamaCarryTotal表或WeekMamaTeamCarryTotal表生成记录，但必须符合条件才可能进入到排名。
+    用RankRedis的WEEK_DATA_REDIS实例来管理缓存数据。
+    将涉及 “周排名”的通用方法都移动到WeekRank中以减少代码量。
 """
 
 
-class WeekTime(object):
+class WeekRank(object):
     @staticmethod
     def this_week_time():
         _now = datetime.datetime.now()
@@ -35,25 +43,6 @@ class WeekTime(object):
             raise Exception('week stat time mast begin at day begin')
         return True
 
-
-class WeekMamaCarryTotal(BaseMamaCarryTotal):
-    mama = models.ForeignKey(XiaoluMama)
-    stat_time = models.DateTimeField(db_index=True, verbose_name=u'统计起始时间')
-    total = models.IntegerField(default=0, verbose_name=u'收益总额', help_text=u'单位为分')
-    duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
-    order_num = models.IntegerField(default=0, db_index=True, verbose_name=u'历史订单数量')
-    total_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'总排名',
-                                           help_text=u'单位为分,每日更新，从cache中可实时更新')
-    duration_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名',
-                                              help_text=u'单位为分，每日更新，从cache中可实时更新')
-
-    class Meta:
-        unique_together = ('mama', 'stat_time')
-        db_table = 'xiaolumm_week_carry_total'
-        app_label = 'xiaolumm'
-        verbose_name = u'小鹿妈妈收益排名'
-        verbose_name_plural = u'小鹿妈妈收益排名列表'
-
     @property
     def duration_total_display(self):
         return '%.2f' % (self.duration_total * 0.01)
@@ -64,30 +53,137 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal):
 
     @property
     def total_rank(self):
-        return self.total_rank_delay if self.total_rank_delay else 0
+        if self.stat_time != WeekRank.this_week_time():
+            return self.total_rank_delay
+        if self._redis_total_cache_ and str(self.mama_id) in self._redis_total_cache_:
+            # 批量操作时设置_redis_cache_，避免分开多次读取缓存
+            return self._redis_total_cache_.get(str(self.mama_id))
+        cache_rank = WEEK_DATA_REDIS.get_rank(type(self), 'total', self.mama_id)
+        if cache_rank is None:
+            WEEK_DATA_REDIS.update_cache(self, ['total'])
+            return self.total_rank_delay
+        else:
+            return cache_rank
 
     @property
     def duration_rank(self):
-        return self.duration_rank_delay if self.duration_rank_delay else 0
+        if self.stat_time != WeekRank.this_week_time():
+            return self.total_rank_delay
+        if self._redis_duration_total_cache_ and str(self.mama_id) in self._redis_duration_total_cache_:
+            return self._redis_duration_total_cache_.get(str(self.mama_id))
+        cache_rank = WEEK_DATA_REDIS.get_rank(type(self), 'duration_total', self.mama_id)
+        if cache_rank is None:
+            WEEK_DATA_REDIS.update_cache(self, ['duration_total'])
+            return self.duration_rank_delay
+        else:
+            return cache_rank
+
+    @classmethod
+    def get_rank_add(cls, mama_id):
+        week_begin_time = cls.this_week_time()
+        last_week_time = WeekRank.last_week_time()
+        this_week = cls.objects.filter(mama_id=mama_id, stat_time=week_begin_time).first()
+        last_week = cls.objects.filter(mama_id=mama_id, stat_time=last_week_time).first()
+        if not this_week or not last_week:
+            return 0
+        else:
+            return this_week.total_rank - last_week.total_rank_delay
+
+    @classmethod
+    def check_update_cache(cls, target='total'):
+        this_week_time = WeekRank.this_week_time()
+        cache_count = WEEK_DATA_REDIS.get_rank_count(cls, target)
+        # condition = cls.ranks[target]
+        # condition['stat_time'] = this_week_time
+        real_count = cls.objects.filter(stat_time=this_week_time).count()
+        if cache_count > real_count:
+            logger.error('cache_count big than real_count')
+            WEEK_DATA_REDIS.clear_cache(cls, target)
+            cache_mama_ids = []
+        elif cache_count < real_count:
+            cache_mama_ids = WEEK_DATA_REDIS.get_rank_list(cls, target, 0, -1)
+        if cache_count != real_count:
+            add_res = []
+            for i in cls.objects.filter(stat_time=this_week_time).exclude(mama_id__in=cache_mama_ids):
+                WEEK_DATA_REDIS.update_cache(i, targets=[target])
+                add_res.append(str(i.id))
+            logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(add_res))
+
+    @classmethod
+    def get_duration_ranking_list(cls, week_begin_time=None):
+        return cls.get_ranking_list(week_begin_time, order_field='duration_total')
+
+    @classmethod
+    def get_ranking_list(cls, week_begin_time=None, order_field='total', start=0, end=100):
+        week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
+        if week_begin_time == WeekRank.this_week_time():
+            # 本周数据从redis获取
+            # 检查缓存总数如果不符合则更新缓存
+            cls.check_update_cache()
+            rank_dict = WEEK_DATA_REDIS.get_rank_dict(cls, order_field, start, end)
+            contidion = {'stat_time': week_begin_time, order_field + '__gt': 0, 'mama_id__in': rank_dict.keys()}
+            setattr(cls, '_redis_' + order_field + '_cache_', rank_dict)
+        else:
+            contidion = {'stat_time': week_begin_time, order_field + '__gt': 0}
+        return cls.objects.filter(**contidion).order_by('-' + order_field)
+
+
+WEEK_DATA_REDIS = RankRedis(WeekRank.this_week_time())
+
+
+class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
+    ranks = {
+        'total': {
+            'agencylevel__ne': XiaoluMama.INNER_LEVEL,
+            'is_staff': False,
+            'progress__in': [XiaoluMama.PAY, XiaoluMama.PASS],
+            'status': XiaoluMama.EFFECT,
+            'charge_status': XiaoluMama.CHARGED
+        },
+        'duration_total': {
+            'agencylevel__ne': XiaoluMama.INNER_LEVEL,
+            'is_staff': False,
+            'progress__in': [XiaoluMama.PAY, XiaoluMama.PASS],
+            'status': XiaoluMama.EFFECT,
+            'charge_status': XiaoluMama.CHARGED
+        }
+    }
+    mama = models.ForeignKey(XiaoluMama)
+    stat_time = models.DateTimeField(db_index=True, verbose_name=u'统计起始时间')
+    total = models.IntegerField(default=0, verbose_name=u'收益总额', help_text=u'单位为分')
+    duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
+    order_num = models.IntegerField(default=0, db_index=True, verbose_name=u'历史订单数量')
+    total_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'总排名',
+                                           help_text=u'单位为分,每日更新，从cache中可实时更新')
+    duration_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名',
+                                              help_text=u'单位为分，每日更新，从cache中可实时更新')
+    _redis_total_cache_ = {}
+    _redis_duration_total_cache_ = {}
+
+    class Meta:
+        unique_together = ('mama', 'stat_time')
+        db_table = 'xiaolumm_week_carry_total'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿妈妈收益排名'
+        verbose_name_plural = u'小鹿妈妈收益排名列表'
 
     @staticmethod
     def batch_generate(week_begin_time=None):
-        week_begin_time = week_begin_time if WeekTime.check_week_begin(week_begin_time) else WeekTime.this_week_time()
+        week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         mama_data_ = XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
-                                               status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).values('id',
-                                                                                                                  'last_renew_type',
-                                                                                                                  'agencylevel')
+                                               status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED). \
+            values('id', 'last_renew_type', 'agencylevel')
         mama_data = {i['id']: i for i in mama_data_}
         mama_ids = mama_data.keys()
         exist_ids = [m['mama_id'] for m in
                      WeekMamaCarryTotal.objects.filter(stat_time=week_begin_time).values('mama_id')]
         mama_ids = list(set(mama_ids) - set(exist_ids))
-        fortune_dict = {m.id: m for m in MamaFortune.objects.filter(id__in=mama_ids)}
+        fortune_dict = {m.mama_id: m for m in MamaFortune.objects.filter(mama_id__in=mama_ids)}
         cr_conditions = {
             'date_field__gte': week_begin_time,
             'status__in': [1, 2]
         }
-        if week_begin_time <= WeekTime.last_week_time():
+        if week_begin_time <= WeekRank.last_week_time():
             next_week_time = week_begin_time + datetime.timedelta(days=7)
             cr_conditions['date_field__lt'] = next_week_time
         duration_totals = CarryRecord.objects.filter(**cr_conditions).values('mama_id').annotate(
@@ -105,6 +201,9 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal):
             )
             records.append(wm)
         WeekMamaCarryTotal.objects.bulk_create(records)
+        if week_begin_time == WeekRank.this_week_time():
+            WeekMamaCarryTotal.check_update_cache('total')
+            WeekMamaCarryTotal.check_update_cache('duration_total')
         return len(records)
 
     @staticmethod
@@ -117,7 +216,7 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal):
             'mama_id': mama.id,
             'status__in': [1, 2]
         }
-        if stat_time <= WeekTime.last_week_time():
+        if stat_time <= WeekRank.last_week_time():
             next_week_time = stat_time + datetime.timedelta(days=7)
             cr_conditions['date_field__lt'] = next_week_time
         duration_total = CarryRecord.objects.filter(**cr_conditions).aggregate(
@@ -139,7 +238,7 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal):
             'mama_id': self.mama_id,
             'status__in': [1, 2]
         }
-        if self.stat_time <= WeekTime.last_week_time():
+        if self.stat_time <= WeekRank.last_week_time():
             next_week_time = self.stat_time + datetime.timedelta(days=7)
             cr_conditions['date_field__lt'] = next_week_time
         duration_total = CarryRecord.objects.filter(**cr_conditions).aggregate(
@@ -149,14 +248,14 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal):
 
     @staticmethod
     def batch_update():
-        this_week_time = WeekTime.this_week_time()
+        this_week_time = WeekRank.this_week_time()
         CarryRecord.objects.filter(date_field__gte=this_week_time).values('mama_id').annotate(Sum())
 
     @staticmethod
     def reset_rank(week_begin_time=None, target='total'):
         target_fields = {'total': 'total_rank_delay', 'duration_total': 'duration_rank_delay'}
         if target not in target_fields: raise Exception('target field err')
-        week_begin_time = week_begin_time if WeekTime.check_week_begin(week_begin_time) else WeekTime.this_week_time()
+        week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         WeekMamaCarryTotal.batch_generate(week_begin_time)
         i = 1
         rank = 1
@@ -178,23 +277,15 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal):
         WeekMamaCarryTotal.reset_rank(week_begin_time, target='duration_total')
 
     @staticmethod
-    def get_rank_add(mama_id):
-        week_begin_time = WeekMamaCarryTotal.this_week_time()
-        last_week_time = WeekTime.last_week_time()
-        week_begin_time = WeekMamaCarryTotal.objects.filter(mama_id=mama_id, stat_time=week_begin_time).first()
-        last_week_time = WeekMamaCarryTotal.objects.filter(mama_id=mama_id, stat_time=last_week_time).first()
-        if not week_begin_time or not last_week_time:
-            return 0
-        else:
-            return week_begin_time.total_rank_delay - last_week_time.total_rank_delay
-
-    @staticmethod
     def update_or_create(mama_id, week_begin_time=None):
         """
             更新数据以更新排名-其实这个方法尽可能更新了需要的数，唯独不更新排名
             排名更新在post_save事件中，15分钟以后，由celery事件更新排名。
         """
-        week_begin_time = week_begin_time if WeekTime.check_week_begin(week_begin_time) else WeekTime.this_week_time()
+        mama = XiaoluMama.objects.get(id=mama_id)
+        if not mama.is_available():
+            return
+        week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         if not WeekMamaCarryTotal.objects.filter(mama_id=mama_id, stat_time=week_begin_time).exists():
             return WeekMamaCarryTotal.generate(mama_id, stat_time=week_begin_time)
         rank = WeekMamaCarryTotal.objects.get(mama_id=mama_id, stat_time=week_begin_time)
@@ -202,21 +293,35 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal):
         rank.save()
         return rank
 
-    @staticmethod
-    def get_ranking_list(week_begin_time=None, order_field='total_rank_delay'):
-        week_begin_time = week_begin_time if WeekTime.check_week_begin(week_begin_time) else WeekTime.this_week_time()
-        contidion = {'stat_time': week_begin_time, order_field + '__gt': 0}
-        return WeekMamaCarryTotal.objects.filter(**contidion).order_by(order_field)
 
-    @staticmethod
-    def get_duration_ranking_list(week_begin_time=None):
-        return WeekMamaCarryTotal.get_ranking_list(week_begin_time, order_field='duration_rank_delay')
+def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
+    # 当周数据实时更新到redis，从redis读取
+    if WeekRank.this_week_time() == instance.stat_time:
+        for target in type(instance).ranks:
+            condtion = type(instance).ranks[target]
+            condtion['pk'] = instance.pk
+            if type(instance).objects.filter(**condtion).exists():
+                WEEK_DATA_REDIS.update_cache(instance, target)
 
 
-class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal):
+post_save.connect(update_week_mama_carry_total_cache,
+                  sender=WeekMamaCarryTotal, dispatch_uid='post_save_update_week_mama_carry_total_cache')
+
+
+class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
     """
         周团队总额记录
     """
+    ranks = {
+        'total': {
+            'agencylevel__ne': XiaoluMama.INNER_LEVEL,
+            'is_staff': False
+        },
+        'duration_total': {
+            'agencylevel__ne': XiaoluMama.INNER_LEVEL,
+            'is_staff': False
+        }
+    }
     mama = models.ForeignKey(XiaoluMama)
     stat_time = models.DateTimeField(db_index=True, verbose_name=u'统计起始时间')
     members = models.ManyToManyField(WeekMamaCarryTotal, related_name='teams')
@@ -226,6 +331,8 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal):
                                            help_text=u'单位为分,每日更新，从cache中可实时更新')
     duration_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名',
                                               help_text=u'单位为分，每日更新，从cache中可实时更新')
+    _redis_total_cache_ = {}
+    _redis_duration_total_cache_ = {}
 
     class Meta:
         unique_together = ('mama', 'stat_time')
@@ -234,25 +341,9 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal):
         verbose_name = u'小鹿妈妈团队周收益排名'
         verbose_name_plural = u'小鹿妈妈团队周收益排名列表'
 
-    @property
-    def duration_total_display(self):
-        return '%.2f' % (self.duration_total * 0.01)
-
-    @property
-    def total_display(self):
-        return float('%.2f' % (self.total * 0.01))
-
-    @property
-    def total_rank(self):
-        return self.total_rank_delay if self.total_rank_delay else 0
-
-    @property
-    def duration_rank(self):
-        return self.duration_rank_delay if self.duration_rank_delay else 0
-
     @staticmethod
     def batch_generate(week_begin_time=None):
-        week_begin_time = week_begin_time if WeekTime.check_week_begin(week_begin_time) else WeekTime.this_week_time()
+        week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         WeekMamaCarryTotal.batch_generate(week_begin_time)
         mids = [m['mama_id'] for m in WeekMamaCarryTotal.objects.values('mama_id')]
         tmids = [m['mama_id'] for m in WeekMamaTeamCarryTotal.objects.values('mama_id')]
@@ -289,21 +380,11 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal):
         self.duration_total = res.get('duration_total') or 0
 
     @staticmethod
-    def get_rank_add(mama_id):
-        week_begin_time = WeekMamaTeamCarryTotal.this_week_time()
-        last_week_time = WeekTime.last_week_time()
-        week_begin_time = WeekMamaTeamCarryTotal.objects.filter(mama_id=mama_id, stat_time=week_begin_time).first()
-        last_week_time = WeekMamaTeamCarryTotal.objects.filter(mama_id=mama_id, stat_time=last_week_time).first()
-        if not week_begin_time or not last_week_time:
-            return 0
-        else:
-            return week_begin_time.total_rank_delay - last_week_time.total_rank_delay
-
-    @staticmethod
     def reset_rank(week_begin_time=None, target='total'):
         target_fields = {'total': 'total_rank_delay', 'duration_total': 'duration_rank_delay'}
-        if target not in target_fields: raise Exception('target field err')
-        week_begin_time = week_begin_time if WeekTime.check_week_begin(week_begin_time) else WeekTime.this_week_time()
+        if target not in target_fields:
+            raise Exception('target field err')
+        week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         WeekMamaTeamCarryTotal.batch_generate(week_begin_time)
         i = 1
         rank = 1
@@ -325,18 +406,12 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal):
         WeekMamaTeamCarryTotal.reset_rank(week_begin_time, target='duration_total')
 
     @staticmethod
-    def get_ranking_list(week_begin_time=None, order_field='total_rank_delay'):
-        week_begin_time = week_begin_time if WeekTime.check_week_begin(week_begin_time) else WeekTime.this_week_time()
-        contidion = {'stat_time': week_begin_time, order_field + '__gt': 0}
-        return WeekMamaTeamCarryTotal.objects.filter(**contidion).order_by(order_field)
-
-    @staticmethod
     def get_duration_ranking_list(week_begin_time=None):
-        return WeekMamaTeamCarryTotal.get_ranking_list(week_begin_time, order_field='duration_rank_delay')
+        return WeekMamaTeamCarryTotal.get_ranking_list(week_begin_time, order_field='duration_total')
 
     @staticmethod
     def update_or_create(mama_id, stat_time=None):
-        stat_time = stat_time if WeekTime.check_week_begin(stat_time) else WeekTime.this_week_time()
+        stat_time = stat_time if WeekRank.check_week_begin(stat_time) else WeekRank.this_week_time()
         if not WeekMamaTeamCarryTotal.objects.filter(mama_id=mama_id, stat_time=stat_time).exists():
             return WeekMamaTeamCarryTotal.generate(mama_id, stat_time)
         m = WeekMamaTeamCarryTotal.objects.filter(mama_id=mama_id, stat_time=stat_time).first()
@@ -348,3 +423,7 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal):
         for mama in WeekMamaCarryTotal.objects.filter(mama_id__in=left_mama_ids):
             m.members.add(mama)
         m.save()
+
+
+post_save.connect(update_week_mama_carry_total_cache,
+                  sender=WeekMamaTeamCarryTotal, dispatch_uid='post_save_update_week_mama_team_carry_total_cache')

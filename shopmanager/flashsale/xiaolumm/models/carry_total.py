@@ -9,6 +9,7 @@ from core.fields import JSONCharMyField
 from flashsale.xiaolumm.models import XiaoluMama, MamaFortune, CashOut
 from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, AwardCarry, ClickCarry, \
     MAMA_FORTUNE_HISTORY_LAST_DAY
+from django.core.cache import cache
 
 # 在下次活动前设置此处，以自动重设变更统计时间
 STAT_TIME = datetime.datetime(2016, 7, 29)
@@ -17,22 +18,59 @@ STAT_END_TIME = datetime.datetime(2016, 8, 13)
 
 # if datetime.datetime.now() < datetime.datetime(2016, 7, 28) \
 # else datetime.datetime(2016, 7, 28)
+class RankRedis(object):
+    redis_cache = cache.get_master_client()
+
+    def __init__(self, stat_time):
+        self.stat_time = stat_time
+
+    def get_cache_key(self, model_class, target='total'):
+        return model_class.__name__ + '.' + self.stat_time.strftime('%Y%m%d') + '.' + target
+
+    def update_cache(self, instance, targets=['duration_total', 'total']):
+        for target in targets:
+            RankRedis.redis_cache.zadd(self.get_cache_key(type(instance), target), instance.mama_id,
+                                       getattr(instance, target))
+
+    def batch_update_cache(self, instance, targets=['duration_total', 'total']):
+        # TODO@hy 待优化 可一次性更新
+        for target in targets:
+            RankRedis.redis_cache.zadd(self.get_cache_key(type(instance), target), instance.mama_id,
+                                       getattr(instance, target))
+
+    def clear_cache(self, model_class, target):
+        RankRedis.redis_cache.delete(self.get_cache_key(model_class, target))
+
+    def get_rank_count(self, model_class, target):
+        return RankRedis.redis_cache.zcard(self.get_cache_key(model_class, target))
+
+    def get_rank_list(self, model_class, target, start, stop):
+        return RankRedis.redis_cache.zrevrange(self.get_cache_key(model_class, target), start, stop)
+
+    def get_rank_dict(self, model_class, target, start, stop):
+        return dict(zip(RankRedis.redis_cache.zrevrange(self.get_cache_key(model_class, target), start, stop),
+                        range(start + 1, stop + 1)))
+
+    def get_rank(self, model_class, target, mama_id):
+        rank = RankRedis.redis_cache.zrevrank(self.get_cache_key(model_class, target), mama_id)
+        return rank + 1
+
+
+STAT_RANK_REDIS = RankRedis(STAT_TIME)
+
 
 class BaseMamaCarryTotal(BaseModel):
     last_renew_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=365, db_index=True,
                                           verbose_name=u"最近续费类型")
     agencylevel = models.IntegerField(default=XiaoluMama.INNER_LEVEL, db_index=True, choices=XiaoluMama.AGENCY_LEVEL,
                                       verbose_name=u"代理类别")
+
     class Meta:
         abstract = True
 
     @property
     def mama_nick(self):
         return self.mama.get_customer().nick
-
-    @property
-    def num(self):
-        return self.history_num + self.duration_num
 
     @property
     def thumbnail(self):
@@ -68,6 +106,7 @@ class MamaCarryTotal(BaseMamaCarryTotal):
 
     carry_records = JSONCharMyField(max_length=10240, blank=True, default='[]', verbose_name=u'每日收益关联',
                                     help_text=u"好像没啥用准备删掉了")
+
     # invitate_num = 邀请数
     # activite_num 激活数
     class Meta:
@@ -75,6 +114,10 @@ class MamaCarryTotal(BaseMamaCarryTotal):
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈收益排名'
         verbose_name_plural = u'小鹿妈妈收益排名列表'
+
+    @property
+    def num(self):
+        return self.history_num + self.duration_num
 
     @property
     def total(self):
@@ -375,6 +418,17 @@ post_save.connect(update_carry_total_ranking,
                   sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_ranking')
 
 
+def update_mama_carry_total_cache(sender, instance, created, **kwargs):
+    # 当周数据实时更新到redis，从redis读取
+    return
+    if instance.stat_time == STAT_TIME:
+        STAT_RANK_REDIS.update_cache(instance)
+
+
+post_save.connect(update_mama_carry_total_cache,
+                  sender=MamaCarryTotal, dispatch_uid='post_save_update_mama_carry_total_cache')
+
+
 def update_team_carry_total(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_mama_carry_total import task_update_team_carry_total
     if datetime.datetime.now() > STAT_TIME:
@@ -386,30 +440,9 @@ post_save.connect(update_team_carry_total,
                   sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_team_carry_total')
 
 
-class BaseMamaTeamCarryTotal(BaseModel):
-    last_renew_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=365, db_index=True,
-                                          verbose_name=u"最近续费类型")
-    agencylevel = models.IntegerField(default=XiaoluMama.INNER_LEVEL, db_index=True, choices=XiaoluMama.AGENCY_LEVEL,
-                                      verbose_name=u"代理类别")
-
+class BaseMamaTeamCarryTotal(BaseMamaCarryTotal):
     class Meta:
         abstract = True
-    
-    @property
-    def mama_nick(self):
-        return self.mama.get_customer().nick
-
-    @property
-    def thumbnail(self):
-        return self.mama.get_customer().thumbnail
-
-    @property
-    def mobile(self):
-        return self.mama.get_customer().mobile
-
-    @property
-    def phone(self):
-        return self.mama.get_customer().phone
 
     @property
     def total_rank(self):
@@ -450,7 +483,7 @@ class BaseMamaTeamCarryTotal(BaseModel):
     @classmethod
     def get_by_mama_id(cls, mama_id):
         if not cls.objects.filter(mama_id=mama_id).exists():
-            return MamaTeamCarryTotal.generate(mama_id)
+            return cls.generate(mama_id)
         return cls.objects.filter(mama_id=mama_id).first()
 
 
@@ -651,6 +684,10 @@ class MamaTeamCarryTotal(BaseMamaTeamCarryTotal):
             multi_update(MamaTeamCarryTotal, 'mama_id', 'activite_rank_delay', res)
 
 
+post_save.connect(update_mama_carry_total_cache,
+                  sender=MamaTeamCarryTotal, dispatch_uid='post_save_update_mama_team_carry_total_cache')
+
+
 class CarryTotalRecord(BaseModel):
     """
         活动记录
@@ -767,12 +804,13 @@ class TeamCarryTotalRecord(BaseModel):
         verbose_name_plural = u'妈妈团队收益排名记录'
 
     @staticmethod
-    def create(team_carry_total, save=True):
+    def create(team_carry_total, record_time=datetime.datetime.now(), save=True):
         record = TeamCarryTotalRecord(
             mama_id=team_carry_total.mama_id,
             last_renew_type=team_carry_total.last_renew_type,
             agencylevel=team_carry_total.agencylevel,
             stat_time=team_carry_total.stat_time,
+            record_time=record_time,
             total_rank=team_carry_total.total_rank,
             duration_rank=team_carry_total.duration_rank,
             total=team_carry_total.total,
@@ -784,5 +822,3 @@ class TeamCarryTotalRecord(BaseModel):
         if save:
             record.save()
         return record
-
-

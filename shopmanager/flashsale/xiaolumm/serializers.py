@@ -117,14 +117,14 @@ class WeekMamaCarryTotalSerializer(serializers.ModelSerializer):
     class Meta:
         model = WeekMamaCarryTotal
         fields = (
-            'mama', 'mama_nick', 'thumbnail', 'mobile', 'total', 'total_display', 'num', 'total_rank')
+            'mama', 'mama_nick', 'thumbnail', 'mobile', 'total', 'total_display', 'total_rank')
 
 
 class WeekMamaCarryTotalDurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = WeekMamaCarryTotal
         fields = (
-            'mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_total', 'duration_total_display', 'num', 'duration_rank')
+            'mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_total', 'duration_total_display', 'duration_rank')
 
 
 class WeekMamaTeamCarryTotalSerializer(serializers.ModelSerializer):
