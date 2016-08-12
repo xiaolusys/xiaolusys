@@ -39,7 +39,7 @@ class WeixinPush(object):
         template_id = 'K3R9wpw_yC2aXEW1PP6586l9UhMjXMwn_-Is4xcgjuA'
         template_data = {
             'first': {
-                'value': u'亲爱的用户%s，您的订单已支付成功' % customer.nick,
+                'value': u'公主殿下%s，您的订单已支付成功。' % customer.nick,
                 'color': '#000000',
             },
             'orderMoneySum': {
@@ -51,7 +51,7 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'Remark': {
-                'value': u'\n来自小鹿美美',
+                'value': u'\n打开小鹿美美App，订单详情有现金红包可以领取哦！',
                 'color': '#000000',
             },
         }
@@ -80,7 +80,7 @@ class WeixinPush(object):
         template_id = 'ioBWcEsY40yg3NAQPnzE4LxfuHFFS20JnnAlVr96LXs'
         template_data = {
             'first': {
-                'value': u'亲爱的用户%s，您的商品已发货' % customer.nick,
+                'value': u'公主殿下%s，您的商品已发货！' % customer.nick,
                 'color': '#000000',
             },
             'orderProductPrice': {
@@ -100,7 +100,7 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'remark': {
-                'value': u'\n来自小鹿美美',
+                'value': u'\n请到小鹿美美App查看订单物流，还有现金红包可以分享领取哦！',
                 'color': '#000000',
             },
         }
@@ -119,7 +119,7 @@ class WeixinPush(object):
         template_id = 'S9cIRfdDTM9yKeMTOj-HH5FPw79OofsfK6G4VRbKYQQ'
         template_data = {
             'first': {
-                'value': u'亲爱的用户%s，您购买的商品「%s」已经退款' % (customer.nick, salerefund.title),
+                'value': u'公主殿下%s，您购买的商品「%s」已经退款。' % (customer.nick, salerefund.title),
                 'color': '#000000',
             },
             'reason': {
@@ -131,7 +131,7 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'remark': {
-                'value': u'\n来自小鹿美美',
+                'value': u'\n小鹿美美App，健康美丽从这里开始！',
                 'color': '#000000',
             },
         }

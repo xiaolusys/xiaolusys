@@ -118,12 +118,12 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         products_data  = content.get('products')
         saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
         if not saleproduct:
-            return exceptions.APIException(u"选品ID错误")
+            raise exceptions.APIException(u"选品ID错误")
 
         supplier = saleproduct.sale_supplier
         category_id = content.get("category_id", "")
         category_item = ProductCategory.objects.get(cid=category_id)
-        if category_item.parent_cid == 3:
+        if category_item.parent_cid in (3,  39):
             first_outer_id = u"3"
             outer_id = first_outer_id + str(category_item.cid) + "%05d" % supplier.id
         elif category_item.parent_cid == 6:
@@ -138,7 +138,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         elif category_item.cid == 9:
             outer_id = "100" + "%05d" % supplier.id
         else:
-            return exceptions.APIException(u"类别错误")
+            raise exceptions.APIException(u"请选择正确分类")
 
         count = Product.objects.filter(outer_id__startswith=outer_id).count() or 1
         while True:
@@ -148,7 +148,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                 break
             count += 1
         if len(inner_outer_id) > 12:
-            return exceptions.APIException(u"编码生成错误")
+            raise exceptions.APIException(u"编码位数不能超出12位")
         try:
             extras = default_modelproduct_extras_tpl()
             extras.setdefault('properties', {})
@@ -221,13 +221,13 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                         logger.error('product skustats:new_sku_id=%s, %s' % (one_sku.id, exc.message), exc_info=True)
 
         except Exception, exc:
-            logger.error(exc.message or u'商品资料创建错误', exc_info=True)
-            raise exceptions.APIException(u'出错了:%s' % exc.message)
+            logger.error('%s'%exc or u'商品资料创建错误', exc_info=True)
+            raise exceptions.APIException(u'出错了:%s' % exc)
         # 发送　添加供应商总选款的字段　的信号
         try:
             signal_record_supplier_models.send(sender=ModelProduct, obj=model_pro)
         except Exception, exc:
-            logger.error(exc.message or u'创建商品model异常', exc_info=True)
-            raise exceptions.APIException(u'创建商品model异常:%s' % exc.message)
+            logger.error('%s'%exc or u'创建商品model异常', exc_info=True)
+            raise exceptions.APIException(u'创建商品model异常:%s' % exc)
 
         return Response({'code': 0 ,'info': u'创建成功'})
