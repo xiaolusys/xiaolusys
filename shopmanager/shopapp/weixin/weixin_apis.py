@@ -123,14 +123,15 @@ class WeiXinAPI(object):
 
         content = json.loads(resp, strict=False)
 
-        if content.has_key('errcode') and content['errcode'] != 0:
+        if content.get('errcode', 0):
             raise WeiXinRequestException(content['errcode'], content['errmsg'])
 
         return content
 
-    @cache_lock(cache_time=60 * 60)
     def refresh_token(self):
-
+        """
+        禁止刷新token，由定时任务负责刷新token
+        """
         params = {'grant_type': 'client_credential',
                   'appid': self._wx_account.app_id,
                   'secret': self._wx_account.app_secret}
@@ -146,11 +147,10 @@ class WeiXinAPI(object):
         return content['access_token']
 
     def getAccessToken(self, force_update=False):
-
-        if not force_update and not self._wx_account.isExpired():
-            return self._wx_account.access_token
-
-        return self.refresh_token()
+        """
+        禁止刷新token, force_update参数无效
+        """
+        return self._wx_account.access_token
 
     def getCustomerInfo(self, openid, lang='zh_CN'):
         return self.handleRequest(self._user_info_uri, {'openid': openid, 'lang': lang})
