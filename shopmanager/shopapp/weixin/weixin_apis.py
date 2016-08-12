@@ -8,11 +8,13 @@ import urllib2
 from django.conf import settings
 
 from shopapp.weixin.models import WeiXinAccount
-from common.utils import (randomString,
-                          update_model_fields,
-                          randomString,
-                          getSignatureWeixin,
-                          cache_lock)
+from common.utils import (
+    randomString,
+    update_model_fields,
+    randomString,
+    getSignatureWeixin,
+    cache_lock
+)
 
 REFRESH_WX_TOKEN_CACHE_KEY = 'REFRESH_WX_TOKEN_KEY'
 
