@@ -90,7 +90,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     queryset = XiaoluMama.objects.all()
     serializer_class = serializers.XiaoluMamaSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    permission_classes = (permissions.AllowAny, )
+    # permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     MM_LINKID_PATH = 'qrcode/xiaolumm'
 
@@ -99,6 +100,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         return self.queryset.filter(openid=customer.unionid)  # 通过customer的unionid找 xlmm
 
     def list(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -106,7 +109,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def create(self, request, *args, **kwargs):
         return Response()
 
-    @detail_route()
+    @detail_route(methods=['get'])
     def base_info(self, request, pk):
         mama = get_object_or_404(XiaoluMama, pk=pk)
         if not mama:
@@ -123,6 +126,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         """
         该代理推荐的人
         """
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         qst = self.queryset.filter(referal_from=xlmm.mobile)
@@ -132,6 +137,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     @list_route(methods=['get'])
     def agency_info(self, request):
         """ wap 版本页面数据整理显示　"""
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
 
@@ -195,6 +202,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     @list_route(methods=['get'])
     def get_fans_list(self, request):
         """ 获取小鹿妈妈的粉丝列表 """
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         customer = get_object_or_404(Customer, user=request.user)
         xlmm_fans = XlmmFans.objects.filter(xlmm_cusid=customer.id).order_by('created')
         page = self.paginate_queryset(xlmm_fans)
@@ -215,6 +224,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         当前代理邀请的人数(正式，　非正式)　邀请人的信息（正式非正式）
         一元试用的从潜在用户列表中获取
         """
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         last_renew_type = request.REQUEST.get("last_renew_type") or None
         if not last_renew_type:
             return Response([])
@@ -252,6 +263,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     @list_route(methods=['get'])
     def get_register_pro_info(self, request):
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         content = request.REQUEST
         # mama_id = content.get('mama_id', '1')
         # xlmm = self.get_xiaolumm(request)
@@ -285,6 +298,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     @list_route(methods=['get', 'post'])
     def fill_mama_info(self, request):
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         content = request.REQUEST
         customer = get_object_or_404(Customer, user=request.user)
         mama_mobile = content.get('mama_mobile') or None
@@ -310,6 +325,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
     @list_route(methods=['get', 'post'])
     def mama_register_pay(self, request):
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         content = request.REQUEST
         product_id = content.get('product_id')
         sku_id = content.get('sku_id')
@@ -373,6 +390,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             'tutorial_link': ''
         }
         """
+        if not request.user or not request.user.is_authenticated():
+            raise exceptions.PermissionDenied()
         from flashsale.xiaolumm.models import MamaVebViewConf
         from flashsale.coupon.models import OrderShareCoupon
         from flashsale.xiaolumm.models import XlmmFans, PotentialMama
