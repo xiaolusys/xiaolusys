@@ -200,7 +200,7 @@
                                     {% for sku in product.skus %}
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" class="select-product-sku"
+                                            <input type="checkbox" class="select-product-sku" data-forecast-id="{{forecast.id}}" data-forecast-num="{{sku.forecast_arrive_num}}"
                                                    data-sku-id="{{sku.id}}" data-product-id="{{product.id}}"{% if sku.is_required %} checked{%endif%}>{{sku.properties_name}}
                                         </label>
                                     </div>
@@ -336,8 +336,9 @@
         </script>
         <script id="product-required-sku-tpl" type="text/html">
             <div class="input-group">
-                <span class="input-group-addon">{{properties_name}}</span>
-                <input type="number" class="form-control" data-sku-id="{{id}}" data-product-id="{{productId}}" style="width:60px" min="0" value="{{value}}">
+                <span class="input-group-addon">{{properties_name}}<em class="bg-primary">{{forecast_arrive_num}}</em></span>
+                <input type="number" class="form-control" data-sku-id="{{id}}" data-product-id="{{productId}}"
+                       data-forecast-id="{{forecastId}}" style="width:60px" min="0" value="{{value}}">
             </div>
         </script>
         <script id="problem-sku-tpl" type="text/html">
@@ -753,12 +754,16 @@
                  $skus.find('.product-all-skus').find(':checked').each(function(){
                      var skuId = parseInt($(this).attr('data-sku-id'));
                      var productId = parseInt($(this).attr('data-product-id'));
+                     var forecastNum = parseInt($(this).attr('data-forecast-num'));
+                     var forecastId = parseInt($(this).attr('data-forecast-id'));
                      skuDict = skusDict[skuId];
                      productSkus.push({
                          id: skuId,
                          productId: productId,
                          properties_name: skuDict.properties_name,
-                         value: $(tpl({skuId: skuId}), $skus).val()
+                         value: $(tpl({skuId: skuId}), $skus).val(),
+                         forecastId: forecastId,
+                         forecast_arrive_num: forecastNum,
                      });
                  });
 

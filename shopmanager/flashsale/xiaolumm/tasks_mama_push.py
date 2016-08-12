@@ -63,3 +63,23 @@ def task_push_mama_cashout_msg(envelop):
         unionid = weixin_records[0].unionid
         mamas = XiaoluMama.objects.filter(openid=unionid)
         map(push_mama.push_msg_to_mama(None), mamas)
+
+
+@task
+def task_weixin_push_awardcarry(awardcarry):
+    from shopapp.weixin.weixin_push import WeixinPush
+    wp = WeixinPush()
+
+    from flashsale.xiaolumm import util_description
+    courage_remarks = util_description.get_awardcarry_description(awardcarry.carry_type)
+
+    urls = ["http://m.xiaolumeimei.com", "http://m.xiaolumeimei.com/sale/promotion/appdownload/"]
+    import random
+    idx = int(random.random() * 2)
+
+    if idx == 1:
+        courage_remarks += u"更新最新版App查看奖金 >>"
+    to_url = urls[idx]
+    
+    wp.push_mama_award(awardcarry, courage_remarks, to_url)
+
