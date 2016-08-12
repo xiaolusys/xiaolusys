@@ -137,3 +137,39 @@ class WeixinPush(object):
         }
         to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % salerefund.sale_trade.id
         return self.push(customer, template_id, template_data, to_url)
+
+    def push_mama_award(self, awardcarry, courage_remarks, to_url):
+        """
+        {{first.DATA}}
+        任务名称：{{reason.DATA}}
+        奖励金额：{{award.DATA}}
+        时间：{{commit_time.DATA}}
+        {{remark.DATA}}
+        """
+
+        customer = awardcarry.get_mama_customer()
+        template_id = 'j4YQuNIWMP-OZV_O5LIl1O8GBmaMuqMQ8aLV1oDfnUw'
+        template_data = {
+            'first': {
+                'value': u'报！公主殿下, 您的小鹿美美App奖金又来啦！',
+                'color': '#F87217',
+            },
+            'reason': {
+                'value': awardcarry.carry_description,
+                'color': '#000000',
+            },
+            'refund': {
+                'value': awardcarry.carry_num_display(),
+                'color': '#c0392b',
+            },
+            'commit_time': {
+                'value': awardcarry.created,
+                'color': '#000000',
+            },
+            'remark': {
+                'value': courage_remarks,
+                'color': '#F87217',
+            },
+        }
+        
+        return self.push(customer, template_id, template_data, to_url)

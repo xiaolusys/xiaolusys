@@ -124,3 +124,23 @@ def gen_activevalue_description(value_type):
     value_num = ActiveValue.VALUE_MAP[str(value_type)]
 
     return desc[value_type] % value_num
+
+def get_awardcarry_courage_remarks(carry_type):
+    """
+    (1, u'直荐奖励'),(2, u'团队奖励'),(3, u'授课奖金'),(4, u'新手任务'),(5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'))
+    """
+    desc = {
+        "1": u"恭喜又招募一位才华横溢的妈妈队员，vip8向您招手啦，完成新手任务再奖10元哦！",
+        "2": u"团队又壮大啦，注意要多辅导新人哦！",
+        "3": u"妈妈上讲台，朋友和孩子以后也会勇敢上讲台！",
+        "4": u"恭喜新手任务完成，您已经可以辅导其他妈妈啦！",
+        "5": u"首单奖励已到，完成其他任务还有奖励哦！",
+        "6": u"加油！您的团队更专业啦！记得检查新手妈妈完成任务哦！",
+        "7": u"加油！多推荐几个，更多奖金！新手任务完成还有额外奖励哦！",
+    }
+    key = str(carry_type)
+    remarks = ""
+    if key in desc:
+        remarks = desc[key]
+    return remarks
+    
