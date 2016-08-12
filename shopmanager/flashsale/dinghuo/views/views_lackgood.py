@@ -140,16 +140,16 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
                     modify=None, proof_pic=None, is_lackrefund=True, lackorder_id=lack_order.id
                 )
             if not refund.is_refundapproved:
-                refund.refund_approve()
-
-                lack_order.refund_num += refund_num
-                lack_order.is_refund  = True
-                lack_order.save(update_fields=['refund_num', 'is_refund'])
                 # 发优惠券
                 UserCoupon.objects.create_refund_post_coupon(sale_trade.buyer_id,
                                                              LACK_REFUND_COUPON_TEMPLATE_ID,
                                                              trade_id=sale_trade.id,
                                                              ufrom=None)
+                # 退款
+                refund.refund_approve()
+                lack_order.refund_num += refund_num
+                lack_order.is_refund = True
+                lack_order.save(update_fields=['refund_num', 'is_refund'])
                 # TODO app推送
 
         except Exception, exc:

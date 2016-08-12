@@ -85,7 +85,8 @@ class SaleProduct(BaseTagModel):
 
     class Meta:
         db_table = 'supplychain_supply_product'
-        unique_together = ("outer_id", "platform")
+        unique_together = [("outer_id", "platform")]
+        index_together = [('status','sale_time', 'sale_category')]
         app_label = 'supplier'
         verbose_name = u'特卖/选品'
         verbose_name_plural = u'特卖/选品列表'
