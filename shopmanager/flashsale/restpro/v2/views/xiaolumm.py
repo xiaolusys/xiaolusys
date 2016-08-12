@@ -83,6 +83,9 @@ def add_day_carry(datalist, queryset, sum_field, scale=0.01, exclude_statuses=No
             entry.today_carry = float('%.2f' % (sum_dict[key] * scale))
 
 
+
+from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_app_visit_stats
+
 class MamaFortuneViewSet(viewsets.ModelViewSet):
     """
     """
@@ -100,7 +103,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
 
         statsd.incr('xiaolumm.mamafortune_count')
-
+        
         # fortunes = self.get_owner_queryset(request)
         customer = Customer.objects.normal_customer.filter(user=request.user).first()
         mama_id = None
@@ -109,6 +112,8 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
             xlmm = customer.get_charged_mama()
             if xlmm:
                 mama_id = xlmm.id
+                task_mama_daily_app_visit_stats.delay(mama_id)
+
         fortunes = self.queryset.filter(mama_id=mama_id)
         # fortunes = self.paginate_queryset(fortunes)
         serializer = serializers.MamaFortuneSerializer(fortunes, many=True,
