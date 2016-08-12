@@ -53,12 +53,12 @@ class WeiXinAccount(models.Model):
 
     js_ticket = models.CharField(max_length=256, blank=True, verbose_name=u'JSAPI_TICKET')
 
-    expires_in = models.BigIntegerField(default=0, verbose_name="使用期限(s)")
+    expires_in = models.BigIntegerField(default=0, verbose_name=u"使用期限(s)")
     expired = models.DateTimeField(default=timezone.now,
-                                   verbose_name="上次过期时间")
+                                   verbose_name=u"上次过期时间")
 
     js_expired = models.DateTimeField(default=timezone.now,
-                                      verbose_name="TICKET上次过期时间")
+                                      verbose_name=u"TICKET上次过期时间")
 
     jmenu = JSONCharMyField(max_length=4096, blank=True, default={}, verbose_name=u'菜单代码')
 
@@ -66,9 +66,9 @@ class WeiXinAccount(models.Model):
     is_active = models.BooleanField(default=False, verbose_name=u'激活')
 
     order_updated = models.DateTimeField(blank=True, null=True,
-                                         verbose_name="订单更新时间")
+                                         verbose_name=u"订单更新时间")
     refund_updated = models.DateTimeField(blank=True, null=True,
-                                          verbose_name="维权更新时间")
+                                          verbose_name=u"维权更新时间")
 
     class Meta:
         db_table = 'shop_weixin_account'
