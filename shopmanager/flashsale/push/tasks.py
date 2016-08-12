@@ -18,7 +18,7 @@ def unsubscribe(platform, regid, topic):
     mipush_instance.unsubscribe_by_regid(regid, topic)
 
 
-@task()
+@task(max_retries=3, default_retry_delay=30)
 def task_push_trade_pay_notify(saletrade):
     weixin_push = WeixinPush()
     weixin_push.push_trade_pay_notify(saletrade)

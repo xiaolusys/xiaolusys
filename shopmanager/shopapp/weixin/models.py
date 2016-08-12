@@ -16,7 +16,7 @@ from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
-TOKEN_EXPIRED_IN = 15 * 60
+TOKEN_EXPIRED_IN = 50 * 60
 
 
 def get_Unionid(openid, appid):
@@ -671,7 +671,7 @@ class CouponClick(models.Model):
 #    openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
 #    coupon_id = models.IntegerField(default=0,db_index=True,verbose_name=u"优惠券ID")
 #    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
-#    
+#
 #    class Meta:
 #        db_table = 'shop_ambass_coupon'
 #        verbose_name = u'优尼大使优惠券'
@@ -987,7 +987,7 @@ def convert_package_payment2score(sender,package_order_id,*args,**kwargs):
         logger = logging.getLogger("celery.handler")
         logger.error(u'订单积分转换失败:%s'%exc.message,exc_info=True)
 
-        
+
 confirm_trade_signal.connect(convert_package_payment2score, sender=PackageOrder)
 
 

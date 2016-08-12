@@ -23,7 +23,7 @@ def valid_openid(openid):
     if openid and re.compile(OPENID_RE).match(openid):
         return True
     return False
-    
+
 def gen_weixin_redirect_url(params):
     list_params = ['appid','redirect_uri','response_type','scope','state']
     param_string = '&'.join([urllib.urlencode({t:params.get(t,'')}) for t in list_params])
@@ -32,7 +32,7 @@ def gen_weixin_redirect_url(params):
 
 def parse_cookie_key(ckey,appid):
     return '%s_%s'%(ckey,appid.replace('gh_',''))
-    
+
 def get_cookie_openid(cookies,appid):
     """ 根据cookie获取用户openid,unionid """
     x = cookies.get(parse_cookie_key("openid",appid),'')
@@ -74,50 +74,50 @@ def get_auth_userinfo(code, appid='', secret='', request=None):
     content   = request and request.REQUEST or {}
     state     = content.get('state',None)
     userinfo  = {}
-    if not debug_m and request: 
+    if not debug_m and request:
         debug_m = content.get('debug')
     if debug_m:
         userinfo.update(openid=content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c'))
         userinfo.update(unionid=content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4'))
         return userinfo
-    
+
     if state and not code:
         return {'errcode':9999,'msg':'The user cancel authorized!'}
-    
+
     if not code or not re.compile(AUTHCODE_RE).match(code):
         return userinfo
-    
+
     r = get_weixin_userbaseinfo(code, appid, secret)
     if r.has_key("errcode"):
         return r
-    
+
     openid = r.get('openid')
     if r.has_key('unionid') and r.has_key('access_token'):
         rs = get_weixin_snsuserinfo(openid, r.get('access_token'))
         if rs.has_key("errcode"):
             return r
-        
+
         # Here we should trigger a task to save userinfo.
         from shopapp.weixin.tasks import task_snsauth_update_weixin_userinfo
         task_snsauth_update_weixin_userinfo.delay(rs, appid)
-        
+
         return rs
-    
+
     return r
 
 def get_user_unionid(code, appid='', secret='', request=None):
     """ 根据code获取用户openid,unoinid,或access_token """
     if not code and request:
         return get_cookie_openid(request.COOKIES, appid)
-    
+
     r = get_auth_userinfo(code, appid=appid, secret=secret, request=request)
-        
+
     return (r.get('openid',''),r.get('unionid',''))
 
 
 import hashlib
 def gen_wxlogin_sha1_sign(params,secret):
-    
+
     key_pairs = ['%s=%s'%(k,v) for k,v in params.iteritems()]
     key_pairs.append('secret=%s'%secret)
     key_pairs.sort()
@@ -125,5 +125,5 @@ def gen_wxlogin_sha1_sign(params,secret):
     return hashlib.sha1(sign_string).hexdigest()
 
 
-    
+
 
