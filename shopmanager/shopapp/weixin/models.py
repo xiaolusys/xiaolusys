@@ -16,7 +16,7 @@ from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
-TOKEN_EXPIRED_IN = 50 * 60
+TOKEN_EXPIRED_IN = 15 * 60
 
 
 def get_Unionid(openid, appid):
