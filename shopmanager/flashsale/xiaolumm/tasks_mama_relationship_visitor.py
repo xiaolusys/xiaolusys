@@ -25,7 +25,7 @@ def get_cur_info():
 
 
 @task()
-def task_update_referal_relationship(sale_order):
+def  task_update_referal_relationship(sale_order):
     sale_trade = sale_order.sale_trade
     customer_id = sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
@@ -43,14 +43,6 @@ def task_update_referal_relationship(sale_order):
     if 'mm_linkid' in extra:
         mm_linkid = int(extra['mm_linkid'] or '0')
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
-    if not referal_mm:
-        # 以订单上的推荐id为主　如果没有则　找　潜在用户表中的推荐人记录
-        try:
-            protentialmama = PotentialMama.objects.filter(potential_mama=mama.id).latest('created')  # 最新创建的
-        except PotentialMama.DoesNotExist:
-            logger.warn(u'task_update_referal_relationship: mama %s potential_mama not found' % mama.id)
-            return
-        referal_mm = XiaoluMama.objects.filter(id=protentialmama.referal_mama).first()
 
     if not referal_mm:  # 没有推荐人　
         return

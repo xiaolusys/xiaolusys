@@ -1023,10 +1023,7 @@ def task_register_mama(obj):
             protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
         except PotentialMama.DoesNotExist:
             logger.info({'action': 'task_register_mama', 'mama_id': xlmm.id, 'uni_key': uni_key})
-    try:
-        update_xlmm_referal_from(protentialmama, xlmm)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
-    except Exception as exc:
-        logger.info({'action': 'task_register_mama', 'mama_id': xlmm.id, 'uni_key': uni_key, 'message': exc.message})
+    update_xlmm_referal_from(protentialmama, xlmm)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
 
     from django_statsd.clients import statsd
     from django.utils.timezone import now, timedelta
