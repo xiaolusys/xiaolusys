@@ -114,6 +114,10 @@ class MamaFortune(BaseModel):
     def mama_level_display(self):
         return get_choice_name(self.MAMA_LEVELS, self.mama_level)
 
+    @property
+    def cash_total(self):
+        return self.carry_pending + self.carry_confirmed + self.history_pending + self.history_confirmed + self.history_cashout
+
     def carry_num_display(self):
         """ 累计收益数 """
         total = self.carry_pending + self.carry_confirmed + self.history_pending + self.history_confirmed
@@ -206,6 +210,13 @@ def send_activate_award(sender, instance, created, **kwargs):
 post_save.connect(send_activate_award,
                   sender=MamaFortune, dispatch_uid='post_save_send_activate_award')
 
+
+def update_week_carry_total(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_carry_total
+    tasks_mama_carry_total.task_send_activate_award.delay(instance.mama_id)
+
+post_save.connect(update_week_carry_total,
+                  sender=MamaFortune, dispatch_uid='post_save_send_activate_award')
 
 
 class DailyStats(BaseModel):
@@ -694,16 +705,11 @@ post_save.connect(clickcarry_update_carryrecord,
 
 def confirm_previous_clickcarry(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_clickcarry
-    from flashsale.xiaolumm import tasks_mama_fortune
-    from flashsale.xiaolumm.models.models import XiaoluMama
     if created:
         mama_id = instance.mama_id
         date_field = instance.date_field
         tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry.delay(mama_id, date_field, 2)
         tasks_mama_clickcarry.task_confirm_previous_order_clickcarry.delay(mama_id, date_field, 7)
-        mama = XiaoluMama.objects.get(id=mama_id)
-        for mm_id in mama.get_parent_mama_ids():
-            tasks_mama_fortune.task_update_mamafortune_active_num.delay(mm_id)
 
 
 post_save.connect(confirm_previous_clickcarry,

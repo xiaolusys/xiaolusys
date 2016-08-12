@@ -1312,7 +1312,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时更新小鹿妈妈排名3分钟': {
         'task': 'flashsale.xiaolumm.tasks_mama_carry_total.task_schedule_update_carry_total_ranking',
-        'schedule': crontab(minute="*/3"),
+        'schedule': crontab(minute="*/6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
