@@ -373,3 +373,4 @@ def task_refresh_weixin_access_token():
         wx_api = WeiXinAPI()
         wx_api.setAccountId(appKey=appkey)
         wx_api.refresh_token()
+        wx_api.refreshJSTicket()
