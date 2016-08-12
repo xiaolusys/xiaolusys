@@ -303,7 +303,6 @@ class InBoundViewSet(viewsets.GenericViewSet):
         if not supplier:
             return Response({"error_message": u"这个预测到货单居然没有指定供应商，请联系技术"}, template_name='dinghuo/inbound_add.html')
 
-        # TODO@hy 下面一段超傻代码有功夫再去优化吧 前后端重度耦合又故作复杂耗时较大不好改
         result = {
             'express_no': form.cleaned_data['express_no'],
             'orderlist_id': form.cleaned_data['orderlist_id'],
