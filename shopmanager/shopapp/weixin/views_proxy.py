@@ -51,10 +51,15 @@ class WXMessageHttpProxy(HttpProxy):
 
         request_body = request.body
         params = service.parseXML2Param(request_body)
+
+        # 处理菜单点击事件
         ret_params = service.handleWeiXinMenuRequest(params)
         if ret_params:
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
+
+        # 处理关注／取关事件
+        service.handleWeiXinSubscribeEvent(params, wx_api)
 
         request_url = self.get_full_url(self.url)
         request_header = {'Content-type': request.META.get('CONTENT_TYPE'),

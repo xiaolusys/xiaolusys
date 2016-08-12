@@ -23,6 +23,23 @@ class WeixinUnionID(CacheModel):
         return u'<%s>' % self.openid
 
 
+class WeixinFans(models.Model):
+    openid = models.CharField(max_length=32, verbose_name=u'OPENID')
+    app_key = models.CharField(max_length=24, verbose_name=u'APPKEY')
+    unionid = models.CharField(max_length=32, verbose_name=u'UNIONID')
+    subscribe = models.BooleanField(default=False, verbose_name=u"订阅该号")
+    subscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"订阅时间")
+    unsubscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"取消订阅时间")
+
+    class Meta:
+        db_table = 'shop_weixin_fans'
+        unique_together = [('unionid', 'app_key')]
+        index_together = [('openid', 'app_key')]
+        app_label = 'weixin'
+        verbose_name = u'微信公众号粉丝'
+        verbose_name_plural = u'微信公众好粉丝列表'
+
+
 from core.weixin import signals
 
 
