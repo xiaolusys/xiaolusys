@@ -360,3 +360,16 @@ def task_snsauth_update_weixin_userinfo(userinfo, appid):
         if update:
             # We must use save() so that it will trigger updating customer.
             info.save()
+
+
+@task(max_retries=3, default_retry_delay=60)
+def task_refresh_weixin_access_token():
+    appkeys = [
+       settings.WXPAY_APPID,
+       settings.WEIXIN_APPID,
+    ]
+
+    for appkey in appkeys:
+        wx_api = WeiXinAPI()
+        wx_api.setAccountId(appKey=appkey)
+        wx_api.refresh_token()

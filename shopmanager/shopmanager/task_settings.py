@@ -1314,6 +1314,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'每30分钟刷新微信公众号ACCESS_TOKEN': {
+        'task': 'shopapp.weixin.tasks.task_refresh_weixin_access_token',
+        'schedule': crontab(minute="*/30"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 
 }
 
