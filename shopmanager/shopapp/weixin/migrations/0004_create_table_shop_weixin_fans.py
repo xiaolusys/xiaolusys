@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('weixin', '0002_add_unique_index_unionid_app_key'),
+        ('weixin', '0003_add_index_to_order_status'),
     ]
 
     operations = [
