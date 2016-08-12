@@ -537,6 +537,11 @@ class AwardCarry(BaseModel):
         """
         return None
 
+    def get_mama_customer(self):
+        from flashsale.xiaolumm.models.models import XiaoluMama
+        mama = XiaoluMama.objects.filter(id=mama_id).first()
+        return mama.get_mama_customer()
+            
     @staticmethod
     def send_award(mama, num, name, description, uni_key, status, carry_type,
                    contributor_nick=None, contributor_img=None, contributor_mama_id=None):
@@ -567,6 +572,17 @@ def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
 
 post_save.connect(awardcarry_update_carryrecord,
                   sender=AwardCarry, dispatch_uid='post_save_awardcarry_update_carryrecord')
+
+
+def awardcarry_weixin_push(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm import tasks_mama_push
+    tasks_mama_push.task_weixin_push_awardcarry.delay(instance)
+
+post_save.connect(awardcarry_weixin_push,
+                  sender=AwardCarry, dispatch_uid='post_save_awardcarry_weixin_push')
+
 
 from core.fields import JSONCharMyField
 

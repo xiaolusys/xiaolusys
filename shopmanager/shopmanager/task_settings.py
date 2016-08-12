@@ -684,6 +684,10 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_push_mama_cashout_msg',
     },  # 代理有提现成功推送消息提醒
+    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_awardcarry': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_weixin_push_awardcarry',
+    },  # 妈妈奖金微信推送
     'flashsale.pay.tasks.task_release_coupon_push': {
         'queue': 'notify',
         'routing_key': 'notify.task_release_coupon_push',
