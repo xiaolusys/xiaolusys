@@ -327,6 +327,7 @@ class RedEnvelope(CacheModel):
     class Meta:
         db_table = 'flashsale_promotion_red_envelope'
         verbose_name = u'活动/红包'
+        app_label = 'promotion'
         verbose_name_plural = u'活动/红包列表'
 
     def status_display(self):
@@ -390,6 +391,7 @@ class AwardWinner(CacheModel):
     class Meta:
         db_table = 'flashsale_promotion_award_winner'
         verbose_name = u'活动/中奖'
+        app_label = 'promotion'
         verbose_name_plural = u'活动/中奖列表'
 
 
