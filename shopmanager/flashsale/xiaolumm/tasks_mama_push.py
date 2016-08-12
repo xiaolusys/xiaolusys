@@ -71,7 +71,7 @@ def task_weixin_push_awardcarry(awardcarry):
     wp = WeixinPush()
 
     from flashsale.xiaolumm import util_description
-    courage_remarks = util_description.get_awardcarry_description(awardcarry.carry_type)
+    courage_remarks = util_description.get_awardcarry_courage_remarks(awardcarry.carry_type)
 
     urls = ["http://m.xiaolumeimei.com", "http://m.xiaolumeimei.com/sale/promotion/appdownload/"]
     import random

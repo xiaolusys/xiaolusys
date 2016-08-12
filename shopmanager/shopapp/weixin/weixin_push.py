@@ -155,15 +155,15 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
             'reason': {
-                'value': awardcarry.carry_description,
+                'value': u'%s' % awardcarry.carry_description,
                 'color': '#000000',
             },
-            'refund': {
-                'value': awardcarry.carry_num_display(),
+            'award': {
+                'value': u'¥%s' % awardcarry.carry_num_display(),
                 'color': '#c0392b',
             },
             'commit_time': {
-                'value': str(awardcarry.created),
+                'value': u'%s' % awardcarry.created,
                 'color': '#000000',
             },
             'remark': {
