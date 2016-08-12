@@ -539,7 +539,7 @@ class AwardCarry(BaseModel):
 
     def get_mama_customer(self):
         from flashsale.xiaolumm.models.models import XiaoluMama
-        mama = XiaoluMama.objects.filter(id=mama_id).first()
+        mama = XiaoluMama.objects.filter(id=self.mama_id).first()
         return mama.get_mama_customer()
             
     @staticmethod
