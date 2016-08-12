@@ -1022,12 +1022,15 @@ def task_register_mama(obj):
         try:
             protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
         except PotentialMama.DoesNotExist:
-            logger.warn(u'task_register_mama: %s can not found referal !' % xlmm.id)
-
-    update_xlmm_referal_from(protentialmama, xlmm)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
+            logger.info({'action': 'task_register_mama', 'mama_id': xlmm.id, 'uni_key': uni_key})
+    try:
+        update_xlmm_referal_from(protentialmama, xlmm)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
+    except Exception as exc:
+        logger.info({'action': 'task_register_mama', 'mama_id': xlmm.id, 'uni_key': uni_key, 'message': exc.message})
 
     from django_statsd.clients import statsd
     from django.utils.timezone import now, timedelta
+
     start = now().date()
     end = start + timedelta(days=1)
     statsd.timing('xiaolumm.new_mama_count', XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED,
