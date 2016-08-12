@@ -324,6 +324,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
 
+        logger.info({'action': 'v1_mama_register_pay', 'mama_id': xlmm.id})
+
         if float(wallet_renew_deposit) > 0:  # 续费押金
             could_cash_out, _ = get_mamafortune(xlmm.id)  # 可提现的金额(元)
             payment += could_cash_out * 100
@@ -347,9 +349,11 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             if state:
                 self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
         except exceptions.APIException, exc:
+            logger.info({'action': 'v1_mama_register_pay_error', 'mama_id': xlmm.id, 'message': exc.message})
             raise exc
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
+            logger.info({'action': 'v1_mama_register_pay_error', 'mama_id': xlmm.id, 'message': exc.message})
             Product.objects.releaseLockQuantity(product_sku, sku_num)
             raise exceptions.APIException(u'订单生成异常')
         response_charge = self.pingpp_charge(sale_trade, **content)
