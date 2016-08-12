@@ -503,7 +503,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             id__in=cart_ids,
             buyer_id=customer.id
         )
-        logger.info('debug cartcharge:%s, %s, %s'%(tuuid, cart_ids, cart_qs))
         # 这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
             logger.warn({'code':1, 'message':u'购物车已结算', 'stype':'restpro.trade',
