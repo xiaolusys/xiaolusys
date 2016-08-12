@@ -62,8 +62,8 @@ class SaleTrade(BaseModel):
         (WALLET, u'妈妈钱包'),
         (WX, u'微信APP'),
         (ALIPAY, u'支付宝APP'),
-        (WX_PUB, u'微信公众支付'),
-        (ALIPAY_WAP, u'支付宝'),
+        (WX_PUB, u'微信WAP'),
+        (ALIPAY_WAP, u'支付宝WAP'),
         (UPMP_WAP, u'银联'),
         (APPLE, u'ApplePay'),
     )

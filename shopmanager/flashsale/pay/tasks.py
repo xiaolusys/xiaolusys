@@ -1,8 +1,8 @@
 # -*- encoding:utf-8 -*-
+import re
 import datetime
 import logging
 
-import pingpp
 from celery.task import task
 from django.conf import settings
 from django.db import models
@@ -19,6 +19,7 @@ from shopback.items.models import ProductSku
 from .options import get_user_unionid
 from .services import FlashSaleService
 
+import pingpp
 pingpp.api_key = settings.PINGPP_APPKEY
 
 __author__ = 'meixqhi'
@@ -216,7 +217,16 @@ def notifyTradeRefundTask(notify):
     try:
         refund_id = notify['id']
         seller = getOrCreateSaleSeller()
-        srefund = SaleRefund.objects.get(refund_id=refund_id)
+        srefund = SaleRefund.objects.filter(refund_id=refund_id).first()
+        if not srefund:
+            logger.error('pingpp refund order notfound:%s'%notify)
+            order_id = re.compile('oid:(?P<order_id>\d+)').search(srefund['description']).groupdict().get('order_id')
+            saleorder = SaleOrder.objects.filter(id=order_id).first()
+            if saleorder:
+                srefund = SaleRefund.objects.filter(trade_id=saleorder.sale_trade.id,order_id=saleorder.id).first()
+
+        if not srefund:
+            return
 
         log_action(seller.user.id, srefund, CHANGE, u'%s(金额:%s)' %
                    ([u'退款失败', u'退款成功'][notify['succeed'] and 1 or 0],notify['amount']))
