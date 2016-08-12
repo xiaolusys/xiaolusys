@@ -348,7 +348,7 @@ post_save.connect(carryrecord_update_carrytotal,
 
 
 class OrderCarry(BaseModel):
-    CARRY_TYPES = ((1, u'Web直接订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
+    CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
     STATUS_TYPES = ((0, u'待付款'), (1, u'预计收益'), (2, u'确定收益'), (3, u'买家取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
@@ -409,6 +409,11 @@ class OrderCarry(BaseModel):
         """
         return None
 
+    def get_mama_customer(self):
+        from flashsale.xiaolumm.models.models import XiaoluMama
+        mama = XiaoluMama.objects.filter(id=self.mama_id).first()
+        return mama.get_mama_customer()
+
     @property
     def mama(self):
         from flashsale.xiaolumm.models.models import XiaoluMama
@@ -425,6 +430,15 @@ def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
 
 post_save.connect(ordercarry_update_carryrecord,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_carryrecord')
+
+def ordercarry_weixin_push(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm import tasks_mama_push
+    tasks_mama_push.task_weixin_push_ordercarry.delay(instance)
+
+post_save.connect(ordercarry_weixin_push,
+                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_weixin_push')
 
 
 # 首单奖励

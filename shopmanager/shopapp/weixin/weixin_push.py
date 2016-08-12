@@ -141,9 +141,9 @@ class WeixinPush(object):
     def push_mama_award(self, awardcarry, courage_remarks, to_url):
         """
         {{first.DATA}}
-        任务名称：{{reason.DATA}}
-        奖励金额：{{award.DATA}}
-        时间：{{commit_time.DATA}}
+        任务名称：{{keyword1.DATA}}
+        奖励金额：{{keyword2.DATA}}
+        时间：{{keyword3.DATA}}
         {{remark.DATA}}
         """
 
@@ -154,20 +154,65 @@ class WeixinPush(object):
                 'value': u'报！公主殿下, 您的小鹿美美App奖金又来啦！',
                 'color': '#F87217',
             },
-            'reason': {
+            'keyword1': {
                 'value': u'%s' % awardcarry.carry_description,
                 'color': '#000000',
             },
-            'award': {
+            'keyword2': {
                 'value': u'¥%s' % awardcarry.carry_num_display(),
                 'color': '#c0392b',
             },
-            'commit_time': {
+            'keyword3': {
                 'value': u'%s' % awardcarry.created,
                 'color': '#000000',
             },
             'remark': {
                 'value': courage_remarks,
+                'color': '#F87217',
+            },
+        }
+        
+        return self.push(customer, template_id, template_data, to_url)
+
+    def push_mama_ordercarry(self, ordercarry, remarks, to_url):
+        """
+        {{first.DATA}}
+        收益金额：{{keyword1.DATA}}
+        收益来源：{{keyword2.DATA}}
+        到账时间：{{keyword3.DATA}}
+        {{remark.DATA}}
+        """
+
+        #CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
+        description = ""
+        if ordercarry.carry_type == 1:
+            description = u'微商城订单'
+        if ordercarry.carry_type == 2:
+            description = u'App订单（佣金更高哦！）'
+        if ordercarry.carry_type == 3:
+            description = u'下属订单'
+            
+        customer = ordercarry.get_mama_customer()
+        template_id = 'jorNMI-K3ewxBXHTgTKpePCF6yn5O5oLZK6azNNoWK4'
+        template_data = {
+            'first': {
+                'value': u'女王大人, 小鹿美美App报告：您有一笔新订单啦！',
+                'color': '#F87217',
+            },
+            'keyword1': {
+                'value': u'¥%s' % ordercarry.carry_num_display(),
+                'color': '#c0392b',
+            },
+            'keyword2': {
+                'value': description,
+                'color': '#000000',
+            },
+            'keyword3': {
+                'value': u'%s (订单时间)' % ordercarry.created,
+                'color': '#000000',
+            },
+            'remark': {
+                'value': remarks,
                 'color': '#F87217',
             },
         }
