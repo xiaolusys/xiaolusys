@@ -163,7 +163,7 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'commit_time': {
-                'value': awardcarry.created,
+                'value': str(awardcarry.created),
                 'color': '#000000',
             },
             'remark': {
