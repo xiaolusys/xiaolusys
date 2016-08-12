@@ -25,7 +25,7 @@ def get_cur_info():
 
 
 @task()
-def  task_update_referal_relationship(sale_order):
+def task_update_referal_relationship(sale_order):
     sale_trade = sale_order.sale_trade
     customer_id = sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
