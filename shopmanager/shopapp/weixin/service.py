@@ -9,13 +9,16 @@ from xml.dom import minidom
 from django.core.cache import cache
 from django.conf import settings
 from django.views.generic import View
-from shopapp.weixin.models import (WeiXinAccount,
-                                   WeiXinAutoResponse,
-                                   WeiXinUser,
-                                   WXProduct,
-                                   WXOrder,
-                                   WXLogistic,
-                                   VipCode)
+from shopapp.weixin.models import (
+    WeiXinAccount,
+    WeiXinAutoResponse,
+    WeiXinUser,
+    WXProduct,
+    WXOrder,
+    WXLogistic,
+    VipCode
+)
+from shopapp.weixin.models_base import WeixinFans
 from .weixin_apis import WeiXinAPI
 from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
@@ -104,7 +107,7 @@ def buildDomByJson(parentDom, djson, arrayTag='', rootTag=''):
 
 
 def formatParam2XML(params):
-    """ 
+    """
     """
     if type(params) != dict:
         return '%s' % params
@@ -139,6 +142,32 @@ def handleWeiXinMenuRequest(params):
         te = {'MsgType': WeiXinAutoResponse.WX_TEXT,
               'Content': text}
         ret_params.update(te)
+
+
+def handleWeiXinSubscribeEvent(params, wx_api):
+    """
+    处理关注／取关事件
+    """
+    openid = params['FromUserName']
+    event = params['Event']
+    app_key = wx_api.getAccount().app_id
+
+    if event == 'subscribe':
+        user_info = wx_api.getCustomerInfo(openid)
+        unionid = user_info['unionid']
+        fans = WeixinFans()
+        fans.openid = openid
+        fans.app_key = app_key
+        fans.unionid = unionid
+        fans.subscribe = True
+        fans.subscribe_time = datetime.datetime.now()
+        fans.save()
+    elif event == 'unsubscribe':
+        fans = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
+        if fans:
+            fans.subscribe = False
+            fans.unsubscribe_time = datetime.datetime.now()
+            fans.save()
 
 
 class WeixinUserService():
@@ -375,7 +404,7 @@ class WeixinUserService():
         return True
 
     def sendFaqsList(self, wx_user):
-        # send the faqs list 
+        # send the faqs list
         faq_responses = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message='FAQS')
         if faq_responses.count() > 0:
             faq = faq_responses[0]
