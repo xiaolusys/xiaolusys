@@ -83,3 +83,14 @@ def task_weixin_push_awardcarry(awardcarry):
     
     wp.push_mama_award(awardcarry, courage_remarks, to_url)
 
+
+@task
+def task_weixin_push_ordercarry(ordercarry):
+    from shopapp.weixin.weixin_push import WeixinPush
+    wp = WeixinPush()
+
+    from flashsale.xiaolumm import util_description
+    remarks = u"来自好友%s，快打开App看看她买了啥～" % ordercarry.contributor_nick
+    to_urls = "http://m.xiaolumeimei.com/sale/promotion/appdownload/"
+    
+    wp.push_mama_ordercarry(ordercarry, remarks, to_url)
