@@ -933,6 +933,32 @@ class UniqueVisitor(BaseModel):
             return u"匿名用户"
         return self.visitor_nick
 
+    
+class MamaDailyAppVisit(BaseModel):
+    mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # mama_id+date
+    date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
+
+    class Meta:
+        db_table = 'flashsale_xlmm_mamadailyappvisit'
+        app_label = 'xiaolumm'
+        verbose_name = u'V2/妈妈app访问'
+        verbose_name_plural = u'V2/妈妈app访问列表'
+
+
+def mama_daily_app_visit_stats(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    from django_statsd.clients import statsd
+    today_date = datetime.date.today()
+    visit_count = MamaDailyAppVisit.objects.filter(date_field=today_date).count()
+    key = "Mama.DailyAppVisit"
+    statsd.timing(key, visit_count)
+
+post_save.connect(mama_daily_app_visit_stats,
+                  sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_daily_app_visit_stats')
+    
 
 def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
     if not created:
