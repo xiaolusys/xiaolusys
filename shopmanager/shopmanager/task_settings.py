@@ -319,6 +319,10 @@ MAMA_FORTUNE_ROUTES = {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_update_mamafortune_hasale_num',
     },
+    'flashsale.xiaolumm.tasks_mama_fortune.task_mama_daily_app_visit_stats': {
+        'queue': 'mamafortune',
+        'routing_key': 'mamafortune.task_mama_daily_app_visit_stats',
+    },
 }
 
 MAMA_RELATIONSHIP_ROUTES = {

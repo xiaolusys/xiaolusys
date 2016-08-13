@@ -369,3 +369,16 @@ def task_new_guy_task_complete_send_award(mama):
                               contributor_img=customer.thumbnail,
                               contributor_mama_id=mama.id)  # 确定收益
 
+@task
+def task_mama_daily_app_visit_stats(mama_id):
+    from flashsale.xiaolumm.models import MamaDailyAppVisit
+    
+    date_field = datetime.date.today()
+    uni_key = '%s-%s' % (mama_id, date_field)
+    last_visit_time = datetime.datetime.now()
+    md = MamaDailyAppVisit.objects.filter(uni_key=uni_key).first()
+    if not md:
+        md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,last_visit_time=last_visit_time)
+        md.save()
+    else:
+        md.save(update_fields=['modified'])
