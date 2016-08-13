@@ -33,9 +33,10 @@ class XiaoluMamaAdmin(ApproxAdmin):
     user_groups = []
 
     form = forms.XiaoluMamaForm
-    list_display = ('id', 'customer_id', 'mama_data_display', 'get_cash_display', 'total_inout_item', 'last_renew_type', 'agencylevel',
-                    'charge_link', 'group_select', 'click_state', 'exam_pass', 'progress', 'hasale', 'charge_time',
-                    'status', 'referal_from', 'mama_Verify')
+    list_display = (
+    'id', 'customer_id', 'mama_data_display', 'get_cash_display', 'total_inout_item', 'last_renew_type', 'agencylevel',
+    'charge_link', 'group_select', 'click_state', 'exam_pass', 'progress', 'hasale', 'charge_time',
+    'status', 'referal_from', 'mama_Verify')
     list_filter = (
         'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale',
         ('charge_time', DateFieldListFilter),
@@ -412,15 +413,24 @@ admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
     ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, \
     UniqueVisitor, DailyStats
+from django.db.models import F
+from core.admin import OrderModelAdmin
 
 
-class MamaFortuneAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'mama_name', 'mama_level', 'cash_num_display', 'carry_num_display',
+class MamaFortuneAdmin(OrderModelAdmin):
+    list_display = ('mama_id', 'mama_name', 'mama_level', 'cash_num_display', 'cash_total_display',
                     'carry_pending_display', 'carry_confirmed_display', 'order_num',
                     'fans_num', 'invite_num', 'invite_trial_num', 'invite_all_num', 'active_normal_num',
                     'active_trial_num', 'active_all_num', 'hasale_normal_num', 'hasale_trial_num', 'modified',
                     'created')
     search_fields = ['=mama_id', '=mama_name']
+    orderingdict = {'cash_num': (F('carry_confirmed') + F('history_confirmed') - F('carry_cashout'),
+                                 F('carry_cashout') - F('carry_confirmed') - F('history_confirmed')),
+                    'cash_total': ((F('carry_pending') + F('carry_confirmed') + F('history_pending') + F(
+                        'history_confirmed') + F('history_cashout')).desc(),
+                                   F('carry_pending') + F('carry_confirmed') + F('history_pending') + F(
+                                       'history_confirmed') + F('history_cashout'))
+                    }
 
 
 admin.site.register(MamaFortune, MamaFortuneAdmin)
@@ -457,13 +467,15 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'carry_description', 'contributor_nick',
                     'contributor_img_html', 'contributor_mama_id', 'status', 'modified', 'created')
-    list_filter = ('status', 'carry_type',('created', DateFieldListFilter))
+    list_filter = ('status', 'carry_type', ('created', DateFieldListFilter))
     search_fields = ('=mama_id', '=contributor_nick',)
 
     def contributor_img_html(self, obj):
         return '<img src="%s" style="width:50px;height:50px">' % (obj.contributor_img,)
+
     contributor_img_html.short_description = u'头像'
     contributor_img_html.allow_tags = True
+
 
 admin.site.register(AwardCarry, AwardCarryAdmin)
 
@@ -474,7 +486,7 @@ class ClickCarryAdmin(admin.ModelAdmin):
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
                     'status', 'date_field', 'modified', 'created')
     search_fields = ('=mama_id',)
-    list_filter = ('status',('created', DateFieldListFilter))
+    list_filter = ('status', ('created', DateFieldListFilter))
 
 
 admin.site.register(ClickCarry, ClickCarryAdmin)
@@ -702,10 +714,12 @@ class XlmmMessageAdmin(admin.ModelAdmin):
 
 admin.site.register(XlmmMessage, XlmmMessageAdmin)
 
+
 class XlmmMessageRelAdmin(admin.ModelAdmin):
     list_display = ('id', 'message', 'mama', 'modified', 'created')
     list_filter = ('message',)
-    
+
+
 admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
 
 class MamaDailyAppVisitAdmin(admin.ModelAdmin):

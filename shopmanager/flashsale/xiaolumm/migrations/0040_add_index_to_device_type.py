@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0036_add_device_version_fields'),
+        ('xiaolumm', '0039_add_clicknum_orderweight_lessontopic'),
     ]
 
     operations = [

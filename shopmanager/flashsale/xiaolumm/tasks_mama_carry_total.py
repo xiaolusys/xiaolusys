@@ -2,6 +2,7 @@
 from celery.task import task
 from common.taskutils import single_instance_task
 from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
+from flashsale.xiaolumm.models.rank import WeekMamaCarryTotal, WeekMamaTeamCarryTotal
 from django.conf import settings
 
 TIMEOUT = 15 * 60 if not settings.DEBUG else 15
@@ -41,6 +42,8 @@ def task_schedule_update_carry_total_ranking():
     MamaCarryTotal.reset_rank_duration()
     MamaCarryTotal.reset_de_rank()
     MamaCarryTotal.reset_activite_rank()
+    WeekMamaCarryTotal.reset_rank()
+    WeekMamaCarryTotal.reset_rank_duration()
 
 @task()
 def task_schedule_update_team_carry_total_ranking():
@@ -49,7 +52,8 @@ def task_schedule_update_team_carry_total_ranking():
     MamaTeamCarryTotal.reset_rank_duration()
     MamaTeamCarryTotal.reset_de_rank()
     MamaTeamCarryTotal.reset_activite_rank()
-
+    WeekMamaTeamCarryTotal.reset_rank()
+    WeekMamaTeamCarryTotal.reset_rank_duration()
 
 @single_instance_task(timeout=TIMEOUT, prefix='flashsale.xiaolumm.tasks_mama_carry_total.')
 def task_update_carry_duration_total_ranking():

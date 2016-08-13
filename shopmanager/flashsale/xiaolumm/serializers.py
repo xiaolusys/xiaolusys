@@ -2,6 +2,7 @@
 from flashsale.xiaolumm.models.message import XlmmMessage
 from models.models import CashOut, CarryLog, XiaoluMama
 from models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
+from models.rank import WeekMamaTeamCarryTotal, WeekMamaCarryTotal
 from models.models_advertis import NinePicAdver
 from rest_framework import serializers
 
@@ -71,6 +72,13 @@ class MamaCarryTotalSerializer(serializers.ModelSerializer):
             'mama', 'mama_nick', 'thumbnail', 'mobile', 'total', 'total_display', 'num', 'total', 'rank')
 
 
+class MamaCarryTotalDurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MamaCarryTotal
+        fields = (
+            'mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_total', 'duration_total_display', 'duration_rank')
+
+
 class ActivityMamaCarryTotalSerializer(serializers.ModelSerializer):
     class Meta:
         model = MamaCarryTotal
@@ -85,6 +93,12 @@ class MamaTeamCarryTotalSerializer(serializers.ModelSerializer):
         fields = ('mama', 'mama_nick', 'thumbnail', 'mobile', 'num', 'total', 'duration_total', 'rank')
 
 
+class MamaTeamCarryTotalDurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MamaTeamCarryTotal
+        fields = ('mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_total', 'duration_total_display', 'duration_rank')
+
+
 class ActivityMamaTeamCarryTotalSerializer(serializers.ModelSerializer):
     class Meta:
         model = MamaTeamCarryTotal
@@ -97,3 +111,29 @@ class XlmmMessageSerializers(serializers.ModelSerializer):
     class Meta:
         model = XlmmMessage
         fields = ('id', 'title', 'content_link', 'content', 'dest', 'status', 'read', 'created', 'creator')
+
+
+class WeekMamaCarryTotalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeekMamaCarryTotal
+        fields = (
+            'mama', 'mama_nick', 'thumbnail', 'mobile', 'total', 'total_display', 'total_rank')
+
+
+class WeekMamaCarryTotalDurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeekMamaCarryTotal
+        fields = (
+            'mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_total', 'duration_total_display', 'duration_rank')
+
+
+class WeekMamaTeamCarryTotalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeekMamaTeamCarryTotal
+        fields = ('mama', 'mama_nick', 'thumbnail', 'mobile', 'total', 'total_display', 'total_rank')
+
+
+class WeekMamaTeamCarryTotalDurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeekMamaTeamCarryTotal
+        fields = ('mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_total', 'duration_total_display', 'duration_rank')

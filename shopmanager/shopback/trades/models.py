@@ -1850,7 +1850,7 @@ class PackageSkuItem(BaseModel):
     def sale_order(self):
         if not hasattr(self, '_sale_order_'):
             from flashsale.pay.models import SaleOrder
-            self._sale_order_ = SaleOrder.objects.get(id=self.sale_order_id)
+            self._sale_order_ = SaleOrder.objects.   get(id=self.sale_order_id)
         return self._sale_order_
 
     @property
