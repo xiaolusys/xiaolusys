@@ -1,5 +1,5 @@
 build:
-  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:16b74911bc300705ca4f1b34697647a1f4d656c5
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:0057c61917d64229227c507d25abd275f06cd475
   environment:
     - TARGET=staging
   commands:
@@ -55,7 +55,7 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn-staging
-      - docker run --name=gunicorn-staging --restart=always -e TARGET=staging --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
+      - docker run --name=gunicorn-staging --restart=always -e INSTANCE=mall -e TARGET=staging --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
   ssh:
     host: staging.xiaolumm.com
     user: root
@@ -64,7 +64,7 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:django18
       - docker rm -f gunicorn-django18
-      - docker run --name=gunicorn-django18 --restart=always -e TARGET=django18 --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18 blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
+      - docker run --name=gunicorn-django18 --restart=always -e INSTANCE=mall -e TARGET=django18 --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18 blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
   ssh:
     host:
       - sale.xiaolumm.com
@@ -83,6 +83,6 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn
-      - docker run --name=gunicorn --restart=always -e TARGET=production --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
+      - docker run --name=gunicorn --restart=always -e INSTANCE=mall -e TARGET=production --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
       - docker rm -f celery 
       - docker run --name=celery --restart=always -d -e TARGET=production --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program celery worker -A shopmanager --loglevel=ERROR -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral

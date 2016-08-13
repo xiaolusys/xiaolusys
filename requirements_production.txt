@@ -53,6 +53,7 @@ django-qiniu-storage==2.3.0
 numpy==1.11.0
 django-tagging==0.4.3
 Markdown==2.6.6
+oauth2-provider-0.0
 
 ##################### Debug Requirement #########################
 django_debug_toolbar==1.4

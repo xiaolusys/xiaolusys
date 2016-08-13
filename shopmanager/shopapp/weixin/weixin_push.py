@@ -240,7 +240,7 @@ class WeixinPush(object):
         {{remark.DATA}}
         """
         
-        customer = utils.get_mama_customer(instance.mama_id)
+        customer = utils.get_mama_customer(mama_id)
         template_id = 'l9QBpAojbpQmFIRmhSN4M-eQDzkw76yBpfrYcBoakK0'
         template_data = {
             'first': {
