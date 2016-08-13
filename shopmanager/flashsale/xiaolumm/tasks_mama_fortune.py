@@ -375,10 +375,10 @@ def task_mama_daily_app_visit_stats(mama_id):
     
     date_field = datetime.date.today()
     uni_key = '%s-%s' % (mama_id, date_field)
-    last_visit_time = datetime.datetime.now()
+    
     md = MamaDailyAppVisit.objects.filter(uni_key=uni_key).first()
     if not md:
-        md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,last_visit_time=last_visit_time)
+        md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field)
         md.save()
     else:
         md.save(update_fields=['modified'])
