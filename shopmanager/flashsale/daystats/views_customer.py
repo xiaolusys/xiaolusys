@@ -30,7 +30,7 @@ def generate_date(start_date, end_date):
     return ranges
 
 
-def generate_chart(name, x_axis, items):
+def generate_chart(name, x_axis, items, width='600px'):
 
     tpl = Template("""[
     {% for k, v in items.items %}
@@ -47,7 +47,8 @@ def generate_chart(name, x_axis, items):
     return {
         'name': name,
         'x_axis': x_axis,
-        'series': series
+        'series': series,
+        'width': width,
     }
 
 
@@ -95,6 +96,12 @@ def index(req):
     """.format(p_start_date, p_end_date)
     xiaolumm_trades = execute_sql(cursor, sql)
 
+    sql = """
+        SELECT DATE(subscribe_time), count(DATE(subscribe_time))
+        FROM xiaoludb.shop_weixin_fans group by DATE(subscribe_time)
+    """
+    weixin_fans = execute_sql(cursor, sql)
+
     customer_items = {
         '新增小鹿妈妈': [int(x[1]) for x in xiaolumm],
         '新增用户数': [int(x[1]) for x in customers],
@@ -104,11 +111,16 @@ def index(req):
         '所有订单（含未付款）': [int(x[1]) for x in trades_all],
         '来自小鹿妈妈订单': [int(x[1]) for x in xiaolumm_trades],
     }
+    weixin_items = {
+        '小鹿美美粉丝': [int(x[1]) for x in weixin_fans],
+    }
 
     x_axis = [x.strftime('%Y-%m-%d') for x in generate_date(start_date, end_date)]
+    x1_axis = [x[0].strftime('%Y-%m-%d') for x in weixin_fans if x[0] is not None]
 
     charts = []
     charts.append(generate_chart('customer', x_axis, customer_items))
     charts.append(generate_chart('trade', x_axis, trade_items))
+    charts.append(generate_chart('公众号', x1_axis, weixin_items, width='1200px'))
 
     return render(req, 'customer/index.html', {'charts': charts})
