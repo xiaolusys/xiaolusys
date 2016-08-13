@@ -72,7 +72,7 @@ class AppReleaseView(APIView):
     renderer_classes = (renderers.JSONRenderer, )
 
     def get(self, request):
-        app = AppRelease.objects.filter(status=AppRelease.VALID).order_by('-release_time').first()
+        app = AppRelease.objects.filter(status=AppRelease.VALID,device_type=AppRelease.DEVICE_ANDROID).order_by('-release_time').first()
         if not app:
             logger.error(u'get_newest_app_release bug no app release found')
         serializer = serializers.AppReleaseSerialize(app)
