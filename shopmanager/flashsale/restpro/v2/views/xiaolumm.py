@@ -112,7 +112,8 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
             xlmm = customer.get_charged_mama()
             if xlmm:
                 mama_id = xlmm.id
-                task_mama_daily_app_visit_stats.delay(mama_id)
+                ua = request.META.get('HTTP_USER_AGENT', 'unknown')
+                task_mama_daily_app_visit_stats.delay(mama_id,ua)
 
         fortunes = self.queryset.filter(mama_id=mama_id)
         # fortunes = self.paginate_queryset(fortunes)
