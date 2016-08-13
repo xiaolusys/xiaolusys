@@ -778,7 +778,7 @@ def judgement_schedule_manager(managers, saleorderstatsrecord):
         x = saleorderstatsrecord.pay_time - manager.upshelf_time
         if x.days < 0:  # 订单创建时间　在　上架时间　之前（不合理） 注意这里的订单不能使用创建时间
             continue
-        seconds = x.seconds
+        seconds = x.total_seconds()
         target_manager.append({'manager_id': manager.id,
                                'seconds': seconds,
                                'upshelf_time': manager.upshelf_time,
