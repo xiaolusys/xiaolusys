@@ -2,30 +2,43 @@
 import logging
 from django.conf import settings
 from shopapp.weixin.weixin_apis import WeiXinAPI
+from shopapp.weixin.models_base import WeixinFans
+
 from shopapp.weixin.options import get_openid_by_unionid
+from shopapp.weixin import utils
 
 
-logger = logging.getLogger('service')
+logger = logging.getLogger(__name__)
 
 
 class WeixinPush(object):
 
     def __init__(self):
-        self.api = WeiXinAPI()
-        self.api.setAccountId(appKey=settings.WXPAY_APPID)
+        self.mm_api = WeiXinAPI()
+        self.mm_api.setAccountId(appKey=settings.WXPAY_APPID)
+        self.temai_api = WeiXinAPI()
+        self.temai_api.setAccountId(appKey=settings.WEIXIN_APPID)
 
     def push(self, customer, template_id, template_data, to_url):
-        openid = get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
-        if not openid:
-            return None
+        temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
+        mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+
+        if mm_openid:
+            resp = self.mm_api.sendTemplate(mm_openid, template_id, to_url, template_data)
+        elif temai_openid:
+            resp = self.temai_api.sendTemplate(temai_openid, template_id, to_url, template_data)
+        else:
+            # TODO:发短信，暂时不处理
+            resp = None
+
         logger.info({
             'action': 'push.weixinpush',
             'customer': customer.id,
-            'openid': openid,
+            'openid': mm_openid or temai_openid,
             'template_id': template_id,
             'to_url': to_url,
         })
-        return self.api.sendTemplate(openid, template_id, to_url, template_data)
+        return resp
 
     def push_trade_pay_notify(self, saletrade):
         """
@@ -147,7 +160,7 @@ class WeixinPush(object):
         {{remark.DATA}}
         """
 
-        customer = awardcarry.get_mama_customer()
+        customer = utils.get_mama_customer(awardcarry.mama_id)
         template_id = 'j4YQuNIWMP-OZV_O5LIl1O8GBmaMuqMQ8aLV1oDfnUw'
         template_data = {
             'first': {
@@ -171,7 +184,7 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
         }
-        
+
         return self.push(customer, template_id, template_data, to_url)
 
     def push_mama_ordercarry(self, ordercarry, remarks, to_url):
@@ -192,7 +205,7 @@ class WeixinPush(object):
         if ordercarry.carry_type == 3:
             description = u'下属订单'
             
-        customer = ordercarry.get_mama_customer()
+        customer = utils.get_mama_customer(ordercarry.mama_id)
         template_id = 'jorNMI-K3ewxBXHTgTKpePCF6yn5O5oLZK6azNNoWK4'
         template_data = {
             'first': {
@@ -216,5 +229,38 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
         }
+
+        return self.push(customer, template_id, template_data, to_url)
+
+    def push_mama_update_app(self, mama_id, user_version, latest_version, remarks, to_url):
+        """
+        {{first.DATA}}
+        系统名称：{{keyword1.DATA}}
+        运维状态：{{keyword2.DATA}}
+        {{remark.DATA}}
+        """
+        
+        customer = utils.get_mama_customer(instance.mama_id)
+        template_id = 'l9QBpAojbpQmFIRmhSN4M-eQDzkw76yBpfrYcBoakK0'
+        template_data = {
+            'first': {
+                'value': u'小鹿美美App：新版已发布，妈妈们请尽快更新！',
+                'color': '#4CC417',
+            },
+            'keyword1': {
+                'value': u'您的当前版本：%s' % user_version,
+                'color': '#4CC417',
+            },
+            'keyword2': {
+                'value': u'最新发布版本：%s' % latest_version,
+                'color': '#ff0000',
+            },
+            'remark': {
+                'value': remarks,
+                'color': '#4CC417',
+            },
+        }
         
         return self.push(customer, template_id, template_data, to_url)
+
+        

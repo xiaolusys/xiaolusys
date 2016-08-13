@@ -5,7 +5,9 @@ from rest_framework import exceptions
 from rest_framework import generics, viewsets, permissions, authentication, renderers
 from rest_framework.decorators import detail_route, list_route
 from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
-from flashsale.xiaolumm.serializers import *
+from flashsale.xiaolumm.serializers import MamaCarryTotalSerializer, ActivityMamaCarryTotalSerializer,\
+    MamaTeamCarryTotalSerializer, ActivityMamaTeamCarryTotalSerializer, MamaCarryTotalDurationSerializer, \
+    MamaTeamCarryTotalDurationSerializer
 import logging
 
 log = logging.getLogger('django.request')
@@ -34,12 +36,7 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
     @list_route(methods=['GET'])
     def carry_duration_rank(self, request):
         top = MamaCarryTotal.get_duration_ranking_list()[0:10]
-        top = list(top)
-        i = 1
-        for t in top:
-            t._rank_ = i
-            i += 1
-        return Response(self.get_serializer(top, many=True).data)
+        return Response(MamaCarryTotalDurationSerializer(top, many=True).data)
 
     @detail_route(methods=['GET'])
     def get_team_members(self, request, pk):
@@ -142,12 +139,7 @@ class MamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
     @list_route(methods=['GET'])
     def carry_duration_total_rank(self, request):
         top = MamaTeamCarryTotal.get_duration_ranking_list()[0:100]
-        top = list(top)
-        i = 1
-        for t in top:
-            t._rank_ = i
-            i += 1
-        return Response(self.get_serializer(top, many=True).data)
+        return Response(MamaTeamCarryTotalDurationSerializer(top, many=True).data)
 
     def retrieve(self, request, pk):
         res = self.get_serializer(MamaTeamCarryTotal.get_by_mama_id(pk)).data

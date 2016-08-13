@@ -5,6 +5,9 @@ from django.contrib.admin.options import *
 from django.contrib import admin
 from .managers import ApproxCountQuerySet
 from django.utils.translation import string_concat, ugettext as _, ungettext
+from django.contrib.admin.views.main import ChangeList, ORDER_VAR, SuspiciousOperation, ImproperlyConfigured, \
+    IncorrectLookupParameters
+
 
 class BaseAdmin(admin.ModelAdmin):
     list_display = ('id',)
@@ -23,6 +26,43 @@ class ApproxAdmin(BaseAdmin):
     def queryset(self, request):
         qs = super(ApproxAdmin, self).queryset(request)
         return qs._clone(klass=ApproxCountQuerySet)
+
+
+class OrderModelAdmin(admin.ModelAdmin):
+
+    def get_changelist(self, request, **kwargs):
+        class OrderChangeList(ChangeList):
+            def get_ordering(self, request, queryset):
+                params = self.params
+                ordering = list(self.model_admin.get_ordering(request) or self._get_default_ordering())
+                if ORDER_VAR in params:
+                    ordering = []
+                    order_params = params[ORDER_VAR].split('.')
+                    for p in order_params:
+                        try:
+                            none, pfx, idx = p.rpartition('-')
+                            field_name = self.list_display[int(idx)]
+                            order_field = self.get_ordering_field(field_name)
+                            if not order_field:
+                                continue
+                            if order_field in OrderChangeList.orderingdict:
+                                if pfx == '-':
+                                    ordering.append(OrderChangeList.orderingdict[order_field][0])
+                                else:
+                                    ordering.append(OrderChangeList.orderingdict[order_field][1])
+                            elif order_field.startswith('-') and pfx == "-":
+                                ordering.append(order_field[1:])
+                            else:
+                                ordering.append(pfx + order_field)
+                        except (IndexError, ValueError):
+                            continue
+                ordering.extend(queryset.query.order_by)
+                pk_name = self.lookup_opts.pk.name
+                if not (set(ordering) & {'pk', '-pk', pk_name, '-' + pk_name}):
+                    ordering.append('-pk')
+                return ordering
+        OrderChangeList.orderingdict = self.orderingdict if hasattr(self, 'orderingdict') else {}
+        return OrderChangeList
 
 
 class BaseModelAdmin(admin.ModelAdmin):
@@ -56,7 +96,7 @@ class BaseModelAdmin(admin.ModelAdmin):
             if request.method == 'POST' and "_saveasnew" in request.POST:
                 return self.add_view(request, form_url=reverse('admin:%s_%s_add' % (
                     opts.app_label, opts.model_name),
-                    current_app=self.admin_site.name))
+                                                               current_app=self.admin_site.name))
 
         ModelForm = self.get_form(request, obj)
         if request.method == 'POST':
@@ -100,18 +140,18 @@ class BaseModelAdmin(admin.ModelAdmin):
             media = media + inline_formset.media
 
         context = dict(self.admin_site.each_context(request),
-            title=(_('Add %s') if add else _('Change %s')) % force_text(opts.verbose_name),
-            adminform=adminForm,
-            object_id=object_id,
-            original=obj,
-            is_popup=(IS_POPUP_VAR in request.POST or
-                      IS_POPUP_VAR in request.GET),
-            to_field=to_field,
-            media=media,
-            inline_admin_formsets=inline_formsets,
-            errors=helpers.AdminErrorList(form, formsets),
-            preserved_filters=self.get_preserved_filters(request),
-        )
+                       title=(_('Add %s') if add else _('Change %s')) % force_text(opts.verbose_name),
+                       adminform=adminForm,
+                       object_id=object_id,
+                       original=obj,
+                       is_popup=(IS_POPUP_VAR in request.POST or
+                                 IS_POPUP_VAR in request.GET),
+                       to_field=to_field,
+                       media=media,
+                       inline_admin_formsets=inline_formsets,
+                       errors=helpers.AdminErrorList(form, formsets),
+                       preserved_filters=self.get_preserved_filters(request),
+                       )
 
         context.update(extra_context or {})
 
@@ -163,6 +203,7 @@ class BaseModelAdmin(admin.ModelAdmin):
         def wrap(view):
             def wrapper(*args, **kwargs):
                 return self.admin_site.admin_view(view)(*args, **kwargs)
+
             return update_wrapper(wrapper, view)
 
         info = self.model._meta.app_label, self.model._meta.model_name

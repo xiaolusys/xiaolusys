@@ -5,7 +5,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 # 2016-3-2 v2
 from . import views
-from flashsale.xiaolumm.views import views_rank, views_message, award
+from flashsale.xiaolumm.views import views_rank, views_message, award, week_rank
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'categorys', views.SaleCategoryViewSet)
@@ -35,8 +35,8 @@ v2_router.register(r'tmpsharecoupon', views_coupon_new.TmpShareCouponViewset)
 
 v2_router.register(r'rank', views_rank.MamaCarryTotalViewSet)
 v2_router.register(r'teamrank', views_rank.MamaTeamCarryTotalViewSet)
-v2_router.register(r'weekrank', views_rank.MamaCarryTotalViewSet)
-v2_router.register(r'weekteamrank', views_rank.MamaTeamCarryTotalViewSet)
+v2_router.register(r'weekrank', week_rank.WeekMamaCarryTotalViewSet)
+v2_router.register(r'weekteamrank', week_rank.WeekMamaTeamCarryTotalViewSet)
 v2_router.register(r'message', views_message.XlmmMessageViewSet)
 v2_router.register(r'award', award.PotentialMamaAwardViewset)
 

@@ -1243,12 +1243,6 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'根据saleorder的退款状态更新saletrade的状态':{
-        'task': 'flashsale.pay.tasks_stats.task_update_saletrade_refund_status',
-        'schedule': crontab(minute="0", hour="23"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
     u'实时统计当前待发货准备的packageskuitem的数据':{
         'task': 'shopback.trades.tasks.task_schedule_check_packageskuitem_cnt',
         'schedule': crontab(minute="0"),
@@ -1312,7 +1306,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时更新小鹿妈妈排名3分钟': {
         'task': 'flashsale.xiaolumm.tasks_mama_carry_total.task_schedule_update_carry_total_ranking',
-        'schedule': crontab(minute="*/3"),
+        'schedule': crontab(minute="*/6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },

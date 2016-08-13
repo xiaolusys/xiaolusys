@@ -17,6 +17,13 @@ class AppRelease(BaseModel):
     VALID = 0
     INVALID = 1
     RELEASE_STATUS = ((VALID, u'有效'), (INVALID, u'无效'))
+
+    DEVICE_UNKNOWN = 0
+    DEVICE_ANDROID = 1
+    DEVICE_IOS = 2
+    
+    DEVICE_TYPES = ((DEVICE_UNKNOWN, 'Unknown'), (DEVICE_ANDROID, 'Android'), (DEVICE_IOS, 'IOS'))
+
     download_link = models.CharField(max_length=512, verbose_name=u'存储链接地址')
     qrcode_link = models.CharField(max_length=512, verbose_name=u'二维码链接地址')
     status = models.IntegerField(default=0, verbose_name=u'投放状态', db_index=True, choices=RELEASE_STATUS)
@@ -26,3 +33,19 @@ class AppRelease(BaseModel):
     hash_value = models.CharField(max_length=32, null=True, unique=True, verbose_name=u'md5hash')
     version = models.CharField(max_length=128, db_index=True, verbose_name=u'客户端版本')
     version_code = models.IntegerField(default=0, verbose_name=u'客户端版本号')
+    device_type = models.IntegerField(default=0, choices=DEVICE_TYPES, db_index=True, verbose_name=u'设备')
+
+
+    @staticmethod
+    def get_latest_version(device_type):
+        ar = AppRelease.objects.filter(device_type=device_type,status=AppRelease.VALID).order_by('-created').first()
+        if ar:
+            return ar.version.lower().strip('v')
+        return ''
+
+    @staticmethod
+    def get_version_info(device_type, version_code):
+        ar = AppRelease.objects.filter(device_type=device_type,version_code=version_code,status=AppRelease.VALID).order_by('-created').first()
+        if ar:
+            return ar.version.lower().strip('v')
+        return ''
