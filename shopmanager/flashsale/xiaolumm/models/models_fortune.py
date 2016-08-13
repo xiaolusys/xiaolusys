@@ -1,6 +1,6 @@
 # coding=utf-8
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, F
 from core.models import BaseModel
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -118,12 +118,19 @@ class MamaFortune(BaseModel):
     def cash_total(self):
         return self.carry_pending + self.carry_confirmed + self.history_pending + self.history_confirmed + self.history_cashout
 
+    def cash_total_display(self):
+        return float('%.2f' % (self.cash_total * 0.01))
+
+    cash_total_display.short_description = u"总收益"
+    cash_total_display.admin_order_field = 'cash_total'
+
     def carry_num_display(self):
         """ 累计收益数 """
         total = self.carry_pending + self.carry_confirmed + self.history_pending + self.history_confirmed
         return float('%.2f' % (total * 0.01))
 
     carry_num_display.short_description = u"累计收益"
+    carry_num_display.admin_order_field = 'carry_num'
 
     def cash_num_display(self):
         """ 余额 """
@@ -131,6 +138,7 @@ class MamaFortune(BaseModel):
         return float('%.2f' % (total * 0.01))
 
     cash_num_display.short_description = u"账户金额"
+    cash_num_display.admin_order_field = 'cash_num'
 
     def carry_pending_display(self):
         total = self.carry_pending + self.history_pending
