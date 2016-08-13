@@ -380,3 +380,5 @@ def task_mama_daily_app_visit_stats(mama_id):
     if not md:
         md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,last_visit_time=last_visit_time)
         md.save()
+    else:
+        md.save(update_fields=['modified'])

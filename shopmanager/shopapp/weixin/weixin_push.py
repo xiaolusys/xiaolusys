@@ -159,8 +159,8 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'keyword2': {
-                'value': u'¥%s' % awardcarry.carry_num_display(),
-                'color': '#c0392b',
+                'value': u'¥%.2f' % awardcarry.carry_num_display(),
+                'color': '#ff0000',
             },
             'keyword3': {
                 'value': u'%s' % awardcarry.created,
@@ -200,8 +200,8 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
             'keyword1': {
-                'value': u'¥%s' % ordercarry.carry_num_display(),
-                'color': '#c0392b',
+                'value': u'¥%.2f' % ordercarry.carry_num_display(),
+                'color': '#ff0000',
             },
             'keyword2': {
                 'value': description,

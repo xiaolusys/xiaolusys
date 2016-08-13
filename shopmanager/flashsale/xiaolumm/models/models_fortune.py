@@ -938,7 +938,6 @@ class MamaDailyAppVisit(BaseModel):
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # mama_id+date
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    last_visit_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'LastVisit时间')
 
     class Meta:
         db_table = 'flashsale_xlmm_mamadailyappvisit'
