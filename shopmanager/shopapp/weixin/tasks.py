@@ -15,7 +15,7 @@ from shopback.items.models import Product, ItemNumTaskLog
 
 import logging
 
-logger = logging.getLogger('celery.handler')
+logger = logging.getLogger(__name__)
 
 
 def update_weixin_productstock():
@@ -369,8 +369,11 @@ def task_refresh_weixin_access_token():
        settings.WEIXIN_APPID,
     ]
 
+    wx_api = WeiXinAPI()
     for appkey in appkeys:
-        wx_api = WeiXinAPI()
-        wx_api.setAccountId(appKey=appkey)
-        wx_api.refresh_token()
-        wx_api.refreshJSTicket()
+        try:
+            wx_api.setAccountId(appKey=appkey)
+            wx_api.refresh_token()
+            wx_api.refreshJSTicket()
+        except Exception, exc:
+            logger.error('task_refresh_weixin_access_token error: %s'%exc)
