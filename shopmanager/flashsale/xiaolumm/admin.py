@@ -709,8 +709,9 @@ class XlmmMessageRelAdmin(admin.ModelAdmin):
 admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
 
 class MamaDailyAppVisitAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mama_id', 'date_field', 'modified', 'created')
-    search_fields = ('mama_id',)
+    list_display = ('id', 'mama_id', 'date_field', 'device_type', 'version', 'user_agent', 'modified', 'created')
+    list_filter = ('device_type',)
+    search_fields = ('mama_id','version','user_agent')
     
 admin.site.register(MamaDailyAppVisit, MamaDailyAppVisitAdmin)
 

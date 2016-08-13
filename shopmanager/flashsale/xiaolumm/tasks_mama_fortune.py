@@ -369,16 +369,39 @@ def task_new_guy_task_complete_send_award(mama):
                               contributor_img=customer.thumbnail,
                               contributor_mama_id=mama.id)  # 确定收益
 
-@task
-def task_mama_daily_app_visit_stats(mama_id):
-    from flashsale.xiaolumm.models import MamaDailyAppVisit
+
+def get_app_version_from_user_agent(key, user_agent):
+    """
+    Help function for task_mama_daily_app_visit_stats
+    """
+    version = 'unknown'
+    tokens = user_agent.split()
+    for tok in tokens:
+        pair = tok.split('/')
+        if pair[0] == key:
+            version = pair[1]
+    return version
     
+@task
+def task_mama_daily_app_visit_stats(mama_id, user_agent):
+    from flashsale.xiaolumm.models import MamaDailyAppVisit
+
     date_field = datetime.date.today()
     uni_key = '%s-%s' % (mama_id, date_field)
-    
+
+    device_type = MamaDailyAppVisit.DEVICE_UNKNOWN
+    ua = user_agent.lower()
+    if ua.find('android') >= 0:
+        device_type = MamaDailyAppVisit.DEVICE_ANDROID
+        version = get_app_version_from_user_agent('xlmmapp',ua)
+    elif ua.find('ios') >= 0:
+        device_type = MamaDailyAppVisit.DEVICE_IOS
+        version = get_app_version_from_user_agent('xlmm',ua)
+
     md = MamaDailyAppVisit.objects.filter(uni_key=uni_key).first()
     if not md:
-        md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field)
+        md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,
+                               device_type=device_type,version=version,user_agent=user_agent)
         md.save()
     else:
         md.save(update_fields=['modified'])

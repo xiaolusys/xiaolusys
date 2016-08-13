@@ -935,10 +935,19 @@ class UniqueVisitor(BaseModel):
 
     
 class MamaDailyAppVisit(BaseModel):
+    DEVICE_UNKNOWN = 0
+    DEVICE_ANDROID = 1
+    DEVICE_IOS = 2
+    
+    DEVICE_TYPES = ((DEVICE_UNKNOWN, 'Unknown'), (DEVICE_ANDROID, 'Android'), (DEVICE_IOS, 'IOS'))
+    
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # mama_id+date
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-
+    device_type = models.IntegerField(default=0, choices=DEVICE_TYPES, verbose_name=u'设备')
+    version = models.CharField(max_length=32, blank=True, verbose_name=u'版本信息')
+    user_agent = models.CharField(max_length=128, blank=True, verbose_name=u'UserAgent')
+    
     class Meta:
         db_table = 'flashsale_xlmm_mamadailyappvisit'
         app_label = 'xiaolumm'
