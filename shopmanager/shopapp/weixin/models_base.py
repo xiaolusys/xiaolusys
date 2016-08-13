@@ -39,6 +39,17 @@ class WeixinFans(models.Model):
         verbose_name = u'微信公众号粉丝'
         verbose_name_plural = u'微信公众好粉丝列表'
 
+    @classmethod
+    def get_openid_by_unionid(cls, unionid, app_key):
+        """
+        没关注也返回 None
+        """
+        fans = cls.objects.filter(unionid=unionid, app_key=app_key, subscribe=True).first()
+        if fans:
+            return fans.openid
+        else:
+            return None
+
 
 from core.weixin import signals
 
