@@ -409,10 +409,10 @@ class OrderCarry(BaseModel):
         """
         return None
 
-    def get_mama_customer(self):
-        from flashsale.xiaolumm.models.models import XiaoluMama
-        mama = XiaoluMama.objects.filter(id=self.mama_id).first()
-        return mama.get_mama_customer()
+    #def get_mama_customer(self):
+    #    from flashsale.xiaolumm.models.models import XiaoluMama
+    #    mama = XiaoluMama.objects.filter(id=self.mama_id).first()
+    #    return mama.get_mama_customer()
 
     @property
     def mama(self):
@@ -551,10 +551,10 @@ class AwardCarry(BaseModel):
         """
         return None
 
-    def get_mama_customer(self):
-        from flashsale.xiaolumm.models.models import XiaoluMama
-        mama = XiaoluMama.objects.filter(id=self.mama_id).first()
-        return mama.get_mama_customer()
+    #def get_mama_customer(self):
+    #    from flashsale.xiaolumm.models.models import XiaoluMama
+    #    mama = XiaoluMama.objects.filter(id=self.mama_id).first()
+    #    return mama.get_mama_customer()
             
     @staticmethod
     def send_award(mama, num, name, description, uni_key, status, carry_type,
@@ -944,7 +944,7 @@ class MamaDailyAppVisit(BaseModel):
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # mama_id+date
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    device_type = models.IntegerField(default=0, choices=DEVICE_TYPES, verbose_name=u'设备')
+    device_type = models.IntegerField(default=0, choices=DEVICE_TYPES, db_index=True, verbose_name=u'设备')
     version = models.CharField(max_length=32, blank=True, verbose_name=u'版本信息')
     user_agent = models.CharField(max_length=128, blank=True, verbose_name=u'UserAgent')
     
@@ -954,6 +954,18 @@ class MamaDailyAppVisit(BaseModel):
         verbose_name = u'V2/妈妈app访问'
         verbose_name_plural = u'V2/妈妈app访问列表'
 
+    def get_user_version(self):
+        from flashsale.apprelease.models import AppRelease
+        if self.device_type == AppRelease.DEVICE_ANDROID:
+            version_code = self.version
+            version = AppRelease.get_version_info(self.device_type, version_code)
+            return version # Android
+        return self.version #IOS
+
+    def get_latest_version(self):
+        from flashsale.apprelease.models import AppRelease
+        version = AppRelease.get_latest_version(self.device_type)
+        return version
 
 def mama_daily_app_visit_stats(sender, instance, created, **kwargs):
     if not created:
@@ -962,12 +974,24 @@ def mama_daily_app_visit_stats(sender, instance, created, **kwargs):
     from django_statsd.clients import statsd
     today_date = datetime.date.today()
     visit_count = MamaDailyAppVisit.objects.filter(date_field=today_date).count()
-    key = "Mama.DailyAppVisit"
+    key = "mama.daily_app_visit"
     statsd.timing(key, visit_count)
 
 post_save.connect(mama_daily_app_visit_stats,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_daily_app_visit_stats')
+
+
+def mama_app_version_check(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_update_app
+    task_weixin_push_update_app.delay(instance)
     
+post_save.connect(mama_app_version_check,
+                  sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_app_version_check')
+
+
 
 def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
     if not created:

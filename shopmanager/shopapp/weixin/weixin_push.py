@@ -4,6 +4,9 @@ from django.conf import settings
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.models_base import WeixinFans
 
+from shopapp.weixin.options import get_openid_by_unionid
+from shopapp.weixin import utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +160,7 @@ class WeixinPush(object):
         {{remark.DATA}}
         """
 
-        customer = awardcarry.get_mama_customer()
+        customer = utils.get_mama_customer(awardcarry.mama_id)
         template_id = 'j4YQuNIWMP-OZV_O5LIl1O8GBmaMuqMQ8aLV1oDfnUw'
         template_data = {
             'first': {
@@ -201,8 +204,8 @@ class WeixinPush(object):
             description = u'App订单（佣金更高哦！）'
         if ordercarry.carry_type == 3:
             description = u'下属订单'
-
-        customer = ordercarry.get_mama_customer()
+            
+        customer = utils.get_mama_customer(ordercarry.mama_id)
         template_id = 'jorNMI-K3ewxBXHTgTKpePCF6yn5O5oLZK6azNNoWK4'
         template_data = {
             'first': {
@@ -228,3 +231,36 @@ class WeixinPush(object):
         }
 
         return self.push(customer, template_id, template_data, to_url)
+
+    def push_mama_update_app(self, mama_id, user_version, latest_version, remarks, to_url):
+        """
+        {{first.DATA}}
+        系统名称：{{keyword1.DATA}}
+        运维状态：{{keyword2.DATA}}
+        {{remark.DATA}}
+        """
+        
+        customer = utils.get_mama_customer(instance.mama_id)
+        template_id = 'l9QBpAojbpQmFIRmhSN4M-eQDzkw76yBpfrYcBoakK0'
+        template_data = {
+            'first': {
+                'value': u'小鹿美美App：新版已发布，妈妈们请尽快更新！',
+                'color': '#4CC417',
+            },
+            'keyword1': {
+                'value': u'您的当前版本：%s' % user_version,
+                'color': '#4CC417',
+            },
+            'keyword2': {
+                'value': u'最新发布版本：%s' % latest_version,
+                'color': '#ff0000',
+            },
+            'remark': {
+                'value': remarks,
+                'color': '#4CC417',
+            },
+        }
+        
+        return self.push(customer, template_id, template_data, to_url)
+
+        
