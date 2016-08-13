@@ -148,10 +148,10 @@ def handleWeiXinSubscribeEvent(params, wx_api):
     """
     处理关注／取关事件
     """
-    openid = params['FromUserName']
-    event = params['Event']
+    openid = params.get('FromUserName')
+    event = params.get('Event')
     app_key = wx_api.getAccount().app_id
-
+    
     if event == 'subscribe':
         user_info = wx_api.getCustomerInfo(openid)
         unionid = user_info['unionid']
