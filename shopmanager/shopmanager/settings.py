@@ -3,6 +3,7 @@
 import sys
 import os
 
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -125,6 +126,9 @@ INSTALLED_APPS =(
     'django.contrib.sites',
     'django.contrib.staticfiles',
 
+    # 'provider',
+    # 'provider.oauth2',
+    'oauth2_provider',
     'chartit',
     'gunicorn',
     'raven.contrib.django.raven_compat',
@@ -225,7 +229,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 LOGIN_REDIRECT_URL = '/home/'
-LOGIN_URL = '/admin/'
+LOGIN_URL = '/admin/login/'
 LOGOUT_URL = '/accounts/logout/'
 
 ############################# EXTENSION CONFIG ##############################
@@ -245,7 +249,12 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10, # Default to 10
     'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
-    'MAX_PAGINATE_BY': 100
+    'MAX_PAGINATE_BY': 100,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'oauth2_provider.ext.rest_framework.OAuth2Authentication',
+    )
 }
 
 REST_FRAMEWORK_EXTENSIONS = {
@@ -591,6 +600,9 @@ if os.environ.get('TARGET') in ('staging','django18', 'alpha'):
     CELERY_ALWAYS_EAGER = True
     CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
     M_STATIC_URL = '/static/wap/'
+
+if os.environ.get('INSTANCE') == 'mall':
+    LOGIN_URL = '/mall/user/login'
 
 try:
     from local_settings import *
