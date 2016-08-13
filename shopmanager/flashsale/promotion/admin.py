@@ -32,7 +32,7 @@ admin.site.register(ActivityProduct, ActivityProductAdmin)
 
 
 class ActivityEntryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'act_type', 'start_time', 'end_time', 'created', 'is_active')
+    list_display = ('id', 'title', 'act_type', 'start_time', 'end_time', 'created', 'is_active', 'order_val')
 
     list_filter = ('is_active', 'act_type',
                    ('start_time', DateFieldListFilter),
