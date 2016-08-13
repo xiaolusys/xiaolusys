@@ -69,7 +69,8 @@ from flashsale.restpro import constants
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
     cash_value = serializers.FloatField(source='cash_num_display', read_only=True)
-    carry_value = serializers.SerializerMethodField('carry_num_display_new', read_only=True)
+    carry_value = serializers.FloatField(source='cash_total_display', read_only=True)
+    # carry_value = serializers.SerializerMethodField('carry_num_display_new', read_only=True)
     extra_info = serializers.SerializerMethodField('gen_extra_info', read_only=True)
 
     class Meta:

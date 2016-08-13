@@ -88,7 +88,7 @@ class XiaoluMama(models.Model):
         (HALF, u'半年'),
         (FULL, u'一年'),
     )
-
+    is_staff = models.BooleanField(default=False, db_index=True, verbose_name=u'特殊账号（公司职员）')
     mobile = models.CharField(max_length=11, db_index=True, blank=False, verbose_name=u"手机")
     openid = models.CharField(max_length=64, blank=False, unique=True, verbose_name=u"UnionID")
     province = models.CharField(max_length=24, blank=True, verbose_name=u"省份")
@@ -432,6 +432,10 @@ class XiaoluMama(models.Model):
         if (click_nums >= 150 and shopscount >= 1) or shopscount >= 6:
             return self.get_Mama_Deposite()
         return self.get_Mama_Deposite_Amount()
+
+    def is_available(self):
+        return self.charge_status == self.CHARGED and self.status == self.EFFECT \
+               and self.progress in [XiaoluMama.PAY, XiaoluMama.PASS]
 
     def is_cashoutable(self):
         if self.agencylevel >= self.VIP_LEVEL and \

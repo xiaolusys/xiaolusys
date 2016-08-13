@@ -19,8 +19,6 @@ def get_choice_name(choices, val):
     return name
 
 
-
-
 class LessonTopic(BaseModel):
     STATUS_EFFECT = 1
     STATUS_CANCELED = 2
@@ -43,6 +41,8 @@ class LessonTopic(BaseModel):
     lesson_type = models.IntegerField(default=0, choices=LESSON_TYPES, verbose_name=u'类型')
     is_show = models.BooleanField(default=False, db_index=True, verbose_name=u'是否显示')
     status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')
+    order_weight = models.IntegerField(default=1, db_index=True, verbose_name=u'排序值')
+    click_num = models.IntegerField(default=0, db_index=True, verbose_name=u'点击数')
 
     @property
     def lesson_type_display(self):

@@ -4,5 +4,6 @@ from models_fans import XlmmFans, FansNumberRecord
 from models_fortune import MamaFortune, DailyStats, CarryRecord, OrderCarry, AwardCarry, ClickCarry, ClickPlan, ReferalRelationship, MamaDailyAppVisit
 from models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord, TopicAttendRecord
 from models_rebeta import AgencyOrderRebetaScheme
-from carry_total import MamaCarryTotal
+from carry_total import *
+from rank import *
 from message import XlmmMessage, XlmmMessageRel

@@ -18,8 +18,8 @@ from flashsale.xiaolumm import util_unikey
 from ..serializers import lesson_serializers
 
 import logging
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 from flashsale.xiaolumm.models.models_lesson import LessonTopic, Instructor, Lesson, LessonAttendRecord
 from flashsale.promotion.models import ActivityEntry
@@ -30,7 +30,7 @@ def get_customer_id(user):
     customer_id = None
     if customer:
         customer_id = customer.id
-    #customer_id = 19 # debug test
+    # customer_id = 19 # debug test
     return customer_id
 
 
@@ -41,7 +41,7 @@ def get_mama_id(user):
         xlmm = customer.get_charged_mama()
         if xlmm:
             mama_id = xlmm.id
-    #mama_id = 5 # debug test
+    # mama_id = 5 # debug test
     return mama_id
 
 
@@ -51,10 +51,9 @@ def get_xiaolu_university_activity_entry():
     if records.count() > 0:
         return records[0]
     return None
-    
-    
-class LessonTopicFilter(filters.FilterSet):
 
+
+class LessonTopicFilter(filters.FilterSet):
     class Meta:
         model = LessonTopic
         fields = ['lesson_type', 'is_show']
@@ -75,7 +74,7 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     - [/rest/lesson/lessontopic/extra_data](/rest/lesson/lessontopic/extra_data) 接口附加信息:
         1. method: get
             * 可过滤字段: `lesson_type`: 课程类型（3:基础课程,0: 课程,1: 实战, 2:知识）
-            * 可排序字段: `ordering`: 排序（num_attender：　参加人数排序, created：　创建时间排序 ）
+            * 可排序字段: `ordering`: 排序（num_attender：　参加人数排序, created：　创建时间排序, order_weight: 排序设置值, click_num: 点击数量）
             * return: `total_num_attender`: 有效主题的总参加人数
     """
     paginate_by = 10
@@ -89,7 +88,7 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     filter_class = LessonTopicFilter
-    ordering_fields = ('num_attender', 'created', 'modified', 'lesson_type')
+    ordering_fields = ('num_attender', 'created', 'modified', 'lesson_type', 'order_weight', 'click_num')
 
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
@@ -116,8 +115,8 @@ class LessonTopicViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        if request.data.get('num_attender'):
-            request.data.update({'num_attender': instance.num_attender + 1})
+        if request.data.get('num_attender') or request.data.get('click_num'):  # 上线后需要修改该参数为click_num() TODO: Jie.Lin
+            request.data.update({'click_num': instance.click_num + 1})  # 点击数量加1
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
@@ -194,7 +193,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = lesson_serializers.LessonSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
@@ -267,7 +266,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
     queryset = Instructor.objects.all()
     serializer_class = lesson_serializers.InstructorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated, )
+    # permission_classes = (permissions.IsAuthenticated, )
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def list(self, request, *args, **kwargs):
@@ -292,7 +291,7 @@ class InstructorViewSet(viewsets.ModelViewSet):
 
         #res['Access-Control-Allow-Origin'] = '*'
         return res
-    
+
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
@@ -319,7 +318,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
     queryset = LessonAttendRecord.objects.all()
     serializer_class = lesson_serializers.LessonAttendRecordSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated, )
+    # permission_classes = (permissions.IsAuthenticated, )
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_queryset(self, request):
@@ -344,7 +343,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
         #res['Access-Control-Allow-Origin'] = '*'
         return res
 
-        
+
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
@@ -358,6 +357,7 @@ class LessonAttendRecordViewSet(viewsets.ModelViewSet):
 from core.weixin.mixins import WeixinAuthMixin
 from shopapp.weixin.models_base import WeixinUserInfo
 
+
 class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
     """
     Lesson signup.
@@ -367,7 +367,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
 
     def get(self, request, *args, **kwargs):
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
-        
+
         # get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
@@ -375,7 +375,7 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         userinfo_records = WeixinUserInfo.objects.filter(unionid=unionid)
         record = userinfo_records.first()
         if record:
-            userinfo.update({"unionid":record.unionid, "nickname":record.nick, "headimgurl":record.thumbnail})
+            userinfo.update({"unionid": record.unionid, "nickname": record.nick, "headimgurl": record.thumbnail})
         else:
             # get openid from 'debug' or from using 'code' (if code exists)
             userinfo = self.get_auth_userinfo(request)
@@ -394,16 +394,18 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
             lesson_id = content.get("lesson_id")
             if lesson_id:
                 from flashsale.xiaolumm.tasks_lesson import task_create_lessonattendrecord
+
                 task_create_lessonattendrecord.delay(lesson_id, userinfo)
                 html = "%s?lesson_id=%s&unionid=%s" % (activity_entry.get_html(key), lesson_id, unionid)
-            
+
         if key == "apply":
             from flashsale.xiaolumm.tasks_lesson import task_create_instructor_application
+
             task_create_instructor_application.delay(userinfo)
             html = "%s?unionid=%s" % (activity_entry.get_html(key), unionid)
-        
+
         response = redirect(html)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
-        
+
         return response
 

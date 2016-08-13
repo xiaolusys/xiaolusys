@@ -151,11 +151,13 @@ def handleWeiXinSubscribeEvent(params, wx_api):
     openid = params.get('FromUserName')
     event = params.get('Event')
     app_key = wx_api.getAccount().app_id
-    
+
     if event == 'subscribe':
         user_info = wx_api.getCustomerInfo(openid)
         unionid = user_info['unionid']
-        fans = WeixinFans()
+        fans = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
+        if not fans:
+            fans = WeixinFans()
         fans.openid = openid
         fans.app_key = app_key
         fans.unionid = unionid
