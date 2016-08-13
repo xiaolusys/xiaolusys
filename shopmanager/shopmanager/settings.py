@@ -283,6 +283,12 @@ if os.environ.get('TARGET') in ('staging',):
             'OPTIONS': {
                 'DB': 9,
                 'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
+                'PARSER_CLASS': 'redis.connection.HiredisParser',
+                'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
+                'CONNECTION_POOL_CLASS_KWARGS': {
+                    'max_connections': 5,
+                    'timeout': 20,
+                }
             }
         }
     }
@@ -335,6 +341,12 @@ if os.environ.get('TARGET') in ('production', 'django18'):
             'OPTIONS': {
                 'DB': 1,
                 'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
+                'PARSER_CLASS': 'redis.connection.HiredisParser',
+                'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
+                'CONNECTION_POOL_CLASS_KWARGS': {
+                    'max_connections': 20,
+                    'timeout': 10,
+                }
             }
         }
     }
