@@ -46,6 +46,7 @@ urlpatterns = patterns(
     {'document_root': settings.DOWNLOAD_ROOT, 'show_indexes': True}),
 
    url(r'^rest/', include('flashsale.restpro.urls')),
+   url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
    url(r'^apis/', include('shopmanager.urls_api')),
    url(r'^qrcode/(?P<url>.*)',
        HttpProxy.as_view(base_url='http://%s/qrcode' % settings.QINIU_PUBLIC_DOMAIN)),
