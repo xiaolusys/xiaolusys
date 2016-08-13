@@ -138,7 +138,7 @@ def handleWeiXinMenuRequest(params):
                     return ret_params
     except Exception, exc:
         logger.error(u'微信请求异常:%s' % exc.message, exc_info=True)
-        text = u'不好了，小优尼闹情绪不想干活了！[撇嘴]'
+        text = u'不好了，小鹿小美闹情绪不想干活了！[撇嘴]'
         te = {'MsgType': WeiXinAutoResponse.WX_TEXT,
               'Content': text}
         ret_params.update(te)
@@ -148,10 +148,10 @@ def handleWeiXinSubscribeEvent(params, wx_api):
     """
     处理关注／取关事件
     """
-    openid = params['FromUserName']
-    event = params['Event']
+    openid = params.get('FromUserName')
+    event = params.get('Event')
     app_key = wx_api.getAccount().app_id
-
+    
     if event == 'subscribe':
         user_info = wx_api.getCustomerInfo(openid)
         unionid = user_info['unionid']
