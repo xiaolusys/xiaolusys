@@ -35,10 +35,13 @@ from shopback.items.models import Product, ProductSku
 from . import serializers
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from core.utils.regex import REGEX_MOBILE
+
 PHONE_NUM_RE = re.compile(REGEX_MOBILE, re.IGNORECASE)
+
 
 def validate_mobile(mobile):
     """
@@ -47,6 +50,7 @@ def validate_mobile(mobile):
     if re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
         return True
     return False
+
 
 def get_mamafortune(mama_id):
     """　获取可提现金额 活跃值 """
@@ -117,7 +121,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         res = {
             'mama_id': mama.id,
             'nick': mama.get_customer().nick,
-            'thumbnail':mama.get_customer().thumbnail
+            'thumbnail': mama.get_customer().thumbnail
         }
         return Response(res)
 
@@ -909,6 +913,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         exchange_type = request.data.get('exchange_type') or None
         exchange_type_map = {'half': 99, 'full': 188}
         days_map = {'half': XiaoluMama.HALF, 'full': XiaoluMama.FULL}
+        coupon_tpl_map = {'half': 79, 'full': 39}
 
         customer, xlmm = self.get_customer_and_xlmm(request)
         default_return = collections.defaultdict(code=0, info='兑换成功!')
@@ -921,7 +926,13 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if deposit > could_cash_out:
             default_return.update({"code": 2, "info": "余额不足"})
             return Response(default_return)
-
+        try:
+            tpl = get_object_or_404(CouponTemplate, id=coupon_tpl_map[exchange_type])
+            UserCoupon.send_coupon(customer, tpl, ufrom='wap')
+        except Exception as exc:
+            logger.warn({'action': 'mama_exchange_deposit', 'mama_id': xlmm.id,
+                         'exchange_type': exchange_type, 'message': exc.message})
+            # 这里是续费　如果是第一次成为正式的话(发送优惠券)　否则异常打入log 后继续续费动作
         cash = CashOut(xlmm=xlmm.id,
                        value=deposit * 100,
                        approve_time=datetime.datetime.now(),
@@ -932,7 +943,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         days = days_map[exchange_type]
         xlmm.update_renew_day(days)
         log_action(request.user, xlmm, CHANGE, u'用户妈妈钱包兑换代理续费修改字段')
-        potential = PotentialMama.objects.filter(potential_mama=xlmm.id).first()    # 续费的潜在妈妈
+        potential = PotentialMama.objects.filter(potential_mama=xlmm.id).first()  # 续费的潜在妈妈
         if potential:
             state = potential.update_full_member()  # 续费转正
             if state:
