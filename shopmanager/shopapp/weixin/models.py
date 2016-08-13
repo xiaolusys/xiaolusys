@@ -3,6 +3,7 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.conf import settings
 
 from core.models import CacheModel
 from core.fields import JSONCharMyField
@@ -116,6 +117,9 @@ class WeiXinAccount(models.Model):
     def changeRefundUpdated(self, updated):
         self.refund_updated = updated
         self.save()
+
+    def isResponseToDRF(self):
+        return self.app_id in (settings.WXPAY_APPID,)
 
 
 class UserGroup(models.Model):

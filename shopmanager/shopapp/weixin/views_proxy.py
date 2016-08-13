@@ -4,6 +4,8 @@ import urllib2
 from django.http import HttpResponse
 from httpproxy.views import HttpProxy
 
+from shopapp.weixin.models import  WeiXinAutoResponse
+
 import logging
 from . import service
 
@@ -37,7 +39,7 @@ class WXMessageHttpProxy(HttpProxy):
                                  content.get('nonce', '')):
             wx_api._wx_account.activeAccount()
             return HttpResponse(content['echostr'])
-        logger.debug('sign fail:{0}'.format(content))
+        logger.error('sign fail:{0}'.format(content))
         return HttpResponse(u'微信接口验证失败')
 
     def post(self, request, pub_id, *args, **kwargs):
@@ -46,7 +48,7 @@ class WXMessageHttpProxy(HttpProxy):
         if not wx_api.checkSignature(content.get('signature', ''),
                                      content.get('timestamp', 0),
                                      content.get('nonce', '')):
-            logger.debug('sign fail:{0}'.format(content))
+            logger.error('sign fail:{0}'.format(content))
             return HttpResponse(u'非法请求')
 
         request_body = request.body
@@ -60,6 +62,11 @@ class WXMessageHttpProxy(HttpProxy):
 
         # 处理关注／取关事件
         service.handleWeiXinSubscribeEvent(params, wx_api)
+        #　如果公众号由多客服处理，直接转发
+        if wx_api._account.isResponseToDRF():
+            resp_drf = WeiXinAutoResponse.respDKF()
+            resp_drf_xml = service.formatParam2XML(resp_drf)
+            return  HttpResponse(resp_drf_xml, content_type="text/xml")
 
         request_url = self.get_full_url(self.url)
         request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
