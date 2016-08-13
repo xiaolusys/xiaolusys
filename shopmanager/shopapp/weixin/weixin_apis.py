@@ -8,11 +8,13 @@ import urllib2
 from django.conf import settings
 
 from shopapp.weixin.models import WeiXinAccount
-from common.utils import (randomString,
-                          update_model_fields,
-                          randomString,
-                          getSignatureWeixin,
-                          cache_lock)
+from common.utils import (
+    randomString,
+    update_model_fields,
+    randomString,
+    getSignatureWeixin,
+    cache_lock
+)
 
 REFRESH_WX_TOKEN_CACHE_KEY = 'REFRESH_WX_TOKEN_KEY'
 
@@ -341,19 +343,13 @@ class WeiXinAPI(object):
                                   method='POST')
 
     def getJSTicket(self):
+        return self._wx_account.js_ticket
 
-        if not self._wx_account.isJSTicketExpired():
-            return self._wx_account.js_ticket
-
-        return self.refreshJSTicket()
 
     def refreshJSTicket(self):
-
-        if not self._wx_account.isJSTicketExpired():
-            return self._wx_account.js_ticket
-
-        js_url = self.getAbsoluteUrl(self._js_ticket_uri, self.getAccessToken()) + '&type=jsapi'
-
+        """ js ticket只能定时刷新，请勿在用户请求中刷新，会产生竞争 """
+        access_token = self.getAccessToken()
+        js_url = self.getAbsoluteUrl(self._js_ticket_uri, access_token) + '&type=jsapi'
         req = urllib2.urlopen(js_url)
         content = json.loads(req.read())
 

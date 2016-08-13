@@ -53,12 +53,12 @@ class WeiXinAccount(models.Model):
 
     js_ticket = models.CharField(max_length=256, blank=True, verbose_name=u'JSAPI_TICKET')
 
-    expires_in = models.BigIntegerField(default=0, verbose_name="使用期限(s)")
+    expires_in = models.BigIntegerField(default=0, verbose_name=u"使用期限(s)")
     expired = models.DateTimeField(default=timezone.now,
-                                   verbose_name="上次过期时间")
+                                   verbose_name=u"上次过期时间")
 
     js_expired = models.DateTimeField(default=timezone.now,
-                                      verbose_name="TICKET上次过期时间")
+                                      verbose_name=u"TICKET上次过期时间")
 
     jmenu = JSONCharMyField(max_length=4096, blank=True, default={}, verbose_name=u'菜单代码')
 
@@ -66,9 +66,9 @@ class WeiXinAccount(models.Model):
     is_active = models.BooleanField(default=False, verbose_name=u'激活')
 
     order_updated = models.DateTimeField(blank=True, null=True,
-                                         verbose_name="订单更新时间")
+                                         verbose_name=u"订单更新时间")
     refund_updated = models.DateTimeField(blank=True, null=True,
-                                          verbose_name="维权更新时间")
+                                          verbose_name=u"维权更新时间")
 
     class Meta:
         db_table = 'shop_weixin_account'
@@ -671,7 +671,7 @@ class CouponClick(models.Model):
 #    openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
 #    coupon_id = models.IntegerField(default=0,db_index=True,verbose_name=u"优惠券ID")
 #    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
-#    
+#
 #    class Meta:
 #        db_table = 'shop_ambass_coupon'
 #        verbose_name = u'优尼大使优惠券'
@@ -987,7 +987,7 @@ def convert_package_payment2score(sender,package_order_id,*args,**kwargs):
         logger = logging.getLogger("celery.handler")
         logger.error(u'订单积分转换失败:%s'%exc.message,exc_info=True)
 
-        
+
 confirm_trade_signal.connect(convert_package_payment2score, sender=PackageOrder)
 
 
