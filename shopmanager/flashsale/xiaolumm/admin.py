@@ -17,7 +17,8 @@ from flashsale.xiaolumm.models import (
     OrderRedPacket,
     MamaDayStats,
     PotentialMama,
-    UserGroup
+    UserGroup,
+    MamaDailyAppVisit
 )
 from flashsale.xiaolumm.models.message import XlmmMessage, XlmmMessageRel
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
@@ -706,3 +707,10 @@ class XlmmMessageRelAdmin(admin.ModelAdmin):
     list_filter = ('message',)
     
 admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
+
+class MamaDailyAppVisitAdmin(admin.ModelAdmin):
+    list_display = ('id', 'mama_id', 'date_field', 'modified', 'created')
+    search_fields = ('mama_id',)
+    
+admin.site.register(MamaDailyAppVisit, MamaDailyAppVisitAdmin)
+
