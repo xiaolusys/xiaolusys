@@ -295,7 +295,7 @@ def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
             condtion = type(instance).filters[target]
             condtion['pk'] = instance.pk
             if type(instance).objects.filter(**condtion).exists():
-                WEEK_RANK_REDIS.update_cache(instance, target)
+                WEEK_RANK_REDIS.update_cache(instance, [target])
 
 
 post_save.connect(update_week_mama_carry_total_cache,
