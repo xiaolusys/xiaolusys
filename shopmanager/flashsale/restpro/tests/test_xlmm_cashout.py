@@ -9,9 +9,9 @@ from flashsale.pay.models import BudgetLog
 class MamaCahoutTestCase(TestCase):
     fixtures = [
         'test.flashsale.xiaolumm.cashout.customer.json',
+        'test.flashsale.xiaolumm.cashout.xiaolumm.json',
         'test.flashsale.xiaolumm.cashout.cashout.json',
         # 'test.flashsale.xiaolumm.cashout.mamafortune.json', #创建xiaolumama时会触发signal添加mamaforturn
-        'test.flashsale.xiaolumm.cashout.xiaolumm.json',
         'test.flashsale.xiaolumm.cashout.usergroup.json',
     ]
 
