@@ -188,6 +188,10 @@ class ModelProduct(BaseTagModel):
     def __unicode__(self):
         return '<%s,%s>' % (self.id, self.name)
 
+    def delete(self, using=None):
+        self.status = self.DELETE
+        self.save()
+
     def head_img(self):
         return self.head_imgs and self.head_imgs.split()[0] or ''
 

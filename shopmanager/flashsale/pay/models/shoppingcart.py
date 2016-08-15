@@ -11,6 +11,8 @@ from django.db import transaction
 from .base import PayBaseModel, BaseModel
 from shopback.items.models import Product, ProductSku
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ShoppingCart(BaseModel):
     """ 购物车 """

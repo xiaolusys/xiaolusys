@@ -89,6 +89,8 @@ def task_referal_update_activevalue(mama_id, date_field, contributor_id):
     description = util_description.gen_activevalue_description(value_type)
     order_id = ""
     uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
+    if ActiveValue.objects.filter(uni_key=uni_key).exists():
+        return
     active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type,
                                value_description=description,
                                uni_key=uni_key, date_field=date_field, status=status)
