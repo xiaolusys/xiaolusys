@@ -406,3 +406,18 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
         md.save()
     else:
         md.save(update_fields=['modified'])
+
+
+@task
+def task_mama_daily_tab_visit_stats(mama_id, stats_tab):
+    from flashsale.xiaolumm.models import MamaDailyTabVisit    
+    
+    date_field = datetime.date.today()
+    uni_key = '%s-%s' % (mama_id, date_field)
+
+    md = MamaDailyTabVisit.objects.filter(uni_key=uni_key).first()
+    if not md:
+        md = MamaDailyTabVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,stats_tab=stats_tab)
+        md.save()
+    else:
+        md.save(update_fields=['modified'])

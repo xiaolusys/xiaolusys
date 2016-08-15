@@ -940,6 +940,36 @@ class UniqueVisitor(BaseModel):
         return self.visitor_nick
 
 
+def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    mama_id = instance.mama_id
+    date_field = instance.date_field
+
+    try:
+        from flashsale.xiaolumm.models import XiaoluMama
+        mama = XiaoluMama.objects.get(id=mama_id)
+        if not mama.is_click_countable():
+            return
+    except XiaoluMama.DoesNotExist:
+        return
+
+    from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
+    task_visitor_increment_clickcarry.delay(mama_id, date_field)
+
+    from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
+    task_visitor_increment_activevalue.delay(mama_id, date_field)
+
+    from flashsale.xiaolumm.tasks_mama_dailystats import task_visitor_increment_dailystats
+    task_visitor_increment_dailystats.delay(mama_id, date_field)
+
+
+post_save.connect(visitor_update_clickcarry_and_activevalue,
+                  sender=UniqueVisitor, dispatch_uid='post_save_visitor_update_clickcarry_and_activevalue')
+
+
+
 class MamaDailyAppVisit(BaseModel):
     DEVICE_UNKNOWN = 0
     DEVICE_ANDROID = 1
@@ -998,30 +1028,27 @@ post_save.connect(mama_app_version_check,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_app_version_check')
 
 
-def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
+def mama_update_device_stats(sender, instance, created, **kwargs):
     if not created:
         return
 
-    mama_id = instance.mama_id
-    date_field = instance.date_field
+    user_version = app_visit.get_user_version()
+    latest_version = app_visit.get_latest_version()
 
-    try:
-        from flashsale.xiaolumm.models import XiaoluMama
-        mama = XiaoluMama.objects.get(id=mama_id)
-        if not mama.is_click_countable():
-            return
-    except XiaoluMama.DoesNotExist:
+    uni_key = "%s-%s" % (app_visit.device_type, app_visit.date_field)
+    md = MamaDeviceStats.objects.filter(uni_key=uni_key).first()
+    if not md:
+        md = MamaDeviceStats(device_type=app_visit.device_type, uni_key=uni_key, date_field=app_visit.date_field)
+        md.save()
+        
+    if user_version == latest_version:
+        # already latest, no need to push udpate reminder
+        md.num_latest += 1
+        md.save(update_fields=['num_latest', 'modified'])
         return
 
-    from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
-    task_visitor_increment_clickcarry.delay(mama_id, date_field)
+    md.num_outdated += 1
+    md.save(update_fields=['num_outdated', 'modified'])
 
-    from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
-    task_visitor_increment_activevalue.delay(mama_id, date_field)
-
-    from flashsale.xiaolumm.tasks_mama_dailystats import task_visitor_increment_dailystats
-    task_visitor_increment_dailystats.delay(mama_id, date_field)
-
-
-post_save.connect(visitor_update_clickcarry_and_activevalue,
-                  sender=UniqueVisitor, dispatch_uid='post_save_visitor_update_clickcarry_and_activevalue')
+post_save.connect(mama_update_device_stats,
+                  sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_update_device_stats')

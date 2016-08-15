@@ -7,3 +7,5 @@ from models_rebeta import AgencyOrderRebetaScheme
 from carry_total import *
 from rank import *
 from message import XlmmMessage, XlmmMessageRel
+
+from models_mama_stats import MamaTabVisitStats, MamaDeviceStats, MamaDailyTabVisit
