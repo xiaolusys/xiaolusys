@@ -2,8 +2,6 @@ from django.db import IntegrityError
 from django.db.models import Sum
 from celery.task import task
 
-from flashsale.push import push_product
-
 import logging
 logger = logging.getLogger(__name__)
 
