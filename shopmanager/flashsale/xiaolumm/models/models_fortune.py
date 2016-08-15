@@ -5,9 +5,7 @@ from core.models import BaseModel
 from django.db.models.signals import post_save
 from django.conf import settings
 import datetime, urlparse
-
 from core.fields import JSONCharMyField
-
 import logging
 
 logger = logging.getLogger('django.request')
@@ -198,18 +196,6 @@ class MamaFortune(BaseModel):
         return self._xiaolumm_xlmm_
 
 
-def copy_history_cash(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.models import XiaoluMama
-    m = XiaoluMama.objects.filter(id=instance.mama_id).first()
-    if m and m.cash != instance.history_confirmed:
-        instance.history_confirmed = m.cash
-        instance.save(update_fields=['history_confirmed'])
-
-
-post_save.connect(copy_history_cash,
-                  sender=MamaFortune, dispatch_uid='post_save_copy_history_cash')
-
-
 def send_activate_award(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     if instance.invite_trial_num >= 2:
@@ -221,10 +207,11 @@ post_save.connect(send_activate_award,
 
 def update_week_carry_total(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carry_total
-    tasks_mama_carry_total.task_send_activate_award.delay(instance.mama_id)
+    if not instance.xlmm.is_staff and instance.is_available():
+        tasks_mama_carry_total.task_fortune_update_week_carry_total.delay(instance.mama_id)
 
 post_save.connect(update_week_carry_total,
-                  sender=MamaFortune, dispatch_uid='post_save_send_activate_award')
+                  sender=MamaFortune, dispatch_uid='post_save_task_fortune_update_week_carry_total')
 
 
 class DailyStats(BaseModel):
@@ -358,7 +345,6 @@ post_save.connect(carryrecord_update_xiaolumama_active_hasale,
 
 def carryrecord_update_carrytotal(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_mama_carry_total import task_carryrecord_update_carrytotal
-    logger.warn("post_save_carryrecord_update_carrytotal run:" + str(instance.mama_id) + str(datetime.datetime.now()))
     task_carryrecord_update_carrytotal.delay(instance.mama_id)
 
 
@@ -617,9 +603,6 @@ post_save.connect(awardcarry_weixin_push,
                   sender=AwardCarry, dispatch_uid='post_save_awardcarry_weixin_push')
 
 
-from core.fields import JSONCharMyField
-
-
 class ClickPlan(BaseModel):
     STATUS_TYPES = ((0, u'使用'), (1, u'取消'),)
     name = models.CharField(max_length=32, verbose_name=u'名字')
@@ -842,8 +825,6 @@ class ReferalRelationship(BaseModel):
 
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
-    if not created:
-        return
     from flashsale.xiaolumm import tasks_mama_fortune
     mama_id = instance.referal_from_mama_id
     tasks_mama_fortune.task_update_mamafortune_invite_num.delay(mama_id)
