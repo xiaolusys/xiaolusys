@@ -23,7 +23,7 @@ def get_choice_name(choices, val):
 
 
 #
-# Use from flashsale.xiaolumm.models import CashOut 
+# Use from flashsale.xiaolumm.models import CashOut
 #
 # class CashOut(BaseModel):
 #    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
@@ -436,7 +436,11 @@ def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
 post_save.connect(ordercarry_update_carryrecord,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_carryrecord')
 
+
 def ordercarry_weixin_push(sender, instance, created, **kwargs):
+    """
+    订单提成推送到微信
+    """
     if not created:
         return
     from flashsale.xiaolumm import tasks_mama_push
@@ -444,6 +448,18 @@ def ordercarry_weixin_push(sender, instance, created, **kwargs):
 
 post_save.connect(ordercarry_weixin_push,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_weixin_push')
+
+
+def ordercarry_app_push(sender, instance, created, **kwargs):
+    """
+    """
+    if not created:
+        return
+    from flashsale.xiaolumm import tasks_mama_push
+    tasks_mama_push.task_app_push_ordercarry.delay(instance)
+
+post_save.connect(ordercarry_app_push,
+                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_app_push')
 
 
 # 首单奖励
@@ -556,11 +572,6 @@ class AwardCarry(BaseModel):
         """
         return None
 
-    #def get_mama_customer(self):
-    #    from flashsale.xiaolumm.models.models import XiaoluMama
-    #    mama = XiaoluMama.objects.filter(id=self.mama_id).first()
-    #    return mama.get_mama_customer()
-            
     @staticmethod
     def send_award(mama, num, name, description, uni_key, status, carry_type,
                    contributor_nick=None, contributor_img=None, contributor_mama_id=None):
@@ -928,21 +939,21 @@ class UniqueVisitor(BaseModel):
             return u"匿名用户"
         return self.visitor_nick
 
-    
+
 class MamaDailyAppVisit(BaseModel):
     DEVICE_UNKNOWN = 0
     DEVICE_ANDROID = 1
     DEVICE_IOS = 2
-    
+
     DEVICE_TYPES = ((DEVICE_UNKNOWN, 'Unknown'), (DEVICE_ANDROID, 'Android'), (DEVICE_IOS, 'IOS'))
-    
+
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # mama_id+date
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     device_type = models.IntegerField(default=0, choices=DEVICE_TYPES, db_index=True, verbose_name=u'设备')
     version = models.CharField(max_length=32, blank=True, verbose_name=u'版本信息')
     user_agent = models.CharField(max_length=128, blank=True, verbose_name=u'UserAgent')
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_mamadailyappvisit'
         app_label = 'xiaolumm'
@@ -975,6 +986,7 @@ def mama_daily_app_visit_stats(sender, instance, created, **kwargs):
 post_save.connect(mama_daily_app_visit_stats,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_daily_app_visit_stats')
 
+<<<<<<< HEAD
 
 def mama_app_version_check(sender, instance, created, **kwargs):
     if not created:
@@ -982,11 +994,13 @@ def mama_app_version_check(sender, instance, created, **kwargs):
 
     from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_update_app
     task_weixin_push_update_app.delay(instance)
-    
+
 post_save.connect(mama_app_version_check,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_app_version_check')
 
 
+=======
+>>>>>>> 妈妈奖金APP推送修改
 
 def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
     if not created:

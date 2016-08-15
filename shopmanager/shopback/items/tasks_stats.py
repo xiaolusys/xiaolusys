@@ -83,8 +83,9 @@ def task_product_downshelf_update_productskusalestats(sku_id, sale_end_time):
 
 @task()
 def task_product_upshelf_notify_favorited_customer(product):
+    from flashsale.push.app_push import AppPush
     model = product.product_model
     customer_ids = model.favorites_set.values('customer_id')
 
     for customer_id in customer_ids:
-        push_product.push_product_to_customer(customer_id, model)
+        AppPush.push_product_to_customer(customer_id, model)
