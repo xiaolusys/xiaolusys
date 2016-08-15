@@ -154,7 +154,7 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
             try:
                 item = {
                     'mama_id': m.mama_id,
-                    'income': m.expect_total,
+                    'income': m.expect_total + m.duration_total,
                     'mama_nick': m.mama.nick,
                     'thumbnail': m.mama.thumbnail
                 }
