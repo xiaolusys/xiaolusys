@@ -966,12 +966,10 @@ def task_register_mama(obj):
         return
     if order.is_99_deposit():
         renew_days = XiaoluMama.HALF
-        last_renew_type = XiaoluMama.HALF
         coupon_id = 79
 
     if order.is_188_deposit():
         renew_days = XiaoluMama.FULL
-        last_renew_type = XiaoluMama.FULL
         coupon_id = 39
 
     update_fields = []
@@ -988,15 +986,8 @@ def task_register_mama(obj):
     if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类
         update_fields.append("agencylevel")
         xlmm.agencylevel = XiaoluMama.A_LEVEL
-    if xlmm.last_renew_type != last_renew_type:  # 更新试用字段为 False
-        update_fields.append("last_renew_type")
-        xlmm.last_renew_type = last_renew_type
-    if xlmm.renew_time is None:
-        update_fields.append("renew_time")
-        xlmm.renew_time = now + datetime.timedelta(days=renew_days)
-    elif isinstance(xlmm.renew_time, datetime.datetime):
-        xlmm.renew_time = xlmm.renew_time + datetime.timedelta(days=renew_days)
-        update_fields.append("renew_time")
+
+    xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
 
     mm_linkid = obj.extras_info.get('mm_linkid') or None
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
@@ -1056,11 +1047,9 @@ def task_renew_mama(obj):
         return
     if order.is_99_deposit():
         renew_days = XiaoluMama.HALF
-        last_renew_type = XiaoluMama.HALF
 
     if order.is_188_deposit():
         renew_days = XiaoluMama.FULL
-        last_renew_type = XiaoluMama.FULL
 
     order_customer = obj.order_buyer
     xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
@@ -1070,24 +1059,9 @@ def task_renew_mama(obj):
         return
     if xlmm.last_renew_type == XiaoluMama.TRIAL:  # 试用代理不予续费服务
         return
-    update_field = []
-    if xlmm.status != XiaoluMama.EFFECT:
-        xlmm.status = XiaoluMama.EFFECT
-        update_field.append('status')
-    if xlmm.last_renew_type != last_renew_type:
-        xlmm.last_renew_type = last_renew_type
-        update_field.append('last_renew_type')
-    if xlmm.status == XiaoluMama.EFFECT:  # 如果是有效状态则在原来的时间上面累加
-        renew_time = xlmm.renew_time + datetime.timedelta(days=renew_days)
-    else:  # 其他状态则从现在时间算起
-        renew_time = datetime.datetime.now() + datetime.timedelta(days=renew_days)
+    state = xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
 
-    if xlmm.renew_time != renew_time:
-        xlmm.renew_time = renew_time
-        update_field.append('renew_time')
-        # 原来的基础上加天数
-    if update_field:
-        xlmm.save(update_fields=update_field)
+    if state:
         sys_oa = get_systemoa_user()
         log_action(sys_oa, xlmm, CHANGE, u'代理续费成功')
         order.status = SaleTrade.TRADE_FINISHED

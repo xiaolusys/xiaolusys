@@ -21,12 +21,12 @@ def change_Sale_Time(request):
         date = datetime.date(int(year), int(month), int(day))
     else:
         return HttpResponse('false')
-    pro = Product.objects.filter(id=item_id)
-    if pro.exists():
-        p = pro[0]
-        p.sale_time = date
-        p.save()
-        log_action(request.user.id, p, CHANGE, u'修改商品的上架日期')
+    pro = Product.objects.filter(id=item_id).first()
+    if pro:
+        print date
+        pro.sale_time = date
+        pro.save()
+        log_action(request.user.id, pro, CHANGE, u'修改商品的上架日期')
         return HttpResponse('OK')
 
     else:

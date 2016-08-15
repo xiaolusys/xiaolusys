@@ -111,12 +111,12 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    def get_pagination_response_by_date(self, request, cur_date, only_upshelf=True):
+    def get_pagination_response_by_date(self, request, cur_date, only_onshelf=True):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = self.get_normal_qs(queryset)
         date_range = (datetime.datetime.combine(cur_date, datetime.time.min),
                       datetime.datetime.combine(cur_date, datetime.time.max))
-        if only_upshelf:
+        if only_onshelf:
             queryset = queryset.filter(
                 Q(onshelf_time__range=date_range) | Q(is_recommend=True),
                 shelf_status=ModelProduct.ON_SHELF
@@ -136,16 +136,20 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         })
         return response
 
-    def get_lastest_date(self, cur_date, predict=False):
+    def get_lastest_date(self, cur_date, predict=False, only_onshelf=False):
         """ 获取今日上架日期 """
         dt_start = datetime.datetime.combine(cur_date, datetime.time.max)
+        queryset = self.queryset.order_by('-onshelf_time')
         if predict:
-            first_product = self.queryset.filter(onshelf_time__gte=dt_start)\
-                .order_by('-onshelf_time').first()
+            queryset = queryset.filter(onshelf_time__gte=dt_start)
         else:
-            first_product = self.queryset.filter(onshelf_time__lte=dt_start) \
-                .order_by('-onshelf_time').first()
-        return first_product and first_product.onshelf_time.date() or datetime.date.today()
+            queryset = queryset.filter(onshelf_time__lte=dt_start)
+
+        if only_onshelf:
+            queryset = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
+
+        first_obj = queryset.first()
+        return first_obj and first_obj.onshelf_time.date() or datetime.date.today()
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
@@ -154,8 +158,8 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         logger.info({'stype': 'modelproduct',
                      'path': request.get_full_path(),
                      'buyer': request.user and request.user.id or 0})
-        today_dt = self.get_lastest_date(datetime.date.today())
-        return self.get_pagination_response_by_date(request, today_dt, only_upshelf=True)
+        today_dt = self.get_lastest_date(datetime.date.today(), only_onshelf=True)
+        return self.get_pagination_response_by_date(request, today_dt, only_onshelf=True)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
@@ -165,7 +169,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                      'path': request.get_full_path(),
                      'buyer': request.user and request.user.id or 0})
         yesterday_dt = self.get_lastest_date(datetime.date.today() - datetime.timedelta(days=1))
-        return self.get_pagination_response_by_date(request, yesterday_dt, only_upshelf=False)
+        return self.get_pagination_response_by_date(request, yesterday_dt, only_onshelf=False)
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
@@ -175,5 +179,5 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                      'path': request.get_full_path(),
                      'buyer': request.user and request.user.id or 0})
         tomorrow_dt = self.get_lastest_date(datetime.date.today() + datetime.timedelta(days=1), predict=True)
-        return self.get_pagination_response_by_date(request, tomorrow_dt, only_upshelf=False)
+        return self.get_pagination_response_by_date(request, tomorrow_dt, only_onshelf=False)
 

@@ -53,6 +53,12 @@ class ShoppingCart(BaseModel):
     def __unicode__(self):
         return '%s' % (self.id)
 
+    @property
+    def product(self):
+        if not hasattr(self, '_product_'):
+            self._product_ = Product.objects.filter(id=self.item_id).first()
+        return self._product_
+
     @transaction.atomic
     def close_cart(self, release_locknum=True):
         """ 关闭购物车 """
@@ -92,7 +98,7 @@ class ShoppingCart(BaseModel):
         return False
 
     def get_item_weburl(self):
-        product = Product.objects.filter(id=self.item_id).first()
+        product = self.product
         return urlparse.urljoin(settings.M_SITE_URL,
                                 Product.MALL_PRODUCT_TEMPLATE_URL.format(product.model_id))
 
