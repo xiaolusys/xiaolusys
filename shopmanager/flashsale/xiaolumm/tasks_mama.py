@@ -165,7 +165,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
 
         sku_name = order.title
         sku_img = order.pic_path
-        date_field = order.created.date()
+        date_field = order.pay_time.date()
 
         carry_description = util_description.get_ordercarry_description(via_app=via_app)
         customer = Customer.objects.get(id=customer_pk)

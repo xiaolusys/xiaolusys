@@ -15,7 +15,7 @@ logger = logging.getLogger('django.request')
     目前看来，排名只有两类，一类是总额排名，一类是活动期排名，从对象角度说，是个人排名和团队排名，把握这几点即可
 
     所有人都会在WeekMamaCarryTotal表或WeekMamaTeamCarryTotal表生成记录，但必须符合条件才可能进入到排名。
-    用RankRedis的WEEK_DATA_REDIS实例来管理缓存数据。
+    用RankRedis的WEEK_RANK_REDIS实例来管理缓存数据。
     将涉及 “周排名”的通用方法都移动到WeekRank中以减少代码量。
 """
 
@@ -58,9 +58,9 @@ class WeekRank(object):
         if self._redis_total_cache_ and str(self.mama_id) in self._redis_total_cache_:
             # 批量操作时设置_redis_cache_，避免分开多次读取缓存
             return self._redis_total_cache_.get(str(self.mama_id))
-        cache_rank = WEEK_DATA_REDIS.get_rank(type(self), 'total', self.mama_id)
+        cache_rank = WEEK_RANK_REDIS.get_rank(type(self), 'total', self.mama_id)
         if cache_rank is None:
-            WEEK_DATA_REDIS.update_cache(self, ['total'])
+            WEEK_RANK_REDIS.update_cache(self, ['total'])
             return self.total_rank_delay
         else:
             return cache_rank
@@ -71,9 +71,9 @@ class WeekRank(object):
             return self.total_rank_delay
         if self._redis_duration_total_cache_ and str(self.mama_id) in self._redis_duration_total_cache_:
             return self._redis_duration_total_cache_.get(str(self.mama_id))
-        cache_rank = WEEK_DATA_REDIS.get_rank(type(self), 'duration_total', self.mama_id)
+        cache_rank = WEEK_RANK_REDIS.get_rank(type(self), 'duration_total', self.mama_id)
         if cache_rank is None:
-            WEEK_DATA_REDIS.update_cache(self, ['duration_total'])
+            WEEK_RANK_REDIS.update_cache(self, ['duration_total'])
             return self.duration_rank_delay
         else:
             return cache_rank
@@ -92,20 +92,20 @@ class WeekRank(object):
     @classmethod
     def check_update_cache(cls, target='total'):
         this_week_time = WeekRank.this_week_time()
-        cache_count = WEEK_DATA_REDIS.get_rank_count(cls, target)
-        # condition = cls.ranks[target]
-        # condition['stat_time'] = this_week_time
-        real_count = cls.objects.filter(stat_time=this_week_time).count()
+        cache_count = WEEK_RANK_REDIS.get_rank_count(cls, target)
+        condition = cls.filters[target]
+        condition['stat_time'] = this_week_time
+        real_count = cls.objects.filter(**condition).count()
         if cache_count > real_count:
             logger.error('cache_count big than real_count')
-            WEEK_DATA_REDIS.clear_cache(cls, target)
+            WEEK_RANK_REDIS.clear_cache(cls, target)
             cache_mama_ids = []
         elif cache_count < real_count:
-            cache_mama_ids = WEEK_DATA_REDIS.get_rank_list(cls, target, 0, -1)
+            cache_mama_ids = WEEK_RANK_REDIS.get_rank_list(cls, target, 0, -1)
         if cache_count != real_count:
             add_res = []
-            for i in cls.objects.filter(stat_time=this_week_time).exclude(mama_id__in=cache_mama_ids):
-                WEEK_DATA_REDIS.update_cache(i, targets=[target])
+            for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids):
+                WEEK_RANK_REDIS.update_cache(i, targets=[target])
                 add_res.append(str(i.id))
             logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(add_res))
 
@@ -119,8 +119,8 @@ class WeekRank(object):
         if week_begin_time == WeekRank.this_week_time():
             # 本周数据从redis获取
             # 检查缓存总数如果不符合则更新缓存
-            cls.check_update_cache()
-            rank_dict = WEEK_DATA_REDIS.get_rank_dict(cls, order_field, start, end)
+            cls.check_update_cache(order_field)
+            rank_dict = WEEK_RANK_REDIS.get_rank_dict(cls, order_field, start, end)
             contidion = {'stat_time': week_begin_time, order_field + '__gt': 0, 'mama_id__in': rank_dict.keys()}
             setattr(cls, '_redis_' + order_field + '_cache_', rank_dict)
         else:
@@ -128,24 +128,20 @@ class WeekRank(object):
         return cls.objects.filter(**contidion).order_by('-' + order_field)
 
 
-WEEK_DATA_REDIS = RankRedis(WeekRank.this_week_time())
+def get_week_rank_redis():
+    return RankRedis(WeekRank.this_week_time())
+
+
+WEEK_RANK_REDIS = get_week_rank_redis()
 
 
 class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
-    ranks = {
+    filters = {
         'total': {
-            'agencylevel__ne': XiaoluMama.INNER_LEVEL,
-            'is_staff': False,
-            'progress__in': [XiaoluMama.PAY, XiaoluMama.PASS],
-            'status': XiaoluMama.EFFECT,
-            'charge_status': XiaoluMama.CHARGED
+            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
         },
         'duration_total': {
-            'agencylevel__ne': XiaoluMama.INNER_LEVEL,
-            'is_staff': False,
-            'progress__in': [XiaoluMama.PAY, XiaoluMama.PASS],
-            'status': XiaoluMama.EFFECT,
-            'charge_status': XiaoluMama.CHARGED
+            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
         }
     }
     mama = models.ForeignKey(XiaoluMama)
@@ -164,21 +160,22 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
         unique_together = ('mama', 'stat_time')
         db_table = 'xiaolumm_week_carry_total'
         app_label = 'xiaolumm'
-        verbose_name = u'小鹿妈妈收益排名'
-        verbose_name_plural = u'小鹿妈妈收益排名列表'
+        verbose_name = u'小鹿妈妈团队收益周排名'
+        verbose_name_plural = u'小鹿妈妈团队收益周排名列表'
 
     @staticmethod
     def batch_generate(week_begin_time=None):
         week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         mama_data_ = XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
-                                               status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED). \
+                                               status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, is_staff=False). \
             values('id', 'last_renew_type', 'agencylevel')
         mama_data = {i['id']: i for i in mama_data_}
         mama_ids = mama_data.keys()
         exist_ids = [m['mama_id'] for m in
                      WeekMamaCarryTotal.objects.filter(stat_time=week_begin_time).values('mama_id')]
-        mama_ids = list(set(mama_ids) - set(exist_ids))
         fortune_dict = {m.mama_id: m for m in MamaFortune.objects.filter(mama_id__in=mama_ids)}
+        # 做下交集，避免fortune不存在的情况出错
+        mama_ids = list(set(mama_ids) & set(fortune_dict.keys()) - set(exist_ids))
         cr_conditions = {
             'date_field__gte': week_begin_time,
             'status__in': [1, 2]
@@ -195,7 +192,8 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
                 mama_id=mmid,
                 last_renew_type=mama_data.get(mmid).get('last_renew_type'),
                 agencylevel=mama_data.get(mmid).get('agencylevel'),
-                total=fortune_dict.get(mmid).cash_total if fortune_dict.get(mmid) else 0,
+                total=fortune_dict[mmid].cash_total,
+                order_num=fortune_dict[mmid].order_num,
                 stat_time=week_begin_time,
                 duration_total=duration_total_dict.get(mmid, 0),
             )
@@ -235,12 +233,10 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
     def set_data(self):
         cr_conditions = {
             'date_field__gte': self.stat_time,
+            'date_field__lt': self.stat_time + datetime.timedelta(days=7),
             'mama_id': self.mama_id,
             'status__in': [1, 2]
         }
-        if self.stat_time <= WeekRank.last_week_time():
-            next_week_time = self.stat_time + datetime.timedelta(days=7)
-            cr_conditions['date_field__lt'] = next_week_time
         duration_total = CarryRecord.objects.filter(**cr_conditions).aggregate(
             total=Sum('carry_num')).get('total') or 0
         self.total = MamaFortune.get_by_mamaid(self.mama_id).cash_total
@@ -254,15 +250,17 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
     @staticmethod
     def reset_rank(week_begin_time=None, target='total'):
         target_fields = {'total': 'total_rank_delay', 'duration_total': 'duration_rank_delay'}
-        if target not in target_fields: raise Exception('target field err')
+        if target not in target_fields:
+            raise Exception('target field err')
         week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
+        target_condition = {key: dict(WeekMamaCarryTotal.filters[key].items() + [('stat_time', week_begin_time)]) for key in
+                            WeekMamaCarryTotal.filters}
         WeekMamaCarryTotal.batch_generate(week_begin_time)
         i = 1
         rank = 1
         last_value = None
         res = {}
-        for m in WeekMamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
-                                                   stat_time=week_begin_time).order_by('-' + target). \
+        for m in WeekMamaCarryTotal.objects.filter(**target_condition[target]).order_by('-' + target). \
                 values('mama_id', target):
             if last_value is None or m[target] < last_value:
                 last_value = m[target]
@@ -278,12 +276,8 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
 
     @staticmethod
     def update_or_create(mama_id, week_begin_time=None):
-        """
-            更新数据以更新排名-其实这个方法尽可能更新了需要的数，唯独不更新排名
-            排名更新在post_save事件中，15分钟以后，由celery事件更新排名。
-        """
         mama = XiaoluMama.objects.get(id=mama_id)
-        if not mama.is_available():
+        if not mama.is_available() or mama.is_staff:
             return
         week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         if not WeekMamaCarryTotal.objects.filter(mama_id=mama_id, stat_time=week_begin_time).exists():
@@ -297,11 +291,11 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
 def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
     # 当周数据实时更新到redis，从redis读取
     if WeekRank.this_week_time() == instance.stat_time:
-        for target in type(instance).ranks:
-            condtion = type(instance).ranks[target]
+        for target in type(instance).filters:
+            condtion = type(instance).filters[target]
             condtion['pk'] = instance.pk
             if type(instance).objects.filter(**condtion).exists():
-                WEEK_DATA_REDIS.update_cache(instance, target)
+                WEEK_RANK_REDIS.update_cache(instance, [target])
 
 
 post_save.connect(update_week_mama_carry_total_cache,
@@ -312,14 +306,12 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
     """
         周团队总额记录
     """
-    ranks = {
+    filters = {
         'total': {
-            'agencylevel__ne': XiaoluMama.INNER_LEVEL,
-            'is_staff': False
+            'agencylevel__gt': XiaoluMama.INNER_LEVEL
         },
         'duration_total': {
-            'agencylevel__ne': XiaoluMama.INNER_LEVEL,
-            'is_staff': False
+            'agencylevel__gt': XiaoluMama.INNER_LEVEL
         }
     }
     mama = models.ForeignKey(XiaoluMama)

@@ -323,6 +323,10 @@ MAMA_FORTUNE_ROUTES = {
         'queue': 'mamafortune',
         'routing_key': 'mamafortune.task_mama_daily_app_visit_stats',
     },
+    'flashsale.xiaolumm.tasks_mama_fortune.task_mama_daily_tab_visit_stats': {
+        'queue': 'mamafortune',
+        'routing_key': 'mamafortune.task_mama_daily_tab_visit_stats',
+    },
 }
 
 MAMA_RELATIONSHIP_ROUTES = {
@@ -680,10 +684,10 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_push_ninpic_remind',
     },  # 九张图更新推送代理
-    'flashsale.xiaolumm.tasks_mama_push.task_push_mama_order_msg': {
+    'flashsale.xiaolumm.tasks_mama_push.task_app_push_ordercarry': {
         'queue': 'notify',
-        'routing_key': 'notify.task_push_mama_order_msg',
-    },  # 代理有订单后推送消息提醒
+        'routing_key': 'notify.task_app_push_ordercarry',
+    },  # 妈妈奖金APP推送
     'flashsale.xiaolumm.tasks_mama_push.task_push_mama_cashout_msg': {
         'queue': 'notify',
         'routing_key': 'notify.task_push_mama_cashout_msg',

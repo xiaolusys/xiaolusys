@@ -9,9 +9,11 @@ from . import forms
 
 from flashsale.finance.models import Bill, BillRelation
 from django.contrib.contenttypes.models import ContentType
+from .serializers import BillRelationSerializer, BillSerializer
 
 
 class BillViewSet(viewsets.GenericViewSet):
+    serializer_class = BillSerializer
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
     permissions_classes = (permissions.IsAuthenticated,)
 

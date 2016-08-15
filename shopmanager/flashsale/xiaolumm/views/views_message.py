@@ -10,6 +10,8 @@ from rest_framework.decorators import detail_route, list_route
 from core.utils.modelutils import get_class_fields
 from collections import OrderedDict
 
+from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+from flashsale.xiaolumm.models import MamaTabVisitStats
 
 class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin):
     """
@@ -36,6 +38,9 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
             raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
         if not mama:
             raise exceptions.ValidationError(u'您并非登录小鹿妈妈或小鹿妈妈账号存在异常')
+
+        task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_NOTIFICATION)
+        
         queryset, unread_cnt = XlmmMessage.get_msg_list(mama.id)
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)

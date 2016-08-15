@@ -653,12 +653,6 @@ def tongji_trade_pay_channel(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(tongji_trade_pay_channel, sender=SaleTrade)
 
 
-def push_msg_mama(sender, obj, **kwargs):
-    """专属链接有人下单后则推送消息给代理"""
-    from flashsale.xiaolumm.tasks_mama_push import task_push_mama_order_msg
-    task_push_mama_order_msg.s(obj).delay()
-
-
 def trade_payment_used_coupon(sender, obj, **kwargs):
     """ 交易支付后修改优惠券状态为使用 """
     from flashsale.coupon.tasks import task_change_coupon_status_used
@@ -683,7 +677,6 @@ def freeze_coupon_by_refund(sender, obj, **kwargs):
     task_freeze_coupon_by_refund.delay(obj)
 
 
-signal_saletrade_pay_confirm.connect(push_msg_mama, sender=SaleTrade)
 signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
 signal_saletrade_pay_confirm.connect(release_coupon_buy_way, sender=SaleTrade)
 signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)

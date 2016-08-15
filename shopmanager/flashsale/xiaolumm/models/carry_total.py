@@ -56,7 +56,11 @@ class RankRedis(object):
         return rank + 1
 
 
-STAT_RANK_REDIS = RankRedis(STAT_TIME)
+def get_stat_rank_redis():
+    return RankRedis(STAT_TIME)
+
+
+STAT_RANK_REDIS = get_stat_rank_redis()
 
 
 class BaseMamaCarryTotal(BaseModel):
@@ -211,6 +215,7 @@ class MamaCarryTotal(BaseMamaCarryTotal):
 
     @staticmethod
     def get_by_mama_id(mama_id):
+
         if not MamaCarryTotal.objects.filter(mama_id=mama_id).exists():
             return MamaCarryTotal.generate(mama_id)
         return MamaCarryTotal.objects.get(mama_id=mama_id)
@@ -245,10 +250,9 @@ class MamaCarryTotal(BaseMamaCarryTotal):
         MamaCarryTotal.move_other_stat_to_record()
         mama_data = {i['id']: i
                      for i in XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
-                                                        status=XiaoluMama.EFFECT,
-                                                        charge_status=XiaoluMama.CHARGED).values('id',
-                                                                                                 'last_renew_type',
-                                                                                                 'agencylevel')}
+                                                        status=[XiaoluMama.EFFECT, XiaoluMama.FROZEN],
+                                                        charge_status=XiaoluMama.CHARGED).values(
+            'id', 'last_renew_type', 'agencylevel')}
         mama_ids = mama_data.keys()
         exist_ids = [m['mama_id'] for m in MamaCarryTotal.objects.filter(stat_time=STAT_TIME).values('mama_id')]
 

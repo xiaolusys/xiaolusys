@@ -23,7 +23,8 @@ from flashsale.pay.models import Customer, ModelProduct
 from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
     AwardCarry, ReferalRelationship, GroupRelationship, UniqueVisitor, DailyStats
-from flashsale.xiaolumm.models import XiaoluMama
+
+from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 
 from .. import serializers
 
@@ -84,7 +85,7 @@ def add_day_carry(datalist, queryset, sum_field, scale=0.01, exclude_statuses=No
 
 
 
-from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_app_visit_stats
+from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_app_visit_stats, task_mama_daily_tab_visit_stats
 
 class MamaFortuneViewSet(viewsets.ModelViewSet):
     """
@@ -186,6 +187,8 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
         mama_id = get_mama_id(request.user)
         qset = self.queryset.filter(mama_id=mama_id)
 
+        task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_CARRY_RECORD)
+
         # we dont return canceled record
         if exclude_statuses:
             for ex in exclude_statuses:
@@ -236,6 +239,8 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         mama_id = get_mama_id(request.user)
         if carry_type == "direct":
             return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
+
+        task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_ORDER_CARRY)
 
         qset = self.queryset.filter(mama_id=mama_id)
         if exclude_statuses:
@@ -463,6 +468,8 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
             date_field = date_field - datetime.timedelta(days=days_from)
 
         mama_id = get_mama_id(request.user)
+        task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_VISITOR_LIST)
+        
         return self.queryset.filter(mama_id=mama_id, date_field=date_field).order_by('-created')
 
     def list(self, request, *args, **kwargs):
@@ -498,6 +505,9 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         customer_id = get_customer_id(request.user)
+        mama_id = get_mama_id(request.user)
+        task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_FANS_LIST)
+                
         return self.queryset.filter(xlmm_cusid=customer_id).order_by('-created')
 
     def list(self, request, *args, **kwargs):

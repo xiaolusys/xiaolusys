@@ -5,9 +5,7 @@ from core.models import BaseModel
 from django.db.models.signals import post_save
 from django.conf import settings
 import datetime, urlparse
-
 from core.fields import JSONCharMyField
-
 import logging
 
 logger = logging.getLogger('django.request')
@@ -25,7 +23,7 @@ def get_choice_name(choices, val):
 
 
 #
-# Use from flashsale.xiaolumm.models import CashOut 
+# Use from flashsale.xiaolumm.models import CashOut
 #
 # class CashOut(BaseModel):
 #    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
@@ -198,18 +196,6 @@ class MamaFortune(BaseModel):
         return self._xiaolumm_xlmm_
 
 
-def copy_history_cash(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.models import XiaoluMama
-    m = XiaoluMama.objects.filter(id=instance.mama_id).first()
-    if m and m.cash != instance.history_confirmed:
-        instance.history_confirmed = m.cash
-        instance.save(update_fields=['history_confirmed'])
-
-
-post_save.connect(copy_history_cash,
-                  sender=MamaFortune, dispatch_uid='post_save_copy_history_cash')
-
-
 def send_activate_award(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     if instance.invite_trial_num >= 2:
@@ -221,10 +207,11 @@ post_save.connect(send_activate_award,
 
 def update_week_carry_total(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carry_total
-    tasks_mama_carry_total.task_send_activate_award.delay(instance.mama_id)
+    if not instance.xlmm.is_staff and instance.xlmm.is_available():
+        tasks_mama_carry_total.task_fortune_update_week_carry_total.delay(instance.mama_id)
 
 post_save.connect(update_week_carry_total,
-                  sender=MamaFortune, dispatch_uid='post_save_send_activate_award')
+                  sender=MamaFortune, dispatch_uid='post_save_task_fortune_update_week_carry_total')
 
 
 class DailyStats(BaseModel):
@@ -358,7 +345,6 @@ post_save.connect(carryrecord_update_xiaolumama_active_hasale,
 
 def carryrecord_update_carrytotal(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.tasks_mama_carry_total import task_carryrecord_update_carrytotal
-    logger.warn("post_save_carryrecord_update_carrytotal run:" + str(instance.mama_id) + str(datetime.datetime.now()))
     task_carryrecord_update_carrytotal.delay(instance.mama_id)
 
 
@@ -450,7 +436,11 @@ def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
 post_save.connect(ordercarry_update_carryrecord,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_carryrecord')
 
+
 def ordercarry_weixin_push(sender, instance, created, **kwargs):
+    """
+    订单提成推送到微信
+    """
     if not created:
         return
     from flashsale.xiaolumm import tasks_mama_push
@@ -458,6 +448,18 @@ def ordercarry_weixin_push(sender, instance, created, **kwargs):
 
 post_save.connect(ordercarry_weixin_push,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_weixin_push')
+
+
+def ordercarry_app_push(sender, instance, created, **kwargs):
+    """
+    """
+    if not created:
+        return
+    from flashsale.xiaolumm import tasks_mama_push
+    tasks_mama_push.task_app_push_ordercarry.delay(instance)
+
+post_save.connect(ordercarry_app_push,
+                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_app_push')
 
 
 # 首单奖励
@@ -570,11 +572,6 @@ class AwardCarry(BaseModel):
         """
         return None
 
-    #def get_mama_customer(self):
-    #    from flashsale.xiaolumm.models.models import XiaoluMama
-    #    mama = XiaoluMama.objects.filter(id=self.mama_id).first()
-    #    return mama.get_mama_customer()
-            
     @staticmethod
     def send_award(mama, num, name, description, uni_key, status, carry_type,
                    contributor_nick=None, contributor_img=None, contributor_mama_id=None):
@@ -615,9 +612,6 @@ def awardcarry_weixin_push(sender, instance, created, **kwargs):
 
 post_save.connect(awardcarry_weixin_push,
                   sender=AwardCarry, dispatch_uid='post_save_awardcarry_weixin_push')
-
-
-from core.fields import JSONCharMyField
 
 
 class ClickPlan(BaseModel):
@@ -842,8 +836,6 @@ class ReferalRelationship(BaseModel):
 
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
-    if not created:
-        return
     from flashsale.xiaolumm import tasks_mama_fortune
     mama_id = instance.referal_from_mama_id
     tasks_mama_fortune.task_update_mamafortune_invite_num.delay(mama_id)
@@ -947,21 +939,51 @@ class UniqueVisitor(BaseModel):
             return u"匿名用户"
         return self.visitor_nick
 
-    
+
+def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    mama_id = instance.mama_id
+    date_field = instance.date_field
+
+    try:
+        from flashsale.xiaolumm.models import XiaoluMama
+        mama = XiaoluMama.objects.get(id=mama_id)
+        if not mama.is_click_countable():
+            return
+    except XiaoluMama.DoesNotExist:
+        return
+
+    from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
+    task_visitor_increment_clickcarry.delay(mama_id, date_field)
+
+    from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
+    task_visitor_increment_activevalue.delay(mama_id, date_field)
+
+    from flashsale.xiaolumm.tasks_mama_dailystats import task_visitor_increment_dailystats
+    task_visitor_increment_dailystats.delay(mama_id, date_field)
+
+
+post_save.connect(visitor_update_clickcarry_and_activevalue,
+                  sender=UniqueVisitor, dispatch_uid='post_save_visitor_update_clickcarry_and_activevalue')
+
+
+
 class MamaDailyAppVisit(BaseModel):
     DEVICE_UNKNOWN = 0
     DEVICE_ANDROID = 1
     DEVICE_IOS = 2
-    
+
     DEVICE_TYPES = ((DEVICE_UNKNOWN, 'Unknown'), (DEVICE_ANDROID, 'Android'), (DEVICE_IOS, 'IOS'))
-    
+
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # mama_id+date
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     device_type = models.IntegerField(default=0, choices=DEVICE_TYPES, db_index=True, verbose_name=u'设备')
     version = models.CharField(max_length=32, blank=True, verbose_name=u'版本信息')
     user_agent = models.CharField(max_length=128, blank=True, verbose_name=u'UserAgent')
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_mamadailyappvisit'
         app_label = 'xiaolumm'
@@ -1001,36 +1023,32 @@ def mama_app_version_check(sender, instance, created, **kwargs):
 
     from flashsale.xiaolumm.tasks_mama_push import task_weixin_push_update_app
     task_weixin_push_update_app.delay(instance)
-    
+
 post_save.connect(mama_app_version_check,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_app_version_check')
 
 
-
-def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
+def mama_update_device_stats(sender, instance, created, **kwargs):
     if not created:
         return
 
-    mama_id = instance.mama_id
-    date_field = instance.date_field
+    user_version = app_visit.get_user_version()
+    latest_version = app_visit.get_latest_version()
 
-    try:
-        from flashsale.xiaolumm.models import XiaoluMama
-        mama = XiaoluMama.objects.get(id=mama_id)
-        if not mama.is_click_countable():
-            return
-    except XiaoluMama.DoesNotExist:
+    uni_key = "%s-%s" % (app_visit.device_type, app_visit.date_field)
+    md = MamaDeviceStats.objects.filter(uni_key=uni_key).first()
+    if not md:
+        md = MamaDeviceStats(device_type=app_visit.device_type, uni_key=uni_key, date_field=app_visit.date_field)
+        md.save()
+        
+    if user_version == latest_version:
+        # already latest, no need to push udpate reminder
+        md.num_latest += 1
+        md.save(update_fields=['num_latest', 'modified'])
         return
 
-    from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
-    task_visitor_increment_clickcarry.delay(mama_id, date_field)
+    md.num_outdated += 1
+    md.save(update_fields=['num_outdated', 'modified'])
 
-    from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
-    task_visitor_increment_activevalue.delay(mama_id, date_field)
-
-    from flashsale.xiaolumm.tasks_mama_dailystats import task_visitor_increment_dailystats
-    task_visitor_increment_dailystats.delay(mama_id, date_field)
-
-
-post_save.connect(visitor_update_clickcarry_and_activevalue,
-                  sender=UniqueVisitor, dispatch_uid='post_save_visitor_update_clickcarry_and_activevalue')
+post_save.connect(mama_update_device_stats,
+                  sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_update_device_stats')
