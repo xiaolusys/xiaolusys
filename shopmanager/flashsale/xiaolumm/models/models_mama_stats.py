@@ -51,8 +51,8 @@ class MamaDeviceStats(BaseModel):
     class Meta:
         db_table = 'flashsale_xlmm_mamadevicestats'
         app_label = 'xiaolumm'
-        verbose_name = u'V2/妈妈设备统计'
-        verbose_name_plural = u'V2/妈妈设备统计表'
+        verbose_name = u'V2/妈妈device统计'
+        verbose_name_plural = u'V2/妈妈device统计表'
 
 
 class MamaDailyTabVisit(BaseModel):
