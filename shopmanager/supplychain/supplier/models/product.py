@@ -4,7 +4,8 @@ from django.db import models
 from django.db.models import Sum
 from django.db.models.signals import pre_save, post_save
 
-from core.models import BaseTagModel
+from core.models import BaseTagModel, BaseModel
+from core.fields import JSONCharMyField
 from core.utils import update_model_fields
 
 
@@ -56,8 +57,10 @@ class SaleProduct(BaseTagModel):
     pic_url = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
     product_link = models.CharField(max_length=512, blank=True, verbose_name=u'商品外部链接')
 
-    sale_supplier = models.ForeignKey('supplier.SaleSupplier', null=True, related_name='supplier_products', verbose_name=u'供货商')
-    sale_category = models.ForeignKey('supplier.SaleCategory', null=True, related_name='category_products', verbose_name=u'类别')
+    sale_supplier = models.ForeignKey('supplier.SaleSupplier', null=True, related_name='supplier_products',
+                                      verbose_name=u'供货商')
+    sale_category = models.ForeignKey('supplier.SaleCategory', null=True, related_name='category_products',
+                                      verbose_name=u'类别')
     platform = models.CharField(max_length=16, blank=True, default=MANUAL,
                                 choices=PLATFORM_CHOICE, verbose_name=u'来自平台')
 
@@ -86,7 +89,7 @@ class SaleProduct(BaseTagModel):
     class Meta:
         db_table = 'supplychain_supply_product'
         unique_together = [("outer_id", "platform")]
-        index_together = [('status','sale_time', 'sale_category')]
+        index_together = [('status', 'sale_time', 'sale_category')]
         app_label = 'supplier'
         verbose_name = u'特卖/选品'
         verbose_name_plural = u'特卖/选品列表'
@@ -103,6 +106,7 @@ class SaleProduct(BaseTagModel):
     def item_products(self):
         if not hasattr(self, '_item_products_'):
             from shopback.items.models import Product
+
             self._item_products_ = Product.objects.filter(sale_product=self.id, status=Product.NORMAL)
         return self._item_products_
 
@@ -110,6 +114,7 @@ class SaleProduct(BaseTagModel):
         """ 选品排期数据 """
         if not hasattr(self, '_product_figures_'):
             from statistics.models import ModelStats
+
             self._product_figures_ = ModelStats.objects.filter(sale_product=self.id).first()
         return self._product_figures_
 
@@ -117,6 +122,7 @@ class SaleProduct(BaseTagModel):
         """ 选品总销售额退货率计算 """
         if not hasattr(self, '_product_total_figures_'):
             from statistics.models import ModelStats
+
             stats = ModelStats.objects.filter(sale_product=self.id)
             agg = stats.aggregate(s_p=Sum('pay_num'), s_rg=Sum('return_good_num'), s_pm=Sum('payment'))
             p_n = agg['s_p']
@@ -177,3 +183,36 @@ class HotProduct(models.Model):
 
     def __unicode__(self):
         return self.name
+
+
+class CategoryPreference(BaseModel):
+    category = models.ForeignKey('supplier.SaleCategory', related_name='category_pool_preference', verbose_name=u'类别')
+    preferences = JSONCharMyField(max_length=1024, default=[], verbose_name=u"参数选项")
+    is_default = models.BooleanField(default=False, verbose_name=u'设为默认')
+
+    class Meta:
+        db_table = 'supplychain_category_preference_conf'
+        app_label = 'supplier'
+        verbose_name = u'特卖/产品类别参数配置表'
+        verbose_name_plural = u'特卖/产品类别参数配置列表'
+
+    def __unicode__(self):
+        return '<%s-%s-%s>' % (self.id, self.category.__unicode__(), self.category.id)
+
+
+class PreferencePool(BaseModel):
+    name = models.CharField(max_length=64, verbose_name=u'参数名称')
+    unit = models.CharField(max_length=32, blank=True, verbose_name=u'单位')
+    categorys = JSONCharMyField(max_length=512, default=[], verbose_name=u'包含类别', help_text=u'哪些类别(保存id列表)包含本参数')
+    preference_value = JSONCharMyField(max_length=10240, default=[], verbose_name=u"参数值")
+
+    class Meta:
+        db_table = 'supplychain_preference_pool'
+        app_label = 'supplier'
+        verbose_name = u'特卖/产品资料参数表'
+        verbose_name_plural = u'特卖/产品资料参数列表'
+
+    def __unicode__(self):
+        return '<%s-%s>' % (self.id, self.name)
+
+

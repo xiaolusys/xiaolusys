@@ -6,7 +6,8 @@ from .models import (
     SaleProduct,
     SaleProductManage,
     SaleProductManageDetail,
-    SupplierFigure
+    SupplierFigure,
+    PreferencePool
 )
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -288,7 +289,6 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
 
 
 class ModifySaleProductSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = SaleProduct
 
@@ -475,3 +475,7 @@ class SaleProductManageDetailSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleProductManageDetail
 
+
+class PreferencePoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PreferencePool
