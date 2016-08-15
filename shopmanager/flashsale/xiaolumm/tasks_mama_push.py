@@ -43,18 +43,6 @@ def task_push_ninpic_peroid():
 
 
 @task
-def task_push_mama_order_msg(saletrade):
-    """
-    当代理有订单成功付款后则推送消息
-    """
-    mm_linkid = saletrade.extras_info.get('mm_linkid')
-    if not mm_linkid:
-        return
-    mamas = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, id=mm_linkid)
-    map(push_mama.push_msg_to_mama(None), mamas)
-
-
-@task
 def task_push_mama_cashout_msg(envelop):
     """ 代理提现成功推送 """
     recipient = envelop.recipient
@@ -80,7 +68,7 @@ def task_weixin_push_awardcarry(awardcarry):
     if idx == 1:
         courage_remarks += u"更新最新版App查看奖金 >>"
     to_url = urls[idx]
-    
+
     wp.push_mama_award(awardcarry, courage_remarks, to_url)
 
 
@@ -89,8 +77,13 @@ def task_weixin_push_ordercarry(ordercarry):
     from shopapp.weixin.weixin_push import WeixinPush
     wp = WeixinPush()
 
-    from flashsale.xiaolumm import util_description
     remarks = u"来自好友%s，快打开App看看她买了啥～" % ordercarry.contributor_nick
     to_url = "http://m.xiaolumeimei.com/sale/promotion/appdownload/"
-    
+
     wp.push_mama_ordercarry(ordercarry, remarks, to_url)
+
+
+@task
+def task_app_push_ordercarry(ordercarry):
+    from flashsale.push.app_push import AppPush
+    AppPush.push_mama_ordercarry(ordercarry)
