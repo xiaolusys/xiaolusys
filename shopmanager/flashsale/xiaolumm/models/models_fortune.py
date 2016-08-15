@@ -986,8 +986,6 @@ def mama_daily_app_visit_stats(sender, instance, created, **kwargs):
 post_save.connect(mama_daily_app_visit_stats,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_daily_app_visit_stats')
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 def mama_app_version_check(sender, instance, created, **kwargs):
     if not created:
@@ -999,11 +997,6 @@ def mama_app_version_check(sender, instance, created, **kwargs):
 post_save.connect(mama_app_version_check,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_app_version_check')
 
-
-=======
->>>>>>> 妈妈奖金APP推送修改
-=======
->>>>>>> f49c5704f48616ecc9b25d5493bec0e8be138c24
 
 def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
     if not created:
