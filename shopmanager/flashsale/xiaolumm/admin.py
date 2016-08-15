@@ -18,7 +18,10 @@ from flashsale.xiaolumm.models import (
     MamaDayStats,
     PotentialMama,
     UserGroup,
-    MamaDailyAppVisit
+    MamaDailyAppVisit,
+    MamaTabVisitStats,
+    MamaDeviceStats,
+    MamaDailyTabVisit
 )
 from flashsale.xiaolumm.models.message import XlmmMessage, XlmmMessageRel
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
@@ -724,8 +727,32 @@ admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
 
 class MamaDailyAppVisitAdmin(admin.ModelAdmin):
     list_display = ('id', 'mama_id', 'date_field', 'device_type', 'version', 'user_agent', 'modified', 'created')
-    list_filter = ('device_type',)
+    list_filter = ('device_type', )
     search_fields = ('mama_id','version','user_agent')
     
 admin.site.register(MamaDailyAppVisit, MamaDailyAppVisitAdmin)
+
+
+class MamaTabVisitStatsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'stats_tab', 'date_field', 'visit_total', 'modified', 'created')
+    list_filter = ('stats_tab', )
+    search_fields = ('stats_tab','date_field')
+    
+admin.site.register(MamaTabVisitStats, MamaTabVisitStatsAdmin)
+
+
+class MamaDailyTabVisitAdmin(admin.ModelAdmin):
+    list_display = ('id', 'mama_id', 'stats_tab', 'date_field', 'modified', 'created')
+    list_filter = ('stats_tab', )
+    search_fields = ('mama_id','stats_tab', 'date_field')
+    
+admin.site.register(MamaDailyTabVisit, MamaDailyTabVisitAdmin)
+
+
+class MamaDeviceStatsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'modified', 'created')
+    list_filter = ('device_type', )
+    search_fields = ('device_type','date_field')
+    
+admin.site.register(MamaDeviceStats, MamaDeviceStatsAdmin)
 
