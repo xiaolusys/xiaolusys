@@ -24,9 +24,13 @@ def get_cur_info():
 
 @task()
 def task_carryrecord_update_carrytotal(mama_id):
-    import datetime
-    logger.warn("task_carryrecord_update_carrytotal run:" + str(mama_id) + str(datetime.datetime.now()))
     MamaCarryTotal.update_ranking(mama_id)
+
+
+@task()
+def task_fortune_update_week_carry_total(mama_id):
+    WeekMamaCarryTotal.update_or_create(mama_id)
+    return
 
 
 @single_instance_task(timeout=TIMEOUT, prefix='flashsale.xiaolumm.tasks_mama_carry_total.')

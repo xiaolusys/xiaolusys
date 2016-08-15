@@ -106,7 +106,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
             tmp_des.append(u'活跃度不足')
             could_cash_out = 0
         cashout_reason = u' '.join(tmp_des) + u'不能提现'
-        total_rank = MamaCarryTotal.get_by_mama_id(xlmm.id).total_rank
+        total_rank = MamaCarryTotal.get_by_mama_id(xlmm.id).total_rank if MamaCarryTotal.get_by_mama_id(xlmm.id) else 0
         his_confirmed_cash_out = CashOut.objects.filter(xlmm=xlmm.id, status=CashOut.APPROVED,
                                                         approve_time__lt=MAMA_FORTUNE_HISTORY_LAST_DAY).aggregate(
             total=Sum('value')).get('total') or 0

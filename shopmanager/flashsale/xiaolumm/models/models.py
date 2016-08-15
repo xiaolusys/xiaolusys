@@ -434,7 +434,7 @@ class XiaoluMama(models.Model):
         return self.get_Mama_Deposite_Amount()
 
     def is_available(self):
-        return self.charge_status == self.CHARGED and self.status == self.EFFECT \
+        return self.charge_status == self.CHARGED and self.status in [XiaoluMama.EFFECT, XiaoluMama.FROZEN] \
                and self.progress in [XiaoluMama.PAY, XiaoluMama.PASS]
 
     def is_cashoutable(self):
