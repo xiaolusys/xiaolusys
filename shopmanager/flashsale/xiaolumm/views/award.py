@@ -42,7 +42,7 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
     @list_route(methods=['GET'])
     def get_invite_award(self, request):
         res = []
-        for award in AwardCarry.objects.filter(carry_plan_name='yiyuanyaoqing').exclude(status=3):
+        for award in AwardCarry.objects.filter(carry_plan_name=u'yiyuanyaoqing'):
             m = MamaFortune.objects.get(mama_id=award.mama_id)
             item = {
                 'mama_id':m.mama_id,
@@ -87,13 +87,13 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
     def get_income_award(self, request):
         res = []
         for award in AwardCarry.objects.filter(carry_plan_name='yejijiangjing').exclude(status=3):
-            m = MamaFortune.objects.get(mama_id=award.mama_id)
+            m = CarryTotalRecord.objects.get(mama_id=award.mama_id, stat_time=datetime.datetime(2016, 7, 29))
             item = {
                     'mama_id': m.mama_id,
                     'income': m.duration_total + m.expect_total,
                     'award': award.carry_num/100,
-                    'mama_nick': m.mama_nick,
-                    'thumbnail': m.thumbnail
+                    'mama_nick': m.mama.nick,
+                    'thumbnail': m.mama.thumbnail
                 }
             res.append(item)
         return Response(res)
@@ -150,7 +150,7 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
     def get_team_award(self, request):
         res = []
         for award in AwardCarry.objects.filter(carry_plan_name='yiyuanteam').exclude(status=3):
-            m = TeamCarryTotalRecord.objects.filter(mama_id=award.mama_id, stat_time=datetime.datetime(2016,7,29,0))
+            m = TeamCarryTotalRecord.objects.filter(mama_id=award.mama_id, stat_time=datetime.datetime(2016,7,29,0)).first()
             try:
                 item = {
                     'mama_id': m.mama_id,
