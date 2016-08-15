@@ -701,7 +701,7 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
                 for sku in product_skus:
                     task_product_downshelf_update_productskusalestats.delay(sku.id, sale_end_time)
 
-pre_save.connect(change_obj_state_by_pre_save, sender=Product)
+pre_save.connect(change_obj_state_by_pre_save, sender=Product, dispatch_uid='post_save_change_obj_state_by_pre_saves')
 
 
 def update_mama_shop_down_shelf(sender, instance, raw, *args, **kwargs):

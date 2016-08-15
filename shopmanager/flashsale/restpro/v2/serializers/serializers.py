@@ -624,11 +624,12 @@ class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='rest_v1:shoppingcart-detail')
     status = serializers.ChoiceField(choices=ShoppingCart.STATUS_CHOICE)
     item_weburl = serializers.CharField(source='get_item_weburl', read_only=True)
+    model_id = serializers.IntegerField(source='product.model_id', read_only=True)
 
     class Meta:
         model = ShoppingCart
         fields = ('id', 'url', 'buyer_id', 'buyer_nick', 'item_id', 'title', 'price',
-                  'std_sale_price', 'sku_id', 'num', 'total_fee', 'sku_name',
+                  'std_sale_price', 'sku_id', 'num', 'total_fee', 'sku_name', 'model_id',
                   'pic_path', 'created', 'is_repayable', 'status', 'item_weburl')
 
 
