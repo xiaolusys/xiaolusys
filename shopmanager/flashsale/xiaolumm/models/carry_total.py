@@ -778,6 +778,14 @@ class CarryTotalRecord(BaseModel):
             moves.append(c)
         CarryTotalRecord.objects.bulk_create(moves)
 
+    @staticmethod
+    def get_activity_ranking_list():
+        """
+            一元开店，取一元妈妈活动总收益（预期收益+确定收益）排名
+        """
+        return MamaCarryTotal.objects.filter(agencylevel__gt=XiaoluMama.INNER_LEVEL,
+                                             last_renew_type=XiaoluMama.TRIAL, stat_time=datetime.datetime(2016,7,29,0)).order_by(
+            (F('duration_total') + F('expect_total')).desc())
 
 class TeamCarryTotalRecord(BaseModel):
     """

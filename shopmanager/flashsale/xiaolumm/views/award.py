@@ -1,5 +1,6 @@
 # coding=utf-8
 import re
+import datetime
 from django.db import models
 from django.db.models import F
 from rest_framework import generics, permissions, renderers, viewsets
@@ -7,7 +8,7 @@ from flashsale.xiaolumm.models import XiaoluMama, MamaFortune, PotentialMama
 from rest_framework import generics, permissions, renderers, viewsets
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
-from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
+from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, AwardCarry, CarryTotalRecord, TeamCarryTotalRecord
 import logging
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
     queryset = PotentialMama.objects.all()
 
     @list_route(methods=['GET'])
-    def get_invite_award(self, request):
+    def get_invite_award_realtime(self, request):
         data = {
             20: 20,
             50: 80,
@@ -39,7 +40,22 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
         return Response(res)
 
     @list_route(methods=['GET'])
-    def get_income_award(self, request):
+    def get_invite_award(self, request):
+        res = []
+        for award in AwardCarry.objects.filter(carry_plan_name=u'yiyuanyaoqing'):
+            m = MamaFortune.objects.get(mama_id=award.mama_id)
+            item = {
+                'mama_id':m.mama_id,
+                'invite_trial_num': m.invite_trial_num,
+                'award': award.carry_num/100,
+                'mama_nick': m.xlmm.nick,
+                'thumbnail': m.xlmm.thumbnail
+            }
+            res.append(item)
+        return Response(res)
+
+    @list_route(methods=['GET'])
+    def get_income_award_realtime(self, request):
         data = {
             200 * 100: 20,
             500 * 100: 60,
@@ -68,7 +84,22 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
         return Response(res)
 
     @list_route(methods=['GET'])
-    def get_top50_award(self, request):
+    def get_income_award(self, request):
+        res = []
+        for award in AwardCarry.objects.filter(carry_plan_name='yejijiangjing').exclude(status=3):
+            m = CarryTotalRecord.objects.get(mama_id=award.mama_id, stat_time=datetime.datetime(2016, 7, 29))
+            item = {
+                    'mama_id': m.mama_id,
+                    'income': m.duration_total + m.expect_total,
+                    'award': award.carry_num/100,
+                    'mama_nick': m.mama.nick,
+                    'thumbnail': m.mama.thumbnail
+                }
+            res.append(item)
+        return Response(res)
+
+    @list_route(methods=['GET'])
+    def get_top50_award_realtime(self, request):
         res = []
         for m in MamaCarryTotal.get_activity_ranking_list()[:50]:
             try:
@@ -84,7 +115,23 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
         return Response(res)
 
     @list_route(methods=['GET'])
-    def get_team_award(self, request):
+    def get_top50_award(self, request):
+        res = []
+        for m in CarryTotalRecord.get_activity_ranking_list()[:50]:
+            try:
+                item = {
+                    'mama_id': m.mama_id,
+                    'income': m.duration_total + m.expect_total,
+                    'mama_nick': m.mama_nick,
+                    'thumbnail': m.thumbnail
+                }
+                res.append(item)
+            except Exception, e:
+                logger.error('mama no customer' + str(m.mama_id) + '|' + str(e.message))
+        return Response(res)
+
+    @list_route(methods=['GET'])
+    def get_team_award_realtime(self, request):
         res = []
         for m in MamaTeamCarryTotal.get_activity_ranking_list()[:50]:
             try:
@@ -93,6 +140,23 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
                     'income': m.expect_total,
                     'mama_nick': m.mama_nick,
                     'thumbnail': m.thumbnail
+                }
+                res.append(item)
+            except Exception, e:
+                logger.error('mama no customer' + str(m.mama_id) + '|' + str(e.message))
+        return Response(res)
+
+    @list_route(methods=['GET'])
+    def get_team_award(self, request):
+        res = []
+        for award in AwardCarry.objects.filter(carry_plan_name='yiyuanteam').exclude(status=3):
+            m = TeamCarryTotalRecord.objects.filter(mama_id=award.mama_id, stat_time=datetime.datetime(2016,7,29,0)).first()
+            try:
+                item = {
+                    'mama_id': m.mama_id,
+                    'income': m.expect_total + m.duration_total,
+                    'mama_nick': m.mama.nick,
+                    'thumbnail': m.mama.thumbnail
                 }
                 res.append(item)
             except Exception, e:
