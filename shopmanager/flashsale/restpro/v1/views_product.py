@@ -625,14 +625,17 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
 
         agencylevel = 1
+        mama_id = 0
         try:
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
             agencylevel = xlmm.agencylevel
-            from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
-            task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_CARRY_LIST)
+            mama_id = xlmm.id
         except XiaoluMama.DoesNotExist:
             pass
         # agencylevel = 2 #debug
+
+        from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+        task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_CARRY_LIST)
 
         queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
 

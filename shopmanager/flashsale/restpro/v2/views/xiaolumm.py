@@ -238,9 +238,8 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     def get_owner_queryset(self, request, carry_type, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
         if carry_type == "direct":
+            task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_ORDER_CARRY)
             return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
-
-        task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_ORDER_CARRY)
 
         qset = self.queryset.filter(mama_id=mama_id)
         if exclude_statuses:
