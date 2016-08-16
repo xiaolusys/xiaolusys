@@ -90,6 +90,37 @@ class FinanceRefundApiView(APIView):
                          'results': results})
 
 
+class FinanceReturnGoodApiView(APIView):
+    """
+    ### 退款单数
+    - method: get
+        * args:
+            1. `date_from`: 开始日期
+            2. `date_to`: 结束日期
+    """
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    return_good_sql = "SELECT r.good_status, COUNT(r.id), SUM(r.refund_fee) FROM flashsale_refund " \
+                      "AS r LEFT JOIN flashsale_order AS o ON r.order_id = o.id " \
+                      "WHERE o.pay_time BETWEEN '{0}' AND '{1}' GROUP BY r.good_status;"
+
+    def get(self, request):
+        date_from, date_to, date_from_time, date_to_time = date_handler(request)
+        sql = self.return_good_sql.format(date_from_time, date_to_time)
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        raw = cursor.fetchall()
+        results = []
+        for i in raw:
+            return_good_status_display = choice_display(SaleRefund.GOOD_STATUS_CHOICES, i[0])
+            results.append({'return_goods_status': i[0], 'count': i[1], 'sum_payment': i[2],
+                            'return_good_status_display': return_good_status_display})
+        cursor.close()
+        return Response({'code': 0, 'info': 'success', 'sql': sql,
+                         'results': results})
+
+
 class FinanceDepositApiView(APIView):
     """
     ### 代理押金统计
@@ -218,7 +249,12 @@ class FinanceStockApiView(APIView):
                     35: '小鹿美美-箱包-行李箱',
                     36: '小鹿美美-箱包-钱包',
                     37: '小鹿美美-箱包-手拿包',
-                    38: '小鹿美美-箱包-肩背包'}
+                    38: '小鹿美美-箱包-肩背包',
+                    39: '小鹿美美-食品',
+                    40: '小鹿美美-食品-保健滋补',
+                    41: '小鹿美美-食品-南北干货',
+                    42: '小鹿美美-食品-养生茶饮',
+                    43: '小鹿美美-食品-休闲零食'}
 
     def get(self, request):
         date_from, date_to, date_from_time, date_to_time = date_handler(request)
