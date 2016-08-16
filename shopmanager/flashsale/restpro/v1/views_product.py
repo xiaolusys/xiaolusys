@@ -637,11 +637,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             pass
         # agencylevel = 2 #debug
 
-        from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
-        visit_tab = MamaTabVisitStats.TAB_CARRY_LIST
-        task_mama_daily_tab_visit_stats.delay(mama_id, visit_tab)
-        logger.error('my_choice_pro|mama_id:%s, type: %s' % (mama_id, visit_tab))
-
         queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
 
         if category == 1:
