@@ -138,13 +138,13 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_lastest_date(self, cur_date, predict=False, only_onshelf=False):
         """ 获取今日上架日期 """
-        queryset = self.queryset.order_by('-onshelf_time')
+        queryset = self.queryset
         if predict:
             dt_start = datetime.datetime.combine(cur_date, datetime.time.min)
-            queryset = queryset.filter(onshelf_time__gte=dt_start)
+            queryset = queryset.filter(onshelf_time__gte=dt_start).order_by('onshelf_time')
         else:
             dt_start = datetime.datetime.combine(cur_date, datetime.time.max)
-            queryset = queryset.filter(onshelf_time__lte=dt_start)
+            queryset = queryset.filter(onshelf_time__lte=dt_start).order_by('-onshelf_time')
 
         if only_onshelf:
             queryset = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
