@@ -323,6 +323,7 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
                 category_product_nums[d.sale_category] = 1
             else:
                 category_product_nums[d.sale_category] += 1
+        category_product_num_list = [{'category_name': k, 'product_num': v} for k, v in category_product_nums.iteritems()]
         supplier_product_nums = {}
         # 50 以下　　50-100　100-150  >150
         price_zone_num = {}
@@ -353,10 +354,12 @@ class SaleProductManageSerializer(serializers.ModelSerializer):
                     price_zone_num['>150'] = 1
                 else:
                     price_zone_num['>150'] += 1
+        price_zone_num_list = [{'price_zone': k, 'product_num': v} for k, v in price_zone_num.iteritems()]
+        supplier_product_num_list = [{'supplier_name': k, 'product_num': v} for k, v in supplier_product_nums.iteritems()]
         return {'category_supplier_num': data,
-                'category_product_nums': category_product_nums,
-                'supplier_product_nums': supplier_product_nums,
-                'price_zone_num': price_zone_num}
+                'category_product_nums': category_product_num_list,
+                'supplier_product_nums': supplier_product_num_list,
+                'price_zone_num': price_zone_num_list}
 
 
 class MaterialStatusField(serializers.Field):
