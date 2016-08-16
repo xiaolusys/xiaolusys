@@ -411,7 +411,7 @@ def task_mama_daily_tab_visit_stats(mama_id, stats_tab):
     from flashsale.xiaolumm.models import MamaDailyTabVisit    
     
     date_field = datetime.date.today()
-    uni_key = '%s-%s' % (mama_id, date_field)
+    uni_key = '%s-%s-%s' % (mama_id, stats_tab, date_field)
 
     md = MamaDailyTabVisit.objects.filter(uni_key=uni_key).first()
     if not md:
