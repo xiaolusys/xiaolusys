@@ -1052,6 +1052,8 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
     if not created:
         return
 
+    from flashsale.xiaolumm.models import MamaDeviceStats
+    
     user_version = instance.get_user_version()
     latest_version = instance.get_latest_version()
 
