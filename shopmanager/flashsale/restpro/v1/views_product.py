@@ -31,6 +31,9 @@ from shopback.items.models import Product
 from flashsale.restpro import constants
 from flashsale.restpro.v1 import serializers
 
+import logging
+logger = logging.getLogger('django.request')
+
 CACHE_VIEW_TIMEOUT = 30
 
 
@@ -625,14 +628,19 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
 
         agencylevel = 1
+        mama_id = 0
         try:
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
             agencylevel = xlmm.agencylevel
-            from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
-            task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_CARRY_LIST)
+            mama_id = xlmm.id
         except XiaoluMama.DoesNotExist:
             pass
         # agencylevel = 2 #debug
+
+        from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+        visit_tab = MamaTabVisitStats.TAB_CARRY_LIST
+        task_mama_daily_tab_visit_stats.delay(mama_id, visit_tab)
+        logger.error('my_choice_pro|mama_id:%s, type: %s' % (mama_id, visit_tab))
 
         queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
 

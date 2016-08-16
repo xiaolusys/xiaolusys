@@ -3,9 +3,8 @@ import logging
 from django.conf import settings
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.models_base import WeixinFans
-
-from shopapp.weixin.options import get_openid_by_unionid
 from shopapp.weixin import utils
+from shopapp.smsmgr.sms_push import SMSPush
 
 
 logger = logging.getLogger(__name__)
@@ -19,6 +18,18 @@ class WeixinPush(object):
         self.temai_api = WeiXinAPI()
         self.temai_api.setAccountId(appKey=settings.WEIXIN_APPID)
 
+    def need_sms_push(self, customer):
+        """
+        如果两个公众账号（小鹿美美，小鹿美美特卖）都没关注，需要发短信
+        """
+        temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
+        mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
+
+        if not temai_openid and not mm_openid:
+            return True
+        else:
+            return False
+
     def push(self, customer, template_id, template_data, to_url):
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
@@ -27,9 +38,6 @@ class WeixinPush(object):
             resp = self.mm_api.sendTemplate(mm_openid, template_id, to_url, template_data)
         elif temai_openid:
             resp = self.temai_api.sendTemplate(temai_openid, template_id, to_url, template_data)
-        else:
-            # TODO:发短信，暂时不处理
-            resp = None
 
         logger.info({
             'action': 'push.weixinpush',
@@ -161,6 +169,13 @@ class WeixinPush(object):
         """
 
         customer = utils.get_mama_customer(awardcarry.mama_id)
+
+        if self.need_sms_push(customer):
+            sms = SMSPush()
+            money = u'¥%.2f' % awardcarry.carry_num_display()
+            sms.push_mama_ordercarry(customer, money=money)
+            return
+
         template_id = 'j4YQuNIWMP-OZV_O5LIl1O8GBmaMuqMQ8aLV1oDfnUw'
         template_data = {
             'first': {
@@ -196,7 +211,7 @@ class WeixinPush(object):
         {{remark.DATA}}
         """
 
-        #CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
+        # CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
         description = ""
         if ordercarry.carry_type == 1:
             description = u'微商城订单'
@@ -204,8 +219,15 @@ class WeixinPush(object):
             description = u'App订单（佣金更高哦！）'
         if ordercarry.carry_type == 3:
             description = u'下属订单'
-            
+
         customer = utils.get_mama_customer(ordercarry.mama_id)
+
+        if self.need_sms_push(customer):
+            sms = SMSPush()
+            money = u'¥%.2f' % ordercarry.carry_num_display()
+            sms.push_mama_ordercarry(customer, money=money)
+            return
+
         template_id = 'jorNMI-K3ewxBXHTgTKpePCF6yn5O5oLZK6azNNoWK4'
         template_data = {
             'first': {
@@ -239,8 +261,14 @@ class WeixinPush(object):
         运维状态：{{keyword2.DATA}}
         {{remark.DATA}}
         """
-        
+
         customer = utils.get_mama_customer(mama_id)
+
+        if self.need_sms_push(customer):
+            sms = SMSPush()
+            sms.push_mama_update_app(customer)
+            return
+
         template_id = 'l9QBpAojbpQmFIRmhSN4M-eQDzkw76yBpfrYcBoakK0'
         template_data = {
             'first': {
@@ -260,7 +288,5 @@ class WeixinPush(object):
                 'color': '#4CC417',
             },
         }
-        
-        return self.push(customer, template_id, template_data, to_url)
 
-        
+        return self.push(customer, template_id, template_data, to_url)
