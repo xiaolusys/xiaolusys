@@ -28,7 +28,7 @@ from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 
 from .. import serializers
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django.request')
 
 
 def get_customer_id(user):
@@ -186,8 +186,7 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
     def get_owner_queryset(self, request, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
         qset = self.queryset.filter(mama_id=mama_id)
-
-        task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_CARRY_RECORD)
+        task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_CARRY_RECORD)
 
         # we dont return canceled record
         if exclude_statuses:
@@ -238,7 +237,11 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     def get_owner_queryset(self, request, carry_type, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
         if carry_type == "direct":
-            task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_ORDER_CARRY)
+
+            visit_tab = MamaTabVisitStats.TAB_ORDER_CARRY
+            task_mama_daily_tab_visit_stats.delay(mama_id, visit_tab)
+            logger.error('OrderCarryViewSet|mama_id:%s, type: %s' % (mama_id, visit_tab))
+            
             return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
 
         qset = self.queryset.filter(mama_id=mama_id)
