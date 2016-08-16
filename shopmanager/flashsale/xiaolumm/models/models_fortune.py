@@ -207,7 +207,8 @@ post_save.connect(send_activate_award,
 
 def update_week_carry_total(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carry_total
-    if not instance.xlmm.is_staff and instance.xlmm.is_available():
+    
+    if instance.xlmm and (not instance.xlmm.is_staff) and instance.xlmm.is_available():
         tasks_mama_carry_total.task_fortune_update_week_carry_total.delay(instance.mama_id)
 
 post_save.connect(update_week_carry_total,
