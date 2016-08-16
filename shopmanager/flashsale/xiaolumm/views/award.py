@@ -86,8 +86,9 @@ class PotentialMamaAwardViewset(viewsets.GenericViewSet):
     @list_route(methods=['GET'])
     def get_income_award(self, request):
         res = []
+        trial_mama_ids = [p['potential_mama'] for p in PotentialMama.objects.values('potential_mama').distinct()]
         for m in CarryTotalRecord.objects.filter(stat_time=datetime.datetime(2016, 7,29), agencylevel__gt=XiaoluMama.INNER_LEVEL,
-                                               last_renew_type=XiaoluMama.TRIAL, duration_total__gt=20000-F('expect_total')).order_by(
+                                                    mama_id__in=trial_mama_ids).order_by(
             (F('duration_total') + F('expect_total')).desc())[:50]:
             award = AwardCarry.objects.filter(carry_plan_name='yejijiangjing', mama_id=m.mama_id).exclude(status=3).first()
             item = {
