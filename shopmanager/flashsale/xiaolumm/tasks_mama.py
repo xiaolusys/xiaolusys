@@ -165,9 +165,9 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
 
         sku_name = order.title
         sku_img = order.pic_path
-        if not order.pay_time:
-            logger.error("Order pay_time missing, oid: %s" % order_id)
-        date_field = order.pay_time.date()
+
+        # We dont use pay_time, because when it gets created, it might not be paid.
+        date_field = order.created.date() 
 
         carry_description = util_description.get_ordercarry_description(via_app=via_app)
         customer = Customer.objects.get(id=customer_pk)
