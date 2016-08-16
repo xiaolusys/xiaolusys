@@ -1032,13 +1032,13 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
     if not created:
         return
 
-    user_version = app_visit.get_user_version()
-    latest_version = app_visit.get_latest_version()
+    user_version = instance.get_user_version()
+    latest_version = instance.get_latest_version()
 
-    uni_key = "%s-%s" % (app_visit.device_type, app_visit.date_field)
+    uni_key = "%s-%s" % (instance.device_type, instance.date_field)
     md = MamaDeviceStats.objects.filter(uni_key=uni_key).first()
     if not md:
-        md = MamaDeviceStats(device_type=app_visit.device_type, uni_key=uni_key, date_field=app_visit.date_field)
+        md = MamaDeviceStats(device_type=instance.device_type, uni_key=uni_key, date_field=instance.date_field)
         md.save()
         
     if user_version == latest_version:

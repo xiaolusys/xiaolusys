@@ -111,7 +111,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    def get_pagination_response_by_date(self, request, cur_date, only_onshelf=True):
+    def get_pagination_response_by_date(self, request, cur_date, only_onshelf=False):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = self.get_normal_qs(queryset)
         date_range = (datetime.datetime.combine(cur_date, datetime.time.min),
@@ -138,11 +138,12 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_lastest_date(self, cur_date, predict=False, only_onshelf=False):
         """ 获取今日上架日期 """
-        dt_start = datetime.datetime.combine(cur_date, datetime.time.max)
         queryset = self.queryset.order_by('-onshelf_time')
         if predict:
+            dt_start = datetime.datetime.combine(cur_date, datetime.time.min)
             queryset = queryset.filter(onshelf_time__gte=dt_start)
         else:
+            dt_start = datetime.datetime.combine(cur_date, datetime.time.max)
             queryset = queryset.filter(onshelf_time__lte=dt_start)
 
         if only_onshelf:

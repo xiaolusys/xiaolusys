@@ -26,7 +26,8 @@ class Command(BaseCommand):
             if not first_product:
                 continue
             saleproduct = SaleProduct.objects.filter(id=first_product.sale_product).first()
-            productskus = ProductSku.objects.filter(product__model_id=mp.id, status=ProductSku.NORMAL)
+            productskus = ProductSku.objects.filter(product__model_id=mp.id, status=ProductSku.NORMAL,
+                                                    product__status=Product.NORMAL)
             aggregate_data = productskus.aggregate(min_agent_price=Min('agent_price'),
                                            min_std_sale_price=Min('std_sale_price'))
             mp.lowest_agent_price = aggregate_data.get('min_agent_price')
@@ -57,7 +58,8 @@ class Command(BaseCommand):
             if not first_product:
                 continue
             saleproduct = SaleProduct.objects.filter(id=first_product.sale_product).first()
-            productskus = ProductSku.objects.filter(product__model_id=mp.id, status=ProductSku.NORMAL)
+            productskus = ProductSku.objects.filter(product__model_id=mp.id, status=ProductSku.NORMAL,
+                                                    product__status=Product.NORMAL)
             aggregate_data = productskus.aggregate(min_agent_price=Min('agent_price'),
                                                    min_std_sale_price=Min('std_sale_price'))
             mp.lowest_agent_price = aggregate_data.get('min_agent_price')
