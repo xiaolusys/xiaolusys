@@ -240,7 +240,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
 
             visit_tab = MamaTabVisitStats.TAB_ORDER_CARRY
             task_mama_daily_tab_visit_stats.delay(mama_id, visit_tab)
-            logger.error('OrderCarryViewSet|mama_id:%s, type: %s' % (mama_id, visit_tab))
+            #logger.error('OrderCarryViewSet|mama_id:%s, type: %s' % (mama_id, visit_tab))
             
             return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
 
