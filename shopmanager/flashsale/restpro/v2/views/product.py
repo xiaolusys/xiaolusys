@@ -30,7 +30,7 @@ from flashsale.pay.models import (
     Customer
 )
 from flashsale.promotion.models import ActivityEntry
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.mmexam.models import DressProduct
 
 from flashsale.restpro.v1 import serializers
@@ -327,6 +327,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         product_ids = set(product_ids)
         shop_product_num = len(product_ids)
         xlmm = customer.get_charged_mama()
+
+        visit_tab = MamaTabVisitStats.TAB_CARRY_LIST
+        from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+        task_mama_daily_tab_visit_stats.delay(xlmm.id, visit_tab)
+
         from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
         next_agentinfo = xlmm.next_agencylevel_info()
         for pro in queryset:
