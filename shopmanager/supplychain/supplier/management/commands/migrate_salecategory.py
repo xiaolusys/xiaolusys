@@ -33,6 +33,6 @@ class Command(BaseCommand):
         logger.info('migrate salesupplier count:%s' % salesuppliers.count())
         salesuppliers.update(category_id=cat_tid)
 
-        modelproducts = ModelProduct.objects.filter(salecategory_id=69)
+        modelproducts = ModelProduct.objects.filter(salecategory_id=cat_fid)
         logger.info('migrate modelproduct count:%s' % modelproducts.count())
         modelproducts.update(salecategory_id=cat_tid)

@@ -23,12 +23,11 @@ from flashsale.pay.models import (
 )
 from flashsale.pay.models.favorites import Favorites
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
-from flashsale.xiaolumm.models import XiaoluMama
 from shopback.items.models import Product, ProductSku
 from shopback.categorys.models import ProductCategory
 from shopback.logistics.models import LogisticsCompany
 from shopback.trades.models import TradeWuliu, PackageOrder, ReturnWuLiu
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, ReferalRelationship
 from rest_framework import serializers
 from flashsale.restpro import constants
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
@@ -717,6 +716,32 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
         if obj.charge_status == XiaoluMama.CHARGED and obj.status == XiaoluMama.FROZEN and obj.last_renew_type == XiaoluMama.TRIAL:
             return True
         return False
+
+
+class RelationShipInfoSerialize(serializers.ModelSerializer):
+    nick = serializers.CharField(source='referal_to_mama_nick', read_only=True)
+    thumbnail = serializers.CharField(source='referal_to_mama_img', read_only=True)
+    award = serializers.SerializerMethodField('mama_award_info', read_only=True)
+    charge_time = serializers.DateTimeField(source='created', read_only=True)
+
+    class Meta:
+        model = ReferalRelationship
+        fields = ("id", "nick", 'thumbnail', "charge_time", "award")
+
+    def mama_award_info(self, obj):
+        return None
+
+
+class PotentialInfoSerialize(serializers.ModelSerializer):
+    award = serializers.SerializerMethodField('mama_award_info', read_only=True)
+    charge_time = serializers.DateTimeField(source='created', read_only=True)
+
+    class Meta:
+        model = PotentialMama
+        fields = ("id", "nick", 'thumbnail', "charge_time", "award")
+
+    def mama_award_info(self, obj):
+        return None
 
 
 class XiaoluMamaInfoSerialize(serializers.ModelSerializer):
