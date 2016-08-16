@@ -7,7 +7,7 @@ from rest_framework.decorators import detail_route, list_route
 from django.shortcuts import get_object_or_404
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.xiaolumm.models.rank import WeekMamaCarryTotal, WeekMamaTeamCarryTotal
-from flashsale.xiaolumm.serializers import WeekMamaCarryTotalSerializer, WeekMamaTeamCarryTotalSerializer, \
+from flashsale.xiaolumm.serializers.rank import WeekMamaCarryTotalSerializer, WeekMamaTeamCarryTotalSerializer, \
     WeekMamaCarryTotalDurationSerializer, WeekMamaTeamCarryTotalDurationSerializer
 import logging
 
