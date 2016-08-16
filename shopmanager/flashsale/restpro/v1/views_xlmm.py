@@ -28,7 +28,7 @@ from flashsale.pay.mixins import PayInfoMethodMixin
 from flashsale.pay.models import BudgetLog
 from flashsale.pay.models import Customer
 from flashsale.pay.models import SaleTrade
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, PotentialMama
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, PotentialMama, ReferalRelationship
 from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
 from shopback.items.models import Product, ProductSku
@@ -233,31 +233,24 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         last_renew_type = request.REQUEST.get("last_renew_type") or None
         if not last_renew_type:
             return Response([])
-        last_renew_type_map = {
-            "trial": [XiaoluMama.TRIAL],
-            "full": [XiaoluMama.HALF, XiaoluMama.FULL]
-        }
-        last_renew_types = last_renew_type_map[last_renew_type]
         currentmm = self.filter_queryset(self.get_owner_queryset(request)).first()
         if not currentmm:
             return Response([])
-        members = self.queryset.filter(referal_from=currentmm.mobile,
-                                       charge_status=XiaoluMama.CHARGED,
-                                       status=XiaoluMama.EFFECT)
         if last_renew_type == 'trial':
-            potential_mamas = PotentialMama.objects.filter(referal_mama=currentmm.id,
-                                                           is_full_member=False).values('potential_mama')
-            members = XiaoluMama.objects.filter(id__in=potential_mamas)
+            potential_mamas = PotentialMama.objects.filter(referal_mama=currentmm.id, is_full_member=False)
+            page = self.paginate_queryset(potential_mamas)
+            serializer = serializers.PotentialInfoSerialize(page, many=True)
+            if page is not None:
+                return self.get_paginated_response(serializer.data)
+            return Response(serializer.data)
+
         if last_renew_type == 'full':
-            members = members.filter(last_renew_type__in=last_renew_types)
-        page = self.paginate_queryset(members)
-        if page is not None:
-            serializer = serializers.XiaoluMamaInfoSerialize(page, many=True,
-                                                             context={'current_mm': currentmm})
-            return self.get_paginated_response(serializer.data)
-        serializer = serializers.XiaoluMamaInfoSerialize(members, many=True,
-                                                         context={'current_mm': currentmm})
-        return Response(serializer.data)
+            ships = ReferalRelationship.objects.filter(referal_from_mama_id=currentmm.id)
+            page = self.paginate_queryset(ships)
+            serializer = serializers.RelationShipInfoSerialize(page, many=True)
+            if page is not None:
+                return self.get_paginated_response(serializer.data)
+            return Response(serializer.data)
 
     def get_full_link(self, link):
         return urlparse.urljoin(settings.M_SITE_URL, link)
