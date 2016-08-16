@@ -107,7 +107,7 @@ class AgencyOrderRebetaScheme(models.Model):
             if key > payment: break
             real_index = index
 
-        if real_index >= -1:
+        if real_index >= 0:
             calc_payment = key_list[real_index]
             return carry_rules.get(str(calc_payment))
 
