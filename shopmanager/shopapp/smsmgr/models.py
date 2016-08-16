@@ -18,7 +18,9 @@ SMS_NOTIFY_BIRTH = 'birth'  # 生日祝福
 SMS_NOTIFY_VERIFY_CODE = 'code'  # 验证码
 SMS_NOTIFY_GOODS_LATER = 'later_send'  # 五天未发货
 SMS_NOTIFY_GOODS_LACK = 'goods_lack'  # 缺货通知
-SMS_NOTIFY_LACK_REFUND = 'lackrefund' #缺货退款通知
+SMS_NOTIFY_LACK_REFUND = 'lackrefund'  # 缺货退款通知
+SMS_NOTIFY_MAMA_ORDERCARRY = 'ordercarry'  # 小鹿妈妈订单收益
+SMS_NOTIFY_APP_UPDATE = 'appupdate'  # APP更新
 
 SMS_RECORD_STATUS = (
     (pcfg.SMS_CREATED, u'初始创建'),
@@ -42,6 +44,8 @@ def choice_sms_notify_type():
         (SMS_NOTIFY_GOODS_LATER, u'五天未发货'),
         (SMS_NOTIFY_GOODS_LACK, u'缺货通知'),
         (SMS_NOTIFY_LACK_REFUND, u'缺货退款通知'),
+        (SMS_NOTIFY_MAMA_ORDERCARRY, u'小鹿妈妈订单收益'),
+        (SMS_NOTIFY_APP_UPDATE, u'APP更新'),
     )
     return sms_notify_type
 
