@@ -533,7 +533,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         try:
             cart_discount += self.calc_extra_discount(pay_extras,**extra_params)
         except Exception, exc:
-            logger.warn({'code':3, 'message':exc.message, 'stype':'restpro.trade',
+            logger.warn({'code':3, 'message':exc, 'stype':'restpro.trade',
                          'user_agent': user_agent, 'tid':tuuid , 'data': '%s'%CONTENT})
             return Response({'code':3,'info':exc.message})
 
@@ -569,7 +569,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 if state:
                     self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         except Exception, exc:
-            logger.error({'code': 8, 'message': u'订单创建异常:%s'%exc.message, 'channel':channel, 'user_agent':user_agent,
+            logger.error({'code': 8, 'message': u'订单创建异常:%s'%exc, 'channel':channel, 'user_agent':user_agent,
                          'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT})
             return Response({'code': 8, 'info': u'订单创建异常'})
 
@@ -585,13 +585,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
         except IntegrityError,exc:
-            logger.error({'code': 9, 'message': u'订单重复提交:%s'%exc.message, 'channel':channel, 'user_agent':user_agent,
+            logger.error({'code': 9, 'message': u'订单重复提交:%s'%exc, 'channel':channel, 'user_agent':user_agent,
                          'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT}, exc_info=True)
             return Response({'code': 9, 'info': u'订单重复提交'})
         except Exception,exc:
-            logger.error({'code': 6, 'message': u'未知支付异常:%s'%exc.message, 'channel':channel, 'user_agent':user_agent,
+            logger.error({'code': 6, 'message': u'未知支付异常:%s'%exc, 'channel':channel, 'user_agent':user_agent,
                          'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT},exc_info=True)
-            return Response({'code':6, 'info':exc.message or u'未知支付异常'})
+            return Response({'code':6, 'info':str(exc) or u'未知支付异常'})
 
         return Response({'code':0, 'info':u'支付请求成功', 'channel':channel,
                          'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel},
