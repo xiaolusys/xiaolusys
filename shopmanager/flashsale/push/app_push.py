@@ -8,6 +8,7 @@ from flashsale.push.mipush import mipush_of_ios, mipush_of_android
 from flashsale.protocol import get_target_url
 from flashsale.push.models_message import PushMsgTpl
 from flashsale.protocol import constants as protocal_constants
+from shopapp.weixin.utils import get_mama_customer
 
 
 logger = logging.getLogger('service')
@@ -37,7 +38,7 @@ class AppPush(object):
         """
         有新的订单收益推送给小鹿妈妈
         """
-        customer = ordercarry.get_mama_customer()
+        customer = get_mama_customer(ordercarry.mama_id)
         target_url = get_target_url(protocal_constants.TARGET_TYPE_VIP_HOME)
         msgtpl = PushMsgTpl.objects.filter(id=5, is_valid=True).first()
 
