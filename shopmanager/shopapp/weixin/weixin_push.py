@@ -38,6 +38,8 @@ class WeixinPush(object):
             resp = self.mm_api.sendTemplate(mm_openid, template_id, to_url, template_data)
         elif temai_openid:
             resp = self.temai_api.sendTemplate(temai_openid, template_id, to_url, template_data)
+        else:
+            resp = None
 
         logger.info({
             'action': 'push.weixinpush',
