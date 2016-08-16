@@ -11,7 +11,7 @@ from rest_framework import viewsets, permissions, authentication, renderers
 from rest_framework.response import Response
 
 from flashsale.pay.models import Customer
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver, MamaVebViewConf
 from . import serializers
 
@@ -64,12 +64,12 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         queryset = self.queryset.filter(start_time__gte=yesetoday, start_time__lt=tomorrow)
         return queryset
 
-    def get_mama_link(self, request, model_id=None):
+    def get_mama_link(self, xlmm, model_id=None):
         """
         获取代理专属链接
         """
-        customer = Customer.objects.get(user=request.user)
-        xlmm = customer.get_charged_mama()
+        #customer = Customer.objects.get(user=request.user)
+        #xlmm = customer.get_charged_mama()
         if xlmm:
             if model_id:
                 return os.path.join(settings.M_SITE_URL,
@@ -85,6 +85,13 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
         statsd.incr('xiaolumm.ninepic_count')
 
+        customer = Customer.objects.get(user=request.user)
+        xlmm = customer.get_charged_mama()
+
+        from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+        task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
+        
+            
         advers = []
         now = datetime.datetime.now()
 
@@ -96,7 +103,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
                 if adver.detail_modelids:
                     model_ids = adver.detail_modelids.split(',')
                     model_id = random.choice(model_ids)
-                mama_link = self.get_mama_link(request, model_id=model_id)
+                mama_link = self.get_mama_link(xlmm, model_id=model_id)
 
                 adver.description = util_emoji.match_emoji(adver.description)
 

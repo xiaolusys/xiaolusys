@@ -22,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.cache.decorators import cache_response
 from flashsale.pay.models import GoodShelf, BrandProduct, Customer
 from flashsale.promotion.models import ActivityEntry
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.mmexam.models import DressProduct
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import CustomerShops, CuShopPros
@@ -628,6 +628,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
             agencylevel = xlmm.agencylevel
+            from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+            task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_CARRY_LIST)
         except XiaoluMama.DoesNotExist:
             pass
         # agencylevel = 2 #debug

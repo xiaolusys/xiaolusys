@@ -13,7 +13,7 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from shopback.items.models import Product
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.pay.models import Customer, CustomerShops, CuShopPros
 from flashsale.restpro import permissions as perms
 from . import serializers
@@ -46,7 +46,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def customer_shop(self, request):
-        decs = ['今天又上新啦！', '天天都有新款哦！', '上新啦赶快抢！']
+        decs = ['今天又上新品啦！', '天天都有新品哦！', '上新品啦赶快抢！']
         queryset = self.filter_queryset(self.get_owner_shop(request))
         mm_linkid = 44
         shop_info = None
@@ -57,6 +57,9 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
                 xlmm = customer.get_charged_mama()
                 if xlmm:
                     mm_linkid = xlmm.id
+                    from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
+                    task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_MAMA_SHOP)
+                    
             shop_info = model_to_dict(shop)
 
             link = '/mall/?mm_linkid={0}'.format(mm_linkid)
@@ -76,9 +79,9 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
                 first_pro_pic = customer.thumbnail
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = first_pro_pic  # customer.thumbnail  # 提供用户头像
-            shop_info['desc'] = '{0}の外贸店'.format(customer.nick) + random.choice(decs)
+            shop_info['desc'] = '{0}の精品店铺'.format(customer.nick) + random.choice(decs)
             shop_info['preview_shop_link'] = preview_link  # 预览链接
-            shop_info['name'] = '{0}の外贸店'.format(customer.nick)
+            shop_info['name'] = '{0}の精品店铺'.format(customer.nick)
             shop_info['first_pro_pic'] = first_pro_pic
 
         return Response({"shop_info": shop_info})

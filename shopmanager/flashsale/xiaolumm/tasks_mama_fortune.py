@@ -5,7 +5,7 @@ import logging
 from celery.task import task
 from django.db import IntegrityError
 from django.db.models import Sum, Count, F
-
+from common.utils import update_model_fields
 logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, \
@@ -201,13 +201,11 @@ def task_update_mamafortune_mama_level(mama_id):
     if total >= 1000:
         level = 4
 
-    mamas = MamaFortune.objects.filter(mama_id=mama_id)
-    if mamas.count() > 0:
-        mama = mamas[0]
+    mama = MamaFortune.objects.filter(mama_id=mama_id).first()
+    if mama:
         if mama.mama_level != level:
-            mamas.update(mama_level=level)
-            # mama.mama_level = level
-            # mama.save()
+            mama.mama_level = level
+            update_model_fields(mama, update_fields=['mama_level'])
     else:
         try:
             create_mamafortune_with_integrity(mama_id, mama_level=level)
