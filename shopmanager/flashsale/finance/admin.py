@@ -120,7 +120,7 @@ class BillAdmin(admin.ModelAdmin):
             worksheet.write(row, 5, bill.amount)
             worksheet.write(row, 6, bill.creater.username)
             worksheet.write(row, 7, bill.get_pay_method_display())
-            worksheet.write(row, 8, bill.created)
+            worksheet.write(row, 8, bill.created.strftime('%b-%d-%y %H:%M:%S'))
             worksheet.write(row, 9, bill.get_status_display())
             worksheet.write(row, 10, bill.note)
             row += 1
