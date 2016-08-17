@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='grouprelationship',
             name='status',
-            field=models.IntegerField(default=1, verbose_name='\u72b6\u6001', choices=[(1, b'Valid'), (2, b'Invalid')]),
+            field=models.IntegerField(default=1, db_index=True, verbose_name='\u72b6\u6001', choices=[(1, b'Valid'), (2, b'Invalid')]),
         ),
         migrations.AddField(
             model_name='referalrelationship',
@@ -42,6 +42,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='referalrelationship',
             name='status',
-            field=models.IntegerField(default=1, verbose_name='\u72b6\u6001', choices=[(1, b'Valid'), (2, b'Invalid')]),
+            field=models.IntegerField(default=1, db_index=True, verbose_name='\u72b6\u6001', choices=[(1, b'Valid'), (2, b'Invalid')]),
         ),
     ]

@@ -803,7 +803,7 @@ class ReferalRelationship(BaseModel):
     referal_to_mama_img = models.CharField(max_length=256, blank=True, verbose_name=u'被推荐者头像')
     order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
     referal_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=XiaoluMama.FULL, db_index=True, verbose_name=u"类型")
-    status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态')  # 已确定/取消
+    status = models.IntegerField(default=1, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')  # 已确定/取消
     
     class Meta:
         db_table = 'flashsale_xlmm_referal_relationship'
@@ -912,7 +912,7 @@ class GroupRelationship(BaseModel):
     member_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
     member_mama_img = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')
     referal_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=XiaoluMama.FULL, db_index=True, verbose_name=u"类型")
-    status = models.IntegerField(default=1, choices=ReferalRelationship.STATUS_TYPES, verbose_name=u'状态')  # 已确定/取消
+    status = models.IntegerField(default=1, choices=ReferalRelationship.STATUS_TYPES, db_index=True, verbose_name=u'状态')  # 已确定/取消
 
     class Meta:
         db_table = 'flashsale_xlmm_group_relationship'
