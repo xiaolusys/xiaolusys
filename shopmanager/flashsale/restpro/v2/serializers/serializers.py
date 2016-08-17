@@ -232,10 +232,17 @@ class UniqueVisitorSerializer(serializers.ModelSerializer):
 
 class XlmmFansSerializer(serializers.ModelSerializer):
     fans_nick = serializers.CharField(source='nick_display', read_only=True)
+    fans_mobile = serializers.SerializerMethodField(method_name='fans_mobile_display', read_only=True)
 
     class Meta:
         model = XlmmFans
-        fields = ('fans_nick', 'fans_thumbnail', 'fans_description', 'created')
+        fields = ('fans_nick', 'fans_thumbnail', 'fans_description', 'fans_mobile', 'created')
+
+    def fans_mobile_display(self, obj):
+        m = obj.getCustomer().mobile
+        if m.strip():
+            m = ''.join([m.strip()[0:3], '****', m.strip()[7::]])
+        return m
 
 
 class DailyStatsSerializer(serializers.ModelSerializer):
