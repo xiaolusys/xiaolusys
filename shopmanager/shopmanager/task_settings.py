@@ -45,7 +45,6 @@ CELERY_IMPORTS = (
 
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 # BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
-BROKER_URL = 'amqp://user1:passwd1@10.132.179.237:5672/vhost1'
 
 CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"  # "amqp"
 
