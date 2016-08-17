@@ -4,8 +4,8 @@ build:
     - TARGET=staging
   commands:
     - mkdir -p /data/log/django
-    - cd shopmanager;REDIS_AUTH=$$REDIS_AUTH python manage.py migrate --noinput
-    - REDIS_AUTH=$$REDIS_AUTH python manage.py test -t . --keepdb
+    - cd shopmanager;python manage.py migrate --noinput
+    - python manage.py test -t . --keepdb
   when:
     branch: [staging,alpha]
 publish:
