@@ -484,12 +484,6 @@ class BaseMamaTeamCarryTotal(BaseMamaCarryTotal):
         mama = XiaoluMama.objects.get(id=mama_id)
         return mama.get_team_member_ids()
 
-    @classmethod
-    def get_by_mama_id(cls, mama_id):
-        if not cls.objects.filter(mama_id=mama_id).exists():
-            return cls.generate(mama_id)
-        return cls.objects.filter(mama_id=mama_id).first()
-
 
 class MamaTeamCarryTotal(BaseMamaTeamCarryTotal):
     mama = models.OneToOneField(XiaoluMama, primary_key=True)
@@ -606,6 +600,12 @@ class MamaTeamCarryTotal(BaseMamaTeamCarryTotal):
         """
         for team in mama.teams.all():
             team.refresh_data()
+
+    @classmethod
+    def get_by_mama_id(cls, mama_id):
+        if not cls.objects.filter(mama_id=mama_id).exists():
+            return cls.generate(mama_id)
+        return cls.objects.filter(mama_id=mama_id).first()
 
     @staticmethod
     def get_ranking_list():
