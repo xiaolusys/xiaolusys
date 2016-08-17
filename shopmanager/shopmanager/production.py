@@ -64,7 +64,7 @@ CACHES = {
         }
     }
 }
-BROKER_URL = 'redis://%s%s/8'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
+BROKER_URL = 'redis://10.45.32.34:6379/8'
 
 import raven
 RAVEN_CONFIG = {
