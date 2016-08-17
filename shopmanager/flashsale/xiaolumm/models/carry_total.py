@@ -449,22 +449,6 @@ class BaseMamaTeamCarryTotal(BaseMamaCarryTotal):
         abstract = True
 
     @property
-    def total_rank(self):
-        return self.total_rank_delay if self.total_rank_delay else 0
-
-    @property
-    def duration_rank(self):
-        return self.duration_rank_delay if self.duration_rank_delay else 0
-
-    @property
-    def de_rank(self):
-        return self.de_rank_delay if self.de_rank_delay else 0
-
-    @property
-    def activite_rank(self):
-        return self.activite_rank_delay if self.activite_rank_delay else 0
-
-    @property
     def mama_ids(self):
         if not hasattr(self, '_mama_ids'):
             # self._mama_ids_ = MamaTeamCarryTotal.get_team_ids(self.mama_id)
@@ -518,6 +502,22 @@ class MamaTeamCarryTotal(BaseMamaTeamCarryTotal):
         if not hasattr(self, '_rank_'):
             return 0
         return self._rank_
+
+    @property
+    def total_rank(self):
+        return self.total_rank_delay if self.total_rank_delay else 0
+
+    @property
+    def duration_rank(self):
+        return self.duration_rank_delay if self.duration_rank_delay else 0
+
+    @property
+    def de_rank(self):
+        return self.de_rank_delay if self.de_rank_delay else 0
+
+    @property
+    def activite_rank(self):
+        return self.activite_rank_delay if self.activite_rank_delay else 0
 
     @staticmethod
     def move_other_stat_to_record():
