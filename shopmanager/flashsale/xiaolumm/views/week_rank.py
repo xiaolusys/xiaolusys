@@ -54,7 +54,7 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
                 stat_time = datetime.datetime.strptime(stat_time, '%Y%m%d')
             except:
                 raise exceptions.ValidationError(make_response(u'提供的统计时间不正确'))
-        top = WeekMamaCarryTotal.get_duration_ranking_list(stat_time, stat_time)[0:10]
+        top = WeekMamaCarryTotal.get_duration_ranking_list(stat_time)[0:10]
         return Response(WeekMamaCarryTotalDurationSerializer(top, many=True).data)
 
     @detail_route(methods=['GET'])
