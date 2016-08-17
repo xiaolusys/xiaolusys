@@ -415,7 +415,10 @@ def task_mama_daily_tab_visit_stats(mama_id, stats_tab):
 
     md = MamaDailyTabVisit.objects.filter(uni_key=uni_key).first()
     if not md:
-        md = MamaDailyTabVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,stats_tab=stats_tab)
-        md.save()
+        try:
+            md = MamaDailyTabVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,stats_tab=stats_tab)
+            md.save()
+        except IntegrityError as exc:
+            pass
     else:
         md.save(update_fields=['modified'])
