@@ -1607,7 +1607,7 @@ def task_orderdetail_update_orderlist(od):
             ol.save(update_fields=['updated'])
 
 
-@task()
+@task(max_retries=3, default_retry_delay=6)
 def task_purchasearrangement_update_purchasedetail(pa):
     # print "debug: %s" % utils.get_cur_info()
 
@@ -1620,11 +1620,14 @@ def task_purchasearrangement_update_purchasedetail(pa):
     uni_key = utils.gen_purchase_detail_unikey(pa)
     pd = PurchaseDetail.objects.filter(uni_key=uni_key).first()
     if not pd:
-        pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey, unit_price=unit_price,
-                            book_num=total, need_num=total)
-        fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
-        utils.copy_fields(pd, pa, fields)
-        pd.save()
+        try:
+            pd = PurchaseDetail(uni_key=uni_key, purchase_order_unikey=pa.purchase_order_unikey,
+                                unit_price=unit_price, book_num=total, need_num=total)
+            fields = ['outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
+            utils.copy_fields(pd, pa, fields)
+            pd.save()
+        except IntegrityError as exc:
+            raise task_purchasearrangement_update_purchasedetail.retry(exc=exc)
     else:
         if pd.is_open():
             if pd.book_num != total or pd.unit_price != unit_price:
@@ -1662,7 +1665,11 @@ def task_start_booking(pr):
 
     pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
     if not pa:
-        create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
+        try:
+            create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
+        except IntegrityError as exc:
+            # The record already exists (update by following sync events)
+            pass
     else:
         pa.num = pr.need_num
         pa.status = PurchaseRecord.EFFECT

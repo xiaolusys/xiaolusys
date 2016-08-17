@@ -51,6 +51,22 @@ class WeixinFans(models.Model):
             return None
 
 
+class WeixinTplMsg(models.Model):
+    """
+    """
+    wx_template_id = models.CharField(max_length=255, verbose_name=u'微信模板ID')
+    content = models.TextField(blank=True, null=True, verbose_name=u'模板内容')
+    header = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'模板消息头部')
+    footer = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'模板消息尾部')
+    status = models.BooleanField(default=True, verbose_name=u"使用")
+
+    class Meta:
+        db_table = 'shop_weixin_template_msg'
+        app_label = 'weixin'
+        verbose_name = u'微信模板消息'
+        verbose_name_plural = u'微信模板消息列表'
+
+
 from core.weixin import signals
 
 

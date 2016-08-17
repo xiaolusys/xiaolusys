@@ -10,7 +10,7 @@ logger = logging.getLogger('celery.handler')
 from flashsale.xiaolumm.models.models_fortune import ReferalRelationship, GroupRelationship, UniqueVisitor
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, PotentialMama
-
+from flashsale.xiaolumm import utils
 import sys
 
 
@@ -38,27 +38,39 @@ def task_update_referal_relationship(sale_order):
     # mamas.update(status=XiaoluMama.EFFECT, progress=XiaoluMama.PAY, charge_status=XiaoluMama.CHARGED)
     to_mama_id = mama.id  # 被推荐的妈妈id
 
-    extra = sale_trade.extras_info
-    mm_linkid = 0   # 推荐人妈妈id
-    if 'mm_linkid' in extra:
-        mm_linkid = int(extra['mm_linkid'] or '0')
+    mm_linkid = utils.get_sale_order_mama_id(sale_order)
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
 
     if not referal_mm:  # 没有推荐人　
         return
     if not referal_mm.is_relationshipable():  # 可以记录
         return
-    
+
+    referal_type = 0
+    if sale_order.is_99_deposit():
+        referal_type = XiaoluMama.HALF
+    elif sale_order.is_188_deposit():
+        referal_type = XiaoluMama.FULL
+    else:
+        return
+        
     mm_linkid = referal_mm.id
     logger.warn("%s: mm_linkid=%s, to_mama_id=%s" % (get_cur_info(), mm_linkid, to_mama_id))
 
     record = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id).first()
-    if record:  # 记录存在则不处理
+    if record:
+        if record.referal_type == XiaoluMama.HALF and record.order_id != sale_order.oid:
+            record.referal_type = XiaoluMama.FULL
+            record.order_id = sale_order.oid
+            record.save(update_fields=['referal_type', 'order_id', 'modified'])
         return
+    
     record = ReferalRelationship(referal_from_mama_id=mm_linkid,
                                  referal_to_mama_id=to_mama_id,
                                  referal_to_mama_nick=customer.nick,
-                                 referal_to_mama_img=customer.thumbnail)
+                                 referal_to_mama_img=customer.thumbnail,
+                                 referal_type=referal_type,
+                                 order_id=sale_order.oid)
     record.save()
 
 
@@ -71,7 +83,9 @@ def task_update_group_relationship(leader_mama_id, referal_relationship):
                                    referal_from_mama_id=referal_relationship.referal_from_mama_id,
                                    member_mama_id=referal_relationship.referal_to_mama_id,
                                    member_mama_nick=referal_relationship.referal_to_mama_nick,
-                                   member_mama_img=referal_relationship.referal_to_mama_img)
+                                   member_mama_img=referal_relationship.referal_to_mama_img,
+                                   referal_type=referal_relationship.referal_type,
+                                   status=referal_relationship.status)
 
         record.save()
 

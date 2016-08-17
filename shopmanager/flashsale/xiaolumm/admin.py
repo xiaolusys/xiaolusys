@@ -469,7 +469,7 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 
 class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'carry_description', 'contributor_nick',
-                    'contributor_img_html', 'contributor_mama_id', 'status', 'modified', 'created')
+                    'contributor_img_html', 'contributor_mama_id', 'status', 'date_field', 'modified', 'created')
     list_filter = ('status', 'carry_type', ('created', DateFieldListFilter))
     search_fields = ('=mama_id', '=contributor_nick',)
 
@@ -505,18 +505,18 @@ admin.site.register(ActiveValue, ActiveValueAdmin)
 
 
 class ReferalRelationshipAdmin(admin.ModelAdmin):
-    list_display = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'modified', 'created')
+    list_display = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'referal_type', 'status', 'modified', 'created')
     search_fields = ('referal_from_mama_id',)
-
+    list_filter = ('status', 'referal_type',)
 
 admin.site.register(ReferalRelationship, ReferalRelationshipAdmin)
 
 
 class GroupRelationshipAdmin(admin.ModelAdmin):
     list_display = (
-        'leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick', 'modified', 'created')
+        'leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick', 'referal_type', 'status', 'modified', 'created')
     search_fields = ('referal_from_mama_id', 'member_mama_id')
-
+    list_filter = ('status', 'referal_type',)
 
 admin.site.register(GroupRelationship, GroupRelationshipAdmin)
 

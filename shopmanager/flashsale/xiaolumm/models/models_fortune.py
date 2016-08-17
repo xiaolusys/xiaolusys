@@ -6,6 +6,7 @@ from django.db.models.signals import post_save
 from django.conf import settings
 import datetime, urlparse
 from core.fields import JSONCharMyField
+from flashsale.xiaolumm.models import XiaoluMama
 import logging
 
 logger = logging.getLogger('django.request')
@@ -795,11 +796,15 @@ class ReferalRelationship(BaseModel):
     """
     xiaolu mama referal relationship
     """
+    STATUS_TYPES = ((1, 'Valid'), (2, 'Invalid'))
     referal_from_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     referal_to_mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'被推荐妈妈id')
     referal_to_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'被推荐者昵称')
     referal_to_mama_img = models.CharField(max_length=256, blank=True, verbose_name=u'被推荐者头像')
-
+    order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
+    referal_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=XiaoluMama.FULL, db_index=True, verbose_name=u"类型")
+    status = models.IntegerField(default=1, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')  # 已确定/取消
+    
     class Meta:
         db_table = 'flashsale_xlmm_referal_relationship'
         app_label = 'xiaolumm'
@@ -906,6 +911,8 @@ class GroupRelationship(BaseModel):
     member_mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'成员妈妈id')
     member_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
     member_mama_img = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')
+    referal_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=XiaoluMama.FULL, db_index=True, verbose_name=u"类型")
+    status = models.IntegerField(default=1, choices=ReferalRelationship.STATUS_TYPES, db_index=True, verbose_name=u'状态')  # 已确定/取消
 
     class Meta:
         db_table = 'flashsale_xlmm_group_relationship'
