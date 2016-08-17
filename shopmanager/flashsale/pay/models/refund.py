@@ -469,13 +469,15 @@ def category_refund_stat(sender, obj, **kwargs):
 
 signal_saletrade_refund_post.connect(category_refund_stat, sender=SaleRefund)
 
-def check_SaleRefund_Status(sender, instance, created, **kwargs):
+
+def sync_sale_refund_status(sender, instance, created, **kwargs):
     # created 表示实例是否创建 （修改）
     # 允许抛出异常
     from .trade import SaleTrade, SaleOrder
     order = SaleOrder.objects.get(id=instance.order_id)
     trade = SaleTrade.objects.get(id=instance.trade_id)
     # 退款成功  如果是退款关闭要不要考虑？？？
+    order_update_fields = []
     if instance.status == SaleRefund.REFUND_SUCCESS:
         # 如果是退款成功状态
         # 找到订单
@@ -484,7 +486,7 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
         if refund_num == order_num:  # 退款数量等于订单数量
             # 关闭这个订单
             order.status = SaleOrder.TRADE_CLOSED  # 退款关闭
-            order.save()
+            order_update_fields.append('status')
         """ 判断交易状态 """
         orders = trade.sale_orders.all()
         flag_re = 0
@@ -503,7 +505,7 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
         order_num = order.num  # 订单数量
         if refund_num == order_num:  # 退款数量等于订单数量
             order.status = SaleOrder.TRADE_FINISHED  # 交易成功
-            order.save()
+            order_update_fields.append('status')
         """ 判断交易状态 """
         orders = trade.sale_orders.all()
         flag_re = 0
@@ -518,7 +520,11 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
 
     """ 同步退款状态到订单，这里至更新 退款的状态到订单的 退款状态字段 """
     order.refund_status = instance.status
-    order.save()  # 保存同步的状态
+    order_update_fields.append('refund_status')
+    if not order.refund_id:
+        order.refund_id = instance.id
+        order_update_fields.append('refund_id')
+    order.save(update_fields=order_update_fields)  # 保存同步的状态
 
 
-post_save.connect(check_SaleRefund_Status, sender=SaleRefund)
+post_save.connect(sync_sale_refund_status, sender=SaleRefund, dispatch_uid=u'post_save_sync_sale_refund_status')
