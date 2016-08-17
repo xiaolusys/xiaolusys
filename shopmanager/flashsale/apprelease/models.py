@@ -45,7 +45,7 @@ class AppRelease(BaseModel):
 
     @staticmethod
     def get_version_info(device_type, version_code):
-        ar = AppRelease.objects.filter(device_type=device_type,version_code=version_code,status=AppRelease.VALID).order_by('-created').first()
+        ar = AppRelease.objects.filter(device_type=device_type,version_code=version_code).order_by('-created').first()
         if ar:
             return ar.version.lower().strip('v')
         return ''
