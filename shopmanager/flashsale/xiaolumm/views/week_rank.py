@@ -87,10 +87,14 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
                 raise exceptions.ValidationError(make_response(u'提供的统计时间不正确'))
         if not stat_time:
             stat_time = WeekRank.this_week_time()
-        mama = WeekMamaCarryTotal.objects.get(pk=mama.id, stat_time=stat_time)
-        res = self.get_serializer(mama).data
+        wmama = WeekMamaCarryTotal.objects.filter(pk=mama.id, stat_time=stat_time).first()
+        if not wmama:
+            res = {'mama':mama.id, 'mama_nick': mama.nick, 'thumbnail':mama.thumbnail, 'total':0,
+                   'num': 0, 'total_display':'0', 'rank':0}
+            return Response(res)
+        res = self.get_serializer(wmama).data
         res['rank_add'] = 0
-        res['rank'] = mama.total_rank
+        res['rank'] = wmama.total_rank
         return Response(res)
 
     def retrieve(self, request, pk):
@@ -168,7 +172,12 @@ class WeekMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
             except:
                 raise exceptions.ValidationError(make_response(u'提供的统计时间不正确'))
         myteam = WeekMamaTeamCarryTotal.get_by_mama_id(mama.id, stat_time)
+        if not myteam:
+            res = {'mama':mama.id, 'mama_nick': mama.nick, 'thumbnail':mama.thumbnail, 'total':0,
+                   'num': 0, 'total_display':'0', 'rank':0}
+            return Response(res)
         return Response(self.get_serializer(myteam).data)
+
 
     @list_route(methods=['GET'])
     def carry_total_rank(self, request):
