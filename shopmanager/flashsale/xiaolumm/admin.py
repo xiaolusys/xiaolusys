@@ -686,8 +686,9 @@ class CarryTotalRecordAdmin(admin.ModelAdmin):
         'stat_time', "mama_id", 'duration_total', 'history_total',
         'history_num', 'duration_num', 'carry_records', 'total_rank', 'duration_rank'
     )
-    list_filter = ()
+    list_filter = ('stat_time', )
     search_fields = ("mama",)
+
 
 
 admin.site.register(CarryTotalRecord, CarryTotalRecordAdmin)

@@ -40,7 +40,7 @@ class MamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveMod
 
     @detail_route(methods=['GET'])
     def get_team_members(self, request, pk):
-        team = MamaTeamCarryTotal.get_by_mama_id(pk)
+        team = MamaTeamCarryTotal.get_by_mama_id(pk )
         records = MamaCarryTotal.objects.filter(mama_id__in=team.mama_ids)
         return Response(self.get_serializer(records, many=True).data)
 

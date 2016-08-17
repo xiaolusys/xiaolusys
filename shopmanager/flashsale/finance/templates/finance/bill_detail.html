@@ -87,7 +87,7 @@
                             <td>
                                 {% for item in relation_object.items %}
                                 {% if forloop.first %}
-                                <a href="{{item.object_url}}" target="_blank">{{item.bill.amount}}</a>
+                                <a href="{{item.object_url}}" target="_blank">{{item.bill_amount}}</a>
                                 {% else %}
                                 {% endif %}
                                 {% endfor %}
