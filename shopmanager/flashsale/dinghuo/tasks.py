@@ -1662,7 +1662,11 @@ def task_start_booking(pr):
 
     pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
     if not pa:
-        create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
+        try:
+            create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
+        except IntegrityError as exc:
+            # The record already exists (update by following sync events)
+            pass
     else:
         pa.num = pr.need_num
         pa.status = PurchaseRecord.EFFECT
