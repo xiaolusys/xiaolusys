@@ -520,6 +520,7 @@ def sync_sale_refund_status(sender, instance, created, **kwargs):
 
     """ 同步退款状态到订单，这里至更新 退款的状态到订单的 退款状态字段 """
     order.refund_status = instance.status
+    order_update_fields.append('refund_status')
     if not order.refund_id:
         order.refund_id = instance.id
         order_update_fields.append('refund_id')
