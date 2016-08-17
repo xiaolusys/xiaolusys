@@ -56,9 +56,7 @@ urlpatterns = patterns(
 )
 
 if settings.DEBUG == True:
-    import debug_toolbar
     urlpatterns += patterns('',
-        url(r'^__debug__/', include(debug_toolbar.urls)),
         (r'^static/(?P<path>.*)$', 'django.views.static.serve',
          {'document_root': settings.STATIC_DOC_ROOT}),
         (r'^media/(?P<path>.*)$', 'django.views.static.serve',
@@ -66,3 +64,8 @@ if settings.DEBUG == True:
         (r'^download/(?P<path>.*)$', 'django.views.static.serve',
          {'document_root': settings.DOWNLOAD_ROOT, 'show_indexes': True}),
     )
+    try:
+        import debug_toolbar
+        urlpatterns += patterns('', url(r'^__debug__/', include(debug_toolbar.urls)),)
+    except ImportError:
+        pass
