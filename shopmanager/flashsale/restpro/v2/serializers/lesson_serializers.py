@@ -35,7 +35,10 @@ class LessonTopicSerializer(serializers.ModelSerializer):
 
     def random_click_num(self, obj):
         """ 阅读人数(根据点击数量) """
-        return max(obj.click_num, random.choice(xrange(400, 5000)))
+        if obj.click_num > 400:
+            return obj.click_num
+        else:
+            return max(obj.click_num, obj.order_weight * 10 + obj.order_weight * 3)
 
 
 class LessonSerializer(serializers.ModelSerializer):

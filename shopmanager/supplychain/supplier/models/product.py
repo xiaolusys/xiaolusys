@@ -118,11 +118,12 @@ class SaleProduct(BaseTagModel):
         if not hasattr(self, '_product_total_figures_'):
             from statistics.models import ModelStats
             stats = ModelStats.objects.filter(sale_product=self.id)
-            agg = stats.aggregate(s_p=Sum('pay_num'), s_rg=Sum('return_good_num'))
+            agg = stats.aggregate(s_p=Sum('pay_num'), s_rg=Sum('return_good_num'), s_pm=Sum('payment'))
             p_n = agg['s_p']
             rg = agg['s_rg']
+            payment = agg['s_pm']
             rat = round(float(rg) / p_n, 4) if p_n > 0 else 0
-            self._product_total_figures_ = {'total_pay_num': p_n, 'total_rg_rate': rat}
+            self._product_total_figures_ = {'total_pay_num': p_n, 'total_rg_rate': rat, 'total_payment': payment}
         return self._product_total_figures_
 
 
