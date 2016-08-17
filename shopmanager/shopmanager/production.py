@@ -22,8 +22,14 @@ SITE_URL = 'http://admin.xiaolumm.com/'
 #######################  WAP AND WEIXIN CONFIG ########################
 M_SITE_URL = 'http://m.xiaolumeimei.com'
 
+MYSQL_HOST = 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = os.environ.get('MYSQL_AUTH')
+REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
+
+if os.environ.get('TARGET') == 'django18':
+    CELERY_ALWAYS_EAGER = True
+    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 if os.environ.get('INSTANCE') == 'mall':
     LOGIN_URL = '/mall/user/login'
@@ -35,7 +41,7 @@ DATABASES = {
         'NAME': 'xiaoludb',  # Or path to database file if using sqlite3.
         'USER': 'xiaoludba',  # Not used with sqlite3.
         'PASSWORD': MYSQL_AUTH,  # Not used with sqlite3.
-        'HOST': 'rdsvrl2p9pu6536n7d99.mysql.rds.aliyuncs.com',
+        'HOST': MYSQL_HOST,
     # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
         'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
         'OPTIONS': {'init_command': 'SET storage_engine=Innodb;',
@@ -45,7 +51,7 @@ DATABASES = {
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379',
+        'LOCATION': REDIS_HOST,
         'OPTIONS': {
             'DB': 1,
             'PASSWORD': REDIS_AUTH,
@@ -58,7 +64,7 @@ CACHES = {
         }
     }
 }
-BROKER_URL = 'redis://:%s@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/2'%REDIS_AUTH
+BROKER_URL = 'redis://%s%s/8'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
 
 import raven
 RAVEN_CONFIG = {

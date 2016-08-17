@@ -84,7 +84,7 @@ MIDDLEWARE_CLASSES = (
     'core.middleware.middleware.AttachContentTypeMiddleware',
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
     'core.middleware.middleware.DisableDRFCSRFCheck',
-    'core.middleware.middleware.XSessionMiddleware',
+    # 'core.middleware.middleware.XSessionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
