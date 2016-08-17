@@ -543,21 +543,18 @@ def update_memo(request):
         return HttpResponse(json.dumps({"res": False, "data": ["添加备注失败"], "desc": str(msg)}))
     return HttpResponse(json.dumps({"res": True, "data": [memo], "desc": ""}))
 
+
 def refund_fee(request):
     content = request.REQUEST
     sale_order = int(content.get("sale_order_id", None))
-    refund_fee = float(content.get("refund_fee", None))
-    return_goods_info = {}
     sale_order = get_object_or_404(SaleOrder, id=sale_order)  # 退款sale_order对象
-    refund_info = {"return_good": False, "refund_fee": refund_fee, "reason": "", "desc": ""}
 
-    if sale_order.status != sale_order.__class__.WAIT_SELLER_SEND_GOODS:  # 状态为已付款
+    if sale_order.status != SaleOrder.WAIT_SELLER_SEND_GOODS:  # 状态为已付款
         logger.error("交易状态不是已付款状态")
         return HttpResponse("交易状态不是已付款状态")
 
     sale_trader = sale_order.sale_trade  # 退款sale_trade对象
     reason = ' '  # 退款理由
-    refund_num = None  # 退款件数
     # 在saleorder订单状态为已经付款情况下，生成退款单salerefund，把退款单id 退款和退款状态赋值给sale_order中的三个字段
     try:
         s = SaleRefund(
@@ -579,24 +576,14 @@ def refund_fee(request):
             title=sale_order.title,
             reason=reason,
             good_status=SaleRefund.SELLER_OUT_STOCK,
-            status=SaleRefund.REFUND_WAIT_SELLER_AGREE,
-        )
+            status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
         s.save()
-        sale_order.refund_id = s.id
-        sale_order.refund_fee = s.refund_fee
-        sale_order.refund_status = s.status
-        sale_order.save()
-        log_action(request.user, sale_order, CHANGE, 'SaleOrder订单退款')
         log_action(request.user, s, CHANGE, 'SaleRefund退款单创建')
+        sale_order.refund_id = s.id
+        sale_order.refund_fee = sale_order.payment
+        sale_order.save(update_fields=['refund_id', 'refund_fee'])
+        log_action(request.user, sale_order, CHANGE, 'SaleOrder订单退款')
         return HttpResponse(True)
     except Exception, exc:
         logger.error('gen_out_stock_refund: %s.' % exc.message)
         return HttpResponse("生成退款单出错！")
-
-    #s = SaleRefund.gen_out_stock_refund(sale_order_id)
-
-    # if s == True:
-    #     return  HttpResponse(True)
-    # else:
-    #     return HttpResponse(s)
-
