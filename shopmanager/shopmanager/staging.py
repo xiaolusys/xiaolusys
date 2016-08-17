@@ -28,7 +28,8 @@ CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 MYSQL_HOST = 'rm-bp17ea269uu21f9i1.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = 'Xiaolu_test123'
 REDIS_HOST = '10.45.32.34:6379'
-REDIS_AUTH = os.environ.get('REDIS_AUTH')
+# REDIS_AUTH = os.environ.get('REDIS_AUTH')
+REDIS_AUTH = ''
 
 DATABASES = {
     'default': {
