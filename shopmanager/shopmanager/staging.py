@@ -27,7 +27,7 @@ CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 MYSQL_HOST = 'rm-bp17ea269uu21f9i1.mysql.rds.aliyuncs.com'
 MYSQL_AUTH = 'Xiaolu_test123'
-REDIS_HOST = '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379'
+REDIS_HOST = '10.45.32.34:6379'
 REDIS_AUTH = os.environ.get('REDIS_AUTH')
 
 DATABASES = {
@@ -54,7 +54,7 @@ CACHES = {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': REDIS_HOST,
         'OPTIONS': {
-            'DB': 9,
+            'DB': 11,
             'PASSWORD': REDIS_AUTH,
             # 'PARSER_CLASS': 'redis.connection.HiredisParser',
             'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
@@ -66,7 +66,7 @@ CACHES = {
     }
 }
 
-BROKER_URL = 'redis://%s%s/8'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
+BROKER_URL = 'redis://%s%s/18'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
 import raven
 RAVEN_CONFIG = {
     'dsn': 'http://2d63e1b731cd4e53a32b0bc096fd3566:a38d367f2c644d81b353dabfbb941070@sentry.xiaolumm.com/4',
