@@ -1,3 +1,4 @@
+# -*- encoding:utf-8 -*-
 
 def get_sale_order_mama_id(sale_order):
     sale_trade = sale_order.sale_trade
