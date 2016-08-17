@@ -192,17 +192,17 @@ award_carry_array188 = [[0, 0], [1, 3000], [4, 4000], [8, 5000], [21, 7000], [41
 group_carry_array = [[0, 0], [50, 1000], [200, 1500], [500, 2000], [1000, 3000]]
 
 
-def get_award_carry_num(num, last_renew_type):
+def get_award_carry_num(num, referal_type):
     """
     find out award_num
-    last_renew_type：　被邀请人最后付费类型
+    referal_type：　邀请类型
     """
     idx = 0
     carry_map = {
         XiaoluMama.HALF: award_carry_array99,
         XiaoluMama.FULL: award_carry_array188
     }
-    award_carry_array = carry_map[last_renew_type]
+    award_carry_array = carry_map[referal_type]
     for entry in award_carry_array:
         if num < entry[0]:
             break
@@ -221,17 +221,23 @@ def get_group_carry_num(num):
 
 @task()
 def task_referal_update_awardcarry(relationship):
-    print "%s, mama_id: %s" % (get_cur_info(), relationship.referal_from_mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), relationship.referal_from_mama_id)
     from_mama_id = relationship.referal_from_mama_id
     to_mama_id = relationship.referal_to_mama_id
 
     uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
 
-    award_carrys = AwardCarry.objects.filter(uni_key=uni_key)
-    if award_carrys.count() <= 0:
-        records = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id)
-        to_mama = XiaoluMama.objects.filter(id=to_mama_id).first()  # 被邀请人
-        carry_num = get_award_carry_num(records.count(), to_mama.last_renew_type)
+    records = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id)
+    carry_num = get_award_carry_num(records.count(), relationship.referal_type)    
+    
+    award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
+    if award_carry and award_carry.carry_num < carry_num:
+        award_carry.carry_num = carry_num
+        award_carry.date_field = relationship.modified.date()
+        award_carry.save(update_fields=['carry_num', 'date_field', 'modified'])
+        return
+    
+    if not award_carry:
         carry_type = 1  # direct referal
         date_field = relationship.created.date()
         status = 2  # confirmed
