@@ -23,7 +23,7 @@ from common.utils import (parse_datetime,
 from flashsale.pay.models import SaleTrade
 from flashsale import pay
 import logging
-from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_THIRD, WARE_CHOICES
 
 logger = logging.getLogger('django.request')
 
@@ -1701,10 +1701,14 @@ class PackageOrder(models.Model):
     @staticmethod
     def gen_new_package_id(buyer_id, address_id, ware_by_id):
         id = str(buyer_id) + '-' + str(address_id) + '-' + str(ware_by_id)
-        now_num = PackageStat.get_sended_package_num(id) + 1
+        if ware_by_id == WARE_THIRD:
+            now_num = PackageStat.get_package_num(id) + 1
+        else:
+            now_num = PackageStat.get_sended_package_num(id) + 1
         # pstat = PackageStat.objects.get_or_create(id=id)[0]
         # now_num = pstat.num + 1
         res = id + '-' + str(now_num)
+
         while True:
             if PackageOrder.objects.filter(id=res, sys_status__in=
             [PackageOrder.FINISHED_STATUS, PackageOrder.WAIT_CUSTOMER_RECEIVE]).exists():
@@ -1743,6 +1747,11 @@ class PackageStat(models.Model):
         app_label = 'trades'
         verbose_name = u'包裹发送计数'
         verbose_name_plural = u'包裹发送计数列表'
+
+    @staticmethod
+    def get_package_num(package_stat_id):
+        return PackageOrder.objects.filter(id__contains=package_stat_id + '-',
+                                           sys_status__nin=[PackageOrder.PKG_NEW_CREATED]).count()
 
     @staticmethod
     def get_sended_package_num(package_stat_id):
@@ -1798,7 +1807,6 @@ class PackageSkuItem(BaseModel):
 
     ware_by = models.IntegerField(default=WARE_SH, choices=WARE_CHOICES,
                                   db_index=True, verbose_name=u'所属仓库')
-
     assign_status = models.IntegerField(choices=ASSIGN_STATUS, default=NOT_ASSIGNED, db_index=True, verbose_name=u'状态')
     status = models.CharField(max_length=32, choices=TAOBAO_ORDER_STATUS, blank=True, verbose_name=u'订单状态')
     sys_status = models.CharField(max_length=32,

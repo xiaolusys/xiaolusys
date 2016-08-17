@@ -176,7 +176,6 @@ class Bill(BaseModel):
             objects[bill_relation.get_type_display()].append(bill_relation)
         return objects
 
-
     def is_finished(self):
         return self.status == Bill.STATUS_COMPLETED
 

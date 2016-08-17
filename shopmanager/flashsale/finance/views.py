@@ -18,7 +18,7 @@ class BillViewSet(viewsets.GenericViewSet):
     permissions_classes = (permissions.IsAuthenticated,)
 
     @detail_route(methods=['get'])
-    def bill_detail(self, request, pk):
+    def bill_detail(self, request, pk, format='html'):
         bill = Bill.objects.get(id=pk)
         deal = False
         confirm = False
@@ -37,7 +37,7 @@ class BillViewSet(viewsets.GenericViewSet):
         if bill.status == 2:
             bill_status = False
 
-        ro = [{'name':k, 'items':v} for k,v in bill.relation_objects.iteritems()]
+        ro = [{'name':k, 'items':[{'object_id':br.object_id, 'bill_amount':br.bill.amount, 'object_url':br.object_url()} for br in v]} for k,v in bill.relation_objects.iteritems()]
         # for i in ro:
         #     i['items'] = i['items'][0]
         # ro = {'a':1,'b':2,'c':3}
