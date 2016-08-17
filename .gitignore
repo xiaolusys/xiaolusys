@@ -35,4 +35,4 @@ local_settings.py
 ve/
 .DS_Store
 env/
-.tag*
+.tags*
