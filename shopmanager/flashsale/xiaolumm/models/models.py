@@ -19,7 +19,7 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm import ccp_schema
 from flashsale.xiaolumm import constants
-from flashsale.xiaolumm.models.models_fortune import MamaFortune
+
 from django.db.models.signals import post_save
 
 import logging
@@ -523,6 +523,7 @@ class XiaoluMama(models.Model):
 
     @property
     def mama_fortune(self):
+        from flashsale.xiaolumm.models import MamaFortune
         if not hasattr(self, '_mama_fortune_'):
             self._mama_fortune_ = MamaFortune.objects.filter(mama_id=self.id).first()
         return self._mama_fortune_
