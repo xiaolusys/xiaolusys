@@ -13,7 +13,10 @@ from flashsale.xiaolumm.models.rank import WeekRank, WeekMamaCarryTotal, WeekMam
 from flashsale.xiaolumm.serializers.rank import WeekMamaCarryTotalSerializer, WeekMamaTeamCarryTotalSerializer, \
     WeekMamaCarryTotalDurationSerializer, WeekMamaTeamCarryTotalDurationSerializer
 import logging
-
+from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
+from flashsale.xiaolumm.serializers import MamaCarryTotalSerializer, ActivityMamaCarryTotalSerializer,\
+    MamaTeamCarryTotalSerializer, ActivityMamaTeamCarryTotalSerializer, MamaCarryTotalDurationSerializer, \
+    MamaTeamCarryTotalDurationSerializer
 log = logging.getLogger('django.request')
 
 
@@ -90,6 +93,56 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
         res['rank'] = mama.total_rank
         return Response(res)
 
+    def retrieve(self, request, pk):
+        mama = get_object_or_404(WeekMamaCarryTotal, mama_id=pk)
+        res = self.get_serializer(mama).data
+        res['rank_add'] = 0
+        res['rank'] = mama.total_rank
+        return Response(res)
+    #-------------------------------------------仅仅为了以前的排名页面不要挂掉----------------------------
+
+    @detail_route(methods=['GET'])
+    def activity(self, request, pk):
+        res = ActivityMamaCarryTotalSerializer(MamaCarryTotal.objects.get(pk=pk)).data
+        return Response(res)
+
+    @list_route(methods=['GET'])
+    def activity_carry_total_rank(self, request):
+        top = MamaCarryTotal.get_activity_ranking_list()[0:100]
+        res = ActivityMamaCarryTotalSerializer(top, many=True).data
+        # 前台html已经提交了 只好适应一下补两句代码
+        top = list(top)
+        for t in top:
+            res[top.index(t)]['rank'] = t.activite_rank
+            res[top.index(t)]['duration_num'] = t.duration_num + t.expect_num
+            res[top.index(t)]['duration_total'] = t.duration_total + t.expect_total
+            res[top.index(t)]['duration_total_display'] = float('%.2f' % (res[top.index(t)]['duration_total'] * 0.01))
+        return Response(res)
+
+    @list_route(methods=['GET'])
+    def activity_self_rank(self, request):
+        if request.user.is_anonymous():
+            raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
+        mama = request.user.customer.getXiaolumm()
+        if not mama:
+            raise exceptions.ValidationError(u'用户未登录或并非小鹿妈妈')
+        mama_carry = MamaCarryTotal.objects.get(pk=mama.id)
+        res = ActivityMamaCarryTotalSerializer(mama_carry).data
+        res['rank'] = mama_carry.activite_rank
+        res['rank_add'] = 0
+        team = MamaTeamCarryTotal.objects.get(pk=mama_carry.mama_id)
+        res['recommended_quantity'] = len(mama.get_invite_potential_mama_ids())
+        res['team_total'] = team.expect_total
+        res['team_rank'] = team.activite_rank
+        res['team_total_display'] = float('%.2f' % (team.expect_total * 0.01))
+        res['duration_total'] = mama_carry.duration_total + mama_carry.expect_total
+        res['duration_total_display'] = float('%.2f' % (mama_carry.expect_total * 0.01))
+        res['team_num'] = team.duration_num
+        res['activite_num'] = len(mama.get_active_invite_potential_mama_ids())
+        # res['invitate_num'] = 0
+        return Response(res)
+
+
 
 class WeekMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin,
                                     viewsets.mixins.ListModelMixin):
@@ -157,6 +210,44 @@ class WeekMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
             except:
                 raise exceptions.ValidationError(make_response(u'提供的统计时间不正确'))
         mama = get_object_or_404(XiaoluMama, pk=pk)
-        res = self.get_serializer(WeekMamaTeamCarryTotal.get_by_mama_id(mama.id, stat_time)).data
+        wmm = WeekMamaTeamCarryTotal.get_by_mama_id(mama.id, stat_time)
+        if not wmm:
+            raise exceptions.ValidationError(make_response(u'用户未参与团队妈妈排名'))
+        res = self.get_serializer(wmm).data
         res['rank_add'] = WeekMamaTeamCarryTotal.get_rank_add(pk)
+        return Response(res)
+
+    # -------------------------------------为了以前的不挂---------------------------------------------------------------------
+
+    @list_route(methods=['GET'])
+    def carry_duration_total_rank(self, request):
+        top = MamaTeamCarryTotal.get_duration_ranking_list()[0:100]
+        return Response(MamaTeamCarryTotalDurationSerializer(top, many=True).data)
+
+    @detail_route(methods=['GET'])
+    def activity(self, request, pk):
+        res = ActivityMamaTeamCarryTotalSerializer(MamaTeamCarryTotal.get_by_mama_id(pk)).data
+        return Response(res)
+
+    @list_route(methods=['GET'])
+    def activity_self_rank(self, request):
+        if request.user.is_anonymous():
+            raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
+        mama = request.user.customer.getXiaolumm()
+        if not mama:
+            raise exceptions.ValidationError(u'用户未登录或并非小鹿妈妈')
+        myteam = MamaTeamCarryTotal.get_by_mama_id(mama.id)
+        return Response(ActivityMamaTeamCarryTotalSerializer(myteam).data)
+
+    @list_route(methods=['GET'])
+    def activity_carry_total_rank(self, request):
+        top = MamaTeamCarryTotal.get_activity_ranking_list()[0:100]
+        res = ActivityMamaTeamCarryTotalSerializer(top, many=True).data
+        # 前台html已经提交了 只好适应一下补两句代码
+        top = list(top)
+        for t in top:
+            res[top.index(t)]['rank'] = t.activite_rank
+            res[top.index(t)]['duration_num'] = t.expect_num
+            res[top.index(t)]['duration_total'] = t.expect_total
+            res[top.index(t)]['duration_total_display'] = float('%.2f' % (t.expect_total * 0.01))
         return Response(res)
