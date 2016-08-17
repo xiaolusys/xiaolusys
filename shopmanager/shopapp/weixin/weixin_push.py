@@ -2,7 +2,10 @@
 import logging
 from django.conf import settings
 from shopapp.weixin.weixin_apis import WeiXinAPI
-from shopapp.weixin.models_base import WeixinFans
+from shopapp.weixin.models_base import (
+    WeixinFans,
+    WeixinTplMsg,
+)
 from shopapp.weixin import utils
 from shopapp.smsmgr.sms_push import SMSPush
 
@@ -60,9 +63,14 @@ class WeixinPush(object):
         """
         customer = saletrade.order_buyer
         template_id = 'K3R9wpw_yC2aXEW1PP6586l9UhMjXMwn_-Is4xcgjuA'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
+
         template_data = {
             'first': {
-                'value': u'公主殿下%s，您的订单已支付成功。' % customer.nick,
+                'value': template.header.format(customer.nick).decode('string_escape'),
                 'color': '#000000',
             },
             'orderMoneySum': {
@@ -74,7 +82,7 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'Remark': {
-                'value': u'\n打开小鹿美美App，订单详情有现金红包可以领取哦！',
+                'value': template.footer.decode('string_escape'),
                 'color': '#000000',
             },
         }
@@ -101,9 +109,14 @@ class WeixinPush(object):
             saletrade.receiver_mobile,
         )
         template_id = 'ioBWcEsY40yg3NAQPnzE4LxfuHFFS20JnnAlVr96LXs'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
+
         template_data = {
             'first': {
-                'value': u'公主殿下%s，您的商品已发货！' % customer.nick,
+                'value': template.header.format(customer.nick).decode('string_escape'),
                 'color': '#000000',
             },
             'orderProductPrice': {
@@ -123,7 +136,7 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'remark': {
-                'value': u'\n请到小鹿美美App查看订单物流，还有现金红包可以分享领取哦！',
+                'value': template.footer.decode('string_escape'),
                 'color': '#000000',
             },
         }
@@ -140,9 +153,14 @@ class WeixinPush(object):
         """
         customer = salerefund.get_refund_customer()
         template_id = 'S9cIRfdDTM9yKeMTOj-HH5FPw79OofsfK6G4VRbKYQQ'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
+
         template_data = {
             'first': {
-                'value': u'公主殿下%s，您购买的商品「%s」已经退款。' % (customer.nick, salerefund.title),
+                'value': template.header.format(customer.nick, salerefund.title).decode('string_escape'),
                 'color': '#000000',
             },
             'reason': {
@@ -150,11 +168,11 @@ class WeixinPush(object):
                 'color': '#c0392b',
             },
             'refund': {
-                'value': salerefund.refund_fee,
+                'value': u'¥%.2f' % salerefund.refund_fee,
                 'color': '#c0392b',
             },
             'remark': {
-                'value': u'\n小鹿美美App，健康美丽从这里开始！',
+                'value': template.footer.decode('string_escape'),
                 'color': '#000000',
             },
         }
@@ -204,7 +222,7 @@ class WeixinPush(object):
 
         return self.push(customer, template_id, template_data, to_url)
 
-    def push_mama_ordercarry(self, ordercarry, remarks, to_url):
+    def push_mama_ordercarry(self, ordercarry, to_url):
         """
         {{first.DATA}}
         收益金额：{{keyword1.DATA}}
@@ -231,9 +249,14 @@ class WeixinPush(object):
             return
 
         template_id = 'jorNMI-K3ewxBXHTgTKpePCF6yn5O5oLZK6azNNoWK4'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
+
         template_data = {
             'first': {
-                'value': u'女王大人, 小鹿美美App报告：您有一笔新订单啦！',
+                'value': template.header.decode('string_escape'),
                 'color': '#F87217',
             },
             'keyword1': {
@@ -249,14 +272,14 @@ class WeixinPush(object):
                 'color': '#000000',
             },
             'remark': {
-                'value': remarks,
+                'value': template.footer.format(ordercarry.contributor_nick).decode('string_escape'),
                 'color': '#F87217',
             },
         }
 
         return self.push(customer, template_id, template_data, to_url)
 
-    def push_mama_update_app(self, mama_id, user_version, latest_version, remarks, to_url):
+    def push_mama_update_app(self, mama_id, user_version, latest_version, to_url):
         """
         {{first.DATA}}
         系统名称：{{keyword1.DATA}}
@@ -272,9 +295,14 @@ class WeixinPush(object):
             return
 
         template_id = 'l9QBpAojbpQmFIRmhSN4M-eQDzkw76yBpfrYcBoakK0'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
+
         template_data = {
             'first': {
-                'value': u'小鹿美美App：新版已发布，妈妈们请尽快更新！',
+                'value': template.header.decode('string_escape'),
                 'color': '#4CC417',
             },
             'keyword1': {
@@ -286,7 +314,7 @@ class WeixinPush(object):
                 'color': '#ff0000',
             },
             'remark': {
-                'value': remarks,
+                'value': template.footer.decode('string_escape'),
                 'color': '#4CC417',
             },
         }

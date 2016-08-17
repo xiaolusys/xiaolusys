@@ -77,10 +77,9 @@ def task_weixin_push_ordercarry(ordercarry):
     from shopapp.weixin.weixin_push import WeixinPush
     wp = WeixinPush()
 
-    remarks = u"来自好友%s，快打开App看看她买了啥～" % ordercarry.contributor_nick
     to_url = "http://m.xiaolumeimei.com/sale/promotion/appdownload/"
 
-    wp.push_mama_ordercarry(ordercarry, remarks, to_url)
+    wp.push_mama_ordercarry(ordercarry, to_url)
 
 
 @task
@@ -97,10 +96,9 @@ def task_weixin_push_update_app(app_visit):
     wp = WeixinPush()
 
     mama_id = app_visit.mama_id
-    remarks = u"新版更快更流畅，请打开App检查更新，或直接点击下载更新！"
     to_url = "http://m.xiaolumeimei.com/sale/promotion/appdownload/"
 
-    wp.push_mama_update_app(mama_id, user_version, latest_version, remarks, to_url)
+    wp.push_mama_update_app(mama_id, user_version, latest_version, to_url)
 
 
 @task
