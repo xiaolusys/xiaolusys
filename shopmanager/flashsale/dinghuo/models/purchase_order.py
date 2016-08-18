@@ -200,7 +200,8 @@ class OrderList(models.Model):
     purchase_total_num = models.IntegerField(default=0, verbose_name=u'订购总件数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
 
-    purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'订货单标识')
+    third_package = models.BooleanField(default=False, verbose_name=u'第三方发货')
+    purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'订货单生成标识')
     order_group_key = models.CharField(max_length=128, db_index=True, blank=True, verbose_name=u'订货单分组键')
 
     class Meta:
@@ -235,16 +236,14 @@ class OrderList(models.Model):
         return buyer_name
 
     def is_open(self):
-        return self.status == OrderList.SUBMITTING
+        return self.stage == OrderList.STAGE_DRAFT
 
     def is_booked(self):
-        return self.status != OrderList.SUBMITTING and \
-               self.status != OrderList.COMPLETED and \
-               self.status != OrderList.ZUOFEI and \
-               self.status != OrderList.CLOSED
+        return self.stage not in [OrderList.STAGE_DRAFT, OrderList.STAGE_COMPLETED, OrderList.STAGE_DELETED,
+                              OrderList.STAGE_STATE]
 
     def is_finished(self):
-        return self.status == OrderList.COMPLETED or self.status == OrderList.CLOSED
+        return self.stage in [OrderList.STAGE_STATE, OrderList.STAGE_COMPLETED]
 
     def is_canceled(self):
         return self.status == OrderList.ZUOFEI
@@ -337,6 +336,13 @@ class OrderList(models.Model):
             self._related_inferior_inbound_details_ = InBoundDetail.objects.filter(
                 inbound_id__in=self.get_inbound_ids(), inferior_quantity__gt=0)
         return self._related_inferior_inbound_details_
+
+    def begin_third_package(self):
+        for od in self.order_list.all():
+            od.arrival_quantity = od.buy_quantity
+            od.arrival_time = datetime.datetime.now()
+            od.save()
+        self.set_stage_state()
 
     def get_related_inbounds_out_stock_cnt(self):
         return sum([d.out_stock_num for d in self.related_out_stock_inbound_details])

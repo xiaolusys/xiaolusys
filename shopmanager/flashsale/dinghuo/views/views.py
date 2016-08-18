@@ -1,37 +1,41 @@
 # coding:utf-8
-import copy
 import datetime
 import json
-from operator import itemgetter
 import re
-import sys
 import time
+from operator import itemgetter
+from cStringIO import StringIO
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import F, Q, Sum, Count
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseRedirect
-from django.utils.safestring import mark_safe
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, renderers, viewsets
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
-from flashsale.dinghuo import paramconfig as pcfg
+from rest_framework import exceptions
 from core.options import log_action, ADDITION, CHANGE
+from core.utils.csvutils import CSVUnicodeWriter
+from core.xlmm_response import make_response, SUCCESS_RESPONSE
+from core import xlmm_rest_exceptions
+from flashsale.dinghuo import paramconfig as pcfg
 from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
                                       OrderDetailInBoundDetail,
-                                      ReturnGoods, RGDetail,
+                                      RGDetail,
                                       SupplyChainDataStats)
 from shopback.archives.models import DepositeDistrict
-from shopback.items.models import Product, ProductSku, ProductStock, ProductLocation
 from shopback.categorys.models import ProductCategory
+from shopback.items.models import Product, ProductSku, ProductStock, ProductLocation
+from shopback.warehouse import WARE_CHOICES
+from shopback.trades.models import PackageSkuItem, PackageOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier
-from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from .. import forms, functions, functions2view, models
 
 
@@ -700,7 +704,7 @@ class StatsByProductIdView(View):
                                   context_instance=RequestContext(request))
 
 
-from flashsale.dinghuo.models_user import MyUser, MyGroup
+from flashsale.dinghuo.models_user import MyUser
 from django.db import connection
 
 
@@ -904,7 +908,7 @@ class PendingDingHuoViewSet(viewsets.GenericViewSet):
 
 
 class DingHuoOrderListViewSet(viewsets.GenericViewSet):
-    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
+    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer, renderers.BrowsableAPIRenderer)
     permission_classes = (permissions.IsAuthenticated,)
     queryset = models.OrderList.objects.all()
 
@@ -1084,31 +1088,31 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         orderlist = get_object_or_404(OrderList, id=pk)
         pay_way = request.REQUEST.get("pay_way", None)
         plan_amount = request.REQUEST.get("money", None)
-        transcation_no = request.REQUEST.get("transcation_no",None)
-        receive_account = request.REQUEST.get("receive_account",None)
-        receive_name = request.REQUEST.get("receive_name",None)
-        pay_taobao_link = request.REQUEST.get("pay_taobao_link",None)
+        transcation_no = request.REQUEST.get("transcation_no", None)
+        receive_account = request.REQUEST.get("receive_account", None)
+        receive_name = request.REQUEST.get("receive_name", None)
+        pay_taobao_link = request.REQUEST.get("pay_taobao_link", None)
         amount = .0
-        from flashsale.finance.models import Bill,BillRelation
+        from flashsale.finance.models import Bill, BillRelation
         if int(pay_way) == OrderList.PC_POD_TYPE:
             status = Bill.STATUS_PENDING
-        else:                                # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
+        else:  # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
             status = Bill.STATUS_DELAY
-        if pay_way == Bill.SELF_PAY and float(plan_amount)==0:
+        if pay_way == Bill.SELF_PAY and float(plan_amount) == 0:
             orderlist.set_stage_receive(pay_way)
             return Response({"res": True, "data": [], "desc": ""})
-        if float(plan_amount)==0:
+        if float(plan_amount) == 0:
             return Response({"res": False, "data": [], "desc": "计划金额不能为0"})
         if int(pay_tool) == Bill.SELF_PAY:
             status = Bill.STATUS_COMPLETED
             amount = plan_amount
         pay_method = pay_tool
-        if pay_method=='0':
+        if pay_method == '0':
             return Response({"res": False, "data": [], "desc": "请选择支付方式"})
         try:
-            bill = Bill.create([orderlist], Bill.PAY, status, pay_method, plan_amount,amount,orderlist.supplier,
-                           user_id=request.user.id, receive_account=receive_account, receive_name=receive_name,
-                           pay_taobao_link=pay_taobao_link,transcation_no=transcation_no)
+            bill = Bill.create([orderlist], Bill.PAY, status, pay_method, plan_amount, amount, orderlist.supplier,
+                               user_id=request.user.id, receive_account=receive_account, receive_name=receive_name,
+                               pay_taobao_link=pay_taobao_link, transcation_no=transcation_no)
         except:
             return Response({"res": False, "data": [], "desc": "无法写入财务记录"})
 
@@ -1117,7 +1121,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         else:
             orderlist.set_stage_receive(pay_way)
         if int(pay_tool) == Bill.SELF_PAY:
-            br = BillRelation.objects.filter(bill_id=bill.id,object_id=pk).first()
+            br = BillRelation.objects.filter(bill_id=bill.id, object_id=pk).first()
             br.set_orderlist_stage()
         return Response({"res": True, "data": [], "desc": ""})
 
@@ -1165,7 +1169,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['get'])
     def get_back_money(self, request, pk):
-        from flashsale.finance.models import Bill, BillRelation
+        from flashsale.finance.models import BillRelation
         billrelation = BillRelation.objects.filter(object_id=pk, type=2).first()
         if not billrelation:
             return Response({"res": True, "data": [], "desc": "没有回款记录"})
@@ -2028,3 +2032,64 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         already_return = RGDetail.get_inferior_total(sku_id)
         return Response({'res': res, 'already_return': already_return},
                         template_name=u"dinghuo/order_sku_inferior_detail.htm")
+
+    @detail_route(methods=['get'])
+    def export_package(self, request, pk):
+        orderlist = get_object_or_404(OrderList, pk=pk)
+        columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'买家昵称', u'商品名称', u'产品规格', u'商品单价', u'商品数量',
+                   u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'收货地址-省市', u'收货地址-街道地址', u'邮编',
+                   u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
+                   u'发票抬头', u'电子邮件']
+
+        need_send = PackageSkuItem.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
+        need_send_ids = [n.id for n in need_send]
+        if PackageSkuItem.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey,
+                                         assign_status=0).exists():
+            raise exceptions.ValidationError(make_response(u'此订货单下存在未分配的包裹'))
+        items = [columns]
+        export_condition = {
+            'id__in': need_send_ids, 'assign_status__in':[1, 2]
+        }
+        package_order_ids = list(set(
+            [p.package_order_pid for p in PackageSkuItem.objects.filter(**export_condition)]))
+        for o in PackageOrder.objects.filter(pid__in=package_order_ids):
+            for p in o.package_sku_items.filter(**export_condition):
+                items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id), str(o.buyer_nick),
+                            str(p.product_sku.product.name), str(p.product_sku.properties_name),
+                            '0', str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
+                            str(o.receiver_state) + str(o.receiver_city) + str(o.receiver_district),
+                            str(o.receiver_address), '', o.receiver_mobile, '', '', '', '',
+                            p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'), p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
+                            '', '', u'小鹿美美，时尚健康美丽', '', ''])
+        buff = StringIO()
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find(
+            'windows') > -1
+        writer = CSVUnicodeWriter(buff,
+                                  encoding=is_windows and 'gbk' or 'utf-8')
+        writer.writerows(items)
+        response = HttpResponse(buff.getvalue(),
+                                content_type='application/octet-stream')
+        response[
+            'Content-Disposition'] = 'attachment;filename=packagedetail-%s.csv' % orderlist.id
+        return response
+
+    @detail_route(methods=['POST'])
+    def import_package(self, request, pk):
+        data = request.DATA.get('data')
+        print data
+        errors = []
+        for item in data:
+            try:
+                out_sid = item.get(u'物流单号')
+                logistics_complany_id = item.get(u'物流公司ID')
+                pid = item.get(u'包裹单号')
+                package_order = PackageOrder.objects.get(pid=pid)
+                if package_order.sys_status in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS]:
+                    package_order.out_sid = out_sid
+                    package_order.logistics_complany_id = logistics_complany_id
+                    package_order.finish_scan_weight()
+            except Exception, e0:
+                errors.append(e0.message)
+        if errors:
+            return Response(make_response(info=str(len(errors)) + '个导入错误。错误信息：'+','.join([str(e) for e in errors])))
+        return Response(SUCCESS_RESPONSE)
