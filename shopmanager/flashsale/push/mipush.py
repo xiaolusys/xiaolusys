@@ -67,20 +67,12 @@ class MiPush(object):
         }
 
         # 初始化接口地址
-        if self.platform == 'ios' and settings.DEBUG:
-            self.broadcast_url = self.SANDBOX_BROADCAST_URL
-            self.topic_url = self.SANDBOX_TOPIC_URL
-            self.account_url = self.SANDBOX_ACCOUNT_URL
-            self.regid_url = self.SANDBOX_REGID_URL
-            self.subscribe_by_regid_url = self.SANDBOX_SUBSCRIBE_BY_REGID_URL
-            self.unsubscribe_by_regid_url = self.SANDBOX_UNSUBSCRIBE_BY_REGID_URL
-        else:
-            self.broadcast_url = self.PROD_BROADCAST_URL
-            self.topic_url = self.PROD_TOPIC_URL
-            self.account_url = self.PROD_ACCOUNT_URL
-            self.regid_url = self.PROD_REGID_URL
-            self.subscribe_by_regid_url = self.PROD_SUBSCRIBE_BY_REGID_URL
-            self.unsubscribe_by_regid_url = self.PROD_UNSUBSCRIBE_BY_REGID_URL
+        self.broadcast_url = self.PROD_BROADCAST_URL
+        self.topic_url = self.PROD_TOPIC_URL
+        self.account_url = self.PROD_ACCOUNT_URL
+        self.regid_url = self.PROD_REGID_URL
+        self.subscribe_by_regid_url = self.PROD_SUBSCRIBE_BY_REGID_URL
+        self.unsubscribe_by_regid_url = self.PROD_UNSUBSCRIBE_BY_REGID_URL
 
         self.session.headers.update(self.headers)
 
