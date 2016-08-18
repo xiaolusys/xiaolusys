@@ -1062,6 +1062,18 @@ def task_renew_mama(obj):
         return
     state = xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
 
+    # 修改该潜在关系　到转正状态
+    mm_linkid = obj.extras_info.get('mm_linkid') or None
+    uni_key = str(xlmm.id) + '/' + str(mm_linkid)
+    protentialmama = PotentialMama.objects.filter(uni_key=uni_key).first()
+    if not protentialmama:
+        # 如果没有　则试图找(potential_mama = 当前mm.id的潜在推荐人)
+        try:
+            protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
+        except PotentialMama.DoesNotExist:
+            logger.info({'action': 'task_register_mama', 'mama_id': xlmm.id, 'uni_key': uni_key})
+    update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
+
     if state:
         sys_oa = get_systemoa_user()
         log_action(sys_oa, xlmm, CHANGE, u'代理续费成功')

@@ -941,7 +941,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             extra = {"cashout_id": cash.id}
             state = potential.update_full_member(last_renew_type=xlmm.last_renew_type, extra=extra)  # 续费转正
             if state:
-                log_action(request.user, potential, CHANGE, u'用户钱包兑换妈妈续费转正')
+                log_action(request.user, potential, CHANGE, u'用户钱包兑换妈妈续费')
         return Response(default_return)
 
 

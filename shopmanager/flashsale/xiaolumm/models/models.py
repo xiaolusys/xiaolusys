@@ -702,8 +702,12 @@ class XiaoluMama(models.Model):
         if renew_time > now and self.status == XiaoluMama.FROZEN:
             self.status = XiaoluMama.EFFECT
             update_fields.append('status')
-        if self.last_renew_type != days:  # days  对应 HALF　FULL
-            self.last_renew_type = days
+
+        last_renew_type = days
+        if self.last_renew_type == XiaoluMama.HALF and days == XiaoluMama.HALF:  # 如果用户已经是半年类型了 再次续费则变为一年
+            last_renew_type = XiaoluMama.FULL
+        if self.last_renew_type != last_renew_type:  # days  对应 HALF　FULL
+            self.last_renew_type = last_renew_type
             update_fields.append('last_renew_type')
         self.save(update_fields=update_fields)
         return True
@@ -1114,14 +1118,21 @@ class PotentialMama(BaseModel):
 
     def update_full_member(self, last_renew_type, extra=None):
         """ 妈妈成为正式妈妈　切换is_full_member状态为True """
+        update_fields = []
+        if self.last_renew_type != last_renew_type:
+            self.last_renew_type = last_renew_type
+            update_fields.append('last_renew_type')
         if not self.is_full_member:
             self.is_full_member = True
-            self.last_renew_type = last_renew_type
-            if isinstance(self.extras, dict):
-                self.extras.update(extra)
-            else:
-                self.extras = extra
-            self.save(update_fields=['is_full_member', 'extras', 'last_renew_type'])
+            update_fields.append('is_full_member')
+        if isinstance(self.extras, dict):
+            self.extras.update(extra)
+            update_fields.append('extras')
+        else:
+            self.extras = extra
+            update_fields.append('extras')
+        if update_fields:
+            self.save(update_fields=update_fields)
             return True
         return False
 
