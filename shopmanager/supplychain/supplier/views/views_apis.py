@@ -468,6 +468,17 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     ordering_fields = ('order_weight', 'is_promotion', 'sale_category')
     filter_class = SaleScheduleDetailFilter
 
+    def filter_queryset(self, queryset):
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        sale_product_ids = queryset.values('sale_product_id')
+
+        sakeproducts = SaleProduct.objects.filter(id__in=sale_product_ids)
+        for bk in list(SaleProductViewSet.filter_backends):
+            sakeproducts = bk().filter_queryset(self.request, sakeproducts, SaleProductViewSet)
+        p_ids = sakeproducts.values('id')
+        return queryset.filter(sale_product_id__in=p_ids)
+
     def list(self, request, schedule_id=None, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         if schedule_id:
