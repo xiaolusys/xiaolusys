@@ -21,7 +21,6 @@ class AppPush(object):
 
     @classmethod
     def push(cls, customer_id, target_url, msg, pass_through=0):
-        customer_id = '913405'
         android_res = mipush_of_android.push_to_account(
             customer_id, {'target_url': target_url}, description=msg, pass_through=pass_through)
         ios_res = mipush_of_ios.push_to_account(
@@ -51,7 +50,7 @@ class AppPush(object):
             msg = msgtpl.get_emoji_content().format(money, nick)
 
         if msg:
-            cls.push(customer.id, target_url, msg, pass_through=1)
+            cls.push(customer.id, target_url, msg)
 
     @classmethod
     def push_product_to_customer(cls, customer_id, modelproduct):
