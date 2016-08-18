@@ -76,7 +76,7 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
     def self_rank(self, request):
         if request.user.is_anonymous():
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
-        mama = request.user.customer.getXiaolumm()
+        mama = request.user.customer.get_xiaolumm()
         if not mama:
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         stat_time = request.GET.get('stat_time')
