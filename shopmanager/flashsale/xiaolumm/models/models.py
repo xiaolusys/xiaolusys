@@ -15,6 +15,7 @@ from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
 from common.modelutils import update_model_fields
 from core.models import BaseModel
+from core.fields import JSONCharMyField
 from flashsale.clickcount.models import ClickCount
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm import ccp_schema
@@ -701,8 +702,12 @@ class XiaoluMama(models.Model):
         if renew_time > now and self.status == XiaoluMama.FROZEN:
             self.status = XiaoluMama.EFFECT
             update_fields.append('status')
-        if self.last_renew_type != days:  # days  对应 HALF　FULL
-            self.last_renew_type = days
+
+        last_renew_type = days
+        if self.last_renew_type == XiaoluMama.HALF and days == XiaoluMama.HALF:  # 如果用户已经是半年类型了 再次续费则变为一年
+            last_renew_type = XiaoluMama.FULL
+        if self.last_renew_type != last_renew_type:  # days  对应 HALF　FULL
+            self.last_renew_type = last_renew_type
             update_fields.append('last_renew_type')
         self.save(update_fields=update_fields)
         return True
@@ -1097,6 +1102,10 @@ class PotentialMama(BaseModel):
     thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u"潜在妈妈头像")
     uni_key = models.CharField(max_length=32, unique=True, verbose_name=u"唯一key")
     is_full_member = models.BooleanField(default=False, verbose_name=u"是否转正")
+    last_renew_type = models.IntegerField(default=XiaoluMama.TRIAL,
+                                          choices=XiaoluMama.RENEW_TYPE, verbose_name=u'最后续费类型')
+    extras = JSONCharMyField(max_length=512, default={}, blank=True, null=True, verbose_name=u"附加信息")
+    # 最后续费类型使用一次 转正的时候 同步到 ReferalRelationship
 
     class Meta:
         db_table = 'xiaolumm_potential_record'
@@ -1107,11 +1116,23 @@ class PotentialMama(BaseModel):
     def __unicode__(self):
         return '%s-%s' % (self.potential_mama, self.referal_mama)
 
-    def update_full_member(self):
+    def update_full_member(self, last_renew_type, extra=None):
         """ 妈妈成为正式妈妈　切换is_full_member状态为True """
+        update_fields = []
+        if self.last_renew_type != last_renew_type:
+            self.last_renew_type = last_renew_type
+            update_fields.append('last_renew_type')
         if not self.is_full_member:
             self.is_full_member = True
-            self.save(update_fields=['is_full_member'])
+            update_fields.append('is_full_member')
+        if isinstance(self.extras, dict):
+            self.extras.update(extra)
+            update_fields.append('extras')
+        else:
+            self.extras = extra
+            update_fields.append('extras')
+        if update_fields:
+            self.save(update_fields=update_fields)
             return True
         return False
 
@@ -1120,12 +1141,21 @@ def update_mama_relationship(sender, instance, created, **kwargs):
     if not instance.is_full_member:
         return
     from flashsale.xiaolumm.models import ReferalRelationship
+    from core.options import log_action, CHANGE, get_systemoa_user
 
-    ship, state = ReferalRelationship.create_relationship_by_potential(instance)
-    if state:
-        from core.options import log_action, CHANGE, get_systemoa_user
+    order_id = instance.extras.get('oid') or None
+    if not order_id:
+        order_id = instance.extras.get('cashout_id') or ''
+        order_id = '_'.join(['cashout_id', str(order_id)])
+
+    ship = ReferalRelationship.objects.filter(referal_to_mama_id=instance.potential_mama).first()  # 推荐关系记录
+    if not ship:  # 没有推荐关系 则新建
+        ship = ReferalRelationship.create_relationship_by_potential(instance, order_id=order_id)
         sys_oa = get_systemoa_user()
         log_action(sys_oa, ship, CHANGE, u'通过潜在关系创建推荐关系记录')
+        return
+    # 否则更新
+    ship.update_referal_type_and_oid(instance.last_renew_type, order_id)
 
 
 post_save.connect(update_mama_relationship,

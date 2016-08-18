@@ -938,9 +938,10 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         log_action(request.user, xlmm, CHANGE, u'用户妈妈钱包兑换代理续费修改字段')
         potential = PotentialMama.objects.filter(potential_mama=xlmm.id).first()  # 续费的潜在妈妈
         if potential:
-            state = potential.update_full_member()  # 续费转正
+            extra = {"cashout_id": cash.id}
+            state = potential.update_full_member(last_renew_type=xlmm.last_renew_type, extra=extra)  # 续费转正
             if state:
-                log_action(request.user, potential, CHANGE, u'用户钱包兑换妈妈续费转正')
+                log_action(request.user, potential, CHANGE, u'用户钱包兑换妈妈续费')
         return Response(default_return)
 
 
