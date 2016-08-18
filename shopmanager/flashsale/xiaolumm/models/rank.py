@@ -174,7 +174,7 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
     def batch_generate(week_begin_time=None):
         week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         mama_data_ = XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
-                                               status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, is_staff=False). \
+                                               status__in=[XiaoluMama.EFFECT, XiaoluMama.FROZEN], charge_status=XiaoluMama.CHARGED, is_staff=False). \
             values('id', 'last_renew_type', 'agencylevel')
         mama_data = {i['id']: i for i in mama_data_}
         mama_ids = mama_data.keys()
