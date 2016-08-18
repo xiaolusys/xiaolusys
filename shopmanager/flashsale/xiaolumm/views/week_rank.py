@@ -87,7 +87,7 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
                 raise exceptions.ValidationError(make_response(u'提供的统计时间不正确'))
         if not stat_time:
             stat_time = WeekRank.this_week_time()
-        wmama = WeekMamaCarryTotal.objects.filter(pk=mama.id, stat_time=stat_time).first()
+        wmama = WeekMamaCarryTotal.objects.filter(mama_id=mama.id, stat_time=stat_time).first()
         if not wmama:
             res = {'mama':mama.id, 'mama_nick': mama.nick, 'thumbnail':mama.thumbnail, 'total':0,
                    'num': 0, 'total_display':'0', 'rank':0}
