@@ -26,14 +26,14 @@ _______________________
 - [Djangorestframework](http://www.django-rest-framework.org/)
 
 ## Installation
-### 1. sudo apt-get update;apt-get install -y gcc libxml2-dev libxslt1-dev python-dev libmysqld-dev libjpeg-dev python-pip
-### 2. sudo pip install --upgrade virtualenv
-### 3. cd [project path] & virtualenv ve & source ve/bin/activate
-### 4. pip install -i http://pypi.oneapm.com/simple --upgrade blueware
-### 5. pip install -i http://pypi.oneapm.com/simple --upgrade oneapm-ci-sdk 
-### 6. pip install -i http://mirrors.aliyun.com/pypi/simple -r requirements_production.txt 
-### 7. python manage runserver 
-``` text
+``` shell
+$ sudo apt-get update;apt-get install -y gcc libxml2-dev libxslt1-dev python-dev libmysqld-dev libjpeg-dev python-pip
+$ sudo pip install --upgrade virtualenv
+$ cd xiaolusys & virtualenv ve & source ve/bin/activate
+$ pip install -i http://pypi.oneapm.com/simple --upgrade blueware
+$ pip install -i http://pypi.oneapm.com/simple --upgrade oneapm-ci-sdk
+$ pip install -i http://mirrors.aliyun.com/pypi/simple -r requirements_production.txt
+$ python manage runserver
 ## you are install success when console print below:
 August 14, 2016 - 23:55:57
 Django version 1.8.10, using settings 'shopmanager.settings'
@@ -42,7 +42,7 @@ Quit the server with CONTROL-C.
 ``` 
 
 ## TestCase 
-－ [tutorial](https://docs.djangoproject.com/en/1.10/topics/testing/)
+－ [tutorial: https://docs.djangoproject.com/en/1.10/topics/testing/](https://docs.djangoproject.com/en/1.10/topics/testing/)
 - fixtures
 ``` text
 商城API测试用户账号： xiaolu / test 
@@ -50,7 +50,7 @@ Quit the server with CONTROL-C.
 测试数据: python manage.py dumpdata items.Product --pks=[pk1,pk2] --indent=2 --format=json > app/fixtures/app.json 
 ```
 - run test
-`` shell
+``` shell
 $ python manage.py test -t . -k 
 ```
 - test coverage
@@ -60,7 +60,7 @@ $ coverage report
 ```
 
 ## Statsd 
-- [tutorial](http://docs-ci.oneapm.com/api/python.html)
+- [tutorial: http://docs-ci.oneapm.com/api/python.html](http://docs-ci.oneapm.com/api/python.html)
 ``` code
 # Counters:
 from django_statsd.clients import statsd
@@ -88,14 +88,14 @@ post请求: 请求参数接受参数为json格式
 ```
 
 ## DB Migrate 
-- [tutorial](https://docs.djangoproject.com/en/1.8/topics/migrations/)
+- [tutorial: https://docs.djangoproject.com/en/1.8/topics/migrations/](https://docs.djangoproject.com/en/1.8/topics/migrations/)
 - 原则
 ``` text
 项目上线后：不能删除字段，只能新加字段替换原来字段的功能，原来字段保留；
 ```
 
 ## Logger 
-- [tutorial](http://docs-ci.oneapm.com/api/python.html)
+- [tutorial: http://docs-ci.oneapm.com/api/python.html](http://docs-ci.oneapm.com/api/python.html)
 ``` code
 现在日志分debug日志，跟业务统计日志两类，
 debug日志的记录方法未变，业务日志的记录方法是logger name 已 service开头：

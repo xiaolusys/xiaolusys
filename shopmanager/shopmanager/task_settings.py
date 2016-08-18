@@ -1092,12 +1092,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'统计妈妈两周转化及点击基本价格': {
-        'task': 'flashsale.xiaolumm.tasks.task_Calc_Mama_Lasttwoweek_Stats',
-        'schedule': crontab(minute="30", hour="6"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'统计妈妈两周转化及点击基本价格': {
+    #     'task': 'flashsale.xiaolumm.tasks.task_Calc_Mama_Lasttwoweek_Stats',
+    #     'schedule': crontab(minute="30", hour="6"),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时生成管理员代理状况汇总csv文件': {
         'task': 'flashsale.xiaolumm.tasks_manager_summary.task_make_Manager_Summary_Cvs',
         'schedule': crontab(minute="45", hour="6"),
