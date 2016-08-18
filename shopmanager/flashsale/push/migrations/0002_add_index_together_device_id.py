@@ -16,8 +16,8 @@ class Migration(migrations.Migration):
             name='device_id',
             field=models.CharField(max_length=48, verbose_name='\u8bbe\u5907ID', blank=True),
         ),
-        migrations.AlterUniqueTogether(
+        migrations.AlterIndexTogether(
             name='pushtopic',
-            unique_together=set([('device_id', 'platform', 'cat')]),
+            index_together=set([('device_id', 'platform', 'cat')]),
         ),
     ]

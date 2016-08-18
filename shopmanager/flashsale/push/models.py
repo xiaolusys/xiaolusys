@@ -14,7 +14,7 @@ class PushTopic(models.Model):
 
     class Meta:
         db_table = 'push_topics'
-        unique_together = [('device_id', 'platform', 'cat')]
+        index_together = [('device_id', 'platform', 'cat')]
         app_label = 'push'
         verbose_name = u'小米推送标签'
         verbose_name_plural = u'小米推送标签'
