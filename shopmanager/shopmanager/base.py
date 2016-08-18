@@ -10,6 +10,9 @@ sys.setdefaultencoding('utf-8')
 import os.path
 import posixpath
 
+from global_setup import install_pymysqldb
+install_pymysqldb()
+
 PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 DEBUG = False

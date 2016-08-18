@@ -8,7 +8,7 @@ workers = 2
 bind = "0.0.0.0:9000"
 
 timeout = 20
-worker_connections = multiprocessing.cpu_count() * 400  # all worker handle max connects a time
+worker_connections = multiprocessing.cpu_count() * 50  # all worker handle max connects a time
 # The maximum number of requests a worker will process before restarting.
 # This is a simple method to help limit the damage of memory leaks
 max_requests = 100
