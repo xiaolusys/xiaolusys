@@ -2,6 +2,7 @@
 from rest_framework import authentication, viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+from rest_framework import permissions
 
 from flashsale.pay.models import Customer
 
@@ -15,7 +16,7 @@ class PushViewSet(viewsets.ModelViewSet):
     queryset = models.PushTopic.objects.all()
     serializer_class = serializers.PushTopicSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = ()
+    permission_classes = (permissions.IsAuthenticated,)
 
     @list_route(methods=['post'])
     def set_device(self, request, *args, **kwargs):
