@@ -84,16 +84,10 @@ class PushViewSet(viewsets.ModelViewSet):
                     tasks.subscribe.delay(platform, regid, topic)
 
         # 获取用户会员信息
-        sql = (
-                  'select x.agencylevel from flashsale_customer c, xiaolumm_xiaolumama x where c.id=%d'
-                  ' and c.unionid=x.openid;'
-              ) % customer.id
-        cursor = connection.cursor()
-        cursor.execute(sql)
-        row = cursor.fetchone()
+        xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()
         topic_cats = [(constants.TOPIC_CAT_MEMBER, constants.TOPIC_XLMM)]
-        if row:
-            agency_level = row[0]
+        if xlmm and xlmm.openid:
+            agency_level = xlmm.agencylevel
             if agency_level == XiaoluMama.VIP_LEVEL:
                 topic_cats.append((constants.TOPIC_CAT_MEMBER_LEVEL, constants.TOPIC_XLMM_VIP))
             if agency_level == XiaoluMama.A_LEVEL:

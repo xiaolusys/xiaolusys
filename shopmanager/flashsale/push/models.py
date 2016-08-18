@@ -14,6 +14,7 @@ class PushTopic(models.Model):
 
     class Meta:
         db_table = 'push_topics'
+        index_together = [('device_id', 'platform', 'cat')]
         app_label = 'push'
         verbose_name = u'小米推送标签'
         verbose_name_plural = u'小米推送标签'
@@ -24,7 +25,7 @@ class PushTopic(models.Model):
     platform = models.CharField(max_length=16, verbose_name=u'平台')
     regid = models.CharField(max_length=512, verbose_name=u'小米regid')
     ios_token = models.CharField(max_length=128, blank=True, verbose_name=u'ios系统token')
-    device_id = models.CharField(max_length=256, blank=True, verbose_name=u'设备ID')
+    device_id = models.CharField(max_length=48, blank=True, verbose_name=u'设备ID')
     topic = models.CharField(max_length=128, blank=True, verbose_name=u'推送标签')
     update_time = models.FloatField(null=True, blank=True, verbose_name=u'更新时间')
     status = models.SmallIntegerField(choices=STATUSES, default=1, verbose_name=u'状态')
