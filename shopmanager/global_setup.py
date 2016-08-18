@@ -9,3 +9,11 @@ def setup_djagno_environ():
 
     else:
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
+
+
+def install_pymysqldb():
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except ImportError:
+        pass
