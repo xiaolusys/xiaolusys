@@ -52,7 +52,7 @@ class RankRedis(object):
                         range(start + 1, stop + 1)))
 
     def get_rank(self, model_class, target, mama_id):
-        rank = RankRedis.redis_cache.zrevrank(self.get_cache_key(model_class, target), mama_id)
+        rank = RankRedis.redis_cache.zrevrank(self.get_cache_key(model_class, target), mama_id) or 0
         return rank + 1
 
 
