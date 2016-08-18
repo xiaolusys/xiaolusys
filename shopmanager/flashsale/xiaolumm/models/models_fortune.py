@@ -826,19 +826,31 @@ class ReferalRelationship(BaseModel):
         else:
             return None
 
+    def update_referal_type_and_oid(self, referal_type, order_id):
+        update_fields = []
+        if self.referal_type != referal_type:
+            self.referal_type = referal_type
+            update_fields.append('referal_type')
+        if self.order_id != order_id:
+            self.order_id = order_id
+            update_fields.append('order_id')
+        if update_fields:
+            self.save(update_fields=update_fields)
+            return True
+        return False
+
     @classmethod
-    def create_relationship_by_potential(cls, potential_record):
+    def create_relationship_by_potential(cls, potential_record, order_id):
         """ 通过潜在妈妈列表中的记录创建推荐关系 """
         # 先查看是否有推荐关系存在(被推荐人　potential_record.potential_mama 潜在妈妈)
-        ship = cls.objects.filter(referal_to_mama_id=potential_record.potential_mama).first()
-        if ship:
-            return ship, False
         ship = cls(referal_from_mama_id=potential_record.referal_mama,
                    referal_to_mama_id=potential_record.potential_mama,
                    referal_to_mama_nick=potential_record.nick,
+                   referal_type=potential_record.last_renew_type,
+                   order_id=order_id,
                    referal_to_mama_img=potential_record.thumbnail)
         ship.save()
-        return ship, True
+        return ship
 
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):

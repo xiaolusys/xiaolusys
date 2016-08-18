@@ -28,7 +28,7 @@ from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 
 from .. import serializers
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 
 def get_customer_id(user):
