@@ -837,6 +837,14 @@ class ReferalRelationship(BaseModel):
                    referal_to_mama_id=potential_record.potential_mama,
                    referal_to_mama_nick=potential_record.nick,
                    referal_to_mama_img=potential_record.thumbnail)
+        order_id = potential_record.extras.get('oid') or None
+        if order_id:
+            ship.order_id = order_id
+        else:
+            order_id = potential_record.extras.get('cashout_id') or ''
+            order_id = '_'.join(['cashout_id', str(order_id)])
+            ship.order_id = order_id
+        ship.referal_type = potential_record.last_renew_type
         ship.save()
         return ship, True
 
