@@ -421,7 +421,7 @@ from core.admin import OrderModelAdmin
 
 
 class MamaFortuneAdmin(OrderModelAdmin):
-    list_display = ('mama_id', 'mama_name', 'mama_level', 'cash_num_display', 'cash_total_display',
+    list_display = ('mama_id', 'mama_name', 'mama_level', 'mama_agency_level', 'cash_num_display', 'cash_total_display',
                     'carry_pending_display', 'carry_confirmed_display', 'order_num',
                     'fans_num', 'invite_num', 'invite_trial_num', 'invite_all_num', 'active_normal_num',
                     'active_trial_num', 'active_all_num', 'hasale_normal_num', 'hasale_trial_num', 'modified',
@@ -434,6 +434,13 @@ class MamaFortuneAdmin(OrderModelAdmin):
                                    F('carry_pending') + F('carry_confirmed') + F('history_pending') + F(
                                        'history_confirmed') + F('history_cashout'))
                     }
+
+    def mama_agency_level(self, obj):
+        """ show XiaoluMama agencylevel """
+        return obj.xlmm.get_agencylevel_display()
+
+    mama_agency_level.short_description = u'Level'
+    mama_agency_level.allow_tags = True
 
 
 admin.site.register(MamaFortune, MamaFortuneAdmin)

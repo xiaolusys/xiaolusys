@@ -1,5 +1,6 @@
 # coding=utf-8
 import datetime
+from copy import copy
 from django.db import models
 from django.db.models import Sum, F, Count, Q
 from django.db.models.signals import post_save
@@ -93,7 +94,7 @@ class WeekRank(object):
     def check_update_cache(cls, target='total'):
         this_week_time = WeekRank.this_week_time()
         cache_count = WEEK_RANK_REDIS.get_rank_count(cls, target)
-        condition = cls.filters[target]
+        condition = copy(cls.filters[target])
         condition['stat_time'] = this_week_time
         real_count = cls.objects.filter(**condition).count()
         if cache_count > real_count:
@@ -299,7 +300,7 @@ def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
     # 当周数据实时更新到redis，从redis读取
     if WeekRank.this_week_time() == instance.stat_time:
         for target in type(instance).filters:
-            condtion = type(instance).filters[target]
+            condtion = copy(type(instance).filters[target])
             condtion['pk'] = instance.pk
             if type(instance).objects.filter(**condtion).exists():
                 WEEK_RANK_REDIS.update_cache(instance, [target])
