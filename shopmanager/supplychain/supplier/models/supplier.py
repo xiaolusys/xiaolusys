@@ -73,7 +73,7 @@ class SaleSupplier(models.Model):
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
 
-    supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
+    supplier_name = models.CharField(max_length=64, unique=True, db_index=True, blank=False, verbose_name=u'供应商名')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
 
     description = models.CharField(max_length=1024, blank=True, verbose_name=u'品牌简介')
@@ -103,6 +103,8 @@ class SaleSupplier(models.Model):
     contact = models.CharField(max_length=32, blank=False, verbose_name=u'联系人')
     phone = models.CharField(max_length=32, blank=True, verbose_name=u'电话')
     mobile = models.CharField(max_length=16, blank=False, verbose_name=u'手机')
+    qq = models.CharField(max_length=32, blank=True, verbose_name=u'QQ号码')
+    weixin = models.CharField(max_length=32, blank=True, verbose_name=u'微信号', help_text=u'不要填写微信昵称')
     fax = models.CharField(max_length=16, blank=True, verbose_name=u'传真')
     zip_code = models.CharField(max_length=16, blank=True, verbose_name=u'其它联系')
     email = models.CharField(max_length=64, blank=True, verbose_name=u'邮箱')
