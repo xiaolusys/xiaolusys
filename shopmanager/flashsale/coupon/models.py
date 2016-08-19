@@ -223,7 +223,7 @@ class CouponTemplate(BaseModel):
     def can_send(self):
         coupons = UserCoupon.objects.filter(template_id=self.id)
         tpl_release_count = coupons.count()  # 当前模板的优惠券条数
-        return tpl_release_count < self.prepare_release_num
+        return tpl_release_count < self.prepare_release_num and self.status == CouponTemplate.SENDING
 
     def make_uniq_id(tpl, customer_id, trade_id=None, share_id=None, refund_trade_id=None, cashout_id=None):
         uniqs = [str(tpl.id), str(tpl.coupon_type), str(customer_id)]
