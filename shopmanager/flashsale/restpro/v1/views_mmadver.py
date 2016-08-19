@@ -65,25 +65,28 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         queryset = self.queryset.filter(start_time__gte=yesetoday, start_time__lt=tomorrow)
         return queryset
 
-    def get_mama_link(self, xlmm, model_id='', next_page=''):
+    def get_mama_link(self, xlmm, jump_str):
         """
         获取代理专属链接
         """
         if not xlmm:
-            return ''
-        freffix = 'm/{{mm_linkid}}/'
-        detail_suffix = Template(''.join([freffix, '?next=mall/product/details/{{model_id}}']))  # 详情跳转页面
-        next_suffix = Template(''.join([freffix, '?next=', next_page]) if next_page else '')
+            return settings.M_SITE_URL
+        if not jump_str:
+            return os.path.join(settings.M_SITE_URL, "m/{0}/".format(xlmm.id))  # 专属链接
 
-        c = Context({'mm_linkid': xlmm.id, 'model_id': model_id})
+        preffix = 'm/{{mm_linkid}}/'
         detail_l = ''
-        if next_page:
-            detail_l = next_suffix.render(c)
-        if model_id:
+        if (',' in jump_str and '/' not in jump_str) or str(jump_str).isdigit():    # 详情页
+            model_ids = jump_str.split(',')
+            model_id = random.choice(model_ids)
+            c = Context({'mm_linkid': xlmm.id, 'model_id': model_id})
+            detail_suffix = Template(''.join([preffix, '?next=mall/product/details/{{model_id}}']))  # 详情跳转页面
             detail_l = detail_suffix.render(c)
-        if detail_l:
-            return os.path.join(settings.M_SITE_URL, detail_l)  # 专属链接
-        return os.path.join(settings.M_SITE_URL, "m/{0}/".format(xlmm.id))  # 专属链接
+        if '/' in jump_str:
+            next_suffix = Template(''.join([preffix, '?next=', jump_str]) if jump_str else '')
+            c = Context({'mm_linkid': xlmm.id})
+            detail_l = next_suffix.render(c)
+        return os.path.join(settings.M_SITE_URL, detail_l)  # 专属链接
 
     def list(self, request, *args, **kwargs):
         from django_statsd.clients import statsd
@@ -103,15 +106,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
 
         for adver in self.get_today_queryset().order_by('-start_time'):
             if now >= adver.start_time:
-                mama_link = ''
-                jump_str = adver.detail_modelids
-                if jump_str:
-                    if (',' in jump_str and '/' not in jump_str) or str(jump_str).isdigit():
-                        model_ids = jump_str.split(',')
-                        model_id = random.choice(model_ids)
-                        mama_link = self.get_mama_link(xlmm, model_id=model_id)
-                    if '/' in jump_str:
-                        mama_link = self.get_mama_link(xlmm, next_page=jump_str)
+                mama_link = self.get_mama_link(xlmm, adver.detail_modelids)
                 adver.description = util_emoji.match_emoji(adver.description)
                 adver.description += mama_link
 
