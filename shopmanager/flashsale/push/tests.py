@@ -11,4 +11,5 @@ if __name__ == '__main__':
     import django
     django.setup()
     ordercarry = OrderCarry.objects.get(id=1)
-    AppPush.push_mama_ordercarry(ordercarry)
+    # AppPush.push_mama_ordercarry(ordercarry)
+    AppPush.push_pass_through(913405)
