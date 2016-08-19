@@ -440,6 +440,18 @@ class SaleScheduleDetailFilter(filters.FilterSet):
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     """
     ### 排期管理商品REST API接口：
+    - [/apis/chain/v1/saleschedule/186/product](/apis/chain/v1/saleschedule/186/product)
+        * method: get
+        * 可过滤字段:
+            1. `sale_supplier`: 供应商 例如: 29491
+            2. `min_price`: 区间最低价 例如: 0
+            3. `max_price`: 区间最高价 例如: 50
+            4. `sale_category`: 类别 例如: 1
+            5. `id`: 排期明细id
+        * 可排序字段：
+            1. `order_weight` : 排序权重
+            2. `is_promotion` : 是否推广
+            3. `sale_category`: 类别
     - /apis/chain/v1/saleschedule/<schedule_id>/product/<schedule_detail_id>:
       method: delete (授权用户可以删除)
     - /apis/chain/v1/saleschedule/<schedule_id>/adjust_order_weight/<schedule_detail_id>:
@@ -467,6 +479,17 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     ordering_fields = ('order_weight', 'is_promotion', 'sale_category')
     filter_class = SaleScheduleDetailFilter
+
+    def filter_queryset(self, queryset):
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        sale_product_ids = queryset.values('sale_product_id')
+
+        sakeproducts = SaleProduct.objects.filter(id__in=sale_product_ids)
+        for bk in list(SaleProductViewSet.filter_backends):
+            sakeproducts = bk().filter_queryset(self.request, sakeproducts, SaleProductViewSet)
+        p_ids = sakeproducts.values('id')
+        return queryset.filter(sale_product_id__in=p_ids)
 
     def list(self, request, schedule_id=None, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
