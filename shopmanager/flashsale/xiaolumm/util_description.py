@@ -125,6 +125,7 @@ def gen_activevalue_description(value_type):
 
     return desc[value_type] % value_num
 
+
 def get_awardcarry_courage_remarks(carry_type):
     """
     (1, u'直荐奖励'),(2, u'团队奖励'),(3, u'授课奖金'),(4, u'新手任务'),(5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'))
@@ -139,8 +140,4 @@ def get_awardcarry_courage_remarks(carry_type):
         "7": u"加油！多推荐几个，更多奖金！新手任务完成还有额外奖励哦！",
     }
     key = str(carry_type)
-    remarks = ""
-    if key in desc:
-        remarks = desc[key]
-    return remarks
-    
+    return desc.get(key, '')
