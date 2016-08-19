@@ -65,6 +65,7 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
                 stat_time = datetime.datetime.strptime(stat_time, '%Y%m%d')
             except:
                 raise exceptions.ValidationError(make_response(u'提供的统计时间不正确'))
+        stat_time = stat_time if WeekRank.check_week_begin(stat_time) else WeekRank.this_week_time()
         team = WeekMamaTeamCarryTotal.get_by_mama_id(pk, stat_time)
         if not team:
             raise exceptions.ValidationError(make_response(u'用户尚未参与团队排名统计'))
