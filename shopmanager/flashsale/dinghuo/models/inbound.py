@@ -262,9 +262,8 @@ class InBound(models.Model):
                                                     self.all_inferior_quantity, wrong_str, more_str, self.all_allocate_quantity)
 
     def get_may_allocate_order_list_ids(self):
-        query = OrderDetail.objects.filter(orderlist__supplier_id=self.supplier_id, chichu_id__in=self.sku_ids).exclude(
-            orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI, OrderList.CLOSED,
-                                   OrderList.TO_PAY, OrderList.SUBMITTING]).values('orderlist_id').distinct()
+        query = OrderDetail.objects.filter(orderlist__supplier_id=self.supplier_id, chichu_id__in=self.sku_ids,
+                                           orderlist__stage=OrderList.STAGE_RECEIVE).values('orderlist_id').distinct()
         return [item['orderlist_id'] for item in query]
 
     def may_allocate_order_list_items(inbound):
