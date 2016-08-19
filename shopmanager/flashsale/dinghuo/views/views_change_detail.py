@@ -25,11 +25,15 @@ from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDe
     InBound, ReturnGoods
 from .. import functions
 from shopback.items.models import Product, ProductSku, ProductStock
+from shopback.warehouse.constants import WARE_THIRD
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 from flashsale.finance.models import Bill, BillRelation  # 财务记录model
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from shopback.trades.models import PackageOrder, PackageSkuItem
+from shopback.warehouse.models import StockAdjust
+from rest_framework import exceptions
 import logging
 
 logger = logging.getLogger(__name__)
@@ -316,11 +320,12 @@ def change_inferior_num(request):
 
 class ChangeDetailExportView(View):
     @staticmethod
-    def get_old(request, order_detail_id):
+    def get_old(request, order_list_id):
         headers = [u'商品编码', u'供应商编码', u'商品名称', u'规格', u'购买数量', u'买入价格', u'单项价格',
                    u'已入库数', u'次品数']
-        order_list = OrderList.objects.get(id=order_detail_id)
-        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id, buy_quantity__gt=0)
+        order_list = OrderList.objects.get(id=order_list_id)
+
+        order_details = OrderDetail.objects.filter(orderlist_id=order_list_id, buy_quantity__gt=0)
         items = []
         for o in order_details:
             sku = ProductSku.objects.get(id=o.chichu_id)
@@ -354,7 +359,7 @@ class ChangeDetailExportView(View):
         response = HttpResponse(buff.getvalue(),
                                 content_type='application/octet-stream')
         response[
-            'Content-Disposition'] = 'attachment;filename=dinghuodetail-%s.csv' % order_detail_id
+            'Content-Disposition'] = 'attachment;filename=dinghuodetail-%s.csv' % order_list_id
         return response
 
     @staticmethod

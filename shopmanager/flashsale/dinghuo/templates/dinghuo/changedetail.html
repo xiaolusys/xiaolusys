@@ -16,6 +16,7 @@
 <script src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
 <script src="{{ STATIC_URL }}plugins/xiaolu-uploader/uploader.js?v=0.1"></script>
 <script src="{{ STATIC_URL }}wap/js/sweet-alert.min.js"></script>
+<script src="{{ STATIC_URL }}js/xlsx.core.min.js"></script>
 <script src="/static/wap/js/template.js"></script>
 <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
 <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
@@ -174,36 +175,60 @@
             $.ajax({url: url, data: data, type: "post", success: callback});
 
         }
-        $(document).ready(function () {
-            $('#searchbutton').click(function () {
-                var searchtext = $("#searchtext").val();
-                $("#searchtable thead").eq(0).nextAll().remove();
-                $.get("/sale/dinghuo/searchproduct/", {searchtext: searchtext},
-                        function (result) {
-                            var tb = $('#searchtable');
-                            var count = 0;
-                            $.each(result, function (index, dd) {
-                                var guiges = dd.prod_skus;
-                                tb.append('<tr><td>' + dd.outer_id + '</td>' +
-                                '<td width="100px"><label id=\"tb_name_' + index + '\">' + dd.name + '</label></td>' +
-                                '<td><img width="80px" src = "' + dd.pic_path + '" class="img-circle"/></td>' +
-                                '<td><select id =\"tb_sku_name_' + index + '\" class="form-control"></select></td>' +
-                                '<td><input type="number" min="0" class="form-control" id=\"buy_unitprice_' + index + '\" value="' + dd.cost + '\"></td>' +
-                                '<td><input type="number" class="form-control" id=\"tb_quantitys_' + index + '" min="0"></td>' +
-                                '<td><input type="button" class="btn btn-default" value="添加到当前大货" onclick="addtodinghuo(' + index + ')"></td></tr>');
-                                var index_of_guige = "tb_sku_name_" + String(index);
-                                var i;
-                                for (i in guiges) {
-                                    var selectid = document.getElementById(String(index_of_guige));
-                                    selectid[i] = new Option(String(guiges[i].sku_name), String(guiges[i].id));
-                                }
-                            });
-                            var scroll_offset = $("#searchfield").offset();
-                            {#                            var height = document.body.scrollHeight;#}
-                            $('html,body').animate({scrollTop: scroll_offset.top}, 800);
-                            }, 'json');
-            })
-        });
+
+function initActions(){
+    var xlsfileupload_elment = document.getElementById('xlsfileupload');
+    if(xlsfileupload_elment == null){
+        return false;
+    }
+    xlsfileupload_elment.addEventListener('change',handleXlsFile,false);
+}
+        function handleXlsFile(e) {
+    var files = e.target.files;
+    var i,f;
+    for (i = 0, f = files[i]; i != files.length; ++i) {
+        var reader = new FileReader();
+        var name = f.name;
+        var regex = /[\d|\w]+/g
+        reader.onload = function(e) {
+            var data = e.target.result;
+            var workbook = XLSX.read(data, {type: 'binary'});
+            //读取第一个sheet的数据
+            var sheet_list = workbook.SheetNames;
+            var data = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_list[0]])
+            //console.log(data)
+           /*
+            sheet_name_list.forEach(function(y) { /* iterate through sheets
+                                    var worksheet = workbook.Sheets[y];
+                                    for (z in worksheet) {
+                                            if(z[0] === '!') continue;
+                                            cells.push(worksheet[z].v);
+                                        }
+                });*/
+                importXlsData(data);
+            };
+            reader.readAsBinaryString(f);
+        }
+    }
+    function importXlsData(item_list){
+        if(confirm('请确认物流单号无误再进行导入。')){
+            var data = {}
+            data['data'] = item_list
+            $.ajax({
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                url: '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/import_package',
+                success: function(response){
+                    if(response.code == 0){
+                        alert('全部导入成功');
+                    } else {
+                        alert(response.info);
+                    }
+                }
+            });
+        }
+    };
         function showlayer(url) {
             url = '/sale/dinghuo/detail/' + url;
             layer.open({
@@ -273,20 +298,46 @@
             }
         }
         document.onkeydown = doKey;
+        $(document).ready(function () {
+            $('#searchbutton').click(function () {
+                var searchtext = $("#searchtext").val();
+                $("#searchtable thead").eq(0).nextAll().remove();
+                $.get("/sale/dinghuo/searchproduct/", {searchtext: searchtext},
+                        function (result) {
+                            var tb = $('#searchtable');
+                            var count = 0;
+                            $.each(result, function (index, dd) {
+                                var guiges = dd.prod_skus;
+                                tb.append('<tr><td>' + dd.outer_id + '</td>' +
+                                '<td width="100px"><label id=\"tb_name_' + index + '\">' + dd.name + '</label></td>' +
+                                '<td><img width="80px" src = "' + dd.pic_path + '" class="img-circle"/></td>' +
+                                '<td><select id =\"tb_sku_name_' + index + '\" class="form-control"></select></td>' +
+                                '<td><input type="number" min="0" class="form-control" id=\"buy_unitprice_' + index + '\" value="' + dd.cost + '\"></td>' +
+                                '<td><input type="number" class="form-control" id=\"tb_quantitys_' + index + '" min="0"></td>' +
+                                '<td><input type="button" class="btn btn-default" value="添加到当前大货" onclick="addtodinghuo(' + index + ')"></td></tr>');
+                                var index_of_guige = "tb_sku_name_" + String(index);
+                                var i;
+                                for (i in guiges) {
+                                    var selectid = document.getElementById(String(index_of_guige));
+                                    selectid[i] = new Option(String(guiges[i].sku_name), String(guiges[i].id));
+                                }
+                            });
+                            var scroll_offset = $("#searchfield").offset();
+                            {#                            var height = document.body.scrollHeight;#}
+                            $('html,body').animate({scrollTop: scroll_offset.top}, 800);
+                            }, 'json');
+            })
+               initActions();
 
+        });
 </script>
 {% endblock %}
 {% block container %}
 <div class="row" style="margin-top: 20px">
-    <div class="col-lg-3">
+    <div class="col-lg-2">
         <span class="label label-info" style="font-size: 15px">当前进度：</span>
         <label id="order_stage" class="label label-success"
                style="font-size: large">{{ orderlist.get_stage_display }}/{{ orderlist.get_receive_status }}</label>
-    </div>
-    <div class="col-lg-3">
-        <span class="label label-info" style="font-size: 20px">当前状态：</span>
-        <label id="order_status" class="label label-success"
-               style="font-size: large">{{ orderlist.get_status_display }}</label>
     </div>
     <div class="col-lg-2">
         <a href="/admin/dinghuo/orderlist" style="text-align: right">
@@ -299,10 +350,22 @@
         </a>
     </div>
     <div class="col-lg-2">
-        <a href="/sale/dinghuo/changedetail/{{ orderlist.id }}/export" target="_blank" style="text-align: right">
-            <span class="label label-success" style="font-size: 15px">导出excel</span>
+        <a href="/sale/dinghuo/changedetail/{{ orderlist.id }}/export" target="_blank">
+            <span class="label label-success" style="font-size: 15px">导出订货excel</span>
         </a>
+        <%if orderlist.third_package%>
+        <a href="/sale/dinghuo/dinghuo_orderlist/{{ orderlist.id }}/export_package" target="_blank">
+            <span class="label label-success" style="font-size: 15px">导出发货excel</span>
+        </a>
+        {%endif%}
     </div>
+    <%if orderlist.third_package%>
+    <div class="col-lg-4">
+        <input type="file" name="upfile" multiple="" id="xlsfileupload" value="导入excel"/>
+        <a href="/static/a.xlsx">导入案例</a>
+        <a href="/admin/logistics/logisticscompany" target="_blank">物流id查询</a>
+    </div>
+    {%endif%}
 </div>
 <div class="row" style="margin-top: 20px">
     <input id="ordelist_id" type="text" hidden="hidden" value="{{ orderlist.id }}">
@@ -335,7 +398,7 @@
             <strong>供应商其他联系方式：{{orderlist.supplier.zip_code}}</strong></p>
         <p class="alert alert-success" role="alert">
             <strong>商品链接:<input id="supplier_name" size=30 type="text"
-                                value={{orderlist.supplier.product_link}}/></strong>
+                                value="{{orderlist.supplier.product_link}}"/></strong>
             <strong> <a href="{{ orderlist.supplier_name }}" target="_blank">{{ orderlist.supplier_name }}</a></strong>
         </p>
     </div>
@@ -345,7 +408,7 @@
         <div class="alert alert-success row" role="alert">
             <strong>快递公司:</strong>
             <select class="form-control" style="width:60%;float:right" id="express_company_id">
-                <option value={{ orderlist.express_company }}>{{ orderlist.get_express_company_display }}</option>
+                <option value="{{ orderlist.express_company }}">{{ orderlist.get_express_company_display }}</option>
                 <option value="YUNDA">韵达速递</option>
                 <option value="STO">申通快递</option>
                 <option value="ZTO">中通快递</option>
