@@ -694,10 +694,10 @@ class XiaoluMama(models.Model):
             raise AssertionError(u'续费天数异常')
         now = datetime.datetime.now()
         update_fields = ['renew_time']
-        if isinstance(self.renew_time, datetime.datetime):
-            renew_time = self.renew_time + datetime.timedelta(days=days)
-        else:
-            renew_time = now + datetime.timedelta(days=days)
+        renew_time = now + datetime.timedelta(days=days)
+        if isinstance(self.renew_time, datetime.datetime):  # 有效状态则累加
+            readd_renew_time = self.renew_time + datetime.timedelta(days=days)
+            renew_time = max(readd_renew_time, renew_time)
         self.renew_time = renew_time
         if renew_time > now and self.status == XiaoluMama.FROZEN:
             self.status = XiaoluMama.EFFECT
