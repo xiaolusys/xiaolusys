@@ -68,3 +68,16 @@ class AppPush(object):
 
         if msg:
             cls.push(customer_id, target_url, msg)
+
+    @classmethod
+    def push_pass_through(cls, customer_id):
+        """
+        """
+        msg = {
+            'content': u'有新订单了',
+            'avatar': 'http://img',
+            'type': 'mama_ordercarry_broadcast'
+        }
+        msg = json.dumps(msg)
+        target_url = ''
+        cls.push(customer_id, target_url, msg, pass_through=0)
