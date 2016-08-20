@@ -32,8 +32,8 @@ class MiPush(object):
     SANDBOX_UNSUBSCRIBE_BY_REGID_URL = 'https://sandbox.xmpush.xiaomi.com/v2/topic/unsubscribe'
 
     # app_secret
-    IOS_APP_SECRET = 'UN+ohC2HYHUlDECbvVKefA=='
-    ANDROID_APP_SECRET = 'WHdmdNYgnXWokStntg87sg=='
+    IOS_APP_SECRET = settings.IOS_APP_SECRET
+    ANDROID_APP_SECRET = settings.ANDROID_APP_SECRET
     RESTRICTED_PACKAGE_NAME = 'com.jimei.xiaolumeimei'
 
     # notify_id
@@ -150,6 +150,8 @@ class MiPush(object):
         }
         if self.platform == 'ios':
             data['extra.badge'] = 1
+            if pass_through == 1:
+                data['extra.content-available'] = 1
             extra = payload
         else:
             data.update({

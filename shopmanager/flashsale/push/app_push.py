@@ -34,6 +34,61 @@ class AppPush(object):
             'android_res': json.dumps(android_res),
             'ios_res': json.dumps(ios_res)
         })
+        return {'android': android_res, 'ios': ios_res}
+
+    @classmethod
+    def push_to_all(cls, target_url, msg, pass_through=0):
+        android_res = mipush_of_android.push_to_all(
+            {'target_url': target_url}, description=msg, pass_through=pass_through)
+        ios_res = mipush_of_ios.push_to_all(
+            {'target_url': target_url}, description=msg, pass_through=pass_through)
+
+        logger.info({
+            'action': 'push.apppush.all',
+            'msg': msg,
+            'target_url': target_url,
+            'android_res': json.dumps(android_res),
+            'ios_res': json.dumps(ios_res)
+        })
+        return {'android': android_res, 'ios': ios_res}
+
+    @classmethod
+    def push_to_platform(cls, platform, target_url, msg, pass_through=0):
+        android_res = {}
+        ios_res = {}
+        if platform == 'ios':
+            android_res = mipush_of_ios.push_to_all(
+                {'target_url': target_url}, description=msg, pass_through=pass_through)
+        if platform == 'android':
+            ios_res = mipush_of_android.push_to_all(
+                {'target_url': target_url}, description=msg, pass_through=pass_through)
+
+        logger.info({
+            'action': 'push.apppush.platform',
+            'platform': platform,
+            'msg': msg,
+            'target_url': target_url,
+            'android_res': json.dumps(android_res),
+            'ios_res': json.dumps(ios_res)
+        })
+        return {'android': android_res, 'ios': ios_res}
+
+    @classmethod
+    def push_to_topic(cls, topic, target_url, msg, pass_through=0):
+        android_res = mipush_of_android.push_to_topic(
+            topic, {'target_url': target_url}, description=msg, pass_through=pass_through)
+        ios_res = mipush_of_ios.push_to_topic(
+            topic, {'target_url': target_url}, description=msg, pass_through=pass_through)
+
+        logger.info({
+            'action': 'push.apppush.topic',
+            'topic': topic,
+            'msg': msg,
+            'target_url': target_url,
+            'android_res': json.dumps(android_res),
+            'ios_res': json.dumps(ios_res)
+        })
+        return {'android': android_res, 'ios': ios_res}
 
     @classmethod
     def push_mama_ordercarry(cls, ordercarry):
@@ -70,14 +125,15 @@ class AppPush(object):
             cls.push(customer_id, target_url, msg)
 
     @classmethod
-    def push_pass_through(cls, customer_id):
+    def push_pass_through(cls, topic):
         """
+        测试用
         """
         msg = {
             'content': u'有新订单了',
-            'avatar': 'http://img',
+            'avatar': 'http://wx.qlogo.cn/mmopen/n24ek7Oc1iaXyxqzHobN7BicG5W1ljszSRWSdzaFeRkGGVwqjmQKTmicTylm8IkclpgDiaamWqZtiaTlcvLJ5z6x35wCKMWVbcYPU/0',
             'type': 'mama_ordercarry_broadcast'
         }
         msg = json.dumps(msg)
         target_url = ''
-        cls.push(customer_id, target_url, msg, pass_through=0)
+        cls.push_to_topic(topic, target_url, msg, pass_through=1)
