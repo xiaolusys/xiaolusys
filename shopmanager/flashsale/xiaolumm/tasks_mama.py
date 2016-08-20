@@ -355,8 +355,10 @@ def task_order_trigger(sale_order):
 
     #logger.warn("carry_amount %s, agency_level: %s, payment: %s, order_id: %s" % (carry_amount, agency_level, payment, sale_order.oid))
 
-    task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
-                                 carry_scheme.name, via_app)
+    # task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
+    #                              carry_scheme.name, via_app)
+    task_update_ordercarry.apply_async(args=[mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level,
+                                 carry_scheme.name, via_app], countdown=1)
 
 @task()
 def carryrecord_update_xiaolumama_active_hasale(mmid):
