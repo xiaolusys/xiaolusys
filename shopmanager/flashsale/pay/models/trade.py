@@ -535,8 +535,9 @@ def add_renew_deposit_record(sender, obj, **kwargs):
                    status=CashOut.APPROVED)
     cash.save()
     cash.value = cash_value
+    cash.cash_out_type = CashOut.MAMA_RENEW
     from core.utils.modelutils import update_model_fields
-    update_model_fields(cash, update_fields=['value'])
+    update_model_fields(cash, update_fields=['value', 'cash_out_type'])
     f = MamaFortune.objects.get(mama_id=xlmm.id)
     f.carry_cashout += cash_value
     f.save(update_fields=['carry_cashout'])

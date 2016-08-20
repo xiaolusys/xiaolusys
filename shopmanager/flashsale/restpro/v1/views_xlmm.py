@@ -789,7 +789,10 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if value <= 0:
             return Response(msg)
         # 满足提现请求　创建提现记录
-        cashout = CashOut(xlmm=xlmm.id, value=value, approve_time=datetime.datetime.now())
+        cashout = CashOut(xlmm=xlmm.id,
+                          value=value,
+                          cash_out_type=CashOut.RED_PACKET,
+                          approve_time=datetime.datetime.now())
         cashout.save()
 
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
@@ -808,6 +811,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         # 创建Cashout
         cashout = CashOut(xlmm=xlmm.id,
                           value=value,
+                          cash_out_type=CashOut.USER_BUDGET,
                           approve_time=datetime.datetime.now(),
                           status=CashOut.APPROVED)
         cashout.save()
@@ -868,6 +872,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         def exchange_one_coupon():
             cash = CashOut(xlmm=xlmm.id,
                            value=tpl.value * 100,
+                           cash_out_type=CashOut.EXCHANGE_COUPON,
                            approve_time=datetime.datetime.now(),
                            status=CashOut.APPROVED)
             cash.save()
@@ -928,6 +933,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             # 这里是续费　如果是第一次成为正式的话(发送优惠券)　否则异常打入log 后继续续费动作
         cash = CashOut(xlmm=xlmm.id,
                        value=deposit * 100,
+                       cash_out_type=CashOut.MAMA_RENEW,
                        approve_time=datetime.datetime.now(),
                        status=CashOut.APPROVED)
         cash.save()

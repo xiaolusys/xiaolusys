@@ -836,12 +836,24 @@ class CashOut(models.Model):
         (COMPLETED, u'完成'),
         (SENDFAIL, u'发送失败')
     )
+    MAMA_RENEW = 'renew'
+    USER_BUDGET = 'budget'
+    RED_PACKET = 'red'
+    EXCHANGE_COUPON = 'coupon'
+
+    TYPE_CHOICES = (
+        (MAMA_RENEW, u'妈妈续费'),
+        (USER_BUDGET, u'提至余额'),
+        (RED_PACKET, u'微信红包'),
+        (EXCHANGE_COUPON, u'兑换优惠券')
+    )
 
     xlmm = models.IntegerField(default=0, db_index=True, verbose_name=u"妈妈编号")
     value = models.IntegerField(default=0, verbose_name=u"金额(分)")
     status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES, default=PENDING, verbose_name=u'状态')
     approve_time = models.DateTimeField(blank=True, null=True, verbose_name=u'审核时间')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
+    cash_out_type = models.CharField(max_length=8, choices=TYPE_CHOICES, default=RED_PACKET, verbose_name=u'提现类型')
 
     class Meta:
         db_table = 'xiaolumm_cashout'
