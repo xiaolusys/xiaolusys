@@ -52,18 +52,6 @@
     {% block object-tools %}
       {% if has_add_permission %}
         <ul class="object-tools">
-          <li>
-            <a href="/sale/promotion/promotion/stocksale/gen_new_stock_sale">生成新批次</a>
-          </li>
-          <li>
-            <a href="/sale/promotion/promotion/stocksale/gen_new_activity">生成下个专题</a>
-          </li>
-          <li>
-            <a href="/admin/promotion/batchstocksale/">最后疯抢批次列表</a>
-          </li>
-          <li>
-            <a href="/admin/promotion/activitystocksale/">最后疯抢活动列表</a>
-          </li>
           {% block object-tools-items %}
             <li>
               {% url cl.opts|admin_urlname:'add' as add_url %}

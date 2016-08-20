@@ -1,0 +1,147 @@
+{% extends "admin/base_site_v2.html" %}
+{% load i18n admin_urls admin_static admin_modify %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+<link href="{{ STATIC_URL }}bootstrap-3.3.4-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+<link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css"/>
+<link href="{{ STATIC_URL }}admin/css/forms.css" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+&rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block title %}最后疯抢活动详情{% endblock %}
+
+{% block content %}<div id="content-main">
+{% block object-tools %}
+{% if change %}{% if not is_popup %}
+  <ul class="object-tools">
+    {% block object-tools-items %}
+    <li>
+        <a href="/sale/promotion/promotion/stocksale/{{original.id}}/gen_activity_entry" class="historylink">生成排期</a>
+    </li>
+    <li>
+        <a href="/admin/promotion/activitystocksale/10/change" class="historylink">修改</a>
+    </li>
+    <li>
+        {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+        <a href="{% add_preserved_filters history_url %}" class="historylink">{% trans "History" %}</a>
+    </li>
+    {% if has_absolute_url %}<li><a href="{{ absolute_url }}" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif %}
+    {% endblock %}
+  </ul>
+{% endif %}{% endif %}
+{% endblock %}
+<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form" novalidate>{% csrf_token %}{% block form_top %}{% endblock %}
+<div>
+{% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1" />{% endif %}
+{% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}" />{% endif %}
+{% if save_on_top %}{% block submit_buttons_top %}{% submit_row %}{% endblock %}{% endif %}
+{% if errors %}
+    <p class="errornote">
+    {% if errors|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
+    </p>
+    {{ adminform.form.non_field_errors }}
+{% endif %}
+
+{% block field_sets %}
+<div class="panel panel-default">
+    <div class="panel-heading">
+            活动基本信息:
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <label class="col-md-1">活动ID:</label><label class="col-md-2">{{original.id}}</label>
+            <label class="col-md-1">创建者:</label><label class="col-md-2">{{original.creator}}</label>
+            <label class="col-md-1">创建时间:</label><label class="col-md-3">{{original.created|date:'Y-m-d H:i:s'}}</label>
+        </div>
+        <div class="row">
+            <label class="col-md-1">专题活动</label><label class="col-md-2">{{original.created}}</label>
+            <label class="col-md-1">专题排期</label><label class="col-md-2">{{original.created}}</label>
+        </div>
+        <div class="row">
+            <label class="col-md-1">批次号</label><label class="col-md-2">{{original.batch}}</label>
+            <label class="col-md-1">专题序号</label><label class="col-md-2">{{original.day_batch_num}}</label>
+            <label class="col-md-1">上架日期</label><label class="col-md-2">{{original.onshelf_time|date:'Y-m-d'}}</label>
+            <label class="col-md-1">下架日期</label><label class="col-md-2">{{original.offshelf_time|date:'Y-m-d'}}</label>
+        </div>
+        <div class="row">
+            <label class="col-md-1">选品数量</label><label class="col-md-2">{{original.total}}</label>
+            <label class="col-md-1">商品品数量</label><label class="col-md-2">{{original.product_total}}</label>
+            <label class="col-md-1">SKU总数</label><label class="col-md-2">{{original.sku_total}}</label>
+            <label class="col-md-1">待售库存总数</label><label class="col-md-2">{{original.stock_total}}</label>
+        </div>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading">
+            活动商品详情:
+    </div>
+    <div class="panel-body">
+        <table class="table">
+            <tr>
+                <td>ID</td>
+                <td>选品名称</td>
+                <td>选品ID</td>
+                <td>商品名称</td>
+                <td>商品ID</td>
+                <td>库位</td>
+                <td>当前库存数</td>
+                <td>商品SKU数</td>
+                <td>SKU库存详情</td>
+                <td>状态</td>
+                <td>库存状态</td>
+                <td>操作</td>
+            </tr>
+            {%for stock_sale in original.stock_sales%}
+            <tr>
+                <td>{{stock_sale.id}}</td>
+                <td>{{stock_sale.sale_product.title}}</td>
+                <td>{{stock_sale.sale_product.id}}</td>
+                <td>{{stock_sale.product.name}}</td>
+                <td>{{stock_sale.product.id}}</td>
+                <td>{{stock_sale.location}}</td>
+                <td>{{stock_sale.quantity}}</td>
+                <td>{{stock_sale.sku_num}}</td>
+                <td>{{stock_sale.sku_detail}}</td>
+                <td>{{stock_sale.get_status_display}}</td>
+                <td>{{stock_sale.get_stock_safe_display}}</td>
+                <td>
+                    <a href="/sale/promotion/promotion/stocksale/{{stock_sale.id}}/update_status?status=1">确认出售</a>
+                    <a href="/sale/promotion/promotion/stocksale/{{stock_sale.id}}/update_status?status=2">禁止出售</a>
+                    <a href="/sale/promotion/promotion/stocksale/{{stock_sale.id}}/update_status?status=0">下次出售</a>
+                    <a href="/sale/promotion/promotion/stocksale/{{stock_sale.id}}/update_stock_safe?stock_safe=1">确认库存</a>
+                </td>
+            </tr>
+            {%endfor%}
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+
+{% prepopulated_fields_js %}
+
+</div>
+</form></div>
+{% endblock %}
+
+
+

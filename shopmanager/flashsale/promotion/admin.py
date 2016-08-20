@@ -6,7 +6,7 @@ from .models import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, Rea
     RedEnvelope, AwardWinner, DownloadMobileRecord, DownloadUnionidRecord, XLInviteCode, XLReferalRelationship, \
     XLInviteCount, ActivityEntry, ActivityProduct
 from core.filters import DateFieldListFilter
-from core.admin import ApproxAdmin
+from core.admin import ApproxAdmin, BaseAdmin, BaseModelAdmin
 from flashsale.promotion.models.stocksale import StockSale, ActivityStockSale, BatchStockSale
 
 
@@ -263,7 +263,7 @@ class StockSaleAdmin(admin.ModelAdmin):
 admin.site.register(StockSale, StockSaleAdmin)
 
 
-class ActivityStockSaleAdmin(admin.ModelAdmin):
+class ActivityStockSaleAdmin(BaseModelAdmin):
     list_display = (
         'id',
         'activity',
@@ -285,6 +285,10 @@ class ActivityStockSaleAdmin(admin.ModelAdmin):
         return '<a href="%(link)s">%(show_text)d</a>' % {'link': link, 'show_text': obj.product_total}
     stock_sales_link.short_description = u'商品总数'
     stock_sales_link.allow_tags = True
+
+    def detail_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = {'title': u'最后疯抢活动详情'}
+        return self.detailform_view(request, object_id, form_url, extra_context)
 admin.site.register(ActivityStockSale, ActivityStockSaleAdmin)
 
 
