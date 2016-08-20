@@ -716,6 +716,7 @@ class XlmmMessageAdmin(admin.ModelAdmin):
     list_filter = ('status', )
     search_fields = ('id', "title", '=content_link')
     add_form_template = 'admin/xiaolumm/message/add_form.html'
+    change_form_template = 'admin/xiaolumm/message/change_form.html'
 
     def to_mama(self, obj):
         return u'全体小鹿妈妈'
