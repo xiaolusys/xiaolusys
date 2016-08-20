@@ -54,6 +54,11 @@ class MamaDeviceStats(BaseModel):
         verbose_name = u'V2/妈妈device统计'
         verbose_name_plural = u'V2/妈妈device统计表'
 
+    @property
+    def outdated_percentage(self):
+        percentage = self.num_outdated * 100.0 / (self.num_outdated + self.num_latest)
+        return "%.2f%%" % percentage
+
 
 class MamaDailyTabVisit(BaseModel):
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
