@@ -41,7 +41,7 @@ class MamaWeeklyAward(BaseModel):
     finish_num = models.IntegerField(default=0, verbose_name=u'完成数')
     award_num = models.IntegerField(default=0, verbose_name=u'奖金')
     category_type = models.IntegerField(default=0, choices=CATEGORY_TYPES, db_index=True, verbose_name=u'奖励项目')
-    award_type ＝ models.IntegerField(default=0, choices=AWARD_TYPES, db_index=True, verbose_name=u'奖励类型')
+    award_type = models.IntegerField(default=0, choices=AWARD_TYPES, db_index=True, verbose_name=u'奖励类型')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID') #mama_id + week_field + category_type
     finish_status = models.IntegerField(default=0, choices=FINISH_STATUS, db_index=True, verbose_name=u'完成状态')
     status = models.IntegerField(default=0, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')
