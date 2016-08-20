@@ -105,6 +105,8 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         if obj.active_value_num < 100:
             tmp_des.append(u'活跃度不足')
             could_cash_out = 0
+        if xlmm.status != XiaoluMama.EFFECT:
+            could_cash_out = 0
         cashout_reason = u' '.join(tmp_des) + u'不能提现'
         total_rank = MamaCarryTotal.get_by_mama_id(xlmm.id).total_rank if MamaCarryTotal.get_by_mama_id(xlmm.id) else 0
         his_confirmed_cash_out = CashOut.objects.filter(xlmm=xlmm.id, status=CashOut.APPROVED,
