@@ -86,7 +86,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         """ 对集合列表进行排序 """
         if order_by == 'portal':
             queryset = queryset.extra(  # select={'is_saleout': 'remain_num - lock_num <= 0'},
-                order_by=['salecategory__sort_order', '-is_recommend', '-order_weight', '-id'])
+                order_by=['-salecategory__sort_order', '-is_recommend', '-order_weight', '-id'])
         elif order_by == 'price':
             queryset = queryset.order_by('agent_price')
         else:
