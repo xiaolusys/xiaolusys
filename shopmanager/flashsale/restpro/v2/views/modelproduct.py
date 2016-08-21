@@ -82,14 +82,16 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         data = serializers_v2.ModelProductSerializer(instance, context={'request': request}).data
         return Response(data)
 
-    def order_queryset(self, request, queryset, order_by=None):
+    def order_queryset(self, queryset, order_by=None):
         """ 对集合列表进行排序 """
-        order_by = order_by or request.REQUEST.get('order_by')
-        if order_by == 'price':
+        if order_by == 'portal':
+            queryset = queryset.extra(  # select={'is_saleout': 'remain_num - lock_num <= 0'},
+                order_by=['salecategory__sort_order', '-is_recommend', '-order_weight', '-id'])
+        elif order_by == 'price':
             queryset = queryset.order_by('agent_price')
         else:
-            queryset = queryset.extra(#select={'is_saleout': 'remain_num - lock_num <= 0'},
-                                      order_by=['salecategory__sort_order', '-is_recommend', '-order_weight', '-id'])
+            queryset = queryset.extra(  # select={'is_saleout': 'remain_num - lock_num <= 0'},
+                order_by=['-is_recommend', '-order_weight', '-id'])
         return queryset
 
     def get_normal_qs(self, queryset):
@@ -114,6 +116,8 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     def get_pagination_response_by_date(self, request, cur_date, only_onshelf=False):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = self.get_normal_qs(queryset)
+
+        queryset = self.order_queryset( queryset, order_by='portal')
         date_range = (datetime.datetime.combine(cur_date, datetime.time.min),
                       datetime.datetime.combine(cur_date, datetime.time.max))
         if only_onshelf:
@@ -156,9 +160,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def today(self, request, *args, **kwargs):
         """ 今日商品列表分页接口 """
-        logger.info({'stype': 'modelproduct',
-                     'path': request.get_full_path(),
-                     'buyer': request.user and request.user.id or 0})
         today_dt = self.get_lastest_date(datetime.date.today(), only_onshelf=True)
         return self.get_pagination_response_by_date(request, today_dt, only_onshelf=True)
 
@@ -166,9 +167,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def yesterday(self, request, *args, **kwargs):
         """ 昨日特卖列表分页接口 """
-        logger.info({'stype': 'modelproduct',
-                     'path': request.get_full_path(),
-                     'buyer': request.user and request.user.id or 0})
         yesterday_dt = self.get_lastest_date(datetime.date.today() - datetime.timedelta(days=1))
         return self.get_pagination_response_by_date(request, yesterday_dt, only_onshelf=False)
 
@@ -176,9 +174,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def tomorrow(self, request, *args, **kwargs):
         """ 昨日特卖列表分页接口 """
-        logger.info({'stype': 'modelproduct',
-                     'path': request.get_full_path(),
-                     'buyer': request.user and request.user.id or 0})
         tomorrow_dt = self.get_lastest_date(datetime.date.today() + datetime.timedelta(days=1), predict=True)
         return self.get_pagination_response_by_date(request, tomorrow_dt, only_onshelf=False)
 
