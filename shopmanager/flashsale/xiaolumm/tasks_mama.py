@@ -207,6 +207,10 @@ def get_award_carry_num(num, referal_type):
         if num < entry[0]:
             break
         idx += 1
+
+    if idx == 1:
+        logger.error("get_award_carry_num | num: %s, referal_type: %s" % (num, referal_type))
+    
     return award_carry_array[idx - 1][1]
 
 
@@ -231,7 +235,7 @@ def task_referal_update_awardcarry(relationship):
     carry_num = get_award_carry_num(records.count(), relationship.referal_type)    
     
     award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
-    if award_carry and award_carry.carry_num < carry_num:
+    if award_carry and award_carry.carry_num != carry_num:
         award_carry.carry_num = carry_num
         award_carry.date_field = relationship.modified.date()
         award_carry.save(update_fields=['carry_num', 'date_field', 'modified'])
