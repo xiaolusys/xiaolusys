@@ -437,7 +437,9 @@ class MamaFortuneAdmin(OrderModelAdmin):
 
     def mama_agency_level(self, obj):
         """ show XiaoluMama agencylevel """
-        return obj.xlmm.get_agencylevel_display()
+        if obj.xlmm:
+            return obj.xlmm.get_agencylevel_display()
+        return None
 
     mama_agency_level.short_description = u'Level'
     mama_agency_level.allow_tags = True
