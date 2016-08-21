@@ -437,7 +437,9 @@ class MamaFortuneAdmin(OrderModelAdmin):
 
     def mama_agency_level(self, obj):
         """ show XiaoluMama agencylevel """
-        return obj.xlmm.get_agencylevel_display()
+        if obj.xlmm:
+            return obj.xlmm.get_agencylevel_display()
+        return None
 
     mama_agency_level.short_description = u'Level'
     mama_agency_level.allow_tags = True
@@ -513,7 +515,7 @@ admin.site.register(ActiveValue, ActiveValueAdmin)
 
 class ReferalRelationshipAdmin(admin.ModelAdmin):
     list_display = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'referal_type', 'status', 'modified', 'created')
-    search_fields = ('referal_from_mama_id',)
+    search_fields = ('referal_from_mama_id', 'referal_to_mama_id',)
     list_filter = ('status', 'referal_type',)
 
 admin.site.register(ReferalRelationship, ReferalRelationshipAdmin)
@@ -716,6 +718,7 @@ class XlmmMessageAdmin(admin.ModelAdmin):
     list_filter = ('status', )
     search_fields = ('id', "title", '=content_link')
     add_form_template = 'admin/xiaolumm/message/add_form.html'
+    change_form_template = 'admin/xiaolumm/message/change_form.html'
 
     def to_mama(self, obj):
         return u'全体小鹿妈妈'
@@ -758,7 +761,7 @@ admin.site.register(MamaDailyTabVisit, MamaDailyTabVisitAdmin)
 
 
 class MamaDeviceStatsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'modified', 'created')
+    list_display = ('id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'modified', 'created')
     list_filter = ('device_type', )
     search_fields = ('device_type','date_field')
     
