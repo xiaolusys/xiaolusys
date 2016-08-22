@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0043_add_renewtype_extra_in_potential'),
+        ('xiaolumm', '0044_mamaweeklyaward'),
     ]
 
     operations = [
