@@ -26,13 +26,14 @@ from flashsale.xiaolumm import serializers
 class MamaMissionRecordViewset(viewsets.ModelViewSet):
     """
     ## 妈妈新手任务API:
-       - 周任务信息列表 [/rest/v2/mama/mission/weeklist](/rest/v2/mama/mission/weeklist):
-        ``` {
+    > ## 周任务信息列表 [/rest/v2/mama/mission/weeklist](/rest/v2/mama/mission/weeklist):
+        - 参数 : year_week = 2016-34 (年-周)
+        - ``` {
             "staging_award_count": 待完成任务总奖励,
             "staging_award_amount": 待完成任务数,
             "personal_missions": []# 个人任务
             "group_missions": []# 团队任务
-        }```
+          }```
     """
     queryset = MamaMissionRecord.objects.all()
     serializer_class = serializers.MamaMissionRecordSerializer
