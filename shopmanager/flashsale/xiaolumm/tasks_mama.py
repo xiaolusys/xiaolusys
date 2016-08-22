@@ -39,10 +39,11 @@ def task_update_second_level_ordercarry_by_trial(potential, order_carry):
     parent_mama_id = potential.referal_mama  # 上级代理
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_carry.order_id)
     record = OrderCarry.objects.filter(uni_key=uni_key).first()
-    if record > 0:
-        if record.status != order_carry.status:
-            record.status = order_carry.status
-            record.save(update_fields=['status'])
+    if record:
+        if order_carry.modified > record.modified:
+            if record.status != order_carry.status:
+                record.status = order_carry.status
+                record.save(update_fields=['status', 'modified'])
         return
 
     mama_id = parent_mama_id
@@ -85,12 +86,16 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
     carry_type = 3  # second level
     parent_mama_id = referal_relationship.referal_from_mama_id
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_carry.order_id)
-    records = OrderCarry.objects.filter(uni_key=uni_key)
-    if records.count() > 0:
-        record = records[0]
-        if record.status != order_carry.status:
-            record.status = order_carry.status
-            record.save()
+    record = OrderCarry.objects.filter(uni_key=uni_key).first()
+    if record:
+        # Then we just have to update status: only order_carry has modified time greater than
+        # the current record, we do update.
+        if order_carry.modified > record.modified:
+            if record.status != order_carry.status:
+                record.status = order_carry.status
+                record.save(update_fields=['status', 'modified'])
+        else:
+            logger.error("%s|order_carry: %s,%s,%s;record:%s,%s,%s" % (get_cur_info(), order_carry.id, order_carry.modified,order_carry.status, record.id, record.modified,record.status))
         return
 
     mama_id = parent_mama_id
@@ -156,7 +161,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
             # We only update status change. We assume no price/value change.
             # We dont do updates on changes other than status change.
             order_carry.status = status
-            order_carry.save()
+            order_carry.save(update_fields=['status', 'modified'])
         return
 
     try:
