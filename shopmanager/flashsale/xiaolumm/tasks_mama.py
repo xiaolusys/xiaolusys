@@ -231,8 +231,8 @@ def task_referal_update_awardcarry(relationship):
 
     uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
 
-    records = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id)
-    carry_num = get_award_carry_num(records.count(), relationship.referal_type)    
+    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, created__lte=relationship.created).count()
+    carry_num = get_award_carry_num(rr_cnt, relationship.referal_type)    
     
     award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
     if award_carry and award_carry.carry_num != carry_num:

@@ -55,12 +55,13 @@ CACHES = {
         'OPTIONS': {
             'DB': 1,
             'PASSWORD': REDIS_AUTH,
-            # 'PARSER_CLASS': 'redis.connection.HiredisParser',
-            'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
-            'CONNECTION_POOL_CLASS_KWARGS': {
-                'max_connections': 20,
-                'timeout': 10,
-            }
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
+            'PICKLE_VERSION': 2,
+            # 'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
+            # 'CONNECTION_POOL_CLASS_KWARGS': {
+            #     'max_connections': 50,
+            #     'timeout': 10,
+            # }
         }
     }
 }
@@ -93,6 +94,14 @@ WXPAY_SECRET = "e8e1f648a5e02492e1584e5413cef158"
 # APP客户端
 WXAPP_ID = "wx25fcb32689872499"
 WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
+
+# ================ 小米推送　======================
+
+# 小米推送
+IOS_APP_SECRET = 'UN+ohC2HYHUlDECbvVKefA=='
+ANDROID_APP_SECRET = 'WHdmdNYgnXWokStntg87sg=='
+
+# ================ 小米推送 END ==================
 
 ################### PING++ SETTINGS ##################
 PINGPP_CLENTIP = "121.199.168.159"

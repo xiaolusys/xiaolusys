@@ -168,7 +168,9 @@ class CashoutView(WeixinAuthMixin, View):
             else:
                 try:
                     xlmm = XiaoluMama.objects.get(openid=unionid)
-                    cash_out = CashOut(xlmm=xlmm.pk, value=value)
+                    cash_out = CashOut(xlmm=xlmm.pk,
+                                       cash_out_type=CashOut.RED_PACKET,
+                                       value=value)
                     cash_out.approve_time = datetime.datetime.now()
                     cash_out.save()
                 except:

@@ -197,9 +197,11 @@ class CashOutAdmin(ApproxAdmin):
     form = forms.CashOutForm
     list_display = ('id', 'xlmm', 'get_cashout_verify', 'get_value_display', 'get_xlmm_history_cashin',
                     'get_xlmm_history_cashout', 'get_xlmm_history_cashout_record', 'fortune_cash_num_display',
-                    'get_xlmm_total_click',
+                    'get_xlmm_total_click', 'cash_out_type',
                     'get_xlmm_total_order', 'status', 'approve_time', 'created', 'get_cash_out_xlmm_manager')
-    list_filter = ('status', ('approve_time', DateFieldListFilter), ('created', DateFieldListFilter), UserNameFilter)
+    list_filter = ('cash_out_type',
+                   'status',
+                   ('approve_time', DateFieldListFilter), ('created', DateFieldListFilter), UserNameFilter)
     search_fields = ['=id', '=xlmm']
     list_per_page = 15
 
@@ -480,7 +482,7 @@ class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'carry_description', 'contributor_nick',
                     'contributor_img_html', 'contributor_mama_id', 'status', 'date_field', 'modified', 'created')
     list_filter = ('status', 'carry_type', ('created', DateFieldListFilter))
-    search_fields = ('=mama_id', '=contributor_nick',)
+    search_fields = ('=mama_id', '=contributor_nick', 'contributor_mama_id')
 
     def contributor_img_html(self, obj):
         return '<img src="%s" style="width:50px;height:50px">' % (obj.contributor_img,)
