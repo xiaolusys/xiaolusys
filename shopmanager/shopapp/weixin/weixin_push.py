@@ -203,7 +203,7 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
             'keyword1': {
-                'value': u'%s' % awardcarry.carry_description,
+                'value': u'%s' % awardcarry.carry_type_name(),
                 'color': '#000000',
             },
             'keyword2': {
