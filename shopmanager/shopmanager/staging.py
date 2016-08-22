@@ -57,7 +57,7 @@ CACHES = {
         'OPTIONS': {
             'DB': 11,
             'PASSWORD': REDIS_AUTH,
-            'PARSER_CLASS': 'redis.connection.HiredisParser',
+            # 'PARSER_CLASS': 'redis.connection.HiredisParser',
             'PICKLE_VERSION': 2,
             # 'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
             # 'CONNECTION_POOL_CLASS_KWARGS': {
