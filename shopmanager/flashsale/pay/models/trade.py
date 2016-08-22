@@ -1007,7 +1007,7 @@ def order_trigger(sender, instance, created, **kwargs):
             task_update_referal_relationship.delay(instance)
     else:
         from flashsale.xiaolumm import tasks_mama
-        tasks_mama.task_order_trigger.apply_async(args=[instance], countdown=1)
+        tasks_mama.task_order_trigger.delay(instance)
 
 
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')

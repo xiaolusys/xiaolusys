@@ -364,7 +364,6 @@ class ModelProduct(BaseTagModel):
                 'sku_id':sku.id,
                 'name':sku.name,
                 'free_num':sku.free_num,
-                'is_saleout':self.is_sale_out,
                 'std_sale_price':sku.std_sale_price,
                 'agent_price':sku.agent_price,
             })
@@ -374,6 +373,7 @@ class ModelProduct(BaseTagModel):
             'name':product.property_name,
             'product_img': product.pic_path,
             'outer_id': product.outer_id,
+            'is_saleout': product.is_sale_out(),
             'std_sale_price':product.std_sale_price,
             'agent_price':product.agent_price,
             'lowest_price': product.lowest_price(),
