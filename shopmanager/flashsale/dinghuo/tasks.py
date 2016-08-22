@@ -1672,7 +1672,7 @@ def task_start_booking(pr):
             pass
     else:
         pa.num = pr.need_num
-        pa.status = PurchaseRecord.EFFECT
+        #pa.status = PurchaseRecord.EFFECT
         pa.save(update_fields=['num', 'modified', 'status'])
 
 
