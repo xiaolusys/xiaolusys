@@ -153,6 +153,16 @@ class PurchaseRecord(BaseModel):
         return self.book_num > self.request_num and self.status == PurchaseRecord.EFFECT
 
 
+def start_booking(sender, instance, created, **kwargs):
+    if not instance.need_booking():
+        return
+    
+    from flashsale.dinghuo.tasks import task_start_booking
+    task_start_booking.delay(instance)
+
+post_save.connect(start_booking, sender=PurchaseRecord, dispatch_uid='post_save_start_booking')
+
+
 def sync_purchase_arrangement(sender, instance, created, **kwargs):
     from flashsale.dinghuo.tasks import task_purchaserecord_sync_purchasearrangement_status
     task_purchaserecord_sync_purchasearrangement_status.delay(instance)        
@@ -173,15 +183,6 @@ def adjust_purchase_arrangement_overbooking(sender, instance, created, **kwargs)
 post_save.connect(adjust_purchase_arrangement_overbooking, sender=PurchaseRecord, dispatch_uid='post_save_adjust_purchase_arrangement_overbooking')
 
 
-def start_booking(sender, instance, created, **kwargs):
-    if not instance.need_booking():
-        return
-    
-    from flashsale.dinghuo.tasks import task_start_booking
-    task_start_booking.delay(instance)
-
-
-post_save.connect(start_booking, sender=PurchaseRecord, dispatch_uid='post_save_start_booking')
 
 
 def check_packageskuitem(sender, instance, created, **kwargs):
