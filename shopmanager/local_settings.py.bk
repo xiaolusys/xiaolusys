@@ -160,6 +160,10 @@ QINIU_SECURE_URL    = 0
 DEFAULT_FILE_STORAGE = 'qiniustorage.backends.QiniuStorage'
 MEDIA_URL = "http://%s/" % QINIU_BUCKET_DOMAIN
 
+########################## APP SECRET ######################
+IOS_APP_SECRET = "test"
+ANDROID_APP_SECRET = "test"
+
 LOGGER_HANDLERS = [
     ('service', 'jsonfile'),
     ('root', 'sentry,console'),
