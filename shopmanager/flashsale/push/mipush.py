@@ -32,8 +32,8 @@ class MiPush(object):
     SANDBOX_UNSUBSCRIBE_BY_REGID_URL = 'https://sandbox.xmpush.xiaomi.com/v2/topic/unsubscribe'
 
     # app_secret
-    IOS_APP_SECRET = 'UN+ohC2HYHUlDECbvVKefA=='
-    ANDROID_APP_SECRET = 'WHdmdNYgnXWokStntg87sg=='
+    IOS_APP_SECRET = settings.IOS_APP_SECRET
+    ANDROID_APP_SECRET = settings.ANDROID_APP_SECRET
     RESTRICTED_PACKAGE_NAME = 'com.jimei.xiaolumeimei'
 
     # notify_id
@@ -136,7 +136,8 @@ class MiPush(object):
               notify_type=-1,
               notify_id=0,
               time_to_live=None,
-              extra=None):
+              extra=None,
+              pass_through=0):
         if not time_to_live:
             time_to_live = self.TIME_TO_LIVE
         # common data
@@ -144,11 +145,13 @@ class MiPush(object):
             'description': description,
             'notify_type': notify_type,
             'notify_id': notify_id,
-            'pass_through': self.PASS_THROUGH,
+            'pass_through': pass_through,
             'time_to_live': time_to_live
         }
         if self.platform == 'ios':
             data['extra.badge'] = 1
+            if pass_through == 1:
+                data['extra.content-available'] = 1
             extra = payload
         else:
             data.update({
@@ -174,7 +177,8 @@ class MiPush(object):
                         notify_type=-1,
                         notify_id=0,
                         time_to_send=None,
-                        extra=None):
+                        extra=None,
+                        pass_through=0):
         if not notify_id:
             notify_id = self.get_account_nid(customer_id)
         data = self.build(payload,
@@ -183,7 +187,8 @@ class MiPush(object):
                           notify_type,
                           notify_id,
                           time_to_send,
-                          extra=extra)
+                          extra=extra,
+                          pass_through=pass_through)
         data['user_account'] = 'customer-%d' % customer_id
         return self.post(self.account_url, data)
 
@@ -196,7 +201,8 @@ class MiPush(object):
                       notify_type=1,
                       notify_id=0,
                       time_to_send=None,
-                      extra=None):
+                      extra=None,
+                      pass_through=0):
         if not notify_id:
             notify_id = self.get_registration_nid(regid)
         data = self.build(payload,
@@ -205,7 +211,8 @@ class MiPush(object):
                           notify_type,
                           notify_id,
                           time_to_send,
-                          extra=extra)
+                          extra=extra,
+                          pass_through=pass_through)
         data['registration_id'] = regid
         return self.post(self.regid_url, data)
 
@@ -218,7 +225,8 @@ class MiPush(object):
                       notify_type=-1,
                       notify_id=0,
                       time_to_send=None,
-                      extra=None):
+                      extra=None,
+                      pass_through=0):
         if not notify_id:
             notify_id = self.get_topic_nid()
         data = self.build(payload,
@@ -227,7 +235,8 @@ class MiPush(object):
                           notify_type,
                           notify_id,
                           time_to_send,
-                          extra=extra)
+                          extra=extra,
+                          pass_through=pass_through)
         data['topic'] = topic
         return self.post(self.topic_url, data)
 
@@ -239,7 +248,8 @@ class MiPush(object):
                     notify_type=1,
                     notify_id=0,
                     time_to_send=None,
-                    extra=None):
+                    extra=None,
+                    pass_through=0):
         if not notify_id:
             notify_id = self.get_all_nid()
         data = self.build(payload,
@@ -248,7 +258,8 @@ class MiPush(object):
                           notify_type,
                           notify_id,
                           time_to_send,
-                          extra=extra)
+                          extra=extra,
+                          pass_through=pass_through)
         return self.post(self.broadcast_url, data)
 
     @retry()

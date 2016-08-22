@@ -86,6 +86,15 @@ WXPAY_SECRET = "bc41b3a535b095afc55cd40d2e808d9c"
 WXAPP_ID     = "wx25fcb32689872499"
 WXAPP_SECRET = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
 
+
+# ================ 小米推送　======================
+
+# 小米推送
+IOS_APP_SECRET = ''
+ANDROID_APP_SECRET = ''
+
+# ================ 小米推送 END ==================
+
 ############################## PING++ SETTINGS #########################
 PINGPP_CLENTIP = "121.199.168.159"
 PINGPP_APPID = "app_LOOajDn9u9WDjfHa"

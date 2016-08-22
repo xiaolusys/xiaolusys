@@ -8,7 +8,10 @@ from . import constants
 
 
 class APPFullPushMessge(BaseModel):
-    """ APP消息全推 
+    """ APP消息全推
+
+    update: 增加按照 topic 推送
+
     result:{
         "code":0,
         "result":"ok",
@@ -24,11 +27,32 @@ class APPFullPushMessge(BaseModel):
         (SUCCESS, u'生效')
     )
 
+    PL_ALL = 'all'  # 所有用户
     PL_IOS = 'ios'
     PL_ANDROID = 'android'
+    TOPIC_XLMM = 'xlmm'
+    TOPIC_XLMM_A_LEVEL = "xlmm_A"
+    TOPIC_XLMM_VIP_LEVEL = "xlmm_VIP1"
+    TOPIC_XLMM_VIP2_LEVEL = "xlmm_VIP2"
+    TOPIC_XLMM_VIP4_LEVEL = "xlmm_VIP4"
+    TOPIC_XLMM_VIP6_LEVEL = "xlmm_VIP6"
+    TOPIC_XLMM_VIP8_LEVEL = "xlmm_VIP8"
+    TOPIC_CUSTOMER_PAY = 'customer_pay'
+    TOPIC_CESHI = 'CESHI'
+
     PLATFORM_CHOICES = (
+        (PL_ALL, '全部用户'),
         (PL_IOS, '全部IOS用户'),
-        (PL_ANDROID, '全部ANDROID用户')
+        (PL_ANDROID, '全部ANDROID用户'),
+        (TOPIC_XLMM, '小鹿妈妈'),
+        (TOPIC_XLMM_A_LEVEL, '小鹿妈妈Ａ类'),
+        (TOPIC_XLMM_VIP_LEVEL, '小鹿妈妈VIP1'),
+        (TOPIC_XLMM_VIP2_LEVEL, '小鹿妈妈VIP2'),
+        (TOPIC_XLMM_VIP4_LEVEL, '小鹿妈妈VIP4'),
+        (TOPIC_XLMM_VIP6_LEVEL, '小鹿妈妈VIP6'),
+        (TOPIC_XLMM_VIP8_LEVEL, '小鹿妈妈VIP8'),
+        (TOPIC_CUSTOMER_PAY, '购买过的用户'),
+        (TOPIC_CESHI, '内部测试专用'),
     )
 
     TARGET_CHOICES = (
