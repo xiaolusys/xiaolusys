@@ -946,8 +946,9 @@ def task_calculate_total_order_integral(integral_log):
             total_point = total_point - d['t_log_value']
     user_intergral = Integral.objects.filter(integral_user=user).first()
     if user_intergral:
-        user_intergral.integral_value = total_point
-        user_intergral.save(update_fields=['integral_value'])
+        user_intergral.update_integral_value(total_point)
+        return
+    Integral.create_integral(customer_id=user, integral_value=total_point)
 
 
 @task()
