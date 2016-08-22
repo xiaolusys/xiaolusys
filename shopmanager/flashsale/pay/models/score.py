@@ -18,6 +18,20 @@ class Integral(PayBaseModel):
     def __unicode__(self):
         return '<%s-%s>' % (self.id, self.integral_user)
 
+    @classmethod
+    def create_integral(cls, customer_id, integral_value=0):
+        integral = cls(integral_user=customer_id, integral_value=integral_value)
+        integral.save()
+        return integral
+
+    def update_integral_value(self, integral_value):
+        """ update the total point """
+        if self.integral_value != integral_value:
+            self.integral_value = integral_value
+            self.save(update_fields=['integral_value'])
+            return True
+        return False
+
 
 class IntegralLog(PayBaseModel):
     """
