@@ -95,7 +95,7 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
                 record.status = order_carry.status
                 record.save(update_fields=['status', 'modified'])
         else:
-            logger.error("%s|order_carry: %s,%s;record:%s,%s" % (get_cur_info(), order_carry.id, order_carry.modified, record.id, record.modified))
+            logger.error("%s|order_carry: %s,%s,%s;record:%s,%s,%s" % (get_cur_info(), order_carry.id, order_carry.modified,order_carry.status, record.id, record.modified,record.status))
         return
 
     mama_id = parent_mama_id
