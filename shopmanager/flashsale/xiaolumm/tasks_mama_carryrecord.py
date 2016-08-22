@@ -42,9 +42,8 @@ def task_awardcarry_update_carryrecord(carry):
 
 @task()
 def task_ordercarry_update_carryrecord(carry):
-    records = CarryRecord.objects.filter(uni_key=carry.uni_key)
-    if records.count() > 0:
-        record = records[0]
+    record = CarryRecord.objects.filter(uni_key=carry.uni_key).first()
+    if record:
         if record.status != carry.status:
             record.status = carry.status
             record.save()
