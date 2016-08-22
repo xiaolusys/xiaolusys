@@ -299,21 +299,20 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             raise exceptions.PermissionDenied()
         content = request.REQUEST
         customer = get_object_or_404(Customer, user=request.user)
-        mama_mobile = content.get('mama_mobile') or None
+        mama_mobile = content.get('mama_mobile') or ''
         if (not customer.unionid) or (not customer.unionid.strip()):
             raise exceptions.APIException(u'没有授权微信登陆哦~')
-        if not mama_mobile:
-            raise exceptions.APIException(u'没有填写手机号哦~')
+        # if not mama_mobile:
+        # raise exceptions.APIException(u'没有填写手机号哦~')
         xlmm = XiaoluMama.objects.filter(openid=customer.unionid).first()
-        if xlmm:
-            # 如果是正式妈妈　并且购买的是试用产品 返回已经是正式妈妈  # 如果没有填写资料 返回需要填写资料
-            if xlmm.mobile is None or (not xlmm.mobile.strip()):
-                referal_from = ''  # referal_mama.mobile if referal_mama else ''
-                self.bind_xlmm_info(xlmm, mama_mobile, referal_from)
-        else:  # 创建小鹿妈妈
+        # if xlmm:
+        # 如果是正式妈妈　并且购买的是试用产品 返回已经是正式妈妈  # 如果没有填写资料 返回需要填写资料
+        # if xlmm.mobile is None or (not xlmm.mobile.strip()):
+        # referal_from = ''  # referal_mama.mobile if referal_mama else ''
+        # self.bind_xlmm_info(xlmm, mama_mobile, referal_from)
+        if not xlmm:  # 创建小鹿妈妈
             if customer.unionid and customer.unionid.strip():
-                xlmm = XiaoluMama(mobile=mama_mobile,
-                                  openid=customer.unionid)
+                xlmm = XiaoluMama(mobile=mama_mobile, openid=customer.unionid)
                 xlmm.save()
             else:
                 raise exceptions.APIException(u'注册妈妈出错啦~')
@@ -408,7 +407,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         fans_record = XlmmFans.objects.filter(xlmm=xlmm.id).exists()
         coupon_share = OrderShareCoupon.objects.filter(share_customer=customer.id).exists()
         commission = OrderCarry.objects.filter(mama_id=xlmm.id).exists()
-        mama_recommend = XiaoluMama.objects.filter(referal_from=xlmm.mobile).exists() or \
+        mama_recommend = ReferalRelationship.objects.filter(referal_from_mama_id=xlmm.id).exists() or \
                          PotentialMama.objects.filter(referal_mama=xlmm.id).exists()
 
         default_return['data'].append({'complete': carry_record, 'desc': u'获得第一笔收益', 'show': True})
