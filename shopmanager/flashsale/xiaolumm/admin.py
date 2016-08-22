@@ -21,7 +21,9 @@ from flashsale.xiaolumm.models import (
     MamaDailyAppVisit,
     MamaTabVisitStats,
     MamaDeviceStats,
-    MamaDailyTabVisit
+    MamaDailyTabVisit,
+    MamaMission,
+    MamaMissionRecord
 )
 from flashsale.xiaolumm.models.message import XlmmMessage, XlmmMessageRel
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
@@ -768,4 +770,22 @@ class MamaDeviceStatsAdmin(admin.ModelAdmin):
     search_fields = ('device_type','date_field')
     
 admin.site.register(MamaDeviceStats, MamaDeviceStatsAdmin)
+
+
+class MamaMissionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'target', 'kpi_type', 'date_type',
+                    'target_value', 'award_amount', 'start_time', 'end_time', 'status')
+    list_filter = ('target', 'status', 'date_type', 'kpi_type')
+    search_fields = ('=id','name')
+
+admin.site.register(MamaMission, MamaMissionAdmin)
+
+
+class MamaMissionRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'mama_id', 'referal_from_mama_id', 'group_leader_mama_id', 'mission',
+                    'year_week', 'finish_value', 'status', 'finish_time', 'created')
+    list_filter = ('year_week', 'status')
+    search_fields = ('=id','=mama_id','^mission__name')
+
+admin.site.register(MamaMissionRecord, MamaMissionRecordAdmin)
 

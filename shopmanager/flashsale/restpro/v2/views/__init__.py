@@ -11,3 +11,4 @@ from .xiaolumm import MamaFortuneViewSet, CarryRecordViewSet, OrderCarryViewSet,
     GroupRelationshipViewSet, UniqueVisitorViewSet, XlmmFansViewSet, OrderCarryVisitorView, \
     DailyStatsViewSet, PotentialFansView, ModelProductViewSet
 from .verifycode_login import *
+from .misssion import MamaMissionRecordViewset
