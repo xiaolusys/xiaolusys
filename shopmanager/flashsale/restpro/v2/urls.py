@@ -27,6 +27,7 @@ v2_router.register(r'fans', views.XlmmFansViewSet)
 v2_router.register(r'dailystats', views.DailyStatsViewSet)
 
 from flashsale.restpro.v1 import views_coupon_new
+from flashsale.restpro.v2 import views
 
 v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
 v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
@@ -39,6 +40,7 @@ v2_router.register(r'rank', week_rank.WeekMamaCarryTotalViewSet)
 v2_router.register(r'teamrank', week_rank.WeekMamaTeamCarryTotalViewSet)
 v2_router.register(r'message', views_message.XlmmMessageViewSet)
 v2_router.register(r'award', award.PotentialMamaAwardViewset)
+v2_router.register(r'mission', views.MamaMissionRecordViewset)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += format_suffix_patterns([
@@ -50,7 +52,6 @@ v2_router_urls += format_suffix_patterns([
     url(r'^weixinapplogin', views.WeixinAppLoginView.as_view()),
     url(r'^potential_fans', views.PotentialFansView.as_view()),
 ])
-
 
 from flashsale.restpro.v2 import views
 

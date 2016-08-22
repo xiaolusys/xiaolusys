@@ -80,6 +80,7 @@ class ActivityEntry(BaseModel):
     def get_effect_activitys(cls, active_time):
         """ 根据时间获取活动列表 """
         acts = cls.objects.filter(is_active=True,
+                                  start_time__lte=active_time,
                                   end_time__gte=active_time) \
             .order_by('-order_val', '-modified')
         return acts
