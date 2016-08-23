@@ -105,3 +105,4 @@ def task_weixin_push_update_app(app_visit):
 def task_app_push_ordercarry(ordercarry):
     from flashsale.push.app_push import AppPush
     AppPush.push_mama_ordercarry(ordercarry)
+    AppPush.push_mama_ordercarry_to_all(ordercarry)
