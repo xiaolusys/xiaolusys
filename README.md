@@ -108,7 +108,7 @@ json_logger.info({'type':'click', 'name':'meron', 'age':'20', 'ip':'192.0.0.1'})
 ## Merge
 ```
 git pull　--rebase remote remote-branch
-same as:
+# same as:
 git fetch remote remote-branch
 git rebase remote/remote-branch
 ```

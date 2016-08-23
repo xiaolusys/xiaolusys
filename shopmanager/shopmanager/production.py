@@ -48,6 +48,8 @@ DATABASES = {
                     'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
     }
 }
+
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
@@ -55,16 +57,19 @@ CACHES = {
         'OPTIONS': {
             'DB': 1,
             'PASSWORD': REDIS_AUTH,
+            "SOCKET_CONNECT_TIMEOUT": 5,  # in seconds
+            "SOCKET_TIMEOUT": 5,  # in seconds
             # 'PARSER_CLASS': 'redis.connection.HiredisParser',
             'PICKLE_VERSION': 2,
             # 'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
-            # 'CONNECTION_POOL_CLASS_KWARGS': {
-            #     'max_connections': 50,
-            #     'timeout': 10,
-            # }
+            'CONNECTION_POOL_CLASS_KWARGS': {
+                'max_connections': 40,
+                'timeout': 10,
+            }
         }
     }
 }
+
 BROKER_URL = 'redis://10.45.32.34:6379/8'
 
 import raven

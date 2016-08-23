@@ -365,6 +365,7 @@ class ModelProduct(BaseTagModel):
                 'sku_id':sku.id,
                 'name':sku.name,
                 'free_num':sku.free_num,
+                'is_saleout': sku.free_num <= 0,
                 'std_sale_price':sku.std_sale_price,
                 'agent_price':sku.agent_price,
             })
