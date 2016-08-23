@@ -196,14 +196,17 @@ class MamaFortune(BaseModel):
             self._xiaolumm_xlmm_ = XiaoluMama.objects.filter(id=self.mama_id).first()
         return self._xiaolumm_xlmm_
 
-
-def send_activate_award(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
-    if instance.invite_trial_num >= 2:
-        tasks_mama_fortune.task_send_activate_award.delay(instance.mama_id)
-
-post_save.connect(send_activate_award,
-                  sender=MamaFortune, dispatch_uid='post_save_send_activate_award')
+#
+# The task_send_activate_award() should not be triggered here, because MamaFortune gets
+# updated several times a day. The task should be triggered only trail_num gets changed.
+# 
+#def send_activate_award(sender, instance, created, **kwargs):
+#    from flashsale.xiaolumm import tasks_mama_fortune
+#    if instance.invite_trial_num >= 2:
+#        tasks_mama_fortune.task_send_activate_award.delay(instance.mama_id)
+#
+#post_save.connect(send_activate_award,
+#                  sender=MamaFortune, dispatch_uid='post_save_send_activate_award')
 
 
 def update_week_carry_total(sender, instance, created, **kwargs):

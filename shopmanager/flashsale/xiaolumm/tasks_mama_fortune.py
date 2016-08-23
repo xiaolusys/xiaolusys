@@ -169,14 +169,14 @@ def task_update_mamafortune_invite_num(mama_id):
 
 @task()
 def task_update_mamafortune_invite_trial_num(mama_id):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     from flashsale.xiaolumm.models import PotentialMama
-    records = PotentialMama.objects.filter(referal_mama=mama_id, is_full_member=False)
+    records = PotentialMama.objects.filter(referal_mama=mama_id)
     invite_trial_num = records.count()
     fortune = MamaFortune.get_by_mamaid(mama_id)
     fortune.invite_trial_num = invite_trial_num
     fortune.invite_all_num = invite_trial_num + fortune.invite_num
-    fortune.save()
+    fortune.save(update_fields=['invite_trial_num','invite_all_num','modified'])
 
 
 @task(max_retries=3, default_retry_delay=6)
@@ -295,29 +295,31 @@ def task_send_activate_award(mama_id):
     mama = XiaoluMama.objects.filter(id=mama_id).first()
     if not mama:
         return
-    fortune = MamaFortune.get_by_mamaid(mama_id)
-    data = {
+
+    award_dict = {
           2: 5,
           5: 10,
-         10: 15,
-         20: 20,
-         50: 30,
-        100: 120,
-        200: 300
+         10: 15
     }
-    data_desc = {
+    award_desc = {
           2: u'已邀请2位店主,奖5元!',
           5: u'已邀请5位店主,再奖10元!',
-         10: u'已邀请10位店主,再奖15元!',
-         20: u'已邀请20位店主,再奖20元!',
-         50: u'已邀请50位店主,再奖30元!',
-        100: u'已邀请100位店主,再奖120元!',
-        200: u'已邀请200位店主,再奖300元!'
+         10: u'已邀请10位店主,再奖15元!'
     }
-    for num in data:
-        if fortune.invite_trial_num >= num:
-            uni_key = 'activite_award_%d_%d' % (num, mama.id)
-            AwardCarry.send_award(mama, data[num], u'激活奖励', data_desc[num], uni_key, status=2, carry_type=7)
+
+    from flashsale.xiaolumm.models import PotentialMama
+    trial_num = PotentialMama.objects.filter(referal_mama=mama_id).count()
+
+    if trial_num in award_dict:
+        award_num = award_dict[trial_num]
+        award_desc = award_desc[trial_num]
+        uni_key = 'activite_award_%d_%d' % (trail_num, mama.id)
+        AwardCarry.send_award(mama, award_num, u'邀请1元妈妈奖励', award_desc, uni_key, status=2, carry_type=7)
+    elif trial_num % 5 == 0:
+        award_num = 10
+        award_desc = u'已邀请%d位店主,再奖10元!' % trial_num
+        uni_key = 'activite_award_%d_%d' % (trail_num, mama.id)
+        AwardCarry.send_award(mama, award_num, u'邀请1元妈妈奖励', award_desc, uni_key, status=2, carry_type=7)
 
 
 @task(max_retries=3, default_retry_delay=6)
