@@ -103,7 +103,7 @@ def task_weixin_push_update_app(app_visit):
 
 @task
 def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
-    from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship
+    from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship, AwardCarry
 
     res = PotentialMama.objects.filter(referal_mama=referal_mama_id).values('is_full_member').annotate(n=Count('is_full_member'))
     trial_num,convert_num = 0,0
