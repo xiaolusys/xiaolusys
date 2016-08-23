@@ -8,7 +8,7 @@ from flashsale.xiaolumm.models import XiaoluMama, NinePicAdver
 from flashsale.push import push_mama
 from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 from shopapp.weixin.models import WeixinUnionID
-
+from django.db.models import Count
 
 @task
 def task_push_ninpic_remind(ninpic):
