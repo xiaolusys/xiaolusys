@@ -1990,9 +1990,9 @@ def task_check_purchaseorder_booknum():
         if update_fields:
             log.save(update_fields=update_fields)
 
-        if target_num != actual_num:
-            logger.error("task_check_purchaseorder_booknum|uni_key: %s, target_num: %s, actual_num: %s" % (
-                uni_key, target_num, actual_num))
+        #if target_num != actual_num:
+        #    logger.error("task_check_purchaseorder_booknum|uni_key: %s, target_num: %s, actual_num: %s" % (
+        #        uni_key, target_num, actual_num))
 
 
 def create_inbound_out_stock_check_log(time_from, uni_key):

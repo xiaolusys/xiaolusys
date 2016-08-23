@@ -699,10 +699,14 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_ordercarry',
     },  # 妈妈奖金微信推送
-        'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_update_app': {
+    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_update_app': {
         'queue': 'notify',
         'routing_key': 'notify.task_weixin_push_update_app',
-    },  # 妈妈APP更新推送
+    },  # 妈妈APP更新微信推送
+    'flashsale.xiaolumm.tasks_mama_push.task_weixin_push_invite_trial': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_weixin_push_invite_trial',
+    },  # 妈妈邀请体验妈妈微信推送
     'flashsale.pay.tasks.task_release_coupon_push': {
         'queue': 'notify',
         'routing_key': 'notify.task_release_coupon_push',
