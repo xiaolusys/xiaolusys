@@ -2,11 +2,16 @@
 import datetime
 from django.db import models
 from django.db.models import F, Sum
+from django.db.models.signals import post_save
 from core.models import BaseModel, AdminModel
+from core.fields import JSONCharMyField
 from shopback.trades.models import Product
+from flashsale.pay.models.product import Productdetail
 from supplychain.supplier.models import SaleProduct
-from flashsale.promotion.models import ActivityEntry
+from flashsale.promotion.models import ActivityEntry, ActivityProduct
+from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from shopback.items.models import ProductSkuStats
+from supplychain.supplier.models.schedule import SaleProductManage, SaleProductManageDetail
 
 
 class BatchStockSale(AdminModel):
@@ -44,7 +49,8 @@ class BatchStockSale(AdminModel):
 
 class ActivityStockSale(AdminModel):
     """专题 最后疯抢"""
-    activity = models.ForeignKey(ActivityEntry, null=True, verbose_name=u'专题活动')
+    activity = models.ForeignKey(ActivityEntry, null=True, blank=True, verbose_name=u'专题活动')
+    product_manage = models.ForeignKey(SaleProductManage, null=True, blank=True, verbose_name=u'专题排期')
     # batch_num = models.IntegerField(default=0, verbose_name=u'批次序号')
     batch = models.ForeignKey(BatchStockSale, verbose_name=u'批次号')
     day_batch_num = models.IntegerField(default=0, verbose_name=u'专题序号')
@@ -69,6 +75,81 @@ class ActivityStockSale(AdminModel):
             return last_batch.get_expected_time()
         return last_activity.offshelf_time
 
+    @property
+    def stock_sales(self):
+        return StockSale.objects.filter(batch=self.batch, day_batch_num=self.day_batch_num).order_by('status', 'stock_safe')
+
+    def gen_activity_entry(self):
+        carry_plan_name = u'最后疯抢三成佣金'
+        carry_plan = AgencyOrderRebetaScheme.objects.filter(name=carry_plan_name).first()
+        if not carry_plan:
+            raise Exception(u'佣金计划不存在')
+        if self.stock_sales.filter(status=1, stock_safe=0).exists():
+            raise Exception(u'一些商品尚未完成库存确认')
+        ae = ActivityEntry(
+            act_type=ActivityEntry.ACT_TOPIC,
+            title=u'最后疯抢',
+            start_time=self.onshelf_time,
+            end_time=self.offshelf_time,
+            share_link=u'http://m.xiaolumeimei.com/m/{mama_id}?next=http://m.xiaolumeimei.com/mall/activity/topTen?id=42',
+            share_icon=u'http://7xrst8.com1.z0.glb.clouddn.com/808share.jpg',
+            act_desc=u'\u5012\u6570\u516b\u4e2a\u5c0f\u65f6'
+        )
+        ae.save()
+
+        spm = SaleProductManage(
+            schedule_type=SaleProductManage.SP_TOPIC,
+            sale_time=self.onshelf_time,
+            upshelf_time=self.onshelf_time,
+            offshelf_time=self.offshelf_time,
+            responsible_people_id=self.creator_user.id,
+        )
+        spm.save()
+        self.product_manage_id = spm.id
+        self.activity_id = ae.id
+        self.save()
+        add_sale_products = []
+        activity_products = []
+        activity_product_ids = []
+        for sale in self.stock_sales.filter(status=1):
+            ap = ActivityProduct(
+                activity=ae,
+                product_id=sale.product.id,
+                model_id=sale.product.model_id,
+                product_name=sale.product.name,
+                product_img=sale.product.pic_path,
+                start_time=self.onshelf_time,
+                end_time=self.offshelf_time,
+                # location_id=,
+                pic_type=ActivityProduct.GOODS_VERTICAL_PIC_TYPE
+            )
+            activity_products.append(ap)
+            activity_product_ids.append(sale.product.id)
+            if sale.sale_product.id not in add_sale_products:
+                SaleProductManageDetail(
+                    schedule_type=spm.schedule_type,
+                    schedule_manage_id=spm.id,
+                    sale_product_id=sale.sale_product.id,
+                    name=sale.product.name,
+                    pic_path=sale.product.pic_path,
+                    sale_category=sale.sale_product.sale_category,
+                    product_link=sale.sale_product.product_link,
+                    today_use_status=SaleProductManageDetail.NORMAL,
+                    design_person=self.creator,
+                    is_approved=0,
+                    is_promotion=False,
+                    reference_user=0,
+                    photo_user=0
+                ).save()
+                add_sale_products.append(sale.sale_product.id)
+        Productdetail.objects.filter(product_id__in=activity_product_ids).update(rebeta_scheme_id=carry_plan.id)
+        ActivityProduct.objects.bulk_create(activity_products)
+# def create_activity_entry(sender, instance, created, **kwargs):
+#     instance.gen_activity_entry()
+#
+# post_save.connect(create_activity_entry,
+#                   sender=ActivityStockSale, dispatch_uid='post_save_activity_stocksale_update_activity_entry')
+
 
 class StockSale(AdminModel):
     sale_product = models.ForeignKey(SaleProduct, null=True)
@@ -79,9 +160,11 @@ class StockSale(AdminModel):
     day_batch_num = models.IntegerField(default=0, verbose_name=u'专题序号')
     # expected_time = models.DateField(null=True, verbose_name=u'日期')
     activity = models.ForeignKey(ActivityStockSale, null=True)
-    STATUS_CHOICES = ((0, u'初始'), (1, u'在线'), (2, u'关闭'))
+    STATUS_CHOICES = ((0, u'待出售'), (1, u'确认出售'), (2, u'关闭出售'))
     status = models.IntegerField(choices=STATUS_CHOICES, default=0, verbose_name=u'状态')
     stock_safe = models.IntegerField(choices=((0, u'未确认'), (1, u'已确认'), (2, u'无须确认')), default=0, verbose_name=u'库存状态')
+    sku_detail = JSONCharMyField(max_length=10240, blank=True, default='{}', verbose_name=u'订货单ID', help_text=u'冗余的订货单关联')
+    location = models.CharField(max_length=256, blank=True, default='', verbose_name=u'库位')
     INTERVAL = 2
 
     class Meta:
@@ -89,6 +172,10 @@ class StockSale(AdminModel):
         app_label = 'promotion'
         verbose_name = u'库存倾销商品'
         verbose_name_plural = u'库存倾销商品列表'
+
+    # @property
+    # def sku_detail(self):
+    #     return {'test':1}
 
     @staticmethod
     def get_max_day_batch_num(batch_num):
@@ -110,11 +197,14 @@ class StockSale(AdminModel):
                     batch=batch,
                     day_batch_num=0,
                     quantity=stat.realtime_quantity,
-                    sku_num=1
+                    sku_num=1,
+                    sku_detail={stat.sku_id, stat.realtime_quantity},
+                    location=stat.product.get_district_info()
                 )
             else:
                 res[stat.product_id].quantity += stat.realtime_quantity
                 res[stat.product_id].sku_num += 1
+                res[stat.sku_detail][stat.sku_id] = stat.realtime_quantity
         StockSale.objects.bulk_create(res.values())
         product_ids = res.keys()
         batch.status = 1
@@ -128,7 +218,7 @@ class StockSale(AdminModel):
         return batch
 
     @staticmethod
-    def gen_new_activity(cnt=100):
+    def gen_new_activity(creator,cnt=100):
         """
             获取100个sale_order, 生成新活动。时间为最后次专题活动时间或批次生成时间
         """
@@ -155,7 +245,8 @@ class StockSale(AdminModel):
                                 total=len(sale_product_ids),
                                 product_total=product_total,
                                 sku_total=sku_total,
-                                stock_total=stock_total
+                                stock_total=stock_total,
+                                creator=creator
                                 )
         ass.save()
         StockSale.objects.filter(sale_product_id__in=sale_product_ids,

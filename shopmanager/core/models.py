@@ -2,6 +2,8 @@
 from django.db import models
 from .ormcache import managers
 from .managers import BaseManager, BaseTagManager
+from django.contrib.auth.models import User as DJUser
+
 
 class BaseModel(models.Model):
     created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'创建日期')
@@ -21,6 +23,10 @@ class AdminModel(BaseModel):
                                blank=True,
                                null=True,
                                verbose_name=u'创建者')
+
+    @property
+    def creator_user(self):
+        return DJUser.objects.get(username=self.creator)
 
     class Meta:
         abstract = True
