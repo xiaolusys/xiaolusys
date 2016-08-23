@@ -265,7 +265,7 @@ admin.site.register(StockSale, StockSaleAdmin)
 
 class ActivityStockSaleAdmin(BaseModelAdmin):
     list_display = (
-        'id',
+        'id_link',
         'activity',
         'batch',
         'day_batch_num',
@@ -279,6 +279,12 @@ class ActivityStockSaleAdmin(BaseModelAdmin):
     )
     list_filter = ('activity', 'onshelf_time')
     search_fields = ('id',)
+
+    def id_link(self, obj):
+        return '<a href="%(link)s">%(show_text)d</a>' % {'link': '/admin/promotion/activitystocksale/' + str(obj.id),
+                                                         'show_text': obj.id}
+    id_link.short_description = u'ID'
+    id_link.allow_tags = True
 
     def stock_sales_link(self, obj):
         link = '/admin/promotion/stocksale?day_batch_num=%s&batch_id=%s' % (obj.day_batch_num, obj.batch_id)

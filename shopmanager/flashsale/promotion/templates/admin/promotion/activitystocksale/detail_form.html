@@ -49,7 +49,6 @@
   </ul>
 {% endif %}{% endif %}
 {% endblock %}
-<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form" novalidate>{% csrf_token %}{% block form_top %}{% endblock %}
 <div>
 {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1" />{% endif %}
 {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}" />{% endif %}
@@ -97,18 +96,18 @@
     <div class="panel-body">
         <table class="table">
             <tr>
-                <td>ID</td>
-                <td>选品名称</td>
-                <td>选品ID</td>
-                <td>商品名称</td>
-                <td>商品ID</td>
-                <td>库位</td>
-                <td>当前库存数</td>
-                <td>商品SKU数</td>
-                <td>SKU库存详情</td>
-                <td>状态</td>
-                <td>库存状态</td>
-                <td>操作</td>
+                <td width="5%">ID</td>
+                <td width="22%">选品名称</td>
+                <td width="5%">选品ID</td>
+                <td width="13%">商品名称</td>
+                <td width="5%">商品ID</td>
+                <td width="10%">库位</td>
+                <td width="5%">当前库存数</td>
+                <td width="5%">商品SKU数</td>
+                <td width="10%">SKU库存详情</td>
+                <td width="5%">状态</td>
+                <td width="5%">库存状态</td>
+                <td width="10%">操作</td>
             </tr>
             {%for stock_sale in original.stock_sales%}
             <tr>
@@ -124,10 +123,18 @@
                 <td>{{stock_sale.get_status_display}}</td>
                 <td>{{stock_sale.get_stock_safe_display}}</td>
                 <td>
-                    <a href="/sale/promotion/promotion/stocksale/{{stock_sale.id}}/update_status?status=1">确认出售</a>
-                    <a href="/sale/promotion/promotion/stocksale/{{stock_sale.id}}/update_status?status=2">禁止出售</a>
-                    <a href="/sale/promotion/promotion/stocksale/{{stock_sale.id}}/update_status?status=0">下次出售</a>
-                    <a href="/sale/promotion/promotion/stocksale/{{stock_sale.id}}/update_stock_safe?stock_safe=1">确认库存</a>
+                    {%if stock_sale.status == 0%}
+                    <button data-saleid="{{stock_sale.id}}" class="btn_confirm_sale">确认出售</button>
+                    {%endif%}
+                    {%if stock_sale.status == 0%}
+                    <button data-saleid="{{stock_sale.id}}" class="btn_stop_sale">禁止出售</button>
+                    {%endif%}
+                    {%if stock_sale.status == 0%}{%else%}
+                    <button data-saleid="{{stock_sale.id}}" class="btn_wait_sale">待出售</button>
+                    {%endif%}
+                    {%if stock_sale.stock_safe == 0%}
+                    <button data-saleid="{{stock_sale.id}}" class="btn_confirm_stock">确认库存</button>
+                    {%endif%}
                 </td>
             </tr>
             {%endfor%}
@@ -140,8 +147,48 @@
 {% prepopulated_fields_js %}
 
 </div>
-</form></div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        function callback(res) {
+            alert("设置成功");
+            window.location.reload();
+        };
+        function failed(res){
+            alert(res.info)
+        }
+        $('.btn_confirm_sale').click(function(e) {
+            var dom = e.target;
+            var saleid = $(dom).data('saleid');
+            var url = "/sale/promotion/promotion/stocksale/"+ saleid +"/update_status";
+            var data = {"status": 1};
+            $.ajax({"url": url, "data": data, "type": "post", "success": callback, "error": failed});
+        });
+        $('.btn_stop_sale').click(function(e) {
+            var dom = e.target;
+            var saleid = $(dom).data('saleid');
+            var url = "/sale/promotion/promotion/stocksale/"+ saleid +"/update_status";
+            var data = {"status": 2};
+            $.ajax({"url": url, "data": data, "type": "post", "success": callback, "error": failed});
+        });
+        $('.btn_wait_sale').click(function(e) {
+            var dom = e.target;
+            var saleid = $(dom).data('saleid');
+            var url = "/sale/promotion/promotion/stocksale/"+ saleid +"/update_status";
+            var data = {"status": 1};
+            $.ajax({"url": url, "data": data, "type": "post", "success": callback, "error": failed});
+        });
+        $('.btn_confirm_stock').click(function(e) {
+            var dom = e.target;
+            var saleid = $(dom).data('saleid');
+            var url = "/sale/promotion/promotion/stocksale/"+ saleid +"/update_stock_safe";
+            var data = {"stock_safe": 1};
+            $.ajax({"url": url, "data": data, "type": "post", "success": callback, "error": failed});
+        });
+    });
+</script>
 {% endblock %}
 
+{% block admin_change_form_document_ready %}
 
-
+{% endblock %}

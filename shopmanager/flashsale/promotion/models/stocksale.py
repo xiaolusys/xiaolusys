@@ -77,7 +77,8 @@ class ActivityStockSale(AdminModel):
 
     @property
     def stock_sales(self):
-        return StockSale.objects.filter(batch=self.batch, day_batch_num=self.day_batch_num).order_by('status', 'stock_safe')
+        return StockSale.objects.filter(batch=self.batch, day_batch_num=self.day_batch_num).order_by('id').\
+            select_related('product', 'sale_product')#.order_by('status', 'stock_safe')
 
     def gen_activity_entry(self):
         carry_plan_name = u'最后疯抢三成佣金'
@@ -91,9 +92,9 @@ class ActivityStockSale(AdminModel):
             title=u'最后疯抢',
             start_time=self.onshelf_time,
             end_time=self.offshelf_time,
-            share_link=u'http://m.xiaolumeimei.com/m/{mama_id}?next=http://m.xiaolumeimei.com/mall/activity/topTen?id=42',
-            share_icon=u'http://7xrst8.com1.z0.glb.clouddn.com/808share.jpg',
-            act_desc=u'\u5012\u6570\u516b\u4e2a\u5c0f\u65f6'
+            share_link=u'',
+            share_icon=u'',
+            act_desc=u'倒数八个小时'
         )
         ae.save()
 
