@@ -50,6 +50,7 @@ DATABASES = {
     }
 }
 
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
@@ -57,18 +58,21 @@ CACHES = {
         'OPTIONS': {
             'DB': 11,
             'PASSWORD': REDIS_AUTH,
+            "SOCKET_CONNECT_TIMEOUT": 5,  # in seconds
+            "SOCKET_TIMEOUT": 5,  # in seconds
             # 'PARSER_CLASS': 'redis.connection.HiredisParser',
             'PICKLE_VERSION': 2,
             # 'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
-            # 'CONNECTION_POOL_CLASS_KWARGS': {
-            #     'max_connections': 5,
-            #     'timeout': 10,
-            # }
+            'CONNECTION_POOL_CLASS_KWARGS': {
+                'max_connections': 50,
+                # 'timeout': 10,
+            }
         }
     }
 }
 
 BROKER_URL = 'redis://%s%s/18'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
+
 import raven
 RAVEN_CONFIG = {
     'dsn': 'http://2d63e1b731cd4e53a32b0bc096fd3566:a38d367f2c644d81b353dabfbb941070@sentry.xiaolumm.com/4',

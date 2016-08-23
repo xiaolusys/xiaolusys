@@ -453,7 +453,12 @@ def task_update_parent_sale_stats(sale_stats):
                     num=total_num,
                     payment=total_payment
                 )
-                st.save()
+                try:
+                    st.save()
+                except Exception as exc:
+                    logger.warn({'action': 'task_update_parent_sale_stats',
+                                 'uni_key': uni_key,
+                                 'message': exc.message})
         else:
             update_fields = []
             if old_stat.num != total_num:

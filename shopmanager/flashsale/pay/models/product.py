@@ -18,6 +18,7 @@ from shopback.items.models import Product, ProductSkuContrast, ContrastContent
 from ..signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
 from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM, PROPERTY_NAMES, PROPERTY_KEYMAP
+from shopback.items.tasks_stats import task_product_upshelf_notify_favorited_customer
 
 import logging
 logger = logging.getLogger(__name__)
@@ -364,6 +365,7 @@ class ModelProduct(BaseTagModel):
                 'sku_id':sku.id,
                 'name':sku.name,
                 'free_num':sku.free_num,
+                'is_saleout': sku.free_num <= 0,
                 'std_sale_price':sku.std_sale_price,
                 'agent_price':sku.agent_price,
             })
@@ -522,6 +524,7 @@ class ModelProduct(BaseTagModel):
         if self.shelf_status != ModelProduct.ON_SHELF:
             self.shelf_status = ModelProduct.ON_SHELF
             self.save(update_fields=['shelf_status'])
+            task_product_upshelf_notify_favorited_customer.delay(self)
             return True
         return False
 
