@@ -102,6 +102,51 @@ def task_weixin_push_update_app(app_visit):
 
 
 @task
+def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
+    from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship
+
+    res = PotentialMama.objects.filter(referal_mama=referal_mama_id).values('is_full_member').annotate(n=Count('is_full_member'))
+    trial_num,convert_num = 0,0
+    for entry in res:
+        if res['is_full_member'] == True:
+            convert_num = res['n']
+        if res['is_full_member'] == False:
+            trial_num = res['n']
+    invite_num = trial_num + convert_num
+    
+    if invite_num < 2:
+        target_num = 2
+        award_num = 5
+    elif invite_num < 5:
+        target_num = 5
+        award_num = 10
+    elif invite_num < 10:
+        target_num = 10
+        award_num = 15
+    else:
+        target_num = (trail_num / 5 + 1)* 5
+        award_num = 10
+
+    # 距离下一步推荐1元妈妈奖金人数
+    diff_num = target_num - invite_num
+
+    # 一元邀请奖金＋推荐完成新手任务奖金
+    ac = AwardCarry.objects.filter(mama_id=referal_mama_id,carry_type__gte=6,carry_type__lte=7).aggregate(n=Sum('carry_num'))
+    award_sum = ac['n'] or 0
+    award_sum = carry_sum * 0.01
+
+    # 当前妈妈目前推荐正式妈妈可获奖金
+    from flashsale.xiaolumm import utils
+    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=referal_mama_id).count()
+    carry_num = utils.get_award_carry_num(rr_cnt, XiaoluMama.FULL)
+    carry_num = award_carry_num * 0.01
+
+    from shopapp.weixin.weixin_push import WeixinPush
+    wp = WeixinPush()
+
+    wp.push_mama_invite_trial(referal_mama_id,potential_mama_id, diff_num,award_num,invite_num,award_sum,trail_num,carry_num)
+
+@task
 def task_app_push_ordercarry(ordercarry):
     from flashsale.push.app_push import AppPush
     AppPush.push_mama_ordercarry(ordercarry)

@@ -12,6 +12,7 @@ logger = logging.getLogger('celery.handler')
 from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry, ReferalRelationship
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm import util_unikey
+from flashsale.xiaolumm import utils
 
 import sys
 
@@ -192,40 +193,40 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
         logger.warn("IntegrityError - task_update_ordercarry | mama_id: %s, order_id: %s" % (mama_id, order_id))
 
 
-award_carry_array99 = [[0, 0], [1, 1500], [4, 2000], [8, 2500], [21, 3500], [41, 4500], [101, 5500]]
-award_carry_array188 = [[0, 0], [1, 3000], [4, 4000], [8, 5000], [21, 7000], [41, 9000], [101, 11000]]
-group_carry_array = [[0, 0], [50, 1000], [200, 1500], [500, 2000], [1000, 3000]]
-
-
-def get_award_carry_num(num, referal_type):
-    """
-    find out award_num
-    referal_type：　邀请类型
-    """
-    idx = 0
-    carry_map = {
-        XiaoluMama.HALF: award_carry_array99,
-        XiaoluMama.FULL: award_carry_array188
-    }
-    award_carry_array = carry_map[referal_type]
-    for entry in award_carry_array:
-        if num < entry[0]:
-            break
-        idx += 1
-
-    if idx == 1:
-        logger.error("get_award_carry_num | num: %s, referal_type: %s" % (num, referal_type))
-    
-    return award_carry_array[idx - 1][1]
-
-
-def get_group_carry_num(num):
-    idx = 0
-    for entry in group_carry_array:
-        if num < entry[0]:
-            break
-        idx += 1
-    return group_carry_array[idx - 1][1]
+#award_carry_array99 = [[0, 0], [1, 1500], [4, 2000], [8, 2500], [21, 3500], [41, 4500], [101, 5500]]
+#award_carry_array188 = [[0, 0], [1, 3000], [4, 4000], [8, 5000], [21, 7000], [41, 9000], [101, 11000]]
+#group_carry_array = [[0, 0], [50, 1000], [200, 1500], [500, 2000], [1000, 3000]]
+#
+#
+#def get_award_carry_num(num, referal_type):
+#    """
+#    find out award_num
+#    referal_type：　邀请类型
+#    """
+#    idx = 0
+#    carry_map = {
+#        XiaoluMama.HALF: award_carry_array99,
+#        XiaoluMama.FULL: award_carry_array188
+#    }
+#    award_carry_array = carry_map[referal_type]
+#    for entry in award_carry_array:
+#        if num < entry[0]:
+#            break
+#        idx += 1
+#
+#    if idx == 1:
+#        logger.error("get_award_carry_num | num: %s, referal_type: %s" % (num, referal_type))
+#    
+#    return award_carry_array[idx - 1][1]
+#
+#
+#def get_group_carry_num(num):
+#    idx = 0
+#    for entry in group_carry_array:
+#        if num < entry[0]:
+#            break
+#        idx += 1
+#    return group_carry_array[idx - 1][1]
 
 
 @task()
@@ -237,7 +238,7 @@ def task_referal_update_awardcarry(relationship):
     uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
 
     rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, created__lte=relationship.created).count()
-    carry_num = get_award_carry_num(rr_cnt, relationship.referal_type)    
+    carry_num = utils.get_award_carry_num(rr_cnt, relationship.referal_type)    
     
     award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
     if award_carry and award_carry.carry_num != carry_num:
@@ -275,7 +276,7 @@ def task_group_update_awardcarry(relationship):
     
     direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id).count()
     group_referal_num = GroupRelationship.objects.filter(leader_mama_id=from_mama_id).count()
-    carry_num = get_group_carry_num(group_referal_num + direct_referal_num)
+    carry_num = utils.get_group_carry_num(group_referal_num + direct_referal_num)
 
     # if direct_referal_num >= 15, at least get 1000 cents for group referal
     if carry_num <= 0 and direct_referal_num >= 15:

@@ -1179,9 +1179,28 @@ def update_mamafortune_invite_trial_num(sender, instance, created, **kwargs):
     mama_id = instance.referal_mama
     tasks_mama_fortune.task_update_mamafortune_invite_trial_num.delay(mama_id)
 
-
 post_save.connect(update_mamafortune_invite_trial_num,
                   sender=PotentialMama, dispatch_uid='post_save_update_mamafortune_invite_trial_num')
+
+
+def send_invite_trial_award(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm import tasks_mama_fortune
+    tasks_mama_fortune.task_send_activate_award.delay(instance.referal_mama)
+
+post_save.connect(send_invite_trial_award,
+                  sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_award')
+
+
+def send_invite_trial_weixin_push(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm import tasks_mama_push
+    tasks_mama_push.task_weixin_push_invite_trial.delay(instance.referal_mama, instance.potential_mama)
+
+post_save.connect(send_invite_trial_weixin_push,
+                  sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_weixin_push')
 
 
 def unitary_mama(obj):

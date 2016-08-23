@@ -320,3 +320,52 @@ class WeixinPush(object):
         }
 
         return self.push(customer, template_id, template_data, to_url)
+
+
+    def push_mama_invite_trial(self,referal_mama_id,potential_mama_id,diff_num,award_num,invite_num,award_sum,trail_num,carry_num):
+        """
+        {{first.DATA}}
+        姓名：{{keyword1.DATA}}
+        手机：{{keyword2.DATA}}
+        会员等级：{{keyword3.DATA}}
+        {{remark.DATA}}
+        """
+
+        referal_customer = utils.get_mama_customer(referal_mama_id)
+        potential_customer = utils.get_mama_customer(potential_mama_id)
+        mobile_string = ''
+        if potential_customer.mobile:
+            mobile = potential_customer.mobile
+            mobile_string = '%s****%s' % (mobile[0:3],mobile[7:])
+        
+        template_id = 'tvns3YwYkRkkd2mycvxKsbRtuQl1spBHxtm9PLFIlFI'
+        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        if not template:
+            return
+        
+        template_data = {
+            'first': {
+                'value': template.header.format(diff_num=diff_num,award_num=award_num).decode('string_escape'),
+                'color': '#F87217',
+            },
+            'keyword1': {
+                'value': u'%s (ID:%s)' % (potential_customer.nick,potential_mama_id),
+                'color': '#4CC417',
+            },
+            'keyword2': {
+                'value': mobile_string,
+                'color': '#4CC417',
+            },
+            'keyword3': {
+                'value': u'15天体验试用',
+                'color': '#4CC417',
+            },
+            'remark': {
+                'value': template.footer.format(invite_num=invite_num,award_sum=award_sum,trial_num=trial_num,award_total=trail_num*carry_num).decode('string_escape'),
+                'color': '#F87217',
+            },
+        }
+
+        return self.push(referal_customer, template_id, template_data, to_url)
+        
