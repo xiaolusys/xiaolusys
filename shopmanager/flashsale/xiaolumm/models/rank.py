@@ -345,8 +345,8 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
     def batch_generate(week_begin_time=None):
         week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         WeekMamaCarryTotal.batch_generate(week_begin_time)
-        mids = [m['mama_id'] for m in WeekMamaCarryTotal.objects.values('mama_id')]
-        tmids = [m['mama_id'] for m in WeekMamaTeamCarryTotal.objects.values('mama_id')]
+        mids = [m['mama_id'] for m in WeekMamaCarryTotal.objects.filter(stat_time=week_begin_time).values('mama_id')]
+        tmids = [m['mama_id'] for m in WeekMamaTeamCarryTotal.objects.filter(stat_time=week_begin_time).values('mama_id')]
         left_ids = list(set(mids) - set(tmids))
         for mama_id in left_ids:
             WeekMamaTeamCarryTotal.generate(mama_id, week_begin_time)

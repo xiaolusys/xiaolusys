@@ -4,8 +4,11 @@ from rest_framework import generics, viewsets, permissions, authentication, rend
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
+from core.xlmm_response import SUCCESS_RESPONSE
 from flashsale.promotion.serializers import StockSaleSerializers
 from flashsale.promotion.models.stocksale import *
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 import logging
 
 log = logging.getLogger('django.request')
@@ -17,15 +20,51 @@ class StockSaleViewSet(viewsets.GenericViewSet):
     """
     queryset = StockSale.objects.all()
     serializer_class = StockSaleSerializers
-    authentication_classes = (authentication.SessionAuthentication, permissions.DjangoModelPermissions, authentication.BasicAuthentication)
+    authentication_classes = (
+    authentication.SessionAuthentication, permissions.DjangoModelPermissions, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     @list_route(methods=['GET', 'POST'])
     def gen_new_stock_sale(self, request):
-        StockSale.gen_new_stock_sale()
-        return Response()
+        StockSale.gen_new_stock_sale(request.user.username)
+        return HttpResponseRedirect('/admin/promotion/batchstocksale/')
 
     @list_route(methods=['GET', 'POST'])
     def gen_new_activity(self, request):
-        StockSale.gen_new_activity()
-        return Response()
+        StockSale.gen_new_activity(request.user.username)
+        return HttpResponseRedirect('/admin/promotion/activitystocksale/')
+
+    @detail_route(methods=['GET', 'POST'])
+    def gen_activity_entry(self, request, pk):
+        activity = get_object_or_404(ActivityStockSale, pk=pk)
+        if not activity.activity:
+            activity.gen_activity_entry()
+        return HttpResponseRedirect('/admin/promotion/activitystocksale/')
+
+    @detail_route(methods=['GET', 'POST'])
+    def update_status(self, request, pk):
+        sale = get_object_or_404(StockSale, pk=pk)
+        status = request.GET.get('status') or request.POST.get('status')
+        try:
+            status = int(status)
+            if status not in [0, 1, 2]:
+                raise exceptions.ValidationError(u'库存销售记录的状态只能取0,1,2')
+        except:
+            raise exceptions.ValidationError(u'库存销售记录的状态只能取0,1,2')
+        sale.status = status
+        sale.save()
+        return Response(SUCCESS_RESPONSE)
+
+    @detail_route(methods=['GET', 'POST'])
+    def update_stock_safe(self, request, pk):
+        sale = get_object_or_404(StockSale, pk=pk)
+        stock_safe = request.GET.get('stock_safe') or request.POST.get('stock_safe')
+        try:
+            stock_safe = int(stock_safe)
+            if stock_safe not in [0, 1, 2]:
+                raise exceptions.ValidationError(u'库存销售记录的状态只能取0,1')
+        except:
+            raise exceptions.ValidationError(u'库存销售记录的状态只能取0,1')
+        sale.stock_safe = stock_safe
+        sale.save()
+        return Response(SUCCESS_RESPONSE)
