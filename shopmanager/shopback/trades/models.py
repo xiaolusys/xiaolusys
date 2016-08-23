@@ -1750,8 +1750,8 @@ class PackageStat(models.Model):
 
     @staticmethod
     def get_package_num(package_stat_id):
-        return PackageOrder.objects.filter(id__contains=package_stat_id + '-',
-                                           sys_status__nin=[PackageOrder.PKG_NEW_CREATED]).count()
+        return PackageOrder.objects.filter(id__contains=package_stat_id + '-')\
+                                           .exclude(sys_status__in=[PackageOrder.PKG_NEW_CREATED]).count()
 
     @staticmethod
     def get_sended_package_num(package_stat_id):
