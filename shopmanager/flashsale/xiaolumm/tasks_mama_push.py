@@ -108,10 +108,10 @@ def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
     res = PotentialMama.objects.filter(referal_mama=referal_mama_id).values('is_full_member').annotate(n=Count('is_full_member'))
     trial_num,convert_num = 0,0
     for entry in res:
-        if res['is_full_member'] == True:
-            convert_num = res['n']
-        if res['is_full_member'] == False:
-            trial_num = res['n']
+        if entry['is_full_member'] == True:
+            convert_num = entry['n']
+        if entry['is_full_member'] == False:
+            trial_num = entry['n']
     invite_num = trial_num + convert_num
     
     if invite_num < 2:
