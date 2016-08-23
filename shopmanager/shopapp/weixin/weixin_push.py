@@ -366,6 +366,6 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
         }
-
+        to_url = 'http://m.xiaolumeimei.com'
         return self.push(referal_customer, template_id, template_data, to_url)
         
