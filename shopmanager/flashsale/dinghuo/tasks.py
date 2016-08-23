@@ -1698,20 +1698,28 @@ def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
 @task(max_retries=3, default_retry_delay=6)
 def task_purchaserecord_sync_purchasearrangement_status(pr):
     # print "debug: %s" % utils.get_cur_info()
-
-    purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
-    pa = PurchaseArrangement.objects.filter(oid=pr.oid).first()
-    if pa:
+    try:
+        pa = PurchaseArrangement.objects.get(oid=pr.oid)
         if pa.status != pr.status:
             pa.status = pr.status
             pa.save(update_fields=['status', 'modified'])
-        return
-    else:
-        try:
-            create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
-        except IntegrityError as exc:
-            raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
-        #raise task_purchaserecord_sync_purchasearrangement_status.retry()
+            if pr.status == PurchaseRecord.EFFECT:
+                logger.error("PR sync PA error| pa.id: %s, pr.id: %s, %s" % (pa.id, pr.id, datetime.datetime.now()))
+    except PurchaseArrangement.DoesNotExist as exc:
+        raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
+
+    purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
+    #if pa:
+    #    if pa.status != pr.status:
+    #        pa.status = pr.status
+    #        pa.save(update_fields=['status', 'modified'])
+    #    return
+    #else:
+        #try:
+        #    create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
+        #except IntegrityError as exc:
+        #    raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
+        
 
 
 @task()

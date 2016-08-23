@@ -310,7 +310,7 @@ def task_send_activate_award(mama_id):
     from flashsale.xiaolumm.models import PotentialMama
     trial_num = PotentialMama.objects.filter(referal_mama=mama_id).count()
 
-    if trial_num in award_dict
+    if trial_num in award_dict:
         award_num = award_dict[trial_num]
         award_desc = award_desc[trial_num]
         uni_key = 'activite_award_%d_%d' % (trail_num, mama.id)
