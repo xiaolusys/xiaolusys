@@ -133,13 +133,15 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
         goods_horizon_pic = desc_pics.filter(pic_type=ActivityProduct.GOODS_HORIZEN_PIC_TYPE).order_by('location_id')
         goods_horizon = []
         for goods in goods_horizon_pic:
-            goods_dict = {"modelId": goods.model_id, "pic": goods.product_img}
+            goods_dict = {"modelId": goods.model_id, "pic": goods.product_img, "productName": goods.product_name,
+                          "lowestPrice": goods.product_lowest_price(), "stdPrice": goods.product_std_sale_price()}
             goods_horizon.append(goods_dict)
 
         goods_vertical_pic = desc_pics.filter(pic_type=ActivityProduct.GOODS_VERTICAL_PIC_TYPE).order_by('location_id')
         goods_vertical = []
         for goods in goods_vertical_pic:
-            goods_dict = {"modelId": goods.model_id, "pic": goods.product_img}
+            goods_dict = {"modelId": goods.model_id, "pic": goods.product_img, "productName": goods.product_name,
+                          "lowestPrice": goods.product_lowest_price(), "stdPrice": goods.product_std_sale_price()}
             goods_vertical.append(goods_dict)
 
         return_dict = {"title": act.title,
