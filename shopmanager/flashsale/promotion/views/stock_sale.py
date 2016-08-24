@@ -56,6 +56,13 @@ class StockSaleViewSet(viewsets.GenericViewSet):
         return Response(SUCCESS_RESPONSE)
 
     @detail_route(methods=['GET', 'POST'])
+    def reset_sale(self, request, pk):
+        sale = get_object_or_404(StockSale, pk=pk)
+        sale.day_batch_num = 0
+        sale.save()
+        return Response(SUCCESS_RESPONSE)
+
+    @detail_route(methods=['GET', 'POST'])
     def update_stock_safe(self, request, pk):
         sale = get_object_or_404(StockSale, pk=pk)
         stock_safe = request.GET.get('stock_safe') or request.POST.get('stock_safe')
