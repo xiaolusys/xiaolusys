@@ -349,7 +349,8 @@ class ModelProduct(BaseTagModel):
 
         attrs = sorted(prop_value_dict.items(), key=lambda x: PROPERTY_KEYMAP.get(x[0], 100))
         PROPERTY_NAME_DICT = dict(PROPERTY_NAMES)
-        attr_dict = [{'name': PROPERTY_NAME_DICT.get(key), 'value': value} for key, value in attrs if value.strip()]
+        attr_dict = [{'name': PROPERTY_NAME_DICT.get(key), 'value': value} for key, value in attrs
+                     if value.strip() and PROPERTY_NAME_DICT.get(key)]
 
         return attr_dict
 

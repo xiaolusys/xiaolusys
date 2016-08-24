@@ -427,7 +427,7 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
             'order_weight', 'model_id', 'supplier_name',
             'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
             'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
-            'reference_username', 'photo_username', 'product_contactor', 'product_memo',
+            'reference_username', 'photo_username', 'product_contactor', 'product_memo', 'photo_user', 'reference_user',
             'created', 'modified')
 
     def reference_user_name(self, obj):
