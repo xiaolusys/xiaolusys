@@ -1703,10 +1703,10 @@ def task_purchaserecord_sync_purchasearrangement_status(pr):
         if pa.status != pr.status:
             pa.status = pr.status
             pa.save(update_fields=['status', 'modified'])
-            if pr.status == PurchaseRecord.EFFECT:
-                logger.error("PR sync PA error| pa.id: %s, pr.id: %s, pr.status: %s, %s" % (pa.id, pr.id, pr.status, datetime.datetime.now()))
-            else:
-                logger.error("PR sync PA correct| pa.id: %s, pr.id: %s, pr.status: %s, %s" % (pa.id, pr.id, pr.status, datetime.datetime.now()))
+            #if pr.status == PurchaseRecord.EFFECT:
+            #    logger.error("PR sync PA error| pa.id: %s, pr.id: %s, pr.status: %s, %s" % (pa.id, pr.id, pr.status, datetime.datetime.now()))
+            #else:
+            #    logger.error("PR sync PA correct| pa.id: %s, pr.id: %s, pr.status: %s, %s" % (pa.id, pr.id, pr.status, datetime.datetime.now()))
     except PurchaseArrangement.DoesNotExist as exc:
         raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
 
