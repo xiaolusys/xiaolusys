@@ -51,7 +51,7 @@ class WeixinFans(models.Model):
             return None
 
 
-def weixinfans_xlmm_newtask(sender, instance, created, **kwargs):
+def weixinfans_xlmm_newtask(sender, instance, **kwargs):
     """
     检测新手任务：　关注公众号“小鹿美美”
     """
