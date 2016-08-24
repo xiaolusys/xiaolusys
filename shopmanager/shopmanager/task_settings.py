@@ -506,6 +506,10 @@ MAMA_CARRYRECORD_ROUTES = {
         'queue': 'carryrecord',
         'routing_key': 'carryrecord.task_new_guy_task_complete_send_award',
     },
+    'flashsale.xiaolumm.tasks_mama_fortune.task_subscribe_weixin_send_award': {
+        'queue': 'carryrecord',
+        'routing_key': 'carryrecord.task_subscribe_weixin_send_award',
+    },
 
 }
 MAMA_CARRYTOTAL_ROUTES = {
@@ -687,6 +691,14 @@ CELERY_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_app_push_ordercarry',
     },  # 妈妈奖金APP推送
+    'flashsale.xiaolumm.tasks_mama_push.task_push_new_mama_task': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_push_new_mama_task',
+    },  # 妈妈新手任务引导推送
+    'flashsale.xiaolumm.tasks_mama_push.task_sms_push_mama': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_sms_push_mama',
+    },  # 新加入１元妈妈短信推送
     'flashsale.xiaolumm.tasks_mama_push.task_push_mama_cashout_msg': {
         'queue': 'notify',
         'routing_key': 'notify.task_push_mama_cashout_msg',
@@ -732,6 +744,16 @@ CELERY_ROUTES = {
         'queue': 'frency',
         'routing_key': 'frency.update_sale_customer',
     },  # 保存微信用户OPENID信息
+
+    'flashsale.pay.tasks.task_sync_xlmm_fans_nick_thumbnail': {
+        'queue': 'frency',
+        'routing_key': 'frency.task_sync_xlmm_fans_nick_thumbnail',
+    },  # 更新粉丝用户头像以及昵称
+    'flashsale.pay.tasks.task_sync_xlmm_mobile_by_customer': {
+        'queue': 'frency',
+        'routing_key': 'frency.task_sync_xlmm_mobile_by_customer',
+    },  # 更新小鹿妈妈的手机号码
+
     'shopapp.weixin.tasks.task_Update_Weixin_UserInfo': {
         'queue': 'frency',
         'routing_key': 'frency.update_weixin_userinfo',

@@ -563,7 +563,9 @@ def update_purchaseorder_status(sender, instance, created, **kwargs):
             task_update_purchasearrangement_initial_book, task_update_purchasearrangement_status
 
         task_update_purchasedetail_status.delay(po)
-        if status == PurchaseOrder.BOOKED:
+        if instance.third_package and status in [PurchaseOrder.BOOKED, PurchaseOrder.FINISHED]:
+            task_update_purchasearrangement_initial_book.delay(po)
+        elif status == PurchaseOrder.BOOKED:
             task_update_purchasearrangement_initial_book.delay(po)
         else:
             task_update_purchasearrangement_status.delay(po)

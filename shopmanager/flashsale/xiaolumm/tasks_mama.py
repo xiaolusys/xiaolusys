@@ -308,13 +308,14 @@ def get_self_mama(unionid):
 
 @task()
 def task_order_trigger(sale_order):
+    from flashsale.xiaolumm.models.models_fans import XlmmFans
     logger.info("%s, saleorder_pk: %s" % (get_cur_info(), sale_order.id))
 
     customer_id = sale_order.sale_trade.buyer_id
     customer = Customer.objects.get(id=customer_id)
     self_mama = None
     if customer.unionid:
-        self_mama = get_self_mama(customer.unionid) 
+        self_mama = get_self_mama(customer.unionid)
 
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
 
@@ -322,17 +323,20 @@ def task_order_trigger(sale_order):
     if self_mama:
         mm_linkid_mama = self_mama
     else:
-        # customer itself is not a xiaolumama, then check 
+        # customer itself is not a xiaolumama, then check
         # 1) if customer is a fan of a mama and the order is paid via app; or
-        # 2) if customer is coming from a mama's share link; 
+        # 2) if customer is coming from a mama's share link;
         if via_app:
             # check fan's relationship
-            from flashsale.xiaolumm.models.models_fans import XlmmFans
-
             fans_records = XlmmFans.objects.filter(fans_cusid=customer_id, created__lt=sale_order.created)
             if fans_records.count() > 0:
                 mama_id = fans_records[0].xlmm
                 mm_linkid_mama = XiaoluMama.objects.get(id=mama_id)
+
+    if not mm_linkid_mama:
+        fans_record = XlmmFans.objects.filter(fans_cusid=customer_id, created__lt=sale_order.created).first()
+        if fans_record:
+            mm_linkid_mama = XiaoluMama.objects.get(id=fans_record.xlmm)
 
     if not mm_linkid_mama:
         return

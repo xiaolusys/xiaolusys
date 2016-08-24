@@ -20,10 +20,10 @@ import datetime
 #    DEFAULT_PRICE = 10
 #    DEFAULT_LIMIT = 10
 #    DEFAULT_NAME = "Default"
-#    
+#
 #    if order_num > MAX_ORDER_NUM:
 #        order_num = MAX_ORDER_NUM
-#        
+#
 #    key = str(order_num)
 #
 #    click_plans = ClickPlan.objects.filter(status=0)
@@ -75,14 +75,14 @@ def confirm_clickcarry(click_carry, mama_id, date_field):
     click_carry.status = 2  # confirm
     click_carry.save()
 
-    
+
 @task()
 def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_days):
     """
     This is how a zero order clickcarry gets confirmed:
     everytime a new clickcarry gets created, we confirm
-    any clickcarry generated in previous 7 days, if and 
-    only if the clickcarry doesnt have an order related to it. 
+    any clickcarry generated in previous 7 days, if and
+    only if the clickcarry doesnt have an order related to it.
     e.g init_order_num == 0
     """
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
@@ -108,7 +108,7 @@ def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_d
 @task()
 def task_confirm_previous_order_clickcarry(mama_id, today_date_field, num_days):
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
-    
+
     click_carrys = ClickCarry.objects.filter(mama_id=mama_id, date_field__lte=end_date_field, status=1,
                                              init_order_num__gt=0).order_by('-date_field')[:7]
 
@@ -124,7 +124,7 @@ def create_clickcarry_upon_click(mama_id, date_field):
     """
     ClickCarry records are created only upon click happens.
     When we are going to create a clickcarry record, we have
-    to get the order_num (all pending+confirmed orders) and 
+    to get the order_num (all pending+confirmed orders) and
     calculate price, limit, price, etc.
     """
 
@@ -147,7 +147,7 @@ def create_clickcarry_upon_click(mama_id, date_field):
 
 def update_clickcarry_upon_order(click_carry, mama_id, date_field):
     """
-    We count all pending+confirmed orders, and simply update 
+    We count all pending+confirmed orders, and simply update
     init fields.
     """
 
@@ -219,7 +219,7 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
             click_num = UniqueVisitor.objects.filter(mama_id=mama_id, date_field=date_field).count()
         else:
             click_num = click_num + 1
-            
+
         if click_num <= limit:
             total_value = click_num * price
             click_carry.click_num = click_num

@@ -2,7 +2,7 @@
 import os
 import sys
 sys.path.append('.')
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
 # from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.weixin_push import WeixinPush
 from flashsale.pay.models.trade import SaleTrade, SaleOrder
@@ -10,10 +10,7 @@ from flashsale.pay.models.refund import SaleRefund
 from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry
 
 
-if __name__ == '__main__':
-    import django
-    django.setup()
-
+def test_main():
     ordercarry = OrderCarry.objects.get(id=10)
     push = WeixinPush()
     remarks = u"来自好友%s，快打开App看看她买了啥～" % ordercarry.contributor_nick
@@ -32,3 +29,19 @@ if __name__ == '__main__':
     courage_remarks = 'remark'
     to_url = ''
     push.push_mama_award(awardcarry, courage_remarks, to_url)
+
+
+def test_push_new_mama_task():
+    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.models.models import XiaoluMama
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+
+    xlmm = XiaoluMama.objects.get(id=1)
+    task_push_new_mama_task(xlmm, NewMamaTask.TASK_FIRST_FANS)
+
+
+if __name__ == '__main__':
+    import django
+    django.setup()
+
+    test_push_new_mama_task()

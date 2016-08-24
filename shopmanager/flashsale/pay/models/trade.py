@@ -921,6 +921,12 @@ class SaleOrder(PayBaseModel):
         return self.is_deposit() and self.outer_sku_id == '1'
 
     @property
+    def item_product(self):
+        if not hasattr(self, '_item_product_'):
+            self._item_product_ = Product.objects.filter(id=self.item_id).first()
+        return self._item_product_
+
+    @property
     def item_ware_by(self):
         """　商品所属仓库 """
         product = Product.objects.filter(id=self.item_id).first()

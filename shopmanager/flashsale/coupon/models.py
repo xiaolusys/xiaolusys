@@ -7,7 +7,7 @@
 import datetime
 import random
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from flashsale.coupon import tasks
 from flashsale.pay.options import uniqid
 from core.models import BaseModel
@@ -354,6 +354,30 @@ class OrderShareCoupon(BaseModel):
     def remain_num(self):
         """ 还剩下多少次没领取 """
         return self.limit_share_count - self.release_count
+
+
+def coupon_share_xlmm_newtask(sender, instance, **kwargs):
+    """
+    检测新手任务：分享第一个红包
+    """
+    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+    from flashsale.pay.models.user import Customer
+
+    coupon_share = instance
+    customer_id = coupon_share.share_customer
+    customer = Customer.objects.filter(id=customer_id).first()
+    if not customer:
+        return
+
+    xlmm = customer.getXiaolumm()
+    coupon_share = OrderShareCoupon.objects.filter(share_customer=customer_id).exists()
+
+    if xlmm and not coupon_share:
+        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_SHARE_COUPON)
+
+pre_save.connect(coupon_share_xlmm_newtask,
+                 sender=OrderShareCoupon, dispatch_uid='pre_save_coupon_share_xlmm_newtask')
 
 
 def default_coupon_no():

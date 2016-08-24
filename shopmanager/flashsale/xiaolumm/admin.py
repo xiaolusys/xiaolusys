@@ -403,9 +403,15 @@ from flashsale.xiaolumm.models.models_fans import FansNumberRecord, XlmmFans
 
 
 class XlmmFansAdmin(admin.ModelAdmin):
-    list_display = ('id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid', 'modified', 'created')
+    list_display = ('id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid', 'thumbnail_display', 'modified', 'created')
     search_fields = ['xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid']
+    list_filter = ['created']
 
+    def thumbnail_display(self, obj):
+        html = u'<p>%s</p><img src="%s" style="width:60px; height:60px">' % (obj.fans_nick, obj.fans_thumbnail)
+        return html
+    thumbnail_display.allow_tags = True
+    thumbnail_display.short_description = u"粉丝昵称/头像"
 
 admin.site.register(XlmmFans, XlmmFansAdmin)
 
@@ -614,8 +620,7 @@ admin.site.register(TopicAttendRecord, TopicAttendRecordAdmin)
 class PotentialMamaAdmin(admin.ModelAdmin):
     list_display = ("potential_mama",
                     "referal_mama",
-                    "nick",
-                    "thumbnail",
+                    "thumbnail_display",
                     "uni_key",
                     "is_full_member", "modified", "created")
 
@@ -626,6 +631,12 @@ class PotentialMamaAdmin(admin.ModelAdmin):
     search_fields = ("potential_mama",
                      "referal_mama",
                      "nick")
+
+    def thumbnail_display(self, obj):
+        return u'<p>%s</p><img src="%s" style="width:50px;height:50px">' % (obj.nick, obj.thumbnail)
+
+    thumbnail_display.short_description = u'昵称/头像'
+    thumbnail_display.allow_tags = True
 
 
 admin.site.register(PotentialMama, PotentialMamaAdmin)

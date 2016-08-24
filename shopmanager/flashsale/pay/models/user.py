@@ -304,7 +304,24 @@ def update_weixinuserinfo(sender, instance, created, **kwargs):
     from flashsale.pay.tasks import task_customer_update_weixinuserinfo
     task_customer_update_weixinuserinfo.delay(instance)
 
-post_save.connect(update_weixinuserinfo, sender=Customer, dispatch_uid='post_save_update_weixinuserinfo')
+post_save.connect(update_weixinuserinfo, sender=Customer,
+                  dispatch_uid='post_save_update_weixinuserinfo')
+
+
+def sync_xlmm_fans_nick_thumbnail(sender, instance, created, **kwargs):
+    from flashsale.pay.tasks import task_sync_xlmm_fans_nick_thumbnail
+    task_sync_xlmm_fans_nick_thumbnail.delay(instance)
+
+post_save.connect(sync_xlmm_fans_nick_thumbnail, sender=Customer,
+                  dispatch_uid='post_save_sync_xlmm_fans_nick_thumbnail')
+
+
+def sync_xlmm_mobile_by_customer(sender, instance, created, **kwargs):
+    from flashsale.pay.tasks import task_sync_xlmm_mobile_by_customer
+    task_sync_xlmm_mobile_by_customer.delay(instance)
+
+post_save.connect(sync_xlmm_mobile_by_customer, sender=Customer,
+                  dispatch_uid='post_save_sync_xlmm_mobile_by_customer')
 
 
 class UserBudget(PayBaseModel):

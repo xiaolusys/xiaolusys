@@ -21,6 +21,7 @@ SMS_NOTIFY_GOODS_LACK = 'goods_lack'  # 缺货通知
 SMS_NOTIFY_LACK_REFUND = 'lackrefund'  # 缺货退款通知
 SMS_NOTIFY_MAMA_ORDERCARRY = 'ordercarry'  # 小鹿妈妈订单收益
 SMS_NOTIFY_APP_UPDATE = 'appupdate'  # APP更新
+SMS_NOTIFY_MAMA_SUBSCRIBE_WEIXIN = 'sbweixin'  # 提醒妈妈关注微信
 
 SMS_RECORD_STATUS = (
     (pcfg.SMS_CREATED, u'初始创建'),
@@ -46,6 +47,7 @@ def choice_sms_notify_type():
         (SMS_NOTIFY_LACK_REFUND, u'缺货退款通知'),
         (SMS_NOTIFY_MAMA_ORDERCARRY, u'小鹿妈妈订单收益'),
         (SMS_NOTIFY_APP_UPDATE, u'APP更新'),
+        (SMS_NOTIFY_MAMA_SUBSCRIBE_WEIXIN, u'提醒妈妈关注微信')
     )
     return sms_notify_type
 
