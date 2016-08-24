@@ -1493,10 +1493,7 @@ def task_purchasearrangement_update_purchaserecord_book_num(pa):
 
     book_num = open_book_num + booked_num
 
-    pr = PurchaseRecord.objects.filter(uni_key=pa.purchase_record_unikey).first()
-    if pr and pr.book_num != book_num:
-        pr.book_num = book_num
-        pr.save(update_fields=['book_num', 'modified'])
+    PurchaseRecord.objects.filter(uni_key=pa.purchase_record_unikey).update(book_num=book_num,modified=datetime.datetime.now())
 
 
 @task()
