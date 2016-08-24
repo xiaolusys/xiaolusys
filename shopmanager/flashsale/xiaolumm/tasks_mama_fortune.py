@@ -313,12 +313,12 @@ def task_send_activate_award(mama_id):
     if trial_num in award_dict:
         award_num = award_dict[trial_num]
         award_desc = award_desc[trial_num]
-        uni_key = 'activite_award_%d_%d' % (trail_num, mama.id)
+        uni_key = 'activite_award_%d_%d' % (trial_num, mama.id)
         AwardCarry.send_award(mama, award_num, u'邀请1元妈妈奖励', award_desc, uni_key, status=2, carry_type=7)
     elif trial_num % 5 == 0:
         award_num = 10
         award_desc = u'已邀请%d位店主,再奖10元!' % trial_num
-        uni_key = 'activite_award_%d_%d' % (trail_num, mama.id)
+        uni_key = 'activite_award_%d_%d' % (trial_num, mama.id)
         AwardCarry.send_award(mama, award_num, u'邀请1元妈妈奖励', award_desc, uni_key, status=2, carry_type=7)
 
 
