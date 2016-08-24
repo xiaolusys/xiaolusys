@@ -8,7 +8,7 @@ from flashsale.xiaolumm.models import XiaoluMama, NinePicAdver
 from flashsale.push import push_mama
 from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 from shopapp.weixin.models import WeixinUnionID
-from django.db.models import Count
+from django.db.models import Count, Sum
 
 @task
 def task_push_ninpic_remind(ninpic):
@@ -124,7 +124,7 @@ def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
         target_num = 10
         award_num = 15
     else:
-        target_num = (trail_num / 5 + 1)* 5
+        target_num = (invite_num / 5 + 1)* 5
         award_num = 10
 
     # 距离下一步推荐1元妈妈奖金人数
@@ -133,18 +133,18 @@ def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
     # 一元邀请奖金＋推荐完成新手任务奖金
     ac = AwardCarry.objects.filter(mama_id=referal_mama_id,carry_type__gte=6,carry_type__lte=7).aggregate(n=Sum('carry_num'))
     award_sum = ac['n'] or 0
-    award_sum = carry_sum * 0.01
+    award_sum = award_sum * 0.01
 
     # 当前妈妈目前推荐正式妈妈可获奖金
     from flashsale.xiaolumm import utils
     rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=referal_mama_id).count()
     carry_num = utils.get_award_carry_num(rr_cnt, XiaoluMama.FULL)
-    carry_num = award_carry_num * 0.01
+    carry_num = carry_num * 0.01
 
     from shopapp.weixin.weixin_push import WeixinPush
     wp = WeixinPush()
 
-    wp.push_mama_invite_trial(referal_mama_id,potential_mama_id, diff_num,award_num,invite_num,award_sum,trail_num,carry_num)
+    wp.push_mama_invite_trial(referal_mama_id,potential_mama_id, diff_num,award_num,invite_num,award_sum,trial_num,carry_num)
 
 @task
 def task_app_push_ordercarry(ordercarry):

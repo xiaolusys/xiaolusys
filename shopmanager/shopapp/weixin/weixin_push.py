@@ -322,7 +322,7 @@ class WeixinPush(object):
         return self.push(customer, template_id, template_data, to_url)
 
 
-    def push_mama_invite_trial(self,referal_mama_id,potential_mama_id,diff_num,award_num,invite_num,award_sum,trail_num,carry_num):
+    def push_mama_invite_trial(self,referal_mama_id,potential_mama_id,diff_num,award_num,invite_num,award_sum,trial_num,carry_num):
         """
         {{first.DATA}}
         姓名：{{keyword1.DATA}}
@@ -362,7 +362,7 @@ class WeixinPush(object):
                 'color': '#4CC417',
             },
             'remark': {
-                'value': template.footer.format(invite_num=invite_num,award_sum=award_sum,trial_num=trial_num,award_total=trail_num*carry_num).decode('string_escape'),
+                'value': template.footer.format(invite_num=invite_num,award_sum=award_sum,trial_num=trial_num,award_total=trial_num*carry_num).decode('string_escape'),
                 'color': '#F87217',
             },
         }
