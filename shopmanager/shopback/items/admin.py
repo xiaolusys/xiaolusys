@@ -1224,7 +1224,7 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = (
-        'sku_link', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
+        'sku_link', 'skucode', 'supplier','product_id_link', 'product_title', 'properties_name_alias',
         'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link',
         'adjust_quantity', 'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
@@ -1449,9 +1449,23 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     skucode.allow_tags = True
     skucode.short_description = u'sku条码'
 
+
     PRODUCT_LINK = (
         '<a href="%(product_url)s" target="_blank">'
         '%(product_title)s</a>')
+
+    def supplier(self, obj):
+        product = obj.sku
+        outer_id = list(product.outer_id)
+        outer_id.pop()
+        outer_id = "".join(outer_id)
+        orderdetail = OrderDetail.objects.filter(outer_id=outer_id).first()
+        if orderdetail:
+            supplier_name = orderdetail.orderlist.supplier.supplier_name
+            return ('%s') % supplier_name
+
+    supplier.allow_tags = True
+    supplier.short_description = u'供应商'
 
     def product_id_link(self, obj):
         return ('<a href="%(product_url)s" target="_blank">'
