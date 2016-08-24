@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from core.models import BaseModel
 from flashsale.xiaolumm.managers import XlmmFansManager
 from flashsale.pay.models import Customer
@@ -108,6 +108,27 @@ post_save.connect(update_mamafortune_fans_num,
                   sender=XlmmFans, dispatch_uid='post_save_update_mamafortune_fans_num')
 
 
+def xlmmfans_xlmm_newtask(sender, instance, **kwargs):
+    """
+    检测新手任务：　获取第一个粉丝
+    """
+    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+    from flashsale.xiaolumm.models.models import XiaoluMama
+
+    xlmm_fans = instance
+    xlmm_id = xlmm_fans.xlmm
+    xlmm = XiaoluMama.objects.filter(id=xlmm_id)
+
+    fans_record = XlmmFans.objects.filter(xlmm=xlmm_id).exists()
+
+    if not fans_record:
+        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_FANS)
+
+pre_save.connect(xlmmfans_xlmm_newtask,
+                 sender=XlmmFans, dispatch_uid='pre_save_xlmmfans_xlmm_newtask')
+
+
 class FansNumberRecord(BaseModel):
     xlmm = models.BigIntegerField(db_index=True, verbose_name='小鹿妈妈id')
     xlmm_cusid = models.BigIntegerField(db_index=True, verbose_name='小鹿妈妈用户id')
@@ -127,7 +148,7 @@ class FansNumberRecord(BaseModel):
 def login_activate_appdownloadrecord(user):
     """
     Only check whether this user has download-relationship, if he/she has
-    and that download-relationship record is not used yet, we confirm he/she is 
+    and that download-relationship record is not used yet, we confirm he/she is
     a fan of the related user.
     """
 

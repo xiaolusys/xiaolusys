@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.db import models
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 
 from core.models import CacheModel, BaseModel
 
@@ -37,7 +37,7 @@ class WeixinFans(models.Model):
         index_together = [('openid', 'app_key')]
         app_label = 'weixin'
         verbose_name = u'微信公众号粉丝'
-        verbose_name_plural = u'微信公众好粉丝列表'
+        verbose_name_plural = u'微信公众号粉丝列表'
 
     @classmethod
     def get_openid_by_unionid(cls, unionid, app_key):
@@ -49,6 +49,44 @@ class WeixinFans(models.Model):
             return fans.openid
         else:
             return None
+
+
+def weixinfans_xlmm_newtask(sender, instance, created, **kwargs):
+    """
+    检测新手任务：　关注公众号“小鹿美美”
+    """
+    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.tasks_mama_fortune import task_subscribe_weixin_send_award
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+    from flashsale.pay.models.user import Customer
+
+    fans = instance
+
+    if not fans.subscribe:
+        return
+
+    customer = Customer.objects.filter(unionid=fans.unionid).first()
+
+    if not customer:
+        return
+
+    xlmm = customer.getXiaolumm()
+
+    if not xlmm:
+        return
+
+    # 取消关注，然后重新关注，不计入
+    fans_record = WeixinFans.objects.filter(
+        unionid=fans.unionid, app_key=settings.WXPAY_APPID).exists()
+
+    if not fans_record:
+        # 发５元奖励
+        task_subscribe_weixin_send_award.delay(xlmm)
+        # 通知完成任务：
+        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_SUBSCRIBE_WEIXIN)
+
+pre_save.connect(weixinfans_xlmm_newtask,
+                 sender=WeixinFans, dispatch_uid='pre_save_weixinfans_xlmm_newtask')
 
 
 class WeixinTplMsg(models.Model):

@@ -2,7 +2,7 @@
 from django.db import models
 from django.db.models import Sum, F
 from core.models import BaseModel
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.conf import settings
 import datetime, urlparse
 from core.fields import JSONCharMyField
@@ -199,7 +199,7 @@ class MamaFortune(BaseModel):
 #
 # The task_send_activate_award() should not be triggered here, because MamaFortune gets
 # updated several times a day. The task should be triggered only trail_num gets changed.
-# 
+#
 #def send_activate_award(sender, instance, created, **kwargs):
 #    from flashsale.xiaolumm import tasks_mama_fortune
 #    if instance.invite_trial_num >= 2:
@@ -211,7 +211,7 @@ class MamaFortune(BaseModel):
 
 def update_week_carry_total(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carry_total
-    
+
     if instance.xlmm and (not instance.xlmm.is_staff) and instance.xlmm.is_available():
         tasks_mama_carry_total.task_fortune_update_week_carry_total.delay(instance.mama_id)
 
@@ -357,6 +357,26 @@ post_save.connect(carryrecord_update_carrytotal,
                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_carrytotal')
 
 
+def carryrecord_xlmm_newtask(sender, instance, **kwargs):
+    """
+    检测新手任务：完成第一笔点击收益
+    """
+    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+
+    carryrecord = instance
+    xlmm = carryrecord.mama
+    is_exists = CarryRecord.objects.filter(mama_id=xlmm.id, carry_type=CarryRecord.CR_CLICK).exists()
+
+    params = {'money': '%.2f' % carryrecord.carry_num / 100.0}
+
+    if not is_exists:
+        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_CARRY, params=params)
+
+pre_save.connect(carryrecord_xlmm_newtask,
+                 sender=CarryRecord, dispatch_uid='pre_save_carryrecord_new_mama_task')
+
+
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
     STATUS_TYPES = ((0, u'待付款'), (1, u'预计收益'), (2, u'确定收益'), (3, u'买家取消'),)
@@ -431,6 +451,24 @@ class OrderCarry(BaseModel):
 
     def is_direct_or_fans_carry(self):
         return self.carry_type == 1 or self.carry_type == 2
+
+
+def commission_xlmm_newtask(sender, instance, **kwargs):
+    """
+    检测新手任务：赚取第一笔佣金
+    """
+    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+
+    ordercarry = instance
+    xlmm = ordercarry.mama
+    ordercarry = OrderCarry.objects.filter(mama_id=xlmm.id).exists()
+
+    if not ordercarry:
+        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_COMMISSION)
+
+pre_save.connect(commission_xlmm_newtask,
+                 sender=OrderCarry, dispatch_uid='pre_save_commission_xlmm_newtask')
 
 
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
@@ -807,7 +845,7 @@ class ReferalRelationship(BaseModel):
     order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
     referal_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=XiaoluMama.FULL, db_index=True, verbose_name=u"类型")
     status = models.IntegerField(default=1, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')  # 已确定/取消
-    
+
     class Meta:
         db_table = 'flashsale_xlmm_referal_relationship'
         app_label = 'xiaolumm'
@@ -854,6 +892,28 @@ class ReferalRelationship(BaseModel):
                    referal_to_mama_img=potential_record.thumbnail)
         ship.save()
         return ship
+
+
+def referalrelationship_xlmm_newtask(sender, instance, **kwargs):
+    """
+    检测新手任务：发展第一个代理　
+    """
+    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+    from flashsale.xiaolumm.models.models import PotentialMama, XiaoluMama
+
+    referal_relationship = instance
+    xlmm_id = referal_relationship.referal_from_mama_id
+    xlmm = XiaoluMama.objects.filter(id=xlmm_id).first()
+
+    item = PotentialMama.objects.filter(referal_mama=xlmm_id).exists() or \
+        ReferalRelationship.objects.filter(referal_from_mama_id=xlmm_id).exists()
+
+    if not item:
+        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_MAMA_RECOMMEND)
+
+pre_save.connect(referalrelationship_xlmm_newtask,
+                 sender=ReferalRelationship, dispatch_uid='pre_save_referalrelationship_xlmm_newtask')
 
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
@@ -984,6 +1044,9 @@ class UniqueVisitor(BaseModel):
 
 
 def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
+    """
+    访客更新点击收益和活跃值
+    """
     if not created:
         return
 
@@ -1073,20 +1136,25 @@ post_save.connect(mama_app_version_check,
 
 def mama_update_device_stats(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.models import MamaDeviceStats
-    
+
     user_version = instance.get_user_version()
     latest_version = instance.get_latest_version()
 
     device_type = instance.device_type
     date_field = instance.date_field
-    
+
     uni_key = "%s-%s" % (device_type, date_field)
     md = MamaDeviceStats.objects.filter(uni_key=uni_key).first()
     if not md:
         md = MamaDeviceStats(device_type=device_type, uni_key=uni_key, date_field=date_field)
         md.save()
+
+    if user_version == latest_version:
+        # already latest, no need to push udpate reminder
+        md.num_latest += 1
+        md.save(update_fields=['num_latest', 'modified'])
         return
-    
+
     num_latest = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,version=latest_version).count()
     num_outdated = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,version__lt=latest_version).count()
 
