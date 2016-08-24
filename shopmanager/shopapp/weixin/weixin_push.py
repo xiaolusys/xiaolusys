@@ -197,7 +197,7 @@ class WeixinPush(object):
             sms.push_mama_ordercarry(customer, money=money)
             return
 
-        template_id = 'j4YQuNIWMP-OZV_O5LIl1O8GBmaMuqMQ8aLV1oDfnUw'
+        template_id = 'K2RVQnhIh6psYkGrkjLclLWmNXQ-hqoc-yumdsLuqC4'
         template_data = {
             'first': {
                 'value': u'报！公主殿下, 您的小鹿美美App奖金又来啦！',
