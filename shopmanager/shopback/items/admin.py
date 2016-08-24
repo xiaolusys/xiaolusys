@@ -1403,6 +1403,21 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     gen_return_goods.allow_tags = True
     gen_return_goods.short_description = u'生成退货单'
 
+    def gen_return_goods_by_five(self, request, queryset):
+        sku_dict = {}
+        sku_num = queryset.count()
+        for stat in queryset:
+            sku_dict[
+                stat.sku_id] = stat.history_quantity + stat.adjust_quantity + stat.inbound_quantity + stat.return_quantity \
+                               - stat.rg_quantity - stat.sold_num
+        returns = ReturnGoods.generate(sku_dict, request.user.username,days=5)
+        self.message_user(request, '本次对%d个SKU执行了退货, 生成了%d个退货单' % (sku_num, len(returns)))
+        return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
+
+    gen_return_goods_by_five.allow_tags = True
+    gen_return_goods_by_five.short_description = u'从上架起5天后生成退货单'
+
+
     def mark_unreturn(self, request, queryset):
         from flashsale.dinghuo.models import UnReturnSku
 
@@ -1593,7 +1608,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     district_link.allow_tags = True
     district_link.short_description = "库位"
-    actions = ['gen_return_goods', 'mark_unreturn']
+    actions = ['gen_return_goods', 'gen_return_goods_by_five', 'mark_unreturn']
 
     def get_actions(self, request):
         actions = super(ProductSkuStatsAdmin, self).get_actions(request)
