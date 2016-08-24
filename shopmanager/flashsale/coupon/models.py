@@ -367,6 +367,8 @@ def coupon_share_xlmm_newtask(sender, instance, **kwargs):
     coupon_share = instance
     customer_id = coupon_share.share_customer
     customer = Customer.objects.filter(id=customer_id).first()
+    if not customer:
+        return
 
     xlmm = customer.getXiaolumm()
     coupon_share = OrderShareCoupon.objects.filter(share_customer=customer_id).exists()
