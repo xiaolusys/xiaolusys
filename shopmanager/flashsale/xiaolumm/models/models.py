@@ -712,6 +712,13 @@ class XiaoluMama(models.Model):
         self.save(update_fields=update_fields)
         return True
 
+    def update_mobile(self, mobile=None):
+        if mobile and self.mobile != mobile and len(mobile) == 11:
+            self.mobile = mobile
+            self.save(update_fields=['mobile'])
+            return True
+        return False
+
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune

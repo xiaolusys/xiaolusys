@@ -215,14 +215,20 @@ admin.site.register(Register, RegisterAdmin)
 
 
 class CustomerAdmin(ApproxAdmin):
-    list_display = ('id', 'user', 'nick', 'mobile', 'phone', 'unionid', 'created', 'modified', 'status')
-    list_display_links = ('id', 'nick',)
+    list_display = ('id', 'user', 'thumbnail_display', 'mobile', 'unionid', 'created', 'modified', 'status')
+    list_display_links = ('id', 'thumbnail_display',)
 
     list_filter = ('status',)
     search_fields = ['=id', '=mobile', '=openid', '=unionid']
 
     def get_readonly_fields(self, request, obj=None):
         return self.readonly_fields + ('user',)
+
+    def thumbnail_display(self, obj):
+        html = u'<p>%s</p><img src="%s" style="width:60px; height:60px">' % (obj.nick, obj.thumbnail)
+        return html
+    thumbnail_display.allow_tags = True
+    thumbnail_display.short_description = u"粉丝昵称/头像"
 
 
 admin.site.register(Customer, CustomerAdmin)
