@@ -1115,7 +1115,7 @@ class PotentialMama(BaseModel):
     """
     潜在代理: 针对一元开店用户
     """
-    potential_mama = models.IntegerField(db_index=True, verbose_name=u"潜在妈妈专属id")
+    potential_mama = models.IntegerField(db_index=True, unique=True, verbose_name=u"潜在妈妈专属id")
     referal_mama = models.IntegerField(db_index=True, verbose_name=u"推荐人专属id")
     nick = models.CharField(max_length=32, blank=True, verbose_name=u"潜在妈妈昵称")
     thumbnail = models.CharField(max_length=256, blank=True, verbose_name=u"潜在妈妈头像")

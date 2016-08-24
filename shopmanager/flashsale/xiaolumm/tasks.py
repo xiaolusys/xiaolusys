@@ -885,23 +885,28 @@ def task_unitary_mama(obj):
     if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类
         update_fields.append("agencylevel")
         xlmm.agencylevel = XiaoluMama.A_LEVEL
-    if xlmm.renew_time is None:
+
+    renew_time = now + datetime.timedelta(days=15)
+    if isinstance(xlmm.renew_time, datetime.datetime):
+        renew_time = max(renew_time, xlmm.renew_time + datetime.timedelta(days=15))
+    if xlmm.renew_time != renew_time:
         update_fields.append("renew_time")
-        xlmm.renew_time = now + datetime.timedelta(days=15)
+        xlmm.renew_time = renew_time
+
     if xlmm.last_renew_type != XiaoluMama.TRIAL:  # 更新 续费类型为试用
         update_fields.append("last_renew_type")
         xlmm.last_renew_type = XiaoluMama.TRIAL
+    sys_oa = get_systemoa_user()
     if update_fields:
         xlmm.save(update_fields=update_fields)
-        sys_oa = get_systemoa_user()
         log_action(sys_oa, xlmm, CHANGE, u'一元开店成功')
     mm_linkid = obj.extras_info.get('mm_linkid') or 0  # 推荐人专属id　(写潜在关系列表)
-    uni_key = str(xlmm.id) + '/' + str(mm_linkid)
-    protentialmama = PotentialMama.objects.filter(uni_key=uni_key).first()
+    protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     customer = xlmm.get_mama_customer()
     nick = customer.nick if customer else ''
     thumbnail = customer.thumbnail if customer else ""
     if not protentialmama:
+        uni_key = str(xlmm.id) + '/' + str(mm_linkid)
         protentialmama = PotentialMama(
             potential_mama=xlmm.id,
             referal_mama=int(mm_linkid),
@@ -909,6 +914,8 @@ def task_unitary_mama(obj):
             thumbnail=thumbnail,
             uni_key=uni_key)
         protentialmama.save()
+    else:
+        log_action(sys_oa, protentialmama, CHANGE, u'再次试用 mm_linkid=%s' % mm_linkid)
     # 更新订单到交易成功
     order.status = SaleTrade.TRADE_FINISHED
     order.save(update_fields=['status'])
