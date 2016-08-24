@@ -1135,24 +1135,20 @@ post_save.connect(mama_app_version_check,
 
 def mama_update_device_stats(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.models import MamaDeviceStats
-
-    user_version = instance.get_user_version()
-    latest_version = instance.get_latest_version()
+    from flashsale.apprelease.models import AppRelease
 
     device_type = instance.device_type
     date_field = instance.date_field
+    
+    latest_version = instance.get_latest_version()
+    if device_type == MamaDailyAppVisit.DEVICE_ANDROID:
+        latest_version = AppRelease.get_latest_version_code(device_type)
 
     uni_key = "%s-%s" % (device_type, date_field)
     md = MamaDeviceStats.objects.filter(uni_key=uni_key).first()
     if not md:
         md = MamaDeviceStats(device_type=device_type, uni_key=uni_key, date_field=date_field)
         md.save()
-
-    if user_version == latest_version:
-        # already latest, no need to push udpate reminder
-        md.num_latest += 1
-        md.save(update_fields=['num_latest', 'modified'])
-        return
 
     num_latest = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,version=latest_version).count()
     num_outdated = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,version__lt=latest_version).count()

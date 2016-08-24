@@ -49,3 +49,10 @@ class AppRelease(BaseModel):
         if ar:
             return ar.version.lower().strip('v')
         return ''
+
+    @staticmethod
+    def get_latest_version_code(device_type):
+        ar = AppRelease.objects.filter(device_type=device_type,status=AppRelease.VALID).order_by('-created').first()
+        if ar:
+            return ar.version_code.lower()
+        return ''
