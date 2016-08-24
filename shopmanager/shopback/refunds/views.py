@@ -256,6 +256,10 @@ class RefundView(APIView):
     def post(self, request, *args, **kwargs):
         content = request.REQUEST
         rf = RefundProduct()
+        refundproduct = RefundProduct.objects.filter(trade_id=content['trade_id'],outer_sku_id=content['outer_sku_id'],\
+                                     buyer_phone=content['buyer_phone'],title=content['title'],outer_id=content['outer_id']).first()
+        if refundproduct:
+            return Response(serializers.RefundProductSerializer(refundproduct).data)
         for k, v in content.iteritems():
             if k == 'oid':
                 if RefundProduct.objects.filter(oid=v).count() != 0:
