@@ -405,7 +405,10 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
                                device_type=device_type,version=version,user_agent=user_agent)
         md.save()
     else:
-        md.save(update_fields=['modified'])
+        if md.version != version:
+            md.version = version
+            md.user_agent = user_agent
+            md.save(update_fields=['version','user_agent','modified'])
 
 
 @task
