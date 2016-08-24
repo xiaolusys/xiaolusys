@@ -323,18 +323,18 @@ def task_send_activate_award(mama_id):
 @task(max_retries=3, default_retry_delay=6)
 def task_first_order_send_award(mama):
     from flashsale.xiaolumm.models.models_fortune import AwardCarry
-    
+
     oc = OrderCarry.objects.filter(mama_id=mama.id, created__gte=mama.created).exclude(carry_type=3).exclude(status=0).exclude(status=3).first()
     if not oc:
         return
-    
+
     uni_key = 'trial_first_order_award_%d' % (mama.id,)
     repeat = AwardCarry.objects.filter(uni_key=uni_key).first()
     if repeat:
         return
 
     AwardCarry.send_award(mama, 5, u'首单奖励', u'首单奖励,继续加油！', uni_key, status=2, carry_type=5)
-    
+
 
 @task(max_retries=3, default_retry_delay=6)
 def task_new_guy_task_complete_send_award(mama):
@@ -352,7 +352,7 @@ def task_new_guy_task_complete_send_award(mama):
         rr = ReferalRelationship.objects.filter(referal_to_mama_id=mama.id).first()
         if rr:
             referal_mama = XiaoluMama.objects.filter(id=rr.referal_from_mama_id).first()
-        
+
         if not referal_mama:
             # 当前妈妈的的潜在关系列表中　第一条记录
             potential = PotentialMama.objects.filter(potential_mama=mama.id).order_by('created').first()
@@ -368,6 +368,24 @@ def task_new_guy_task_complete_send_award(mama):
                               contributor_mama_id=mama.id)  # 确定收益
 
 
+@task(max_retries=3, default_retry_delay=6)
+def task_subscribe_weixin_send_award(mama):
+    """
+    新妈妈第一次关注小鹿美美奖励５元
+    奖励规则：
+    １、已经关注公众号，再加入妈妈，奖励
+    ２、已经是妈妈，第一次关注公众号，奖励，之前关注过的再关注均不奖励
+    """
+    from flashsale.xiaolumm.models import AwardCarry
+
+    uni_key = 'new_guy_task_subscribe_weixin_award_5_%d' % (mama.id,)
+    money = 5  # ５元
+    carry_plan_name = u'新手任务奖励'
+    carry_description = u'新妈妈关注微信奖励'
+
+    AwardCarry.send_award(mama, money, carry_plan_name, carry_description, uni_key, status=2, carry_type=4)  # 确定收益
+
+
 def get_app_version_from_user_agent(key, user_agent):
     """
     Help function for task_mama_daily_app_visit_stats
@@ -379,7 +397,7 @@ def get_app_version_from_user_agent(key, user_agent):
         if pair[0] == key:
             version = pair[1]
     return version
-    
+
 @task
 def task_mama_daily_app_visit_stats(mama_id, user_agent):
     from flashsale.xiaolumm.models import MamaDailyAppVisit
@@ -408,8 +426,8 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
 
 @task
 def task_mama_daily_tab_visit_stats(mama_id, stats_tab):
-    from flashsale.xiaolumm.models import MamaDailyTabVisit    
-    
+    from flashsale.xiaolumm.models import MamaDailyTabVisit
+
     date_field = datetime.date.today()
     uni_key = '%s-%s-%s' % (mama_id, stats_tab, date_field)
 

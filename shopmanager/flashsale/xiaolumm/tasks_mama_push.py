@@ -106,3 +106,43 @@ def task_app_push_ordercarry(ordercarry):
     from flashsale.push.app_push import AppPush
     AppPush.push_mama_ordercarry(ordercarry)
     AppPush.push_mama_ordercarry_to_all(ordercarry)
+
+
+@task
+def task_push_new_mama_task(xlmm, current_task, params=None):
+    """
+    通知完成某新手任务，同时提醒下一个任务
+    """
+    from shopapp.weixin.weixin_push import WeixinPush
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+
+    next_task = xlmm.get_next_new_mama_task()
+
+    header = NewMamaTask.get_push_msg(current_task, params=params)[0]
+
+    if next_task:
+        footer = NewMamaTask.get_push_msg(next_task, params=params)[1]
+        to_url = NewMamaTask.get_push_msg(next_task, params=params)[2]
+    else:
+        footer = u'\n恭喜你，完成所有新手任务。'
+        to_url = ''
+
+    if not params:
+        params = {'task_name': NewMamaTask.get_task_desc(current_task)}
+    else:
+        params['task_name'] = NewMamaTask.get_task_desc(current_task)
+
+    wxpush = WeixinPush()
+    wxpush.push_new_mama_task(xlmm.id, header=header, footer=footer, to_url=to_url, params=params)
+
+
+@task
+def task_sms_push_mama(xlmm):
+    """
+    新加入一元妈妈，发送短信引导关注小鹿美美
+    """
+    from shopapp.smsmgr.sms_push import SMSPush
+
+    customer = xlmm.get_customer()
+    sms = SMSPush()
+    sms.push_mama_subscribe_weixin(customer)

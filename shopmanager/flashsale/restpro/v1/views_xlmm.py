@@ -68,18 +68,18 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     ### 特卖平台－小鹿妈妈代理API:
     - {prefix}[.format] method:get : 获取登陆用户的代理基本信息
     - {prefix}/list_base_data　method:get : 获取代理推荐人信息
-    - {prefix}/agency_info　method:get : 代理整理数据  
-    `recommend_num`: 总推荐数量  
-    `clk_num`: 今日点击  
-    `shop_num`: 今日订单  
+    - {prefix}/agency_info　method:get : 代理整理数据
+    `recommend_num`: 总推荐数量
+    `clk_num`: 今日点击
+    `shop_num`: 今日订单
     `mobile`: 手机号
-    `all_shop_num`: 所有订单数 
-    `mco`: 确定支出  
-    `ymco`: 昨日确定支出  
-    `pdc`: 总待确定金额  
-    `ymci`:昨日确定收入  
-    `mci`: 确定收入  
-    `cash`: 账户现金  
+    `all_shop_num`: 所有订单数
+    `mco`: 确定支出
+    `ymco`: 昨日确定支出
+    `pdc`: 总待确定金额
+    `ymci`:昨日确定收入
+    `mci`: 确定收入
+    `cash`: 账户现金
     `mama_link`: 专属链接
     - [/rest/v1/pmt/xlmm/1461/new_mama_task_info](/rest/v1/pmt/xlmm/1461/new_mama_task_info)　代理id为1461的新手任务信息：
         1.  method: get
@@ -404,12 +404,12 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         default_config = collections.defaultdict(page_pop=True)
         default_return = collections.defaultdict(config=default_config, data=[])
 
-        carry_record = CarryRecord.objects.filter(mama_id=xlmm.id).exists()
+        carry_record = CarryRecord.objects.filter(mama_id=xlmm.id, carry_type=CarryRecord.CR_CLICK).exists()
         fans_record = XlmmFans.objects.filter(xlmm=xlmm.id).exists()
         coupon_share = OrderShareCoupon.objects.filter(share_customer=customer.id).exists()
         commission = OrderCarry.objects.filter(mama_id=xlmm.id).exists()
         mama_recommend = XiaoluMama.objects.filter(referal_from=xlmm.mobile).exists() or \
-                         PotentialMama.objects.filter(referal_mama=xlmm.id).exists()
+            PotentialMama.objects.filter(referal_mama=xlmm.id).exists()
 
         default_return['data'].append({'complete': carry_record, 'desc': u'获得第一笔收益', 'show': True})
         default_return['data'].append({'complete': fans_record, 'desc': u'发展第一个粉丝', 'show': True})
@@ -437,43 +437,43 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
 class CarryLogViewSet(viewsets.ModelViewSet):
     """
-    ## 特卖平台－小鹿妈妈收支记录API:  
-    - {prefix}[.format] : 获取登陆用户的收支记录信息  
-        - log_type:  
-            `rebeta`: 订单返利  
-            `buy`: 消费支出  
-            `click`:点击兑现  
-            `refund`:退款返现  
-            `reoff`:退款扣除  
-            `cashout`:钱包提现  
-            `deposit`:押金  
-            `thousand`:千元提成  
-            `subsidy`:代理补贴  
-            `recruit`:招募奖金  
-            `ordred`:订单红包  
-            `flush`:补差额  
-            `recharge`:充值  
-    - {prefix}/list_base_data　method:get : 账户基本信息页面显示   
-        - return :   
-        `mci`: 已经确认收入  
+    ## 特卖平台－小鹿妈妈收支记录API:
+    - {prefix}[.format] : 获取登陆用户的收支记录信息
+        - log_type:
+            `rebeta`: 订单返利
+            `buy`: 消费支出
+            `click`:点击兑现
+            `refund`:退款返现
+            `reoff`:退款扣除
+            `cashout`:钱包提现
+            `deposit`:押金
+            `thousand`:千元提成
+            `subsidy`:代理补贴
+            `recruit`:招募奖金
+            `ordred`:订单红包
+            `flush`:补差额
+            `recharge`:充值
+    - {prefix}/list_base_data　method:get : 账户基本信息页面显示
+        - return :
+        `mci`: 已经确认收入
         `mco`:　已经确认支出   　
-        `ymci`:　昨天确认收入   
-        `ymco`: 昨天确认支出  
-        `pdc`: 待确认金额  
-    - {prefix}/get_carryinlog method: get : 获取用户自己的收入记录  
-    `type_count`: 点击或者订单条数　如果为0　为非点击或订单收入记录类型  
-    `xlmm`: 代理的专属链接  
-    `sum_value`: 收入金额  
-    `carry_date`: 业务时间      
-    `log_type`: 收入类型  
-    >`click`: 点击补贴　分享返现  返  
-    `rebeta`: 订单返利　订单佣金　佣  
-    `recruit`:招募奖金  招募奖金  奖  
-    `subsidy`:代理补贴  推荐提成　　提  
-    `thousand`:千元提成　　额外奖励　 奖  
-    `ordred`:订单红包 　红包奖励　　奖  
-    `fans_carry`: 粉丝购买提成 粉  
-    `group_bonus:` 团队新增成员奖金 团  
+        `ymci`:　昨天确认收入
+        `ymco`: 昨天确认支出
+        `pdc`: 待确认金额
+    - {prefix}/get_carryinlog method: get : 获取用户自己的收入记录
+    `type_count`: 点击或者订单条数　如果为0　为非点击或订单收入记录类型
+    `xlmm`: 代理的专属链接
+    `sum_value`: 收入金额
+    `carry_date`: 业务时间
+    `log_type`: 收入类型
+    >`click`: 点击补贴　分享返现  返
+    `rebeta`: 订单返利　订单佣金　佣
+    `recruit`:招募奖金  招募奖金  奖
+    `subsidy`:代理补贴  推荐提成　　提
+    `thousand`:千元提成　　额外奖励　 奖
+    `ordred`:订单红包 　红包奖励　　奖
+    `fans_carry`: 粉丝购买提成 粉
+    `group_bonus:` 团队新增成员奖金 团
     `activity`: 参加活动收益 奖
     """
     queryset = CarryLog.objects.all().order_by('-carry_date')
@@ -699,18 +699,18 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
 class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     """
     ### 特卖平台－小鹿妈妈购提现记录API:
-    - {prefix}[.format]: 获取登陆用户的提现记录  
-    - {prefix} method[post][arg:choice("c1":80,"c2":200)]: 创建提现记录  
-        :return `code`  
-        1: 参数错误  
-        2: 不足提现金额  
-        3: 有待审核记录不予再次提现    
-        0: 提现成功，待审核通过    
-    - {prefix}/cancal_cashout [method:post] [id:id]　：　取消提现记录  
-        :return `code`   
-        `0`: 取消成功  
-        `1`: 取消失败  
-        `2`: 提现记录不存在  
+    - {prefix}[.format]: 获取登陆用户的提现记录
+    - {prefix} method[post][arg:choice("c1":80,"c2":200)]: 创建提现记录
+        :return `code`
+        1: 参数错误
+        2: 不足提现金额
+        3: 有待审核记录不予再次提现
+        0: 提现成功，待审核通过
+    - {prefix}/cancal_cashout [method:post] [id:id]　：　取消提现记录
+        :return `code`
+        `0`: 取消成功
+        `1`: 取消失败
+        `2`: 提现记录不存在
     - [/rest/v1/pmt/cashout/exchange_deposit](/rest/v1/pmt/cashout/exchange_deposit) 用户使用代理钱包续费代理时间;
         1. method: post
         2. args:
@@ -953,12 +953,12 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
 class ClickViewSet(viewsets.ModelViewSet):
     """
-    ## 特卖平台－代理专属链接点击记录API:  
-    - {prefix}[.format]: 获取登陆代理用户的点击记录  
-    - {prefix}/click_by_day?days=[days][.format]　[method:get] : 获取当前代理的指定days天数的所有点击佣金额 和　按天数的点击记录  
-    :return  
-    `all_income`: 所有点击的佣金金额  
-    `results`: 点击记录  
+    ## 特卖平台－代理专属链接点击记录API:
+    - {prefix}[.format]: 获取登陆代理用户的点击记录
+    - {prefix}/click_by_day?days=[days][.format]　[method:get] : 获取当前代理的指定days天数的所有点击佣金额 和　按天数的点击记录
+    :return
+    `all_income`: 所有点击的佣金金额
+    `results`: 点击记录
     """
     queryset = Clicks.objects.all()
     serializer_class = serializers.ClickSerialize

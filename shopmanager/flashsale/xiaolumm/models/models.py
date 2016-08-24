@@ -20,8 +20,9 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm import ccp_schema
 from flashsale.xiaolumm import constants
+from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 
 import logging
 
@@ -357,17 +358,17 @@ class XiaoluMama(models.Model):
         return self.get_Mama_Click_Price_By_Day(ordernum, day_date=cur_date)
 
     def get_Mama_Click_Price_By_Day(self, ordernum, day_date=None):
-        """ 按日期获取小鹿妈妈点击价格 
+        """ 按日期获取小鹿妈妈点击价格
             agency_level = agency_levels[0]
             if not day_date or day_date < ROI_CLICK_START:
                 return base_price + agency_level.get_Click_Price(ordernum)
             return 0
-            
+
             pre_date = day_date - datetime.timedelta(days=1)
             mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
             if mm_stats.count() > 0:
                 base_price = mm_stats[0].base_click_price
-             
+
             return base_price + agency_level.get_Click_Price(ordernum)
         """
         if self.agencylevel < 2:
@@ -513,7 +514,7 @@ class XiaoluMama(models.Model):
         if c:
             return c.id
         return 0
-    
+
     @property
     def nick(self):
         return self.get_mama_customer().nick if self.get_mama_customer() else ''
@@ -711,6 +712,45 @@ class XiaoluMama(models.Model):
             update_fields.append('last_renew_type')
         self.save(update_fields=update_fields)
         return True
+
+    def get_next_new_mama_task(self):
+        """
+        获取未完成的新手任务
+        """
+        from flashsale.coupon.models import OrderShareCoupon
+        from flashsale.xiaolumm.models import XlmmFans, PotentialMama
+        from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, ReferalRelationship
+        from shopapp.weixin.models_base import WeixinFans
+
+        customer = self.get_customer()
+
+        subscribe_weixin = WeixinFans.objects.filter(
+            unionid=customer.unionid, subscribe=True, app_key=settings.WXPAY_APPID).exists()
+        if not subscribe_weixin:
+            return NewMamaTask.TASK_SUBSCRIBE_WEIXIN
+
+        carry_record = CarryRecord.objects.filter(mama_id=self.id, carry_type=CarryRecord.CR_CLICK).exists()
+        if not carry_record:
+            return NewMamaTask.TASK_FIRST_CARRY
+
+        coupon_share = OrderShareCoupon.objects.filter(share_customer=customer.id).exists()
+        if not coupon_share:
+            return NewMamaTask.TASK_FIRST_SHARE_COUPON
+
+        fans_record = XlmmFans.objects.filter(xlmm=self.id).exists()
+        if not fans_record:
+            return NewMamaTask.TASK_FIRST_FANS
+
+        mama_recommend = PotentialMama.objects.filter(referal_mama=self.id).exists() or \
+            ReferalRelationship.objects.filter(referal_from_mama_id=self.id).exists()
+        if not mama_recommend:
+            return NewMamaTask.TASK_FIRST_MAMA_RECOMMEND
+
+        commission = OrderCarry.objects.filter(mama_id=self.id).exists()
+        if not commission:
+            return NewMamaTask.TASK_FIRST_COMMISSION
+
+        return None
 
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
@@ -1147,6 +1187,56 @@ class PotentialMama(BaseModel):
             self.save(update_fields=update_fields)
             return True
         return False
+
+
+def potentialmama_xlmm_newtask(sender, instance, **kwargs):
+    """
+    检测新手任务：发展第一个代理　
+    """
+    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+    from flashsale.xiaolumm.models.models_fortune import ReferalRelationship
+
+    potentialmama = instance
+    xlmm_id = potentialmama.referal_mama
+    xlmm = XiaoluMama.objects.filter(id=xlmm_id).first()
+
+    item = PotentialMama.objects.filter(referal_mama=xlmm_id).exists() or \
+        ReferalRelationship.objects.filter(referal_from_mama_id=xlmm_id).exists()
+
+    if not item:
+        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_MAMA_RECOMMEND)
+
+pre_save.connect(potentialmama_xlmm_newtask,
+                 sender=PotentialMama, dispatch_uid='pre_save_potentialmama_xlmm_newtask')
+
+
+def potentialmama_push_sms(sender, instance, created, **kwargs):
+    """
+    新加入一元妈妈，发送短信引导关注小鹿美美
+    如果已经关注，直接微信发新手任务
+    """
+    from flashsale.xiaolumm.tasks_mama_push import task_sms_push_mama, task_push_new_mama_task
+    from flashsale.xiaolumm.tasks_mama_fortune import task_subscribe_weixin_send_award
+    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+    from shopapp.weixin.models_base import WeixinFans
+
+    potentialmama = instance
+
+    if created:
+        xlmm = XiaoluMama.objects.filter(id=potentialmama.potential_mama).first()
+        customer = xlmm.get_customer()
+        has_subscribe = WeixinFans.objects.filter(
+            unionid=customer.unionid, app_key=settings.WXPAY_APPID, subscribe=True).first()
+
+        if not has_subscribe:  # 没关注
+            task_sms_push_mama.delay(xlmm)
+        else:  # 已关注
+            task_subscribe_weixin_send_award.delay(xlmm)
+            task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_SUBSCRIBE_WEIXIN)
+
+post_save.connect(potentialmama_push_sms,
+                  sender=PotentialMama, dispatch_uid='pre_save_potentialmama_push_sms')
 
 
 def update_mama_relationship(sender, instance, created, **kwargs):

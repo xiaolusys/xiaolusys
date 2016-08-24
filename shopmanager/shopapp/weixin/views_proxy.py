@@ -62,6 +62,7 @@ class WXMessageHttpProxy(HttpProxy):
 
         # 处理关注／取关事件
         service.handleWeiXinSubscribeEvent(params, wx_api)
+
         #　如果公众号由多客服处理，直接转发
         # if wx_api._account.isResponseToDRF():
         #     ret_params = {'ToUserName': params['FromUserName'],
