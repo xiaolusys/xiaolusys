@@ -836,7 +836,7 @@ def task_sync_xlmm_fans_nick_thumbnail(customer):
 
 @task()
 def task_sync_xlmm_mobile_by_customer(customer):
-    """ 更新小鹿妈妈粉丝的头像和昵称 """
+    """ 更新小鹿妈妈的手机号 """
     xlmm = customer.get_xiaolumm()
     if not xlmm:
         return
