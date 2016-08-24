@@ -1,8 +1,5 @@
 # encoding=utf8
-from core.models import BaseModel
-
-
-class NewMamaTask(BaseModel):
+class NewMamaTask(object):
 
     TASK_SUBSCRIBE_WEIXIN = u'subscribe_weixin'
     TASK_FIRST_CARRY = u'first_carry'
