@@ -33,6 +33,7 @@ from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
 from shopback.archives.models import DepositeDistrict
 from shopback.categorys.models import ProductCategory
 from shopback.items.models import Product, ProductSku, ProductStock, ProductLocation
+from shopback.logistics.models import LogisticsCompany
 from shopback.warehouse import WARE_CHOICES
 from shopback.trades.models import PackageSkuItem, PackageOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier
@@ -2086,7 +2087,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 package_order = PackageOrder.objects.get(pid=pid)
                 if package_order.sys_status not in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS]:
                     package_order.out_sid = out_sid
-                    package_order.logistics_complany_id = logistics_complany_id
+                    package_order.logistics_company = LogisticsCompany.objects.get(id=logistics_complany_id)
                     package_order.finish_scan_weight()
             except Exception, e0:
                 errors.append(e0.message)

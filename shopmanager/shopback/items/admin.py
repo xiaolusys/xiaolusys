@@ -1224,7 +1224,7 @@ admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class ProductSkuStatsAdmin(admin.ModelAdmin):
     list_display = (
-        'sku_link', 'skucode', 'product_id_link', 'product_title', 'properties_name_alias',
+        'sku_link', 'skucode', 'supplier','product_id_link', 'product_title', 'properties_name_alias',
         'now_quantity', 'old_quantity', 'sold_num_link', 'post_num_link', '_wait_post_num', 'unused_stock_link',
         'adjust_quantity', 'assign_num_link', '_wait_assign_num', '_wait_order_num', 'history_quantity',
         'inbound_quantity_link', 'return_quantity_link', 'rg_quantity_link',
@@ -1403,6 +1403,21 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     gen_return_goods.allow_tags = True
     gen_return_goods.short_description = u'生成退货单'
 
+    def gen_return_goods_by_five(self, request, queryset):
+        sku_dict = {}
+        sku_num = queryset.count()
+        for stat in queryset:
+            sku_dict[
+                stat.sku_id] = stat.history_quantity + stat.adjust_quantity + stat.inbound_quantity + stat.return_quantity \
+                               - stat.rg_quantity - stat.sold_num
+        returns = ReturnGoods.generate(sku_dict, request.user.username,days=5)
+        self.message_user(request, '本次对%d个SKU执行了退货, 生成了%d个退货单' % (sku_num, len(returns)))
+        return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
+
+    gen_return_goods_by_five.allow_tags = True
+    gen_return_goods_by_five.short_description = u'从上架起5天后生成退货单'
+
+
     def mark_unreturn(self, request, queryset):
         from flashsale.dinghuo.models import UnReturnSku
 
@@ -1449,9 +1464,23 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
     skucode.allow_tags = True
     skucode.short_description = u'sku条码'
 
+
     PRODUCT_LINK = (
         '<a href="%(product_url)s" target="_blank">'
         '%(product_title)s</a>')
+
+    def supplier(self, obj):
+        product = obj.sku
+        outer_id = list(product.outer_id)
+        outer_id.pop()
+        outer_id = "".join(outer_id)
+        orderdetail = OrderDetail.objects.filter(outer_id=outer_id).first()
+        if orderdetail:
+            supplier_name = orderdetail.orderlist.supplier.supplier_name
+            return ('%s') % supplier_name
+
+    supplier.allow_tags = True
+    supplier.short_description = u'供应商'
 
     def product_id_link(self, obj):
         return ('<a href="%(product_url)s" target="_blank">'
@@ -1579,7 +1608,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     district_link.allow_tags = True
     district_link.short_description = "库位"
-    actions = ['gen_return_goods', 'mark_unreturn']
+    actions = ['gen_return_goods', 'gen_return_goods_by_five', 'mark_unreturn']
 
     def get_actions(self, request):
         actions = super(ProductSkuStatsAdmin, self).get_actions(request)

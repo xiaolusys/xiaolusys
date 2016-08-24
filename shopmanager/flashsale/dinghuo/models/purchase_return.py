@@ -125,7 +125,7 @@ class ReturnGoods(models.Model):
         return products
 
     @staticmethod
-    def generate(sku_dict, noter):
+    def generate(sku_dict, noter, days=10):
         """
             产生sku
         :param sku_dict:
@@ -150,7 +150,7 @@ class ReturnGoods(models.Model):
                 supplier[supplier_id].append(detail)
         res = []
         for supplier_id in supplier:
-            if ReturnGoods.can_return(supplier_id=supplier_id):
+            if ReturnGoods.can_return(supplier_id=supplier_id,days=days):
                 rg_details = supplier[supplier_id]
 
                 rg = ReturnGoods(supplier_id=supplier_id,
@@ -250,7 +250,7 @@ class ReturnGoods(models.Model):
         return rg
 
     @staticmethod
-    def can_return(supplier_id=None, sku=None):
+    def can_return(supplier_id=None, sku=None, days=10):
         """
             近七天内没有有效退货单
             且    RG_STATUS = ((CREATE_RG, u"新建"), (VERIFY_RG, u"已审核"), (OBSOLETE_RG, u"已作废"),
@@ -277,7 +277,7 @@ class ReturnGoods(models.Model):
             unreturn_sku_ids = [i["sku_id"] for i in supplier.unreturnsku_set.values("sku_id")]
             return ProductSkuStats.objects.filter(product__id__in=product_ids,
                                                   product__offshelf_time__lt=datetime.datetime.now() - datetime.timedelta(
-                                                      days=10),
+                                                      days),
                                                   sold_num__lt=F('history_quantity') + F('adjust_quantity') + F(
                                                       'inbound_quantity') + F(
                                                       'return_quantity') \
