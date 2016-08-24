@@ -48,15 +48,17 @@ class Command(BaseCommand):
                     fans.subscribe_time = subscribe_time
                     fans.save()
                 num = num + 1
-                print '%s/%s' % (num, total)
+
+                if num % 100 == 0:
+                    print '%s/%s' % (num, total)
 
             if not next_openid:
                 break
 
     def handle(self, *args, **options):
         appkeys = [
-            settings.WXPAY_APPID,  # 小鹿美美公众号
-            # settings.WEIXIN_APPID,  # 小鹿特卖
+            # settings.WXPAY_APPID,  # 小鹿美美公众号
+            settings.WEIXIN_APPID,  # 小鹿特卖
         ]
 
         for appkey in appkeys:
