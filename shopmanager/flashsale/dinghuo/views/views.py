@@ -2084,7 +2084,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                 logistics_complany_id = item.get(u'物流公司ID')
                 pid = item.get(u'包裹单号')
                 package_order = PackageOrder.objects.get(pid=pid)
-                if package_order.sys_status in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS]:
+                if package_order.sys_status not in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS]:
                     package_order.out_sid = out_sid
                     package_order.logistics_complany_id = logistics_complany_id
                     package_order.finish_scan_weight()
