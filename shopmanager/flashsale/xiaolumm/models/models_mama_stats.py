@@ -59,6 +59,9 @@ class MamaDeviceStats(BaseModel):
         percentage = self.num_outdated * 100.0 / (self.num_outdated + self.num_latest)
         return "%.2f%%" % percentage
 
+    @property
+    def total_visitor(self):
+        return self.num_latest + self.num_outdated
 
 class MamaDailyTabVisit(BaseModel):
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
