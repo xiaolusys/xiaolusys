@@ -44,6 +44,7 @@ PROPERTY_NAMES = (
     ('shoulder', u'肩带款式'),
     ('color', u'可选颜色'),
     ('wash_instructions', u'洗涤说明'),
+    ('wash_instroduce', u'洗涤说明'),
     ('qs_code', u'生产许可证'),
     ('qhby_code', u'产品标准号'),
     ('note', u'备注说明'),

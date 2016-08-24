@@ -42,6 +42,10 @@ class Command(BaseCommand):
             mp.onshelf_time = first_product and first_product.upshelf_time or \
                               first_product.sale_time and datetime.datetime.combine(first_product.sale_time, datetime.time(10, 0,0))
             mp.offshelf_time = first_product and first_product.offshelf_time
+
+            if mp.salecategory_id in (73, ):
+                if 'properties' in mp.extras:
+                    mp.extras['properties'].pop('wash_instroduce', None)
             mp.save()
             cnt += 1
             if cnt % 500 ==0:
@@ -74,6 +78,10 @@ class Command(BaseCommand):
             mp.onshelf_time = first_product and first_product.upshelf_time or \
                               first_product.sale_time and datetime.datetime.combine(first_product.sale_time, datetime.time(10, 0,0))
             mp.offshelf_time = first_product and first_product.offshelf_time
+
+            if mp.salecategory_id in (73,):
+                if 'properties' in mp.extras:
+                    mp.extras['properties'].pop('wash_instroduce', None)
             mp.save()
             cnt += 1
             if cnt % 500 == 0:
