@@ -434,7 +434,7 @@ class SaleScheduleDetailFilter(filters.FilterSet):
 
     class Meta:
         model = SaleProductManageDetail
-        fields = ['order_weight', "id"]
+        fields = ['order_weight', "id", 'material_status', 'design_take_over', 'design_complete']
 
 
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
@@ -452,9 +452,9 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
             1. `order_weight` : 排序权重
             2. `is_promotion` : 是否推广
             3. `sale_category`: 类别
-    - /apis/chain/v1/saleschedule/<schedule_id>/product/<schedule_detail_id>:
+    - /apis/chain/v1/saleschedule/**schedule_id**/product/<schedule_detail_id>:
       method: delete (授权用户可以删除)
-    - /apis/chain/v1/saleschedule/<schedule_id>/adjust_order_weight/<schedule_detail_id>:
+    - /apis/chain/v1/saleschedule/**schedule_id**/adjust_order_weight/<schedule_detail_id>:
       method: patch
       args:
         移动方向: `direction`
@@ -470,6 +470,13 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         * return:
             1. 没有权限: {"detail": "You do not have permission to perform this action."}
             2. 请求成功: http status = 206
+    - [/apis/chain/v1/saleschedule/**schedule_id**/product/list_filters](/apis/chain/v1/saleschedule/**schedule_id**/product/list_filters) 过滤参数列表;
+        * method: get
+    - [/apis/chain/v1/saleschedule/**schedule_id**/modify_manage_detail/**detailid**](/apis/chain/v1/saleschedule/186/modify_manage_detail/**detailid**)
+        * method: patch
+        * args:
+            1. `material_status`: 'complete'    : complete: 资料完成,
+            2. `design_complete`: 1 : 平面资料完成
     """
     queryset = SaleProductManageDetail.objects.all()
     serializer_class = serializers.SaleProductManageDetailSerializer
@@ -479,6 +486,14 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     ordering_fields = ('order_weight', 'is_promotion', 'sale_category')
     filter_class = SaleScheduleDetailFilter
+
+    @list_route(methods=['get'])
+    def list_filters(self, request, *args, **kwargs):
+        return Response({
+            'material_status': SaleProductManageDetail.MATERIAL_STATUS,
+            'design_take_over': SaleProductManageDetail.DESIGN_TAKE_STATUS,
+            'design_complete': [{0: "未完成", 1: "已经完成"}],
+        })
 
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
@@ -546,7 +561,14 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
         kwargs['partial'] = True
         partial = kwargs.pop('partial', False)
         instance = get_object_or_404(SaleProductManageDetail, id=pk)
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial,
+                                         context={'request': request})
+        if 'design_complete' in request.data.keys() and str(request.data.get('design_complete')).strip():
+            if instance.photo_user != request.user.id:
+                raise exceptions.APIException(u'平面状态修改必须是平面制作人操作')
+        if 'material_status' in request.data.keys() and str(request.data.get('material_status')).strip():
+            if instance.reference_user != request.user.id:
+                raise exceptions.APIException(u'资料录入状态必须是资料录入人操作')
         serializer.is_valid(raise_exception=True)
         log_action(request.user, instance, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
         self.perform_update(serializer)
