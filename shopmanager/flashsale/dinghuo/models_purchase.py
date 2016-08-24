@@ -164,6 +164,9 @@ post_save.connect(start_booking, sender=PurchaseRecord, dispatch_uid='post_save_
 
 
 def sync_purchase_arrangement(sender, instance, created, **kwargs):
+    if created:
+        return
+    
     from flashsale.dinghuo.tasks import task_purchaserecord_sync_purchasearrangement_status
     task_purchaserecord_sync_purchasearrangement_status.delay(instance)        
 
