@@ -118,7 +118,7 @@ def xlmmfans_xlmm_newtask(sender, instance, **kwargs):
 
     xlmm_fans = instance
     xlmm_id = xlmm_fans.xlmm
-    xlmm = XiaoluMama.objects.filter(id=xlmm_id)
+    xlmm = XiaoluMama.objects.filter(id=xlmm_id).first()
 
     fans_record = XlmmFans.objects.filter(xlmm=xlmm_id).exists()
 
