@@ -7,6 +7,7 @@ from shopapp.smsmgr.models import (
     choice_sms_notify_type,
     SMS_NOTIFY_MAMA_ORDERCARRY,
     SMS_NOTIFY_APP_UPDATE,
+    SMS_NOTIFY_MAMA_SUBSCRIBE_WEIXIN,
 )
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopapp.smsmgr.tasks import call_send_a_sms
@@ -66,6 +67,18 @@ class SMSPush(object):
     def push_mama_update_app(self, customer):
         to_mobile = customer.mobile
         sms_notify_type = SMS_NOTIFY_APP_UPDATE
+
+        sms_tpl = SMSActivity.objects.filter(sms_type=sms_notify_type, status=True).first()
+        if sms_tpl:
+            content = sms_tpl.text_tmpl
+            self.push(to_mobile, content, sms_notify_type)
+
+    def push_mama_subscribe_weixin(self, customer):
+        """
+        引导一元妈妈关注小鹿美美
+        """
+        to_mobile = customer.mobile
+        sms_notify_type = SMS_NOTIFY_MAMA_SUBSCRIBE_WEIXIN
 
         sms_tpl = SMSActivity.objects.filter(sms_type=sms_notify_type, status=True).first()
         if sms_tpl:

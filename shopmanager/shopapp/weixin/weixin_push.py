@@ -1,5 +1,6 @@
 # encoding=utf8
 import logging
+from datetime import datetime
 from django.conf import settings
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.models_base import (
@@ -321,7 +322,6 @@ class WeixinPush(object):
 
         return self.push(customer, template_id, template_data, to_url)
 
-
     def push_mama_invite_trial(self,referal_mama_id,potential_mama_id,diff_num,award_num,invite_num,award_sum,trial_num,carry_num):
         """
         {{first.DATA}}
@@ -337,13 +337,13 @@ class WeixinPush(object):
         if potential_customer.mobile:
             mobile = potential_customer.mobile
             mobile_string = '%s****%s' % (mobile[0:3],mobile[7:])
-        
+
         template_id = 'tvns3YwYkRkkd2mycvxKsbRtuQl1spBHxtm9PLFIlFI'
         template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
 
         if not template:
             return
-        
+
         template_data = {
             'first': {
                 'value': template.header.format(diff_num=diff_num,award_num=award_num).decode('string_escape'),
@@ -368,4 +368,42 @@ class WeixinPush(object):
         }
         to_url = 'http://m.xiaolumeimei.com'
         return self.push(referal_customer, template_id, template_data, to_url)
-        
+
+    def push_new_mama_task(self, mama_id, header='', footer='', to_url='', params=None):
+        """
+        任务完成通知
+
+        {{first.DATA}}
+        任务名称：{{keyword1.DATA}}
+        任务类型：{{keyword2.DATA}}
+        完成时间：{{keyword3.DATA}}
+        {{remark.DATA}}
+        """
+        customer = utils.get_mama_customer(mama_id)
+        if not params:
+            params = {}
+
+        template_id = 'Lvw0t5ttadeEzRV2tczPclzpPnLXGEQZZJVdWxHyS4g'
+        template_data = {
+            'first': {
+                'value': header,
+                'color': '#4CC417',
+            },
+            'keyword1': {
+                'value': params.get('task_name', ''),
+                'color': '#4CC417',
+            },
+            'keyword2': {
+                'value': u'新手任务',
+                'color': '#4CC417',
+            },
+            'keyword3': {
+                'value': datetime.now().strftime('%Y-%m-%d'),
+                'color': '#4CC417',
+            },
+            'remark': {
+                'value': footer,
+                'color': '#4CC417',
+            },
+        }
+        return self.push(customer, template_id, template_data, to_url)
