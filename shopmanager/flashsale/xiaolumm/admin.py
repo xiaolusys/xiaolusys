@@ -765,7 +765,7 @@ admin.site.register(MamaDailyTabVisit, MamaDailyTabVisitAdmin)
 
 
 class MamaDeviceStatsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'modified', 'created')
+    list_display = ('id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'total_visitor', 'modified', 'created')
     list_filter = ('device_type', )
     search_fields = ('device_type','date_field')
     
