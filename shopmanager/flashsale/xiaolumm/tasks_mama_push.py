@@ -113,7 +113,7 @@ def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
         if entry['is_full_member'] == False:
             trial_num = entry['n']
     invite_num = trial_num + convert_num
-    
+
     if invite_num < 2:
         target_num = 2
         award_num = 5
@@ -150,7 +150,7 @@ def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
 def task_app_push_ordercarry(ordercarry):
     from flashsale.push.app_push import AppPush
     AppPush.push_mama_ordercarry(ordercarry)
-    AppPush.push_mama_ordercarry_to_all(ordercarry)
+    # AppPush.push_mama_ordercarry_to_all(ordercarry)
 
 
 @task
