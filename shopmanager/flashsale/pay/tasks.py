@@ -825,6 +825,26 @@ def task_customer_update_weixinuserinfo(customer):
 
 
 @task()
+def task_sync_xlmm_fans_nick_thumbnail(customer):
+    """ 更新小鹿妈妈粉丝的头像和昵称 """
+    from flashsale.xiaolumm.models import XlmmFans
+    fans = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+    if not fans:
+        return
+    fans.update_nick_thumbnail(customer.nick, customer.thumbnail)
+
+
+@task()
+def task_sync_xlmm_mobile_by_customer(customer):
+    """ 更新小鹿妈妈的手机号 """
+    xlmm = customer.get_xiaolumm()
+    if not xlmm:
+        return
+    mobile = customer.mobile if customer.mobile else ''
+    xlmm.update_mobile(mobile.strip())
+
+
+@task()
 def task_add_product_to_customer_shop(customer):
     """
     为代理用户店铺添加　推送中的商品

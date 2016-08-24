@@ -732,6 +732,16 @@ CELERY_ROUTES = {
         'queue': 'frency',
         'routing_key': 'frency.update_sale_customer',
     },  # 保存微信用户OPENID信息
+
+    'flashsale.pay.tasks.task_sync_xlmm_fans_nick_thumbnail': {
+        'queue': 'frency',
+        'routing_key': 'frency.task_sync_xlmm_fans_nick_thumbnail',
+    },  # 更新粉丝用户头像以及昵称
+    'flashsale.pay.tasks.task_sync_xlmm_mobile_by_customer': {
+        'queue': 'frency',
+        'routing_key': 'frency.task_sync_xlmm_mobile_by_customer',
+    },  # 更新小鹿妈妈的手机号码
+
     'shopapp.weixin.tasks.task_Update_Weixin_UserInfo': {
         'queue': 'frency',
         'routing_key': 'frency.update_weixin_userinfo',

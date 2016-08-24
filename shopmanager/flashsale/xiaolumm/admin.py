@@ -403,9 +403,15 @@ from flashsale.xiaolumm.models.models_fans import FansNumberRecord, XlmmFans
 
 
 class XlmmFansAdmin(admin.ModelAdmin):
-    list_display = ('id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid', 'modified', 'created')
+    list_display = ('id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid', 'thumbnail_display', 'modified', 'created')
     search_fields = ['xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid']
+    list_filter = ['created']
 
+    def thumbnail_display(self, obj):
+        html = u'<p>%s</p><img src="%s" style="width:60px; height:60px">' % (obj.fans_nick, obj.fans_thumbnail)
+        return html
+    thumbnail_display.allow_tags = True
+    thumbnail_display.short_description = u"粉丝昵称/头像"
 
 admin.site.register(XlmmFans, XlmmFansAdmin)
 

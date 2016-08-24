@@ -64,6 +64,20 @@ class XlmmFans(BaseModel):
         else:
             raise Exception(u'此粉丝已经绑定过小鹿妈妈')
 
+    def update_nick_thumbnail(self, nick='', thumbnail=''):
+        """ 更新昵称以及头像 """
+        update_fields = []
+        if nick and self.fans_nick != nick:
+            self.fans_nick = nick
+            update_fields.append('fans_nick')
+        if thumbnail and self.fans_thumbnail != thumbnail:
+            self.fans_thumbnail = thumbnail
+            update_fields.append('fans_thumbnail')
+        if update_fields:
+            self.save(update_fields=update_fields)
+            return True
+        return False
+
 
 def update_activevalue(sender, instance, created, **kwargs):
     """
