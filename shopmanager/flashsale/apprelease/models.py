@@ -54,5 +54,5 @@ class AppRelease(BaseModel):
     def get_latest_version_code(device_type):
         ar = AppRelease.objects.filter(device_type=device_type,status=AppRelease.VALID).order_by('-created').first()
         if ar:
-            return ar.version_code.lower()
+            return str(ar.version_code)
         return ''
