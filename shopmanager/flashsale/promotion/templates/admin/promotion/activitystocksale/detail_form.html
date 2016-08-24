@@ -72,8 +72,14 @@
             <label class="col-md-1">创建时间:</label><label class="col-md-3">{{original.created|date:'Y-m-d H:i:s'}}</label>
         </div>
         <div class="row">
-            <label class="col-md-1">专题活动</label><label class="col-md-2">{{original.created}}</label>
-            <label class="col-md-1">专题排期</label><label class="col-md-2">{{original.created}}</label>
+            <label class="col-md-1">专题活动</label>
+            <label class="col-md-2">
+                <a href="/admin/pay/activityentry/{{original.activity_id}}/">{{original.activity.title}}</a>
+            </label>
+            <label class="col-md-1">专题排期</label>
+            <label class="col-md-2">
+                <a href="/console/#/schedule/products?id={{original.product_manage_id}}/">{{original.product_manage.sale_time|date:'Y-m-d'}}</a>
+            </label>
         </div>
         <div class="row">
             <label class="col-md-1">批次号</label><label class="col-md-2">{{original.batch}}</label>
@@ -97,10 +103,11 @@
         <table class="table">
             <tr>
                 <td width="5%">ID</td>
-                <td width="22%">选品名称</td>
+                <td width="15%">选品名称</td>
                 <td width="5%">选品ID</td>
-                <td width="13%">商品名称</td>
+                <td width="10%">商品名称</td>
                 <td width="5%">商品ID</td>
+                <td width="10%">商品图片</td>
                 <td width="10%">库位</td>
                 <td width="5%">当前库存数</td>
                 <td width="5%">商品SKU数</td>
@@ -113,9 +120,10 @@
             <tr>
                 <td>{{stock_sale.id}}</td>
                 <td>{{stock_sale.sale_product.title}}</td>
-                <td>{{stock_sale.sale_product.id}}</td>
+                <td><a href="/admin/supplier/saleproduct/?id={{stock_sale.sale_product.id}}">{{stock_sale.sale_product.id}}</a></td>
                 <td>{{stock_sale.product.name}}</td>
-                <td>{{stock_sale.product.id}}</td>
+                <td><a href="/admin/items/product?id={{stock_sale.product.id}}">{{stock_sale.product.id}}</a></td>
+                <td><a href="{{stock_sale.product.pic_path}}" target="_blank"><img src="{{stock_sale.product.pic_path}}" style="width:50px;height:50px;"></a></td>
                 <td>{{stock_sale.location}}</td>
                 <td>{{stock_sale.quantity}}</td>
                 <td>{{stock_sale.sku_num}}</td>
@@ -130,7 +138,7 @@
                     <button data-saleid="{{stock_sale.id}}" class="btn_stop_sale">禁止出售</button>
                     {%endif%}
                     {%if stock_sale.status == 0%}{%else%}
-                    <button data-saleid="{{stock_sale.id}}" class="btn_wait_sale">待出售</button>
+                    <button data-saleid="{{stock_sale.id}}" class="btn_wait_sale">后续专题再出售</button>
                     {%endif%}
                     {%if stock_sale.stock_safe == 0%}
                     <button data-saleid="{{stock_sale.id}}" class="btn_confirm_stock">确认库存</button>
@@ -174,7 +182,7 @@
         $('.btn_wait_sale').click(function(e) {
             var dom = e.target;
             var saleid = $(dom).data('saleid');
-            var url = "/sale/promotion/promotion/stocksale/"+ saleid +"/update_status";
+            var url = "/sale/promotion/promotion/stocksale/"+ saleid +"/reset_sale";
             var data = {"status": 1};
             $.ajax({"url": url, "data": data, "type": "post", "success": callback, "error": failed});
         });
