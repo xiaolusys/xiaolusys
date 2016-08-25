@@ -149,7 +149,6 @@ class MamaMissionRecord(BaseModel):
         return self.status == self.STAGING
 
     def update_mission_value(self, finish_value):
-
         # TODO@meron 如果任务中订单金额退款，任务完成状态需要变更？
         self.finish_value = int(finish_value)
         cur_year_week = datetime.datetime.now().strftime('%Y-%W')
@@ -169,10 +168,9 @@ from flashsale.pay.signals import signal_saletrade_pay_confirm
 
 def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwargs):
     """ 妈妈注册成功更新推荐妈妈激励状态 """
-
     try:
         logger.debug('mama_register_update_mission_record start: mama=%s, renew=%s'%(xiaolumama, renew))
-        from flashsale.xiaolumm.models import XiaoluMama, ReferalRelationship, GroupRelationship
+        from flashsale.xiaolumm.models import XiaoluMama, ReferalRelationship, PotentialMama
         parent_mama_ids = xiaolumama.get_parent_mama_ids()
         if not parent_mama_ids or renew:
             return
@@ -183,11 +181,10 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
 
         if xiaolumama.last_renew_type == XiaoluMama.TRIAL:
             # 一元妈妈邀请数
-            total_mama_count = GroupRelationship.objects.filter(
+            total_mama_count = PotentialMama.objects.filter(
                 created__range=(week_start, week_end),
-                status=ReferalRelationship.VALID,
-                referal_from_mama_id=parent_mama_id) \
-                .annotate(mama_count=Count('referal_to_mama_id')).values('mama_count').get('mama_count')
+                referal_mama=parent_mama_id) \
+                .annotate(mama_count=Count('potential_mama')).values('mama_count').get('mama_count')
 
             mission_record = MamaMissionRecord.objects.filter(
                 mission__target=MamaMission.TARGET_PERSONAL,
