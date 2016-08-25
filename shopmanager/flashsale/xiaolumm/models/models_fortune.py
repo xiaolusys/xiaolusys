@@ -573,7 +573,7 @@ post_save.connect(ordercarry_update_order_number,
 
 
 class AwardCarry(BaseModel):
-    AWARD_TYPES = ((1, u'直荐奖励'),(2, u'团队奖励'),(3, u'授课奖金'),(4, u'新手任务'),(5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'))
+    AWARD_TYPES = ((1, u'直荐奖励'),(2, u'团队奖励'),(3, u'授课奖金'),(4, u'新手任务'),(5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'),(8, u'关注公众号'))
     STATUS_TYPES = ((1, u'预计收益'), (2, u'确定收益'), (3, u'已取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
@@ -1146,7 +1146,7 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
 
     device_type = instance.device_type
     date_field = instance.date_field
-    
+
     latest_version = instance.get_latest_version()
     if device_type == MamaDailyAppVisit.DEVICE_ANDROID:
         latest_version = AppRelease.get_latest_version_code(device_type)
