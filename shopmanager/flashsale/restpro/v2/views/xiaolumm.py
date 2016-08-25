@@ -787,7 +787,7 @@ class MamaAdministratorViewSet(APIView):
         if item:
             administrator = item.administrator
         else:
-            administrators = XiaoluAdministrator.objects.all()
+            administrators = XiaoluAdministrator.objects.filter(id__gte=11,id__lte=17)
             num = mama.id % administrators.count()
             administrator = administrators[num]
 
