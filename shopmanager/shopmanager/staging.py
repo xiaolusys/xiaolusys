@@ -3,7 +3,7 @@
 import os
 from .base import *
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 ORMCACHE_ENABLE = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False

@@ -305,7 +305,7 @@ def pull_Paid_SaleTrade(pre_day=1, interval=1):
             resp = pingpp.Charge.all(limit=page_size,
                                      created={'gte': pre_date,
                                               'lte': post_date})
-        logger.info('pingpp-charge-resp: count=%s' % len(resp['data']))
+        logger.info('pingpp-charge-resp: starting_after=%s, count=%s' %(starting_after, len(resp['data'])))
         e = None
         for e in resp['data']:
             # notifyTradePayTask.s(e)()
