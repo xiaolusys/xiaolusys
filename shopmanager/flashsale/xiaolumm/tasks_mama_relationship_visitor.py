@@ -39,6 +39,9 @@ def task_update_referal_relationship(sale_order):
     to_mama_id = mama.id  # 被推荐的妈妈id
 
     mm_linkid = utils.get_sale_order_mama_id(sale_order)
+    if not mm_linkid:  # 从订单没有找到推荐记录则找粉丝记录
+        fans = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+        mm_linkid = fans.xlmm if fans else 0
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
 
     if not referal_mm:  # 没有推荐人　
