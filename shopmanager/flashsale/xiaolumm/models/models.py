@@ -1297,7 +1297,7 @@ def send_invite_trial_award(sender, instance, created, **kwargs):
     if not created:
         return
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_send_activate_award.delay(instance.referal_mama)
+    tasks_mama_fortune.task_send_activate_award.delay(instance)
 
 post_save.connect(send_invite_trial_award,
                   sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_award')
