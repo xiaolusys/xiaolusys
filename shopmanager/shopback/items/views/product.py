@@ -140,30 +140,31 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         supplier = saleproduct.sale_supplier
         category_id = content.get("category_id", "")
         category_item = ProductCategory.objects.get(cid=category_id)
-        if category_item.parent_cid in (3,  39):
-            first_outer_id = u"3"
-            outer_id = first_outer_id + str(category_item.cid) + "%05d" % supplier.id
-        elif category_item.parent_cid == 6:
-            first_outer_id = u"6"
-            outer_id = first_outer_id + str(category_item.cid) + "%05d" % supplier.id
-        elif category_item.parent_cid == 5:
-            first_outer_id = u"9"
-            outer_id = first_outer_id + str(category_item.cid) + "%05d" % supplier.id
-        elif category_item.parent_cid == 8:
-            first_outer_id = u"8"
-            outer_id = first_outer_id + str(category_item.cid) + "%05d" % supplier.id
+        category_maps = {
+            3: '3',
+            39: '3',
+            6: '6',
+            5: '9',
+            52: '5',
+            44: '7',
+            8: '8',
+        }
+        if category_maps.has_key(category_item.parent_cid):
+            outer_id = category_maps.get(category_item.parent_cid) + str(category_item.cid) + "%05d" % supplier.id
         elif category_item.cid == 9:
             outer_id = "100" + "%05d" % supplier.id
         else:
             raise exceptions.APIException(u"请选择正确分类")
 
         count = Product.objects.filter(outer_id__startswith=outer_id).count() or 1
+        inner_outer_id = outer_id + "%03d" % count
         while True:
-            inner_outer_id = outer_id + "%03d" % count
             product_ins = Product.objects.filter(outer_id__startswith=inner_outer_id).count()
             if not product_ins or count > 998:
                 break
             count += 1
+            inner_outer_id = outer_id + "%03d" % count
+
         if len(inner_outer_id) > 12:
             raise exceptions.APIException(u"编码位数不能超出12位")
         try:
