@@ -289,9 +289,11 @@ def task_update_mamafortune_hasale_num(mama_id):
 
 
 @task()
-def task_send_activate_award(mama_id):
+def task_send_activate_award(potential_mama):
     from flashsale.xiaolumm.models import XiaoluMama
     from flashsale.xiaolumm.models.models_fortune import AwardCarry
+
+    mama_id = potential_mama.referal_mama
     mama = XiaoluMama.objects.filter(id=mama_id).first()
     if not mama:
         return
@@ -308,7 +310,8 @@ def task_send_activate_award(mama_id):
     }
 
     from flashsale.xiaolumm.models import PotentialMama
-    trial_num = PotentialMama.objects.filter(referal_mama=mama_id).count()
+    trial_num = PotentialMama.objects.filter(referal_mama=mama_id,created__lt=potential_mama.created).count()
+    trial_num += 1
 
     if trial_num in award_dict:
         award_num = award_dict[trial_num]
