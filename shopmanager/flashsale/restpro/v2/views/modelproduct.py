@@ -133,25 +133,29 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
 
         pagin_query = self.paginate_queryset(queryset)
         object_list = self.get_serializer(pagin_query, many=True).data
-        response = self.get_paginated_response(object_list)
+        response    = self.get_paginated_response(object_list)
+        onshelf_time    = object_list and max([obj['offshelf_time'] for obj in object_list]) or datetime.datetime.now()
+        offshelf_time   = object_list and min([obj['onshelf_time'] for obj in object_list])
+        if not offshelf_time:
+            offshelf_time = onshelf_time + datetime.timedelta(seconds= 60 * 60 * 28)
         response.data.update({
-            'offshelf_deadline': object_list and max([obj['offshelf_time'] for obj in object_list]) or None,
-            'onshelf_starttime': object_list and min([obj['onshelf_time'] for obj in object_list]) or None
+            'offshelf_deadline': onshelf_time,
+            'onshelf_starttime': offshelf_time
         })
         return response
 
     def get_lastest_date(self, cur_date, predict=False, only_onshelf=False):
         """ 获取今日上架日期 """
-        queryset = self.queryset
+        queryset = self.queryset.filter(is_topic=False)
+        if only_onshelf:
+            queryset = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
+
         if predict:
             dt_start = datetime.datetime.combine(cur_date, datetime.time.min)
             queryset = queryset.filter(onshelf_time__gte=dt_start).order_by('onshelf_time')
         else:
             dt_start = datetime.datetime.combine(cur_date, datetime.time.max)
             queryset = queryset.filter(onshelf_time__lte=dt_start).order_by('-onshelf_time')
-
-        if only_onshelf:
-            queryset = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
 
         first_obj = queryset.first()
         return first_obj and first_obj.onshelf_time.date() or datetime.date.today()

@@ -1052,30 +1052,30 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时更新代理妈妈佣金提成': {
-        'task': 'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash',
-        'schedule': crontab(minute="40", hour='5'),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时更新代理妈妈佣金提成': {
+    #     'task': 'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash',
+    #     'schedule': crontab(minute="40", hour='5'),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时统计每日特卖综合数据': {
         'task': 'flashsale.daystats.tasks.task_Calc_Sales_Stat_By_Day',
         'schedule': crontab(minute="40", hour='2'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时统计每日二级代理贡献佣金': {
-        'task': 'flashsale.xiaolumm.tasks.task_Calc_Agency_Rebeta_Pending_And_Cash',
-        'schedule': crontab(minute="40", hour='3'),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时统计每月妈妈千元提成佣金': {
-        'task': 'flashsale.xiaolumm.tasks.task_Calc_Month_ThousRebeta',
-        'schedule': crontab(minute="0", hour="4", day_of_month='1'),  #
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时统计每日二级代理贡献佣金': {
+    #     'task': 'flashsale.xiaolumm.tasks.task_Calc_Agency_Rebeta_Pending_And_Cash',
+    #     'schedule': crontab(minute="40", hour='3'),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
+    # u'定时统计每月妈妈千元提成佣金': {
+    #     'task': 'flashsale.xiaolumm.tasks.task_Calc_Month_ThousRebeta',
+    #     'schedule': crontab(minute="0", hour="4", day_of_month='1'),  #
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时统计每天商品数据': {
         'task': 'flashsale.dinghuo.tasks.task_stats_daily_product',
         'schedule': crontab(minute="10", hour="2"),
@@ -1266,7 +1266,7 @@ SHOP_APP_SCHEDULE = {
 
     u'定时更新全部未收到货包裹的物流信息': {
         'task': 'flashsale.restpro.tasks.update_all_logistics',
-        'schedule': crontab(minute="0", hour="6"),
+        'schedule': crontab(minute="0", hour="5"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
