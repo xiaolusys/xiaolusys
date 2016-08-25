@@ -34,13 +34,15 @@ class WeixinPush(object):
         else:
             return False
 
-    def push(self, customer, template_id, template_data, to_url):
+    def push(self, customer, template_ids, template_data, to_url):
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
 
         if mm_openid:
+            template_id = template_ids.get('meimei')
             resp = self.mm_api.sendTemplate(mm_openid, template_id, to_url, template_data)
         elif temai_openid:
+            template_id = template_ids.get('temai')
             resp = self.temai_api.sendTemplate(temai_openid, template_id, to_url, template_data)
         else:
             resp = None
@@ -63,8 +65,12 @@ class WeixinPush(object):
         {{Remark.DATA}}
         """
         customer = saletrade.order_buyer
-        template_id = 'K3R9wpw_yC2aXEW1PP6586l9UhMjXMwn_-Is4xcgjuA'
-        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+
+        template_ids = {
+            'meimei': 'K3R9wpw_yC2aXEW1PP6586l9UhMjXMwn_-Is4xcgjuA',
+            'temai': 'zFO-Dw936B9TwsJM4BD2Ih3zu3ygtQ_D_QXuNja6J6w'
+        }
+        template = WeixinTplMsg.objects.filter(wx_template_id__in=template_ids.values(), status=True).first()
 
         if not template:
             return
@@ -88,7 +94,7 @@ class WeixinPush(object):
             },
         }
         to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % saletrade.id
-        return self.push(customer, template_id, template_data, to_url)
+        return self.push(customer, template_ids, template_data, to_url)
 
     def push_deliver_notify(self, saletrade):
         """
@@ -109,8 +115,11 @@ class WeixinPush(object):
             saletrade.receiver_address,
             saletrade.receiver_mobile,
         )
-        template_id = 'ioBWcEsY40yg3NAQPnzE4LxfuHFFS20JnnAlVr96LXs'
-        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+        template_ids = {
+            'meimei': 'ioBWcEsY40yg3NAQPnzE4LxfuHFFS20JnnAlVr96LXs',
+            'temai': 'vVEY-AOiyiTEVF5AzUupI-H9WeG0tXA3YMYTn8l35VI'
+        }
+        template = WeixinTplMsg.objects.filter(wx_template_id__in=template_ids.values(), status=True).first()
 
         if not template:
             return
@@ -142,7 +151,7 @@ class WeixinPush(object):
             },
         }
         to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % saletrade.id
-        return self.push(customer, template_id, template_data, to_url)
+        return self.push(customer, template_ids, template_data, to_url)
 
     def push_refund_notify(self, salerefund):
         """
@@ -153,8 +162,11 @@ class WeixinPush(object):
         {{remark.DATA}}
         """
         customer = salerefund.get_refund_customer()
-        template_id = 'S9cIRfdDTM9yKeMTOj-HH5FPw79OofsfK6G4VRbKYQQ'
-        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+        template_ids = {
+            'meimei': 'S9cIRfdDTM9yKeMTOj-HH5FPw79OofsfK6G4VRbKYQQ',
+            'temai': '4TlQaNHO8MtVef33iCcPvxhRYS8Q1Nr3j_A9S-BtbLo'
+        }
+        template = WeixinTplMsg.objects.filter(wx_template_id__in=template_ids.values(), status=True).first()
 
         if not template:
             return
@@ -178,7 +190,7 @@ class WeixinPush(object):
             },
         }
         to_url = 'http://m.xiaolumeimei.com/mall/od.html?id=%s' % salerefund.sale_trade.id
-        return self.push(customer, template_id, template_data, to_url)
+        return self.push(customer, template_ids, template_data, to_url)
 
     def push_mama_award(self, awardcarry, courage_remarks, to_url):
         """
@@ -197,7 +209,10 @@ class WeixinPush(object):
             sms.push_mama_ordercarry(customer, money=money)
             return
 
-        template_id = 'K2RVQnhIh6psYkGrkjLclLWmNXQ-hqoc-yumdsLuqC4'
+        template_ids = {
+            'meimei': 'K2RVQnhIh6psYkGrkjLclLWmNXQ-hqoc-yumdsLuqC4',
+            'temai': 'ATPs2YP1ynKfgtXRl1fhhZ2Kne3AmDmU8Rghax31edg'
+        }
         template_data = {
             'first': {
                 'value': u'报！公主殿下, 您的小鹿美美App奖金又来啦！',
@@ -221,7 +236,7 @@ class WeixinPush(object):
             },
         }
 
-        return self.push(customer, template_id, template_data, to_url)
+        return self.push(customer, template_ids, template_data, to_url)
 
     def push_mama_ordercarry(self, ordercarry, to_url):
         """
@@ -249,8 +264,11 @@ class WeixinPush(object):
             sms.push_mama_ordercarry(customer, money=money)
             return
 
-        template_id = 'jorNMI-K3ewxBXHTgTKpePCF6yn5O5oLZK6azNNoWK4'
-        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+        template_ids = {
+            'meimei': 'jorNMI-K3ewxBXHTgTKpePCF6yn5O5oLZK6azNNoWK4',
+            'temai': 'AnAQcK0rgPYLdqi8HM4_MIjcXyhfOyMDrkLChV6aXrQ'
+        }
+        template = WeixinTplMsg.objects.filter(wx_template_id__in=template_ids.values(), status=True).first()
 
         if not template:
             return
@@ -278,7 +296,7 @@ class WeixinPush(object):
             },
         }
 
-        return self.push(customer, template_id, template_data, to_url)
+        return self.push(customer, template_ids, template_data, to_url)
 
     def push_mama_update_app(self, mama_id, user_version, latest_version, to_url):
         """
@@ -295,8 +313,11 @@ class WeixinPush(object):
             sms.push_mama_update_app(customer)
             return
 
-        template_id = 'l9QBpAojbpQmFIRmhSN4M-eQDzkw76yBpfrYcBoakK0'
-        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+        template_ids = {
+            'meimei': 'l9QBpAojbpQmFIRmhSN4M-eQDzkw76yBpfrYcBoakK0',
+            'temai': 'x_nPMjWKodG0V4w334I_u5LAFpoTH1fSqjAv5jPmA7Y'
+        }
+        template = WeixinTplMsg.objects.filter(wx_template_id__in=template_ids.values(), status=True).first()
 
         if not template:
             return
@@ -320,9 +341,11 @@ class WeixinPush(object):
             },
         }
 
-        return self.push(customer, template_id, template_data, to_url)
+        return self.push(customer, template_ids, template_data, to_url)
 
-    def push_mama_invite_trial(self,referal_mama_id,potential_mama_id,diff_num,award_num,invite_num,award_sum,trial_num,carry_num):
+    def push_mama_invite_trial(
+            self, referal_mama_id, potential_mama_id, diff_num, award_num,
+            invite_num, award_sum, trial_num, carry_num):
         """
         {{first.DATA}}
         姓名：{{keyword1.DATA}}
@@ -336,21 +359,24 @@ class WeixinPush(object):
         mobile_string = ''
         if potential_customer.mobile:
             mobile = potential_customer.mobile
-            mobile_string = '%s****%s' % (mobile[0:3],mobile[7:])
+            mobile_string = '%s****%s' % (mobile[0:3], mobile[7:])
 
-        template_id = 'tvns3YwYkRkkd2mycvxKsbRtuQl1spBHxtm9PLFIlFI'
-        template = WeixinTplMsg.objects.filter(wx_template_id=template_id, status=True).first()
+        template_ids = {
+            'meimei': 'tvns3YwYkRkkd2mycvxKsbRtuQl1spBHxtm9PLFIlFI',
+            'temai': 'O6SYsBHUpYpk9UTUzmUrhybU7arHuFsz2shox0JOg1s'
+        }
+        template = WeixinTplMsg.objects.filter(wx_template_id__in=template_ids.values(), status=True).first()
 
         if not template:
             return
 
         template_data = {
             'first': {
-                'value': template.header.format(diff_num=diff_num,award_num=award_num).decode('string_escape'),
+                'value': template.header.format(diff_num=diff_num, award_num=award_num).decode('string_escape'),
                 'color': '#F87217',
             },
             'keyword1': {
-                'value': u'%s (ID:%s)' % (potential_customer.nick,potential_mama_id),
+                'value': u'%s (ID:%s)' % (potential_customer.nick, potential_mama_id),
                 'color': '#4CC417',
             },
             'keyword2': {
@@ -362,12 +388,14 @@ class WeixinPush(object):
                 'color': '#4CC417',
             },
             'remark': {
-                'value': template.footer.format(invite_num=invite_num,award_sum=award_sum,trial_num=trial_num,award_total=trial_num*carry_num).decode('string_escape'),
+                'value': template.footer.format(
+                    invite_num=invite_num, award_sum=award_sum,
+                    trial_num=trial_num, award_total=trial_num*carry_num).decode('string_escape'),
                 'color': '#F87217',
             },
         }
         to_url = 'http://m.xiaolumeimei.com'
-        return self.push(referal_customer, template_id, template_data, to_url)
+        return self.push(referal_customer, template_ids, template_data, to_url)
 
     def push_new_mama_task(self, mama_id, header='', footer='', to_url='', params=None):
         """
@@ -383,7 +411,10 @@ class WeixinPush(object):
         if not params:
             params = {}
 
-        template_id = 'Lvw0t5ttadeEzRV2tczPclzpPnLXGEQZZJVdWxHyS4g'
+        template_ids = {
+            'meimei': 'Lvw0t5ttadeEzRV2tczPclzpPnLXGEQZZJVdWxHyS4g',
+            'temai': 'frGeesnAWDCmn5CinuzVGb1VbS5610J8xjM-tgPV7XQ'
+        }
         template_data = {
             'first': {
                 'value': header,
@@ -406,4 +437,4 @@ class WeixinPush(object):
                 'color': '#4CC417',
             },
         }
-        return self.push(customer, template_id, template_data, to_url)
+        return self.push(customer, template_ids, template_data, to_url)
