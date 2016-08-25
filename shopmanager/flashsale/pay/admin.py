@@ -657,6 +657,7 @@ class ModelProductAdmin(ApproxAdmin):
                   {'classes': ('expand',),
                    'fields': (
                        ('name', 'salecategory', 'saleproduct'),
+                       ('lowest_agent_price', 'lowest_std_sale_price'),
                        ('is_onsale', 'is_recommend', 'is_topic', 'is_flatten'),
                        ('shelf_status', 'onshelf_time', 'offshelf_time'),
                        ('order_weight', 'rebeta_scheme_id', 'status'),
