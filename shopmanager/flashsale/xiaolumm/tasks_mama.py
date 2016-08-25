@@ -229,7 +229,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
 #    return group_carry_array[idx - 1][1]
 
 
-@task()
+
 def task_referal_update_awardcarry(relationship):
     #print "%s, mama_id: %s" % (get_cur_info(), relationship.referal_from_mama_id)
     from_mama_id = relationship.referal_from_mama_id
@@ -237,7 +237,9 @@ def task_referal_update_awardcarry(relationship):
 
     uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
 
-    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, created__lte=relationship.created).count()
+    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, created__lt=relationship.created).count()
+    rr_cnt += 1
+    
     carry_num = utils.get_award_carry_num(rr_cnt, relationship.referal_type)    
     
     award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
