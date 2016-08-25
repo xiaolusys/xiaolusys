@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('xiaolumm', '0047_unique_potential_mama'),
+        ('xiaolumm', '0048_add_cat_type_to_mission'),
     ]
 
     operations = [
