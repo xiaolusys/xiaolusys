@@ -1,4 +1,5 @@
 # encoding=utf8
+import json
 import logging
 from datetime import datetime
 from django.conf import settings
@@ -51,7 +52,7 @@ class WeixinPush(object):
             'action': 'push.weixinpush',
             'customer': customer.id,
             'openid': mm_openid or temai_openid,
-            'template_id': template_id,
+            'template_id': json.dumps(template_ids),
             'to_url': to_url,
         })
         return resp
