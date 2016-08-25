@@ -21,6 +21,7 @@ def task_update_tpl_released_coupon_nums(template):
     template.save(update_fields=['has_released_count'])
     from django_statsd.clients import statsd
     from django.utils.timezone import now, timedelta
+
     start = now().date()
     end = start + timedelta(days=1)
     if template.id == 55:
@@ -75,6 +76,7 @@ def task_update_coupon_use_count(coupon, trade_tid):
 
     from django_statsd.clients import statsd
     from django.utils.timezone import now, timedelta
+
     start = now().date()
     end = start + timedelta(days=1)
 
@@ -86,7 +88,7 @@ def task_update_coupon_use_count(coupon, trade_tid):
                                                                 finished_time__range=(start, end)).count())
     elif coupon.template_id == 86:
         statsd.timing('coupon.old_customer_share_used_count', coupons.filter(template_id=tpl.id, status=UserCoupon.USED,
-                                                                finished_time__range=(start, end)).count())
+                                                                             finished_time__range=(start, end)).count())
     return
 
 
@@ -219,6 +221,7 @@ def task_release_coupon_for_register(instance):
 @task()
 def task_roll_back_usercoupon_by_refund(trade_tid):
     from flashsale.coupon.models import UserCoupon
+
     cou = UserCoupon.objects.filter(trade_tid=trade_tid).first()
     if cou:
         cou.release_usercoupon()
@@ -228,10 +231,12 @@ def task_roll_back_usercoupon_by_refund(trade_tid):
 @task()
 def task_update_mobile_download_record(tempcoupon):
     from flashsale.coupon.models import OrderShareCoupon
+
     share = OrderShareCoupon.objects.filter(uniq_id=tempcoupon.share_coupon_id).first()
     if not share:
         return
     from flashsale.promotion.models import DownloadMobileRecord
+
     uni_key = '/'.join([str(share.share_customer), str(tempcoupon.mobile)])
     dl_record = DownloadMobileRecord.objects.filter(uni_key=uni_key).first()
     if dl_record:  # 记录存在不做处理
@@ -247,9 +252,10 @@ def task_update_mobile_download_record(tempcoupon):
 @task()
 def task_update_unionid_download_record(usercoupon):
     from flashsale.promotion.models import DownloadUnionidRecord, DownloadMobileRecord
+
     customer = usercoupon.customer
     if not customer:
-        return 
+        return
     if not customer.unionid.strip():  # 没有unionid  写mobilde 记录
         uni_key = '/'.join([str(usercoupon.share_user_id), str(customer.mobile)])
         dl_record = DownloadMobileRecord.objects.filter(uni_key=uni_key).first()
@@ -302,3 +308,13 @@ def task_push_msg_pasting_coupon():
             user_coupon_release_push(coupon.customer_id, push_tpl_id=10, extra_content=extra_content)
             coupons.update(is_pushed=True)
 
+
+@task()
+def task_release_coupon_for_mama_deposit(buyer_id, deposite_type):
+    from flashsale.coupon.models import UserCoupon
+    deposite_type_tplids_map = {
+        XiaoluMama.HALF: [117, 118, 79],
+        XiaoluMama.FULL: [119, 120, 121, 39]
+    }
+    for template_id in deposite_type_tplids_map[deposite_type]:
+        UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)

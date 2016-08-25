@@ -974,11 +974,9 @@ def task_register_mama(obj):
         return
     if order.is_99_deposit():
         renew_days = XiaoluMama.HALF
-        coupon_id = 79
 
     if order.is_188_deposit():
         renew_days = XiaoluMama.FULL
-        coupon_id = 39
 
     update_fields = []
     now = datetime.datetime.now()
@@ -1008,11 +1006,12 @@ def task_register_mama(obj):
         xlmm.save(update_fields=update_fields)
         sys_oa = get_systemoa_user()
         log_action(sys_oa, xlmm, CHANGE, u'代理注册成功')
-    from flashsale.coupon.models import UserCoupon
-    UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=coupon_id)
     # 更新订单到交易成功
     order.status = SaleTrade.TRADE_FINISHED
     order.save(update_fields=['status'])
+
+    from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit
+    task_release_coupon_for_mama_deposit.delay(customer.id, renew_days)
 
     # 修改该潜在关系　到转正状态
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
