@@ -65,6 +65,9 @@ def weixinfans_xlmm_newtask(sender, instance, **kwargs):
     if not fans.subscribe:
         return
 
+    if fans.app_key != settings.WXPAY_APPID:
+        return
+
     customer = Customer.objects.filter(unionid=fans.unionid).first()
 
     if not customer:

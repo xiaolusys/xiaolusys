@@ -385,7 +385,7 @@ def task_subscribe_weixin_send_award(mama):
     carry_plan_name = u'新手任务奖励'
     carry_description = u'新妈妈关注微信奖励'
 
-    AwardCarry.send_award(mama, money, carry_plan_name, carry_description, uni_key, status=2, carry_type=4)  # 确定收益
+    AwardCarry.send_award(mama, money, carry_plan_name, carry_description, uni_key, status=2, carry_type=8)  # 确定收益
 
 
 def get_app_version_from_user_agent(key, user_agent):
