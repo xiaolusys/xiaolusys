@@ -298,7 +298,7 @@ class WeixinPush(object):
 
         return self.push(customer, template_ids, template_data, to_url)
 
-    def push_mama_update_app(self, mama_id, user_version, latest_version, to_url):
+    def push_mama_update_app(self, mama_id, user_version, latest_version, to_url, device=''):
         """
         {{first.DATA}}
         系统名称：{{keyword1.DATA}}
@@ -328,11 +328,11 @@ class WeixinPush(object):
                 'color': '#4CC417',
             },
             'keyword1': {
-                'value': u'您的当前版本：%s' % user_version,
+                'value': u'您的当前%s版本：%s' % (device, user_version),
                 'color': '#4CC417',
             },
             'keyword2': {
-                'value': u'最新发布版本：%s' % latest_version,
+                'value': u'最新发布%s版本：%s' % (device, latest_version),
                 'color': '#ff0000',
             },
             'remark': {
