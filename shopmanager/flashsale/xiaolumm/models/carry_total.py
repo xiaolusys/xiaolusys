@@ -183,17 +183,17 @@ class MamaCarryTotal(BaseMamaCarryTotal):
         mama_id = self.mama_id
         if query_history:
             self.set_history_data()
-        sum_res = CarryRecord.objects.filter(date_field__range=(STAT_TIME, STAT_END_TIME), mama_id=mama_id).exclude(
+        sum_res = CarryRecord.objects.filter(date_field__gte=STAT_TIME, date_field__lt=STAT_END_TIME, mama_id=mama_id).exclude(
             status=CarryRecord.CANCEL). \
             values('status').annotate(total=Sum('carry_num'))
         sum_dict = {entry["status"]: entry["total"] for entry in sum_res}
         self.duration_total = sum_dict.get(CarryRecord.CONFIRMED, 0)
         self.expect_total = sum_dict.get(CarryRecord.PENDING, 0)
         if self.duration_total + self.expect_total:
-            records = CarryRecord.objects.filter(date_field__gte=STAT_TIME, mama_id=mama_id,
+            records = CarryRecord.objects.filter(date_field__gte=STAT_TIME, date_field__lt=STAT_END_TIME, mama_id=mama_id,
                                                  status__in=[CarryRecord.PENDING, CarryRecord.CONFIRMED])
             self.carry_records = [c.id for c in records]
-            sum_res = OrderCarry.objects.filter(mama_id=mama_id, status__in=[1, 2], created__gte=STAT_TIME). \
+            sum_res = OrderCarry.objects.filter(mama_id=mama_id, status__in=[1, 2], created__gte=STAT_TIME, created__lt=STAT_END_TIME). \
                 values('status').annotate(total=Count('id'))
             expect_num = 0
             duration_num = 0
