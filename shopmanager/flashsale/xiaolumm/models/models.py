@@ -759,6 +759,19 @@ class XiaoluMama(models.Model):
 
         return None
 
+    @classmethod
+    def get_referal_mama_id(cls, customer, extras_info=None):
+        """ 根据订单获取用户的推荐人 订单上门没有的话则寻找粉丝记录的妈妈作为推荐人 """
+        extra_link = extras_info.get('mm_linkid') or 0 if extras_info else 0
+        mama_id = str(extra_link).strip()
+        mm_linkid = int(mama_id) if mama_id else 0
+        if not mm_linkid:   # 没有则获取粉丝记录
+            from flashsale.xiaolumm.models import XlmmFans
+            fans = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+            return fans.xlmm if fans else 0
+        else:
+            return mm_linkid
+
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune

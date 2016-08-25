@@ -900,9 +900,9 @@ def task_unitary_mama(obj):
     if update_fields:
         xlmm.save(update_fields=update_fields)
         log_action(sys_oa, xlmm, CHANGE, u'一元开店成功')
-    mm_linkid = obj.extras_info.get('mm_linkid') or 0  # 推荐人专属id　(写潜在关系列表)
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     customer = xlmm.get_mama_customer()
+    mm_linkid = XiaoluMama.get_referal_mama_id(customer=customer, extras_info=obj.extras_info)
     nick = customer.nick if customer else ''
     thumbnail = customer.thumbnail if customer else ""
     if not protentialmama:
@@ -997,7 +997,8 @@ def task_register_mama(obj):
 
     xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
 
-    mm_linkid = obj.extras_info.get('mm_linkid') or None
+    customer = xlmm.get_mama_customer()
+    mm_linkid = XiaoluMama.get_referal_mama_id(customer=customer, extras_info=obj.extras_info)
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
     if referal_mm:
         if not xlmm.referal_from:  # 如果没有填写推荐人　更新推荐人
@@ -1014,14 +1015,7 @@ def task_register_mama(obj):
     order.save(update_fields=['status'])
 
     # 修改该潜在关系　到转正状态
-    uni_key = str(xlmm.id) + '/' + str(mm_linkid)
-    protentialmama = PotentialMama.objects.filter(uni_key=uni_key).first()
-    if not protentialmama:
-        # 如果没有　则试图找(potential_mama = 当前mm.id的潜在推荐人)
-        try:
-            protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
-        except PotentialMama.DoesNotExist:
-            logger.info({'action': 'task_register_mama', 'mama_id': xlmm.id, 'uni_key': uni_key})
+    protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
 
     from django_statsd.clients import statsd
@@ -1068,17 +1062,8 @@ def task_renew_mama(obj):
     if xlmm.last_renew_type == XiaoluMama.TRIAL:  # 试用代理不予续费服务
         return
     state = xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
-
     # 修改该潜在关系　到转正状态
-    mm_linkid = obj.extras_info.get('mm_linkid') or None
-    uni_key = str(xlmm.id) + '/' + str(mm_linkid)
-    protentialmama = PotentialMama.objects.filter(uni_key=uni_key).first()
-    if not protentialmama:
-        # 如果没有　则试图找(potential_mama = 当前mm.id的潜在推荐人)
-        try:
-            protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).latest('created')
-        except PotentialMama.DoesNotExist:
-            logger.info({'action': 'task_register_mama', 'mama_id': xlmm.id, 'uni_key': uni_key})
+    protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
 
     if state:
