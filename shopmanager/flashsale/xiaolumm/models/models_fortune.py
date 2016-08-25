@@ -369,7 +369,7 @@ def carryrecord_xlmm_newtask(sender, instance, **kwargs):
     is_exists = CarryRecord.objects.filter(mama_id=xlmm.id, carry_type=CarryRecord.CR_CLICK).exists()
 
     if not is_exists:
-        params = {'money': '%.2f' % int(carryrecord.carry_num) / 100.0}
+        params = {'money': '%.2f' % (int(carryrecord.carry_num) / 100.0)}
         task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_FIRST_CARRY, params=params)
 
 pre_save.connect(carryrecord_xlmm_newtask,
