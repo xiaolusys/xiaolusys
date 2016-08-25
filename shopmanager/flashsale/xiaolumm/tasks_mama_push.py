@@ -87,6 +87,13 @@ def task_weixin_push_update_app(app_visit):
 
     user_version = app_visit.get_user_version()
     latest_version = app_visit.get_latest_version()
+    device_type = app_visit.device_type
+    device = ''
+
+    if device_type == app_visit.DEVICE_ANDROID:
+        device = 'Android'
+    if device_type == app_visit.DEVICE_IOS:
+        device = 'IOS'
 
     if user_version == latest_version:
         # already latest, no need to push udpate reminder
@@ -98,7 +105,7 @@ def task_weixin_push_update_app(app_visit):
     mama_id = app_visit.mama_id
     to_url = "http://m.xiaolumeimei.com/sale/promotion/appdownload/"
 
-    wp.push_mama_update_app(mama_id, user_version, latest_version, to_url)
+    wp.push_mama_update_app(mama_id, user_version, latest_version, to_url, device=device)
 
 
 @task
