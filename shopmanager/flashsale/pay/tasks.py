@@ -161,7 +161,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
 def confirmTradeChargeTask(sale_trade_id, charge_time=None, charge=None):
     """ 订单确认付款,并更新状态 """
     strade = SaleTrade.objects.get(id=sale_trade_id)
-    strade.chargse_confirm(charge_time=charge_time, charge=charge)
+    strade.charge_confirm(charge_time=charge_time, charge=charge)
     saleservice = FlashSaleService(strade)
     saleservice.payTrade()
 
