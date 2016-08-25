@@ -104,7 +104,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
 
         statsd.incr('xiaolumm.mamafortune_count')
-        
+
         # fortunes = self.get_owner_queryset(request)
         customer = Customer.objects.normal_customer.filter(user=request.user).first()
         mama_id = None
@@ -241,7 +241,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
             visit_tab = MamaTabVisitStats.TAB_ORDER_CARRY
             task_mama_daily_tab_visit_stats.delay(mama_id, visit_tab)
             #logger.error('OrderCarryViewSet|mama_id:%s, type: %s' % (mama_id, visit_tab))
-            
+
             return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
 
         qset = self.queryset.filter(mama_id=mama_id)
@@ -471,7 +471,7 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
 
         mama_id = get_mama_id(request.user)
         task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_VISITOR_LIST)
-        
+
         return self.queryset.filter(mama_id=mama_id, date_field=date_field).order_by('-created')
 
     def list(self, request, *args, **kwargs):
@@ -509,7 +509,7 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
         customer_id = get_customer_id(request.user)
         mama_id = get_mama_id(request.user)
         task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_FANS_LIST)
-                
+
         return self.queryset.filter(xlmm_cusid=customer_id).order_by('-created')
 
     def list(self, request, *args, **kwargs):
@@ -637,7 +637,7 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
     """
     given from=2 and days=5, we find out all 5 days' data, starting
     from 2 days ago, backing to 7 days ago.
-    
+
     from=x: starts from x days before
     days=n: needs n days' data
     """
@@ -686,7 +686,7 @@ from flashsale.pay.serializers import ModelProductSerializer
 class ModelProductViewSet(viewsets.ModelViewSet):
     """
     1) /rest/v2/mama/modelproducts
-       returns all model_products 
+       returns all model_products
     2) /rest/v2/mama/modelproducts?category=1
        returns all model_products with category=1
     """
@@ -738,7 +738,6 @@ class PotentialFansView(generics.GenericAPIView):
     page_query_param = 'page'
     paginate_by_param = 'page_size'
     max_paginate_by = 100
-
     authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,)
@@ -751,3 +750,55 @@ class PotentialFansView(generics.GenericAPIView):
         datalist = self.paginate_queryset(records)
         serializer = serializers.AppDownloadRecordSerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class MamaAdministratorViewSet(APIView):
+    """
+    ## GET /rest/v2/mama/administrator
+    """
+
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        from games.weixingroup.models import XiaoluAdministrator
+        from flashsale.xiaolumm.models.mama_administrator import MamaAdministrator
+
+        customer = Customer.getCustomerByUser(user=request.user)
+        if not customer:
+            return Response({"code": 1, "info": u"用户未找到"})  # 登录过期
+
+        mama = customer.get_xiaolumm()
+        if not mama:
+            return Response({"code": 1, "info": u'没有这个妈妈'})
+
+        referal_mama_ids = mama.get_parent_mama_ids()
+        if referal_mama_ids:
+            referal_mama_id = referal_mama_ids[0]
+            referal_mama = XiaoluMama.objects.filter(id=referal_mama_id).first()
+            referal_customer = referal_mama.get_customer()
+            referal_mama_nick = referal_customer.nick
+            referal_mama_avatar = referal_customer.thumbnail
+        else:
+            referal_mama_nick = ''
+            referal_mama_avatar = ''
+
+        item = MamaAdministrator.objects.filter(mama_id=mama.id).first()
+        if item:
+            administrator = item.administrator
+        else:
+            administrators = XiaoluAdministrator.objects.all()
+            num = mama.id % administrators.count()
+            administrator = administrators[num]
+
+            ma = MamaAdministrator()
+            ma.administrator = administrator
+            ma.mama = mama
+            ma.save()
+
+        return Response({
+            'mama_id': mama.id,
+            'qr_img': administrator.weixin_qr_img,
+            'referal_mama_nick': referal_mama_nick,
+            'referal_mama_avatar': referal_mama_avatar,
+        })
