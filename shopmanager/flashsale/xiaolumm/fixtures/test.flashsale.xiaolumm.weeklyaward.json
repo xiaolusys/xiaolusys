@@ -1,0 +1,300 @@
+[
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:07",
+    "start_time": null,
+    "modified": "2016-08-24T22:06:43",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 300,
+    "cat_type": "refer_mama",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u65b0\u589e\u4e0b\u5c5e\u5988\u5988A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 1
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "group",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:06:32",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 100,
+    "cat_type": "group_refer",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u65b0\u589e\u56e2\u961f\u5988\u5988A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 2
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:06:22",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 800,
+    "cat_type": "refer_guide",
+    "date_type": "weekly",
+    "target_value": 8,
+    "name": "\u5f15\u5bfc\u65b0\u624b\u5988\u5988\u5b8c\u6210\u4efb\u52a1"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 3
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:06:10",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 50,
+    "cat_type": "first_order",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u9996\u5355\u5956\u52b1"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 4
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:06:02",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 50,
+    "cat_type": "trial_mama",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u9080\u8bf7\u5988\u5988\u4e00\u5143\u5f00\u5e97A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 5
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:05:51",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 300,
+    "cat_type": "open_course",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u5988\u5988\u9996\u6b21\u5f00\u8bb2"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 6
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:04:49",
+    "kpi_type": "amount",
+    "end_time": null,
+    "award_amount": 150,
+    "cat_type": "sale_mama",
+    "date_type": "weekly",
+    "target_value": 300,
+    "name": "\u5988\u5988\u5468\u9500\u552e\u4efb\u52a1A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 7
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "group",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:05:01",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 1500,
+    "cat_type": "sale_group",
+    "date_type": "weekly",
+    "target_value": 300,
+    "name": "\u56e2\u961f\u5468\u9500\u552e\u4efb\u52a1A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 8
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-24T22:07:29",
+    "start_time": null,
+    "modified": "2016-08-24T22:08:00",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 6000,
+    "cat_type": "refer_mama",
+    "date_type": "weekly",
+    "target_value": 3,
+    "name": "\u65b0\u589e\u4e0b\u5c5e\u5988\u5988B"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 9
+},
+{
+  "fields": {
+    "status": "staging",
+    "created": "2016-08-22T17:05:54",
+    "finish_time": null,
+    "finish_value": 0,
+    "referal_from_mama_id": 1,
+    "mission": 1,
+    "group_leader_mama_id": 0,
+    "year_week": "2016-34",
+    "modified": "2016-08-22T17:05:54",
+    "uni_key": "1-2016-34-44",
+    "mama_id": 44
+  },
+  "model": "xiaolumm.mamamissionrecord",
+  "pk": 3
+},
+{
+  "fields": {
+    "status": "staging",
+    "created": "2016-08-22T17:05:54",
+    "finish_time": null,
+    "finish_value": 0,
+    "referal_from_mama_id": 1,
+    "mission": 2,
+    "group_leader_mama_id": 0,
+    "year_week": "2016-34",
+    "modified": "2016-08-22T17:05:54",
+    "uni_key": "2-2016-34-44",
+    "mama_id": 44
+  },
+  "model": "xiaolumm.mamamissionrecord",
+  "pk": 4
+},
+{
+  "fields": {
+    "status": "staging",
+    "created": "2016-08-22T17:05:54",
+    "finish_time": null,
+    "finish_value": 0,
+    "referal_from_mama_id": 1,
+    "mission": 3,
+    "group_leader_mama_id": 0,
+    "year_week": "2016-34",
+    "modified": "2016-08-22T17:05:54",
+    "uni_key": "3-2016-34-44",
+    "mama_id": 44
+  },
+  "model": "xiaolumm.mamamissionrecord",
+  "pk": 5
+},
+{
+  "fields": {
+    "status": "staging",
+    "created": "2016-08-22T17:05:54",
+    "finish_time": null,
+    "finish_value": 0,
+    "referal_from_mama_id": 1,
+    "mission": 4,
+    "group_leader_mama_id": 0,
+    "year_week": "2016-34",
+    "modified": "2016-08-22T17:05:54",
+    "uni_key": "4-2016-34-44",
+    "mama_id": 44
+  },
+  "model": "xiaolumm.mamamissionrecord",
+  "pk": 6
+},
+{
+  "fields": {
+    "status": "staging",
+    "created": "2016-08-22T17:05:54",
+    "finish_time": null,
+    "finish_value": 0,
+    "referal_from_mama_id": 1,
+    "mission": 5,
+    "group_leader_mama_id": 0,
+    "year_week": "2016-34",
+    "modified": "2016-08-22T17:05:54",
+    "uni_key": "5-2016-34-44",
+    "mama_id": 44
+  },
+  "model": "xiaolumm.mamamissionrecord",
+  "pk": 7
+},
+{
+  "fields": {
+    "status": "staging",
+    "created": "2016-08-22T17:05:55",
+    "finish_time": null,
+    "finish_value": 0,
+    "referal_from_mama_id": 1,
+    "mission": 6,
+    "group_leader_mama_id": 0,
+    "year_week": "2016-34",
+    "modified": "2016-08-22T17:05:55",
+    "uni_key": "6-2016-34-44",
+    "mama_id": 44
+  },
+  "model": "xiaolumm.mamamissionrecord",
+  "pk": 8
+},
+{
+  "fields": {
+    "status": "staging",
+    "created": "2016-08-22T17:05:55",
+    "finish_time": null,
+    "finish_value": 0,
+    "referal_from_mama_id": 1,
+    "mission": 7,
+    "group_leader_mama_id": 0,
+    "year_week": "2016-34",
+    "modified": "2016-08-22T17:05:55",
+    "uni_key": "7-2016-34-44",
+    "mama_id": 44
+  },
+  "model": "xiaolumm.mamamissionrecord",
+  "pk": 9
+},
+{
+  "fields": {
+    "status": "staging",
+    "created": "2016-08-22T17:05:55",
+    "finish_time": null,
+    "finish_value": 0,
+    "referal_from_mama_id": 1,
+    "mission": 8,
+    "group_leader_mama_id": 0,
+    "year_week": "2016-34",
+    "modified": "2016-08-22T17:05:55",
+    "uni_key": "8-2016-34-44",
+    "mama_id": 44
+  },
+  "model": "xiaolumm.mamamissionrecord",
+  "pk": 10
+}
+]

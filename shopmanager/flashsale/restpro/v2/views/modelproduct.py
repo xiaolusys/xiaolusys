@@ -32,8 +32,8 @@ CACHE_VIEW_TIMEOUT = 30
 class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     """
         ## 特卖商品(聚合)列表API：
-        - Model:
-            * `{
+        ## Model:
+            {
                 "id": 商品ID,
                 "name": 商品名称,
                 "category_id": 类目id,
@@ -44,14 +44,13 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
                 "head_img": 头图,
                 "web_url": app商品详情链接,
                 "watermark_op": 水印参数(拼接方法: head_img?watermark_op|其它图片参数)
-              }`
+            }
         ***
-        - [获取特卖商品列表: /rest/v2/modelproducts](/rest/v2/modelproducts)
-            * 查询参数: cid = 类目cid
-
-        - [今日特卖: /rest/v2/modelproducts/today](/rest/v2/modelproducts/today)
-        - [昨日特卖: /rest/v2/modelproducts/yesterday](/rest/v2/modelproducts/yesterday)
-        - [即将上新: /rest/v2/modelproducts/tomorrow](/rest/v2/modelproducts/tomorrow)
+        ## [获取特卖商品列表: /rest/v2/modelproducts](/rest/v2/modelproducts)
+            查询参数: cid = 类目cid
+        ## [今日特卖: /rest/v2/modelproducts/today](/rest/v2/modelproducts/today)
+        ## [昨日特卖: /rest/v2/modelproducts/yesterday](/rest/v2/modelproducts/yesterday)
+        ## [即将上新: /rest/v2/modelproducts/tomorrow](/rest/v2/modelproducts/tomorrow)
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers_v2.SimpleModelProductSerializer

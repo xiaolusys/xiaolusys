@@ -37,8 +37,11 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         firstgrade_cat =saleproduct and saleproduct.sale_category.get_firstgrade_category()
         if firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_HEALTH):
             return redirect(reverse('items_v1:modelproduct-health')+'?supplier_id=%s&saleproduct=%s'%(supplier_id, saleproduct_id))
-        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_BAGS):
+        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith((constants.CATEGORY_BAGS, constants.CATEGORY_MEIZUANG)):
             return redirect(reverse('items_v1:modelproduct-bags') + '?supplier_id=%s&saleproduct=%s' % (
+                supplier_id, saleproduct_id))
+        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_MUYING):
+            return redirect(reverse('items_v1:modelproduct-muying') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
         elif firstgrade_cat and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
                                                 constants.CATEGORY_WEMON ,
@@ -74,6 +77,20 @@ class ProductManageViewSet(viewsets.ModelViewSet):
             },
             template_name='items/add_item_bags.html'
         )
+
+    @list_route(methods=['get'])
+    def muying(self, request, *args, **kwargs):
+        data = request.GET
+        supplier_id = data.get('supplier_id') or 0
+        saleproduct_id = data.get('saleproduct') or 0
+
+        return Response({
+                "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
+                "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
+            },
+            template_name='items/add_item_muying.html'
+        )
+
 
     @list_route(methods=['post'])
     def multi_create(self, request, *args, **kwargs):

@@ -161,7 +161,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
 def confirmTradeChargeTask(sale_trade_id, charge_time=None, charge=None):
     """ 订单确认付款,并更新状态 """
     strade = SaleTrade.objects.get(id=sale_trade_id)
-    strade.charge_confirm(charge_time=charge_time, charge=charge)
+    strade.chargse_confirm(charge_time=charge_time, charge=charge)
     saleservice = FlashSaleService(strade)
     saleservice.payTrade()
 
@@ -180,10 +180,11 @@ def notifyTradePayTask(notify):
         if not paid or tcharge.paid == True:
             return
 
-        update_fields = set(
-            ['paid', 'refunded', 'channel', 'amount', 'currency',
-             'transaction_no', 'amount_refunded', 'failure_code', 'failure_msg',
-             'time_paid', 'time_expire'])
+        update_fields = set([
+            'paid', 'refunded', 'channel', 'amount', 'currency',
+            'transaction_no', 'amount_refunded', 'failure_code', 'failure_msg',
+            'time_paid', 'time_expire'
+        ])
 
         for k, v in notify.iteritems():
             if k not in update_fields:

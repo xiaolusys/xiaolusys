@@ -784,9 +784,9 @@ admin.site.register(MamaDeviceStats, MamaDeviceStatsAdmin)
 
 
 class MamaMissionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'target', 'kpi_type', 'date_type',
+    list_display = ('id', 'name', 'target', 'cat_type', 'kpi_type', 'date_type',
                     'target_value', 'award_amount', 'start_time', 'end_time', 'status')
-    list_filter = ('target', 'status', 'date_type', 'kpi_type')
+    list_filter = ('target', 'status', 'cat_type', 'date_type', 'kpi_type')
     search_fields = ('=id','name')
 
 admin.site.register(MamaMission, MamaMissionAdmin)

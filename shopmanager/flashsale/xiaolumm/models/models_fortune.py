@@ -378,7 +378,11 @@ pre_save.connect(carryrecord_xlmm_newtask,
 
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
-    STATUS_TYPES = ((0, u'待付款'), (1, u'预计收益'), (2, u'确定收益'), (3, u'买家取消'),)
+    STAGING = 0
+    ESTIMATE = 1
+    CONFIRM = 2
+    CANCEL  = 3
+    STATUS_TYPES = ((STAGING, u'待付款'), (ESTIMATE, u'预计收益'), (CONFIRM, u'确定收益'), (CANCEL, u'买家取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
@@ -836,14 +840,17 @@ class ReferalRelationship(BaseModel):
     """
     xiaolu mama referal relationship
     """
-    STATUS_TYPES = ((1, 'Valid'), (2, 'Invalid'))
+    VALID = 1
+    INVALID = 2
+    STATUS_TYPES = ((VALID, u'有效'), (INVALID, u'无效'))
+
     referal_from_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     referal_to_mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'被推荐妈妈id')
     referal_to_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'被推荐者昵称')
     referal_to_mama_img = models.CharField(max_length=256, blank=True, verbose_name=u'被推荐者头像')
     order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
     referal_type = models.IntegerField(choices=XiaoluMama.RENEW_TYPE, default=XiaoluMama.FULL, db_index=True, verbose_name=u"类型")
-    status = models.IntegerField(default=1, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')  # 已确定/取消
+    status = models.IntegerField(default=VALID, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')  # 已确定/取消
 
     class Meta:
         db_table = 'flashsale_xlmm_referal_relationship'

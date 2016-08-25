@@ -45,23 +45,43 @@ logger = logging.getLogger(__name__)
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
-    ###特卖购物车REST API接口：
-    * 请求GET类型的api直接返回数据,如果正常http状态码code==200,有异常http状态码code >= 500
-    - payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
-    - {prefix}/{{pk}}/delete_carts[.formt]: 删除;
-    - {prefix}/{{pk}}/plus_product_carts[.formt]: 增加一件;
-    - {prefix}/{{pk}}/minus_product_carts[.formt]: 减少一件;
-    - {prefix}/show_carts_num[.formt]: 显示购物车数量;
-    - {prefix}/show_carts_history[.formt]: 显示购物车历史;
-    - {prefix}/sku_num_enough[.formt]: 获取商品规格数量是否充足;
-    > sku_id:规格ID;
-    > sku_num:规格数量;
-    - {prefix}/carts_payinfo[.formt]: 根据购物车记录获取支付信息;
-    > cart_ids：购物车ID列表,如101,102,103,...
-    > device :支付类型 (app ,app支付), (wap, wap支付), (web, 网页支付)
-    - {prefix}/now_payinfo[.formt]: 根据立即购买获取支付信息;
-    > sku_id：要立即购买的商品规格ID
-    > device :支付类型 (app ,app支付), (wap, wap支付), (web, 网页支付)
+        ## 特卖购物车REST API接口：
+            请求GET类型的api直接返回数据,如果正常http状态码code==200,有异常http状态码code >= 500
+            payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
+        ## [创建购物车: /rest/v2/carts/](/rest/v2/carts/): 删除:
+            POST:
+            {
+                _method: "PUT",
+                item_id: '64257',
+                sku_id: '267842',
+                num: '1'
+            }
+        ## [删除购物车: /rest/v2/carts/{{pk}}/delete_carts](/rest/v2/carts/123/delete_carts):
+            POST: _method="DELETE"
+        ## [增加一件: /rest/v2/carts/{{pk}}/plus_product_carts](/rest/v2/carts/123/plus_product_carts):
+            POST: {}
+        ## [减少一件: /rest/v2/carts/{{pk}}/minus_product_carts](/rest/v2/carts/123/minus_product_carts):
+            POST: {}
+        ## [显示购物车数量: /rest/v2/carts/show_carts_num](/rest/v2/carts/show_carts_num):
+        ## [显示购物车历史: /rest/v2/carts/show_carts_history](/rest/v2/carts/show_carts_history):
+        ## [获取商品规格数量是否充足: /rest/v2/carts/sku_num_enough](/rest/v2/carts/sku_num_enough):
+            POST:
+            {
+                sku_id:规格ID;
+                sku_num:规格数量;
+            }
+        ## [根据购物车记录获取支付信息: /rest/v2/carts/carts_payinfo](/rest/v2/carts/carts_payinfo):
+            GET:
+            {
+                cart_ids：购物车ID列表,如101,102,103,...
+                device :支付类型 (app ,app支付), (wap, wap支付), (web, 网页支付)
+            }
+        ## [获取立即支付信息: /rest/v2/carts/now_payinfo](/rest/v2/carts/now_payinfo):
+            GET:
+            {
+               sku_id：要立即购买的商品规格ID
+               device :支付类型 (app ,app支付), (wap, wap支付), (web, 网页支付)
+            }
     """
     queryset = ShoppingCart.objects.all()
     serializer_class = serializers.ShoppingCartSerializer
