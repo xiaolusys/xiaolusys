@@ -2,7 +2,7 @@
 import logging
 import datetime
 from celery.task import task
-from django.db.models import F
+from django.db.models import F, Sum
 from flashsale.xiaolumm.models import XiaoluMama
 
 logger = logging.getLogger(__name__)
@@ -309,12 +309,34 @@ def task_push_msg_pasting_coupon():
             coupons.update(is_pushed=True)
 
 
+def get_deposit_money(buyer_id):
+    from flashsale.xiaolumm.models import CashOut
+    from flashsale.pay.models import Customer, SaleTrade
+
+    cusomter = Customer.objects.get(id=buyer_id)
+    xlmm = cusomter.get_xiaolumm()
+    deposite_cashouts = CashOut.objects.filter(
+        xlmm=xlmm.id,
+        cash_out_type=CashOut.MAMA_RENEW,
+        status__in=[CashOut.COMPLETED, CashOut.APPROVED])
+    deposit_trades = SaleTrade.objects.filter(
+        buyer_id=buyer_id,
+        order_type=SaleTrade.DEPOSITE_ORDER,
+        status__in=[SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.TRADE_FINISHED])
+    d_m = deposite_cashouts.aggregate(t_v=Sum('value')).get('t_v') or 0
+    t_m = deposit_trades.aggregate(t_p=Sum('payment')).get('t_p') or 0
+    return d_m / 100.0 + t_m
+
+
 @task()
 def task_release_coupon_for_mama_deposit(buyer_id, deposite_type):
     from flashsale.coupon.models import UserCoupon
+
     deposite_type_tplids_map = {
-        XiaoluMama.HALF: [117, 118, 79],
-        XiaoluMama.FULL: [119, 120, 121, 39]
+        XiaoluMama.HALF: [117, 118,        79],
+        XiaoluMama.FULL: [117, 118, 121,   39]
     }
-    for template_id in deposite_type_tplids_map[deposite_type]:
+    tpl_ids = deposite_type_tplids_map[deposite_type]
+
+    for template_id in tpl_ids:
         UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)
