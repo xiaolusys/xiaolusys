@@ -1345,6 +1345,9 @@ def renew_mama(obj):
 
     task_renew_mama(obj)
 
+from flashsale.pay.signals import signal_saletrade_pay_confirm
+from flashsale.pay.models import SaleTrade
+
 
 def trigger_mama_deposit_action(obj, *args, **kwargs):
     # 这里的先后顺序不能变　
@@ -1353,9 +1356,6 @@ def trigger_mama_deposit_action(obj, *args, **kwargs):
     unitary_mama(obj)
     register_mama(obj)
 
-
-from flashsale.pay.signals import signal_saletrade_pay_confirm
-from flashsale.pay.models import SaleTrade
 
 signal_saletrade_pay_confirm.connect(trigger_mama_deposit_action,
                                      sender=SaleTrade,

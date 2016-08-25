@@ -17,6 +17,7 @@ from flashsale.xiaolumm.models import MamaDayStats
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, OrderRedPacket, CashOut, PotentialMama
 from shopapp.weixin.models import WXOrder
 from shopback.trades.models import MergeTrade, MergeBuyerTrade
+from flashsale.xiaolumm.signals import signal_xiaolumama_register_success
 
 logger = logging.getLogger(__name__)
 
@@ -631,7 +632,7 @@ def task_Update_Sale_And_Weixin_Order_Status(pre_days=10):
 
 @task()
 def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, weikefu=None):
-    from .views import get_Deposit_Trade, create_coupon
+    from ..views.views import get_Deposit_Trade, create_coupon
     from core.options import log_action, ADDITION, CHANGE
     from flashsale.pay.models import SaleOrder, SaleTrade
     xlmm = XiaoluMama.objects.get(id=mama_id)
@@ -864,6 +865,7 @@ def task_unitary_mama(obj):
     xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
     if not xlmm:  # 代理
         return
+    renew_state = xlmm.charge_status == XiaoluMama.CHARGED
     flag = 0
     if xlmm.charge_status == XiaoluMama.UNCHARGE:  # 如果是没有接管的可以试用
         flag = 1
@@ -885,28 +887,23 @@ def task_unitary_mama(obj):
     if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类
         update_fields.append("agencylevel")
         xlmm.agencylevel = XiaoluMama.A_LEVEL
-
-    renew_time = now + datetime.timedelta(days=15)
-    if isinstance(xlmm.renew_time, datetime.datetime):
-        renew_time = max(renew_time, xlmm.renew_time + datetime.timedelta(days=15))
-    if xlmm.renew_time != renew_time:
+    if xlmm.renew_time is None:
         update_fields.append("renew_time")
-        xlmm.renew_time = renew_time
-
+        xlmm.renew_time = now + datetime.timedelta(days=15)
     if xlmm.last_renew_type != XiaoluMama.TRIAL:  # 更新 续费类型为试用
         update_fields.append("last_renew_type")
         xlmm.last_renew_type = XiaoluMama.TRIAL
-    sys_oa = get_systemoa_user()
     if update_fields:
         xlmm.save(update_fields=update_fields)
+        sys_oa = get_systemoa_user()
         log_action(sys_oa, xlmm, CHANGE, u'一元开店成功')
+
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     customer = xlmm.get_mama_customer()
     mm_linkid = XiaoluMama.get_referal_mama_id(customer=customer, extras_info=obj.extras_info)
     nick = customer.nick if customer else ''
     thumbnail = customer.thumbnail if customer else ""
     if not protentialmama:
-        uni_key = str(xlmm.id) + '/' + str(mm_linkid)
         protentialmama = PotentialMama(
             potential_mama=xlmm.id,
             referal_mama=int(mm_linkid),
@@ -914,11 +911,12 @@ def task_unitary_mama(obj):
             thumbnail=thumbnail,
             uni_key=uni_key)
         protentialmama.save()
-    else:
-        log_action(sys_oa, protentialmama, CHANGE, u'再次试用 mm_linkid=%s' % mm_linkid)
     # 更新订单到交易成功
     order.status = SaleTrade.TRADE_FINISHED
     order.save(update_fields=['status'])
+
+    # 妈妈一元试用事件
+    signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=xlmm, renew=renew_state)
 
     from django_statsd.clients import statsd
     from flashsale.pay.models import SaleOrder
@@ -972,13 +970,13 @@ def task_register_mama(obj):
     if xlmm.charge_status == XiaoluMama.CHARGED and \
                     xlmm.last_renew_type in (XiaoluMama.HALF, XiaoluMama.FULL):  # 如果是接管的正式代理则不处理
         return
+
+    renew_state = xlmm.last_renew_type == XiaoluMama.TRIAL
     if order.is_99_deposit():
         renew_days = XiaoluMama.HALF
-        coupon_id = 79
 
     if order.is_188_deposit():
         renew_days = XiaoluMama.FULL
-        coupon_id = 39
 
     update_fields = []
     now = datetime.datetime.now()
@@ -1008,15 +1006,19 @@ def task_register_mama(obj):
         xlmm.save(update_fields=update_fields)
         sys_oa = get_systemoa_user()
         log_action(sys_oa, xlmm, CHANGE, u'代理注册成功')
-    from flashsale.coupon.models import UserCoupon
-    UserCoupon.objects.create_normal_coupon(buyer_id=obj.buyer_id, template_id=coupon_id)
     # 更新订单到交易成功
     order.status = SaleTrade.TRADE_FINISHED
     order.save(update_fields=['status'])
 
+    from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit
+    task_release_coupon_for_mama_deposit.delay(customer.id, renew_days)
+
     # 修改该潜在关系　到转正状态
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
+
+    # 妈妈一元试用事件
+    signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=xlmm, renew=renew_state)
 
     from django_statsd.clients import statsd
     from django.utils.timezone import now, timedelta
@@ -1065,6 +1067,8 @@ def task_renew_mama(obj):
     # 修改该潜在关系　到转正状态
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
     update_xlmm_referal_from(protentialmama, xlmm, order.oid)  # 潜在关系以订单为准　如果订单中没有则在　潜在关系列表中　找
+    # 妈妈续费成功事件
+    signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=xlmm, renew=True)
 
     if state:
         sys_oa = get_systemoa_user()
