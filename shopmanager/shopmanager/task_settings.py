@@ -572,6 +572,10 @@ FLASHSALE_COUPON_ROUTES = {
         'queue': 'coupon',
         'routing_key': 'coupon.task_update_unionid_download_record',
     },
+    'flashsale.coupon.tasks.task_release_coupon_for_mama_deposit': {
+        'queue': 'coupon',
+        'routing_key': 'coupon.task_release_coupon_for_mama_deposit',
+    },
 }
 
 FLASHSALE_INTEGRAL_ROUTES = {
