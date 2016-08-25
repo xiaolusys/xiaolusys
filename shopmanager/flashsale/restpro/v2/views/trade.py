@@ -30,6 +30,7 @@ from flashsale.pay.models import (
     ShoppingCart,
     UserAddress,
     gen_uuid_trade_tid,
+    TeamBuy
 )
 from flashsale.coupon.models import UserCoupon
 from flashsale.restpro import permissions as perms
@@ -317,6 +318,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
         # assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
         channel = form.get('channel')
+        order_type = int(form.get('order_type', 0))
         params = {
             'channel':channel,
             'receiver_name':address.receiver_name,
@@ -327,8 +329,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_zip':address.receiver_zip,
             'receiver_phone':address.receiver_phone,
             'receiver_mobile':address.receiver_mobile,
-            'user_address_id':address.id
+            'user_address_id':address.id,
+            'order_type':order_type
             }
+        if order_type == SaleTrade.TEAMBUY_ORDER:
+            teambuy = TeamBuy.objects.filter(id=form.get('teambuy_id')).first()
 
         buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
         buyer_openid = buyer_openid or customer.openid
@@ -367,9 +372,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             }
         })
         params['extras_info'].update(self.get_mama_referal_params(request))
-
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)
+        if order_type == SaleTrade.TEAMBUY_ORDER:
+            sale_trade.extras_info['teambuy_id'] = teambuy.id if teambuy else ''
         sale_trade.save()
         # record prepay stats
         from django_statsd.clients import statsd
@@ -606,10 +612,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sku_id   = CONTENT.get('sku_id')
         sku_num  = int(CONTENT.get('num','1'))
         pay_extras = CONTENT.get('pay_extras')
-
+        order_type   = int(CONTENT.get('order_type', 0))
+        teambuy_id = CONTENT.get('teambuy_id')
         customer        = get_object_or_404(Customer,user=request.user)
         product         = get_object_or_404(Product,id=item_id)
         product_sku     = get_object_or_404(ProductSku,id=sku_id)
+        if order_type == SaleTrade.TEAMBUY_ORDER and teambuy_id:
+            teambuy = get_object_or_404(TeamBuy, id=teambuy_id)
         total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
         payment         = round(float(CONTENT.get('payment','0')) * 100)
         post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)

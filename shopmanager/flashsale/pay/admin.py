@@ -37,6 +37,7 @@ from .models import (
     Envelop,
     Integral,
     IntegralLog,
+    TeamBuy
 )
 
 import cStringIO as StringIO
@@ -905,3 +906,12 @@ class SaleOrderSyncLogAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SaleOrderSyncLog, SaleOrderSyncLogAdmin)
+
+
+class TeamBuyAdmin(admin.ModelAdmin):
+    list_display = ('id', 'sku_id', 'limit_time', 'creator')
+
+    list_filter = ('status',)
+
+
+admin.site.register(TeamBuy, TeamBuyAdmin)

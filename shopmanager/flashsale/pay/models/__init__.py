@@ -15,3 +15,4 @@ from .trade import SaleTrade, SaleOrder, SaleOrderSyncLog, genTradeUniqueid, FLA
     default_oid, gen_uuid_trade_tid, default_extras
 from .user import Register, Customer, UserBudget, BudgetLog, genCustomerNickname
 from .favorites import Favorites
+from .teambuy import TeamBuy, TeamBuyDetail

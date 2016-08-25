@@ -12,7 +12,7 @@ from common.utils import update_model_fields
 from core.options import log_action
 from flashsale.dinghuo.models import OrderList, OrderDetail
 from flashsale.pay.models import CustomerShops, CuShopPros
-from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress
+from flashsale.pay.models import TradeCharge, SaleTrade, SaleOrder, SaleRefund, Customer,UserAddress, TeamBuy
 from flashsale.pay.models.score import IntegralLog, Integral
 from shopapp.weixin.models import WeiXinUser
 from shopback.items.models import ProductSku
@@ -1014,3 +1014,14 @@ def task_tongji_trade_source():
 
     statsd.timing('xiaolumm.postpay_from_xiaolumama_count', share_trades_count + xiaolumm_trades_count)
     statsd.timing('xiaolumm.postpay_from_direct_count', direct_count)
+
+
+@task()
+def task_schedule_check_teambuy():
+    _now = datetime.datetime.now()
+    for teambuy in TeamBuy.objects.filter(limit_time__lt=_now, status=0):
+        if teambuy.details.count() >= teambuy.limit_person_num:
+            teambuy.trigger_saleorder()
+            teambuy.set_status_success()
+        else:
+            teambuy.set_status_failed()
