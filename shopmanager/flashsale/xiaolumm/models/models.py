@@ -1272,10 +1272,14 @@ def update_mama_relationship(sender, instance, created, **kwargs):
 
     ship = ReferalRelationship.objects.filter(referal_to_mama_id=instance.potential_mama).first()  # 推荐关系记录
     if not ship:  # 没有推荐关系 则新建
-        ship = ReferalRelationship.create_relationship_by_potential(instance, order_id=order_id)
-        sys_oa = get_systemoa_user()
-        log_action(sys_oa, ship, CHANGE, u'通过潜在关系创建推荐关系记录')
-        return
+        try:
+            ship = ReferalRelationship.create_relationship_by_potential(instance, order_id=order_id)
+            sys_oa = get_systemoa_user()
+            log_action(sys_oa, ship, CHANGE, u'通过潜在关系创建推荐关系记录')
+            return
+        except Exception as exc:
+            logger.info({"action": 'update_mama_relationship', 'potential_mama': instance.id, 'message': exc.message})
+            return
     # 否则更新
     ship.update_referal_type_and_oid(instance.last_renew_type, order_id)
 
