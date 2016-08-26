@@ -130,7 +130,7 @@ class ProductAdmin(ApproxAdmin):
     list_display = ('id', 'outer_id_link', 'pic_link', 'collect_num',
                     'category_select', 'remain_num', 'wait_post_num',
                     'lock_num', 'wait_receive_num', 'cost', 'std_sale_price',
-                    'agent_price', 'model_id', 'sync_stock', 'is_watermark',
+                    'agent_price', 'modelproduct_link', 'sync_stock', 'is_watermark',
                     'sale_time_select', 'sale_charger', 'ware_select',
                     'district_link', 'shelf_status')  # 'charger_select',
 
@@ -230,15 +230,18 @@ class ProductAdmin(ApproxAdmin):
     wait_receive_num.allow_tags = True
     wait_receive_num.short_description = u"在途数"
 
+    def modelproduct_link(self, obj):
+        return '<a href="%s" target="_blank">%s</a>'%('/admin/pay/modelproduct/%s/'%obj.model_id, obj.model_id)
+
+    modelproduct_link.allow_tags = True
+    modelproduct_link.short_description = u"款式ID"
+
     def category_select(self, obj):
-
         categorys = self.category_list
-
         cat_list = ["<select class='category_select' pid='%s'>" % obj.id]
         cat_list.append("<option value=''>-------------</option>")
 
         for cat in categorys:
-
             if obj.category and obj.category.cid == cat.cid:
                 cat_list.append("<option value='%s' selected>%s</option>" %
                                 (cat.cid, cat))
