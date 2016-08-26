@@ -175,6 +175,11 @@ class SaleSupplier(models.Model):
             self._supplier_zone_ = SupplierZone.objects.filter(id=self.supplier_zone).first()
         return self._supplier_zone_
 
+    def get_products(self):
+        from shopback.items.models import Product
+        sale_products = [sp.id for sp in self.supplier_products.all()]
+        return Product.objects.filter(sale_product__in=sale_products)
+
 
 class SupplierCharge(models.Model):
     """ 供应商接管信息表　"""
