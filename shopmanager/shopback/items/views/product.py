@@ -171,7 +171,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(u"请选择正确分类")
         saleways = content.get("saleways")
         teambuy = False
-        if saleways and 2 in saleways or '2' in saleways:
+        if saleways and (2 in saleways or '2' in saleways):
             teambuy = True
             teambuy_price = int(content.get("teambuy_price"))
         count = Product.objects.filter(outer_id__startswith=outer_id).count() or 1
