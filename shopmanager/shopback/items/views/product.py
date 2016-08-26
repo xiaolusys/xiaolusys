@@ -161,6 +161,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
             52: '5',
             44: '7',
             8: '8',
+            49: '4',
         }
         if category_maps.has_key(category_item.parent_cid):
             outer_id = category_maps.get(category_item.parent_cid) + str(category_item.cid) + "%05d" % supplier.id
