@@ -1,2 +1,2 @@
 from serializers import *
-from .xiaolumm import MamaMissionRecordSerializer, MamaMissionSerializer
+from .xiaolumm import MamaMissionRecordSerializer, MamaMissionSerializer, GroupMissionRecordSerializer

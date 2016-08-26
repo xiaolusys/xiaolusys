@@ -1108,10 +1108,16 @@ def task_mama_postphone_renew_time_by_active():
                                       charge_status=XiaoluMama.CHARGED)
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     for mama in mamas:
-        if ActiveValue.objects.filter(mama_id=mama.id, date_field=yesterday).exists():
-            if isinstance(mama.renew_time, datetime.datetime):
-                mama.renew_time = mama.renew_time + datetime.timedelta(days=1)
-                mama.save(update_fields=['renew_time'])
+        try:
+            if ActiveValue.objects.filter(mama_id=mama.id, date_field=yesterday).exists():
+                if isinstance(mama.renew_time, datetime.datetime):
+                    mama.renew_time = mama.renew_time + datetime.timedelta(days=1)
+                    mama.save(update_fields=['renew_time'])
+        except Exception as exc:
+            logger.info({'action': 'task_mama_postphone_renew_time_by_active',
+                         'mama_id': mama.id,
+                         'message': exc.message})
+            continue
 
 
 @task()
@@ -1147,3 +1153,40 @@ def task_update_trial_mama_full_member_by_condition(mama):
             potential.is_full_member = True
             potential.save(update_fields=['is_full_member'])
             log_action(sys_oa, potential, CHANGE, u'满足转正条件,转为正式妈妈')
+
+
+@task()
+def task_update_mama_agency_level_in_condition(date=None):
+    """
+    1. 邀请正式总数4个（含4个）
+    2. 单周销售额超过100的代理
+    满足1 and 2  才升级代理等级
+    """
+
+    from flashsale.xiaolumm.models import MamaFortune, OrderCarry
+    from django.db.models import Sum
+
+    if not date:
+        date = datetime.date.today() - datetime.timedelta(days=1)
+    days = date.weekday()
+    monday_date = date - datetime.timedelta(days=days)
+    sunday_date = monday_date + datetime.timedelta(days=6)
+
+    xlmms = XiaoluMama.objects.filter(agencylevel=XiaoluMama.A_LEVEL, charge_status=XiaoluMama.CHARGED)
+    invite_gte4_mamaid = MamaFortune.objects.filter(mama_id__in=xlmms.values('id'), invite_num__gte=4).values('mama_id')
+    past_week_order_value = OrderCarry.objects.filter(
+        mama_id__in=invite_gte4_mamaid,
+        date_field__gte=monday_date,
+        date_field__lte=sunday_date,
+        status__in=[OrderCarry.ESTIMATE,
+                    OrderCarry.CONFIRM]).values('mama_id').annotate(
+        s_order_value=Sum('order_value'))
+    week_order_value_gte100 = [x['mama_id'] for x in past_week_order_value if x['s_order_value'] > 10000]
+
+    condition_mama_ids = set(week_order_value_gte100)
+    log_ids = ','.join([str(i) for i in condition_mama_ids])
+    logger.info({'action': 'task_update_mama_agency_level_in_condition',
+                'condition_mama_ids': log_ids})
+
+    xlmms = XiaoluMama.objects.filter(id__in=condition_mama_ids, agencylevel=XiaoluMama.A_LEVEL)
+    xlmms.update(agencylevel=XiaoluMama.VIP_LEVEL)

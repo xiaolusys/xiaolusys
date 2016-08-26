@@ -25,6 +25,7 @@ from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, A
     AwardCarry, ReferalRelationship, GroupRelationship, UniqueVisitor, DailyStats
 
 from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
+from flashsale.push.models_message import PushMsgTpl
 
 from .. import serializers
 
@@ -220,6 +221,17 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
       - 1 : Web直接订单,
       - 2 : App订单,
       - 3 :下属订单,
+
+    ### GET /rest/v2/ordercarry/get_latest_order_carry 获取所有用户最近２０条订单收益记录
+    - Response
+    ```
+    [
+         {
+        "content": "子飞@小鹿美美收到一笔收益0.81元",
+        "avatar": "http://wx.qlogo.cn/m"
+        },
+    ]
+    ```
     """
     paginate_by = 10
     page_query_param = 'page'
@@ -240,7 +252,6 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
 
             visit_tab = MamaTabVisitStats.TAB_ORDER_CARRY
             task_mama_daily_tab_visit_stats.delay(mama_id, visit_tab)
-            #logger.error('OrderCarryViewSet|mama_id:%s, type: %s' % (mama_id, visit_tab))
 
             return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
 
@@ -260,13 +271,38 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         datalist = self.get_owner_queryset(request, carry_type, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
 
-        ### find from_date and end_date in datalist
+        # find from_date and end_date in datalist
         mama_id, from_date, end_date = None, 0, 0
         if len(datalist) > 0:
             sum_field = 'carry_num'
             add_day_carry(datalist, self.queryset, sum_field, exclude_statuses=exclude_statuses)
         serializer = serializers.OrderCarrySerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @list_route(methods=['GET'])
+    def get_latest_order_carry(self, request, *args, **kwargs):
+        ordercarrys = self.queryset.filter().order_by('-created')[:20]
+        items = []
+        msgtpl = PushMsgTpl.objects.filter(id=12, is_valid=True).first()
+
+        if not msgtpl:
+            return Response([])
+
+        for ordercarry in ordercarrys:
+            try:
+                mama = XiaoluMama.objects.filter(id=ordercarry.mama_id).first()
+                customer = mama.get_customer()
+                money = '%.2f' % ordercarry.carry_num_display()
+                nick = customer.nick
+                content = msgtpl.get_emoji_content().format(nick=nick[:8], money=money)
+            except Exception:
+                continue
+
+            items.append({
+                'content': content,
+                'avatar': customer.thumbnail,
+            })
+        return Response(items)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')

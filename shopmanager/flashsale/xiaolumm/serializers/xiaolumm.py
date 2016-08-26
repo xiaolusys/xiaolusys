@@ -17,3 +17,13 @@ class MamaMissionRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = MamaMissionRecord
         fields = ('id', 'mission', 'mama_id', 'year_week', 'finish_value', 'finish_time', 'status', 'status_name')
+
+class GroupMissionRecordSerializer(serializers.ModelSerializer):
+
+    mission = MamaMissionSerializer(read_only=True)
+    status_name = serializers.CharField(source='get_status_display', read_only=True)
+    group_finish_value = serializers.IntegerField(source='get_group_finish_value', read_only=True)
+
+    class Meta:
+        model = MamaMissionRecord
+        fields = ('id', 'mission', 'mama_id', 'year_week', 'finish_value', 'group_finish_value', 'finish_time', 'status', 'status_name')

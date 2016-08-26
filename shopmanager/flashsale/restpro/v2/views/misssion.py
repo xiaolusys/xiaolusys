@@ -55,7 +55,7 @@ class MamaMissionRecordViewset(viewsets.ModelViewSet):
         queryset    = self.get_queryset().filter(mama_id=xiaolumama.id, year_week=year_week)
 
         personal_missions = queryset.filter(mission__target=MamaMission.TARGET_PERSONAL)
-        group_missions = queryset.filter(mission__target=MamaMission.TARGET_GROUP)
+        group_missions    = queryset.filter(mission__target=MamaMission.TARGET_GROUP)
         staging_awards_list = queryset.filter(status=MamaMissionRecord.STAGING)\
             .values_list('mission__award_amount', flat=True)
 
@@ -63,7 +63,7 @@ class MamaMissionRecordViewset(viewsets.ModelViewSet):
             'staging_award_count': len(staging_awards_list),
             'staging_award_amount': sum(staging_awards_list),
             'personal_missions': self.get_serializer(personal_missions, many=True).data ,
-            'group_missions': self.get_serializer(group_missions, many=True).data
+            'group_missions': serializers.GroupMissionRecordSerializer(group_missions, many=True).data
         }
 
         return Response(response_data)

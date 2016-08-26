@@ -89,8 +89,8 @@ class MamaMission(BaseModel):
     class Meta:
         db_table = 'flashsale_xlmm_mission'
         app_label = 'xiaolumm'
-        verbose_name = u'V2/妈妈激励任务'
-        verbose_name_plural = u'V2/妈妈激励任务列表'
+        verbose_name = u'V2/妈妈周激励任务'
+        verbose_name_plural = u'V2/妈妈周激励任务列表'
 
     def is_receivable(self):
         """ 任务是否可以接收 """
@@ -128,8 +128,8 @@ class MamaMissionRecord(BaseModel):
         db_table = 'flashsale_xlmm_missionrecord'
         index_together = [('mama_id', 'year_week', 'mission')]
         app_label = 'xiaolumm'
-        verbose_name = u'V2/妈妈激励任务记录'
-        verbose_name_plural = u'V2/妈妈激励任务记录列表'
+        verbose_name = u'V2/妈妈周激励任务记录'
+        verbose_name_plural = u'V2/妈妈周激励任务记录列表'
 
     def save(self, *args, **kwargs):
         if not self.uni_key:
@@ -148,6 +148,16 @@ class MamaMissionRecord(BaseModel):
     def is_staging(self):
         return self.status == self.STAGING
 
+    def get_group_finish_value(self):
+        if self.mission.target != MamaMission.TARGET_GROUP:
+            return 0
+        if not hasattr(self, '_group_finish_value_'):
+            group_records = MamaMissionRecord.objects.filter(group_leader_mama_id=self.group_leader_mama_id,
+                                                             mission=self.mission,
+                                                             year_week=self.year_week)
+            self._group_finish_value_ = sum(group_records.values_list('finish_value', flat=True))
+        return self._group_finish_value_
+
     def update_mission_value(self, finish_value):
         # TODO@meron 如果任务中订单金额退款，任务完成状态需要变更？
         self.finish_value = int(finish_value)
@@ -155,12 +165,14 @@ class MamaMissionRecord(BaseModel):
         if self.finish_value >= self.mission.target_value and self.is_staging():
             self.status = self.FINISHED
             self.finish_time = datetime.datetime.now()
+
         elif cur_year_week > self.year_week and self.is_staging():
             self.status = self.CLOSE
             self.finish_time = None
         self.save(update_fields=['finish_value', 'status', 'finish_time'])
 
         # TODO@meron 如果已通过添加佣金奖励记录
+
 
 
 from flashsale.xiaolumm.signals import signal_xiaolumama_register_success
@@ -170,24 +182,25 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
     """ 妈妈注册成功更新推荐妈妈激励状态 """
     try:
         logger.debug('mama_register_update_mission_record start: mama=%s, renew=%s'%(xiaolumama, renew))
-        from flashsale.xiaolumm.models import XiaoluMama, ReferalRelationship, PotentialMama
+        from flashsale.xiaolumm.models import XiaoluMama, ReferalRelationship, PotentialMama, GroupRelationship
         parent_mama_ids = xiaolumama.get_parent_mama_ids()
         if not parent_mama_ids or renew:
             return
+
         parent_mama_id = parent_mama_ids[0]
         week_start, week_end = week_range(xiaolumama.charge_time.date())
         year_week = xiaolumama.charge_time.strftime('%Y-%W')
+
+        base_missions = MamaMissionRecord.objects.filter(year_week=year_week, mama_id=parent_mama_id)
         if xiaolumama.last_renew_type == XiaoluMama.TRIAL:
             # 一元妈妈邀请数
             total_mama_count = PotentialMama.objects.filter(
                 created__range=(week_start, week_end),
                 referal_mama=parent_mama_id) \
                 .aggregate(mama_count=Count('potential_mama')).get('mama_count')
-            mission_record = MamaMissionRecord.objects.filter(
+            mission_record = base_missions.filter(
                 mission__target=MamaMission.TARGET_PERSONAL,
                 mission__cat_type= MamaMission.CAT_TRIAL_MAMA, # MamaMission.CAT_REFER_MAMA,
-                year_week=year_week,
-                mama_id=parent_mama_id
             ).order_by('-status').first()
             if mission_record:
                 mission_record.update_mission_value(total_mama_count)
@@ -198,14 +211,16 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
                 status=ReferalRelationship.VALID,
                 referal_from_mama_id=parent_mama_id)\
                 .aggregate(mama_count=Count('referal_to_mama_id')).get('mama_count')
-            mission_record = MamaMissionRecord.objects.filter(
+            mission_record = base_missions.filter(
                 mission__target=MamaMission.TARGET_PERSONAL,
-                mission__cat_type=MamaMission.CAT_REFER_MAMA,
-                year_week=year_week,
-                mama_id=parent_mama_id
+                mission__cat_type=MamaMission.CAT_REFER_MAMA
             ).order_by('-status').first()
             if mission_record:
                 mission_record.update_mission_value(total_mama_count)
+
+        from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
+        task_create_or_update_mama_mission_state.delay(parent_mama_id)
+
         logger.debug('mama_register_update_mission_record end: %s' % xiaolumama)
     except Exception, exc:
         logger.error('mama_register_update_mission_record error: mama_id=%s, %s'%(xiaolumama.id ,exc), exc_info=True)
@@ -217,8 +232,8 @@ signal_xiaolumama_register_success.connect(mama_register_update_mission_record,
 def order_payment_update_mission_record(sender, obj, *args, **kwargs):
 
     try:
-        logger.debug('order_payment_update_mission_record start: saletrade= %s' % obj.tid)
-        from flashsale.xiaolumm.models import XiaoluMama, OrderCarry
+        logger.debug('order_payment_update_mission_record start: tid= %s' % obj.tid)
+        from flashsale.xiaolumm.models import XiaoluMama, OrderCarry, GroupRelationship
         from flashsale.pay.models import SaleOrder
 
         order_ids = SaleOrder.objects.filter(sale_trade=obj).values_list('oid', flat=True)
@@ -234,19 +249,20 @@ def order_payment_update_mission_record(sender, obj, *args, **kwargs):
         week_order_carrys = OrderCarry.objects.filter(
             date_field__range=(week_start, week_end), mama_id=mama_id,
             status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM))
-
         week_order_payment = sum(week_order_carrys.values_list('order_value', flat=True))
+
+        base_missions = MamaMissionRecord.objects.filter(year_week=year_week, mama_id=mama_id)
         # update all mission's finish_value of the week range
-        mission_records = MamaMissionRecord.objects.filter(
-            mission__target=MamaMission.TARGET_PERSONAL,
-            mission__kpi_type=MamaMission.KPI_AMOUNT,
-            year_week=year_week,
-            mama_id=mama_id
+        personal_records = base_missions.filter(
+            mission__cat_type__in=(MamaMission.CAT_SALE_MAMA, MamaMission.CAT_SALE_GROUP)
         )
-        for record in mission_records:
+        for record in personal_records:
             record.update_mission_value(week_order_payment)
 
-        logger.debug('order_payment_update_mission_record end: saletrade= %s' % obj.tid)
+        from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
+        task_create_or_update_mama_mission_state.delay(mama_id)
+
+        logger.debug('order_payment_update_mission_record end: tid= %s' % obj.tid)
     except Exception, exc:
         logger.error('order_payment_update_mission_record error: tid=%s, %s' % (obj.tid, exc), exc_info=True)
 
