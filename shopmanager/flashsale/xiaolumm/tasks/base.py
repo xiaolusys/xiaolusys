@@ -1191,6 +1191,16 @@ def task_update_mama_agency_level_in_condition(yesterday=None):
         'condition_mama_ids': log_ids
     })
     xlmms = XiaoluMama.objects.filter(id__in=condition_mama_ids, agencylevel=XiaoluMama.A_LEVEL)
-    xlmms.update(agencylevel=XiaoluMama.VIP_LEVEL)
-
+    sys_oa = get_systemoa_user()
+    for xlmm in xlmms:
+        try:
+            state = xlmm.upgrade_agencylevel_by_invite_and_payment()
+            if state:
+                log_action(sys_oa, xlmm, CHANGE, u'代理满足邀请人数和销售额条件升级')
+        except Exception as exc:
+            logger.info({
+                'action': 'task_update_mama_agency_level_in_condition',
+                'mama_id': xlmm.id,
+                'message': exc.message})
+            continue
 
