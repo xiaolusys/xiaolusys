@@ -1261,6 +1261,13 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
+    u'定时检查小鹿妈妈邀请销售额升级': {
+        'task': 'flashsale.xiaolumm.tasks.task_update_mama_agency_level_in_condition',
+        'schedule': crontab(minute="45", hour="2"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
     u'定时检查小鹿妈妈续费状态': {
         'task': 'flashsale.xiaolumm.tasks.task_period_check_mama_renew_state',
         'schedule': crontab(minute="45", hour="4"),

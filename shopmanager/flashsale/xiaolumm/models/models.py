@@ -631,6 +631,15 @@ class XiaoluMama(models.Model):
         self.save(update_fields=['agencylevel'])
         return True
 
+    def upgrade_agencylevel_by_invite_and_payment(self):
+        """ 邀请数量和销售额升级 """
+        if self.agencylevel != XiaoluMama.A_LEVEL:
+            return False
+        else:
+            self.agencylevel = XiaoluMama.VIP_LEVEL
+            self.save(update_fields=['agencylevel'])
+            return True
+
     def next_agencylevel_info(self):
         level_map = {
             XiaoluMama.INNER_LEVEL: (XiaoluMama.A_LEVEL, XiaoluMama.AGENCY_LEVEL[2][1]),
