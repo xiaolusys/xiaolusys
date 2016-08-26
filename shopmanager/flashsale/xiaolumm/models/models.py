@@ -1307,7 +1307,7 @@ def send_invite_trial_weixin_push(sender, instance, created, **kwargs):
     if not created:
         return
     from flashsale.xiaolumm import tasks_mama_push
-    tasks_mama_push.task_weixin_push_invite_trial.delay(instance.referal_mama, instance.potential_mama)
+    tasks_mama_push.task_weixin_push_invite_trial.delay(instance)
 
 post_save.connect(send_invite_trial_weixin_push,
                   sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_weixin_push')
