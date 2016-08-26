@@ -1647,7 +1647,7 @@ class PackageOrder(models.Model):
         if not self.is_sent():
             if self.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).exists():
                 self.set_redo_sign(save_data=False, action='is_picking_print')
-                self.reset_sku_item_num(save_data=True)
+                self.reset_sku_item_num()
                 self.set_package_address()
                 self.set_logistics_company()
             else:
