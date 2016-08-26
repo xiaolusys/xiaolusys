@@ -48,6 +48,8 @@ def task_schedule_update_carry_total_ranking():
         WeekMamaCarryTotal.reset_duration_rank(WeekRank.last_week_time())
     WeekMamaCarryTotal.reset_rank()
     WeekMamaCarryTotal.reset_rank_duration()
+    MamaCarryTotal.reset_de_rank()
+    MamaCarryTotal.reset_activite_rank()
 
 
 @task()
@@ -58,6 +60,8 @@ def task_schedule_update_team_carry_total_ranking():
         WeekMamaTeamCarryTotal.reset_duration_rank(WeekRank.last_week_time())
     WeekMamaTeamCarryTotal.reset_rank()
     WeekMamaTeamCarryTotal.reset_rank_duration()
+    MamaTeamCarryTotal.reset_de_rank()
+    MamaTeamCarryTotal.reset_activite_rank()
 
 
 @single_instance_task(timeout=TIMEOUT, prefix='flashsale.xiaolumm.tasks_mama_carry_total.')

@@ -34,10 +34,11 @@ class ModelProductSerializer(serializers.ModelSerializer):
     extras = serializers.SerializerMethodField()
     sku_info = serializers.SerializerMethodField()
     custom_info = serializers.SerializerMethodField()
+    teambuy_info = serializers.SerializerMethodField()
 
     class Meta:
         model = ModelProduct
-        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras', 'custom_info') #
+        fields = ('id', 'detail_content', 'sku_info', 'comparison', 'extras', 'custom_info', 'teambuy_info') #
 
     def get_detail_content(self, obj):
         content = obj.detail_content
@@ -72,3 +73,11 @@ class ModelProductSerializer(serializers.ModelSerializer):
         favorite = Favorites.objects.filter(customer=customer, model=obj)
         return {'is_favorite': favorite and True or False}
 
+    def get_teambuy_info(self, obj):
+        if not obj.is_teambuy:
+            return {'teambuy': False}
+        return {
+            'teambuy':True,
+            'teambuy_price': obj.teambuy_price,
+            'teambuy_person_num': obj.teambuy_person_num
+        }

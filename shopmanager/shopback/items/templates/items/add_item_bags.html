@@ -204,6 +204,28 @@
                 </tbody>
             </table>
         </div>
+        <div class="panel-body panel-form">
+            <div class="row">
+                <label>售卖方式</label>
+            </div>
+            <div class="row">
+                <label class="checkbox-inline">
+                    <input type="checkbox" class="saleway-choose" checked="checked" value="1">特卖
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" class="saleway-choose" value="2">团购
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" class="saleway-choose" value="3">秒杀
+                </label>
+            </div>
+            <div class="row teambuy-div" style="display:none">
+                <label>团购价</label>
+                <input class="teambuy-price" name="teambuy_price">
+                <label>团购人数</label>
+                <label>3</label>
+            </div>
+        </div>
         <div class="panel-footer">
             <button id="submit" class="btn btn-primary create_product" >生成新款</button>
         </div>
@@ -264,6 +286,7 @@
 <script type="text/javascript" src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}script/main.js"></script>
 <script>
+var saleways=[];
 function setCategorys(){
     var urlParams = parseUrlParams(window.location.href);
     supplier_id = urlParams["supplier_id"];
@@ -311,7 +334,20 @@ function dynamicGenerateColor() {
         $('input[id$=agentprice]').val($(this).val());
     });
 }
-
+function dynamicGenerateSaleWay(){
+    var all_saleway = $("input.saleway-choose:checked"),
+        count = 0;
+    saleways = [];
+    $.each(all_saleway, function (index, saleway) {
+        console.log(saleway.defaultValue);
+        saleways.push(saleway.defaultValue);
+    });
+    if (saleways.indexOf("2")>=0){
+        $(".teambuy-div").show();
+    }else{
+        $(".teambuy-div").hide();
+    }
+}
 function getColorValues(){
     var $colorsTr = $('tr.color-data'),
         colorObjList = [];
@@ -349,6 +385,9 @@ $(function(){
     $('input.color-choose').click(function(){
         dynamicGenerateColor();
     })
+    $('input.saleway-choose').click(function(){
+        dynamicGenerateSaleWay();
+    })
 
     setCategorys();
 
@@ -378,6 +417,7 @@ $(function(){
             return;
         }
         params.products = colorObjs;
+        params.saleways = saleways;
         $('.create_product').attr('disabled',true);
         $.ajax({
             type:'post',

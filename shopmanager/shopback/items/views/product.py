@@ -155,7 +155,11 @@ class ProductManageViewSet(viewsets.ModelViewSet):
             outer_id = "100" + "%05d" % supplier.id
         else:
             raise exceptions.APIException(u"请选择正确分类")
-
+        saleways = content.get("saleways")
+        teambuy = False
+        if saleways and 2 in saleways or '2' in saleways:
+            teambuy = True
+            teambuy_price = int(content.get("teambuy_price"))
         count = Product.objects.filter(outer_id__startswith=outer_id).count() or 1
         inner_outer_id = outer_id + "%03d" % count
         while True:
@@ -193,6 +197,9 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                     lowest_std_sale_price=round(min([float(p['std_sale_price']) for p in products_data]), 2),
                     extras=extras,
                 )
+                if teambuy:
+                    model_pro.is_teambuy = True
+                    model_pro.teambuy_price = teambuy_price
                 model_pro.save()
                 log_action(creator.id, model_pro, ADDITION, u'新建一个modelproduct new')
                 pro_count = 1

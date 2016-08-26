@@ -72,15 +72,17 @@ class SaleTrade(BaseModel):
     POSTPAY = 1
     TRADE_TYPE_CHOICES = (
         (PREPAY, u"在线支付"),
-        (POSTPAY, "货到付款"),
+        (POSTPAY, u"货到付款"),
     )
 
     SALE_ORDER = 0
     RESERVE_ORDER = 1
     DEPOSITE_ORDER = 2
+    TEAMBUY_ORDER = 3
     ORDER_TYPE_CHOICES = (
         (SALE_ORDER, u"特卖订单"),
         (RESERVE_ORDER, u"预订制"),
+        (TEAMBUY_ORDER, u"团购订单"),
         (DEPOSITE_ORDER, u"押金订单"),
     )
 
@@ -414,7 +416,7 @@ class SaleTrade(BaseModel):
         new_sale_order = old_sale_order
         new_sale_order.id = None
         cnt = self.sale_orders.count()
-        new_sale_order.oid = '%s-%s' % (old_sale_order.oid, str(cnt))
+        new_sale_order.oid = '%s-%s' % (old_sale_order.oid.split('-')[0], str(cnt))
         new_sale_order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
         new_sale_order.sku_id = sku_id
         product = sku.product
@@ -684,6 +686,15 @@ signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
 signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)
 
 
+def update_teambuy(sender, instance, created, **kwargs):
+    if instance.order_type == SaleTrade.TEAMBUY_ORDER and instance.pay_time:
+        from flashsale.pay.models import TeamBuy, TeamBuyDetail
+        if not TeamBuyDetail.objects.filter(tid=instance.tid).first():
+            TeamBuy.create_or_join(instance)
+
+post_save.connect(update_teambuy, sender=SaleTrade, dispatch_uid='post_save_saletrade_update_teambuy')
+
+
 def default_oid():
     return uniqid('%s%s' % (SaleOrder.PREFIX_NO, datetime.date.today().strftime('%y%m%d')))
 
@@ -825,8 +836,34 @@ class SaleOrder(PayBaseModel):
             return False
         return True
 
-    def do_refund(self):
-        pass
+    def do_refund(sale_order, reason=' '):
+        sale_trader = sale_order.sale_trade  # 退款sale_trade对象
+        # 在saleorder订单状态为已经付款情况下，生成退款单salerefund，把退款单id 退款和退款状态赋值给sale_order中的三个字段
+        s = SaleRefund(
+            trade_id=sale_order.sale_trade.id,
+            order_id=sale_order.id,
+            buyer_id=sale_order.buyer_id,
+            item_id=sale_order.item_id,
+            charge=sale_trader.charge,
+            channel=sale_trader.channel,
+            sku_id=sale_order.sku_id,
+            sku_name=sale_order.sku_name,
+            refund_num=sale_order.num,
+            buyer_nick=sale_trader.buyer_nick,
+            mobile=sale_trader.receiver_mobile,
+            phone=sale_trader.receiver_mobile,
+            total_fee=sale_order.total_fee,
+            payment=sale_order.payment,
+            refund_fee=sale_order.payment,
+            title=sale_order.title,
+            reason=reason,
+            good_status=SaleRefund.SELLER_OUT_STOCK,
+            status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
+        s.save()
+        sale_order.refund_id = s.id
+        sale_order.refund_fee = sale_order.payment
+        sale_order.save(update_fields=['refund_id', 'refund_fee'])
+        return s
 
     def is_finishable(self):
         """
@@ -1021,7 +1058,9 @@ post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order
 
 def update_package_sku_item(sender, instance, created, **kwargs):
     """ 更新PackageSkuItem状态 """
-    if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and not instance.is_deposit():
+    # if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and not instance.is_deposit():
+    if instance.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and \
+                    instance.sale_trade.order_type == SaleTrade.SALE_ORDER:
         from flashsale.pay.tasks import task_saleorder_update_package_sku_item
         task_saleorder_update_package_sku_item.delay(instance)
 

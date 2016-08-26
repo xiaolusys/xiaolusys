@@ -242,6 +242,7 @@ class OrderListAdmin(admin.ModelAdmin):
             psis_total = 0
             # sku_ids = [pd.sku_id for pd in pds]
             # PackageSkuItem.objects.filter(sku_id__in=sku_ids,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
+            orderlist.purchase_order_unikey
             for pd in pds:
                 psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED,
                                                         purchase_order_unikey='').aggregate(total=Sum('num'))
@@ -264,7 +265,7 @@ class OrderListAdmin(admin.ModelAdmin):
                             user_id=request.user.id, receive_account='', receive_name='',
                             pay_taobao_link='', transcation_no='')
                 self.message_user(request, str(p.id) + u'订货单已成功进入结算!')
-            if p.stage < OrderList.STAGE_CHECKED:
+            elif p.stage < OrderList.STAGE_CHECKED:
                 p.set_stage_verify()
                 log_action(request.user.id, p, CHANGE, u'审核订货单')
                 self.message_user(request, u'已成功审核!')
