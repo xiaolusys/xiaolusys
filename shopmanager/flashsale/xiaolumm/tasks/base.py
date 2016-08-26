@@ -1156,7 +1156,7 @@ def task_update_trial_mama_full_member_by_condition(mama):
 
 
 @task()
-def task_update_mama_agency_level_in_condition(yesterday=None):
+def task_update_mama_agency_level_in_condition(date=None):
     """
     1. 邀请正式总数4个（含4个）
     2. 单周销售额超过100的代理
@@ -1166,15 +1166,16 @@ def task_update_mama_agency_level_in_condition(yesterday=None):
     from flashsale.xiaolumm.models import MamaFortune, OrderCarry
     from django.db.models import Sum
 
-    invite_res = MamaFortune.objects.values('mama_id', 'invite_num')
-    invite_res_gte4 = [i['mama_id'] for i in invite_res if i['invite_num'] >= 4]
-    if not yesterday:
-        yesterday = datetime.date.today() - datetime.timedelta(days=1)
-    days = yesterday.weekday()
-    monday_date = yesterday - datetime.timedelta(days=days)
+    if not date:
+        date = datetime.date.today() - datetime.timedelta(days=1)
+    days = date.weekday()
+    monday_date = date - datetime.timedelta(days=days)
     sunday_date = monday_date + datetime.timedelta(days=6)
 
+    xlmms = XiaoluMama.objects.filter(agencylevel=XiaoluMama.A_LEVEL, charge_status=XiaoluMama.CHARGED)
+    invite_gte4_mamaid = MamaFortune.objects.filter(mama_id__in=xlmms.values('id'), invite_num__gte=4).values('mama_id')
     past_week_order_value = OrderCarry.objects.filter(
+        mama_id__in=invite_gte4_mamaid,
         date_field__gte=monday_date,
         date_field__lte=sunday_date,
         status__in=[OrderCarry.ESTIMATE,
@@ -1182,25 +1183,10 @@ def task_update_mama_agency_level_in_condition(yesterday=None):
         s_order_value=Sum('order_value'))
     week_order_value_gte100 = [x['mama_id'] for x in past_week_order_value if x['s_order_value'] > 10000]
 
-    s1 = set(invite_res_gte4)
-    s2 = set(week_order_value_gte100)
-    condition_mama_ids = s1 & s2
+    condition_mama_ids = set(week_order_value_gte100)
     log_ids = ','.join([str(i) for i in condition_mama_ids])
-    logger.info({
-        'action': 'task_update_mama_agency_level_in_condition',
-        'condition_mama_ids': log_ids
-    })
-    xlmms = XiaoluMama.objects.filter(id__in=condition_mama_ids, agencylevel=XiaoluMama.A_LEVEL)
-    sys_oa = get_systemoa_user()
-    for xlmm in xlmms:
-        try:
-            state = xlmm.upgrade_agencylevel_by_invite_and_payment()
-            if state:
-                log_action(sys_oa, xlmm, CHANGE, u'代理满足邀请人数和销售额条件升级')
-        except Exception as exc:
-            logger.info({
-                'action': 'task_update_mama_agency_level_in_condition',
-                'mama_id': xlmm.id,
-                'message': exc.message})
-            continue
+    logger.info({'action': 'task_update_mama_agency_level_in_condition',
+                'condition_mama_ids': log_ids})
 
+    xlmms = XiaoluMama.objects.filter(id__in=condition_mama_ids, agencylevel=XiaoluMama.A_LEVEL)
+    xlmms.update(agencylevel=XiaoluMama.VIP_LEVEL)
