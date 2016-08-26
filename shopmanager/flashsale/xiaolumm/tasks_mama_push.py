@@ -145,6 +145,7 @@ def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
     # 当前妈妈目前推荐正式妈妈可获奖金
     from flashsale.xiaolumm import utils
     rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=referal_mama_id).count()
+    rr_cnt += 1
     carry_num = utils.get_award_carry_num(rr_cnt, XiaoluMama.FULL)
     carry_num = carry_num * 0.01
 
