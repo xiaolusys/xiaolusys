@@ -109,16 +109,20 @@ def task_weixin_push_update_app(app_visit):
 
 
 @task
-def task_weixin_push_invite_trial(referal_mama_id, potential_mama_id):
+def task_weixin_push_invite_trial(potential_mama):
     from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship, AwardCarry
-
-    res = PotentialMama.objects.filter(referal_mama=referal_mama_id).values('is_full_member').annotate(n=Count('is_full_member'))
+    
+    referal_mama_id, potential_mama_id = potential_mama.referal_mama, potential_mama.potential_mama
+    
+    res = PotentialMama.objects.filter(referal_mama=referal_mama_id,created__lt=potential_mama.created).values('is_full_member').annotate(n=Count('is_full_member'))
     trial_num,convert_num = 0,0
     for entry in res:
         if entry['is_full_member'] == True:
             convert_num = entry['n']
         if entry['is_full_member'] == False:
             trial_num = entry['n']
+
+    trial_num += 1
     invite_num = trial_num + convert_num
 
     if invite_num < 2:
