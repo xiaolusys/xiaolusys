@@ -183,11 +183,35 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
 class SaleCategoryViewSet(viewsets.ModelViewSet):
     """
     ### 特卖/选品类目 API
-    - GET /apis/chain/v1/salescategory
-    - GET /apis/chain/v1/salescategory/[salecategory_id]
-    - POST /apis/chain/v1/salescategory
-    - PUT /apis/chain/v1/salescategory/[salecategory_id]
-    - DELETE /apis/chain/v1/salescategory/[salecategory_id]
+
+    #### GET /apis/chain/v1/salescategory  查询所有类目
+    - cid, 类目ID，选填（获取该类目所有子类目）
+
+    -----
+
+    #### GET /apis/chain/v1/salescategory/[cid] 查询单个类目（[cid]）
+
+    -----
+
+    #### POST /apis/chain/v1/salescategory  创建类目
+    - parent_cid, 父ID, 必填（一级类目填０）
+    - name, 名称,　必填
+    - cat_pic, 图片, 选填
+    - sort_order, 权重, 选填
+
+    -----
+
+    #### PUT /apis/chain/v1/salescategory/[cid] 修改类目
+    - parent_cid, 父ID, 必填（一级类目填０）
+    - name, 名称,　必填
+    - cat_pic, 图片, 选填
+    - sort_order, 权重, 选填
+
+    -----
+
+    #### DELETE /apis/chain/v1/salescategory/[cid]  删除类目
+
+    -----
     """
     queryset = SaleCategory.objects.all()
     serializer_class = serializers.SaleCategorySerializer
@@ -198,33 +222,46 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
     ordering_fields = '__all__'
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        cid = request.query_params.get('cid')
+        if cid:
+            items = SaleCategory.get_salecategory_jsontree()
+            for item in items:
+                if item.get('cid') == cid:
+                    return Response(item)
+        else:
+            items = SaleCategory.get_salecategory_jsontree()
+        return Response(items)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        salecategory = SaleCategory.objects.filter(cid=pk).first()
+        if salecategory:
+            serializer = serializers.SaleCategorySerializer(salecategory)
+            return Response(serializer.data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.SaleCategorySerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             serializer.save()
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, pk, format=None):
-        salecategory = SaleCategory.objects.filter(id=pk).first()
+    def destroy(self, request, pk, format=None):
+        salecategory = SaleCategory.objects.filter(cid=pk).first()
         if salecategory:
             salecategory.delete()
             log_action(request.user, salecategory, DELETION, u'删除分类')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def put(self, request, pk, format=None):
-        salecategory = SaleCategory.objects.filter(id=pk).first()
+    def update(self, request, pk, format=None):
+        salecategory = SaleCategory.objects.filter(cid=pk).first()
         if salecategory:
             serializer = serializers.SaleCategorySerializer(salecategory, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 log_action(request.user, salecategory, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
                 return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class SaleProductFilter(filters.FilterSet):
