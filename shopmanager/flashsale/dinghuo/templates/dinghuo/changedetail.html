@@ -374,15 +374,21 @@ function initActions(){
         <span class="label label-info" id=orderlist_id style="font-size: 20px">{{ orderlist.id }}</span>
         <div class="alert alert-success" role="alert">
             <strong>订货地址:</strong>
-            {% ifequal orderlist.p_district "3" %}
-            <p>广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼</p>
-            <p>小鹿美美{{ orderlist.id }}号工作人员< /p>
-            <p>15023333762</p>
-            {% else %}
-            <p>上海市松江区佘山镇吉业路245号5号楼</p>
-            <p>小鹿美美{{ orderlist.id }}号工作人员</p>
-            <p>021-37698479, 15026869609</p>
-            {% endifequal %}
+            {% if orderlist.third_package %}
+                <p>商家待发</p>
+                <p>小鹿美美{{ orderlist.id }}号工作人员</p>
+                <p>021-37698479, 15026869609</p>
+            {%else%}
+                {% ifequal orderlist.p_district "3" %}
+                <p>广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼</p>
+                <p>小鹿美美{{ orderlist.id }}号工作人员< /p>
+                <p>15023333762</p>
+                {% else %}
+                <p>上海市松江区佘山镇吉业路245号5号楼</p>
+                <p>小鹿美美{{ orderlist.id }}号工作人员</p>
+                <p>021-37698479, 15026869609</p>
+                {% endifequal %}
+            {%endif%}
         </div>
     </div>
     <div class="col-lg-8">

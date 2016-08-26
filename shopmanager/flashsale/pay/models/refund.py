@@ -20,7 +20,7 @@ from flashsale.pay.signals import signal_saletrade_refund_post
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS, REFUND_STATUS
 from flashsale.pay.managers import SaleRefundManager
-
+from shopback.warehouse.constants import WARE_THIRD
 from ..signals import signal_saletrade_refund_confirm
 from ..options import uniqid
 from .base import PayBaseModel
@@ -352,7 +352,7 @@ class SaleRefund(PayBaseModel):
     def get_return_address(self):
         """ 退货地址 """
         if self.status < self.REFUND_WAIT_RETURN_GOODS:
-            return '退货状态未确定'
+            return u'退货状态未确定'
         from shopback.warehouse.models import WareHouse
         from .trade import SaleOrder
         from shopback.items.models import Product
@@ -361,10 +361,12 @@ class SaleRefund(PayBaseModel):
             sproduct = Product.objects.filter(id=sorder.item_id).first()
             if sproduct:
                 ware_by = sproduct.ware_by
+                if ware_by == WARE_THIRD:
+                    ware_by = sproduct.get_supplier().return_ware_by
                 return WareHouse.objects.get(id=ware_by).address
         except WareHouse.DoesNotExist:
             logger.warn('order product ware_by not found:saleorder=%s' % sorder)
-        return '退货地址请咨询小鹿美美客服哦'
+        return u'退货地址请咨询小鹿美美客服哦'
 
     def get_refund_customer(self):
         """ 退款用户 """
