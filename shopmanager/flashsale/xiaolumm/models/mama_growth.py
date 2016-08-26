@@ -217,6 +217,7 @@ signal_xiaolumama_register_success.connect(mama_register_update_mission_record,
 def order_payment_update_mission_record(sender, obj, *args, **kwargs):
 
     try:
+        logger.debug('order_payment_update_mission_record start: saletrade= %s' % obj.tid)
         from flashsale.xiaolumm.models import XiaoluMama, OrderCarry
         from flashsale.pay.models import SaleOrder
 
@@ -244,9 +245,10 @@ def order_payment_update_mission_record(sender, obj, *args, **kwargs):
         )
         for record in mission_records:
             record.update_mission_value(week_order_payment)
-    except Exception, exc:
-        logger.error('order_payment_update_mission_record: tid=%s, %s' % (obj.tid, exc))
 
+        logger.debug('order_payment_update_mission_record end: saletrade= %s' % obj.tid)
+    except Exception, exc:
+        logger.error('order_payment_update_mission_record error: tid=%s, %s' % (obj.tid, exc), exc_info=True)
 
 
 signal_saletrade_pay_confirm.connect(order_payment_update_mission_record,
