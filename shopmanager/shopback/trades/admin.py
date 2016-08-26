@@ -1272,7 +1272,7 @@ admin.site.register(ReturnWuLiu, ReturnWuliuAdmin)
 
 class PackageOrderAdmin(admin.ModelAdmin):
     list_display = (
-    'pid', 'id', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile', 'receiver_address_info',
+    'pid', 'id_link', 'sys_status', 'type', 'out_sid', 'logistics_company_name', 'receiver_name', 'receiver_mobile', 'receiver_address_info',
     'payment', 'operator', 'is_picking_print', 'is_express_print', 'redo_sign',
     'is_send_sms', 'has_refund', 'ware_by', 'created', 'send_time', 'weight_time',
     'consign_time', 'weight', 'merge_trade_id')
@@ -1282,6 +1282,11 @@ class PackageOrderAdmin(admin.ModelAdmin):
     change_list_template = "admin/trades/package_change_list.html"
     ordering = ['-sys_status']
     list_per_page = 50
+
+    def id_link(self, obj):
+        return '/admin/trades/packageskuitem?package_order_pid=%d' % obj.pid
+    id_link.short_description = u'包裹码'
+    id_link.allow_tags = True
 
     def receiver_address_info(self, obj):
         return obj.receiver_address_detail
