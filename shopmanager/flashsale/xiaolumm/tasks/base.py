@@ -912,7 +912,7 @@ def task_unitary_mama(obj):
     nick = customer.nick if customer else ''
     thumbnail = customer.thumbnail if customer else ""
     if not protentialmama:
-        uni_key = '/'.join(str(xlmm.id) + '/' + str(mm_linkid))
+        uni_key = '/'.join([str(xlmm.id), str(mm_linkid)])
         protentialmama = PotentialMama(
             potential_mama=xlmm.id,
             referal_mama=int(mm_linkid),
