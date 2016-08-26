@@ -12,8 +12,8 @@ from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, Aw
 from django.core.cache import cache
 
 # 在下次活动前设置此处，以自动重设变更统计时间
-STAT_TIME = datetime.datetime(2016, 7, 29)
-STAT_END_TIME = datetime.datetime(2016, 8, 13)
+STAT_TIME = datetime.datetime(2016, 8, 26)
+STAT_END_TIME = datetime.datetime(2016, 9, 10)
 
 
 # if datetime.datetime.now() < datetime.datetime(2016, 7, 28) \
