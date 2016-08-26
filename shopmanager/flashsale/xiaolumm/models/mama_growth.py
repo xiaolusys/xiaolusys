@@ -174,44 +174,41 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
         parent_mama_ids = xiaolumama.get_parent_mama_ids()
         if not parent_mama_ids or renew:
             return
-
         parent_mama_id = parent_mama_ids[0]
         week_start, week_end = week_range(xiaolumama.charge_time.date())
         year_week = xiaolumama.charge_time.strftime('%Y-%W')
-
         if xiaolumama.last_renew_type == XiaoluMama.TRIAL:
             # 一元妈妈邀请数
             total_mama_count = PotentialMama.objects.filter(
                 created__range=(week_start, week_end),
                 referal_mama=parent_mama_id) \
-                .annotate(mama_count=Count('potential_mama')).values('mama_count').get('mama_count')
-
+                .aggregate(mama_count=Count('potential_mama')).get('mama_count')
             mission_record = MamaMissionRecord.objects.filter(
                 mission__target=MamaMission.TARGET_PERSONAL,
-                cat_type= MamaMission.CAT_TRIAL_MAMA, # MamaMission.CAT_REFER_MAMA,
+                mission__cat_type= MamaMission.CAT_TRIAL_MAMA, # MamaMission.CAT_REFER_MAMA,
                 year_week=year_week,
-                mama_id=parent_mama_ids
+                mama_id=parent_mama_id
             ).order_by('-status').first()
-            mission_record.update_mission_value(total_mama_count)
+            if mission_record:
+                mission_record.update_mission_value(total_mama_count)
         else:
             # 正式妈妈邀请数
             total_mama_count = ReferalRelationship.objects.filter(
                 created__range=(week_start, week_end),
                 status=ReferalRelationship.VALID,
                 referal_from_mama_id=parent_mama_id)\
-                .annotate(mama_count=Count('referal_to_mama_id')).values('mama_count').get('mama_count')
-
+                .aggregate(mama_count=Count('referal_to_mama_id')).get('mama_count')
             mission_record = MamaMissionRecord.objects.filter(
                 mission__target=MamaMission.TARGET_PERSONAL,
-                cat_type=MamaMission.CAT_REFER_MAMA,
+                mission__cat_type=MamaMission.CAT_REFER_MAMA,
                 year_week=year_week,
-                mama_id=parent_mama_ids
+                mama_id=parent_mama_id
             ).order_by('-status').first()
-            mission_record.update_mission_value(total_mama_count)
-
+            if mission_record:
+                mission_record.update_mission_value(total_mama_count)
         logger.debug('mama_register_update_mission_record end: %s' % xiaolumama)
     except Exception, exc:
-        logger.error('mama_register_update_mission_record error: mama_id=%s, %s'%(xiaolumama.id ,exc))
+        logger.error('mama_register_update_mission_record error: mama_id=%s, %s'%(xiaolumama.id ,exc), exc_info=True)
 
 signal_xiaolumama_register_success.connect(mama_register_update_mission_record,
                                            dispatch_uid='post_save_mama_register_update_mission_record')
