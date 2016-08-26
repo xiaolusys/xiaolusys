@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 import logging
-
+import datetime
 from celery.task import task
 from django.db import IntegrityError
 
@@ -173,7 +173,10 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
         sku_img = order.pic_path
 
         # We dont use pay_time, because when it gets created, it might not be paid.
-        date_field = order.created.date() 
+        if isinstance(order.pay_time, datetime.datetime):
+            date_field = order.pay_time.date()
+        else:
+            date_field = order.created.date()
 
         carry_description = util_description.get_ordercarry_description(via_app=via_app)
         customer = Customer.objects.get(id=customer_pk)
