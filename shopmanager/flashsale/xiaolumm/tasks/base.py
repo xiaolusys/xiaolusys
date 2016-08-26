@@ -887,9 +887,13 @@ def task_unitary_mama(obj):
     if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类
         update_fields.append("agencylevel")
         xlmm.agencylevel = XiaoluMama.A_LEVEL
-    if xlmm.renew_time is None:
-        update_fields.append("renew_time")
-        xlmm.renew_time = now + datetime.timedelta(days=15)
+
+    renew_time = now + datetime.timedelta(days=15)
+    if isinstance(xlmm.renew_time, datetime.datetime):
+        renew_time = max(renew_time, xlmm.renew_time + datetime.timedelta(days=15))
+    update_fields.append("renew_time")
+    xlmm.renew_time = renew_time
+
     if xlmm.last_renew_type != XiaoluMama.TRIAL:  # 更新 续费类型为试用
         update_fields.append("last_renew_type")
         xlmm.last_renew_type = XiaoluMama.TRIAL
