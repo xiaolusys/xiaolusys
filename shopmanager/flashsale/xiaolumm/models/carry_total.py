@@ -250,7 +250,7 @@ class MamaCarryTotal(BaseMamaCarryTotal):
         MamaCarryTotal.move_other_stat_to_record()
         mama_data = {i['id']: i
                      for i in XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
-                                                        status=[XiaoluMama.EFFECT, XiaoluMama.FROZEN],
+                                                        status__in=[XiaoluMama.EFFECT, XiaoluMama.FROZEN],
                                                         charge_status=XiaoluMama.CHARGED).values(
             'id', 'last_renew_type', 'agencylevel')}
         mama_ids = mama_data.keys()

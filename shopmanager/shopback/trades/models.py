@@ -1926,6 +1926,12 @@ class PackageSkuItem(BaseModel):
         return 1
 
     @property
+    def return_ware_by(self):
+        if self.ware_by == WARE_THIRD:
+            return self.product_sku.product.get_sale_product().return_ware_by
+        return self.ware_by
+
+    @property
     def note(self):
         if self.assign_status == PackageSkuItem.NOT_ASSIGNED and self.purchase_order_unikey:
             return '亲，订单信息已送达外贸厂，厂家正发货，暂时不可取消。若要退款，请收货后选择七天无理由退货。客服电话400-823-5355。'
