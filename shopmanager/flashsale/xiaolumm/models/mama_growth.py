@@ -92,6 +92,9 @@ class MamaMission(BaseModel):
         verbose_name = u'V2/妈妈周激励任务'
         verbose_name_plural = u'V2/妈妈周激励任务列表'
 
+    def __unicode__(self):
+        return '<%s, %s>' %(self.id, self.name)
+
     def is_receivable(self):
         """ 任务是否可以接收 """
         return self.status == MamaMission.PROGRESS
@@ -130,6 +133,9 @@ class MamaMissionRecord(BaseModel):
         app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈周激励任务记录'
         verbose_name_plural = u'V2/妈妈周激励任务记录列表'
+
+    def __unicode__(self):
+        return '<%s, %s, %s>' % (self.mama_id, self.year_week, self.mission)
 
     def save(self, *args, **kwargs):
         if not self.uni_key:

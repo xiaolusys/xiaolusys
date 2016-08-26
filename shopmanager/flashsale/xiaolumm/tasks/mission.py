@@ -96,7 +96,14 @@ def task_create_or_update_mama_mission_state(mama_id):
     # referal mama weekly
     fresh_mama_weekly_mission_bycat(mama_id, MamaMission.CAT_REFER_MAMA, year_week)
 
+    # TODO@meron 新增团队妈妈
+
     # TODO@meron 个人团队销售激励
+    # mama sale weekly
+    fresh_mama_weekly_mission_bycat(mama_id, MamaMission.CAT_SALE_MAMA, year_week)
+
+    # group mama sale weekly
+    fresh_mama_weekly_mission_bycat(mama_id, MamaMission.CAT_SALE_GROUP, year_week)
 
     # 关闭上周未关闭任务
     pre_year_week = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%W')
@@ -104,18 +111,7 @@ def task_create_or_update_mama_mission_state(mama_id):
         mama_id=mama_id, year_week=pre_year_week, status=MamaMissionRecord.STAGING)
     for mission in staging_missions:
         create_or_update_weekly_mission(mama_id, mission, pre_year_week)
-    # 检查下级代理妈妈完成新手任务人数,如果达标生成一条奖励记录，, 如果未成交则更新year_week未当前时间；
 
-    # 妈妈销售额本周累计计算，如果达标生成一条奖励记录，并将任务状态更新为已完成，否则本周已过状态变成未完成；
-
-
-    # 妈妈新推荐一元妈妈计算，如果达标生成一条奖励记录，并将任务状态更新为已完成，否则本周已过状态变成未完成；
-
-    # 妈妈新推荐小鹿妈妈计数，如果达标生成一条奖励记录，并将任务状态更新为已完成，否则本周已过状态变成未完成；
-
-    # 团队妈妈销售额本周累计计算，如果达标生成一条奖励记录，并将任务状态更新为已完成，否则本周已过状态变成未完成；
-
-    # 团队妈妈新推荐小鹿妈妈计数，如果达标生成一条奖励记录，并将任务状态更新为已完成，否则本周已过状态变成未完成；
 
 
 @task
