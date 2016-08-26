@@ -91,6 +91,19 @@ class ProductManageViewSet(viewsets.ModelViewSet):
             template_name='items/add_item_muying.html'
         )
 
+    @list_route(methods=['get'])
+    def homehold(self, request, *args, **kwargs):
+        data = request.GET
+        supplier_id = data.get('supplier_id') or 0
+        saleproduct_id = data.get('saleproduct') or 0
+
+        return Response({
+                "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
+                "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
+            },
+            template_name='items/add_item_homehold.html'
+        )
+
 
     @list_route(methods=['post'])
     def multi_create(self, request, *args, **kwargs):

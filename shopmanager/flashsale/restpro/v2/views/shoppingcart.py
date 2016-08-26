@@ -48,7 +48,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         ## 特卖购物车REST API接口：
             请求GET类型的api直接返回数据,如果正常http状态码code==200,有异常http状态码code >= 500
             payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
-        ## [创建购物车: /rest/v2/carts/](/rest/v2/carts/): 删除:
+        ## [创建购物车: /rest/v2/carts/](/rest/v2/carts/):
             POST:
             {
                 _method: "PUT",
