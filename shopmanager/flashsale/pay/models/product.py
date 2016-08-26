@@ -158,10 +158,14 @@ class ModelProduct(BaseTagModel):
     lowest_std_sale_price = models.FloatField(default=0.0, verbose_name=u'最低原价')
 
     is_onsale    = models.BooleanField(default=False, db_index=True, verbose_name=u'特价/秒杀')
+    is_teambuy   = models.BooleanField(default=False, db_index=True, verbose_name=u'团购')
     is_recommend = models.BooleanField(default=False, db_index=True, verbose_name=u'推荐商品')
     is_topic     = models.BooleanField(default=False, db_index=True, verbose_name=u'专题商品')
     is_flatten   = models.BooleanField(default=False, db_index=True, verbose_name=u'平铺显示')
     is_watermark = models.BooleanField(default=False, db_index=True, verbose_name=u'图片水印')
+
+    teambuy_price = models.FloatField(default=0, verbose_name=u'团购价')
+    teambuy_person_num = models.IntegerField(default=3, verbose_name=u'团购人数')
 
     shelf_status = models.CharField(max_length=8, choices=SHELF_CHOICES,
                                     default=OFF_SHELF, db_index=True, verbose_name=u'上架状态')

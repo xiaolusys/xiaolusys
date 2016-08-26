@@ -3,7 +3,7 @@ from django.forms import model_to_dict
 from rest_framework import serializers
 
 from shopback.items.models import Product, ProductSku
-from .models import SaleTrade, District, UserAddress, ModelProduct, BrandProduct
+from ..models import SaleTrade, District, UserAddress, ModelProduct, BrandProduct
 
 
 class DetailInfoField(serializers.Field):
@@ -116,7 +116,7 @@ class UserAddressSerializer(serializers.ModelSerializer):
 
 
 # 用户积分Serializer
-from .models import IntegralLog, Integral
+from ..models import IntegralLog, Integral
 
 
 class UserIntegralSerializer(serializers.ModelSerializer):

@@ -6,6 +6,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 # 2016-3-2 v2
 from . import views
 from flashsale.xiaolumm.views import views_rank, views_message, award, week_rank
+from flashsale.pay.views import teambuy
 
 v2_router = routers.DefaultRouter(trailing_slash=False)
 v2_router.register(r'categorys', views.SaleCategoryViewSet)
@@ -25,6 +26,7 @@ v2_router.register(r'group', views.GroupRelationshipViewSet)
 v2_router.register(r'visitor', views.UniqueVisitorViewSet)
 v2_router.register(r'fans', views.XlmmFansViewSet)
 v2_router.register(r'dailystats', views.DailyStatsViewSet)
+v2_router.register(r'teambuy', teambuy.TeamBuyViewSet)
 
 from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2 import views
