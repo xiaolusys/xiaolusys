@@ -242,7 +242,7 @@ class OrderListAdmin(admin.ModelAdmin):
             psis_total = 0
             # sku_ids = [pd.sku_id for pd in pds]
             # PackageSkuItem.objects.filter(sku_id__in=sku_ids,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
-            orderlist.purchase_order_unikey
+            # orderlist.purchase_order_unikey
             for pd in pds:
                 psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED,
                                                         purchase_order_unikey='').aggregate(total=Sum('num'))
