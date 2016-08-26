@@ -232,7 +232,7 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
 #    return group_carry_array[idx - 1][1]
 
 
-
+@task()
 def task_referal_update_awardcarry(relationship):
     #print "%s, mama_id: %s" % (get_cur_info(), relationship.referal_from_mama_id)
     from_mama_id = relationship.referal_from_mama_id
