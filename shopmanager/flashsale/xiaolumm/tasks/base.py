@@ -894,6 +894,10 @@ def task_unitary_mama(obj):
     update_fields.append("renew_time")
     xlmm.renew_time = renew_time
 
+    if xlmm.status != XiaoluMama.EFFECT and xlmm.status == XiaoluMama.FROZEN:
+        xlmm.status = XiaoluMama.EFFECT
+        update_fields.append("status")
+
     if xlmm.last_renew_type != XiaoluMama.TRIAL:  # 更新 续费类型为试用
         update_fields.append("last_renew_type")
         xlmm.last_renew_type = XiaoluMama.TRIAL
