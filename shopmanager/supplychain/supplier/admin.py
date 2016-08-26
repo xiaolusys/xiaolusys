@@ -67,7 +67,7 @@ class SaleSupplierAdmin(ApproxAdmin):
     list_display = ('id', 'supplier_code', 'supplier_name_link', 'charge_link',
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
                     'category_select', 'progress', 'last_select_time', 'last_schedule_time',
-                    'supplier_type_choice', 'supplier_zone_choice', 'address', 'ware_by', 'memo_well')
+                    'supplier_type_choice', 'supplier_zone_choice', 'address', 'ware_by', 'return_ware_by', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -186,7 +186,7 @@ class SaleSupplierAdmin(ApproxAdmin):
                                , ('email', 'zip_code')
                                , ('address', 'progress', 'status')
                                , ('account_bank', 'account_no')
-                               , ('supplier_type', 'supplier_zone', 'ware_by')
+                               , ('supplier_type', 'supplier_zone', 'ware_by', 'return_ware_by')
                                , ('memo','delta_arrive_days')
                                )
                  }),

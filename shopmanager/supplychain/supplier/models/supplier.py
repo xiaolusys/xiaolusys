@@ -127,6 +127,7 @@ class SaleSupplier(models.Model):
     supplier_zone = models.IntegerField(default=0, db_index=True, verbose_name=u'供应商所属区域')
     buyer = models.ForeignKey('auth.User', null=True, related_name='buyers', verbose_name=u'买手')
     ware_by = models.SmallIntegerField(default=WARE_SH, choices=WARE_CHOICES, verbose_name=u'所属仓库')
+    return_ware_by = models.SmallIntegerField(default=WARE_NONE, choices=WARE_CHOICES, verbose_name=u'退货仓库')
 
     delta_arrive_days = models.IntegerField(default=3, verbose_name=u'预计到货天数')
 
