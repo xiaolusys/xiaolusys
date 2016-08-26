@@ -180,6 +180,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                 if not skus_data or len(skus_data) == 1:
                     is_flatten = True
 
+            # TODO@meron 考虑到亲子装问题，支持同一saleproduct录入多个modelproduct
             with transaction.atomic():
                 model_pro = ModelProduct(
                     name=content['name'],
@@ -236,7 +237,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                     try:
                         ProductSkuStats.get_by_sku(one_sku.id)
                     except Exception, exc:
-                        logger.error('product skustats:new_sku_id=%s, %s' % (one_sku.id, exc.message), exc_info=True)
+                        logger.error('product skustats:　new_sku_id=%s, %s' % (one_sku.id, exc.message), exc_info=True)
 
         except Exception, exc:
             logger.error('%s'%exc or u'商品资料创建错误', exc_info=True)
@@ -247,5 +248,5 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         except Exception, exc:
             logger.error('%s'%exc or u'创建商品model异常', exc_info=True)
             raise exceptions.APIException(u'创建商品model异常:%s' % exc)
-
-        return Response({'code': 0 ,'info': u'创建成功'})
+        logger.info('modelproduct-create: inner_outer_id= %s, model_id= %s'%(inner_outer_id, model_pro.id))
+        return Response({'code': 0 ,'info': u'创建成功', 'modelproduct_id':model_pro.id})

@@ -97,7 +97,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset.filter(status=ModelProduct.NORMAL, is_topic=False)
 
     def list(self, request, *args, **kwargs):
-
         cid  = request.GET.get('cid')
         logger.info({'stype': 'modelproduct' ,
                      'path': request.get_full_path(),

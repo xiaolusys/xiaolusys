@@ -99,7 +99,7 @@ class AddItemView(generics.ListCreateAPIView):
             if value:
                 if key == 'all_colors': key='color'
                 extras['properties'][key] = value
-        # TODO@MERON
+        # TODO@meron 考虑到亲子装问题，支持同一saleproduct录入多个modelproduct
         model_pro = ModelProduct(
             name=product_name,
             head_imgs=header_img,
@@ -178,6 +178,7 @@ class AddItemView(generics.ListCreateAPIView):
             logger.error(exc.message or u'创建商品model异常', exc_info=True)
             raise exceptions.APIException(u'创建商品model异常:%s' % exc.message)
 
+        logger.info('modelproduct-create: inner_outer_id= %s, model_id= %s' % (inner_outer_id, model_pro.id))
         return Response({"result": "OK", "outer_id": inner_outer_id})
 
 
