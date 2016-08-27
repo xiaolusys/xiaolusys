@@ -67,8 +67,9 @@ def task_update_referal_relationship(sale_order):
             record.order_id = sale_order.oid
             record.save(update_fields=['referal_type', 'order_id', 'modified'])
         return
-    
-    record = ReferalRelationship(referal_from_mama_id=mm_linkid,
+    parentship = ReferalRelationship.objects.filter(referal_to_mama_id=mm_linkid).first()
+    record = ReferalRelationship(referal_from_grandma_id=parentship.referal_from_mama_id if parentship else 0,
+                                 referal_from_mama_id=mm_linkid,
                                  referal_to_mama_id=to_mama_id,
                                  referal_to_mama_nick=customer.nick,
                                  referal_to_mama_img=customer.thumbnail,

@@ -843,7 +843,7 @@ class ReferalRelationship(BaseModel):
     VALID = 1
     INVALID = 2
     STATUS_TYPES = ((VALID, u'有效'), (INVALID, u'无效'))
-
+    referal_from_grandma_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'妈妈的妈妈id')
     referal_from_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     referal_to_mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'被推荐妈妈id')
     referal_to_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'被推荐者昵称')

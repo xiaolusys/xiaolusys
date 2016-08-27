@@ -1284,7 +1284,7 @@ class PackageOrderAdmin(admin.ModelAdmin):
     list_per_page = 50
 
     def id_link(self, obj):
-        return '/admin/trades/packageskuitem?package_order_pid=%d' % obj.pid
+        return "<a href='/admin/trades/packageskuitem?package_order_pid=%d'>%s</a>" % (obj.pid, obj.id)
     id_link.short_description = u'包裹码'
     id_link.allow_tags = True
 
