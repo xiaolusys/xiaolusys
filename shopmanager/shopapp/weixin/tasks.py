@@ -345,9 +345,10 @@ def task_snsauth_update_weixin_userinfo(userinfo, appid):
     except WeixinUnionID.DoesNotExist:
         if valid_openid(openid) and valid_openid(unionid):
             WeixinUnionID.objects.create(openid=openid, app_key=appid, unionid=unionid)
+    except WeixinUnionID.MultipleObjectsReturned, exc:
+        pass
     except Exception, exc:
-        logger.info(exc.message)
-
+        logger.info(str(exc), exc_info=True)
     else:
         info = records[0]
         update = False
