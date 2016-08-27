@@ -42,6 +42,9 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
         """ 用户个人店铺信息 """
         customer = get_object_or_404(Customer, user=request.user)
         shops = self.queryset.filter(customer=customer.id)  # 获取店铺
+        if not shops.exists():  # 创建店铺
+            CustomerShops.create_shop(customer)
+        shops = self.queryset.filter(customer=customer.id)  # 获取店铺
         return shops
 
     @list_route(methods=['get'])
