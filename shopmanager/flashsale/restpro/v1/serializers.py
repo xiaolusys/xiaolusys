@@ -64,6 +64,7 @@ class UserBudgetSerialize(serializers.HyperlinkedModelSerializer):
 
 class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='rest_v1:customer-detail')
+    url = serializers.SerializerMethodField()
     user_id = serializers.CharField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     xiaolumm = XiaoluMamaSerializer(source='get_charged_mama', read_only=True)
@@ -81,7 +82,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Customer
-        fields = ('id', 'user_id', 'username', 'nick', 'mobile', 'email', 'phone', 'score',
+        fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email', 'phone', 'score',
                   'thumbnail', 'status', 'created', 'modified', 'xiaolumm', 'has_usable_password', 'has_password',
                   'user_budget', 'is_attention_public', 'coupon_num', 'waitpay_num', 'waitgoods_num', 'refunds_num')
 
@@ -90,6 +91,9 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
         if user_integral:
             return user_integral.integral_value
         return 0
+
+    def get_url(self, obj):
+        return ''
 
 
 #####################################################################################
