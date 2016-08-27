@@ -98,10 +98,6 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         cid  = request.GET.get('cid')
-        logger.info({'stype': 'modelproduct' ,
-                     'path': request.get_full_path(),
-                     'cid': cid,
-                     'buyer': request.user and request.user.id or 0})
         queryset = self.filter_queryset(self.get_queryset())
         onshelf_qs = self.get_normal_qs(queryset).filter(shelf_status=ModelProduct.ON_SHELF)
         if cid:
