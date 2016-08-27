@@ -10,7 +10,7 @@ from flashsale.restpro.local_cache import image_watermark_cache
 
 class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
 
-    url = serializers.HyperlinkedIdentityField(view_name='rest_v2:modelproduct-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='rest_v2:modelproduct-detail')
     category_id = serializers.IntegerField(source='salecategory.id', read_only=True)
     is_saleout  = serializers.BooleanField(source='is_sale_out', read_only=True)
     web_url     = serializers.CharField(source='get_web_url', read_only=True)
@@ -18,7 +18,7 @@ class SimpleModelProductSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = ModelProduct
-        fields = ('id', 'url', 'name', 'category_id', 'lowest_agent_price', 'lowest_std_sale_price',
+        fields = ('id', 'name', 'category_id', 'lowest_agent_price', 'lowest_std_sale_price',
                   'onshelf_time', 'offshelf_time', 'is_saleout', 'sale_state',
                   'head_img', 'web_url', 'watermark_op')
 

@@ -62,7 +62,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
 
     def calc_items_cache_key(self, view_instance, view_method,
                              request, args, kwargs):
-        key_vals = ['order_by', 'id', 'pk', 'model_id', 'days', 'page', 'page_size']
+        key_vals = ['order_by', 'id', 'pk', 'model_id', 'cid', 'days', 'page', 'page_size']
         key_maps = kwargs or {}
         for k, v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
@@ -71,10 +71,10 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             view_instance.__module__,
             view_instance.__class__.__name__,
             view_method.__name__,
-            json.dumps(key_maps, sort_keys=True).encode('utf-8')
+            json.dumps(key_maps, sort_keys=True)
         ])).hexdigest()
 
-    # @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    # @cache_response(timeout=10, key_func='calc_items_cache_key')
     def retrieve(self, request, *args, **kwargs):
         """ 获取用户订单及订单明细列表, 因为包含用户定制信息，该接口 """
         instance = self.get_object()
@@ -96,6 +96,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     def get_normal_qs(self, queryset):
         return queryset.filter(status=ModelProduct.NORMAL, is_topic=False)
 
+    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     def list(self, request, *args, **kwargs):
         cids  = request.GET.get('cid','').split(',')
         queryset = self.filter_queryset(self.get_queryset())
@@ -130,8 +131,8 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         pagin_query = self.paginate_queryset(queryset)
         object_list = self.get_serializer(pagin_query, many=True).data
         response    = self.get_paginated_response(object_list)
-        onshelf_time    = object_list and max([obj['offshelf_time'] for obj in object_list]) or datetime.datetime.now()
-        offshelf_time   = object_list and min([obj['onshelf_time'] for obj in object_list])
+        onshelf_time    = object_list and max(object_list, key=lambda obj: obj['offshelf_time']) or datetime.datetime.now()
+        offshelf_time   = object_list and min(object_list, key=lambda obj: obj['offshelf_time'])
         if not offshelf_time:
             offshelf_time = onshelf_time + datetime.timedelta(seconds= 60 * 60 * 28)
         response.data.update({
@@ -153,7 +154,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             dt_start = datetime.datetime.combine(cur_date, datetime.time.max)
             queryset = queryset.filter(onshelf_time__lte=dt_start).order_by('-onshelf_time')
 
-        first_obj = queryset.first()
+        first_obj = queryset.only('onshelf_time').first()
         return first_obj and first_obj.onshelf_time.date() or datetime.date.today()
 
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')

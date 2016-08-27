@@ -71,7 +71,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
     cash_value = serializers.FloatField(source='cash_num_display', read_only=True)
     carry_value = serializers.FloatField(source='cash_total_display', read_only=True)
     # carry_value = serializers.SerializerMethodField('carry_num_display_new', read_only=True)
-    extra_info = serializers.SerializerMethodField('gen_extra_info', read_only=True)
+    extra_info = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = MamaFortune
@@ -89,7 +89,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         total = obj.carry_num_display() + float(his_confirmed_cash_out * 0.01)
         return float('%.2f' % (total))
 
-    def gen_extra_info(self, obj):
+    def get_extra_info(self, obj):
         customer = self.context['customer']
         xlmm = self.context['xlmm']
         invite_url = constants.MAMA_INVITE_AGENTCY_URL.format(**{'site_url': settings.M_SITE_URL})

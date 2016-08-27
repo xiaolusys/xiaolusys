@@ -7,11 +7,17 @@ import os
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+# try:
+#     import gevent_blocktracer
+# except ImportError:
+#     pass
+
 import os.path
 import posixpath
 
-from global_setup import install_pymysqldb
+from global_setup import install_pymysqldb, install_redis_with_gevent_socket
 install_pymysqldb()
+install_redis_with_gevent_socket()
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 

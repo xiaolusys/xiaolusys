@@ -321,9 +321,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         extra_str = 'remain_num - lock_num > 0'
         queryset = queryset.extra(where={extra_str})  # 没有卖光的 不是秒杀产品的
 
-        shop_products = CuShopPros.objects.filter(customer=customer.id,
-                                                  pro_status=CuShopPros.UP_SHELF).values("product")
-        product_ids = map(lambda x: x['product'], shop_products)
+        product_ids = CuShopPros.objects.filter(customer=customer.id,
+                                                  pro_status=CuShopPros.UP_SHELF).values_list("product",flat=True)
         product_ids = set(product_ids)
         shop_product_num = len(product_ids)
         xlmm = customer.get_charged_mama()
