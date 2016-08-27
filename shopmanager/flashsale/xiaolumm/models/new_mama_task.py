@@ -22,8 +22,8 @@ class NewMamaTask(object):
         items = {
             cls.TASK_SUBSCRIBE_WEIXIN: (
                 u'关注公众号成功，您已获得５元奖励。\n',
-                u'恭喜开通小鹿妈妈15天体验帐户！快加管理员微信，领取5元帐户奖金。在小鹿管理员指导下，您会赚很多很多零花钱的哦！',
-                '',
+                u'恭喜开通小鹿妈妈15天体验帐户！下载小鹿App，开启分享赚钱之旅！请加管理员微信，在管理员指导下，您会赚很多很多零花钱的哦！',
+                'http://m.xiaolumeimei.com/sale/promotion/appdownload/',
             ),
             cls.TASK_FIRST_CARRY: (
                 u'您的点击返现{money}元已经到账！挣钱太容易啦！\n',
