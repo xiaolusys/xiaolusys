@@ -14,6 +14,7 @@ from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User as DjangoUser
+from django.core.cache import cache
 
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -507,13 +508,13 @@ class CustomerViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def profile(self, request, *args, **kwargs):
         customer = get_object_or_404(Customer, user=request.user)
-        serializer = self.get_serializer(customer)
-        user_info = serializer.data
-        user_scores = Integral.objects.filter(integral_user=customer.id)
-        user_score = 0
-        if user_scores.count() > 0:
-            user_score = user_scores[0].integral_value
-        user_info['score'] = user_score
+        # TODO@meron need invalidate?
+        profile_key = 'cusotmer-profile-key-{0}'.format(customer.id)
+        user_info = cache.get(profile_key)
+        if not user_info:
+            user_info = self.get_serializer(customer).data
+            cache.set(profile_key, user_info, 60 * 5)
+
         return Response(user_info)
 
     def perform_destroy(self, instance):

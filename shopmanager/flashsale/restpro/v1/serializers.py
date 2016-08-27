@@ -63,7 +63,7 @@ class UserBudgetSerialize(serializers.HyperlinkedModelSerializer):
 
 
 class CustomerSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='rest_v1:customer-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='rest_v1:customer-detail')
     user_id = serializers.CharField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     xiaolumm = XiaoluMamaSerializer(source='get_charged_mama', read_only=True)
@@ -73,6 +73,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     is_attention_public = serializers.IntegerField(source='is_attention_wx_public', read_only=True)
     # nick = serializers.CharField(read_only=False)
 
+    score = serializers.SerializerMethodField()
     coupon_num = serializers.IntegerField(source='get_coupon_num', read_only=True)
     waitpay_num = serializers.IntegerField(source='get_waitpay_num', read_only=True)
     waitgoods_num = serializers.IntegerField(source='get_waitgoods_num', read_only=True)
@@ -80,9 +81,15 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Customer
-        fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email', 'phone',
+        fields = ('id', 'user_id', 'username', 'nick', 'mobile', 'email', 'phone', 'score',
                   'thumbnail', 'status', 'created', 'modified', 'xiaolumm', 'has_usable_password', 'has_password',
                   'user_budget', 'is_attention_public', 'coupon_num', 'waitpay_num', 'waitgoods_num', 'refunds_num')
+
+    def get_score(self, obj):
+        user_integral = Integral.objects.filter(integral_user=obj.id).first()
+        if user_integral:
+            return user_integral.integral_value
+        return 0
 
 
 #####################################################################################

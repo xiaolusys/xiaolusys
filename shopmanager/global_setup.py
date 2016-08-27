@@ -16,4 +16,18 @@ def install_pymysqldb():
         import pymysql
         pymysql.install_as_MySQLdb()
     except ImportError:
-        pass
+        print 'pymysql module not found'
+
+
+def install_redis_with_gevent_socket():
+    try:
+        from gevent import socket
+    except ImportError:
+        print 'gevent module not found'
+        return
+    try:
+        import redis.connection
+        redis.connection.socket = socket
+    except ImportError:
+        print 'redis.connection module not found'
+

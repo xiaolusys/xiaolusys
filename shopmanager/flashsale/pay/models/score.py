@@ -6,7 +6,7 @@ from django.db.models.signals import post_save
 
 
 class Integral(PayBaseModel):
-    integral_user = models.BigIntegerField(null=False, unique=True, db_index=True, verbose_name=u"用户ID")
+    integral_user = models.BigIntegerField(null=False, unique=True, verbose_name=u"用户ID")
     integral_value = models.IntegerField(default=0, verbose_name=u"订单积分")
 
     class Meta:
