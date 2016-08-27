@@ -97,12 +97,14 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset.filter(status=ModelProduct.NORMAL, is_topic=False)
 
     def list(self, request, *args, **kwargs):
-        cid  = request.GET.get('cid')
+        cids  = request.GET.get('cid','').split(',')
         queryset = self.filter_queryset(self.get_queryset())
         onshelf_qs = self.get_normal_qs(queryset).filter(shelf_status=ModelProduct.ON_SHELF)
-        if cid:
-            onshelf_qs = onshelf_qs.filter(salecategory__cid__startswith=cid)
+        q_filter = Q()
+        for cid in cids:
+            q_filter = q_filter | Q(salecategory__cid__startswith=cid)
 
+        onshelf_qs = onshelf_qs.filter(q_filter)
         page = self.paginate_queryset(onshelf_qs)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
