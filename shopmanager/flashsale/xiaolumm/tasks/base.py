@@ -1045,6 +1045,11 @@ def task_renew_mama(obj):
         return
     if xlmm.last_renew_type == XiaoluMama.TRIAL:  # 试用代理不予续费服务
         return
+    if xlmm.last_renew_type == XiaoluMama.HALF:  # 如果当前的妈妈已经是9半年元的代理则将会成为全年的代理
+        # 补发优惠券
+        from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit_double_99
+        task_release_coupon_for_mama_deposit_double_99.delay(order_customer.id)
+
     state = xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
     # 修改该潜在关系　到转正状态
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
