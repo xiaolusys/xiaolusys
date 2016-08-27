@@ -1,4 +1,4 @@
-# -*- encoding:utf8 -*-
+# -*- encoding:utf-8 -*-
 import calendar
 import datetime
 import logging
@@ -1079,23 +1079,24 @@ def task_mama_postphone_renew_time_by_active():
     """
     妈妈(正式)当天有活跃度情况下续费时间向后添加一天
     """
-    from flashsale.xiaolumm.models.models_fortune import ActiveValue
-    mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
-                                      agencylevel__gte=XiaoluMama.VIP_LEVEL,
-                                      last_renew_type=XiaoluMama.FULL,  # 年费用户才添加天数
-                                      charge_status=XiaoluMama.CHARGED)
-    yesterday = datetime.date.today() - datetime.timedelta(days=1)
-    for mama in mamas:
-        try:
-            if ActiveValue.objects.filter(mama_id=mama.id, date_field=yesterday).exists():
-                if isinstance(mama.renew_time, datetime.datetime):
-                    mama.renew_time = mama.renew_time + datetime.timedelta(days=1)
-                    mama.save(update_fields=['renew_time'])
-        except Exception as exc:
-            logger.info({'action': 'task_mama_postphone_renew_time_by_active',
-                         'mama_id': mama.id,
-                         'message': exc.message})
-            continue
+    pass
+    #from flashsale.xiaolumm.models.models_fortune import ActiveValue
+    #mamas = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
+    #                                  agencylevel__gte=XiaoluMama.VIP_LEVEL,
+    #                                  last_renew_type=XiaoluMama.FULL,  # 年费用户才添加天数
+    #                                  charge_status=XiaoluMama.CHARGED)
+    #yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    #for mama in mamas:
+    #    try:
+    #        if ActiveValue.objects.filter(mama_id=mama.id, date_field=yesterday).exists():
+    #            if isinstance(mama.renew_time, datetime.datetime):
+    #                mama.renew_time = mama.renew_time + datetime.timedelta(days=1)
+    #                mama.save(update_fields=['renew_time'])
+    #    except Exception as exc:
+    #        logger.info({'action': 'task_mama_postphone_renew_time_by_active',
+    #                     'mama_id': mama.id,
+    #                     'message': exc.message})
+    #        continue
 
 
 @task()
