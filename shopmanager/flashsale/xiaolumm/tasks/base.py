@@ -801,40 +801,13 @@ def xlmmOrderTop(time_from, time_to):
 
 
 @task()
-def task_period_check_mama_renew_state(days=None):
+def task_period_check_mama_renew_state():
     """
     定时检查代理是否需要续费　
-    1. 设置下次续费时间
-    2. 如果当前时间大于下次续费时间　修改　状态到冻结状态
+    1. 如果当前时间大于下次续费时间　修改　状态到冻结状态
     """
-    if days is None:
-        days = 365
-    flag_date_time = datetime.datetime(2016, 3, 1, 0, 0)
-    unset_mms = XiaoluMama.objects.filter(
-        status=XiaoluMama.EFFECT,
-        renew_time=None,
-        charge_status=XiaoluMama.CHARGED)  # 有效并接管的　没有设置下次续费时间的妈妈
-
     now = datetime.datetime.now()
     sys_oa = get_systemoa_user()
-    for mm in unset_mms:
-        update_fields = []
-        try:
-            if mm.charge_time < flag_date_time:  # 在3月1号之前接管的妈妈
-                mm.renew_time = datetime.datetime(2017, 3, 1, 0, 0)
-            else:
-                mm.renew_time = mm.charge_time + datetime.timedelta(days=days)
-            update_fields.append('renew_time')
-
-            if now >= mm.renew_time:
-                mm.status = XiaoluMama.FROZEN
-                log_action(sys_oa, mm, CHANGE, u'定时任务:设置续费时间 检查到期 修改状态到冻结')
-                update_fields.append('status')
-            if update_fields:
-                mm.save(update_fields=update_fields)
-        except TypeError as e:
-            logger.error(u"task_period_check_mama_renew_state mama:%s, error info: %s" % (mm.id, e))
-            continue
 
     # 续费　状态处理
     effect_mms = XiaoluMama.objects.filter(
@@ -1072,6 +1045,11 @@ def task_renew_mama(obj):
         return
     if xlmm.last_renew_type == XiaoluMama.TRIAL:  # 试用代理不予续费服务
         return
+    if xlmm.last_renew_type == XiaoluMama.HALF:  # 如果当前的妈妈已经是9半年元的代理则将会成为全年的代理
+        # 补发优惠券
+        from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit_double_99
+        task_release_coupon_for_mama_deposit_double_99.delay(order_customer.id)
+
     state = xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
     # 修改该潜在关系　到转正状态
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
