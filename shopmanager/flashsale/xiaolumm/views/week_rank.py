@@ -148,7 +148,6 @@ class WeekMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Retriev
         return Response(res)
 
 
-
 class WeekMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin,
                                     viewsets.mixins.ListModelMixin):
     """
@@ -261,3 +260,38 @@ class WeekMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
             res[top.index(t)]['duration_total'] = t.expect_total
             res[top.index(t)]['duration_total_display'] = float('%.2f' % (t.expect_total * 0.01))
         return Response(res)
+
+
+class ActivityMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin,
+                                viewsets.mixins.ListModelMixin):
+    """
+        妈妈收益排行榜
+    """
+    queryset = WeekMamaCarryTotal.objects.all()
+    serializer_class = WeekMamaCarryTotalSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    @list_route(methods=['GET'])
+    def invitenum(self, request):
+        top = MamaTeamCarryTotal.get_activity_ranking_list()[0:100]
+        res = ActivityMamaTeamCarryTotalSerializer(top, many=True).data
+        # 前台html已经提交了 只好适应一下补两句代码
+        top = list(top)
+        for t in top:
+            res[top.index(t)]['rank'] = t.activite_rank
+            res[top.index(t)]['duration_num'] = t.expect_num
+            res[top.index(t)]['duration_total'] = t.expect_total
+            res[top.index(t)]['duration_total_display'] = float('%.2f' % (t.expect_total * 0.01))
+        return Response(res)
+
+
+class ActivityMamaTeamCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.RetrieveModelMixin,
+                                    viewsets.mixins.ListModelMixin):
+    """
+        妈妈团队收益排行榜
+    """
+    queryset = WeekMamaTeamCarryTotal.objects.all()
+    serializer_class = WeekMamaTeamCarryTotalSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
