@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Bootstrap 101 Template</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="http://7xogkj.com1.z0.glb.clouddn.com/mall/mama/v1/notification.png?imageMogr2/strip/format/jpg/quality/100/interlace/1/thumbnail/16/">
+    <title>运营数据统计</title>
   <style type="text/css">
     body {
       padding-top: 60px;
@@ -14,40 +15,39 @@
       border-bottom: 1px solid #eee;
     }
   </style>
-	<link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
   <script src="//cdn.bootcss.com/echarts/3.2.2/echarts.min.js"></script>
 </head>
 <body>
   <nav class="navbar navbar-inverse navbar-fixed-top">
-	  <div class="container-fluid">
-		<div class="navbar-header">
-		  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-			<span class="sr-only">Toggle navigation</span>
-			<span class="icon-bar"></span>
-			<span class="icon-bar"></span>
-			<span class="icon-bar"></span>
-		  </button>
-		  <a class="navbar-brand" href="#">Project name</a>
-		</div>
-		<div id="navbar" class="navbar-collapse collapse">
-		  <ul class="nav navbar-nav navbar-right">
-			<li><a href="#">Dashboard</a></li>
-			<li><a href="#">Settings</a></li>
-			<li><a href="#">Profile</a></li>
-			<li><a href="#">Help</a></li>
-		  </ul>
-		</div>
-	  </div>
-	</nav>
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">运营数据统计</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <!-- <li><a href="#">每日一览</a></li> -->
+          </ul>
+        </div>
+      </div>
+    </nav>
 
-	<div class="container-fluid">
+    <div class="container-fluid">
     <div class="row">
       <div class="col-md-2 sidebar">
         <ul class="nav nav-sidebar">
-          <li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
-          <li><a href="#">Reports</a></li>
-          <li><a href="#">Analytics</a></li>
-          <li><a href="#">Export</a></li>
+          <li><a href="{% url 'yy-index' %}">每日一览</a></li>
+          <li><a href="{% url 'yy-customer-index' %}?start_date=2016-08-01">用户分析</a></li>
+          <li><a href="{% url 'yy-product-index' %}">商品分析</a></li>
+          <li><a href="{% url 'yy-mama-tab' %}">SQL查询转图表</a></li>
+          <li><a href="{% url 'yy-sql-index' %}">历史查询</a></li>
+          <li><a href="{% url 'yy-database-index' %}">数据库</a></li>
         </ul>
       </div>
       <div class="col-md-10 main">
@@ -56,10 +56,11 @@
       </div>
     </div>
   </div>
-  {% block scripts %}
-  {% endblock %}
 
-	<script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
-	<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    {% block scripts %}
+    {% endblock %}
 </body>
 </html>

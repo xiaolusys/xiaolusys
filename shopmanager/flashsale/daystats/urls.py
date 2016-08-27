@@ -42,8 +42,19 @@ urlpatterns = patterns('',
 
 
 urlpatterns += patterns(
-    '',
-    url(r'^customer/$', views_customer.index),
+    'flashsale.daystats.views',
+    url(r'^yunying/$', 'yunying.index', name='yy-index'),
+    url(r'^yunying/customer/$', 'customer.index', name='yy-customer-index'),
+    url(r'^yunying/product/$', 'product.index', name='yy-product-index'),
+    url(r'^yunying/product/(?P<id>.*)', 'product.show', name='yy-product-show'),
+    url(r'^yunying/mama/$', 'mama.index', name='yy-mama-index'),
+    url(r'^yunying/mama/home$', 'mama.home', name='yy-mama-home'),
+    url(r'^yunying/mama/tab$', 'mama.tab', name='yy-mama-tab'),
+    url(r'^yunying/sql/$', 'sql.index', name='yy-sql-index'),
+    url(r'^yunying/sql/(?P<id>.*)/destroy$', 'sql.destroy', name='yy-sql-destroy'),
+    url(r'^yunying/sql/create$', 'sql.create', name='yy-sql-create'),
+    url(r'^yunying/databse/index$', 'database.index', name='yy-database-index'),
+    url(r'^yunying/databse/table/(?P<name>.*)$', 'database.table', name='yy-database-table'),
 )
 
 

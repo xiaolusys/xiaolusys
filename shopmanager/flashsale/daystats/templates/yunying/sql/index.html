@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+
+  <table class="table table-bordered ">
+    <tr>
+      <th></th>
+      <th>NAME</th>
+      <th>SQL</th>
+      <th></th>
+    </tr>
+      {% for item in items %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ item.name }}</td>
+        <td><a href="{% url 'yy-mama-tab' %}?sql={{ item.sql }}&date_field={{ item.date_field }}&query_name={{ item.name }}&key_desc={{ item.key_desc }}" target="_blank">{{ item.sql }}</a></td>
+        <td>
+          <a href="{% url 'yy-sql-destroy' item.id %}">删除</a>
+        </td>
+      </tr>
+      {% endfor %}
+  </table>
+
+</div>
+
+{% endblock %}
