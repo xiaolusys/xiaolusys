@@ -131,8 +131,8 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         pagin_query = self.paginate_queryset(queryset)
         object_list = self.get_serializer(pagin_query, many=True).data
         response    = self.get_paginated_response(object_list)
-        onshelf_time    = object_list and max(object_list, key=lambda obj: obj['offshelf_time']) or datetime.datetime.now()
-        offshelf_time   = object_list and min(object_list, key=lambda obj: obj['offshelf_time'])
+        onshelf_time    = object_list and max([obj['offshelf_time'] for obj in object_list]) or datetime.datetime.now()
+        offshelf_time   = object_list and min([obj['onshelf_time'] for obj in object_list])
         if not offshelf_time:
             offshelf_time = onshelf_time + datetime.timedelta(seconds= 60 * 60 * 28)
         response.data.update({
