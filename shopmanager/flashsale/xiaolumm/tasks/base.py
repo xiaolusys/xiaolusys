@@ -801,40 +801,13 @@ def xlmmOrderTop(time_from, time_to):
 
 
 @task()
-def task_period_check_mama_renew_state(days=None):
+def task_period_check_mama_renew_state():
     """
     定时检查代理是否需要续费　
-    1. 设置下次续费时间
-    2. 如果当前时间大于下次续费时间　修改　状态到冻结状态
+    1. 如果当前时间大于下次续费时间　修改　状态到冻结状态
     """
-    if days is None:
-        days = 365
-    flag_date_time = datetime.datetime(2016, 3, 1, 0, 0)
-    unset_mms = XiaoluMama.objects.filter(
-        status=XiaoluMama.EFFECT,
-        renew_time=None,
-        charge_status=XiaoluMama.CHARGED)  # 有效并接管的　没有设置下次续费时间的妈妈
-
     now = datetime.datetime.now()
     sys_oa = get_systemoa_user()
-    for mm in unset_mms:
-        update_fields = []
-        try:
-            if mm.charge_time < flag_date_time:  # 在3月1号之前接管的妈妈
-                mm.renew_time = datetime.datetime(2017, 3, 1, 0, 0)
-            else:
-                mm.renew_time = mm.charge_time + datetime.timedelta(days=days)
-            update_fields.append('renew_time')
-
-            if now >= mm.renew_time:
-                mm.status = XiaoluMama.FROZEN
-                log_action(sys_oa, mm, CHANGE, u'定时任务:设置续费时间 检查到期 修改状态到冻结')
-                update_fields.append('status')
-            if update_fields:
-                mm.save(update_fields=update_fields)
-        except TypeError as e:
-            logger.error(u"task_period_check_mama_renew_state mama:%s, error info: %s" % (mm.id, e))
-            continue
 
     # 续费　状态处理
     effect_mms = XiaoluMama.objects.filter(
