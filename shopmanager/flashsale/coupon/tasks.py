@@ -340,3 +340,13 @@ def task_release_coupon_for_mama_deposit(buyer_id, deposite_type):
 
     for template_id in tpl_ids:
         UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)
+
+
+@task()
+def task_release_coupon_for_mama_deposit_double_99(buyer_id):
+    """ 续费才进入此方法 """
+    from flashsale.coupon.models import UserCoupon
+
+    tpl_ids = [121, 124]  # 100 + 15
+    for template_id in tpl_ids:
+        UserCoupon.objects.create_normal_coupon(buyer_id=buyer_id, template_id=template_id)
