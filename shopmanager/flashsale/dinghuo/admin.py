@@ -243,6 +243,12 @@ class OrderListAdmin(admin.ModelAdmin):
             # sku_ids = [pd.sku_id for pd in pds]
             # PackageSkuItem.objects.filter(sku_id__in=sku_ids,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
             # orderlist.purchase_order_unikey
+            # PurchaseArrangement.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).aggregate(Sum('num'))
+            # for p in PackageSkuItem.objects.filter(sku_id__in=sku_ids,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey=''):
+            #    if not PurchaseArrangement.objects.filter(oid=p.oid).first():
+            #       print p.oid
+            # PurchaseRecord.objects.get(oid='xo16082657c021b1b8913').save()
+            # PurchaseArrangement.objects.get(oid='xo16082657c021b1b8913').save()
             for pd in pds:
                 psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED,
                                                         purchase_order_unikey='').aggregate(total=Sum('num'))
