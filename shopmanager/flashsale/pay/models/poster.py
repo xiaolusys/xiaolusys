@@ -72,6 +72,12 @@ class GoodShelf(PayBaseModel):
             {'id': 2, 'name': u'女装专区',
              'cat_img': 'http://img.xiaolumeimei.com/top101470714481475women.jpg',
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=2'},
+            {'id': 3, 'name': u'美食专区',
+             'cat_img': 'http://img.xiaolumeimei.com/top101472279964645Homey.png',
+             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=3'},
+            {'id': 4, 'name': u'其它专区',
+             'cat_img': 'http://img.xiaolumeimei.com/top101472280026786Homeb.png',
+             'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=4,5,6,7,8'},
         ]
 
     def get_posters(self):
