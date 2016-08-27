@@ -925,8 +925,14 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             default_return.update({"code": 2, "info": "余额不足"})
             return Response(default_return)
         try:
-            from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit
-            task_release_coupon_for_mama_deposit.delay(customer.id, days_map[exchange_type])
+            from flashsale.coupon.tasks import task_release_coupon_for_mama_deposit, \
+                task_release_coupon_for_mama_deposit_double_99
+
+            if xlmm.last_renew_type == XiaoluMama.HALF:
+                task_release_coupon_for_mama_deposit_double_99.delay(customer.id)
+            else:
+                task_release_coupon_for_mama_deposit.delay(customer.id, days_map[exchange_type])
+
         except Exception as exc:
             logger.warn({'action': 'mama_exchange_deposit', 'mama_id': xlmm.id,
                          'exchange_type': exchange_type, 'message': exc.message})
