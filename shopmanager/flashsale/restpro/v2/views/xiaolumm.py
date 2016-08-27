@@ -281,7 +281,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET'])
     def get_latest_order_carry(self, request, *args, **kwargs):
-        ordercarrys = self.queryset.filter().order_by('-created')[:20]
+        ordercarrys = self.queryset.filter().exclude(carry_num=0).order_by('-created')[:20]
         items = []
         msgtpl = PushMsgTpl.objects.filter(id=12, is_valid=True).first()
 
