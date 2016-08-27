@@ -34,6 +34,12 @@ class CustomerShops(PayBaseModel):
         except Customer.DoesNotExist:
             None
 
+    @classmethod
+    def create_shop(cls, customer):
+        shop = cls(customer=customer.id, name=customer.nick)
+        shop.save()
+        return shop
+
 
 class CuShopPros(PayBaseModel):
     """
