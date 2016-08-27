@@ -111,9 +111,9 @@ def task_weixin_push_update_app(app_visit):
 @task
 def task_weixin_push_invite_trial(potential_mama):
     from flashsale.xiaolumm.models import PotentialMama, ReferalRelationship, AwardCarry
-    
+
     referal_mama_id, potential_mama_id = potential_mama.referal_mama, potential_mama.potential_mama
-    
+
     res = PotentialMama.objects.filter(referal_mama=referal_mama_id,created__lt=potential_mama.created).values('is_full_member').annotate(n=Count('is_full_member'))
     trial_num,convert_num = 0,0
     for entry in res:
@@ -158,10 +158,12 @@ def task_weixin_push_invite_trial(potential_mama):
 
     wp.push_mama_invite_trial(referal_mama_id,potential_mama_id, diff_num,award_num,invite_num,award_sum,trial_num,carry_num)
 
+
 @task
 def task_app_push_ordercarry(ordercarry):
     from flashsale.push.app_push import AppPush
-    AppPush.push_mama_ordercarry(ordercarry)
+    if ordercarry.carry_num_display() > 0:
+        AppPush.push_mama_ordercarry(ordercarry)
     # AppPush.push_mama_ordercarry_to_all(ordercarry)
 
 
