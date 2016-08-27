@@ -23,7 +23,7 @@ from flashsale.xiaolumm import constants
 from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
 
 from django.db.models.signals import post_save, pre_save
-
+from django.db.models import Q
 import logging
 
 logger = logging.getLogger('django.request')
@@ -555,8 +555,9 @@ class XiaoluMama(models.Model):
         return lv1_id, lv2_ids, lv3_ids
 
     def get_team_member_ids(self):
-        a, b, c = self.get_lv_team_member_ids()
-        return a + b + c
+        from .models_fortune import ReferalRelationship
+        ids = [r['referal_to_mama_id'] for r in ReferalRelationship.objects.filter(Q(referal_from_mama_id=self.id)|Q(referal_from_grandma_id=self.id)).values('referal_to_mama_id')]
+        return [self.id] + ids
 
     def get_invite_normal_mama_ids(self):
         from .models_fortune import ReferalRelationship

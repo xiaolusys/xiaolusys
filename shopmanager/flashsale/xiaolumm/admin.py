@@ -39,9 +39,10 @@ class XiaoluMamaAdmin(ApproxAdmin):
 
     form = forms.XiaoluMamaForm
     list_display = (
-    'id', 'customer_id', 'mama_data_display', 'get_cash_display', 'total_inout_item', 'last_renew_type', 'agencylevel',
-    'charge_link', 'group_select', 'click_state', 'exam_pass', 'progress', 'hasale', 'charge_time',
-    'status', 'referal_from', 'mama_Verify')
+        'id', 'customer_id', 'mama_data_display', 'get_cash_display', 'total_inout_item', 'last_renew_type',
+        'agencylevel',
+        'charge_link', 'group_select', 'click_state', 'exam_pass', 'progress', 'hasale', 'charge_time',
+        'status', 'referal_from', 'mama_Verify')
     list_filter = (
         'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale',
         ('charge_time', DateFieldListFilter),
@@ -403,15 +404,18 @@ from flashsale.xiaolumm.models.models_fans import FansNumberRecord, XlmmFans
 
 
 class XlmmFansAdmin(admin.ModelAdmin):
-    list_display = ('id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid', 'thumbnail_display', 'modified', 'created')
+    list_display = (
+    'id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid', 'thumbnail_display', 'modified', 'created')
     search_fields = ['xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid']
     list_filter = ['created']
 
     def thumbnail_display(self, obj):
         html = u'<p>%s</p><img src="%s" style="width:60px; height:60px">' % (obj.fans_nick, obj.fans_thumbnail)
         return html
+
     thumbnail_display.allow_tags = True
     thumbnail_display.short_description = u"粉丝昵称/头像"
+
 
 admin.site.register(XlmmFans, XlmmFansAdmin)
 
@@ -524,18 +528,23 @@ admin.site.register(ActiveValue, ActiveValueAdmin)
 
 
 class ReferalRelationshipAdmin(admin.ModelAdmin):
-    list_display = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'referal_type', 'status', 'modified', 'created')
+    list_display = (
+    'referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'referal_type', 'status', 'modified',
+    'created')
     search_fields = ('referal_from_mama_id', 'referal_to_mama_id',)
     list_filter = ('status', 'referal_type',)
+
 
 admin.site.register(ReferalRelationship, ReferalRelationshipAdmin)
 
 
 class GroupRelationshipAdmin(admin.ModelAdmin):
     list_display = (
-        'leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick', 'referal_type', 'status', 'modified', 'created')
+        'leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick', 'referal_type', 'status',
+        'modified', 'created')
     search_fields = ('referal_from_mama_id', 'member_mama_id')
     list_filter = ('status', 'referal_type',)
+
 
 admin.site.register(GroupRelationship, GroupRelationshipAdmin)
 
@@ -710,9 +719,8 @@ class CarryTotalRecordAdmin(admin.ModelAdmin):
         'stat_time', "mama_id", 'duration_total', 'history_total',
         'history_num', 'duration_num', 'carry_records', 'total_rank', 'duration_rank'
     )
-    list_filter = ('stat_time', )
+    list_filter = ('stat_time',)
     search_fields = ("mama",)
-
 
 
 admin.site.register(CarryTotalRecord, CarryTotalRecordAdmin)
@@ -730,7 +738,7 @@ admin.site.register(TeamCarryTotalRecord, TeamCarryTotalRecordAdmin)
 
 class XlmmMessageAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', "content_link", 'content', 'dest', 'status', 'read_count', 'creator', 'created')
-    list_filter = ('status', )
+    list_filter = ('status',)
     search_fields = ('id', "title", '=content_link')
     add_form_template = 'admin/xiaolumm/message/add_form.html'
     change_form_template = 'admin/xiaolumm/message/change_form.html'
@@ -751,35 +759,42 @@ class XlmmMessageRelAdmin(admin.ModelAdmin):
 
 admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
 
+
 class MamaDailyAppVisitAdmin(admin.ModelAdmin):
     list_display = ('id', 'mama_id', 'date_field', 'device_type', 'version', 'user_agent', 'modified', 'created')
-    list_filter = ('device_type', )
-    search_fields = ('mama_id','version','user_agent')
-    
+    list_filter = ('device_type',)
+    search_fields = ('mama_id', 'version', 'user_agent')
+
+
 admin.site.register(MamaDailyAppVisit, MamaDailyAppVisitAdmin)
 
 
 class MamaTabVisitStatsAdmin(admin.ModelAdmin):
     list_display = ('id', 'stats_tab', 'date_field', 'visit_total', 'modified', 'created')
-    list_filter = ('stats_tab', )
-    search_fields = ('stats_tab','date_field')
-    
+    list_filter = ('stats_tab',)
+    search_fields = ('stats_tab', 'date_field')
+
+
 admin.site.register(MamaTabVisitStats, MamaTabVisitStatsAdmin)
 
 
 class MamaDailyTabVisitAdmin(admin.ModelAdmin):
     list_display = ('id', 'mama_id', 'stats_tab', 'date_field', 'modified', 'created')
-    list_filter = ('stats_tab', )
-    search_fields = ('mama_id','stats_tab', 'date_field')
-    
+    list_filter = ('stats_tab',)
+    search_fields = ('mama_id', 'stats_tab', 'date_field')
+
+
 admin.site.register(MamaDailyTabVisit, MamaDailyTabVisitAdmin)
 
 
 class MamaDeviceStatsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'total_visitor', 'modified', 'created')
-    list_filter = ('device_type', )
-    search_fields = ('device_type','date_field')
-    
+    list_display = (
+    'id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'total_visitor', 'modified',
+    'created')
+    list_filter = ('device_type',)
+    search_fields = ('device_type', 'date_field')
+
+
 admin.site.register(MamaDeviceStats, MamaDeviceStatsAdmin)
 
 
@@ -787,7 +802,8 @@ class MamaMissionAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'target', 'cat_type', 'kpi_type', 'date_type',
                     'target_value', 'award_amount', 'start_time', 'end_time', 'status')
     list_filter = ('target', 'status', 'cat_type', 'date_type', 'kpi_type')
-    search_fields = ('=id','name')
+    search_fields = ('=id', 'name')
+
 
 admin.site.register(MamaMission, MamaMissionAdmin)
 
@@ -796,7 +812,7 @@ class MamaMissionRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'mama_id', 'referal_from_mama_id', 'group_leader_mama_id', 'mission',
                     'year_week', 'finish_value', 'status', 'finish_time', 'created')
     list_filter = ('year_week', 'status')
-    search_fields = ('=id','=mama_id','^mission__name')
+    search_fields = ('=id', '=mama_id', '^mission__name')
+
 
 admin.site.register(MamaMissionRecord, MamaMissionRecordAdmin)
-

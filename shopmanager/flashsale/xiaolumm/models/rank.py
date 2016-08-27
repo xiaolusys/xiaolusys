@@ -4,7 +4,8 @@ from copy import copy
 from django.db import models
 from django.db.models import Sum, F, Count, Q
 from django.db.models.signals import post_save
-from flashsale.xiaolumm.models import XiaoluMama, MamaFortune
+from core.fields import JSONCharMyField
+from flashsale.xiaolumm.models import XiaoluMama, MamaFortune, ReferalRelationship
 from flashsale.xiaolumm.models.models_fortune import CarryRecord
 from flashsale.xiaolumm.models.carry_total import BaseMamaCarryTotal, BaseMamaTeamCarryTotal, multi_update, RankRedis
 import logging
@@ -299,12 +300,16 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
 def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
     # 当周数据实时更新到redis，从redis读取
     if WeekRank.this_week_time() == instance.stat_time:
-        for target in type(instance).filters:
-            condtion = copy(type(instance).filters[target])
+        for target in WeekMamaCarryTotal.filters:
+            condtion = copy(WeekMamaCarryTotal.filters[target])
             condtion['pk'] = instance.pk
-            if type(instance).objects.filter(**condtion).exists():
+            if WeekMamaCarryTotal.objects.filter(**condtion).exists():
                 WEEK_RANK_REDIS.update_cache(instance, [target])
-
+                team_condtion = copy(WeekMamaTeamCarryTotal.filters[target])
+                team_condtion['mama_id__in'] = instance.mama.get_team_member_ids()
+                for team in WeekMamaTeamCarryTotal.objects.filter(**team_condtion):
+                    WEEK_RANK_REDIS.update_cache(team, [target])
+                    team.check_add_member(instance)
 
 post_save.connect(update_week_mama_carry_total_cache,
                   sender=WeekMamaCarryTotal, dispatch_uid='post_save_update_week_mama_carry_total_cache')
@@ -325,6 +330,7 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
     mama = models.ForeignKey(XiaoluMama)
     stat_time = models.DateTimeField(db_index=True, verbose_name=u'统计起始时间')
     members = models.ManyToManyField(WeekMamaCarryTotal, related_name='teams')
+    member_ids = JSONCharMyField(default=[], max_length=10240, verbose_name=u'成员列表')
     total = models.IntegerField(default=0, verbose_name=u'团队收益总额', help_text=u'单位为分')
     duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
     total_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'总排名',
@@ -340,6 +346,9 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈团队周收益排名'
         verbose_name_plural = u'小鹿妈妈团队周收益排名列表'
+    @property
+    def mama_ids(self):
+        return self.member_ids
 
     @staticmethod
     def batch_generate(week_begin_time=None):
@@ -353,29 +362,29 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
         return len(left_ids)
 
     @staticmethod
+    def get_member_ids(mama, week_begin_time):
+        mama_ids = [mama.mama_id for mama in WeekMamaCarryTotal.objects.filter(mama_id__in=mama.get_team_member_ids(), stat_time=week_begin_time)]
+        return mama_ids
+
+    @staticmethod
     def generate(mama, week_begin_time):
         if type(mama) != XiaoluMama:
             mama = XiaoluMama.objects.get(id=mama)
         mama_id = mama.id
-        mama_ids = mama.get_team_member_ids()
         m = WeekMamaTeamCarryTotal(
             mama_id=mama_id,
             last_renew_type=mama.last_renew_type,
             agencylevel=mama.agencylevel,
             stat_time=week_begin_time
         )
-        m.restat(mama_ids, week_begin_time)
-        m.save()
-        for mama in WeekMamaCarryTotal.objects.filter(mama_id__in=mama_ids, stat_time=week_begin_time):
-            m.members.add(mama)
+        m.member_ids = WeekMamaCarryTotal.get_member_ids(mama, week_begin_time)
+        m.restat(m.member_ids, week_begin_time)
         m.save()
         return m
 
     def restat(self, mama_ids, stat_time):
         res = WeekMamaCarryTotal.objects.filter(mama_id__in=mama_ids, stat_time=stat_time).aggregate(
-            total=Sum('total'),
-            duration_total=Sum('duration_total'),
-        )
+            total=Sum('total'), duration_total=Sum('duration_total'))
         self.total = res.get('total') or 0
         self.duration_total = res.get('duration_total') or 0
 
@@ -415,15 +424,12 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
         if not WeekMamaTeamCarryTotal.objects.filter(mama_id=mama_id, stat_time=stat_time).exists():
             return WeekMamaTeamCarryTotal.generate(mama_id, stat_time)
         m = WeekMamaTeamCarryTotal.objects.filter(mama_id=mama_id, stat_time=stat_time).first()
-        mama_ids = WeekMamaTeamCarryTotal.get_team_ids(mama_id)
+        mama_ids = WeekMamaTeamCarryTotal.get_member_ids(mama_id, stat_time)
+        m.member_ids = mama_ids
         m.restat(mama_ids)
         m.save()
-        now_mama_ids = [i['mama_id'] for i in m.members.values('mama_id')]
-        left_mama_ids = list(set(mama_ids) - set(now_mama_ids))
-        for mama in WeekMamaCarryTotal.objects.filter(mama_id__in=left_mama_ids):
-            m.members.add(mama)
-        m.save()
 
-
-post_save.connect(update_week_mama_carry_total_cache,
-                  sender=WeekMamaTeamCarryTotal, dispatch_uid='post_save_update_week_mama_team_carry_total_cache')
+    def check_add_member(self, mama):
+        if mama.id not in self.member_ids:
+            self.member_ids.append(mama.id)
+            self.save()
