@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+  {% include 'yunying/chart.html' %}
+
+  <div class="row">
+    <table class="table table-bordered ">
+      <tr>
+        <th>商品</th>
+        <th>SKU</th>
+        <th>单价</th>
+        <th>销量</th>
+        <th>交易额</th>
+      </tr>
+      {% for item in order_items %}
+      <tr>
+        <td>{{ item.0 }}</td>
+        <td>{{ item.1 }}</td>
+        <td>{{ item.2 }}</td>
+        <td>{{ item.3 }}</td>
+        <td>{{ item.4 }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+{% endblock %}

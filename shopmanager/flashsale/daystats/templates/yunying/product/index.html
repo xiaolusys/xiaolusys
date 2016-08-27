@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  <h3>{{ start_date }} - {{ end_date }}</h3>
+  <table class="table table-bordered ">
+    <tr>
+      <th></th>
+      <th>product_id</th>
+      <th>title</th>
+      <th>count</th>
+    </tr>
+    {% for product in products %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ product.item_id }}</td>
+      <td><a href="{% url 'yy-product-show' product.item_id %}?start_date={{ p_start_date }}&end_date={{ p_end_date　}}">{{ product.title }}</a></td>
+      <td>{{ product.count }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

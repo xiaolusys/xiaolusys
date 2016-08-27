@@ -2,10 +2,10 @@
 from itertools import groupby
 from datetime import datetime, timedelta
 from django.shortcuts import render
-from django.template import Template, Context
 from django.db import connections
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade
+from flashsale.daystats.lib.chart import generate_chart, generate_date
 
 
 def process_data(data):
@@ -18,38 +18,6 @@ def process_data(data):
     data = groupby(data, bydate)
     data = map(count, data)
     return [x[1] for x in data]
-
-
-def generate_date(start_date, end_date):
-    date = start_date
-
-    ranges = []
-    while date <= end_date:
-        ranges.append(date)
-        date = date + timedelta(days=1)
-    return ranges
-
-
-def generate_chart(name, x_axis, items, width='600px'):
-
-    tpl = Template("""[
-    {% for k, v in items.items %}
-    {
-        name: "{{ k }}",
-        type: 'line',
-        data: {{ v }},
-    },
-    {% endfor %}
-    ]""")
-    context = Context({'items': items})
-    series = tpl.render(context)
-
-    return {
-        'name': name,
-        'x_axis': x_axis,
-        'series': series,
-        'width': width,
-    }
 
 
 def execute_sql(cursor, sql):
