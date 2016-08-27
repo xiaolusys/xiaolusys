@@ -654,7 +654,8 @@ def awardcarry_weixin_push(sender, instance, created, **kwargs):
     if not created:
         return
     from flashsale.xiaolumm import tasks_mama_push
-    tasks_mama_push.task_weixin_push_awardcarry.delay(instance)
+    if instance.status != 3:
+        tasks_mama_push.task_weixin_push_awardcarry.delay(instance)
 
 post_save.connect(awardcarry_weixin_push,
                   sender=AwardCarry, dispatch_uid='post_save_awardcarry_weixin_push')
@@ -974,9 +975,9 @@ post_save.connect(referal_update_activevalue,
 
 
 def referal_update_awardcarry(sender, instance, created, **kwargs):
-
-    from flashsale.xiaolumm.tasks_mama import task_referal_update_awardcarry
-    task_referal_update_awardcarry.delay(instance)
+    if instance.created.date() > MAMA_FORTUNE_HISTORY_LAST_DAY:
+        from flashsale.xiaolumm.tasks_mama import task_referal_update_awardcarry
+        task_referal_update_awardcarry.delay(instance)
 
 
 post_save.connect(referal_update_awardcarry,
