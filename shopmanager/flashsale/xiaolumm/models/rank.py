@@ -309,7 +309,7 @@ def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
                 team_condtion['mama_id__in'] = instance.mama.get_team_member_ids()
                 for team in WeekMamaTeamCarryTotal.objects.filter(**team_condtion):
                     WEEK_RANK_REDIS.update_cache(team, [target])
-                    team.check_add_member(instance)
+                    team.check_add_member(instance.mama)
 
 post_save.connect(update_week_mama_carry_total_cache,
                   sender=WeekMamaCarryTotal, dispatch_uid='post_save_update_week_mama_carry_total_cache')
@@ -431,5 +431,5 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
 
     def check_add_member(self, mama):
         if mama.id not in self.member_ids:
-            self.member_ids.append(mama.id)
+            self.member_ids = WeekMamaTeamCarryTotal.get_member_ids(mama, WeekRank.this_week_time())
             self.save()
