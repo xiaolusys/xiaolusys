@@ -147,6 +147,8 @@ class OrderCarrySerializer(serializers.ModelSerializer):
     carry_num = serializers.FloatField(source='carry_num_display', read_only=True)
     carry_value = serializers.FloatField(source='carry_num_display', read_only=True)
     contributor_nick = serializers.CharField(source='contributor_nick_display', read_only=True)
+    packetid = serializers.SerializerMethodField()
+    company_code = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderCarry
@@ -154,7 +156,20 @@ class OrderCarrySerializer(serializers.ModelSerializer):
         fields = ('mama_id', 'order_id', 'order_value', 'carry_value', 'carry_num', 'carry_type',
                   'carry_type_name', 'sku_name', 'sku_img', 'contributor_nick', "carry_description",
                   'contributor_img', 'contributor_id', 'agency_level', 'carry_plan_name',
-                  'date_field', 'status', 'status_display', 'modified', 'created', 'today_carry',)
+                  'date_field', 'status', 'status_display', 'modified', 'created', 'today_carry',
+                  'packetid', 'company_code')
+
+    def get_packetid(self, obj):
+        order = SaleOrder.objects.filter(oid=obj.order_id).first()
+        if not order:
+            return ''
+        return order.sale_trade.out_sid
+
+    def get_company_code(self, obj):
+        order = SaleOrder.objects.filter(oid=obj.order_id).first()
+        if not order:
+            return ''
+        return order.sale_trade.logistics_company.code if order.sale_trade.logistics_company else ''
 
 
 class AwardCarrySerializer(serializers.ModelSerializer):
