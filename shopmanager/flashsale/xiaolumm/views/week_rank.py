@@ -318,6 +318,7 @@ class ActivityMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
             raise exceptions.PermissionDenied(u'用户未登录或并非小鹿妈妈')
         activity = RankActivity.objects.filter(id=pk).first() or RankActivity.now_activity()
         rank = activity.ranks.filter(mama_id=mama.id).first()
+        teamrank = activity.teamranks.filter(mama_id=mama.id).first()
         if not activity or not rank:
             res = {'mama': mama.id, 'mama_nick': mama.nick, 'thumbnail': mama.thumbnail, 'mobile': mama.mobile
                    }
@@ -326,6 +327,8 @@ class ActivityMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
             res['invite_trial_num'] = 0
             res['invite_rank'] = 0
             res['activity_rank'] = 0
+            res['team_duration_total'] = 0
+            res['team_duration_rank'] = 0
         else:
             res = self.get_serializer(rank).data
             res['duration_total'] = rank.duration_total
@@ -333,6 +336,8 @@ class ActivityMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
             res['invite_trial_num'] = rank.duration_total
             res['invite_rank'] = rank.invite_rank
             res['activity_rank'] = rank.activity_rank
+            res['team_duration_total'] = teamrank.duration_total
+            res['team_duration_rank'] = teamrank.duration_rank
         return Response(res)
 
     @detail_route(methods=['GET'])
