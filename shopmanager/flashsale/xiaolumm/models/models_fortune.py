@@ -210,10 +210,14 @@ class MamaFortune(BaseModel):
 
 
 def update_week_carry_total(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_carry_total
-
     if instance.xlmm and (not instance.xlmm.is_staff) and instance.xlmm.is_available():
+        from flashsale.xiaolumm import tasks_mama_carry_total
+        from flashsale.xiaolumm.models.carry_total import RankActivity
         tasks_mama_carry_total.task_fortune_update_week_carry_total.delay(instance.mama_id)
+        activity = RankActivity.now_activity()
+        if activity:
+            tasks_mama_carry_total.task_fortune_update_activity_carry_total.delay(activity, instance.mama_id)
+
 
 post_save.connect(update_week_carry_total,
                   sender=MamaFortune, dispatch_uid='post_save_task_fortune_update_week_carry_total')

@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 from celery.task import task
 from common.taskutils import single_instance_task
-from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
+from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, ActivityMamaCarryTotal
 from flashsale.xiaolumm.models.rank import WeekMamaCarryTotal, WeekMamaTeamCarryTotal, WeekRank
 from django.conf import settings
 import datetime
@@ -30,7 +30,11 @@ def task_carryrecord_update_carrytotal(mama_id):
 @task()
 def task_fortune_update_week_carry_total(mama_id):
     WeekMamaCarryTotal.update_or_create(mama_id)
-    return
+
+
+@task()
+def task_fortune_update_activity_carry_total(activity, mama_id):
+    ActivityMamaCarryTotal.update_or_create(activity, mama_id)
 
 
 @single_instance_task(timeout=TIMEOUT, prefix='flashsale.xiaolumm.tasks_mama_carry_total.')

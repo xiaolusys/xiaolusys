@@ -123,13 +123,13 @@ class WeekRank(object):
             # 检查缓存总数如果不符合则更新缓存
             cls.check_update_cache(order_field)
             rank_dict = WEEK_RANK_REDIS.get_rank_dict(cls, order_field, start, end)
-            contidion = {'stat_time': week_begin_time, order_field + '__gt': 0, 'mama_id__in': rank_dict.keys()}
+            condition = {'stat_time': week_begin_time, order_field + '__gt': 0, 'mama_id__in': rank_dict.keys()}
             setattr(cls, '_redis_' + order_field + '_cache_', rank_dict)
-            return cls.objects.filter(**contidion).order_by('-' + order_field)
+            return cls.objects.filter(**condition).order_by('-' + order_field)
         else:
-            contidion = {'stat_time': week_begin_time, order_field + '__gt': 0, 'agencylevel__gt': XiaoluMama.INNER_LEVEL}
+            condition = {'stat_time': week_begin_time, order_field + '__gt': 0, 'agencylevel__gt': XiaoluMama.INNER_LEVEL}
             targets = {'total': 'total_rank_delay', 'duration_total':'duration_rank_delay'}
-            return cls.objects.filter(**contidion).order_by(targets[order_field])
+            return cls.objects.filter(**condition).order_by(targets[order_field])
 
     @classmethod
     def get_by_mama_id(cls, mama_id, week_begin_time):
