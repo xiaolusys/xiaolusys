@@ -246,7 +246,8 @@ def order_payment_update_mission_record(sender, obj, *args, **kwargs):
 
         week_start, week_end = week_range(obj.pay_time.date())
         year_week = obj.pay_time.strftime('%Y-%W')
-        order_carrys = OrderCarry.objects.filter(order_id__in=order_ids)
+        # 下属订单不计算到上级妈妈的订单销售
+        order_carrys = OrderCarry.objects.filter(order_id__in=order_ids).exclude(carry_type=OrderCarry.REFERAL_ORDER)
         carry_first = order_carrys.first()
         if not (carry_first and carry_first.mama_id):
             return

@@ -109,8 +109,8 @@ def task_create_or_update_mama_mission_state(mama_id):
     pre_year_week = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%W')
     staging_missions = MamaMissionRecord.objects.filter(
         mama_id=mama_id, year_week=pre_year_week, status=MamaMissionRecord.STAGING)
-    for mission in staging_missions:
-        create_or_update_weekly_mission(mama_id, mission, pre_year_week)
+    for record in staging_missions:
+        create_or_update_weekly_mission(mama_id, record.mission, pre_year_week)
 
 
 

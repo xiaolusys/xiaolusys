@@ -377,6 +377,9 @@ pre_save.connect(carryrecord_xlmm_newtask,
 
 
 class OrderCarry(BaseModel):
+    WAP_ORDER = 1
+    APP_ORDER = 2
+    REFERAL_ORDER = 3
     CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
     STAGING = 0
     ESTIMATE = 1
