@@ -179,11 +179,17 @@ class SaleProductManageDetail(models.Model):
         return self._sale_product_
 
     @property
-    def product_model_id(self):
-        if not hasattr(self, '_model_id_'):
+    def item_products(self):
+        if not hasattr(self, '_item_products_'):
             from shopback.items.models import Product
 
-            self._model_id_ = Product.objects.filter(sale_product=self.sale_product_id, status=Product.NORMAL).first()
+            self._item_products_ = Product.objects.filter(sale_product=self.sale_product_id, status=Product.NORMAL)
+        return self._item_products_
+
+    @property
+    def product_model_id(self):
+        if not hasattr(self, '_model_id_'):
+            self._model_id_ = self.item_products.first()
         return self._model_id_.model_id if self._model_id_ else 0
 
     @property
@@ -209,14 +215,6 @@ class SaleProductManageDetail(models.Model):
     @property
     def is_brand_type(self):
         return self.schedule_type == self.SP_BRAND
-
-    @property
-    def item_products(self):
-        if not hasattr(self, '_item_products_'):
-            from shopback.items.models import Product
-
-            self._item_products_ = Product.objects.filter(sale_product=self.sale_product_id, status=Product.NORMAL)
-        return self._item_products_
 
 
 def sync_md_weight(sender, instance, raw, *args, **kwargs):

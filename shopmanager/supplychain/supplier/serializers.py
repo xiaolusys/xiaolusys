@@ -419,6 +419,7 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
     supplier_id = serializers.IntegerField(source='sale_product.sale_supplier.id', read_only=True)
     reference_username = serializers.SerializerMethodField('reference_user_name', read_only=True)
     photo_username = serializers.SerializerMethodField('photo_user_name', read_only=True)
+    in_product = serializers.SerializerMethodField()
 
     class Meta:
         model = SaleProductManageDetail
@@ -428,7 +429,7 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
             'sale_category', 'material_status', 'today_use_status', 'product_purchase_price', 'product_sale_price',
             'product_origin_price', 'design_take_over', 'design_complete', 'is_approved', 'is_promotion',
             'reference_username', 'photo_username', 'product_contactor', 'product_memo', 'photo_user', 'reference_user',
-            'created', 'modified')
+            'in_product', 'created', 'modified')
 
     def reference_user_name(self, obj):
         """ 资料录入人 """
@@ -447,6 +448,11 @@ class SaleProductManageDetailSerializer(serializers.ModelSerializer):
             return full_name if full_name else woker.username
         except User.DoesNotExist:
             return ''
+
+    def get_in_product(self, obj):
+        if obj.item_products:
+            return True
+        return False
 
 
 class ManageDetailAssignWorkerSerializer(serializers.ModelSerializer):
