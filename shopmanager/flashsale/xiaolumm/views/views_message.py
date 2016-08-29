@@ -59,5 +59,6 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
         message = get_object_or_404(XlmmMessage, pk=pk)
         if message.dest and message.dest != mama:
             raise exceptions.ValidationError(u'无法修改和自己无关的消息')
-        message.set_read(mama)
+        XlmmMessage.set_all_read(mama)
+        # message.set_read(mama)
         return Response({'id': message.id})

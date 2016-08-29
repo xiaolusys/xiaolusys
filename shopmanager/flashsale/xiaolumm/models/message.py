@@ -62,6 +62,12 @@ class XlmmMessage(AdminModel):
 
         return
 
+    @staticmethod
+    def set_all_read(mama):
+        queryset = XlmmMessage.objects.filter(status=1).filter(Q(dest=None) | Q(dest__in=['', str(mama.id)])).order_by('-id')
+        for q in queryset:
+            q.set_read()
+
     def set_read(self, mama):
         rel = mama.rel_messages.filter(message_id=self.id).first()
         if not rel:
