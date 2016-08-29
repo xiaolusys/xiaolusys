@@ -25,12 +25,18 @@ def get_cur_info():
 def task_awardcarry_update_carryrecord(carry):
     print "%s, mama_id: %s" % (get_cur_info(), carry.mama_id)
 
-    records = CarryRecord.objects.filter(uni_key=carry.uni_key)
-    if records.count() > 0:
-        record = records[0]
+    record = CarryRecord.objects.filter(uni_key=carry.uni_key).first()
+    if record:
+        update_fields = []
         if record.status != carry.status:
             record.status = carry.status
-            record.save()
+            update_fields.append('status')
+        if record.carry_num != carry.carry_num:
+            record.carry_num = carry.carry_num
+            update_fields.append('carry_num')
+        if update_fields:
+            update_fields.append('modified')
+            record.save(update_fields=update_fields)
     else:
         carry_type = 3  # awardcarry
         carry_record = CarryRecord(mama_id=carry.mama_id, carry_num=carry.carry_num,
