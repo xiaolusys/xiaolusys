@@ -4,16 +4,24 @@ from django.db import models
 from django.db.models import Sum, F, Count, Q
 from django.db import connection
 from django.db.models.signals import post_save
-from core.models import BaseModel
+from core.models import BaseModel, AdminModel
 from core.fields import JSONCharMyField
 from flashsale.xiaolumm.models import XiaoluMama, MamaFortune, CashOut
 from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, AwardCarry, ClickCarry, \
     MAMA_FORTUNE_HISTORY_LAST_DAY
 from django.core.cache import cache
+import logging
+from copy import copy
+
+logger = logging.getLogger('django.request')
+
 
 # 在下次活动前设置此处，以自动重设变更统计时间
 STAT_TIME = datetime.datetime(2016, 8, 26)
 STAT_END_TIME = datetime.datetime(2016, 9, 10)
+# ----------------------------------------------------------------
+#    MamaCarryTotal 与 MamaTeamCarryTotal 及Record后续弃用
+# ----------------------------------------------------------------
 
 
 # if datetime.datetime.now() < datetime.datetime(2016, 7, 28) \
@@ -25,12 +33,16 @@ class RankRedis(object):
         self.stat_time = stat_time
 
     def get_cache_key(self, model_class, target='total'):
-        return model_class.__name__ + '.' + self.stat_time.strftime('%Y%m%d') + '.' + target
+        if model_class.__name__ in ['WeekMamaCarryTotal', 'WeekMamaTeamCarryTotal']:
+            return model_class.__name__ + '.' + self.stat_time.strftime('%Y%m%d') + '.' + target
+        if model_class.__name__ in ['ActivityMamaCarryTotal', 'ActivityMamaTeamCarryTotal']:
+            return model_class.__name__ + '.activity.' + target
+        raise Exception(u'unexpected model class ')
 
-    def update_cache(self, instance, targets=['duration_total', 'total']):
+    def update_cache(self, instance, targets=['duration_total', 'total'], func=getattr):
         for target in targets:
             RankRedis.redis_cache.zadd(self.get_cache_key(type(instance), target), instance.mama_id,
-                                       getattr(instance, target))
+                                       func(instance, target))
 
     def batch_update_cache(self, instance, targets=['duration_total', 'total']):
         # TODO@hy 待优化 可一次性更新
@@ -787,6 +799,7 @@ class CarryTotalRecord(BaseModel):
                                              last_renew_type=XiaoluMama.TRIAL, stat_time=datetime.datetime(2016,7,29,0)).order_by(
             (F('duration_total') + F('expect_total')).desc())
 
+
 class TeamCarryTotalRecord(BaseModel):
     """
         活动记录
@@ -834,3 +847,384 @@ class TeamCarryTotalRecord(BaseModel):
         if save:
             record.save()
         return record
+
+
+class RankActivity(AdminModel):
+    start_time = models.DateField(verbose_name=u'活动开始时间', help_text=u'9月12日0点开始则选9月12日')
+    end_time = models.DateField(verbose_name=u'活动结束时间', help_text=u'9月14日0点结束则选9月13日')
+    STATUS_CHOICES = ((0, u'准备'), (1, u'有效'), (2, u'结束'), (3, u'作废'))
+    status = models.IntegerField(default=1, verbose_name=u'状态')
+    note = models.CharField(max_length=100, verbose_name=u'备注')
+
+    class Meta:
+        db_table = 'xiaolumm_rank_activity'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿妈妈收益排名活动'
+        verbose_name_plural = u'小鹿妈妈收益排名活动列表'
+
+    @staticmethod
+    def now_activity():
+        _now = datetime.datetime.now()
+        return RankActivity.objects.filter(start_time__lte=_now, end_time__gte=_now, status=1).first()
+
+    def is_active(self):
+        _now = datetime.datetime.now()
+        return self.start_time <= _now.date() <= self.end_time
+
+
+def getattr_change(instance, target):
+    if target == 'activity_duration_total':
+        return getattr(instance, 'duration_total')
+    return getattr(instance, target)
+
+
+class ActivityRankTotal(object):
+    @property
+    def duration_total_display(self):
+        return '%.2f' % (self.duration_total * 0.01)
+
+    @property
+    def duration_rank(self):
+        if not self.activity.is_active():
+            return self.duration_rank_delay
+        if self._redis_duration_total_cache_ and str(self.mama_id) in self._redis_duration_total_cache_:
+            return self._redis_duration_total_cache_.get(str(self.mama_id))
+        cache_rank = STAT_RANK_REDIS.get_rank(type(self), 'duration_total', self.mama_id)
+        if cache_rank is None:
+            STAT_RANK_REDIS.update_cache(self, ['duration_total'])
+            return self.duration_rank_delay
+        else:
+            return cache_rank
+
+    @classmethod
+    def check_update_cache(cls, target='duration_total'):
+        cache_count = STAT_RANK_REDIS.get_rank_count(cls, target)
+        condition = cls.filters[target]
+        condition['activity_id'] = RankActivity.now_activity().id
+        real_count = cls.objects.filter(**condition).count()
+        if cache_count > real_count:
+            logger.error('cache_count big than real_count')
+            STAT_RANK_REDIS.clear_cache(cls, target)
+            cache_mama_ids = []
+        elif cache_count < real_count:
+            cache_mama_ids = STAT_RANK_REDIS.get_rank_list(cls, target, 0, -1)
+        if cache_count != real_count:
+            add_res = []
+            for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids):
+                STAT_RANK_REDIS.update_cache(i, targets=[target], func=getattr_change)
+                add_res.append(str(i.id))
+            logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(add_res))
+
+    @classmethod
+    def get_duration_ranking_list(cls, begin_time=None):
+        return cls.get_ranking_list(begin_time, order_field='duration_total')
+
+    @classmethod
+    def get_ranking_list(cls, rank_activity=None, order_field='total', start=0, end=100):
+        if rank_activity.is_active():
+            # 本周数据从redis获取
+            # 检查缓存总数如果不符合则更新缓存
+            cls.check_update_cache(order_field)
+            rank_dict = STAT_RANK_REDIS.get_rank_dict(cls, order_field, start, end)
+            condition = {'stat_time': rank_activity.start_time, order_field + '__gt': 0, 'mama_id__in': rank_dict.keys()}
+            setattr(cls, '_redis_' + order_field + '_cache_', rank_dict)
+        else:
+            condition = {'stat_time': rank_activity.end_time, order_field + '__gt': 0}
+        return cls.objects.filter(**condition).order_by('-' + order_field)
+
+
+class ActivityMamaCarryTotal(BaseMamaCarryTotal, ActivityRankTotal):
+    activity = models.ForeignKey(RankActivity, related_name='ranks', verbose_name=u'活动')
+    filters = {
+        'duration_total': {
+            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+        },
+        'activity_duration_total':{
+            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+            'last_renew_type': 15
+        },
+        'invite_trial_num': {
+            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+        }
+    }
+    mama = models.ForeignKey(XiaoluMama)
+    duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
+    duration_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名',
+                                              help_text=u'单位为分，每日更新，从cache中可实时更新')
+    activity_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名',
+                                              help_text=u'单位为分，每日更新，从cache中可实时更新')
+    invite_trial_num = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
+    invite_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期邀请数排名',
+                                              help_text=u'单位为分，每日更新，从cache中可实时更新')
+    _redis_duration_total_cache_ = {}
+    _redis_activity_duration_total_cache_ = {}
+    _redis_invite_trial_num_cache_ = {}
+
+    class Meta:
+        unique_together = ('mama', 'activity')
+        db_table = 'xiaolumm_activity_carry_total'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿妈妈活动收益排名'
+        verbose_name_plural = u'小鹿妈妈活动收益排名列表'
+
+    def update_activity_rank(self):
+        if self.last_renew_type == 15:
+            STAT_RANK_REDIS.update_cache(self, ['activity_duration_total'], func=getattr_change)
+
+    @property
+    def activity_rank(self):
+        if not self.activity.is_active():
+            return self.activity_rank_delay
+        if self._redis_activity_duration_total_cache_ and str(self.mama_id) in self._redis_activity_duration_total_cache_:
+            return self._redis_activity_duration_total_cache_.get(str(self.mama_id))
+        cache_rank = STAT_RANK_REDIS.get_rank(type(self), 'activity_duration_total', self.mama_id)
+        if self.activity_rank_delay == 0 and cache_rank is None:
+            return 0
+        elif cache_rank is None:
+            return self.update_activity_rank()
+        else:
+            return cache_rank
+
+    @property
+    def invite_rank(self):
+        if not self.activity.is_active():
+            return self.invite_rank_delay
+        if self._redis_invite_trial_num_cache_ and str(self.mama_id) in self._redis_invite_trial_num_cache_:
+            return self._redis_invite_trial_num_cache_.get(str(self.mama_id))
+        cache_rank = STAT_RANK_REDIS.get_rank(type(self), 'invite_trial_num', self.mama_id)
+        if cache_rank is None:
+            STAT_RANK_REDIS.update_cache(self, ['invite_trial_num'])
+            return self.invite_rank_delay
+        else:
+            return cache_rank
+
+    def set_data(self, activity):
+        cr_conditions = {
+            'date_field__gte': activity.start_time,
+            'date_field__lte': activity.end_time,
+            'mama_id': self.mama_id,
+            'status__in': [1, 2]
+        }
+        duration_total = CarryRecord.objects.filter(**cr_conditions).aggregate(
+            total=Sum('carry_num')).get('total') or 0
+        self.duration_total = duration_total
+        self.invite_trial_num = MamaFortune.objects.get(mama_id=self.mama_id).invite_trial_num
+
+    @staticmethod
+    def reset_rank(activity, target='duration_total'):
+        target_fields = {'duration_total': 'duration_rank_delay',
+                         'activity_duration_total': 'activity_rank_delay',
+                         'invite_trial_num': 'invite_rank_delay'}
+        if target not in target_fields:
+            raise Exception('target field err')
+        target_condition = {'duration_total':{'activity_id': activity.id},
+                            'activity_duration_total': {'activity_id': activity.id, 'last_renew_type':15},
+                            'invite_trial_num': {'activity_id': activity.id}}
+        ActivityMamaCarryTotal.batch_generate(activity)
+        i = 1
+        rank = 1
+        last_value = None
+        res = {}
+        for m in ActivityMamaCarryTotal.objects.filter(**target_condition[target]).order_by('-' + target). \
+                values('mama_id', target):
+            if last_value is None or m[target] < last_value:
+                last_value = m[target]
+                rank = i
+            res[m['mama_id']] = rank if last_value > 0 else 0
+            i += 1
+        multi_update(ActivityMamaCarryTotal, 'mama_id', target_fields[target], res,
+                     'activity_id="%s"' % (activity.id,))
+
+    @staticmethod
+    def update_or_create(activity, mama_id):
+        ins = activity.ranks.filter(mama_id=mama_id).first()
+        if ins:
+            ins.set_data(activity)
+            ins.save()
+            return ins
+        else:
+            xlmm = XiaoluMama.objects.filter(pk=mama_id, progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
+                                               status__in=[XiaoluMama.EFFECT, XiaoluMama.FROZEN], charge_status=XiaoluMama.CHARGED, is_staff=False).first()
+            if xlmm:
+                ins = ActivityMamaCarryTotal(
+                    activity=activity,
+                    mama_id=mama_id,
+                    last_renew_type=xlmm.last_renew_type,
+                    agencylevel=xlmm.agencylevel,
+                )
+                ins.set_data(activity)
+                ins.save()
+                return ins
+
+    @staticmethod
+    def reset_rank_invite(week_begin_time=None):
+        ActivityMamaCarryTotal.reset_rank(week_begin_time, target='invite_trial_num')
+
+    @staticmethod
+    def batch_generate(activity):
+        mama_data_ = XiaoluMama.objects.filter(progress__in=[XiaoluMama.PAY, XiaoluMama.PASS],
+                                               status__in=[XiaoluMama.EFFECT, XiaoluMama.FROZEN], charge_status=XiaoluMama.CHARGED, is_staff=False). \
+            values('id', 'last_renew_type', 'agencylevel')
+        mama_data = {i['id']: i for i in mama_data_}
+        mama_ids = mama_data.keys()
+        exist_ids = [m['mama_id'] for m in
+                     ActivityMamaCarryTotal.objects.filter(activity_id=activity.id).values('mama_id')]
+        fortune_dict = {m.mama_id: m for m in MamaFortune.objects.filter(mama_id__in=mama_ids)}
+        # 做下交集，避免fortune不存在的情况出错
+        mama_ids = list(set(mama_ids) & set(fortune_dict.keys()) - set(exist_ids))
+        cr_conditions = {
+            'date_field__gte': activity.start_time,
+            'date_field__lt': activity.end_time,
+            'status__in': [1, 2]
+        }
+        duration_totals = CarryRecord.objects.filter(**cr_conditions).values('mama_id').annotate(total=Sum('carry_num'))
+        duration_total_dict = {i['mama_id']: i['total'] for i in duration_totals}
+        records = []
+        for mmid in mama_ids:
+            wm = ActivityMamaCarryTotal(
+                activity=activity,
+                mama_id=mmid,
+                last_renew_type=mama_data.get(mmid).get('last_renew_type'),
+                agencylevel=mama_data.get(mmid).get('agencylevel'),
+                invite_trial_num=fortune_dict[mmid].invite_trial_num,
+                duration_total=duration_total_dict.get(mmid, 0),
+            )
+            records.append(wm)
+        ActivityMamaCarryTotal.objects.bulk_create(records)
+        ActivityMamaCarryTotal.check_update_cache('invite_trial_num')
+        ActivityMamaCarryTotal.check_update_cache('duration_total')
+        ActivityMamaCarryTotal.check_update_cache('activity_duration_total')
+        return len(records)
+
+    @classmethod
+    def get_ranking_list(cls, rank_activity=None, order_field='duration_total', start=0, end=100):
+        if not rank_activity:
+            rank_activity = RankActivity.now_activity()
+        if rank_activity == RankActivity.now_activity():
+            # 本周数据从redis获取
+            # 检查缓存总数如果不符合则更新缓存
+            cls.check_update_cache(order_field)
+            rank_dict = STAT_RANK_REDIS.get_rank_dict(cls, order_field, start, end)
+            condition = {'activity_id': rank_activity.id, 'mama_id__in': rank_dict.keys()}
+            if order_field == 'activity_duration_total':
+                condition['duration_total__gt'] = 0
+                condition['last_renew_type'] = 15
+            setattr(cls, '_redis_' + order_field + '_cache_', rank_dict)
+        else:
+            condition = {'activity_id': rank_activity.id, order_field + '__gt': 0}
+        res = cls.objects.filter(**condition)
+        if order_field == 'activity_duration_total':
+            return res.order_by('-duration_total')
+        return res.order_by('-' + order_field)
+
+
+def update_activity_mama_carry_total_cache(sender, instance, created, **kwargs):
+    # 当周数据实时更新到redis，从redis读取
+    if instance.activity.is_active():
+        for target in ActivityMamaCarryTotal.filters:
+            condtion = copy(ActivityMamaCarryTotal.filters[target])
+            condtion['pk'] = instance.pk
+            if ActivityMamaCarryTotal.objects.filter(**condtion).exists():
+                STAT_RANK_REDIS.update_cache(instance, [target])
+                if target in ActivityMamaTeamCarryTotal.filters:
+                    team_condtion = copy(ActivityMamaTeamCarryTotal.filters[target])
+                    team_condtion['mama_id__in'] = instance.mama.get_team_member_ids()
+                    for team in ActivityMamaTeamCarryTotal.objects.filter(**team_condtion):
+                        STAT_RANK_REDIS.update_cache(team, [target])
+                        team.check_add_member(instance.mama)
+
+post_save.connect(update_activity_mama_carry_total_cache,
+                  sender=ActivityMamaCarryTotal, dispatch_uid='post_save_update_activity_mama_carry_total_cache')
+
+
+class ActivityMamaTeamCarryTotal(BaseMamaTeamCarryTotal, ActivityRankTotal):
+    activity = models.ForeignKey(RankActivity, related_name='teamranks', verbose_name=u'活动')
+    filters = {
+        'duration_total': {
+            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+        }
+    }
+    mama = models.ForeignKey(XiaoluMama)
+    member_ids = JSONCharMyField(default=[], max_length=10240, verbose_name=u'成员列表')
+    duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
+    duration_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名',
+                                              help_text=u'单位为分，每日更新，从cache中可实时更新')
+    activity_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名',
+                                              help_text=u'单位为分，每日更新，从cache中可实时更新')
+    _redis_duration_total_cache_ = {}
+
+    class Meta:
+        unique_together = ('mama', 'activity')
+        db_table = 'xiaolumm_activity_team_carry_total'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿妈妈活动收益排名'
+        verbose_name_plural = u'小鹿妈妈活动收益排名列表'
+
+    @property
+    def mama_ids(self):
+        return self.member_ids
+
+
+    def restat(self, mama_ids, activity):
+        res = activity.ranks.filter(mama_id__in=mama_ids).aggregate(duration_total=Sum('duration_total'))
+        self.duration_total = res.get('duration_total') or 0
+
+    @staticmethod
+    def get_by_mama_id(mama_id):
+        RankActivity.objects.order_by()
+        ActivityMamaTeamCarryTotal.objects.filter(mama_id)
+        return
+
+    @staticmethod
+    def get_member_ids(mama, activity):
+        mama_ids = [mama.mama_id for mama in activity.ranks.filter(mama_id__in=mama.get_team_member_ids())]
+        return mama_ids
+
+    @staticmethod
+    def generate(mama, activity, save=True):
+        if type(mama) != XiaoluMama:
+            mama = XiaoluMama.objects.get(id=mama)
+        mama_id = mama.id
+        m = ActivityMamaTeamCarryTotal(
+            mama_id=mama_id,
+            last_renew_type=mama.last_renew_type,
+            agencylevel=mama.agencylevel,
+            activity=activity
+        )
+        m.member_ids = ActivityMamaTeamCarryTotal.get_member_ids(mama, activity)
+        m.restat(m.member_ids, activity)
+        if save:
+            m.save()
+        return m
+
+    @staticmethod
+    def batch_generate(activity):
+        ActivityMamaCarryTotal.batch_generate(activity)
+        mids = [m['mama_id'] for m in activity.ranks.values('mama_id')]
+        tmids = [m['mama_id'] for m in activity.teamranks.values('mama_id')]
+        left_ids = list(set(mids) - set(tmids))
+        for mama_id in left_ids:
+            ActivityMamaTeamCarryTotal.generate(mama_id, activity)
+        return len(left_ids)
+
+    @classmethod
+    def get_ranking_list(cls, rank_activity=None, order_field='duration_total', start=0, end=100):
+        if not rank_activity:
+            rank_activity = RankActivity.now_activity()
+        if rank_activity == RankActivity.now_activity():
+            # 本周数据从redis获取
+            # 检查缓存总数如果不符合则更新缓存
+            cls.check_update_cache(order_field)
+            rank_dict = STAT_RANK_REDIS.get_rank_dict(cls, order_field, start, end)
+            condition = {'activity_id': rank_activity.id, 'duration_total__gt':0, 'mama_id__in': rank_dict.keys()}
+            setattr(cls, '_redis_' + order_field + '_cache_', rank_dict)
+        else:
+            condition = {'activity_id': rank_activity.id, order_field + '__gt': 0}
+        res = cls.objects.filter(**condition)
+        return res.order_by('-' + order_field)
+
+    def check_add_member(self, mama):
+        if mama.id not in self.member_ids:
+            activity = RankActivity.now_activity()
+            self.member_ids = ActivityMamaTeamCarryTotal.get_member_ids(mama, activity)
+            self.save()

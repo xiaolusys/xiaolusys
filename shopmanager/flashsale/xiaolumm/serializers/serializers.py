@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from flashsale.xiaolumm.models.message import XlmmMessage
 from ..models.models import CashOut, CarryLog, XiaoluMama
-from ..models.carry_total import MamaCarryTotal, MamaTeamCarryTotal
+from ..models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, ActivityMamaCarryTotal
 from ..models.rank import WeekMamaTeamCarryTotal, WeekMamaCarryTotal
 from ..models.models_advertis import NinePicAdver
 from rest_framework import serializers
@@ -81,10 +81,8 @@ class MamaCarryTotalDurationSerializer(serializers.ModelSerializer):
 
 class ActivityMamaCarryTotalSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MamaCarryTotal
-        fields = (
-            'mama', 'mama_nick', 'thumbnail', 'mobile', 'duration_num', 'stat_time', 'total',
-            'duration_total', 'duration_total_display', 'rank')
+        model = ActivityMamaCarryTotal
+        fields = ('mama', 'mama_nick', 'thumbnail', 'mobile')
 
 
 class MamaTeamCarryTotalSerializer(serializers.ModelSerializer):
@@ -102,9 +100,7 @@ class MamaTeamCarryTotalDurationSerializer(serializers.ModelSerializer):
 class ActivityMamaTeamCarryTotalSerializer(serializers.ModelSerializer):
     class Meta:
         model = MamaTeamCarryTotal
-        fields = (
-            'mama', 'mama_nick', 'thumbnail', 'mobile', 'stat_time', 'duration_num', 'duration_total',
-            'duration_total_display', 'rank')
+        fields = ('mama', 'mama_nick', 'thumbnail', 'mobile')
 
 
 class XlmmMessageSerializers(serializers.ModelSerializer):
