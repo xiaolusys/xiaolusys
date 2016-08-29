@@ -529,6 +529,14 @@ MAMA_CARRYTOTAL_ROUTES = {
         'queue': 'carrytotal',
         'routing_key': 'carrytotal.task_update_team_carry_total',
     },
+    'flashsale.xiaolumm.tasks_mama_carry_total.task_fortune_update_week_carry_total': {
+        'queue': 'carrytotal',
+        'routing_key': 'carrytotal.task_fortune_update_week_carry_total',
+    },
+    'flashsale.xiaolumm.tasks_mama_carry_total.task_fortune_update_activity_carry_total': {
+        'queue': 'carrytotal',
+        'routing_key': 'carrytotal.task_fortune_update_activity_carry_total',
+    },
 }
 
 FLASHSALE_COUPON_ROUTES = {
