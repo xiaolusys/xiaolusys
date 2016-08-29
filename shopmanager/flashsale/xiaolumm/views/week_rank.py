@@ -8,7 +8,7 @@ from core.xlmm_response import make_response
 from rest_framework import generics, viewsets, permissions, authentication, renderers
 from rest_framework.decorators import detail_route, list_route
 from django.shortcuts import get_object_or_404
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, MamaFortune
 from flashsale.xiaolumm.models.rank import WeekRank, WeekMamaCarryTotal, WeekMamaTeamCarryTotal
 from flashsale.xiaolumm.models.carry_total import MamaTeamCarryTotal, MamaCarryTotal
 from flashsale.xiaolumm.models.carry_total import RankActivity, ActivityMamaTeamCarryTotal, ActivityMamaCarryTotal
@@ -319,6 +319,7 @@ class ActivityMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
         activity = RankActivity.objects.filter(id=pk).first() or RankActivity.now_activity()
         rank = activity.ranks.filter(mama_id=mama.id).first()
         teamrank = activity.teamranks.filter(mama_id=mama.id).first()
+        fortune = MamaFortune.objects.get(mama_id=mama.id)
         if not activity or not rank:
             res = {'mama': mama.id, 'mama_nick': mama.nick, 'thumbnail': mama.thumbnail, 'mobile': mama.mobile
                    }
@@ -334,6 +335,7 @@ class ActivityMamaCarryTotalViewSet(viewsets.GenericViewSet, viewsets.mixins.Ret
             res['duration_total'] = rank.duration_total
             res['duration_rank'] = rank.duration_rank
             res['invite_trial_num'] = rank.duration_total
+            res['active_trial_num'] = fortune.active_trial_num
             res['invite_rank'] = rank.invite_rank
             res['activity_rank'] = rank.activity_rank
             res['team_duration_total'] = teamrank.duration_total
