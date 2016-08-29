@@ -1128,9 +1128,11 @@ def update_activity_mama_carry_total_cache(sender, instance, created, **kwargs):
             team = ActivityMamaTeamCarryTotal.objects.filter(mama_id=mid, activity=activity).first()
             if not team:
                 ActivityMamaTeamCarryTotal.generate(mama, activity)
-            elif instance.mama_id not in team.mama_ids:
-                team.check_add_member(instance.mama)
-            team.restat(team.mama_ids, activity)
+            else:
+                if instance.mama_id not in team.mama_ids:
+                    team.check_add_member(instance.mama)
+                team.restat(team.mama_ids, activity)
+                team.save()
         for target in ActivityMamaCarryTotal.filters:
             condtion = copy(ActivityMamaCarryTotal.filters[target])
             condtion['pk'] = instance.pk
