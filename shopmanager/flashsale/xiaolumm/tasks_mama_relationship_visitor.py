@@ -39,14 +39,21 @@ def task_update_referal_relationship(sale_order):
     to_mama_id = mama.id  # 被推荐的妈妈id
 
     mm_linkid = utils.get_sale_order_mama_id(sale_order)
-    if not mm_linkid:  # 从订单没有找到推荐记录则找粉丝记录
-        fans = XlmmFans.objects.filter(fans_cusid=customer.id).first()
-        mm_linkid = fans.xlmm if fans else 0
+    if not mm_linkid:  # 从订单没有找到推荐记录则先找潜在妈妈  如果潜在妈妈 没有 则 找粉丝记录
+        potential = PotentialMama.objects.filter(potential_mama=mama.id).first()
+        if potential:
+            mm_linkid = potential.referal_mama  # 推荐人妈妈id
+        if not mm_linkid:
+            fans = XlmmFans.objects.filter(fans_cusid=customer.id).first()
+            mm_linkid = fans.xlmm if fans else 0
+
     referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
 
     if not referal_mm:  # 没有推荐人　
         return
     if not referal_mm.is_relationshipable():  # 可以记录
+        return
+    if referal_mm.id == mama.id:  # 如果推荐人 是自己 则 return
         return
 
     referal_type = 0
