@@ -127,42 +127,26 @@ class CategoryFilter(SimpleListFilter):
         cat_id = request.GET.get(self.parameter_name, '')
         cat_parent_id = None
         try:
-            cat_parent_id = SaleCategory.objects.get(id=cat_id).parent_cid
+            cat_parent_id = SaleCategory.objects.get(cid=cat_id).parent_cid
         except:
             pass
 
         cate_list = []
         cate_qs = SaleCategory.objects.filter(is_parent=True, status=SaleCategory.NORMAL)
         for cate in cate_qs:
-            cate_list.append((str(cate.id), str(cate)))
-            if cat_id and int(cat_id) == cate.id or ( cat_parent_id and int(cat_parent_id) == cate.id):
-                sub_cates = SaleCategory.objects.filter(parent_cid=cate.id, status=SaleCategory.NORMAL)
+            cate_list.append((str(cate.cid), str(cate)))
+            if cat_id and cat_id == cate.cid or ( cat_parent_id and cat_parent_id == cate.cid):
+                sub_cates = SaleCategory.objects.filter(parent_cid=cate.cid, status=SaleCategory.NORMAL)
                 for sub_cate in sub_cates:
-                    cate_list.append((str(sub_cate.id), str(sub_cate)))
+                    cate_list.append((str(sub_cate.cid), str(sub_cate)))
 
         return tuple(cate_list)
 
     def queryset(self, request, queryset):
-
         cat_id = self.value()
         if not cat_id:
             return queryset
-        else:
-            categorys = SaleCategory.objects.filter(parent_cid=cat_id)
-            cate_ids = [cate.id for cate in categorys]
-            if queryset.model == SaleProduct:
-                if categorys.count() == 0:
-                    return queryset.filter(sale_category=cat_id)
-                else:
-                    cate_ids.append(int(cat_id))
-                    return queryset.filter(sale_category__in=cate_ids)
-
-            else:
-                if categorys.count() == 0:
-                    return queryset.filter(category=cat_id)
-                else:
-                    cate_ids.append(int(cat_id))
-                    return queryset.filter(category__in=cate_ids)
+        return queryset.filter(sale_category__cid__startswith=cat_id)
 
 
 from .models import BuyerGroup

@@ -55,12 +55,17 @@ class XlmmFans(BaseModel):
 
     @staticmethod
     def bind_mama(customer, mama):
-        if customer.get_xiaolumm() and customer.get_xiaolumm().last_renew_type != 15:
+        if customer.getXiaolumm():  # 一元试用的也是妈妈 （除非等到冻结， 才可以成为别人粉丝）
             raise Exception(u'小鹿妈妈不能成为粉丝')
         if not XlmmFans.objects.filter(fans_cusid=customer.id).first():
             # 没有粉丝则建立粉丝
-            XlmmFans(xlmm=mama.id, xlmm_cusid=mama.get_mama_customer().id, refreal_cusid=mama.get_mama_customer().id,
-                     fans_cusid=customer.id, fans_nick=customer.nick, fans_thumbnail=customer.thumbnail).save()
+            xlmm_cusid = mama.get_mama_customer().id
+            fans_cusid = customer.id
+            if xlmm_cusid == fans_cusid:
+                raise Exception(u'自己不能成为自己的粉丝哦~')
+
+            XlmmFans(xlmm=mama.id, xlmm_cusid=xlmm_cusid, refreal_cusid=mama.get_mama_customer().id,
+                     fans_cusid=fans_cusid, fans_nick=customer.nick, fans_thumbnail=customer.thumbnail).save()
         else:
             raise Exception(u'此粉丝已经绑定过小鹿妈妈')
 

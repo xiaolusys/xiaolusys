@@ -49,6 +49,8 @@ PROPERTY_NAMES = (
     ('wash_instroduce', u'洗涤说明'),
     ('qs_code', u'生产许可证'),
     ('qhby_code', u'产品标准号'),
+    ('efficacy', u'产品功效'),
+    ('suitofskin', u'适合肤质'),
     ('note', u'备注说明'),
     ('memo', u'备注说明'),
 )
