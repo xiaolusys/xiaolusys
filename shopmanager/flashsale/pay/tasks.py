@@ -433,8 +433,7 @@ def task_Record_Mama_Fans(instance, created):
         ins_xlmm = instance.getXiaolumm()
         if ins_xlmm:  # 如果当前用户是小鹿妈妈则返回，不记录小鹿妈妈自己为自己的粉丝
             return
-        fans = XlmmFans.objects.filter(xlmm_cusid=from_customer.id,
-                                       fans_cusid=instance.id)
+        fans = XlmmFans.objects.filter(fans_cusid=instance.id)
         if fans.exists():  # 存在粉丝记录返回
             return
         else:
