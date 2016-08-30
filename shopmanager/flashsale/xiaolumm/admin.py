@@ -17,7 +17,6 @@ from flashsale.xiaolumm.models import (
     OrderRedPacket,
     MamaDayStats,
     PotentialMama,
-    UserGroup,
     MamaDailyAppVisit,
     MamaTabVisitStats,
     MamaDeviceStats,
@@ -63,6 +62,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
         """
         Returns the ChangeList class for use on the changelist page.
         """
+        from shopback.weixin.models import UserGroup
         default_code = ['BLACK', 'NORMAL']
         default_code.append(request.user.username)
 
