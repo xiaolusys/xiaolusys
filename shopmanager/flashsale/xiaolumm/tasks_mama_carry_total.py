@@ -52,8 +52,8 @@ def task_schedule_update_carry_total_ranking():
         WeekMamaCarryTotal.reset_duration_rank(WeekRank.last_week_time())
     WeekMamaCarryTotal.reset_rank()
     WeekMamaCarryTotal.reset_rank_duration()
-    MamaCarryTotal.reset_de_rank()
-    MamaCarryTotal.reset_activite_rank()
+    # MamaCarryTotal.reset_de_rank()
+    # MamaCarryTotal.reset_activite_rank()
 
 
 @task()

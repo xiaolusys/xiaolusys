@@ -17,7 +17,6 @@ from flashsale.xiaolumm.models import (
     OrderRedPacket,
     MamaDayStats,
     PotentialMama,
-    UserGroup,
     MamaDailyAppVisit,
     MamaTabVisitStats,
     MamaDeviceStats,
@@ -46,8 +45,8 @@ class XiaoluMamaAdmin(ApproxAdmin):
         'status', 'referal_from', 'mama_Verify')
     list_filter = (
         'progress', 'agencylevel', 'last_renew_type', 'manager', 'status', 'charge_status', 'hasale',
-        ('charge_time', DateFieldListFilter),
-        'user_group')
+        ('charge_time', DateFieldListFilter),)
+        #'user_group')
     list_display_links = ('id', 'mama_data_display',)
     search_fields = ['=id', '=mobile', '=manager', 'weikefu', '=openid', '=referal_from']
     list_per_page = 25
@@ -63,6 +62,7 @@ class XiaoluMamaAdmin(ApproxAdmin):
         """
         Returns the ChangeList class for use on the changelist page.
         """
+        from shopapp.weixin.models import UserGroup
         default_code = ['BLACK', 'NORMAL']
         default_code.append(request.user.username)
 
