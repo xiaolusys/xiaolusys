@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='teambuy',
-            name='share_xlmm',
-            field=models.ForeignKey(default=None, verbose_name='\u5206\u4eab\u7684\u5988\u5988', to='xiaolumm.XiaoluMama'),
+            name='share_xlmm_id',
+            field=models.IntegerField(default=None, verbose_name='\u5206\u4eab\u7684\u5988\u5988'),
         )
     ]
