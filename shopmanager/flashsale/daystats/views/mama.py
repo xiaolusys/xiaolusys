@@ -10,13 +10,21 @@ from flashsale.daystats.lib.db import execute_sql
 from flashsale.daystats.lib.chart import (
     generate_chart,
     generate_date,
+    generate_chart_data,
 )
 from flashsale.daystats.lib.db import get_cursor
 from flashsale.daystats.lib.util import (
     process_data,
     groupby,
     process,
+    format_datetime,
 )
+from flashsale.pay.models.user import Customer
+from flashsale.pay.models.trade import SaleTrade
+from flashsale.coupon.models import OrderShareCoupon
+from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama
+from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, ReferalRelationship
+from shopapp.weixin.models_base import WeixinFans
 
 
 def get_date_from_req(req):
@@ -92,6 +100,116 @@ def update_where_clause(tokens, where):
     return tokens
 
 
+def fenzu(items, x=None, key=None, y=None, func_groupby=None):
+    # 先按key分组
+    if not key:
+        series = groupby(items, lambda x: 'all')
+    else:
+        series = groupby(items, lambda x: x[key])
+
+    x_axis = [x.strftime('%Y-%m-%d') for x in generate_date(start_date, end_date)[:-1]]
+
+    for k, v in series.items():
+        # 再按x分组
+        if y:
+            chart_items = process(groupby(v, lambda x: x['x']), lambda x: int(x[0].get(y)))
+        else:
+            chart_items = process(groupby(v, lambda x: x['x']), len)
+        chart_items = dict(chart_items)
+        for x in x_axis:
+            if not chart_items.get(x, None):
+                chart_items[x] = 0
+        chart_items = sorted(chart_items.items(), key=lambda x: x[0], reverse=False)
+        series[k] = chart_items
+
+mama_cache = {}
+
+
+def new_mama(req):
+    now = datetime.now()
+    last = now - timedelta(days=7)
+    p_start_date = req.GET.get('start_date', '%s-%s-%s' % (last.year, last.month, last.day))
+    p_end_date = req.GET.get('end_date', '%s-%s-%s' % (now.year, now.month, now.day+1))
+
+    start_date = datetime.strptime(p_start_date, '%Y-%m-%d')
+    end_date = datetime.strptime(p_end_date, '%Y-%m-%d')
+
+    cursor = get_cursor()
+
+    sql = """
+        SELECT id, created, agencylevel, openid FROM xiaoludb.xiaolumm_xiaolumama
+        where created >= %s and created < %s
+            and agencylevel=3
+    """
+    mamas = execute_sql(cursor, sql, [format_datetime(start_date), format_datetime(end_date)])
+    p_mamas = PotentialMama.objects.using('product').filter(created__gte=start_date).values('referal_mama')
+    p_mamas = set([x['referal_mama'] for x in p_mamas])
+    xufei_mamas = PotentialMama.objects.using('product')\
+        .filter(created__gte=start_date, is_full_member=True).values('potential_mama')
+    xufei_mamas = set([x['potential_mama'] for x in xufei_mamas])
+    click_mamas = CarryRecord.objects.using('product') \
+        .filter(created__gte=start_date, carry_type=CarryRecord.CR_CLICK).values('mama_id')
+    click_mamas = set([x['mama_id'] for x in click_mamas])
+
+    def byfunc(item):
+        return item['created']
+
+    def pfunc(items):
+        return len(list(set([x['id'] for x in items]) & p_mamas))
+
+    def finish_task_func(items):
+        o_mamas = set([x['id'] for x in items])
+        return len(list(o_mamas & p_mamas & click_mamas))
+
+    def buyfunc(items):
+        count = 0
+        for item in items:
+            unionid = item['openid']
+            customer = Customer.objects.using('product').filter(unionid=unionid).first()
+            has_buy = SaleTrade.objects.using('product').filter(buyer_id=customer.id, total_fee__gt=1).exists()
+            if has_buy:
+                count += 1
+        return count
+
+    def xufeifunc(items):
+        return len(list(set([x['id'] for x in items]) & xufei_mamas))
+
+    x_axis, new_chart_items = generate_chart_data(
+        mamas, xaris='created', key=None, yaris=len, start_date=start_date, end_date=end_date)
+    x_axis, chart_items = generate_chart_data(
+        mamas, xaris='created', key=None, yaris=pfunc, start_date=start_date, end_date=end_date)
+    # x_axis, buy_chart_items = generate_chart_data(
+    #     mamas, xaris='created', key=None, yaris=buyfunc, start_date=start_date, end_date=end_date)
+    x_axis, xufei_chart_items = generate_chart_data(
+        mamas, xaris='created', key=None, yaris=xufeifunc, start_date=start_date, end_date=end_date)
+    x_axis, finish_task_chart_items = generate_chart_data(
+        mamas, xaris='created', key=None, yaris=finish_task_func, start_date=start_date, end_date=end_date)
+
+    z_items = {}
+    yaoqing_data = chart_items.values()[0]
+    new_mama_data = new_chart_items.values()[0]
+    xufei_mama_data = xufei_chart_items.values()[0]
+    finish_task_data = finish_task_chart_items.values()[0]
+    # buy_mama_data = buy_chart_items.values()[0]
+
+    ratio_data = []
+
+    for i, item in enumerate(new_mama_data):
+        try:
+            ratio = round(float(yaoqing_data[i] * 100.0 / item), 2)
+        except Exception, e:
+            ratio = 0
+        ratio_data.append(ratio)
+
+    charts = [generate_chart('小鹿妈妈', x_axis, z_items, width='1000px')]
+    y1 = max(new_mama_data) + 100
+    y1_interval = int(y1 / 10)
+    y2 = max(ratio_data) + 10
+    y2_interval = int(y2 / 10)
+
+    return render(req, 'yunying/mama/new_mama.html', locals())
+
+
 def tab(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     query = req.GET.get('sql', '')
@@ -132,6 +250,7 @@ def tab(req):
         key = 'k' if 'k' in items[0].keys() else None
         y = 'y' if 'y' in items[0].keys() else None
 
+    # 先按key分组
     if not key:
         if func_groupby:
             exec func_groupby in locals()
@@ -144,6 +263,7 @@ def tab(req):
     x_axis = [x.strftime('%Y-%m-%d') for x in generate_date(start_date, end_date)[:-1]]
 
     for k, v in series.items():
+        # 再按x分组
         if y:
             chart_items = process(groupby(v, lambda x: x['x']), lambda x: int(x[0].get(y)))
         else:
@@ -167,46 +287,39 @@ def tab(req):
     return render(req, 'yunying/mama/index.html', locals())
 
 
-def new_mama(req):
-    from flashsale.coupon.models import OrderShareCoupon
-    from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama
-    from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, ReferalRelationship
-    from shopapp.weixin.models_base import WeixinFans
+def get_mama_new_task(mama_id):
+    mama = XiaoluMama.objects.using('product').filter(id=mama_id).first()
+    customer = Customer.objects.using('product').filter(unionid=mama.openid).first()
 
-    sql = """
-    SELECT id FROM xiaoludb.xiaolumm_xiaolumama
-    where created > '2016-08-26' and created < '2016-08-27' and agencylevel=3
-    """
-    mama_ids = execute_sql(get_cursor(), sql)
+    # 新手任务
+    subscribe_weixin = WeixinFans.objects.using('product').filter(
+        unionid=customer.unionid, subscribe=True, app_key=settings.WXPAY_APPID).exists()
 
-    mama_tasks = {}
+    carry_record = CarryRecord.objects.using('product') \
+        .filter(mama_id=mama_id, carry_type=CarryRecord.CR_CLICK).exists()
 
-    for mama_id in mama_ids:
-        mama_id = mama_id['id']
-        mama = XiaoluMama.objects.filter(id=mama_id).first()
-        customer = mama.get_customer()
+    coupon_share = OrderShareCoupon.objects.using('product').filter(share_customer=customer.id).exists()
 
-        # 新手任务
-        subscribe_weixin = WeixinFans.objects.filter(
-            unionid=customer.unionid, subscribe=True, app_key=settings.WXPAY_APPID).exists()
+    fans_record = XlmmFans.objects.using('product').filter(xlmm=mama_id).exists()
 
-        carry_record = CarryRecord.objects.filter(mama_id=mama_id, carry_type=CarryRecord.CR_CLICK).exists()
+    mama_recommend = PotentialMama.objects.using('product').filter(referal_mama=mama_id).exists() or \
+        ReferalRelationship.objects.filter(referal_from_mama_id=mama_id).exists()
 
-        coupon_share = OrderShareCoupon.objects.filter(share_customer=customer.id).exists()
+    commission = OrderCarry.objects.using('product').filter(mama_id=mama_id).exists()
 
-        fans_record = XlmmFans.objects.filter(xlmm=mama_id).exists()
+    mama_task = {
+        'subscribe_weixin': subscribe_weixin,
+        'carry_record': carry_record,
+        'coupon_share': coupon_share,
+        'fans_record': fans_record,
+        'mama_recommend': mama_recommend,
+        'commission': commission,
+    }
+    return mama_task
 
-        mama_recommend = PotentialMama.objects.filter(referal_mama=mama_id).exists() or \
-            ReferalRelationship.objects.filter(referal_from_mama_id=mama_id).exists()
 
-        commission = OrderCarry.objects.filter(mama_id=mama_id).exists()
-
-        mama_tasks[mama_id] = {
-            'subscribe_weixin': subscribe_weixin,
-            'carry_record': carry_record,
-            'coupon_share': coupon_share,
-            'fans_record': fans_record,
-            'mama_recommend': mama_recommend,
-            'commission': commission,
-        }
-        print mama_tasks[mama_id]
+def new_task(req):
+    mama_id = req.GET.get('mama_id', '')
+    if mama_id:
+        mama_task = get_mama_new_task(mama_id)
+    return render(req, 'yunying/mama/new_task.html', locals())

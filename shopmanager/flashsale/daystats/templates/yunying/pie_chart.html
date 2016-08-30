@@ -1,0 +1,63 @@
+
+
+<div class="row">
+{% for chart in charts %}
+  <div class="col-md-6">
+    <div id="pie-chart" style="width: {{ chart.width }};height:400px;"></div>
+    <script type="text/javascript">
+        var pieChart = echarts.init(document.getElementById('pie-chart'));
+        option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b}: {c} ({d}%)"
+            },
+            legend: {
+                orient: 'vertical',
+                x: 'left',
+                data:[
+                    {% for k,v in piechart.items %}
+                    '{{ k }}',
+                    {% endfor %}
+                ]
+            },
+            series: [
+                {
+                    name:'',
+                    type:'pie',
+                    radius: ['50%', '70%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        normal: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            show: true,
+                            textStyle: {
+                                fontSize: '30',
+                                fontWeight: 'bold'
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+                    data:[
+                        {% for k,v in piechart.items %}
+                        {value:{{ v }}, name:'{{ k }}'},
+                        {% endfor %}
+                   ]
+                }
+            ]
+        };
+        pieChart.setOption(option);
+    </script>
+
+  </div>
+{% endfor %}
+</div>
+
+
+
