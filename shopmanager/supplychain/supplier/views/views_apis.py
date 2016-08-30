@@ -339,9 +339,9 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         queryset = queryset.exclude(status=SaleProduct.REJECTED)  # 排除淘汰的产品
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = self.get_serializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):

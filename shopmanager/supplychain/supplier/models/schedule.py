@@ -66,6 +66,11 @@ class SaleProductManage(models.Model):
             self.product_num = detail_count
         return super(SaleProductManage, self).save(*args, **kwargs)
 
+    def get_sale_product_ids(self):
+        if not hasattr(self, '_sale_product_ids_'):
+            self._sale_product_ids_ = [i['sale_product_id'] for i in self.manage_schedule.values('sale_product_id')]
+        return self._sale_product_ids_
+
 
 def update_model_product_shelf_time(sender, instance, raw, *args, **kwargs):
     from flashsale.pay.models import ModelProduct
