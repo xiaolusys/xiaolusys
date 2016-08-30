@@ -11,7 +11,6 @@ from flashsale.protocol.models import APPFullPushMessge
 
 from . import models, serializers
 
-
 class PushViewSet(viewsets.ViewSet):
     """
     """
