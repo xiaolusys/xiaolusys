@@ -191,7 +191,7 @@ class XlmmExit(object):
         xlmm.charge_status = XiaoluMama.UNCHARGE
         xlmm.target_complete = 0
         xlmm.hasale = False
-        xlmm.user_group = None
+        xlmm.user_group_id = None
         xlmm.referal_from = ''
         xlmm.pending = 0
         xlmm.manager = 0

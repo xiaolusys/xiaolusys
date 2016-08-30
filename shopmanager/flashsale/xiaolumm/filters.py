@@ -2,8 +2,6 @@
 from django.contrib.auth.models import User
 from django.contrib.admin import SimpleListFilter
 from .models import XiaoluMama, CashOut
-from shopapp.weixin.models import UserGroup
-from django.db import connection
 
 
 ########################################################################

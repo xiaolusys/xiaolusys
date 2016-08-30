@@ -6,8 +6,6 @@ from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
 from django.db import models
 from django.db.models import Sum
-
-from shopapp.weixin.models import UserGroup
 from flashsale.xiaolumm.managers import XiaoluMamaManager
 
 # Create your models here.
@@ -115,8 +113,8 @@ class XiaoluMama(models.Model):
     agencylevel = models.IntegerField(default=INNER_LEVEL, db_index=True, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
     lowest_uncoushout = models.FloatField(default=0.0, verbose_name=u"最低不可提金额")
-    user_group = models.ForeignKey(UserGroup, null=True, verbose_name=u"分组")
-
+    user_group = models.ForeignKey('UserGroup', null=True, verbose_name=u"分组")
+    # user_group_id = models.IntegerField(null=True, verbose_name=u"分组")
     charge_time = models.DateTimeField(default=datetime.datetime.now,
                                        db_index=True, blank=True, null=True, verbose_name=u'接管时间')
     renew_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下次续费时间')
@@ -171,6 +169,12 @@ class XiaoluMama(models.Model):
     @property
     def pending_money(self):
         return self.get_pending_display()
+
+    @property
+    def user_group(self):
+        from shopapp.weixin.models import UserGroup
+        if self.user_group_id:
+            return UserGroup.objects.get(id=self.user_group_id)
 
     @property
     def manager_name(self):
