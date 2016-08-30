@@ -8,6 +8,7 @@ TEMPLATE_DEBUG = DEBUG
 ORMCACHE_ENABLE = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 24 * 15 * 60 * 60
+PUSH_SWITCH = True  # 推送开关
 
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, "site_media", "static"),
