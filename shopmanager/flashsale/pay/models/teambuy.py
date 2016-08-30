@@ -9,7 +9,7 @@ from django.db.models.signals import post_save, pre_save
 
 class TeamBuy(AdminModel):
     sku = models.ForeignKey(ProductSku)
-    share_xlmm = models.ForeignKey('xiaolumm.XiaoluMama', default=None, verbose_name=u'分享的妈妈')
+    share_xlmm_id = models.IntegerField(default=None, verbose_name=u'分享的妈妈')
     # model_product = models.ForeignKey(ModelProduct)
     limit_time = models.DateTimeField(db_index=True, verbose_name=u"最迟成团时间")
     limit_days = models.IntegerField(default=3, verbose_name=u'限制天数')
