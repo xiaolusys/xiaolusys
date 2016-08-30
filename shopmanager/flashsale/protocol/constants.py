@@ -26,6 +26,8 @@ TARGET_TYPE_VIP_HOME = 10
 TARGET_TYPE_VIP_0DAY = 11
 # 退款退货列表
 TARGET_TYPE_REFUNDS = 12
+#论坛at人推送返回论坛首页
+TARGET_TYPE_AT = 13
 
 TARGET_PATHS = {
     TARGET_TYPE_HOME_TAB_1: 'app/v1/products/promote_today',
@@ -39,5 +41,6 @@ TARGET_PATHS = {
     TARGET_TYPE_WEBVIEW: 'app/v1/webview',
     TARGET_TYPE_VIP_HOME: 'app/v1/vip_home',
     TARGET_TYPE_VIP_0DAY: 'app/v1/vip_0day',
-    TARGET_TYPE_REFUNDS: 'app/v1/refunds'
+    TARGET_TYPE_REFUNDS: 'app/v1/refunds',
+    TARGET_TYPE_AT: 'app/v1/vip_forum'
 }

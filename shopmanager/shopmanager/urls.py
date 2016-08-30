@@ -32,6 +32,7 @@ urlpatterns = patterns(
    (r'^mm/', include('flashsale.pay.urls')),
    (r'^coupon/', include('flashsale.coupon.urls')),
    (r'^m/', include('flashsale.xiaolumm.urls')),
+    (r'^luntan/', include('flashsale.luntan.urls')),
    (r'^sale/', include('flashsale.urls')),
    (r'^statistics/', include('statistics.urls')),
    url(r'^djcelery/', include('djcelery.urls'), name="task_state"),

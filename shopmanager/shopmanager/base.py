@@ -207,6 +207,7 @@ INSTALLED_APPS =(
     'flashsale.xiaolumm',
     'flashsale.dinghuo',
     'flashsale.workorder',
+    'flashsale.luntan',
     'flashsale.clickcount',
     'flashsale.clickrebeta',
     'flashsale.mmexam',
