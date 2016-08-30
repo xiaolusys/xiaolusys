@@ -6,9 +6,20 @@ from flashsale.protocol.constants import TARGET_SCHEMA,TARGET_PATHS
 from rest_framework.response import Response
 from django.http import HttpResponse
 
-@login_required
-def at_push(request,customer_id):
-    if request.method == "POST":
+
+from rest_framework import authentication, viewsets
+from rest_framework.decorators import list_route,detail_route
+from rest_framework.response import Response
+from rest_framework import permissions
+
+
+
+class LuntanPushViewSet(viewsets.ViewSet):
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @detail_route(methods=['post'])
+    def at_push(self, request, customer_id):
         back_nickname = request.POST.get('back_nickname',None)
         comment_nickname = request.POST.get('comment_nickname',None)
         msg = back_nickname + "给" + comment_nickname + "回复一条评论"
@@ -17,5 +28,3 @@ def at_push(request,customer_id):
             return HttpResponse({'customer-%d' % customer_id})
         else:
             HttpResponse({"parm erorr"})
-    return HttpResponse({"method erorr"})
-
