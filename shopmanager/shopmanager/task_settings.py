@@ -513,22 +513,6 @@ MAMA_CARRYRECORD_ROUTES = {
 
 }
 MAMA_CARRYTOTAL_ROUTES = {
-    'flashsale.xiaolumm.tasks_mama_carry_total.task_carryrecord_update_carrytotal': {
-        'queue': 'carrytotal',
-        'routing_key': 'carrytotal.task_carryrecord_update_carrytotal',
-    },
-    'flashsale.xiaolumm.tasks_mama_carry_total.task_update_carry_total_ranking': {
-        'queue': 'carrytotal',
-        'routing_key': 'carrytotal.task_update_carry_total_ranking',
-    },
-    'flashsale.xiaolumm.tasks_mama_carry_total.task_update_carry_duration_total_ranking': {
-        'queue': 'carrytotal',
-        'routing_key': 'carrytotal.task_update_carry_duration_total_ranking',
-    },
-    'flashsale.xiaolumm.tasks_mama_carry_total.task_update_team_carry_total': {
-        'queue': 'carrytotal',
-        'routing_key': 'carrytotal.task_update_team_carry_total',
-    },
     'flashsale.xiaolumm.tasks_mama_carry_total.task_fortune_update_week_carry_total': {
         'queue': 'carrytotal',
         'routing_key': 'carrytotal.task_fortune_update_week_carry_total',
