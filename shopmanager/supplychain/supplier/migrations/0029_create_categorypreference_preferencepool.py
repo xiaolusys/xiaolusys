@@ -8,7 +8,7 @@ import jsonfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplier', '0026_add_status_sale_time_unique'),
+        ('supplier', '0028_supplier_add_return_ware_by'),
     ]
 
     operations = [

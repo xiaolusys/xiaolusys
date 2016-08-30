@@ -294,7 +294,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         * return: {'status':[...], 'categorys':[...]}
 
     ### 抓取其他平台产品参数接口
-    - [/apis/chain/v1/supplier/fetch_platform_product](/apis/chain/v1/supplier/fetch_platform_product?fetch_url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fspm%3Da310p.7395725.1998460392.1.IxL35J%26id%3D531297154104)
+    - [/apis/chain/v1/saleproduct/fetch_platform_product](/apis/chain/v1/supplier/fetch_platform_product?fetch_url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fspm%3Da310p.7395725.1998460392.1.IxL35J%26id%3D531297154104)
         * method: get
         * args:
             1. `fetch_url`: 抓取的网址链接(urlquote)例如: 'https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fspm%3Da310p.7395725.1998460392.1.IxL35J%26id%3D531297154104'

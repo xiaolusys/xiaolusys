@@ -86,6 +86,8 @@ class SaleProduct(BaseTagModel):
     remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
     orderlist_show_memo = models.BooleanField(default=False, verbose_name=u'订货详情显示备注')
 
+    sku_extras = JSONCharMyField(max_length=10240, default=[], verbose_name=u"sku信息")
+
     class Meta:
         db_table = 'supplychain_supply_product'
         unique_together = [("outer_id", "platform")]

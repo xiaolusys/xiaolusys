@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplier', '0027_create_categorypreference_preferencepool'),
+        ('supplier', '0029_create_categorypreference_preferencepool'),
     ]
 
     operations = [
