@@ -178,3 +178,13 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         tomorrow_dt = self.get_lastest_date(datetime.date.today() + datetime.timedelta(days=1), predict=True)
         return self.get_pagination_response_by_date(request, tomorrow_dt, only_onshelf=False)
 
+    @list_route(methods=['get'])
+    def get_headimg(self, request, *args, **kwargs):
+        """ 查询头图接口 """
+        modelId = request.GET.get('modelId', '')
+        queryset = self.filter_queryset(self.get_queryset())
+        qs = queryset.filter(id=modelId)
+
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
