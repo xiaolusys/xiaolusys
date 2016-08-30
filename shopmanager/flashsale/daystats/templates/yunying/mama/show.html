@@ -1,0 +1,126 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+    <form action="{{ req.path }}" method="GET" name="query_form">
+      <div class="col-xs-6">
+        <input type="text" class="form-control" name="mama_id" value="{{ mama_id }}" placeholder="输入妈妈ID">
+      </div>
+      <button type="submit" class="btn btn-default">QUERY</button>
+    </form>
+</div>
+
+<div class="row">
+  <div class="col-xs-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">用户(Customer)</div>
+    <table class="table">
+      <tr>
+        <td>注册时间</td>
+        <td>{{ customer.created }}</td>
+      </tr>
+      <tr>
+        <td>昵称</td>
+        <td>{{ customer.nick }}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>{{ customer.mobile }}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>{{ customer.unionid }}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>{{ customer.first_paytime }}</td>
+      </tr>
+    </table>
+  </div>
+  </div>
+
+  <div class="col-xs-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">小鹿妈妈</div>
+    <table class="table">
+      <tr>
+        <td>创建时间</td>
+        <td>{{ mama.created }}</td>
+      </tr>
+      <tr>
+        <td>等级</td>
+        <td>{{ mama.agencylevel }}</td>
+      </tr>
+      <tr>
+        <td>推荐人</td>
+        <td>{{ referal_mama.referal_from_mama_id }}{{ referal_mama.referal_mama }}</td>
+      </tr>
+    </table>
+  </div>
+
+  </div>
+
+
+  <div class="col-xs-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">微信公众号</div>
+      <table class="table">
+        {% for wx in wx_fans %}
+        <tr>
+          <td>{{ wx.app_key }}</td>
+          <td>{{ wx.subscribe }}</td>
+          <td>{{ wx.subscribe_time }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+  </div>
+
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xs-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">订单(付款/全部)</div>
+        <table class="table">
+          {% for order in orders %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ order.title }}</td>
+            <td>{{ order.sku_name }}</td>
+            <td>{{ order.num }}</td>
+            <td>{{ order.total_fee }}</td>
+            <td>{{ order.pay_time }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+    </div>
+  </div>
+
+  <div class="col-xs-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">推荐妈妈</div>
+        <table class="table">
+          {% for mama in one_mamas %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ mama.potential_mama }}</td>
+            <td>{{ mama.nick }}</td>
+            <td>{{ mama.created }}</td>
+            <td>{{ mama.is_full_member }}</td>
+          </tr>
+          {% endfor %}
+          {% for mama in relations %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ mama.referal_to_mama_id }}</td>
+            <td>{{ mama.referal_to_mama_nick }}</td>
+            <td>{{ mama.created }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

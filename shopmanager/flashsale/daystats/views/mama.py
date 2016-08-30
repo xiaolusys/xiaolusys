@@ -20,7 +20,7 @@ from flashsale.daystats.lib.util import (
     format_datetime,
 )
 from flashsale.pay.models.user import Customer
-from flashsale.pay.models.trade import SaleTrade
+from flashsale.pay.models.trade import SaleTrade, SaleOrder
 from flashsale.coupon.models import OrderShareCoupon
 from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama
 from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, ReferalRelationship
@@ -74,6 +74,33 @@ def index(req):
     charts.append(generate_chart('xxx', x_axis, weixin_items, width='1000px'))
 
     return render(req, 'yunying/mama/index.html', locals())
+
+
+def show(req):
+    mama_id = req.GET.get('mama_id', None)
+    customer = None
+    if mama_id and len(mama_id) == 11:
+        mobile = mama_id
+        customer = Customer.objects.using('product').filter(mobile=mobile).first()
+        if customer:
+            mama = XiaoluMama.objects.using('product').filter(openid=customer.unionid).first()
+            mama_id = mama.id
+    else:
+        mama = XiaoluMama.objects.using('product').filter(id=mama_id).first()
+        if mama:
+            customer = Customer.objects.using('product').filter(unionid=mama.openid).first()
+
+    if customer:
+        wx_fans = WeixinFans.objects.using('product').filter(unionid=customer.unionid)
+        orders = SaleOrder.objects.using('product').filter(buyer_id=customer.id) \
+            .exclude(pay_time__isnull=True).order_by('-created')
+
+    referal_mama = ReferalRelationship.objects.using('product').filter(referal_to_mama_id=mama_id).first() or \
+        PotentialMama.objects.using('product').filter(potential_mama=mama_id).first()
+    one_mamas = PotentialMama.objects.using('product').filter(referal_mama=mama_id)
+    relations = ReferalRelationship.objects.using('product').filter(referal_from_mama_id=mama_id)
+
+    return render(req, 'yunying/mama/show.html', locals())
 
 
 def home(req):
