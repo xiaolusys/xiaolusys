@@ -422,40 +422,6 @@ def multi_update(model_class, key_attr, value_attr, res, where=''):
             cursor.close()
 
 
-def update_carry_total_ranking(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_mama_carry_total import task_update_carry_total_ranking, \
-        task_update_carry_duration_total_ranking
-    if datetime.datetime.now() > STAT_TIME:
-        task_update_carry_total_ranking.delay()
-        task_update_carry_duration_total_ranking.delay()
-
-
-# post_save.connect(update_carry_total_ranking,
-#                   sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_ranking')
-
-
-def update_mama_carry_total_cache(sender, instance, created, **kwargs):
-    # 当周数据实时更新到redis，从redis读取
-    return
-    if instance.stat_time == STAT_TIME:
-        STAT_RANK_REDIS.update_cache(instance)
-
-
-# post_save.connect(update_mama_carry_total_cache,
-#                   sender=MamaCarryTotal, dispatch_uid='post_save_update_mama_carry_total_cache')
-
-
-def update_team_carry_total(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_mama_carry_total import task_update_team_carry_total
-    if datetime.datetime.now() > STAT_TIME:
-        for team in instance.teams.all():
-            task_update_team_carry_total.delay(team.mama_id)
-
-
-# post_save.connect(update_team_carry_total,
-#                   sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_team_carry_total')
-
-
 class BaseMamaTeamCarryTotal(BaseMamaCarryTotal):
     class Meta:
         abstract = True
@@ -698,10 +664,6 @@ class MamaTeamCarryTotal(BaseMamaTeamCarryTotal):
             i += 1
         if res:
             multi_update(MamaTeamCarryTotal, 'mama_id', 'activite_rank_delay', res)
-
-
-# post_save.connect(update_mama_carry_total_cache,
-#                   sender=MamaTeamCarryTotal, dispatch_uid='post_save_update_mama_team_carry_total_cache')
 
 
 class CarryTotalRecord(BaseModel):
@@ -1114,8 +1076,8 @@ class ActivityMamaCarryTotal(BaseMamaCarryTotal, ActivityRankTotal):
             condition = {'activity_id': rank_activity.id, order_field + '__gt': 0}
         res = cls.objects.filter(**condition)
         if order_field == 'activity_duration_total':
-            return res.order_by('-duration_total')
-        return res.order_by('-' + order_field)
+            return res.order_by('-duration_total', 'mama_id')
+        return res.order_by('-' + order_field, 'mama_id')
 
 
 def update_activity_mama_carry_total_cache(sender, instance, created, **kwargs):
@@ -1130,14 +1092,14 @@ def update_activity_mama_carry_total_cache(sender, instance, created, **kwargs):
                 ActivityMamaTeamCarryTotal.generate(mama, activity)
             else:
                 if instance.mama_id not in team.mama_ids:
-                    team.check_add_member(instance.mama)
+                    team.reset_mama_ids()
                 team.restat(team.mama_ids, activity)
                 team.save()
         for target in ActivityMamaCarryTotal.filters:
             condtion = copy(ActivityMamaCarryTotal.filters[target])
             condtion['pk'] = instance.pk
             if ActivityMamaCarryTotal.objects.filter(**condtion).exists():
-                STAT_RANK_REDIS.update_cache(instance, [target])
+                STAT_RANK_REDIS.update_cache(instance, [target], func=getattr_change)
                 if target in ActivityMamaTeamCarryTotal.filters:
                     team_condtion = copy(ActivityMamaTeamCarryTotal.filters[target])
                     team_condtion['mama_id__in'] = instance.mama.get_team_member_ids()
@@ -1174,7 +1136,6 @@ class ActivityMamaTeamCarryTotal(BaseMamaTeamCarryTotal, ActivityRankTotal):
     @property
     def mama_ids(self):
         return self.member_ids
-
 
     def restat(self, mama_ids, activity):
         res = activity.ranks.filter(mama_id__in=mama_ids).aggregate(duration_total=Sum('duration_total'))
@@ -1232,10 +1193,11 @@ class ActivityMamaTeamCarryTotal(BaseMamaTeamCarryTotal, ActivityRankTotal):
         else:
             condition = {'activity_id': rank_activity.id, order_field + '__gt': 0}
         res = cls.objects.filter(**condition)
-        return res.order_by('-' + order_field)
+        return res.order_by('-' + order_field, 'mama_id')
 
-    def check_add_member(self, mama):
-        if mama.id not in self.member_ids:
-            activity = RankActivity.now_activity()
-            self.member_ids = ActivityMamaTeamCarryTotal.get_member_ids(mama, activity)
-            self.save()
+    def reset_mama_ids(self):
+        activity = RankActivity.now_activity()
+        mmids = ActivityMamaTeamCarryTotal.get_member_ids(self.mama, activity)
+        if self.member_ids != mmids:
+            self.member_ids = mmids
+        self.save()

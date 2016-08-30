@@ -302,6 +302,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
                 'content': content,
                 'avatar': customer.thumbnail,
             })
+        items.reverse()
         return Response(items)
 
     def create(self, request, *args, **kwargs):
