@@ -36,6 +36,10 @@ class WeixinPush(object):
             return False
 
     def push(self, customer, template_ids, template_data, to_url):
+
+        if not settings.PUSH_SWITCH:
+            return
+
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
 
