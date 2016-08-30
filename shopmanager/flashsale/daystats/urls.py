@@ -11,7 +11,6 @@ from views_stats_performance import StatsPerformanceView, StatsSupplierView, Sta
 import views_operate
 import views_input_stat
 import views_stats_fahuo
-import views_customer
 
 from .view import popularize_Cost, DailyStatsViewSet
 
@@ -46,10 +45,13 @@ urlpatterns += patterns(
     url(r'^yunying/$', 'yunying.index', name='yy-index'),
     url(r'^yunying/customer/$', 'customer.index', name='yy-customer-index'),
     url(r'^yunying/product/$', 'product.index', name='yy-product-index'),
+    url(r'^yunying/product/category$', 'product.salecategory', name='yy-product-salecategory'),
     url(r'^yunying/product/(?P<id>.*)', 'product.show', name='yy-product-show'),
     url(r'^yunying/mama/$', 'mama.index', name='yy-mama-index'),
     url(r'^yunying/mama/home$', 'mama.home', name='yy-mama-home'),
     url(r'^yunying/mama/tab$', 'mama.tab', name='yy-mama-tab'),
+    url(r'^yunying/mama/new_task$', 'mama.new_task', name='yy-mama-new_task'),
+    url(r'^yunying/mama/new_mama$', 'mama.new_mama', name='yy-mama-new_mama'),
     url(r'^yunying/sql/$', 'sql.index', name='yy-sql-index'),
     url(r'^yunying/sql/(?P<id>.*)/destroy$', 'sql.destroy', name='yy-sql-destroy'),
     url(r'^yunying/sql/create$', 'sql.create', name='yy-sql-create'),

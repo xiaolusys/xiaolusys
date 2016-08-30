@@ -1,0 +1,109 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+  <h3>小鹿妈妈{{ mama_id }}新手任务完成情况</h3>
+</div>
+
+<div class="row">
+  <form action="{{ req.path }}" method="GET" name="query_form">
+    <div class="col-xs-6">
+      <input type="text" class="form-control" name="mama_id" value="{{ mama_id }}" placeholder="输入妈妈ID">
+    </div>
+    <button type="submit" class="btn btn-default">QUERY</button>
+  </form>
+</div>
+
+<div class="row">
+
+  <table class="table table-bordered">
+    <tr>
+      <td>关注微信</td>
+      <td>{{ mama_task.subscribe_weixin }}</td>
+    </tr>
+    <tr>
+      <td>第一笔点击返现</td>
+      <td>{{ mama_task.carry_record }}</td>
+    </tr>
+    <tr>
+      <td>第一次分享红包</td>
+      <td>{{ mama_task.coupon_share }}</td>
+    </tr>
+    <tr>
+      <td>第一个粉丝</td>
+      <td>{{ mama_task.fans_record }}</td>
+    </tr>
+    <tr>
+      <td>第一个代理</td>
+      <td>{{ mama_task.mama_recommend }}</td>
+    </tr>
+    <tr>
+      <td>第一笔订单佣金</td>
+      <td>{{ mama_task.commission }}</td>
+    </tr>
+  </table>
+</div>
+
+<div class="row">
+  {% include 'yunying/chart.html' %}
+
+  <table class="table table-bordered ">
+    <tr>
+      <th></th>
+      <th></th>
+      <th>count</th>
+    </tr>
+    {% for k, v in series.items %}
+      <!-- <td>{{ forloop.counter }}</td> -->
+      {% for x, y in v %}
+      <tr>
+        <td>{{ k }}</td>
+        <td>{{ x }}</td>
+        <td>{{ y }}</td>
+      </tr>
+      {% endfor %}
+    {% endfor %}
+  </table>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+$(function(){
+
+  $('#save_query').click(function(){
+    var sql = $('input[name="sql"]').val();
+    var date_field = $('input[name="date_field"]').val();
+    var name = $('input[name="query_name"]').val();
+    var func_groupby = $('textarea[name="func_groupby"]').val();
+    var key_desc = $('textarea[name="key_desc"]').val();
+    var csrftoken = getCookie('csrftoken');
+
+    var url = "{% url 'yy-sql-create' %}";
+    var data = {sql: sql, date_field: date_field, name: name, func_groupby: func_groupby, key_desc: key_desc, csrftoken: csrftoken}
+    $.post(url, data, function(data){
+      window.location = "{% url 'yy-sql-index' %}"
+    })
+  })
+})
+</script>
+{% endblock %}
