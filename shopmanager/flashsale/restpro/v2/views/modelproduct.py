@@ -100,7 +100,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         cids  = request.GET.get('cid','').split(',')
         queryset = self.filter_queryset(self.get_queryset())
-        onshelf_qs = self.get_normal_qs(queryset).filter(shelf_status=ModelProduct.ON_SHELF)
+        onshelf_qs = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
         q_filter = Q()
         for cid in cids:
             q_filter = q_filter | Q(salecategory__cid__startswith=cid)
