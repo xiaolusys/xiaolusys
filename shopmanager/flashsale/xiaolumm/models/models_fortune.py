@@ -352,13 +352,13 @@ post_save.connect(carryrecord_update_xiaolumama_active_hasale,
                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_xiaolumama_active_hasale')
 
 
-def carryrecord_update_carrytotal(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_mama_carry_total import task_carryrecord_update_carrytotal
-    task_carryrecord_update_carrytotal.delay(instance.mama_id)
-
-
-post_save.connect(carryrecord_update_carrytotal,
-                  sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_carrytotal')
+# def carryrecord_update_carrytotal(sender, instance, created, **kwargs):
+#     from flashsale.xiaolumm.tasks_mama_carry_total import task_carryrecord_update_carrytotal
+#     task_carryrecord_update_carrytotal.delay(instance.mama_id)
+#
+#
+# post_save.connect(carryrecord_update_carrytotal,
+#                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_carrytotal')
 
 
 def carryrecord_xlmm_newtask(sender, instance, **kwargs):

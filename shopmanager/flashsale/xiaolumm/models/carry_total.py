@@ -430,8 +430,8 @@ def update_carry_total_ranking(sender, instance, created, **kwargs):
         task_update_carry_duration_total_ranking.delay()
 
 
-post_save.connect(update_carry_total_ranking,
-                  sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_ranking')
+# post_save.connect(update_carry_total_ranking,
+#                   sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_ranking')
 
 
 def update_mama_carry_total_cache(sender, instance, created, **kwargs):
@@ -441,8 +441,8 @@ def update_mama_carry_total_cache(sender, instance, created, **kwargs):
         STAT_RANK_REDIS.update_cache(instance)
 
 
-post_save.connect(update_mama_carry_total_cache,
-                  sender=MamaCarryTotal, dispatch_uid='post_save_update_mama_carry_total_cache')
+# post_save.connect(update_mama_carry_total_cache,
+#                   sender=MamaCarryTotal, dispatch_uid='post_save_update_mama_carry_total_cache')
 
 
 def update_team_carry_total(sender, instance, created, **kwargs):
@@ -452,8 +452,8 @@ def update_team_carry_total(sender, instance, created, **kwargs):
             task_update_team_carry_total.delay(team.mama_id)
 
 
-post_save.connect(update_team_carry_total,
-                  sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_team_carry_total')
+# post_save.connect(update_team_carry_total,
+#                   sender=MamaCarryTotal, dispatch_uid='post_save_carrytotal_update_team_carry_total')
 
 
 class BaseMamaTeamCarryTotal(BaseMamaCarryTotal):
@@ -700,8 +700,8 @@ class MamaTeamCarryTotal(BaseMamaTeamCarryTotal):
             multi_update(MamaTeamCarryTotal, 'mama_id', 'activite_rank_delay', res)
 
 
-post_save.connect(update_mama_carry_total_cache,
-                  sender=MamaTeamCarryTotal, dispatch_uid='post_save_update_mama_team_carry_total_cache')
+# post_save.connect(update_mama_carry_total_cache,
+#                   sender=MamaTeamCarryTotal, dispatch_uid='post_save_update_mama_team_carry_total_cache')
 
 
 class CarryTotalRecord(BaseModel):
