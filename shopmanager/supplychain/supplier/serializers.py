@@ -267,14 +267,24 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
     contactor = serializers.CharField(source='contactor.username', read_only=True)
     latest_figures = ModelStatsSimpleSerializer(source='sale_product_figures', read_only=True)
     total_figures = JSONParseField(source='total_sale_product_figures', read_only=True)
+    in_schedule = serializers.SerializerMethodField()
 
     class Meta:
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'status', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo',
-            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures', 'total_figures'
-        )
+            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures', 'total_figures',
+            'in_schedule')
+
+    def get_in_schedule(self, obj):
+        """ 判断选品是否在指定排期里面 """
+        request = self.context.get('request')
+        schedule_id = request.GET.get('schedule_id') or None
+        if not schedule_id:
+            return False
+        schedule = SaleProductManage.objects.get(id=schedule_id)
+        return obj.id in schedule.get_sale_product_ids()
 
 
 class ModifySaleProductSerializer(serializers.ModelSerializer):
