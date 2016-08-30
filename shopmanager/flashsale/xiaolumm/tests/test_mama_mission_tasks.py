@@ -36,6 +36,10 @@ class SaletradeTestCase(TestCase):
 
         self.assertEqual(missions_agg[MamaMission.CAT_TRIAL_MAMA], 1)
         self.assertEqual(missions_agg[MamaMission.CAT_REFER_MAMA], 1)
+        self.assertEqual(missions_agg[MamaMission.CAT_SALE_MAMA], 1)
+
+        self.assertEqual(missions_agg[MamaMission.CAT_GROUP_MAMA], 1)
+        self.assertEqual(missions_agg[MamaMission.CAT_SALE_GROUP], 1)
 
 
     # def getShoppingCarts(self):

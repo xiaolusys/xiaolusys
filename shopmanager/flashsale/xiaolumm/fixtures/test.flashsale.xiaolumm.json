@@ -32,5 +32,54 @@
   },
   "model": "xiaolumm.xiaolumama",
   "pk": 44
+},
+  {
+  "fields": {
+    "active_time": null,
+    "address": "",
+    "lowest_uncoushout": 0.0,
+    "manager": 6,
+    "is_staff": false,
+    "modified": "2016-08-04T11:23:57",
+    "city": "",
+    "charge_status": "charged",
+    "agencylevel": 1,
+    "referal_from": "18801806068",
+    "progress": "pay",
+    "last_renew_type": 365,
+    "hasale_time": null,
+    "province": "",
+    "openid": "o29cQs9QlfWpL0v0ZV_b2nyTOM-4",
+    "hasale": true,
+    "charge_time": "2015-04-10T13:22:12",
+    "user_group": null,
+    "active": true,
+    "renew_time": "2017-08-30T00:00:00",
+    "mobile": "18801806068",
+    "qrcode_link": "",
+    "created": "2015-04-10T13:22:12",
+    "cash": 776109,
+    "status": "effect",
+    "pending": 0,
+    "weikefu": "zifeizhong",
+    "target_complete": 8276.59
+  },
+  "model": "xiaolumm.xiaolumama",
+  "pk": 1
+},
+{
+  "fields": {
+    "status": 1,
+    "member_mama_img": "",
+    "created": "2016-08-30T09:00:22",
+    "referal_from_mama_id": 1,
+    "modified": "2016-08-30T09:00:22",
+    "referal_type": 365,
+    "member_mama_nick": "meron",
+    "leader_mama_id": 1,
+    "member_mama_id": 44
+  },
+  "model": "xiaolumm.grouprelationship",
+  "pk": 957
 }
 ]
