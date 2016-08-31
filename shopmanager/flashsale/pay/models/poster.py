@@ -66,26 +66,21 @@ class GoodShelf(PayBaseModel):
 
     def get_cat_imgs(self):
         from supplychain.supplier.models.category import SaleCategory
-        lv1_category = SaleCategory.objects.filter(grade=1)
-        child_category = lv1_category.filter(cid__exact='1').first()
-        women_category = lv1_category.filter(cid__exact='2').first()
-        food_category = lv1_category.filter(cid__exact='3').first()
-        other_category = lv1_category.filter(cid__exact='6').first()
-        if (not child_category) or (not women_category) or (not food_category) or (not other_category):
-            return []
+        lv1_categorys = SaleCategory.objects.filter(grade=1)
+        cat_pic_maps = dict(lv1_categorys.values_list('cid', 'cat_pic'))
 
         return [
             {'id': 1, 'name': u'童装专区',
-             'cat_img': child_category.cat_pic,
+             'cat_img': cat_pic_maps.get('1', ''),
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=1'},
             {'id': 2, 'name': u'女装专区',
-             'cat_img': women_category.cat_pic,
+             'cat_img': cat_pic_maps.get('2', ''),
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=2'},
             {'id': 3, 'name': u'美食专区',
-             'cat_img': food_category.cat_pic,
+             'cat_img': cat_pic_maps.get('3', ''),
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=3'},
             {'id': 4, 'name': u'美妆家居',
-             'cat_img': other_category.cat_pic,
+             'cat_img': cat_pic_maps.get('6', ''),
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=4,5,6,7,8'},
         ]
 
