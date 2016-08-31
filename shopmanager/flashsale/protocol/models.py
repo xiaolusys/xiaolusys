@@ -64,8 +64,9 @@ class APPFullPushMessge(BaseModel):
         (constants.TARGET_TYPE_PRODUCT, '商品详情页'),
         (constants.TARGET_TYPE_ORDER_DETAIL, '订单详情页'),
         (constants.TARGET_TYPE_AVAILABLE_COUPONS, '优惠券列表'),
-        (constants.TARGET_TYPE_WEBVIEW, 'APP活动页'),
         (constants.TARGET_TYPE_VIP_HOME, '小鹿妈妈首页'),
+        (constants.TARGET_TYPE_VIP_0DAY, '小鹿妈妈-每日推送'),
+        (constants.TARGET_TYPE_WEBVIEW, 'APP活动页 / 网页'),
     )
 
     class Meta:

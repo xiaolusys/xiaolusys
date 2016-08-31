@@ -25,6 +25,8 @@ def func_push_award_mission_to_mama(mama_id, mission_id, year_week):
     )
     mama_mission.save()
 
+    # TODO@meron 消息通知妈妈新任务产生
+
 
 def create_or_update_once_mission(mama_id, mission):
     """ 对应一次性任务进行更新 """
@@ -96,14 +98,18 @@ def task_create_or_update_mama_mission_state(mama_id):
     # referal mama weekly
     fresh_mama_weekly_mission_bycat(mama_id, MamaMission.CAT_REFER_MAMA, year_week)
 
-    # TODO@meron 新增团队妈妈
-
-    # TODO@meron 个人团队销售激励
     # mama sale weekly
     fresh_mama_weekly_mission_bycat(mama_id, MamaMission.CAT_SALE_MAMA, year_week)
 
-    # group mama sale weekly
-    fresh_mama_weekly_mission_bycat(mama_id, MamaMission.CAT_SALE_GROUP, year_week)
+    mama_group = GroupRelationship.objects.filter(member_mama_id=mama_id).first()
+    if mama_group:
+        # TODO@meron 新增团队妈妈
+        # group mama weekly
+        fresh_mama_weekly_mission_bycat(mama_id, MamaMission.CAT_GROUP_MAMA, year_week)
+
+        # TODO@meron 个人团队销售激励
+        # group mama sale weekly
+        fresh_mama_weekly_mission_bycat(mama_id, MamaMission.CAT_SALE_GROUP, year_week)
 
     # 关闭上周未关闭任务
     pre_year_week = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%W')

@@ -172,6 +172,7 @@ class MamaMissionRecord(BaseModel):
             self.status = self.FINISHED
             self.finish_time = datetime.datetime.now()
 
+            # TODO@meron 消息通知妈妈任务完成
         elif cur_year_week > self.year_week and self.is_staging():
             self.status = self.CLOSE
             self.finish_time = None
@@ -236,7 +237,7 @@ signal_xiaolumama_register_success.connect(mama_register_update_mission_record,
 
 
 def order_payment_update_mission_record(sender, obj, *args, **kwargs):
-
+    """ 订单支付成功更新妈妈销售激励状态 """
     try:
         logger.debug('order_payment_update_mission_record start: tid= %s' % obj.tid)
         from flashsale.xiaolumm.models import XiaoluMama, OrderCarry, GroupRelationship
@@ -278,5 +279,5 @@ signal_saletrade_pay_confirm.connect(order_payment_update_mission_record,
                                            dispatch_uid='post_save_order_payment_update_mission_record')
 
 
-    
-        
+# TODO@meron 团队妈妈邀请
+

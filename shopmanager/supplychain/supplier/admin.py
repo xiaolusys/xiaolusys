@@ -24,6 +24,8 @@ from .models import (
     SupplierZone,
     BuyerGroup,
     SalePraise,
+    CategoryPreference,
+    PreferencePool
 )
 
 from .forms import SaleSupplierForm
@@ -965,3 +967,36 @@ class SupplierFigureAdmin(admin.ModelAdmin):
     readonly_fields = ['supplier']
 
 admin.site.register(SupplierFigure, SupplierFigureAdmin)
+
+
+class CategoryPreferenceAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'category_info',
+        'preferences',
+        'is_default',
+        'created')
+    list_filter = ('created', 'modified', 'category')
+    search_fields = ['category__name', ]
+    # readonly_fields = ['category']
+
+    def category_info(self, obj):
+        return obj.__unicode__()
+
+    category_info.allow_tags = True
+    category_info.short_description = "类别"
+
+
+admin.site.register(CategoryPreference, CategoryPreferenceAdmin)
+
+
+class PreferencePoolAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'unit',
+        'categorys',
+        'preference_value',
+        'created')
+    search_fields = ['name', ]
+
+admin.site.register(PreferencePool, PreferencePoolAdmin)

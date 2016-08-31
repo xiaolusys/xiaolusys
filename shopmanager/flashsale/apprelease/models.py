@@ -29,7 +29,7 @@ class AppRelease(BaseModel):
     status = models.IntegerField(default=0, verbose_name=u'投放状态', db_index=True, choices=RELEASE_STATUS)
     release_time = models.DateTimeField(blank=True, null=True, verbose_name=u'投放时间')
     memo = models.TextField(max_length=1024, blank=True, null=True, verbose_name=u'备注')
-    auto_update = models.BooleanField(default=True, verbose_name=u'自动更新')
+    auto_update = models.BooleanField(default=False, verbose_name=u'自动更新')
     hash_value = models.CharField(max_length=32, null=True, unique=True, verbose_name=u'md5hash')
     version = models.CharField(max_length=128, db_index=True, verbose_name=u'客户端版本')
     version_code = models.IntegerField(default=0, verbose_name=u'客户端版本号')

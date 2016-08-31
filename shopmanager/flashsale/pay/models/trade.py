@@ -3,6 +3,7 @@ import uuid
 import datetime
 import urlparse
 from django.db import models
+from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save, pre_save
@@ -341,10 +342,15 @@ class SaleTrade(BaseModel):
                         self.set_out_sid(psi.package_order.out_sid, psi.package_order.logistics_company_id)
 
     def confirm_payment(self):
-        from django_statsd.clients import statsd
-        statsd.incr('xiaolumm.postpay_count')
-        statsd.incr('xiaolumm.postpay_amount', self.payment)
-        signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=self)
+        try:
+            from django_statsd.clients import statsd
+            statsd.incr('xiaolumm.postpay_count')
+            statsd.incr('xiaolumm.postpay_amount', self.payment)
+            signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=self)
+        except Exception, exc:
+            logger.error(str(exc), exc_info=True)
+            if not settings.INGORE_SIGNAL_EXCEPTION:
+                raise exc
 
     def charge_confirm(self, charge_time=None, charge=charge):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """

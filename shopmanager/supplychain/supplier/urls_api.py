@@ -14,6 +14,7 @@ router.register(r'supplier', views.SaleSupplierViewSet)
 router.register(r'saleproduct', views.SaleProductViewSet)
 router.register(r'saleschedule', views.SaleScheduleViewSet)
 router.register(r'salescategory', views.SaleCategoryViewSet)
+router.register(r'preferencepool', views.PreferencePoolViewSet)
 
 router_urls = router.urls
 router_urls += ([
