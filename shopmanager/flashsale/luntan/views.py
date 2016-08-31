@@ -13,18 +13,31 @@ from rest_framework.response import Response
 from rest_framework import permissions
 
 
+# @login_required
+# def at_push(request,customer_id):
+#     if request.method == "POST":
+#         back_nickname = request.POST.get('back_nickname',None)
+#         comment_nickname = request.POST.get('comment_nickname',None)
+#         msg = back_nickname + "给" + comment_nickname + "回复一条评论"
+#         if comment_nickname and comment_nickname:
+#             AppPush.push(customer_id,TARGET_SCHEMA+TARGET_PATHS[13],msg)
+#             return HttpResponse({'customer-%d' % customer_id})
+#         else:
+#             HttpResponse({"parm erorr"})
+#     return HttpResponse({"method erorr"})
 
 class LuntanPushViewSet(viewsets.ViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
     @detail_route(methods=['post'])
-    def at_push(self, request, customer_id):
+    def at_push(self, request, pk):
+        customer_id = pk
         back_nickname = request.POST.get('back_nickname',None)
         comment_nickname = request.POST.get('comment_nickname',None)
         msg = back_nickname + "给" + comment_nickname + "回复一条评论"
         if comment_nickname and comment_nickname:
             AppPush.push(customer_id,TARGET_SCHEMA+TARGET_PATHS[13],msg)
-            return HttpResponse({'customer-%d' % customer_id})
+            return HttpResponse({'customer-%d' % int(customer_id)})
         else:
-            HttpResponse({"parm erorr"})
+            return HttpResponse({"parm erorr"})
