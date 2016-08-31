@@ -224,15 +224,33 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
     ordering_fields = '__all__'
 
     def list(self, request, *args, **kwargs):
+        tree = []
         cid = request.query_params.get('cid')
         if cid:
             items = SaleCategory.get_salecategory_jsontree()
             for item in items:
                 if item.get('cid') == cid:
-                    return Response(item)
+                    tree = item
+                    break
         else:
             items = SaleCategory.get_salecategory_jsontree()
-        return Response(items)
+            tree = items
+
+        def replace_key_name(dict_data, old_name, new_name):
+            for k, v in dict_data.items():
+                if k == old_name:
+                    dict_data[new_name] = []
+                    for item in dict_data.pop(k):
+                        item = replace_key_name(item, 'childs', 'children')
+                        dict_data[new_name].append(item)
+            return dict_data
+
+        new_tree = []
+        for item in tree:
+            item = replace_key_name(item, 'childs', 'children')
+            new_tree.append(item)
+
+        return Response(new_tree)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         salecategory = SaleCategory.objects.filter(cid=pk).first()
