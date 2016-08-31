@@ -70,16 +70,16 @@ class GoodShelf(PayBaseModel):
 
         return [
             {'id': 1, 'name': u'童装专区',
-             'cat_img': lv1_category.filter(cid="1").first().cat_pic,
+             'cat_img': lv1_category.filter(cid__exact='1').first().cat_pic,
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=1'},
             {'id': 2, 'name': u'女装专区',
-             'cat_img': lv1_category.filter(cid="2").first().cat_pic,
+             'cat_img': lv1_category.filter(cid__exact='2').first().cat_pic,
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=2'},
             {'id': 3, 'name': u'美食专区',
-             'cat_img': lv1_category.filter(cid="3").first().cat_pic,
+             'cat_img': lv1_category.filter(cid__exact='3').first().cat_pic,
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=3'},
             {'id': 4, 'name': u'美妆家居',
-             'cat_img': lv1_category.filter(cid="6").first().cat_pic,
+             'cat_img': lv1_category.filter(cid__exact='6').first().cat_pic,
              'cat_link': 'com.jimei.xlmm://app/v1/products/category?cid=4,5,6,7,8'},
         ]
 
