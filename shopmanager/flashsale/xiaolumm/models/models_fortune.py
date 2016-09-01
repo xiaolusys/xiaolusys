@@ -1133,6 +1133,8 @@ class MamaDailyAppVisit(BaseModel):
     device_type = models.IntegerField(default=0, choices=DEVICE_TYPES, db_index=True, verbose_name=u'设备')
     version = models.CharField(max_length=32, blank=True, verbose_name=u'版本信息')
     user_agent = models.CharField(max_length=128, blank=True, verbose_name=u'UserAgent')
+    num_visits = models.IntegerField(default=1, verbose_name=u'访问次数')
+    renew_type = models.IntegerField(default=0, choices=XiaoluMama.RENEW_TYPE, db_index=True, verbose_name=u'妈妈类型')
 
     class Meta:
         db_table = 'flashsale_xlmm_mamadailyappvisit'
@@ -1140,6 +1142,9 @@ class MamaDailyAppVisit(BaseModel):
         verbose_name = u'V2/妈妈app访问'
         verbose_name_plural = u'V2/妈妈app访问列表'
 
+    def gen_uni_key(cls, mama_id, date_field):
+        return '%s-%s' % (mama_id, date_field)
+    
     def get_user_version(self):
         from flashsale.apprelease.models import AppRelease
         if self.device_type == AppRelease.DEVICE_ANDROID:
@@ -1184,23 +1189,31 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
 
     device_type = instance.device_type
     date_field = instance.date_field
+    renew_type = instance.renew_type
 
     latest_version = instance.get_latest_version()
     if device_type == MamaDailyAppVisit.DEVICE_ANDROID:
         latest_version = AppRelease.get_latest_version_code(device_type)
 
-    uni_key = "%s-%s" % (device_type, date_field)
+    uni_key = MamaDeviceStats.gen_uni_key(device_type, date_field, renew_type)
+    
     md = MamaDeviceStats.objects.filter(uni_key=uni_key).first()
     if not md:
         md = MamaDeviceStats(device_type=device_type, uni_key=uni_key, date_field=date_field)
         md.save()
 
-    num_latest = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,version=latest_version).count()
-    num_outdated = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,version__lt=latest_version).count()
+    visits = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type)
+    num_latest = visits.filter(version=latest_version).count()
+    num_outdated = visits.filter(version__lt=latest_version).count()
+    num_visits = visits.aggregate(n=Sum('num_visits')).get('n') or 0
+    
+    num_latest = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version=latest_version).count()
+    num_outdated = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version__lt=latest_version).count()
 
     md.num_latest = num_latest
     md.num_outdated = num_outdated
-    md.save(update_fields=['num_latest', 'num_outdated', 'modified'])
+    md.num_visits = num_visits
+    md.save(update_fields=['num_latest', 'num_outdated', 'num_visits', 'modified'])
 
 post_save.connect(mama_update_device_stats,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_update_device_stats')
