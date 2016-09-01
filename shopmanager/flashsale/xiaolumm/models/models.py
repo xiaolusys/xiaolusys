@@ -563,6 +563,20 @@ class XiaoluMama(models.Model):
         ids = [r['referal_to_mama_id'] for r in ReferalRelationship.objects.filter(Q(referal_from_mama_id=self.id)|Q(referal_from_grandma_id=self.id)).values('referal_to_mama_id')]
         return [self.id] + ids
 
+    def get_family_memeber_ids(self):
+        """
+            获取自己，妈妈和奶奶的id
+        """
+        res = [self.id]
+        from .models_fortune import ReferalRelationship
+        r = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
+        if r:
+            if r.referal_from_mama_id:
+                res.append(r.referal_from_mama_id)
+            if r.referal_from_grandma_id:
+                res.append(r.referal_from_grandma_id)
+        return res
+
     def get_invite_normal_mama_ids(self):
         from .models_fortune import ReferalRelationship
         return [i['referal_to_mama_id'] for i in
