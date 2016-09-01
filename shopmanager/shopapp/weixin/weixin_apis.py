@@ -5,6 +5,8 @@ import datetime
 import json
 import urllib
 import urllib2
+
+
 from django.conf import settings
 
 from shopapp.weixin.models import WeiXinAccount
@@ -45,6 +47,7 @@ class WeiXinAPI(object):
     _media_get_uri = "/cgi-bin/media/get"
     _js_ticket_uri = "/cgi-bin/ticket/getticket"
     _template_send_uri = '/cgi-bin/message/template/send'
+    _get_qrcode_template_url = '{0}/cgi-bin/showqrcode?ticket=%s'.format(settings.WEIXIN_QRCODE_HOST)
 
     # 微信小店接口
     _merchant_get_uri = "/merchant/get"
@@ -58,7 +61,7 @@ class WeiXinAPI(object):
     _merchant_category_getsku_uri = "/merchant/category/getsku"
 
     # 上传文件
-    _upload_media_uri = "/cgi-bin/media/uploadimg?"
+    _upload_media_uri = "/cgi-bin/media/upload"
 
     # 微信原生支付URL
     _native_url = "weixin://wxpay/bizpayurl"
@@ -152,6 +155,7 @@ class WeiXinAPI(object):
         """
         禁止刷新token, force_update参数无效
         """
+        print 'debug accesstoken:', self._wx_account, self._wx_account.access_token
         return self._wx_account.access_token
 
     def getCustomerInfo(self, openid, lang='zh_CN'):
@@ -204,20 +208,22 @@ class WeiXinAPI(object):
     def deleteMenu(self):
         return self.handleRequest(self._detele_menu_uri, {}, method='GET')
 
-    def createQRcode(self, action_name, action_info, scene_id, expire_seconds=0):
-
-        action_name = (type(action_name) == unicode and
-                       action_name.encode('utf8') and
-                       action_name)
-
-        params = {"action_name": action_name,
+    def createQRcode(self, action_name, scene_id, expire_seconds=30 * 24 * 3600):
+        """
+        action_name: QR_SCENE为临时,QR_LIMIT_SCENE为永久,QR_LIMIT_STR_SCENE为永久的字符串参数值；
+        """
+        params = {"action_name": str(action_name).upper(),
                   "action_info": {"scene": {"scene_id": scene_id}}}
 
-        if action_name == 'QR_SCENE':
+        if action_name.upper() == 'QR_SCENE':
             params.update(expire_seconds=expire_seconds)
 
         return self.handleRequest(self._create_qrcode_uri,
-                                  params, method='POST')
+                                  params=json.dumps(params),
+                                  method='POST')
+
+    def genQRcodeAccesssUrl(self, ticket):
+        return self._get_qrcode_template_url % ticket
 
     def getMerchant(self, product_id):
 
@@ -382,30 +388,48 @@ class WeiXinAPI(object):
                       'productid': str(product_id),
                       'appkey': self._wx_account.app_secret
                       }
-        signString.update(sign, getSignatureWeixin(signString))
+        signString.update(signString, getSignatureWeixin(signString))
         signString.pop('appkey')
 
         return signString
 
     def genPaySignParams(self, package):
-
         signString = {'appid': self._wx_account.app_id,
                       'timestamp': str(int(time.time())),
                       'noncestr': randomString(),
                       'package': package,
                       'appkey': self._wx_account.pay_sign_key
                       }
-        signString.update(sign, getSignatureWeixin(signString))
+        signString.update(signString, getSignatureWeixin(signString))
         signString.pop('appkey')
 
         return signString
 
-    def genPackageSignParams(self, package):
+    def upload_media(self, media_stream):
+        absolute_url = '%s%s?access_token=%s&type=image'%(settings.WEIXIN_API_HOST,
+                                                    self._upload_media_uri,self.getAccessToken())
 
+        from poster.encode import multipart_encode
+        from poster.streaminghttp import register_openers
+        register_openers()
+        datagen, headers = multipart_encode({"image": media_stream})
+        print 'debugn upload:', absolute_url, datagen, headers
+        from global_setup import enable_urllib2_debugmode
+        enable_urllib2_debugmode()
+        request = urllib2.Request(absolute_url, datagen, headers)
+        resp = urllib2.urlopen(request).read()
+
+        content = json.loads(resp, strict=False)
+        if content.get('errcode', 0):
+            raise WeiXinRequestException(content['errcode'], content['errmsg'])
+
+        return content
+
+
+    def genPackageSignParams(self, package):
         return
 
     def getMediaDownloadUrl(self, media_id):
-
         return '%s%s?access_token=%s&media_id=%s' % (settings.WEIXIN_MEDIA_HOST,
                                                      self._media_get_uri,
                                                      self.getAccessToken(),

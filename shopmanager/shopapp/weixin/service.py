@@ -18,6 +18,8 @@ from shopapp.weixin.models import (
     WXLogistic,
     VipCode
 )
+from flashsale.xiaolumm.models import XiaoluMama
+from shopapp.weixin.models import WeixinUnionID
 from shopapp.weixin.models_base import WeixinFans
 from .weixin_apis import WeiXinAPI
 from shopback.base.service import LocalService
@@ -136,6 +138,9 @@ def handleWeiXinMenuRequest(params):
                     faq = faq_responses[0]
                     ret_params.update(faq.respNews())
                     return ret_params
+            if eventKey == 'MAMA_REFERAL_QRCODE':
+                WeixinUnionID.objects.get_or_create()
+                xlmm = XiaoluMama.objects.filter()
     except Exception, exc:
         logger.error(u'微信请求异常:%s' % exc.message, exc_info=True)
         text = u'不好了，小鹿小美闹情绪不想干活了！[撇嘴]'
@@ -170,7 +175,6 @@ def handleWeiXinSubscribeEvent(params, wx_api):
             fans.subscribe = False
             fans.unsubscribe_time = datetime.datetime.now()
             fans.save()
-
 
 class WeixinUserService():
     _wx_api = None

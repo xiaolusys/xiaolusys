@@ -1,4 +1,5 @@
 import os
+import urllib2
 
 def setup_djagno_environ():
     if os.environ.get('TARGET') in ('production', 'django18'):
@@ -30,4 +31,12 @@ def install_redis_with_gevent_socket():
         redis.connection.socket = socket
     except ImportError:
         print 'redis.connection module not found'
+
+
+def enable_urllib2_debugmode():
+    httpHandler = urllib2.HTTPHandler(debuglevel=1)
+    httpsHandler = urllib2.HTTPSHandler(debuglevel=1)
+    opener = urllib2.build_opener(httpHandler, httpsHandler)
+
+    urllib2.install_opener(opener)
 
