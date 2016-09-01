@@ -377,7 +377,7 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
             agencylevel=mama.agencylevel,
             stat_time=week_begin_time
         )
-        m.member_ids = WeekMamaCarryTotal.get_member_ids(mama, week_begin_time)
+        m.member_ids = WeekMamaTeamCarryTotal.get_member_ids(mama, week_begin_time)
         m.restat(m.member_ids, week_begin_time)
         m.save()
         return m
