@@ -142,7 +142,7 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
 class PayDepositeView(PayInfoMethodMixin, APIView):
     """ 小鹿妈妈支付押金 """
     authentication_classes = (authentication.SessionAuthentication,)
-    #     permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
     template_name = 'apply/step-2.html'
 

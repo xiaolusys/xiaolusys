@@ -646,15 +646,25 @@ LOGISTICS_ROUTES = {
         'queue': 'logistics',
         'routing_key': 'logistics.SaveWuliu_by_packetid',
     },
-    'flashsale.restpro.tasks.SaveReturnWuliu_by_packetid':{                             #by huanzi 根据物流号和物流公司更新物流状态写入数据库
+    'flashsale.restpro.tasks.SaveReturnWuliu_by_packetid':{ #by huanzi 根据物流号和物流公司更新物流状态写入数据库
         'queue':'logistics',
         'routing_key': 'logistics.SaveReturnWuliu_by_packetid',
     },
-    'flashsale.restpro.tasks.get_third_apidata_by_packetid_return':{                            #by huanzi  调用第三方api 查得最新物流状态
+    'flashsale.restpro.tasks.get_third_apidata_by_packetid_return':{  #by huanzi  调用第三方api 查得最新物流状态
         'queue':'logistics',
         'routing_key': 'logistics.get_third_apidata_by_packetid_return',
     }
+}
 
+WEIXIN_ROUTES = {
+    'shopapp.weixin.tasks.task_subscribe_or_unsubscribe_update_userinfo': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_subscribe_or_unsubscribe_update_userinfo',
+    },
+    'shopapp.weixin.tasks.task_create_mama_referal_qrcode_and_response_weixin': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_create_mama_referal_qrcode_and_response_weixin',
+    },
 }
 
 CELERY_ROUTES = {
@@ -829,6 +839,7 @@ CELERY_ROUTES = {
     },  # 缺货短信任务
 }
 
+CELERY_ROUTES.update(WEIXIN_ROUTES)
 CELERY_ROUTES.update(DAILY_STATS_ROUTES)
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)
 CELERY_ROUTES.update(MAMA_FORTUNE_ROUTES)

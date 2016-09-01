@@ -4,11 +4,7 @@ import time
 import datetime
 import json
 import urllib
-from poster.encode import multipart_encode
-from poster.streaminghttp import register_openers
 import urllib2
-
-register_openers()
 
 from django.conf import settings
 
@@ -70,6 +66,9 @@ class WeiXinAPI(object):
     _native_url = "weixin://wxpay/bizpayurl"
     _deliver_notify_url = "/pay/delivernotify"
     _wxpub_id = None
+
+    # 客服消息接口
+    _send_custom_message_uri = '/cgi-bin/message/custom/send'
 
     def __init__(self):
         pass
@@ -333,14 +332,16 @@ class WeiXinAPI(object):
     def deliverNotify(self, open_id, trans_id, out_trade_no,
                       deliver_status=1, deliver_msg="ok"):
 
-        params = {"appid": self._wx_account.app_id,
-                  "appkey": self._wx_account.pay_sign_key,
-                  "openid": open_id,
-                  "transid": trans_id,
-                  "out_trade_no": out_trade_no,
-                  "deliver_timestamp": "%.0f" % time.time(),
-                  "deliver_status": deliver_status,
-                  "deliver_msg": deliver_msg}
+        params = {
+            "appid": self._wx_account.app_id,
+            "appkey": self._wx_account.pay_sign_key,
+            "openid": open_id,
+            "transid": trans_id,
+            "out_trade_no": out_trade_no,
+            "deliver_timestamp": "%.0f" % time.time(),
+            "deliver_status": deliver_status,
+            "deliver_msg": deliver_msg
+        }
 
         params['app_signature'] = getSignatureWeixin(params)
         params['sign_method'] = 'sha1'
@@ -411,10 +412,18 @@ class WeiXinAPI(object):
     def upload_media(self, media_stream):
         absolute_url = '%s%s?access_token=%s&type=image'%(settings.WEIXIN_API_HOST,
                                                     self._upload_media_uri,self.getAccessToken())
-        datagen, headers = multipart_encode({'file': media_stream, 'name': 'mama_referal_qrcode.jpg'})
-        print 'debugn upload:', absolute_url, datagen, headers
-        from global_setup import enable_urllib2_debugmode
-        enable_urllib2_debugmode()
+
+        from poster.encode import multipart_encode, MultipartParam
+        from poster.streaminghttp import register_openers
+        register_openers()
+
+        params = MultipartParam(
+            name='media',
+            filename='image.jpg',
+            filetype='image/jpeg',
+            fileobj=media_stream
+        )
+        datagen, headers = multipart_encode([params])
         request = urllib2.Request(absolute_url, datagen, headers)
         resp = urllib2.urlopen(request).read()
 
@@ -424,6 +433,11 @@ class WeiXinAPI(object):
 
         return content
 
+    def send_custom_message(self, params):
+        response = self.handleRequest(self._send_custom_message_uri,
+                                      json.dumps(params),
+                                      method='POST')
+        return response
 
     def genPackageSignParams(self, package):
         return

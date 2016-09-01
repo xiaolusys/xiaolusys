@@ -79,12 +79,14 @@ class XiaoluMama(models.Model):
         (VIP6_LEVEL, "VIP6"),
         (VIP8_LEVEL, "VIP8"),
     )
+    SCAN  = 3
     TRIAL = 15
-    HALF = 183
-    FULL = 365
+    HALF  = 183
+    FULL  = 365
 
     RENEW_TYPE = (
-        (TRIAL, u'试用'),
+        (SCAN, u'试用3'),
+        (TRIAL, u'试用15'),
         (HALF, u'半年'),
         (FULL, u'一年'),
     )
@@ -1215,6 +1217,10 @@ class PotentialMama(BaseModel):
 
     def __unicode__(self):
         return '%s-%s' % (self.potential_mama, self.referal_mama)
+
+    @classmethod
+    def gen_uni_key(cls, mama_id, referal_from_mama_id):
+        return '/'.join([str(mama_id), str(referal_from_mama_id)])
 
     def update_full_member(self, last_renew_type, extra=None):
         """ 妈妈成为正式妈妈　切换is_full_member状态为True """
