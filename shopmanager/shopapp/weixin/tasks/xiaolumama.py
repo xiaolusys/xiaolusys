@@ -106,7 +106,7 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
 
     except Exception,exc:
         logger.error(str(exc), exc_info=True)
-        raise task_create_mama_referal_qrcode_and_response_weixin.retry(exc)
+        raise task_create_mama_referal_qrcode_and_response_weixin.retry(exc=exc)
 
 @task(max_retries=3, default_retry_delay=5)
 def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKey):
@@ -130,4 +130,4 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
 
     except Exception, exc:
         logger.error(str(exc), exc_info=True)
-        raise task_create_mama_and_response_manager_qrcode.retry(exc)
+        raise task_create_mama_and_response_manager_qrcode.retry(exc=exc)
