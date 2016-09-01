@@ -59,7 +59,7 @@ class MamaDeviceStats(BaseModel):
         verbose_name_plural = u'V2/妈妈device统计表'
 
     @staticmethod
-    def gen_uni_key(cls, device_type, date_field, renew_type):
+    def gen_uni_key(device_type, date_field, renew_type):
         return "%s-%s-%s" % (device_type, date_field, renew_type)
     
     @property
