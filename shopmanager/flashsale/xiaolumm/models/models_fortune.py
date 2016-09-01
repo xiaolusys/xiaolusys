@@ -1142,6 +1142,7 @@ class MamaDailyAppVisit(BaseModel):
         verbose_name = u'V2/妈妈app访问'
         verbose_name_plural = u'V2/妈妈app访问列表'
 
+    @staticmethod
     def gen_uni_key(cls, mama_id, date_field):
         return '%s-%s' % (mama_id, date_field)
     
