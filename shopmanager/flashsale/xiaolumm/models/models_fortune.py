@@ -1200,7 +1200,7 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
     
     md = MamaDeviceStats.objects.filter(uni_key=uni_key).first()
     if not md:
-        md = MamaDeviceStats(device_type=device_type, uni_key=uni_key, date_field=date_field)
+        md = MamaDeviceStats(device_type=device_type, uni_key=uni_key, date_field=date_field, renew_type=renew_type)
         md.save()
 
     visits = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type)
