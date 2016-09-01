@@ -4,8 +4,11 @@ import time
 import datetime
 import json
 import urllib
+from poster.encode import multipart_encode
+from poster.streaminghttp import register_openers
 import urllib2
 
+register_openers()
 
 from django.conf import settings
 
@@ -408,11 +411,7 @@ class WeiXinAPI(object):
     def upload_media(self, media_stream):
         absolute_url = '%s%s?access_token=%s&type=image'%(settings.WEIXIN_API_HOST,
                                                     self._upload_media_uri,self.getAccessToken())
-
-        from poster.encode import multipart_encode
-        from poster.streaminghttp import register_openers
-        register_openers()
-        datagen, headers = multipart_encode({"image": media_stream})
+        datagen, headers = multipart_encode({'file': media_stream, 'name': 'mama_referal_qrcode.jpg'})
         print 'debugn upload:', absolute_url, datagen, headers
         from global_setup import enable_urllib2_debugmode
         enable_urllib2_debugmode()

@@ -47,7 +47,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             }
         ***
         ## [获取特卖商品列表: /rest/v2/modelproducts](/rest/v2/modelproducts)
-            查询参数: cid = 类目cid
+            查询参数:
+                cid: cid1,cid2
+                order_by: price - 按价格排序 (默认按推荐排序)
         ## [今日特卖: /rest/v2/modelproducts/today](/rest/v2/modelproducts/today)
         ## [昨日特卖: /rest/v2/modelproducts/yesterday](/rest/v2/modelproducts/yesterday)
         ## [即将上新: /rest/v2/modelproducts/tomorrow](/rest/v2/modelproducts/tomorrow)
@@ -87,7 +89,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.extra(  # select={'is_saleout': 'remain_num - lock_num <= 0'},
                 order_by=['-salecategory__sort_order', '-is_recommend', '-order_weight', '-id'])
         elif order_by == 'price':
-            queryset = queryset.order_by('agent_price')
+            queryset = queryset.order_by('lowest_agent_price')
         else:
             queryset = queryset.extra(  # select={'is_saleout': 'remain_num - lock_num <= 0'},
                 order_by=['-is_recommend', '-order_weight', '-id'])
@@ -99,7 +101,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     def list(self, request, *args, **kwargs):
         cids  = request.GET.get('cid','').split(',')
+        order_by = request.GET.get('order_by')
         queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.order_queryset(queryset, order_by=order_by)
         onshelf_qs = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
         q_filter = Q()
         for cid in cids:
