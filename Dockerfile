@@ -1,4 +1,4 @@
-from registry.aliyuncs.com/xiaolu-img/xiaolusys-base:292dc8e4dd75624f61681c33f8a13ac4f24b7c7e
+from registry.aliyuncs.com/xiaolu-img/xiaolusys-base:2cfa27acb60e907879245a34843b4dd6dbe1d9b7
 
 run mkdir -p /var/log/taobao;mkdir -p /var/www/deploy/taobao;mkdir -p /data/log/django
 add . /var/www/deploy/taobao/taobao-backend
