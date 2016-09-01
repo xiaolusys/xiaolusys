@@ -763,7 +763,7 @@ admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
 
 class MamaDailyAppVisitAdmin(admin.ModelAdmin):
     list_display = ('id', 'mama_id', 'date_field', 'device_type', 'version', 'user_agent', 'renew_type', 'num_visits', 'modified', 'created')
-    list_filter = ('device_type', 'renew_type')
+    list_filter = ('device_type', 'renew_type', ('created', DateFieldListFilter))
     search_fields = ('mama_id', 'version', 'user_agent')
 
 
