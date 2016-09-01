@@ -50,6 +50,13 @@ class WeixinFans(models.Model):
         else:
             return None
 
+    @classmethod
+    def get_unionid_by_openid_and_appkey(cls, openid, app_key):
+        fans = cls.objects.filter(openid=openid, app_key=app_key, subscribe=True).first()
+        if fans:
+            return fans.unionid
+        return None
+
 
 def weixinfans_xlmm_newtask(sender, instance, **kwargs):
     """
