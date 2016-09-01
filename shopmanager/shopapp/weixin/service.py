@@ -142,11 +142,17 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
 
         if eventKey == 'MAMA_REFERAL_QRCODE' or event == 'SCAN':
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
-            ret_params.update({'Content': u'[示爱]亲爱的小鹿妈妈，您的专属推荐二维码正在创建中，分享给其它妈妈并邀请开店可坐享收益哦：'})
+            ret_params.update({
+                'MsgType': WeiXinAutoResponse.WX_TEXT,
+                'Content': u'[示爱]亲爱的小鹿妈妈，您的专属推荐二维码正在创建中，分享给其它妈妈并邀请开店可坐享收益哦：'
+            })
 
         if eventKey == 'MAMA_MANAGER_QRCODE':
             tasks.task_create_mama_and_response_manager_qrcode.delay(to_username, from_username, event, eventKey)
-            ret_params.update({'Content': u'[示爱]亲爱的小鹿妈妈， 长按识别图中二维码, 添加妈妈专属管理员微信:'})
+            ret_params.update({
+                'MsgType': WeiXinAutoResponse.WX_TEXT,
+                'Content': u'[示爱]亲爱的小鹿妈妈， 长按识别图中二维码, 添加妈妈专属管理员微信:'
+            })
 
     except Exception, exc:
         logger.error(u'handleWeiXinMenuRequest error: %s' % exc.message, exc_info=True)
