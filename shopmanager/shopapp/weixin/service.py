@@ -32,7 +32,7 @@ from shopback.trades.models import MergeTrade, MergeOrder
 from shopback import paramconfig as pcfg
 from common.utils import parse_datetime, format_datetime, replace_utf8mb4, update_model_fields, xml2dict
 from shopapp.signals import weixin_verifymobile_signal
-from .tasks import task_create_mama_referal_qrcode_and_response_weixin
+from shopapp.weixin import tasks
 
 import logging
 
@@ -141,11 +141,11 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                 return ret_params
 
         if eventKey == 'MAMA_REFERAL_QRCODE' or event == 'SCAN':
-            task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
+            tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({'Content': u'[示爱]亲爱的小鹿妈妈，您的专属推荐二维码正在创建中，分享给其它妈妈并邀请开店可坐享收益哦：'})
 
         if eventKey == 'MAMA_MANAGER_QRCODE':
-            task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
+            tasks.task_create_mama_and_response_manager_qrcode.delay(to_username, from_username, event, eventKey)
             ret_params.update({'Content': u'[示爱]亲爱的小鹿妈妈， 长按识别图中二维码, 添加妈妈专属管理员微信:'})
 
     except Exception, exc:

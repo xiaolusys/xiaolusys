@@ -665,6 +665,10 @@ WEIXIN_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_create_mama_referal_qrcode_and_response_weixin',
     },
+    'shopapp.weixin.tasks.task_create_mama_and_response_manager_qrcode': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_create_mama_and_response_manager_qrcode',
+    },
 }
 
 CELERY_ROUTES = {
