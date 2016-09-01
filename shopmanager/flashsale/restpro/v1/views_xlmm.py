@@ -237,7 +237,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if not currentmm:
             return Response([])
         if last_renew_type == 'trial':
-            potential_mamas = PotentialMama.objects.filter(referal_mama=currentmm.id, is_full_member=False)
+            potential_mamas = PotentialMama.objects.filter(referal_mama=currentmm.id, is_full_member=False).order_by('-created')
             page = self.paginate_queryset(potential_mamas)
             serializer = serializers.PotentialInfoSerialize(page, many=True)
             if page is not None:
@@ -245,7 +245,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(serializer.data)
 
         if last_renew_type == 'full':
-            ships = ReferalRelationship.objects.filter(referal_from_mama_id=currentmm.id)
+            ships = ReferalRelationship.objects.filter(referal_from_mama_id=currentmm.id).order_by('-created')
             page = self.paginate_queryset(ships)
             serializer = serializers.RelationShipInfoSerialize(page, many=True)
             if page is not None:
