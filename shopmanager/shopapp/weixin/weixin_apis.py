@@ -157,7 +157,6 @@ class WeiXinAPI(object):
         """
         禁止刷新token, force_update参数无效
         """
-        print 'debug accesstoken:', self._wx_account, self._wx_account.access_token
         return self._wx_account.access_token
 
     def getCustomerInfo(self, openid, lang='zh_CN'):
