@@ -388,8 +388,8 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         creator = request.user
         model_pro = get_object_or_404(ModelProduct, id=model_id)
         saleproduct = model_pro.saleproduct
-        category_id = content.get("category_id") or 0
-        category_item = ProductCategory.objects.filter(cid=category_id).first()
+        cid = content.get("cid") or 0
+        category_item = ProductCategory.objects.filter(cid=cid).first()
         if not saleproduct:
             raise exceptions.APIException(u"选品错误!")
         if not category_item:
@@ -397,20 +397,16 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         supplier = saleproduct.sale_supplier
         inner_outer_id = self.get_inner_outer_id(supplier, category_item)
 
-        products = ['product_colors']
-        product_skus = ['product_skus']
+        skus = content['skus']
+        colors = [x['color'] for x in skus]
 
         product_instances = []
         pro_count = 1
         with transaction.atomic():
-            for color in products:
+            for color in colors:
                 if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                     pro_count += 1
                 request.data.update({'name': model_pro.name + "/" + color['name']})
-                request.data.update({'remain_num': color['remain_num']})
-                request.data.update({'cost': color['cost']})
-                request.data.update({'agent_price': color['agent_price']})
-                request.data.update({'std_sale_price': color['std_sale_price']})
                 request.data.update({'pic_path': content['head_img']})
 
                 request.data.update({'outer_id': inner_outer_id + str(pro_count)})
@@ -430,7 +426,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                 log_action(creator.id, product_instance, ADDITION, u'创建一个产品')
 
                 count = 1
-                for sku in product_skus:
+                for sku in skus:
                     barcode = '%s%d' % (product_instance.outer_id, str(count))
                     ProductSku(outer_id=barcode,
                                product=product_instance,
@@ -442,6 +438,8 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                                properties_alias=sku['name'],
                                barcode=barcode).save()
                     count += 1
+                    product_instance.set_remain_num()  # 有效sku预留数之和
+                    product_instance.set_price()  # 有效sku 设置 成品 售价 吊牌价 的平均价格
             model_pro.set_is_flatten()  # 设置平铺字段
             model_pro.set_lowest_price()  # 设置款式最低价格
             model_pro.set_choose_colors()  # 设置可选颜色
