@@ -42,6 +42,8 @@ def upload_public_to_remote(filepath, iostream):
     
     return info
 
+
+
 def generate_private_url(filepath):
     
     access_key = settings.QINIU_ACCESS_KEY
