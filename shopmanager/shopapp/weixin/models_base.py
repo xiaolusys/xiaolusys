@@ -31,7 +31,7 @@ class WeixinFans(models.Model):
     subscribe = models.BooleanField(default=False, verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"订阅时间")
     unsubscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"取消订阅时间")
-    extras = JSONCharMyField(max_length=512, default={'qrscene':0}, verbose_name=u'额外参数')
+    extras = JSONCharMyField(max_length=512, default={'qrscene':'0'}, verbose_name=u'额外参数')
 
     class Meta:
         db_table = 'shop_weixin_fans'
@@ -67,7 +67,7 @@ class WeixinFans(models.Model):
 
     def get_qrscene(self):
         qrscene = self.extras.get('qrscene')
-        if qrscene == '0':
+        if qrscene == '0' or qrscene == 0:
             return ''
         return qrscene
 
