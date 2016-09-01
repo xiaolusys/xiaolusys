@@ -579,6 +579,7 @@ def returngoods_add_sku(request):
     sku = get_object_or_404(ProductSku, id=sku_id)
     num = form.cleaned_data['num']
     inferior = form.cleaned_data['inferior']
+    inferior = bool(inferior)
     rg = get_object_or_404(ReturnGoods, id=rg_id)
     supplier = sku.product.get_supplier()
     # if supplier.id != rg.supplier_id:

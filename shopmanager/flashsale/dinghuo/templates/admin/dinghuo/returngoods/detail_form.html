@@ -363,7 +363,7 @@
                     <input class="col-md-3" type="text" id="sku_id" value=""/>
                     <label class="col-md-2">数量</label>
                     <input class="col-md-2" type="text" id="num" value="1"/>
-                    <input class="col-md-2s" type="checkbox" id="inferior">次品
+                    <input class="col-md-2" type="checkbox" id="inferior">次品
                 </div>
             </div>
             <div class="modal-footer panel-body">
@@ -687,7 +687,7 @@
             var num = $("#num").val();
             var inferior = null;
             console.dir($("#inferior"));
-            if ($("#inferior").attr("checked") == "checked"){
+            if ($("#inferior").prop('checked')){
                 inferior = 1;
             }else{
                 inferior = 0;
