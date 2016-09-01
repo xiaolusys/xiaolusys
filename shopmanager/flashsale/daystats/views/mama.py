@@ -18,6 +18,7 @@ from flashsale.daystats.lib.util import (
     groupby,
     process,
     format_datetime,
+    get_date_from_req,
 )
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade, SaleOrder
@@ -25,16 +26,6 @@ from flashsale.coupon.models import OrderShareCoupon
 from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama
 from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, ReferalRelationship
 from shopapp.weixin.models_base import WeixinFans
-
-
-def get_date_from_req(req):
-    now = datetime.now()
-    last = now - timedelta(days=7)
-    p_start_date = req.GET.get('start_date', '%s-%s-%s' % (last.year, last.month, last.day))
-    p_end_date = req.GET.get('end_date', '%s-%s-%s' % (now.year, now.month, now.day+1))
-    start_date = datetime.strptime(p_start_date, '%Y-%m-%d')
-    end_date = datetime.strptime(p_end_date, '%Y-%m-%d')
-    return p_start_date, p_end_date, start_date, end_date
 
 
 def generate_sql_from_tokens(tokens):
@@ -103,6 +94,90 @@ def show(req):
     return render(req, 'yunying/mama/show.html', locals())
 
 
+def carry(req):
+    # sql = """
+    # SELECT mama_id, sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record
+    # where status=2
+    # group by mama_id
+    # """
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
+    sql = """
+    SELECT mama_id, sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record
+    where status=2 and mama_id in (
+        SELECT xiaolumm_xiaolumama.id FROM xiaoludb.xiaolumm_xiaolumama
+        where xiaolumm_xiaolumama.agencylevel=3
+            and created > %s
+            and created < %s
+    )
+    group by mama_id
+    """
+    queryset = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])
+
+    sql = """
+    SELECT count(*) as count FROM xiaoludb.xiaolumm_xiaolumama
+        where xiaolumm_xiaolumama.agencylevel=3
+            and created > %s
+            and created < %s
+    """
+    one_mama_count = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])[0]['count']
+
+    def byfunc(item):
+        money = item['money']
+        if money < 3000:
+            return u'小于30'
+        elif money < 10000:
+            return u'30-100'
+        else:
+            return u'大于100'
+
+    pie_products = groupby(queryset, byfunc)
+    pie_products = process(pie_products, len)
+    piechart = dict(pie_products)
+
+    has_carry_count = len(queryset)
+    sum_carry = sum([x['money'] for x in queryset]) / 100
+    avg_carry = '%.2f' % (sum_carry / has_carry_count)
+
+    return render(req, 'yunying/mama/carry.html', locals())
+
+
+def retain(req):
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
+
+    mamas = XiaoluMama.objects.using('product').filter(created__gte=start_date, created__lt=end_date, agencylevel=3)
+
+    sql = """
+        SELECT * FROM xiaoludb.flashsale_xlmm_mamadailyappvisit
+        where created > %s
+            and created < %s
+    """
+    uvs = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])
+
+    def func(items):
+        return set([x.id for x in items])
+
+    mamas = groupby(mamas, lambda x: x.created)
+    mamas = process(mamas, func)
+    mamas = sorted(mamas, key=lambda x: x[0])
+    uvs = groupby(uvs, lambda x: x['created'])
+    uvs = process(uvs, lambda x: set([y['mama_id'] for y in x]))
+    uvs = sorted(uvs, key=lambda x: x[0])
+
+    col_date = [x[0] for x in uvs]
+
+    result = []
+    for date, mama_ids in mamas:
+        row = []
+        for d2, m2 in uvs:
+            jiaoji = len(list(mama_ids & m2))
+            mama_ids_count = len(list(mama_ids))
+            row.append([jiaoji, mama_ids_count, '%.2f%%' % (jiaoji * 100.0 / mama_ids_count)])
+        result.append((date, row))
+    print result
+
+    return render(req, 'yunying/mama/retain.html', locals())
+
+
 def home(req):
     pass
 
@@ -155,6 +230,7 @@ mama_cache = {}
 def new_mama(req):
     now = datetime.now()
     last = now - timedelta(days=7)
+    now = now + timedelta(days=1)
     p_start_date = req.GET.get('start_date', '%s-%s-%s' % (last.year, last.month, last.day))
     p_end_date = req.GET.get('end_date', '%s-%s-%s' % (now.year, now.month, now.day+1))
 
