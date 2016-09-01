@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from httpproxy.views import HttpProxy
 
 from shopapp.weixin.models import  WeiXinAutoResponse
+from . import tasks
 
 import logging
 from . import service
@@ -54,15 +55,27 @@ class WXMessageHttpProxy(HttpProxy):
         request_body = request.body
         params = service.parseXML2Param(request_body)
 
+        openid = params.get('FromUserName')
+        wx_pubid = params.get('ToUserName')
+        event    = params.get('Event', '')
+        msgtype  = params.get('MsgType', '')
+        eventKey = params.get('EventKey', '')
+        # 处理关注／取关事件
+        if event in ('subscribe', 'unsubscribe'):
+            tasks.task_subscribe_or_unsubscribe_update_userinfo.delay(openid, wx_pubid, event, eventKey)
+
         # 处理菜单点击事件
-        ret_params = service.handleWeiXinMenuRequest(params)
-        if ret_params:
+        if msgtype == WeiXinAutoResponse.WX_EVENT and eventKey:
+            ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventKey)
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
 
-        # 处理关注／取关事件
-        service.handleWeiXinSubscribeEvent(params, wx_api)
-
+        ret_params = {'ToUserName': params['FromUserName'],
+                      'FromUserName': params['ToUserName'],
+                      'CreateTime': int(time.time())}
+        ret_params.update(WeiXinAutoResponse.respEmptyString())
+        response = service.formatParam2XML(ret_params)
+        return HttpResponse(response, content_type="text/xml")
         #　如果公众号由多客服处理，直接转发
         # if wx_api._account.isResponseToDRF():
         #     ret_params = {'ToUserName': params['FromUserName'],
@@ -72,24 +85,24 @@ class WXMessageHttpProxy(HttpProxy):
         #     resp_drfxml = service.formatParam2XML(ret_params)
         #     return  HttpResponse(resp_drfxml, content_type="text/xml")
 
-        request_url = self.get_full_url(self.url)
-        request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
-                          'Content-length': request.META.get('CONTENT_LENGTH')}
-        request = self.create_request(request_url, body=request.body, headers=request_header)
-        response = urllib2.urlopen(request)
-        start = time.time()
-        try:
-            response_body = response.read()
-            status = response.getcode()
-            logger.debug(self._msg % ('%s\nQ%s\nP%s' % (request_url, request_body, response_body)))
-        except urllib2.HTTPError, e:
-            response_body = e.read()
-            logger.error(self._msg % ('%s\nQ%s\nP%s' % (request_url, request_body, response_body)))
-            status = e.code
-        end = time.time()
-        logger.debug('\nconsume seconds：%.2f' % (end - start))
-        return HttpResponse(response_body, status=status,
-                            content_type=response.headers['content-type'])
+        # request_url = self.get_full_url(self.url)
+        # request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
+        #                   'Content-length': request.META.get('CONTENT_LENGTH')}
+        # request = self.create_request(request_url, body=request.body, headers=request_header)
+        # response = urllib2.urlopen(request)
+        # start = time.time()
+        # try:
+        #     response_body = response.read()
+        #     status = response.getcode()
+        #     logger.debug(self._msg % ('%s\nQ%s\nP%s' % (request_url, request_body, response_body)))
+        # except urllib2.HTTPError, e:
+        #     response_body = e.read()
+        #     logger.error(self._msg % ('%s\nQ%s\nP%s' % (request_url, request_body, response_body)))
+        #     status = e.code
+        # end = time.time()
+        # logger.debug('\nconsume seconds：%.2f' % (end - start))
+        # return HttpResponse(response_body, status=status,
+        #                     content_type=response.headers['content-type'])
 
 
 class WXCustomAndMediaProxy(HttpProxy):

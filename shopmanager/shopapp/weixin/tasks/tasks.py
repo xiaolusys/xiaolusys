@@ -8,9 +8,8 @@ from django.conf import settings
 
 from common.utils import update_model_fields, replace_utf8mb4
 from core.weixin import options
-from .models import WeiXinUser, WXOrder, WXProduct, WXProductSku, WXLogistic, WeixinUnionID
-from .service import WxShopService
-from .weixin_apis import WeiXinAPI, WeiXinRequestException
+from ..models import WeiXinUser, WXOrder, WXProduct, WXProductSku, WXLogistic, WeixinUnionID
+from ..weixin_apis import WeiXinAPI, WeiXinRequestException
 from shopback.items.models import Product, ItemNumTaskLog
 
 import logging
@@ -159,6 +158,9 @@ def pullWXProductTask():
 
 @task
 def pullWaitPostWXOrderTask(begintime, endtime, full_update=False):
+
+    from shopapp.weixin.service import WxShopService
+
     update_status = [  # WXOrder.WX_WAIT_PAY,
         WXOrder.WX_WAIT_SEND,
         WXOrder.WX_WAIT_CONFIRM,
@@ -189,6 +191,9 @@ def pullWaitPostWXOrderTask(begintime, endtime, full_update=False):
 
 @task
 def pullFeedBackWXOrderTask(begintime, endtime):
+
+    from shopapp.weixin.service import WxShopService
+
     _wx_api = WeiXinAPI()
 
     if not begintime and _wx_api._wx_account.refund_updated:

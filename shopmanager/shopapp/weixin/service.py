@@ -32,6 +32,8 @@ from shopback.trades.models import MergeTrade, MergeOrder
 from shopback import paramconfig as pcfg
 from common.utils import parse_datetime, format_datetime, replace_utf8mb4, update_model_fields, xml2dict
 from shopapp.signals import weixin_verifymobile_signal
+from shopapp.weixin import tasks
+
 import logging
 
 logger = logging.getLogger('django.request')
@@ -122,31 +124,39 @@ def formatParam2XML(params):
     return x[len(initStr):]
 
 
-def handleWeiXinMenuRequest(params):
+def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
     """ 2016-4-3 微信公众号常见问题请求处理 """
-    ret_params = {'ToUserName': params['FromUserName'],
-                  'FromUserName': params['ToUserName'],
+    from_username = openid
+    to_username   = wxpubId
+    ret_params = {'ToUserName': from_username,
+                  'FromUserName': to_username,
                   'CreateTime': int(time.time())}
-    msgtype = params['MsgType']
     try:
-        eventKey = params.get('EventKey', '')
-        if msgtype == WeiXinAutoResponse.WX_EVENT and eventKey:
-            eventKey = eventKey.upper()
-            if eventKey == 'FAQS':
-                faq_responses = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message=eventKey)
-                if faq_responses.count() > 0:
-                    faq = faq_responses[0]
-                    ret_params.update(faq.respNews())
-                    return ret_params
-            if eventKey == 'MAMA_REFERAL_QRCODE':
-                WeixinUnionID.objects.get_or_create()
-                xlmm = XiaoluMama.objects.filter()
+        eventKey = eventKey.upper()
+        if eventKey == 'FAQS':
+            faq_responses = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message=eventKey)
+            if faq_responses.count() > 0:
+                faq = faq_responses[0]
+                ret_params.update(faq.respNews())
+                return ret_params
+
+        if eventKey == 'MAMA_REFERAL_QRCODE' or event == 'SCAN':
+            tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
+            ret_params.update({'Content': u'[示爱]亲爱的小鹿妈妈，您的专属推荐二维码正在创建中，分享给其它妈妈并邀请开店可坐享收益哦：'})
+
+        if eventKey == 'MAMA_MANAGER_QRCODE':
+            tasks.task_create_mama_and_response_manager_qrcode.delay(to_username, from_username, event, eventKey)
+            ret_params.update({'Content': u'[示爱]亲爱的小鹿妈妈， 长按识别图中二维码, 添加妈妈专属管理员微信:'})
+
     except Exception, exc:
-        logger.error(u'微信请求异常:%s' % exc.message, exc_info=True)
-        text = u'不好了，小鹿小美闹情绪不想干活了！[撇嘴]'
-        te = {'MsgType': WeiXinAutoResponse.WX_TEXT,
-              'Content': text}
-        ret_params.update(te)
+        logger.error(u'handleWeiXinMenuRequest error: %s' % exc.message, exc_info=True)
+        ret_params.update({
+            'MsgType': WeiXinAutoResponse.WX_TEXT,
+            'Content': u'不好了，鹿小美闹情绪不想干活了！[撇嘴]'
+        })
+
+    return ret_params
+
 
 
 def handleWeiXinSubscribeEvent(params, wx_api):
