@@ -136,13 +136,15 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
     def get_wuliu_by_packetid(self, request):
         content = request.REQUEST
         packetid = content.get("packetid", None)
+        packetid = ''.join(str(packetid).split())
         company_name = content.get("company_name",None)
         rid = content.get("rid",None)
-        company_code = self.get_company_code(company_name)
+        if company_name:
+            company_code = self.get_company_code(company_name)
         # company_code = content.get("company_code", None)
-        if packetid is None or company_code is None or rid is None:
-            return Response([])
-        queryset = ReturnWuLiu.objects.filter(out_sid=int(packetid)).order_by("-time")
+        if not packetid or not company_code or not rid:
+            return Response({"errorinfo":"物流编号,物流公司编号或者退货单编号不存在"})
+        queryset = ReturnWuLiu.objects.filter(out_sid=packetid).order_by("-time")
         if queryset.exists():
             last_wuliu = queryset[0]
             last_time = last_wuliu.created
