@@ -1,9 +1,10 @@
 # coding=utf-8
 from core.models import BaseModel
 from flashsale.xiaolumm.models import MamaDailyAppVisit
+from flashsale.xiaolumm.models import XiaoluMama
+
 from django.db import models
 from django.db.models.signals import post_save
-
 import datetime
 
 
@@ -43,10 +44,13 @@ class MamaTabVisitStats(BaseModel):
 
 class MamaDeviceStats(BaseModel):
     device_type = models.IntegerField(default=0, choices=MamaDailyAppVisit.DEVICE_TYPES, db_index=True, verbose_name=u'设备')
+    renew_type = models.IntegerField(default=0, choices=XiaoluMama.RENEW_TYPE, db_index=True, verbose_name=u'妈妈类型')
+    
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # device_type+date
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     num_latest = models.IntegerField(default=0, verbose_name=u'最新版本数')
     num_outdated = models.IntegerField(default=0, verbose_name=u'旧版本数')
+    num_visits = models.IntegerField(default=0, verbose_name=u'访问次数')
 
     class Meta:
         db_table = 'flashsale_xlmm_mamadevicestats'
@@ -54,9 +58,16 @@ class MamaDeviceStats(BaseModel):
         verbose_name = u'V2/妈妈device统计'
         verbose_name_plural = u'V2/妈妈device统计表'
 
+    @staticmethod
+    def gen_uni_key(cls, device_type, date_field, renew_type):
+        return "%s-%s-%s" % (device_type, date_field, renew_type)
+    
     @property
     def outdated_percentage(self):
-        percentage = self.num_outdated * 100.0 / (self.num_outdated + self.num_latest)
+        total = self.num_outdated + self.num_latest
+        if total == 0:
+            return "0.00%"
+        percentage = self.num_outdated * 100.0 / total
         return "%.2f%%" % percentage
 
     @property

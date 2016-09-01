@@ -406,9 +406,16 @@ def get_app_version_from_user_agent(key, user_agent):
 @task
 def task_mama_daily_app_visit_stats(mama_id, user_agent):
     from flashsale.xiaolumm.models import MamaDailyAppVisit
+    from flashsale.xiaolumm.models import XiaoluMama
 
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
+    renew_type = 0
+    if mama:
+        renew_type = mama.last_renew_type
+    
     date_field = datetime.date.today()
-    uni_key = '%s-%s' % (mama_id, date_field)
+    uni_key = MamaDailyAppVisit.gen_uni_key(mama_id, date_field)
+    #uni_key = '%s-%s' % (mama_id, date_field)
 
     device_type = MamaDailyAppVisit.DEVICE_UNKNOWN
     ua = user_agent.lower()
@@ -423,14 +430,22 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
     md = MamaDailyAppVisit.objects.filter(uni_key=uni_key).first()
     if not md:
         md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,
-                               device_type=device_type,version=version,user_agent=user_agent)
+                               device_type=device_type,version=version,user_agent=user_agent,
+                               renew_type=renew_type)
         md.save()
     else:
+        update_fields = ['modified']
         if md.version != version:
             md.device_type = device_type
             md.version = version
             md.user_agent = user_agent
-            md.save(update_fields=['device_type','version','user_agent','modified'])
+            update_fields.append('device_type')
+            update_fields.append('version')
+            update_fields.append('user_agent')
+        
+        md.num_visits += 1
+        update_fields.append('num_visits')
+        md.save(update_fields=update_fields)
 
 
 @task

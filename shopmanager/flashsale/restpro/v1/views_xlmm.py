@@ -402,7 +402,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if xlmm.id != int(pk):
             raise exceptions.APIException('参数错误')
 
-        default_config = collections.defaultdict(page_pop=True)
+        default_config = collections.defaultdict(page_pop=False)
         default_return = collections.defaultdict(config=default_config, data=[])
 
         carry_record = CarryRecord.objects.filter(mama_id=xlmm.id, carry_type=CarryRecord.CR_CLICK).exists()

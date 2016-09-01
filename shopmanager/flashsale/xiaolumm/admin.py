@@ -762,8 +762,8 @@ admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
 
 
 class MamaDailyAppVisitAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mama_id', 'date_field', 'device_type', 'version', 'user_agent', 'modified', 'created')
-    list_filter = ('device_type',)
+    list_display = ('id', 'mama_id', 'date_field', 'device_type', 'version', 'user_agent', 'renew_type', 'num_visits', 'modified', 'created')
+    list_filter = ('device_type', 'renew_type')
     search_fields = ('mama_id', 'version', 'user_agent')
 
 
@@ -790,9 +790,9 @@ admin.site.register(MamaDailyTabVisit, MamaDailyTabVisitAdmin)
 
 class MamaDeviceStatsAdmin(admin.ModelAdmin):
     list_display = (
-    'id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'total_visitor', 'modified',
-    'created')
-    list_filter = ('device_type',)
+        'id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'total_visitor',
+        'renew_type', 'num_visits', 'modified', 'created')
+    list_filter = ('device_type', 'renew_type')
     search_fields = ('device_type', 'date_field')
 
 

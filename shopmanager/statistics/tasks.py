@@ -12,8 +12,20 @@ from statistics import constants
 
 from statistics.models import SaleStats, ProductStockStat, ModelStats, SaleOrderStatsRecord
 from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
+from shopback.categorys.models import ProductCategory
 
 logger = logging.getLogger(__name__)
+
+
+def get_children_cids(cid=None):
+    cids = []
+    categories = ProductCategory.objects.filter(parent_cid=cid)
+    for item in categories:
+        scids = get_children_cids(cid=item.cid)
+        if scids:
+            cids += scids
+        cids.append(item.cid)
+    return cids
 
 
 @task()
@@ -22,12 +34,8 @@ def task_statistics_product_sale_num(sale_time_left, sale_time_right, category):
     start_time = datetime.datetime.now()
     # 指定上架时间的产品
     products = Product.objects.filter(status='normal')
-    if category == 'female':
-        female = [18, 19, 20, 21, 22, 24, 8]
-        products = Product.objects.filter(status='normal', category_id__in=female)
-    elif category == 'child':
-        child = [12, 13, 14, 15, 16, 17, 23, 25, 26, 5]
-        products = Product.objects.filter(status='normal', category_id__in=child)
+    cids = get_children_cids(cid=category) + [int(category)]
+    products = Product.objects.filter(status='normal', category_id__in=cids)
 
     products_info = products.filter(
         sale_time__gte=sale_time_left,
