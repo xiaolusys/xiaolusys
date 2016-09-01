@@ -219,7 +219,7 @@ class StockSale(AdminModel):
         return batch
 
     @staticmethod
-    def gen_new_activity(creator,cnt=100):
+    def gen_new_activity(creator, cnt=20):
         """
             获取100个sale_order, 生成新活动。时间为最后次专题活动时间或批次生成时间
         """

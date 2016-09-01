@@ -213,7 +213,7 @@ class OrderListAdmin(admin.ModelAdmin):
     # 批量审核
     # def test_order_action(self, request, queryset):
     #     for p in queryset:
-    #         pds = PurchaseDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey)
+    #         pds = PurchaseDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
     #         psis_total = 0
     #         for pd in pds:
     #             psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
@@ -240,6 +240,9 @@ class OrderListAdmin(admin.ModelAdmin):
         for p in queryset:
             pds = PurchaseDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey)
             psis_total = 0
+            # from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangement, PurchaseDetail, PurchaseOrder
+            # from shopback.trades.models import *
+            # pds = PurchaseDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
             # sku_ids = [pd.sku_id for pd in pds]
             # PackageSkuItem.objects.filter(sku_id__in=sku_ids,assign_status=PackageSkuItem.NOT_ASSIGNED,purchase_order_unikey='').aggregate(total=Sum('num'))
             # orderlist.purchase_order_unikey
