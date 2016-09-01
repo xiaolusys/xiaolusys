@@ -300,16 +300,22 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
 def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
     # 当周数据实时更新到redis，从redis读取
     if WeekRank.this_week_time() == instance.stat_time:
+        mama = instance.mama
+        mm_ids = [r.mama_id for r in WeekMamaCarryTotal.objects.filter(stat_time=instance.stat_time, mama_id__in=mama.get_family_memeber_ids())]
+        for mid in mm_ids:
+            team = WeekMamaTeamCarryTotal.objects.filter(mama_id=mid, stat_time=instance.stat_time).first()
+            if not team:
+                WeekMamaTeamCarryTotal.generate(mama, instance.stat_time)
+            else:
+                if instance.mama_id not in team.mama_ids:
+                    team.reset_mama_ids()
+                team.restat(team.mama_ids, instance.stat_time)
+                team.save()
         for target in WeekMamaCarryTotal.filters:
             condtion = copy(WeekMamaCarryTotal.filters[target])
             condtion['pk'] = instance.pk
             if WeekMamaCarryTotal.objects.filter(**condtion).exists():
                 WEEK_RANK_REDIS.update_cache(instance, [target])
-                team_condtion = copy(WeekMamaTeamCarryTotal.filters[target])
-                team_condtion['mama_id__in'] = instance.mama.get_team_member_ids()
-                for team in WeekMamaTeamCarryTotal.objects.filter(**team_condtion):
-                    WEEK_RANK_REDIS.update_cache(team, [target])
-                    team.check_add_member(instance.mama)
 
 post_save.connect(update_week_mama_carry_total_cache,
                   sender=WeekMamaCarryTotal, dispatch_uid='post_save_update_week_mama_carry_total_cache')
@@ -433,3 +439,10 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
         if mama.id not in self.member_ids:
             self.member_ids = WeekMamaTeamCarryTotal.get_member_ids(mama, WeekRank.this_week_time())
             self.save()
+
+
+def update_week_team_mama_carry_total_cache(sender, instance, created, **kwargs):
+    WEEK_RANK_REDIS.update_cache(instance, ['duration_total'])
+
+post_save.connect(update_week_team_mama_carry_total_cache,
+                  sender=WeekMamaTeamCarryTotal, dispatch_uid='post_save_update_week_mama_team_carry_total_cache')

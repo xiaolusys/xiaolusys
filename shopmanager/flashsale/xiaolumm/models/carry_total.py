@@ -1085,7 +1085,7 @@ def update_activity_mama_carry_total_cache(sender, instance, created, **kwargs):
     if instance.activity.is_active():
         mama = instance.mama
         activity = instance.activity
-        mm_ids = [r.mama_id for r in activity.ranks.filter(mama_id__in=mama.get_team_member_ids())]
+        mm_ids = [r.mama_id for r in activity.ranks.filter(mama_id__in=mama.get_family_memeber_ids())]
         for mid in mm_ids:
             team = ActivityMamaTeamCarryTotal.objects.filter(mama_id=mid, activity=activity).first()
             if not team:
@@ -1100,11 +1100,6 @@ def update_activity_mama_carry_total_cache(sender, instance, created, **kwargs):
             condtion['pk'] = instance.pk
             if ActivityMamaCarryTotal.objects.filter(**condtion).exists():
                 STAT_RANK_REDIS.update_cache(instance, [target], func=getattr_change)
-                if target in ActivityMamaTeamCarryTotal.filters:
-                    team_condtion = copy(ActivityMamaTeamCarryTotal.filters[target])
-                    team_condtion['mama_id__in'] = instance.mama.get_team_member_ids()
-                    for team in ActivityMamaTeamCarryTotal.objects.filter(**team_condtion):
-                        STAT_RANK_REDIS.update_cache(team, [target])
 
 post_save.connect(update_activity_mama_carry_total_cache,
                   sender=ActivityMamaCarryTotal, dispatch_uid='post_save_update_activity_mama_carry_total_cache')
@@ -1201,3 +1196,10 @@ class ActivityMamaTeamCarryTotal(BaseMamaTeamCarryTotal, ActivityRankTotal):
         if self.member_ids != mmids:
             self.member_ids = mmids
         self.save()
+
+def update_activity_mama_team_carry_total_cache(sender, instance, created, **kwargs):
+    # 当周数据实时更新到redis，从redis读取
+    STAT_RANK_REDIS.update_cache(instance, ['duration_total'])
+
+post_save.connect(update_activity_mama_team_carry_total_cache,
+                  sender=ActivityMamaCarryTotal, dispatch_uid='post_save_update_activity_mama_team_carry_total_cache')
