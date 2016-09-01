@@ -569,11 +569,12 @@ class XiaoluMama(models.Model):
         """
         res = [self.id]
         from .models_fortune import ReferalRelationship
-        r = ReferalRelationship.objects.get(referal_to_mama_id=self.id)
-        if r.referal_from_mama_id:
-            res.append(r.referal_from_mama_id)
-        if r.referal_from_grandma_id:
-            res.append(r.referal_from_grandma_id)
+        r = ReferalRelationship.objects.filter(referal_to_mama_id=self.id).first()
+        if r:
+            if r.referal_from_mama_id:
+                res.append(r.referal_from_mama_id)
+            if r.referal_from_grandma_id:
+                res.append(r.referal_from_grandma_id)
         return res
 
     def get_invite_normal_mama_ids(self):
