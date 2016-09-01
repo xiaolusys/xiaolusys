@@ -13,6 +13,7 @@ router.register(r'stats', views_apis.SaleStatsViewSet)
 v1_router_urls = router.urls
 v1_router_urls += ([])
 
-urlpatterns = patterns('',
-                       url(r'^v1/', include(v1_router_urls, namespace='statistic_v1')),
-                       )
+urlpatterns = patterns(
+    '',
+    url(r'^v1/', include(v1_router_urls, namespace='statistic_v1')),
+)

@@ -8,14 +8,16 @@ from statistics import serializers
 from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework import renderers
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import detail_route, list_route, api_view
 from rest_framework.exceptions import APIException
 from statistics.models import SaleStats
 from statistics import constants
 from rest_framework import filters
 from django_filters import Filter
 from django_filters.fields import Lookup
+from shopback.categorys.models import ProductCategory
 
 
 class ListFilter(Filter):
@@ -75,3 +77,22 @@ class SaleStatsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+
+class ProductCategoryAPI(viewsets.ViewSet):
+    queryset = ProductCategory.objects.all()
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+        cid = request.GET.get('cid')
+        if cid:
+            categories = ProductCategory.objects.filter(parent_cid=cid)
+        else:
+            categories = ProductCategory.objects.filter(is_parent=True)
+        json = []
+        for item in categories:
+            json.append({
+                'cid': item.cid,
+                'name': item.name,
+            })
+        return Response(json)
