@@ -64,7 +64,10 @@ class MamaDeviceStats(BaseModel):
     
     @property
     def outdated_percentage(self):
-        percentage = self.num_outdated * 100.0 / (self.num_outdated + self.num_latest)
+        total = self.num_outdated + self.num_latest
+        if total == 0:
+            return "0.00%"
+        percentage = self.num_outdated * 100.0 / total
         return "%.2f%%" % percentage
 
     @property
