@@ -5,10 +5,10 @@ import urllib, urllib2
 
 from celery.task import task
 from django.contrib.auth.models import User as DjangoUser
-
+from django.db.models import F
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopPros
-from shopback.items.models import Product
+from shopback.items.models import Product, ProductSkuStats
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.v1.views_cushops import save_pro_info
@@ -115,12 +115,50 @@ def close_timeout_carts_and_orders():
             logger.error(exc.message, exc_info=True)
 
 
+def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
+    """
+        1/定时处理，对各sku清理超时shoppingcart
+        2/购物车检查
+        3/进行购物车检查
+        4移出购物车
+    """
+    from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
+    djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+    now = datetime.datetime.now()
+    if not skus:
+        all_product_in_cart = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, remain_time__lte=now)
+        skus = [c['sku'] for c in all_product_in_cart.values('sku').distinct()]
+    else:
+        all_product_in_cart = ShoppingCart.objects.filter(sku_id__in=skus, status=ShoppingCart.NORMAL, remain_time__lte=now)
+    all_product_in_cart.update(status=ShoppingCart.CANCEL)
+    for sku in skus:
+        task_shoppingcart_update_productskustats_shoppingcart_num(sku)
+    all_trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_PAY)
+    for trade in all_trade:
+        if trade.is_payable():
+            continue
+        try:
+            trade.close_trade()
+            log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
+        except Exception, exc:
+            logger = logging.getLogger('django.request')
+            logger.error(exc.message, exc_info=True)
+
+
+@task()
+def task_add_shoppingcart_num(instance):
+    stat = ProductSkuStats.get_by_sku(instance.sku_id)
+    ProductSkuStats.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
+    return close_timeout_carts_and_orders_reset_cart_num([instance.sku_id])
+
+
 @task()
 def task_schedule_cart():
     """
         定时清空购物车中已经超过预留时间和订单中未支付的。
+
     """
-    close_timeout_carts_and_orders()
+    close_timeout_carts_and_orders_reset_cart_num()
 
 BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"  # 访问第三方接口
 apikey = '47deda738666430bab15306c2878dd3a'

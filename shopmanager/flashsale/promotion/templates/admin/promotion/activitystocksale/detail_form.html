@@ -38,9 +38,11 @@
 {% if change %}{% if not is_popup %}
   <ul class="object-tools">
     {% block object-tools-items %}
-    <li>
-        <a href="/sale/promotion/promotion/stocksale/{{original.id}}/gen_activity_entry" class="historylink">生成排期</a>
-    </li>
+      {%if not original.activity%}
+        <li>
+            <button id="btn_gen_activity_entry">生成排期</button>
+        </li>
+      {%endif%}
     <li>
         <a href="/admin/promotion/activitystocksale/10/change" class="historylink">修改</a>
     </li>
@@ -209,14 +211,12 @@
                 $(this).addClass('selected');
             }
         } );
-
-
-
         function callback(res) {
             alert("设置成功");
             window.location.reload();
         };
         function failed(res){
+            alert("aaaaaaaaaaaaaaa")
             alert(res.info)
         }
         function get_selected_ids(){
@@ -279,6 +279,10 @@
             var url = "/sale/promotion/promotion/stocksale/update_stock_safe";
             var data = {"stock_safe": 1, 'ids': saleid};
             $.ajax({"url": url, "data": data, "type": "post", "success": callback, "error": failed});
+        });
+        // /sale/promotion/promotion/stocksale/{{original.id}}/gen_activity_entry
+        $('#btn_gen_activity_entry').click(function(e){
+            /sale/promotion/promotion/stocksale/{{original.id}}/gen_activity_entry
         });
     });
 </script>

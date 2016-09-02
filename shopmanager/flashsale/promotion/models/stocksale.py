@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import datetime
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import F, Sum, Q
 from django.db.models.signals import post_save
 from core.models import BaseModel, AdminModel
 from core.fields import JSONCharMyField
@@ -85,8 +85,8 @@ class ActivityStockSale(AdminModel):
         carry_plan = AgencyOrderRebetaScheme.objects.filter(name=carry_plan_name).first()
         if not carry_plan:
             raise Exception(u'佣金计划不存在')
-        if self.stock_sales.filter(status=1, stock_safe=0).exists():
-            raise Exception(u'一些商品尚未完成库存确认')
+        if self.stock_sales.filter(Q(status=0) | Q(stock_safe=0)).exists():
+            raise Exception(u'一些商品尚未完成确认')
         ae = ActivityEntry(
             act_type=ActivityEntry.ACT_TOPIC,
             title=u'最后疯抢',

@@ -129,10 +129,13 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
 
-def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, *args, **kwargs):
-    from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
-    task_shoppingcart_update_productskustats_shoppingcart_num.delay(instance.sku_id)
-
+def shoppingcart_update_productskustats_shoppingcart_num(sender, instance, created, **kwargs):
+    if created:
+        from flashsale.restpro.tasks import task_add_shoppingcart_num
+        task_add_shoppingcart_num.delay(instance)
+    else:
+        from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
+        task_shoppingcart_update_productskustats_shoppingcart_num.delay(instance.sku_id)
 
 post_save.connect(shoppingcart_update_productskustats_shoppingcart_num, sender=ShoppingCart,
                   dispatch_uid='post_save_shoppingcart_update_productskustats_shoppingcart_num')

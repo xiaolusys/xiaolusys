@@ -286,7 +286,7 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
     @staticmethod
     def update_or_create(mama_id, week_begin_time=None):
         mama = XiaoluMama.objects.get(id=mama_id)
-        if not mama.is_available() or mama.is_staff:
+        if not mama.is_available_rank() or mama.is_staff:
             return
         week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         if not WeekMamaCarryTotal.objects.filter(mama_id=mama_id, stat_time=week_begin_time).exists():

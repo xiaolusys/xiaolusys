@@ -71,15 +71,21 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
             last_renew_type=XiaoluMama.SCAN,
         )
     # 添加妈妈推荐关系
-    if not xiaolumm.last_renew_type and not xiaolumm.is_available() and referal_from_mama_obj:
+    if xiaolumm.is_chargeable():
+        potentailmama = PotentialMama.objects.filter(potential_mama=xiaolumm.id).first()
+        if potentailmama:
+            return xiaolumm
         protentialmama = PotentialMama(
             potential_mama=xiaolumm.id,
-            referal_mama=referal_from_mama_obj.id,
+            referal_mama=referal_from_mama_obj.id if referal_from_mama_obj else 0,
             nick=wx_userinfo['nickname'],
             thumbnail=wx_userinfo['headimgurl'],
             last_renew_type=XiaoluMama.SCAN,
             uni_key=PotentialMama.gen_uni_key(xiaolumm.id, referal_from_mama_obj.id))
         protentialmama.save()
+        #  修改该小鹿妈妈的接管状态
+        xiaolumm.chargemama()
+        xiaolumm.update_renew_day(XiaoluMama.SCAN)
 
     return xiaolumm
 

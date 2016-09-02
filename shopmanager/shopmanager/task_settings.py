@@ -180,6 +180,10 @@ DINGHUO_ROUTES = {
 }
 
 SKU_STATS_ROUTES = {
+    'flashsale.restpro.tasks.task_add_shoppingcart_num': {
+        'queue': 'skustats',
+        'routing_key': 'skustats.task_add_shoppingcart_num',
+    },
     'shopback.trades.tasks.task_packageskuitem_update_productskustats': {
         'queue': 'skustats',
         'routing_key': 'skustats.task_packageskuitem_update_productskustats',
