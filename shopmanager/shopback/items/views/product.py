@@ -427,7 +427,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
 
                 count = 1
                 for sku in skus:
-                    barcode = '%s%d' % (product_instance.outer_id, str(count))
+                    barcode = '%s%d' % (product_instance.outer_id, count)
                     ProductSku(outer_id=barcode,
                                product=product_instance,
                                remain_num=sku['remain_num'],
