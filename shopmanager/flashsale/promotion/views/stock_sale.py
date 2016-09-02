@@ -42,6 +42,8 @@ class StockSaleViewSet(viewsets.GenericViewSet):
                 activity.gen_activity_entry()
             except Exception, e:
                 raise exceptions.ValidationError(e.message)
+        else:
+            raise exceptions.ValidationError(u'已生成过活动和排期')
         return HttpResponseRedirect('/admin/promotion/activitystocksale/')
 
     @list_route(methods=['POST'])
