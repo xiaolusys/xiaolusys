@@ -541,6 +541,64 @@ class ModelProduct(BaseTagModel):
             return True
         return False
 
+    def update_lowest_price(self, lowest_agent_price, lowest_std_sale_price):
+        """ 更新最低价格 """
+        update_fields = []
+        if self.lowest_agent_price != lowest_agent_price:
+            self.lowest_agent_price = lowest_agent_price
+            update_fields.append('lowest_agent_price')
+        if self.lowest_std_sale_price != lowest_std_sale_price:
+            self.lowest_std_sale_price = lowest_std_sale_price
+            update_fields.append('lowest_std_sale_price')
+        if update_fields:
+            self.save(update_fields=update_fields)
+            return True
+        return False
+
+    def update_extras(self, extras):
+        """ 更新扩展字段 """
+        if self.extras != extras:
+            self.extras = extras
+            self.save(update_fields=['extras'])
+            return True
+        return False
+
+    def set_lowest_price(self):
+        """ 设置款式最低价格 """
+        prices = self.products.values('agent_price', 'std_purchase_price')
+        agent_prices = [i['agent_price'] for i in prices]
+        std_purchase_price = [i['std_purchase_price'] for i in prices]
+        lowest_agent_price = sorted(agent_prices, reverse=False)[0]  # 递增
+        lowest_std_sale_price = sorted(std_purchase_price, reverse=False)[0]  # 递增
+        self.update_lowest_price(lowest_agent_price, lowest_std_sale_price)
+
+    def set_choose_colors(self):
+        """ 更新可选颜色 """
+        names = self.products.values('name')
+        colors = [i['name'].split('/')[-1] for i in names if '/' in i['name']]
+        c = ','.join(colors)
+        extras = self.extras
+        extras.setdefault('properties', {})
+        properties = extras.get('properties')
+        if c.strip():
+            properties.update({'color': c.strip()})
+        self.update_extras(extras)
+
+    def set_is_flatten(self):
+        """
+        is_flatten: 平铺展示
+        判断： 没有ProductSku或者只有一个则is_fatten = True
+        设置： 款式以及款式下的产品is_flatten字段
+        """
+        from shopback.items.models import ProductSku
+        products = self.products()
+        flatten_count = ProductSku.objects.filter(product__in=products).count()
+        is_flatten = flatten_count in [0, 1]
+        products.update(is_flatten=is_flatten)
+        if self.is_flatten != is_flatten:
+            self.is_flatten = is_flatten
+            self.save(update_fields=['is_flatten'])
+
 
 def update_product_details_info(sender, instance, created, **kwargs):
     """

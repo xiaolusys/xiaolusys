@@ -3,6 +3,8 @@ from .models import Product, ProductSku, Item, ProductLocation
 from shopback.archives.models import DepositeDistrict
 from shopback.categorys.models import Category
 from shopback.users.models import User
+from flashsale.pay.models import ModelProduct
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,7 +19,7 @@ class ProductSkuSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductSku
         # fields =  ('cid','parent_cid' ,'is_parent' ,'name','status','sort_order')
-        #         fields = ('parent_cid' ,'is_parent' )
+        # fields = ('parent_cid' ,'is_parent' )
         exclude = ('created',)
 
 
@@ -30,7 +32,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         # fields =  ('cid','parent_cid' ,'is_parent' ,'name','status','sort_order')
-        #         fields = ('parent_cid' ,'is_parent' )
+        # fields = ('parent_cid' ,'is_parent' )
         exclude = ('created',)
 
 
@@ -45,10 +47,11 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
 class ProductLocationSerializer(serializers.ModelSerializer):
     district = serializers.CharField(source='district.district_no', read_only=True)
+
     class Meta:
         model = ProductLocation
         fields = ("product_id", "sku_id", "outer_id", "name", "outer_sku_id", "properties_name", "district")
-        #exclude = ('district',)
+        # exclude = ('district',)
 
 
 class DepositeDistrictSerializer(serializers.ModelSerializer):
@@ -69,3 +72,62 @@ class ItemSerializer(serializers.ModelSerializer):
         model = Item
         # fields=("district_no","parent_no","location","in_use","extra_inf")
         exclude = ('desc',)
+
+
+class ModelProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelProduct
+
+
+class ModelProductUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelProduct
+        fields = (
+            'id',
+            'name',
+            'head_imgs',
+            'salecategory',
+            'saleproduct',
+            'extras',
+            'is_teambuy',
+            'teambuy_price',
+            'teambuy_person_num',
+            'status'
+        )
+
+
+class ProductUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = (
+            'id',
+            'name',
+            'outer_id',
+            'model_id',
+            'sale_charger',
+            'category',
+            'remain_num',
+            'cost',
+            'agent_price',
+            'std_sale_price',
+            'ware_by',
+            'pic_path',
+            'sale_product',
+        )
+
+
+class ProductSkuUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductSku
+        fields = (
+            'id',
+            'outer_id',
+            'product',
+            'remain_num',
+            'cost',
+            'std_sale_price',
+            'agent_price',
+            'properties_name',
+            'properties_alias',
+            'barcode'
+        )

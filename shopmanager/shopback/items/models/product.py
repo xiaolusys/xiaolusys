@@ -646,6 +646,31 @@ class Product(models.Model):
             self.save(update_fields=update_fields)
             return True
 
+    def set_remain_num(self):
+        """ 设置预留数:sku 预留数的总和 """
+        remain_nums = self.normal_skus.values('remain_num')
+        total_remain_num = sum([i['remain_num'] for i in remain_nums])
+        if self.remain_num != total_remain_num:
+            self.remain_num = total_remain_num
+            self.save(update_fields=['remain_num'])
+            return True
+        return False
+
+    def set_price(self):
+        """ 设置: 成本 吊牌价 售价 """
+        prices = self.normal_skus.values('cost', 'std_sale_price', 'agent_price')
+        count = len(prices)
+        if count <= 0:
+            self.cost = 0
+            self.std_sale_price = 0
+            self.agent_price = 0
+            self.save(update_fields=['cost', 'std_sale_price', 'agent_price'])
+            return
+        self.cost = round(sum([i['cost'] for i in prices]) / count, 2)
+        self.std_sale_price = round(sum([i['std_sale_price'] for i in prices]) / count, 2)
+        self.agent_price = round(sum([i['agent_price'] for i in prices]) / count, 2)
+        self.save(update_fields=['cost', 'std_sale_price', 'agent_price'])
+
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):
     """ 当作废产品的时候　检查　同款是否 全部  作废　如果是　则　将对应供应商的选款数量减去１
