@@ -115,7 +115,12 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
             if xlmm:
                 mama_id = xlmm.id
                 ua = request.META.get('HTTP_USER_AGENT', 'unknown')
-                task_mama_daily_app_visit_stats.delay(mama_id,ua)
+                task_mama_daily_app_visit_stats.delay(mama_id, ua)
+                logger.info({
+                    'action': 'xlmm_open_app_home',
+                    'mama_id': mama_id,
+                    'user_agent': ua
+                })
 
         fortunes = self.queryset.filter(mama_id=mama_id)
         # fortunes = self.paginate_queryset(fortunes)
