@@ -440,6 +440,11 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
             self.member_ids = WeekMamaTeamCarryTotal.get_member_ids(mama, WeekRank.this_week_time())
             self.save()
 
+    def reset_mama_ids(self):
+        mmids = WeekMamaTeamCarryTotal.get_member_ids(self.mama, self.stat_time)
+        if self.member_ids != mmids:
+            self.member_ids = mmids
+        self.save()
 
 def update_week_team_mama_carry_total_cache(sender, instance, created, **kwargs):
     WEEK_RANK_REDIS.update_cache(instance, ['duration_total'])
