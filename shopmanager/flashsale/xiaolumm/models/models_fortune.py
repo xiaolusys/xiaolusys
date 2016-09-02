@@ -1124,8 +1124,9 @@ class MamaDailyAppVisit(BaseModel):
     DEVICE_UNKNOWN = 0
     DEVICE_ANDROID = 1
     DEVICE_IOS = 2
+    DEVICE_MOZILLA = 3
 
-    DEVICE_TYPES = ((DEVICE_UNKNOWN, 'Unknown'), (DEVICE_ANDROID, 'Android'), (DEVICE_IOS, 'IOS'))
+    DEVICE_TYPES = ((DEVICE_UNKNOWN, 'Unknown'), (DEVICE_ANDROID, 'Android'), (DEVICE_IOS, 'IOS'), (DEVICE_MOZILLA, '浏览器'))
 
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # mama_id+date
@@ -1144,7 +1145,7 @@ class MamaDailyAppVisit(BaseModel):
 
     @staticmethod
     def gen_uni_key(mama_id, date_field):
-        return '%s-%s' % (mama_id, date_field)
+        return '%s-%s-%s' % (mama_id, date_field, device_type)
     
     def get_user_version(self):
         from flashsale.apprelease.models import AppRelease

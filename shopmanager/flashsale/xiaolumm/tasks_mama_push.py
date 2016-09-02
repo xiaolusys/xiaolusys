@@ -84,16 +84,20 @@ def task_weixin_push_ordercarry(ordercarry):
 
 @task
 def task_weixin_push_update_app(app_visit):
-
-    user_version = app_visit.get_user_version()
-    latest_version = app_visit.get_latest_version()
     device_type = app_visit.device_type
     device = ''
 
-    if device_type == app_visit.DEVICE_ANDROID:
+    if device_type == app_visit.DEVICE_MOZILLA:
+        # dont send push message if user visit via browser
+        return
+    elif device_type == app_visit.DEVICE_ANDROID:
         device = 'Android'
-    if device_type == app_visit.DEVICE_IOS:
+    elif device_type == app_visit.DEVICE_IOS:
         device = 'IOS'
+
+    
+    user_version = app_visit.get_user_version()
+    latest_version = app_visit.get_latest_version()
 
     if user_version == latest_version:
         # already latest, no need to push udpate reminder
