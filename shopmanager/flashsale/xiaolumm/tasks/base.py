@@ -834,53 +834,21 @@ def task_unitary_mama(obj):
     order = obj.sale_orders.all().first()
     if not order.is_1_deposit():  # 不是一元开店不做处理
         return
-    order_customer = obj.order_buyer
-    xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
+    customer = obj.order_buyer
+    xlmm = customer.get_xiaolumm()
     if not xlmm:  # 代理
         return
     renew_state = xlmm.charge_status == XiaoluMama.CHARGED
-    flag = 0
-    if xlmm.charge_status == XiaoluMama.UNCHARGE:  # 如果是没有接管的可以试用
-        flag = 1
-    if xlmm.charge_status == XiaoluMama.CHARGED and xlmm.status == XiaoluMama.FROZEN and xlmm.last_renew_type == XiaoluMama.TRIAL:
-        flag = 1
-    if flag != 1:
+    if not xlmm.is_trialable():  # 不可试用
         return
-    update_fields = []
-    now = datetime.datetime.now()
-    if xlmm.progress != XiaoluMama.PAY:
-        update_fields.append('progress')
-        xlmm.progress = XiaoluMama.PAY
-    if xlmm.charge_status != XiaoluMama.CHARGED:
-        update_fields.append('charge_status')
-        xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
-    if not xlmm.charge_time:  # 如果没有接管时间　则赋值现在时间
-        update_fields.append("charge_time")
-        xlmm.charge_time = now  # 接管时间
-    if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类
-        update_fields.append("agencylevel")
-        xlmm.agencylevel = XiaoluMama.A_LEVEL
+    mama_charged = xlmm.chargemama()
+    xlmm.update_renew_day(XiaoluMama.TRIAL)   # 更新 status  last_renew_type renew_time
 
-    renew_time = now + datetime.timedelta(days=15)
-    if isinstance(xlmm.renew_time, datetime.datetime):
-        renew_time = max(renew_time, xlmm.renew_time + datetime.timedelta(days=15))
-    update_fields.append("renew_time")
-    xlmm.renew_time = renew_time
-
-    if xlmm.status != XiaoluMama.EFFECT and xlmm.status == XiaoluMama.FROZEN:
-        xlmm.status = XiaoluMama.EFFECT
-        update_fields.append("status")
-
-    if xlmm.last_renew_type != XiaoluMama.TRIAL:  # 更新 续费类型为试用
-        update_fields.append("last_renew_type")
-        xlmm.last_renew_type = XiaoluMama.TRIAL
-    if update_fields:
-        xlmm.save(update_fields=update_fields)
+    if mama_charged:
         sys_oa = get_systemoa_user()
         log_action(sys_oa, xlmm, CHANGE, u'一元开店成功')
 
     protentialmama = PotentialMama.objects.filter(potential_mama=xlmm.id).first()
-    customer = xlmm.get_mama_customer()
     mm_linkid = XiaoluMama.get_referal_mama_id(customer=customer, extras_info=obj.extras_info)
     nick = customer.nick if customer else ''
     thumbnail = customer.thumbnail if customer else ""
@@ -945,49 +913,25 @@ def task_register_mama(obj):
     order = obj.sale_orders.all().first()
     if not (order.is_99_deposit() or order.is_188_deposit()):  # 非代理注册　订单不处理
         return
-    order_customer = obj.order_buyer
-    xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
+    customer = obj.order_buyer
+    xlmm = customer.get_xiaolumm()
     if not xlmm:  # 代理
         return
-    if xlmm.charge_status == XiaoluMama.CHARGED and \
-                    xlmm.last_renew_type in (XiaoluMama.HALF, XiaoluMama.FULL):  # 如果是接管的正式代理则不处理
+    if not xlmm.is_direct_pay():
         return
 
     renew_state = xlmm.last_renew_type == XiaoluMama.TRIAL
     if order.is_99_deposit():
         renew_days = XiaoluMama.HALF
-
     if order.is_188_deposit():
         renew_days = XiaoluMama.FULL
 
-    update_fields = []
-    now = datetime.datetime.now()
-    if xlmm.progress != XiaoluMama.PAY:
-        update_fields.append('progress')
-        xlmm.progress = XiaoluMama.PAY
-    if xlmm.charge_status != XiaoluMama.CHARGED:
-        update_fields.append('charge_status')
-        xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
-    if not xlmm.charge_time:  # 如果没有接管时间　则赋值现在时间
-        update_fields.append("charge_time")
-        xlmm.charge_time = now  # 接管时间
-    if xlmm.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类
-        update_fields.append("agencylevel")
-        xlmm.agencylevel = XiaoluMama.A_LEVEL
-
     xlmm.update_renew_day(renew_days)   # 更新 status  last_renew_type renew_time
+    mama_charged = xlmm.chargemama(last_renew_type=renew_days)
 
-    customer = xlmm.get_mama_customer()
-    mm_linkid = XiaoluMama.get_referal_mama_id(customer=customer, extras_info=obj.extras_info)
-    referal_mm = XiaoluMama.objects.filter(id=mm_linkid).first()
-    if referal_mm:
-        if not xlmm.referal_from:  # 如果没有填写推荐人　更新推荐人
-            update_fields.append("referal_from")
-            xlmm.referal_from = referal_mm.mobile
-    if update_fields:
-        xlmm.save(update_fields=update_fields)
+    if mama_charged:
         sys_oa = get_systemoa_user()
-        log_action(sys_oa, xlmm, CHANGE, u'代理注册成功')
+        log_action(sys_oa, xlmm, CHANGE, u'代理接管成功')
     # 更新订单到交易成功
     order.status = SaleTrade.TRADE_FINISHED
     order.save(update_fields=['status'])
@@ -1041,9 +985,7 @@ def task_renew_mama(obj):
     xlmm = XiaoluMama.objects.filter(openid=order_customer.unionid).first()
     if not xlmm:  # 代理
         return
-    if xlmm.charge_status != XiaoluMama.CHARGED:  # 如果不是接管的不处理
-        return
-    if xlmm.last_renew_type == XiaoluMama.TRIAL:  # 试用代理不予续费服务
+    if not xlmm.is_renewable():
         return
     if xlmm.last_renew_type == XiaoluMama.HALF:  # 如果当前的妈妈已经是9半年元的代理则将会成为全年的代理
         # 补发优惠券
