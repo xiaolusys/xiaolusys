@@ -722,11 +722,7 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
 
     def can_trial_judgement(self, obj):
         """ 判断是否可以试用 """
-        if obj.charge_status == XiaoluMama.UNCHARGE:
-            return True
-        if obj.charge_status == XiaoluMama.CHARGED and obj.status == XiaoluMama.FROZEN and obj.last_renew_type == XiaoluMama.TRIAL:
-            return True
-        return False
+        return obj.is_trialable()
 
 
 class RelationShipInfoSerialize(serializers.ModelSerializer):

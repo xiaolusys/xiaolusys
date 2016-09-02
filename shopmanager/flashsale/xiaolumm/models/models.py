@@ -441,9 +441,54 @@ class XiaoluMama(models.Model):
             return self.get_Mama_Deposite()
         return self.get_Mama_Deposite_Amount()
 
-    def is_available(self):
+    def is_available_rank(self):
         return self.charge_status == self.CHARGED and self.status in [XiaoluMama.EFFECT, XiaoluMama.FROZEN] \
                and self.progress in [XiaoluMama.PAY, XiaoluMama.PASS]
+
+    def is_chargeable(self):
+        return self.charge_status != self.CHARGED
+
+    def chargemama(self):
+        """ 接管妈妈 """
+        update_fields = []
+        self.charge_time = datetime.datetime.now()  # 接管时间
+        update_fields.append("charge_time")
+        if self.progress != XiaoluMama.PAY:
+            update_fields.append('progress')
+            self.progress = XiaoluMama.PAY
+        if self.charge_status != XiaoluMama.CHARGED:
+            update_fields.append('charge_status')
+            self.charge_status = XiaoluMama.CHARGED  # 接管状态
+        if self.agencylevel < XiaoluMama.VIP_LEVEL:  # 如果代理等级是普通类型更新代理等级到A类
+            update_fields.append("agencylevel")
+            self.agencylevel = XiaoluMama.A_LEVEL
+        if update_fields:
+            self.save(update_fields=update_fields)
+            return True
+        return False
+
+    def is_direct_pay(self):
+        """ 直接付费接管的状态 """
+        if self.charge_status == XiaoluMama.CHARGED and self.last_renew_type in (XiaoluMama.HALF, XiaoluMama.FULL):
+            return False
+        return True
+
+    def is_trialable(self):
+        """ 是否　可以　试用　"""
+        if self.charge_status == XiaoluMama.UNCHARGE:  # 如果是没有接管的可以试用
+            return True
+        elif self.charge_status == XiaoluMama.CHARGED and self.status == XiaoluMama.FROZEN and \
+                self.last_renew_type in [XiaoluMama.TRIAL, XiaoluMama.SCAN]:
+            return True
+        return False
+
+    def is_renewable(self):
+        """　是否可以续费 """
+        if self.charge_status != XiaoluMama.CHARGED:
+            return False
+        if self.last_renew_type in [XiaoluMama.TRIAL, XiaoluMama.SCAN]:
+            return False
+        return True
 
     def is_cashoutable(self):
         if self.agencylevel >= self.VIP_LEVEL and \
@@ -721,7 +766,7 @@ class XiaoluMama(models.Model):
         """
         修改该代理的下次续费时间
         """
-        if days not in [XiaoluMama.HALF, XiaoluMama.FULL]:
+        if days not in [XiaoluMama.TRIAL, XiaoluMama.HALF, XiaoluMama.FULL]:
             raise AssertionError(u'续费天数异常')
         now = datetime.datetime.now()
         update_fields = ['renew_time']
