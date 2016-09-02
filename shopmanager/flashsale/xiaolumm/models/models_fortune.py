@@ -1143,7 +1143,7 @@ class MamaDailyAppVisit(BaseModel):
         verbose_name_plural = u'V2/妈妈app访问列表'
 
     @staticmethod
-    def gen_uni_key(mama_id, date_field):
+    def gen_uni_key(mama_id, date_field, device_type):
         return '%s-%s-%s' % (mama_id, date_field, device_type)
     
     def get_user_version(self):
