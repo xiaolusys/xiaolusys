@@ -48,7 +48,9 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_MUYING):
             return redirect(reverse('items_v1:modelproduct-muying') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
-        elif firstgrade_cat and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
+        elif firstgrade_cat \
+            and not saleproduct.sale_category.cid.startswith(constants.CATEGORY_ACCESSOR) \
+            and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
                                                                     constants.CATEGORY_WEMON,
                                                                     constants.CATEGORY_ACCESSORY)):
             return redirect('/static/add_item.html?supplier_id=%s&saleproduct=%s' % (supplier_id, saleproduct_id))
