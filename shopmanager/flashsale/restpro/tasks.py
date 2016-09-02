@@ -148,7 +148,7 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
 @task()
 def task_add_shoppingcart_num(instance):
     stat = ProductSkuStats.get_by_sku(instance.sku_id)
-    stat.update(shoppingcart_num=F('shoppingcart_num')+instance.num)
+    ProductSkuStats.objects.filter(sku_id=stat.sku_id).update(shoppingcart_num=F('shoppingcart_num')+instance.num)
     return close_timeout_carts_and_orders_reset_cart_num([instance.sku_id])
 
 
