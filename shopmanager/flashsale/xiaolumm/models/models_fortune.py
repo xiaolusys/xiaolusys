@@ -540,8 +540,7 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
             # 看潜在关系列表
             from flashsale.xiaolumm.models import PotentialMama
             try:
-                potential = PotentialMama.objects.filter(potential_mama=instance.mama_id,
-                                                         is_full_member=False).latest('created')
+                potential = PotentialMama.objects.filter(potential_mama=instance.mama_id).latest('created')
             except PotentialMama.DoesNotExist:
                 return
             tasks_mama.task_update_second_level_ordercarry_by_trial.delay(potential, instance)
