@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 __author__ = 'meixqhi'
 from django.db import models
 
@@ -80,3 +80,29 @@ class Reason(models.Model):
         app_label = 'monitor'
         verbose_name = u'订单问题'
         verbose_name_plural = u'订单问题列表'
+
+
+from core.models import BaseModel
+
+class XiaoluSwitch(BaseModel):
+    STATUS_TYPES = ((0, u'取消'), (1, u'生效'))
+    
+    start_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'生效时间')
+    end_time = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'结束时间')
+    responsible = models.CharField(max_length=32, db_index=True, verbose_name=u'负责人')
+    title = models.CharField(max_length=64, db_index=True, verbose_name=u'标题')
+    description = models.TextField(verbose_name=u'描述')
+    status = models.IntegerField(default=0, choices=STATUS_TYPES, db_index=True, verbose_name=u'访问次数')
+
+    class Meta:
+        db_table = 'xiaolu_switch'
+        app_label = 'monitor'
+        verbose_name = u'开关器'
+        verbose_name_plural = u'开关器列表'
+
+    @classmethod
+    def get_switch_status(cls, id):
+        switch = cls.objects.get(id=id)
+        return switch.status
+        
+        

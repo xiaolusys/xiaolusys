@@ -798,7 +798,6 @@ class MamaAdministratorViewSet(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        from games.weixingroup.models import XiaoluAdministrator
         from flashsale.xiaolumm.models.mama_administrator import MamaAdministrator
 
         customer = Customer.getCustomerByUser(user=request.user)
@@ -820,18 +819,7 @@ class MamaAdministratorViewSet(APIView):
             referal_mama_nick = ''
             referal_mama_avatar = ''
 
-        item = MamaAdministrator.objects.filter(mama_id=mama.id).first()
-        if item:
-            administrator = item.administrator
-        else:
-            administrators = XiaoluAdministrator.objects.filter(id__gte=11,id__lte=17)
-            num = mama.id % administrators.count()
-            administrator = administrators[num]
-
-            ma = MamaAdministrator()
-            ma.administrator = administrator
-            ma.mama = mama
-            ma.save()
+        administrator = MamaAdministrator.get_or_create_by_mama(mama)
 
         return Response({
             'mama_id': mama.id,

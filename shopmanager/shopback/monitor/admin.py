@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.monitor.models import DayMonitorStatus, TradeExtraInfo, SystemConfig, Reason
+from shopback.monitor.models import DayMonitorStatus, TradeExtraInfo, SystemConfig, Reason, XiaoluSwitch
 
 
 class SystemConfigAdmin(admin.ModelAdmin):
@@ -48,3 +48,12 @@ class ReasonAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Reason, ReasonAdmin)
+
+
+class XiaoluSwitchAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'start_time', 'end_time', 'description', 'responsible', 'status', 'modified', 'created')
+    search_fields = ('title', 'description', 'responsible')
+    list_filter = ('status', )
+
+admin.site.register(XiaoluSwitch, XiaoluSwitchAdmin)
+
