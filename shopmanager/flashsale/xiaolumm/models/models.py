@@ -766,7 +766,8 @@ class XiaoluMama(models.Model):
         """
         修改该代理的下次续费时间
         """
-        if days not in [XiaoluMama.TRIAL, XiaoluMama.HALF, XiaoluMama.FULL]:
+        if days not in [XiaoluMama.SCAN, XiaoluMama.TRIAL, XiaoluMama.HALF,
+                        XiaoluMama.FULL]:
             raise AssertionError(u'续费天数异常')
         now = datetime.datetime.now()
         update_fields = ['renew_time']

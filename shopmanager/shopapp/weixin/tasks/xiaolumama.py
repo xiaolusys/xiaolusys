@@ -85,6 +85,7 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
         protentialmama.save()
         #  修改该小鹿妈妈的接管状态
         xiaolumm.chargemama()
+        xiaolumm.update_renew_day(XiaoluMama.SCAN)
 
     return xiaolumm
 
