@@ -16,7 +16,7 @@ def task_shoppingcart_update_productskustats_shoppingcart_num(sku_id):
     from shopback.items.models import ProductSku, ProductSkuStats
     try:
         product_id = ProductSku.objects.get(id=sku_id).product.id
-        shoppingcart_num_res = ShoppingCart.objects.filter(item_id=product_id,sku_id=sku_id,status=ShoppingCart.NORMAL, type=0).aggregate(
+        shoppingcart_num_res = ShoppingCart.objects.filter(item_id=product_id,sku_id=sku_id,status=ShoppingCart.NORMAL).aggregate(
             Sum('num'))
         total = shoppingcart_num_res['num__sum'] or 0
         stat = ProductSkuStats.get_by_sku(sku_id)
