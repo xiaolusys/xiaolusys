@@ -413,10 +413,6 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
     if mama:
         renew_type = mama.last_renew_type
     
-    date_field = datetime.date.today()
-    uni_key = MamaDailyAppVisit.gen_uni_key(mama_id, date_field)
-    #uni_key = '%s-%s' % (mama_id, date_field)
-
     device_type = MamaDailyAppVisit.DEVICE_UNKNOWN
     ua = user_agent.lower()
     version = ""
@@ -428,6 +424,10 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
     elif ua.find('ios') >= 0:
         device_type = MamaDailyAppVisit.DEVICE_IOS
         version = get_app_version_from_user_agent('xlmm',ua)
+
+    date_field = datetime.date.today()
+    uni_key = MamaDailyAppVisit.gen_uni_key(mama_id, date_field, device_type)
+    #uni_key = '%s-%s' % (mama_id, date_field)
 
     md = MamaDailyAppVisit.objects.filter(uni_key=uni_key).first()
     if not md:
