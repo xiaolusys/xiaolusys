@@ -100,7 +100,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         """列出购物车中所有的状态为正常的数据"""
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        try:
+            type = int(request.GET.get('type', 0))
+        except:
+            type = 0
+        queryset = self.filter_queryset(self.get_owner_queryset(request).filter(type=type))
         serializers = self.get_serializer(queryset, many=True)
         return Response(serializers.data)
 
@@ -130,22 +134,28 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
                                                  status=ShoppingCart.CANCEL, buyer_id=customer.id)
             s_temp.delete()
-
+        type = data.get("type", 0)
+        try:
+            type = int(type)
+        except:
+            return Response({"code": 1, "info": u"参数错误"})
+        if type not in dict(ShoppingCart.TYPE_CHOICES):
+            return Response({"code": 1, "info": u"参数错误"})
         sku_num = int(sku_num)
         sku = ProductSku.objects.filter(id=sku_id).first()
         # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, sku_num)
         if not lockable:
             return Response({"code": 4, "info": u'该商品已限购'})
-
-        shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=customer.id,
-                                                sku_id=sku_id, status=ShoppingCart.NORMAL).first()
-        if shop_cart:
-            # shop_cart_temp = shop_cart
-            # shop_cart_temp.num = sku_num
-            # shop_cart_temp.total_fee = sku_num * decimal.Decimal(sku.agent_price)
-            # shop_cart_temp.save()
-            return Response({"code": 6, "info": u"该商品已加入购物车"})  # 购物车已经有了
+        if type == 0:
+            shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=customer.id,
+                                                    sku_id=sku_id, status=ShoppingCart.NORMAL, type=0).first()
+            if shop_cart:
+                # shop_cart_temp = shop_cart
+                # shop_cart_temp.num = sku_num
+                # shop_cart_temp.total_fee = sku_num * decimal.Decimal(sku.agent_price)
+                # shop_cart_temp.save()
+                return Response({"code": 6, "info": u"该商品已加入购物车"})  # 购物车已经有了
 
         if not Product.objects.lockQuantity(sku, sku_num):
             return Response({"code": 5, "info": u'商品库存不足'})
@@ -153,9 +163,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         new_shop_cart = ShoppingCart()
         new_shop_cart.buyer_id = customer.id
         new_shop_cart.item_id = product_id
-        new_shop_cart.sku_id  = sku_id
+        new_shop_cart.sku_id = sku_id
         new_shop_cart.buyer_nick = customer.nick
-        new_shop_cart.price = sku.agent_price
+        new_shop_cart.type = type
+        if type == ShoppingCart.TEAMBUY:
+            new_shop_cart.price = sku.product.get_product_model().teambuy_price
+        else:
+            new_shop_cart.price = sku.agent_price
         new_shop_cart.num = sku_num
         new_shop_cart.std_sale_price = sku.std_sale_price
         new_shop_cart.total_fee = sku.agent_price * int(sku_num) if sku.agent_price else 0
@@ -169,7 +183,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             cart.save(update_fields=['remain_time'])
         return Response({"code": 0, "info": u"添加成功"})  # 购物车没有
 
-
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -181,7 +194,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def show_carts_num(self, request, *args, **kwargs):
         """显示购物车的数量和保留时间"""
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        queryset = self.filter_queryset(self.get_owner_queryset(request).filter(type=0))
         queryset = queryset.order_by('-created')
         count = 0
         last_created = 0
@@ -198,7 +211,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         queryset = ShoppingCart.objects.filter(buyer_id=customer.id,
                                                status=ShoppingCart.CANCEL,
-                                               modified__gt=before).order_by('-modified')
+                                               modified__gt=before, type=0).order_by('-modified')
         serializers = self.get_serializer(queryset, many=True)
         return Response(serializers.data)
 
@@ -261,7 +274,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, sku_num)
         if not lockable:
-            return Response({"code": 2 ,"info": u'商品数量限购'})
+            return Response({"code": 2,"info": u'商品数量限购'})
         if sku.free_num < sku_num:
             return Response({"code": 3, "info": u'库存不足'})
         return Response({"code": 0, 'info':u'库存剩下不多了', "sku_id": sku_id, "sku_num": sku_num})

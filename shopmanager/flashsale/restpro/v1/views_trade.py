@@ -133,7 +133,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         if product_id and buyer_id and sku_id:
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id,
-                                                    status=ShoppingCart.NORMAL)
+                                                    status=ShoppingCart.NORMAL, type=0)
             if shop_cart.count() > 0:
                 shop_cart_temp = shop_cart[0]
                 shop_cart_temp.num += int(sku_num) if sku_num else 0
@@ -190,7 +190,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         before = datetime.datetime.now() - datetime.timedelta(hours=28)
         customer = get_object_or_404(Customer, user=request.user)
         queryset = ShoppingCart.objects.filter(buyer_id=customer.id, status=ShoppingCart.CANCEL,
-                                               modified__gt=before).order_by('-modified')
+                                               modified__gt=before, type=0).order_by('-modified')
         data = []
         sku_list = []  # 保存sku的id来去重
         for a in queryset:
@@ -693,6 +693,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         order_no = sale_trade.tid
         buyer_openid = sale_trade.openid
         channel = sale_trade.channel
+
         order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
         payback_url = urlparse.urljoin(settings.M_SITE_URL, order_success_url)
         cancel_url = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)

@@ -479,7 +479,8 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display', 'order_pic',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
                   'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city', 'red_packer_num',
-                  'receiver_district', 'receiver_address', 'receiver_mobile', 'receiver_phone')
+                  'receiver_district', 'receiver_address', 'receiver_mobile', 'receiver_phone', 'order_type',
+                  'can_refund')
 
     def order_share_red_packer_num(self, obj):
         share = OrderShareCoupon.objects.filter(uniq_id=obj.tid).first()
