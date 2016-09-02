@@ -1,1 +1,1 @@
-from .product import ProductManageViewSet
+from .product import ProductManageViewSet, ProductManageV2ViewSet

@@ -701,7 +701,7 @@ class PreferencePoolViewSet(viewsets.ModelViewSet):
     ### 资料参数池 API接口：
     - [/apis/chain/v1/preferencepool](/apis/chain/v1/preferencepool) 参数池列表:
         * method: get
-    - [/apis/chain/v1/preferencepool?config_category=63](/apis/chain/v1/preferencepool?config_category=63) 指定配置过的参数列表:
+    - [/apis/chain/v1/preferencepool?configed_category=63](/apis/chain/v1/preferencepool?configed_category=63) 指定配置过的参数列表:
         * method: get
     """
     queryset = PreferencePool.objects.all()
@@ -719,9 +719,5 @@ class PreferencePoolViewSet(viewsets.ModelViewSet):
         if configed_category:
             cfg_cat = CategoryPreference.objects.filter(category__id=configed_category, is_default=True).first()
             queryset = queryset.filter(id__in=cfg_cat.preferences) if cfg_cat else queryset
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

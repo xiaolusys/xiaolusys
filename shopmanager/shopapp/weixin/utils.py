@@ -64,7 +64,8 @@ def fetch_wxpub_mama_custom_qrcode_media_id(xiaolumama, wxpubId):
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache miss: %s' % xiaolumama)
         thumbnail = xiaolumama.thumbnail or DEFAULT_MAMA_THUMBNAIL
         message1 = u'%s\n邀请你加入小鹿妈妈\n做个时尚健康美丽的女人'%xiaolumama.nick
-        message2 = u'长按图片, 识别图中二维码\n有效期截止日期: %s'%datetime.datetime.now().strftime('%Y-%m-%d')
+        message2 = u'长按图片, 识别图中二维码\n有效期截止日期: %s'%\
+                   (datetime.datetime.now()+datetime.timedelta(days=30)).strftime('%Y-%m-%d')
         media_url = gen_mama_custom_qrcode_url(xiaolumama.id, thumbnail, message1, message2)
 
         media_body = urllib2.urlopen(media_url).read()
