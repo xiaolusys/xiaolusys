@@ -280,6 +280,30 @@ class ProductManageViewSet(viewsets.ModelViewSet):
 
 
 class ProductManageV2ViewSet(viewsets.ModelViewSet):
+    """
+    ### 款式及产品接口
+    - [/apis/items/v2/product](/apis/items/v2/product)
+        * method: POST  新增款式
+            1. args:
+               `name` : 款式名称   例如： "这是件羊毛衫"
+               `head_imgs` : 款式头图  例如： "https://cbu01.alicdn.com/img/ibank/2016/741/035/2956530147_1742364862.400x400.jpg"
+               `saleproduct_id` : 选品id 例如： 537161
+               `material` : 材质   例如： "羊毛"
+               `note` :  备注  例如："一件卖"
+               `wash_instroduce` : 洗涤说明    例如： "洗涤说明哦"
+               `is_teambuy` : 是否团购 例如： true
+               `teambuy_price` : 团购价格  例如： 23.3
+               `teambuy_person_num` : 团购人数 默认为3
+               `status` : 使用状态 (正常: "normal" /作废: "delete")
+        * method: GET 款式列表
+    - [/apis/items/v2/product/**model_id**/create_model_product](/apis/items/v2/product/11872/create_model_product)
+        * method: POST  给款式添加sku产品
+            1. args:
+                `cid`: 产品所属类别cid
+
+
+
+    """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers.ModelProductSerializer
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
@@ -354,15 +378,13 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             extras = model_product.extras
         extras.setdefault('properties', {})
         properties = extras.get('properties')
-        material = content.get("material") or ''  # 材质
-        note = content.get('note') or ''  # 备注
-        wash_instroduce = content.get('wash_instroduce') or ''  # 洗涤说明
-        if material.strip():
-            properties.update({'material': material})
-        if note.strip():
-            properties.update({'note': note})
-        if wash_instroduce.strip():
-            properties.update({'wash_instroduce': wash_instroduce})
+        model_properties = content.get('properties') or None
+        if isinstance(model_properties, list):
+            model_properties_d = dict([(tt['name'], tt['value']) for tt in model_properties])
+            old_properties_d = dict([(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
+            old_properties_d.update(model_properties_d)
+            properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
+        extras.update({'properties': properties})
         return extras
 
     def create(self, request, *args, **kwargs):
@@ -375,7 +397,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         extras = self.get_request_extras(request)
         request.data.update({'extras': extras})
         request.data.update({'saleproduct': saleproduct.id})
-        request.data.update({'salecategory_id': saleproduct.sale_category.id})
+        request.data.update({'salecategory': saleproduct.sale_category.id})
 
         serializer = serializers.ModelProductUpdateSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
