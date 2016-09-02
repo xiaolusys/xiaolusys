@@ -792,7 +792,7 @@ class MamaDeviceStatsAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'total_visitor',
         'renew_type', 'num_visits', 'modified', 'created')
-    list_filter = ('device_type', 'renew_type')
+    list_filter = ('device_type', 'renew_type', ('created', DateFieldListFilter))
     search_fields = ('device_type', 'date_field')
 
 

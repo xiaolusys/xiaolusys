@@ -420,7 +420,9 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
     device_type = MamaDailyAppVisit.DEVICE_UNKNOWN
     ua = user_agent.lower()
     version = ""
-    if ua.find('android') >= 0:
+    if ua[:7].lower() == 'mozilla':
+        device_type = MamaDailyAppVisit.DEVICE_MOZILLA
+    elif ua.find('android') >= 0:
         device_type = MamaDailyAppVisit.DEVICE_ANDROID
         version = get_app_version_from_user_agent('xlmmapp',ua)
     elif ua.find('ios') >= 0:
