@@ -111,10 +111,12 @@
                     <label for="fashion">流行元素:</label>
                     <input type="text" class="form-control" id="fashion" name="property.fashion"  placeholder="...">
                 </div>
+                {% if saleproduct.sale_category.id == 85 %}
                 <div class="form-group col-xs-6">
                     <label for="shoulder">肩带样式:</label>
                     <input type="text" class="form-control" id="shoulder" name="property.shoulder"  placeholder="...">
                 </div>
+                {% endif %}
             </div>
         </div>
         <div class="panel-body panel-select">
