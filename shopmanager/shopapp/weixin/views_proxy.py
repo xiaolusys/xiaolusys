@@ -57,9 +57,9 @@ class WXMessageHttpProxy(HttpProxy):
 
         openid = params.get('FromUserName')
         wx_pubid = params.get('ToUserName')
-        event    = params.get('Event', '')
-        msgtype  = params.get('MsgType', '')
-        eventKey = params.get('EventKey', '')
+        event    = params.get('Event') or ''
+        msgtype  = params.get('MsgType') or ''
+        eventKey = params.get('EventKey') or ''
         # 处理关注／取关事件
         if event in ('subscribe', 'unsubscribe'):
             tasks.task_subscribe_or_unsubscribe_update_userinfo.delay(openid, wx_pubid, event, eventKey)
