@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, PotentialMama
 from ..weixin_apis import WeiXinAPI
-from ..models import WeixinUnionID, WeixinUserInfo, WeixinFans
+from ..models import WeixinUnionID, WeixinUserInfo, WeixinFans, WeiXinAutoResponse
 from ..utils import fetch_wxpub_mama_custom_qrcode_media_id, fetch_wxpub_mama_manager_qrcode_media_id
 
 import logging
@@ -119,6 +119,14 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
 
         wx_api = WeiXinAPI()
         wx_api.setAccountId(wxpubId=wxpubId)
+        if not media_id:
+            wx_api.send_custom_message({
+                "touser": openid,
+                'MsgType': WeiXinAutoResponse.WX_TEXT,
+                'Content': u'[委屈]二维码生成出错了， 请稍后重试或联系客服，谢谢！'
+            })
+            return
+
         # 调用客服回复接口返回二维码图片消息
         wx_api.send_custom_message({
             "touser": openid,

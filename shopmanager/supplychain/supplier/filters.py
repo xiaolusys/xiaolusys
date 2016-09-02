@@ -146,7 +146,10 @@ class CategoryFilter(SimpleListFilter):
         cat_id = self.value()
         if not cat_id:
             return queryset
-        return queryset.filter(sale_category__cid__startswith=cat_id)
+        try:
+            return queryset.filter(sale_category__cid__startswith=cat_id)
+        except:
+            return queryset.filter(category__cid__startswith=cat_id)
 
 
 from .models import BuyerGroup

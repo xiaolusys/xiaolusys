@@ -3,6 +3,7 @@ import re
 import time
 import datetime
 import base64
+import hashlib
 import urllib2
 from django.conf import settings
 from django.core.cache import cache
@@ -82,14 +83,18 @@ def fetch_wxpub_mama_custom_qrcode_media_id(xiaolumama, wxpubId):
 
 @log_consume_time
 def fetch_wxpub_mama_manager_qrcode_media_id(xiaolumama, wxpubId):
-    cache_key = 'fetch_wxpub_mama_manager_qrcode_media_id_%s'%xiaolumama.id
+
+    from flashsale.xiaolumm.models import MamaAdministrator
+    mama_administrator = MamaAdministrator.get_or_create_by_mama(xiaolumama)
+    if not mama_administrator:
+        logger.warn('fetch_wxpub_mama_manager_qrcode_media_id administrator loss: %s' % xiaolumama)
+        return
+    mama_manager_qrcode = mama_administrator.weixin_qr_img
+    cache_key = hashlib.sha1(mama_manager_qrcode).hexdigest()
     cache_value = cache.get(cache_key)
     if not cache_value:
         logger.info('fetch_wxpub_mama_manager_qrcode_media_id cache miss: %s' % xiaolumama)
-        manager_index = xiaolumama.id % 7
-        manager_qrcode_link = MAMA_MANAGERS_QRCODE_MAP.get(manager_index)
-
-        media_body = urllib2.urlopen(manager_qrcode_link).read()
+        media_body = urllib2.urlopen(mama_manager_qrcode).read()
         media_stream = StringIO.StringIO(media_body)
 
         wx_api = WeiXinAPI()
