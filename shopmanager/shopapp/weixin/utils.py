@@ -21,10 +21,10 @@ logger = logging.getLogger(__name__)
 DEFAULT_MAMA_THUMBNAIL = 'http://img.xiaolumeimei.com/undefined1472268058597lADOa301H8zIzMg_200_200.jpg_620x10000q90g.jpg?imageMogr2/thumbnail/80/crop/80x80/format/jpg'
 BASE_MAMA_QRCODE_IMG_RUL = 'http://7xogkj.com1.z0.glb.clouddn.com/xiaolumm/base/mama_referal_base2.png'
 BASE_MAMA_QRCODE_TEMPLATE_URL = """
-    {base_url}?watermark/3/text/{message1}/font/5a6L5L2T/fontsize/1000/gravity/North/dx/10/dy/250
+    {base_url}?watermark/3/text/{message1}/font/5a6L5L2T/fontsize/1000/gravity/North/dx/10/dy/200
     /image/{thumbnail}/dissolve/100/gravity/North/dy/30
-    /image/{qrcode}/dissolve/100/gravity/Center/dy/10
-    /text/{message2}/font/5a6L5L2T/fontsize/500/gravity/South/dx/10/dy/250/
+    /image/{qrcode}/dissolve/100/gravity/Center/dy/50
+    /text/{message2}/font/5a6L5L2T/fontsize/500/gravity/South/dx/10/dy/200/
     |imageMogr2/thumbnail/!60p/format/jpg/size-limit/400k
 """.replace('\n','').replace(' ','')
 
