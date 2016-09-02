@@ -41,4 +41,4 @@ def task_subscribe_or_unsubscribe_update_userinfo(openid, wx_pubid, event, event
                 fans.unsubscribe_time = datetime.datetime.now()
                 fans.save()
     except Exception, exc:
-        raise task_subscribe_or_unsubscribe_update_userinfo.retry(exc)
+        raise task_subscribe_or_unsubscribe_update_userinfo.retry(exc=exc)
