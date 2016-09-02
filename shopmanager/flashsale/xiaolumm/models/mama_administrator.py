@@ -14,3 +14,20 @@ class MamaAdministrator(BaseModel):
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈管理员'
         verbose_name_plural = u'小鹿妈妈管理员列表'
+
+    @classmethod
+    def get_or_create_by_mama(cls, mama):
+        from games.weixingroup.models import XiaoluAdministrator
+        item = cls.objects.filter(mama_id=mama.id).first()
+        if item:
+            administrator = item.administrator
+        else:
+            administrators = XiaoluAdministrator.objects.filter(id__gte=11, id__lte=17)
+            num = mama.id % administrators.count()
+            administrator = administrators[num]
+
+            ma = MamaAdministrator()
+            ma.administrator = administrator
+            ma.mama = mama
+            ma.save()
+        return administrator
