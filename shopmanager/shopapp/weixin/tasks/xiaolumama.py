@@ -19,7 +19,7 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
 
     # 获取或创建用户信息,
     fans_obj = WeixinFans.objects.filter(openid=openid, app_key=app_key).first()
-    qrscene_id = eventKey.replace('qrscene_', '')
+    qrscene_id = eventKey and eventKey.replace('qrscene_', '') or ''
     wx_userinfo = wx_api.getCustomerInfo(openid)
     unionid = wx_userinfo['unionid']
 
