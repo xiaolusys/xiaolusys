@@ -230,7 +230,7 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
             items = SaleCategory.get_salecategory_jsontree()
             for item in items:
                 if item.get('cid') == cid:
-                    tree = item
+                    tree = [item]
                     break
         else:
             items = SaleCategory.get_salecategory_jsontree()
@@ -261,6 +261,7 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.SaleCategorySerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
 
