@@ -127,7 +127,7 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
     now = datetime.datetime.now()
     if not skus:
         all_product_in_cart = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, remain_time__lte=now)
-        skus = [c['sku'] for c in all_product_in_cart.values('sku').distinct()]
+        skus = [c['sku_id'] for c in all_product_in_cart.values('sku_id').distinct()]
     else:
         all_product_in_cart = ShoppingCart.objects.filter(sku_id__in=skus, status=ShoppingCart.NORMAL, remain_time__lte=now)
     all_product_in_cart.update(status=ShoppingCart.CANCEL)

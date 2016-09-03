@@ -60,6 +60,7 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
 
     # 创建小鹿妈妈记录
     referal_from_mama_obj = XiaoluMama.objects.filter(id=referal_from_mama).first()
+    referal_from_mama_id  = referal_from_mama_obj and referal_from_mama_obj.id or 0
     xiaolumm = XiaoluMama.objects.filter(openid=unionid).first()
     if not xiaolumm:
         xiaolumm = XiaoluMama.objects.create(
@@ -77,11 +78,11 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
             return xiaolumm
         protentialmama = PotentialMama(
             potential_mama=xiaolumm.id,
-            referal_mama=referal_from_mama_obj.id if referal_from_mama_obj else 0,
+            referal_mama=referal_from_mama_id,
             nick=wx_userinfo['nickname'],
             thumbnail=wx_userinfo['headimgurl'],
             last_renew_type=XiaoluMama.SCAN,
-            uni_key=PotentialMama.gen_uni_key(xiaolumm.id, referal_from_mama_obj.id))
+            uni_key=PotentialMama.gen_uni_key(xiaolumm.id, referal_from_mama_id))
         protentialmama.save()
         #  修改该小鹿妈妈的接管状态
         xiaolumm.chargemama()
