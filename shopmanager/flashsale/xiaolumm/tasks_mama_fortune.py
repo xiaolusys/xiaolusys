@@ -148,9 +148,9 @@ def task_activevalue_update_mamafortune(mama_id):
 
 @task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_invite_num(mama_id):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-
-    records = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    from flashsale.xiaolumm.models import XiaoluMama
+    records = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id, referal_type__gte=XiaoluMama.HALF)
     invite_num = records.count()
 
     mamas = MamaFortune.objects.filter(mama_id=mama_id)
