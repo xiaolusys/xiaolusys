@@ -577,6 +577,8 @@ class ModelProduct(BaseTagModel):
         names = self.products.values('name')
         colors = [cc for cc in set(i['name'].split('/')[-1] for i in names if '/' in i['name'])]
         c = ','.join(colors)
+        if not c:
+            return
         extras = self.extras
         extras.setdefault('properties', [])
         properties = extras.get('properties')
