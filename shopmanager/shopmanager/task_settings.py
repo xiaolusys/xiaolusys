@@ -661,15 +661,15 @@ LOGISTICS_ROUTES = {
 }
 
 WEIXIN_ROUTES = {
-    'shopapp.weixin.tasks.task_subscribe_or_unsubscribe_update_userinfo': {
+    'shopapp.weixin.tasks.subscribe.task_subscribe_or_unsubscribe_update_userinfo': {
         'queue': 'notify',
         'routing_key': 'notify.task_subscribe_or_unsubscribe_update_userinfo',
     },
-    'shopapp.weixin.tasks.task_create_mama_referal_qrcode_and_response_weixin': {
+    'shopapp.weixin.tasks.xiaolumama.task_create_mama_referal_qrcode_and_response_weixin': {
         'queue': 'notify',
         'routing_key': 'notify.task_create_mama_referal_qrcode_and_response_weixin',
     },
-    'shopapp.weixin.tasks.task_create_mama_and_response_manager_qrcode': {
+    'shopapp.weixin.tasks.xiaolumama.task_create_mama_and_response_manager_qrcode': {
         'queue': 'notify',
         'routing_key': 'notify.task_create_mama_and_response_manager_qrcode',
     },
@@ -772,7 +772,7 @@ CELERY_ROUTES = {
         'routing_key': 'frency.task_sync_xlmm_mobile_by_customer',
     },  # 更新小鹿妈妈的手机号码
 
-    'shopapp.weixin.tasks.task_Update_Weixin_UserInfo': {
+    'shopapp.weixin.tasks.base.task_Update_Weixin_UserInfo': {
         'queue': 'frency',
         'routing_key': 'frency.update_weixin_userinfo',
     },  # 更新微信用户信息
@@ -1011,19 +1011,19 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时增量下载更新微信订单': {
-        'task': 'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
+        'task': 'shopapp.weixin.tasks.base.pullWaitPostWXOrderTask',
         'schedule': crontab(minute="0", hour="*/2"),
         'args': (None, None),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时增量更新微信维权订单': {
-        'task': 'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
+        'task': 'shopapp.weixin.tasks.base.pullFeedBackWXOrderTask',
         'schedule': crontab(minute="30", hour="*/2"),
         'args': (None, None),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时同步微信商品库存': {
-        'task': 'shopapp.weixin.tasks.syncWXProductNumTask',
+        'task': 'shopapp.weixin.tasks.base.syncWXProductNumTask',
         'schedule': crontab(minute="10", hour='1,12'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1376,7 +1376,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'每30分钟刷新微信公众号accesstoken&jsticket': {
-        'task': 'shopapp.weixin.tasks.task_refresh_weixin_access_token',
+        'task': 'shopapp.weixin.tasks.base.task_refresh_weixin_access_token',
         'schedule': crontab(minute="*/30"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
