@@ -21,7 +21,7 @@ from flashsale.pay.signals import signal_record_supplier_models
 from shopback.categorys.models import ProductCategory
 from shopback.items import constants
 from shopback.items.models import (Product, ProductSku, ProductSkuStats)
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory
 from shopback.items import serializers
 
 logger = logging.getLogger(__name__)
@@ -288,21 +288,21 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                `name` : 款式名称   例如： "这是件羊毛衫"
                `head_imgs` : 款式头图  例如： "https://cbu01.alicdn.com/img/ibank/2016/741/035/2956530147_1742364862.400x400.jpg"
                `saleproduct_id` : 选品id 例如： 537161
-               `material` : 材质   例如： "羊毛"
-               `note` :  备注  例如："一件卖"
-               `wash_instroduce` : 洗涤说明    例如： "洗涤说明哦"
                `is_teambuy` : 是否团购 例如： true
                `teambuy_price` : 团购价格  例如： 23.3
                `teambuy_person_num` : 团购人数 默认为3
                `status` : 使用状态 (正常: "normal" /作废: "delete")
+               `properties`:[
+                                {"name": "材质", "value": "牛皮"},
+                                {"name": "洗涤说明", "value": "温水擦拭"},
+                                {"name": "产品备注", "value": "10岁以上穿着"}
+                            ]
         * method: GET 款式列表
+    -------
     - [/apis/items/v2/product/**model_id**/create_model_product](/apis/items/v2/product/11872/create_model_product)
         * method: POST  给款式添加sku产品
             1. args:
                 `cid`: 产品所属类别cid
-
-
-
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers.ModelProductSerializer
@@ -318,23 +318,6 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-    @list_route(methods=['get'])
-    def add_item_page(self, request, *args, **kwargs):
-        data = request.GET
-        supplier_id = data.get('supplier_id') or 0
-        saleproduct_id = data.get('saleproduct_id') or 0
-        page = data.get('category') or 0
-        page_map = {
-            1: 'items/add_item_health.html',
-            2: 'items/add_item_bags.html',
-            3: 'items/add_item_muying.html',
-            4: 'items/add_item_homehold.html',
-        }
-        return Response({
-            "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
-            "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-        }, template_name=page_map[page])
 
     def get_inner_outer_id(self, supplier, category_item):
         category_maps = {
@@ -372,6 +355,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException(u'Method Not Allowed!')
 
     def get_request_extras(self, request, model_product=None):
+        """ 更新款式额外属性 """
         content = request.data
         extras = default_modelproduct_extras_tpl()  # 可选颜色 材质 备注 洗涤说明
         if model_product:
@@ -413,14 +397,14 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         model_pro = get_object_or_404(ModelProduct, id=model_id)
         saleproduct = model_pro.saleproduct
         cid = content.get("cid") or 0
-        category_item = ProductCategory.objects.filter(cid=cid).first()
+        sale_category = SaleCategory.objects.filter(cid=cid).first()
         if not saleproduct:
             raise exceptions.APIException(u"选品错误!")
-        if not category_item:
-            raise exceptions.APIException(u"库存类目错误!")
+        if not sale_category:
+            raise exceptions.APIException(u"类目错误!")
         supplier = saleproduct.sale_supplier
-        inner_outer_id = self.get_inner_outer_id(supplier, category_item)
-
+        product_category = sale_category.get_product_category()  # 获取选品类别对应的产品类别
+        inner_outer_id = self.get_inner_outer_id(supplier, product_category)
         skus = content['skus']
         colors = [x['color'] for x in skus]
 
@@ -436,7 +420,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                 request.data.update({'outer_id': inner_outer_id + str(pro_count)})
                 request.data.update({'model_id': model_pro.id})
                 request.data.update({'sale_charger': creator.username})
-                request.data.update({'category': category_item})
+                request.data.update({'category': product_category})
                 request.data.update({'ware_by': supplier.ware_by})
                 request.data.update({'sale_product': saleproduct.id})
 
