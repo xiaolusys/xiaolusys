@@ -13,6 +13,7 @@ from flashsale.xiaolumm.models.models_fortune import OrderCarry, AwardCarry, Ref
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm import util_unikey
 from flashsale.xiaolumm import utils
+from flashsale.xiaolumm.models import XiaoluMama
 
 import sys
 
@@ -242,7 +243,7 @@ def task_referal_update_awardcarry(relationship):
     #uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
     uni_key = AwardCarry.gen_uni_key(to_mama_id, carry_type)
 
-    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, created__lt=relationship.created).count()
+    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
     rr_cnt += 1
     
     carry_num = utils.get_award_carry_num(rr_cnt, relationship.referal_type)
@@ -324,7 +325,7 @@ def task_group_update_awardcarry(relationship):
     award_carry.save()
 
 
-from flashsale.xiaolumm.models import XiaoluMama
+
 
 
 def get_self_mama(unionid):

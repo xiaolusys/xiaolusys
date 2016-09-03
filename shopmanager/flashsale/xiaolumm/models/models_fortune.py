@@ -292,7 +292,10 @@ class CarryRecord(BaseModel):
     @property
     def mama(self):
         from flashsale.xiaolumm.models import XiaoluMama
-        return XiaoluMama.objects.get(id=self.mama_id)
+        mama = XiaoluMama.objects.filter(id=self.mama_id).first()
+        if mama:
+            return mama
+        return None
 
     def carry_type_name(self):
         return get_choice_name(self.CARRY_TYPES, self.carry_type)
@@ -370,6 +373,9 @@ def carryrecord_xlmm_newtask(sender, instance, **kwargs):
 
     carryrecord = instance
     xlmm = carryrecord.mama
+    if not xlmm:
+        return
+    
     is_exists = CarryRecord.objects.filter(mama_id=xlmm.id, carry_type=CarryRecord.CR_CLICK).exists()
 
     if not is_exists:
