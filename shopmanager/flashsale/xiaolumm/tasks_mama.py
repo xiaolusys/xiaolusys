@@ -243,20 +243,34 @@ def task_referal_update_awardcarry(relationship):
     rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, created__lt=relationship.created).count()
     rr_cnt += 1
     
-    carry_num = utils.get_award_carry_num(rr_cnt, relationship.referal_type)    
-    
+    carry_num = utils.get_award_carry_num(rr_cnt, relationship.referal_type)
+
+    status = 1
+    carry_description = u'加入正式会员，奖金就会确认哦！'
+    if relationship.is_confirmed():
+        status = 2  # confirmed
+        carry_description = util_description.get_awardcarry_description(carry_type)
+
     award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
-    if award_carry and award_carry.carry_num != carry_num:
-        award_carry.carry_num = carry_num
-        award_carry.date_field = relationship.modified.date()
-        award_carry.save(update_fields=['carry_num', 'date_field', 'modified'])
+    if award_carry:
+        update_fields = []
+        if award_carry.carry_num != carry_num:
+            award_carry.carry_num = carry_num
+            update_fields.append('carry_num')
+        if award_carry.status != status:
+            award_carry.status = status
+            update_fields.append('status')
+        if award_carry.carry_description != carry_description:
+            award_carry.carry_description = carry_description
+            update_fields.append('carry_description')
+        if update_fields:
+            update_fields.append('modified')
+            award_carry.save(update_fields=update_fields)
         return
     
     if not award_carry:
         carry_type = 1  # direct referal
         date_field = relationship.created.date()
-        status = 2  # confirmed
-        carry_description = util_description.get_awardcarry_description(carry_type)
         award_carry = AwardCarry(mama_id=from_mama_id, carry_num=carry_num, carry_type=carry_type,
                                  carry_description=carry_description,
                                  contributor_nick=relationship.referal_to_mama_nick,

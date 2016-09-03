@@ -4,6 +4,8 @@ from flashsale.xiaolumm.models import MamaDailyAppVisit
 from flashsale.xiaolumm.models import XiaoluMama
 
 from django.db import models
+from django.db.models import Sum
+
 from django.db.models.signals import post_save
 import datetime
 
@@ -73,6 +75,13 @@ class MamaDeviceStats(BaseModel):
     @property
     def total_visitor(self):
         return self.num_latest + self.num_outdated
+
+    @property
+    def total_device_visitor(self):
+        s = MamaDeviceStats.objects.filter(date_field=self.date_field,device_type=self.device_type).aggregate(a=Sum('num_latest'),b=Sum('num_outdated'))
+        num_latest = s['a'] or 0
+        num_outdated = s['b'] or 0
+        return num_latest + num_outdated
 
 class MamaDailyTabVisit(BaseModel):
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'妈妈id')

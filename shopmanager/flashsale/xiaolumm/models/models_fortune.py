@@ -895,6 +895,9 @@ class ReferalRelationship(BaseModel):
         verbose_name = u'V2/妈妈推荐关系'
         verbose_name_plural = u'V2/妈妈推荐关系列表'
 
+    def is_confirmed(self):
+        return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF
+    
     def referal_to_mama_nick_display(self):
         if self.referal_to_mama_nick == "":
             return u"匿名用户"
@@ -927,7 +930,13 @@ class ReferalRelationship(BaseModel):
     def create_relationship_by_potential(cls, potential_record, order_id):
         """ 通过潜在妈妈列表中的记录创建推荐关系 """
         # 先查看是否有推荐关系存在(被推荐人　potential_record.potential_mama 潜在妈妈)
-        ship = cls(referal_from_mama_id=potential_record.referal_mama,
+        referal_from_grandma_id = 0
+        rr = ReferalRelationship.objects.filter(referal_to_mama_id=potential_record.referal_mama).first()
+        if rr:
+            referal_from_grandma_id = rr.referal_from_mama_id
+            
+        ship = cls(referal_from_grandma_id=referal_from_grandma_id,
+                   referal_from_mama_id=potential_record.referal_mama,
                    referal_to_mama_id=potential_record.potential_mama,
                    referal_to_mama_nick=potential_record.nick,
                    referal_type=potential_record.last_renew_type,
@@ -983,6 +992,9 @@ post_save.connect(update_mamafortune_mama_level,
 
 def update_group_relationship(sender, instance, created, **kwargs):
     if not created:
+        return
+
+    if not instance.is_confirmed():
         return
 
     from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_group_relationship
