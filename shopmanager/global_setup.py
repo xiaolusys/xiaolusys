@@ -21,16 +21,14 @@ def install_pymysqldb():
 
 
 def install_redis_with_gevent_socket():
-    try:
-        from gevent import socket
-    except ImportError:
-        print 'gevent module not found'
+    if not os.environ.get('TARGET') in ('production', 'django18', 'staging'):
         return
     try:
+        from gevent import socket
         import redis.connection
         redis.connection.socket = socket
     except ImportError:
-        print 'redis.connection module not found'
+        print 'gevent or redis.connection module not found'
 
 
 def enable_urllib2_debugmode():
