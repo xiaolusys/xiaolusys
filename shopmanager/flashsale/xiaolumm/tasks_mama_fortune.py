@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.db.models import Sum, Count, F
 from common.utils import update_model_fields
 logger = logging.getLogger('celery.handler')
+service_logger = logging.getLogger('service')
 
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, \
     CarryRecord, GroupRelationship, MAMA_FORTUNE_HISTORY_LAST_DAY
@@ -412,7 +413,11 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
     renew_type = 0
     if mama:
         renew_type = mama.last_renew_type
-    
+
+    date_field = datetime.date.today()
+    uni_key = MamaDailyAppVisit.gen_uni_key(mama_id, date_field)
+    #uni_key = '%s-%s' % (mama_id, date_field)
+
     device_type = MamaDailyAppVisit.DEVICE_UNKNOWN
     ua = user_agent.lower()
     version = ""
@@ -444,10 +449,16 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
             update_fields.append('device_type')
             update_fields.append('version')
             update_fields.append('user_agent')
-        
+
         md.num_visits += 1
         update_fields.append('num_visits')
         md.save(update_fields=update_fields)
+
+    service_logger.info({
+        'action': 'xlmm_open_app_home',
+        'mama_id': mama_id,
+        'user_agent': user_agent
+    })
 
 
 @task
