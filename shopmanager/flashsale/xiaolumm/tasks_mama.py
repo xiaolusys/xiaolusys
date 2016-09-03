@@ -247,6 +247,7 @@ def task_referal_update_awardcarry(relationship):
 
     status = 1
     carry_description = u'加入正式会员，奖金就会确认哦！'
+    carry_type = 1
     if relationship.is_confirmed():
         status = 2  # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
