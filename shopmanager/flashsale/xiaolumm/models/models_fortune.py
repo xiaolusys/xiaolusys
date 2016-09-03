@@ -919,6 +919,10 @@ class ReferalRelationship(BaseModel):
 
     def update_referal_relationship(self, potential_record):
         referal_type = potential_record.last_renew_type
+        if self.is_confirmed() and self.referal_type > referal_type:
+            # We dont do update if referalrelationship is confirmed and referal_type is higher.
+            return
+        
         order_id = potential_record.extras.get('oid') or None
         if not order_id:
             order_id = potential_record.extras.get('cashout_id') or ''

@@ -628,8 +628,8 @@ admin.site.register(TopicAttendRecord, TopicAttendRecordAdmin)
 
 
 class PotentialMamaAdmin(admin.ModelAdmin):
-    list_display = ("potential_mama",
-                    "referal_mama",
+    list_display = ("referal_mama",
+                    "potential_mama",
                     "thumbnail_display",
                     "uni_key",
                     "is_full_member", "modified", "created")
