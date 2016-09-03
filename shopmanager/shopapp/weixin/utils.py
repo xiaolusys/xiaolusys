@@ -29,9 +29,14 @@ BASE_MAMA_QRCODE_TEMPLATE_URL = """
     |imageMogr2/thumbnail/!60p/format/jpg/size-limit/400k
 """.replace('\n','').replace(' ','')
 
+
 def get_mama_customer(mama_id):
     mama = XiaoluMama.objects.filter(id=mama_id).first()
-    return mama.get_customer()
+    if mama:
+        return mama.get_customer()
+    else:
+        return None
+
 
 @log_consume_time
 def gen_mama_custom_qrcode_url(mama_id, thumbnail, message1='', message2=''):
