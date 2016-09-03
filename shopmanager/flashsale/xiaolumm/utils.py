@@ -24,11 +24,10 @@ def get_award_carry_num(num, referal_type):
     from flashsale.xiaolumm.models import XiaoluMama
 
     idx = 0
-    carry_map = {
-        XiaoluMama.HALF: award_carry_array99,
-        XiaoluMama.FULL: award_carry_array188
-    }
-    award_carry_array = carry_map[referal_type]
+    award_carry_array = award_carry_array188
+    if referal_type == XiaoluMama.HALF:
+        award_carry_array = award_carry_array99
+        
     for entry in award_carry_array:
         if num < entry[0]:
             break
