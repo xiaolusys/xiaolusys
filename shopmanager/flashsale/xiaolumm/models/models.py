@@ -1340,8 +1340,8 @@ post_save.connect(potentialmama_push_sms,
 
 
 def update_mama_relationship(sender, instance, created, **kwargs):
-    if not instance.is_full_member:
-        return
+    #if not instance.is_full_member:
+    #    return
     from flashsale.xiaolumm.models import ReferalRelationship
     from core.options import log_action, CHANGE, get_systemoa_user
 
