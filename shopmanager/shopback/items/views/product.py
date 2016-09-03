@@ -414,6 +414,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         inner_outer_id = self.get_inner_outer_id(supplier, product_category)
         skus = content['skus']
         colors = [x['color'] for x in skus]
+        colors = set(colors)
 
         product_instances = []
         pro_count = 1
@@ -440,17 +441,21 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                 product_instances.append(product_instance)
                 log_action(creator.id, product_instance, ADDITION, u'创建一个产品')
 
-                count = 1
+                color_skus = []
                 for sku in skus:
+                    if sku['color'] == color:
+                        color_skus.append(sku)
+                count = 1
+                for color_sku in color_skus:
                     barcode = '%s%d' % (product_instance.outer_id, count)
                     ProductSku(outer_id=barcode,
                                product=product_instance,
-                               remain_num=sku['remain_num'],
-                               cost=sku['cost'],
-                               std_sale_price=sku['std_sale_price'],
-                               agent_price=sku['agent_price'],
-                               properties_name=sku['properties_name'],
-                               properties_alias=sku['properties_alias'],
+                               remain_num=color_sku['remain_num'],
+                               cost=color_sku['cost'],
+                               std_sale_price=color_sku['std_sale_price'],
+                               agent_price=color_sku['agent_price'],
+                               properties_name=color_sku['properties_name'],
+                               properties_alias=color_sku['properties_alias'],
                                barcode=barcode).save()
                     count += 1
                     product_instance.set_remain_num()  # 有效sku预留数之和
