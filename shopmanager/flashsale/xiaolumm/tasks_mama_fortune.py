@@ -182,9 +182,10 @@ def task_update_mamafortune_invite_trial_num(mama_id):
 
 @task(max_retries=3, default_retry_delay=6)
 def task_update_mamafortune_mama_level(mama_id):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-
-    records = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    from flashsale.xiaolumm.models import XiaoluMama
+    
+    records = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id, referal_type__gt=XiaoluMama.HALF)
     invite_num = records.count()
 
     groups = GroupRelationship.objects.filter(leader_mama_id=mama_id)
