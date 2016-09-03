@@ -639,3 +639,18 @@ def modelproduct_update_supplier_info(sender, obj, **kwargs):
 
 signal_record_supplier_models.connect(modelproduct_update_supplier_info,
                                       sender=ModelProduct, dispatch_uid='post_save_modelproduct_update_supplier_info')
+
+
+class ModelProductSkuContrast(BaseModel):
+    """ 商品规格尺寸参数 """
+    modelproduct = models.OneToOneField(ModelProduct, primary_key=True, related_name='contrast', verbose_name=u'款式ID')
+    contrast_detail = JSONCharMyField(max_length=10240, blank=True, verbose_name=u'对照详情')
+
+    class Meta:
+        db_table = 'pay_modelproduct_contrast'
+        app_label = 'pay'
+        verbose_name = u'特卖商品/款式尺码对照表'
+        verbose_name_plural = u'特卖商品/款式尺码对照列表'
+
+    def __unicode__(self):
+        return u'<%s-%s>' % (self.id, self.modelproduct.id)
