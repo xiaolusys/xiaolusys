@@ -15,10 +15,9 @@ sys.setdefaultencoding('utf-8')
 import os.path
 import posixpath
 
-from global_setup import install_pymysqldb, install_redis_with_gevent_socket
+from global_setup import install_pymysqldb
 install_pymysqldb()
-# this block celery worker receiver!!!
-# install_redis_with_gevent_socket()
+
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
