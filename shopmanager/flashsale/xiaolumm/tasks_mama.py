@@ -276,7 +276,7 @@ def task_referal_update_awardcarry(relationship):
             update_fields.append('modified')
             award_carry.save(update_fields=update_fields)
             sys_oa = get_systemoa_user()
-            log_action(sys_oa, relationship, CHANGE, logmsg)
+            log_action(sys_oa, award_carry, CHANGE, logmsg)
         return
     
     if not award_carry:
