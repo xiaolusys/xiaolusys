@@ -360,6 +360,10 @@ class WeixinPush(object):
         """
 
         referal_customer = utils.get_mama_customer(referal_mama_id)
+
+        if not referal_customer:
+            return
+
         potential_customer = utils.get_mama_customer(potential_mama_id)
         mobile_string = ''
         if potential_customer.mobile:
