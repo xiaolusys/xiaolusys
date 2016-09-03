@@ -947,7 +947,6 @@ class ReferalRelationship(BaseModel):
 
             from core.options import log_action, CHANGE, get_systemoa_user
             sys_oa = get_systemoa_user()
-            msg = u'%s' % ()
             log_action(sys_oa, self, CHANGE, logmsg)
             
             return True
