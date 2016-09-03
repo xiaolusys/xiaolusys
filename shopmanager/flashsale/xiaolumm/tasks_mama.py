@@ -237,8 +237,10 @@ def task_referal_update_awardcarry(relationship):
     #print "%s, mama_id: %s" % (get_cur_info(), relationship.referal_from_mama_id)
     from_mama_id = relationship.referal_from_mama_id
     to_mama_id = relationship.referal_to_mama_id
-
-    uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
+    carry_type = 1 # 直接推荐
+    
+    #uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
+    uni_key = AwardCarry.gen_uni_key(to_mama_id, carry_type)
 
     rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, created__lt=relationship.created).count()
     rr_cnt += 1
@@ -254,7 +256,12 @@ def task_referal_update_awardcarry(relationship):
 
     award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
     if award_carry:
+        from core.options import log_action, CHANGE, get_systemoa_user
+        logmsg = 'mama_id:%s->%s|carry_num:%s->%s|status:%s->%s' % (award_carry.mama_id,from_mama_id,award_carry.carry_num,carry_num,award_carry.status,status)
         update_fields = []
+        if award_carry.mama_id != from_mama_id:
+            award_carry.mama_id = from_mama_id
+            update_fields.append('mama_id')
         if award_carry.carry_num != carry_num:
             award_carry.carry_num = carry_num
             update_fields.append('carry_num')
@@ -267,10 +274,11 @@ def task_referal_update_awardcarry(relationship):
         if update_fields:
             update_fields.append('modified')
             award_carry.save(update_fields=update_fields)
+            sys_oa = get_systemoa_user()
+            log_action(sys_oa, ship, CHANGE, logmsg)
         return
     
     if not award_carry:
-        carry_type = 1  # direct referal
         date_field = relationship.created.date()
         award_carry = AwardCarry(mama_id=from_mama_id, carry_num=carry_num, carry_type=carry_type,
                                  carry_description=carry_description,
