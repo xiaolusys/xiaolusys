@@ -575,14 +575,18 @@ class ModelProduct(BaseTagModel):
     def set_choose_colors(self):
         """ 更新可选颜色 """
         names = self.products.values('name')
-        colors = [i['name'].split('/')[-1] for i in names if '/' in i['name']]
+        colors = [cc for cc in set(i['name'].split('/')[-1] for i in names if '/' in i['name'])]
         c = ','.join(colors)
         extras = self.extras
-        extras.setdefault('properties', {})
+        extras.setdefault('properties', [])
         properties = extras.get('properties')
-        if c.strip():
-            properties.update({'color': c.strip()})
-        self.update_extras(extras)
+        model_properties_d = [{u'可选颜色': c}]
+        old_properties_d = dict([(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
+        old_properties_d.update(model_properties_d[0])
+        properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
+        extras.update({'properties': properties})
+        self.extras = extras
+        self.save(update_fields=['extras'])
 
     def set_is_flatten(self):
         """
@@ -591,7 +595,7 @@ class ModelProduct(BaseTagModel):
         设置： 款式以及款式下的产品is_flatten字段
         """
         from shopback.items.models import ProductSku
-        products = self.products()
+        products = self.products
         flatten_count = ProductSku.objects.filter(product__in=products).count()
         is_flatten = flatten_count in [0, 1]
         products.update(is_flatten=is_flatten)

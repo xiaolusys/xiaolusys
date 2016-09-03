@@ -13,6 +13,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import renderers
 from rest_framework.response import Response
+from rest_framework import filters
 
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ModelProduct, Productdetail
@@ -279,6 +280,13 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({'code': 0, 'info': u'创建成功', 'modelproduct_id': model_pro.id})
 
 
+class ModelProductFilter(filters.FilterSet):
+
+    class Meta:
+        model = ModelProduct
+        fields = ['id', 'status', 'saleproduct', 'shelf_status', 'is_onsale', 'is_teambuy']
+
+
 class ProductManageV2ViewSet(viewsets.ModelViewSet):
     """
     ### 款式及产品接口
@@ -306,9 +314,9 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers.ModelProductSerializer
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    filter_class = ModelProductFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -360,7 +368,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         extras = default_modelproduct_extras_tpl()  # 可选颜色 材质 备注 洗涤说明
         if model_product:
             extras = model_product.extras
-        extras.setdefault('properties', {})
+        extras.setdefault('properties', [])
         properties = extras.get('properties')
         model_properties = content.get('properties') or None
         if isinstance(model_properties, list):
@@ -414,13 +422,13 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             for color in colors:
                 if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                     pro_count += 1
-                request.data.update({'name': model_pro.name + "/" + color['name']})
-                request.data.update({'pic_path': content['head_img']})
+                request.data.update({'name': model_pro.name + "/" + color})
+                request.data.update({'pic_path': content['pic_path']})
 
                 request.data.update({'outer_id': inner_outer_id + str(pro_count)})
                 request.data.update({'model_id': model_pro.id})
                 request.data.update({'sale_charger': creator.username})
-                request.data.update({'category': product_category})
+                request.data.update({'category': product_category.cid})
                 request.data.update({'ware_by': supplier.ware_by})
                 request.data.update({'sale_product': saleproduct.id})
 
@@ -442,8 +450,8 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                                cost=sku['cost'],
                                std_sale_price=sku['std_sale_price'],
                                agent_price=sku['agent_price'],
-                               properties_name=sku['name'],
-                               properties_alias=sku['name'],
+                               properties_name=sku['properties_name'],
+                               properties_alias=sku['properties_alias'],
                                barcode=barcode).save()
                     count += 1
                     product_instance.set_remain_num()  # 有效sku预留数之和

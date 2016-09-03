@@ -172,7 +172,7 @@ class SaleCategory(BaseModel):
         self_names = [x.strip() for x in self.full_name.split('/')]
         for pcnames in pcs_full_names:
             if self_names == pcnames.values()[0]:
-                return pcs.filter(cid=pcnames.keys()[0])
+                return pcs.filter(cid=pcnames.keys()[0]).first()
 
 
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
