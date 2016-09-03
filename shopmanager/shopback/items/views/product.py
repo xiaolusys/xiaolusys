@@ -404,10 +404,9 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         creator = request.user
         model_pro = get_object_or_404(ModelProduct, id=model_id)
         saleproduct = model_pro.saleproduct
-        cid = content.get("cid") or 0
-        sale_category = SaleCategory.objects.filter(cid=cid).first()
         if not saleproduct:
             raise exceptions.APIException(u"选品错误!")
+        sale_category = saleproduct.sale_category
         if not sale_category:
             raise exceptions.APIException(u"类目错误!")
         supplier = saleproduct.sale_supplier
