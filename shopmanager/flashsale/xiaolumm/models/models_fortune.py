@@ -591,7 +591,7 @@ class AwardCarry(BaseModel):
     contributor_mama_id = models.BigIntegerField(default=0, null=True, verbose_name=u'贡献者mama_id')
     carry_plan_name = models.CharField(max_length=32, blank=True, verbose_name=u'佣金计划')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID') #contributor_mama_id+award_type
     status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态')  # 待确定/已确定/取消
 
     class Meta:
@@ -624,6 +624,10 @@ class AwardCarry(BaseModel):
         """
         return None
 
+    @staticmethod
+    def gen_uni_key(contributor_mama_id, award_type):
+        return 'awardcarry-%s-%s' % (contributor_mama_id, award_type)
+            
     @staticmethod
     def send_award(mama, num, name, description, uni_key, status, carry_type,
                    contributor_nick=None, contributor_img=None, contributor_mama_id=None):
@@ -913,8 +917,25 @@ class ReferalRelationship(BaseModel):
         else:
             return None
 
-    def update_referal_type_and_oid(self, referal_type, order_id):
+    def update_referal_relationship(self, potential_record):
+        referal_type = potential_record.referal_type
+        order_id = potential_record.extras.get('oid') or None
+        if not order_id:
+            order_id = potential_record.extras.get('cashout_id') or ''
+            order_id = '_'.join(['cashout_id', str(order_id)])
+
+        logmsg = '%s|%s|%s|%s' % (self.referal_from_grandma_id, self.referal_from_mama_id, self.referal_type, self.order_id)
         update_fields = []
+        if self.referal_from_mama_id != potential_record.referal_mama:
+            referal_from_grandma_id = 0
+            rr = ReferalRelationship.objects.filter(referal_to_mama_id=potential_record.referal_mama).first()
+            if rr:
+                referal_from_grandma_id = rr.referal_from_mama_id
+            self.referal_from_grandma_id = referal_from_grandma_id
+            update_fields.append('referal_from_grandma_id')
+            self.referal_from_mama_id = potential_record.referal_mama
+            update_fields.append('referal_from_mama_id')
+
         if self.referal_type != referal_type:
             self.referal_type = referal_type
             update_fields.append('referal_type')
@@ -923,13 +944,25 @@ class ReferalRelationship(BaseModel):
             update_fields.append('order_id')
         if update_fields:
             self.save(update_fields=update_fields)
+
+            from core.options import log_action, CHANGE, get_systemoa_user
+            sys_oa = get_systemoa_user()
+            msg = u'%s' % ()
+            log_action(sys_oa, self, CHANGE, logmsg)
+            
             return True
         return False
 
     @classmethod
-    def create_relationship_by_potential(cls, potential_record, order_id):
+    def create_relationship_by_potential(cls, potential_record):
         """ 通过潜在妈妈列表中的记录创建推荐关系 """
         # 先查看是否有推荐关系存在(被推荐人　potential_record.potential_mama 潜在妈妈)
+
+        order_id = potential_record.extras.get('oid') or None
+        if not order_id:
+            order_id = potential_record.extras.get('cashout_id') or ''
+            order_id = '_'.join(['cashout_id', str(order_id)])
+
         referal_from_grandma_id = 0
         rr = ReferalRelationship.objects.filter(referal_to_mama_id=potential_record.referal_mama).first()
         if rr:

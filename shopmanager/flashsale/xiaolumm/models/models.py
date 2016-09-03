@@ -1345,15 +1345,10 @@ def update_mama_relationship(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.models import ReferalRelationship
     from core.options import log_action, CHANGE, get_systemoa_user
 
-    order_id = instance.extras.get('oid') or None
-    if not order_id:
-        order_id = instance.extras.get('cashout_id') or ''
-        order_id = '_'.join(['cashout_id', str(order_id)])
-
     ship = ReferalRelationship.objects.filter(referal_to_mama_id=instance.potential_mama).first()  # 推荐关系记录
     if not ship:  # 没有推荐关系 则新建
         try:
-            ship = ReferalRelationship.create_relationship_by_potential(instance, order_id=order_id)
+            ship = ReferalRelationship.create_relationship_by_potential(instance)
             sys_oa = get_systemoa_user()
             log_action(sys_oa, ship, CHANGE, u'通过潜在关系创建推荐关系记录')
             return
@@ -1361,7 +1356,7 @@ def update_mama_relationship(sender, instance, created, **kwargs):
             logger.info({"action": 'update_mama_relationship', 'potential_mama': instance.id, 'message': exc.message})
             return
     # 否则更新
-    ship.update_referal_type_and_oid(instance.last_renew_type, order_id)
+    ship.update_referal_relationship(instance)
 
 
 post_save.connect(update_mama_relationship,
