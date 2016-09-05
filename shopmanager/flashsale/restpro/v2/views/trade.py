@@ -727,11 +727,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             instance.save(update_fields=['channel'])
 
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
-            logger.error('SaleTradeViewSet charge status no wait_buyer_apy: %s' % instance.tid)
+            logger.error('SaleTradeViewSet charge : code=1, %s' % instance.tid)
             return Response({'code': 1, 'info': _errmsg.get(instance.status, _errmsg.get('default'))})
 
         if not instance.is_payable():
-            logger.error('SaleTradeViewSet charge nopayable: %s' % instance.tid)
+            logger.error('SaleTradeViewSet charge : code=2, %s' % instance.tid)
             return Response({'code': 2, 'info': _errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS)})
 
         try:

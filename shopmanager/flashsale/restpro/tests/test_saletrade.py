@@ -188,7 +188,6 @@ class SaletradeTestCase(TestCase):
         """ origin charge channel is alipay """
         response = self.client.post('/rest/v1/trades/372487/charge', {},
                                     ACCEPT='application/json; q=0.01')
-        print 'debug data v1c:', response.content
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         if not data.get('channel'):
@@ -200,10 +199,8 @@ class SaletradeTestCase(TestCase):
         channel = 'wx'
         response = self.client.post('/rest/v2/trades/372487/charge', {'channel':channel},
                                     ACCEPT='application/json; q=0.01')
-        print 'debug data v2c:', response.content
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        print 'debug data v2:', data
         if not data.get('channel'):
             logger.info('testWaitPayOrderCharge_V2 resp: %s' % data)
         self.assertEqual(data['channel'], channel)
