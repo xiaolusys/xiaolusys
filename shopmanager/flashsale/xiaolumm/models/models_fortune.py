@@ -106,6 +106,8 @@ class MamaFortune(BaseModel):
         fortune = MamaFortune.objects.filter(mama_id=mama_id).first()
         if fortune:
             return fortune
+        if not XiaoluMama.objects.filter(mama_id).first():
+            raise Exception(u'提供的小鹿妈妈id不存在：' + str(mama_id))
         fortune = MamaFortune(mama_id=mama_id)
         fortune.save()
         return fortune
@@ -585,7 +587,14 @@ post_save.connect(ordercarry_update_order_number,
 
 
 class AwardCarry(BaseModel):
-    AWARD_TYPES = ((1, u'直荐奖励'),(2, u'团队奖励'),(3, u'授课奖金'),(4, u'新手任务'),(5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'),(8, u'关注公众号'))
+    AWARD_MAMA_SALE = 9
+    AWARD_GROUP_SALE = 10
+    AWARD_TYPES = ((1, u'直荐奖励'),(2, u'团队推荐奖励'),(3, u'授课奖金'),(4, u'新手任务'),
+                   (5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'),(8, u'关注公众号'),
+                   (9, u'销售奖励'),(10, u'团队销售奖励') )
+    STAGING = 1
+    CONFIRMED = 2
+    CANCEL = 2
     STATUS_TYPES = ((1, u'预计收益'), (2, u'确定收益'), (3, u'已取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
@@ -655,6 +664,10 @@ class AwardCarry(BaseModel):
         )
         ac.save()
         return ac
+
+    def cancel_award(self):
+        self.status  = AwardCarry.CANCEL
+        self.save()
 
 
 def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
@@ -1032,22 +1045,35 @@ post_save.connect(update_mamafortune_mama_level,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_mama_level')
 
 
-def update_group_relationship(sender, instance, created, **kwargs):
+def update_mama_fans(sender, instance, created, **kwargs):
     if not created:
         return
-
-    if not instance.is_confirmed():
+    
+    from flashsale.xiaolumm.models import XiaoluMama
+    from flashsale.xiaolumm.models import XlmmFans
+    
+    mama = XiaoluMama.objects.filter(id=instance.referal_to_mama_id).first()
+    if not mama:
         return
 
-    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_group_relationship
-    records = ReferalRelationship.objects.filter(referal_to_mama_id=instance.referal_from_mama_id)
-    if records.count() > 0:
-        record = records[0]
-        task_update_group_relationship.delay(record.referal_from_mama_id, instance)
+    customer = mama.get_mama_customer()
+    fans_cusid = customer.id
+    fans_nick = customer.nick
+    fans_thumbnail = customer.thumbnail
+    
+    fan = XlmmFans.objects.filter(fans_cusid=fans_cusid).first()
+    if fan:
+        return
 
+    from_mama_id = instance.referal_from_mama_id
+    from_mama = XiaoluMama.objects.filter(id=from_mama_id).first()
+    from_customer = from_mama.get_mama_customer()
+    xlmm_cusid = from_customer.id
+    fan = XlmmFans(xlmm=from_mama_id, xlmm_cusid=xlmm_cusid, referal_cusid=xlmm_cusid, fans_cusid=fans_cusid,
+                   fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
+    fan.save()
 
-post_save.connect(update_group_relationship,
-                  sender=ReferalRelationship, dispatch_uid='post_save_update_group_relationship')
+post_save.connect(update_mama_fans, sender=ReferalRelationship, dispatch_uid='post_save_update_mama_fans')
 
 
 def referal_update_activevalue(sender, instance, created, **kwargs):
@@ -1064,14 +1090,31 @@ post_save.connect(referal_update_activevalue,
                   sender=ReferalRelationship, dispatch_uid='post_save_referal_update_activevalue')
 
 
-def referal_update_awardcarry(sender, instance, created, **kwargs):
+def update_referal_awardcarry(sender, instance, created, **kwargs):
     if instance.created.date() > MAMA_FORTUNE_HISTORY_LAST_DAY:
         from flashsale.xiaolumm.tasks_mama import task_referal_update_awardcarry
         task_referal_update_awardcarry.delay(instance)
 
 
-post_save.connect(referal_update_awardcarry,
-                  sender=ReferalRelationship, dispatch_uid='post_save_referal_update_awardcarry')
+post_save.connect(update_referal_awardcarry,
+                  sender=ReferalRelationship, dispatch_uid='post_save_update_referal_awardcarry')
+
+
+def update_group_awardcarry(sender, instance, created, **kwargs):
+    if instance.created.date() > MAMA_FORTUNE_HISTORY_LAST_DAY:
+        from flashsale.xiaolumm.tasks_mama import task_update_group_awardcarry
+        task_update_group_awardcarry.delay(instance)
+
+post_save.connect(update_group_awardcarry,
+                  sender=ReferalRelationship, dispatch_uid='post_save_update_group_awardcarry')
+
+
+def update_mamafortune_mama_level(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_fortune
+    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance.leader_mama_id)
+
+post_save.connect(update_mamafortune_mama_level,
+                  sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_mama_level')
 
 
 class GroupRelationship(BaseModel):
@@ -1091,30 +1134,6 @@ class GroupRelationship(BaseModel):
         app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈团队关系'
         verbose_name_plural = u'V2/妈妈团队关系列表'
-
-
-def group_update_awardcarry(sender, instance, created, **kwargs):
-    if not created:
-        return
-    from flashsale.xiaolumm import tasks_mama
-
-    tasks_mama.task_group_update_awardcarry.delay(instance)
-
-
-post_save.connect(group_update_awardcarry,
-                  sender=GroupRelationship, dispatch_uid='post_save_group_update_awardcarry')
-
-
-def group_update_mamafortune_mama_level(sender, instance, created, **kwargs):
-    if not created:
-        return
-    from flashsale.xiaolumm import tasks_mama_fortune
-
-    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance.leader_mama_id)
-
-
-post_save.connect(group_update_mamafortune_mama_level,
-                  sender=GroupRelationship, dispatch_uid='post_save_group_update_mamafortune_mama_level')
 
 
 class UniqueVisitor(BaseModel):

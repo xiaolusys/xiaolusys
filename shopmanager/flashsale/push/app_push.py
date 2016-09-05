@@ -3,7 +3,8 @@
 APP　推送
 """
 import json
-import logging
+from django.conf import settings
+
 from flashsale.push.mipush import mipush_of_ios, mipush_of_android
 from flashsale.protocol import get_target_url
 from flashsale.push.models_message import PushMsgTpl
@@ -11,7 +12,7 @@ from flashsale.protocol import constants as protocal_constants
 from flashsale.protocol.models import APPFullPushMessge
 from shopapp.weixin.utils import get_mama_customer
 
-
+import logging
 logger = logging.getLogger('service')
 
 
@@ -22,6 +23,8 @@ class AppPush(object):
 
     @classmethod
     def push(cls, customer_id, target_url, msg, pass_through=0):
+        if not settings.PUSH_SWITCH:
+            return
         android_res = mipush_of_android.push_to_account(
             customer_id, {'target_url': target_url}, description=msg, pass_through=pass_through)
         ios_res = mipush_of_ios.push_to_account(
@@ -99,7 +102,7 @@ class AppPush(object):
         customer = get_mama_customer(ordercarry.mama_id)
         target_url = get_target_url(protocal_constants.TARGET_TYPE_VIP_HOME)
         msgtpl = PushMsgTpl.objects.filter(id=5, is_valid=True).first()
-
+        msg    = ''
         if msgtpl:
             money = '%.2f' % ordercarry.carry_num_display()
             nick = ordercarry.contributor_nick

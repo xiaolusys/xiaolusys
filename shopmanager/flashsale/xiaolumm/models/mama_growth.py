@@ -164,6 +164,9 @@ class MamaMissionRecord(BaseModel):
             self._group_finish_value_ = sum(group_records.values_list('finish_value', flat=True))
         return self._group_finish_value_
 
+    def gen_uni_key(self):
+        return '{0}-{1}-{2}'.format('weeklyaward' ,self.mama_id, self.id)
+
     def update_mission_value(self, finish_value):
         # TODO@meron 如果任务中订单金额退款，任务完成状态需要变更？
         self.finish_value = int(finish_value)
@@ -171,24 +174,36 @@ class MamaMissionRecord(BaseModel):
         if self.finish_value >= self.mission.target_value and self.is_staging():
             self.status = self.FINISHED
             self.finish_time = datetime.datetime.now()
-
+            self.save(update_fields=['finish_value', 'status', 'finish_time'])
+            # 妈妈邀请任务奖励已经单独发放, 该处值发放团队奖励, 妈妈销售奖励, 团队销售奖励
+            if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
+                    or self.mission.target == MamaMission.TARGET_GROUP:
+                from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
+                task_send_mama_weekly_award.delay(self.mama_id, self.id)
             # TODO@meron 消息通知妈妈任务完成
+        elif self.finish_value < self.mission.target_value and self.is_finished():
+            self.status = self.STAGING
+            self.finish_time = datetime.datetime.now()
+            self.save(update_fields=['finish_value', 'status', 'finish_time'])
+            if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
+                    or self.mission.target == MamaMission.TARGET_GROUP:
+                from flashsale.xiaolumm.tasks import task_cancel_mama_weekly_award
+                task_cancel_mama_weekly_award.delay(self.mama_id, self.id)
+
         elif cur_year_week > self.year_week and self.is_staging():
             self.status = self.CLOSE
             self.finish_time = None
-        self.save(update_fields=['finish_value', 'status', 'finish_time'])
-
-        # TODO@meron 如果已通过添加佣金奖励记录
+            self.save(update_fields=['finish_value', 'status', 'finish_time'])
 
 
 
 from flashsale.xiaolumm.signals import signal_xiaolumama_register_success
-from flashsale.pay.signals import signal_saletrade_pay_confirm
+from flashsale.pay.signals import signal_saletrade_pay_confirm, signal_saletrade_refund_confirm
 
 def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwargs):
     """ 妈妈注册成功更新推荐妈妈激励状态 """
     try:
-        logger.debug('mama_register_update_mission_record start: mama=%s, renew=%s'%(xiaolumama, renew))
+        logger.info('mama_register_update_mission_record start: mama=%s, renew=%s'%(xiaolumama, renew))
         from flashsale.xiaolumm.models import XiaoluMama, ReferalRelationship, PotentialMama, GroupRelationship
         parent_mama_ids = xiaolumama.get_parent_mama_ids()
         if not parent_mama_ids or renew:
@@ -220,7 +235,7 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
                 .aggregate(mama_count=Count('referal_to_mama_id')).get('mama_count')
             mission_record = base_missions.filter(
                 mission__target=MamaMission.TARGET_PERSONAL,
-                mission__cat_type=MamaMission.CAT_REFER_MAMA
+                mission__cat_type=MamaMission.CAT_REFER_MAMA,
             ).order_by('-status').first()
             if mission_record:
                 mission_record.update_mission_value(total_mama_count)
@@ -228,49 +243,52 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
         from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
         task_create_or_update_mama_mission_state.delay(parent_mama_id)
 
-        logger.debug('mama_register_update_mission_record end: %s' % xiaolumama)
+        logger.info('mama_register_update_mission_record end: %s' % xiaolumama)
     except Exception, exc:
         logger.error('mama_register_update_mission_record error: mama_id=%s, %s'%(xiaolumama.id ,exc), exc_info=True)
 
 signal_xiaolumama_register_success.connect(mama_register_update_mission_record,
                                            dispatch_uid='post_save_mama_register_update_mission_record')
 
+def _update_mama_salepayment_mission_record(sale_trade):
+    from flashsale.xiaolumm.models import XiaoluMama, OrderCarry, GroupRelationship
+    from flashsale.pay.models import SaleOrder
+
+    order_ids = SaleOrder.objects.filter(sale_trade=sale_trade).values_list('oid', flat=True)
+    week_start, week_end = week_range(sale_trade.pay_time.date())
+    year_week = sale_trade.pay_time.strftime('%Y-%W')
+    # 下属订单不计算到上级妈妈的订单销售
+    order_carrys = OrderCarry.objects.filter(order_id__in=order_ids).exclude(carry_type=OrderCarry.REFERAL_ORDER)
+    carry_first = order_carrys.first()
+    if not (carry_first and carry_first.mama_id):
+        return
+
+    mama_id = carry_first.mama_id
+    week_order_carrys = OrderCarry.objects.filter(
+        date_field__range=(week_start, week_end), mama_id=mama_id,
+        status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM))
+    week_order_payment = sum(week_order_carrys.values_list('order_value', flat=True))
+    base_missions = MamaMissionRecord.objects.filter(year_week=year_week, mama_id=mama_id)
+    # update all mission's finish_value of the week range
+    personal_records = base_missions.filter(
+        mission__cat_type__in=(MamaMission.CAT_SALE_MAMA, MamaMission.CAT_SALE_GROUP)
+    )
+    for record in personal_records:
+        record.update_mission_value(week_order_payment)
+
+    from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
+    task_create_or_update_mama_mission_state.delay(mama_id)
+
+
 
 def order_payment_update_mission_record(sender, obj, *args, **kwargs):
     """ 订单支付成功更新妈妈销售激励状态 """
     try:
-        logger.debug('order_payment_update_mission_record start: tid= %s' % obj.tid)
-        from flashsale.xiaolumm.models import XiaoluMama, OrderCarry, GroupRelationship
-        from flashsale.pay.models import SaleOrder
+        logger.info('order_payment_update_mission_record start: tid= %s' % obj.tid)
 
-        order_ids = SaleOrder.objects.filter(sale_trade=obj).values_list('oid', flat=True)
+        _update_mama_salepayment_mission_record(obj)
 
-        week_start, week_end = week_range(obj.pay_time.date())
-        year_week = obj.pay_time.strftime('%Y-%W')
-        # 下属订单不计算到上级妈妈的订单销售
-        order_carrys = OrderCarry.objects.filter(order_id__in=order_ids).exclude(carry_type=OrderCarry.REFERAL_ORDER)
-        carry_first = order_carrys.first()
-        if not (carry_first and carry_first.mama_id):
-            return
-
-        mama_id = carry_first.mama_id
-        week_order_carrys = OrderCarry.objects.filter(
-            date_field__range=(week_start, week_end), mama_id=mama_id,
-            status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM))
-        week_order_payment = sum(week_order_carrys.values_list('order_value', flat=True))
-
-        base_missions = MamaMissionRecord.objects.filter(year_week=year_week, mama_id=mama_id)
-        # update all mission's finish_value of the week range
-        personal_records = base_missions.filter(
-            mission__cat_type__in=(MamaMission.CAT_SALE_MAMA, MamaMission.CAT_SALE_GROUP)
-        )
-        for record in personal_records:
-            record.update_mission_value(week_order_payment)
-
-        from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
-        task_create_or_update_mama_mission_state.delay(mama_id)
-
-        logger.debug('order_payment_update_mission_record end: tid= %s' % obj.tid)
+        logger.info('order_payment_update_mission_record end: tid= %s' % obj.tid)
     except Exception, exc:
         logger.error('order_payment_update_mission_record error: tid=%s, %s' % (obj.tid, exc), exc_info=True)
 
@@ -279,5 +297,25 @@ signal_saletrade_pay_confirm.connect(order_payment_update_mission_record,
                                            dispatch_uid='post_save_order_payment_update_mission_record')
 
 
-# TODO@meron 团队妈妈邀请
+def refund_confirm_update_mission_record(sender, obj, *args, **kwargs):
+    """ 订单退款成功更新妈妈销售激励状态 """
+    print 'debug refund mission:', obj
+    try:
+        logger.info('order_payment_update_mission_record start: refund_id= %s' % obj.id)
+
+        from flashsale.pay.models import SaleTrade
+        sale_trade = SaleTrade.objects.get(id=obj.trade_id)
+
+        _update_mama_salepayment_mission_record(sale_trade)
+
+        logger.info('order_payment_update_mission_record end: refund_id= %s' % obj.id)
+    except Exception, exc:
+        logger.error('order_payment_update_mission_record error: refund_id=%s, %s' % (obj.id, exc), exc_info=True)
+
+# 退款更新妈妈销售任务及团队销售任务
+signal_saletrade_refund_confirm.connect(refund_confirm_update_mission_record,
+                                           dispatch_uid='post_save_refund_confirm_update_mission_record')
+
+
+# TODO@meron　团队妈妈邀请更新
 

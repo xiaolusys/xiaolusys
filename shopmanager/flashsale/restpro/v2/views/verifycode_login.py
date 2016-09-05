@@ -311,10 +311,10 @@ class PasswordLoginView(views.APIView):
         if not username or not password:
             return Response({"rcode": 1, "msg": u"用户名和密码不全呢！", 'next': ''})
 
-        customers = Customer.objects.filter(mobile=username).exclude(status=Customer.DELETE)
-        if customers.count() == 1:
+        customer = Customer.objects.filter(mobile=username).exclude(status=Customer.DELETE).first()
+        if customer:
             # 若是微信授权创建的账户，django user的username不是手机号。
-            username = customers[0].user.username
+            username = customer.user.username
 
         user = authenticate(username=username, password=password)
         if not user or user.is_anonymous():

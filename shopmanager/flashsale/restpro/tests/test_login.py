@@ -1,9 +1,10 @@
 from django.test import TestCase
 import json
-
+from flashsale.pay.models import Customer
 class AuthenticationTestCase(TestCase):
 
     fixtures = ['test.flashsale.customer.json']
+
     def setUp(self):
         self.username = '18621623915'
         self.password = 'test'

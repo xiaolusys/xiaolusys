@@ -1,5 +1,5 @@
 [
-  {
+{
   "fields": {
     "username": "xiaolu",
     "first_name": "",
@@ -20,18 +20,53 @@
 {
   "fields": {
     "status": 1,
-    "openid": "our5huIOSuFF5FdojFMFNP5HNOmA",
+    "openid": "",
     "created": "2015-04-09T11:08:12",
     "mobile": "18621623915",
     "unionid": "o29cQs4zgDoYxmSO3pH-x4A7O8Sk",
     "modified": "2016-04-20T11:49:55",
     "phone": "",
     "email": "",
-    "nick": "meron@\u5c0f\u9e7f\u7f8e\u7f8e",
+    "nick": "meron",
     "user": 1,
-    "thumbnail": "http://wx.qlogo.cn/mmopen/n24ek7Oc1iaXyxqzHobN7BicG5W1ljszSRWSdzaFeRkGGVwqjmQKTmicTylm8IkclpgDiaamWqZtiaTlcvLJ5z6x35wCKMWVbcYPU/0"
+    "thumbnail": ""
   },
   "model": "pay.customer",
   "pk": 1
+},
+{
+  "fields": {
+    "username": "administor",
+    "first_name": "",
+    "last_name": "",
+    "is_active": true,
+    "is_superuser": true,
+    "is_staff": false,
+    "last_login": "2016-04-26T15:06:11",
+    "groups": [],
+    "user_permissions": [],
+    "password": "pbkdf2_sha256$20000$agkhgYSPE93h$DbzdKuI2FHE+Ya0macEsKOqxRaioQrEb/gdSmQXl0ks=",
+    "email": "",
+    "date_joined": "2016-04-24T21:55:14"
+  },
+  "model": "auth.user",
+  "pk": 2
+},
+{
+  "fields": {
+    "status": 1,
+    "openid": "",
+    "created": "2015-04-09T11:08:12",
+    "mobile": "18621623915",
+    "unionid": "o29cQs9QlfWpL0v0ZV_b2nyTOM-4",
+    "modified": "2016-04-20T11:49:55",
+    "phone": "",
+    "email": "",
+    "nick": "zifei",
+    "user": 2,
+    "thumbnail": ""
+  },
+  "model": "pay.customer",
+  "pk": 2
 }
 ]

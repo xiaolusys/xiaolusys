@@ -181,17 +181,14 @@ def task_update_mamafortune_invite_trial_num(mama_id):
 
 
 @task(max_retries=3, default_retry_delay=6)
-def task_update_mamafortune_mama_level(mama_id):
+def task_update_mamafortune_mama_level(relationship):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     from flashsale.xiaolumm.models import XiaoluMama
+    from_mama_id = relationship.referal_from_grandma_id
     
-    records = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id, referal_type__gt=XiaoluMama.HALF)
-    invite_num = records.count()
-
-    groups = GroupRelationship.objects.filter(leader_mama_id=mama_id)
-    group_num = groups.count()
-
-    total = invite_num + group_num
+    invite_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
+    group_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
+    total = invite_num + group_num + 1
 
     level = 0
     if invite_num >= 15 or total >= 50:
@@ -203,16 +200,16 @@ def task_update_mamafortune_mama_level(mama_id):
     if total >= 1000:
         level = 4
 
-    mama = MamaFortune.objects.filter(mama_id=mama_id).first()
+    mama = MamaFortune.objects.filter(mama_id=from_mama_id).first()
     if mama:
         if mama.mama_level != level:
             mama.mama_level = level
             update_model_fields(mama, update_fields=['mama_level'])
     else:
         try:
-            create_mamafortune_with_integrity(mama_id, mama_level=level)
+            create_mamafortune_with_integrity(from_mama_id, mama_level=level)
         except IntegrityError as exc:
-            logger.warn("IntegrityError - MamaFortune mamalevel | mama_id: %s" % (mama_id))
+            logger.warn("IntegrityError - MamaFortune mamalevel | mama_id: %s" % (from_mama_id))
             raise task_update_mamafortune_mama_level.retry(exc=exc)
 
 

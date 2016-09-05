@@ -19,9 +19,10 @@ class WeixinPush(object):
 
     def __init__(self):
         self.mm_api = WeiXinAPI()
-        self.mm_api.setAccountId(appKey=settings.WXPAY_APPID)
-        self.temai_api = WeiXinAPI()
-        self.temai_api.setAccountId(appKey=settings.WEIXIN_APPID)
+        if settings.PUSH_SWITCH:
+            self.mm_api.setAccountId(appKey=settings.WXPAY_APPID)
+            self.temai_api = WeiXinAPI()
+            self.temai_api.setAccountId(appKey=settings.WEIXIN_APPID)
 
     def need_sms_push(self, customer):
         """

@@ -1,6 +1,7 @@
 # encoding=utf8
 import logging
 from django.db.models import F
+from django.conf import settings
 from shopapp.smsmgr.models import (
     SMSPlatform,
     SMSActivity,
@@ -19,11 +20,16 @@ logger = logging.getLogger('service')
 class SMSPush(object):
 
     def __init__(self):
+        if not settings.PUSH_SWITCH:
+            return
         self.platform = SMSPlatform.objects.filter(is_default=True) \
                                            .order_by('-id').first()
         self.manager = dict(SMS_CODE_MANAGER_TUPLE).get(self.platform.code, None)()
 
     def push(self, to_mobile, content, sms_notify_type):
+        if not settings.PUSH_SWITCH:
+            return
+
         task_name = dict(choice_sms_notify_type()).get(sms_notify_type, None)
         params = {
             'content': content,

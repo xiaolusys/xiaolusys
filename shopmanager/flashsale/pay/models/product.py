@@ -351,12 +351,14 @@ class ModelProduct(BaseTagModel):
             for key in ('material', 'color', 'wash_instructions', 'note'):
                 prop_value_dict[key] = getattr(detail, key)
 
-        attrs = sorted(prop_value_dict.items(), key=lambda x: PROPERTY_KEYMAP.get(x[0], 100))
-        PROPERTY_NAME_DICT = dict(PROPERTY_NAMES)
-        attr_dict = [{'name': PROPERTY_NAME_DICT.get(key), 'value': value} for key, value in attrs
-                     if value.strip() and PROPERTY_NAME_DICT.get(key)]
-
-        return attr_dict
+        if isinstance(model_properties, dict):
+            attrs = sorted(prop_value_dict.items(), key=lambda x: PROPERTY_KEYMAP.get(x[0], 100))
+            PROPERTY_NAME_DICT = dict(PROPERTY_NAMES)
+            attr_dict = [{'name': PROPERTY_NAME_DICT.get(key), 'value': value} for key, value in attrs
+                         if value.strip() and PROPERTY_NAME_DICT.get(key)]
+            return attr_dict
+        if isinstance(model_properties, list):
+            return model_properties
 
     @property
     def products(self):

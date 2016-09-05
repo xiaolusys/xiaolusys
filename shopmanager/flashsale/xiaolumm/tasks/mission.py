@@ -3,6 +3,7 @@ import datetime
 
 from celery.task import task
 from django.db import IntegrityError
+from flashsale.xiaolumm.models import AwardCarry
 
 from flashsale.xiaolumm.models import XiaoluMama, GroupRelationship, MamaMission, MamaMissionRecord
 
@@ -129,3 +130,53 @@ def task_update_all_mama_mission_state():
        task_create_or_update_mama_mission_state.delay(xiaolumm.id)
 
 
+@task(max_retries=3, default_retry_delay=5)
+def task_send_mama_weekly_award(mama_id, mission_record_id):
+    """ 发放妈妈周激励奖励 """
+    # TODO@meron 需要个时间将提成确认
+    try:
+        xiaolumm = XiaoluMama.objects.filter(id=mama_id).first()
+        mama_mission = MamaMissionRecord.objects.filter(
+            id=mission_record_id, mama_id=mama_id).first()
+        base_mission = mama_mission.mission
+        award_name = u'%s(%s)奖励'%(base_mission.name, mama_mission.year_week)
+
+        group_record_finish_value_list = MamaMissionRecord.objects.filter(
+            mission=base_mission,
+            year_week=mama_mission.year_week,
+            group_leader_mama_id=mama_mission.group_leader_mama_id)\
+            .exclude(status=MamaMissionRecord.STAGING).values_list('finish_value', flat=True)
+        total_group_finish_value = sum(group_record_finish_value_list)
+        if base_mission.target == MamaMission.TARGET_GROUP:
+            award_amount = round((mama_mission.finish_value * 0.01 / total_group_finish_value) * base_mission.award_amount)
+        else:
+            award_amount = base_mission.award_amount * 0.01
+
+        uni_key = mama_mission.gen_uni_key()
+        AwardCarry.send_award(xiaolumm, award_amount,
+                              xiaolumm.weikefu, award_name,
+                              uni_key, AwardCarry.STAGING,
+                              AwardCarry.AWARD_MAMA_SALE)
+    except Exception, exc:
+        raise task_send_mama_weekly_award.retry(exc=exc)
+
+
+@task(max_retries=3, default_retry_delay=5)
+def task_cancel_mama_weekly_award(mama_id, mission_record_id):
+    """ 取消周激励提成 """
+    try:
+        mama_mission = MamaMissionRecord.objects.filter(
+            id=mission_record_id, mama_id=mama_id).first()
+
+        uni_key = mama_mission.gen_uni_key()
+        award_carry = AwardCarry.objects.filter(uni_key= uni_key).first()
+        award_carry.cancel_award()
+
+    except Exception, exc:
+        raise task_cancel_mama_weekly_award.retry(exc=exc)
+
+
+@task(max_retries=3, default_retry_delay=5)
+def task_push_mission_state_msg_to_weixin_user():
+
+    pass

@@ -30,6 +30,16 @@ def task_update_referal_relationship(sale_order):
     customer_id = sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
 
+    referal_type = XiaoluMama.SCAN
+    if sale_order.is_1_deposit():
+        referal_type = XiaoluMama.TRIAL
+    elif sale_order.is_99_deposit():
+        referal_type = XiaoluMama.HALF
+    elif sale_order.is_188_deposit():
+        referal_type = XiaoluMama.FULL
+    else:
+        return
+    
     mama = XiaoluMama.objects.filter(openid=customer.unionid).first()
     if not mama:  # 当前订单用户不是代理　则不做处理
         return
@@ -69,10 +79,29 @@ def task_update_referal_relationship(sale_order):
 
     record = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id).first()
     if record:
-        if record.referal_type == XiaoluMama.HALF and record.order_id != sale_order.oid:
-            record.referal_type = XiaoluMama.FULL
-            record.order_id = sale_order.oid
-            record.save(update_fields=['referal_type', 'order_id', 'modified'])
+        update_fields = []
+        if record.referal_type < referal_type:
+            record.referal_type = referal_type
+            update_fields.append('referal_type')
+            
+            # only when we upgrade referal_type, we update oid.
+            if record.order_id != sale_order.oid:
+                record.order_id = sale_order.oid
+                update_fields.append('oid')
+            if record.referal_from_mama_id != mm_linkid:
+                record.referal_from_mama_id = mm_linkid
+                update_fields.append('referal_from_mama_id')
+
+                referal_from_grandma_id = 0
+                parentship = ReferalRelationship.objects.filter(referal_to_mama_id=mm_linkid).first()
+                if parentship:
+                    referal_from_grandma_id = parentship.referal_from_mama_id
+               
+                if record.referal_from_grandma_id != referal_from_grandma_id:
+                    record.referal_from_grandma_id = referal_from_grandma_id
+                    update_fields.append('referal_from_grandma_id')
+                    
+            record.save(update_fields=update_fields)
         return
     parentship = ReferalRelationship.objects.filter(referal_to_mama_id=mm_linkid).first()
     record = ReferalRelationship(referal_from_grandma_id=parentship.referal_from_mama_id if parentship else 0,
