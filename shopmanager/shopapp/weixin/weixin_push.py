@@ -247,20 +247,21 @@ class WeixinPush(object):
     def push_mama_ordercarry(self, ordercarry, to_url):
         """
         {{first.DATA}}
-        收益金额：{{keyword1.DATA}}
-        收益来源：{{keyword2.DATA}}
-        到账时间：{{keyword3.DATA}}
+
+        提交时间：{{tradeDateTime.DATA}}
+        订单类型：{{orderType.DATA}}
+        客户信息：{{customerInfo.DATA}}
+        {{orderItemName.DATA}}：{{orderItemData.DATA}}
         {{remark.DATA}}
         """
-
         # CARRY_TYPES = ((1, u'微商城订单'), (2, u'App订单额外+10%'), (3, u'下属订单+20%'),)
-        description = ""
+        order_type = ""
         if ordercarry.carry_type == 1:
-            description = u'微商城订单'
+            order_type = u'微商城订单'
         if ordercarry.carry_type == 2:
-            description = u'App订单（佣金更高哦！）'
+            order_type = u'App订单（佣金更高哦！）'
         if ordercarry.carry_type == 3:
-            description = u'下属订单'
+            order_type = u'下属订单'
 
         customer = utils.get_mama_customer(ordercarry.mama_id)
 
@@ -271,8 +272,8 @@ class WeixinPush(object):
             return
 
         template_ids = {
-            'meimei': 'jorNMI-K3ewxBXHTgTKpePCF6yn5O5oLZK6azNNoWK4',
-            'temai': 'AnAQcK0rgPYLdqi8HM4_MIjcXyhfOyMDrkLChV6aXrQ'
+            'meimei': 'eBAuTQQxeGw9NFmheYd8Fc5X7CQbMKpfUSmqxnJOyEc',
+            'temai': 'IDXvfqC9j_Y1NhVmtRdBcc6W7MNTNCiLdGTrikgdHoJ3E'
         }
         template = WeixinTplMsg.objects.filter(wx_template_id__in=template_ids.values(), status=True).first()
 
@@ -284,25 +285,34 @@ class WeixinPush(object):
                 'value': template.header.decode('string_escape'),
                 'color': '#F87217',
             },
-            'keyword1': {
-                'value': u'¥%.2f' % ordercarry.carry_num_display(),
+            'tradeDateTime': {
+                'value': u'¥%.2f' % ordercarry.created.strftime('%Y-%m-%d %H:%M:%S'),
+                'color': '#000000',
+            },
+            'orderType': {
+                'value': order_type,
+                'color': '#000000',
+            },
+            'customerInfo': {
+                'value': ordercarry.contributor_nick,
+                'color': '#000000',
+            },
+            'orderItemName':{
+                'value': u'订单佣金',
+                'color': '#F87217',
+            },
+            'orderItemData':{
+                'value': '¥%.2f' % ordercarry.carry_num_display(),
                 'color': '#ff0000',
             },
-            'keyword2': {
-                'value': description,
-                'color': '#000000',
-            },
-            'keyword3': {
-                'value': u'%s (订单时间)' % ordercarry.created,
-                'color': '#000000',
-            },
             'remark': {
-                'value': template.footer.format(ordercarry.contributor_nick).decode('string_escape'),
+                'value': template.footer.decode('string_escape'),
                 'color': '#F87217',
             },
         }
 
         return self.push(customer, template_ids, template_data, to_url)
+
 
     def push_mama_update_app(self, mama_id, user_version, latest_version, to_url, device=''):
         """

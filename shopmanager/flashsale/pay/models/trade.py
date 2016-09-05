@@ -289,7 +289,7 @@ class SaleTrade(BaseModel):
 
     def is_payable(self):
         now = datetime.datetime.now()
-        return self.status == self.WAIT_BUYER_PAY and (now - self.created).seconds < TIME_FOR_PAYMENT
+        return self.status == self.WAIT_BUYER_PAY and abs(now - self.created).seconds < TIME_FOR_PAYMENT
 
     def is_closed(self):
         return self.status == self.TRADE_CLOSED_BY_SYS
