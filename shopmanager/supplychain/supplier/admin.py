@@ -995,8 +995,10 @@ class PreferencePoolAdmin(admin.ModelAdmin):
         'name',
         'unit',
         'categorys',
+        'is_sku',
         'preference_value',
         'created')
     search_fields = ['name', ]
+    list_filter = ['is_sku']
 
 admin.site.register(PreferencePool, PreferencePoolAdmin)

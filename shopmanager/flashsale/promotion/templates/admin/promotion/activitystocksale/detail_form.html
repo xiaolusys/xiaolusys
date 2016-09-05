@@ -38,13 +38,8 @@
 {% if change %}{% if not is_popup %}
   <ul class="object-tools">
     {% block object-tools-items %}
-      {%if not original.activity%}
-        <li>
-            <button id="btn_gen_activity_entry">生成排期</button>
-        </li>
-      {%endif%}
     <li>
-        <a href="/admin/promotion/activitystocksale/10/change" class="historylink">修改</a>
+        <a href="/admin/promotion/activitystocksale/{{original.id}}/change" class="historylink">修改</a>
     </li>
     <li>
         {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
@@ -86,6 +81,18 @@
             <label class="col-md-2">
                 <a href="/console/#/schedule/products?id={{original.product_manage_id}}/">{{original.product_manage.sale_time|date:'Y-m-d'}}</a>
             </label>
+            <label class="col-md-1">状态</label>
+            <label class="col-md-2">{{original.get_status_display}}</label>
+            {%if original.status == 2%}
+            <button id="btn_gen_activity_entry">生成排期</button>
+            {%endif%}
+            {%if original.status == 3%}
+            <button id="btn_finish_activity_entry">完成</button>
+            {%endif%}
+            {%if original.can_delete%}
+            <button id="btn_delete_activity_entry">删除</button>
+            {%endif%}
+
         </div>
         <div class="row">
             <label class="col-md-1">批次号</label><label class="col-md-2">{{original.batch}}</label>
@@ -106,14 +113,14 @@
             活动商品详情:
     </div>
     <div class="panel-body">
-            {%if has_perm_package%}
-            <button class="batch_btn_confirm_stock">确认库存</button>
-            {%endif%}
             {%if has_perm_product%}
-            <button class="batch_btn_stop_sale" value="">下次出售</button>
             <button class="batch_btn_confirm_sale">确认出售</button>
             <button class="batch_btn_stop_sale">不出售</button>
+            <button class="batch_btn_wait_sale" value="">下次出售</button>
             <button class="batch_btn_add_sale_product">新增商品</button>
+            {%endif%}
+            {%if has_perm_package%}
+            <button class="batch_btn_confirm_stock">确认库存</button>
             {%endif%}
         <table class="table" id="detail_table">
             <thead>
@@ -147,6 +154,7 @@
                 <td>{{stock_sale.get_status_display}}</td>
                 <td>{{stock_sale.get_stock_safe_display}}</td>
                 <td>
+                    {%if original.status == 0%}
                     {%if has_perm_product%}
                     {%if stock_sale.status == 0%}
                     <button data-saleid="{{stock_sale.id}}" class="btn_confirm_sale">确认出售</button>
@@ -158,7 +166,8 @@
                     <button data-saleid="{{stock_sale.id}}" class="btn_wait_sale">后续专题再出售</button>
                     {%endif%}
                     {%endif%}
-                    {%if has_perm_package%}
+                    {%endif%}
+                    {%if original.status == 1%}
                     {%if stock_sale.stock_safe == 0%}
                     <button data-saleid="{{stock_sale.id}}" class="btn_confirm_stock">确认库存</button>
                     {%endif%}
@@ -182,8 +191,8 @@
         var dtable = $('#detail_table').dataTable({
             "bAutoWidth": false,
             "aaSorting": [[2, "desc"]],
-            "iDisplayLength": 30,
-            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            "iDisplayLength": 60,
+            "aLengthMenu": [[20, 60, -1], [20, 60, "All"]],
 
             "oLanguage": {
                 "sLengthMenu": "_MENU_ 条",
@@ -216,7 +225,6 @@
             window.location.reload();
         };
         function failed(res){
-            alert("aaaaaaaaaaaaaaa")
             alert(res.info)
         }
         function get_selected_ids(){
@@ -282,7 +290,36 @@
         });
         // /sale/promotion/promotion/stocksale/{{original.id}}/gen_activity_entry
         $('#btn_gen_activity_entry').click(function(e){
-            /sale/promotion/promotion/stocksale/{{original.id}}/gen_activity_entry
+            var url = "/sale/promotion/promotion/stocksale/{{original.id}}/gen_activity_entry";
+            var data = {};
+            $.ajax({"url": url, "data": data, "type": "get",
+                    "success": function(){window.location='/admin/promotion/activitystocksale/'},
+                    "error": function(res){
+                            alert(res.responseText);
+                        }
+                    });
+        });
+        $('#btn_finish_activity_entry').click(function(e){
+            var url = "/sale/promotion/promotion/stocksale/{{original.id}}/update_activity_status";
+            var data = {'status':4};
+            $.ajax({"url": url, "data": data, "type": "post",
+                    "success": function(){window.location='/admin/promotion/activitystocksale/'},
+                    "error": function(res){
+                            alert(res.responseText);
+                        }
+                    });
+        });
+        $('#btn_delete_activity_entry').click(function(e){
+            var url = "/sale/promotion/promotion/stocksale/{{original.id}}/update_activity_status";
+            var data = {'status':5};
+            $.ajax({"url": url, "data": data, "type": "post",
+                "success": function(){
+                    window.location='/admin/promotion/activitystocksale/'
+                },
+                "error": function(res){
+                        alert(res.responseText);
+                    }
+                });
         });
     });
 </script>

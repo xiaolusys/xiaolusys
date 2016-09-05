@@ -164,6 +164,17 @@ class SaleCategory(BaseModel):
             cache.set(cls.CACHE_KEY, cache_value, cls.CACHE_TIME)
         return cache_value
 
+    def get_product_category(self):
+        """ 产品类别map """
+        from shopback.categorys.models import ProductCategory
+        pcs = ProductCategory.objects.filter(status=ProductCategory.NORMAL)
+        pcs_full_names = [{pc.cid: [i.strip() for i in pc.__unicode__().split('/')[-2:] if i.strip() != u'小鹿美美']} for pc in pcs]
+        self_names = [x.strip() for x in self.full_name.split('/')]
+        for pcnames in pcs_full_names:
+            if self_names == pcnames.values()[0]:
+                return pcs.filter(cid=pcnames.keys()[0]).first()
+
+
 def invalid_salecategory_data_cache(sender, instance, created, **kwargs):
     logger.info('salecategory: invalid cachekey %s'% SaleCategory.CACHE_KEY)
     cache.delete(SaleCategory.CACHE_KEY)

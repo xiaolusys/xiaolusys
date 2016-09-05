@@ -13,6 +13,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import renderers
 from rest_framework.response import Response
+from rest_framework import filters
 
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ModelProduct, Productdetail
@@ -21,7 +22,7 @@ from flashsale.pay.signals import signal_record_supplier_models
 from shopback.categorys.models import ProductCategory
 from shopback.items import constants
 from shopback.items.models import (Product, ProductSku, ProductSkuStats)
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory
 from shopback.items import serializers
 
 logger = logging.getLogger(__name__)
@@ -279,12 +280,43 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({'code': 0, 'info': u'创建成功', 'modelproduct_id': model_pro.id})
 
 
+class ModelProductFilter(filters.FilterSet):
+
+    class Meta:
+        model = ModelProduct
+        fields = ['id', 'status', 'saleproduct', 'shelf_status', 'is_onsale', 'is_teambuy']
+
+
 class ProductManageV2ViewSet(viewsets.ModelViewSet):
+    """
+    ### 款式及产品接口
+    - [/apis/items/v2/product](/apis/items/v2/product)
+        * method: POST  新增款式
+            1. args:
+               `name` : 款式名称   例如： "这是件羊毛衫"
+               `head_imgs` : 款式头图  例如： "https://cbu01.alicdn.com/img/ibank/2016/741/035/2956530147_1742364862.400x400.jpg"
+               `saleproduct_id` : 选品id 例如： 537161
+               `is_teambuy` : 是否团购 例如： true
+               `teambuy_price` : 团购价格  例如： 23.3
+               `teambuy_person_num` : 团购人数 默认为3
+               `status` : 使用状态 (正常: "normal" /作废: "delete")
+               `properties`:[
+                                {"name": "材质", "value": "牛皮"},
+                                {"name": "洗涤说明", "value": "温水擦拭"},
+                                {"name": "产品备注", "value": "10岁以上穿着"}
+                            ]
+        * method: GET 款式列表
+    -------
+    - [/apis/items/v2/product/**model_id**/create_model_product](/apis/items/v2/product/11872/create_model_product)
+        * method: POST  给款式添加sku产品
+            1. args:
+                `cid`: 产品所属类别cid
+    """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers.ModelProductSerializer
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    filter_class = ModelProductFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -294,23 +326,6 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-    @list_route(methods=['get'])
-    def add_item_page(self, request, *args, **kwargs):
-        data = request.GET
-        supplier_id = data.get('supplier_id') or 0
-        saleproduct_id = data.get('saleproduct_id') or 0
-        page = data.get('category') or 0
-        page_map = {
-            1: 'items/add_item_health.html',
-            2: 'items/add_item_bags.html',
-            3: 'items/add_item_muying.html',
-            4: 'items/add_item_homehold.html',
-        }
-        return Response({
-            "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
-            "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-        }, template_name=page_map[page])
 
     def get_inner_outer_id(self, supplier, category_item):
         category_maps = {
@@ -348,21 +363,20 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException(u'Method Not Allowed!')
 
     def get_request_extras(self, request, model_product=None):
+        """ 更新款式额外属性 """
         content = request.data
         extras = default_modelproduct_extras_tpl()  # 可选颜色 材质 备注 洗涤说明
         if model_product:
             extras = model_product.extras
-        extras.setdefault('properties', {})
+        extras.setdefault('properties', [])
         properties = extras.get('properties')
-        material = content.get("material") or ''  # 材质
-        note = content.get('note') or ''  # 备注
-        wash_instroduce = content.get('wash_instroduce') or ''  # 洗涤说明
-        if material.strip():
-            properties.update({'material': material})
-        if note.strip():
-            properties.update({'note': note})
-        if wash_instroduce.strip():
-            properties.update({'wash_instroduce': wash_instroduce})
+        model_properties = content.get('properties') or None
+        if isinstance(model_properties, list):
+            model_properties_d = dict([(tt['name'], tt['value']) for tt in model_properties])
+            old_properties_d = dict([(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
+            old_properties_d.update(model_properties_d)
+            properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
+        extras.update({'properties': properties})
         return extras
 
     def create(self, request, *args, **kwargs):
@@ -375,7 +389,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         extras = self.get_request_extras(request)
         request.data.update({'extras': extras})
         request.data.update({'saleproduct': saleproduct.id})
-        request.data.update({'salecategory_id': saleproduct.sale_category.id})
+        request.data.update({'salecategory': saleproduct.sale_category.id})
 
         serializer = serializers.ModelProductUpdateSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -390,17 +404,17 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         creator = request.user
         model_pro = get_object_or_404(ModelProduct, id=model_id)
         saleproduct = model_pro.saleproduct
-        cid = content.get("cid") or 0
-        category_item = ProductCategory.objects.filter(cid=cid).first()
         if not saleproduct:
             raise exceptions.APIException(u"选品错误!")
-        if not category_item:
-            raise exceptions.APIException(u"库存类目错误!")
+        sale_category = saleproduct.sale_category
+        if not sale_category:
+            raise exceptions.APIException(u"类目错误!")
         supplier = saleproduct.sale_supplier
-        inner_outer_id = self.get_inner_outer_id(supplier, category_item)
-
+        product_category = sale_category.get_product_category()  # 获取选品类别对应的产品类别
+        inner_outer_id = self.get_inner_outer_id(supplier, product_category)
         skus = content['skus']
         colors = [x['color'] for x in skus]
+        colors = set(colors)
 
         product_instances = []
         pro_count = 1
@@ -408,13 +422,13 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             for color in colors:
                 if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                     pro_count += 1
-                request.data.update({'name': model_pro.name + "/" + color['name']})
-                request.data.update({'pic_path': content['head_img']})
+                request.data.update({'name': model_pro.name + "/" + color})
+                request.data.update({'pic_path': content['pic_path']})
 
                 request.data.update({'outer_id': inner_outer_id + str(pro_count)})
                 request.data.update({'model_id': model_pro.id})
                 request.data.update({'sale_charger': creator.username})
-                request.data.update({'category': category_item})
+                request.data.update({'category': product_category.cid})
                 request.data.update({'ware_by': supplier.ware_by})
                 request.data.update({'sale_product': saleproduct.id})
 
@@ -427,17 +441,21 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                 product_instances.append(product_instance)
                 log_action(creator.id, product_instance, ADDITION, u'创建一个产品')
 
-                count = 1
+                color_skus = []
                 for sku in skus:
+                    if sku['color'] == color:
+                        color_skus.append(sku)
+                count = 1
+                for color_sku in color_skus:
                     barcode = '%s%d' % (product_instance.outer_id, count)
                     ProductSku(outer_id=barcode,
                                product=product_instance,
-                               remain_num=sku['remain_num'],
-                               cost=sku['cost'],
-                               std_sale_price=sku['std_sale_price'],
-                               agent_price=sku['agent_price'],
-                               properties_name=sku['name'],
-                               properties_alias=sku['name'],
+                               remain_num=color_sku['remain_num'],
+                               cost=color_sku['cost'],
+                               std_sale_price=color_sku['std_sale_price'],
+                               agent_price=color_sku['agent_price'],
+                               properties_name=color_sku['properties_name'],
+                               properties_alias=color_sku['properties_alias'],
                                barcode=barcode).save()
                     count += 1
                     product_instance.set_remain_num()  # 有效sku预留数之和

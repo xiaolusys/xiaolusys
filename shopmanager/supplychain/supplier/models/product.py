@@ -205,6 +205,7 @@ class CategoryPreference(BaseModel):
 class PreferencePool(BaseModel):
     name = models.CharField(max_length=64, verbose_name=u'参数名称')
     unit = models.CharField(max_length=32, blank=True, verbose_name=u'单位')
+    is_sku = models.BooleanField(default=False, verbose_name=u'是否是sku属性')
     categorys = JSONCharMyField(max_length=512, default=[], verbose_name=u'包含类别', help_text=u'哪些类别(保存id列表)包含本参数')
     preference_value = JSONCharMyField(max_length=10240, default=[], verbose_name=u"参数值")
 
