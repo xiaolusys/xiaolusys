@@ -13,7 +13,7 @@ class TeamBuySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamBuy
-        fields = ('id', 'sku', 'product_info', 'limit_time', 'limit_days', 'status', 'detail_info')
+        fields = ('id', 'sku', 'product_info', 'limit_time', 'limit_days', 'status', 'detail_info', 'limit_person_num')
 
     def get_detail_info(self, obj):
         res = []
@@ -25,7 +25,8 @@ class TeamBuySerializer(serializers.ModelSerializer):
                 'customer_nick': detail.customer.nick,
                 'customer_thumbnail': detail.customer.thumbnail,
                 'join_time': detail.created,
-                'info': u'发起团购' if detail.originizer else u'加入团购',
+                # 'info': u'发起团购' if detail.originizer else u'加入团购',
+                'originizer': detail.originizer
             }
             res.append(item)
         return res
@@ -34,11 +35,14 @@ class TeamBuySerializer(serializers.ModelSerializer):
         product = obj.sku.product
         model_product = product.get_product_model()
         res = {
-            'price': model_product.teambuy_price,
+            'team_price': model_product.teambuy_price,
+            'agent_price': product.agent_price,
             "head_imgs": [product.pic_path],
             "name": product.name,
+            "desc": model_product.extras.get('properties', {}).get('note', ''),
+            "model_id": model_product.id,
             "item_marks": [
-                "包邮"
+                u"包邮"
             ]
         }
         return res

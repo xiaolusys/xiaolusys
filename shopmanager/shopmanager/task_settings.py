@@ -1391,6 +1391,13 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'每五分钟重设团购状态': {
+        'task': 'flashsale.pay.tasks.task_schedule_check_teambuy',
+        'schedule': crontab(minute="*/5"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+
+    }
 
 }
 

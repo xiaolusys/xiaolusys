@@ -219,7 +219,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                 carry_type=CarryLog.CARRY_OUT)
         #确认付款后保存
         confirmTradeChargeTask.delay(strade_id)
-        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
+        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功', 'from_page': 'order_commit'}
 
     def budget_charge(self, sale_trade, check_coupon=True, **kwargs):
         """ 小鹿钱包支付实现 """
@@ -244,11 +244,18 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                     status=BudgetLog.CONFIRMED)
 
         #确认付款后保存
-        confirmTradeChargeTask.delay(strade_id)
-        success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+        if sale_trade.order_type == 3:
+            confirmTradeChargeTask(strade_id)
+        else:
+            confirmTradeChargeTask.delay(strade_id)
+        if sale_trade.order_type == 3:
+            success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
+        else:
+            success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid) + '?from_page=order_commit'
         return {'channel':channel,'success':True,'id':sale_trade.id,
                 'info':'订单支付成功', 'order_no':sale_trade.tid,
-                'success_url': success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL}
+                'success_url': success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL,
+                'type': sale_trade.order_type}
 
     def pingpp_charge(self, sale_trade, check_coupon=True, **kwargs):
         """ pingpp支付实现 """
@@ -261,7 +268,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         order_no      = sale_trade.tid
         buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
-        order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+        if sale_trade.order_type == 3:
+            order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
+        else:
+            order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid) + '?from_page=order_commit'
         payback_url = urlparse.urljoin(settings.M_SITE_URL, order_success_url)
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)
         if sale_trade.has_budget_paid:
@@ -318,7 +328,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sale_trade = SaleTrade(tid=tuuid, buyer_id=customer.id)
         # assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
         channel = form.get('channel')
-        order_type = int(form.get('order_type', 0))
+        cart_ids = [i for i in form.get('cart_ids','').split(',') if i.isdigit()]
+        cart_qs = ShoppingCart.objects.filter(
+            id__in=cart_ids,
+            buyer_id=customer.id
+        )
+        order_type = 0
+        if cart_qs.count() == 1 and cart_qs[0].type == ShoppingCart.TEAMBUY:
+            order_type = 3
         params = {
             'channel':channel,
             'receiver_name':address.receiver_name,
@@ -333,7 +350,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'order_type':order_type
             }
         if order_type == SaleTrade.TEAMBUY_ORDER:
-            teambuy = TeamBuy.objects.filter(id=form.get('teambuy_id')).first()
+            try:
+                teambuy = TeamBuy.objects.filter(id=form.get('teambuy_id')).first()
+            except:
+                teambuy = None
 
         buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
         buyer_openid = buyer_openid or customer.openid
@@ -600,7 +620,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({'code':6, 'info':str(exc) or u'未知支付异常'})
 
         return Response({'code':0, 'info':u'支付请求成功', 'channel':channel,
-                         'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel},
+                         'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel, 'type': sale_trade.order_type},
                          'charge':response_charge})
 
 

@@ -44,7 +44,11 @@ class ShoppingCart(BaseModel):
 
     status = models.IntegerField(choices=STATUS_CHOICE, default=NORMAL,
                                  db_index=True, blank=True, verbose_name=u'订单状态')
-
+    TEAMBUY = 3
+    SECONDBUY = 4
+    TYPE_CHOICES = ((0, u'特卖订单'), (TEAMBUY, u'团购订单'), (SECONDBUY, u'秒杀订单'))
+    type = models.IntegerField(choices=TYPE_CHOICES, default=0)
+    
     class Meta:
         db_table = 'flashsale_shoppingcart'
         index_together = [('buyer_id', 'item_id', 'sku_id')]
@@ -113,7 +117,7 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
     from .trade import SaleTrade
     sysoa_user = get_systemoa_user()
     for pro_bean in product_list:
-        all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL)
+        all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL, type=0)
         for cart in all_cart:
             cart.close_cart()
             log_action(sysoa_user.id, cart, CHANGE, u'下架后更新')

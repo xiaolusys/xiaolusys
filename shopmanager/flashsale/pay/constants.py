@@ -47,6 +47,8 @@ ORDER_SIGNED_TO_FINISHED_DAYS = 7
 MALL_LOGIN_URL = '/mall/user/login'
 
 MALL_PAY_SUCCESS_URL = '/mall/order/success/{order_id}/{order_tid}'
+#TEAMBUY_SUCCESS_URL = '/mall/order/spell/group/progress/{teambuy_id}/{order_tid}'
+TEAMBUY_SUCCESS_URL = '/mall/order/spell/group/{order_tid}'
 # MALL_PAY_SUCCESS_URL = '/mall/ol.html?type=2'
 MALL_PAY_CANCEL_URL = '/mall/ol.html?type=1'
 
