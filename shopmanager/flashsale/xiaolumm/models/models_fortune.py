@@ -1032,22 +1032,22 @@ post_save.connect(update_mamafortune_mama_level,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_mama_level')
 
 
-def update_group_relationship(sender, instance, created, **kwargs):
-    if not created:
-        return
-
-    if not instance.is_confirmed():
-        return
-
-    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_group_relationship
-    records = ReferalRelationship.objects.filter(referal_to_mama_id=instance.referal_from_mama_id)
-    if records.count() > 0:
-        record = records[0]
-        task_update_group_relationship.delay(record.referal_from_mama_id, instance)
-
-
-post_save.connect(update_group_relationship,
-                  sender=ReferalRelationship, dispatch_uid='post_save_update_group_relationship')
+#def update_group_relationship(sender, instance, created, **kwargs):
+#    if not created:
+#        return
+#
+#    if not instance.is_confirmed():
+#        return
+#
+#    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_group_relationship
+#    records = ReferalRelationship.objects.filter(referal_to_mama_id=instance.referal_from_mama_id)
+#    if records.count() > 0:
+#        record = records[0]
+#        task_update_group_relationship.delay(record.referal_from_mama_id, instance)
+#
+#
+#post_save.connect(update_group_relationship,
+#                  sender=ReferalRelationship, dispatch_uid='post_save_update_group_relationship')
 
 
 def referal_update_activevalue(sender, instance, created, **kwargs):
