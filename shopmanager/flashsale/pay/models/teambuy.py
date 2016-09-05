@@ -1,15 +1,17 @@
 # -*- coding:utf-8 -*-
 import datetime
+import urlparse
 from django.db import models
-from core.models import AdminModel
+from core.models import AdminModel, BaseModel
 from flashsale.pay.models import Customer, ModelProduct, SaleOrder, SaleTrade
 from shopback.items.models import ProductSku, Product
 from django.db.models.signals import post_save, pre_save
+from django.conf import settings
 
 
 class TeamBuy(AdminModel):
     sku = models.ForeignKey(ProductSku)
-    share_xlmm_id = models.IntegerField(default=None, verbose_name=u'分享的妈妈')
+    share_xlmm_id = models.IntegerField(default=None, null=True, verbose_name=u'分享的妈妈')
     # model_product = models.ForeignKey(ModelProduct)
     limit_time = models.DateTimeField(db_index=True, verbose_name=u"最迟成团时间")
     limit_days = models.IntegerField(default=3, verbose_name=u'限制天数')
@@ -42,10 +44,16 @@ class TeamBuy(AdminModel):
                 limit_person_num=limit_person_num,
             )
             teambuy.limit_time = datetime.datetime.now() + datetime.timedelta(days=3)
+            buyer_id = saletrade.buyer_id
+            customer = Customer.objects.filter(id=buyer_id).first()
+            xlmm = customer.get_xiaolumm()
+            if xlmm and xlmm.is_available():
+                mama_id = xlmm.id
+            else:
+                mama_id = saletrade.extras_info.get('mm_linkid', '')
+            if mama_id:
+                teambuy.share_xlmm_id = mama_id
             teambuy.save()
-            if saletrade.extras_info['teambuy_id'] != teambuy.id:
-                saletrade.extras_info['teambuy_id'] = teambuy.id
-                saletrade.save()
         TeamBuyDetail(
             teambuy=teambuy,
             tid=saletrade.tid,
@@ -53,6 +61,9 @@ class TeamBuy(AdminModel):
             customer_id=saletrade.buyer_id,
             originizer=new_teambuy
         ).save()
+        if saletrade.extras_info.get('teambuy_id', '') != teambuy.id:
+            saletrade.extras_info['teambuy_id'] = teambuy.id
+            saletrade.save()
         teambuy.check_finish_teambuy()
 
     def check_finish_teambuy(self):
@@ -83,6 +94,29 @@ class TeamBuy(AdminModel):
         for detail in self.details.all():
             SaleOrder.objects.get(oid=detail.oid).do_refund(u'开团失败')
 
+    def get_shareparams(self, **params):
+        if self.share_xlmm_id:
+            share_link = '/mall/order/spell/group/' + str(self.id) + '?mm_linkid=' + str(self.share_xlmm_id)
+        else:
+            share_link = '/mall/order/spell/group/' + str(self.id)
+        return {
+            'id': self.id,
+            'title': u'一起来团购 %s' %(self.sku.product.name,),
+            'share_type': 'link',
+            'share_icon': self.sku.product.pic_path,
+            'share_link': share_link,
+            'active_dec': u'我在小鹿美美发现一个好东西,团购更便宜,一起来拼团吧.',
+        }
+
+    def get_qrcode_page_link(self, **params):
+        from core.upload.xqrcode import push_qrcode_to_remote
+        qrcode_link = '/mall/order/spell/group/%d?from_page=share' % (self.id,)
+        if self.share_xlmm_id:
+            qrcode_link += '&mm_linkid=' + str(self.share_xlmm_id)
+        qrcode_link = urlparse.urljoin(settings.M_SITE_URL, qrcode_link)
+        print qrcode_link
+        return push_qrcode_to_remote('teambuy_' + str(self.id), qrcode_link)
+
 
 def update_teambuy_status(sender, instance, created, **kwargs):
     if instance.status == 0:
@@ -92,7 +126,7 @@ def update_teambuy_status(sender, instance, created, **kwargs):
 post_save.connect(update_teambuy_status, sender=TeamBuy, dispatch_uid='post_save_update_teambuy_status')
 
 
-class TeamBuyDetail(models.Model):
+class TeamBuyDetail(BaseModel):
     teambuy = models.ForeignKey(TeamBuy, related_name='details')
     tid = models.CharField(max_length=40, unique=True, verbose_name=u'订单tid')
     oid = models.CharField(max_length=40, unique=True, verbose_name=u'订单oid')

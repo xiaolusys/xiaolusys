@@ -445,6 +445,10 @@ class XiaoluMama(models.Model):
         return self.charge_status == self.CHARGED and self.status in [XiaoluMama.EFFECT, XiaoluMama.FROZEN] \
                and self.progress in [XiaoluMama.PAY, XiaoluMama.PASS]
 
+    def is_available(self):
+        return self.charge_status == self.CHARGED and self.status == XiaoluMama.EFFECT \
+               and self.progress in [XiaoluMama.PAY, XiaoluMama.PASS]
+
     def is_chargeable(self):
         return self.charge_status != self.CHARGED
 

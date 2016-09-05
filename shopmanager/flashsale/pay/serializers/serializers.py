@@ -91,7 +91,7 @@ class SaleTradeSerializer(serializers.ModelSerializer):
                   'payment', 'post_fee', 'total_fee', 'buyer_message', 'seller_memo', 'created', 'pay_time',
                   'modified', 'consign_time', 'trade_type', 'out_sid', 'logistics_company', 'receiver_name',
                   'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address', 'receiver_zip',
-                  'receiver_mobile', 'receiver_phone', 'status', 'status_name', 'sale_orders', 'order_num')
+                  'receiver_mobile', 'receiver_phone', 'status', 'status_name', 'sale_orders', 'order_num', 'order_type')
 
 
 class SampleSaleTradeSerializer(serializers.ModelSerializer):

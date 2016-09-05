@@ -16,7 +16,8 @@ def getUserSkuNumByLast24Hours(user, sku):
 
     shop_carts = ShoppingCart.objects.filter(
         buyer_id=user.id, sku_id=sku.id,
-        status=ShoppingCart.NORMAL)
+        status=ShoppingCart.NORMAL,
+        type=0)
     order_num = 0
     for order in sorders:
         order_num += order.num

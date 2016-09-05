@@ -1181,7 +1181,7 @@ def task_packageorder_send_check_packageorder():
 def create_shoppingcart_cnt_check_log(time_from, uni_key):
     from flashsale.pay.models import ShoppingCart
     from shopback.items.models import ProductSkuStats
-    actual_num = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL).aggregate(n=Sum('num')).get('n') or 0
+    actual_num = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, type=0).aggregate(n=Sum('num')).get('n') or 0
     target_num = ProductSkuStats.objects.aggregate(n=Sum('shoppingcart_num')).get('n') or 0
     time_to = time_from + datetime.timedelta(hours=1)
     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key,

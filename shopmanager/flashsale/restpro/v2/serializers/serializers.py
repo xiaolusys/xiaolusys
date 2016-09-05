@@ -654,7 +654,7 @@ class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
         model = ShoppingCart
         fields = ('id', 'url', 'buyer_id', 'buyer_nick', 'item_id', 'title', 'price',
                   'std_sale_price', 'sku_id', 'num', 'total_fee', 'sku_name', 'model_id',
-                  'pic_path', 'created', 'is_repayable', 'status', 'item_weburl')
+                  'pic_path', 'created', 'is_repayable', 'status', 'item_weburl', 'type')
 
 
 class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
@@ -763,7 +763,7 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display', 'order_pic',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
                   'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city', 'red_packer_num',
-                  'receiver_district', 'receiver_address', 'receiver_mobile', 'receiver_phone')
+                  'receiver_district', 'receiver_address', 'receiver_mobile', 'receiver_phone', 'order_type')
 
     def order_share_red_packer_num(self, obj):
         share = OrderShareCoupon.objects.filter(uniq_id=obj.tid).first()
@@ -810,7 +810,7 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
-                  'logistics_company', 'user_adress', 'package_orders', 'extras')
+                  'logistics_company', 'user_adress', 'package_orders', 'extras', 'order_type', 'can_refund')
 
     def gen_sale_orders(self, obj):
         order_data_list = SaleOrderSerializer(obj.sale_orders, many=True).data

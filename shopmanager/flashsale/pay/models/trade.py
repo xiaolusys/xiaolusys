@@ -255,6 +255,9 @@ class SaleTrade(BaseModel):
             'default': user_addr and user_addr.default or ''
         }
 
+    def can_refund(self):
+        return self.order_type == 0 and self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]
+
     def get_cash_payment(self):
         """ 实际需支付现金 """
         return round(self.pay_cash * 100)
@@ -375,6 +378,7 @@ class SaleTrade(BaseModel):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
         self.confirm_payment()
+        self.update_teambuy()
 
     def redeliver_sku_item(self, old_sale_order):
         sku = ProductSku.objects.get(id=old_sale_order.sku_id)
@@ -510,6 +514,11 @@ class SaleTrade(BaseModel):
                 package_list.append(package)
         return package_list
 
+    def update_teambuy(instance):
+        if instance.order_type == SaleTrade.TEAMBUY_ORDER and instance.pay_time:
+            from flashsale.pay.models import TeamBuy, TeamBuyDetail
+            if not TeamBuyDetail.objects.filter(tid=instance.tid).first():
+                TeamBuy.create_or_join(instance)
 
 def add_renew_deposit_record(sender, obj, **kwargs):
     """
@@ -693,10 +702,7 @@ signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)
 
 
 def update_teambuy(sender, instance, created, **kwargs):
-    if instance.order_type == SaleTrade.TEAMBUY_ORDER and instance.pay_time:
-        from flashsale.pay.models import TeamBuy, TeamBuyDetail
-        if not TeamBuyDetail.objects.filter(tid=instance.tid).first():
-            TeamBuy.create_or_join(instance)
+    instance.update_teambuy()
 
 post_save.connect(update_teambuy, sender=SaleTrade, dispatch_uid='post_save_saletrade_update_teambuy')
 
@@ -842,33 +848,33 @@ class SaleOrder(PayBaseModel):
             return False
         return True
 
-    def do_refund(sale_order, reason=' '):
-        sale_trader = sale_order.sale_trade  # 退款sale_trade对象
+    def do_refund(self, reason=' '):
+        sale_trader = self.sale_trade  # 退款sale_trade对象
         # 在saleorder订单状态为已经付款情况下，生成退款单salerefund，把退款单id 退款和退款状态赋值给sale_order中的三个字段
         s = SaleRefund(
-            trade_id=sale_order.sale_trade.id,
-            order_id=sale_order.id,
-            buyer_id=sale_order.buyer_id,
-            item_id=sale_order.item_id,
-            charge=sale_trader.charge,
+            trade_id=self.sale_trade.id,
+            order_id=self.id,
+            buyer_id=self.buyer_id,
+            item_id=self.item_id,
+            charge=self.charge,
             channel=sale_trader.channel,
-            sku_id=sale_order.sku_id,
-            sku_name=sale_order.sku_name,
-            refund_num=sale_order.num,
+            sku_id=self.sku_id,
+            sku_name=self.sku_name,
+            refund_num=self.num,
             buyer_nick=sale_trader.buyer_nick,
             mobile=sale_trader.receiver_mobile,
             phone=sale_trader.receiver_mobile,
-            total_fee=sale_order.total_fee,
-            payment=sale_order.payment,
-            refund_fee=sale_order.payment,
-            title=sale_order.title,
+            total_fee=self.total_fee,
+            payment=self.payment,
+            refund_fee=self.payment,
+            title=self.title,
             reason=reason,
             good_status=SaleRefund.SELLER_OUT_STOCK,
             status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
         s.save()
-        sale_order.refund_id = s.id
-        sale_order.refund_fee = sale_order.payment
-        sale_order.save(update_fields=['refund_id', 'refund_fee'])
+        self.refund_id = s.id
+        self.refund_fee = self.payment
+        self.save(update_fields=['refund_id', 'refund_fee'])
         return s
 
     def is_finishable(self):
