@@ -74,9 +74,78 @@ class ItemSerializer(serializers.ModelSerializer):
         exclude = ('desc',)
 
 
+class ItemProductSkuSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='product.name', read_only=True)
+    color = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProductSku
+        fields = (
+            "id",
+            "outer_id",
+            "barcode",
+            "quantity",
+            "warn_num",
+            "remain_num",
+            "wait_post_num",
+            "sale_num",
+            "reduce_num",
+            "cost",
+            "std_sale_price",
+            "agent_price",
+            "properties_name",
+            "properties_alias",
+            "created",
+            "modified",
+            "status",
+            "memo",
+            "name",
+            "color"
+        )
+
+    def get_color(self, obj):
+        return obj.product.name.split('/')[-1]
+
+
 class ModelProductSerializer(serializers.ModelSerializer):
+    skus = serializers.SerializerMethodField()
+
     class Meta:
         model = ModelProduct
+        fields = ('id',
+                  'name',
+                  'head_imgs',
+                  'content_imgs',
+                  'salecategory',
+                  'lowest_agent_price',
+                  'lowest_std_sale_price',
+                  'is_onsale',
+                  'is_teambuy',
+                  'is_recommend',
+                  'is_topic',
+                  'is_flatten',
+                  'is_watermark',
+                  'teambuy_price',
+                  'teambuy_person_num',
+                  'shelf_status',
+                  'onshelf_time',
+                  'offshelf_time',
+                  'order_weight',
+                  'rebeta_scheme_id',
+                  'saleproduct',
+                  'extras',
+                  'status',
+                  'skus')
+
+    def get_skus(self, obj):
+        """ skus """
+        products = obj.products
+        product_sku_ids = []
+        for product in products:
+            product_skus = product.pskus
+            for product_sku in product_skus:
+                product_sku_ids.append(product_sku)
+        return ItemProductSkuSerializer(product_sku_ids, many=True).data
 
 
 class ModelProductUpdateSerializer(serializers.ModelSerializer):
