@@ -286,7 +286,7 @@ class WeixinPush(object):
                 'color': '#F87217',
             },
             'tradeDateTime': {
-                'value': u'¥%.2f' % ordercarry.created.strftime('%Y-%m-%d %H:%M:%S'),
+                'value': ordercarry.created.strftime('%Y-%m-%d %H:%M:%S'),
                 'color': '#000000',
             },
             'orderType': {

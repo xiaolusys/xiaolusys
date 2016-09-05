@@ -17,6 +17,7 @@ from common.utils import gen_cvs_tuple, CSVUnicodeWriter
 from .models_base import (
     WeixinUserInfo,
     WeixinTplMsg,
+    WeixinFans,
 )
 from shopapp.weixin.models import (WeiXinAccount,
                                    WeixinUnionID,
@@ -618,3 +619,13 @@ class WeixinClickScoreRecordAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WeixinClickScoreRecord, WeixinClickScoreRecordAdmin)
+
+
+class WeixinFansAdmin(admin.ModelAdmin):
+    list_display = ('openid', 'app_key', 'unionid', 'subscribe', 'subscribe_time', 'unsubscribe_time', 'extras')
+    search_fields = ['openid', 'unionid']
+    list_filter = ('app_key', 'subscribe', ('subscribe_time', DateFieldListFilter),)
+
+
+admin.site.register(WeixinFans, WeixinFansAdmin)
+    
