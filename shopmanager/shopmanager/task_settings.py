@@ -448,9 +448,9 @@ MAMA_CARRY_ROUTES = {
         'queue': 'mama',
         'routing_key': 'mama.task_referal_update_awardcarry',
     },
-    'flashsale.xiaolumm.tasks_mama.task_group_update_awardcarry': {
+    'flashsale.xiaolumm.tasks_mama.task_update_group_awardcarry': {
         'queue': 'mama',
-        'routing_key': 'mama.task_group_update_awardcarry',
+        'routing_key': 'mama.task_update_group_awardcarry',
     },
     'flashsale.xiaolumm.tasks_mama.task_update_ordercarry': {
         'queue': 'mama',
