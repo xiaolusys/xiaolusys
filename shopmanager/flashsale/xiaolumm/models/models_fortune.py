@@ -1080,7 +1080,15 @@ def update_group_awardcarry(sender, instance, created, **kwargs):
         task_update_group_awardcarry.delay(instance)
 
 post_save.connect(update_group_awardcarry,
-                  sender=GroupRelationship, dispatch_uid='post_save_update_group_awardcarry')
+                  sender=ReferalRelationship, dispatch_uid='post_save_update_group_awardcarry')
+
+
+def update_mamafortune_mama_level(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_fortune
+    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance.leader_mama_id)
+
+post_save.connect(update_mamafortune_mama_level,
+                  sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_mama_level')
 
 
 class GroupRelationship(BaseModel):
@@ -1100,30 +1108,6 @@ class GroupRelationship(BaseModel):
         app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈团队关系'
         verbose_name_plural = u'V2/妈妈团队关系列表'
-
-
-#def group_update_awardcarry(sender, instance, created, **kwargs):
-#    if not created:
-#        return
-#    from flashsale.xiaolumm import tasks_mama
-#
-#    tasks_mama.task_group_update_awardcarry.delay(instance)
-#
-#
-#post_save.connect(group_update_awardcarry,
-#                  sender=GroupRelationship, dispatch_uid='post_save_group_update_awardcarry')
-
-
-def group_update_mamafortune_mama_level(sender, instance, created, **kwargs):
-    if not created:
-        return
-    from flashsale.xiaolumm import tasks_mama_fortune
-
-    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance.leader_mama_id)
-
-
-post_save.connect(group_update_mamafortune_mama_level,
-                  sender=GroupRelationship, dispatch_uid='post_save_group_update_mamafortune_mama_level')
 
 
 class UniqueVisitor(BaseModel):
