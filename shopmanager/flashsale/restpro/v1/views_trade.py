@@ -1089,10 +1089,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         instance = self.get_object()
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
-            raise exceptions.APIException(_errmsg.get(instance.status, _errmsg.get('default')))
+            return Response({'code': 1, 'info':_errmsg.get(instance.status, _errmsg.get('default'))})
 
         if not instance.is_payable():
-            raise exceptions.APIException(_errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS))
+            return Response({'code': 2, 'info': _errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS)})
 
         try:
             if instance.channel == SaleTrade.WALLET:
