@@ -10,7 +10,7 @@ from flashsale.pay.models.product import Productdetail
 from supplychain.supplier.models import SaleProduct
 from flashsale.promotion.models import ActivityEntry, ActivityProduct
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
-from shopback.items.models import ProductSkuStats
+from shopback.items.models import ProductSkuStats, ProductSku
 from supplychain.supplier.models.schedule import SaleProductManage, SaleProductManageDetail
 
 
@@ -60,6 +60,8 @@ class ActivityStockSale(AdminModel):
     product_total = models.IntegerField(default=0, verbose_name=u'商品总数')
     sku_total = models.IntegerField(default=0, verbose_name=u'SKU总数')
     stock_total = models.IntegerField(default=0, verbose_name=u'可售库存总数')
+    STATUS_CHOICES = ((0, u'初始'), (1, u'确认售品'), (2, u'确认库存'), (3, u'上架售卖'), (4, u'已完成'), (5, u'已删除'))
+    status = models.IntegerField(default=0, choices=STATUS_CHOICES, verbose_name=u'状态')
 
     class Meta:
         db_table = 'flashsale_stocksale_activity'
@@ -77,8 +79,11 @@ class ActivityStockSale(AdminModel):
 
     @property
     def stock_sales(self):
-        return StockSale.objects.filter(batch=self.batch, day_batch_num=self.day_batch_num).order_by('id').\
-            select_related('product', 'sale_product')#.order_by('status', 'stock_safe')
+        return StockSale.objects.filter(batch=self.batch, day_batch_num=self.day_batch_num).order_by('id'). \
+            select_related('product', 'sale_product')  # .order_by('status', 'stock_safe')
+
+    def can_delete(self):
+        return self.status not in [3, 4, 5]
 
     def gen_activity_entry(self):
         carry_plan_name = u'最后疯抢三成佣金'
@@ -97,7 +102,6 @@ class ActivityStockSale(AdminModel):
             act_desc=u'倒数八个小时'
         )
         ae.save()
-
         spm = SaleProductManage(
             schedule_type=SaleProductManage.SP_TOPIC,
             sale_time=self.onshelf_time,
@@ -108,6 +112,7 @@ class ActivityStockSale(AdminModel):
         spm.save()
         self.product_manage_id = spm.id
         self.activity_id = ae.id
+        self.status = 3
         self.save()
         add_sale_products = []
         activity_products = []
@@ -125,6 +130,8 @@ class ActivityStockSale(AdminModel):
                 pic_type=ActivityProduct.GOODS_VERTICAL_PIC_TYPE
             )
             activity_products.append(ap)
+            for sku in sale.sku_detail:
+                ProductSku.objects.update(remain_num=max(0, min(sale.sku_detail[sku] - 5, 200)))  # 预留了5个超卖位
             activity_product_ids.append(sale.product.id)
             if sale.sale_product.id not in add_sale_products:
                 SaleProductManageDetail(
@@ -145,6 +152,8 @@ class ActivityStockSale(AdminModel):
                 add_sale_products.append(sale.sale_product.id)
         Productdetail.objects.filter(product_id__in=activity_product_ids).update(rebeta_scheme_id=carry_plan.id)
         ActivityProduct.objects.bulk_create(activity_products)
+
+
 # def create_activity_entry(sender, instance, created, **kwargs):
 #     instance.gen_activity_entry()
 #
@@ -164,7 +173,8 @@ class StockSale(AdminModel):
     STATUS_CHOICES = ((0, u'待出售'), (1, u'确认出售'), (2, u'关闭出售'))
     status = models.IntegerField(choices=STATUS_CHOICES, default=0, verbose_name=u'状态')
     stock_safe = models.IntegerField(choices=((0, u'未确认'), (1, u'已确认'), (2, u'无须确认')), default=0, verbose_name=u'库存状态')
-    sku_detail = JSONCharMyField(max_length=10240, blank=True, default='{}', verbose_name=u'订货单ID', help_text=u'冗余的订货单关联')
+    sku_detail = JSONCharMyField(max_length=10240, blank=True, default='{}', verbose_name=u'订货单ID',
+                                 help_text=u'冗余的订货单关联')
     location = models.CharField(max_length=256, blank=True, default='', verbose_name=u'库位')
     INTERVAL = 2
 
@@ -257,13 +267,27 @@ class StockSale(AdminModel):
         )
         return ass.id
 
-    def get_xiaolumama_(self):
-        return
-
-    def set_product_price(self):
-        return
-
     @staticmethod
     def get_sale_product_to_sale_cnt():
         product_ids = [p['product_id'] for p in ProductSkuStats.get_auto_sale_stock().values('product_id').distinct()]
         return len(Product.objects.filter(id__in=product_ids).values('sale_product').distinct())
+
+    def check_update_activity(self):
+        if not self.activity:
+            return
+        if self.activity.status == 0:
+            if not self.activity.stocksale_set.filter(status=0).exists() and self.activity.stocksale_set.filter(
+                    status=1).exists():
+                self.activity.status = 1
+                self.activity.save()
+        if self.activity.status == 1:
+            if not self.activity.stocksale_set.filter(status=1, stock_safe=0).exists():
+                self.activity.status = 2
+                self.activity.save()
+
+
+def check_update_activity(sender, instance, created, **kwargs):
+    instance.check_update_activity()
+
+
+post_save.connect(check_update_activity, sender=StockSale, dispatch_uid='post_save_stocksale_update_activity')

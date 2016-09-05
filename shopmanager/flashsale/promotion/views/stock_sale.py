@@ -62,12 +62,13 @@ class StockSaleViewSet(viewsets.GenericViewSet):
         sales.update(status=status)
         return Response(SUCCESS_RESPONSE)
 
-    @detail_route(methods=['GET', 'POST'])
-    def reset_sale(self, request, pk):
-        sale = get_object_or_404(StockSale, pk=pk)
-        sale.day_batch_num = 0
-        sale.status = 0
-        sale.save()
+    @list_route(methods=['POST'])
+    def reset_sale(self, request):
+        ids = request.POST.get('ids')
+        sales = StockSale.objects.filter(id__in=ids.split(','))
+        if sales.count() == 0:
+            raise exceptions.ValidationError(u'找不到指定的库存销售记录')
+        sales.update(day_batch_num=0, status=0, activity_id=None)
         return Response(SUCCESS_RESPONSE)
 
     @list_route(methods=['POST'])
@@ -86,4 +87,15 @@ class StockSaleViewSet(viewsets.GenericViewSet):
         for sale in sales:
             sale.stock_safe = stock_safe
             sale.save()
+        return Response(SUCCESS_RESPONSE)
+
+    @detail_route(methods=['POST'])
+    def update_activity_status(self, request, pk):
+        activity = get_object_or_404(ActivityStockSale, pk=pk)
+        status = request.POST.get('status', 0)
+        status = int(status)
+        if status not in [4, 5]:
+            raise exceptions.ValidationError(u'只能手动设置完成和删除状态')
+        activity.status = status
+        activity.save()
         return Response(SUCCESS_RESPONSE)
