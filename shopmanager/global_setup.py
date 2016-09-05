@@ -13,6 +13,8 @@ def setup_djagno_environ():
 
 
 def install_pymysqldb():
+    if not os.environ.get('TARGET') in ('production', 'django18', 'staging'):
+        return
     try:
         import pymysql
         pymysql.install_as_MySQLdb()

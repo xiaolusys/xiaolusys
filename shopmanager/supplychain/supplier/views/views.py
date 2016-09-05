@@ -108,7 +108,7 @@ class SaleProductList(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
 
         queryset = self.filter_queryset(self.queryset.order_by(*self.ordering))
-        sale_category = SaleCategory.objects.all()
+        sale_category = SaleCategory.objects.all().order_by('cid')
         sale_category = serializers.SaleCategorySerializer(sale_category, many=True).data
 
         supplier_id = request.GET.get('sale_supplier', '')
