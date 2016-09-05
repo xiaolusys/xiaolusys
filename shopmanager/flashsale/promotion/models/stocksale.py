@@ -60,7 +60,7 @@ class ActivityStockSale(AdminModel):
     product_total = models.IntegerField(default=0, verbose_name=u'商品总数')
     sku_total = models.IntegerField(default=0, verbose_name=u'SKU总数')
     stock_total = models.IntegerField(default=0, verbose_name=u'可售库存总数')
-    STATUS_CHOICES = ((0, u'初始'), (1, u'确认售品'), (2, u'确认库存'), (3, u'上架售卖'), (4, u'已完成'), (5, u'已删除'))
+    STATUS_CHOICES = ((0, u'初始'), (1, u'已确认售品'), (2, u'已确认库存'), (3, u'已上架售卖'), (4, u'已完成'), (5, u'已删除'))
     status = models.IntegerField(default=0, choices=STATUS_CHOICES, verbose_name=u'状态')
 
     class Meta:
@@ -207,6 +207,7 @@ class StockSale(AdminModel):
     @staticmethod
     def gen_new_stock_sale(user):
         """获取"""
+        BatchStockSale.objects.filter(status__in=[0, 1]).update(status=2)
         if BatchStockSale.objects.filter(status__in=[0, 1]).exists():
             raise Exception(u'此前的批次尚未处理完，请先关闭此前的批次')
         batch = BatchStockSale.gen(user)

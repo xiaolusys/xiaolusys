@@ -169,7 +169,9 @@
                     {%endif%}
                     {%if original.status == 1%}
                     {%if stock_sale.stock_safe == 0%}
+                    {%if has_perm_package%}
                     <button data-saleid="{{stock_sale.id}}" class="btn_confirm_stock">确认库存</button>
+                    {%endif%}
                     {%endif%}
                     {%endif%}
                 </td>

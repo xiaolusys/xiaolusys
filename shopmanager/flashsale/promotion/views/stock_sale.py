@@ -26,7 +26,10 @@ class StockSaleViewSet(viewsets.GenericViewSet):
 
     @list_route(methods=['GET', 'POST'])
     def gen_new_stock_sale(self, request):
-        StockSale.gen_new_stock_sale(request.user.username)
+        try:
+            StockSale.gen_new_stock_sale(request.user.username)
+        except Exception, e:
+            raise exceptions.ValidationError(e.message)
         return HttpResponseRedirect('/admin/promotion/batchstocksale/')
 
     @list_route(methods=['GET', 'POST'])
