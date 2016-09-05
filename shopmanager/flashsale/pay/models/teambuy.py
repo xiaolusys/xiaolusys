@@ -34,6 +34,9 @@ class TeamBuy(AdminModel):
         if teambuy_id:
             teambuy = TeamBuy.objects.get(id=teambuy_id)
             new_teambuy = teambuy.details.count() >= teambuy.limit_person_num
+            if not new_teambuy and TeamBuyDetail.objects.filter(teambuy=teambuy,
+                                            tid=saletrade.tid).exists():
+                new_teambuy = True
         else:
             new_teambuy = True
         if new_teambuy:
