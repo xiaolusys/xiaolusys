@@ -439,8 +439,9 @@ def buyeridPatch():
         sf.save()
 
 
-def handle_sale_refund_signal(sender, instance, created, *args, **kwargs):
+def handle_sale_refund_signal(sender, instance, created, raw, *args, **kwargs):
     """ 特卖退款单生成触发更新库存数及锁定数信号 """
+    if raw: return
     from .trade import SaleTrade
     from shopback import signals
     from shopback.trades.models import MergeOrder

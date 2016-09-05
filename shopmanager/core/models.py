@@ -1,5 +1,5 @@
 #-*- coding: utf-8 -*-
-import datetime
+from django.utils import timezone
 from django.db import models
 from .ormcache import managers
 from .managers import BaseManager, BaseTagManager
@@ -7,7 +7,8 @@ from django.contrib.auth.models import User as DJUser
 
 
 class BaseModel(models.Model):
-    created = models.DateTimeField(default=datetime.datetime.now, db_index=True, verbose_name=u'创建日期')
+
+    created = models.DateTimeField(default=timezone.now, db_index=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'修改日期')
 
     objects = BaseManager()

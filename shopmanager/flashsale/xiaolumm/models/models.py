@@ -1428,7 +1428,7 @@ from flashsale.pay.signals import signal_saletrade_pay_confirm
 from flashsale.pay.models import SaleTrade
 
 
-def trigger_mama_deposit_action(obj, *args, **kwargs):
+def trigger_mama_deposit_action(sender, obj, *args, **kwargs):
     # 这里的先后顺序不能变　
     # 先判断是否能续费　在看接管状态
     renew_mama(obj)

@@ -1044,10 +1044,11 @@ class SaleOrder(PayBaseModel):
         return self._package_sku_
 
 
-def order_trigger(sender, instance, created, **kwargs):
+def order_trigger(sender, instance, created, raw, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
+    if raw: return
     if instance.is_deposit():
         if instance.is_confirmed():
             from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
