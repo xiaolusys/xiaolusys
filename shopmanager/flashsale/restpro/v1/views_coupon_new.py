@@ -303,7 +303,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_register_gift_coupon(self, request):
         default_return = collections.defaultdict(code=0, info='', pop_flag=0, coupons=[])
-        tplids = range(54, 61)
+        tplids = [56, 57, 58, 59, 60, 128, 129]
         customer = Customer.objects.get(user=request.user)
         if not customer:
             default_return.update({"code": 1, "info": "用户不存在"})
