@@ -447,7 +447,7 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
         self.save()
 
 def update_week_team_mama_carry_total_cache(sender, instance, created, **kwargs):
-    WEEK_RANK_REDIS.update_cache(instance, ['duration_total'])
+    WEEK_RANK_REDIS.update_cache(instance, ['total', 'duration_total'])
 
 post_save.connect(update_week_team_mama_carry_total_cache,
                   sender=WeekMamaTeamCarryTotal, dispatch_uid='post_save_update_week_mama_team_carry_total_cache')
