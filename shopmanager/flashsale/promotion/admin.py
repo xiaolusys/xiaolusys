@@ -277,7 +277,7 @@ class ActivityStockSaleAdmin(BaseModelAdmin):
         'sku_total',
         'stock_total',
     )
-    list_filter = ('activity', 'onshelf_time')
+    list_filter = ('status', 'onshelf_time')
     search_fields = ('id',)
 
     def id_link(self, obj):
@@ -294,8 +294,8 @@ class ActivityStockSaleAdmin(BaseModelAdmin):
 
     def detail_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = {'title': u'最后疯抢活动详情',
-                         'has_perm_product': request.user.has_perm('change_productdetail'),
-                         'has_perm_package': request.user.has_perm('change_packageorder'),
+                         'has_perm_product': request.user.has_perm('promotion.add_activitystocksale'),
+                         'has_perm_package': request.user.has_perm('trades.change_packageorder'),
                          }
         return self.detailform_view(request, object_id, form_url, extra_context)
 admin.site.register(ActivityStockSale, ActivityStockSaleAdmin)
