@@ -289,6 +289,7 @@ class SaleTrade(BaseModel):
 
     def is_payable(self):
         now = datetime.datetime.now()
+        print 'debug payable:',self.status,  now, self.created , TIME_FOR_PAYMENT
         return self.status == self.WAIT_BUYER_PAY and (now - self.created).seconds < TIME_FOR_PAYMENT
 
     def is_closed(self):

@@ -22,7 +22,9 @@ class SaletradeTestCase(TestCase):
         self.cart_data = {'num': 2, 'item_id': 40874, 'sku_id': 164886}
         self.cart_ids = [422913, 422912]
         self.client.login(username='xiaolu', password='test')
-        SaleTrade.objects.filter(id=372487).update(created=datetime.datetime.now())
+        strade = SaleTrade.objects.filter(id=372487).first()
+        strade.created = datetime.datetime.now()
+        strade.save()
 
     def addShoppingCart(self):
         response = self.client.post('/rest/v1/carts',
