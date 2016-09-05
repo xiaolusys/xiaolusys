@@ -472,6 +472,10 @@ MAMA_CARRY_ROUTES = {
         'queue': 'mama',
         'routing_key': 'mama.carryrecord_update_xiaolumama_active_hasale',
     },
+    'flashsale.xiaolumm.tasks.mission.task_create_or_update_mama_mission_state': {
+        'queue': 'mama',
+        'routing_key': 'mama.task_create_or_update_mama_mission_state',
+    },
 }
 
 # MAMA_REGISTER_ROUTE = {
@@ -676,7 +680,7 @@ WEIXIN_ROUTES = {
 }
 
 CELERY_ROUTES = {
-    'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
+    'flashsale.xiaolumm.tasks.base.task_Push_Pending_Carry_Cash': {
         'queue': 'peroid',
         'routing_key': 'peroid.push_xlmm_pending_cash',
     },  # 结算小鹿妈妈们待确认提成
@@ -1047,7 +1051,7 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时更新特卖及微信订单状态': {
-        'task': 'flashsale.xiaolumm.tasks.task_Update_Sale_And_Weixin_Order_Status',
+        'task': 'flashsale.xiaolumm.tasks.base.task_Update_Sale_And_Weixin_Order_Status',
         'schedule': crontab(minute="0", hour="6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1270,21 +1274,21 @@ SHOP_APP_SCHEDULE = {
     },
 
     u'定时检查小鹿妈妈活跃更新续费时间': {
-        'task': 'flashsale.xiaolumm.tasks.task_mama_postphone_renew_time_by_active',
+        'task': 'flashsale.xiaolumm.tasks.base.task_mama_postphone_renew_time_by_active',
         'schedule': crontab(minute="45", hour="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
     u'定时检查小鹿妈妈邀请销售额升级': {
-        'task': 'flashsale.xiaolumm.tasks.task_update_mama_agency_level_in_condition',
+        'task': 'flashsale.xiaolumm.tasks.base.task_update_mama_agency_level_in_condition',
         'schedule': crontab(minute="45", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
     u'定时检查小鹿妈妈续费状态': {
-        'task': 'flashsale.xiaolumm.tasks.task_period_check_mama_renew_state',
+        'task': 'flashsale.xiaolumm.tasks.base.task_period_check_mama_renew_state',
         'schedule': crontab(minute="45", hour="4"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
@@ -1374,6 +1378,12 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="59", hour="0"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'妈妈及团队妈妈周激励任务更新': {
+        'task': 'flashsale.xiaolumm.tasks.mission.task_update_all_mama_mission_state',
+        'schedule': crontab(minute="30", hour="0"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task_update_all_mama_mission_state'}
     },
     u'每30分钟刷新微信公众号accesstoken&jsticket': {
         'task': 'shopapp.weixin.tasks.base.task_refresh_weixin_access_token',

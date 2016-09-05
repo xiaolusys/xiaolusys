@@ -181,7 +181,6 @@ class MamaMissionRecord(BaseModel):
         # TODO@meron 如果已通过添加佣金奖励记录
 
 
-
 from flashsale.xiaolumm.signals import signal_xiaolumama_register_success
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 
