@@ -291,21 +291,24 @@ def task_referal_update_awardcarry(relationship):
 
 
 @task()
-def task_group_update_awardcarry(relationship):
+def task_update_group_awardcarry(relationship):
     from flashsale.xiaolumm.models.models_fortune import AwardCarry, ReferalRelationship, GroupRelationship
 
-    from_mama_id = relationship.leader_mama_id
-    to_mama_id = relationship.member_mama_id
+    from_mama_id = relationship.referal_from_grandma_id
+    to_mama_id = relationship.referal_to_mama_id
+    carry_type = 2 # 团队推荐
 
-    uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
-    award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
-
-    if award_carry:
-        return
+    status = 1
+    carry_description = u'%s推荐，加入正式会员，奖金就会确认哦！' % relationship.referal_from_mama_id
     
-    direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id).count()
-    group_referal_num = GroupRelationship.objects.filter(leader_mama_id=from_mama_id).count()
-    carry_num = utils.get_group_carry_num(group_referal_num + direct_referal_num)
+    if relationship.is_confirmed():
+        status = 2  # confirmed
+        carry_description = util_description.get_awardcarry_description(carry_type)
+
+    direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
+    group_referal_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
+    group_num = direct_referal_num + group_referal_num + 1
+    carry_num = utils.get_group_carry_num(group_num)
 
     # if direct_referal_num >= 15, at least get 1000 cents for group referal
     if carry_num <= 0 and direct_referal_num >= 15:
@@ -314,13 +317,37 @@ def task_group_update_awardcarry(relationship):
     if carry_num <= 0:
         return
 
-    carry_type = 2  # group referal
+    uni_key = AwardCarry.gen_uni_key(to_mama_id, carry_type)
+    award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
+    
+    if award_carry:
+        from core.options import log_action, CHANGE, get_systemoa_user
+        logmsg = 'mama_id:%s->%s|carry_num:%s->%s|status:%s->%s' % (award_carry.mama_id,from_mama_id,award_carry.carry_num,carry_num,award_carry.status,status)
+        update_fields = []
+        if award_carry.mama_id != from_mama_id:
+            award_carry.mama_id = from_mama_id
+            update_fields.append('mama_id')
+        if award_carry.carry_num != carry_num:
+            award_carry.carry_num = carry_num
+            update_fields.append('carry_num')
+        if award_carry.status != status:
+            award_carry.status = status
+            update_fields.append('status')
+        if award_carry.carry_description != carry_description:
+            award_carry.carry_description = carry_description
+            update_fields.append('carry_description')
+        if update_fields:
+            update_fields.append('modified')
+            award_carry.save(update_fields=update_fields)
+            sys_oa = get_systemoa_user()
+            log_action(sys_oa, award_carry, CHANGE, logmsg)
+        return
+
     date_field = relationship.created.date()
-    status = 2  # confirmed
     award_carry = AwardCarry(mama_id=from_mama_id, carry_num=carry_num, carry_type=carry_type,
-                             contributor_nick=relationship.member_mama_nick,
-                             contributor_img=relationship.member_mama_img,
-                             contributor_mama_id=relationship.member_mama_id,
+                             contributor_nick=relationship.referal_to_mama_nick,
+                             contributor_img=relationship.referal_to_mama_img,
+                             contributor_mama_id=relationship.referal_to_mama_id,
                              date_field=date_field, uni_key=uni_key, status=status)
     award_carry.save()
 

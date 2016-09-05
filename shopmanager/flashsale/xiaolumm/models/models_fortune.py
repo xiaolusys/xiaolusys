@@ -1064,14 +1064,23 @@ post_save.connect(referal_update_activevalue,
                   sender=ReferalRelationship, dispatch_uid='post_save_referal_update_activevalue')
 
 
-def referal_update_awardcarry(sender, instance, created, **kwargs):
+def update_referal_awardcarry(sender, instance, created, **kwargs):
     if instance.created.date() > MAMA_FORTUNE_HISTORY_LAST_DAY:
         from flashsale.xiaolumm.tasks_mama import task_referal_update_awardcarry
         task_referal_update_awardcarry.delay(instance)
 
 
-post_save.connect(referal_update_awardcarry,
-                  sender=ReferalRelationship, dispatch_uid='post_save_referal_update_awardcarry')
+post_save.connect(update_referal_awardcarry,
+                  sender=ReferalRelationship, dispatch_uid='post_save_update_referal_awardcarry')
+
+
+def update_group_awardcarry(sender, instance, created, **kwargs):
+    if instance.created.date() > MAMA_FORTUNE_HISTORY_LAST_DAY:
+        from flashsale.xiaolumm.tasks_mama import task_update_group_awardcarry
+        task_update_group_awardcarry.delay(instance)
+
+post_save.connect(update_group_awardcarry,
+                  sender=GroupRelationship, dispatch_uid='post_save_update_group_awardcarry')
 
 
 class GroupRelationship(BaseModel):
@@ -1093,16 +1102,16 @@ class GroupRelationship(BaseModel):
         verbose_name_plural = u'V2/妈妈团队关系列表'
 
 
-def group_update_awardcarry(sender, instance, created, **kwargs):
-    if not created:
-        return
-    from flashsale.xiaolumm import tasks_mama
-
-    tasks_mama.task_group_update_awardcarry.delay(instance)
-
-
-post_save.connect(group_update_awardcarry,
-                  sender=GroupRelationship, dispatch_uid='post_save_group_update_awardcarry')
+#def group_update_awardcarry(sender, instance, created, **kwargs):
+#    if not created:
+#        return
+#    from flashsale.xiaolumm import tasks_mama
+#
+#    tasks_mama.task_group_update_awardcarry.delay(instance)
+#
+#
+#post_save.connect(group_update_awardcarry,
+#                  sender=GroupRelationship, dispatch_uid='post_save_group_update_awardcarry')
 
 
 def group_update_mamafortune_mama_level(sender, instance, created, **kwargs):
