@@ -188,7 +188,7 @@ class SaletradeTestCase(TestCase):
                                     ACCEPT='application/json; q=0.01')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        logging.info('testWaitPayOrderCharge_V1 resp: %s'%data)
+        logger.info('testWaitPayOrderCharge_V1 resp: %s'%data)
         self.assertEqual(data['channel'], 'alipay')
 
     def testWaitPayOrderCharge_V2(self):
@@ -198,7 +198,7 @@ class SaletradeTestCase(TestCase):
                                     ACCEPT='application/json; q=0.01')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        logging.info('testWaitPayOrderCharge_V2 resp: %s' % data)
+        logger.info('testWaitPayOrderCharge_V2 resp: %s' % data)
         self.assertEqual(data['channel'], channel)
 
 
