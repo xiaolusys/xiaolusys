@@ -1034,22 +1034,35 @@ post_save.connect(update_mamafortune_mama_level,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_mama_level')
 
 
-def update_group_relationship(sender, instance, created, **kwargs):
+def update_mama_fans(sender, instance, created, **kwargs):
     if not created:
         return
-
-    if not instance.is_confirmed():
+    
+    from flashsale.xiaolumm.models import XiaoluMama
+    from flashsale.xiaolumm.models import XlmmFans
+    
+    mama = XiaoluMama.objects.filter(id=instance.referal_to_mama_id).first()
+    if not mama:
         return
 
-    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_group_relationship
-    records = ReferalRelationship.objects.filter(referal_to_mama_id=instance.referal_from_mama_id)
-    if records.count() > 0:
-        record = records[0]
-        task_update_group_relationship.delay(record.referal_from_mama_id, instance)
+    customer = mama.get_mama_customer()
+    fans_cusid = customer.id
+    fans_nick = customer.nick
+    fans_thumbnail = customer.thumbnail
+    
+    fan = XlmmFans.objects.filter(fans_cusid=fans_cusid).first()
+    if fan:
+        return
 
+    from_mama_id = instance.referal_from_mama_id
+    from_mama = XiaoluMama.objects.filter(id=from_mama_id).first()
+    from_customer = from_mama.get_mama_customer()
+    xlmm_cusid = from_customer.id
+    fan = XlmmFans(xlmm=from_mama_id, xlmm_cusid=xlmm_cusid, referal_cusid=xlmm_cusid, fans_cusid=fans_cusid,
+                   fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
+    fan.save()
 
-post_save.connect(update_group_relationship,
-                  sender=ReferalRelationship, dispatch_uid='post_save_update_group_relationship')
+post_save.connect(update_mama_fans, sender=ReferalRelationship, dispatch_uid='post_save_update_mama_fans')
 
 
 def referal_update_activevalue(sender, instance, created, **kwargs):
