@@ -153,6 +153,17 @@ class ActivityStockSale(AdminModel):
         Productdetail.objects.filter(product_id__in=activity_product_ids).update(rebeta_scheme_id=carry_plan.id)
         ActivityProduct.objects.bulk_create(activity_products)
 
+    def check_update_status(self):
+        if self.status == 0:
+            if not self.stocksale_set.filter(status=0).exists() and self.stocksale_set.filter(
+                    status=1).exists():
+                self.status = 1
+                self.save()
+        if self.status == 1:
+            if not self.stocksale_set.filter(status=1, stock_safe=0).exists():
+                self.status = 2
+                self.save()
+
 
 # def create_activity_entry(sender, instance, created, **kwargs):
 #     instance.gen_activity_entry()
@@ -275,15 +286,7 @@ class StockSale(AdminModel):
     def check_update_activity(self):
         if not self.activity:
             return
-        if self.activity.status == 0:
-            if not self.activity.stocksale_set.filter(status=0).exists() and self.activity.stocksale_set.filter(
-                    status=1).exists():
-                self.activity.status = 1
-                self.activity.save()
-        if self.activity.status == 1:
-            if not self.activity.stocksale_set.filter(status=1, stock_safe=0).exists():
-                self.activity.status = 2
-                self.activity.save()
+        self.activity.check_update_activity()
 
 
 def check_update_activity(sender, instance, created, **kwargs):

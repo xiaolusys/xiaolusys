@@ -60,6 +60,7 @@ class StockSaleViewSet(viewsets.GenericViewSet):
         except:
             raise exceptions.ValidationError(u'库存销售记录的状态只能取0,1,2')
         sales.update(status=status)
+        sales[0].activity.check_update_status()
         return Response(SUCCESS_RESPONSE)
 
     @list_route(methods=['POST'])
@@ -69,6 +70,7 @@ class StockSaleViewSet(viewsets.GenericViewSet):
         if sales.count() == 0:
             raise exceptions.ValidationError(u'找不到指定的库存销售记录')
         sales.update(day_batch_num=0, status=0, activity_id=None)
+        sales[0].activity.check_update_status()
         return Response(SUCCESS_RESPONSE)
 
     @list_route(methods=['POST'])
@@ -84,9 +86,8 @@ class StockSaleViewSet(viewsets.GenericViewSet):
                 raise exceptions.ValidationError(u'库存销售记录的状态只能取0,1')
         except:
             raise exceptions.ValidationError(u'库存销售记录的状态只能取0,1')
-        for sale in sales:
-            sale.stock_safe = stock_safe
-            sale.save()
+        sales.update(stock_safe=stock_safe)
+        sales[0].activity.check_update_status()
         return Response(SUCCESS_RESPONSE)
 
     @detail_route(methods=['POST'])
