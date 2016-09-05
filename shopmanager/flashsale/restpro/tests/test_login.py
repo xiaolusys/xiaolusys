@@ -1,6 +1,6 @@
 from django.test import TestCase
 import json
-
+from flashsale.pay.models import Customer
 class AuthenticationTestCase(TestCase):
 
     fixtures = ['test.flashsale.customer.json']
