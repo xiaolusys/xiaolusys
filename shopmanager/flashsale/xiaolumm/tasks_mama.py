@@ -153,22 +153,37 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
     if via_app:
         carry_type = 2  # app order
 
+    carry_description = util_description.get_ordercarry_description(via_app=via_app)
+    carry_num = carry_amount
+            
     order_id = order.oid
     # each order can only generate carry once for one type.
     uni_key = util_unikey.gen_ordercarry_unikey(carry_type, order_id)
 
     order_carry = OrderCarry.objects.filter(uni_key=uni_key).first()
     if order_carry:
+        update_fields = []
         if order_carry.status != status:
             # We only update status change. We assume no price/value change.
             # We dont do updates on changes other than status change.
             order_carry.status = status
-            order_carry.save(update_fields=['status', 'modified'])
+            update_fields.append('status')
+        if order_carry.carry_type != carry_type:
+            order_carry.carry_type = carry_type
+            update_fields.append('carry_type')
+        if order_carry.carry_num != carry_num:
+            order_carry.carry_num = carry_num
+            update_fields.append('carry_num')
+        if order_carry.carry_description != carry_description:
+            order_carry.carry_description = carry_description
+            update_fields.append('carry_description')
+        if update_fields:
+            update_fields.append('modified')
+            order_carry.save(update_fields=update_fields)
         return
 
     try:
         order_value = order.payment * 100
-        carry_num = carry_amount
 
         sku_name = order.title
         sku_img = order.pic_path
@@ -179,7 +194,6 @@ def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_lev
         else:
             date_field = order.created.date()
 
-        carry_description = util_description.get_ordercarry_description(via_app=via_app)
         customer = Customer.objects.get(id=customer_pk)
         contributor_nick = customer.nick
         contributor_img = customer.thumbnail
