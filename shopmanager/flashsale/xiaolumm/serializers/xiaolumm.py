@@ -44,7 +44,7 @@ class MamaMissionRecordSerializer(serializers.ModelSerializer):
         award_amount = obj.award_amount
         if mission.kpi_type == MamaMission.KPI_AMOUNT:
             target_value = target_value / 100.0
-            target_value = award_amount / 100.0
+            award_amount = award_amount / 100.0
         return {
             'id': mission.id,
             'name': mission.name,

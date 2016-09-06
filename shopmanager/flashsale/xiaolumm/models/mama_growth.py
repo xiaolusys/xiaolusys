@@ -114,7 +114,7 @@ class MamaMission(BaseModel):
 
         last_week_daytime = day_datetime - datetime.timedelta(days=7)
         week_start , week_end = week_range(last_week_daytime)
-        if self.cat_type == self.KPI_AMOUNT :
+        if self.kpi_type == self.KPI_AMOUNT:
             if self.target == self.TARGET_PERSONAL:
                 mama_ids = [xiaolumama.id]
                 target_stages = constants.PERSONAL_TARGET_STAGE
@@ -127,7 +127,7 @@ class MamaMission(BaseModel):
 
             last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start , week_end) / 100
             for k1, k2, t in target_stages:
-                if k1 <= last_week_finish_value < k2 or last_week_finish_value > k2:
+                if k1 <= last_week_finish_value < k2 or last_week_finish_value >= k2:
                     return t * 100, round(t * 100 * award_rate)
 
         return self.target_value, self.award_amount
