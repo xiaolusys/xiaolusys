@@ -810,8 +810,9 @@ admin.site.register(MamaMission, MamaMissionAdmin)
 
 
 class MamaMissionRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mama_id', 'referal_from_mama_id', 'group_leader_mama_id', 'mission',
-                    'year_week', 'finish_value', 'status', 'finish_time', 'created')
+    list_display = ('id', 'mama_id', 'referal_from_mama_id', 'group_leader_mama_id',
+                    'mission', 'year_week', 'target_value', 'finish_value', 'award_amount',
+                    'status', 'finish_time', 'created')
     list_filter = ('year_week', 'status')
     search_fields = ('=id', '=mama_id', '^mission__name')
 

@@ -9,6 +9,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.db import transaction
+from django.core.cache import cache
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.parsers import JSONParser
@@ -264,6 +265,7 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             serializer.save()
+            cache.delete(SaleCategory.CACHE_KEY)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -271,6 +273,7 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
         salecategory = SaleCategory.objects.filter(cid=pk).first()
         if salecategory:
             salecategory.delete()
+            cache.delete(SaleCategory.CACHE_KEY)
             log_action(request.user, salecategory, DELETION, u'删除分类')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -280,6 +283,7 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
             serializer = serializers.SaleCategorySerializer(salecategory, data=request.data)
             if serializer.is_valid():
                 serializer.save()
+                cache.delete(SaleCategory.CACHE_KEY)
                 log_action(request.user, salecategory, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
                 return Response(serializer.data)
         return Response(status=status.HTTP_400_BAD_REQUEST)

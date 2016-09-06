@@ -9,3 +9,26 @@ CARRY_OUT_DES = '{0}'
 MAMA_LINK_FILEPATH = '/qrcode/xiaolumm/mm-{mm_linkid}.jpg'
 # 妈妈专属链接
 MAMA_SHARE_LINK = '{site_url}m/{mm_linkid}/'
+
+PERSONAL_TARGET_STAGE = [
+    (0, 30, 100),
+    (130, 130, 200),
+    (130, 230, 300),
+    (230, 330, 400),
+    (330, 430, 500),
+    (430, 500, 600),
+    (500, 600, 720),
+    (600, 700, 840),
+    (700, 800, 960),
+].reverse()
+
+PERSONAL_TARGET_AWARD_RATE = 0.15
+
+GROUP_TARGET_STAGE = [
+    (0, 800, 1000),
+    (800, 1600, 2000),
+    (1600, 2400, 3000),
+    (2400, 3200, 4000)
+].reverse()
+
+GROUP_TARGET_AWARD_RATE = 0.05

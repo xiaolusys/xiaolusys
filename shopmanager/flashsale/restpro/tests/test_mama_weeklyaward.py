@@ -3,7 +3,7 @@ __author__ = 'jishu_linjie'
 import json
 import datetime
 from django.test import TestCase
-from flashsale.xiaolumm.models import XiaoluMama, MamaMission, MamaMissionRecord
+from flashsale.xiaolumm.tasks import task_update_all_mama_mission_state
 
 class MamaMissionTestCase(TestCase):
     fixtures = [
@@ -18,13 +18,12 @@ class MamaMissionTestCase(TestCase):
         self.password = 'test'
         self.client.login(username=self.username, password=self.password)
 
-        year_week = datetime.datetime.now().strftime('%Y-%W')
-        MamaMissionRecord.objects.update(year_week=year_week)
-
     def testMamaMissonWeeklylist(self):
+        task_update_all_mama_mission_state()
+
         _url = '/rest/v2/mama/mission/weeklist.json'
         response = self.client.get(_url)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertGreater(len(data['personal_missions']), 3)
-        self.assertEqual(len(data['group_missions']), 1)
+        self.assertGreater(len(data['personal_missions']), 1)
+        self.assertGreater(len(data['group_missions']), 1)

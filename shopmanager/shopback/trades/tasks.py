@@ -955,9 +955,6 @@ def task_packageskuitem_update_productskusalestats_num(sku_id, pay_time):
     """
     Recalculate and update skustats_num.
     """
-    print 'task_packageskuitem_update_productskusalestats_num:'
-    print sku_id
-    print pay_time
     from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
     sale_stats = ProductSkuSaleStats.objects.filter(sku_id=sku_id, sale_start_time__lte=pay_time,
                                                     status=ProductSkuSaleStats.ST_EFFECT)

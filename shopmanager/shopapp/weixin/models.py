@@ -389,9 +389,8 @@ class WeiXinAutoResponse(models.Model):
 
     @classmethod
     def respEmptyString(cls):
-
         return {'MsgType': cls.WX_TEXT,
-                'Content': 'success'}
+                'Content': ''}
 
     @classmethod
     def respDKF(cls):
