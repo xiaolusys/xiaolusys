@@ -399,6 +399,7 @@ class ReturnGoods(models.Model):
             ProductSku.objects.filter(id=skuid).update(quantity=F('quantity') + num,
                                                        sku_inferior_num=F('sku_inferior_num') + inferior_num)
             self.save()
+            ProductSkuStats.objects.filter(sku=skuid).update(inferior_num=F('sku_inferior_num') + inferior_num)
         return
 
     # def set_fail_closed(self):
