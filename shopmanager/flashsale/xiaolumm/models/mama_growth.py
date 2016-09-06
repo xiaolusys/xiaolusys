@@ -92,6 +92,7 @@ class MamaMission(BaseModel):
     end_time     = models.DateTimeField(null=True, blank=True, verbose_name=u'结束时间')
     date_type    = models.CharField(max_length=8, default=TYPE_WEEKLY,
                                 choices=TYPE_CHOICES, verbose_name=u'任务周期')
+    desc   = models.TextField(blank=True, null=True, verbose_name=u'任务描述')
     status = models.CharField(max_length=8, choices=STATUS_CHOICES,
                               default=DRAFT, verbose_name=u'状态')
 
@@ -147,7 +148,6 @@ class MamaMissionRecord(BaseModel):
     )
 
     mission = models.ForeignKey(MamaMission, verbose_name=u'关联任务')
-
     mama_id = models.IntegerField(default=0, verbose_name=u'妈妈id')
     referal_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'推荐人id')
     group_leader_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'团队队长id')
@@ -188,6 +188,19 @@ class MamaMissionRecord(BaseModel):
     def is_staging(self):
         return self.status == self.STAGING
 
+    def get_finish_value(self):
+        if self.mission.kpi_type == MamaMission.KPI_AMOUNT:
+            return self.finish_value / 100.0
+        return self.finish_value
+
+    def get_target_value(self):
+        if self.mission.kpi_type == MamaMission.KPI_AMOUNT:
+            return self.target_value / 100.0
+        return self.target_value
+
+    def get_award_amount(self):
+        return self.award_amount / 100.0
+
     def get_group_finish_value(self):
         if self.mission.target != MamaMission.TARGET_GROUP:
             return 0
@@ -214,7 +227,6 @@ class MamaMissionRecord(BaseModel):
                     or self.mission.target == MamaMission.TARGET_GROUP:
                 from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
                 task_send_mama_weekly_award.delay(self.mama_id, self.id)
-            # TODO@meron 消息通知妈妈任务完成
 
         elif self.finish_value < self.mission.target_value and self.is_finished():
             self.status = self.STAGING

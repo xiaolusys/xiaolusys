@@ -68,4 +68,4 @@ def order_Red_Packet():
                                                            carry_date=today)
                             order_red_carry_log.save()
                             mama_id_list_ten.append({'ten': mama.id})
-    print mama_id_list_first, mama_id_list_ten
+
