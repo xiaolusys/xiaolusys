@@ -6,25 +6,29 @@ import sqlparse
 import simplejson
 from django.shortcuts import render
 
-from flashsale.daystats.lib.db import execute_sql
 from flashsale.daystats.lib.chart import (
     generate_chart,
     generate_date,
     generate_chart_data,
 )
-from flashsale.daystats.lib.db import get_cursor
+from flashsale.daystats.lib.db import (
+    get_cursor,
+    execute_sql,
+)
 from flashsale.daystats.lib.util import (
     process_data,
     groupby,
     process,
     format_datetime,
+    format_date,
     get_date_from_req,
+    generate_range,
 )
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade, SaleOrder
 from flashsale.coupon.models import OrderShareCoupon
 from flashsale.xiaolumm.models import XlmmFans, PotentialMama, XiaoluMama
-from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, ReferalRelationship
+from flashsale.xiaolumm.models.models_fortune import CarryRecord, OrderCarry, ReferalRelationship, ClickCarry, AwardCarry
 from shopapp.weixin.models_base import WeixinFans
 
 
@@ -68,29 +72,53 @@ def index(req):
 
 
 def show(req):
-    mama_id = req.GET.get('mama_id', None)
+    mama_id = req.GET.get('mama_id') or None
     customer = None
     if mama_id and len(mama_id) == 11:
         mobile = mama_id
         customer = Customer.objects.using('product').filter(mobile=mobile).first()
         if customer:
             mama = XiaoluMama.objects.using('product').filter(openid=customer.unionid).first()
-            mama_id = mama.id
+            mama_id = mama.id if mama else None
     else:
         mama = XiaoluMama.objects.using('product').filter(id=mama_id).first()
         if mama:
             customer = Customer.objects.using('product').filter(unionid=mama.openid).first()
 
+    if mama:
+        mama.last_renew_type = dict(XiaoluMama.RENEW_TYPE).get(mama.last_renew_type)
+
     if customer:
         wx_fans = WeixinFans.objects.using('product').filter(unionid=customer.unionid)
         orders = SaleOrder.objects.using('product').filter(buyer_id=customer.id) \
             .exclude(pay_time__isnull=True).order_by('-created')
+        for order in orders:
+            order.status = dict(SaleOrder.ORDER_STATUS).get(order.status)
 
     referal_mama = ReferalRelationship.objects.using('product').filter(referal_to_mama_id=mama_id).first() or \
         PotentialMama.objects.using('product').filter(potential_mama=mama_id).first()
     one_mamas = PotentialMama.objects.using('product').filter(referal_mama=mama_id)
     relations = ReferalRelationship.objects.using('product').filter(referal_from_mama_id=mama_id)
 
+    carry_record = CarryRecord.objects.using('product').filter(mama_id=mama_id).order_by('-created')
+    award_carry = AwardCarry.objects.using('product').filter(mama_id=mama_id).order_by('-created')
+    order_carry = OrderCarry.objects.using('product').filter(mama_id=mama_id).order_by('-created')
+    click_carry = ClickCarry.objects.using('product').filter(mama_id=mama_id).order_by('-created')
+
+    sql = """
+        SELECT * FROM xiaoludb.flashsale_xlmm_mamadailyappvisit
+        where mama_id = %s
+        order by created desc
+    """
+    visit_record = execute_sql(get_cursor(), sql, [mama_id])
+
+    sql = """
+    SELECT sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record where mama_id = %s and status in (1,2)
+    """
+    carry_total = execute_sql(get_cursor(), sql, [mama_id])
+
+    if not mama_id:
+        mama_id = ''
     return render(req, 'yunying/mama/show.html', locals())
 
 
@@ -103,7 +131,7 @@ def carry(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     sql = """
     SELECT mama_id, sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record
-    where status=2 and mama_id in (
+    where status in (1, 2) and mama_id in (
         SELECT xiaolumm_xiaolumama.id FROM xiaoludb.xiaolumm_xiaolumama
         where xiaolumm_xiaolumama.agencylevel=3
             and created > %s
@@ -123,12 +151,13 @@ def carry(req):
 
     def byfunc(item):
         money = item['money']
-        if money < 3000:
-            return u'小于30'
-        elif money < 10000:
-            return u'30-100'
-        else:
-            return u'大于100'
+        return generate_range(float(money) / 100.0, [5, 10, 20, 30, 50, 100, 200, 500])
+        # if money < 3000:
+        #     return u'小于30'
+        # elif money < 10000:
+        #     return u'30-100'
+        # else:
+        #     return u'大于100'
 
     pie_products = groupby(queryset, byfunc)
     pie_products = process(pie_products, len)
@@ -228,14 +257,7 @@ mama_cache = {}
 
 
 def new_mama(req):
-    now = datetime.now()
-    last = now - timedelta(days=7)
-    now = now + timedelta(days=1)
-    p_start_date = req.GET.get('start_date', '%s-%s-%s' % (last.year, last.month, last.day))
-    p_end_date = req.GET.get('end_date', '%s-%s-%s' % (now.year, now.month, now.day+1))
-
-    start_date = datetime.strptime(p_start_date, '%Y-%m-%d')
-    end_date = datetime.strptime(p_end_date, '%Y-%m-%d')
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 
     cursor = get_cursor()
 
@@ -426,3 +448,39 @@ def new_task(req):
     if mama_id:
         mama_task = get_mama_new_task(mama_id)
     return render(req, 'yunying/mama/new_task.html', locals())
+
+
+def click(req):
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
+    sql = """
+        SELECT DATE(created) as date, count(*) as count FROM xiaoludb.flashsale_xlmm_unique_visitor
+        where created > %s and created < %s
+        group by DATE(created)
+        order by created
+    """
+    queryset = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])
+
+    x_axis = [format_date(x['date']) for x in queryset]
+
+    sql = """
+    SELECT DATE(pay_time) as date, count(*) as count FROM xiaoludb.flashsale_trade
+    where extras_info regexp '.*"mm_linkid": "?[1-9]+"?'
+    and pay_time > %s and pay_time < %s
+    and pay_time is not null
+    group by DATE(pay_time)
+    """
+    orders = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])
+
+    items = {
+        'click': [x['count'] for x in queryset],
+        'orders': [x['count'] for x in orders],
+    }
+    ratio_data = []
+    for i, d in enumerate(items['click']):
+        n = round((items['orders'][i] * 100.0 / d), 2)
+        ratio_data.append(n)
+
+    charts = []
+    charts.append(generate_chart('UV', x_axis, items, width='1000px'))
+
+    return render(req, 'yunying/mama/click.html', locals())

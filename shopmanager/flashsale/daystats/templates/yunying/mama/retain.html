@@ -19,7 +19,7 @@
 <div class="row">
   <table class="table table-bordered">
   <tr>
-    <td></td>
+    <td>注册日期\登陆日期</td>
     {% for date in col_date %}
     <td>{{ date }}</td>
     {% endfor %}
@@ -28,7 +28,11 @@
   <tr>
     <td>{{ date }}</td>
     {% for col in row %}
+    {% if col.0 == 0 %}
+    <td></td>
+    {% else %}
     <td>{{ col.0 }}({{ col.2 }})</td>
+    {% endif %}
     {% endfor %}
   </tr>
   {% endfor %}

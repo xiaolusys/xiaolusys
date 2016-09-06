@@ -14,7 +14,7 @@
                 trigger: 'axis'
             },
             legend: {
-                data:['销量']
+                data: [{% for item in chart.legend %}"{{ item|safe }}",{% endfor %}]
             },
             toolbox: {
                 feature: {

@@ -17,6 +17,10 @@
     <div class="panel-heading">用户(Customer)</div>
     <table class="table">
       <tr>
+        <td>ID</td>
+        <td>{{ customer.id }}</td>
+      </tr>
+      <tr>
         <td>注册时间</td>
         <td>{{ customer.created }}</td>
       </tr>
@@ -25,15 +29,15 @@
         <td>{{ customer.nick }}</td>
       </tr>
       <tr>
-        <td></td>
+        <td>手机号</td>
         <td>{{ customer.mobile }}</td>
       </tr>
       <tr>
-        <td></td>
+        <td>UNIONID</td>
         <td>{{ customer.unionid }}</td>
       </tr>
       <tr>
-        <td></td>
+        <td>第一次付款时间</td>
         <td>{{ customer.first_paytime }}</td>
       </tr>
     </table>
@@ -45,16 +49,28 @@
     <div class="panel-heading">小鹿妈妈</div>
     <table class="table">
       <tr>
+        <td>mama_id</td>
+        <td>{{ mama.id }}</td>
+      </tr>
+      <tr>
         <td>创建时间</td>
         <td>{{ mama.created }}</td>
       </tr>
       <tr>
-        <td>等级</td>
-        <td>{{ mama.agencylevel }}</td>
+        <td>续费类型</td>
+        <td>{{ mama.last_renew_type }}</td>
       </tr>
       <tr>
         <td>推荐人</td>
         <td>{{ referal_mama.referal_from_mama_id }}{{ referal_mama.referal_mama }}</td>
+      </tr>
+      <tr>
+        <td>最后访问时间</td>
+        <td>{{ visit_record.0.created }}</td>
+      </tr>
+      <tr>
+        <td>累计收益</td>
+        <td>{{ carry_total.0.money }}</td>
       </tr>
     </table>
   </div>
@@ -68,7 +84,13 @@
       <table class="table">
         {% for wx in wx_fans %}
         <tr>
-          <td>{{ wx.app_key }}</td>
+          <td>
+          {% if wx.app_key == 'wx3f91056a2928ad2d' %}
+          小鹿美美
+          {% else %}
+          小鹿美美特卖
+          {% endif %}
+          </td>
           <td>{{ wx.subscribe }}</td>
           <td>{{ wx.subscribe_time }}</td>
         </tr>
@@ -76,6 +98,63 @@
       </table>
   </div>
 
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading" data-toggle="collapse" href="#coll1">奖金收益</div>
+      <table class="table collapse in" id="coll1">
+<!--       {% for item in carry_record %}
+      <tr>
+        <td>{{ item.created }}</td>
+        <td>{{ item.carry_type_name }}</td>
+        <td>{{ item.carry_num }}</td>
+        <td>{{ item.carry_description }}</td>
+      </tr>
+      {% endfor %}
+ -->
+      {% for item in award_carry %}
+      <tr title="{{ item.carry_description }}">
+        <td>{{ item.created }}</td>
+        <td>{{ item.status_display }}</td>
+        <td>{{ item.carry_type_name }}</td>
+        <td>{{ item.carry_num }}</td>
+      </tr>
+      {% endfor %}
+      </table>
+    </div>
+  </div>
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading" data-toggle="collapse" href="#coll2">订单收益</div>
+      <table class="table collapse in" id="coll2">
+      {% for item in order_carry %}
+      <tr>
+        <td>{{ item.created }}</td>
+        <td>{{ item.status_display }}</td>
+        <td>{{ item.carry_num }}</td>
+        <td>{{ item.carry_type_name }}</td>
+      </tr>
+      {% endfor %}
+      </table>
+    </div>
+  </div>
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading" data-toggle="collapse" href="#coll3">点击收益</div>
+      <table class="table collapse in" id="coll3">
+      {% for item in click_carry %}
+      <tr>
+        <td>{{ item.created }}</td>
+        <td>{{ item.status_display }}</td>
+        <td>{{ item.total_value }}</td>
+        <td>{{ item.carry_description }}</td>
+      </tr>
+      {% endfor %}
+      </table>
+    </div>
   </div>
 </div>
 
@@ -92,6 +171,7 @@
             <td>{{ order.num }}</td>
             <td>{{ order.total_fee }}</td>
             <td>{{ order.pay_time }}</td>
+            <td>{{ order.status }}</td>
           </tr>
           {% endfor %}
         </table>

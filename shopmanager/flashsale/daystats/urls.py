@@ -43,10 +43,14 @@ urlpatterns = patterns('',
 urlpatterns += patterns(
     'flashsale.daystats.views',
     url(r'^yunying/$', 'yunying.index', name='yy-index'),
+
     url(r'^yunying/customer/$', 'customer.index', name='yy-customer-index'),
+    url(r'^yunying/customer/list$', 'customer.list', name='yy-customer-list'),
+
     url(r'^yunying/product/$', 'product.index', name='yy-product-index'),
     url(r'^yunying/product/category$', 'product.salecategory', name='yy-product-salecategory'),
     url(r'^yunying/product/(?P<id>.*)', 'product.show', name='yy-product-show'),
+
     url(r'^yunying/mama/$', 'mama.index', name='yy-mama-index'),
     url(r'^yunying/mama/home$', 'mama.home', name='yy-mama-home'),
     url(r'^yunying/mama/tab$', 'mama.tab', name='yy-mama-tab'),
@@ -55,9 +59,12 @@ urlpatterns += patterns(
     url(r'^yunying/mama/retain$', 'mama.retain', name='yy-mama-retain'),
     url(r'^yunying/mama/carry$', 'mama.carry', name='yy-mama-carry'),
     url(r'^yunying/mama/show$', 'mama.show', name='yy-mama-show'),
+    url(r'^yunying/mama/click$', 'mama.click', name='yy-mama-click'),
+
     url(r'^yunying/sql/$', 'sql.index', name='yy-sql-index'),
     url(r'^yunying/sql/(?P<id>.*)/destroy$', 'sql.destroy', name='yy-sql-destroy'),
     url(r'^yunying/sql/create$', 'sql.create', name='yy-sql-create'),
+
     url(r'^yunying/databse/index$', 'database.index', name='yy-database-index'),
     url(r'^yunying/databse/table/(?P<name>.*)$', 'database.table', name='yy-database-table'),
 )
