@@ -20,10 +20,14 @@ router_urls += ([
 router_v2 = routers.DefaultRouter(trailing_slash=False)
 router_v2.register(r'product', views.ProductManageV2ViewSet)
 router_v2_urls = router_v2.urls
-router_v2_urls += ([url(r'^product/(?P<model_id>[0-9]+)/create_model_product$',
-                        views.ProductManageV2ViewSet.as_view({'post': 'create_model_product'}),
-                        name='model-product-create-model-product'),
-                    ])
+router_v2_urls += ([
+                       url(r'^product/(?P<model_id>[0-9]+)/create_model_product$',
+                           views.ProductManageV2ViewSet.as_view({'post': 'create_model_product'}),
+                           name='model-product-create-model-product'),
+                       url(r'^product/(?P<pk>[0-9]+)/update_sku$',
+                           views.ProductManageV2ViewSet.as_view({'post': 'update_sku'}),
+                           name='model-product-update-sku'),
+                   ])
 
 urlpatterns = patterns('',
                        url(r'^v1/', include(router_urls, namespace='items_v1')),

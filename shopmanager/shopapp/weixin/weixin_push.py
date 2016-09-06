@@ -445,11 +445,65 @@ class WeixinPush(object):
                 'color': '#4CC417',
             },
             'keyword2': {
-                'value': u'新手任务',
+                'value': params.get('task_type', u'新手任务'),
                 'color': '#4CC417',
             },
             'keyword3': {
-                'value': datetime.now().strftime('%Y-%m-%d'),
+                'value': (params.get('finish_time') or datetime.now()).strftime('%Y-%m-%d'),
+                'color': '#4CC417',
+            },
+            'remark': {
+                'value': footer,
+                'color': '#4CC417',
+            },
+        }
+        return self.push(customer, template_ids, template_data, to_url)
+
+    push_mission_finish_task = push_new_mama_task
+
+    def push_mission_state_task(self, mama_id, header='', footer='', to_url='', params=None):
+        """
+        新任务提醒
+
+        {{first.DATA}}
+        任务名称：{{keyword1.DATA}}
+        奖励金额：{{keyword2.DATA}}
+        截止时间：{{keyword3.DATA}}
+        需求数量：{{keyword4.DATA}}
+        任务简介：{{keyword5.DATA}}
+        {{remark.DATA}}
+        """
+        customer = utils.get_mama_customer(mama_id)
+        if not params:
+            params = {}
+
+        template_ids = {
+            'meimei': '5dmrReey6YXG-eRuNWsfpK0xFL35xzk0UoJ43DJHwJ4',
+            'temai': '98pFo0KBn5WFLecvFnC2Ve_atd9wNYXdBc5zO4jJO9g'
+        }
+        template_data = {
+            'first': {
+                'value': header,
+                'color': '#4CC417',
+            },
+            'keyword1': {
+                'value': params.get('task_name', ''),
+                'color': '#4CC417',
+            },
+            'keyword2': {
+                'value': params.get('award_amount', u'不限额'),
+                'color': '#4CC417',
+            },
+            'keyword3': {
+                'value': params.get('deadline', ''),
+                'color': '#4CC417',
+            },
+            'keyword4': {
+                'value': params.get('target_state', ''),
+                'color': '#4CC417',
+            },
+            'keyword5': {
+                'value': params.get('description', ''),
                 'color': '#4CC417',
             },
             'remark': {

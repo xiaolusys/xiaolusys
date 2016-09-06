@@ -577,8 +577,11 @@ class ModelProduct(BaseTagModel):
     def set_choose_colors(self):
         """ 更新可选颜色 """
         names = self.products.values('name')
-        colors = [cc for cc in set(i['name'].split('/')[-1] for i in names if '/' in i['name'])]
+        colors = [cc for cc in set(i['name'].split('/')[-1] for i in names if '/' in i['name'] and i)]
         c = ','.join(colors)
+        if not c:
+            colors = [i['name'] for i in names]
+            c = ','.join(colors)
         if not c:
             return
         extras = self.extras

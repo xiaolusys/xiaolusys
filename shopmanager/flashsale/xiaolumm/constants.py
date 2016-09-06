@@ -10,6 +10,8 @@ MAMA_LINK_FILEPATH = '/qrcode/xiaolumm/mm-{mm_linkid}.jpg'
 # 妈妈专属链接
 MAMA_SHARE_LINK = '{site_url}m/{mm_linkid}/'
 
+APP_DOWNLOAD_URL = 'http://m.xiaolumeimei.com/sale/promotion/appdownload/'
+
 PERSONAL_TARGET_STAGE = [
     (0, 30, 100),
     (130, 130, 200),

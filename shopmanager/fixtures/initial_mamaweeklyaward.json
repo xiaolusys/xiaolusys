@@ -1,2 +1,146 @@
 [
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:07",
+    "start_time": null,
+    "modified": "2016-08-26T20:31:22",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 3000,
+    "cat_type": "refer_mama",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u65b0\u589e\u4e0b\u5c5e\u5988\u5988\u4efb\u52a1A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 1
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "group",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:06:32",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 100,
+    "cat_type": "group_refer",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u65b0\u589e\u56e2\u961f\u5988\u5988A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 2
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-26T20:42:52",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 1000,
+    "cat_type": "refer_guide",
+    "date_type": "weekly",
+    "target_value": 5,
+    "name": "\u5f15\u5bfc\u65b0\u624b\u5988\u5988\u5b8c\u6210\u4efb\u52a1"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 3
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:06:10",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 50,
+    "cat_type": "first_order",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u9996\u5355\u5956\u52b1"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 4
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-26T20:25:59",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 500,
+    "cat_type": "trial_mama",
+    "date_type": "weekly",
+    "target_value": 2,
+    "name": "\u9080\u8bf7\u5988\u5988\u4e00\u5143\u5f00\u5e97\u4efb\u52a1A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 5
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-24T22:05:51",
+    "kpi_type": "count",
+    "end_time": null,
+    "award_amount": 300,
+    "cat_type": "open_course",
+    "date_type": "weekly",
+    "target_value": 1,
+    "name": "\u5988\u5988\u9996\u6b21\u5f00\u8bb2"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 6
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "personal",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-26T20:37:52",
+    "kpi_type": "amount",
+    "end_time": null,
+    "award_amount": 1500,
+    "cat_type": "sale_mama",
+    "date_type": "weekly",
+    "target_value": 10000,
+    "name": "\u5988\u5988\u5468\u9500\u552e\u4efb\u52a1A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 7
+},
+{
+  "fields": {
+    "status": "progress",
+    "target": "group",
+    "created": "2016-08-22T16:56:46",
+    "start_time": null,
+    "modified": "2016-08-26T20:40:47",
+    "kpi_type": "amount",
+    "end_time": null,
+    "award_amount": 5000,
+    "cat_type": "sale_group",
+    "date_type": "weekly",
+    "target_value": 100000,
+    "name": "\u56e2\u961f\u5988\u5988\u5468\u9500\u552e\u4efb\u52a1A"
+  },
+  "model": "xiaolumm.mamamission",
+  "pk": 8
+}
 ]

@@ -11,6 +11,44 @@ from flashsale.xiaolumm.models import XiaoluMama, AwardCarry, OrderCarry, \
 import logging
 logger = logging.getLogger(__name__)
 
+@task(max_retries=3, default_retry_delay=60)
+def task_push_mission_state_msg_to_weixin_user(mission_record_id):
+    try:
+        from shopapp.weixin.weixin_push import WeixinPush
+
+        mama_mission = MamaMissionRecord.objects.filter(id=mission_record_id).first()
+        base_mission = mama_mission.mission
+
+        wxpush = WeixinPush()
+        if mama_mission.is_finished():
+            params  = {
+                'header': u'女王大人吉祥，本周有一任务已完成，深得阿玛喜欢，重重有赏！',
+                'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高).',
+                'task_name': u'%s, 赏￥%.2f元' % (base_mission.name, mama_mission.get_award_amount()),
+                'task_type': base_mission.get_cat_type_display(),
+                'finish_time': mama_mission.finish_time
+            }
+            wxpush.push_new_mama_task(mama_mission.mama_id, header=params.get('header'),
+                                           footer=params.get('footer'), to_url='', params=params)
+        else:
+            week_end_time = datetime.datetime.strptime('%s-0' % mama_mission.year_week, '%Y-%W-%w')
+            mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
+            params = {
+                'header': u'女王大人吉祥，阿玛有封密诏请阅目，按诏中所言处事定有重赏!',
+                'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高).',
+                'task_name': base_mission.name,
+                'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
+                'deadline': u'%s' % week_end_time.strftime('%Y-%m-%d'),
+                'target_state': u'已完成 %s %s/(目标数 %s %s)' % (
+                    mama_mission.get_target_value(), mission_kpi_unit,
+                    mama_mission.get_finish_value(), mission_kpi_unit),
+                'description': base_mission.desc,
+            }
+            wxpush.push_mission_state_task(mama_mission.mama_id, header=params.get('header'),
+                                      footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
+    except Exception, exc:
+        raise task_push_mission_state_msg_to_weixin_user.retry(exc=exc)
+
 
 def func_push_award_mission_to_mama(xiaolumama, mission, year_week):
 
@@ -34,6 +72,8 @@ def func_push_award_mission_to_mama(xiaolumama, mission, year_week):
     mama_mission.save()
 
     # TODO@meron 消息通知妈妈新任务产生
+    task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
+
 
 
 def create_or_update_once_mission(xiaolumama, mission):
@@ -138,6 +178,18 @@ def task_update_all_mama_mission_state():
        task_create_or_update_mama_mission_state.delay(xiaolumm.id)
 
 
+@task
+def task_notify_all_mama_staging_mission():
+    """ 消息通知妈妈还有哪些未完成任务 """
+    year_week = datetime.datetime.now().strftime('%Y-%W')
+    mama_missions = MamaMissionRecord.objects.filter(
+        year_week = year_week,
+        status = MamaMissionRecord.STAGING
+    )
+    for mama_mission in mama_missions:
+        task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
+
+
 @task(max_retries=3, default_retry_delay=5)
 def task_send_mama_weekly_award(mama_id, mission_record_id):
     """ 发放妈妈周激励奖励 """
@@ -155,6 +207,9 @@ def task_send_mama_weekly_award(mama_id, mission_record_id):
                               xiaolumm.weikefu, award_name,
                               uni_key, AwardCarry.STAGING,
                               AwardCarry.AWARD_MAMA_SALE)
+        # 通知妈妈任务完成，奖励发放
+        task_push_mission_state_msg_to_weixin_user.delay(mission_record_id)
+
     except Exception, exc:
         raise task_send_mama_weekly_award.retry(exc=exc)
 
@@ -169,12 +224,7 @@ def task_cancel_mama_weekly_award(mama_id, mission_record_id):
         uni_key = mama_mission.gen_uni_key()
         award_carry = AwardCarry.objects.filter(uni_key= uni_key).first()
         award_carry.cancel_award()
-
     except Exception, exc:
         raise task_cancel_mama_weekly_award.retry(exc=exc)
 
 
-@task(max_retries=3, default_retry_delay=5)
-def task_push_mission_state_msg_to_weixin_user():
-
-    pass
