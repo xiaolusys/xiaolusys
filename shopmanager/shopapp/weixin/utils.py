@@ -20,6 +20,7 @@ from shopapp.weixin.constants import MAMA_MANAGERS_QRCODE_MAP
 import logging
 logger = logging.getLogger(__name__)
 
+
 DEFAULT_MAMA_THUMBNAIL = 'http://img.xiaolumeimei.com/undefined1472268058597lADOa301H8zIzMg_200_200.jpg_620x10000q90g.jpg?imageMogr2/thumbnail/80/crop/80x80/format/jpg'
 BASE_MAMA_QRCODE_IMG_RUL = [
     'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base11.jpg',
