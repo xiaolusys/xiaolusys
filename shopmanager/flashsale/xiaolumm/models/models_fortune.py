@@ -1111,7 +1111,7 @@ post_save.connect(update_group_awardcarry,
 
 def update_mamafortune_mama_level(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance.leader_mama_id)
+    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance)
 
 post_save.connect(update_mamafortune_mama_level,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_mama_level')

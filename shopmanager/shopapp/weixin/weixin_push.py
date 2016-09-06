@@ -299,7 +299,7 @@ class WeixinPush(object):
             },
             'orderItemName':{
                 'value': u'订单佣金',
-                'color': '#F87217',
+                'color': '#ff0000',
             },
             'orderItemData':{
                 'value': '¥%.2f' % ordercarry.carry_num_display(),
