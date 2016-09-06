@@ -310,6 +310,34 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         * method: POST  给款式添加sku产品
             1. args:
                 `cid`: 产品所属类别cid
+
+    -------
+    - [/apis/items/v2/product/19922](/apis/items/v2/product/19922)
+        * method: PATCH  修改指定款式id的款式
+        * args:
+            1. `name` :  款式名称
+            2. `head_imgs` :  头图
+            3. `properties`:[
+                {"name": "材质", "value": "牛皮"},
+                {"name": "洗涤说明", "value": "温水擦拭"},
+                {"name": "产品备注", "value": "10岁以上穿着"}]` : 额外字段
+            4. `is_teambuy` : 是否团购
+            5. `teambuy_price` : 团购价格
+            6. `teambuy_person_num` : 团购人数
+            7. `status` : 状态
+    ------
+    - [/apis/items/v2/product/19922/update_sku](/apis/items/v2/product/19922/update_sku)
+        * method: POST 修改指定款式的sku信息
+        * args:
+            1. `color_id`:55612, 颜色级id
+            2. `sku_id`:222404, sku id
+            3. `color`: "茶色",  颜色级
+            4. `remain_num`: 3  预留数量
+            5. `cost`: 15, 成本价格
+            6. `std_sale_price`: 150  吊牌价
+            7. `agent_price`: 10  售价
+            8. `properties_name`: "XLL"  线上规格名称
+            9. `properties_alias`: "XLL"  系统规格名称
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers.ModelProductSerializer
@@ -476,7 +504,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）
         request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
         request.data.update({'lowest_std_sale_price': instance.lowest_std_sale_price})  # 最低吊牌价（价格由sku决定）
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = serializers.ModelProductUpdateSerializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         log_action(request.user, instance, CHANGE, u'修改款式信息')
