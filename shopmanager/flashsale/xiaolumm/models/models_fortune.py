@@ -465,7 +465,7 @@ class OrderCarry(BaseModel):
     @property
     def mama(self):
         from flashsale.xiaolumm.models.models import XiaoluMama
-        return XiaoluMama.objects.get(id=self.mama_id)
+        return XiaoluMama.objects.filter(id=self.mama_id).first()
 
     def is_direct_or_fans_carry(self):
         return self.carry_type == 1 or self.carry_type == 2
