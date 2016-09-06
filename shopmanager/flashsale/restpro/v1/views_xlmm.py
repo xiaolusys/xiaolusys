@@ -434,6 +434,28 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             task_new_guy_task_complete_send_award.delay(xlmm)  # task 发送奖金
         return Response(default_return)
 
+    @list_route(methods=['get'])
+    def get_team_members(self, request):
+        try:
+            xlmm = request.user.customer.get_xiaolumm()
+        except Exception, e:
+            raise exceptions.ValidationError(u'用户不是小鹿妈妈或者未登录')
+        from flashsale.xiaolumm.models.rank import WeekMamaCarryTotal, WEEK_RANK_REDIS
+        res = []
+        mm_ids = xlmm.get_team_member_ids()
+        for mama in XiaoluMama.objects.filter(id__in=mm_ids):
+            fortune = MamaFortune.get_by_mamaid(mama.id)
+            item = {
+                'mama': mama.id,
+                'thumbnail': mama.thumbnail,
+                'num': fortune.order_num,
+                'rank': WEEK_RANK_REDIS.get_rank(WeekMamaCarryTotal, 'total', mama.id),
+                'total': fortune.cash_total,
+                'total_display': '%.2f' % fortune.cash_total,
+            }
+            res.append(item)
+        return Response(res)
+
 
 class CarryLogViewSet(viewsets.ModelViewSet):
     """

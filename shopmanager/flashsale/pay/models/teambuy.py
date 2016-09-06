@@ -26,7 +26,7 @@ class TeamBuy(AdminModel):
         verbose_name_plural = u'团购列表'
 
     @staticmethod
-    def create_or_join(saletrade, limit_days=3, limit_person_num=3):
+    def create_or_join(saletrade):
         teambuy_id = saletrade.extras_info.get('teambuy_id', '')
         if TeamBuyDetail.objects.filter(tid=saletrade.tid).first():
             return
@@ -40,11 +40,13 @@ class TeamBuy(AdminModel):
         else:
             new_teambuy = True
         if new_teambuy:
+            p = Product.objects.get(id=saletrade.sale_orders.first().model_id)
+            model_product = p.get_product_model()
             teambuy = TeamBuy(
                 creator=saletrade.buyer_id,
                 sku_id=saleorder.sku_id,
-                limit_days=limit_days,
-                limit_person_num=limit_person_num,
+                limit_days=model_product.limit_days,
+                limit_person_num=model_product.limit_person_num,
             )
             teambuy.limit_time = datetime.datetime.now() + datetime.timedelta(days=3)
             buyer_id = saletrade.buyer_id

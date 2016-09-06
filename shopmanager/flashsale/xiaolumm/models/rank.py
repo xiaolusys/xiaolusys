@@ -105,11 +105,9 @@ class WeekRank(object):
         elif cache_count < real_count:
             cache_mama_ids = WEEK_RANK_REDIS.get_rank_list(cls, target, 0, -1)
         if cache_count != real_count:
-            add_res = []
-            for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids):
-                WEEK_RANK_REDIS.update_cache(i, targets=[target])
-                add_res.append(str(i.id))
-            logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(add_res))
+            res = {str(i.mama_id): getattr(i, target) for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids)}
+            WEEK_RANK_REDIS.batch_update_cache(res, cls, target)
+            logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(res.keys()))
 
     @classmethod
     def get_duration_ranking_list(cls, week_begin_time=None):
