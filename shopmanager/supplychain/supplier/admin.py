@@ -992,6 +992,7 @@ admin.site.register(CategoryPreference, CategoryPreferenceAdmin)
 
 class PreferencePoolAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'name',
         'unit',
         'categorys',
