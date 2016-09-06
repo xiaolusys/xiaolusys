@@ -40,8 +40,8 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id):
                 'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
                 'deadline': u'%s' % week_end_time.strftime('%Y-%m-%d'),
                 'target_state': u'已完成 %s %s/(目标数 %s %s)' % (
-                    mama_mission.get_target_value(), mission_kpi_unit,
-                    mama_mission.get_finish_value(), mission_kpi_unit),
+                    mama_mission.get_finish_value(), mission_kpi_unit,
+                    mama_mission.get_target_value(), mission_kpi_unit),
                 'description': base_mission.desc,
             }
             wxpush.push_mission_state_task(mama_mission.mama_id, header=params.get('header'),

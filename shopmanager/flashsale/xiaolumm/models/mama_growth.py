@@ -118,17 +118,17 @@ class MamaMission(BaseModel):
             if self.target == self.TARGET_PERSONAL:
                 mama_ids = [xiaolumama.id]
                 target_stages = constants.PERSONAL_TARGET_STAGE
-                award_rate = constants.PERSONAL_TARGET_AWARD_RATE
+                award_rate = 15
             else :
                 group_mamas = GroupRelationship.objects.filter(leader_mama_id=xiaolumama.id)
                 mama_ids = group_mamas.values_list('member_mama_id', flat=True)
                 target_stages = constants.GROUP_TARGET_STAGE
-                award_rate = constants.GROUP_TARGET_AWARD_RATE
+                award_rate = 50
 
             last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start , week_end) / 100
             for k1, k2, t in target_stages:
                 if k1 <= last_week_finish_value < k2 or last_week_finish_value >= k2:
-                    return t * 100, round(t * 100 * award_rate)
+                    return t * 100, award_rate
 
         return self.target_value, self.award_amount
 
