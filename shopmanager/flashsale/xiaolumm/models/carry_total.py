@@ -44,11 +44,8 @@ class RankRedis(object):
             RankRedis.redis_cache.zadd(self.get_cache_key(type(instance), target), instance.mama_id,
                                        func(instance, target))
 
-    def batch_update_cache(self, instance, targets=['duration_total', 'total']):
-        # TODO@hy 待优化 可一次性更新
-        for target in targets:
-            RankRedis.redis_cache.zadd(self.get_cache_key(type(instance), target), instance.mama_id,
-                                       getattr(instance, target))
+    def batch_update_cache(self, res, modelclass, target='total'):
+        RankRedis.redis_cache.zadd(self.get_cache_key(modelclass, target), **res)
 
     def clear_cache(self, model_class, target):
         RankRedis.redis_cache.delete(self.get_cache_key(model_class, target))
