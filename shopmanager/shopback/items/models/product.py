@@ -671,6 +671,11 @@ class Product(models.Model):
         self.agent_price = round(sum([i['agent_price'] for i in prices]) / count, 2)
         self.save(update_fields=['cost', 'std_sale_price', 'agent_price'])
 
+    def update_name(self, name):
+        if self.name != name and name.strip():
+            self.name = name
+            self.save(update_fields=['name'])
+
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):
     """ 当作废产品的时候　检查　同款是否 全部  作废　如果是　则　将对应供应商的选款数量减去１

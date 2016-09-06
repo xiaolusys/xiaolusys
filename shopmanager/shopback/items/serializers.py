@@ -77,11 +77,13 @@ class ItemSerializer(serializers.ModelSerializer):
 class ItemProductSkuSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='product.name', read_only=True)
     color = serializers.SerializerMethodField()
+    color_id = serializers.IntegerField(source='product.id', read_only=True)
 
     class Meta:
         model = ProductSku
         fields = (
             "id",
+            "color_id",
             "outer_id",
             "barcode",
             "quantity",
