@@ -3,6 +3,8 @@ import datetime
 
 def gen_ordercarry_unikey(carry_type, order_id):
     # For each type ordercarry, a single order only generate once such carry.
+    if carry_type == 1 or carry_type == 2:
+        carry_type = 1
     return '-'.join(['order', str(carry_type), order_id])
 
 
