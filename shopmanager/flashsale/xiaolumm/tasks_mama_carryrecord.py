@@ -36,6 +36,12 @@ def task_awardcarry_update_carryrecord(carry):
         if record.carry_num != carry.carry_num:
             record.carry_num = carry.carry_num
             update_fields.append('carry_num')
+        if record.mama_id != carry.mama_id:
+            record.mama_id = carry.mama_id
+            update_fields.append('mama_id')
+        if record.carry_description != carry.carry_description:
+            record.carry_description = carry.carry_description
+            update_fields.append('carry_description')
         if update_fields:
             update_fields.append('modified')
             record.save(update_fields=update_fields)
