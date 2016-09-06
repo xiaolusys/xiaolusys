@@ -40,7 +40,7 @@ class TeamBuy(AdminModel):
         else:
             new_teambuy = True
         if new_teambuy:
-            p = Product.objects.get(id=saletrade.sale_orders.first().model_id)
+            p = Product.objects.get(id=saletrade.sale_orders.first().item_id)
             model_product = p.get_product_model()
             teambuy = TeamBuy(
                 creator=saletrade.buyer_id,
