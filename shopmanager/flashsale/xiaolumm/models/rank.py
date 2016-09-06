@@ -105,7 +105,7 @@ class WeekRank(object):
         elif cache_count < real_count:
             cache_mama_ids = WEEK_RANK_REDIS.get_rank_list(cls, target, 0, -1)
         if cache_count != real_count:
-            res = {i.mama_id: getattr(i, target) for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids)}
+            res = {str(i.mama_id): getattr(i, target) for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids)}
             WEEK_RANK_REDIS.batch_update_cache(res, cls, target)
             logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(res.keys()))
 

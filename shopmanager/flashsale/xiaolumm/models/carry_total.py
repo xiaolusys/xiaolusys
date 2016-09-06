@@ -858,7 +858,7 @@ class ActivityRankTotal(object):
     @classmethod
     def check_update_cache(cls, target='duration_total'):
         cache_count = STAT_RANK_REDIS.get_rank_count(cls, target)
-        condition = cls.filters[target]
+        condition = copy(cls.filters[target])
         condition['activity_id'] = RankActivity.now_activity().id
         real_count = cls.objects.filter(**condition).count()
         if cache_count > real_count:
@@ -868,11 +868,9 @@ class ActivityRankTotal(object):
         elif cache_count < real_count:
             cache_mama_ids = STAT_RANK_REDIS.get_rank_list(cls, target, 0, -1)
         if cache_count != real_count:
-            add_res = []
-            for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids):
-                STAT_RANK_REDIS.update_cache(i, targets=[target], func=getattr_change)
-                add_res.append(str(i.id))
-            logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(add_res))
+            res = {str(i.mama_id): getattr_change(i, target) for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids)}
+            STAT_RANK_REDIS.batch_update_cache(res, cls, target)
+            logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(res.keys()))
 
     @classmethod
     def get_duration_ranking_list(cls, begin_time=None):
