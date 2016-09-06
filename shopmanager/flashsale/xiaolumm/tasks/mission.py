@@ -182,9 +182,12 @@ def task_update_all_mama_mission_state():
 def task_notify_all_mama_staging_mission():
     """ 消息通知妈妈还有哪些未完成任务 """
     year_week = datetime.datetime.now().strftime('%Y-%W')
+    twenty_hours_ago = datetime.datetime.now() - datetime.timedelta(seconds=12 * 60 * 60)
+    # 12小时内产生的任务不重复发送消息
     mama_missions = MamaMissionRecord.objects.filter(
         year_week = year_week,
-        status = MamaMissionRecord.STAGING
+        status = MamaMissionRecord.STAGING,
+        created__lte=twenty_hours_ago
     )
     for mama_mission in mama_missions:
         task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
