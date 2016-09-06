@@ -122,16 +122,19 @@ def close_timeout_carts_and_orders_reset_cart_num(skus=[]):
         3/进行购物车检查
         4移出购物车
     """
+    from shopback.items.models import ProductSkuStats
     from flashsale.pay.tasks_stats import task_shoppingcart_update_productskustats_shoppingcart_num
     djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
     now = datetime.datetime.now()
+    extend_skus = []
     if not skus:
         all_product_in_cart = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, remain_time__lte=now)
         skus = [c['sku_id'] for c in all_product_in_cart.values('sku_id').distinct()]
+        extend_skus = [p['sku_id'] for p in ProductSkuStats.objects.filter(shoppingcart_num__gt=0).exclude(sku_id__in=skus).values('sku_id')]
     else:
         all_product_in_cart = ShoppingCart.objects.filter(sku_id__in=skus, status=ShoppingCart.NORMAL, remain_time__lte=now)
     all_product_in_cart.update(status=ShoppingCart.CANCEL)
-    for sku in skus:
+    for sku in skus + extend_skus:
         task_shoppingcart_update_productskustats_shoppingcart_num(sku)
     all_trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_PAY)
     for trade in all_trade:
@@ -159,6 +162,7 @@ def task_schedule_cart():
 
     """
     close_timeout_carts_and_orders_reset_cart_num()
+
 
 BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"  # 访问第三方接口
 apikey = '47deda738666430bab15306c2878dd3a'
