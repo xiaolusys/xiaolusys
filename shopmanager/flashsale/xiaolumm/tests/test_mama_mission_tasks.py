@@ -16,7 +16,7 @@ from flashsale.xiaolumm.models import (
 )
 from flashsale.pay.models import SaleTrade, SaleRefund, SaleOrder
 from flashsale.xiaolumm.signals import signal_xiaolumama_register_success
-from flashsale.xiaolumm.tasks import task_update_all_mama_mission_state
+from flashsale.xiaolumm.tasks import task_update_all_mama_mission_state, fresh_mama_weekly_mission_bycat
 from flashsale.pay.signals import signal_saletrade_pay_confirm, signal_saletrade_refund_confirm
 
 import logging
@@ -38,12 +38,9 @@ class MamaWeeklyAwardTestCase(TestCase):
         self.mama_id = 44
         self.referal_from_mama_id = 1
         self.year_week = datetime.datetime.now().strftime('%Y-%W')
-        MamaMissionRecord.objects.update(year_week=self.year_week)
 
-        print ReferalRelationship.objects.all()
 
     def testUpdateAllMamaMissionState(self):
-        MamaMissionRecord.objects.all().delete()
         task_update_all_mama_mission_state()
 
         missions = MamaMissionRecord.objects.filter(
@@ -63,6 +60,11 @@ class MamaWeeklyAwardTestCase(TestCase):
 
     def testFinishMamaMissionReferalAward(self):
         """ 测试妈妈邀请任务及　团队妈妈邀请 """
+        # test trial mama mission
+        referal_from_mama = XiaoluMama.objects.filter(id=self.referal_from_mama_id).first()
+        year_week = datetime.datetime.now().strftime('%Y-%W')
+        fresh_mama_weekly_mission_bycat(referal_from_mama, MamaMission.CAT_TRIAL_MAMA, year_week)
+
         now_datetime = datetime.datetime.now()
         referal_mama = XiaoluMama.objects.filter(id=self.mama_id).first()
         referal_mama.charge_time = now_datetime
@@ -74,7 +76,6 @@ class MamaWeeklyAwardTestCase(TestCase):
         PotentialMama.objects.all().update(created=now_datetime)
 
         signal_xiaolumama_register_success.send(sender=XiaoluMama, xiaolumama=referal_mama, renew=False)
-        year_week = datetime.datetime.now().strftime('%Y-%W')
         mama_record = MamaMissionRecord.objects.filter(
             mama_id=self.referal_from_mama_id,
             year_week=year_week,
@@ -83,6 +84,9 @@ class MamaWeeklyAwardTestCase(TestCase):
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNone(mama_award)
+
+        # test refer mama mission
+        fresh_mama_weekly_mission_bycat(referal_from_mama, MamaMission.CAT_REFER_MAMA, year_week)
 
         referal_mama.last_renew_type = XiaoluMama.FULL
         referal_mama.save()
@@ -101,6 +105,7 @@ class MamaWeeklyAwardTestCase(TestCase):
 
     def testFinishMamaMissionSaleAward(self):
         """ 测试妈妈销售激励　团队妈妈销售激励 """
+
         now_datetime = datetime.datetime.now()
         saletrade = SaleTrade.objects.filter(id=332233).first()
         saletrade.pay_time = now_datetime
@@ -110,9 +115,16 @@ class MamaWeeklyAwardTestCase(TestCase):
             order.pay_time = now_datetime
             order.created = now_datetime
             order.save()
+
+        # test mama sale mission
+        xiaolumama = XiaoluMama.objects.filter(id=self.mama_id).first()
+        year_week = datetime.datetime.now().strftime('%Y-%W')
+        fresh_mama_weekly_mission_bycat(xiaolumama, MamaMission.CAT_SALE_MAMA, year_week)
+        # test mama group sale mission
+        fresh_mama_weekly_mission_bycat(xiaolumama, MamaMission.CAT_SALE_GROUP, year_week)
+
         signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=saletrade)
 
-        year_week = datetime.datetime.now().strftime('%Y-%W')
         mama_record = MamaMissionRecord.objects.filter(
             mama_id=self.mama_id,
             year_week=year_week,
@@ -121,7 +133,7 @@ class MamaWeeklyAwardTestCase(TestCase):
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNotNone(mama_award)
-        self.assertEqual(mama_record.mission.award_amount, mama_award.carry_num) # ==
+        self.assertEqual(mama_record.award_amount, mama_award.carry_num) # ==
 
         mama_record = MamaMissionRecord.objects.filter(
             mama_id=self.mama_id,
@@ -129,9 +141,10 @@ class MamaWeeklyAwardTestCase(TestCase):
             mission__cat_type=MamaMission.CAT_SALE_GROUP) \
             .order_by('created').first()
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
+
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNotNone(mama_award)
-        self.assertGreaterEqual(mama_record.mission.award_amount, mama_award.carry_num) # >=
+        self.assertGreaterEqual(mama_record.award_amount, mama_award.carry_num) # >=
 
         # refund cancel award
         call_command('loaddata', 'test.flashsale.pay.salerefund.json', verbosity=1)

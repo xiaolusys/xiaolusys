@@ -62,8 +62,8 @@ class MamaMissionRecordViewset(viewsets.ModelViewSet):
         response_data = {
             'staging_award_count': len(staging_awards_list),
             'staging_award_amount': sum(staging_awards_list),
-            'personal_missions': self.get_serializer(personal_missions, many=True).data ,
-            'group_missions': serializers.GroupMissionRecordSerializer(group_missions, many=True).data
+            'personal_missions': self.get_serializer(personal_missions, many=True).data,
+            'group_missions': self.get_serializer(group_missions, many=True).data
         }
 
         return Response(response_data)

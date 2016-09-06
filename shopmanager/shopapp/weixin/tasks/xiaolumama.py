@@ -76,14 +76,15 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
         potentailmama = PotentialMama.objects.filter(potential_mama=xiaolumm.id).first()
         if potentailmama:
             return xiaolumm
-        protentialmama = PotentialMama(
-            potential_mama=xiaolumm.id,
-            referal_mama=referal_from_mama_id,
-            nick=wx_userinfo['nickname'],
-            thumbnail=wx_userinfo['headimgurl'],
-            last_renew_type=XiaoluMama.SCAN,
-            uni_key=PotentialMama.gen_uni_key(xiaolumm.id, referal_from_mama_id))
-        protentialmama.save()
+        if referal_from_mama_id and int(referal_from_mama_id) != xiaolumm.id:
+            protentialmama = PotentialMama(
+                potential_mama=xiaolumm.id,
+                referal_mama=referal_from_mama_id,
+                nick=wx_userinfo['nickname'],
+                thumbnail=wx_userinfo['headimgurl'],
+                last_renew_type=XiaoluMama.SCAN,
+                uni_key=PotentialMama.gen_uni_key(xiaolumm.id, referal_from_mama_id))
+            protentialmama.save()
         #  修改该小鹿妈妈的接管状态
         xiaolumm.chargemama()
         xiaolumm.update_renew_day(XiaoluMama.SCAN)
@@ -94,7 +95,6 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
 def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
     try:
-
         xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
 
         # 获取创建用户小鹿妈妈信息,
@@ -110,7 +110,6 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
               "media_id":media_id
             }
         })
-
     except Exception,exc:
         logger.error(str(exc), exc_info=True)
         raise task_create_mama_referal_qrcode_and_response_weixin.retry(exc=exc)

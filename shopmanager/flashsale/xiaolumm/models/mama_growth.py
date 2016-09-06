@@ -6,8 +6,17 @@ from django.db.models import Sum, Count
 from core.models import BaseModel
 from core.utils import week_range
 
+from flashsale.xiaolumm import constants
+
 import logging
 logger = logging.getLogger(__name__)
+
+def get_mama_week_sale_amount(mamaid_list, week_start, week_end):
+    from flashsale.xiaolumm.models import OrderCarry
+    order_carrys = OrderCarry.objects.filter(
+        date_field__range=(week_start, week_end), mama_id__in=mamaid_list,
+        status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM))
+    return sum(order_carrys.values_list('order_value', flat=True))
 
 class MamaMission(BaseModel):
     TARGET_PERSONAL = 'personal'
@@ -99,6 +108,29 @@ class MamaMission(BaseModel):
         """ 任务是否可以接收 """
         return self.status == MamaMission.PROGRESS
 
+    def get_mama_target_value(self, xiaolumama, day_datetime):
+        from flashsale.xiaolumm.models import GroupRelationship
+
+        last_week_daytime = day_datetime - datetime.timedelta(days=7)
+        week_start , week_end = week_range(last_week_daytime)
+        if self.cat_type == self.KPI_AMOUNT :
+            if self.target == self.TARGET_PERSONAL:
+                mama_ids = [xiaolumama.id]
+                target_stages = constants.PERSONAL_TARGET_STAGE
+                award_rate = constants.PERSONAL_TARGET_AWARD_RATE
+            else :
+                group_mamas = GroupRelationship.objects.filter(leader_mama_id=xiaolumama.id)
+                mama_ids = group_mamas.values_list('member_mama_id', flat=True)
+                target_stages = constants.GROUP_TARGET_STAGE
+                award_rate = constants.GROUP_TARGET_AWARD_RATE
+
+            last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start , week_end) / 100
+            for k1, k2, t in target_stages:
+                if k1 <= last_week_finish_value < k2 or last_week_finish_value > k2:
+                    return t * 100, round(t * 100 * award_rate)
+
+        return self.target_value, self.award_amount
+
 
 def gen_mama_mission_record_unikey(mission_id, year_week, mama_id):
     return '%d-%s-%d'%(int(mission_id), year_week, int(mama_id))
@@ -121,7 +153,9 @@ class MamaMissionRecord(BaseModel):
     group_leader_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'团队队长id')
     year_week = models.CharField(max_length=16, blank=True, db_index=True, verbose_name=u'年-周') #2016-32
 
+    target_value = models.IntegerField(default=0, verbose_name=u'目标值')
     finish_value = models.IntegerField(default=0, verbose_name=u'完成值')
+    award_amount = models.IntegerField(default=0, verbose_name=u'奖励(分)')
     finish_time  = models.DateTimeField(blank=True, db_index=True, null=True, verbose_name=u'完成时间')
 
     uni_key  = models.CharField(max_length=32, unique=True, verbose_name=u'唯一约束') #mission_id + year_week + mama_id
@@ -181,6 +215,7 @@ class MamaMissionRecord(BaseModel):
                 from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
                 task_send_mama_weekly_award.delay(self.mama_id, self.id)
             # TODO@meron 消息通知妈妈任务完成
+
         elif self.finish_value < self.mission.target_value and self.is_finished():
             self.status = self.STAGING
             self.finish_time = datetime.datetime.now()
@@ -299,7 +334,6 @@ signal_saletrade_pay_confirm.connect(order_payment_update_mission_record,
 
 def refund_confirm_update_mission_record(sender, obj, *args, **kwargs):
     """ 订单退款成功更新妈妈销售激励状态 """
-    print 'debug refund mission:', obj
     try:
         logger.info('order_payment_update_mission_record start: refund_id= %s' % obj.id)
 
