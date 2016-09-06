@@ -60,7 +60,7 @@ def gen_mama_custom_qrcode_url(mama_id, thumbnail, message1='', message2=''):
     thumbnail = re.sub('/0$', '/132', thumbnail)
     params = {
         'base_url': random.choice(BASE_MAMA_QRCODE_IMG_RUL),
-        'message1': base64.urlsafe_b64encode(str(message1)),
+        'message1': base64.urlsafe_b64encode('我是' + str(message1)),
         'message2': base64.urlsafe_b64encode(str(message2)),
         'thumbnail': base64.urlsafe_b64encode(str(thumbnail)),
         'qrcode': base64.urlsafe_b64encode(str(qrcode_link))
