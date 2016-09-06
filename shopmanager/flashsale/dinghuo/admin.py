@@ -22,7 +22,7 @@ from shopback.trades.models import PackageSkuItem
 from shopback.warehouse import WARE_THIRD
 from .filters import OrderListStatusFilter2, BuyerNameFilter, \
     InBoundCreatorFilter
-
+import datetime
 
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
@@ -49,7 +49,7 @@ class OrderListAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'buyer_select', 'order_amount', 'calcu_model_num', 'quantity', 'purchase_total_num', 'shelf_status',
         'created', 'press_num', 'stage', 'get_receive_status', 'is_postpay', 'changedetail', 'supplier', 'note_name',
-        'purchase_order_unikey_link')
+        'purchase_order_unikey_link', 'remind_link')
     list_filter = (('created', DateFieldListFilter), 'stage', 'arrival_process', 'is_postpay', 'press_num',
                    'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note', 'purchase_order_unikey']
@@ -176,6 +176,19 @@ class OrderListAdmin(admin.ModelAdmin):
     purchase_order_unikey_link.allow_tags = True
     purchase_order_unikey_link.short_description = "订单列表"
 
+    def remind_link(self, obj):
+        t = datetime.datetime.now() - datetime.timedelta(days=30)
+        psi = PackageSkuItem.objects.filter(purchase_order_unikey='', pay_time__gt=t,assign_status=PackageSkuItem.NOT_ASSIGNED).order_by('created').first()
+        if psi:
+            t1 = datetime.datetime.now() - psi.pay_time
+            hours = t1.total_seconds() / 3600
+        else:
+            hours = 0
+        return u'<a href="/admin/trades/packageskuitem/?assign_status__exact=0&o=11.-10&purchase_order_unikey=" target="_blank" style="display: block;">%s小时前</a>' % hours
+
+    remind_link.allow_tags = True
+    remind_link.short_description = '未订货警告'
+    
     def changedetail(self, obj):
         symbol_link = u'【详情页】'
         return u'<a href="/sale/dinghuo/changedetail/{0}/" target="_blank" style="display: block;" >{1}</a>'.format(
