@@ -1078,7 +1078,7 @@ def update_mama_fans(sender, instance, created, **kwargs):
     from_mama = XiaoluMama.objects.filter(id=from_mama_id).first()
     from_customer = from_mama.get_mama_customer()
     xlmm_cusid = from_customer.id
-    fan = XlmmFans(xlmm=from_mama_id, xlmm_cusid=xlmm_cusid, referal_cusid=xlmm_cusid, fans_cusid=fans_cusid,
+    fan = XlmmFans(xlmm=from_mama_id, xlmm_cusid=xlmm_cusid, refreal_cusid=xlmm_cusid, fans_cusid=fans_cusid,
                    fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
     fan.save()
 
