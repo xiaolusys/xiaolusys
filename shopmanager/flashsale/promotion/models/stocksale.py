@@ -131,7 +131,7 @@ class ActivityStockSale(AdminModel):
             )
             activity_products.append(ap)
             for sku in sale.sku_detail:
-                ProductSku.objects.update(remain_num=max(0, min(sale.sku_detail[sku] - 5, 200)))  # 预留了5个超卖位
+                ProductSku.objects.filter(id=sku.id).update(remain_num=max(0, min(sale.sku_detail[sku] - 5, 200)))  # 预留了5个超卖位
             activity_product_ids.append(sale.product.id)
             if sale.sale_product.id not in add_sale_products:
                 SaleProductManageDetail(
