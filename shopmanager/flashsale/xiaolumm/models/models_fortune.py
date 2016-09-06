@@ -683,7 +683,7 @@ def awardcarry_weixin_push(sender, instance, created, **kwargs):
     if not created:
         return
     from flashsale.xiaolumm import tasks_mama_push
-    if instance.status != 3:
+    if instance.mama_id > 0 and instance.status != 3:
         tasks_mama_push.task_weixin_push_awardcarry.delay(instance)
 
 post_save.connect(awardcarry_weixin_push,

@@ -56,10 +56,15 @@ class XiaoluMamaSerializer(serializers.HyperlinkedModelSerializer):
 class UserBudgetSerialize(serializers.HyperlinkedModelSerializer):
     budget_cash = serializers.FloatField(source='get_amount_display', read_only=True)
     is_cash_out = serializers.IntegerField(source='is_could_cashout', read_only=True)
+    cash_out_limit = serializers.SerializerMethodField()
 
     class Meta:
         model = UserBudget
-        fields = ('budget_cash', 'is_cash_out')
+        fields = ('budget_cash', 'is_cash_out', 'cash_out_limit')
+
+    def get_cash_out_limit(self, obj):
+        """ 设置提现限制 """
+        return 2.0
 
 
 class CustomerSerializer(serializers.HyperlinkedModelSerializer):
