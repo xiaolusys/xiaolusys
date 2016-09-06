@@ -50,10 +50,10 @@ class ProductManageViewSet(viewsets.ModelViewSet):
             return redirect(reverse('items_v1:modelproduct-muying') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
         elif firstgrade_cat \
-            and not saleproduct.sale_category.cid.startswith(constants.CATEGORY_ACCESSOR) \
-            and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
-                                                                    constants.CATEGORY_WEMON,
-                                                                    constants.CATEGORY_ACCESSORY)):
+                and not saleproduct.sale_category.cid.startswith(constants.CATEGORY_ACCESSOR) \
+                and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
+                                                        constants.CATEGORY_WEMON,
+                                                        constants.CATEGORY_ACCESSORY)):
             return redirect('/static/add_item.html?supplier_id=%s&saleproduct=%s' % (supplier_id, saleproduct_id))
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
@@ -281,7 +281,6 @@ class ProductManageViewSet(viewsets.ModelViewSet):
 
 
 class ModelProductFilter(filters.FilterSet):
-
     class Meta:
         model = ModelProduct
         fields = ['id', 'status', 'saleproduct', 'shelf_status', 'is_onsale', 'is_teambuy']
@@ -311,6 +310,34 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         * method: POST  给款式添加sku产品
             1. args:
                 `cid`: 产品所属类别cid
+
+    -------
+    - [/apis/items/v2/product/19922](/apis/items/v2/product/19922)
+        * method: PATCH  修改指定款式id的款式
+        * args:
+            1. `name` :  款式名称
+            2. `head_imgs` :  头图
+            3. `properties`:[
+                {"name": "材质", "value": "牛皮"},
+                {"name": "洗涤说明", "value": "温水擦拭"},
+                {"name": "产品备注", "value": "10岁以上穿着"}]` : 额外字段
+            4. `is_teambuy` : 是否团购
+            5. `teambuy_price` : 团购价格
+            6. `teambuy_person_num` : 团购人数
+            7. `status` : 状态
+    ------
+    - [/apis/items/v2/product/19922/update_sku](/apis/items/v2/product/19922/update_sku)
+        * method: POST 修改指定款式的sku信息
+        * args:
+            1. `color_id`:55612, 颜色级id
+            2. `sku_id`:222404, sku id
+            3. `color`: "茶色",  颜色级
+            4. `remain_num`: 3  预留数量
+            5. `cost`: 15, 成本价格
+            6. `std_sale_price`: 150  吊牌价
+            7. `agent_price`: 10  售价
+            8. `properties_name`: "XLL"  线上规格名称
+            9. `properties_alias`: "XLL"  系统规格名称
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers.ModelProductSerializer
@@ -373,11 +400,18 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         model_properties = content.get('properties') or None
         if isinstance(model_properties, list):
             model_properties_d = dict([(tt['name'], tt['value']) for tt in model_properties])
-            old_properties_d = dict([(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
+            old_properties_d = dict(
+                [(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
             old_properties_d.update(model_properties_d)
             properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
         extras.update({'properties': properties})
         return extras
+
+    def set_model_pro(self, model_pro):
+        model_pro.set_is_flatten()  # 设置平铺字段
+        model_pro.set_lowest_price()  # 设置款式最低价格
+        model_pro.set_choose_colors()  # 设置可选颜色
+        return
 
     def create(self, request, *args, **kwargs):
         """ 创建特卖款式 """
@@ -422,7 +456,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             for color in colors:
                 if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                     pro_count += 1
-                request.data.update({'name': model_pro.name + "/" + color})
+                request.data.update({'name': color.strip()})
                 request.data.update({'pic_path': content['pic_path']})
 
                 request.data.update({'outer_id': inner_outer_id + str(pro_count)})
@@ -460,8 +494,44 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                     count += 1
                     product_instance.set_remain_num()  # 有效sku预留数之和
                     product_instance.set_price()  # 有效sku 设置 成品 售价 吊牌价 的平均价格
-            model_pro.set_is_flatten()  # 设置平铺字段
-            model_pro.set_lowest_price()  # 设置款式最低价格
-            model_pro.set_choose_colors()  # 设置可选颜色
+            self.set_model_pro(model_pro)
         serializer = serializers.ProductUpdateSerializer(product_instances, many=True)
         return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        partial = kwargs.pop('partial', False)
+        request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）
+        request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
+        request.data.update({'lowest_std_sale_price': instance.lowest_std_sale_price})  # 最低吊牌价（价格由sku决定）
+        serializer = serializers.ModelProductUpdateSerializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        log_action(request.user, instance, CHANGE, u'修改款式信息')
+        return Response(serializer.data)
+
+    def update_sku(self, request, pk, *args, **kwargs):
+        """ 修改sku信息 """
+        model_pro = self.get_object()
+        product_id = request.data.get('color_id') or 0
+        product_sku_id = request.data.get('sku_id') or 0
+        product = model_pro.products.filter(id=product_id).first()
+        if not product:
+            raise exceptions.APIException(u'产品没有找到哦!')
+        product_sku = product.pskus.filter(id=product_sku_id).first()
+        if not product_sku:
+            raise exceptions.APIException(u'sku没有找到！')
+        color = request.data.get('color') or None
+        if color:
+            product.update_name(color)
+        partial = kwargs.pop('partial', False)
+        request.data.update({'product': product.id})
+        request.data.update({'outer_id': product_sku.outer_id})
+        serializer = serializers.ProductSkuUpdateSerializer(product_sku, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        serializer = self.get_serializer(model_pro)
+        log_action(request.user, model_pro, CHANGE, u'修改sku信息')
+        self.set_model_pro(model_pro)
+        return Response(serializer.data)
+
