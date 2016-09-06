@@ -201,7 +201,7 @@ def task_send_mama_weekly_award(mama_id, mission_record_id):
         base_mission = mama_mission.mission
         award_name = u'%s(%s)奖励'%(base_mission.name, mama_mission.year_week)
 
-        award_amount = base_mission.award_amount * 0.01
+        award_amount = mama_mission.award_amount * 0.01
         uni_key = mama_mission.gen_uni_key()
         AwardCarry.send_award(xiaolumm, award_amount,
                               xiaolumm.weikefu, award_name,

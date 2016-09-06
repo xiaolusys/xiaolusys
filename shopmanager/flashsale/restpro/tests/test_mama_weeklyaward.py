@@ -26,4 +26,4 @@ class MamaMissionTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertGreater(len(data['personal_missions']), 1)
-        self.assertGreater(len(data['group_missions']), 1)
+        self.assertEqual(len(data['group_missions']), 0)
