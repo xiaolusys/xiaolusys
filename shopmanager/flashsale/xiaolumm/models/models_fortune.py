@@ -480,6 +480,8 @@ def commission_xlmm_newtask(sender, instance, **kwargs):
 
     ordercarry = instance
     xlmm = ordercarry.mama
+    if not xlmm:
+        return
     ordercarry = OrderCarry.objects.filter(mama_id=xlmm.id).exists()
 
     if not ordercarry:
