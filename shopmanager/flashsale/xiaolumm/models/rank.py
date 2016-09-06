@@ -99,7 +99,11 @@ class WeekRank(object):
         condition['stat_time'] = this_week_time
         real_count = cls.objects.filter(**condition).count()
         if cache_count > real_count:
-            logger.error('cache_count big than real_count')
+            ori_cache_mama_ids = WEEK_RANK_REDIS.get_rank_list(cls, target, 0, -1)
+            real_ids = [c['mama_id'] for c in cls.objects.filter(**condition).values('mama_id')]
+            ids = set(real_ids) - set(ori_cache_mama_ids)
+            id_str = ','.join([str(i) for i in list(ids)])
+            logger.error('cache_count big than real_count' + '|' + cls.__name__ + '|' + target + ':' + id_str)
             WEEK_RANK_REDIS.clear_cache(cls, target)
             cache_mama_ids = []
         elif cache_count < real_count:
@@ -107,7 +111,8 @@ class WeekRank(object):
         if cache_count != real_count:
             res = {str(i.mama_id): getattr(i, target) for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids)}
             WEEK_RANK_REDIS.batch_update_cache(res, cls, target)
-            logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(res.keys()))
+            if cache_count < real_count:
+                logger.error('some ' + cls.__name__ + '|' + target + '|' + ' cache has missed but now repaird:' + ','.join(res.keys()))
 
     @classmethod
     def get_duration_ranking_list(cls, week_begin_time=None):
