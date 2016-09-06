@@ -5,6 +5,7 @@ import datetime
 import base64
 import hashlib
 import urllib2
+import random
 from django.conf import settings
 from django.core.cache import cache
 import cStringIO as StringIO
@@ -19,15 +20,19 @@ from shopapp.weixin.constants import MAMA_MANAGERS_QRCODE_MAP
 import logging
 logger = logging.getLogger(__name__)
 
+
 DEFAULT_MAMA_THUMBNAIL = 'http://img.xiaolumeimei.com/undefined1472268058597lADOa301H8zIzMg_200_200.jpg_620x10000q90g.jpg?imageMogr2/thumbnail/80/crop/80x80/format/jpg'
-BASE_MAMA_QRCODE_IMG_RUL = 'http://7xogkj.com1.z0.glb.clouddn.com/xiaolumm/base/mama_referal_base2.png'
+BASE_MAMA_QRCODE_IMG_RUL = [
+    'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base11.jpg',
+    'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base12.jpg',
+    'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base13.jpg',
+]
 BASE_MAMA_QRCODE_TEMPLATE_URL = """
-    {base_url}?watermark/3/text/{message1}/font/5a6L5L2T/fontsize/1000/gravity/North/dx/10/dy/200
-    /image/{thumbnail}/dissolve/100/gravity/North/dy/30/
-    /image/{qrcode}/dissolve/100/gravity/Center/dy/50/ws/0.6/
-    /text/{message2}/font/5a6L5L2T/fontsize/500/gravity/South/dx/10/dy/200/
+    {base_url}?watermark/3/text/{message1}/fontsize/480/gravity/North/dy/170
+    /image/{thumbnail}/dissolve/100/gravity/North/dx/0/dy/30/ws/0.2
+    /image/{qrcode}/dissolve/100/gravity/Center/dy/110/ws/0.75/
     |imageMogr2/thumbnail/!60p/format/jpg/size-limit/400k
-""".replace('\n','').replace(' ','')
+""".replace('\n', '').replace(' ', '')
 
 
 def get_mama_customer(mama_id):
@@ -54,8 +59,8 @@ def gen_mama_custom_qrcode_url(mama_id, thumbnail, message1='', message2=''):
 
     thumbnail = re.sub('/0$', '/132', thumbnail)
     params = {
-        'base_url': BASE_MAMA_QRCODE_IMG_RUL,
-        'message1': base64.urlsafe_b64encode(str(message1)),
+        'base_url': random.choice(BASE_MAMA_QRCODE_IMG_RUL),
+        'message1': base64.urlsafe_b64encode('我是' + str(message1)),
         'message2': base64.urlsafe_b64encode(str(message2)),
         'thumbnail': base64.urlsafe_b64encode(str(thumbnail)),
         'qrcode': base64.urlsafe_b64encode(str(qrcode_link))

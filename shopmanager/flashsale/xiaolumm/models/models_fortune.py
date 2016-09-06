@@ -377,7 +377,10 @@ def carryrecord_xlmm_newtask(sender, instance, **kwargs):
     xlmm = carryrecord.mama
     if not xlmm:
         return
-    
+
+    if carryrecord.carry_type != CarryRecord.CR_CLICK:
+        return
+
     is_exists = CarryRecord.objects.filter(mama_id=xlmm.id, carry_type=CarryRecord.CR_CLICK).exists()
 
     if not is_exists:
@@ -644,7 +647,7 @@ class AwardCarry(BaseModel):
     @staticmethod
     def gen_uni_key(contributor_mama_id, award_type):
         return 'awardcarry-%s-%s' % (contributor_mama_id, award_type)
-            
+
     @staticmethod
     def send_award(mama, num, name, description, uni_key, status, carry_type,
                    contributor_nick=None, contributor_img=None, contributor_mama_id=None):
@@ -872,22 +875,22 @@ def activevalue_update_last_renew_time(sender, instance, created, **kwargs):
     if not created:
         return
     from flashsale.xiaolumm.models import XiaoluMama
-    
+
     mama_id = instance.mama_id
     mama = XiaoluMama.objects.filter(id=mama_id,last_renew_type=XiaoluMama.FULL,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED).first()
     if not mama:
         return
-    
+
     start_date = datetime.date(2016,8,28) # start from 2016-08-28
     charge_date = mama.charge_time.date()
     if charge_date > start_date:
         start_date = charge_date
     today = datetime.date.today()
-    
+
     cnt = ActiveValue.objects.filter(mama_id=mama_id,date_field__gte=start_date,date_field__lt=today).values('date_field').distinct().count()
     if today == instance.date_field:
         cnt += 1
-        
+
     renew_date = start_date + datetime.timedelta(days=365+cnt)
     renew_time = datetime.datetime(renew_date.year, renew_date.month, renew_date.day)
     if mama.renew_time != renew_time:
@@ -922,7 +925,7 @@ class ReferalRelationship(BaseModel):
 
     def is_confirmed(self):
         return self.referal_type == XiaoluMama.FULL or self.referal_type == XiaoluMama.HALF
-    
+
     def referal_to_mama_nick_display(self):
         if self.referal_to_mama_nick == "":
             return u"匿名用户"
@@ -943,7 +946,7 @@ class ReferalRelationship(BaseModel):
         if self.is_confirmed() and self.referal_type > referal_type:
             # We dont do update if referalrelationship is confirmed and referal_type is higher.
             return
-        
+
         order_id = potential_record.extras.get('oid') or None
         if not order_id:
             order_id = potential_record.extras.get('cashout_id') or ''
@@ -973,7 +976,7 @@ class ReferalRelationship(BaseModel):
             from core.options import log_action, CHANGE, get_systemoa_user
             sys_oa = get_systemoa_user()
             log_action(sys_oa, self, CHANGE, logmsg)
-            
+
             return True
         return False
 
@@ -991,7 +994,7 @@ class ReferalRelationship(BaseModel):
         rr = ReferalRelationship.objects.filter(referal_to_mama_id=potential_record.referal_mama).first()
         if rr:
             referal_from_grandma_id = rr.referal_from_mama_id
-            
+
         ship = cls(referal_from_grandma_id=referal_from_grandma_id,
                    referal_from_mama_id=potential_record.referal_mama,
                    referal_to_mama_id=potential_record.potential_mama,
@@ -1050,10 +1053,10 @@ post_save.connect(update_mamafortune_mama_level,
 def update_mama_fans(sender, instance, created, **kwargs):
     if not created:
         return
-    
+
     from flashsale.xiaolumm.models import XiaoluMama
     from flashsale.xiaolumm.models import XlmmFans
-    
+
     mama = XiaoluMama.objects.filter(id=instance.referal_to_mama_id).first()
     if not mama:
         return
@@ -1062,7 +1065,7 @@ def update_mama_fans(sender, instance, created, **kwargs):
     fans_cusid = customer.id
     fans_nick = customer.nick
     fans_thumbnail = customer.thumbnail
-    
+
     fan = XlmmFans.objects.filter(fans_cusid=fans_cusid).first()
     if fan:
         return
@@ -1220,7 +1223,7 @@ class MamaDailyAppVisit(BaseModel):
     @staticmethod
     def gen_uni_key(mama_id, date_field, device_type):
         return '%s-%s-%s' % (mama_id, date_field, device_type)
-    
+
     def get_user_version(self):
         from flashsale.apprelease.models import AppRelease
         if self.device_type == AppRelease.DEVICE_ANDROID:
@@ -1272,7 +1275,7 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
         latest_version = AppRelease.get_latest_version_code(device_type)
 
     uni_key = MamaDeviceStats.gen_uni_key(device_type, date_field, renew_type)
-    
+
     md = MamaDeviceStats.objects.filter(uni_key=uni_key).first()
     if not md:
         md = MamaDeviceStats(device_type=device_type, uni_key=uni_key, date_field=date_field, renew_type=renew_type)
@@ -1282,7 +1285,7 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
     num_latest = visits.filter(version=latest_version).count()
     num_outdated = visits.filter(version__lt=latest_version).count()
     num_visits = visits.aggregate(n=Sum('num_visits')).get('n') or 0
-    
+
     num_latest = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version=latest_version).count()
     num_outdated = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version__lt=latest_version).count()
 
