@@ -532,6 +532,10 @@ post_save.connect(ordercarry_app_push,
 def ordercarry_send_first_award(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     from flashsale.xiaolumm.models.models import XiaoluMama
+    
+    if not instance.mama:
+        return
+    
     if instance.mama.last_renew_type == XiaoluMama.TRIAL:
         tasks_mama_fortune.task_first_order_send_award.delay(instance.mama)
     tasks_mama_fortune.task_update_mamafortune_hasale_num.delay(instance.mama_id)
