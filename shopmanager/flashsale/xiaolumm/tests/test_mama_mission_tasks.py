@@ -54,8 +54,8 @@ class MamaWeeklyAwardTestCase(TestCase):
         self.assertEqual(missions_agg[MamaMission.CAT_REFER_MAMA], 1)
         self.assertEqual(missions_agg[MamaMission.CAT_SALE_MAMA], 1)
 
-        self.assertEqual(missions_agg[MamaMission.CAT_GROUP_MAMA], 1)
-        self.assertEqual(missions_agg[MamaMission.CAT_SALE_GROUP], 1)
+        self.assertIsNone(missions_agg.get(MamaMission.CAT_GROUP_MAMA))
+        self.assertIsNone(missions_agg.get(MamaMission.CAT_SALE_GROUP))
 
 
     def testFinishMamaMissionReferalAward(self):
@@ -116,32 +116,33 @@ class MamaWeeklyAwardTestCase(TestCase):
             order.created = now_datetime
             order.save()
 
+
         # test mama sale mission
         xiaolumama = XiaoluMama.objects.filter(id=self.mama_id).first()
         year_week = datetime.datetime.now().strftime('%Y-%W')
         fresh_mama_weekly_mission_bycat(xiaolumama, MamaMission.CAT_SALE_MAMA, year_week)
         # test mama group sale mission
         fresh_mama_weekly_mission_bycat(xiaolumama, MamaMission.CAT_SALE_GROUP, year_week)
+        # test referal from mama group sale mission
+        referal_from_mama = XiaoluMama.objects.filter(id=self.referal_from_mama_id).first()
+        fresh_mama_weekly_mission_bycat(referal_from_mama, MamaMission.CAT_SALE_GROUP, year_week)
 
         signal_saletrade_pay_confirm.send(sender=SaleTrade, obj=saletrade)
 
         mama_record = MamaMissionRecord.objects.filter(
             mama_id=self.mama_id,
             year_week=year_week,
-            mission__cat_type=MamaMission.CAT_SALE_MAMA) \
-            .order_by('created').first()
+            mission__cat_type=MamaMission.CAT_SALE_MAMA).first()
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNotNone(mama_award)
         self.assertEqual(mama_record.award_amount, mama_award.carry_num) # ==
 
         mama_record = MamaMissionRecord.objects.filter(
-            mama_id=self.mama_id,
+            mama_id=self.referal_from_mama_id,
             year_week=year_week,
-            mission__cat_type=MamaMission.CAT_SALE_GROUP) \
-            .order_by('created').first()
+            mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
-
         self.assertEqual(mama_record.status, MamaMissionRecord.FINISHED)
         self.assertIsNotNone(mama_award)
         self.assertGreaterEqual(mama_record.award_amount, mama_award.carry_num) # >=
@@ -155,17 +156,15 @@ class MamaWeeklyAwardTestCase(TestCase):
         mama_record = MamaMissionRecord.objects.filter(
             mama_id=self.mama_id,
             year_week=year_week,
-            mission__cat_type=MamaMission.CAT_SALE_MAMA) \
-            .order_by('created').first()
+            mission__cat_type=MamaMission.CAT_SALE_MAMA).first()
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
         self.assertEqual(mama_record.status, MamaMissionRecord.STAGING)
         self.assertEqual(mama_award.status, AwardCarry.CANCEL)
 
         mama_record = MamaMissionRecord.objects.filter(
-            mama_id=self.mama_id,
+            mama_id=self.referal_from_mama_id,
             year_week=year_week,
-            mission__cat_type=MamaMission.CAT_SALE_GROUP)\
-            .order_by('created').first()
+            mission__cat_type=MamaMission.CAT_SALE_GROUP).first()
         mama_award = AwardCarry.objects.filter(uni_key=mama_record.gen_uni_key()).first()
         self.assertEqual(mama_record.status, MamaMissionRecord.STAGING)
         self.assertEqual(mama_award.status, AwardCarry.CANCEL)

@@ -318,10 +318,27 @@ def _update_mama_salepayment_mission_record(sale_trade):
     base_missions = MamaMissionRecord.objects.filter(year_week=year_week, mama_id=mama_id)
     # update all mission's finish_value of the week range
     personal_records = base_missions.filter(
-        mission__cat_type__in=(MamaMission.CAT_SALE_MAMA, MamaMission.CAT_SALE_GROUP)
+        mission__cat_type=MamaMission.CAT_SALE_MAMA
     )
     for record in personal_records:
         record.update_mission_value(week_order_payment)
+
+    # 更新团队妈妈周销售任务
+    mama_group = GroupRelationship.objects.filter(member_mama_id=mama_id).first()
+    if mama_group:
+        group_mission_record = MamaMissionRecord.objects.filter(
+            year_week=year_week, mama_id=mama_group.leader_mama_id,
+            mission__cat_type=MamaMission.CAT_SALE_GROUP
+        ).first()
+
+        if group_mission_record:
+            group_mama_ids = GroupRelationship.objects.filter(leader_mama_id=mama_group.leader_mama_id)\
+                .values_list('member_mama_id',flat=True)
+            week_order_carrys = OrderCarry.objects.filter(
+                date_field__range=(week_start, week_end), mama_id__in=group_mama_ids,
+                status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM))
+            week_group_payment = sum(week_order_carrys.values_list('order_value', flat=True))
+            group_mission_record.update_mission_value(week_group_payment)
 
     from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
     task_create_or_update_mama_mission_state.delay(mama_id)
