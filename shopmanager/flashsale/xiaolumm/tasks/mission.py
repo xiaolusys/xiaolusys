@@ -151,7 +151,7 @@ def task_create_or_update_mama_mission_state(mama_id):
     # mama sale weekly
     fresh_mama_weekly_mission_bycat(xiaolumama, MamaMission.CAT_SALE_MAMA, year_week)
 
-    mama_group = GroupRelationship.objects.filter(member_mama_id=mama_id).first()
+    mama_group = GroupRelationship.objects.filter(leader_mama_id=mama_id).first()
     if mama_group:
         # TODO@meron 新增团队妈妈
         # group mama weekly
