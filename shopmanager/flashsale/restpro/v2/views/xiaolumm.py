@@ -436,7 +436,7 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(referal_from_mama_id=mama_id).order_by('-created')
+        return self.queryset.filter(referal_from_mama_id=mama_id, referal_type__lte=XiaoluMama.HALF).order_by('-created')
 
     def list(self, request, *args, **kwargs):
         statsd.incr('xiaolumm.mama_referalrelationship_count')
