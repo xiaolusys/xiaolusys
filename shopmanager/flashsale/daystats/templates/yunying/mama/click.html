@@ -1,0 +1,83 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block main %}
+
+
+{% include 'yunying/_datepicker.html' %}
+
+<div class="row">
+{% for chart in charts %}
+  <div class="col-md-6">
+    <div id="pie-chart" style="width: 1200px;height:600px;"></div>
+    <script type="text/javascript">
+        var pieChart = echarts.init(document.getElementById('pie-chart'));
+        option = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            toolbox: {
+                feature: {
+                    dataView: {show: true, readOnly: false},
+                    magicType: {show: true, type: ['line', 'bar']},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
+                }
+            },
+            legend: {
+                data:['蒸发量','降水量','平均温度']
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: {{ x_axis|safe }}
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '人数',
+                    min: 0,
+                    max: 30000,
+                    interval: 3000,
+                    axisLabel: {
+                        formatter: '{value} 个'
+                    }
+                },
+                {
+                    type: 'value',
+                    name: '比例',
+                    min: 0,
+                    max: 10,
+                    interval: 1,
+                    axisLabel: {
+                        formatter: '{value} %'
+                    }
+                }
+            ],
+            series: [
+                {
+                    name:'UV',
+                    type:'bar',
+                    data: {{ items.click }}
+                },
+                {
+                    name:'订单',
+                    type:'bar',
+                    data: {{ items.orders }}
+                },
+                {
+                    name:'转化率',
+                    type:'line',
+                    yAxisIndex: 1,
+                    data: {{ ratio_data }}
+                }
+            ]
+        };
+        pieChart.setOption(option);
+    </script>
+
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

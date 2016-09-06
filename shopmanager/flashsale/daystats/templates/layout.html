@@ -48,7 +48,15 @@
       <div class="col-md-2 sidebar">
         <ul class="nav nav-sidebar">
           <li><a href="{% url 'yy-index' %}">每日一览</a></li>
-          <li><a href="{% url 'yy-customer-index' %}?start_date=2016-08-01">用户分析</a></li>
+          <li>
+            <a class="" data-toggle="collapse" href="#collapse1">用户分析</a>
+            <ul class="nav nav-second-level collapse in" id="collapse1">
+              <li> <a href="{% url 'yy-customer-list' %}">用户列表</a> </li>
+              <li>
+                <a href="{% url 'yy-customer-index' %}?start_date=2016-08-01">xxx</a>
+              </li>
+            </ul>
+          </li>
           <li>
             <a class="" data-toggle="collapse" href="#collapseExample">小鹿妈妈</a>
             <ul class="nav nav-second-level collapse in" id="collapseExample">
@@ -57,6 +65,7 @@
               <li> <a href="{% url 'yy-mama-show' %}">妈妈信息查询</a> </li>
               <li> <a href="{% url 'yy-mama-carry' %}">一元妈妈收益</a> </li>
               <li> <a href="{% url 'yy-mama-retain' %}">七日留存</a> </li>
+              <li> <a href="{% url 'yy-mama-click' %}">点击统计</a> </li>
             </ul>
           </li>
           <li><a href="{% url 'yy-product-index' %}">商品分析</a></li>

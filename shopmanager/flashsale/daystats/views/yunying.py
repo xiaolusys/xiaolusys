@@ -22,14 +22,14 @@ def index(req):
 
     trade_today_count = SaleTrade.objects.using('product').filter(created__gte=today).count()
     trade_pay_today_count = SaleTrade.objects.using('product').filter(pay_time__gte=today).count()
-    trade_pay_today_fee = SaleTrade.objects.using('product')\
-                                           .filter(pay_time__gte=today).aggregate(Sum('total_fee'))['total_fee__sum']
+    trade_pay_today_fee = SaleTrade.objects.using('product') \
+        .filter(pay_time__gte=today).aggregate(Sum('total_fee'))['total_fee__sum']
 
     trade_yesterday_count = SaleTrade.objects.using('product').filter(created__gte=yesterday, created__lt=today).count()
     trade_pay_yesterday_count = SaleTrade.objects.using('product') \
-                                                 .filter(pay_time__gte=yesterday, pay_time__lt=today).count()
+        .filter(pay_time__gte=yesterday, pay_time__lt=today).count()
     trade_pay_yesterday_fee = SaleTrade.objects.using('product') \
-                                       .filter(pay_time__gte=yesterday, pay_time__lt=today) \
-                                       .aggregate(Sum('total_fee'))['total_fee__sum']
+        .filter(pay_time__gte=yesterday, pay_time__lt=today) \
+        .aggregate(Sum('total_fee'))['total_fee__sum']
 
     return render(req, 'yunying/index.html', locals())

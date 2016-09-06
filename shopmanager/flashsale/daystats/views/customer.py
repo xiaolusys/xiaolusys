@@ -5,6 +5,11 @@ from django.shortcuts import render
 from django.db import connections
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade
+from flashsale.daystats.lib.db import (
+    get_cursor,
+    execute_sql,
+)
+
 from flashsale.daystats.lib.chart import generate_chart, generate_date
 
 
@@ -20,9 +25,26 @@ def process_data(data):
     return [x[1] for x in data]
 
 
-def execute_sql(cursor, sql):
-    cursor.execute(sql)
-    return cursor.fetchall()
+def list(req):
+    q_customer = req.GET.get('customer')
+    q_xlmm = req.GET.get('xlmm')
+
+    sql = """
+        SELECT
+            flashsale_customer.created,
+            flashsale_customer.nick,
+            flashsale_customer.mobile
+        FROM xiaoludb.flashsale_customer
+        left join xiaoludb.xiaolumm_xiaolumama on xiaolumm_xiaolumama.openid=flashsale_customer.unionid
+        where xiaolumm_xiaolumama.id is null
+            and flashsale_customer.first_paytime is not null
+            and flashsale_customer.mobile is not null
+            and flashsale_customer.mobile != ''
+        order by flashsale_customer.created desc
+        limit 100
+    """
+    queryset = execute_sql(get_cursor(), sql)
+    return render(req, 'customer/list.html', locals())
 
 
 def index(req):
