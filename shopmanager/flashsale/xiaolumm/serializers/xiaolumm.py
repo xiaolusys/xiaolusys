@@ -21,6 +21,7 @@ class MamaMissionRecordSerializer(serializers.ModelSerializer):
     status_name = serializers.CharField(source='get_status_display', read_only=True)
     finish_value = serializers.SerializerMethodField(read_only=True)
     target_value = serializers.SerializerMethodField(read_only=True)
+    award_amount = serializers.SerializerMethodField(read_only=True)
     mission  = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -38,13 +39,16 @@ class MamaMissionRecordSerializer(serializers.ModelSerializer):
             return obj.target_value / 100.0
         return obj.target_value
 
+    def get_award_amount(self, obj):
+        return obj.award_amount / 100.0
+
     def get_mission(self, obj):
         mission = obj.mission
         target_value = obj.target_value
         award_amount = obj.award_amount
         if mission.kpi_type == MamaMission.KPI_AMOUNT:
             target_value = target_value / 100.0
-            award_amount = award_amount / 100.0
+
         return {
             'id': mission.id,
             'name': mission.name,

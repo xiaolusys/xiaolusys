@@ -116,7 +116,6 @@ class MamaWeeklyAwardTestCase(TestCase):
             order.created = now_datetime
             order.save()
 
-
         # test mama sale mission
         xiaolumama = XiaoluMama.objects.filter(id=self.mama_id).first()
         year_week = datetime.datetime.now().strftime('%Y-%W')
