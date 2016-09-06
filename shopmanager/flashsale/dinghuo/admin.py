@@ -181,7 +181,7 @@ class OrderListAdmin(admin.ModelAdmin):
         psi = PackageSkuItem.objects.filter(purchase_order_unikey='', pay_time__gt=t,assign_status=PackageSkuItem.NOT_ASSIGNED).order_by('created').first()
         if psi:
             t1 = datetime.datetime.now() - psi.pay_time
-            hours = t1.total_seconds() / 3600
+            hours = int(t1.total_seconds() / 3600)
         else:
             hours = 0
         return u'<a href="/admin/trades/packageskuitem/?assign_status__exact=0&o=11.-10&purchase_order_unikey=" target="_blank" style="display: block;">%s小时前</a>' % hours
