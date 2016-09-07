@@ -62,23 +62,22 @@ class AddItemView(generics.ListCreateAPIView):
         saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
         if not saleproduct:
             return Response({"result": "选品ID错误"})
-        supplier = str(saleproduct.sale_supplier.id)
-
-        if product_name == "" or category == "" or wash_instroduce == "" \
-                or shelf_time == "" or material == "" or supplier == "" \
-                or header_img == "" or ware_by == "":
-            return Response({"result": "填写表单错误"})
+        supplier = saleproduct.sale_supplier.id
         category_item = ProductCategory.objects.get(cid=category)
-        if category_item.parent_cid == 5:
-            first_outer_id = u"9"
-            outer_id = first_outer_id + str(category_item.cid) + "%05d" % int(
-                supplier)
-        elif category_item.parent_cid == 8:
-            first_outer_id = u"8"
-            outer_id = first_outer_id + str(category_item.cid) + "%05d" % int(
-                supplier)
+        category_maps = {
+            3: '3',
+            39: '3',
+            6: '6',
+            5: '9',
+            52: '5',
+            44: '7',
+            8: '8',
+            49: '4',
+        }
+        if category_maps.has_key(category_item.parent_cid):
+            outer_id = category_maps.get(category_item.parent_cid) + str(category_item.cid) + "%05d" % supplier
         elif category_item.cid == 9:
-            outer_id = "100" + "%05d" % int(supplier)
+            outer_id = "100" + "%05d" % supplier
         else:
             return Response({"result": "请补全三级类目信息"})
 

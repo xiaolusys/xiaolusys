@@ -10,7 +10,12 @@ service docker restart
 docker login --username=己美网络 registry.aliyuncs.com -p kzt[***]72
 
 
+docker run --name static -v /data busybox /bin/sh
 
+docker run --name=gunicorn --restart=always -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=[password] \
+-e REDIS_AUTH=[auth] --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 \
+-e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program \
+gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
 
 mkdir -p /var/log/taobao
 mkdir -p /var/www/deploy/taobao
