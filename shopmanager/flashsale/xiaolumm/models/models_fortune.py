@@ -603,7 +603,7 @@ class AwardCarry(BaseModel):
                    (9, u'销售奖励'),(10, u'团队销售奖励') )
     STAGING = 1
     CONFIRMED = 2
-    CANCEL = 2
+    CANCEL = 3
     STATUS_TYPES = ((1, u'预计收益'), (2, u'确定收益'), (3, u'已取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
