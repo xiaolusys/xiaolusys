@@ -578,6 +578,10 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['POST', 'GET'])
     def bind_mama(self, request, pk):
+        try:
+            pk=int(pk)
+        except:
+            raise exceptions.ValidationError(make_response(u'妈妈id必须为整数'))
         cus = request.user.customer
         mama = get_object_or_404(XiaoluMama, pk=pk)
         try:
