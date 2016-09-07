@@ -3,6 +3,7 @@ import datetime
 
 from celery.task import task
 from django.db import IntegrityError
+from django.conf import settings
 
 from flashsale.xiaolumm import constants
 from flashsale.xiaolumm.models import XiaoluMama, AwardCarry, OrderCarry, \
@@ -14,6 +15,9 @@ logger = logging.getLogger(__name__)
 @task(max_retries=3, default_retry_delay=60)
 def task_push_mission_state_msg_to_weixin_user(mission_record_id):
     try:
+        if not settings.MAMA_MISSION_PUSH_SWITCH:
+            return
+
         from shopapp.weixin.weixin_push import WeixinPush
 
         mama_mission = MamaMissionRecord.objects.filter(id=mission_record_id).first()

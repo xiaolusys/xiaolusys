@@ -9,8 +9,10 @@ ORMCACHE_ENABLE = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 24 * 15 * 60 * 60
 
-INGORE_SIGNAL_EXCEPTION = True
+############################ FUNCTION SWITCH #############################
+INGORE_SIGNAL_EXCEPTION = True # signal异常捕获而且不再抛出
 PUSH_SWITCH = True  # 推送开关
+MAMA_MISSION_PUSH_SWITCH = False  # 妈妈周激励推送开关
 
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, "site_media", "static"),

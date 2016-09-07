@@ -809,11 +809,11 @@ class MamaMissionAdmin(admin.ModelAdmin):
 admin.site.register(MamaMission, MamaMissionAdmin)
 
 
-class MamaMissionRecordAdmin(admin.ModelAdmin):
+class MamaMissionRecordAdmin(ApproxAdmin):
     list_display = ('id', 'mama_id', 'referal_from_mama_id', 'group_leader_mama_id',
                     'mission', 'year_week', 'target_value', 'finish_value', 'award_amount',
                     'status', 'finish_time', 'created')
-    list_filter = ('year_week', 'status')
+    list_filter = ('year_week', 'status', 'mission__cat_type', 'mission__target', 'mission__kpi_type')
     search_fields = ('=id', '=mama_id', '^mission__name')
 
 admin.site.register(MamaMissionRecord, MamaMissionRecordAdmin)
