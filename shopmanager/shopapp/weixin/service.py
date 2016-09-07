@@ -140,25 +140,25 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                 ret_params.update(faq.respNews())
                 return ret_params
 
-        if eventKey == 'MAMA_REFERAL_QRCODE' or event == 'SCAN':
+        if eventKey == 'MAMA_REFERAL_QRCODE' or event == 'SCAN' or event == 'subscribe':
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u'[玫瑰]亲爱的小鹿妈妈，您的专属推荐二维码正在创建中，分享给其它妈妈并邀请开店可坐享收益哦：'
+                'Content': u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
             })
 
         if eventKey == 'MAMA_MANAGER_QRCODE':
             tasks.task_create_mama_and_response_manager_qrcode.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u'[爱心]亲爱的小鹿妈妈， 长按识别图中二维码, 添加妈妈专属管理员微信:'
+                'Content': u'[爱心]亲，请长按识别图中二维码, 添加您的专属管理员微信:'
             })
 
     except Exception, exc:
         logger.error(u'handleWeiXinMenuRequest error: %s' % exc.message, exc_info=True)
         ret_params.update({
             'MsgType': WeiXinAutoResponse.WX_TEXT,
-            'Content': u'不好了，鹿小美闹情绪不想干活了！[撇嘴]'
+            'Content': u'Sorry亲，系统负载太高，请稍等！[撇嘴]'
         })
 
     return ret_params
