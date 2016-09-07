@@ -15,14 +15,13 @@ logger = logging.getLogger(__name__)
 @task(max_retries=3, default_retry_delay=60)
 def task_push_mission_state_msg_to_weixin_user(mission_record_id):
     try:
-        if not settings.MAMA_MISSION_PUSH_SWITCH:
-            return
 
         from shopapp.weixin.weixin_push import WeixinPush
-
         mama_mission = MamaMissionRecord.objects.filter(id=mission_record_id).first()
-        base_mission = mama_mission.mission
+        if not settings.MAMA_MISSION_PUSH_SWITCH and  mama_mission.mama_id > 135:
+            return
 
+        base_mission = mama_mission.mission
         wxpush = WeixinPush()
         if mama_mission.is_finished():
             params  = {
