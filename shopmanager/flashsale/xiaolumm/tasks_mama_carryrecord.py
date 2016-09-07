@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 import logging
-
+import datetime
 from celery.task import task
 
 logger = logging.getLogger('celery.handler')
@@ -33,6 +33,9 @@ def task_awardcarry_update_carryrecord(carry):
         if record.status != carry.status:
             record.status = carry.status
             update_fields.append('status')
+            if status == 2:
+                award_carry.date_field = datetime.date.today()
+                update_fields.append('date_field')
         if record.carry_num != carry.carry_num:
             record.carry_num = carry.carry_num
             update_fields.append('carry_num')

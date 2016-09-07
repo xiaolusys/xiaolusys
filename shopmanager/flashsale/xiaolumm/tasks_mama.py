@@ -283,6 +283,9 @@ def task_referal_update_awardcarry(relationship):
         if award_carry.status != status:
             award_carry.status = status
             update_fields.append('status')
+            if status == 2:
+                award_carry.date_field = datetime.date.today()
+                update_fields.append('date_field')
         if award_carry.carry_description != carry_description:
             award_carry.carry_description = carry_description
             update_fields.append('carry_description')
@@ -347,6 +350,9 @@ def task_update_group_awardcarry(relationship):
         if award_carry.status != status:
             award_carry.status = status
             update_fields.append('status')
+            if status == 2:
+                award_carry.date_field = datetime.date.today()
+                update_fields.append('date_field')
         if award_carry.carry_description != carry_description:
             award_carry.carry_description = carry_description
             update_fields.append('carry_description')
