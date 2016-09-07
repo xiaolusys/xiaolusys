@@ -475,7 +475,7 @@ class ReturnGoods(models.Model):
 def update_product_sku_stat_rg_quantity(sender, instance, created, **kwargs):
     if instance.created >= ProductSkuStats.PRODUCT_SKU_STATS_COMMIT_TIME and instance.status in [
         ReturnGoods.REFUND_RG, ReturnGoods.DELIVER_RG,
-        ReturnGoods.SUCCEED_RG
+        ReturnGoods.SUCCEED_RG, ReturnGoods.FAILED_RG
     ]:
         from flashsale.dinghuo.tasks import task_update_product_sku_stat_rg_quantity
         for rg in instance.rg_details.all():
