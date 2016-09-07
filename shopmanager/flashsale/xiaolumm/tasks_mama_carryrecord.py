@@ -33,8 +33,8 @@ def task_awardcarry_update_carryrecord(carry):
         if record.status != carry.status:
             record.status = carry.status
             update_fields.append('status')
-            if status == 2:
-                award_carry.date_field = datetime.date.today()
+            if carry.status == 2:
+                record.date_field = datetime.date.today()
                 update_fields.append('date_field')
         if record.carry_num != carry.carry_num:
             record.carry_num = carry.carry_num
