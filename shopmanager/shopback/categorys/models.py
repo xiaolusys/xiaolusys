@@ -1,7 +1,6 @@
 # -*- coding:utf8 -*-
 from django.db import models
 
-from core.ormcache.managers import CacheManager
 from shopback import paramconfig as pcfg
 from auth import apis
 

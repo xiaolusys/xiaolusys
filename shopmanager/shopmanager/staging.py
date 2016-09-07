@@ -5,11 +5,11 @@ from .base import *
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-ORMCACHE_ENABLE = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 24 * 15 * 60 * 60
 
 ############################ FUNCTION SWITCH #############################
+ORMCACHE_ENABLE = True # ORMCACHE SWITCH
 INGORE_SIGNAL_EXCEPTION = False # signal异常捕获而且不再抛出
 PUSH_SWITCH = False  # 推送开关
 MAMA_MISSION_PUSH_SWITCH = False  # 妈妈周激励推送开关

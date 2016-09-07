@@ -364,16 +364,16 @@ signal_saletrade_pay_confirm.connect(order_payment_update_mission_record,
 def refund_confirm_update_mission_record(sender, obj, *args, **kwargs):
     """ 订单退款成功更新妈妈销售激励状态 """
     try:
-        logger.info('order_payment_update_mission_record start: refund_id= %s' % obj.id)
+        logger.info('refund_confirm_update_mission_record start: refund_id= %s' % obj.id)
 
         from flashsale.pay.models import SaleTrade
         sale_trade = SaleTrade.objects.get(id=obj.trade_id)
 
         _update_mama_salepayment_mission_record(sale_trade)
 
-        logger.info('order_payment_update_mission_record end: refund_id= %s' % obj.id)
+        logger.info('refund_confirm_update_mission_record end: refund_id= %s' % obj.id)
     except Exception, exc:
-        logger.error('order_payment_update_mission_record error: refund_id=%s, %s' % (obj.id, exc), exc_info=True)
+        logger.error('refund_confirm_update_mission_record error: refund_id=%s, %s' % (obj.id, exc), exc_info=True)
 
 # 退款更新妈妈销售任务及团队销售任务
 signal_saletrade_refund_confirm.connect(refund_confirm_update_mission_record,

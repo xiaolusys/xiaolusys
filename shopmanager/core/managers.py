@@ -3,6 +3,7 @@ from django.db.models.query import QuerySet
 
 from tagging.models import TaggedItem
 from tagging.utils import  get_tag_list
+from core.ormcache.managers import CacheManager
 
 class ApproxCountQuerySet(QuerySet):
     def count(self):

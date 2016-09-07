@@ -108,6 +108,9 @@ class Customer(BaseModel):
         verbose_name = u'特卖用户/客户'
         verbose_name_plural = u'特卖用户/客户列表'
 
+    objects = managers.CustomerManager()
+    cache_enabled = True
+
     INACTIVE = 0  # 未激活
     NORMAL = 1  # 正常
     DELETE = 2  # 删除
@@ -135,7 +138,6 @@ class Customer(BaseModel):
 
     status = models.IntegerField(choices=USER_STATUS_CHOICES, default=NORMAL, verbose_name=u'状态')
 
-    objects = managers.CustomerManager()
     first_paytime = models.DateTimeField(null=True,blank=True,verbose_name=u'首次购买日期')
     #     latest_paytime  = models.DateTimeField(null=True,blank=True,verbose_name=u'最近购买日期')
 
