@@ -83,15 +83,8 @@ deploy:
   ssh:
     host:
       - sale.xiaolumm.com
-    user: root
-    when:
-      branch: master
-    commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-  ssh:
-    host:
-      - sale.xiaolumm.com
       - sale2.xiaolumm.com
+      - sale3.xiaolumm.com
     user: root
     when:
       branch: master
