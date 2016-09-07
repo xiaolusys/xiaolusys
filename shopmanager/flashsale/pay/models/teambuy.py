@@ -101,9 +101,9 @@ class TeamBuy(AdminModel):
 
     def get_shareparams(self, **params):
         if self.share_xlmm_id:
-            share_link = '/mall/order/spell/group/' + str(self.id) + '?mm_linkid=' + str(self.share_xlmm_id)
+            share_link = '/mall/order/spell/group/' + str(self.id) + '?mm_linkid=' + str(self.share_xlmm_id) + '&from_page=share'
         else:
-            share_link = '/mall/order/spell/group/' + str(self.id)
+            share_link = '/mall/order/spell/group/' + str(self.id) + '?from_page=share'
         return {
             'id': self.id,
             'title': u'一起来团购 %s' %(self.sku.product.name,),
