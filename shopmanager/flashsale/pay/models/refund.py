@@ -20,7 +20,7 @@ from flashsale.pay.signals import signal_saletrade_refund_post
 from flashsale.pay import NO_REFUND, REFUND_CLOSED, REFUND_REFUSE_BUYER, REFUND_WAIT_SELLER_AGREE, \
     REFUND_WAIT_RETURN_GOODS, REFUND_CONFIRM_GOODS, REFUND_APPROVE, REFUND_SUCCESS, REFUND_STATUS
 from flashsale.pay.managers import SaleRefundManager
-from shopback.warehouse.constants import WARE_THIRD
+from shopback.warehouse.constants import WARE_THIRD, WARE_SH, WARE_GZ, WARE_COMPANY
 from ..signals import signal_saletrade_refund_confirm
 from ..options import uniqid
 from .base import PayBaseModel
@@ -362,7 +362,9 @@ class SaleRefund(PayBaseModel):
             if sproduct:
                 ware_by = sproduct.ware_by
                 if ware_by == WARE_THIRD:
-                    ware_by = sproduct.get_supplier().return_ware_by
+                    return_by = sproduct.get_supplier().return_ware_by
+                    if return_by in [WARE_SH, WARE_GZ, WARE_COMPANY]:
+                        ware_by = return_by
                 return WareHouse.objects.get(id=ware_by).address
         except WareHouse.DoesNotExist:
             logger.warn('order product ware_by not found:saleorder=%s' % sorder)

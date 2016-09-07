@@ -1,30 +1,39 @@
 部署新服务器流程：
 - 安装脚本
-sudo apt-get install curl
+cp /etc/apt/sources.list /etc/apt/sources.list.bk; cp ./sources.list.trusty /etc/apt/sources.list
+
+sudo apt-get update
+sudo apt-get install curl -y
 curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -
 echo "DOCKER_OPTS=\"--registry-mirror=https://n5fb0zgg.mirror.aliyuncs.com\"" | sudo tee -a /etc/default/docker
 service docker restart
-docker login --username=己美网络 registry.aliyuncs.com -p [xxx]
+docker login --username=己美网络 registry.aliyuncs.com -p kzt[***]72
+
+docker run --name static -v /data busybox /bin/sh
+
+docker run --name=gunicorn --restart=always -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=[password] \
+-e REDIS_AUTH=[auth] --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 \
+-e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program \
+gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
+
+
+#problem fouce:
+#1, docker logs --tail 50 gunicorn
+#2, docker exec -it celery /bin/bash
+
 
 # docker run --rm --volumes-from=static -e TARGET=production registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py collectstatic --noinput
 #.drone.sec 设置
-environment:
-  DOCKER_USERNAME: 己美网络
-  DOCKER_PASSWORD: ***
-  DOCKER_EMAIL: ***@xiaolu.so
+#environment:
+#  DOCKER_USERNAME: 己美网络
+#  DOCKER_PASSWORD: ***
+#  DOCKER_EMAIL: ***@xiaolu.so
 
 # 添加数据访问白名单
 # 添加xiaolusys对应的drone Public Key 到本地ssh authorizen_keys
 # 修改.drone.yml 添加当前主机host
 
-### 服务器确认启动之后添加
-# 配置nginx site.conf 添加当前域名
-# 配置xiaolusys oneapm-ci-agent
+#################### 服务器确认启动之后添加 ####################
+# 配置 nginx site.conf 添加当前域名 repo:ssh://git@git.xiaolumm.com:10022/xiaolumm/nginx.git
+# 配置监控 xiaolusys oneapm-ci-agent repo:ssh://git@git.xiaolumm.com:10022/xiaolumm/xiaolusys-oneapm.git
 
--- 查找被锁定的事务
--- http://blog.csdn.net/mangmang2012/article/details/9207007
-select * from information_schema.innodb_trx;
-
-
-docker run --volume /var/lib/drone:/var/lib/drone --volume /var/run/docker.sock:/var/run/docker.sock --env-file /etc/drone/dronerc \
- --restart=always --publish=8000:8000 -d --name=drone drone/drone:0.4
