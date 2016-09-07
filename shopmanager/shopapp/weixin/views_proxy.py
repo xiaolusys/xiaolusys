@@ -64,12 +64,13 @@ class WXMessageHttpProxy(HttpProxy):
         if event in ('subscribe', 'unsubscribe'):
             tasks.task_subscribe_or_unsubscribe_update_userinfo.delay(openid, wx_pubid, event, eventKey)
 
-        # 处理菜单点击事件
-        if msgtype == WeiXinAutoResponse.WX_EVENT and eventKey:
+        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE or\ # 直接关注/扫码关注
+          event == WeiXinAutoResposne.WX_EVENT_SCAN or \ # 已关注后扫码
+          event == WeixinAutoResponse.WX_EVENT_CLICK: # 点击菜单
             ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventKey)
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
-
+        
         ret_params = {'ToUserName': params['FromUserName'],
                       'FromUserName': params['ToUserName'],
                       'CreateTime': int(time.time())}

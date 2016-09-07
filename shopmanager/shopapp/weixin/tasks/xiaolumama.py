@@ -12,6 +12,33 @@ from ..utils import fetch_wxpub_mama_custom_qrcode_media_id, fetch_wxpub_mama_ma
 import logging
 logger = logging.getLogger(__name__)
 
+def create_customer_profile(unionid, wx_userinfo):
+    profile = Customer.objects.filter(unionid=unionid).first()
+    if not profile:
+        user, state = User.objects.get_or_create(username=unionid, is_active=True)
+        profile = Customer(
+            unionid=unionid,
+            user=user,
+            thumbnail=wx_userinfo['headimgurl'],
+            nick=wx_userinfo['nickname']
+        )
+        profile.save()
+    return profile
+
+def create_xiaolumama(unionid):
+    mama = XiaoluMama.objects.filter(openid=unionid).first()
+    if not mama:
+        mama = XiaoluMama.objects.create(
+            openid=unionid,
+            progress=XiaoluMama.PROFILE,
+            last_renew_type=XiaoluMama.SCAN,
+        )
+    return mama
+
+def create_potential_mama():
+    pass
+
+
 def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wxpubId)
