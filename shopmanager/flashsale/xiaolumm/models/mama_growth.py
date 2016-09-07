@@ -128,7 +128,7 @@ class MamaMission(BaseModel):
             last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start , week_end) / 100
             for k1, k2, t in target_stages:
                 if k1 <= last_week_finish_value < k2 or last_week_finish_value >= k2:
-                    return t * 100, award_rate
+                    return t * 100, award_rate * 100
 
         return self.target_value, self.award_amount
 
