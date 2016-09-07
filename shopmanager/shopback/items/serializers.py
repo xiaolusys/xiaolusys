@@ -111,6 +111,7 @@ class ItemProductSkuSerializer(serializers.ModelSerializer):
 
 class ModelProductSerializer(serializers.ModelSerializer):
     skus = serializers.SerializerMethodField()
+    saleproduct = serializers.ReadOnlyField()
 
     class Meta:
         model = ModelProduct
