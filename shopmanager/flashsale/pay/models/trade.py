@@ -840,6 +840,13 @@ class SaleOrder(PayBaseModel):
     def need_send(self):
         return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status in [0, 1, 2]
 
+    def is_teambuy(self):
+        return self.sale_trade.order_type == SaleTrade.TEAMBUY_ORDER
+
+    def teambuy_can_send(self):
+        from flashsale.pay.models import TeamBuyDetail
+        return TeamBuyDetail.objects.get(oid=self.oid).teambuy.status == 1
+
     def get_refundable(self):
         #return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS?
         if self.status not in (SaleOrder.WAIT_SELLER_SEND_GOODS, SaleOrder.TRADE_BUYER_SIGNED):

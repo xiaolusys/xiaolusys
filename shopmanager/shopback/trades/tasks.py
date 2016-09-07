@@ -1108,14 +1108,18 @@ def task_saleorder_check_packageskuitem():
                                        refund_status__lte=SaleRefund.REFUND_REFUSE_BUYER, pay_time__gt=time_from,
                                        pay_time__lte=time_to)
         deposit_count = 0
+        teambuy_count = 0
         for so in sos:
             if so.is_deposit():
                 deposit_count += 1
                 continue
+            if so.is_teambuy() and not so.teambuy_can_send():
+                teambuy_count += 1
+                continue
             psi = PackageSkuItem.objects.filter(oid=so.oid).exclude(assign_status=PackageSkuItem.CANCELED).first()
             if not psi:
                 so.save()
-        target_num = sos.count() - deposit_count
+        target_num = sos.count() - deposit_count - teambuy_count
         actual_num = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to,
                                                    assign_status__lt=PackageSkuItem.FINISHED).count()
 
