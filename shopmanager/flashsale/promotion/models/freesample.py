@@ -1,13 +1,13 @@
 # -*- coding:utf-8 -*-
 from django.db import models
-from core.models import BaseModel, CacheModel
+from core.models import BaseModel
 from django.contrib.auth.models import User
 
 from flashsale.promotion.managers import ReadPacketManager
 from django.db.models.signals import post_save
 
 
-class XLFreeSample(CacheModel):
+class XLFreeSample(BaseModel):
     """ 试用商品 """
     outer_id = models.CharField(max_length=64, blank=True, verbose_name=u'商品编码')
     name = models.CharField(max_length=64, blank=True, verbose_name=u'活动名称')
@@ -26,7 +26,7 @@ class XLFreeSample(CacheModel):
         return self.name
 
 
-class XLSampleSku(CacheModel):
+class XLSampleSku(BaseModel):
     """ 试用商品规格 """
     sample_product = models.ForeignKey(XLFreeSample, verbose_name=u'试用商品', related_name="skus")
     sku_code = models.CharField(max_length=32, null=False, blank=True, verbose_name=u'SKU编码')
@@ -203,7 +203,7 @@ def appdownloadrecord_update_fans(sender, instance, created, *args, **kwargs):
 post_save.connect(appdownloadrecord_update_fans, sender=AppDownloadRecord, dispatch_uid="appdownloadrecord_update_fans")
 
 
-class XLSampleApply(CacheModel):
+class XLSampleApply(BaseModel):
     """ 试用申请 """
     INACTIVE = 0
     ACTIVED = 1
@@ -307,7 +307,7 @@ def get_choice_name(choices, val):
     return name
 
 
-class RedEnvelope(CacheModel):
+class RedEnvelope(BaseModel):
     STATUS = ((0, 'new'), (1, 'open'))
     TYPE_CHOICES = ((0, 'cash'), (1, 'card'))
 
@@ -376,7 +376,7 @@ def open_envelope_decide_awardwinner(sender, instance, created, *args, **kwargs)
 post_save.connect(open_envelope_decide_awardwinner, sender=RedEnvelope)
 
 
-class AwardWinner(CacheModel):
+class AwardWinner(BaseModel):
     STATUS = ((0, '未领取'), (1, '已领取'), (2, '已作废'))
     customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u"用户ID")
     customer_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'头像')
@@ -395,7 +395,7 @@ class AwardWinner(CacheModel):
         verbose_name_plural = u'活动/中奖列表'
 
 
-class XLSampleOrder(CacheModel):
+class XLSampleOrder(BaseModel):
     """ 正式试用订单 """
 
     xlsp_apply = models.IntegerField(db_index=True, verbose_name=u'试用申请id', default=0, blank=True)
@@ -429,7 +429,7 @@ class XLSampleOrder(CacheModel):
                                                 template_id=constants.COUPON_ID_FOR_20160223_AWARD)
 
 
-class ReadPacket(CacheModel):
+class ReadPacket(BaseModel):
     """ 红包记录 """
 
     EXCHANGE = 1

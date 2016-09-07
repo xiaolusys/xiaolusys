@@ -3,11 +3,11 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save, pre_save
 
-from core.models import CacheModel, BaseModel
+from core.models import BaseModel
 from core.fields import JSONCharMyField
 
 
-class WeixinUnionID(CacheModel):
+class WeixinUnionID(BaseModel):
     openid = models.CharField(max_length=32, verbose_name=u'OPENID')
     app_key = models.CharField(max_length=24, verbose_name=u'APPKEY')
     unionid = models.CharField(max_length=32, verbose_name=u'UNIONID')
