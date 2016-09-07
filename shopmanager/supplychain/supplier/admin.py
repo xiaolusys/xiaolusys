@@ -74,7 +74,7 @@ class SaleSupplierAdmin(ApproxAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter, 'supplier_type', SupplierZoneFilter)
-    search_fields = ['supplier_name', '=supplier_code','=id']
+    search_fields = ['supplier_name', 'supplier_code', '=id']
     form = SaleSupplierForm
     list_per_page = 15
 
