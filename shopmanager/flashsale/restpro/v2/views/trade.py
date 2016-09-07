@@ -283,7 +283,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         extra = {}
         if channel == SaleTrade.WX_PUB:
-            extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
+            extra = {'open_id':buyer_openid,'trade_type':'JSAPI', "success_url":payback_url}
 
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":payback_url,
