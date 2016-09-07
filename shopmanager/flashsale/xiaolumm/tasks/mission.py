@@ -82,14 +82,20 @@ def func_push_award_mission_to_mama(xiaolumama, mission, year_week):
 def create_or_update_once_mission(xiaolumama, mission):
     """ 对应一次性任务进行更新 """
     year_week = datetime.datetime.now().strftime('%Y-%W')
+
+    firstorder_award = AwardCarry.objects.filter(
+        mama_id=xiaolumama.id, carry_type=AwardCarry.AWARD_FIRST_ORDER)\
+        .exclude(status=AwardCarry.CANCEL).first()
+    if firstorder_award:
+        return
+
     mama_mission = MamaMissionRecord.objects.filter(
         mission=mission, mama_id=xiaolumama.id).first()
-
     if mission.is_receivable() and not mama_mission:
         func_push_award_mission_to_mama(xiaolumama, mission, year_week)
     elif mission.is_receivable() and not mama_mission.is_finished():
-        if mama_mission.year_month == year_week:
-            mama_mission.year_month = year_week
+        if mama_mission.year_week != year_week:
+            mama_mission.year_week = year_week
             mama_mission.status = MamaMissionRecord.STAGING
             mama_mission.save()
     elif not mission.is_receivable() and not mama_mission.is_finished():

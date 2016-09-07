@@ -64,7 +64,7 @@
     "end_time": null,
     "award_amount": 50,
     "cat_type": "first_order",
-    "date_type": "weekly",
+    "date_type": "oncetime",
     "target_value": 1,
     "name": "\u9996\u5355\u5956\u52b1"
   },
@@ -100,7 +100,7 @@
     "end_time": null,
     "award_amount": 300,
     "cat_type": "open_course",
-    "date_type": "weekly",
+    "date_type": "oncetime",
     "target_value": 1,
     "name": "\u5988\u5988\u9996\u6b21\u5f00\u8bb2"
   },

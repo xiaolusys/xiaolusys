@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 import logging
-from core.managers import BaseManager
+from core.managers import BaseManager, CacheManager
 from common.modelutils import update_model_fields
 from flashsale.pay.signals import signal_saletrade_refund_post
 
@@ -131,7 +131,7 @@ class SaleRefundManager(BaseManager):
             return refund, True
 
 
-class CustomerManager(BaseManager):
+class CustomerManager(CacheManager):
 
     @property
     def normal_customer(self):
