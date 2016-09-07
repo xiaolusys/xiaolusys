@@ -66,7 +66,7 @@ class WXMessageHttpProxy(HttpProxy):
 
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE or\
            event == WeiXinAutoResponse.WX_EVENT_SCAN or \
-           event == WeixinAutoResponse.WX_EVENT_CLICK: 
+           event == WeiXinAutoResponse.WX_EVENT_CLICK: 
             ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventKey)
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
