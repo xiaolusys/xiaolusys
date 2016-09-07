@@ -22,10 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 DEFAULT_MAMA_THUMBNAIL = 'http://img.xiaolumeimei.com/undefined1472268058597lADOa301H8zIzMg_200_200.jpg_620x10000q90g.jpg?imageMogr2/thumbnail/80/crop/80x80/format/jpg'
-BASE_MAMA_QRCODE_IMG_RUL = [
+BASE_MAMA_QRCODE_IMG_URL = [
     'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base11.jpg',
     'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base12.jpg',
-    'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base13.jpg',
+    #'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base13.jpg',
 ]
 BASE_MAMA_QRCODE_TEMPLATE_URL = """
     {base_url}?watermark/3/text/{message1}/fontsize/480/gravity/North/dy/170
@@ -59,7 +59,7 @@ def gen_mama_custom_qrcode_url(mama_id, thumbnail, message1='', message2=''):
 
     thumbnail = re.sub('/0$', '/132', thumbnail)
     params = {
-        'base_url': random.choice(BASE_MAMA_QRCODE_IMG_RUL),
+        'base_url': random.choice(BASE_MAMA_QRCODE_IMG_URL),
         'message1': base64.urlsafe_b64encode('我是' + str(message1)),
         'message2': base64.urlsafe_b64encode(str(message2)),
         'thumbnail': base64.urlsafe_b64encode(str(thumbnail)),
