@@ -64,9 +64,9 @@ class WXMessageHttpProxy(HttpProxy):
         if event in ('subscribe', 'unsubscribe'):
             tasks.task_subscribe_or_unsubscribe_update_userinfo.delay(openid, wx_pubid, event, eventKey)
 
-        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE or\ # 直接关注/扫码关注
-          event == WeiXinAutoResposne.WX_EVENT_SCAN or \ # 已关注后扫码
-          event == WeixinAutoResponse.WX_EVENT_CLICK: # 点击菜单
+        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE or\
+           event == WeiXinAutoResposne.WX_EVENT_SCAN or \
+           event == WeixinAutoResponse.WX_EVENT_CLICK: 
             ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventKey)
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
