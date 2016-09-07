@@ -72,7 +72,7 @@ class TeamBuy(AdminModel):
         teambuy.check_finish_teambuy()
 
     def check_finish_teambuy(self):
-        if self.details.count() >= self.limit_person_num:
+        if TeamBuyDetail.objects.filter(teambuy_id=self.id).count() >= self.limit_person_num:
             self.trigger_saleorder()
             self.set_status_success()
 
