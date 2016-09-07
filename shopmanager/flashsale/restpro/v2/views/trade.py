@@ -253,7 +253,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         else:
             success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid) + '?from_page=order_commit'
         return {'channel':channel,'success':True,'id':sale_trade.id,
-                'info':'订单支付成功', 'order_no':sale_trade.tid,
+                'info':u'订单支付成功', 'order_no':sale_trade.tid,
                 'success_url': success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL,
                 'type': sale_trade.order_type}
 
@@ -283,7 +283,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         extra = {}
         if channel == SaleTrade.WX_PUB:
-            extra = {'open_id':buyer_openid,'trade_type':'JSAPI', "success_url":payback_url}
+            extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
 
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":payback_url,
@@ -307,7 +307,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                   'extra':extra}
         charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
         sale_trade.charge = charge.id
-        update_model_fields(sale_trade,update_fields=['charge'])
+        update_model_fields(sale_trade, update_fields=['charge'])
         return charge
 
     def get_mama_referal_params(self, request):
@@ -620,7 +620,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return Response({'code':6, 'info':str(exc) or u'未知支付异常'})
 
         return Response({'code':0, 'info':u'支付请求成功', 'channel':channel,
-                         'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel, 'type': sale_trade.order_type},
+                         'trade':{'id':sale_trade.id, 'tid':sale_trade.tid,
+                                  'channel':channel, 'type': sale_trade.order_type},
                          'charge':response_charge})
 
 
