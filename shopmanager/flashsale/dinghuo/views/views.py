@@ -2060,7 +2060,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
                             '0', str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
                             str(o.receiver_address_detail), '', o.receiver_mobile, '', '', '', '',
                             p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'), p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
-                            '', '', u'小鹿美美，时尚健康美丽', '', ''])
+                            p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽', '', ''])
         buff = StringIO()
         is_windows = request.META['HTTP_USER_AGENT'].lower().find(
             'windows') > -1
