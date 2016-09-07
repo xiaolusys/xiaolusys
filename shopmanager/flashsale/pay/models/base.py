@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from core.models import BaseModel, CacheModel
+from core.models import BaseModel
 
 
-class PayBaseModel(CacheModel):
+class PayBaseModel(BaseModel):
     """ 对商城的MODEL抽象 """
 
     class Meta:
