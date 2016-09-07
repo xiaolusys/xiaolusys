@@ -65,7 +65,7 @@ class WXMessageHttpProxy(HttpProxy):
             tasks.task_subscribe_or_unsubscribe_update_userinfo.delay(openid, wx_pubid, event, eventKey)
 
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE or\
-           event == WeiXinAutoResposne.WX_EVENT_SCAN or \
+           event == WeiXinAutoResponse.WX_EVENT_SCAN or \
            event == WeixinAutoResponse.WX_EVENT_CLICK: 
             ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventKey)
             response = service.formatParam2XML(ret_params)
