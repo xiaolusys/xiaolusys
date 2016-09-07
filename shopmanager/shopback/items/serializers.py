@@ -4,7 +4,7 @@ from shopback.archives.models import DepositeDistrict
 from shopback.categorys.models import Category
 from shopback.users.models import User
 from flashsale.pay.models import ModelProduct
-
+from supplychain.supplier.serializers import SaleProductSerializer
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -111,7 +111,7 @@ class ItemProductSkuSerializer(serializers.ModelSerializer):
 
 class ModelProductSerializer(serializers.ModelSerializer):
     skus = serializers.SerializerMethodField()
-    saleproduct = serializers.ReadOnlyField()
+    saleproduct_id = serializers.ReadOnlyField()
 
     class Meta:
         model = ModelProduct
@@ -135,9 +135,10 @@ class ModelProductSerializer(serializers.ModelSerializer):
                   'offshelf_time',
                   'order_weight',
                   'rebeta_scheme_id',
-                  'saleproduct',
+                  'saleproduct_id',
                   'extras',
                   'status',
+                  'created',
                   'skus')
 
     def get_skus(self, obj):
