@@ -291,16 +291,16 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
     ### 款式及产品接口
     - [/apis/items/v2/product](/apis/items/v2/product)
         * method: POST  新增款式
-            1. args:
-               `name` : 款式名称   例如： "这是件羊毛衫"
-               `head_imgs` : 款式头图  例如： "https://cbu01.alicdn.com/img/ibank/2016/741/035/2956530147_1742364862.400x400.jpg"
-               `saleproduct_id` : 选品id 例如： 537161
-               `is_teambuy` : 是否团购 例如： true
-               `teambuy_price` : 团购价格  例如： 23.3
-               `teambuy_person_num` : 团购人数 默认为3
-               `status` : 使用状态 (正常: "normal" /作废: "delete")
-               `properties`:[
-                                {"name": "材质", "value": "牛皮"},
+        * args:
+            1. `name` : 款式名称   例如： "这是件羊毛衫"
+            2. `head_imgs` : 款式头图  例如： "https://cbu01.alicdn.com/img/ibank/2016/741/035/2956530147_1742364862.400x400.jpg"
+            3. `saleproduct_id` : 选品id 例如： 537161
+            4. `is_teambuy` : 是否团购 例如： true
+            5. `teambuy_price` : 团购价格  例如： 23.3
+            6. `teambuy_person_num` : 团购人数 默认为3
+            7. `status` : 使用状态 (正常: "normal" /作废: "delete")
+            8. `properties`:[
+                            {"name": "材质", "value": "牛皮"},
                                 {"name": "洗涤说明", "value": "温水擦拭"},
                                 {"name": "产品备注", "value": "10岁以上穿着"}
                             ]
@@ -343,7 +343,9 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ModelProductSerializer
     authentication_classes = (authentication.BasicAuthentication, authentication.SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     filter_class = ModelProductFilter
+    ordering_fields = ('created', 'id', 'order_weight', 'lowest_agent_price', 'lowest_std_sale_price')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

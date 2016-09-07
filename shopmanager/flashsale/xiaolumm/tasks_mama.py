@@ -369,11 +369,14 @@ def task_update_group_awardcarry(relationship):
 
 
 
-def get_self_mama(unionid):
-    records = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
-    if records.count() > 0:
-        return records[0]
-    return None
+def get_self_mama(unionid, pay_time):
+    if pay_time:
+        record = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, charge_time__lte=pay_time).first()
+        return record
+    
+    record = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).first()
+    return record
+
 
 
 @task()
@@ -385,7 +388,7 @@ def task_order_trigger(sale_order):
     customer = Customer.objects.get(id=customer_id)
     self_mama = None
     if customer.unionid:
-        self_mama = get_self_mama(customer.unionid)
+        self_mama = get_self_mama(customer.unionid, sale_order.pay_time)
 
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
 
