@@ -863,7 +863,7 @@ class SaleOrder(PayBaseModel):
             order_id=self.id,
             buyer_id=self.buyer_id,
             item_id=self.item_id,
-            charge=self.charge,
+            charge=sale_trader.charge,
             channel=sale_trader.channel,
             sku_id=self.sku_id,
             sku_name=self.sku_name,
