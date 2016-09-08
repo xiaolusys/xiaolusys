@@ -94,10 +94,14 @@ class TeamBuy(AdminModel):
         self.save()
 
     def set_status_failed(self):
+        from shopback.trades.models import PackageSkuItem
         self.status = 2
         self.save()
+        oids = []
         for detail in self.details.all():
             SaleOrder.objects.get(oid=detail.oid).do_refund(u'开团失败')
+            oids.append(detail.oid)
+        PackageSkuItem.objects.filter(oid__in=oids).update(assign_status=3)
 
     def get_shareparams(self, **params):
         if self.share_xlmm_id:
