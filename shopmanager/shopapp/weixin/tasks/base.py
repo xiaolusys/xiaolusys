@@ -8,8 +8,8 @@ from django.conf import settings
 
 from common.utils import update_model_fields, replace_utf8mb4
 from core.weixin import options
-from ..models import WeiXinUser, WXOrder, WXProduct, WXProductSku, WXLogistic, WeixinUnionID
-from ..weixin_apis import WeiXinAPI, WeiXinRequestException
+from shopapp.weixin.models import WeiXinUser, WXOrder, WXProduct, WXProductSku, WXLogistic, WeixinUnionID
+from shopapp.weixin.weixin_apis import WeiXinAPI, WeiXinRequestException
 from shopback.items.models import Product, ItemNumTaskLog
 
 import logging
