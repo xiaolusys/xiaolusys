@@ -1385,13 +1385,13 @@ SHOP_APP_SCHEDULE = {
     },
     u'妈妈及团队妈妈周激励任务更新': {
         'task': 'flashsale.xiaolumm.tasks.mission.task_update_all_mama_mission_state',
-        'schedule': crontab(minute="30", hour="6"),
+        'schedule': crontab(minute="0", hour="9"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_update_all_mama_mission_state'}
     },
     u'妈妈及团队未完成任务每日提醒': {
         'task': 'flashsale.xiaolumm.tasks.mission.task_notify_all_mama_staging_mission',
-        'schedule': crontab(minute="30", hour="7"),
+        'schedule': crontab(minute="30", hour="20"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_notify_all_mama_staging_mission'}
     },

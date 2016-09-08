@@ -598,6 +598,7 @@ post_save.connect(ordercarry_update_order_number,
 
 
 class AwardCarry(BaseModel):
+    AWARD_OPEN_COURSE = 3
     AWARD_FIRST_ORDER = 5
     AWARD_MAMA_SALE = 9
     AWARD_GROUP_SALE = 10
