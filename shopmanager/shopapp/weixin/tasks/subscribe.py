@@ -27,7 +27,7 @@ def task_subscribe_or_unsubscribe_update_userinfo(openid, wx_pubid, event, event
             fans.subscribe = True
             fans.subscribe_time = datetime.datetime.now()
             if eventKey:
-                fans.set_qrscene(eventKey.replace('qrscene_',''))
+                fans.set_qrscene(eventKey.lower().replace('qrscene_',''))
             fans.save()
 
             WeixinUnionID.objects.get_or_create(
