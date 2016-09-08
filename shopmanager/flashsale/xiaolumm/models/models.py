@@ -1367,13 +1367,16 @@ post_save.connect(update_mama_relationship,
                   sender=PotentialMama, dispatch_uid='post_save_update_mama_relationship')
 
 
-def update_mamafortune_invite_trial_num(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_fortune
-    mama_id = instance.referal_mama
-    tasks_mama_fortune.task_update_mamafortune_invite_trial_num.delay(mama_id)
-
-post_save.connect(update_mamafortune_invite_trial_num,
-                  sender=PotentialMama, dispatch_uid='post_save_update_mamafortune_invite_trial_num')
+# The invite_trial_num calculation is implementation in invite_num calculation function.
+# This one gets retired. -- zifei 2016-9-8
+#
+#def update_mamafortune_invite_trial_num(sender, instance, created, **kwargs):
+#    from flashsale.xiaolumm import tasks_mama_fortune
+#    mama_id = instance.referal_mama
+#    tasks_mama_fortune.task_update_mamafortune_invite_trial_num.delay(mama_id)
+#
+#post_save.connect(update_mamafortune_invite_trial_num,
+#                  sender=PotentialMama, dispatch_uid='post_save_update_mamafortune_invite_trial_num')
 
 
 def send_invite_trial_award(sender, instance, created, **kwargs):
