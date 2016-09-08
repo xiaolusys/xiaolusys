@@ -55,12 +55,6 @@ class ModelProductSerializer(serializers.ModelSerializer):
         return obj.extras.get('saleinfos',{})
 
     def get_sku_info(self, obj):
-        if obj.is_flatten:
-            request = self.context.get('request')
-            product_id = request.GET.get('product_id',None)
-            if  product_id and product_id.isdigit():
-                product = obj.products.filter(id=product_id).first()
-                return obj.product_simplejson(product)
         return obj.sku_info
 
     def get_custom_info(self, obj):

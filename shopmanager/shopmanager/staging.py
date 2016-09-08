@@ -56,7 +56,7 @@ DATABASES = {
     }
 }
 
-DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
@@ -76,7 +76,7 @@ CACHES = {
         }
     }
 }
-
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 BROKER_URL = 'redis://%s%s/18'%(REDIS_AUTH and ':%s@'%REDIS_AUTH, REDIS_HOST)
 
 import raven
