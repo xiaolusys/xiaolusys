@@ -80,7 +80,17 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
 
         content = request.REQUEST
         act_id = content.get("promotion_id", None)
+
         if act_id:
+            #some customer visit http://m.xiaolumeimei.com/mall/activity/topTen/model/2?ufrom=wx&id=87%3F10000skip%3Dtrue&mm_linkid=23952
+            #id is wrong,so must avoid it
+            if not (str(act_id).isdigit()):
+                import re
+                act_arr = re.findall(r'\d+', str(act_id))
+                if not act_arr:
+                    return Response({})
+                act_id = act_arr[0]
+
             act = ActivityEntry.objects.filter(id=act_id).order_by('-start_time').first()
         else:
             act = ActivityEntry.objects.filter(is_active=True).order_by('-start_time').first()
