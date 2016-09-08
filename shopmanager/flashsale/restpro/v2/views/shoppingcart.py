@@ -350,6 +350,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         """ 根据购物车ID列表获取支付信息 """
         content = request.GET
         cartid_str = content.get('cart_ids', '')
+        if not bool(re.compile('^[\d?,]+$').match(cartid_str)):
+            raise exceptions.APIException(u'需要提供正确的购物车ID')
         cart_ids = [int(i) for i in cartid_str.split(',') if i.isdigit()]
         queryset = self.get_owner_queryset(request).filter(id__in=cart_ids)
         if not cart_ids or len(cart_ids) != queryset.count():
