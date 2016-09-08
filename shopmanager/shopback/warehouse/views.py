@@ -269,8 +269,6 @@ class PackageScanWeightView(APIView):
         if not package.is_express_print:
             return Response(u'需重打物流单')
         package.weight = package_weight
-        package.sys_status = pcfg.FINISHED_STATUS
-        package.weight_time = datetime.datetime.now()
         package.weighter = request.user.username
         package.save()
         package.finish_scan_weight()

@@ -1411,6 +1411,7 @@ class PackageOrder(models.Model):
     def finish_scan_weight(self):
         from flashsale.pay.models import SaleOrder
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
+        self.weight_time=datetime.datetime.now()
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
         package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
