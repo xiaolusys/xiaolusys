@@ -48,6 +48,11 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
     fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
     if fan:
         wx_userinfo = WeixinUserInfo.objects.filter(unionid=fan.unionid).first()
+        if wx_userinfo:
+            unionid = wx_userinfo.unionid
+            thumbnail = wx_userinfo.thumbnail
+            nickname = wx_userinfo.nick
+            wx_userinfo = {'unionid':unionid, 'thumbnail':thumbnail, 'nickname':nickname}
         
     if not wx_userinfo:
         wx_userinfo = wx_api.getCustomerInfo(openid)
