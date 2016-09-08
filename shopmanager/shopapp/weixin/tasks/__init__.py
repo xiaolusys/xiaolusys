@@ -1,4 +1,7 @@
 from .base import *
 from .subscribe import task_subscribe_or_unsubscribe_update_userinfo
 from .xiaolumama import task_create_mama_referal_qrcode_and_response_weixin, \
-    task_create_mama_and_response_manager_qrcode
+    task_create_mama_and_response_manager_qrcode,\
+    task_weixinfans_update_xlmmfans,\
+    task_weixinfans_create_budgetlog,\
+    task_get_unserinfo_and_create_accounts
