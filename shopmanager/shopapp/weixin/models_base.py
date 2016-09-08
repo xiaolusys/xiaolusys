@@ -62,7 +62,7 @@ class WeixinFans(models.Model):
     def set_qrscene(self, qrscene, force_update=False):
         if not self.extras:
             self.extras = {}
-        if not self.extras.get('qrscene', '') or force_update:
+        if not self.get_qrscene() or force_update:
             self.extras['qrscene'] = qrscene.strip()
 
     def get_qrscene(self):
