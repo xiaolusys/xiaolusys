@@ -74,8 +74,11 @@ class WeixinFans(models.Model):
 
 def weixinfans_update_xlmmfans(sender, instance, created, **kwargs):
     referal_from_mama_id = instance.extras.get('qr_scene')
-    if referal_from_mama_id:
+    if referal_from_mama_id and referal_from_mama_id.isdigit():
         referal_from_mama_id = int(referal_from_mama_id)
+    else:
+        return
+    
     referal_to_unionid = instance.unionid
 
     from shopapp.weixin.tasks import task_weixinfans_update_xlmmfans
