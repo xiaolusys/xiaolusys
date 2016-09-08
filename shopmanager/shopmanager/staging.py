@@ -70,7 +70,7 @@ CACHES = {
             'PICKLE_VERSION': 2,
             # 'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
             'CONNECTION_POOL_CLASS_KWARGS': {
-                'max_connections': 50,
+                'max_connections': 30,
                 # 'timeout': 10,
             }
         }
