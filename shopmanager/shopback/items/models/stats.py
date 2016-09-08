@@ -4,7 +4,7 @@ import datetime
 from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.db.models import F
-
+from django.db import transaction
 from shopback.warehouse import WARE_SH, WARE_CHOICES
 
 import logging
@@ -85,6 +85,7 @@ class ProductSkuStats(models.Model):
         return '<%s,%s:%s>' % (self.id, self.product_id, self.sku_id)
 
     @staticmethod
+    @transaction.atomic
     def get_by_sku(sku_id):
         stat = ProductSkuStats.objects.filter(sku_id=sku_id).first()
         if stat:

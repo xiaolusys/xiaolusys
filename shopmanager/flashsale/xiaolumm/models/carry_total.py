@@ -2,7 +2,7 @@
 import datetime
 from django.db import models
 from django.db.models import Sum, F, Count, Q
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models.signals import post_save
 from core.models import BaseModel, AdminModel
 from core.fields import JSONCharMyField
@@ -223,8 +223,8 @@ class MamaCarryTotal(BaseMamaCarryTotal):
                                                           status=CarryRecord.PENDING).exists()
 
     @staticmethod
+    @transaction.atomic
     def get_by_mama_id(mama_id):
-
         if not MamaCarryTotal.objects.filter(mama_id=mama_id).exists():
             return MamaCarryTotal.generate(mama_id)
         return MamaCarryTotal.objects.get(mama_id=mama_id)
@@ -577,6 +577,7 @@ class MamaTeamCarryTotal(BaseMamaTeamCarryTotal):
             team.refresh_data()
 
     @classmethod
+    @transaction.atomic
     def get_by_mama_id(cls, mama_id):
         if not cls.objects.filter(mama_id=mama_id).exists():
             return cls.generate(mama_id)
@@ -1132,6 +1133,7 @@ class ActivityMamaTeamCarryTotal(BaseMamaTeamCarryTotal, ActivityRankTotal):
         self.duration_total = res.get('duration_total') or 0
 
     @staticmethod
+    @transaction.atomic
     def get_by_mama_id(mama_id):
         RankActivity.objects.order_by()
         ActivityMamaTeamCarryTotal.objects.filter(mama_id)

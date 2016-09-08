@@ -150,34 +150,39 @@ def task_activevalue_update_mamafortune(mama_id):
 def task_update_mamafortune_invite_num(mama_id):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     from flashsale.xiaolumm.models import XiaoluMama
-    records = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id, referal_type__gte=XiaoluMama.HALF)
-    invite_num = records.count()
+    res = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id).values('referal_type').annotate(num=Count('*'))
 
-    mamas = MamaFortune.objects.filter(mama_id=mama_id)
-    if mamas.count() > 0:
-        mama = mamas[0]
-        if mama.invite_num != invite_num:
-            mamas.update(invite_num=invite_num, invite_all_num=F('invite_trial_num') + invite_num)
-            # mama.invite_num=invite_num
-            # mama.save()
+    invite_num, invite_trial_num = 0,0
+    for entry in res:
+        num = entry['num'] or 0
+        if entry['referal_type'] < XiaoluMama.HALF:
+            invite_trial_num += num
+        else:
+            invite_num += num
+
+    invite_all_num = invite_num + invite_trial_num
+
+    mama = MamaFortune.objects.filter(mama_id=mama_id).first()
+    if mama:
+        MamaFortune.objects.filter(mama_id=mama_id).update(invite_num=invite_num, invite_trial_num=invite_trial_num, invite_all_num=invite_all_num)
     else:
         try:
-            create_mamafortune_with_integrity(mama_id, invite_num=invite_num)
+            create_mamafortune_with_integrity(mama_id, invite_num=invite_num, invite_trial_num=invite_trial_num, invite_all_num=invite_all_num)
         except IntegrityError as exc:
             logger.warn("IntegrityError - MamaFortune invitenum | mama_id: %s" % (mama_id))
             raise task_update_mamafortune_invite_num.retry(exc=exc)
 
 
-@task()
-def task_update_mamafortune_invite_trial_num(mama_id):
-    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    from flashsale.xiaolumm.models import PotentialMama
-    records = PotentialMama.objects.filter(referal_mama=mama_id)
-    invite_trial_num = records.count()
-    fortune = MamaFortune.get_by_mamaid(mama_id)
-    fortune.invite_trial_num = invite_trial_num
-    fortune.invite_all_num = invite_trial_num + fortune.invite_num
-    fortune.save(update_fields=['invite_trial_num','invite_all_num','modified'])
+#@task()
+#def task_update_mamafortune_invite_trial_num(mama_id):
+#    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+#    from flashsale.xiaolumm.models import PotentialMama
+#    records = PotentialMama.objects.filter(referal_mama=mama_id)
+#    invite_trial_num = records.count()
+#    fortune = MamaFortune.get_by_mamaid(mama_id)
+#    fortune.invite_trial_num = invite_trial_num
+#    fortune.invite_all_num = invite_trial_num + fortune.invite_num
+#    fortune.save(update_fields=['invite_trial_num','invite_all_num','modified'])
 
 
 @task(max_retries=3, default_retry_delay=6)
