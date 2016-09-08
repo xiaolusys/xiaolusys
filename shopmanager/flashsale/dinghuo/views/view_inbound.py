@@ -19,7 +19,7 @@ from supplychain.supplier.models import SaleProduct, SaleSupplier
 from .. import forms, functions, functions2view, models
 from django.shortcuts import get_object_or_404
 from django.shortcuts import HttpResponseRedirect
-
+from flashsale.dinghuo.serializers import InBoundSerializer
 from .. import services
 
 import logging
@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class InBoundViewSet(viewsets.GenericViewSet):
+    serializer_class = InBoundSerializer
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
     queryset = models.OrderList.objects.all()

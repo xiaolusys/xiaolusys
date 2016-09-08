@@ -549,9 +549,12 @@ def refund_fee(request):
     sale_order = int(content.get("sale_order_id", None))
     sale_order = get_object_or_404(SaleOrder, id=sale_order)  # 退款sale_order对象
 
+    if sale_order.is_teambuy():
+        return HttpResponse(u"团购到超时失败以后才可退款")
     if sale_order.status != SaleOrder.WAIT_SELLER_SEND_GOODS:  # 状态为已付款
-        logger.error("交易状态不是已付款状态")
-        return HttpResponse("交易状态不是已付款状态")
+        logger.error(u"交易状态不是已付款状态")
+        return HttpResponse(u"交易状态不是已付款状态")
+
     reason = ' '
     try:
         s = sale_order.do_refund(reason)

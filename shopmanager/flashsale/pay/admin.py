@@ -910,7 +910,7 @@ admin.site.register(SaleOrderSyncLog, SaleOrderSyncLogAdmin)
 
 
 class TeamBuyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'sku_id', 'limit_time', 'creator')
+    list_display = ('id', 'sku_id', 'status', 'limit_time', 'creator')
 
     list_filter = ('status',)
 

@@ -183,7 +183,7 @@ class ContrastContent(models.Model):
         if not cache_contrast:
             contrasts = cls.objects.filter(status=cls.NORMAL).values_list('cid', 'name')
             cache_contrast = dict(contrasts)
-            cache.set(cache_key, cache_contrast, 24 * 60 * 60)
+            cache.set(cache_key, cache_contrast, 7 * 24 * 3600)
             logger.warn('contrast dictionary cache not hit: key=%s'% cache_key)
         return cache_contrast
 

@@ -14,7 +14,7 @@ from core.models import BaseTagModel
 from core.options import get_systemoa_user, log_action, CHANGE
 from .base import PayBaseModel, BaseModel
 
-from shopback.items.models import Product, ProductSkuContrast, ContrastContent
+from shopback.items.models import Product, ProductSku, ProductSkuContrast, ContrastContent
 from ..signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
 from shopback.items.constants import SKU_CONSTANTS_SORT_MAP as SM, PROPERTY_NAMES, PROPERTY_KEYMAP
@@ -209,7 +209,7 @@ class ModelProduct(BaseTagModel):
     @property
     def head_images(self):
         head_imgs = []
-        for product in self.products:
+        for product in self.productobj_list:
             head_imgs.append(product.PIC_PATH)
         return head_imgs
 
@@ -218,18 +218,17 @@ class ModelProduct(BaseTagModel):
         """ 是否单颜色 """
         if self.id <= 0:
             return True
-        products = Product.objects.filter(model_id=self.id, status=Product.NORMAL)
-        if products.count() > 1:
+        if len(self.productobj_list) > 1:
             return False
         return True
 
     @property
     def item_product(self):
         if not hasattr(self, '__first_product__'):
-            product = self.products.first()
-            if not product:
+            products = self.productobj_list
+            if not products:
                 return None
-            self.__first_product__ = product
+            self.__first_product__ = products[0]
         return self.__first_product__
 
     @property
@@ -237,7 +236,7 @@ class ModelProduct(BaseTagModel):
         """ 是否卖光 """
         if not hasattr(self, '_is_saleout_'):
             all_sale_out = True
-            for product in self.products:
+            for product in self.productobj_list:
                 all_sale_out &= product.is_sale_out()
             self._is_saleout_ = all_sale_out
         return self._is_saleout_
@@ -359,14 +358,24 @@ class ModelProduct(BaseTagModel):
             return attr_dict
         if isinstance(model_properties, list):
             return model_properties
+        return []
 
     @property
     def products(self):
         return Product.objects.filter(model_id=self.id, status=pcfg.NORMAL)
 
+    @property
+    def productobj_list(self):
+        if not hasattr(self, '_productobj_list_'):
+            product_ids = self.products.values_list('id',flat=True)
+            self._productobj_list_ = Product.objects.from_ids(product_ids)
+        return self._productobj_list_
+
     def product_simplejson(self, product):
         sku_list = []
-        for sku in product.normal_skus:
+        sku_ids = product.normal_skus.values_list('id', flat=True)
+        skuobj_list = ProductSku.objects.from_ids(sku_ids)
+        for sku in skuobj_list:
             sku_list.append({
                 'type':'size',
                 'sku_id':sku.id,
@@ -415,8 +424,7 @@ class ModelProduct(BaseTagModel):
     @property
     def sku_info(self):
         product_list = []
-        products = self.products
-        for p in products:
+        for p in self.productobj_list:
             product_list.append(self.product_simplejson(p))
         return product_list
 
@@ -445,7 +453,7 @@ class ModelProduct(BaseTagModel):
         p_tables = []
         uni_set = set()
         try:
-            for p in self.products:
+            for p in self.productobj_list:
                 contrast_origin = p.contrast.contrast_detail
                 uni_key = ''.join(sorted(contrast_origin.keys()))
                 if uni_key not in uni_set:

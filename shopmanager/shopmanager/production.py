@@ -14,6 +14,7 @@ INGORE_SIGNAL_EXCEPTION = True # signal异常捕获而且不再抛出
 PUSH_SWITCH = True  # 推送开关
 MAMA_MISSION_PUSH_SWITCH = True  # 妈妈周激励推送开关
 
+
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, "site_media", "static"),
 )
@@ -55,7 +56,7 @@ DATABASES = {
     }
 }
 
-DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+
 CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
@@ -75,8 +76,8 @@ CACHES = {
         }
     }
 }
-
-BROKER_URL = 'redis://10.45.32.34:6379/8'
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+BROKER_URL = 'redis://:{0}@{1}:6379/8'.format(REDIS_AUTH, REDIS_HOST)
 
 import raven
 RAVEN_CONFIG = {
