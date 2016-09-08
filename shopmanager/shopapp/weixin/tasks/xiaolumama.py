@@ -51,7 +51,7 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
         
     if not wx_userinfo:
         wx_userinfo = wx_api.getCustomerInfo(openid)
-        task_snsauth_update_weixin_userinfo.delay(wx_userinfo, app_key):
+        task_snsauth_update_weixin_userinfo.delay(wx_userinfo, app_key)
     
     task_create_scan_customer.delay(wx_userinfo)
     task_create_scan_xiaolumama.delay(wx_userinfo)
