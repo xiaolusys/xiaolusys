@@ -440,10 +440,13 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
 
     md = MamaDailyAppVisit.objects.filter(uni_key=uni_key).first()
     if not md:
-        md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,
-                               device_type=device_type,version=version,user_agent=user_agent,
-                               renew_type=renew_type)
-        md.save()
+        try:
+            md = MamaDailyAppVisit(mama_id=mama_id,uni_key=uni_key,date_field=date_field,
+                                   device_type=device_type,version=version,user_agent=user_agent,
+                                   renew_type=renew_type)
+            md.save()
+        except IntegrityError as exc:
+            pass
     else:
         update_fields = ['modified']
         if md.version != version:

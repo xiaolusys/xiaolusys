@@ -72,6 +72,39 @@ class WeixinFans(models.Model):
         return qrscene
 
 
+def weixinfans_update_xlmmfans(sender, instance, created, **kwargs):
+    referal_from_mama_id = instance.extras.get('qr_scene')
+    if referal_from_mama_id:
+        referal_from_mama_id = int(referal_from_mama_id)
+    referal_to_unionid = instance.unionid
+
+    from shopapp.weixin.tasks import task_weixinfans_update_xlmmfans
+    task_weixinfans_update_xlmmfans.delay(referal_from_mama_id, referal_to_unionid)
+
+post_save.connect(weixinfans_update_xlmmfans,
+                  sender=WeixinFans, dispatch_uid='post_save_weixinfans_update_xlmmfans')
+
+def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
+    referal_from_mama_id = instance.extras.get('qr_scene')
+    if referal_from_mama_id:
+        referal_from_mama_id = int(referal_from_mama_id)
+    referal_to_unionid = instance.unionid
+
+    if referal_from_mama_id > 100:
+        # 内部人员测试
+        return
+    
+    customer = Customer.objects.filter(unionid=referal_to_unionid).first()
+    from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
+    from_customer = Customer.objects.filter(unionid=from_mama.openid).first()
+
+    from shopapp.weixin.tasks import task_weixinfans_create_budgetlog
+    task_weixinfans_create_budgetlog.delay(customer.id, from_customer.id, BudgetLog.BG_SUBSCRIBE)
+    task_weixinfans_create_budgetlog.delay(from_customer.id, customer.id, BudgetLog.BG_REFERAL_FANS)
+    
+post_save.connect(weixinfans_create_budgetlogs,
+                  sender=WeixinFans, dispatch_uid='post_save_weixinfans_create_budgetlogs')
+
 
 def weixinfans_xlmm_newtask(sender, instance, **kwargs):
     """
