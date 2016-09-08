@@ -308,6 +308,11 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         if not customer:
             default_return.update({"code": 1, "info": "用户不存在"})
             return Response(default_return)
+        gift_coupons = self.queryset.filter(template_id__in=tplids, customer_id=customer.id)
+        if gift_coupons.exists():
+            serializer = self.get_serializer(gift_coupons, many=True)
+            default_return.update({"info": "新手礼包已领取", "coupons": serializer.data})
+            return Response(default_return)
         success_id = []
         codes = []
         except_msgs = set()
