@@ -903,7 +903,7 @@ def activevalue_update_last_renew_time(sender, instance, created, **kwargs):
     renew_time = datetime.datetime(renew_date.year, renew_date.month, renew_date.day)
     if mama.renew_time != renew_time:
         mama.renew_time = renew_time
-        mama.save(update_fields=['renew_time'])
+        mama.save(update_fields=['renew_time', 'modified'])
 
 post_save.connect(activevalue_update_last_renew_time,
                   sender=ActiveValue, dispatch_uid='post_save_activevalue_update_last_renew_time')

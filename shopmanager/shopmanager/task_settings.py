@@ -681,6 +681,27 @@ WEIXIN_ROUTES = {
         'queue': 'notify',
         'routing_key': 'notify.task_create_mama_and_response_manager_qrcode',
     },
+    'shopapp.weixin.tasks.xiaolumama.task_weixinfans_update_xlmmfans': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_weixinfans_update_xlmmfans',
+    },    
+    'shopapp.weixin.tasks.xiaolumama.task_weixinfans_create_budgetlog': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_weixinfans_create_budgetlog',
+    },    
+    'shopapp.weixin.tasks.xiaolumama.task_get_unserinfo_and_create_accounts': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_get_unserinfo_and_create_accounts',
+    },    
+    'shopapp.weixin.tasks.xiaolumama.task_create_scan_customer': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_create_scan_customer',
+    },    
+    'shopapp.weixin.tasks.xiaolumama.task_create_scan_xiaolumama': {
+        'queue': 'notify',
+        'routing_key': 'notify.task_create_scan_xiaolumama',
+    },    
+
 }
 
 CELERY_ROUTES = {

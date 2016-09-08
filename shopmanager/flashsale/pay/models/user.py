@@ -471,13 +471,17 @@ class BudgetLog(PayBaseModel):
     BG_CONSUM = 'consum'
     BG_CASHOUT = 'cashout'
     BG_MAMA_CASH = 'mmcash'
-
+    BG_REFERAL_FANS = 'rfan'
+    BG_SUBSCRIBE = 'subs'
+    
     BUDGET_LOG_CHOICES = (
         (BG_ENVELOPE, u'红包'),
         (BG_REFUND, u'退款'),
         (BG_CONSUM, u'消费'),
         (BG_CASHOUT, u'提现'),
         (BG_MAMA_CASH, u'代理提现至余额'),
+        (BG_REFERAL_FANS, u'推荐粉丝'),
+        (BG_SUBSCRIBE, u'关注'),
     )
 
     CONFIRMED = 0
