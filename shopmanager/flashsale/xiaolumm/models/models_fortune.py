@@ -509,6 +509,8 @@ def ordercarry_weixin_push(sender, instance, created, **kwargs):
     """
     if not created:
         return
+    if instance.mama_id < 1:
+        return 
     from flashsale.xiaolumm import tasks_mama_push
     tasks_mama_push.task_weixin_push_ordercarry.delay(instance)
 
@@ -1046,10 +1048,7 @@ post_save.connect(update_mamafortune_invite_num,
 
 def update_mamafortune_mama_level(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-
-    mama_id = instance.referal_from_mama_id
-    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(mama_id)
-
+    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance)
 
 post_save.connect(update_mamafortune_mama_level,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_mama_level')
