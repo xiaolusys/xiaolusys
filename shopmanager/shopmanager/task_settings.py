@@ -48,29 +48,46 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"  # "amqp"
 
-# CELERYD_HIJACK_ROOT_LOGGER = True
+BROKER_POOL_LIMIT = 1
+BROKER_CONNECTION_TIMEOUT = 10
 
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它
 # CELERY_CREATE_MISSING_QUEUES = True
 # 每个worker最多执行40个任务就会被销毁，可防止内存泄露
-CELERYD_MAX_TASKS_PER_CHILD = 40
-# 单个任务的运行时间不超过此值，否则会被SIGKILL 信号杀死
-# CELERYD_TASK_TIME_LIMIT = 60
-# 非常重要,有些情况下可以防止死锁,如果有数量更时间限制应开启
-# CELERYD_FORCE_EXECV = True
-# WORKER每次取任务数
-# CELERYD_PREFETCH_MULTIPLIER = 1
-# BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 90}
+CELERYD_MAX_TASKS_PER_CHILD = 1000
+
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
-# CELERY_DISABLE_RATE_LIMITS = True
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 300}
+
+
+# Sensible settings for celery
+CELERY_ALWAYS_EAGER = False
+CELERY_ACKS_LATE = True
+CELERY_TASK_PUBLISH_RETRY = True
+CELERY_DISABLE_RATE_LIMITS = False
+
+# By default we will ignore result
+# If you want to see results and try out tasks interactively, change it to False
+# Or change this setting on tasks level
+CELERY_IGNORE_RESULT = False
+CELERY_SEND_TASK_ERROR_EMAILS = False
+CELERY_CHORD_PROPAGATES = True
+CELERY_TASK_RESULT_EXPIRES = 3 * 60 * 60  # 3hour
+
+# Set redis as celery result backend
+CELERY_REDIS_MAX_CONNECTIONS = 2
+
+# # Don't use pickle as serializer, json is much safer
+# CELERY_TASK_SERIALIZER = "json"
+# CELERY_ACCEPT_CONTENT = ['application/json']
+
+CELERYD_HIJACK_ROOT_LOGGER = False
+CELERYD_PREFETCH_MULTIPLIER = 1
+
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
-CELERY_CHORD_PROPAGATES = True
-CELERY_IGNORE_RESULT = False
 
-CELERY_TASK_RESULT_EXPIRES = 3 * 60 * 60  # 3hour
 # CELERYD_POOL = 'gevent'
-BROKER_POOL_LIMIT = 10  # 10 connections
 CELERYD_CONCURRENCY = 16  # 16 processes in paralle
 
 from kombu import Exchange, Queue
