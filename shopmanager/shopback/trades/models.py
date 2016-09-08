@@ -1949,11 +1949,6 @@ class PackageSkuItem(BaseModel):
                                                                                    PackageSkuItem.FINISHED]).count()
         payed_counts -= unuse_cnt
         return payed_counts
-        # for i in payed_saleorder:
-        #     if PackageSkuItem.objects.get(oid = i.oid).assign_status == PackageSkuItem.CANCELED or \
-        #                     PackageSkuItem.objects.get(oid = i.oid).assign_status == PackageSkuItem.FINISHED:
-        #         payed_counts = payed_counts -1
-        # return payed_counts
 
     def is_booking_needed(self):
         return self.assign_status == PackageSkuItem.NOT_ASSIGNED
@@ -1979,18 +1974,8 @@ class PackageSkuItem(BaseModel):
         self.package_order_pid = None
         self.logistics_company_code = ''
         self.logistics_company_name = ''
-        self.receiver_mobile = ''
         self.out_sid = ''
         self.save()
-        # values = {
-        #     'package_order_id': None,
-        #     'package_order_pid': None,
-        #     'logistics_company_code': '',
-        #     'logistics_company_name': '',
-        #     'receiver_mobile': '',
-        #     'out_sid': '',
-        # }
-        # PackageSkuItem.objects.filter(id=self.id).update(**values)
 
     def set_assign_status_time(self):
         if self.assign_status == PackageSkuItem.FINISHED:
@@ -2006,7 +1991,6 @@ class PackageSkuItem(BaseModel):
         self.package_order_pid = None
         self.assign_status = PackageSkuItem.NOT_ASSIGNED
         self.save()
-        # PackageSkuItem.objects.filter(id=self.id).update(assign_status=0, package_order_id=None, package_order_pid=None)
         if package_order:
             package_order.update_relase_package_sku_item()
 
