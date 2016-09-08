@@ -32,12 +32,12 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id):
                 'finish_time': mama_mission.finish_time
             }
             wxpush.push_new_mama_task(mama_mission.mama_id, header=params.get('header'),
-                                           footer=params.get('footer'), to_url='', params=params)
+                                           footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
         else:
             week_end_time = datetime.datetime.strptime('%s-0' % mama_mission.year_week, '%Y-%W-%w')
             mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
             params = {
-                'header': u'女王大人吉祥，阿玛有封密诏请阅目，按诏中所言处事定有重赏!',
+                'header': u'女王大人吉祥，本周有封密诏请阅目，按诏中所言行事定有重赏．',
                 'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高).',
                 'task_name': base_mission.name,
                 'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
@@ -83,11 +83,19 @@ def create_or_update_once_mission(xiaolumama, mission):
     """ 对应一次性任务进行更新 """
     year_week = datetime.datetime.now().strftime('%Y-%W')
 
-    firstorder_award = AwardCarry.objects.filter(
-        mama_id=xiaolumama.id, carry_type=AwardCarry.AWARD_FIRST_ORDER)\
-        .exclude(status=AwardCarry.CANCEL).first()
-    if firstorder_award:
-        return
+    if mission.cat_type == mission.CAT_FIRST_ORDER:
+        first_orderaward = AwardCarry.objects.filter(
+            mama_id=xiaolumama.id, carry_type=AwardCarry.AWARD_FIRST_ORDER)\
+            .exclude(status=AwardCarry.CANCEL).only('id').first()
+        if first_orderaward:
+            return
+
+    if mission.cat_type == mission.CAT_OPEN_COURSE:
+        first_orderaward = AwardCarry.objects.filter(
+            mama_id=xiaolumama.id, carry_type=AwardCarry.AWARD_OPEN_COURSE) \
+            .exclude(status=AwardCarry.CANCEL).only('id').first()
+        if first_orderaward:
+            return
 
     mama_mission = MamaMissionRecord.objects.filter(
         mission=mission, mama_id=xiaolumama.id).first()
@@ -98,6 +106,9 @@ def create_or_update_once_mission(xiaolumama, mission):
             mama_mission.year_week = year_week
             mama_mission.status = MamaMissionRecord.STAGING
             mama_mission.save()
+
+            # 消息通知妈妈一次性任务还未完成
+            task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
     elif not mission.is_receivable() and not mama_mission.is_finished():
         mama_mission.status = MamaMissionRecord.CLOSE
         mama_mission.save()
@@ -195,6 +206,7 @@ def task_notify_all_mama_staging_mission():
     # 12小时内产生的任务不重复发送消息
     mama_missions = MamaMissionRecord.objects.filter(
         year_week = year_week,
+        mission__data_type=MamaMission.TYPE_WEEKLY,
         status = MamaMissionRecord.STAGING,
         created__lte=twenty_hours_ago
     )
