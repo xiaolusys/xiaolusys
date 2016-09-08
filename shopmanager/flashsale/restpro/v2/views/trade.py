@@ -610,7 +610,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if sale_trade.order_type == 3:
                 order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
             else:
-                order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid) + '?from_page=order_commit'
+                order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
         except IntegrityError,exc:
             logger.error({'code': 9, 'message': u'订单重复提交:%s'%exc, 'channel':channel, 'user_agent':user_agent,
                          'stype': 'restpro.trade', 'tid': tuuid, 'data': '%s'%CONTENT}, exc_info=True)
@@ -622,7 +622,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         return Response({'code':0, 'info':u'支付请求成功', 'channel':channel,
                          'trade':{'id':sale_trade.id, 'tid':sale_trade.tid, 'channel':channel, 'type': sale_trade.order_type},
-                         'charge':response_charge, 'success_url': order_success_url})
+                         'charge':response_charge, 'success_url': order_success_url, 'fail_url': CONS.MALL_PAY_CANCEL_URL})
 
     @list_route(methods=['post'])
     def buynow_create(self, request, *args, **kwargs):
