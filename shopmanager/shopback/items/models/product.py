@@ -891,11 +891,12 @@ class ProductSku(models.Model):
 
     @property
     def free_num(self):
-        lock_num = max(self.lock_num, 0)
-        rnum = self.remain_num - lock_num
-        if rnum < 0:
-            return 0
-        return rnum
+        """ 可售库存数 """
+        sku_stats = self.stat
+        if sku_stats:
+            self.lock_num = sku_stats.lock_num
+        return max(self.remain_num - max(self.lock_num, 0), 0)
+
 
     @property
     def sale_out(self):
