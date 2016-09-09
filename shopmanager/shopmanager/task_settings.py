@@ -48,7 +48,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"  # "amqp"
 
-BROKER_POOL_LIMIT = 1
+BROKER_POOL_LIMIT = 0
 BROKER_CONNECTION_TIMEOUT = 10
 
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它
@@ -58,7 +58,7 @@ CELERYD_MAX_TASKS_PER_CHILD = 1000
 
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
 BROKER_TRANSPORT_OPTIONS = {
-    'visibility_timeout': 10,
+    'visibility_timeout': 90,
     'max_connections': 8,
 }
 
