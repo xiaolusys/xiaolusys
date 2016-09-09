@@ -25,12 +25,13 @@ class MamaTabVisitStats(BaseModel):
     TAB_CARRY_RECORD = 11 #收益记录
     TAB_FANS_LIST = 12    #粉丝列表
     TAB_VISITOR_LIST = 13 #访客列表
+    TAB_WX_MAMA_ACTIVATE = 14 #公众号我的店铺
     
     STATS_TABS = ((TAB_UNKNOWN, 'Unknown'), (TAB_MAMA_FORTUNE, u'妈妈主页'), (TAB_DAILY_NINEPIC, u'每日推送'),
                   (TAB_NOTIFICATION, u'消息通知'), (TAB_MAMA_SHOP, u'店铺精选'), (TAB_INVITE_MAMA, u'邀请妈妈'),
                   (TAB_CARRY_LIST, u'选品佣金'), (TAB_VIP_EXAM, u'VIP考试'), (TAB_MAMA_TEAM, u'妈妈团队'),
                   (TAB_INCOME_RANK, u'收益排名'), (TAB_ORDER_CARRY, u'订单记录'), (TAB_CARRY_RECORD, u'收益记录'),
-                  (TAB_FANS_LIST, u'粉丝列表'), (TAB_VISITOR_LIST, u'访客列表'))
+                  (TAB_FANS_LIST, u'粉丝列表'), (TAB_VISITOR_LIST, u'访客列表'), (TAB_WX_MAMA_ACTIVATE, u'店铺激活'))
 
     stats_tab = models.IntegerField(default=0, choices=STATS_TABS, db_index=True, verbose_name=u'功能TAB')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # stats_tab+date

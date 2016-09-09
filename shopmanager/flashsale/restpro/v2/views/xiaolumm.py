@@ -852,7 +852,8 @@ class ActivateMamaView(APIView):
         redirect_link = "/mall/"
         if mama:
             redirect_link = "/m/%s" % mama.id
-        
-        redirect(redirect_link)
+            task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_MAMA_ACTIVATE)
+
+        return redirect(redirect_link)
 
         
