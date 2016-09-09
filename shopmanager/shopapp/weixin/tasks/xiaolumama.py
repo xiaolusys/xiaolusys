@@ -80,15 +80,18 @@ def task_create_or_update_weixinfans(wx_pubid, openid, qr_scene, wx_userinfo):
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wx_pubid)
     app_key = wx_api.getAccount().app_id
-
+    subscribe_time = datetime.datetime.now()
+    
     fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
     if fan:
+        fan.subscribe_time = subscribe_time
+        fan.subscribe = True
         if not fan.get_qrscene() and qr_scene:
             fan.set_qrscene(qr_scene)
-            fan.save()
+        fan.save()
         return
 
-    subscribe_time = datetime.datetime.now()
+
     fan = WeixinFans(openid=openid,app_key=app_key,unionid=unionid,subscribe=True,subscribe_time=subscribe_time)
     fan.set_qrscene(qr_scene)
     fan.save()
