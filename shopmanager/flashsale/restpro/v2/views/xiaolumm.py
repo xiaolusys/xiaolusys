@@ -853,6 +853,6 @@ class ActivateMamaView(APIView):
         if mama:
             redirect_link = "/m/%s" % mama.id
         
-        redirect(redirect_link)
+        return redirect(redirect_link)
 
         
