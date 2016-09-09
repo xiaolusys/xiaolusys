@@ -62,7 +62,7 @@ class WXMessageHttpProxy(HttpProxy):
         msgtype  = params.get('MsgType') or ''
         eventKey = params.get('EventKey') or ''
 
-        if XiaoluSwith.is_switch_open(1):
+        if XiaoluSwitch.is_switch_open(1):
             logger.error('WX|%s, %s, %s, %s, %s' % (openid, wx_pubid, event, msgtype, eventKey))
         
         # 获取信息和创建帐户
