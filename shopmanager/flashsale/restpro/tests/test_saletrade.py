@@ -3,7 +3,7 @@ import json
 import datetime
 from django.test import TestCase
 
-from flashsale.pay.models import SaleTrade
+from flashsale.pay.models import SaleTrade, ShoppingCart
 
 import logging
 logger = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ class SaletradeTestCase(TestCase):
         strade = SaleTrade.objects.filter(id=372487).first()
         strade.created = datetime.datetime.now()
         strade.save(force_update=True)
+        ShoppingCart.objects.all().update(status=ShoppingCart.NORMAL)
 
     def addShoppingCart(self):
         response = self.client.post('/rest/v1/carts',

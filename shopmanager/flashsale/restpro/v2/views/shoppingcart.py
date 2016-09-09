@@ -90,7 +90,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
-        customer = get_object_or_404(Customer, user=request.user)
+        customer = self.get_customer(request)
         return self.queryset.filter(buyer_id=customer.id, status=ShoppingCart.NORMAL).order_by('-created')
 
     def get_customer(self, request):
