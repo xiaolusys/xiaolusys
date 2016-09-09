@@ -99,7 +99,7 @@ deploy:
       - docker run --name=celery --restart=always -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
         blueware-admin run-program celery worker -c 4 -A shopmanager --loglevel=ERROR
-        -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo
+        -Q notify,default,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo
   ssh:
     host:
       - sale2.xiaolumm.com

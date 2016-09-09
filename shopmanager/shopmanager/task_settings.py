@@ -79,14 +79,14 @@ CELERY_CHORD_PROPAGATES = True
 CELERY_TASK_RESULT_EXPIRES = 3 * 60 * 60  # 3hour
 
 # Set redis as celery result backend
-CELERY_REDIS_MAX_CONNECTIONS = 1
+CELERY_REDIS_MAX_CONNECTIONS = 8
 
 # # Don't use pickle as serializer, json is much safer
 # CELERY_TASK_SERIALIZER = "json"
 # CELERY_ACCEPT_CONTENT = ['application/json']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
-CELERYD_PREFETCH_MULTIPLIER = 1
+CELERYD_PREFETCH_MULTIPLIER = 32
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
 
