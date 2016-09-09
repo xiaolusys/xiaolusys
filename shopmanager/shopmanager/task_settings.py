@@ -40,6 +40,8 @@ CELERY_IMPORTS = (
     'flashsale.dinghuo.tasks',
     'supplychain.supplier.tasks',
 )
+
+############################# BASE SETUP ################################
 # CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
@@ -77,20 +79,20 @@ CELERY_CHORD_PROPAGATES = True
 CELERY_TASK_RESULT_EXPIRES = 3 * 60 * 60  # 3hour
 
 # Set redis as celery result backend
-CELERY_REDIS_MAX_CONNECTIONS = 8
+CELERY_REDIS_MAX_CONNECTIONS = 1
 
 # # Don't use pickle as serializer, json is much safer
 # CELERY_TASK_SERIALIZER = "json"
 # CELERY_ACCEPT_CONTENT = ['application/json']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
-CELERYD_PREFETCH_MULTIPLIER = 16
-
+CELERYD_PREFETCH_MULTIPLIER = 1
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
 
-CELERYD_POOL = 'gevent'
-CELERYD_CONCURRENCY = 16  # 16 processes in paralle
+# CELERYD_POOL = 'gevent'
+# CELERYD_CONCURRENCY = 32  # 16 processes in paralle
+
 
 from kombu import Exchange, Queue
 
@@ -98,6 +100,7 @@ CELERY_DEFAULT_QUEUE = 'default'
 CELERY_QUEUES = (
     Queue('default', routing_key='tasks.#'),
     Queue('notify', routing_key='notify.#'),
+    Queue('weixin', routing_key='weixin.#'),
     Queue('peroid', routing_key='peroid.#'),
     Queue('frency', routing_key='frency.#'),
     Queue('async', routing_key='async.#'),
@@ -689,36 +692,36 @@ LOGISTICS_ROUTES = {
 
 WEIXIN_ROUTES = {
     'shopapp.weixin.tasks.subscribe.task_subscribe_or_unsubscribe_update_userinfo': {
-        'queue': 'notify',
-        'routing_key': 'notify.task_subscribe_or_unsubscribe_update_userinfo',
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_subscribe_or_unsubscribe_update_userinfo',
     },
     'shopapp.weixin.tasks.xiaolumama.task_create_mama_referal_qrcode_and_response_weixin': {
-        'queue': 'notify',
-        'routing_key': 'notify.task_create_mama_referal_qrcode_and_response_weixin',
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_create_mama_referal_qrcode_and_response_weixin',
     },
     'shopapp.weixin.tasks.xiaolumama.task_create_mama_and_response_manager_qrcode': {
-        'queue': 'notify',
-        'routing_key': 'notify.task_create_mama_and_response_manager_qrcode',
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_create_mama_and_response_manager_qrcode',
     },
     'shopapp.weixin.tasks.xiaolumama.task_weixinfans_update_xlmmfans': {
-        'queue': 'notify',
-        'routing_key': 'notify.task_weixinfans_update_xlmmfans',
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_weixinfans_update_xlmmfans',
     },    
     'shopapp.weixin.tasks.xiaolumama.task_weixinfans_create_budgetlog': {
-        'queue': 'notify',
-        'routing_key': 'notify.task_weixinfans_create_budgetlog',
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_weixinfans_create_budgetlog',
     },    
     'shopapp.weixin.tasks.xiaolumama.task_get_unserinfo_and_create_accounts': {
-        'queue': 'notify',
-        'routing_key': 'notify.task_get_unserinfo_and_create_accounts',
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_get_unserinfo_and_create_accounts',
     },    
     'shopapp.weixin.tasks.xiaolumama.task_create_scan_customer': {
-        'queue': 'notify',
-        'routing_key': 'notify.task_create_scan_customer',
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_create_scan_customer',
     },    
     'shopapp.weixin.tasks.xiaolumama.task_create_scan_xiaolumama': {
-        'queue': 'notify',
-        'routing_key': 'notify.task_create_scan_xiaolumama',
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_create_scan_xiaolumama',
     },    
 
 }
