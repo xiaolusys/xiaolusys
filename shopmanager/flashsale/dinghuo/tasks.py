@@ -2088,10 +2088,10 @@ def task_save_package_backorder_stats():
     )
     for day, day_field in stats_day_list:
         day_dt = now - datetime.timedelta(days=day)
-        sku_id_set = q.filter(pay_time__lte=day_dt).values_list('sku_id', flat=True).distinct()
+        sku_id_set = q.filter(pay_time__gte=day_dt).values_list('sku_id', flat=True).distinct()
         sku_product_map = dict(ProductSku.objects.filter(id__in=sku_id_set).values_list('id', 'product_id'))
 
-        order_values_list = q.filter(pay_time__lte=day_dt).values_list('sku_id', 'oid', 'num')
+        order_values_list = q.filter(pay_time__gte=day_dt).values_list('sku_id', 'oid', 'num')
         purchaser_dict = {}
         for sku_id, oid, num in order_values_list:
             purchaser = purchaser_map.get(str(sku_product_map.get(int(sku_id))))
