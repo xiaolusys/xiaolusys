@@ -429,9 +429,6 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         task_all_complete = True if False not in all_complete_flag else False
         if task_all_complete:  # 任务全部完成
             default_return.update({'config': {'page_pop': False}})
-            from flashsale.xiaolumm.tasks_mama_fortune import task_new_guy_task_complete_send_award
-
-            task_new_guy_task_complete_send_award.delay(xlmm)  # task 发送奖金
         return Response(default_return)
 
     @list_route(methods=['get'])
