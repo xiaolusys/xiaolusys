@@ -16,7 +16,10 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 
 from rest_framework.response import Response
+import logging
+import  json
 
+logger = logging.getLogger(__name__)
 
 class KdnViewSet(APIView):
 
@@ -31,5 +34,15 @@ class KdnViewSet(APIView):
         DataSign = request.POST.get("DataSign", 1)
         RequestData = request.POST.get("RequestData", 1)
         RequestType = request.POST.get("RequestType", 1)
+        logger.info({
+            'action': 'push.kdn',
+            "EBusinessID":EBusinessID,
+            "PushTime":PushTime,
+            "Count": Count,
+            "Data": json.dumps(Data),
+            "DataSign": DataSign,
+            "RequestData":json.dumps(RequestData),
+            "RequestType": RequestType
+        })
         return Response({"EBusinessID":EBusinessID,"PushTime":PushTime,"Count":Count,
                          "Data":Data,"DataSign":DataSign,"RequestData":RequestData,"RequestType":RequestType})
