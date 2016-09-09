@@ -62,7 +62,8 @@ class WXMessageHttpProxy(HttpProxy):
         eventKey = params.get('EventKey') or ''
 
         # 获取信息和创建帐户
-        tasks.task_get_unserinfo_and_create_accounts.delay(openid, wx_pubid)
+        if event != WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
+            tasks.task_get_unserinfo_and_create_accounts.delay(openid, wx_pubid)
         
         # 处理关注／取关事件
         if event in ('subscribe', 'unsubscribe'):

@@ -1347,7 +1347,7 @@ class PackageSkuItemAdmin(admin.ModelAdmin):
         'id', 'sale_order_link_to', 'oid', 'sale_trade_id_link', 'receiver_mobile', 'out_sid', 'logistics_company_name',
         'package_order_link_to', 'package_sku_item_link_to', 'assign_status', 'sys_status',
         'pay_time', 'assign_time', 'product_title_link_to', 'ware_by', 'sku_id_link_to', 'sku_link_to', 'num', 'price',
-        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link')
+        'total_fee', 'payment', 'discount_fee', 'adjust_fee', 'purchase_order_unikey_link', 'modified', 'created')
 
     search_fields = ['id', 'sale_order_id', 'sale_trade_id', 'receiver_mobile', 'out_sid', 'package_order_pid',
                      'package_order_id', 'oid', 'sku_id', 'purchase_order_unikey']
