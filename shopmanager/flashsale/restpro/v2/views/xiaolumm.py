@@ -18,6 +18,8 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.shortcuts import redirect
+
 from core.xlmm_response import make_response, SUCCESS_RESPONSE
 from flashsale.pay.models import Customer, ModelProduct
 from flashsale.restpro import permissions as perms
@@ -831,3 +833,26 @@ class MamaAdministratorViewSet(APIView):
             'referal_mama_nick': referal_mama_nick,
             'referal_mama_avatar': referal_mama_avatar,
         })
+
+
+
+class ActivateMamaView(APIView):
+    """
+    GET /rest/v2/mama/activate
+    """
+    
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+    def get(self, request, *args, **kwargs):
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        mama = customer.get_xiaolumm()
+
+        redirect_link = "/mall/"
+        if mama:
+            redirect_link = "/m/%s" % mama.id
+        
+        redirect(redirect_link)
+
+        
