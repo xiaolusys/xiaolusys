@@ -218,7 +218,7 @@ class MamaMissionRecord(BaseModel):
         # TODO@meron 如果任务中订单金额退款，任务完成状态需要变更？
         self.finish_value = int(finish_value)
         cur_year_week = datetime.datetime.now().strftime('%Y-%W')
-        if self.finish_value >= self.mission.target_value and self.is_staging():
+        if self.finish_value >= self.target_value and self.is_staging():
             self.status = self.FINISHED
             self.finish_time = datetime.datetime.now()
             self.save(update_fields=['finish_value', 'status', 'finish_time'])
@@ -228,7 +228,7 @@ class MamaMissionRecord(BaseModel):
                 from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
                 task_send_mama_weekly_award.delay(self.mama_id, self.id)
 
-        elif self.finish_value < self.mission.target_value and self.is_finished():
+        elif self.finish_value < self.target_value and self.is_finished():
             self.status = self.STAGING
             self.finish_time = datetime.datetime.now()
             self.save(update_fields=['finish_value', 'status', 'finish_time'])
