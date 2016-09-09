@@ -5,7 +5,6 @@ from django.db.models.signals import post_save, pre_save
 
 from core.models import BaseModel
 from core.fields import JSONCharMyField
-from flashsale.pay.models import Customer, BudgetLog
 from flashsale.xiaolumm.models import XiaoluMama
 
 
@@ -102,7 +101,9 @@ def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
     from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
     referal_from_unionid = from_mama.openid
 
+    from flashsale.pay.models import BudgetLog
     from shopapp.weixin.tasks import task_weixinfans_create_budgetlog
+    
     task_weixinfans_create_budgetlog.delay(referal_to_unionid, referal_from_unionid, BudgetLog.BG_SUBSCRIBE)
     task_weixinfans_create_budgetlog.delay(referal_from_unionid, referal_to_unionid, BudgetLog.BG_REFERAL_FANS)
     
