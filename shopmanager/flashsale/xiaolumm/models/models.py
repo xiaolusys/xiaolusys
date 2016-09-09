@@ -837,6 +837,9 @@ class XiaoluMama(models.Model):
         if not commission:
             return NewMamaTask.TASK_FIRST_COMMISSION
 
+        from flashsale.xiaolumm.tasks_mama_fortune import task_new_guy_task_complete_send_award
+        task_new_guy_task_complete_send_award.delay(self)
+
         return None
 
     @classmethod

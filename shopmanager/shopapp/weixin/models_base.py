@@ -95,7 +95,7 @@ def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
     referal_to_unionid = instance.unionid
 
     # 内部人员测试
-    if referal_from_mama_id > 100:
+    if referal_from_mama_id < 1 or referal_from_mama_id > 100:
         return
     
     from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
