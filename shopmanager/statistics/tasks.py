@@ -814,7 +814,7 @@ def task_statsrecord_update_model_stats(saleorderstatsrecord, review_days=None):
     sale_product = saleorderstatsrecord.sale_product
     review_days = review_days if review_days else 180
     detail_review_time = datetime.datetime.now() - datetime.timedelta(days=review_days)
-    sale_manager_details = SaleProductManageDetail.objects.filter(design_take_over=SaleProductManageDetail.TAKEOVER,
+    sale_manager_details = SaleProductManageDetail.objects.filter(today_use_status=SaleProductManageDetail.NORMAL,
                                                                   sale_product_id=sale_product,
                                                                   created__gte=detail_review_time)
     # 所有相关的　选品排期明细
