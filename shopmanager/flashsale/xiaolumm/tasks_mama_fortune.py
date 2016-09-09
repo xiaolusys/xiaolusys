@@ -352,8 +352,7 @@ def task_new_guy_task_complete_send_award(mama):
     """
     from flashsale.xiaolumm.models import AwardCarry, XiaoluMama, PotentialMama, ReferalRelationship
 
-    active_time = datetime.datetime(2016, 7, 22, 10, 0, 0)
-    if isinstance(mama.charge_time, datetime.datetime) and mama.charge_time >= active_time:
+    if isinstance(mama.charge_time, datetime.datetime):
         uni_key = 'new_guy_task_complete_award_5_%d' % (mama.id,)
         AwardCarry.send_award(mama, 10, u'新手任务奖励', u'完成新手任务奖励', uni_key, status=2, carry_type=4)  # 确定收益
 
