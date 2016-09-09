@@ -141,8 +141,10 @@ def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
 
 
 @task
-def task_weixinfans_create_budgetlog(customer_id, referal_id, budget_log_type):
-    log = BudgetLog.objects.filter(customer_id=customer.id, referal_id=referal_id, budget_log_type=BudgetLog.BG_FANS).first()
+def task_weixinfans_create_budgetlog(customer_unionid, reference_unionid, budget_log_type):
+    customer = Customer.objects.filter(unionid=customer_unionid).first()
+    reference = Customer.objects.filter(unionid=reference_unionid).first()
+    log = BudgetLog.objects.filter(customer_id=customer.id, referal_id=reference.id, budget_log_type=budget_log_type).first()
     if log:
         return
 
@@ -159,8 +161,8 @@ def task_weixinfans_create_budgetlog(customer_id, referal_id, budget_log_type):
     budget_type = BudgetLog.BUDGET_IN
     budget_date = datetime.date.today()
 
-    log = BudgetLog(customer_id=customer_id, flow_amount=flow_amount, budget_type=budget_type,
-                    budget_log_type=budget_log_type, budget_date=budget_date, referal_id=referal_id)
+    log = BudgetLog(customer_id=customer.id, flow_amount=flow_amount, budget_type=budget_type,
+                    budget_log_type=budget_log_type, budget_date=budget_date, referal_id=reference.id)
     log.save()
 
     
