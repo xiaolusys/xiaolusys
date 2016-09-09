@@ -58,6 +58,7 @@ v2_router_urls += format_suffix_patterns([
     url(r'^potential_fans', views.PotentialFansView.as_view()),
     url(r'^administrator', views.xiaolumm.MamaAdministratorViewSet.as_view()),
     url(r'^kdn', KdnViewSet.as_view()),
+    url(r'^activate', views.xiaolumm.ActivateMamaView.as_view()),
 ])
 
 from flashsale.restpro.v2 import views
