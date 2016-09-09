@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 __author__ = 'meixqhi'
 from django.db import models
-
+import datetime
 
 class SystemConfig(models.Model):
     is_rule_auto = models.BooleanField(default=False, verbose_name='商品匹配')  # 是否开启自动规则过滤
@@ -92,7 +92,7 @@ class XiaoluSwitch(BaseModel):
     responsible = models.CharField(max_length=32, db_index=True, verbose_name=u'负责人')
     title = models.CharField(max_length=64, db_index=True, verbose_name=u'标题')
     description = models.TextField(verbose_name=u'描述')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, db_index=True, verbose_name=u'访问次数')
+    status = models.IntegerField(default=0, choices=STATUS_TYPES, db_index=True, verbose_name=u'状态')
 
     class Meta:
         db_table = 'xiaolu_switch'
@@ -101,8 +101,12 @@ class XiaoluSwitch(BaseModel):
         verbose_name_plural = u'开关器列表'
 
     @classmethod
-    def get_switch_status(cls, id):
+    def is_switch_open(cls, id):
         switch = cls.objects.get(id=id)
-        return switch.status
+        now = datetime.datetime.now()
+        if switch.status == 1:
+            if now >= start_time and now <= end_time:
+                return True
+        return False
         
         

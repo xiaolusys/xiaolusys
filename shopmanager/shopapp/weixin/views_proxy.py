@@ -12,6 +12,7 @@ from . import service
 
 logger = logging.getLogger('weixin.proxy')
 
+from shopback.monitor.models import XiaoluSwitch
 
 class WXMessageHttpProxy(HttpProxy):
     def get_wx_api(self, pub_id):
@@ -61,6 +62,9 @@ class WXMessageHttpProxy(HttpProxy):
         msgtype  = params.get('MsgType') or ''
         eventKey = params.get('EventKey') or ''
 
+        if XiaoluSwith.is_switch_open(1):
+            logger.error('WX|%s, %s, %s, %s, %s' % (openid, wx_pubid, event, msgtype, eventKey))
+        
         # 获取信息和创建帐户
         if event != WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
             tasks.task_get_unserinfo_and_create_accounts.delay(openid, wx_pubid)
