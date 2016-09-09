@@ -400,7 +400,7 @@ class UserBudget(PayBaseModel):
         """ 设置普通用户钱包是否可以提现控制字段 """
         return constants.IS_USERBUDGET_COULD_CASHOUT
 
-    def action_budget_cashout(self, cash_out_amount):
+    def action_budget_cashout(self, cash_out_amount, need_audit=True):
         """
         用户钱包提现
         cash_out_amount　整型　以分为单位
@@ -408,6 +408,7 @@ class UserBudget(PayBaseModel):
         from shopapp.weixin.models import WeixinUnionID
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
+
         # 如果提现金额小于0　code 1
         if cash_out_amount <= 0:
             return 1, '提现金额小于0'
@@ -429,6 +430,20 @@ class UserBudget(PayBaseModel):
             body = constants.ENVELOP_BODY  # 红包祝福语
             description = constants.ENVELOP_CASHOUT_DESC.format(self.user.id,
                                                                 self.amount)  # 备注信息 用户id, 提现前金额
+
+            # 检测提现次数。２元一天只能提现一次
+            if cash_out_amount == 200 and not need_audit:
+                has_record = BudgetLog.objects.filter(
+                    customer_id=self.user.id,
+                    flow_amount=200,
+                    budget_type=BudgetLog.BUDGET_OUT,
+                    budget_log_type=BudgetLog.BG_CASHOUT,
+                    budget_date=datetime.date.today(),
+                    status=BudgetLog.CONFIRMED
+                ).exists()
+                if has_record:
+                    return 11, '你今天已经提现过一次了，明天再来吧'
+
             # 创建钱包提现记录
             budgelog = BudgetLog.objects.create(customer_id=self.user.id,
                                                 flow_amount=cash_out_amount,
@@ -437,14 +452,21 @@ class UserBudget(PayBaseModel):
                                                 budget_date=datetime.date.today(),
                                                 status=BudgetLog.CONFIRMED)
 
-            Envelop.objects.create(amount=cash_out_amount,
-                                   platform=Envelop.WXPUB,
-                                   recipient=recipient,
-                                   subject=Envelop.XLAPP_CASHOUT,
-                                   body=body,
-                                   receiver=self.user.mobile,
-                                   description=description,
-                                   referal_id=budgelog.id)
+            envelop = Envelop.objects.create(
+                amount=cash_out_amount,
+                platform=Envelop.WXPUB,
+                recipient=recipient,
+                subject=Envelop.XLAPP_CASHOUT,
+                body=body,
+                receiver=self.user.mobile,
+                description=description,
+                referal_id=budgelog.id
+            )
+
+            # 通过微信公众号提现２元，直接发红包，无需审核，一天限制一次
+            if cash_out_amount == 200 and not need_audit:
+                envelop.send_envelop()
+
             log_action(self.user.user.id, self, CHANGE, u'用户提现')
         return 0, '提现成功'
 

@@ -782,12 +782,14 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         if (cash_type is None) and (cashout_amount is None):  # 参数错误(没有参数)
             return 0, {"code": 1, "msg": '暂未开通'}
+
         if cash_type:
             value = self.cashout_type.get(cash_type)
         elif cashout_amount:
             value = int(decimal.Decimal(cashout_amount) * 100)
         else:
             return 0, {"code": 1, "msg": '提现金额不能为0'}
+
         could_cash_out, active_value_num = get_mamafortune(xlmm.id)
         if active_value_num < 100:
             return 0, {"code": 4, 'msg': '活跃值不足'}  # 活跃值不够
@@ -801,12 +803,15 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         """代理提现"""
         cash_type = request.REQUEST.get('choice', None)
         cashout_amount = request.REQUEST.get('cashout_amount', None)
+
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not xlmm.is_cashoutable():
             return Response({"code": 5, 'msg': '试用妈妈不可提现哦~'})
+
         value, msg = self.verify_cashout(cash_type, cashout_amount, customer, xlmm)
         if value <= 0:
             return Response(msg)
+
         # 满足提现请求　创建提现记录
         cashout = CashOut(xlmm=xlmm.id,
                           value=value,
@@ -822,11 +827,14 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         """ 代理提现到用户余额 """
         cashout_amount = request.REQUEST.get('cashout_amount', None)
         customer, xlmm = self.get_customer_and_xlmm(request)
+
         if not xlmm.is_cashoutable():
             return Response({"code": 5, 'msg': '试用妈妈不可提现哦~'})
+
         value, msg = self.verify_cashout(None, cashout_amount, customer, xlmm)
         if value <= 0:
             return Response(msg)
+
         # 创建Cashout
         cashout = CashOut(xlmm=xlmm.id,
                           value=value,
@@ -870,18 +878,22 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         content = request.REQUEST
         exchange_num = content.get("exchange_num") or None  # 兑换张数
         template_id = content.get("template_id") or None  # 兑换的优惠券模板　72: ￥20　73　￥50
+
         default_return = collections.defaultdict(code=0, info='兑换成功')
         if not (exchange_num and template_id):
             default_return.update({"code": 1, "info": "参数错误"})
             return Response(default_return)
+
         tpl = CouponTemplate.objects.filter(id=template_id).first()
         if not tpl:
             default_return.update({"code": 2, "info": "优惠券还没有开放"})
             return Response(default_return)
+
         customer, xlmm = self.get_customer_and_xlmm(request)
         if not xlmm:
             default_return.update({"code": 3, "info": "用户异常"})
             return Response(default_return)
+
         could_cash_out, _ = get_mamafortune(xlmm.id)  # 可提现的金额
         exchange_amount = int(exchange_num) * tpl.value
         if exchange_amount > could_cash_out:

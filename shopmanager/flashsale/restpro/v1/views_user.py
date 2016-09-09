@@ -58,7 +58,7 @@ def check_day_limit(reg_bean):
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
     ## 特卖平台 用户注册,修改密码API：
-    
+
     > ### /[.format]: `params={vmobile}` 注册新用户时，获取验证码;
     - 返回参数result：0-已经注册了;1-180秒不能重复发送;２－验证次数达上限;OK-表示获取成功;
     > ### /check_code_user: `params={username,valid_code}` 校验验证码（旧）;
@@ -843,22 +843,45 @@ class CustomerViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def budget_cash_out(self, request):
         """
-        普通用户提现接口
-        - 返回`code`: 0 成功; 1　提现金额小于0;  2 提现金额大于当前账户金额;  3 参数错误;  4　用户没有公众号账号;5　用户unionid不存在
+        小鹿钱包提现接口
+
+        POST /rest/v1/users/budget_cash_out
+        参数：
+        - cashout_amount  必填，提现金额（单位：元）
+        - channel  选填，可选项（wx：提现请求来源于微信公众号）
+
+        返回：
+        {'code': xx, 'message': xxx, 'qrcode': xxx}
+        - 返回`code`:
+            0 成功;
+            1　提现金额小于0;
+            2 提现金额大于当前账户金额;
+            3 参数错误;
+            4　用户没有公众号账号;
+            5　用户unionid不存在
+            6 提现不能超过200
+           11　已经提现过一次无审核２元
         """
         content = request.REQUEST
         cashout_amount = content.get('cashout_amount', None)
+        channel = content.get('channel', None)
         default_return = collections.defaultdict(code=0, message='', qrcode='')
 
         if not cashout_amount:
             return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
+
         customer = get_object_or_404(Customer, user=request.user)
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
         if amount > 200 * 100:
             default_return.update({"code": 6, "message": "提现不能超过200"})
             return Response(default_return)
-        code, message = budget.action_budget_cashout(amount)
+
+        if channel in ['wx']:
+            code, message = budget.action_budget_cashout(amount, need_audit=False)
+        else:
+            code, message = budget.action_budget_cashout(amount)
+
         qrcode = ''
         if code in (4, 5):
             qrcode = ''
