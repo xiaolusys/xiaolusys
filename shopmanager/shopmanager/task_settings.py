@@ -57,8 +57,10 @@ BROKER_CONNECTION_TIMEOUT = 10
 CELERYD_MAX_TASKS_PER_CHILD = 1000
 
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
-BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 300}
-
+BROKER_TRANSPORT_OPTIONS = {
+    'visibility_timeout': 10,
+    'max_connections': 8,
+}
 
 # Sensible settings for celery
 CELERY_ALWAYS_EAGER = False
@@ -75,14 +77,14 @@ CELERY_CHORD_PROPAGATES = True
 CELERY_TASK_RESULT_EXPIRES = 3 * 60 * 60  # 3hour
 
 # Set redis as celery result backend
-CELERY_REDIS_MAX_CONNECTIONS = 2
+CELERY_REDIS_MAX_CONNECTIONS = 8
 
 # # Don't use pickle as serializer, json is much safer
 # CELERY_TASK_SERIALIZER = "json"
 # CELERY_ACCEPT_CONTENT = ['application/json']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
-CELERYD_PREFETCH_MULTIPLIER = 1
+CELERYD_PREFETCH_MULTIPLIER = 16
 
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
