@@ -15,8 +15,6 @@ import logging
 logger = logging.getLogger(__name__)
 
     
-
-    
 @task
 def task_create_scan_customer(wx_userinfo):
     unionid = wx_userinfo['unionid']
@@ -56,6 +54,8 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
         
     if not wx_userinfo:
         wx_userinfo = wx_api.getCustomerInfo(openid)
+        if wx_userinfo.get('subscribe') == 0:
+            return
         from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
         task_snsauth_update_weixin_userinfo.delay(wx_userinfo, app_key)
     
@@ -64,19 +64,38 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
     
     
 @task    
-def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, wx_userinfo):
+def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, potential_mama_unionid):
     uni_key = PotentialMama.gen_uni_key(potential_mama_id, referal_from_mama_id)
     pm = PotentialMama.objects.filter(uni_key=uni_key).first()
-    if not pm:
-        thumbnail = wx_userinfo['headimgurl']
-        nick = wx_userinfo['nickname']
-        pm = PotentialMama(potential_mama=potential_mama_id, referal_mama=referal_from_mama_id, uni_key=uni_key,
-                           nick=nick, thumbnail=thumbnail, last_renew_type=XiaoluMama.SCAN)
-        pm.save()
+    if pm:
+        return
+
+    wx_userinfo = None
+    info = WeixinUserInfo.objects.filter(unionid=potential_mama_unionid).first()
+    if not info:
+        wx_api = WeiXinAPI()
+        wx_api.setAccountId(wxpubId=wx_pubid)
+        wx_userinfo = wx_api.getCustomerInfo(openid)
+
+        from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
+        app_key = wx_api.getAccount().app_id
+        task_snsauth_update_weixin_userinfo.delay(wx_userinfo, app_key)
+    else:
+        wx_userinfo = {'headimgurl': info.thumbnail, 'nickname': info.nick}
+
+        
+    thumbnail = wx_userinfo['headimgurl']
+    nick = wx_userinfo['nickname']
+    pm = PotentialMama(potential_mama=potential_mama_id, referal_mama=referal_from_mama_id, uni_key=uni_key,
+                       nick=nick, thumbnail=thumbnail, last_renew_type=XiaoluMama.SCAN)
+    pm.save()
 
 
 @task
 def task_create_or_update_weixinfans(wx_pubid, openid, qr_scene, wx_userinfo):
+    """
+    For subscribe.
+    """
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wx_pubid)
     app_key = wx_api.getAccount().app_id
@@ -91,7 +110,6 @@ def task_create_or_update_weixinfans(wx_pubid, openid, qr_scene, wx_userinfo):
         fan.save()
         return
 
-
     fan = WeixinFans(openid=openid,app_key=app_key,unionid=unionid,subscribe=True,subscribe_time=subscribe_time)
     fan.set_qrscene(qr_scene)
     fan.save()
@@ -99,6 +117,9 @@ def task_create_or_update_weixinfans(wx_pubid, openid, qr_scene, wx_userinfo):
 
 @task
 def task_unsubscribe_update_weixinfans(openid):
+    """
+    For unsubscribe.
+    """
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wx_pubid)
     app_key = wx_api.getAccount().app_id
@@ -108,13 +129,32 @@ def task_unsubscribe_update_weixinfans(openid):
     
 
 @task
-def task_activate_xiaolumama(mama_id):
+def task_activate_xiaolumama(wx_pubid, openid):
+    fan = WeixinFans.objects.filter(app_key=wx_pubid, openid=openid).first()
+    if not fan:
+        return
+
+    unionid = fan.unionid
+    mama = XiaoluMama.objects.filter(openid=unionid,charge_status=XiaoluMama.UNCHARGE,status=XiaoluMama.EFFECT,last_renew_type=XiaoluMama.SCAN).first()
+    if not mama:
+        return
+    
     renew_date = datetime.date.today() + datetime.timedelta(days=3)
     renew_time = datetime.datetime(renew_date.year, renew_date.month, renew_date.day)
-    cnt = XiaoluMama.objects.filter(id=mama_id).update(charge_status=XiaoluMama.CHARGED, renew_time=renew_time)
-    if cnt > 0:
-        # send weixin notification: shop is activated.
-        pass
+    XiaoluMama.objects.filter(id=mama_id).update(charge_status=XiaoluMama.CHARGED, renew_time=renew_time)
+
+    referal_from_mama_id = None
+    qrscene = fan.get_qrscene()
+    if qrscene and qrscene.isdigit():
+        referal_from_mama_id = int(qrscene)
+
+    if not referal_from_mama_id or referal_from_mama_id < 1:
+        return
+
+    potential_mama_id = mama.id
+    potential_mama_unionid = unionid
+    task_create_scan_potential_mama.delay(referal_from_mama_id, potential_mama_id, potential_mama_unionid)
+    
 
 @task
 def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
