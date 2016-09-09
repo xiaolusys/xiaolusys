@@ -89,7 +89,7 @@ CELERYD_PREFETCH_MULTIPLIER = 16
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
 
-# CELERYD_POOL = 'gevent'
+CELERYD_POOL = 'gevent'
 CELERYD_CONCURRENCY = 16  # 16 processes in paralle
 
 from kombu import Exchange, Queue
