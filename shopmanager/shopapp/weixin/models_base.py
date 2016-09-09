@@ -90,8 +90,8 @@ post_save.connect(weixinfans_update_xlmmfans,
                   sender=WeixinFans, dispatch_uid='post_save_weixinfans_update_xlmmfans')
 
 def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
-    referal_from_mama_id = instance.extras.get('qr_scene')
-    if referal_from_mama_id:
+    referal_from_mama_id = instance.extras.get('qrscene')
+    if referal_from_mama_id and referal_from_mama_id.isdigit():
         referal_from_mama_id = int(referal_from_mama_id)
     referal_to_unionid = instance.unionid
 

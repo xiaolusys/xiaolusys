@@ -56,6 +56,7 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
         
     if not wx_userinfo:
         wx_userinfo = wx_api.getCustomerInfo(openid)
+        from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
         task_snsauth_update_weixin_userinfo.delay(wx_userinfo, app_key)
     
     task_create_scan_customer.delay(wx_userinfo)
