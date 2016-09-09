@@ -781,7 +781,7 @@ admin.site.register(MamaTabVisitStats, MamaTabVisitStatsAdmin)
 
 class MamaDailyTabVisitAdmin(admin.ModelAdmin):
     list_display = ('id', 'mama_id', 'stats_tab', 'date_field', 'modified', 'created')
-    list_filter = ('stats_tab',)
+    list_filter = ('stats_tab',('created', DateFieldListFilter))
     search_fields = ('mama_id', 'stats_tab', 'date_field')
 
 
