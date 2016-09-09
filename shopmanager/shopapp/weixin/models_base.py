@@ -5,6 +5,8 @@ from django.db.models.signals import post_save, pre_save
 
 from core.models import BaseModel
 from core.fields import JSONCharMyField
+from flashsale.pay.models import Customer, BudgetLog
+from flashsale.xiaolumm.models import XiaoluMama
 
 
 class WeixinUnionID(BaseModel):
