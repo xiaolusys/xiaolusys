@@ -60,7 +60,7 @@ def gen_mama_custom_qrcode_url(mama_id, thumbnail, message1='', message2=''):
     thumbnail = re.sub('/0$', '/132', thumbnail)
     params = {
         'base_url': random.choice(BASE_MAMA_QRCODE_IMG_URL),
-        'message1': base64.urlsafe_b64encode('我是' + str(message1)),
+        'message1': base64.urlsafe_b64encode(str(message1)),
         'message2': base64.urlsafe_b64encode(str(message2)),
         'thumbnail': base64.urlsafe_b64encode(str(thumbnail)),
         'qrcode': base64.urlsafe_b64encode(str(qrcode_link))
@@ -74,7 +74,7 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
     if not cache_value:
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache miss: %s' % mama_id)
         thumbnail = userinfo['headimgurl'] or DEFAULT_MAMA_THUMBNAIL
-        message1 = u'%s' % userinfo['nickname']
+        message1 = u'我是 %s' % userinfo['nickname']
         message2 = u'长按图片, 识别图中二维码\n有效期截止日期: %s'%\
                    (datetime.datetime.now()+datetime.timedelta(days=30)).strftime('%Y-%m-%d')
         media_url = gen_mama_custom_qrcode_url(mama_id, thumbnail, message1, message2)

@@ -87,7 +87,7 @@ CELERY_REDIS_MAX_CONNECTIONS = 8
 # CELERY_ACCEPT_CONTENT = ['application/json']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
-CELERYD_PREFETCH_MULTIPLIER = 4
+CELERYD_PREFETCH_MULTIPLIER = 1
 if os.environ.get('INSTANCE') == 'celery-gevent':
     CELERYD_PREFETCH_MULTIPLIER = 0
 
@@ -1452,7 +1452,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'妈妈及团队未完成任务每日提醒': {
         'task': 'flashsale.xiaolumm.tasks.mission.task_notify_all_mama_staging_mission',
-        'schedule': crontab(minute="30", hour="20"),
+        'schedule': crontab(minute="0", hour="20", day_of_week='wed,fri,sat'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_notify_all_mama_staging_mission'}
     },
