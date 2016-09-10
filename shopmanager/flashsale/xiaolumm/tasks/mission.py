@@ -206,12 +206,21 @@ def task_notify_all_mama_staging_mission():
     # 12小时内产生的任务不重复发送消息
     mama_missions = MamaMissionRecord.objects.filter(
         year_week = year_week,
-        mission__data_type=MamaMission.TYPE_WEEKLY,
+        mission__date_type=MamaMission.TYPE_WEEKLY,
         status = MamaMissionRecord.STAGING,
         created__lte=twenty_hours_ago
     )
+    cnt = 0
+    logger.info('task_notify_all_mama_staging_mission start: date=%s, count=%s'%(
+        datetime.datetime.now(), mama_missions.count()))
     for mama_mission in mama_missions:
         task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
+        cnt += 1
+        if cnt % 5000 == 0:
+            logger.info('task_notify_all_mama_staging_mission post: date=%s, post_num=%s' % (datetime.datetime.now(), cnt))
+
+    logger.info('task_notify_all_mama_staging_mission end: date=%s' % (
+        datetime.datetime.now()))
 
 
 @task(max_retries=3, default_retry_delay=5)
