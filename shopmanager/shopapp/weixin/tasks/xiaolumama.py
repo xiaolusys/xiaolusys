@@ -130,10 +130,10 @@ def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, ev
 
     fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
     if fan:
-        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE:
+        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
             fan.subscribe_time = subscribe_time
             fan.subscribe = True
-        elif event == WeiXinAutoResponse.WX_EVENT_SCAN:
+        elif event == WeiXinAutoResponse.WX_EVENT_SCAN.lower():
             if not fan.subscribe:
                 fan.subscribe = True
         if not fan.get_qrscene() and qrscene:
