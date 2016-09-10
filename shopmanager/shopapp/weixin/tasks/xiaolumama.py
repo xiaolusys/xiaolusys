@@ -332,10 +332,14 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
 def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
     try:
-        xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
+        #xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
+        
+        userinfo = get_or_fetch_userinfo(openid, wxpubId)
+        unionid = userinfo['unionid']
+        mama = XiaoluMama.objects.filter(openid=unionid).first()
 
         # 获取创建用户小鹿妈妈信息,
-        media_id = fetch_wxpub_mama_custom_qrcode_media_id(xiaolumm, wxpubId)
+        media_id = fetch_wxpub_mama_custom_qrcode_media_id(mama.id, userinfo, wxpubId)
 
         wx_api = WeiXinAPI()
         wx_api.setAccountId(wxpubId=wxpubId)
@@ -355,10 +359,14 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
 def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
     try:
-        xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
+        #xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
+
+        userinfo = get_or_fetch_userinfo(openid, wxpubId)
+        unionid = userinfo['unionid']
+        mama = XiaoluMama.objects.filter(openid=unionid).first()
 
         # 获取创建用户小鹿妈妈信息,
-        media_id = fetch_wxpub_mama_manager_qrcode_media_id(xiaolumm, wxpubId)
+        media_id = fetch_wxpub_mama_manager_qrcode_media_id(mama.id, wxpubId)
 
         wx_api = WeiXinAPI()
         wx_api.setAccountId(wxpubId=wxpubId)
