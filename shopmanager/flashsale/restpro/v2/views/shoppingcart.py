@@ -91,6 +91,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         customer = self.get_customer(request)
+        if not customer:
+            return self.queryset.none()
         return self.queryset.filter(buyer_id=customer.id, status=ShoppingCart.NORMAL).order_by('-created')
 
     def get_customer(self, request):

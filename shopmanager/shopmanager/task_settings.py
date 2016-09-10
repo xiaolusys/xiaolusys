@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+import os
 import djcelery
 
 ########################################################################################################################
@@ -86,7 +87,9 @@ CELERY_REDIS_MAX_CONNECTIONS = 8
 # CELERY_ACCEPT_CONTENT = ['application/json']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
-CELERYD_PREFETCH_MULTIPLIER = 32
+CELERYD_PREFETCH_MULTIPLIER = 4
+if os.environ.get('INSTANCE') == 'celery-gevent':
+    CELERYD_PREFETCH_MULTIPLIER = 32
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
 
