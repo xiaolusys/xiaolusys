@@ -695,6 +695,9 @@ post_save.connect(awardcarry_update_carryrecord,
 def awardcarry_weixin_push(sender, instance, created, **kwargs):
     if not created:
         return
+    if instance.carry_type == 8:
+        # 关注公众号，任务通知已发，这里不用重复发送
+        return
     from flashsale.xiaolumm import tasks_mama_push
     if instance.mama_id > 0 and instance.status != 3:
         tasks_mama_push.task_weixin_push_awardcarry.delay(instance)
