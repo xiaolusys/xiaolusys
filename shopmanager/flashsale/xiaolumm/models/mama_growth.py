@@ -54,7 +54,6 @@ class MamaMission(BaseModel):
         (FINISHED, u'已结束'),
         (CANCEL, u'已取消'),
     )
-
     CAT_SALE_MAMA   = 'sale_mama'
     CAT_SALE_GROUP  = 'sale_group'
     CAT_REFER_MAMA  = 'refer_mama'
@@ -72,7 +71,7 @@ class MamaMission(BaseModel):
         (CAT_FIRST_ORDER, u'首单奖励'),
         (CAT_OPEN_COURSE, u'授课奖金'),
         (CAT_JOIN_GUIDE, u'新手任务'),
-        (CAT_TRIAL_MAMA, u'新增1元妈妈'),
+        (CAT_TRIAL_MAMA, u'邀请妈妈试用开店'),
         (CAT_REFER_GUIDE, u'新手指导')
     )
 
