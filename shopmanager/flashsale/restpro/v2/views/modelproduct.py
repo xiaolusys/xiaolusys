@@ -197,7 +197,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         mama = customer.get_charged_mama()
         sort_field = request.GET.get('sort_field') or 'id'  # 排序字段
-        parent_cid = request.GET.get('parent_cid') or 0
+        parent_cid = request.GET.get('cid') or 0
+        reverse = request.GET.get('reverse') or 0
+        reverse = int(reverse) if str(reverse).isdigit() else 0
         model_ids = CuShopPros.objects.filter(customer=customer.id,
                                               pro_status=CuShopPros.UP_SHELF).values_list("model", flat=True)
         queryset = self.queryset.filter(shelf_status=ModelProduct.ON_SHELF,
@@ -215,7 +217,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             md.rebet_amount = rebet_amount
             md.next_rebet_amount = next_rebet_amount
         if sort_field in ['id', 'sale_num', 'rebet_amount', 'lowest_std_sale_price', 'lowest_agent_price']:
-            queryset = sorted(queryset, key=lambda k: getattr(k, sort_field), reverse=True)
+            queryset = sorted(queryset, key=lambda k: getattr(k, sort_field), reverse=reverse)
         queryset = self.paginate_queryset(queryset)
         serializer = serializers_v2.MamaChoiceProductSerializer(queryset, many=True,
                                                                 context={'request': request,

@@ -6,6 +6,7 @@ from django.db.models.signals import post_save, pre_save
 from core.models import BaseModel
 from core.fields import JSONCharMyField
 from flashsale.xiaolumm.models import XiaoluMama
+from shopback.monitor.models import XiaoluSwitch
 
 
 class WeixinUnionID(BaseModel):
@@ -94,9 +95,11 @@ def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
         referal_from_mama_id = int(referal_from_mama_id)
     referal_to_unionid = instance.unionid
 
-    # 内部人员测试
-    if referal_from_mama_id < 1 or referal_from_mama_id > 100:
+    if not referal_from_mama_id or referal_from_mama_id < 1:
         return
+
+    if XiaoluSwitch.is_switch_open(2) and referal_from_mama_id > 100:
+        return 
     
     from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
     referal_from_unionid = from_mama.openid

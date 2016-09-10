@@ -726,7 +726,22 @@ WEIXIN_ROUTES = {
         'queue': 'weixin',
         'routing_key': 'weixin.task_create_scan_xiaolumama',
     },    
-
+    'shopapp.weixin.tasks.xiaolumama.task_activate_xiaolumama': {
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_activate_xiaolumama',
+    },    
+    'shopapp.weixin.tasks.xiaolumama.task_create_scan_potential_mama': {
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_create_scan_potential_mama',
+    },    
+    'shopapp.weixin.tasks.xiaolumama.task_create_or_update_weixinfans_upon_subscribe_or_scan': {
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_create_or_update_weixinfans_upon_subscribe_or_scan',
+    },    
+    'shopapp.weixin.tasks.xiaolumama.task_update_weixinfans_upon_unsubscribe': {
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_update_weixinfans_upon_unsubscribe',
+    },    
 }
 
 CELERY_ROUTES = {

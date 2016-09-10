@@ -31,3 +31,10 @@ class MamaAdministrator(BaseModel):
             ma.mama = mama
             ma.save()
         return administrator
+
+    @classmethod
+    def get_mama_administrator(cls, mama_id):
+        adm = cls.objects.filter(mama_id=mama_id).first()
+        if adm:
+            return adm.administrator
+        return None

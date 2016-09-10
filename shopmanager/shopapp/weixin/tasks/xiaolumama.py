@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans
 from flashsale.pay.models import BudgetLog
+from shopback.monitor.models import XiaoluSwitch
 
 from ..weixin_apis import WeiXinAPI
 from ..models import WeixinUnionID, WeixinUserInfo, WeixinFans, WeiXinAutoResponse
@@ -14,7 +15,36 @@ from ..utils import fetch_wxpub_mama_custom_qrcode_media_id, fetch_wxpub_mama_ma
 import logging
 logger = logging.getLogger(__name__)
 
-    
+
+
+def get_userinfo_from_database(openid, app_key):
+    """
+    Try to find userinfo from local database.
+    """
+    userinfo = None
+    record = WeixinUnionID.objects.filter(openid=openid, app_key=app_key).first()
+    if record:
+        userinfo = WeixinUserInfo.objects.filter(unionid=record.unionid).first()
+        if wx_userinfo:
+            unionid = wx_userinfo.unionid
+            headimgurl = wx_userinfo.thumbnail
+            nickname = wx_userinfo.nick
+            userinfo = {'unionid':unionid, 'headimgurl':headimgurl, 'nickname':nickname}
+    return userinfo
+
+
+def get_or_fetch_userinfo(openid, wx_pubid):
+    wx_api = WeiXinAPI()
+    wx_api.setAccountId(wxpubId=wx_pubid)
+    app_key = wx_api.getAccount().app_id
+
+    userinfo = get_userinfo_from_database(openid, app_key)
+    if not userinfo:
+        userinfo = wx_api.getCustomerInfo(openid)
+
+    return userinfo
+
+
 @task
 def task_create_scan_customer(wx_userinfo):
     unionid = wx_userinfo['unionid']
@@ -38,29 +68,25 @@ def task_create_scan_xiaolumama(wx_userinfo):
 
 @task
 def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
+    """
+    Initially, this task should be invoked for every weixin user.
+    In the future, this task should only be invoked upon user subscribe.
+    """
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wx_pubid)
     app_key = wx_api.getAccount().app_id
 
-    wx_userinfo = None
-    fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
-    if fan:
-        wx_userinfo = WeixinUserInfo.objects.filter(unionid=fan.unionid).first()
-        if wx_userinfo:
-            unionid = wx_userinfo.unionid
-            headimgurl = wx_userinfo.thumbnail
-            nickname = wx_userinfo.nick
-            wx_userinfo = {'unionid':unionid, 'headimgurl':headimgurl, 'nickname':nickname}
-        
-    if not wx_userinfo:
-        wx_userinfo = wx_api.getCustomerInfo(openid)
-        if wx_userinfo.get('subscribe') == 0:
+    userinfo = get_userinfo_from_database(openid, app_key)
+    if not userinfo:
+        userinfo = wx_api.getCustomerInfo(openid)
+        if not userinfo or userinfo.get('subscribe') == 0:
             return
+
         from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
-        task_snsauth_update_weixin_userinfo.delay(wx_userinfo, app_key)
+        task_snsauth_update_weixin_userinfo.delay(userinfo, app_key)
     
-    task_create_scan_customer.delay(wx_userinfo)
-    task_create_scan_xiaolumama.delay(wx_userinfo)
+    task_create_scan_customer.delay(userinfo)
+    task_create_scan_xiaolumama.delay(userinfo)
     
     
 @task    
@@ -92,31 +118,37 @@ def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, pot
 
 
 @task
-def task_create_or_update_weixinfans(wx_pubid, openid, qr_scene, wx_userinfo):
+def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, event, eventkey):
     """
     For subscribe.
     """
-    wx_api = WeiXinAPI()
-    wx_api.setAccountId(wxpubId=wx_pubid)
-    app_key = wx_api.getAccount().app_id
+
+    qrscene = eventkey.lower().replace('qrscene_', '')
     subscribe_time = datetime.datetime.now()
     
+    userinfo = get_or_fetch_userinfo(openid, wx_pubid)
+
     fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
     if fan:
-        fan.subscribe_time = subscribe_time
-        fan.subscribe = True
-        if not fan.get_qrscene() and qr_scene:
-            fan.set_qrscene(qr_scene)
+        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
+            fan.subscribe_time = subscribe_time
+            fan.subscribe = True
+        elif event == WeiXinAutoResponse.WX_EVENT_SCAN.lower():
+            if not fan.subscribe:
+                fan.subscribe = True
+        if not fan.get_qrscene() and qrscene:
+            fan.set_qrscene(qrscene)
         fan.save()
         return
 
+    unionid = userinfo['unionid']
     fan = WeixinFans(openid=openid,app_key=app_key,unionid=unionid,subscribe=True,subscribe_time=subscribe_time)
-    fan.set_qrscene(qr_scene)
+    fan.set_qrscene(qrscene)
     fan.save()
 
 
 @task
-def task_unsubscribe_update_weixinfans(openid):
+def task_update_weixinfans_upon_unsubscribe(openid, wx_pubid):
     """
     For unsubscribe.
     """
@@ -129,12 +161,16 @@ def task_unsubscribe_update_weixinfans(openid):
     
 
 @task
-def task_activate_xiaolumama(wx_pubid, openid):
-    fan = WeixinFans.objects.filter(app_key=wx_pubid, openid=openid).first()
-    if not fan:
+def task_activate_xiaolumama(openid, wx_pubid):
+    wx_api = WeiXinAPI()
+    wx_api.setAccountId(wxpubId=wx_pubid)
+    app_key = wx_api.getAccount().app_id
+
+    record = WeixinUnionID.objects.filter(openid=openid, app_key=app_key).first()
+    if not record:
         return
 
-    unionid = fan.unionid
+    unionid = record.unionid
     mama = XiaoluMama.objects.filter(openid=unionid,charge_status=XiaoluMama.UNCHARGE,status=XiaoluMama.EFFECT,last_renew_type=XiaoluMama.SCAN).first()
     if not mama:
         return
@@ -150,6 +186,10 @@ def task_activate_xiaolumama(wx_pubid, openid):
 
     if not referal_from_mama_id or referal_from_mama_id < 1:
         return
+
+    # 内部测试 
+    if XiaoluSwitch.is_switch_open(2) and referal_from_mama_id > 100:
+        return 
 
     potential_mama_id = mama.id
     potential_mama_unionid = unionid
@@ -292,10 +332,14 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
 def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
     try:
-        xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
+        #xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
+        
+        userinfo = get_or_fetch_userinfo(openid, wxpubId)
+        unionid = userinfo['unionid']
+        mama = XiaoluMama.objects.filter(openid=unionid).first()
 
         # 获取创建用户小鹿妈妈信息,
-        media_id = fetch_wxpub_mama_custom_qrcode_media_id(xiaolumm, wxpubId)
+        media_id = fetch_wxpub_mama_custom_qrcode_media_id(mama.id, userinfo, wxpubId)
 
         wx_api = WeiXinAPI()
         wx_api.setAccountId(wxpubId=wxpubId)
@@ -315,10 +359,14 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
 def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
     try:
-        xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
+        #xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
+
+        userinfo = get_or_fetch_userinfo(openid, wxpubId)
+        unionid = userinfo['unionid']
+        mama = XiaoluMama.objects.filter(openid=unionid).first()
 
         # 获取创建用户小鹿妈妈信息,
-        media_id = fetch_wxpub_mama_manager_qrcode_media_id(xiaolumm, wxpubId)
+        media_id = fetch_wxpub_mama_manager_qrcode_media_id(mama.id, wxpubId)
 
         wx_api = WeiXinAPI()
         wx_api.setAccountId(wxpubId=wxpubId)
