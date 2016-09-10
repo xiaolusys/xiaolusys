@@ -75,12 +75,16 @@ class WeixinFans(models.Model):
 
 
 def weixinfans_update_xlmmfans(sender, instance, created, **kwargs):
-    referal_from_mama_id = instance.extras.get('qrscene')
-    if referal_from_mama_id and referal_from_mama_id.isdigit():
-        referal_from_mama_id = int(referal_from_mama_id)
+    referal_from_mama_id = None
+    qrscene = instance.get_qrscene()
+    if qrscene and qrscene.isdigit():
+        referal_from_mama_id = int(qrscene)
     else:
         return
-    
+
+    if referal_from_mama_id < 1:
+        return
+
     referal_to_unionid = instance.unionid
 
     from shopapp.weixin.tasks import task_weixinfans_update_xlmmfans
@@ -90,15 +94,19 @@ post_save.connect(weixinfans_update_xlmmfans,
                   sender=WeixinFans, dispatch_uid='post_save_weixinfans_update_xlmmfans')
 
 def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
-    referal_from_mama_id = instance.extras.get('qrscene')
-    if referal_from_mama_id and referal_from_mama_id.isdigit():
-        referal_from_mama_id = int(referal_from_mama_id)
-    referal_to_unionid = instance.unionid
-
-    if not referal_from_mama_id or referal_from_mama_id < 1:
+    referal_from_mama_id = None
+    qrscene = instance.get_qrscene()
+    if qrscene and qrscene.isdigit():
+        referal_from_mama_id = int(qrscene)
+    else:
         return
 
-    if XiaoluSwitch.is_switch_open(2) and referal_from_mama_id > 100:
+    if referal_from_mama_id < 1:
+        return
+
+    referal_to_unionid = instance.unionid
+
+    if XiaoluSwitch.is_switch_open(2):
         return 
     
     from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
