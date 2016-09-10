@@ -128,8 +128,14 @@ def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, ev
 
     qrscene = eventkey.lower().replace('qrscene_', '')
     subscribe_time = datetime.datetime.now()
-    
-    userinfo = get_or_fetch_userinfo(openid, wx_pubid)
+
+    wx_api = WeiXinAPI()
+    wx_api.setAccountId(wxpubId=wx_pubid)
+    app_key = wx_api.getAccount().app_id
+
+    userinfo = get_userinfo_from_database(openid, app_key)
+    if not userinfo:
+        userinfo = wx_api.getCustomerInfo(openid)
 
     fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
     if fan:
