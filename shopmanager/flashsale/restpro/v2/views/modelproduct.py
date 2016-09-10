@@ -197,14 +197,13 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         mama = customer.get_charged_mama()
         sort_field = request.GET.get('sort_field') or 'id'  # 排序字段
-        cid = request.GET.get('cid') or 0
+        parent_cid = request.GET.get('parent_cid') or 0
         model_ids = CuShopPros.objects.filter(customer=customer.id,
                                               pro_status=CuShopPros.UP_SHELF).values_list("model", flat=True)
         queryset = self.queryset.filter(shelf_status=ModelProduct.ON_SHELF,
                                         status=ModelProduct.NORMAL)
-        if cid:
-            queryset = queryset.filter(salecategory__cid=cid)
-        queryset = self.paginate_queryset(queryset)
+        if parent_cid:
+            queryset = queryset.filter(salecategory__parent_cid=parent_cid)
         next_mama_level_info = mama.next_agencylevel_info()
         for md in queryset:
             rebate_scheme = md.get_rebate_scheme()
@@ -217,6 +216,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             md.next_rebet_amount = next_rebet_amount
         if sort_field in ['id', 'sale_num', 'rebet_amount', 'lowest_std_sale_price', 'lowest_agent_price']:
             queryset = sorted(queryset, key=lambda k: getattr(k, sort_field), reverse=True)
+        queryset = self.paginate_queryset(queryset)
         serializer = serializers_v2.MamaChoiceProductSerializer(queryset, many=True,
                                                                 context={'request': request,
                                                                          'mama': mama,
