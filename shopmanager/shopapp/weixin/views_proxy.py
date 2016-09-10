@@ -14,6 +14,11 @@ logger = logging.getLogger('weixin.proxy')
 
 from shopback.monitor.models import XiaoluSwitch
 
+
+ACTIVATE_MAMA_LINK = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/rest/v2/mama/activate'
+
+
+
 class WXMessageHttpProxy(HttpProxy):
     def get_wx_api(self, pub_id):
         wx_api = service.WeiXinAPI()
@@ -60,23 +65,34 @@ class WXMessageHttpProxy(HttpProxy):
         wx_pubid = params.get('ToUserName')
         event    = params.get('Event') or ''
         msgtype  = params.get('MsgType') or ''
-        eventKey = params.get('EventKey') or ''
+        eventkey = params.get('EventKey') or ''
 
         if XiaoluSwitch.is_switch_open(1):
-            logger.error('WX|%s, %s, %s, %s, %s' % (openid, wx_pubid, event, msgtype, eventKey))
+            logger.error('DEBUG: WX|%s, %s, %s, %s, %s' % (openid, wx_pubid, event, msgtype, eventkey))
+
+        event = event.lower()
         
         # 获取信息和创建帐户
-        if event != WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
+        if event != WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE.lower():
             tasks.task_get_unserinfo_and_create_accounts.delay(openid, wx_pubid)
-        
-        # 处理关注／取关事件
-        if event in ('subscribe', 'unsubscribe'):
-            tasks.task_subscribe_or_unsubscribe_update_userinfo.delay(openid, wx_pubid, event, eventKey)
 
-        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE or\
-           event == WeiXinAutoResponse.WX_EVENT_SCAN or \
-           event == WeiXinAutoResponse.WX_EVENT_CLICK: 
-            ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventKey)
+        # 关注/扫描
+        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or \
+           event == WeiXinAutoResponse.WX_EVENT_SCAN.lower():
+            tasks.task_create_or_update_weixinfans_upon_subscribe_or_scan.delay(openid, wx_pubid, event, eventkey)
+
+        # 取消关注
+        if event == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE.lower():
+            tasks.task_update_weixinfans_upon_unsubscribe.delay(openid, wx_pubid)
+
+        # 点击链接，激活妈妈帐户
+        if event == WeiXinAutoResponse.WX_EVENT_VIEW.lower() and eventkey.strip() == ACTIVATE_MAMA_LINK:
+            tasks.task_activate_xiaolumama.delay(openid, wx_pubid)
+        
+        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or\
+           event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
+           event == WeiXinAutoResponse.WX_EVENT_CLICK.lower(): 
+            ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventkey)
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
         

@@ -140,7 +140,9 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                 ret_params.update(faq.respNews())
                 return ret_params
 
-        if eventKey == 'MAMA_REFERAL_QRCODE' or event == 'SCAN' or event == 'subscribe':
+        if eventKey == 'MAMA_REFERAL_QRCODE' or \
+           event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
+           event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,

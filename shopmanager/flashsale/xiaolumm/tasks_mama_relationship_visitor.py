@@ -87,7 +87,7 @@ def task_update_referal_relationship(sale_order):
             # only when we upgrade referal_type, we update oid.
             if record.order_id != sale_order.oid:
                 record.order_id = sale_order.oid
-                update_fields.append('oid')
+                update_fields.append('order_id')
             if record.referal_from_mama_id != mm_linkid:
                 record.referal_from_mama_id = mm_linkid
                 update_fields.append('referal_from_mama_id')

@@ -326,7 +326,7 @@ from core.weixin.options import valid_openid
 
 
 @task
-def task_snsauth_update_weixin_userinfo(userinfo, appid):
+def task_snsauth_update_weixin_userinfo(userinfo, app_key):
     """
     Every time we have snsauth userfinfo, we update WeixinUserInfo.
     -- Zifei 2016-04-12
@@ -341,31 +341,27 @@ def task_snsauth_update_weixin_userinfo(userinfo, appid):
         return
 
     from shopapp.weixin.models_base import WeixinUserInfo
-    records = WeixinUserInfo.objects.filter(unionid=unionid)
-    if records.count() <= 0:
+    info = WeixinUserInfo.objects.filter(unionid=unionid).first()
+    
+    if not info:
         info = WeixinUserInfo(unionid=unionid, nick=nick, thumbnail=thumbnail)
         info.save()
-    try:
-        WeixinUnionID.objects.get(unionid=unionid)
-    except WeixinUnionID.DoesNotExist:
-        if valid_openid(openid) and valid_openid(unionid):
-            WeixinUnionID.objects.create(openid=openid, app_key=appid, unionid=unionid)
-    except WeixinUnionID.MultipleObjectsReturned, exc:
-        pass
-    except Exception, exc:
-        logger.info(str(exc), exc_info=True)
     else:
-        info = records[0]
-        update = False
+        update_fields = []
         if nick and nick != info.nick:
             info.nick = nick
-            update = True
+            update_fields.append('nick')
         if thumbnail and thumbnail != info.thumbnail:
             info.thumbnail = thumbnail
-            update = True
-        if update:
-            # We must use save() so that it will trigger updating customer.
-            info.save()
+            update_fields.append('thumbnail')
+        if update_fields:
+            # info save might trigger updating customer.
+            info.save(update_fields=update_fields)
+    
+    record = WeixinUnionID.objects.filter(unionid=unionid, app_key=app_key).first()
+    if not record:
+        record = WeixinUnionID(openid=openid, app_key=app_key, unionid=unionid)
+        record.save()
 
 
 @task(max_retries=3, default_retry_delay=60)
