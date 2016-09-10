@@ -256,7 +256,7 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
             return
 
         parent_mama_id = parent_mama_ids[0]
-        week_start, week_end = week_range(xiaolumama.charge_time.date())
+        week_start, week_end = week_range(xiaolumama.charge_time)
         year_week = xiaolumama.charge_time.strftime('%Y-%W')
 
         base_missions = MamaMissionRecord.objects.filter(year_week=year_week, mama_id=parent_mama_id)
@@ -285,7 +285,7 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
             ).order_by('-status').first()
             if mission_record:
                 mission_record.update_mission_value(total_mama_count)
-
+        print 'total_mama_count:',xiaolumama, mission_record, total_mama_count
         from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
         task_create_or_update_mama_mission_state.delay(parent_mama_id)
 
@@ -301,7 +301,7 @@ def _update_mama_salepayment_mission_record(sale_trade):
     from flashsale.pay.models import SaleOrder
 
     order_ids = SaleOrder.objects.filter(sale_trade=sale_trade).values_list('oid', flat=True)
-    week_start, week_end = week_range(sale_trade.pay_time.date())
+    week_start, week_end = week_range(sale_trade.pay_time)
     year_week = sale_trade.pay_time.strftime('%Y-%W')
     # 下属订单不计算到上级妈妈的订单销售
     order_carrys = OrderCarry.objects.filter(order_id__in=order_ids).exclude(carry_type=OrderCarry.REFERAL_ORDER)
