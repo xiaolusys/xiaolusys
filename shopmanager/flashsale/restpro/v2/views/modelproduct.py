@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
-from flashsale.pay.models import ModelProduct
+from flashsale.pay.models import ModelProduct, Customer, CuShopPros
 
 from flashsale.restpro.v2 import serializers as serializers_v2
 
@@ -192,3 +192,33 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+    @list_route(methods=['get'])
+    def product_choice(self, request, *args, **kwargs):
+        customer = get_object_or_404(Customer, user=request.user)
+        mama = customer.get_charged_mama()
+        sort_field = request.GET.get('sort_field') or 'id'  # 排序字段
+        cid = request.GET.get('cid') or 0
+        model_ids = CuShopPros.objects.filter(customer=customer.id,
+                                              pro_status=CuShopPros.UP_SHELF).values_list("model", flat=True)
+        queryset = self.queryset.filter(shelf_status=ModelProduct.ON_SHELF,
+                                        status=ModelProduct.NORMAL)
+        if cid:
+            queryset = queryset.filter(salecategory__cid=cid)
+        queryset = self.paginate_queryset(queryset)
+        next_mama_level_info = mama.next_agencylevel_info()
+        for md in queryset:
+            rebate_scheme = md.get_rebate_scheme()
+            rebet_amount = rebate_scheme.calculate_carry(mama.agencylevel, md.lowest_agent_price)
+            sale_num = sum([i['remain_num'] for i in md.products.values('remain_num')]) * 19 + random.choice(xrange(19))
+
+            next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], md.lowest_agent_price) or 0.0
+            md.sale_num = sale_num
+            md.rebet_amount = rebet_amount
+            md.next_rebet_amount = next_rebet_amount
+        if sort_field in ['id', 'sale_num', 'rebet_amount', 'lowest_std_sale_price', 'lowest_agent_price']:
+            queryset = sorted(queryset, key=lambda k: getattr(k, sort_field), reverse=True)
+        serializer = serializers_v2.MamaChoiceProductSerializer(queryset, many=True,
+                                                                context={'request': request,
+                                                                         'mama': mama,
+                                                                         "shop_product_num": len(model_ids)})
+        return self.get_paginated_response(serializer.data)
