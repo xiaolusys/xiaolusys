@@ -618,6 +618,19 @@ class ModelProduct(BaseTagModel):
             self.is_flatten = is_flatten
             self.save(update_fields=['is_flatten'])
 
+    def sale_num(self):
+        return None
+
+    def rebet_amount(self):
+        return None
+
+    def next_rebet_amount(self):
+        return None
+
+    def get_rebate_scheme(self):
+        from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
+        return AgencyOrderRebetaScheme.get_rebeta_scheme(self.rebeta_scheme_id)
+
 
 def update_product_details_info(sender, instance, created, **kwargs):
     """
