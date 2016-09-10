@@ -118,27 +118,27 @@ deploy:
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
-        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 250
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 500 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,default,peroid
       - docker rm -f celery2
       - docker run --name=celery2 --restart=always -d
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
-        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 250
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 500 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,default,peroid
       - docker rm -f celery3
       - docker run --name=celery3 --restart=always -d
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
-        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,default,peroid
       - docker rm -f celery4
       - docker run --name=celery4 --restart=always -d
         -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
-        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 200
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,default,peroid
 

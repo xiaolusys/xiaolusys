@@ -61,7 +61,7 @@ CELERYD_MAX_TASKS_PER_CHILD = 1000
 
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
 BROKER_TRANSPORT_OPTIONS = {
-    'visibility_timeout': 90,
+    'visibility_timeout': 3600,
     'max_connections': 8,
 }
 
@@ -89,7 +89,7 @@ CELERY_REDIS_MAX_CONNECTIONS = 8
 CELERYD_HIJACK_ROOT_LOGGER = False
 CELERYD_PREFETCH_MULTIPLIER = 4
 if os.environ.get('INSTANCE') == 'celery-gevent':
-    CELERYD_PREFETCH_MULTIPLIER = 32
+    CELERYD_PREFETCH_MULTIPLIER = 0
 
 CELERY_TIMEZONE = 'Asia/Shanghai'
 
