@@ -278,10 +278,9 @@ class OrderListAdmin(admin.ModelAdmin):
                 break
             if p.supplier.ware_by == WARE_THIRD and p.stage < OrderList.STAGE_CHECKED:
                 from flashsale.finance.models import Bill
-                p.third_package = True
-                p.bill_method = OrderList.PC_COD_TYPE
-                p.is_postpay = True
-                p.save()
+                sku_ids = [pd.sku_id for pd in pds]
+                PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
+                                              purchase_order_unikey='').update(purchase_order_unikey=p.purchase_order_unikey)
                 p.begin_third_package()
                 Bill.create([p], Bill.PAY, Bill.STATUS_PENDING, Bill.TRANSFER_PAY, 0, 0, p.supplier,
                             user_id=request.user.id, receive_account='', receive_name='',
