@@ -338,11 +338,15 @@ class OrderList(models.Model):
         return self._related_inferior_inbound_details_
 
     def begin_third_package(self):
+        self.third_package = True
+        self.bill_method = OrderList.PC_COD_TYPE
+        self.is_postpay = True
         for od in self.order_list.all():
             od.arrival_quantity = od.buy_quantity
             od.arrival_time = datetime.datetime.now()
             od.save()
         self.set_stage_state()
+
 
     def get_related_inbounds_out_stock_cnt(self):
         return sum([d.out_stock_num for d in self.related_out_stock_inbound_details])
