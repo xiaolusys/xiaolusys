@@ -25,10 +25,10 @@ def get_userinfo_from_database(openid, app_key):
     record = WeixinUnionID.objects.filter(openid=openid, app_key=app_key).first()
     if record:
         userinfo = WeixinUserInfo.objects.filter(unionid=record.unionid).first()
-        if wx_userinfo:
-            unionid = wx_userinfo.unionid
-            headimgurl = wx_userinfo.thumbnail
-            nickname = wx_userinfo.nick
+        if userinfo:
+            unionid = userinfo.unionid
+            headimgurl = userinfo.thumbnail
+            nickname = userinfo.nick
             userinfo = {'unionid':unionid, 'headimgurl':headimgurl, 'nickname':nickname}
     return userinfo
 
