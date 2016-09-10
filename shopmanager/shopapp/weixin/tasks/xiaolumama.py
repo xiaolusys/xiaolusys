@@ -99,22 +99,12 @@ def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, pot
     if pm:
         return
 
-    wx_userinfo = None
     info = WeixinUserInfo.objects.filter(unionid=potential_mama_unionid).first()
     if not info:
-        wx_api = WeiXinAPI()
-        wx_api.setAccountId(wxpubId=wx_pubid)
-        wx_userinfo = wx_api.getCustomerInfo(openid)
-
-        from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
-        app_key = wx_api.getAccount().app_id
-        task_snsauth_update_weixin_userinfo.delay(wx_userinfo, app_key)
-    else:
-        wx_userinfo = {'headimgurl': info.thumbnail, 'nickname': info.nick}
-
+        return
         
-    thumbnail = wx_userinfo['headimgurl']
-    nick = wx_userinfo['nickname']
+    thumbnail = info.thumbnail
+    nick = info.nick
     pm = PotentialMama(potential_mama=potential_mama_id, referal_mama=referal_from_mama_id, uni_key=uni_key,
                        nick=nick, thumbnail=thumbnail, last_renew_type=XiaoluMama.SCAN)
     pm.save()
@@ -197,8 +187,10 @@ def task_activate_xiaolumama(openid, wx_pubid):
     qrscene = fan.get_qrscene()
     if qrscene and qrscene.isdigit():
         referal_from_mama_id = int(qrscene)
-
-    if not referal_from_mama_id or referal_from_mama_id < 1:
+    else:
+        return
+    
+    if referal_from_mama_id < 1:
         return
 
     potential_mama_id = mama.id
@@ -236,13 +228,18 @@ def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
     fan.save()
 
 
-@task
+@task(max_retries=3, default_retry_delay=5)
 def task_weixinfans_create_budgetlog(customer_unionid, reference_unionid, budget_log_type):
     customer = Customer.objects.filter(unionid=customer_unionid).first()
     reference = Customer.objects.filter(unionid=reference_unionid).first()
-    log = BudgetLog.objects.filter(customer_id=customer.id, referal_id=reference.id, budget_log_type=budget_log_type).first()
-    if log:
-        return
+    try:
+        # We get here too fast that Customer objects have not been created yet, and when we try to get customer.id, error comes.
+        log = BudgetLog.objects.filter(customer_id=customer.id, referal_id=reference.id, budget_log_type=budget_log_type).first()
+        if log:
+            return
+    except Exception,exc:
+        #logger.error(str(exc), exc_info=True)
+        raise task_weixinfans_create_budgetlog.retry(exc=exc)
 
     flow_amount = 0
     if budget_log_type == BudgetLog.BG_REFERAL_FANS:
