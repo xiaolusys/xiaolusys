@@ -187,7 +187,8 @@ def task_activate_xiaolumama(openid, wx_pubid):
     # 内部测试 
     if XiaoluSwitch.is_switch_open(2):
         return 
-    
+
+    mama_id = mama.id
     renew_date = datetime.date.today() + datetime.timedelta(days=3)
     renew_time = datetime.datetime(renew_date.year, renew_date.month, renew_date.day)
     XiaoluMama.objects.filter(id=mama_id).update(charge_status=XiaoluMama.CHARGED, renew_time=renew_time)
