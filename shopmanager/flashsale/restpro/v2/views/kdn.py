@@ -11,23 +11,17 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
 from django.http import HttpResponse
-
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.views import APIView
-
 from rest_framework.response import Response
 import logging
 import  json
 import datetime
-
 logger = logging.getLogger(__name__)
-
 class KdnViewSet(APIView):
-
     def get(self, request, *args, **kwargs):
         return Response(True)
-
     def post(self, request, *args, **kwargs):
         EBusinessID = request.POST.get("EBusinessID", 1)
         PushTime = request.POST.get("PushTime", 1)
