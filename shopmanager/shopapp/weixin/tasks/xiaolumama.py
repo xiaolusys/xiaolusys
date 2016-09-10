@@ -91,6 +91,9 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
     
 @task    
 def task_create_scan_potential_mama(referal_from_mama_id, potential_mama_id, potential_mama_unionid):
+    if referal_from_mama_id == potential_mama_id:
+        return
+    
     uni_key = PotentialMama.gen_uni_key(potential_mama_id, referal_from_mama_id)
     pm = PotentialMama.objects.filter(uni_key=uni_key).first()
     if pm:
@@ -218,6 +221,9 @@ def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
         return
     
     xlmm_cusid = from_customer.id
+    if xlmm_cusid == fans_cusid:
+        return
+    
     fan = XlmmFans(xlmm=referal_from_mama_id, xlmm_cusid=xlmm_cusid, refreal_cusid=xlmm_cusid, fans_cusid=fans_cusid,
                    fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
     fan.save()
