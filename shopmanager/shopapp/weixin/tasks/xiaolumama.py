@@ -166,14 +166,18 @@ def task_activate_xiaolumama(openid, wx_pubid):
     wx_api.setAccountId(wxpubId=wx_pubid)
     app_key = wx_api.getAccount().app_id
 
-    record = WeixinUnionID.objects.filter(openid=openid, app_key=app_key).first()
-    if not record:
+    fan = WeixinFans.objects.filter(openid=openid, app_key=app_key).first()
+    if not fan:
         return
 
-    unionid = record.unionid
+    unionid = fan.unionid
     mama = XiaoluMama.objects.filter(openid=unionid,charge_status=XiaoluMama.UNCHARGE,status=XiaoluMama.EFFECT,last_renew_type=XiaoluMama.SCAN).first()
     if not mama:
         return
+
+    # 内部测试 
+    if XiaoluSwitch.is_switch_open(2):
+        return 
     
     renew_date = datetime.date.today() + datetime.timedelta(days=3)
     renew_time = datetime.datetime(renew_date.year, renew_date.month, renew_date.day)
@@ -186,10 +190,6 @@ def task_activate_xiaolumama(openid, wx_pubid):
 
     if not referal_from_mama_id or referal_from_mama_id < 1:
         return
-
-    # 内部测试 
-    if XiaoluSwitch.is_switch_open(2) and referal_from_mama_id > 100:
-        return 
 
     potential_mama_id = mama.id
     potential_mama_unionid = unionid
