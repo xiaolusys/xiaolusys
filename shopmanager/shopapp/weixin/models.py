@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
 
+from core import managers
 from core.models import CacheModel
 from core.fields import JSONCharMyField
 from .managers import VipCodeManager, WeixinUserManager
@@ -70,6 +71,9 @@ class WeiXinAccount(models.Model):
                                          verbose_name=u"订单更新时间")
     refund_updated = models.DateTimeField(blank=True, null=True,
                                           verbose_name=u"维权更新时间")
+
+    cache_enabled = True
+    objects = managers.CacheManager()
 
     class Meta:
         db_table = 'shop_weixin_account'
@@ -300,7 +304,7 @@ class WXUserCharge(models.Model):
         return '<{0},{1},{2}>'.format(self.wxuser_id, self.employee, self.get_status_display())
 
 
-class ResponseManager(models.Manager):
+class ResponseManager(managers.CacheManager):
     def get_queryset(self):
         return (super(ResponseManager, self).get_queryset().extra(
             select={'length': 'Length(message)'}).order_by('-length'))
@@ -370,6 +374,7 @@ class WeiXinAutoResponse(models.Model):
 
     fuzzy_match = models.BooleanField(default=True, verbose_name=u'模糊匹配')
 
+    cache_enabled = True
     objects = ResponseManager()
 
     class Meta:

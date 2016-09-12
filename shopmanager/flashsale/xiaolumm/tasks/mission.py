@@ -89,6 +89,8 @@ def create_or_update_once_mission(xiaolumama, mission):
             .exclude(status=AwardCarry.CANCEL).only('id').first()
         if first_orderaward:
             return
+        if xiaolumama.charge_time < datetime.datetime(2016,7,23):
+            return
 
     if mission.cat_type == mission.CAT_OPEN_COURSE:
         first_orderaward = AwardCarry.objects.filter(
@@ -191,11 +193,13 @@ def task_create_or_update_mama_mission_state(mama_id):
 
 @task
 def task_update_all_mama_mission_state():
+    xiaolumms = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
+                                          charge_status=XiaoluMama.CHARGED,
+                                          id__lte=140)
+    xiaolumama_ids = xiaolumms.values_list('id', flat=True)
+    for mama_id in xiaolumama_ids:
+       task_create_or_update_mama_mission_state.delay(mama_id)
 
-   xiaolumms = XiaoluMama.objects.filter(status=XiaoluMama.EFFECT,
-                                         charge_status=XiaoluMama.CHARGED)
-   for xiaolumm in xiaolumms:
-       task_create_or_update_mama_mission_state.delay(xiaolumm.id)
 
 
 @task
