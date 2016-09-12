@@ -48,7 +48,7 @@ class CSHXSMSManager(SMSManager):
     _status_url = 'http://121.52.220.246:8888/statusApi.aspx'
 
     def batch_send(self, *args, **kwargs):
-        """ 批量发送短信接口实现 
+        """ 批量发送短信接口实现
             res_content      = '<?xml version="1.0" encoding="utf-8" ?>
                     <returnsms>
                         <returnstatus>Success</returnstatus>
@@ -127,7 +127,7 @@ class IPYYSMSManager(SMSManager):
     _status_url = 'http://sh2.ipyy.com/statusApi.aspx'
 
     def batch_send(self, *args, **kwargs):
-        """ 批量发送短信接口实现 
+        """ 批量发送短信接口实现
             res_content      = '<?xml version="1.0" encoding="utf-8" ?>
                     <returnsms>
                         <returnstatus>Success</returnstatus>
@@ -205,7 +205,7 @@ class DXTSMSManager(SMSManager):
     _status_url = 'http://www.591duanxin.com/statusApi.aspx'
 
     def batch_send(self, *args, **kwargs):
-        """ 批量发送短信接口实现 
+        """ 批量发送短信接口实现
             res_content      = '<?xml version="1.0" encoding="utf-8" ?>
                     <returnsms>
                         <returnstatus>Success</returnstatus>
@@ -276,8 +276,62 @@ class DXTSMSManager(SMSManager):
         return msg
 
 
+class SYKJSMSManager(SMSManager):
+    """
+    示远科技短信发送接口实现
+    """
+    _platform = '18sms'
+    _sms_url = 'http://send.18sms.com/msg/HttpBatchSendSM'
+
+    def batch_send(self, *args, **kwargs):
+        """
+        批量发送短信接口实现
+        - account
+        - pswd
+        - mobile
+        - msg
+        - needstatus:true
+        - extno:3106
+        """
+
+        mobile = kwargs.get('mobile', '')
+
+        params = {
+            'account': kwargs.get('account', ''),
+            'pswd': kwargs.get('password', ''),
+            'mobile': mobile,
+            'msg': kwargs.get('content', ''),
+            'needstatus': 'true',
+            'extno': '3106'
+        }
+
+        response = ''
+        success = False
+        task_id = None
+        succnums = 0
+        content = ''
+        try:
+            data = urllib.urlencode(params)
+            response = urllib2.urlopen(self._sms_url, data, 60)
+            content = response.read()
+
+            line1, task_id = content.split()
+            timestamp, status_code = line1.split(',')
+            if status_code == '0':
+                success = True
+            else:
+                success = False
+        except Exception, exc:
+            logger.error(exc.message or 'empty error', exc_info=True)
+        else:
+            succnums = 1
+
+        return success, task_id, succnums, content
+
+
 SMS_CODE_MANAGER_TUPLE = (
     ('cshx', CSHXSMSManager),
     ('dxt', DXTSMSManager),
-    ('ipyy', IPYYSMSManager)
+    ('ipyy', IPYYSMSManager),
+    ('18sms', SYKJSMSManager),
 )

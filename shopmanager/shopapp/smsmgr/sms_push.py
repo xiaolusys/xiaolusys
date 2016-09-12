@@ -9,10 +9,10 @@ from shopapp.smsmgr.models import (
     SMS_NOTIFY_MAMA_ORDERCARRY,
     SMS_NOTIFY_APP_UPDATE,
     SMS_NOTIFY_MAMA_SUBSCRIBE_WEIXIN,
+    SMS_NOTIFY_GOODS_LACK
 )
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopapp.smsmgr.tasks import call_send_a_sms
-from shopapp.weixin.utils import get_mama_customer
 
 logger = logging.getLogger('service')
 
@@ -22,6 +22,7 @@ class SMSPush(object):
     def __init__(self):
         if not settings.PUSH_SWITCH:
             return
+
         self.platform = SMSPlatform.objects.filter(is_default=True) \
                                            .order_by('-id').first()
         self.manager = dict(SMS_CODE_MANAGER_TUPLE).get(self.platform.code, None)()
