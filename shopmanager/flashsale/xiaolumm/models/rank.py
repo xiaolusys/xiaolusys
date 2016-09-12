@@ -1,7 +1,7 @@
 # coding=utf-8
 import datetime
 from copy import copy
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Sum, F, Count, Q
 from django.db.models.signals import post_save
 from core.fields import JSONCharMyField
@@ -92,7 +92,10 @@ class WeekRank(object):
             return this_week.total_rank - last_week.total_rank_delay
 
     @classmethod
+    @transaction.atomic
     def check_update_cache(cls, target='total'):
+        if WEEK_RANK_REDIS.is_locked(cls.__name__ + '-' + target):
+            return
         this_week_time = WeekRank.this_week_time()
         cache_count = WEEK_RANK_REDIS.get_rank_count(cls, target)
         condition = copy(cls.filters[target])
@@ -113,6 +116,7 @@ class WeekRank(object):
             WEEK_RANK_REDIS.batch_update_cache(res, cls, target)
             if cache_count < real_count:
                 logger.error('some ' + cls.__name__ + '|' + target + '|' + ' cache has missed but now repaird:' + ','.join(res.keys()))
+        WEEK_RANK_REDIS.lock(cls.__name__ + '-' + target)
 
     @classmethod
     def get_duration_ranking_list(cls, week_begin_time=None):
@@ -138,6 +142,12 @@ class WeekRank(object):
     def get_by_mama_id(cls, mama_id, week_begin_time):
         week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
         return cls.objects.filter(mama_id=mama_id, stat_time=week_begin_time).first()
+
+    def is_locked(self, lock_key):
+        return bool(RankRedis.redis_cache.get(lock_key))
+
+    def lock(self, lock_key):
+        return RankRedis.redis_cache.set(lock_key, 1, 5)
 
 
 def get_week_rank_redis():

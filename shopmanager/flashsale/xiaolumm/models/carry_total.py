@@ -64,6 +64,12 @@ class RankRedis(object):
         rank = RankRedis.redis_cache.zrevrank(self.get_cache_key(model_class, target), mama_id) or 0
         return rank + 1
 
+    def is_locked(self, lock_key):
+        return bool(RankRedis.redis_cache.get(lock_key))
+
+    def lock(self, lock_key):
+        return RankRedis.redis_cache.set(lock_key, 1, 5)
+
 
 def get_stat_rank_redis():
     return RankRedis(STAT_TIME)
@@ -99,6 +105,9 @@ class BaseMamaCarryTotal(BaseModel):
 
 
 class MamaCarryTotal(BaseMamaCarryTotal):
+    """
+        准备删除
+    """
     mama = models.OneToOneField(XiaoluMama, primary_key=True)
     stat_time = models.DateTimeField(default=STAT_TIME, db_index=True, verbose_name=u'统计起始时间')
     history_total = models.IntegerField(default=0, verbose_name=u'历史收益总额', help_text=u'单位为分')
@@ -445,6 +454,9 @@ class BaseMamaTeamCarryTotal(BaseMamaCarryTotal):
 
 
 class MamaTeamCarryTotal(BaseMamaTeamCarryTotal):
+    """
+        准备删除
+    """
     mama = models.OneToOneField(XiaoluMama, primary_key=True)
     members = models.ManyToManyField(MamaCarryTotal, related_name='teams')
     total = models.IntegerField(default=0, verbose_name=u'团队收益总额', help_text=u'单位为分')
@@ -858,6 +870,8 @@ class ActivityRankTotal(object):
 
     @classmethod
     def check_update_cache(cls, target='duration_total'):
+        if STAT_RANK_REDIS.is_locked(cls.__name__ + '-' + target):
+            return
         cache_count = STAT_RANK_REDIS.get_rank_count(cls, target)
         condition = copy(cls.filters[target])
         condition['activity_id'] = RankActivity.now_activity().id
@@ -872,6 +886,7 @@ class ActivityRankTotal(object):
             res = {str(i.mama_id): getattr_change(i, target) for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids)}
             STAT_RANK_REDIS.batch_update_cache(res, cls, target)
             logger.error('some ' + cls.__name__ + ' cache has missed but now repaird:' + ','.join(res.keys()))
+        STAT_RANK_REDIS.lock(cls.__name__ + '-' + target)
 
     @classmethod
     def get_duration_ranking_list(cls, begin_time=None):
