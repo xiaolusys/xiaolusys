@@ -46,7 +46,7 @@ class XlmmMessageViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin
         res.data['unread_cnt'] = unread_cnt
         return res
 
-    @list_route(method=['get'])
+    @list_route(methods=['get'])
     def read_list(self, request):
         try:
             mama = request.user.customer.get_xiaolumm()
