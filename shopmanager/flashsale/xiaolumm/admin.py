@@ -23,7 +23,8 @@ from flashsale.xiaolumm.models import (
     MamaDailyTabVisit,
     MamaMission,
     MamaMissionRecord,
-    RankActivity
+    RankActivity,
+    MamaAdministrator
 )
 from flashsale.xiaolumm.models.message import XlmmMessage, XlmmMessageRel
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
@@ -828,7 +829,43 @@ class MamaMissionRecordAdmin(ApproxAdmin):
 
 admin.site.register(MamaMissionRecord, MamaMissionRecordAdmin)
 
+
 class RankActivityAdmin(admin.ModelAdmin):
     list_display = ('start_time', 'end_time', 'status', 'note', 'creator', 'created')
 
 admin.site.register(RankActivity, RankActivityAdmin)
+
+
+class MamaAdministratorAdmin(ApproxAdmin):
+    list_display = ( 'mama', 'get_mama_openid', 'get_mama_mobile', 'get_administrator_username', 'get_administrator_nick', 'created') #
+    search_fields = ('=mama__id', '=mama__mobile')
+
+    list_per_page = 10
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields + ('mama', 'administrator')
+
+
+    def get_mama_openid(self, obj):
+        return obj.mama.openid
+
+    get_mama_openid.short_description = u'妈妈unionid'
+
+    def get_mama_mobile(self, obj):
+        return obj.mama.mobile
+
+    get_mama_mobile.short_description = u'妈妈mobile'
+
+    def get_administrator_username(self, obj):
+        return obj.administrator.username
+
+    get_administrator_username.short_description = u'管理员账号'
+
+    def get_administrator_nick(self, obj):
+        return obj.administrator.nick
+
+    get_administrator_nick.short_description = u'管理员昵称'
+
+admin.site.register(MamaAdministrator, MamaAdministratorAdmin)
+
+

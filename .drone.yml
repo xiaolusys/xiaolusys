@@ -65,7 +65,7 @@ deploy:
       - docker run --name=gunicorn-staging --restart=always -e INSTANCE=mall -e TARGET=staging -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e
         BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
+        blueware-admin run-program gunicorn -k gevent -w 1 -c staging_gunicorn_conf.py shopmanager.wsgi
   ssh:
     host: staging.xiaolumm.com
     user: root
@@ -78,7 +78,7 @@ deploy:
         -e INSTANCE=mall -e TARGET=django18 -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000
         -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18
-        blueware-admin run-program gunicorn -k gevent -c staging_gunicorn_conf.py shopmanager.wsgi
+        blueware-admin run-program gunicorn -k gevent -w 1 -c staging_gunicorn_conf.py shopmanager.wsgi
   ssh:
     host:
       - sale.xiaolumm.com
