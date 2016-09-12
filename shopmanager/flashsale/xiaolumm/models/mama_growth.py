@@ -6,6 +6,7 @@ from django.db.models import Sum, Count
 from core.models import BaseModel
 from core.utils import week_range
 
+from flashsale.xiaolumm.utils import get_award_carry_num
 from flashsale.xiaolumm import constants
 
 import logging
@@ -112,7 +113,7 @@ class MamaMission(BaseModel):
         """
             若妈妈上周未完成目标，则上周目标继续,　若连续两周及以上未完成目标，则将目标下调一个等级
         """
-        from flashsale.xiaolumm.models import GroupRelationship
+        from flashsale.xiaolumm.models import GroupRelationship, ReferalRelationship, XiaoluMama
 
         def _find_target_value(target_stages, finish_value):
             for k1, k2, t in target_stages:
@@ -148,13 +149,18 @@ class MamaMission(BaseModel):
                     year_week=last_2th_week,
                     mama_id=xiaolumama.id
                 ).first()
-                # 若两周连续不达标
+                # 若两周连续不达标, 则调整妈妈目标数
                 if mama_2th_record and not mama_2th_record.is_finished():
                     target_value = _find_target_value(target_stages, last_week_finish_value)
                     return min(target_value, mama_1st_record.target_value), award_rate
                 return mama_1st_record.target_value, award_rate
 
             return _find_target_value(target_stages, last_week_finish_value), award_rate
+
+        if self.cat_type == MamaMission.CAT_REFER_MAMA:
+            last_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=xiaolumama.id,
+                                                                  status=ReferalRelationship.VALID).count()
+            return self.target_value, get_award_carry_num(last_referal_num, XiaoluMama.FULL)
 
         return self.target_value, self.award_amount
 

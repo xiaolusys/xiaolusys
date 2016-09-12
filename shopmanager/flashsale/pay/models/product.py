@@ -11,6 +11,7 @@ from tagging.fields import TagField
 from common.utils import update_model_fields
 from core.fields import JSONCharMyField
 from core.models import BaseTagModel
+from core import managers
 from core.options import get_systemoa_user, log_action, CHANGE
 from .base import PayBaseModel, BaseModel
 
@@ -69,6 +70,9 @@ class Productdetail(PayBaseModel):
     mama_rebeta = models.IntegerField(default=OUT_PERCENT, choices=REBETA_CHOICES, db_index=True, verbose_name=u'代理返利')
 
     rebeta_scheme_id = models.IntegerField(default=0, verbose_name=u'返利计划')
+
+    cache_enabled = True
+    objects = managers.CacheManager()
 
     class Meta:
         db_table = 'flashsale_productdetail'
@@ -180,6 +184,9 @@ class ModelProduct(BaseTagModel):
     extras  = JSONCharMyField(max_length=5000, default=default_modelproduct_extras_tpl, verbose_name=u'附加信息')
     status = models.CharField(max_length=16, db_index=True, choices=STATUS_CHOICES,
                               default=NORMAL, verbose_name=u'状态')
+
+    cache_enabled = True
+    objects = managers.CacheManager()
 
     class Meta:
         db_table = 'flashsale_modelproduct'

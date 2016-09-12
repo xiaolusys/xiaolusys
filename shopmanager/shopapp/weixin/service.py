@@ -134,9 +134,8 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
     try:
         eventKey = eventKey.upper()
         if eventKey == 'FAQS':
-            faq_responses = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message=eventKey)
-            if faq_responses.count() > 0:
-                faq = faq_responses[0]
+            faq = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message=eventKey).get()
+            if faq:
                 ret_params.update(faq.respNews())
                 return ret_params
 
