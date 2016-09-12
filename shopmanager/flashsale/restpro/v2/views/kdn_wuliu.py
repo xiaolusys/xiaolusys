@@ -1,0 +1,168 @@
+# -*- coding:utf-8 -*-
+import os
+import json
+import datetime
+import hashlib
+import urlparse
+import random
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
+from django.core.urlresolvers import reverse
+from django.forms import model_to_dict
+from django.http import HttpResponse
+
+from rest_framework import generics
+from rest_framework import viewsets
+from rest_framework.views import APIView
+from rest_framework.decorators import detail_route, list_route
+
+from rest_framework.response import Response
+import logging
+import  json
+import datetime
+
+logger = logging.getLogger(__name__)
+
+class KdnViewSet(APIView):
+
+    def get(self, request, *args, **kwargs):
+        return Response(True)
+
+    def post(self, request, *args, **kwargs):
+        EBusinessID = request.POST.get("EBusinessID", 1)
+        PushTime = request.POST.get("PushTime", 1)
+        Count = request.POST.get("Count", 1)
+        Data = request.POST.get("Data", 1)
+        DataSign = request.POST.get("DataSign", 1)
+        RequestData = request.POST.get("RequestData", 1)
+        RequestType = request.POST.get("RequestType", 1)
+        logger.info({
+            'action': 'push.kdn',
+            "EBusinessID":EBusinessID,
+            "PushTime":PushTime,
+            "Count": Count,
+            "Data": json.dumps(Data),
+            "DataSign": DataSign,
+            "RequestData":json.dumps(RequestData),
+            "RequestType": RequestType
+        })
+        # return Response({"EBusinessID":EBusinessID,"PushTime":PushTime,"Count":Count,
+        #                  "Data":Data,"DataSign":DataSign,"RequestData":RequestData,"RequestType":RequestType})
+        return Response({"Success":True,"EBusinessID":str(1264368),"UpdateTime":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),"Reason":""})
+
+
+class LuntanPushViewSet(viewsets.ViewSet):
+
+    @detail_route(methods=['post'])
+    def at_push(self, request, pk):
+        return Response(pk)
+
+
+
+# coding=utf-8
+import json
+import urllib, urllib2
+
+from rest_framework import permissions
+from rest_framework import authentication
+from rest_framework.response import Response
+from shopback.trades.models import TradeWuliu
+from shopback.items.models import Product
+import datetime
+from ..serializers import kdn_wuliu_serializer
+import kdn_wuliu_extra
+from flashsale.restpro.tasks import SaveWuliu_only, SaveWuliu_by_packetid, get_third_apidata, get_third_apidata_by_packetid,get_third_apidata_by_packetid_return
+from rest_framework import viewsets
+from rest_framework import renderers
+from django.shortcuts import get_object_or_404
+from flashsale.pay.models import Customer, SaleTrade
+from rest_framework.decorators import list_route
+from shopback import paramconfig as pacg
+
+
+API_key = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
+API_key_info = {"EBusinessID":"1264368","API_key":API_key,"requestType":"1002","DataType":"2"}
+class WuliuViewSet(viewsets.ModelViewSet):
+    """
+    - {prefix}/get_wuliu_by_tid : 由tid获取物流信息
+    """
+    queryset = TradeWuliu.objects.all()
+    serializer_class = kdn_wuliu_serializer.TradeWuliuSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+    # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    gap_time = 7200  # 查询间隔时间
+
+    @list_route(methods=['get'])
+    def get_wuliu_by_tid(self, request):
+        content = request.REQUEST
+        tid = content.get("tid", None)
+        if tid is None:  # 参数缺失
+            return Response({"code": 1})
+        trade = kdn_wuliu_extra.get_trade(tid)
+        message = kdn_wuliu_extra.get_status_message(trade)
+        if message is not None:
+            return Response(message)
+        else:
+            queryset = self.queryset.filter(tid=trade.tid).order_by(
+                "-time")  # 这里要按照物流信息时间倒序
+            if queryset.exists():
+                last_wuliu = queryset[0]
+                last_time = last_wuliu.created  # 数据库中最新的记录时间
+                now = datetime.datetime.now()  # 现在时间
+                gap_time = (now - last_time).seconds
+                if gap_time <= self.gap_time or (last_wuliu.status in (pacg.RP_ALREADY_SIGN_STATUS,
+                                                                       pacg.RP_REFUSE_SIGN_STATUS,
+                                                                       pacg.RP_CANNOT_SEND_STATUS,
+                                                                       pacg.RP_INVALID__STATUS,
+                                                                       pacg.RP_OVER_TIME_STATUS,
+                                                                       pacg.RP_FAILED_SIGN_STATUS)):
+                    # 属性定义的请求间隙 或者是物流信息是　已经签收了 疑难单　无效单　签收失败则不更新展示数据库中的数据
+                    res = kdn_wuliu_extra.packet_data(queryset)
+                    return Response(res)
+                else:  # 更新物流
+                    get_third_apidata.delay(trade)
+                    res = kdn_wuliu_extra.packet_data(queryset)
+                    return Response(res)
+            else:  # 更新物流
+                get_third_apidata.delay(trade)
+                res = kdn_wuliu_extra.packet_data(queryset)
+                return Response(res)
+
+    @list_route(methods=['get'])
+    def get_wuliu_by_packetid(self, request):
+        content = request.REQUEST
+        packetid = content.get("packetid", None)
+        company_code = content.get("company_code", None)
+        if packetid is None:  # 参数缺失
+            return Response([])
+
+        queryset = self.queryset.filter(out_sid=packetid).order_by(
+            "-time")  # 这里要按照物流信息时间倒序
+        if queryset.exists():
+            last_wuliu = queryset[0]
+            last_time = last_wuliu.created  # 数据库中最新的记录时间
+            now = datetime.datetime.now()  # 现在时间
+            gap_time = (now - last_time).seconds
+            if gap_time <= self.gap_time or (last_wuliu.status in (pacg.RP_ALREADY_SIGN_STATUS,
+                                                                   pacg.RP_REFUSE_SIGN_STATUS,
+                                                                   pacg.RP_CANNOT_SEND_STATUS,
+                                                                   pacg.RP_INVALID__STATUS,
+                                                                   pacg.RP_OVER_TIME_STATUS,
+                                                                   pacg.RP_FAILED_SIGN_STATUS)):
+                # 属性定义的请求间隙 或者是物流信息是　已经签收了 疑难单　无效单　签收失败则不更新展示数据库中的数据
+                res = kdn_wuliu_extra.packet_data(queryset)
+                return Response(res)
+            else:  # 更新物流
+                get_third_apidata_by_packetid.delay(packetid, company_code)
+                res = kdn_wuliu_extra.packet_data(queryset)
+                return Response(res)
+        else:  # 更新物流
+            get_third_apidata_by_packetid.delay(packetid, company_code)
+            res = kdn_wuliu_extra.packet_data(queryset)
+            return Response(res)
+
+    def create(self, request, *args, **kwargs):
+        """ 创建本地物流信息存储 """
+        return Response({"code": 0})
