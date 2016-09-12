@@ -698,7 +698,7 @@ class PreferencePoolFilter(filters.FilterSet):
 
     class Meta:
         model = PreferencePool
-        fields = ["id", "category"]
+        fields = ["id", "category", 'is_sku']
 
 
 class PreferencePoolViewSet(viewsets.ModelViewSet):
