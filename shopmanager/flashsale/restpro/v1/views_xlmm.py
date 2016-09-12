@@ -244,7 +244,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(serializer.data)
 
         if last_renew_type == 'full':
-            ships = ReferalRelationship.objects.filter(referal_from_mama_id=currentmm.id).order_by('-created')
+            ships = ReferalRelationship.objects.filter(referal_from_mama_id=currentmm.id,referal_type__gte=XiaoluMama.HALF).order_by('-created')
             page = self.paginate_queryset(ships)
             serializer = serializers.RelationShipInfoSerialize(page, many=True)
             if page is not None:
