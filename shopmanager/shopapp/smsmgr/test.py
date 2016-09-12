@@ -39,4 +39,3 @@ def deposit_msg():
         push.push(mobile, content=content, sms_notify_type='tocity')
         coupon.is_pushed = True
         coupon.save(update_fields=['is_pushed'])
-
