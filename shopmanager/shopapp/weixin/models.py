@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 import datetime
 from django.db import models
 from django.contrib.auth.models import User
@@ -342,6 +342,7 @@ class WeiXinAutoResponse(models.Model):
     WX_EVENT_KF_CREATE_SESSION = 'kf_create_session'
     WX_EVENT_LOCATION_SELECT = 'location_select'
     WX_EVENT_FAQS = 'faqs'
+    WX_EVENT_TSJF = 'TEMPLATESENDJOBFINISH'
 
     WX_TYPE = (
         (WX_TEXT, u'文本'),
