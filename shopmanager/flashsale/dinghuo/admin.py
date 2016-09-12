@@ -250,8 +250,8 @@ class OrderListAdmin(admin.ModelAdmin):
     # test_order_action.short_description = u"审核(已付款)"
 
     def verify_order_action(self, request, queryset):
-        for p in queryset:
-            pds = PurchaseDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey)
+        for orderlist in queryset:
+            pds = PurchaseDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
             psis_total = 0
             # from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangement, PurchaseDetail, PurchaseOrder
             # from shopback.trades.models import *
@@ -265,30 +265,27 @@ class OrderListAdmin(admin.ModelAdmin):
             #       print p.oid
             # PurchaseRecord.objects.get(oid='xo16082657c021b1b8913').save()
             # PurchaseArrangement.objects.get(oid='xo16082657c021b1b8913').save()
-            for pd in pds:
-                psi_res = PackageSkuItem.objects.filter(sku_id=pd.sku_id, assign_status=PackageSkuItem.NOT_ASSIGNED,
-                                                        purchase_order_unikey='').aggregate(total=Sum('num'))
-                psi_total = psi_res['total'] or 0
-                psis_total += psi_total
-            ods_res = OrderDetail.objects.filter(purchase_order_unikey=p.purchase_order_unikey).aggregate(
+            sku_ids = [pd.sku_id for pd in pds]
+            psis = PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
+                                                       purchase_order_unikey='')
+            psis_total = psis.aggregate(total=Sum('num')).get('total') or 0
+            ods_res = OrderDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).aggregate(
                 total=Sum('buy_quantity'))
             ods_total = ods_res['total'] or 0
             if psis_total != ods_total:
-                log_action(request.user.id, p, CHANGE, u'数量不对，审核失败')
+                log_action(request.user.id, orderlist, CHANGE, u'数量不对，审核失败')
                 break
-            if p.supplier.ware_by == WARE_THIRD and p.stage < OrderList.STAGE_CHECKED:
+            if orderlist.supplier.ware_by == WARE_THIRD and orderlist.stage < OrderList.STAGE_CHECKED:
                 from flashsale.finance.models import Bill
-                sku_ids = [pd.sku_id for pd in pds]
-                PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
-                                              purchase_order_unikey='').update(purchase_order_unikey=p.purchase_order_unikey)
-                p.begin_third_package()
-                Bill.create([p], Bill.PAY, Bill.STATUS_PENDING, Bill.TRANSFER_PAY, 0, 0, p.supplier,
+                psis.update(purchase_order_unikey=orderlist.purchase_order_unikey)
+                orderlist.begin_third_package()
+                Bill.create([orderlist], Bill.PAY, Bill.STATUS_PENDING, Bill.TRANSFER_PAY, 0, 0, orderlist.supplier,
                             user_id=request.user.id, receive_account='', receive_name='',
                             pay_taobao_link='', transcation_no='')
-                self.message_user(request, str(p.id) + u'订货单已成功进入结算!')
-            elif p.stage < OrderList.STAGE_CHECKED:
-                p.set_stage_verify()
-                log_action(request.user.id, p, CHANGE, u'审核订货单')
+                self.message_user(request, str(orderlist.id) + u'订货单已成功进入结算!')
+            elif orderlist.stage < OrderList.STAGE_CHECKED:
+                orderlist.set_stage_verify()
+                log_action(request.user.id, orderlist, CHANGE, u'审核订货单')
                 self.message_user(request, u'已成功审核!')
         return HttpResponseRedirect(request.get_full_path())
 
