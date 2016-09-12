@@ -32,7 +32,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id):
                 'finish_time': mama_mission.finish_time
             }
             wxpush.push_new_mama_task(mama_mission.mama_id, header=params.get('header'),
-                                           footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
+                                      footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
         else:
             week_end_time = datetime.datetime.strptime('%s-0' % mama_mission.year_week, '%Y-%W-%w')
             mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
