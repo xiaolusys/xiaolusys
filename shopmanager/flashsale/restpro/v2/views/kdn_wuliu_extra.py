@@ -1,5 +1,13 @@
 # -*- coding:utf-8 -*-
+
+import os
+import sys
+sys.path.append("/home/fpcnm/myProjects/xiaoluMM4/xiaolusys/shopmanager/")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopmanager.local_settings")
+
+
 from flashsale.pay.models import Customer, SaleTrade
+from shopback.trades.models import TradeWuliu
 from django.shortcuts import get_object_or_404
 from shopback.items.models import Product
 import hashlib
@@ -8,8 +16,12 @@ import urllib
 import json
 import functools
 import requests
-from exp_map import exp_map
+import datetime
+from exp_map import exp_map,reverse_map
 
+
+#老版本物流查询接口的方法
+#######################################################################
 def get_trade(tid):
     try:
         trade = get_object_or_404(SaleTrade, tid=tid)
@@ -56,62 +68,94 @@ def packet_data(queryset):
     return res
 #####################################################################################
 
+
+
+#第三方物流快递鸟查询接口方法  write_by huazi
 #####################################################################################
-#第三方物流查询接口
 expCode = 'SF'
 expNo = '3100707578976'
 EBusinessID = 1264368
 API_key = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
 exp_info = [expCode,expNo,API_key]
+business_info = {"EBusinessID":str(EBusinessID),"API_key":API_key,"DataType":"2","requestType":"1002"}
 
-def get_exp_code(LogisticName):
-    LogisticCode = exp_map.get("LogisticName",None)
-    if LogisticCode:
-        return LogisticCode
-    else
-        return "暂时还不支持%s的查询" % LogisticName
+class KdnBaseAPI(object):
 
-def format_exp_info(expCode,expNo):
-    exp_info = "{'OrderCode':'','ShipperCode':'%s','LogisticCode':'%s'}" %(expCode, expNo)
-    return exp_info
+    EBusinessID = 1264368
+    API_key = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
 
-def format_info(expCode,expNo,API_key):
-    exp_info = "{'OrderCode':'','ShipperCode':'%s','LogisticCode':'%s'}" %(expCode, expNo)
-    info = '%s%s' % (exp_info, API_key)
-    return info
+    def __init__(self):
+        pass
 
-def get_md5_value(src):
-    myMd5 = hashlib.md5()
-    myMd5.update(src)
-    myMd5_Digest = myMd5.hexdigest()
-    return myMd5_Digest
+    #获取物流公司的expCode
+    def __get_exp_code(self,LogisticName):
+        LogisticCode = exp_map.get("LogisticName",None)
+        if LogisticCode:
+            return LogisticCode
+        else:
+            return "暂时还不支持%s的查询" % LogisticName
+
+    #获得value的MD5加密
+    def __get_md5_value(self,src):
+        myMd5 = hashlib.md5()
+        myMd5.update(src)
+        myMd5_Digest = myMd5.hexdigest()
+        return myMd5_Digest
+
+    #把value进行base64编码
+    def __get_base64_value(self,src):
+        return base64.b64encode(src)
+
+    #获得value的url编码
+    @staticmethod
+    def get_urlencode_value(src):
+        return urllib.quote(src)
+
+    #格式化expCode和expNo
+    @staticmethod
+    def format_exp_info(expCode,expNo):
+        exp_info = "{'OrderCode':'','ShipperCode':'%s','LogisticCode':'%s'}" %(expCode, expNo)
+        return exp_info
+
+    #加入API_key并格式化
+    @staticmethod
+    def format_info(expCode,expNo,API_key):
+        exp_info = "{'OrderCode':'','ShipperCode':'%s','LogisticCode':'%s'}" %(expCode, expNo)
+        info = '%s%s' % (exp_info, API_key)
+        return info
+
+    #数字签名
+    @classmethod
+    def get_data_signature(*exp_info):
+        value = KdnBaseAPI.format_info(expCode,expNo,API_key)
+        myMd5_Digest = KdnBaseAPI().__get_md5_value(value)
+        base64 = KdnBaseAPI().__get_base64_value(myMd5_Digest)
+        url_str = KdnBaseAPI.get_urlencode_value(base64)
+        return url_str
+
+    def __repr__(self):
+        return self.EBusinessID,self.API_key
 
 
-def get_base64_value(src):
-    return base64.b64encode(src)
+def add_business_info(f):
+    @functools.wraps(f)
+    def wrapper(*args,**kwargs):
+        kwargs.update(business_info)
+        return f(*args,**kwargs)
+    return wrapper
 
-def get_urlencode_value(src):
-    return urllib.quote(src)
-
-def get_data_signature(*exp_info):
-    value = format_info(expCode,expNo,API_key)
-    myMd5_Digest = get_md5_value(value)
-    base64 = get_base64_value(myMd5_Digest)
-    url_str = get_urlencode_value(base64)
-    return url_str
-
-info = [EBusinessID,expCode,expNo,API_key]
-info = {"EBusinessID":EBusinessID,"API_key":API_key,"expCode":expCode,"expNo":expNo}
-
-
-def get_post_exp_info(**kwargs):
-    exp_info_dict = {"ShipperCode":kwargs['expCode'],"LogisticCode":kwargs["expNo"],"EBusinessID":kwargs["EBusinessID"],"requestType":1002,'DataType':2}
-    exp_info = format_exp_info(kwargs['expCode'],kwargs['expNo'])
-    requestData = get_urlencode_value(exp_info)
-    exp_info_dict.update({"requestData":requestData})
-    DataSign = get_data_signature([kwargs['expCode'],kwargs['expNo'],kwargs['API_key']])
-    exp_info_dict.update({"DataSign":DataSign})
-    return exp_info_dict
+def get_exp_code(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        expName = kwargs.get('expName',None)
+        if expName:
+            exp_code = exp_map.get(expName,None)
+            if exp_code:
+                kwargs['expCode'] = exp_code
+                return f(*args,**kwargs)
+            else:
+                return {"info":"尚未提供此物流公司快递查询"}
+    return wrapper
 
 
 def add_requestData(f):
@@ -120,10 +164,10 @@ def add_requestData(f):
         expCode = kwargs.get('expCode',None)
         expNo = kwargs.get('expNo', None)
         if expNo and expCode:
-            temp = format_exp_info(expCode,expNo)
-            requestData = get_urlencode_value(temp)
+            temp = KdnBaseAPI.format_exp_info(expCode,expNo)
+            requestData = KdnBaseAPI.get_urlencode_value(temp)
             kwargs.update({"requestData":requestData})
-        return f(*args, **args)
+        return f(*args, **kwargs)
     return wrapper
 
 
@@ -134,27 +178,44 @@ def add_DataSign(f):
                            kwargs.get('expNo',None),
                            kwargs.get('API_key',None)]
         if all(encryption_data):
-            DataSign = get_data_signature(*encryption_data)
+            DataSign = KdnBaseAPI.get_data_signature(*encryption_data)
             kwargs.update({"DataSign":DataSign})
         return f(*args,**kwargs)
     return wrapper
 
 
-@add_requestData
-@add_DataSign
-def wuliu_subscription(**kwargs):
+@add_business_info                                #扩充参数,参数字典加入商户id和key等信息
+@get_exp_code                                     #通过中文的物流公司获取相应的物流Code
+@add_requestData                                  #把expCode和expNo进行url编码
+@add_DataSign                                     #把请求数据加入API_key进行数字签名
+def kdn_subscription(*args,**kwargs):
     result = requests.post("http://api.kdniao.cc/api/dist",data=kwargs).text
     result = json.loads(result)
     if result["Success"] == True:
         result.update({"info":"订阅成功"})
     else:
         result.update({"info":"订阅失败"})
+    return result
+
+
+def kdn_get_push(*args, **kwargs):
+    expName = reverse_map().get(kwargs['ShipperCode'],None)
+    writing_info = {"out_sid" : kwargs['out_sid'],
+                    "logistics_company":expName,
+                    "status" : kwargs['status'],
+                    "time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "content":kwargs['Traces'],
+                    }
+    TradeWuliu.objects.create(**writing_info)
 
 
 
 
 
 
+if __name__ == '__main__':
+    test_info = {"expName" : '顺丰快递',"expNo":"3100707578976"}
+    print kdn_subscription(**test_info)["info"]
 
 
 

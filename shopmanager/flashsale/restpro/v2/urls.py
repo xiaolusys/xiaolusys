@@ -5,7 +5,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 # 2016-3-2 v2
 from . import views
-from .views.kdn import KdnViewSet
+from .views.kdn import KdnView
 from flashsale.xiaolumm.views import views_rank, views_message, award, week_rank
 from flashsale.pay.views import teambuy
 
@@ -57,7 +57,7 @@ v2_router_urls += format_suffix_patterns([
     url(r'^weixinapplogin', views.WeixinAppLoginView.as_view()),
     url(r'^potential_fans', views.PotentialFansView.as_view()),
     url(r'^administrator', views.xiaolumm.MamaAdministratorViewSet.as_view()),
-    url(r'^kdn', KdnViewSet.as_view()),
+    url(r'^kdn', KdnView.as_view()),
     url(r'^activate', views.xiaolumm.ActivateMamaView.as_view()),
 ])
 

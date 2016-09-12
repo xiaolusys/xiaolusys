@@ -1,4 +1,4 @@
-
+# -*- coding:utf-8 -*-
 exp_map = {'优速':'UC',
 '盛辉':'SHWL',
 '佳吉快运':'JJKY',
@@ -228,3 +228,6 @@ exp_map = {'优速':'UC',
 '飞康达':'FKD',
 '新邦':'XBWL',
 '华强':'hq568'}
+
+def reverse_map():
+    return dict(zip(exp_map.values(),exp_map.keys()))
