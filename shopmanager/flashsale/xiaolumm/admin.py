@@ -493,7 +493,7 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 
 class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'carry_description', 'contributor_nick',
-                    'contributor_img_html', 'contributor_mama_id', 'status', 'date_field', 'modified', 'created')
+                    'contributor_img_html', 'contributor_mama_id', 'status', 'date_field', 'is_full_member', 'modified', 'created')
     list_filter = ('status', 'carry_type', ('created', DateFieldListFilter))
     search_fields = ('=mama_id', '=contributor_nick', 'contributor_mama_id')
 
@@ -504,6 +504,16 @@ class AwardCarryAdmin(admin.ModelAdmin):
     contributor_img_html.allow_tags = True
 
 
+    def is_full_member(self, obj):
+        mama = XiaoluMama.objects.filter(id=obj.mama_id, last_renew_type__gte=XiaoluMama.HALF, charge_status=XiaoluMama.CHARGED).first()
+        if not mama:
+            return '待续费'
+        return ''
+
+    is_full_member.short_description = u'续费状态'
+    is_full_member.allow_tags = True
+    
+        
 admin.site.register(AwardCarry, AwardCarryAdmin)
 
 
