@@ -73,7 +73,9 @@ class WXMessageHttpProxy(HttpProxy):
         event = event.lower()
         
         # 获取信息和创建帐户
-        if event != WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE.lower():
+        if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or \
+           event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
+           event == WeiXinAutoResponse.WX_EVENT_VIEW.lower():
             tasks.task_get_unserinfo_and_create_accounts.delay(openid, wx_pubid)
 
         # 关注/扫描
