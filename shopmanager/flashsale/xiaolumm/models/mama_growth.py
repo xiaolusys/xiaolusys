@@ -109,7 +109,16 @@ class MamaMission(BaseModel):
         return self.status == MamaMission.PROGRESS
 
     def get_mama_target_value(self, xiaolumama, day_datetime):
+        """
+            若妈妈上周未完成目标，则上周目标继续,　若连续两周及以上未完成目标，则将目标下调一个等级
+        """
         from flashsale.xiaolumm.models import GroupRelationship
+
+        def _find_target_value(target_stages, finish_value):
+            for k1, k2, t in target_stages:
+                if k1 <= finish_value < k2 or finish_value >= k2:
+                    return t * 100
+            return 10000
 
         last_week_daytime = day_datetime - datetime.timedelta(days=7)
         week_start , week_end = week_range(last_week_daytime)
@@ -117,17 +126,35 @@ class MamaMission(BaseModel):
             if self.target == self.TARGET_PERSONAL:
                 mama_ids = [xiaolumama.id]
                 target_stages = constants.PERSONAL_TARGET_STAGE
-                award_rate = 15
+                award_rate = 15 * 100
             else :
                 group_mamas = GroupRelationship.objects.filter(leader_mama_id=xiaolumama.id)
                 mama_ids = group_mamas.values_list('member_mama_id', flat=True)
                 target_stages = constants.GROUP_TARGET_STAGE
-                award_rate = 50
+                award_rate = 50 * 100
 
-            last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start , week_end) / 100
-            for k1, k2, t in target_stages:
-                if k1 <= last_week_finish_value < k2 or last_week_finish_value >= k2:
-                    return t * 100, award_rate * 100
+            last_1st_week = last_week_daytime.strftime('%Y-%m-%d')
+            mama_1st_record = MamaMissionRecord.objects.filter(
+                mission=self,
+                year_week=last_1st_week,
+                mama_id=xiaolumama.id
+            ).first()
+
+            last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start, week_end) / 100
+            if mama_1st_record and not mama_1st_record.is_finished():
+                last_2th_week = (last_week_daytime -  datetime.timedelta(days=7)).strftime('%Y-%m-%d')
+                mama_2th_record = MamaMissionRecord.objects.filter(
+                    mission=self,
+                    year_week=last_2th_week,
+                    mama_id=xiaolumama.id
+                ).first()
+                # 若两周连续不达标
+                if mama_2th_record and not mama_2th_record.is_finished():
+                    target_value = _find_target_value(target_stages, last_week_finish_value)
+                    return min(target_value, mama_1st_record.target_value), award_rate
+                return mama_1st_record.target_value, award_rate
+
+            return _find_target_value(target_stages, last_week_finish_value), award_rate
 
         return self.target_value, self.award_amount
 
