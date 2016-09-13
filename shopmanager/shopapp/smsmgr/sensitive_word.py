@@ -1,4 +1,4 @@
-# codeing=utf-8
+# coding=utf-8
 sensitive_words = [
     u'细菌',
     u'感染',
