@@ -3,6 +3,7 @@ from  StringIO import StringIO
 import urllib, urllib2
 from lxml import etree
 from shopapp.smsmgr.models import SMSRecord, SMSPlatform
+from shopapp.smsmgr.sensitive_word import sensitive_words
 from shopback.base.exception import NotImplement
 from shopback import paramconfig as pcfg
 import logging
@@ -295,12 +296,13 @@ class SYKJSMSManager(SMSManager):
         """
 
         mobile = kwargs.get('mobile', '')
+        content = self.filter_content(kwargs.get('content', ''))
 
         params = {
             'account': kwargs.get('account', ''),
             'pswd': kwargs.get('password', ''),
             'mobile': mobile,
-            'msg': kwargs.get('content', ''),
+            'msg': content,
             'needstatus': 'true',
             'extno': '3106'
         }
@@ -330,6 +332,12 @@ class SYKJSMSManager(SMSManager):
             succnums = 1
 
         return success, task_id, succnums, content
+
+    def filter_content(self, content):
+        for word in sensitive_words:
+            if content.find(word) > 0:
+                content = content.replace(word, '**')
+        return content
 
 
 SMS_CODE_MANAGER_TUPLE = (
