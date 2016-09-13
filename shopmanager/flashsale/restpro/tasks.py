@@ -11,8 +11,8 @@ from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopP
 from shopback.items.models import Product, ProductSkuStats
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
-from flashsale.restpro.v1.views_cushops import save_pro_info
-
+from flashsale.restpro.utils import save_pro_info
+from flashsale.restpro.kdn_wuliu_extra import kdn_subscription
 import logging
 logger = logging.getLogger(__name__)
 
@@ -216,6 +216,12 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
     SaveReturnWuliu_by_packetid.delay(rid,packetid,content)
     return
 
+@task()
+def kdn_sub(rid, expName, expNo):
+    exp_info = {"expName": expName, "expNo": expNo}
+    kdn_subscription(**exp_info)
+
+
 @task(max_retries=3, default_retry_delay=5)
 def SaveWuliu_only(tid, content):
     """
@@ -332,6 +338,29 @@ def update_all_return_logistics():     #by huazi
             if company_id and i.sid:
                 # logging.warn("物流公司代码和物流单号都存在")
                 get_third_apidata_by_packetid_return(i.id,i.sid,company_id.express_key)
+                logging.warn("物流公司express_key%s,物流单号%s" % (company_id.express_key,i.sid))
+    logger.warn('update_all_return_logistics')
+
+@task()
+def update_all_return_logistics_bykdn():
+    from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid_return
+    salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                                        SaleRefund.REFUND_CONFIRM_GOODS])
+    from shopback.logistics.models import LogisticsCompany
+    # logger.warn(len(salerefunds))
+    for i in salerefunds:
+        # logger.warn('遍历salerefunds')
+        if i.company_name:
+            company_id = LogisticsCompany.objects.filter(name=i.company_name).first()
+            if not company_id:
+                lc = LogisticsCompany.objects.values("name")
+                head = i.company_name.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')
+                sim = [j['name'] for j in lc if j['name'].find(head)!=-1]
+                if len(sim):
+                    company_id = LogisticsCompany.objects.get(name=sim[0])
+            if company_id and i.sid:
+                # logging.warn("物流公司代码和物流单号都存在")
+                kdn_sub(i.id,i.company_name,company_id.express_key)
                 logging.warn("物流公司express_key%s,物流单号%s" % (company_id.express_key,i.sid))
     logger.warn('update_all_return_logistics')
 

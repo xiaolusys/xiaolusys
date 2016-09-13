@@ -2,8 +2,7 @@
 
 from django.test import TestCase
 from flashsale.pay.models import SaleTrade
-from ....pay.models import SaleTrade
-import kdn_wuliu_extra
+from flashsale.restpro import kdn_wuliu_extra
 class KdnTestCase(TestCase):
     def setUp(self):
         st_data = {'id':1,'tid':'abc',"buyer_id":88}
