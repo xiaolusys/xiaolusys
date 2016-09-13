@@ -152,15 +152,16 @@ class WeiXinAPI(object):
         self._wx_account.access_token = content['access_token']
         self._wx_account.expired = datetime.datetime.now()
         self._wx_account.expires_in = content['expires_in']
-        self._wx_account.save(update_fields=['access_token', 'expired', 'expired_in'])
+        self._wx_account.save(update_fields=['access_token', 'expired', 'expires_in'])
 
+        self._account_data.update({'access_token':content['access_token']})
         return content['access_token']
 
     def getAccessToken(self, force_update=False):
         """
         禁止刷新token, force_update参数无效
         """
-        return self._account_data.get('access_token')
+        return self._account_data.get('access_token', '')
 
     def getCustomerInfo(self, openid, lang='zh_CN'):
         return self.handleRequest(self._user_info_uri, {'openid': openid, 'lang': lang})
@@ -355,7 +356,7 @@ class WeiXinAPI(object):
                                   method='POST')
 
     def getJSTicket(self):
-        return self._wx_account.js_ticket
+        return self._account_data.get('js_ticket', '')
 
 
     def refreshJSTicket(self):
@@ -369,6 +370,7 @@ class WeiXinAPI(object):
         self._wx_account.js_expired = datetime.datetime.now()
         self._wx_account.save(update_fields=['js_ticket', 'js_expired'])
 
+        self._account_data.update({'js_ticket': content['ticket']})
         return content['ticket']
 
     def getShareSignParams(self, referal_url):
