@@ -382,8 +382,10 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
         if not media_id:
             wx_api.send_custom_message({
                 "touser": openid,
-                'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u'[委屈]二维码生成出错了， 请稍后重试或联系客服，谢谢！'
+                'msgtype': WeiXinAutoResponse.WX_TEXT,
+                'text': {
+                     "content":u'[委屈]二维码生成出错了， 请稍后重试或联系客服，谢谢！'
+                }
             })
             return
 
