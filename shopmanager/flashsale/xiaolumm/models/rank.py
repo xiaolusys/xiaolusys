@@ -158,14 +158,6 @@ WEEK_RANK_REDIS = get_week_rank_redis()
 
 
 class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
-    filters = {
-        'total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
-        },
-        'duration_total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
-        }
-    }
     mama = models.ForeignKey(XiaoluMama)
     stat_time = models.DateTimeField(db_index=True, verbose_name=u'统计起始时间')
     total = models.IntegerField(default=0, verbose_name=u'收益总额', help_text=u'单位为分')
@@ -184,6 +176,17 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈团队收益周排名'
         verbose_name_plural = u'小鹿妈妈团队收益周排名列表'
+
+    @property
+    def filters(self):
+        return {
+            'total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+            },
+            'duration_total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+            }
+        }
 
     @staticmethod
     def batch_generate(week_begin_time=None):
@@ -338,14 +341,6 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
     """
         周团队总额记录
     """
-    filters = {
-        'total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL
-        },
-        'duration_total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL
-        }
-    }
     mama = models.ForeignKey(XiaoluMama)
     stat_time = models.DateTimeField(db_index=True, verbose_name=u'统计起始时间')
     members = models.ManyToManyField(WeekMamaCarryTotal, related_name='teams')
@@ -365,6 +360,18 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈团队周收益排名'
         verbose_name_plural = u'小鹿妈妈团队周收益排名列表'
+
+    @property
+    def filters(self):
+        return {
+            'total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL
+            },
+            'duration_total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL
+            }
+        }
+
     @property
     def mama_ids(self):
         return self.member_ids
