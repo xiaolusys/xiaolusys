@@ -79,7 +79,8 @@ from django.shortcuts import get_object_or_404
 from flashsale.pay.models import Customer, SaleTrade
 from rest_framework.decorators import list_route
 from shopback import paramconfig as pacg
-
+import exp_map
+import kdn_wuliu_extra
 
 API_key = "b2983220-a56b-4e28-8ca0-f88225ee2e0b"
 API_key_info = {"EBusinessID":"1264368","API_key":API_key,"requestType":"1002","DataType":"2"}
@@ -93,6 +94,28 @@ class WuliuViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     gap_time = 7200  # 查询间隔时间
+
+
+    @list_route(methods=['get'])
+    def get_by_kdn(self, request):
+        logistics_company = request.GET.get("logistics_company",None)
+        out_sid = request.GET.get("out_sid",None)
+        assert logistics_company is not None,'物流公司不能为空'
+        assert out_sid is not None, '物流单号不能为空'
+        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
+        if len(tradewuliu) == 1:
+            return Response(kdn_wuliu_extra.format_content(tradewuliu.first().content))
+        if len(tradewuliu) == 0:
+            wuliu_info = {"expName":logistics_company,"expNo":out_sid}
+            kdn_wuliu_extra.kdn_subscription(**wuliu_info)
+            return Response("物流信息暂未获得")
+        if len(tradewuliu) > 1:
+            for k,v in exp_map.iteritems():
+                if k.startswith(logistics_company.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')):
+                    logistics_company = k
+                    break
+            tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid,logistics_company=logistics_company)
+            return Response(tradewuliu.first().content)
 
     @list_route(methods=['get'])
     def get_wuliu_by_tid(self, request):

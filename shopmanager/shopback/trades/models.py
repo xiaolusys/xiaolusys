@@ -1223,7 +1223,7 @@ class TradeWuliu(models.Model):
     logistics_company = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流公司')
     status = models.IntegerField(default=0, db_index=True, choices=REPLAY_TRADE__WULIU_STATUS, verbose_name=u'物流状态')
     time = models.DateTimeField(null=True, db_index=True, auto_now_add=False, verbose_name=u'时间')
-    content = models.CharField(max_length=640, blank=True, verbose_name=u'物流详情')
+    content = models.TextField(max_length=5120, blank=True, verbose_name=u'物流详情')
     created = models.DateTimeField(null=True, db_index=True, auto_now_add=True, verbose_name=u'记录日期')
     modified = models.DateTimeField(null=True, auto_now=True, blank=True, verbose_name=u'修改日期')
     errcode = models.CharField(max_length=64, blank=True, verbose_name=u'错误代码')
