@@ -21,6 +21,7 @@ from rest_framework.views import APIView
 from django.shortcuts import redirect
 
 from core.xlmm_response import make_response, SUCCESS_RESPONSE
+from shopapp.weixin.weixin_apis import WeiXinAPI
 from flashsale.pay.models import Customer, ModelProduct
 from flashsale.restpro import permissions as perms
 from flashsale.xiaolumm.models.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
@@ -149,14 +150,17 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         mama_id = get_mama_id(request.user)
         qrcode_url = ''
         mama_fortune = None
-        if mama_id:  # 如果有代理妈妈
-            mama_fortune = self.queryset.filter(mama_id=mama_id).first()
-            if mama_fortune:
-                qrcode_url = mama_fortune.app_download_qrcode_url
-            else:
-                logger.warn("get_mm_app_download_link: mm id %s cant find mama_fortune" % mama_id)
-        else:
-            logger.warn("get_mm_app_download_link: request.user %s cant find mama_id" % request.user)
+        if mama_id and int(mama_id) > 0:  # 如果有代理妈妈
+            wx_api = WeiXinAPI()
+            wx_api.setAccountId(appKey=settings.WXPAY_APPID)
+            qrcode_url = wx_api.createQRcode('QR_SCENE', mama_id)
+        #     mama_fortune = self.queryset.filter(mama_id=mama_id).first()
+        #     if mama_fortune:
+        #         qrcode_url = mama_fortune.app_download_qrcode_url
+        #     else:
+        #         logger.warn("get_mm_app_download_link: mm id %s cant find mama_fortune" % mama_id)
+        # else:
+        #     logger.warn("get_mm_app_download_link: request.user %s cant find mama_id" % request.user)
         if not qrcode_url:  # 如果没有则生成链接上传到七牛 并且更新到字段
             customer_id = get_customer_id(request.user)
             params = {'from_customer': customer_id, "time_str": int(time.time())}
@@ -165,9 +169,9 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
             file_name = os.path.join('qrcode/mm_appdownload',
                                      'from_customer_{from_customer}_{time_str}.jpg'.format(**params))
             qrcode_url = push_qrcode_to_remote(file_name, share_link)
-            if mama_fortune:
-                kwargs = {"app_download_qrcode_url": qrcode_url}
-                mama_fortune.update_extras_qrcode_url(**kwargs)
+            # if mama_fortune:
+            #     kwargs = {"app_download_qrcode_url": qrcode_url}
+            #     mama_fortune.update_extras_qrcode_url(**kwargs)
         return Response({"code": 0, "qrcode_url": qrcode_url})
 
 

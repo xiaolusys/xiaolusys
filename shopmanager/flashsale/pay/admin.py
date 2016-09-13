@@ -669,7 +669,7 @@ class ModelProductAdmin(ApproxAdmin):
                    }),
                  )
     readonly_fields = ('saleproduct', )
-    search_fields = ['name', '=id']
+    search_fields = ['^name', '=id']
     list_per_page = 50
 
     def get_readonly_fields(self, request, obj=None):

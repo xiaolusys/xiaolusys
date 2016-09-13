@@ -1,5 +1,7 @@
 # coding=utf-8
 from django.contrib import admin
+
+from core.filters import DateFieldListFilter
 from flashsale.coupon.models import CouponTemplate, OrderShareCoupon, UserCoupon, TmpShareCoupon
 
 
@@ -72,9 +74,8 @@ class UserCouponAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'title', "customer_id", 'status', "uniq_id", 'finished_time', 'expires_time', 'is_pushed')
 
-    list_filter = ('coupon_type', 'status', 'expires_time', 'finished_time')
+    list_filter = ('coupon_type', 'status', 'expires_time', 'finished_time', ('created', DateFieldListFilter))
     search_fields = ['=id', '=template_id', '=customer_id']
-    date_hierarchy = 'created'
 
 
 admin.site.register(UserCoupon, UserCouponAdmin)
