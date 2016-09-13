@@ -358,7 +358,9 @@ class Product(models.Model):
             return None
 
     def get_supplier(self):
-        return SaleProduct.objects.get(id=self.sale_product).sale_supplier
+        sp = SaleProduct.objects.filter(id=self.sale_product).first()
+        if sp:
+            return sp.sale_supplier
 
     @staticmethod
     def get_by_supplier(supplier_id):
