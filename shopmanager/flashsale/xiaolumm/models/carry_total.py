@@ -908,18 +908,6 @@ class ActivityRankTotal(object):
 
 class ActivityMamaCarryTotal(BaseMamaCarryTotal, ActivityRankTotal):
     activity = models.ForeignKey(RankActivity, related_name='ranks', verbose_name=u'活动')
-    filters = {
-        'duration_total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
-        },
-        'activity_duration_total':{
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
-            'last_renew_type': 15
-        },
-        'invite_trial_num': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
-        }
-    }
     mama = models.ForeignKey(XiaoluMama)
     duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
     duration_rank_delay = models.IntegerField(default=0, db_index=True, verbose_name=u'活动期排名',
@@ -939,6 +927,21 @@ class ActivityMamaCarryTotal(BaseMamaCarryTotal, ActivityRankTotal):
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈活动收益排名'
         verbose_name_plural = u'小鹿妈妈活动收益排名列表'
+
+    @property
+    def filters(self):
+        return {
+            'duration_total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+            },
+            'activity_duration_total':{
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+                'last_renew_type': 15
+            },
+            'invite_trial_num': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+            }
+        }
 
     def update_activity_rank(self):
         if self.last_renew_type == 15:
@@ -1118,11 +1121,6 @@ post_save.connect(update_activity_mama_carry_total_cache,
 
 class ActivityMamaTeamCarryTotal(BaseMamaTeamCarryTotal, ActivityRankTotal):
     activity = models.ForeignKey(RankActivity, related_name='teamranks', verbose_name=u'活动')
-    filters = {
-        'duration_total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
-        }
-    }
     mama = models.ForeignKey(XiaoluMama)
     member_ids = JSONCharMyField(default=[], max_length=10240, verbose_name=u'成员列表')
     duration_total = models.IntegerField(default=0, verbose_name=u'统计期间收益总额', help_text=u'单位为分')
@@ -1139,6 +1137,13 @@ class ActivityMamaTeamCarryTotal(BaseMamaTeamCarryTotal, ActivityRankTotal):
         verbose_name = u'小鹿妈妈活动收益排名'
         verbose_name_plural = u'小鹿妈妈活动收益排名列表'
 
+    @property
+    def filters(self):
+        return {
+            'duration_total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+            }
+        }
     @property
     def mama_ids(self):
         return self.member_ids
