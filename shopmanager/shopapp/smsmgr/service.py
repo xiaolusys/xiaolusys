@@ -315,7 +315,10 @@ class SYKJSMSManager(SMSManager):
             response = urllib2.urlopen(self._sms_url, data, 60)
             content = response.read()
 
-            line1, task_id = content.split()
+            lines = content.split()
+            line1 = lines[0]
+            if len(lines) == 2:
+                task_id = lines[1]
             timestamp, status_code = line1.split(',')
             if status_code == '0':
                 success = True
