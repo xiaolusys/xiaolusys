@@ -873,7 +873,7 @@ class ActivityRankTotal(object):
         if STAT_RANK_REDIS.is_locked(cls.__name__ + '-' + target):
             return
         cache_count = STAT_RANK_REDIS.get_rank_count(cls, target)
-        condition = copy(cls.filters[target])
+        condition = copy(cls.filters()[target])
         condition['activity_id'] = RankActivity.now_activity().id
         real_count = cls.objects.filter(**condition).count()
         if cache_count > real_count:
@@ -928,8 +928,8 @@ class ActivityMamaCarryTotal(BaseMamaCarryTotal, ActivityRankTotal):
         verbose_name = u'小鹿妈妈活动收益排名'
         verbose_name_plural = u'小鹿妈妈活动收益排名列表'
 
-    @property
-    def filters(self):
+    @staticmethod
+    def filters():
         return {
             'duration_total': {
                 'agencylevel__gt': XiaoluMama.INNER_LEVEL,
@@ -1109,8 +1109,8 @@ def update_activity_mama_carry_total_cache(sender, instance, created, **kwargs):
                     team.reset_mama_ids()
                 team.restat(team.mama_ids, activity)
                 team.save()
-        for target in ActivityMamaCarryTotal.filters:
-            condtion = copy(ActivityMamaCarryTotal.filters[target])
+        for target in ActivityMamaCarryTotal.filters():
+            condtion = copy(ActivityMamaCarryTotal.filters()[target])
             condtion['pk'] = instance.pk
             if ActivityMamaCarryTotal.objects.filter(**condtion).exists():
                 STAT_RANK_REDIS.update_cache(instance, [target], func=getattr_change)
@@ -1137,8 +1137,8 @@ class ActivityMamaTeamCarryTotal(BaseMamaTeamCarryTotal, ActivityRankTotal):
         verbose_name = u'小鹿妈妈活动收益排名'
         verbose_name_plural = u'小鹿妈妈活动收益排名列表'
 
-    @property
-    def filters(self):
+    @classmethod
+    def filters(cls):
         return {
             'duration_total': {
                 'agencylevel__gt': XiaoluMama.INNER_LEVEL,
