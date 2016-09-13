@@ -105,7 +105,7 @@ class WeekRank(object):
             ori_cache_mama_ids = WEEK_RANK_REDIS.get_rank_list(cls, target, 0, -1)
             real_ids = [c['mama_id'] for c in cls.objects.filter(**condition).values('mama_id')]
             ids = set(ori_cache_mama_ids) - set(real_ids)
-            id_str = ','.join([str(i) for i in list(ids)])
+            id_str = len(ids) < 50 and ','.join([str(i) for i in list(ids)]) or 'count=%s'%len(ids)
             logger.error('cache_count big than real_count' + '|' + cls.__name__ + '|' + target + ':' + id_str)
             WEEK_RANK_REDIS.clear_cache(cls, target)
             cache_mama_ids = []

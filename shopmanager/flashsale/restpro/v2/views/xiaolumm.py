@@ -149,11 +149,12 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
 
         mama_id = get_mama_id(request.user)
         qrcode_url = ''
-        mama_fortune = None
+        # mama_fortune = None
         if mama_id and int(mama_id) > 0:  # 如果有代理妈妈
             wx_api = WeiXinAPI()
             wx_api.setAccountId(appKey=settings.WXPAY_APPID)
-            qrcode_url = wx_api.createQRcode('QR_SCENE', mama_id)
+            resp = wx_api.createQRcode('QR_SCENE', mama_id)
+            qrcode_url = wx_api.genQRcodeAccesssUrl(resp.get('ticket',''))
         #     mama_fortune = self.queryset.filter(mama_id=mama_id).first()
         #     if mama_fortune:
         #         qrcode_url = mama_fortune.app_download_qrcode_url
