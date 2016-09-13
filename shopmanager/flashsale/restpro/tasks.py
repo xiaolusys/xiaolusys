@@ -11,8 +11,8 @@ from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopP
 from shopback.items.models import Product, ProductSkuStats
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
-from flashsale.restpro.v1.views_cushops import save_pro_info
-from flashsale.restpro.v2.views.kdn_wuliu_extra import kdn_subscription
+from flashsale.restpro.utils import save_pro_info
+from flashsale.restpro.kdn_wuliu_extra import kdn_subscription
 import logging
 logger = logging.getLogger(__name__)
 

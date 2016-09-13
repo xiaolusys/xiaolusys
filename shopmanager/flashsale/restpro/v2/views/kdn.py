@@ -18,9 +18,9 @@ from rest_framework.response import Response
 import logging
 import  json
 import datetime
-import kdn_wuliu_extra
+from flashsale.restpro import kdn_wuliu_extra
 from shopback.trades.models import TradeWuliu
-import exp_map
+from flashsale.restpro import exp_map
 logger = logging.getLogger(__name__)
 
 class KdnView(APIView):
