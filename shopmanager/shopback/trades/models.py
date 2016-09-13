@@ -1756,7 +1756,7 @@ class PackageStat(models.Model):
 
     @staticmethod
     def get_sended_package_num(package_stat_id):
-        return PackageOrder.objects.filter(id__contains=package_stat_id + '-',
+        return PackageOrder.objects.filter(id__startswith=package_stat_id + '-',
                                            sys_status__in=[PackageOrder.WAIT_CUSTOMER_RECEIVE,
                                                            PackageOrder.FINISHED_STATUS]).count()
 
