@@ -337,15 +337,22 @@ class OrderList(models.Model):
                 inbound_id__in=self.get_inbound_ids(), inferior_quantity__gt=0)
         return self._related_inferior_inbound_details_
 
-    def begin_third_package(self):
+    @property
+    def purchase_order(self):
+        from flashsale.dinghuo.models_purchase import PurchaseOrder
+        return PurchaseOrder.objects.get(uni_key=self.purchase_order_unikey)
+
+    def begin_third_package(self, psi_oids=[]):
         self.third_package = True
         self.bill_method = OrderList.PC_COD_TYPE
         self.is_postpay = True
+
         for od in self.order_list.all():
             od.arrival_quantity = od.buy_quantity
             od.arrival_time = datetime.datetime.now()
             od.save()
         self.set_stage_state()
+        self.purchase_order.book()
 
 
     def get_related_inbounds_out_stock_cnt(self):
@@ -544,6 +551,8 @@ post_save.connect(update_orderdetail_relationship, sender=OrderList,
 
 
 def update_purchaseorder_status(sender, instance, created, **kwargs):
+    if instance.third_package:
+        return
     logger.info('post_save update_purchaseorder_status: %s' % instance)
     from flashsale.dinghuo.models_purchase import PurchaseOrder
     status = None
@@ -567,7 +576,7 @@ def update_purchaseorder_status(sender, instance, created, **kwargs):
             task_update_purchasearrangement_initial_book, task_update_purchasearrangement_status
 
         task_update_purchasedetail_status.delay(po)
-        if instance.third_package and status in [PurchaseOrder.BOOKED, PurchaseOrder.FINISHED]:
+        if status in [PurchaseOrder.BOOKED, PurchaseOrder.FINISHED]:
             task_update_purchasearrangement_initial_book.delay(po)
         elif status == PurchaseOrder.BOOKED:
             task_update_purchasearrangement_initial_book.delay(po)
