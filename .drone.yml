@@ -1,7 +1,7 @@
 build:
   image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:78a9e53f221ca41896124f9fe438452cd483203a
   environment:
-    - TARGET=staging
+    - TARGET=staging REDIS_AUTH=$$REDIS_AUTH
   commands:
     - mkdir -p /data/log/django
     - cd shopmanager;python manage.py migrate --noinput
