@@ -18,13 +18,15 @@ from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList,  SupplyChainDataStats, \
     PayToPackStats, PackageBackOrderStats, gen_purchase_order_group_key
 from flashsale.pay.models import SaleOrder
-
+from flashsale.dinghuo.models_purchase import PurchaseArrangement, PurchaseDetail, PurchaseOrder
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 from supplychain.supplier.models import SaleProduct, SupplierCharge, SaleSupplier
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_COMPANY, WARE_CHOICES
+from . import utils
 from . import function_of_task, functions
+from django.db import transaction
 import logging
 logger = logging.getLogger(__name__)
 
@@ -1424,78 +1426,6 @@ def task_update_product_sku_stat_rg_quantity(sku_id):
         stat.save(update_fields=['rg_quantity'])
 
 
-from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangement, PurchaseDetail, PurchaseOrder
-from . import utils
-
-
-@task()
-def task_packageskuitem_update_purchaserecord(psi):
-    # print "debug: %s" % utils.get_cur_info()
-
-    # The following code holds till all old-fashion orderdetails finish.
-    # if psi.is_booking_needed():
-    #    ods = OrderDetail.objects.filter(chichu_id=psi.sku_id).order_by('-created')
-    #    for od in ods:
-    #        if od and od.orderlist and od.orderlist.status:
-    #            status = od.orderlist.status
-    #            if status != OrderList.SUBMITTING and status != OrderList.ZUOFEI:
-    #                if od.created > psi.pay_time:
-    #                    return
-    #                else:
-    #                    break
-
-    uni_key = utils.gen_purchase_record_unikey(psi)
-    pr = PurchaseRecord.objects.filter(uni_key=uni_key).first()
-
-    status = PurchaseRecord.EFFECT
-    note = None
-    if psi.is_booking_needed():
-        status = PurchaseRecord.EFFECT
-    elif psi.is_booking_assigned():
-        if not psi.purchase_order_unikey:
-            status = PurchaseRecord.CANCEL
-            # The PSI was assigned by existing inventory or refundproduct (which increased inventory)
-            note = '%s:Asssigned' % datetime.datetime.now()
-    else:
-        status = PurchaseRecord.CANCEL
-        
-    if not pr:
-        fields = ['oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name']
-        pr = PurchaseRecord(package_sku_item_id=psi.id, uni_key=uni_key, request_num=psi.num, status=status)
-        utils.copy_fields(pr, psi, fields)
-        pr.save()
-    else:
-        if pr.status != status:
-            update_fields = ['status', 'modified']
-            pr.status = status
-            if note:
-                pr.note = note
-                update_fields.append('note')
-            pr.save(update_fields=update_fields)
-
-
-@task()
-def task_purchasearrangement_update_purchaserecord_book_num(pa):
-    # print "debug: %s" % utils.get_cur_info()
-
-    res = PurchaseArrangement.objects.filter(
-        purchase_record_unikey=pa.purchase_record_unikey,
-        purchase_order_status=PurchaseOrder.OPEN,
-        status=PurchaseRecord.EFFECT).aggregate(total=Sum('num'))
-
-    open_book_num = res['total'] or 0
-
-    res = PurchaseArrangement.objects.filter(
-        purchase_record_unikey=pa.purchase_record_unikey,
-        purchase_order_status__gte=PurchaseOrder.BOOKED).aggregate(total=Sum('num'))
-
-    booked_num = res['total'] or 0
-
-    book_num = open_book_num + booked_num
-
-    PurchaseRecord.objects.filter(uni_key=pa.purchase_record_unikey).update(book_num=book_num,modified=datetime.datetime.now())
-
-
 @task()
 def task_purchase_detail_update_purchase_order(pd):
     # print "debug: %s" % utils.get_cur_info()
@@ -1527,7 +1457,7 @@ def task_purchase_detail_update_purchase_order(pd):
 def task_purchasedetail_update_orderdetail(pd):
     # we should re-calculate the num of records each time we sync pd and od.
     res = PurchaseArrangement.objects.filter(purchase_order_unikey=pd.purchase_order_unikey,
-                                             sku_id=pd.sku_id, status=PurchaseRecord.EFFECT).aggregate(total=Sum('num'))
+                                             sku_id=pd.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
     total = res['total'] or 0
     total_price = total * pd.unit_price_display
 
@@ -1609,7 +1539,7 @@ def task_purchasearrangement_update_purchasedetail(pa):
     # print "debug: %s" % utils.get_cur_info()
 
     res = PurchaseArrangement.objects.filter(purchase_order_unikey=pa.purchase_order_unikey,
-                                             sku_id=pa.sku_id, status=PurchaseRecord.EFFECT).aggregate(total=Sum('num'))
+                                             sku_id=pa.sku_id, status=PurchaseArrangement.EFFECT).aggregate(total=Sum('num'))
 
     total = res['total'] or 0
 
@@ -1633,108 +1563,26 @@ def task_purchasearrangement_update_purchasedetail(pa):
                 pd.unit_price = unit_price
                 pd.save(update_fields=['book_num', 'need_num', 'unit_price', 'modified'])
             return
-        elif pd.is_booked():
-            if pd.need_num != total or pd.unit_price != unit_price:
-                pd.need_num = total
-                pd.extra_num = pd.book_num - pd.need_num
-                pd.unit_price = unit_price
-                pd.save(update_fields=['need_num', 'extra_num', 'unit_price', 'modified'])
-
-
-def create_purchasearrangement_with_integrity(purchase_order_unikey, pr):
-    uni_key = utils.gen_purchase_arrangement_unikey(purchase_order_unikey, pr.uni_key)
-    fields = ['package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'status']
-    pa = PurchaseArrangement(uni_key=uni_key, purchase_order_unikey=purchase_order_unikey,
-                             purchase_record_unikey=pr.uni_key, num=pr.need_num)
-    utils.copy_fields(pa, pr, fields)
-    pa.save()
-
-    
-@task()
-def task_start_booking(pr):
-    # print "debug: %s" % utils.get_cur_info()
-
-    if not pr.need_booking():
-        return
-
-    purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
-    uni_key = utils.gen_purchase_arrangement_unikey(purchase_order_unikey, pr.uni_key)
-
-    pa = PurchaseArrangement.objects.filter(uni_key=uni_key).first()
-    if not pa:
-        try:
-            create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
-        except IntegrityError as exc:
-            # The record already exists (update by following sync events)
-            pass
-    else:
-        pa.num = pr.need_num
-        #pa.status = PurchaseRecord.EFFECT
-        pa.save(update_fields=['num', 'modified', 'status'])
 
 
 @task()
-def task_purchaserecord_adjust_purchasearrangement_overbooking(pr):
-    # print "debug: %s" % utils.get_cur_info()
-
-    if not pr.is_overbooked():
-        return
-
-    pa = PurchaseArrangement.objects.filter(oid=pr.oid, purchase_order_status=PurchaseOrder.OPEN,
-                                            status=PurchaseRecord.EFFECT, num__gt=0).first()
-    if not pa:
-        logger.error(
-            "severe logical error: overbooking|sku_id:%s, package_sku_item_id:%s, oid:%s, request_num:%s, book_num:%s" %
-            (pr.sku_id, pr.package_sku_item_id, pr.oid, pr.request_num, pr.book_num))
-    else:
-        num = min(pr.book_num - pr.request_num, pa.num)
-        pa.num = pa.num - num
-        pa.save(update_fields=['num', 'modified'])
-
-
-@task(max_retries=3, default_retry_delay=6)
-def task_purchaserecord_sync_purchasearrangement_status(pr):
-    # print "debug: %s" % utils.get_cur_info()
-    try:
-        pa = PurchaseArrangement.objects.get(oid=pr.oid)
-        if pa.status != pr.status:
-            pa.status = pr.status
-            pa.save(update_fields=['status', 'modified'])
-            #if pr.status == PurchaseRecord.EFFECT:
-            #    logger.error("PR sync PA error| pa.id: %s, pr.id: %s, pr.status: %s, %s" % (pa.id, pr.id, pr.status, datetime.datetime.now()))
-            #else:
-            #    logger.error("PR sync PA correct| pa.id: %s, pr.id: %s, pr.status: %s, %s" % (pa.id, pr.id, pr.status, datetime.datetime.now()))
-    except PurchaseArrangement.DoesNotExist as exc:
-        raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
-
-    purchase_order_unikey = utils.gen_purchase_order_unikey(pr)
-    #if pa:
-    #    if pa.status != pr.status:
-    #        pa.status = pr.status
-    #        pa.save(update_fields=['status', 'modified'])
-    #    return
-    #else:
-        #try:
-        #    create_purchasearrangement_with_integrity(purchase_order_unikey, pr)
-        #except IntegrityError as exc:
-        #    raise task_purchaserecord_sync_purchasearrangement_status.retry(exc=exc)
-        
-
-
-@task()
-def task_check_arrangement(pd):
-    # print "debug: %s" % utils.get_cur_info()
-    return
-
-    if not pd.has_extra():
-        return
-
-    pa = PurchaseArrangement.objects.filter(sku_id=pd.sku_id, status=PurchaseRecord.EFFECT,
-                                            purchase_order_status=PurchaseOrder.OPEN, num__gt=0).first()
+@transaction.atomic
+def task_packageskuitem_update_purchase_arrangement(psi):
+    pa = PurchaseArrangement.objects.filter(oid=psi.oid).first()
     if pa:
-        num = min(pd.extra_num, pa.num)
-        pa.num = pa.num - num
-        pa.save()
+        if not pa.initial_book:
+            if pa.status == PurchaseOrder.CANCELED and psi.is_booking_needed():
+                if pa.status == PurchaseOrder.CANCELED and pa.purchase_order.status in [PurchaseOrder.BOOKED, PurchaseOrder.FINISHED]:
+                    pa_new_uni_key = PurchaseOrder.gen_purchase_order_unikey(psi)
+                    pa.purchase_order_unikey = pa_new_uni_key
+                    pa.uni_key = PurchaseArrangement.gen_purchase_arrangement_unikey(pa_new_uni_key, psi.get_purchase_uni_key())
+                pa.status = PurchaseArrangement.EFFECT
+                pa.save()
+            elif pa.status == PurchaseArrangement.EFFECT and psi.is_booking_assigned():
+                pa.status = PurchaseArrangement.CANCEL
+                pa.save()
+    else:
+        PurchaseArrangement.create(psi)
 
 
 from shopapp.smsmgr.models import SMSPlatform, SMS_NOTIFY_VERIFY_CODE
@@ -1803,7 +1651,7 @@ def task_update_purchasearrangement_status(po):
     """
     invoke when user click button to book purchase_order.
     """
-    pas = PurchaseArrangement.objects.filter(purchase_order_unikey=po.uni_key, status=PurchaseRecord.EFFECT).update(
+    pas = PurchaseArrangement.objects.filter(purchase_order_unikey=po.uni_key, status=PurchaseArrangement.EFFECT).update(
         purchase_order_status=po.status)
 
 
@@ -1812,7 +1660,7 @@ def task_update_purchasearrangement_initial_book(po):
     """
     invoke when user click button to book purchase_order.
     """
-    pas = PurchaseArrangement.objects.filter(purchase_order_unikey=po.uni_key, status=PurchaseRecord.EFFECT)
+    pas = PurchaseArrangement.objects.filter(purchase_order_unikey=po.uni_key, status=PurchaseArrangement.EFFECT)
     pas.update(purchase_order_status=po.status, initial_book=True)
 
     from shopback.trades.models import PackageSkuItem
@@ -1855,79 +1703,78 @@ def task_check_with_purchase_order(ol):
 
 from flashsale.pay.models import SaleOrderSyncLog
 from shopback.trades.models import PackageSkuItem
-from flashsale.dinghuo.models_purchase import PurchaseRecord
 
 
-def create_purchaserecord_check_log(time_from, type, uni_key):
-    psi_unikey = "%s|%s" % (SaleOrderSyncLog.SO_PSI, time_from)
-    psi_log = SaleOrderSyncLog.objects.filter(uni_key=psi_unikey).first()
-    if not (psi_log and psi_log.is_completed()):
-        return
-    time_to = time_from + datetime.timedelta(hours=1)
-    psis = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to)
-    target_num = psis.count()
-    actual_num = 0
-    for psi in psis:
-        pr = PurchaseRecord.objects.filter(oid=psi.oid).first()
-        if pr:
-            actual_num += 1
-        elif psi.is_booking_needed():
-            psi.save()
-    log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key, type=type, target_num=target_num,
-                           actual_num=actual_num)
-    if target_num == actual_num:
-        log.status = SaleOrderSyncLog.COMPLETED
-    log.save()
-
-
-@task()
-def task_packageskuitem_check_purchaserecord():
-    type = SaleOrderSyncLog.PSI_PR
-    log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
-    if not log:
-        return
-
-    time_from = log.time_to
-    now = datetime.datetime.now()
-
-    if time_from > now - datetime.timedelta(hours=2):
-        return
-
-    uni_key = "%s|%s" % (type, time_from)
-    log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
-    if not log:
-        create_purchaserecord_check_log(time_from, type, uni_key)
-    elif not log.is_completed():
-        time_to = log.time_to
-        psis = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to)
-        target_num = psis.count()
-        actual_num = 0
-        for psi in psis:
-            pr = PurchaseRecord.objects.filter(oid=psi.oid).first()
-            if pr:
-                actual_num += 1
-                if psi.is_booking_needed() and pr.status == PurchaseRecord.EFFECT:
-                    continue
-                if (not psi.is_booking_needed()) and pr.status == PurchaseRecord.CANCEL:
-                    continue
-            psi.save(update_fields=['modified'])
-
-        update_fields = []
-        if log.target_num != target_num:
-            log.target_num = target_num
-            update_fields.append('target_num')
-        if log.actual_num != actual_num:
-            log.actual_num = actual_num
-            update_fields.append('actual_num')
-        if target_num == actual_num:
-            log.status = SaleOrderSyncLog.COMPLETED
-            update_fields.append('status')
-        if update_fields:
-            log.save(update_fields=update_fields)
-
-        if target_num != actual_num:
-            logger.error("task_packageskuitem_check_purchaserecord|uni_key: %s, target_num: %s, actual_num: %s" % (
-                uni_key, target_num, actual_num))
+# def create_purchaserecord_check_log(time_from, type, uni_key):
+#     psi_unikey = "%s|%s" % (SaleOrderSyncLog.SO_PSI, time_from)
+#     psi_log = SaleOrderSyncLog.objects.filter(uni_key=psi_unikey).first()
+#     if not (psi_log and psi_log.is_completed()):
+#         return
+#     time_to = time_from + datetime.timedelta(hours=1)
+#     psis = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to)
+#     target_num = psis.count()
+#     actual_num = 0
+#     for psi in psis:
+#         pr = PurchaseRecord.objects.filter(oid=psi.oid).first()
+#         if pr:
+#             actual_num += 1
+#         elif psi.is_booking_needed():
+#             psi.save()
+#     log = SaleOrderSyncLog(time_from=time_from, time_to=time_to, uni_key=uni_key, type=type, target_num=target_num,
+#                            actual_num=actual_num)
+#     if target_num == actual_num:
+#         log.status = SaleOrderSyncLog.COMPLETED
+#     log.save()
+#
+#
+# @task()
+# def task_packageskuitem_check_purchaserecord():
+#     type = SaleOrderSyncLog.PSI_PR
+#     log = SaleOrderSyncLog.objects.filter(type=type, status=SaleOrderSyncLog.COMPLETED).order_by('-time_from').first()
+#     if not log:
+#         return
+#
+#     time_from = log.time_to
+#     now = datetime.datetime.now()
+#
+#     if time_from > now - datetime.timedelta(hours=2):
+#         return
+#
+#     uni_key = "%s|%s" % (type, time_from)
+#     log = SaleOrderSyncLog.objects.filter(uni_key=uni_key).first()
+#     if not log:
+#         create_purchaserecord_check_log(time_from, type, uni_key)
+#     elif not log.is_completed():
+#         time_to = log.time_to
+#         psis = PackageSkuItem.objects.filter(pay_time__gt=time_from, pay_time__lte=time_to)
+#         target_num = psis.count()
+#         actual_num = 0
+#         for psi in psis:
+#             pr = PurchaseRecord.objects.filter(oid=psi.oid).first()
+#             if pr:
+#                 actual_num += 1
+#                 if psi.is_booking_needed() and pr.status == PurchaseRecord.EFFECT:
+#                     continue
+#                 if (not psi.is_booking_needed()) and pr.status == PurchaseRecord.CANCEL:
+#                     continue
+#             psi.save(update_fields=['modified'])
+#
+#         update_fields = []
+#         if log.target_num != target_num:
+#             log.target_num = target_num
+#             update_fields.append('target_num')
+#         if log.actual_num != actual_num:
+#             log.actual_num = actual_num
+#             update_fields.append('actual_num')
+#         if target_num == actual_num:
+#             log.status = SaleOrderSyncLog.COMPLETED
+#             update_fields.append('status')
+#         if update_fields:
+#             log.save(update_fields=update_fields)
+#
+#         if target_num != actual_num:
+#             logger.error("task_packageskuitem_check_purchaserecord|uni_key: %s, target_num: %s, actual_num: %s" % (
+#                 uni_key, target_num, actual_num))
 
 
 def create_purchaseorder_booknum_check_log(time_from, type, uni_key):

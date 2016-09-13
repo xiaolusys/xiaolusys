@@ -146,13 +146,9 @@ DINGHUO_ROUTES = {
         'queue': 'dinghuo',
         'routing_key':'dinghuo.task_packageskuitem_check_purchaserecord',
     },
-    'flashsale.dinghuo.tasks.task_packageskuitem_update_purchaserecord': {
+    'flashsale.dinghuo.tasks.task_packageskuitem_update_purchase_arrangement': {
         'queue': 'dinghuo',
-        'routing_key':'dinghuo.task_packageskuitem_update_purchaserecord',
-    },
-    'flashsale.dinghuo.tasks.task_purchasearrangement_update_purchaserecord_book_num': {
-        'queue': 'dinghuo',
-        'routing_key':'dinghuo.task_purchasearrangement_update_purchaserecord_book_num',
+        'routing_key':'dinghuo.task_packageskuitem_update_purchase_arrangement',
     },
     'flashsale.dinghuo.tasks.task_purchase_detail_update_purchase_order': {
         'queue': 'dinghuo',

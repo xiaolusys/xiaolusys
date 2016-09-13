@@ -1950,6 +1950,10 @@ class PackageSkuItem(BaseModel):
         payed_counts -= unuse_cnt
         return payed_counts
 
+    def get_purchase_uni_key(self):
+        """为了和历史上的purchase_record unikey保持一致"""
+        return self.oid + '-1'
+
     def is_booking_needed(self):
         return self.assign_status == PackageSkuItem.NOT_ASSIGNED
 
@@ -2042,12 +2046,12 @@ post_save.connect(update_package_order, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_package_order')
 
 
-def update_purchase_record(sender, instance, created, **kwargs):
-    from flashsale.dinghuo.tasks import task_packageskuitem_update_purchaserecord
-    task_packageskuitem_update_purchaserecord.delay(instance)
+def update_purchase_arrangement(sender, instance, created, **kwargs):
+    from flashsale.dinghuo.tasks import task_packageskuitem_update_purchase_arrangement
+    task_packageskuitem_update_purchase_arrangement.delay(instance)
 
 
-post_save.connect(update_purchase_record, sender=PackageSkuItem,
+post_save.connect(update_purchase_arrangement, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_purchase_record')
 
 
