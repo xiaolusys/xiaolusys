@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import cache
+from django.db.models.signals import post_save
 
 from core import managers
 from core.models import CacheModel
@@ -92,6 +94,21 @@ class WeiXinAccount(models.Model):
             return AnonymousWeixinAccount()
 
     @classmethod
+    def gen_account_list_cache_key(cls):
+        return '%s.%s.list_cache_key'%(__file__, cls.__name__)
+
+    @classmethod
+    def getWeixinAccountValueList(cls):
+        list_cache_key = cls.gen_account_list_cache_key()
+        cache_value = cache.get(list_cache_key)
+        if not cache_value:
+            cache_value = WeiXinAccount.objects.all().values(
+                'account_id', 'token', 'app_id', 'app_secret', 'access_token', 'js_ticket')
+            cache.set(list_cache_key, cache_value, 24 * 3600)
+
+        return cache_value
+
+    @classmethod
     def getAnonymousAccount(self):
         return AnonymousWeixinAccount()
 
@@ -124,6 +141,16 @@ class WeiXinAccount(models.Model):
 
     def isResponseToDRF(self):
         return self.app_id in (settings.WXPAY_APPID,)
+
+
+def invalid_wxaccount_cache_value(sender, instance, created, **kwargs):
+    """ invalid wxaccount cache value  """
+    cache_key = WeiXinAccount.gen_account_list_cache_key()
+    cache.delete(cache_key)
+
+post_save.connect(invalid_wxaccount_cache_value, sender=WeiXinAccount,
+                   dispatch_uid='post_save_invalid_wxaccount_cache_value')
+
 
 
 class UserGroup(models.Model):

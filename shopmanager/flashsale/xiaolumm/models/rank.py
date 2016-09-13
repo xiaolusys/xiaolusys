@@ -98,7 +98,7 @@ class WeekRank(object):
             return
         this_week_time = WeekRank.this_week_time()
         cache_count = WEEK_RANK_REDIS.get_rank_count(cls, target)
-        condition = copy(cls.filters[target])
+        condition = copy(cls.filters()[target])
         condition['stat_time'] = this_week_time
         real_count = cls.objects.filter(**condition).count()
         if cache_count > real_count:
@@ -158,14 +158,6 @@ WEEK_RANK_REDIS = get_week_rank_redis()
 
 
 class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
-    filters = {
-        'total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
-        },
-        'duration_total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL,
-        }
-    }
     mama = models.ForeignKey(XiaoluMama)
     stat_time = models.DateTimeField(db_index=True, verbose_name=u'统计起始时间')
     total = models.IntegerField(default=0, verbose_name=u'收益总额', help_text=u'单位为分')
@@ -184,6 +176,17 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈团队收益周排名'
         verbose_name_plural = u'小鹿妈妈团队收益周排名列表'
+
+    @staticmethod
+    def filters():
+        return {
+            'total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+            },
+            'duration_total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL,
+            }
+        }
 
     @staticmethod
     def batch_generate(week_begin_time=None):
@@ -275,8 +278,8 @@ class WeekMamaCarryTotal(BaseMamaCarryTotal, WeekRank):
         if target not in target_fields:
             raise Exception('target field err')
         week_begin_time = week_begin_time if WeekRank.check_week_begin(week_begin_time) else WeekRank.this_week_time()
-        target_condition = {key: dict(WeekMamaCarryTotal.filters[key].items() + [('stat_time', week_begin_time)]) for key in
-                            WeekMamaCarryTotal.filters}
+        target_condition = {key: dict(WeekMamaCarryTotal.filters()[key].items() + [('stat_time', week_begin_time)]) for key in
+                            WeekMamaCarryTotal.filters()}
         WeekMamaCarryTotal.batch_generate(week_begin_time)
         i = 1
         rank = 1
@@ -324,8 +327,8 @@ def update_week_mama_carry_total_cache(sender, instance, created, **kwargs):
                     team.reset_mama_ids()
                 team.restat(team.mama_ids, instance.stat_time)
                 team.save()
-        for target in WeekMamaCarryTotal.filters:
-            condtion = copy(WeekMamaCarryTotal.filters[target])
+        for target in WeekMamaCarryTotal.filters():
+            condtion = copy(WeekMamaCarryTotal.filters()[target])
             condtion['pk'] = instance.pk
             if WeekMamaCarryTotal.objects.filter(**condtion).exists():
                 WEEK_RANK_REDIS.update_cache(instance, [target])
@@ -338,14 +341,6 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
     """
         周团队总额记录
     """
-    filters = {
-        'total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL
-        },
-        'duration_total': {
-            'agencylevel__gt': XiaoluMama.INNER_LEVEL
-        }
-    }
     mama = models.ForeignKey(XiaoluMama)
     stat_time = models.DateTimeField(db_index=True, verbose_name=u'统计起始时间')
     members = models.ManyToManyField(WeekMamaCarryTotal, related_name='teams')
@@ -365,6 +360,18 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
         app_label = 'xiaolumm'
         verbose_name = u'小鹿妈妈团队周收益排名'
         verbose_name_plural = u'小鹿妈妈团队周收益排名列表'
+
+    @staticmethod
+    def filters():
+        return {
+            'total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL
+            },
+            'duration_total': {
+                'agencylevel__gt': XiaoluMama.INNER_LEVEL
+            }
+        }
+
     @property
     def mama_ids(self):
         return self.member_ids

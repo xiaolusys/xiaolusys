@@ -265,6 +265,9 @@ class OrderListAdmin(admin.ModelAdmin):
             #       print p.oid
             # PurchaseRecord.objects.get(oid='xo16082657c021b1b8913').save()
             # PurchaseArrangement.objects.get(oid='xo16082657c021b1b8913').save()
+            #
+            # r1= {int(o['chichu_id']):o['total'] for o in OrderDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).values('chichu_id').annotate(total=Sum('buy_quantity'))}
+            # r2= {int(o['sku_id']):o['total'] for o in PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED, purchase_order_unikey='').values('sku_id').annotate(total=Sum('num'))}
             sku_ids = [pd.sku_id for pd in pds]
             psis = PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
                                                        purchase_order_unikey='')
@@ -277,8 +280,8 @@ class OrderListAdmin(admin.ModelAdmin):
                 break
             if orderlist.supplier.ware_by == WARE_THIRD and orderlist.stage < OrderList.STAGE_CHECKED:
                 from flashsale.finance.models import Bill
-                psis.update(purchase_order_unikey=orderlist.purchase_order_unikey)
-                orderlist.begin_third_package()
+                psi_oids = [p.oid for p in psis]
+                orderlist.begin_third_package(psi_oids)
                 Bill.create([orderlist], Bill.PAY, Bill.STATUS_PENDING, Bill.TRANSFER_PAY, 0, 0, orderlist.supplier,
                             user_id=request.user.id, receive_account='', receive_name='',
                             pay_taobao_link='', transcation_no='')
@@ -893,16 +896,7 @@ admin.site.register(InBound, InBoundAdmin)
 admin.site.register(InBoundDetail, InBoundDetailAdmin)
 admin.site.register(OrderDetailInBoundDetail, OrderDetailInBoundDetailAdmin)
 
-from flashsale.dinghuo.models_purchase import PurchaseRecord, PurchaseArrangement, PurchaseDetail, PurchaseOrder
-
-
-class PurchaseRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'package_sku_item_id', 'oid', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
-                    'sku_properties_name', 'request_num', 'book_num', 'status', 'modified', 'created', 'note')
-    search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id')
-
-
-admin.site.register(PurchaseRecord, PurchaseRecordAdmin)
+from flashsale.dinghuo.models_purchase import PurchaseArrangement, PurchaseDetail, PurchaseOrder
 
 
 class PurchaseArrangementAdmin(admin.ModelAdmin):

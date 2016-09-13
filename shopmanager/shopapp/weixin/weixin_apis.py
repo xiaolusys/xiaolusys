@@ -66,6 +66,7 @@ class WeiXinAPI(object):
     _native_url = "weixin://wxpay/bizpayurl"
     _deliver_notify_url = "/pay/delivernotify"
     _wxpub_id = None
+    _account_data = {}
 
     # 客服消息接口
     _send_custom_message_uri = '/cgi-bin/message/custom/send'
@@ -74,16 +75,20 @@ class WeiXinAPI(object):
         pass
 
     def setAccountId(self, wxpubId=None, appKey=None):
-
         assert wxpubId or appKey, 'wxpub_id or appKey need one'
+        account_valueslist = WeiXinAccount.getWeixinAccountValueList()
         if wxpubId:
-            self._wxpub_id = wxpubId
+            accountid_maps = dict([(wc['account_id'], wc) for wc in account_valueslist])
+            self._account_data = accountid_maps.get(wxpubId)
         else:
-            wx = WeiXinAccount.objects.filter(app_id=appKey)
-            if not wx.exists():
-                raise Exception('not found appkey(%s) account' % appKey)
-            self._account = wx[0]
-            self._wxpub_id = self._account.account_id
+            wxappkey_maps = dict([(wc['app_id'], wc) for wc in account_valueslist])
+            account_data = wxappkey_maps.get(appKey)
+            self._account_data = account_data
+
+        if not self._account_data:
+            raise Exception('not found wxpubId(%s) or appkey(%s) account' %(wxpubId, appKey))
+
+        self._wxpub_id = self._account_data.get('account_id')
 
     def getAccountId(self):
         if self._wx_account.isNone():
@@ -93,9 +98,8 @@ class WeiXinAPI(object):
     def getAccount(self):
         if not self._wxpub_id:
             self.setAccountId(appKey=settings.WEIXIN_APPID)
-        if hasattr(self, '_account') and self._account.account_id == self._wxpub_id:
-            return self._account
-        self._account = WeiXinAccount.objects.get(account_id=self._wxpub_id)
+        if not hasattr(self, '_account') or self._account.account_id != self._wxpub_id:
+            self._account = WeiXinAccount.objects.get(account_id=self._wxpub_id)
         return self._account
 
     _wx_account = property(getAccount)
@@ -106,9 +110,9 @@ class WeiXinAPI(object):
 
     def checkSignature(self, signature, timestamp, nonce):
 
-        if time.time() - int(timestamp) > 60:
+        if time.time() - int(timestamp) > 3600:
             return False
-        sign_array = ['%s' % i for i in [self._wx_account.token, timestamp, nonce]]
+        sign_array = ['%s' % i for i in [self._account_data.get('token'), timestamp, nonce]]
         sign_array.sort()
         sha1_value = hashlib.sha1(''.join(sign_array)).hexdigest()
         return sha1_value == signature
@@ -148,8 +152,7 @@ class WeiXinAPI(object):
         self._wx_account.access_token = content['access_token']
         self._wx_account.expired = datetime.datetime.now()
         self._wx_account.expires_in = content['expires_in']
-        update_model_fields(self._wx_account,
-                            update_fields=['access_token', 'expired', 'expired_in'])
+        self._wx_account.save(update_fields=['access_token', 'expired', 'expired_in'])
 
         return content['access_token']
 
@@ -157,7 +160,7 @@ class WeiXinAPI(object):
         """
         禁止刷新token, force_update参数无效
         """
-        return self._wx_account.access_token
+        return self._account_data.get('access_token')
 
     def getCustomerInfo(self, openid, lang='zh_CN'):
         return self.handleRequest(self._user_info_uri, {'openid': openid, 'lang': lang})
@@ -364,8 +367,7 @@ class WeiXinAPI(object):
 
         self._wx_account.js_ticket = content['ticket']
         self._wx_account.js_expired = datetime.datetime.now()
-        update_model_fields(self._wx_account,
-                            update_fields=['js_ticket', 'js_expired'])
+        self._wx_account.save(update_fields=['js_ticket', 'js_expired'])
 
         return content['ticket']
 

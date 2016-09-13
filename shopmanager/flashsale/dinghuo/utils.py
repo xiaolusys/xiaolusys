@@ -67,16 +67,6 @@ def gen_purchase_detail_unikey(pa):
     return "%s-%s" % (sku_id, pa.purchase_order_unikey)
 
 
-def gen_purchase_record_unikey(psi):
-    from flashsale.dinghuo.models_purchase import PurchaseRecord
-    #return "%s-%s" % (psi.oid, psi.num_of_purchase_try)
-    prev_unikey = "%s-%s" % (psi.oid, psi.num_of_purchase_try)
-    pr = PurchaseRecord.objects.filter(uni_key=prev_unikey).first()
-    if not pr:
-        return psi.oid
-    return prev_unikey
-
-
 def gen_purchase_order_unikey(pr):
     supplier = get_supplier(pr.sku_id)
     if not supplier:
