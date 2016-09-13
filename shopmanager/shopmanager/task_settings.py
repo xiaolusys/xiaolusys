@@ -679,13 +679,17 @@ LOGISTICS_ROUTES = {
         'queue': 'logistics',
         'routing_key': 'logistics.SaveWuliu_by_packetid',
     },
-    'flashsale.restpro.tasks.SaveReturnWuliu_by_packetid':{ #by huanzi 根据物流号和物流公司更新物流状态写入数据库
+    'flashsale.restpro.tasks.SaveReturnWuliu_by_packetid':{ #by huazi 根据物流号和物流公司更新物流状态写入数据库
         'queue':'logistics',
         'routing_key': 'logistics.SaveReturnWuliu_by_packetid',
     },
-    'flashsale.restpro.tasks.get_third_apidata_by_packetid_return':{  #by huanzi  调用第三方api 查得最新物流状态
+    'flashsale.restpro.tasks.get_third_apidata_by_packetid_return':{  #by huazi  调用第三方api 查得最新物流状态
         'queue':'logistics',
         'routing_key': 'logistics.get_third_apidata_by_packetid_return',
+    },
+    'flashsale.restpro.tasks.kdn_sub': {  # by huazi  调用kdn订阅接口
+        'queue': 'logistics',
+        'routing_key': 'logistics.kdn_sub',
     }
 }
 
@@ -1363,6 +1367,12 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时更新客户退货的物流信息': {                                          #by huazi
         'task': 'flashsale.restpro.tasks.update_all_return_logistics',
+        'schedule': crontab(minute="0", hour="6"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'定时更新订阅客户退货的物流信息通过快递鸟': {  # by huazi
+        'task': 'flashsale.restpro.tasks.update_all_return_logistics_bykdn',
         'schedule': crontab(minute="0", hour="6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}

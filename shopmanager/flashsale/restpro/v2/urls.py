@@ -28,6 +28,7 @@ v2_router.register(r'visitor', views.UniqueVisitorViewSet)
 v2_router.register(r'fans', views.XlmmFansViewSet)
 v2_router.register(r'dailystats', views.DailyStatsViewSet)
 v2_router.register(r'teambuy', teambuy.TeamBuyViewSet)
+v2_router.register(r'express', views.WuliuViewSet)
 
 from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2 import views
@@ -36,6 +37,7 @@ v2_router.register(r'usercoupons', views_coupon_new.UserCouponsViewSet)
 v2_router.register(r'cpntmpl', views_coupon_new.CouponTemplateViewSet)
 v2_router.register(r'sharecoupon', views_coupon_new.OrderShareCouponViewSet)
 v2_router.register(r'tmpsharecoupon', views_coupon_new.TmpShareCouponViewset)
+
 
 # v2_router.register(r'rank', views_rank.MamaCarryTotalViewSet)
 # v2_router.register(r'teamrank', views_rank.MamaTeamCarryTotalViewSet)
