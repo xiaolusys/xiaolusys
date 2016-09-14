@@ -42,23 +42,40 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         if firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_HEALTH):
             return redirect(reverse('items_v1:modelproduct-health') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
+        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_TRUNK):
+            return redirect(reverse('items_v1:modelproduct-cloth') + '?supplier_id=%s&saleproduct=%s' % (
+                supplier_id, saleproduct_id))
         elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(
-                (constants.CATEGORY_BAGS, constants.CATEGORY_MEIZUANG)):
+            (constants.CATEGORY_BAGS, constants.CATEGORY_MEIZUANG)):
             return redirect(reverse('items_v1:modelproduct-bags') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
         elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_MUYING):
             return redirect(reverse('items_v1:modelproduct-muying') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
         elif firstgrade_cat \
-                and not saleproduct.sale_category.cid.startswith(constants.CATEGORY_ACCESSOR) \
-                and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
+            and not saleproduct.sale_category.cid.startswith(constants.CATEGORY_ACCESSOR) \
+            and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
                                                         constants.CATEGORY_WEMON,
                                                         constants.CATEGORY_ACCESSORY)):
-            return redirect('/static/add_item.html?supplier_id=%s&saleproduct=%s' % (supplier_id, saleproduct_id))
+            return redirect(reverse('items_v1:modelproduct-cloth') + '?supplier_id=%s&saleproduct=%s' % (
+                supplier_id, saleproduct_id))
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
         }, template_name='items/add_item.html')
+
+    @list_route(methods=['get'])
+    def cloth(self, request, *args, **kwargs):
+        data = request.GET
+        supplier_id = data.get('supplier_id') or 0
+        saleproduct_id = data.get('saleproduct') or 0
+
+        return Response({
+            "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
+            "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
+        },
+            template_name='items/add_item_cloth.html'
+        )
 
     @list_route(methods=['get'])
     def health(self, request, *args, **kwargs):
