@@ -375,13 +375,11 @@ def task_update_group_awardcarry(relationship):
 
 
 
-def get_self_mama(unionid, pay_time):
-    if pay_time:
-        record = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, charge_time__lte=pay_time).first()
+def get_self_mama(unionid, created_time):
+    if created_time:
+        record = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, charge_time__lte=created_time).first()
         return record
-    
-    record = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).first()
-    return record
+    return None
 
 
 
@@ -394,7 +392,7 @@ def task_order_trigger(sale_order):
     customer = Customer.objects.get(id=customer_id)
     self_mama = None
     if customer.unionid:
-        self_mama = get_self_mama(customer.unionid, sale_order.pay_time)
+        self_mama = get_self_mama(customer.unionid, sale_order.created)
 
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
 
@@ -409,13 +407,13 @@ def task_order_trigger(sale_order):
             # check fan's relationship
             fans_records = XlmmFans.objects.filter(fans_cusid=customer_id, created__lt=sale_order.created).first()
             if fans_record:
-                mm_linkid_mama = XiaoluMama.objects.filter(id=fans_record.xlmm,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED, charge_time__lte=sale_order.pay_time).first()
+                mm_linkid_mama = XiaoluMama.objects.filter(id=fans_record.xlmm,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED, charge_time__lte=sale_order.created).first()
 
     if (not via_app) and (not mm_linkid_mama):
         # handle this case: order is not from app, and order does not have mm_linkid
         fans_record = XlmmFans.objects.filter(fans_cusid=customer_id, created__lt=sale_order.created).first()
         if fans_record:
-            mm_linkid_mama = XiaoluMama.objects.filter(id=fans_record.xlmm,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED, charge_time__lte=sale_order.pay_time).first()
+            mm_linkid_mama = XiaoluMama.objects.filter(id=fans_record.xlmm,status=XiaoluMama.EFFECT,charge_status=XiaoluMama.CHARGED, charge_time__lte=sale_order.created).first()
 
     if not mm_linkid_mama:
         return
