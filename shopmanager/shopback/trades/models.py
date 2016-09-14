@@ -1954,6 +1954,9 @@ class PackageSkuItem(BaseModel):
         """为了和历史上的purchase_record unikey保持一致"""
         return self.oid + '-1'
 
+    def is_canceled(self):
+        return self.assign_status == PackageSkuItem.CANCELED
+
     def is_booking_needed(self):
         return self.assign_status == PackageSkuItem.NOT_ASSIGNED
 
