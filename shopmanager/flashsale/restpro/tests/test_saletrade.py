@@ -138,7 +138,6 @@ class SaletradeTestCase(TestCase):
             'ufrom':'web',
         }
         logger.debug('charge before:%s'% post_data)
-
         response = self.client.post('/rest/v1/trades/shoppingcart_create',
                                     post_data,
                                    ACCEPT='application/json; q=0.01')

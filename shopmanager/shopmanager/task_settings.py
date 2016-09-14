@@ -48,7 +48,7 @@ CELERY_IMPORTS = (
 
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 # BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
-
+# BROKER_URL = 'amqp://fpcnm:139cnm@localhost:5672/myvhost'
 CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"  # "amqp"
 
 BROKER_POOL_LIMIT = 0
@@ -1478,8 +1478,18 @@ SHOP_APP_SCHEDULE = {
 
 }
 
+# nihao = {
+#     u'定时更新订阅客户退货的物流信息通过快递鸟': {  # by huazi
+#         'task': 'flashsale.restpro.tasks.update_all_return_logistics_bykdn',
+#         'schedule': crontab(),
+#         'args': (),
+#         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+#     }
+# }
 CELERYBEAT_SCHEDULE = {}
 
 CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
 
 CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
+
+# CELERYBEAT_SCHEDULE.update(nihao)

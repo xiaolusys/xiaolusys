@@ -27,7 +27,7 @@ def get_award_carry_num(num, referal_type):
     award_carry_array = award_carry_array188
     if referal_type == XiaoluMama.HALF:
         award_carry_array = award_carry_array99
-        
+
     for entry in award_carry_array:
         if num < entry[0]:
             break
@@ -35,7 +35,7 @@ def get_award_carry_num(num, referal_type):
 
     if idx == 1:
         logger.error("get_award_carry_num | num: %s, referal_type: %s" % (num, referal_type))
-    
+
     return award_carry_array[idx - 1][1]
 
 
