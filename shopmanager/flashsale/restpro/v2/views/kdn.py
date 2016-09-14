@@ -21,6 +21,7 @@ import datetime
 from flashsale.restpro import kdn_wuliu_extra
 from shopback.trades.models import TradeWuliu
 from flashsale.restpro import exp_map
+from ...tasks import kdn_sub
 logger = logging.getLogger(__name__)
 
 class KdnView(APIView):
@@ -34,7 +35,8 @@ class KdnView(APIView):
             return Response(kdn_wuliu_extra.format_content(tradewuliu.first().content))
         if len(tradewuliu) == 0:
             wuliu_info = {"expName":logistics_company,"expNo":out_sid}
-            kdn_wuliu_extra.kdn_subscription(**wuliu_info)
+            # kdn_wuliu_extra.kdn_subscription(**wuliu_info)
+            kdn_sub.delay(rid=None,expName=logistics_company,expNo=out_sid)
             return Response("物流信息暂未获得")
         if len(tradewuliu) > 1:
             for k,v in exp_map.iteritems():

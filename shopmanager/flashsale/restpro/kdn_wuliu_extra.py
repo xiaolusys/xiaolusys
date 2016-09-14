@@ -18,6 +18,8 @@ import functools
 import requests
 import datetime
 from exp_map import exp_map,reverse_map
+import logging
+logger = logging.getLogger(__name__)
 import simplejson
 
 #老版本物流查询接口的方法
@@ -200,6 +202,7 @@ def write_traces(kwargs):
     }
     tradewuliu = TradeWuliu.objects.filter(logistics_company=write_info['logistics_company'],
                                            out_sid=write_info['out_sid'])
+    logger.warn("准备写入数据库了")
     if tradewuliu.first() is None:
         TradeWuliu.objects.create(**write_info)
     else:
@@ -220,14 +223,19 @@ def format_content(content):
 @add_requestData                                  #把expCode和expNo进行url编码
 @add_DataSign                                     #把请求数据加入API_key进行数字签名
 def kdn_subscription(*args,**kwargs):
+    logging.warn(kwargs)
     result = requests.post("http://api.kdniao.cc/api/dist",data=kwargs).text
     result = json.loads(result.encode('UTF-8'))
     if result["Success"] == True:
+        logging.warn("订阅成功")
         result.update({"info":"订阅成功"})
         if result['Traces']:
+
             write_traces(json.dumps(result))
     else:
         result.update({"info":"订阅失败"})
+        logging.warn("订阅失败")
+        logging.warn(result['Reason'])
     return result
 
 
