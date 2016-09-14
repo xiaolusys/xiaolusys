@@ -218,6 +218,8 @@ def get_third_apidata_by_packetid_return(rid,packetid, company_code):   #by huaz
 
 @task()
 def kdn_sub(rid, expName, expNo):
+    logging.warn(expNo)
+    logging.warn("开始订阅了")
     exp_info = {"expName": expName, "expNo": expNo}
     kdn_subscription(**exp_info)
 
@@ -360,8 +362,8 @@ def update_all_return_logistics_bykdn():
                     company_id = LogisticsCompany.objects.get(name=sim[0])
             if company_id and i.sid:
                 # logging.warn("物流公司代码和物流单号都存在")
-                kdn_sub(i.id,i.company_name,company_id.express_key)
-                logging.warn("物流公司express_key%s,物流单号%s" % (company_id.express_key,i.sid))
+                kdn_sub(i.id,i.company_name,i.sid)
+                logging.warn("物流公司%s,物流单号%s" % (i.company_name,i.sid))
     logger.warn('update_all_return_logistics')
 
 @task()
