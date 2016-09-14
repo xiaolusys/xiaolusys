@@ -73,7 +73,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-        },
+            },
             template_name='items/add_item_cloth.html'
         )
 
@@ -86,7 +86,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-        },
+            },
             template_name='items/add_item_health.html'
         )
 
@@ -99,7 +99,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-        },
+            },
             template_name='items/add_item_bags.html'
         )
 
@@ -112,7 +112,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-        },
+            },
             template_name='items/add_item_muying.html'
         )
 
@@ -125,7 +125,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-        },
+            },
             template_name='items/add_item_homehold.html'
         )
 

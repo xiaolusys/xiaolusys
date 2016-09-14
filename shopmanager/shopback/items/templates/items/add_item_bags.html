@@ -101,17 +101,21 @@
         </div>
         <div class="panel-body">
             <div class="row">
+                {% if saleproduct.sale_category.cid|slice:":1" == '6' %}
                 <div class="form-group col-xs-12">
                     <label for="material">商品材质:</label>
                     <input type="text" class="form-control" id="material" name="property.material" placeholder="...">
                 </div>
+                {% endif %}
             </div>
             <div class="row">
+                {% if saleproduct.sale_category.cid|slice:":1" == '6' %}
                 <div class="form-group col-xs-6">
                     <label for="fashion">流行元素:</label>
                     <input type="text" class="form-control" id="fashion" name="property.fashion"  placeholder="...">
                 </div>
-                {% if saleproduct.sale_category.id == 85 %}
+                {% endif %}
+                {% if saleproduct.sale_category.cid == '6-85' %}
                 <div class="form-group col-xs-6">
                     <label for="shoulder">肩带样式:</label>
                     <input type="text" class="form-control" id="shoulder" name="property.shoulder"  placeholder="...">
