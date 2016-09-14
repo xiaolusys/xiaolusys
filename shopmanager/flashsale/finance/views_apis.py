@@ -331,7 +331,7 @@ class MamaOrderCarryStatApiView(APIView):
         cursor = connection.cursor()
         cursor.execute(sql)
         raw = cursor.fetchall()
-        results = []
+        items_data = []
         total_count = 0
         total_carry_num = 0
         total_order_value = 0
@@ -339,20 +339,22 @@ class MamaOrderCarryStatApiView(APIView):
             total_count += i[0]
             total_carry_num += i[1]
             total_order_value += i[2]
-            results.append({
+            items_data.append({
                 'count': i[0],
                 'sum_carry_num': i[1],
                 'sum_order_value': i[2]
             })
-        return Response({
-            'code': 0,
-            'info': 'success',
-            'desc': u'特卖商城小鹿妈妈订单占比信息',
-            'aggregate': {
-                'total_count': total_count,
-                'total_carry_num': total_carry_num,
-                'total_order_value': total_order_value
-            },
-            'sql': sql,
-            'results': results
-        })
+        return Response(
+            {
+                'code': 0,
+                'info': 'success',
+                'desc': u'特卖商城小鹿妈妈订单占比信息',
+                'aggregate_data': {
+                    'total_count': total_count,
+                    'total_carry_num': total_carry_num,
+                    'total_order_value': total_order_value
+                },
+                'sql': sql,
+                'items_data': items_data
+            }
+        )
