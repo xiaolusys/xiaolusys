@@ -96,6 +96,7 @@ class WeekRank(object):
     def check_update_cache(cls, target='total'):
         if WEEK_RANK_REDIS.is_locked(cls.__name__ + '-' + target):
             return
+        WEEK_RANK_REDIS.lock(cls.__name__ + '-' + target)
         this_week_time = WeekRank.this_week_time()
         cache_count = WEEK_RANK_REDIS.get_rank_count(cls, target)
         condition = copy(cls.filters()[target])
@@ -103,7 +104,7 @@ class WeekRank(object):
         real_count = cls.objects.filter(**condition).count()
         if cache_count > real_count:
             ori_cache_mama_ids = WEEK_RANK_REDIS.get_rank_list(cls, target, 0, -1)
-            real_ids = [c['mama_id'] for c in cls.objects.filter(**condition).values('mama_id')]
+            real_ids = [str(c['mama_id']) for c in cls.objects.filter(**condition).values('mama_id')]
             ids = set(ori_cache_mama_ids) - set(real_ids)
             id_str = len(ids) < 50 and ','.join([str(i) for i in list(ids)]) or 'count=%s'%len(ids)
             logger.error('cache_count big than real_count' + '|' + cls.__name__ + '|' + target + ':' + id_str)
@@ -116,7 +117,6 @@ class WeekRank(object):
             WEEK_RANK_REDIS.batch_update_cache(res, cls, target)
             if cache_count < real_count:
                 logger.error('some ' + cls.__name__ + '|' + target + '|' + ' cache has missed but now repaird:' + ','.join(res.keys()))
-        WEEK_RANK_REDIS.lock(cls.__name__ + '-' + target)
 
     @classmethod
     def get_duration_ranking_list(cls, week_begin_time=None):
