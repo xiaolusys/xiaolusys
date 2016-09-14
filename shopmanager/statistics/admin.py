@@ -146,7 +146,8 @@ class ModelStatsAdmin(admin.ModelAdmin):
     list_per_page = 50
     list_filter = (
         "upshelf_time",
-        "offshelf_time"
+        "offshelf_time",
+        "category"
     )
     search_fields = ['model_id', 'sale_product', "model_name", 'supplier', 'supplier_name']
 
