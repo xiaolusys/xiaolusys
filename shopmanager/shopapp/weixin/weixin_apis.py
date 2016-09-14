@@ -220,7 +220,7 @@ class WeiXinAPI(object):
         """
         cache_key = '%s-%s-%s'%(__file__, action_name.lower(), scene_id)
         cache_value = cache.get(cache_key)
-        if cache_value:
+        if not cache_value:
             params = {"action_name": str(action_name).upper(),
                       "action_info": {"scene": {"scene_id": scene_id}}}
             if action_name.upper() == 'QR_SCENE':

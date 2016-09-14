@@ -1063,6 +1063,8 @@ class SaleOrder(PayBaseModel):
             from shopback.trades.models import PackageSkuItem
             self._package_sku_ = PackageSkuItem.objects.filter(sale_order_id=self.id).first()
         return self._package_sku_
+
+
 def order_trigger(sender, instance, created, raw, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
