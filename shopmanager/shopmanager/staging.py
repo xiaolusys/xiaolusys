@@ -195,7 +195,7 @@ LOGGING = {
             'formatter': 'json'
         },
         'sentry': {
-            'level': 'ERROR',
+            'level': 'INFO',
             'class': 'raven.contrib.django.handlers.SentryHandler'
         },
         'console': {
