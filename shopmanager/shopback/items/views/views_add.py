@@ -93,7 +93,7 @@ class AddItemView(generics.ListCreateAPIView):
 
         extras = default_modelproduct_extras_tpl()
         extras.setdefault('properties', {})
-        for key in ('note', 'wash_instroduce', 'material', 'all_colors'):
+        for key in ('note', 'wash_instroduce', 'material', 'all_colors', 'fashion'):
             value = content.get(key)
             if value:
                 if key == 'all_colors': key='color'

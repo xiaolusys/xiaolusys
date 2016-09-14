@@ -7,11 +7,14 @@ from django.db.models import F
 from django.conf import settings
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
+
 from rest_framework import exceptions
 from rest_framework import viewsets, permissions, authentication
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+
 from shopback.items.models import Product
+from flashsale.restpro.utils import save_pro_info
 from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from flashsale.pay.models import Customer, CustomerShops, CuShopPros
