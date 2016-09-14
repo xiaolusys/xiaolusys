@@ -313,3 +313,46 @@ class FinanceStockApiView(APIView):
                          'results': results})
 
 
+class MamaOrderCarryStatApiView(APIView):
+    """
+    小鹿妈妈订单数占比: 状态在 预计 or 已经确定 订单类型 包含商城直接订单 和 app直接订单记录类型 不包含 下属订单类型
+    小鹿妈妈带来的单量 carry_num:提成金额　　order_value：订单金额
+    """
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    sql = "SELECT COUNT(*), SUM(carry_num / 100), SUM(order_value / 100), date_field FROM " \
+          "flashsale_xlmm_order_carry WHERE date_field >= '{0}' AND date_field <= '{1}' " \
+          "AND status in( 1, 2) AND mama_id > 140 and carry_type<3 GROUP BY date_field;"
+
+    def get(self, request):
+        date_from, date_to, date_from_time, date_to_time = date_handler(request)
+        sql = self.sql.format(date_from, date_to)
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        raw = cursor.fetchall()
+        results = []
+        total_count = 0
+        total_carry_num = 0
+        total_order_value = 0
+        for i in raw:
+            total_count += i[0]
+            total_carry_num += i[1]
+            total_order_value += i[2]
+            results.append({
+                'count': i[0],
+                'sum_carry_num': i[1],
+                'sum_order_value': i[2]
+            })
+        return Response({
+            'code': 0,
+            'info': 'success',
+            'desc': u'特卖商城小鹿妈妈订单占比信息',
+            'aggregate': {
+                'total_count': total_count,
+                'total_carry_num': total_carry_num,
+                'total_order_value': total_order_value
+            },
+            'sql': sql,
+            'results': results
+        })

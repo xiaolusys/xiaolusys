@@ -13,6 +13,7 @@ router_urls += ([
     url(r'^deposit_stats$', views_apis.FinanceDepositApiView.as_view(), name='v1-finance-deposit-stats'),
     url(r'^cost_stats$', views_apis.FinanceCostApiView.as_view(), name='v1-finance-cost-stats'),
     url(r'^stock_stats$', views_apis.FinanceStockApiView.as_view(), name='v1-finance-stock-stats'),
+    url(r'^mama_order_carry_stats$', views_apis.MamaOrderCarryStatApiView.as_view(), name='v1-finance-carry-stats'),
 ])
 
 urlpatterns = patterns('',
