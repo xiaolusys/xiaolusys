@@ -407,15 +407,15 @@ def task_order_trigger(sale_order):
         # 2) if customer is coming from a mama's share link;
         if via_app:
             # check fan's relationship
-            fans_records = XlmmFans.objects.filter(fans_cusid=customer_id, created__lt=sale_order.created)
-            if fans_records.count() > 0:
-                mama_id = fans_records[0].xlmm
-                mm_linkid_mama = XiaoluMama.objects.get(id=mama_id)
+            fans_records = XlmmFans.objects.filter(fans_cusid=customer_id, created__lt=sale_order.created).first()
+            if fans_record:
+                mm_linkid_mama = XiaoluMama.objects.filter(id=fans_record.xlmm, status=XiaoluMama.EFFECT).first()
 
-    if not mm_linkid_mama:
+    if (not via_app) and (not mm_linkid_mama):
+        # handle this case: order is not from app, and order does not have mm_linkid
         fans_record = XlmmFans.objects.filter(fans_cusid=customer_id, created__lt=sale_order.created).first()
         if fans_record:
-            mm_linkid_mama = XiaoluMama.objects.get(id=fans_record.xlmm)
+            mm_linkid_mama = XiaoluMama.objects.filter(id=fans_record.xlmm, status=XiaoluMama.EFFECT).first()
 
     if not mm_linkid_mama:
         return
