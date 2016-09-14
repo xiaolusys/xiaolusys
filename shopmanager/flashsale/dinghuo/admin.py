@@ -271,7 +271,6 @@ class OrderListAdmin(admin.ModelAdmin):
             sku_ids = [pd.sku_id for pd in pds]
             psis = PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
                                                        purchase_order_unikey='')
-            psis_total = psis.aggregate(total=Sum('num')).get('total') or 0
             ods_res = OrderDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).aggregate(
                 total=Sum('buy_quantity'))
             ods_total = ods_res['total'] or 0

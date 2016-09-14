@@ -56,6 +56,19 @@ class PurchaseOrder(BaseModel):
         cnt = PurchaseOrder.objects.filter(supplier_id=supplier.id).exclude(status=PurchaseOrder.OPEN).count()
         return '%s-%s' % (supplier.id, cnt + 1)
 
+    @property
+    def details(self):
+        return PurchaseDetail.objects.filter(purchase_order_unikey=self.uni_key)
+
+    @property
+    def arrangements(self):
+        return PurchaseArrangement.objects.filter(purchase_order_unikey=self.uni_key)
+
+    @property
+    def skuitems(self):
+        from shopback.trades.models import PackageSkuItem
+        return PackageSkuItem.objects.filter(purchase_order_unikey=self.uni_key)
+
 
 class PurchaseDetail(BaseModel):
     uni_key = models.CharField(max_length=32, unique=True, verbose_name=u'唯一id ')  # sku_id+purchase_order_unikey
@@ -96,6 +109,10 @@ class PurchaseDetail(BaseModel):
     def total_price_display(self):
         total = self.unit_price * self.book_num * 0.01
         return float('%.2f' % total)
+
+    @property
+    def purchase_order(self):
+        return PurchaseOrder.objects.get(uni_key=self.purchase_order_unikey)
 
     def has_extra(self):
         return self.status == PurchaseOrder.BOOKED and self.book_num > self.need_num
@@ -161,7 +178,7 @@ class PurchaseArrangement(BaseModel):
 
     @property
     def purchase_order(self):
-        return PurchaseOrder.objects.get(unikey=self.purchase_order_unikey)
+        return PurchaseOrder.objects.get(uni_key=self.purchase_order_unikey)
 
     @staticmethod
     def create(psi, purchase_order_unikey=None):
