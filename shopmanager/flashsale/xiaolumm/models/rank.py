@@ -116,7 +116,8 @@ class WeekRank(object):
             res = {str(i.mama_id): getattr(i, target) for i in cls.objects.filter(**condition).exclude(mama_id__in=cache_mama_ids)}
             WEEK_RANK_REDIS.batch_update_cache(res, cls, target)
             if cache_count < real_count:
-                logger.error('some ' + cls.__name__ + '|' + target + '|' + ' cache has missed but now repaird:' + ','.join(res.keys()))
+                id_str = len(res) < 50 and ','.join(res.keys()) or 'count=%s'%len(res)
+                logger.error('some ' + cls.__name__ + '|' + target + '|' + ' cache has missed but now repaird:' + id_str)
 
     @classmethod
     def get_duration_ranking_list(cls, week_begin_time=None):
