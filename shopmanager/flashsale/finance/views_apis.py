@@ -342,7 +342,8 @@ class MamaOrderCarryStatApiView(APIView):
             items_data.append({
                 'count': i[0],
                 'sum_carry_num': i[1],
-                'sum_order_value': i[2]
+                'sum_order_value': i[2],
+                'date': i[3]
             })
         return Response(
             {
