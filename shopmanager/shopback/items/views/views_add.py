@@ -45,8 +45,7 @@ class AddItemView(generics.ListCreateAPIView):
 
     # @transaction.atomic
     def post(self, request, *args, **kwargs):
-        """ 新增库存商品　新增款式
-        """
+        """ 新增库存商品　新增款式 """
         content = request.data
         user = request.user
 
@@ -61,7 +60,7 @@ class AddItemView(generics.ListCreateAPIView):
         saleproduct_id = content.get("saleproduct", "")
         saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
         if not saleproduct:
-            return Response({"result": "选品ID错误"})
+            return Response({"result": u"选品ID错误"})
         supplier = saleproduct.sale_supplier.id
         category_item = ProductCategory.objects.get(cid=category)
         category_maps = {

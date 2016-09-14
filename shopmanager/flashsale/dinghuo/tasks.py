@@ -1571,8 +1571,8 @@ def task_packageskuitem_update_purchase_arrangement(psi):
     pa = PurchaseArrangement.objects.filter(oid=psi.oid).first()
     if pa:
         if not pa.initial_book:
-            if pa.status == PurchaseOrder.CANCELED and psi.is_booking_needed():
-                if pa.status == PurchaseOrder.CANCELED and pa.purchase_order.status in [PurchaseOrder.BOOKED, PurchaseOrder.FINISHED]:
+            if pa.status == PurchaseArrangement.CANCEL and psi.is_booking_needed():
+                if pa.status == PurchaseArrangement.CANCEL and pa.purchase_order.status in [PurchaseOrder.BOOKED, PurchaseOrder.FINISHED]:
                     pa_new_uni_key = PurchaseOrder.gen_purchase_order_unikey(psi)
                     pa.purchase_order_unikey = pa_new_uni_key
                     pa.uni_key = PurchaseArrangement.gen_purchase_arrangement_unikey(pa_new_uni_key, psi.get_purchase_uni_key())
