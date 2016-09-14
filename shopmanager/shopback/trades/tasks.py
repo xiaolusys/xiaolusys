@@ -6,6 +6,7 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q, Sum, Count, F
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade, Order
@@ -985,6 +986,7 @@ def task_set_sale_order(instance):
 
 
 @task()
+@transaction.atomic
 def task_update_package_order(instance):
     if instance.assign_status == PackageSkuItem.ASSIGNED:
         if not instance.package_order_id:
