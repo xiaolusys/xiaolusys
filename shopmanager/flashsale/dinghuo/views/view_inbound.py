@@ -396,7 +396,7 @@ class InBoundViewSet(viewsets.GenericViewSet):
                 record.save()
 
         if orderlist_ids:
-            self.update_orderlist(request, list(orderlist_ids))
+            inbound.update_orderlist(request, list(orderlist_ids))
         if outer_ids:
             releaseProductTradesTask.delay(list(outer_ids))
         inbound.status = InBound.INVALID
