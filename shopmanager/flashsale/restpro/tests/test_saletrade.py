@@ -143,6 +143,7 @@ class SaletradeTestCase(TestCase):
                                     post_data,
                                    ACCEPT='application/json; q=0.01')
         self.assertEqual(response.status_code, 200)
+        logger.info('err testShoppingcartAlipayCharge_V1:' + response.content)
         data = json.loads(response.content)
         self.assertEqual(data['channel'],channel)
         self.assertEqual(data['amount'], int(post_data['payment'] * 100))
