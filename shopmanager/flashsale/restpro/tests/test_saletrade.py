@@ -138,12 +138,12 @@ class SaletradeTestCase(TestCase):
             'ufrom':'web',
         }
         logger.debug('charge before:%s'% post_data)
-
+        logger.error('err testShoppingcartAlipayCharge_V1:111111')
         response = self.client.post('/rest/v1/trades/shoppingcart_create',
                                     post_data,
                                    ACCEPT='application/json; q=0.01')
         self.assertEqual(response.status_code, 200)
-        logger.info('err testShoppingcartAlipayCharge_V1:' + response.content)
+        logger.error('err testShoppingcartAlipayCharge_V1:' + response.content)
         data = json.loads(response.content)
         self.assertEqual(data['channel'],channel)
         self.assertEqual(data['amount'], int(post_data['payment'] * 100))
