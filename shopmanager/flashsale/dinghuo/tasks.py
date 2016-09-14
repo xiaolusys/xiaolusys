@@ -1578,7 +1578,7 @@ def task_packageskuitem_update_purchase_arrangement(psi):
                     pa.uni_key = PurchaseArrangement.gen_purchase_arrangement_unikey(pa_new_uni_key, psi.get_purchase_uni_key())
                 pa.status = PurchaseArrangement.EFFECT
                 pa.save()
-            elif pa.status == PurchaseArrangement.EFFECT and psi.is_booking_assigned():
+            elif pa.status == PurchaseArrangement.EFFECT and (psi.is_booking_assigned() or psi.is_canceled()):
                 pa.status = PurchaseArrangement.CANCEL
                 pa.save()
     else:
