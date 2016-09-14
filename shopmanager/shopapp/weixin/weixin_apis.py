@@ -7,6 +7,7 @@ import urllib
 import urllib2
 
 from django.conf import settings
+from django.core.cache import cache
 
 from shopapp.weixin.models import WeiXinAccount
 from common.utils import (
@@ -217,15 +218,18 @@ class WeiXinAPI(object):
         """
         action_name: QR_SCENE为临时,QR_LIMIT_SCENE为永久,QR_LIMIT_STR_SCENE为永久的字符串参数值；
         """
-        params = {"action_name": str(action_name).upper(),
-                  "action_info": {"scene": {"scene_id": scene_id}}}
-
-        if action_name.upper() == 'QR_SCENE':
-            params.update(expire_seconds=expire_seconds)
-
-        return self.handleRequest(self._create_qrcode_uri,
+        cache_key = '%s-%s-%s'%(__file__, action_name.lower(), scene_id)
+        cache_value = cache.get(cache_key)
+        if cache_value:
+            params = {"action_name": str(action_name).upper(),
+                      "action_info": {"scene": {"scene_id": scene_id}}}
+            if action_name.upper() == 'QR_SCENE':
+                params.update(expire_seconds=expire_seconds)
+            cache_value = self.handleRequest(self._create_qrcode_uri,
                                   params=json.dumps(params),
                                   method='POST')
+            cache.set(cache_key, cache_value, 7 * 24 * 3600)
+        return cache_value
 
     def genQRcodeAccesssUrl(self, ticket):
         return self._get_qrcode_template_url % ticket

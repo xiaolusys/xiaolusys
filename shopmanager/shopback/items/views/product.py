@@ -42,7 +42,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         if firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_HEALTH):
             return redirect(reverse('items_v1:modelproduct-health') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
-        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_TRUNK):
+        elif saleproduct.sale_category and saleproduct.sale_category.cid.startswith(constants.CATEGORY_TRUNK):
             return redirect(reverse('items_v1:modelproduct-cloth') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
         elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(

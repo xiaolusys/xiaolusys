@@ -10,12 +10,15 @@ from core.models import BaseModel
 from shopback.items.models import ProductSku, Product
 from supplychain.supplier.models import SaleSupplier
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 def gen_purchase_order_group_key(order_ids):
     sorted_ids = [int(s) for s in order_ids]
     sorted_ids.sort()
-    return '-%s-'%('-'.join([str(s) for s in sorted_ids]))
+    return '-%s-' % ('-'.join([str(s) for s in sorted_ids]))
+
 
 class OrderList(models.Model):
     # 订单状态
@@ -183,7 +186,7 @@ class OrderList(models.Model):
                      (STAGE_COMPLETED, u'完成'),
                      (STAGE_DELETED, u'删除'))
 
-    STAGING_STAGES = [STAGE_CHECKED, STAGE_PAY, STAGE_RECEIVE] # 待处理状态
+    STAGING_STAGES = [STAGE_CHECKED, STAGE_PAY, STAGE_RECEIVE]  # 待处理状态
     # 改进原状态一点小争议和妥协造成的状态字段冗余 TODO@hy
     stage = models.IntegerField(db_index=True, choices=STAGE_CHOICES, default=0, verbose_name=u'进度')
     # 冗余字段 避免过多查询
@@ -240,7 +243,7 @@ class OrderList(models.Model):
 
     def is_booked(self):
         return self.stage not in [OrderList.STAGE_DRAFT, OrderList.STAGE_COMPLETED, OrderList.STAGE_DELETED,
-                              OrderList.STAGE_STATE]
+                                  OrderList.STAGE_STATE]
 
     def is_finished(self):
         return self.stage in [OrderList.STAGE_STATE, OrderList.STAGE_COMPLETED]
@@ -353,7 +356,6 @@ class OrderList(models.Model):
             od.save()
         self.set_stage_state()
         self.purchase_order.book()
-
 
     def get_related_inbounds_out_stock_cnt(self):
         return sum([d.out_stock_num for d in self.related_out_stock_inbound_details])
@@ -484,11 +486,10 @@ class OrderList(models.Model):
 
     def get_bills(self):
         from flashsale.finance.models import BillRelation
-        br = BillRelation.objects.filter(object_id=self.id, type__in=[1,2])
+        br = BillRelation.objects.filter(object_id=self.id, type__in=[1, 2])
         bill = [i.bill for i in br]
         if bill:
             return bill
-
 
     def update_stage(self):
         if self.stage == OrderList.STAGE_RECEIVE:
@@ -507,6 +508,25 @@ class OrderList(models.Model):
             elif change:
                 self.save()
 
+    def check_by_package_skuitem(self):
+        from shopback.trades.models import PackageSkuItem
+        from flashsale.dinghuo.models_purchase import PurchaseDetail
+        pds = PurchaseDetail.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
+        sku_ids = [pd.sku_id for pd in pds]
+        psis = PackageSkuItem.objects.filter(sku_id__in=sku_ids, assign_status=PackageSkuItem.NOT_ASSIGNED,
+                                             purchase_order_unikey='')
+        sku_nums = {i['sku_id']: i['total'] for i in psis.values('sku_id').annotate(total=Sum('num'))}
+        err_skus = []
+        for sku_id in sku_nums:
+            od = self.order_list.filter(chichu_id=str(sku_id)).first()
+            order_num = od.buy_quantity if od else 0
+            print sku_id, order_num, sku_nums[sku_id]
+            if order_num != sku_nums[sku_id]:
+                err_skus.append(sku_id)
+        extra_ods = self.order_list.filter(buy_quantity__gt=0).exclude(chichu_id__in=[str(k) for k in sku_nums])
+        err_skus.extend([int(od.chichu_id) for od in extra_ods])
+        return err_skus
+
     @classmethod
     def gen_group_key(cls, orderids):
         return gen_purchase_order_group_key(orderids)
@@ -517,6 +537,7 @@ def check_with_purchase_order(sender, instance, created, **kwargs):
     if not instance.order_group_key:
         instance.order_group_key = '-%s-' % instance.id
         instance.save(update_fields=['order_group_key'])
+
 
 post_save.connect(
     check_with_purchase_order,
@@ -583,6 +604,7 @@ def update_purchaseorder_status(sender, instance, created, **kwargs):
         else:
             task_update_purchasearrangement_status.delay(po)
 
+
 post_save.connect(update_purchaseorder_status, sender=OrderList, dispatch_uid='post_save_update_purchaseorder_status')
 
 
@@ -602,7 +624,7 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
     # update_model_fields(instance, update_fields=['sys_status'])
 
     if instance.stage != OrderList.STAGE_DRAFT:
-        logger.info('orderlist update forecastinbound: %s'% instance)
+        logger.info('orderlist update forecastinbound: %s' % instance)
         # if the orderlist purchase confirm, then create forecast inbound
         from flashsale.forecast.apis import api_create_or_update_forecastinbound_by_orderlist
         try:
@@ -611,12 +633,13 @@ def orderlist_create_forecast_inbound(sender, instance, raw, **kwargs):
         except Exception, exc:
             logger.error('update forecast inbound:%s' % exc.message, exc_info=True)
 
-    #refresh forecast stats
+    # refresh forecast stats
     from flashsale.forecast.models import ForecastInbound
     from flashsale.forecast import tasks
     forecast_inbounds = ForecastInbound.objects.filter(relate_order_set__in=[instance.id])
     for forecast in forecast_inbounds:
         tasks.task_forecast_update_stats_data.delay(forecast.id)
+
 
 post_save.connect(
     orderlist_create_forecast_inbound,
@@ -702,6 +725,7 @@ class OrderDetail(models.Model):
             return u'缺货'
         if self.buy_quantity < self.arrival_quantity:
             return u'超额'
+
 
 def update_productskustats_inbound_quantity(sender, instance, created,
                                             **kwargs):
