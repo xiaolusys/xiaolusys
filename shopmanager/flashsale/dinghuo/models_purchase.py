@@ -44,8 +44,8 @@ class PurchaseOrder(BaseModel):
         PurchaseDetail.objects.filter(purchase_order_unikey=self.uni_key).update(status=PurchaseOrder.BOOKED)
         pas = PurchaseArrangement.objects.filter(purchase_order_unikey=self.uni_key, status=PurchaseArrangement.EFFECT)
         oids = [p.oid for p in pas]
-        pas.update(purchase_order_status=self.status, initial_book=True, assign_status=1)
-        PackageSkuItem.objects.filter(oid__in=oids).update(purchase_order_unikey=self.uni_key, book_time=datetime.datetime.now())
+        pas.update(purchase_order_status=self.status, initial_book=True)
+        PackageSkuItem.objects.filter(oid__in=oids).update(purchase_order_unikey=self.uni_key, assign_status=1, book_time=datetime.datetime.now())
 
     @staticmethod
     def gen_purchase_order_unikey(psi):
