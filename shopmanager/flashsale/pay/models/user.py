@@ -300,17 +300,20 @@ class Customer(BaseModel):
 # post_save.connect(release_coupon_for_register, dispatch_uid='release_coupon_for_register', sender=Customer)
 
 
-def update_weixinuserinfo(sender, instance, created, **kwargs):
-    if not instance.unionid:
-        return
-    from flashsale.pay.tasks import task_customer_update_weixinuserinfo
-    task_customer_update_weixinuserinfo.delay(instance)
-
-post_save.connect(update_weixinuserinfo, sender=Customer,
-                  dispatch_uid='post_save_update_weixinuserinfo')
+#def update_weixinuserinfo(sender, instance, created, **kwargs):
+#    if not instance.unionid:
+#        return
+#    from flashsale.pay.tasks import task_customer_update_weixinuserinfo
+#    task_customer_update_weixinuserinfo.delay(instance)
+#
+#post_save.connect(update_weixinuserinfo, sender=Customer,
+#                  dispatch_uid='post_save_update_weixinuserinfo')
 
 
 def sync_xlmm_fans_nick_thumbnail(sender, instance, created, **kwargs):
+    if not created:
+        return
+    
     from flashsale.pay.tasks import task_sync_xlmm_fans_nick_thumbnail
     task_sync_xlmm_fans_nick_thumbnail.delay(instance)
 
@@ -319,6 +322,8 @@ post_save.connect(sync_xlmm_fans_nick_thumbnail, sender=Customer,
 
 
 def sync_xlmm_mobile_by_customer(sender, instance, created, **kwargs):
+    if not created:
+        return
     from flashsale.pay.tasks import task_sync_xlmm_mobile_by_customer
     task_sync_xlmm_mobile_by_customer.delay(instance)
 
