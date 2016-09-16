@@ -34,7 +34,7 @@ class SupplyChainDataStats(models.Model):
 class SupplyChainStatsOrder(models.Model):
     product_id = models.CharField(max_length=32, verbose_name=u'商品id')
     outer_sku_id = models.CharField(max_length=32, verbose_name=u'规格外部id')
-    sale_time = models.DateField(verbose_name=u'统计时间')
+    sale_time = models.DateField(db_index=True, verbose_name=u'统计时间')
     shelve_time = models.DateField(verbose_name=u'上架时间')
     ding_huo_num = models.IntegerField(default=0, verbose_name=u'订货数量')
     sale_num = models.IntegerField(default=0, verbose_name=u'销售数量')

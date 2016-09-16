@@ -39,8 +39,7 @@ def task_forecast_update_stats_data(finbound_id):
         stats.lack_num = max(0, forecast_inbound.total_forecast_num - forecast_inbound.total_arrival_num)
         # TODO@meron , real lack maybe summary all details lacknum, not total num
 
-
-        purchase_details = services.get_purchaseorder_detail_data(purchase_orders)
+        purchase_details = services.get_purchaseorder_detail_data(list(purchase_orders))
         purchase_details_dict = dict([(int(o['chichu_id']), o) for o in purchase_details])
 
         stats.purchaser = purchase_order.get_buyer_name()
