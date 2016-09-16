@@ -1382,24 +1382,24 @@ post_save.connect(update_mama_relationship,
 #                  sender=PotentialMama, dispatch_uid='post_save_update_mamafortune_invite_trial_num')
 
 
-def send_invite_trial_award(sender, instance, created, **kwargs):
-    if not created:
-        return
-    from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_send_activate_award.delay(instance)
-
-post_save.connect(send_invite_trial_award,
-                  sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_award')
-
-
-def send_invite_trial_weixin_push(sender, instance, created, **kwargs):
-    if not created:
-        return
-    from flashsale.xiaolumm import tasks_mama_push
-    tasks_mama_push.task_weixin_push_invite_trial.delay(instance)
-
-post_save.connect(send_invite_trial_weixin_push,
-                  sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_weixin_push')
+#def send_invite_trial_award(sender, instance, created, **kwargs):
+#    if not created:
+#        return
+#    from flashsale.xiaolumm import tasks_mama_fortune
+#    tasks_mama_fortune.task_send_activate_award.delay(instance)
+#
+#post_save.connect(send_invite_trial_award,
+#                  sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_award')
+#
+#
+#def send_invite_trial_weixin_push(sender, instance, created, **kwargs):
+#    if not created:
+#        return
+#    from flashsale.xiaolumm import tasks_mama_push
+#    tasks_mama_push.task_weixin_push_invite_trial.delay(instance)
+#
+#post_save.connect(send_invite_trial_weixin_push,
+#                  sender=PotentialMama, dispatch_uid='post_save_send_invite_trial_weixin_push')
 
 
 def unitary_mama(obj):
