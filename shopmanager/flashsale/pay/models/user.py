@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
 from django.db import models
 from django.db.models.signals import post_save
+from django.db.models import Sum
 
 from core.models import BaseModel
 from core.options import log_action, CHANGE
@@ -350,8 +351,15 @@ class UserBudget(PayBaseModel):
 
     @property
     def budget_cash(self):
-        return self.amount / 100.0
+        return float('%.2f' % (self.amount * 0.01))
 
+    @property
+    def pending_cash(self):
+        res = BudgetLog.objects.filter(customer_id=self.user.id,status=BudgetLog.PENDING).aggregate(total=Sum('flow_amount'))
+        total = res['total'] or 0
+        return float('%.2f' % (total * 0.01))
+        
+            
     def get_amount_display(self):
         """ 返回金额　"""
         return self.budget_cash
