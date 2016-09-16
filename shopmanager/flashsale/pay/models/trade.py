@@ -1092,7 +1092,6 @@ def update_package_sku_item(sender, instance, created, **kwargs):
         from flashsale.pay.tasks import task_saleorder_update_package_sku_item
         task_saleorder_update_package_sku_item.delay(instance)
 
-
 post_save.connect(update_package_sku_item, sender=SaleOrder, dispatch_uid='post_save_update_package_sku_item')
 
 

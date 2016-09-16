@@ -403,7 +403,7 @@ class OrderCarry(BaseModel):
     STATUS_TYPES = ((STAGING, u'待付款'), (ESTIMATE, u'预计收益'), (CONFIRM, u'确定收益'), (CANCEL, u'买家取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
-    order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
+    order_id = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'订单ID')
     order_value = models.IntegerField(default=0, verbose_name=u'订单金额')
     carry_num = models.IntegerField(default=0, verbose_name=u'提成金额')
     carry_type = models.IntegerField(default=1, choices=CARRY_TYPES, verbose_name=u'提成类型')  # 直接订单提成/粉丝订单提成/下属订单提成

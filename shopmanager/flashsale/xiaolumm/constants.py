@@ -20,8 +20,6 @@ PERSONAL_TARGET_STAGE = [
     (330, 430, 500),
     (430, 500, 600),
     (500, 600, 720),
-    (600, 700, 840),
-    (700, 800, 960),
 ]
 
 PERSONAL_TARGET_STAGE.reverse()

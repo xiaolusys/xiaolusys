@@ -135,5 +135,32 @@ deploy:
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,default,peroid
-
+  ssh:
+    host:
+      - sale4.xiaolumm.com
+    user: root
+    when:
+      branch: master
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+      - docker rm -f gunicorn
+      - docker run --name=gunicorn --restart=always -d
+        -e INSTANCE=mall -e TARGET=production  -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+        --volumes-from=static -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000
+        -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+        blueware-admin run-program gunicorn -k gevent -c taobao_gunicorn_conf.py -w 4 shopmanager.wsgi
+      - docker rm -f celery1
+      - docker run --name=celery1 --restart=always -d
+        -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+        --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 500 --time-limit=300
+        -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,default,peroid
+      - docker rm -f celery2
+      - docker run --name=celery2 --restart=always -d
+        -e INSTANCE=celery-gevent -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+        --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
+        celery worker -P gevent -A shopmanager --loglevel=ERROR -c 500 --time-limit=300
+        -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,default,peroid
 

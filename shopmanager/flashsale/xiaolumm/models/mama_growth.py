@@ -115,10 +115,13 @@ class MamaMission(BaseModel):
         """
         from flashsale.xiaolumm.models import GroupRelationship, ReferalRelationship, XiaoluMama
 
-        def _find_target_value(target_stages, finish_value):
-            for k1, k2, t in target_stages:
-                if k1 <= finish_value < k2 or finish_value >= k2:
-                    return t * 100
+        def _find_target_value(target_stages, finish_value, target=1): # target: 1个人, 2团队
+            if target == 1 and finish_value <= 500:
+                return ((finish_value + 70) / 100 + 1) * 10000
+            if target == 1 and finish_value >= 500:
+                return (finish_value / 100 + 1) * 10000 * 1.2
+            if target == 2 :
+                return (finish_value / 800 + 1) * 1000 * 100
             return 10000
 
         last_week_daytime = day_datetime - datetime.timedelta(days=7)
@@ -128,11 +131,13 @@ class MamaMission(BaseModel):
                 mama_ids = [xiaolumama.id]
                 target_stages = constants.PERSONAL_TARGET_STAGE
                 award_rate = 15 * 100
+                target = 1
             else :
                 group_mamas = GroupRelationship.objects.filter(leader_mama_id=xiaolumama.id)
                 mama_ids = group_mamas.values_list('member_mama_id', flat=True)
                 target_stages = constants.GROUP_TARGET_STAGE
                 award_rate = 50 * 100
+                target = 2
 
             last_1st_week = last_week_daytime.strftime('%Y-%m-%d')
             mama_1st_record = MamaMissionRecord.objects.filter(
@@ -151,11 +156,11 @@ class MamaMission(BaseModel):
                 ).first()
                 # 若两周连续不达标, 则调整妈妈目标数
                 if mama_2th_record and not mama_2th_record.is_finished():
-                    target_value = _find_target_value(target_stages, last_week_finish_value)
+                    target_value = _find_target_value(target_stages, last_week_finish_value,target=target)
                     return min(target_value, mama_1st_record.target_value), award_rate
                 return mama_1st_record.target_value, award_rate
 
-            return _find_target_value(target_stages, last_week_finish_value), award_rate
+            return _find_target_value(target_stages, last_week_finish_value,target=target), award_rate
 
         if self.cat_type == MamaMission.CAT_REFER_MAMA:
             last_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=xiaolumama.id,
