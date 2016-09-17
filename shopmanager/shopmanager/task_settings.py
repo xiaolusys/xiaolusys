@@ -501,6 +501,10 @@ MAMA_CARRY_ROUTES = {
         'queue': 'mama',
         'routing_key': 'mama.task_push_mission_state_msg_to_weixin_user',
     },
+    'flashsale.xiaolumm.tasks.mission.task_cancel_or_finish_mama_mission_award': {
+        'queue': 'mama',
+        'routing_key': 'mama.task_cancel_or_finish_mama_mission_award',
+    },
 }
 
 # MAMA_REGISTER_ROUTE = {
@@ -741,7 +745,7 @@ WEIXIN_ROUTES = {
     'shopapp.weixin.tasks.xiaolumama.task_update_weixinfans_upon_unsubscribe': {
         'queue': 'weixin',
         'routing_key': 'weixin.task_update_weixinfans_upon_unsubscribe',
-    },    
+    },
 }
 
 CELERY_ROUTES = {
@@ -1462,6 +1466,13 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_notify_all_mama_staging_mission'}
     },
+    u'妈妈及团队周激励任务奖励确认': {
+        'task': 'flashsale.xiaolumm.tasks.mission.task_update_all_mama_mission_award_states',
+        'schedule': crontab(minute="30", hour="23"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+
+    },
     u'每30分钟刷新微信公众号accesstoken&jsticket': {
         'task': 'shopapp.weixin.tasks.base.task_refresh_weixin_access_token',
         'schedule': crontab(minute="*/30"),
@@ -1475,7 +1486,6 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
 
     }
-
 }
 
 # nihao = {
