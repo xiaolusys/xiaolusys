@@ -481,7 +481,7 @@ def task_budgetlog_update_userbudget(budget_log):
         raise task_budgetlog_update_userbudget.retry(exc=exc)
 
 
-from extrafunc.renewremind.tasks import send_message
+from games.renewremind.tasks import send_message
 from shopapp.smsmgr.models import SMSActivity
 from django.contrib.admin.models import CHANGE
 
@@ -663,16 +663,14 @@ def task_saleorder_update_package_sku_item(sale_order):
         # order is confirmed, we assume the customer does not want the package
         # to be sent to him (most likely because it's not necessary, maybe she/he
         # bought a virtual product).
-        assign_status = PackageSkuItem.CANCELED
+        if not sku_item.is_finished():
+            sku_item.assign_status = PackageSkuItem.CANCELED
+            sku_item.set_assign_status_time()
+            sku_item.save()
     elif sale_order.is_pending():
-        assign_status = PackageSkuItem.NOT_ASSIGNED
-
-    if sku_item.assign_status != assign_status:
-        sku_item.assign_status = assign_status
-        if not sku_item.receiver_mobile:
-            sku_item.receiver_mobile = sale_order.sale_trade.receiver_mobile
-        sku_item.set_assign_status_time()
-        sku_item.save()
+        if sku_item.assign_status == PackageSkuItem.CANCELED:
+            sku_item.assign_status = PackageSkuItem.NOT_ASSIGNED
+            sku_item.save()
 
 
 @task()

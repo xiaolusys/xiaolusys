@@ -4,7 +4,7 @@ import logging
 from celery.task import task
 from django.db.models import F
 import constants
-from extrafunc.renewremind.models import RenewRemind
+from games.renewremind.models import RenewRemind
 from shopback import paramconfig as pcfg
 from shopapp.smsmgr.models import SMSPlatform, SMS_NOTIFY_TOCITY
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE

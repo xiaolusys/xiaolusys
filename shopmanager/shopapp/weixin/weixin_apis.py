@@ -441,9 +441,11 @@ class WeiXinAPI(object):
         return content
 
     def send_custom_message(self, params):
-        response = self.handleRequest(self._send_custom_message_uri,
-                                      json.dumps(params),
-                                      method='POST')
+        response = self.handleRequest(
+            self._send_custom_message_uri,
+            json.dumps(params).decode('unicode-escape').encode('utf8'), #, ensure_ascii=False is confilct
+            method='POST'
+        )
         return response
 
     def genPackageSignParams(self, package):
