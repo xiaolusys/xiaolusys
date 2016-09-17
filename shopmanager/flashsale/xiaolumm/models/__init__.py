@@ -10,5 +10,5 @@ from .rank import *
 from .message import XlmmMessage, XlmmMessageRel
 
 from .models_mama_stats import MamaTabVisitStats, MamaDeviceStats, MamaDailyTabVisit
-from .mama_growth import MamaMissionRecord, MamaMission, gen_mama_mission_record_unikey
+from .mama_growth import MamaMissionRecord, MamaMission, gen_mama_mission_record_unikey, get_mama_week_sale_amount
 from .mama_administrator import MamaAdministrator

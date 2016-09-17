@@ -5,9 +5,10 @@ from celery.task import task
 from django.db import IntegrityError
 from django.conf import settings
 
+from core.utils import week_range
 from flashsale.xiaolumm import constants
 from flashsale.xiaolumm.models import XiaoluMama, AwardCarry, OrderCarry, \
-    GroupRelationship, MamaMission, MamaMissionRecord
+    GroupRelationship, MamaMission, MamaMissionRecord, get_mama_week_sale_amount
 
 import logging
 logger = logging.getLogger(__name__)
@@ -249,6 +250,41 @@ def task_send_mama_weekly_award(mama_id, mission_record_id):
 
     except Exception, exc:
         raise task_send_mama_weekly_award.retry(exc=exc)
+
+
+@task(max_retries=3, default_retry_delay=60)
+def task_cancel_or_finish_mama_mission_award(mission_record_id):
+    try:
+        mama_mission = MamaMissionRecord.objects.filter(
+            id=mission_record_id).first()
+
+        week_start, week_end = week_range(datetime.datetime.strptime('%s-1'%mama_mission.year_week, '%Y-%W-%w'))
+        some_week_finish_value = get_mama_week_sale_amount([mama_mission.mama_id], week_start, week_end)
+
+        if mama_mission.finish_value != some_week_finish_value:
+            mama_mission.update_mission_value(some_week_finish_value)
+
+        if some_week_finish_value >= mama_mission.target_value:
+            uni_key = mama_mission.gen_uni_key()
+            award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
+            award_carry.confirm_award()
+
+    except Exception, exc:
+        raise task_cancel_or_finish_mama_mission_award.retry(exc=exc)
+
+
+
+@task(max_retries=3, default_retry_delay=5)
+def task_update_all_mama_mission_award_states():
+    """　更新一周前妈妈周任务激励佣金 """
+    aweek_ago = datetime.datetime.now() - datetime.timedelta(days=7)
+    staging_awards = AwardCarry.objects.filter(status=AwardCarry.STAGING,
+                                               created__lt=aweek_ago,
+                                               uni_key__startswith=MamaMissionRecord.UNI_NAME)
+    staging_award_unikeys = staging_awards.values_list('uni_key', flat=True)
+    for award_unikey in staging_award_unikeys:
+        mission_record_id = award_unikey.split('-')[-1]
+        task_cancel_or_finish_mama_mission_award.delay(mission_record_id)
 
 
 @task(max_retries=3, default_retry_delay=5)

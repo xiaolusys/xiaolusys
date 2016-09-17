@@ -687,6 +687,9 @@ class AwardCarry(BaseModel):
         self.status  = AwardCarry.CANCEL
         self.save()
 
+    def confirm_award(self):
+        self.status = AwardCarry.CONFIRMED
+        self.save()
 
 def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord

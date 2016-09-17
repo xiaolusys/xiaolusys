@@ -184,6 +184,8 @@ class MamaMissionRecord(BaseModel):
         (CLOSE, u'未完成')
     )
 
+    UNI_NAME = 'weeklyaward'
+
     mission = models.ForeignKey(MamaMission, verbose_name=u'关联任务')
     mama_id = models.IntegerField(default=0, verbose_name=u'妈妈id')
     referal_from_mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'推荐人id')
@@ -249,7 +251,7 @@ class MamaMissionRecord(BaseModel):
         return self._group_finish_value_
 
     def gen_uni_key(self):
-        return '{0}-{1}-{2}'.format('weeklyaward' ,self.mama_id, self.id)
+        return '{0}-{1}-{2}'.format(self.UNI_NAME ,self.mama_id, self.id)
 
     def update_mission_value(self, finish_value):
         # TODO@meron 如果任务中订单金额退款，任务完成状态需要变更？
@@ -323,7 +325,7 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
             ).order_by('-status').first()
             if mission_record:
                 mission_record.update_mission_value(total_mama_count)
-        print 'total_mama_count:',xiaolumama, mission_record, total_mama_count
+
         from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
         task_create_or_update_mama_mission_state.delay(parent_mama_id)
 
@@ -348,10 +350,7 @@ def _update_mama_salepayment_mission_record(sale_trade):
         return
 
     mama_id = carry_first.mama_id
-    week_order_carrys = OrderCarry.objects.filter(
-        date_field__range=(week_start, week_end), mama_id=mama_id,
-        status__in=(OrderCarry.ESTIMATE, OrderCarry.CONFIRM))
-    week_order_payment = sum(week_order_carrys.values_list('order_value', flat=True))
+    week_order_payment = get_mama_week_sale_amount([mama_id], week_start, week_end)
     base_missions = MamaMissionRecord.objects.filter(year_week=year_week, mama_id=mama_id)
     # update all mission's finish_value of the week range
     personal_records = base_missions.filter(
