@@ -659,7 +659,6 @@ class EnvelopAdmin(admin.ModelAdmin):
     actions = [
         'send_envelop_action',
         'cancel_envelop_action',
-        'filter_spam',
     ]
 
 
