@@ -192,6 +192,10 @@ class MamaFortune(BaseModel):
             self.save()
 
     @property
+    def customer_id(self):
+        return self.xlmm.customer_id
+    
+    @property
     def xlmm(self):
         if not hasattr(self, '_xiaolumm_xlmm_'):
             from flashsale.xiaolumm.models.models import XiaoluMama
