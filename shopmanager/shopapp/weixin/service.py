@@ -145,7 +145,8 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
+                'Content': u'[玫瑰]么么哒，小鹿美美最专业的分享电商平台，个人店主招募活动即将开始，敬请关注！<a href="http://m.xiaolumeimei.com/mall/">[点击直达店铺]</a>'
+                #u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
             })
 
         if eventKey == 'MAMA_MANAGER_QRCODE':
