@@ -499,8 +499,9 @@ pre_save.connect(commission_xlmm_newtask,
 
 
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_ordercarry_update_carryrecord.delay(instance)
+    if instance.carry_type = OrderCarry.WAP_ORDER or instance.carry_type = OrderCarry.APP_ORDER:
+        from flashsale.xiaolumm import tasks_mama_carryrecord
+        tasks_mama_carryrecord.task_ordercarry_update_carryrecord.delay(instance)
 
 
 post_save.connect(ordercarry_update_carryrecord,
@@ -827,7 +828,7 @@ post_save.connect(gauge_active_mama, sender=ClickCarry, dispatch_uid='post_save_
 
 
 class ActiveValue(BaseModel):
-    VALUE_MAP = {"1": 1, "2": 10, "3": 50, "4": 5}
+    VALUE_MAP = {"1": 1, "2": 10, "3": 50, "4": 2}
     VALUE_TYPES = ((1, u'点击'), (2, u'订单'), (3, u'推荐'), (4, u'粉丝'),)
     STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'已取消'), (4, u'已过期'),)
 
