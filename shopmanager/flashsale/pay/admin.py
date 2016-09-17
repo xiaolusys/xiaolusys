@@ -15,6 +15,7 @@ from core.filters import DateFieldListFilter
 from core.admin import ApproxAdmin, BaseModelAdmin
 from core.managers import ApproxCountQuerySet
 from core.upload import upload_public_to_remote, generate_public_url
+from flashsale.pay.filters import MamaCreatedFilter
 from .services import FlashSaleService, get_district_json_data
 from .models import (
     SaleTrade,
@@ -576,13 +577,41 @@ admin.site.register(SaleRefund, SaleRefundAdmin)
 from django.db.models import Sum
 from django.shortcuts import redirect, render_to_response, RequestContext
 from .forms import EnvelopForm, CustomShareForm
+from shopapp.weixin.models_base import WeixinUnionID
+
+
+def get_mama_id(obj):
+    unionid = WeixinUnionID.objects.filter(openid=obj.recipient).first()
+    if unionid:
+        mama = XiaoluMama.objects.filter(openid=unionid.unionid).first()
+        return mama.id if mama else ''
+    else:
+        return ''
+get_mama_id.short_description = '小鹿妈妈ID'
+
+
+def get_mama_created(obj):
+    unionid = WeixinUnionID.objects.filter(openid=obj.recipient).first()
+    if unionid:
+        mama = XiaoluMama.objects.filter(openid=unionid.unionid).first()
+        return mama.created if mama else ''
+    else:
+        return ''
+get_mama_created.short_description = '小鹿妈妈创建时间'
 
 
 class EnvelopAdmin(admin.ModelAdmin):
-    list_display = ('id', 'receiver', 'get_amount_display', 'platform', 'subject',
-                    'send_time', 'created', 'send_status', 'status')
+    list_display = (
+        'id', 'receiver', 'get_amount_display', 'platform', 'subject',
+        'send_time', 'created', 'send_status', 'status',
+        get_mama_created, get_mama_id
+    )
 
-    list_filter = ('status', 'send_status', 'platform', 'subject', 'livemode', ('created', DateFieldListFilter))
+    list_filter = (
+        'status', 'send_status', 'platform', 'subject', 'livemode',
+        ('created', DateFieldListFilter),
+        MamaCreatedFilter,
+    )
     search_fields = ['=receiver', '=envelop_id', '=recipient']
     list_per_page = 50
     form = EnvelopForm
@@ -627,7 +656,10 @@ class EnvelopAdmin(admin.ModelAdmin):
 
     cancel_envelop_action.short_description = u"取消发送红包"
 
-    actions = ['send_envelop_action', 'cancel_envelop_action']
+    actions = [
+        'send_envelop_action',
+        'cancel_envelop_action',
+    ]
 
 
 admin.site.register(Envelop, EnvelopAdmin)

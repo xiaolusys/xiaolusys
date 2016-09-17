@@ -1,5 +1,9 @@
 # coding=utf-8
+from datetime import datetime, timedelta
 from django.contrib.admin import SimpleListFilter
+from shopapp.weixin.models_base import WeixinUnionID
+from flashsale.xiaolumm.models import XiaoluMama
+import constants
 
 
 class Filte_By_Reason(SimpleListFilter):
@@ -29,9 +33,6 @@ class Filte_By_Reason(SimpleListFilter):
             return qs
 
 
-import constants
-
-
 class CushopProCategoryFiler(SimpleListFilter):
     title = u'类别'
     parameter_name = 'categry'
@@ -53,3 +54,31 @@ class CushopProCategoryFiler(SimpleListFilter):
                 return queryset
             qs = queryset.filter(pro_category__in=fenlei)
             return qs
+
+
+class MamaCreatedFilter(SimpleListFilter):
+    title = u'小鹿妈妈创建时间'
+    parameter_name = 'mama_created'
+
+    def lookups(self, request, model_admin):
+        return tuple([
+            ('1', u'今天'),
+            ('2', u'昨天'),
+            ('3', u'最近三天'),
+            ('7', u'最近七天'),
+        ])
+
+    def queryset(self, request, queryset):
+        delta = request.GET.get('mama_created')
+
+        if not delta:
+            return queryset
+        else:
+            delta = int(delta) - 1
+
+        today = datetime.now()
+        start_date = datetime(today.year, today.month, today.day) - timedelta(days=delta)
+        mamas = XiaoluMama.objects.filter(created__gte=start_date).values('openid')
+        openids = WeixinUnionID.objects.filter(unionid__in=[x['openid'] for x in mamas]).values('openid')
+
+        return queryset.filter(recipient__in=openids)
