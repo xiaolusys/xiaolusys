@@ -198,6 +198,7 @@ INSTALLED_APPS =(
     'games.bomb',
     'games.luckyawards',
     'games.weixingroup',
+    'games.renewremind',
 
     # 'flashsale.supplier',
     'flashsale.complain',
@@ -219,7 +220,6 @@ INSTALLED_APPS =(
     'flashsale.protocol',
     'flashsale.coupon',
     'flashsale.forecast',
-    'extrafunc.renewremind',
     # 'test.celery',
     'shopapp.notify',
     # 'shopapp.zhongtong'

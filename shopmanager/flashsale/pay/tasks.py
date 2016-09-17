@@ -481,7 +481,7 @@ def task_budgetlog_update_userbudget(budget_log):
         raise task_budgetlog_update_userbudget.retry(exc=exc)
 
 
-from extrafunc.renewremind.tasks import send_message
+from games.renewremind.tasks import send_message
 from shopapp.smsmgr.models import SMSActivity
 from django.contrib.admin.models import CHANGE
 
