@@ -122,45 +122,45 @@ post_save.connect(weixinfans_create_budgetlogs,
                   sender=WeixinFans, dispatch_uid='post_save_weixinfans_create_budgetlogs')
 
 
-def weixinfans_xlmm_newtask(sender, instance, **kwargs):
-    """
-    检测新手任务：　关注公众号“小鹿美美”
-    """
-    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
-    from flashsale.xiaolumm.tasks_mama_fortune import task_subscribe_weixin_send_award
-    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
-    from flashsale.pay.models.user import Customer
-
-    fans = instance
-
-    if not fans.subscribe:
-        return
-
-    if fans.app_key != settings.WXPAY_APPID:
-        return
-
-    customer = Customer.objects.filter(unionid=fans.unionid).first()
-
-    if not customer:
-        return
-
-    xlmm = customer.getXiaolumm()
-
-    if not xlmm:
-        return
-
-    # 取消关注，然后重新关注，不计入
-    fans_record = WeixinFans.objects.filter(
-        unionid=fans.unionid, app_key=settings.WXPAY_APPID).exists()
-
-    if not fans_record:
-        # 发５元奖励
-        task_subscribe_weixin_send_award.delay(xlmm)
-        # 通知完成任务：
-        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_SUBSCRIBE_WEIXIN)
-
-pre_save.connect(weixinfans_xlmm_newtask,
-                 sender=WeixinFans, dispatch_uid='pre_save_weixinfans_xlmm_newtask')
+#def weixinfans_xlmm_newtask(sender, instance, **kwargs):
+#    """
+#    检测新手任务：　关注公众号“小鹿美美”
+#    """
+#    from flashsale.xiaolumm.tasks_mama_push import task_push_new_mama_task
+#    from flashsale.xiaolumm.tasks_mama_fortune import task_subscribe_weixin_send_award
+#    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+#    from flashsale.pay.models.user import Customer
+#
+#    fans = instance
+#
+#    if not fans.subscribe:
+#        return
+#
+#    if fans.app_key != settings.WXPAY_APPID:
+#        return
+#
+#    customer = Customer.objects.filter(unionid=fans.unionid).first()
+#
+#    if not customer:
+#        return
+#
+#    xlmm = customer.getXiaolumm()
+#
+#    if not xlmm:
+#        return
+#
+#    # 取消关注，然后重新关注，不计入
+#    fans_record = WeixinFans.objects.filter(
+#        unionid=fans.unionid, app_key=settings.WXPAY_APPID).exists()
+#
+#    if not fans_record:
+#        # 发５元奖励
+#        task_subscribe_weixin_send_award.delay(xlmm)
+#        # 通知完成任务：
+#        task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_SUBSCRIBE_WEIXIN)
+#
+#pre_save.connect(weixinfans_xlmm_newtask,
+#                 sender=WeixinFans, dispatch_uid='pre_save_weixinfans_xlmm_newtask')
 
 
 class WeixinTplMsg(models.Model):
