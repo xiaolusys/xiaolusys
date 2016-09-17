@@ -2,7 +2,7 @@
 import datetime
 from django.contrib import admin
 from django.shortcuts import redirect
-from extrafunc.renewremind.models import RenewRemind
+from games.renewremind.models import RenewRemind
 import constants
 
 

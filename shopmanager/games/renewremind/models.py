@@ -18,6 +18,7 @@ class RenewRemind(BaseModel):
     is_trace = models.BooleanField(default=True, db_index=True, verbose_name=u'是否追踪')
 
     class Meta:
+        app_label = 'monitor'
         db_table = 'extrafunc_service_remind'
         verbose_name = u'系统服务/续费提醒记录表'
         verbose_name_plural = u'系统服务/续费提醒记录列表'
