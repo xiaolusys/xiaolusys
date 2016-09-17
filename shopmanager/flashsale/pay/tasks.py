@@ -665,14 +665,14 @@ def task_saleorder_update_package_sku_item(sale_order):
         # order is confirmed, we assume the customer does not want the package
         # to be sent to him (most likely because it's not necessary, maybe she/he
         # bought a virtual product).
-        if not sku_item.is_finished():
+        if not sku_item.is_finished() and sku_item.assign_status != PackageSkuItem.CANCELED:
             sku_item.assign_status = PackageSkuItem.CANCELED
             sku_item.set_assign_status_time()
             sku_item.save()
     elif sale_order.is_pending():
         if sku_item.assign_status == PackageSkuItem.CANCELED:
             sku_item.assign_status = PackageSkuItem.NOT_ASSIGNED
-            sku_item.save()
+            sku_item.clear_order_info()
 
 
 @task()
