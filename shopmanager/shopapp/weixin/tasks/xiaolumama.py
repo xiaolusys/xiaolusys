@@ -247,11 +247,11 @@ def task_weixinfans_create_budgetlog(customer_unionid, reference_unionid, budget
 
     flow_amount = 0
     if budget_log_type == BudgetLog.BG_REFERAL_FANS:
-        # 推荐人得1元
-        flow_amount = 100
+        # 推荐人得0.3元
+        flow_amount = 30
     elif budget_log_type == BudgetLog.BG_SUBSCRIBE:
-        # 被推荐人得0.5元
-        flow_amount = 50
+        # 被推荐人得1元
+        flow_amount = 100
     else:
         return
         
