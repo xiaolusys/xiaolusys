@@ -196,7 +196,7 @@ class PurchaseArrangement(BaseModel):
                             purchase_order_unikey=purchase_order_unikey,
                             purchase_record_unikey=psi.get_purchase_uni_key(),
                             num=psi.num,
-                            status=psi.is_booking_needed()
+                            status=PurchaseArrangement.EFFECT if psi.is_booking_needed() else PurchaseArrangement.CANCEL
                             ).save()
 
     @staticmethod
