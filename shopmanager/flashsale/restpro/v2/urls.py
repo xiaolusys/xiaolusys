@@ -29,6 +29,7 @@ v2_router.register(r'fans', views.XlmmFansViewSet)
 v2_router.register(r'dailystats', views.DailyStatsViewSet)
 v2_router.register(r'teambuy', teambuy.TeamBuyViewSet)
 v2_router.register(r'express', views.WuliuViewSet)
+v2_router.register(r'checkin', views.CheckinViewSet)
 
 from flashsale.restpro.v1 import views_coupon_new
 from flashsale.restpro.v2 import views
