@@ -350,6 +350,15 @@ class UserBudget(PayBaseModel):
         return u'<%s,%s>' % (self.user, self.amount)
 
     @property
+    def mama_id(self):
+        from flashsale.xiaolumm.models import XiaoluMama
+        mama = XiaoluMama.objects.filter(openid=self.user.unionid).first()
+        if mama:
+            return mama.id
+        return ''
+
+            
+    @property
     def budget_cash(self):
         return float('%.2f' % (self.amount * 0.01))
 

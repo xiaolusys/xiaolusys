@@ -871,7 +871,7 @@ admin.site.register(CustomerShops, CustomShopadmin)
 
 
 class UserBudgetAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'amount', 'total_income', 'total_expense', 'created')
+    list_display = ('id', 'user', 'mama_id', 'amount', 'pending_cash', 'total_income', 'total_expense', 'created')
     list_display_links = ('id',)
 
     #     list_filter = ('status',)
