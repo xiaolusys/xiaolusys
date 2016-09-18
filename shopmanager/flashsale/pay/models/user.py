@@ -552,6 +552,15 @@ class BudgetLog(PayBaseModel):
     def __unicode__(self):
         return u'<%s,%s>' % (self.customer_id, self.flow_amount)
 
+    @property
+    def mama_id(self):
+        from flashsale.xiaolumm.models import XiaoluMama
+        c = Customer.objects.filter(id=customer_id).first()
+        mama = XiaoluMama.objects.filter(openid=c.unionid).first()
+        if mama:
+            return mama.id
+        return ''
+    
     def get_flow_amount_display(self):
         """ 返回金额　"""
         return self.flow_amount / 100.0
