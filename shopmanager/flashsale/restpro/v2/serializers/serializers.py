@@ -666,13 +666,14 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
     kill_title = serializers.BooleanField(source='second_kill_title', read_only=True)
     package_order_id = serializers.SerializerMethodField('gen_package_order_id', read_only=True)
     model_id = serializers.IntegerField(source='item_product.model_id', read_only=True)
+    can_refund = serializers.BooleanField(source='get_refundable', read_only=True)
 
     class Meta:
         model = SaleOrder
         fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
                   'refund_status', 'refund_status_display', "refund_id", 'kill_title', 'model_id',
-                  'is_seckill', 'package_order_id')
+                  'is_seckill', 'package_order_id', 'can_refund')
 
     def gen_package_order_id(self, obj):
         if obj.package_sku:
@@ -801,7 +802,6 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
     logistics_company = LogisticsCompanySerializer(read_only=True)
     status = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
     status_display = serializers.CharField(source='status_name', read_only=True)
-    package_orders = PackageOrderSerializer(many=True, read_only=True)
     package_orders = serializers.SerializerMethodField('gen_package_orders', read_only=True)
     extras = serializers.SerializerMethodField('gen_extras_info', read_only=True)
 

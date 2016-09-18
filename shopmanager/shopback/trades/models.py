@@ -1465,7 +1465,7 @@ class PackageOrder(models.Model):
     def sale_orders(self):
         if not hasattr(self, '_sale_orders_'):
             from flashsale.pay.models import SaleOrder
-            sale_order_ids = [p.sale_order_id for p in PackageSkuItem.objects.filter(package_order_id=self.id)]
+            sale_order_ids = list(PackageSkuItem.objects.filter(package_order_id=self.id).values_list('sale_order_id', flat=True))
             self._sale_orders_ = SaleOrder.objects.filter(id__in=sale_order_ids)
         return self._sale_orders_
 

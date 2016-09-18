@@ -1047,12 +1047,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时上架任务': {  # 定时上架任务
-        'task': 'shopapp.autolist.tasks.updateAllItemListTask',
-        'schedule': crontab(minute='*/10', hour=','.join([str(i) for i in range(7, 24)])),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
+    # u'定时上架任务': {  # 定时上架任务
+    #     'task': 'shopapp.autolist.tasks.updateAllItemListTask',
+    #     'schedule': crontab(minute='*/10', hour=','.join([str(i) for i in range(7, 24)])),
+    #     'args': (),
+    #     'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    # },
     u'定时生成月销售报表': {
         'task': 'shopapp.report.tasks.updateMonthTradeXlsFileTask',
         'schedule': crontab(minute="0", hour="3"),

@@ -643,7 +643,7 @@ class PotentialMamaAdmin(admin.ModelAdmin):
                     "potential_mama",
                     "thumbnail_display",
                     "uni_key",
-                    "is_full_member", "modified", "created")
+                    "is_full_member", "last_renew_type", "modified", "created")
 
     list_filter = ("is_full_member",
                    'created',

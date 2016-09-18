@@ -23,7 +23,7 @@ class AppPush(object):
 
     @classmethod
     def push(cls, customer_id, target_url, msg, pass_through=0):
-        if not settings.PUSH_SWITCH:
+        if not settings.APP_PUSH_SWITCH:
             return
         android_res = mipush_of_android.push_to_account(
             customer_id, {'target_url': target_url}, description=msg, pass_through=pass_through)
