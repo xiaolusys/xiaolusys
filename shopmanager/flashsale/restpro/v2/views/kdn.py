@@ -31,8 +31,18 @@ class KdnView(APIView):
         assert logistics_company is not None,'物流公司不能为空'
         assert out_sid is not None, '物流单号不能为空'
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
+        status = tradewuliu.first().get_status_display()
+        format_exp_info = {
+            "status": status,
+            "name": tradewuliu.first().logistics_company,
+            "errcode":tradewuliu.first().errcode,
+            "id":"",
+            "message":"",
+            "content":tradewuliu.first().content,
+            "out_sid":tradewuliu.first().out_sid
+        }
         if len(tradewuliu) == 1:
-            return Response(kdn_wuliu_extra.format_content(tradewuliu.first().content))
+            return Response(kdn_wuliu_extra.format_content(**format_exp_info))
         if len(tradewuliu) == 0:
             wuliu_info = {"expName":logistics_company,"expNo":out_sid}
             # kdn_wuliu_extra.kdn_subscription(**wuliu_info)
@@ -44,7 +54,7 @@ class KdnView(APIView):
                     logistics_company = k
                     break
             tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid,logistics_company=logistics_company)
-            return Response(kdn_wuliu_extra.format_content(tradewuliu.first().content))
+            return Response(kdn_wuliu_extra.format_content(**format_exp_info))
 
     def post(self, request, *args, **kwargs):
         content = request.POST
