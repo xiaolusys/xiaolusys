@@ -589,6 +589,15 @@ def get_mama_id(obj):
         return ''
 get_mama_id.short_description = '小鹿妈妈ID'
 
+def get_customer_id(obj):
+    unionid = WeixinUnionID.objects.filter(openid=obj.recipient).first()
+    if unionid:
+        customer = Customer.objects.filter(unionid=unionid.unionid).first()
+        return customer.id if customer else ''
+    else:
+        return ''
+get_customer_id.short_description = '用户ID'
+    
 
 def get_mama_created(obj):
     unionid = WeixinUnionID.objects.filter(openid=obj.recipient).first()
@@ -602,9 +611,9 @@ get_mama_created.short_description = '小鹿妈妈创建时间'
 
 class EnvelopAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'receiver', 'get_amount_display', 'platform', 'subject',
+        'id', 'receiver', get_mama_id, get_customer_id, 'get_amount_display', 'platform', 'subject',
         'send_time', 'created', 'send_status', 'status',
-        get_mama_created, get_mama_id
+        get_mama_created
     )
 
     list_filter = (
@@ -871,7 +880,7 @@ admin.site.register(CustomerShops, CustomShopadmin)
 
 
 class UserBudgetAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'amount', 'total_income', 'total_expense', 'created')
+    list_display = ('id', 'user', 'mama_id', 'amount', 'pending_cash', 'total_income', 'total_expense', 'created')
     list_display_links = ('id',)
 
     #     list_filter = ('status',)

@@ -314,7 +314,7 @@ class Customer(BaseModel):
 def sync_xlmm_fans_nick_thumbnail(sender, instance, created, **kwargs):
     if not created:
         return
-    
+
     from flashsale.pay.tasks import task_sync_xlmm_fans_nick_thumbnail
     task_sync_xlmm_fans_nick_thumbnail.delay(instance)
 
@@ -350,6 +350,15 @@ class UserBudget(PayBaseModel):
         return u'<%s,%s>' % (self.user, self.amount)
 
     @property
+    def mama_id(self):
+        from flashsale.xiaolumm.models import XiaoluMama
+        mama = XiaoluMama.objects.filter(openid=self.user.unionid).first()
+        if mama:
+            return mama.id
+        return ''
+
+            
+    @property
     def budget_cash(self):
         return float('%.2f' % (self.amount * 0.01))
 
@@ -358,8 +367,8 @@ class UserBudget(PayBaseModel):
         res = BudgetLog.objects.filter(customer_id=self.user.id,status=BudgetLog.PENDING).aggregate(total=Sum('flow_amount'))
         total = res['total'] or 0
         return float('%.2f' % (total * 0.01))
-        
-            
+
+
     def get_amount_display(self):
         """ 返回金额　"""
         return self.budget_cash
@@ -425,6 +434,8 @@ class UserBudget(PayBaseModel):
         # 如果提现金额小于0　code 1
         if cash_out_amount <= 0:
             return 1, '提现金额小于0'
+        elif cash_out_amount < 200:
+            return 1, '提现金额小于2元'
         # 如果提现金额大于当前用户钱包的金额 code 2
         elif cash_out_amount > self.amount:
             return 2, '提现金额大于账户金额'
@@ -508,7 +519,7 @@ class BudgetLog(PayBaseModel):
     BG_MAMA_CASH = 'mmcash'
     BG_REFERAL_FANS = 'rfan'
     BG_SUBSCRIBE = 'subs'
-    
+
     BUDGET_LOG_CHOICES = (
         (BG_ENVELOPE, u'红包'),
         (BG_REFUND, u'退款'),
