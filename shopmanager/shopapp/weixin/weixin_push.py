@@ -19,7 +19,7 @@ class WeixinPush(object):
 
     def __init__(self):
         self.mm_api = WeiXinAPI()
-        if settings.PUSH_SWITCH:
+        if settings.WEIXIN_PUSH_SWITCH:
             self.mm_api.setAccountId(appKey=settings.WXPAY_APPID)
             self.temai_api = WeiXinAPI()
             self.temai_api.setAccountId(appKey=settings.WEIXIN_APPID)
@@ -38,7 +38,7 @@ class WeixinPush(object):
 
     def push(self, customer, template_ids, template_data, to_url):
 
-        if not settings.PUSH_SWITCH:
+        if not settings.WEIXIN_PUSH_SWITCH:
             return
 
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
