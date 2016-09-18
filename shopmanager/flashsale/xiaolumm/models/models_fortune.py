@@ -499,9 +499,8 @@ pre_save.connect(commission_xlmm_newtask,
 
 
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
-    if instance.carry_type == OrderCarry.WAP_ORDER or instance.carry_type == OrderCarry.APP_ORDER:
-        from flashsale.xiaolumm import tasks_mama_carryrecord
-        tasks_mama_carryrecord.task_ordercarry_update_carryrecord.delay(instance)
+    from flashsale.xiaolumm import tasks_mama_carryrecord
+    tasks_mama_carryrecord.task_ordercarry_update_carryrecord.delay(instance)
 
 
 post_save.connect(ordercarry_update_carryrecord,
@@ -575,8 +574,9 @@ post_save.connect(ordercarry_update_ordercarry,
 
 
 def ordercarry_update_activevalue(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama_activevalue
-    tasks_mama_activevalue.task_ordercarry_update_activevalue.delay(instance.uni_key)
+    if instance.carry_type == OrderCarry.WAP_ORDER or instance.carry_type == OrderCarry.APP_ORDER:
+        from flashsale.xiaolumm import tasks_mama_activevalue
+        tasks_mama_activevalue.task_ordercarry_update_activevalue.delay(instance.uni_key)
 
 
 post_save.connect(ordercarry_update_activevalue,
