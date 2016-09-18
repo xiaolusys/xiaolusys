@@ -14,7 +14,7 @@ class SMSPlatformAdmin(admin.ModelAdmin):
 
     list_display_links = ('code', 'name',)
 
-    search_fields = ['code', 'name', 'account']
+    search_fields = ['=code', '=name', '=account']
 
 
 # def get_readonly_fields(self, request, obj=None):
@@ -33,7 +33,7 @@ class SMSRecordAdmin(ApproxAdmin):
     list_display_links = ('task_name',)
 
     list_filter = ('task_type', 'platform', 'status', ('created', DateFieldListFilter))
-    search_fields = ['id', 'mobiles', 'task_name', ]
+    search_fields = ['=id', '=mobiles' ]
     list_per_page = 40
 
 
