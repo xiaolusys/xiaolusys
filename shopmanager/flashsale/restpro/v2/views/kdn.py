@@ -22,7 +22,10 @@ from flashsale.restpro import kdn_wuliu_extra
 from shopback.trades.models import TradeWuliu
 from flashsale.restpro import exp_map
 from ...tasks import kdn_sub
+from flashsale.restpro import wuliu_choice
+
 logger = logging.getLogger(__name__)
+
 
 class KdnView(APIView):
     def get(self, request, *args, **kwargs):
@@ -31,30 +34,34 @@ class KdnView(APIView):
         assert logistics_company is not None,'物流公司不能为空'
         assert out_sid is not None, '物流单号不能为空'
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
-        status = tradewuliu.first().get_status_display()
-        format_exp_info = {
-            "status": status,
-            "name": tradewuliu.first().logistics_company,
-            "errcode":tradewuliu.first().errcode,
-            "id":"",
-            "message":"",
-            "content":tradewuliu.first().content,
-            "out_sid":tradewuliu.first().out_sid
-        }
-        if len(tradewuliu) == 1:
-            return Response(kdn_wuliu_extra.format_content(**format_exp_info))
-        if len(tradewuliu) == 0:
-            wuliu_info = {"expName":logistics_company,"expNo":out_sid}
-            # kdn_wuliu_extra.kdn_subscription(**wuliu_info)
-            kdn_sub.delay(rid=None,expName=logistics_company,expNo=out_sid)
-            return Response("物流信息暂未获得")
-        if len(tradewuliu) > 1:
-            for k,v in exp_map.iteritems():
-                if k.startswith(logistics_company.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')):
-                    logistics_company = k
-                    break
-            tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid,logistics_company=logistics_company)
-            return Response(kdn_wuliu_extra.format_content(**format_exp_info))
+        # status = tradewuliu.first().get_status_display()
+        # format_exp_info = {
+        #     "status": status,
+        #     "name": tradewuliu.first().logistics_company,
+        #     "errcode":tradewuliu.first().errcode,
+        #     "id":"",
+        #     "message":"",
+        #     "content":tradewuliu.first().content,
+        #     "out_sid":tradewuliu.first().out_sid
+        # }
+        result = wuliu_choice.result_choice[len(tradewuliu)](logistics_company,
+                                                             out_sid,
+                                                             tradewuliu.first())
+        return Response(result)
+        # if len(tradewuliu) == 1:
+        #     return Response(kdn_wuliu_extra.format_content(**format_exp_info))
+        # if len(tradewuliu) == 0:
+        #     wuliu_info = {"expName":logistics_company,"expNo":out_sid}
+        #     # kdn_wuliu_extra.kdn_subscription(**wuliu_info)
+        #     kdn_sub.delay(rid=None,expName=logistics_company,expNo=out_sid)
+        #     return Response("物流信息暂未获得")
+        # if len(tradewuliu) > 1:
+        #     for k,v in exp_map.iteritems():
+        #         if k.startswith(logistics_company.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')):
+        #             logistics_company = k
+        #             break
+        #     tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid,logistics_company=logistics_company)
+        #     return Response(kdn_wuliu_extra.format_content(**format_exp_info))
 
     def post(self, request, *args, **kwargs):
         content = request.POST
@@ -81,8 +88,13 @@ class KdnView(APIView):
             "DataSign": DataSign,
             "State": State
                     }
-        kdn_wuliu_extra.kdn_get_push(**write_info)
         logger.info(write_info)
+        try:
+            kdn_wuliu_extra.kdn_get_push(**write_info)
+        except:
+            return Response({"Success": False, "EBusinessID": str(1264368),
+                             "UpdateTime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Reason": "数据库写入失败"})
+
         # return Response({"EBusinessID":EBusinessID,"PushTime":PushTime,"Count":Count,
         #                  "Data":Data,"DataSign":DataSign,"RequestData":RequestData,"RequestType":RequestType})
         return Response({"Success":True,"EBusinessID":str(1264368),"UpdateTime":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),"Reason":""})
