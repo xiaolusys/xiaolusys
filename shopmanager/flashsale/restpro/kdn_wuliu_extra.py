@@ -208,15 +208,25 @@ def write_traces(kwargs):
     else:
         tradewuliu.update(**write_info)
 
-def format_content(content):
+def format_content(**kwargs):
+
+    content = kwargs["content"]
     content = json.loads(content)
+    all_data = {"status":kwargs["status"],
+                "name":kwargs["name"],
+                "errcode":kwargs["errcode"],
+                "id":"",
+                "order": kwargs["out_sid"],
+                "message":kwargs["message"]}
     data = []
     for i in content:
         temp = {}
-        temp.update({'AcceptTime':i['AcceptTime'].encode('gb2312').decode('gb2312').encode('utf-8')})
-        temp.update({'AcceptStation':i['AcceptStation'].encode('gb2312').decode('gb2312').encode('utf-8')})
+        temp.update({'time':i['AcceptTime'].encode('gb2312').decode('gb2312').encode('utf-8')})
+        temp.update({'content':i['AcceptStation'].encode('gb2312').decode('gb2312').encode('utf-8')})
         data.append(temp)
-    return data
+    print type(all_data)
+    all_data.update({"data":data})
+    return all_data
 
 @add_business_info                                #扩充参数,参数字典加入商户id和key等信息
 @get_exp_code                                     #通过中文的物流公司获取相应的物流Code
