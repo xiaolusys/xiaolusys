@@ -492,6 +492,7 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     """
     given from=0 (or omit), we return today's visitors;
     given from=2 , we return all the visitors for 2 days ago.
+    given recent=2, return all the visitors from 2 days ago,including 3 days.
     """
     paginate_by = 10
     page_query_param = 'page'
@@ -508,6 +509,7 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     def get_owner_queryset(self, request):
         content = request.REQUEST
         days_from = int(content.get("from", 0))
+        days_recent = int(content.get("recent", 0))
 
         date_field = datetime.datetime.now().date()
         if days_from > 0:
@@ -516,7 +518,11 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
         mama_id = get_mama_id(request.user)
         task_mama_daily_tab_visit_stats.delay(mama_id,MamaTabVisitStats.TAB_VISITOR_LIST)
 
-        return self.queryset.filter(mama_id=mama_id, date_field=date_field).order_by('-created')
+        if days_recent > 0:
+            date_field = date_field - datetime.timedelta(days=days_recent)
+            return self.queryset.filter(mama_id=mama_id, date_field__gt=date_field).order_by('-created')
+        else:
+            return self.queryset.filter(mama_id=mama_id, date_field=date_field).order_by('-created')
 
     def list(self, request, *args, **kwargs):
         statsd.incr('xiaolumm.mama_uniquevisitor_count')
