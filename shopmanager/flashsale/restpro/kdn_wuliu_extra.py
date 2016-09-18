@@ -241,7 +241,6 @@ def kdn_subscription(*args,**kwargs):
         logging.warn("订阅成功")
         result.update({"info":"订阅成功"})
         if result['Traces']:
-
             write_traces(json.dumps(result))
     else:
         result.update({"info":"订阅失败"})

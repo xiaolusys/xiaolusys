@@ -31,6 +31,9 @@ class KdnView(APIView):
     def get(self, request, *args, **kwargs):
         logistics_company = request.GET.get("logistics_company",None)
         out_sid = request.GET.get("out_sid",None)
+        company_code = request.GET.get("company_code",None)
+        if company_code:
+            logistics_company = exp_map.reverse_map().get(company_code,None)
         assert logistics_company is not None,'物流公司不能为空'
         assert out_sid is not None, '物流单号不能为空'
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
