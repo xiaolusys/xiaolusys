@@ -29,7 +29,7 @@ class Envelop(PayBaseModel):
     CASHOUT = 'cashout'
     ORDER_RED_PAC = 'ordred'
     XLAPP_CASHOUT = 'xlapp'
-    SUBJECT_CHOICES = ((CASHOUT, u'小鹿钱包提现'), (ORDER_RED_PAC, u'订单红包'), (XLAPP_CASHOUT, u'妈妈钱包提现'))
+    SUBJECT_CHOICES = ((CASHOUT, u'妈妈钱包提现'), (ORDER_RED_PAC, u'订单红包'), (XLAPP_CASHOUT, u'小鹿钱包提现'))
 
     UNSEND = ''
     SENDING = 'sending'
