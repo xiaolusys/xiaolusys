@@ -1318,32 +1318,32 @@ pre_save.connect(potentialmama_xlmm_newtask,
                  sender=PotentialMama, dispatch_uid='pre_save_potentialmama_xlmm_newtask')
 
 
-def potentialmama_push_sms(sender, instance, created, **kwargs):
-    """
-    新加入一元妈妈，发送短信引导关注小鹿美美
-    如果已经关注，直接微信发新手任务
-    """
-    from flashsale.xiaolumm.tasks_mama_push import task_sms_push_mama, task_push_new_mama_task
-    from flashsale.xiaolumm.tasks_mama_fortune import task_subscribe_weixin_send_award
-    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
-    from shopapp.weixin.models_base import WeixinFans
-
-    potentialmama = instance
-
-    if created:
-        xlmm = XiaoluMama.objects.filter(id=potentialmama.potential_mama).first()
-        customer = xlmm.get_customer()
-        has_subscribe = WeixinFans.objects.filter(
-            unionid=customer.unionid, app_key=settings.WXPAY_APPID, subscribe=True).first()
-
-        if not has_subscribe:  # 没关注
-            task_sms_push_mama.delay(xlmm)
-        else:  # 已关注
-            task_subscribe_weixin_send_award.delay(xlmm)
-            task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_SUBSCRIBE_WEIXIN)
-
-post_save.connect(potentialmama_push_sms,
-                  sender=PotentialMama, dispatch_uid='pre_save_potentialmama_push_sms')
+#def potentialmama_push_sms(sender, instance, created, **kwargs):
+#    """
+#    新加入一元妈妈，发送短信引导关注小鹿美美
+#    如果已经关注，直接微信发新手任务
+#    """
+#    from flashsale.xiaolumm.tasks_mama_push import task_sms_push_mama, task_push_new_mama_task
+#    from flashsale.xiaolumm.tasks_mama_fortune import task_subscribe_weixin_send_award
+#    from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
+#    from shopapp.weixin.models_base import WeixinFans
+#
+#    potentialmama = instance
+#
+#    if created:
+#        xlmm = XiaoluMama.objects.filter(id=potentialmama.potential_mama).first()
+#        customer = xlmm.get_customer()
+#        has_subscribe = WeixinFans.objects.filter(
+#            unionid=customer.unionid, app_key=settings.WXPAY_APPID, subscribe=True).first()
+#
+#        if not has_subscribe:  # 没关注
+#            task_sms_push_mama.delay(xlmm)
+#        else:  # 已关注
+#            task_subscribe_weixin_send_award.delay(xlmm)
+#            task_push_new_mama_task.delay(xlmm, NewMamaTask.TASK_SUBSCRIBE_WEIXIN)
+#
+#post_save.connect(potentialmama_push_sms,
+#                  sender=PotentialMama, dispatch_uid='pre_save_potentialmama_push_sms')
 
 
 def update_mama_relationship(sender, instance, created, **kwargs):
