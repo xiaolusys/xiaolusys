@@ -280,6 +280,8 @@ class MamaMissionRecord(BaseModel):
             self.status = self.CLOSE
             self.finish_time = None
             self.save(update_fields=['finish_value', 'status', 'finish_time'])
+        else:
+            self.save(update_fields=['finish_value'])
 
 
 
