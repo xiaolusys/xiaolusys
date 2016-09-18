@@ -19,6 +19,7 @@ import requests
 import datetime
 from exp_map import exp_map,reverse_map
 import logging
+
 logger = logging.getLogger(__name__)
 import simplejson
 
@@ -205,7 +206,7 @@ def write_traces(kwargs):
     logger.warn("准备写入数据库了")
     if tradewuliu.first() is None:
         TradeWuliu.objects.create(**write_info)
-    else:
+    elif write_info["content"] != tradewuliu.first().content:
         tradewuliu.update(**write_info)
 
 def format_content(**kwargs):
@@ -224,7 +225,7 @@ def format_content(**kwargs):
         temp.update({'time':i['AcceptTime'].encode('gb2312').decode('gb2312').encode('utf-8')})
         temp.update({'content':i['AcceptStation'].encode('gb2312').decode('gb2312').encode('utf-8')})
         data.append(temp)
-    print type(all_data)
+    data.reverse()
     all_data.update({"data":data})
     return all_data
 
@@ -274,6 +275,7 @@ def kdn_get_push(*args, **kwargs):
         TradeWuliu.objects.create(**kwargs)
     else:
         tradewuliu.update(**kwargs)
+
 
 
 
