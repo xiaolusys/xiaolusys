@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save, pre_save
@@ -33,7 +34,7 @@ class WeixinFans(BaseModel):
     subscribe = models.BooleanField(default=False, verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"订阅时间")
     unsubscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"取消订阅时间")
-    extras = JSONCharMyField(max_length=512, default={'qrscene':'0'}, verbose_name=u'额外参数')
+    extras = JSONCharMyField(max_length=512, default={'qrscene': '0'}, verbose_name=u'额外参数')
 
     class Meta:
         db_table = 'shop_weixin_fans'
