@@ -1407,7 +1407,7 @@ def task_orderdetail_update_productskustats_inbound_quantity(sku_id):
         stat = stats[0]
         if stat.inbound_quantity != total:
             stat.inbound_quantity = total
-            stat.save(update_fields=['inbound_quantity'])
+            stat.save(update_fields=['inbound_quantity', 'modified'])
 
 
 @task()
