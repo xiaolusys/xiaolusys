@@ -15,7 +15,15 @@ from django.shortcuts import get_object_or_404
 from flashsale.pay.models import Customer, SaleTrade
 from rest_framework.decorators import list_route
 from shopback import paramconfig as pacg
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+import logging
+import  json
+import datetime
+from flashsale.restpro import kdn_wuliu_extra
+from shopback.trades.models import TradeWuliu
+from flashsale.restpro import exp_map
+from flashsale.restpro import wuliu_choice
 
 
 class WuliuViewSet(viewsets.ModelViewSet):
@@ -122,31 +130,16 @@ class WuliuViewSet(viewsets.ModelViewSet):
         company_code = content.get("company_code", None)
         if packetid is None:  # 参数缺失
             return Response([])
-
-        queryset = self.queryset.filter(out_sid=packetid).order_by(
-            "-time")  # 这里要按照物流信息时间倒序
-        if queryset.exists():
-            last_wuliu = queryset[0]
-            last_time = last_wuliu.created  # 数据库中最新的记录时间
-            now = datetime.datetime.now()  # 现在时间
-            gap_time = (now - last_time).seconds
-            if gap_time <= self.gap_time or (last_wuliu.status in (pacg.RP_ALREADY_SIGN_STATUS,
-                                                                   pacg.RP_REFUSE_SIGN_STATUS,
-                                                                   pacg.RP_CANNOT_SEND_STATUS,
-                                                                   pacg.RP_INVALID__STATUS,
-                                                                   pacg.RP_OVER_TIME_STATUS,
-                                                                   pacg.RP_FAILED_SIGN_STATUS)):
-                # 属性定义的请求间隙 或者是物流信息是　已经签收了 疑难单　无效单　签收失败则不更新展示数据库中的数据
-                res = self.packet_data(queryset)
-                return Response(res)
-            else:  # 更新物流
-                get_third_apidata_by_packetid.delay(packetid, company_code)
-                res = self.packet_data(queryset)
-                return Response(res)
-        else:  # 更新物流
-            get_third_apidata_by_packetid.delay(packetid, company_code)
-            res = self.packet_data(queryset)
-            return Response(res) 
+        out_sid = packetid
+        if company_code:
+            logistics_company = exp_map.reverse_map().get(company_code,None)
+        assert logistics_company is not None,'物流公司不能为空'
+        assert out_sid is not None, '物流单号不能为空'
+        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
+        result = wuliu_choice.result_choice[len(tradewuliu)](logistics_company,
+                                                             out_sid,
+                                                             tradewuliu.first())
+        return Response(result)
 
     def create(self, request, *args, **kwargs):
         """ 创建本地物流信息存储 """
