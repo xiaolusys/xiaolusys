@@ -15,6 +15,8 @@ from rest_framework.response import Response
 from shopback.trades.models import TradeWuliu
 from flashsale.restpro import wuliu_choice
 import logging
+from shopback.logistics.models import LogisticsCompany
+
 logger = logging.getLogger('lacked_wuliu_company_name')
 class ReturnWuliuViewSet(viewsets.ModelViewSet):
     """
@@ -178,7 +180,12 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
         assert logistics_company is not None,'物流公司不能为空'
         assert out_sid is not None, '物流单号不能为空'
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
-        result = wuliu_choice.result_choice[len(tradewuliu)](logistics_company,
+        if tradewuliu.first():
+            result = wuliu_choice.result_choice[1](logistics_company,
+                                                             out_sid,
+                                                             tradewuliu.first())
+        else:
+            result = wuliu_choice.result_choice[0](logistics_company,
                                                              out_sid,
                                                              tradewuliu.first())
         return Response(result)

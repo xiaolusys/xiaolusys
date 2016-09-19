@@ -24,7 +24,7 @@ from flashsale.restpro import kdn_wuliu_extra
 from shopback.trades.models import TradeWuliu
 from flashsale.restpro import exp_map
 from flashsale.restpro import wuliu_choice
-
+from shopback.logistics.models import LogisticsCompany
 
 class WuliuViewSet(viewsets.ModelViewSet):
     """
@@ -128,20 +128,25 @@ class WuliuViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         packetid = content.get("packetid", None)
         company_code = content.get("company_code", None)
+        if not company_code:
+            return Response("物流公司code未获得")
+        company_name = exp_map.reverse_map().get(company_code, None)
+        if not company_name:
+            company_name = kdn_wuliu_extra.get_logistics_name(company_code)
         if packetid is None:  # 参数缺失
             return Response([])
         out_sid = packetid
-        if company_code:
-            logistics_company2 = exp_map.reverse_map().get(company_code,None)
-        assert logistics_company2 is not None,'物流公司不能为空'
+        if company_name:
+            logistics_company = company_name
+        assert logistics_company is not None,'物流公司不能为空'
         assert out_sid is not None, '物流单号不能为空'
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
         if tradewuliu.first():
-            result = wuliu_choice.result_choice[1](logistics_company2,
+            result = wuliu_choice.result_choice[1](logistics_company,
                                                              out_sid,
                                                              tradewuliu.first())
         else:
-            result = wuliu_choice.result_choice[0](logistics_company2,
+            result = wuliu_choice.result_choice[0](logistics_company,
                                                              out_sid,
                                                              tradewuliu.first())
         return Response(result)
