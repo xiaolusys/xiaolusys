@@ -147,23 +147,25 @@ class SaleSupplierAdmin(ApproxAdmin):
     supplier_name_link.short_description = u"供应商"
 
     def category_list(self):
-        if hasattr(self, "categorys"):
-            return self.categorys
-        self.categorys = SaleCategory.get_normal_categorys()
-        return self.categorys
+        if not hasattr(self, "_category_maps_"):
+            self._category_maps_ = []
+            categorys = SaleCategory.get_normal_categorys()
+            for cat in categorys:
+                self._category_maps_.append((cat.id, str(cat)))
+        return self._category_maps_
 
     def get_changelist(self, request, **kwargs):
         return SaleSupplierChangeList
 
     def category_select(self, obj):
-        categorys = self.category_list()
+        category_values_tuple = self.category_list()
         cat_list = ["<select class='category_select' sid='%s'>" % obj.id]
         cat_list.append("<option value='%s'>%s</option>"%(obj.category and obj.category.id or '', obj.category or '-----------'))
-        for cat in categorys:
-            if obj.category == cat:
-                cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
+        for cat_id, cat_name in category_values_tuple:
+            if obj.category and obj.category.id == cat_id:
+                cat_list.append("<option value='%s' selected>%s</option>" % (cat_id, cat_name))
                 continue
-            cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat))
+            cat_list.append("<option value='%s'>%s</option>" % (cat_id, cat_name))
         cat_list.append("</select>")
 
         return "".join(cat_list)
@@ -390,7 +392,7 @@ class SaleProductAdmin(ApproxAdmin):
     list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
                    ('created', DateFieldListFilter), 'librarian', "buyer")
-    search_fields = ['=id', 'title', '=outer_id', '=sale_supplier__supplier_name', '=contactor__username']
+    search_fields = ['=id', '=title', '=outer_id']
     list_per_page = 25
 
     # --------设置页面布局----------------
@@ -467,26 +469,38 @@ class SaleProductAdmin(ApproxAdmin):
     outer_id_link.allow_tags = True
     outer_id_link.short_description = u"外部ID"
 
+    def get_user_librarians(self):
+        if not hasattr(self, '_librarians_'):
+            users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿买手资料员', ))
+            self._librarians_ = [u.get_full_name() for u in users]
+        return self._librarians_
+
+    def get_buyers(self):
+        if not hasattr(self, '_buyers_'):
+            users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿采购管理员', u'小鹿采购员'))
+            self._buyers_ = [u.get_full_name() for u in users]
+        return self._buyers_
+
     def librarian_select(self, obj):
         select_librarian = ['资料员：<br><select class="sale_librarian_select" spid="%s" onchange="sale_librarian_select(this)">' % obj.id]
         select_librarian.append('<option value="">------</option>')
-        librarian_users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿买手资料员', ))
-        for user in librarian_users:
-            if obj and obj.librarian == user.get_full_name():
-                select_librarian.append('<option value="{0}" selected>{0}</option>'.format(user.get_full_name()))
+        librarian_users = self.get_user_librarians()
+        for user_full_name in librarian_users:
+            if obj and obj.librarian == user_full_name:
+                select_librarian.append('<option value="{0}" selected>{0}</option>'.format(user_full_name))
                 continue
-            select_librarian.append('<option value="{0}">{0}</option>'.format(user.get_full_name()))
+            select_librarian.append('<option value="{0}">{0}</option>'.format(user_full_name))
         select_librarian.append("</select><br><br>")
         librarian_select = "".join(select_librarian)
 
         select_buyer = ['采购员：<br><select class="sale_buyer_select" spid="%s" onchange="sale_buyer_select(this)">' % obj.id]
         select_buyer.append('<option value="">------</option>')
-        buyer_users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿采购管理员', u'小鹿采购员'))
-        for user in buyer_users:
-            if obj and obj.buyer == user.get_full_name():
-                select_buyer.append('<option value="{0}" selected>{0}</option>'.format(user.get_full_name()))
+        buyer_users = self.get_buyers()
+        for user_full_name in buyer_users:
+            if obj and obj.buyer == user_full_name:
+                select_buyer.append('<option value="{0}" selected>{0}</option>'.format(user_full_name))
                 continue
-            select_buyer.append('<option value="{0}">{0}</option>'.format(user.get_full_name()))
+            select_buyer.append('<option value="{0}">{0}</option>'.format(user_full_name))
         select_buyer.append("</select><br>")
         buyer_select = "".join(select_buyer)
         return librarian_select + buyer_select
@@ -494,17 +508,25 @@ class SaleProductAdmin(ApproxAdmin):
     librarian_select.allow_tags = True
     librarian_select.short_description = u"人员分配"
 
+    def get_category_list(self):
+        if not hasattr(self, "_category_list_"):
+            self._category_list_ = []
+            categorys = SaleCategory.get_normal_categorys().filter(is_parent=False).order_by('parent_cid')
+            for cat in categorys:
+                self._category_list_.append((cat.id, str(cat)))
+        return self._category_list_
+
     def category_select(self, obj):
 
-        categorys = self.category_list
+        category_values_tuple = self.get_category_list()
         cat_list = ["<select class='sale_category_select' spid='%s'>" % obj.id]
         cat_list.append("<option value='%s'>%s</option>"%(obj.sale_category and obj.sale_category.id or '',
                                                           obj.sale_category or '-----------'))
-        for cat in categorys:
-            if obj and obj.sale_category == cat:
-                cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
+        for cat_id, cat_name in category_values_tuple:
+            if obj and obj.sale_category and obj.sale_category.id == cat_id:
+                cat_list.append("<option value='%s' selected>%s</option>" % (cat_id, cat_name))
                 continue
-            cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat))
+            cat_list.append("<option value='%s'>%s</option>" % (cat_id, cat_name))
         cat_list.append("</select>")
         return "".join(cat_list)
 
@@ -640,19 +662,19 @@ class SaleProductAdmin(ApproxAdmin):
 
     def select_Contactor(self, obj):
 
-        buyer_groups = (0, 1, 2, 3)
-        name = str(obj.contactor)
-        BuyerGroupNo = (u'未分组', u'A组', u'B组', u'C组')
-        target_user_group = BuyerGroup.objects.filter(buyer_name=name)
-        html = [
-            "<p id='item_id_{1}'>{0}</p><select id='select_buyer_group_{1}' name='selse' onchange='select_buyter({1})'>".format(
+        # buyer_groups = (0, 1, 2, 3)
+        # name = str(obj.contactor)
+        # BuyerGroupNo = (u'未分组', u'A组', u'B组', u'C组')
+        # target_user_group = BuyerGroup.objects.filter(buyer_name=name)
+        html = ["<p id='item_id_{1}'>{0}</p>".format(
                 obj.contactor, obj.id)]
-        for group in buyer_groups:
-            if target_user_group.count() > 0 and target_user_group[0].buyer_group == group:
-                html.append("<option selected='selected' value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
-            else:
-                html.append("<option value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
-        html.append("</select>")
+        # <select id='select_buyer_group_{1}' name='selse' onchange='select_buyter({1})'>
+        # for group in buyer_groups:
+        #     if target_user_group.count() > 0 and target_user_group[0].buyer_group == group:
+        #         html.append("<option selected='selected' value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
+        #     else:
+        #         html.append("<option value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
+        # html.append("</select>")
         return "".join(html)
 
     select_Contactor.allow_tags = True
@@ -698,13 +720,6 @@ class SaleProductAdmin(ApproxAdmin):
         for action in unauth_actions:
             del actions[action]
         return actions
-    def get_changelist(self, request, **kwargs):
-        """
-        Returns the ChangeList class for use on the changelist page.
-        """
-        self.category_list = SaleCategory.get_normal_categorys().filter(is_parent=False).order_by('parent_cid')
-
-        return super(SaleProductAdmin, self).get_changelist(request, **kwargs)
 
     def delete_model(self, request, obj):
         """
