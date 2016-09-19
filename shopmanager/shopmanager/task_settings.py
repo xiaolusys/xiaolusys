@@ -714,10 +714,14 @@ WEIXIN_ROUTES = {
         'queue': 'weixin',
         'routing_key': 'weixin.task_weixinfans_update_xlmmfans',
     },    
-    'shopapp.weixin.tasks.xiaolumama.task_weixinfans_create_budgetlog': {
+    'shopapp.weixin.tasks.xiaolumama.task_weixinfans_create_subscribe_awardcarry': {
         'queue': 'weixin',
-        'routing_key': 'weixin.task_weixinfans_create_budgetlog',
-    },    
+        'routing_key': 'weixin.task_weixinfans_create_subscribe_awardcarry',
+    },
+    'shopapp.weixin.tasks.xiaolumama.task_weixinfans_create_fans_awardcarry': {
+        'queue': 'weixin',
+        'routing_key': 'weixin.task_weixinfans_create_fans_awardcarry',
+    },        
     'shopapp.weixin.tasks.xiaolumama.task_get_unserinfo_and_create_accounts': {
         'queue': 'weixin',
         'routing_key': 'weixin.task_get_unserinfo_and_create_accounts',

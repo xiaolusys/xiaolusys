@@ -93,7 +93,10 @@ def weixinfans_update_xlmmfans(sender, instance, created, **kwargs):
 post_save.connect(weixinfans_update_xlmmfans,
                   sender=WeixinFans, dispatch_uid='post_save_weixinfans_update_xlmmfans')
 
-def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
+def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
+    if not created:
+        return
+    
     referal_from_mama_id = None
     qrscene = instance.get_qrscene()
     if qrscene and qrscene.isdigit():
@@ -109,17 +112,16 @@ def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
     if XiaoluSwitch.is_switch_open(2):
         return 
     
-    from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
-    referal_from_unionid = from_mama.openid
+    mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
+    referal_from_unionid = mama.openid
 
-    from flashsale.pay.models import BudgetLog
-    from shopapp.weixin.tasks import task_weixinfans_create_budgetlog
+    from shopapp.weixin.tasks import task_weixinfans_create_subscribe_awardcarry, task_weixinfans_create_fans_awardcarry 
+
+    task_weixinfans_create_subscribe_awardcarry.delay(referal_to_unionid)
+    task_weixinfans_create_fans_awardcarry.delay(referal_from_mama_id, referal_to_unionid)
     
-    task_weixinfans_create_budgetlog.delay(referal_to_unionid, referal_from_unionid, BudgetLog.BG_SUBSCRIBE)
-    task_weixinfans_create_budgetlog.delay(referal_from_unionid, referal_to_unionid, BudgetLog.BG_REFERAL_FANS)
-    
-post_save.connect(weixinfans_create_budgetlogs,
-                  sender=WeixinFans, dispatch_uid='post_save_weixinfans_create_budgetlogs')
+post_save.connect(weixinfans_create_awardcarry,
+                  sender=WeixinFans, dispatch_uid='post_save_weixinfans_create_awardcarry')
 
 
 #def weixinfans_xlmm_newtask(sender, instance, **kwargs):
