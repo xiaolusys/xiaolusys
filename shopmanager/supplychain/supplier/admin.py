@@ -666,9 +666,9 @@ class SaleProductAdmin(ApproxAdmin):
         # name = str(obj.contactor)
         # BuyerGroupNo = (u'未分组', u'A组', u'B组', u'C组')
         # target_user_group = BuyerGroup.objects.filter(buyer_name=name)
-        html = [
-            "<p id='item_id_{1}'>{0}</p><select id='select_buyer_group_{1}' name='selse' onchange='select_buyter({1})'>".format(
+        html = ["<p id='item_id_{1}'>{0}</p>".format(
                 obj.contactor, obj.id)]
+        # <select id='select_buyer_group_{1}' name='selse' onchange='select_buyter({1})'>
         # for group in buyer_groups:
         #     if target_user_group.count() > 0 and target_user_group[0].buyer_group == group:
         #         html.append("<option selected='selected' value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
