@@ -350,11 +350,11 @@ class OrderList(models.Model):
         self.bill_method = OrderList.PC_COD_TYPE
         self.is_postpay = True
         self.purchase_order.book()
+        self.set_stage_state()
         for od in self.order_list.all():
             od.arrival_quantity = od.buy_quantity
             od.arrival_time = datetime.datetime.now()
             od.save()
-        self.set_stage_state()
 
     def get_related_inbounds_out_stock_cnt(self):
         return sum([d.out_stock_num for d in self.related_out_stock_inbound_details])
