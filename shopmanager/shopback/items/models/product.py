@@ -847,7 +847,7 @@ class ProductSku(models.Model):
 
     @property
     def real_inferior_quantity(self):
-        return self.stats.inferior_num
+        return self.stat.inferior_num
 
     @property
     def excess_quantity(self):
