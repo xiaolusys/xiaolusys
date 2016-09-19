@@ -26,7 +26,7 @@ class WeixinUnionID(BaseModel):
         return u'<%s>' % self.openid
 
 
-class WeixinFans(models.Model):
+class WeixinFans(BaseModel):
     openid = models.CharField(max_length=32, verbose_name=u'OPENID')
     app_key = models.CharField(max_length=24, verbose_name=u'APPKEY')
     unionid = models.CharField(max_length=32, verbose_name=u'UNIONID')
@@ -96,7 +96,7 @@ post_save.connect(weixinfans_update_xlmmfans,
 def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
-    
+
     referal_from_mama_id = None
     qrscene = instance.get_qrscene()
     if qrscene and qrscene.isdigit():
@@ -110,16 +110,16 @@ def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
     referal_to_unionid = instance.unionid
 
     if XiaoluSwitch.is_switch_open(2):
-        return 
-    
+        return
+
     mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
     referal_from_unionid = mama.openid
 
-    from shopapp.weixin.tasks import task_weixinfans_create_subscribe_awardcarry, task_weixinfans_create_fans_awardcarry 
+    from shopapp.weixin.tasks import task_weixinfans_create_subscribe_awardcarry, task_weixinfans_create_fans_awardcarry
 
     task_weixinfans_create_subscribe_awardcarry.delay(referal_to_unionid)
     task_weixinfans_create_fans_awardcarry.delay(referal_from_mama_id, referal_to_unionid)
-    
+
 post_save.connect(weixinfans_create_awardcarry,
                   sender=WeixinFans, dispatch_uid='post_save_weixinfans_create_awardcarry')
 
