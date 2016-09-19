@@ -315,33 +315,34 @@ def update_all_logistics():
                 #print 'get logistics %s %s'%(psi.out_sid, psi.logistics_company_code)
                 if psi.out_sid and psi.logistics_company_code and temp_sid != psi.out_sid:
                     num = num+1
-                    get_third_apidata_by_packetid.delay(psi.out_sid, psi.logistics_company_code)
+                    kdn_sub(None,psi.logistics_company_name,psi.out_sid)
+                    # get_third_apidata_by_packetid.delay(psi.out_sid, psi.logistics_company_code)
                     temp_sid = psi.out_sid
     logger = logging.getLogger(__name__)
     logger.warn('update_all_logistics trades counts=%d, update counts=%d' % (sale_trades.count(), num))
 
-@task()
-def update_all_return_logistics():     #by huazi
-    from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid_return
-    salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
-                                                        SaleRefund.REFUND_CONFIRM_GOODS])
-    from shopback.logistics.models import LogisticsCompany
-    # logger.warn(len(salerefunds))
-    for i in salerefunds:
-        # logger.warn('遍历salerefunds')
-        if i.company_name:
-            company_id = LogisticsCompany.objects.filter(name=i.company_name).first()
-            if not company_id:
-                lc = LogisticsCompany.objects.values("name")
-                head = i.company_name.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')
-                sim = [j['name'] for j in lc if j['name'].find(head)!=-1]
-                if len(sim):
-                    company_id = LogisticsCompany.objects.get(name=sim[0])
-            if company_id and i.sid:
-                # logging.warn("物流公司代码和物流单号都存在")
-                get_third_apidata_by_packetid_return(i.id,i.sid,company_id.express_key)
-                logging.warn("物流公司express_key%s,物流单号%s" % (company_id.express_key,i.sid))
-    logger.warn('update_all_return_logistics')
+# @task()
+# def update_all_return_logistics():     #by huazi
+#     from flashsale.restpro.v1.views_wuliu_new import get_third_apidata_by_packetid_return
+#     salerefunds = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_RETURN_GOODS,
+#                                                         SaleRefund.REFUND_CONFIRM_GOODS])
+#     from shopback.logistics.models import LogisticsCompany
+#     # logger.warn(len(salerefunds))
+#     for i in salerefunds:
+#         # logger.warn('遍历salerefunds')
+#         if i.company_name:
+#             company_id = LogisticsCompany.objects.filter(name=i.company_name).first()
+#             if not company_id:
+#                 lc = LogisticsCompany.objects.values("name")
+#                 head = i.company_name.encode('gb2312').decode('gb2312')[0:2].encode('utf-8')
+#                 sim = [j['name'] for j in lc if j['name'].find(head)!=-1]
+#                 if len(sim):
+#                     company_id = LogisticsCompany.objects.get(name=sim[0])
+#             if company_id and i.sid:
+#                 # logging.warn("物流公司代码和物流单号都存在")
+#                 get_third_apidata_by_packetid_return(i.id,i.sid,company_id.express_key)
+#                 logging.warn("物流公司express_key%s,物流单号%s" % (company_id.express_key,i.sid))
+#     logger.warn('update_all_return_logistics')
 
 @task()
 def update_all_return_logistics_bykdn():

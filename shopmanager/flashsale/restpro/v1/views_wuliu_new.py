@@ -132,11 +132,16 @@ class WuliuViewSet(viewsets.ModelViewSet):
             return Response([])
         out_sid = packetid
         if company_code:
-            logistics_company = exp_map.reverse_map().get(company_code,None)
-        assert logistics_company is not None,'物流公司不能为空'
+            logistics_company2 = exp_map.reverse_map().get(company_code,None)
+        assert logistics_company2 is not None,'物流公司不能为空'
         assert out_sid is not None, '物流单号不能为空'
-        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid)
-        result = wuliu_choice.result_choice[len(tradewuliu)](logistics_company,
+        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
+        if tradewuliu.first():
+            result = wuliu_choice.result_choice[1](logistics_company2,
+                                                             out_sid,
+                                                             tradewuliu.first())
+        else:
+            result = wuliu_choice.result_choice[0](logistics_company2,
                                                              out_sid,
                                                              tradewuliu.first())
         return Response(result)
