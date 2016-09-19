@@ -421,7 +421,7 @@ class UserBudget(PayBaseModel):
         """ 设置普通用户钱包是否可以提现控制字段 """
         return constants.IS_USERBUDGET_COULD_CASHOUT
 
-    def action_budget_cashout(self, cash_out_amount)
+    def action_budget_cashout(self, cash_out_amount):
         """
         用户钱包提现
         cash_out_amount　整型　以分为单位
@@ -543,7 +543,7 @@ class BudgetLog(PayBaseModel):
     budget_date = models.DateField(default=datetime.date.today, verbose_name=u'业务日期')
     referal_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'引用id')
     status = models.IntegerField(choices=STATUS_CHOICES, db_index=True, default=CONFIRMED, verbose_name=u'状态')
-    uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一ID')
+    uni_key = models.CharField(max_length=128, unique=True, null=True, verbose_name=u'唯一ID')
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.customer_id, self.flow_amount)
