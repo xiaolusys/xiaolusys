@@ -28,31 +28,31 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     openid:妈妈微信openid,
     click_time:点击时间
     """
-    xlmmid = int(xlmmid)
-    xlmm = XiaoluMama.objects.filter(id=xlmmid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).first()
+    mama_id = int(xlmmid)
+    mama = XiaoluMama.objects.filter(id=mamaid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).first()
     
-    if not xlmm:
+    if not mama:
         return
 
-    today = datetime.datetime.now()
-    tf = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
-    tt = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+    now = datetime.datetime.now()
+    isvalid = True
+    if mama.renew_time < now:
+        #如果妈妈的续费时间已过，不计点击记录.
+        return
+    
+    #tf = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
+    #tt = datetime.datetime(now.year, now.month, now.day, 23, 59, 59)
+    #
+    #isvalid = False
+    #clicks = Clicks.objects.filter(openid=openid, click_time__range=(tf, tt))
+    #click_linkids = set([l.get('linkid') for l in clicks.values('linkid').distinct()])
+    #click_count = len(click_linkids)
+    #
+    #if click_count < Clicks.CLICK_DAY_LIMIT and xlmmid not in click_linkids:
+    #    isvalid = True
 
-    isvalid = False
-    clicks = Clicks.objects.filter(openid=openid, click_time__range=(tf, tt))
-    click_linkids = set([l.get('linkid') for l in clicks.values('linkid').distinct()])
-    click_count = len(click_linkids)
-
-    if click_count < Clicks.CLICK_DAY_LIMIT and xlmmid not in click_linkids:
-        isvalid = True
-
-    click = Clicks.objects.create(
-        linkid=xlmmid,
-        openid=openid,
-        isvalid=isvalid,
-        click_time=click_time,
-        app_key=app_key
-    )
+    click = Clicks(linkid=mama_id, openid=openid, isvalid=True, click_time=click_time, app_key=app_key)
+    click.save()
 
     return click.id
 

@@ -555,7 +555,7 @@ class BudgetLog(PayBaseModel):
     @property
     def mama_id(self):
         from flashsale.xiaolumm.models import XiaoluMama
-        c = Customer.objects.filter(id=customer_id).first()
+        c = Customer.objects.filter(id=self.customer_id).first()
         mama = XiaoluMama.objects.filter(openid=c.unionid).first()
         if mama:
             return mama.id
