@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save, pre_save
@@ -26,14 +27,14 @@ class WeixinUnionID(BaseModel):
         return u'<%s>' % self.openid
 
 
-class WeixinFans(models.Model):
+class WeixinFans(BaseModel):
     openid = models.CharField(max_length=32, verbose_name=u'OPENID')
     app_key = models.CharField(max_length=24, verbose_name=u'APPKEY')
     unionid = models.CharField(max_length=32, verbose_name=u'UNIONID')
     subscribe = models.BooleanField(default=False, verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"订阅时间")
     unsubscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"取消订阅时间")
-    extras = JSONCharMyField(max_length=512, default={'qrscene':'0'}, verbose_name=u'额外参数')
+    extras = JSONCharMyField(max_length=512, default={'qrscene': '0'}, verbose_name=u'额外参数')
 
     class Meta:
         db_table = 'shop_weixin_fans'
@@ -96,7 +97,7 @@ post_save.connect(weixinfans_update_xlmmfans,
 def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
-    
+
     referal_from_mama_id = None
     qrscene = instance.get_qrscene()
     if qrscene and qrscene.isdigit():
@@ -110,16 +111,16 @@ def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
     referal_to_unionid = instance.unionid
 
     if XiaoluSwitch.is_switch_open(2):
-        return 
-    
+        return
+
     mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
     referal_from_unionid = mama.openid
 
-    from shopapp.weixin.tasks import task_weixinfans_create_subscribe_awardcarry, task_weixinfans_create_fans_awardcarry 
+    from shopapp.weixin.tasks import task_weixinfans_create_subscribe_awardcarry, task_weixinfans_create_fans_awardcarry
 
     task_weixinfans_create_subscribe_awardcarry.delay(referal_to_unionid)
     task_weixinfans_create_fans_awardcarry.delay(referal_from_mama_id, referal_to_unionid)
-    
+
 post_save.connect(weixinfans_create_awardcarry,
                   sender=WeixinFans, dispatch_uid='post_save_weixinfans_create_awardcarry')
 
