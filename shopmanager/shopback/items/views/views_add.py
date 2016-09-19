@@ -101,7 +101,6 @@ class AddItemView(generics.ListCreateAPIView):
         model_pro = ModelProduct(
             name=product_name,
             head_imgs=header_img,
-            onshelf_time=shelf_time,
             salecategory=saleproduct.sale_category,
             saleproduct=saleproduct,
             is_flatten=False,
@@ -142,7 +141,7 @@ class AddItemView(generics.ListCreateAPIView):
                                       model_id=model_pro.id, sale_charger=user.username,
                                       category=category_item, remain_num=total_remain_num, cost=cost,
                                       agent_price=agentprice, std_sale_price=price, ware_by=int(ware_by),
-                                      sale_time=shelf_time, pic_path=header_img, sale_product=saleproduct.id)
+                                      pic_path=header_img, sale_product=saleproduct.id)
                 one_product.save()
                 log_action(user.id, one_product, ADDITION, u'新建一个product_new')
                 pro_count += 1

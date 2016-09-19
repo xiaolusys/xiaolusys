@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.core.cache import cache
 from django.db import models
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save, post_save, post_delete
 from core.options import get_systemoa_user, log_action, CHANGE
 from core.utils import update_model_fields
 from .. import constants
@@ -221,6 +221,23 @@ class SaleProductManageDetail(models.Model):
     def is_brand_type(self):
         return self.schedule_type == self.SP_BRAND
 
+    @property
+    def modelproducts(self):
+        if not hasattr(self, '_model_products_'):
+            from flashsale.pay.models import ModelProduct
+            self._model_products_ = ModelProduct.objects.filter(saleproduct_id=self.sale_product_id)
+        return self._model_products_
+
+    @property
+    def nomal_modelproducts(self):
+        """ 正常状态的款式 """
+        from flashsale.pay.models import ModelProduct
+        return self.modelproducts.filter(status=ModelProduct.NORMAL)
+
+    @property
+    def modeproduct(self):
+        return self.nomal_modelproducts.first()
+
 
 def sync_md_weight(sender, instance, raw, *args, **kwargs):
     """
@@ -282,6 +299,21 @@ def sync_product_detail_count(sender, instance, raw, *args, **kwargs):
 
 post_save.connect(sync_product_detail_count, SaleProductManageDetail,
                   dispatch_uid='post_save_sync_product_detail_count')
+
+
+def sync_model_product_delete(sender, instance, *args, **kwargs):
+    """
+    当删除排期中的明细的时候　需要将　对应ModelProduct的上下架时间置为 None
+    防止录入资料后有排期明细的改动　导致　按照日期的错误上架
+    """
+    # 对应上架时间的款式
+    modelproducts = instance.modelproducts.filter(onshelf_time=instance.schedule_manage.upshelf_time)
+    for modelproduct in modelproducts:
+        modelproduct.set_shelftime_none()
+
+
+post_delete.connect(sync_model_product_delete, SaleProductManageDetail,
+                    dispatch_uid=u'post_delete_sync_model_product_delete')
 
 
 class SaleProductSku(models.Model):

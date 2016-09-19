@@ -638,6 +638,16 @@ class ModelProduct(BaseTagModel):
         from flashsale.xiaolumm.models.models_rebeta import AgencyOrderRebetaScheme
         return AgencyOrderRebetaScheme.get_rebeta_scheme(self.rebeta_scheme_id)
 
+    def set_shelftime_none(self):
+        """
+        设置上下架时间为空(排期删除明细特殊场景使用)
+        """
+        if self.shelf_status == ModelProduct.ON_SHELF:  # 上架状态的产品不予处理
+            return
+        self.onshelf_time = None
+        self.offshelf_time = None
+        self.save()
+
 
 def update_product_details_info(sender, instance, created, **kwargs):
     """

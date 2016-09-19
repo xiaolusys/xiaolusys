@@ -227,7 +227,6 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                 model_pro = ModelProduct(
                     name=content['name'],
                     head_imgs=content['head_img'],
-                    onshelf_time=content['sale_time'],
                     salecategory=saleproduct.sale_category,
                     saleproduct=saleproduct,
                     is_flatten=is_flatten,
@@ -257,7 +256,6 @@ class ProductManageViewSet(viewsets.ModelViewSet):
                         agent_price=color['agent_price'],
                         std_sale_price=color['std_sale_price'],
                         ware_by=supplier.ware_by,
-                        sale_time=content['sale_time'],
                         pic_path=content['head_img'],
                         sale_product=saleproduct.id,
                         is_flatten=is_flatten,
