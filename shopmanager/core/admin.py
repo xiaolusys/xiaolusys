@@ -38,7 +38,11 @@ class BaseAdmin(admin.ModelAdmin):
         and a boolean indicating if the results may contain duplicates.
         """
         def get_field_type(field_name):
-            return self.model._meta.get_field(field_name).get_internal_type()
+            fields = [f.strip() for f in field_name.split('__') if f.strip()]
+            if len(fields) > 1:
+                return self.model._meta.get_field(fields[0]).rel.to._meta.get_field(fields[1])
+
+            return self.model._meta.get_field(fields[0]).get_internal_type()
 
         def is_number_type( field_name):
             field_name = field_name.lstrip('^').lstrip('=').lstrip('@')
