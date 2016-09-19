@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save, pre_save
@@ -26,14 +27,14 @@ class WeixinUnionID(BaseModel):
         return u'<%s>' % self.openid
 
 
-class WeixinFans(models.Model):
+class WeixinFans(BaseModel):
     openid = models.CharField(max_length=32, verbose_name=u'OPENID')
     app_key = models.CharField(max_length=24, verbose_name=u'APPKEY')
     unionid = models.CharField(max_length=32, verbose_name=u'UNIONID')
     subscribe = models.BooleanField(default=False, verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"订阅时间")
     unsubscribe_time = models.DateTimeField(blank=True, null=True, verbose_name=u"取消订阅时间")
-    extras = JSONCharMyField(max_length=512, default={'qrscene':'0'}, verbose_name=u'额外参数')
+    extras = JSONCharMyField(max_length=512, default={'qrscene': '0'}, verbose_name=u'额外参数')
 
     class Meta:
         db_table = 'shop_weixin_fans'
@@ -107,17 +108,17 @@ def weixinfans_create_budgetlogs(sender, instance, created, **kwargs):
     referal_to_unionid = instance.unionid
 
     if XiaoluSwitch.is_switch_open(2):
-        return 
-    
+        return
+
     from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
     referal_from_unionid = from_mama.openid
 
     from flashsale.pay.models import BudgetLog
     from shopapp.weixin.tasks import task_weixinfans_create_budgetlog
-    
+
     task_weixinfans_create_budgetlog.delay(referal_to_unionid, referal_from_unionid, BudgetLog.BG_SUBSCRIBE)
     task_weixinfans_create_budgetlog.delay(referal_from_unionid, referal_to_unionid, BudgetLog.BG_REFERAL_FANS)
-    
+
 post_save.connect(weixinfans_create_budgetlogs,
                   sender=WeixinFans, dispatch_uid='post_save_weixinfans_create_budgetlogs')
 
