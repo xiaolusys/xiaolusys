@@ -99,6 +99,10 @@ class Envelop(PayBaseModel):
         if status in self.VALID_SEND_STATUS:
             self.send_time = self.send_time or datetime.datetime.now()
             self.status = Envelop.CONFIRM_SEND
+            if self.subject == Envelop.XLAPP_CASHOUT:
+                from flashsale.pay.models import BudgetLog
+                modified = datetime.datetime.now()
+                BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED,modified=modified)
 
         elif status in (self.SEND_FAILED, self.REFUND) and self.status == self.WAIT_SEND:
             self.status = Envelop.FAIL
