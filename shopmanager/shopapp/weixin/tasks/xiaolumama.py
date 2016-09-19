@@ -383,6 +383,9 @@ def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
 @task(max_retries=3, default_retry_delay=5)
 def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, eventKey):
     """ to_username: 公众号id, from_username: 关注用户id """
+    if XiaoluSwitch.is_switch_open(3):
+        return
+    
     try:
         #xiaolumm = get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey)
         
