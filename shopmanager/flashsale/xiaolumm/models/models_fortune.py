@@ -605,11 +605,13 @@ post_save.connect(ordercarry_update_order_number,
 class AwardCarry(BaseModel):
     AWARD_OPEN_COURSE = 3
     AWARD_FIRST_ORDER = 5
+    AWARD_SUBSCRIBE = 8
     AWARD_MAMA_SALE = 9
     AWARD_GROUP_SALE = 10
+    AWARD_INVITE_FANS = 11
     AWARD_TYPES = ((1, u'直荐奖励'),(2, u'团队推荐奖励'),(3, u'授课奖金'),(4, u'新手任务'),
                    (5, u'首单奖励'),(6, u'推荐新手任务'),(7, u'一元邀请'),(8, u'关注公众号'),
-                   (9, u'销售奖励'),(10, u'团队销售奖励') )
+                   (9, u'销售奖励'),(10, u'团队销售奖励') , (11, u'粉丝邀请'))
     STAGING = 1
     CONFIRMED = 2
     CANCEL = 3
