@@ -77,8 +77,8 @@ class SaleProduct(BaseTagModel):
                               choices=STATUS_CHOICES, default=WAIT, verbose_name=u'状态')
 
     contactor = models.ForeignKey('auth.User', null=True, related_name='sale_products', verbose_name=u'接洽人')
-    librarian = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'资料员')
-    buyer = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'采购员')
+    librarian = models.CharField(max_length=32, blank=True, db_index=True, null=True, verbose_name=u'资料员')
+    buyer = models.CharField(max_length=32, blank=True, null=True, db_index=True, verbose_name=u'采购员')
 
     sale_time = models.DateTimeField(null=True, blank=True, verbose_name=u'上架日期')
     reserve_time = models.DateTimeField(null=True, blank=True, verbose_name=u'预留时间')
