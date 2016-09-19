@@ -143,12 +143,10 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
     nick, img = '', ''
     unionid = get_unionid_by_openid(openid, appkey)
     if unionid:
-        customer = Customer.objects.filter(unionid=unionid).exclude(status=Customer.DELETE).first()
-        if not customer:
-            from shopapp.weixin.models_base import WeixinUserInfo
-            customer = WeixinUserInfo.objects.filter(unionid=unionid).first()
-        if customer:
-            nick, img = customer.nick, customer.thumbnail
+        from shopapp.weixin.models_base import WeixinUserInfo
+        userinfo = WeixinUserInfo.objects.filter(unionid=unionid).first()
+        if userinfo:
+            nick, img = userinfo.nick, userinfo.thumbnail
     else:
         # if no unionid exists, then use openid
         unionid = openid
