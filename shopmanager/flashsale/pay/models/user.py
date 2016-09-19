@@ -428,7 +428,11 @@ class UserBudget(PayBaseModel):
         """
         MIN_AMOUNT = 200
         NO_AUDIT_AMOUNT = 600
-        
+
+        moible = self.user.moible
+        if not (mobile and mobile.isdigit() and len(mobile) == 11):
+            return 8, '提现请先至个人中心绑定手机号，以便接收验证码！'
+            
         from shopapp.weixin.models import WeixinUnionID
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
@@ -464,11 +468,12 @@ class UserBudget(PayBaseModel):
 
         # 创建钱包提现记录
         budgetlog = BudgetLog(customer_id=customer_id,
-                             flow_amount=cash_out_amount,
-                             budget_type=BudgetLog.BUDGET_OUT,
-                             budget_log_type=BudgetLog.BG_CASHOUT,
-                             budget_date=datetime.date.today(),
-                             status=BudgetLog.PENDING)
+                              flow_amount=cash_out_amount,
+                              budget_type=BudgetLog.BUDGET_OUT,
+                              budget_log_type=BudgetLog.BG_CASHOUT,
+                              budget_date=datetime.date.today(),
+                              status=BudgetLog.PENDING,
+                              uni_key=uni_key)
         budgetlog.save()
 
 
