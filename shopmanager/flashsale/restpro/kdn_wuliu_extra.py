@@ -222,8 +222,8 @@ def format_content(**kwargs):
     data = []
     for i in content:
         temp = {}
-        temp.update({'time':i['AcceptTime'].encode('gb2312').decode('gb2312').encode('utf-8')})
-        temp.update({'content':i['AcceptStation'].encode('gb2312').decode('gb2312').encode('utf-8')})
+        temp.update({'time':i['AcceptTime'].encode('utf-8')})
+        temp.update({'content':i['AcceptStation'].encode('utf-8')})
         data.append(temp)
     data.reverse()
     all_data.update({"data":data})
