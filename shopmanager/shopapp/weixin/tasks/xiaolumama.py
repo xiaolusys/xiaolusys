@@ -252,8 +252,8 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
         carry_description = u'谢谢关注！每天分享，赚佣么么哒！'
         carry_plan_name = u'小鹿千万粉丝计划'
         contributor_mama_id = mama_id
-        contributor_nick = userinfo['nick']
-        contributor_img = userinfo['thumbnail']
+        contributor_nick = userinfo.nick
+        contributor_img = userinfo.thumbnail
     
         ac = AwardCarry(mama_id=mama_id,carry_num=carry_num, carry_type=carry_type, carry_description=carry_description,
                         contributor_nick=contributor_nick, contributor_img=contributor_img,
@@ -288,8 +288,8 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
         carry_description = u'恭喜，又增加一名粉丝！'
         carry_plan_name = u'小鹿千万粉丝计划'
         contributor_mama_id = referal_to_mama.id
-        contributor_nick = userinfo['nick']
-        contributor_img = userinfo['thumbnail']
+        contributor_nick = userinfo.nick
+        contributor_img = userinfo.thumbnail
     
         ac = AwardCarry(mama_id=mama_id,carry_num=carry_num, carry_type=carry_type, carry_description=carry_description,
                         contributor_nick=contributor_nick, contributor_img=contributor_img,
