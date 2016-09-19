@@ -368,7 +368,6 @@ class UserBudget(PayBaseModel):
         total = res['total'] or 0
         return float('%.2f' % (total * 0.01))
 
-
     def get_amount_display(self):
         """ 返回金额　"""
         return self.budget_cash
@@ -422,77 +421,73 @@ class UserBudget(PayBaseModel):
         """ 设置普通用户钱包是否可以提现控制字段 """
         return constants.IS_USERBUDGET_COULD_CASHOUT
 
-    def action_budget_cashout(self, cash_out_amount, need_audit=True):
+    def action_budget_cashout(self, cash_out_amount)
         """
         用户钱包提现
         cash_out_amount　整型　以分为单位
         """
+        MIN_AMOUNT = 200
+        NO_AUDIT_AMOUNT = 600
+        
         from shopapp.weixin.models import WeixinUnionID
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
 
-        # 如果提现金额小于0　code 1
-        if cash_out_amount <= 0:
-            return 1, '提现金额小于0'
-        elif cash_out_amount < 200:
+        if cash_out_amount < MIN_AMOUNT:
             return 1, '提现金额小于2元'
         # 如果提现金额大于当前用户钱包的金额 code 2
         elif cash_out_amount > self.amount:
             return 2, '提现金额大于账户金额'
         # 提现操作
-        else:
-            # 提现前金额
-            try:
-                if not self.user.unionid:
-                    return 5, '请扫描二维码'
-                wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
-            except WeixinUnionID.DoesNotExist:
-                return 4, '请扫描二维码'  # 用户没有公众号提现账户
 
-            # 发放公众号红包
-            recipient = wx_union.openid  # 接收人的openid
-            body = constants.ENVELOP_BODY  # 红包祝福语
-            description = constants.ENVELOP_CASHOUT_DESC.format(self.user.id,
-                                                                self.amount)  # 备注信息 用户id, 提现前金额
+        # 提现前金额
+        try:
+            if not self.user.unionid:
+                return 5, '提现请先关注公众号［小鹿美美］'
+            wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
+        except WeixinUnionID.DoesNotExist:
+            return 4, '提现请先关注公众号［小鹿美美］'  # 用户没有公众号提现账户
 
-            # 检测提现次数。２元一天只能提现一次
-            if cash_out_amount == 200 and not need_audit:
-                has_record = BudgetLog.objects.filter(
-                    customer_id=self.user.id,
-                    flow_amount=200,
-                    budget_type=BudgetLog.BUDGET_OUT,
-                    budget_log_type=BudgetLog.BG_CASHOUT,
-                    budget_date=datetime.date.today(),
-                    status=BudgetLog.CONFIRMED
-                ).exists()
-                if has_record:
-                    return 11, '你今天已经提现过一次了，明天再来吧'
+        # 发放公众号红包
+        recipient = wx_union.openid  # 接收人的openid
+        body = constants.ENVELOP_BODY  # 红包祝福语
+        description = constants.ENVELOP_CASHOUT_DESC.format(self.user.id, self.amount)  # 备注信息 用户id, 提现前金额
 
-            # 创建钱包提现记录
-            budgelog = BudgetLog.objects.create(customer_id=self.user.id,
-                                                flow_amount=cash_out_amount,
-                                                budget_type=BudgetLog.BUDGET_OUT,
-                                                budget_log_type=BudgetLog.BG_CASHOUT,
-                                                budget_date=datetime.date.today(),
-                                                status=BudgetLog.CONFIRMED)
+        customer_id = self.user.id
+        if BudgetLog.is_cashout_limited(customer_id):
+            return 6, '今日提现次数已满，请明天再来哦！'
 
-            envelop = Envelop.objects.create(
-                amount=cash_out_amount,
-                platform=Envelop.WXPUB,
-                recipient=recipient,
-                subject=Envelop.XLAPP_CASHOUT,
-                body=body,
-                receiver=self.user.mobile,
-                description=description,
-                referal_id=budgelog.id
-            )
+        uni_key = BudgetLog.gen_uni_key(customer_id, BudgetLog.BUDGET_OUT, BudgetLog.BG_CASHOUT)
+        bl = BudgetLog.objects.filter(uni_key=uni_key).first()
+        if bl:
+            return 7, '您两次提交间隔太短，稍等下再试哦！'
 
-            # 通过微信公众号提现２元，直接发红包，无需审核，一天限制一次
-            if cash_out_amount == 200 and not need_audit:
-                envelop.send_envelop()
+        # 创建钱包提现记录
+        budgetlog = BudgetLog(customer_id=customer_id,
+                             flow_amount=cash_out_amount,
+                             budget_type=BudgetLog.BUDGET_OUT,
+                             budget_log_type=BudgetLog.BG_CASHOUT,
+                             budget_date=datetime.date.today(),
+                             status=BudgetLog.PENDING)
+        budgetlog.save()
 
-            log_action(self.user.user.id, self, CHANGE, u'用户提现')
-        return 0, '提现成功'
+
+        envelop = Envelop.objects.create(
+            amount=cash_out_amount,
+            platform=Envelop.WXPUB,
+            recipient=recipient,
+            subject=Envelop.XLAPP_CASHOUT,
+            body=body,
+            receiver=self.user.mobile,
+            description=description,
+            referal_id=budgetlog.id
+        )
+
+        # 通过微信公众号小额提现，直接发红包，无需审核，一天限制2次
+        if cash_out_amount <= NO_AUDIT_AMOUNT and cash_out_amount >= MIN_AMOUNT:
+            envelop.send_envelop()
+                
+        return 0, '提交成功'
 
 
 class BudgetLog(PayBaseModel):
@@ -548,10 +543,26 @@ class BudgetLog(PayBaseModel):
     budget_date = models.DateField(default=datetime.date.today, verbose_name=u'业务日期')
     referal_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'引用id')
     status = models.IntegerField(choices=STATUS_CHOICES, db_index=True, default=CONFIRMED, verbose_name=u'状态')
+    uni_key = models.CharField(max_length=128, unique=True, verbose_name=u'唯一ID')
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.customer_id, self.flow_amount)
 
+    @classmethod
+    def gen_uni_key(cls, customer_id, budget_type, budget_log_type):
+        budget_date = datetime.date.today()
+        count = cls.objects.filter(customer_id=customer_id, budget_type=budget_type, budget_log_type=budget_log_type, budget_date=budget_date).count()
+        return '%s-%s-%d-%d|%s' % (budget_log_type, budget_type, customer_id, count+1, budget_date)
+
+    @classmethod
+    def is_cashout_limited(cls, customer_id):
+        CASHOUT_NUM_LIMIT = 2 #每日最大可提现次数
+        budget_date = datetime.date.today()
+        cnt = cls.objects.filter(customer_id=customer_id, budget_type=cls.BUDGET_OUT, budget_date=budget_date).exclude(status=cls.CANCELED).count()
+        if cnt < CASHOUT_NUM_LIMIT and cnt >= 0:
+            return False
+        return True
+        
     @property
     def mama_id(self):
         from flashsale.xiaolumm.models import XiaoluMama
@@ -560,7 +571,9 @@ class BudgetLog(PayBaseModel):
         if mama:
             return mama.id
         return ''
-    
+
+
+        
     def get_flow_amount_display(self):
         """ 返回金额　"""
         return self.flow_amount / 100.0
