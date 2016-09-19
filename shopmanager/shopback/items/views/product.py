@@ -40,23 +40,21 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
         firstgrade_cat = saleproduct and saleproduct.sale_category.get_firstgrade_category()
         if firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_HEALTH):
-            return redirect(reverse('items_v1:modelproduct-health') + '?supplier_id=%s&saleproduct=%s' % (
-                supplier_id, saleproduct_id))
+            return redirect(reverse('items_v1:modelproduct-health') + '?supplier_id=%s&saleproduct=%s' %(supplier_id, saleproduct_id))
         elif saleproduct.sale_category and saleproduct.sale_category.cid.startswith(constants.CATEGORY_TRUNK):
-            return redirect(reverse('items_v1:modelproduct-cloth') + '?supplier_id=%s&saleproduct=%s' % (
-                supplier_id, saleproduct_id))
-        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(
-            (constants.CATEGORY_BAGS, constants.CATEGORY_MEIZUANG)):
-            return redirect(reverse('items_v1:modelproduct-bags') + '?supplier_id=%s&saleproduct=%s' % (
-                supplier_id, saleproduct_id))
-        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_MUYING):
+            return redirect(reverse('items_v1:modelproduct-cloth') + '?supplier_id=%s&saleproduct=%s' %(supplier_id, saleproduct_id))
+        elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith((constants.CATEGORY_BAGS, constants.CATEGORY_MEIZUANG)):
+            return redirect(reverse('items_v1:modelproduct-bags') + '?supplier_id=%s&saleproduct=%s' %(supplier_id, saleproduct_id))
+        elif firstgrade_cat \
+            and not saleproduct.sale_category.cid.startswith(constants.CATEGORY_SHOES)\
+            and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_MUYING):
             return redirect(reverse('items_v1:modelproduct-muying') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
         elif firstgrade_cat \
             and not saleproduct.sale_category.cid.startswith(constants.CATEGORY_ACCESSOR) \
             and str(firstgrade_cat.cid).startswith((constants.CATEGORY_CHILDREN,
-                                                        constants.CATEGORY_WEMON,
-                                                        constants.CATEGORY_ACCESSORY)):
+                                                    constants.CATEGORY_WEMON,
+                                                    constants.CATEGORY_ACCESSORY)):
             return redirect(reverse('items_v1:modelproduct-cloth') + '?supplier_id=%s&saleproduct=%s' % (
                 supplier_id, saleproduct_id))
         return Response({
