@@ -240,32 +240,23 @@ class GetSkuDetail(generics.ListCreateAPIView):
         if not searchtext or len(searchtext.strip()) == 0:
             return Response({"result": "NOTFOUND"})
         product_bean = Product.objects.filter(Q(outer_id=searchtext))
-        all_chima_content = ContrastContent.objects.all().order_by('sid')
         try:
             if product_bean.count() > 0:
-                all_sku = [key.properties_alias for key in product_bean[0].normal_skus]
+                all_sku = product_bean[0].normal_skus.values_list('properties_alias', flat=True)
                 result_data = {}
                 constants_map = ContrastContent.contrast_maps()
                 for one_sku in all_sku:
-                    notexist_skus = []
-                    for one_chima in all_chima_content:
+                    contrast_tables = product_bean[0].contrast.contrast_detail.get(one_sku)
+                    for one_chima, chima_size in contrast_tables.iteritems():
                         try:
-                            contrast_detail = product_bean[
-                                0].contrast.contrast_detail
-                            if one_sku in contrast_detail:
-                                chi_ma_size = contrast_detail[one_sku][
-                                    one_chima.cid]
-                            else:
-                                chi_ma_size = 0
+                            one_chima_name = constants_map.get(one_chima) or one_chima
                         except:
-                            chi_ma_size = 0
-                            notexist_skus.append((one_chima.cid, one_chima.name, chi_ma_size))
                             continue
                         if one_sku in result_data:
-                            result_data[one_sku].append((one_chima.cid, one_chima.name, chi_ma_size))
+                            result_data[one_sku].append((one_chima, one_chima_name, chima_size))
                         else:
-                            result_data[one_sku] = [(one_chima.cid, one_chima.name, chi_ma_size)]
-                    result_data[one_sku].extend(notexist_skus)
+                            result_data[one_sku] = [(one_chima, one_chima_name, chima_size)]
+
                 # chima_content = product_bean[0].contrast.get_correspond_content
                 chima_content = result_data.items()
                 chima_content.sort(cmp=custom_sort)

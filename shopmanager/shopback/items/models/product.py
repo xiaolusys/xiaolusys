@@ -330,7 +330,7 @@ class Product(models.Model):
 
     @property
     def realtime_quantity(self):
-        return sum([s.realtime_quantity for s in self.productskustats_set.all()])
+        return sum(self.productskustats_set.all().values_list('realtime_quantity', flat=True))
 
     def pro_sale_supplier(self):
         """ 返回产品的选品和供应商　"""
@@ -847,8 +847,7 @@ class ProductSku(models.Model):
 
     @property
     def real_inferior_quantity(self):
-        from .stats import ProductSkuStats
-        return ProductSkuStats.get_by_sku(self.id).inferior_num
+        return self.stats.inferior_num
 
     @property
     def excess_quantity(self):
