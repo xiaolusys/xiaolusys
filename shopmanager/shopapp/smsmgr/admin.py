@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
 
-from core.admin import ApproxAdmin
+from core.admin import ApproxAdmin, BaseAdmin
 from core.filters import DateScheduleFilter, DateFieldListFilter
 from shopapp.smsmgr.models import SMSPlatform, SMSRecord, SMSActivity
 
@@ -25,7 +25,7 @@ class SMSPlatformAdmin(admin.ModelAdmin):
 admin.site.register(SMSPlatform, SMSPlatformAdmin)
 
 
-class SMSRecordAdmin(ApproxAdmin):
+class SMSRecordAdmin(BaseAdmin):
     list_display = (
     'id', 'task_name', 'task_type', 'platform', 'task_id', 'countnums', 'succnums', 'created', 'modified', 'status')
     # list_editable = ('update_time','task_type' ,'is_success','status')
@@ -33,7 +33,7 @@ class SMSRecordAdmin(ApproxAdmin):
     list_display_links = ('task_name',)
 
     list_filter = ('task_type', 'platform', 'status', ('created', DateFieldListFilter))
-    search_fields = ['=id', '=mobiles' ]
+    search_fields = ['=id', '=mobiles']
     list_per_page = 40
 
 

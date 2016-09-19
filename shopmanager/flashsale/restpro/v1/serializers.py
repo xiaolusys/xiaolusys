@@ -843,10 +843,17 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
 
 class MamaVebViewConfSerialize(serializers.ModelSerializer):
     extra = JSONParseField()
+    mama_activities = serializers.SerializerMethodField()
 
     class Meta:
         model = MamaVebViewConf
-        fields = ('id', 'version', "is_valid", "extra", "created", "modified")
+        fields = ('id', 'version', "is_valid", "extra", 'mama_activities', "created", "modified")
+
+    def get_mama_activities(self, obj):
+        """ 获取妈妈可以参加的活动 """
+        mama_activities = ActivityEntry.mama_activities()
+        serializer = ActivityEntrySerializer(mama_activities, many=True)
+        return serializer.data
 
 
 from flashsale.pay.models import CustomerShops, CuShopPros
