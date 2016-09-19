@@ -8,10 +8,21 @@ from django.utils.translation import string_concat, ugettext as _, ungettext
 from django.contrib.admin.views.main import ChangeList, ORDER_VAR, SuspiciousOperation, ImproperlyConfigured, \
     IncorrectLookupParameters
 
+NUMBER_FIELD_TYPES = (
+    'AutoField',
+    'BigIntegerField',
+    'BinaryField',
+    'DecimalField',
+    'FloatField',
+    'IntegerField',
+    'PositiveIntegerField',
+    'PositiveSmallIntegerField',
+    'SmallIntegerField'
+)
 
 class BaseAdmin(admin.ModelAdmin):
     list_display = ('id',)
-    search_fields = ('id')
+    search_fields = ('=id')
     date_hierarchy = None
     save_on_top = True
     readonly_fields = ()
@@ -21,6 +32,53 @@ class BaseAdmin(admin.ModelAdmin):
             obj.creator = request.user.username
         obj.save()
 
+    def get_search_results(self, request, queryset, search_term):
+        """
+        Returns a tuple containing a queryset to implement the search,
+        and a boolean indicating if the results may contain duplicates.
+        """
+        def get_field_type(field_name):
+            return self.model._meta.get_field(field_name).get_internal_type()
+
+        def is_number_type( field_name):
+            field_name = field_name.lstrip('^').lstrip('=').lstrip('@')
+            field_type = get_field_type(field_name)
+            return field_type in NUMBER_FIELD_TYPES
+
+        # Apply keyword searches.
+        def construct_search(field_name):
+            if field_name.startswith('^'):
+                return "%s__startswith" % field_name[1:]
+            elif field_name.startswith('='):
+                return "%s__exact" % field_name[1:]
+            elif field_name.startswith('@'):
+                return "%s__search" % field_name[1:]
+            else:
+                return "%s__icontains" % field_name
+
+        use_distinct = False
+        search_fields = self.get_search_fields(request)
+        if search_fields and search_term:
+            orm_field_tuple = [(str(search_field), is_number_type(str(search_field)))
+                               for search_field in search_fields]
+            for bit in search_term.split():
+                or_queries = []
+                orm_lookups = []
+                for field_name, is_digit in orm_field_tuple:
+                    if is_digit and not bit.isdigit():
+                        continue
+                    field_exp = construct_search(field_name)
+                    orm_lookups.append(field_exp)
+                    or_queries.append(models.Q(**{field_exp: bit}))
+                queryset = queryset.filter(reduce(operator.or_, or_queries))
+                if not use_distinct:
+                    for search_spec in orm_lookups:
+                        if lookup_needs_distinct(self.opts, search_spec):
+                            use_distinct = True
+                            break
+
+        return queryset, use_distinct
+
 
 class ApproxAdmin(BaseAdmin):
     def queryset(self, request):
@@ -28,7 +86,7 @@ class ApproxAdmin(BaseAdmin):
         return qs._clone(klass=ApproxCountQuerySet)
 
 
-class OrderModelAdmin(admin.ModelAdmin):
+class OrderModelAdmin(BaseAdmin):
 
     def get_changelist(self, request, **kwargs):
         class OrderChangeList(ChangeList):
@@ -65,7 +123,7 @@ class OrderModelAdmin(admin.ModelAdmin):
         return OrderChangeList
 
 
-class BaseModelAdmin(admin.ModelAdmin):
+class BaseModelAdmin(BaseAdmin):
     @csrf_protect_m
     @transaction.atomic
     def detailform_view(self, request, object_id=None, form_url='', extra_context=None):

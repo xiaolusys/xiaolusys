@@ -144,7 +144,7 @@ class SaleTradeAdmin(BaseModelAdmin):
     }
 
     def queryset(self, request):
-        qs = super(ApproxAdmin, self).queryset(request)
+        qs = super(BaseModelAdmin, self).queryset(request)
         return qs._clone(klass=ApproxCountQuerySet)
 
     def save_model(self, request, obj, form, change):
@@ -193,7 +193,7 @@ class SaleTradeAdmin(BaseModelAdmin):
 admin.site.register(SaleTrade, SaleTradeAdmin)
 
 
-class TradeChargeAdmin(admin.ModelAdmin):
+class TradeChargeAdmin(BaseModelAdmin):
     list_display = ('id', 'order_no', 'charge', 'channel', 'amount', 'time_paid', 'paid', 'created', 'refunded')
     list_display_links = ('order_no', 'charge',)
 
