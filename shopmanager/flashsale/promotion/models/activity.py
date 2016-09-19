@@ -114,6 +114,10 @@ class ActivityEntry(BaseModel):
     def friend_member_num(self):
         return 16
 
+    @classmethod
+    def mama_activities(cls):
+        return cls.get_effect_activitys(datetime.datetime.now()).filter(act_type=ActivityEntry.ACT_MAMA)
+
 
 class ActivityProduct(BaseModel):
     """ 品牌商品信息 """
