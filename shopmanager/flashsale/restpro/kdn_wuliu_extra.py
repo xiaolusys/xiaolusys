@@ -18,6 +18,7 @@ import functools
 import requests
 import datetime
 from exp_map import exp_map,reverse_map
+from shopback.logistics.models import LogisticsCompany
 import logging
 
 logger = logging.getLogger(__name__)
@@ -264,6 +265,17 @@ def get_reverse_code(f):
             raise Exception("无法解析物流公司名%s,物流公司%s不存在" % (kwargs['ShipperCode'],kwargs['ShipperCode']))
     return wrapper
 
+def get_logistics_name(company_code):
+    try:
+        company_code = int(company_code)
+        lc = LogisticsCompany.objects.filter(id=int(company_code)).first()
+        assert lc is not None, "物流公司名不存在"
+        return lc.name
+    except:
+        lc = LogisticsCompany.objects.filter(code=company_code).first()
+        assert lc is not None,"提供的物流公司编码有问题 么么哒~~ 物流公司名不存在"
+        return lc.name
+
 
 @get_reverse_code                                #获得物流公司的中文名
 def kdn_get_push(*args, **kwargs):
@@ -280,7 +292,7 @@ def kdn_get_push(*args, **kwargs):
 if __name__ == '__main__':
     test_info = {"expName" : '韵达快递',"expNo":"3936870447512"}
     #kdn_subscription(**test_info)
-    format_content()
+    # format_content()
 
 
 
