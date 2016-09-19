@@ -4,7 +4,7 @@ from celery.task import task
 
 from django.contrib.auth.models import User
 from flashsale.pay.models import Customer
-from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans
+from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans, AwardCarry
 from flashsale.pay.models import BudgetLog
 from shopback.monitor.models import XiaoluSwitch
 
@@ -231,38 +231,76 @@ def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
                    fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
     fan.save()
 
-
 @task(max_retries=3, default_retry_delay=5)
-def task_weixinfans_create_budgetlog(customer_unionid, reference_unionid, budget_log_type):
-    customer = Customer.objects.filter(unionid=customer_unionid).first()
-    reference = Customer.objects.filter(unionid=reference_unionid).first()
+def task_weixinfans_create_subscribe_awardcarry(unionid):
+    carry_num = 100
+    carry_type = AwardCarry.AWARD_SUBSCRIBE # 关注公众号
+    mama = XiaoluMama.objects.filter(openid=unionid).first()
+    mama_id = mama.id
+    
     try:
-        # We get here too fast that Customer objects have not been created yet, and when we try to get customer.id, error comes.
-        log = BudgetLog.objects.filter(customer_id=customer.id, referal_id=reference.id, budget_log_type=budget_log_type).first()
-        if log:
+        # We get here too fast that WeixinUserInfo objects have not been created yet,
+        # and when we try to access, error comes.        
+        userinfo = WeixinUserInfo.objects.filter(unionid=unionid).first()
+        uni_key = AwardCarry.gen_uni_key(mama_id, carry_type) 
+    
+        ac = AwardCarry.objects.filter(uni_key=uni_key).first()
+        if ac:
             return
+
+        date_field = datetime.date.today()
+        carry_description = u'谢谢关注！每天分享，赚佣么么哒！'
+        carry_plan_name = u'小鹿千万粉丝计划'
+        contributor_mama_id = mama_id
+        contributor_nick = userinfo['nick']
+        contributor_img = userinfo['thumbnail']
+    
+        ac = AwardCarry(mama_id=mama_id,carry_num=carry_num, carry_type=carry_type, carry_description=carry_description,
+                        contributor_nick=contributor_nick, contributor_img=contributor_img,
+                        contributor_mama_id=contributor_mama_id, carry_plan_name=carry_plan_name,
+                        date_field=date_field, uni_key=uni_key, status=AwardCarry.CONFIRMED)
+        ac.save()
     except Exception,exc:
         #logger.error(str(exc), exc_info=True)
-        raise task_weixinfans_create_budgetlog.retry(exc=exc)
-
-    flow_amount = 0
-    if budget_log_type == BudgetLog.BG_REFERAL_FANS:
-        # 推荐人得0.3元
-        flow_amount = 30
-    elif budget_log_type == BudgetLog.BG_SUBSCRIBE:
-        # 被推荐人得1元
-        flow_amount = 100
-    else:
-        return
-        
-    budget_type = BudgetLog.BUDGET_IN
-    budget_date = datetime.date.today()
-
-    log = BudgetLog(customer_id=customer.id, flow_amount=flow_amount, budget_type=budget_type,
-                    budget_log_type=budget_log_type, budget_date=budget_date, referal_id=reference.id)
-    log.save()
-
+        raise task_weixinfans_create_subscribe_awardcarry.retry(exc=exc)
     
+
+@task(max_retries=3, default_retry_delay=5)
+def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unionid):
+    carry_num = 30
+    carry_type = AwardCarry.AWARD_INVITE_FANS # 邀请关注成为粉丝
+    
+    mama_id = referal_from_mama_id
+        
+    try:
+        # We get here too fast that WeixinUserInfo or referal XiaoluMama objects have not
+        # been created yet, and when we try to access , error comes.        
+        referal_to_mama = XiaoluMama.objects.filter(openid=referal_to_unionid).first()
+        userinfo = WeixinUserInfo.objects.filter(unionid=referal_to_unionid).first()
+    
+        uni_key = AwardCarry.gen_uni_key(referal_to_mama.id, carry_type) 
+    
+        ac = AwardCarry.objects.filter(uni_key=uni_key).first()
+        if ac:
+            return
+
+        date_field = datetime.date.today()
+        carry_description = u'恭喜，又增加一名粉丝！'
+        carry_plan_name = u'小鹿千万粉丝计划'
+        contributor_mama_id = referal_to_mama.id
+        contributor_nick = userinfo['nick']
+        contributor_img = userinfo['thumbnail']
+    
+        ac = AwardCarry(mama_id=mama_id,carry_num=carry_num, carry_type=carry_type, carry_description=carry_description,
+                        contributor_nick=contributor_nick, contributor_img=contributor_img,
+                        contributor_mama_id=contributor_mama_id, carry_plan_name=carry_plan_name,
+                        date_field=date_field, uni_key=uni_key, status=AwardCarry.CONFIRMED)
+        ac.save()
+    except Exception,exc:
+        #logger.error(str(exc), exc_info=True)
+        raise task_weixinfans_create_fans_awardcarry.retry(exc=exc)
+
+
 def get_or_create_weixin_xiaolumm(wxpubId, openid, event, eventKey):
     wx_api = WeiXinAPI()
     wx_api.setAccountId(wxpubId=wxpubId)
