@@ -877,14 +877,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
             default_return.update({"code": 6, "message": "提现不能超过200"})
             return Response(default_return)
 
-        if channel in ['wx']:
-            code, message = budget.action_budget_cashout(amount, need_audit=False)
-        else:
-            code, message = budget.action_budget_cashout(amount)
-
+        code, message = budget.action_budget_cashout(amount)
         qrcode = ''
-        if code in (4, 5):
-            qrcode = ''
         return Response({'code': code, "message": message, "qrcode": qrcode})
 
     @list_route(methods=['get'])
