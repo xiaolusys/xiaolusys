@@ -210,7 +210,6 @@ def write_traces(kwargs):
         tradewuliu.update(**write_info)
 
 def format_content(**kwargs):
-
     content = kwargs["content"]
     content = json.loads(content)
     all_data = {"status":kwargs["status"],

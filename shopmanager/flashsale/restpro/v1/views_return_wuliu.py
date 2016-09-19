@@ -1,21 +1,19 @@
 # coding=utf-8
 __author__ = "huazi"
 
-
 from rest_framework import permissions
 from rest_framework import authentication
-from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from shopback.trades.models import ReturnWuLiu
 from shopback.items.models import Product
-import datetime
 from . import serializers
-from flashsale.restpro.tasks import get_third_apidata, get_third_apidata_by_packetid, get_third_apidata_by_packetid_return
-from rest_framework import viewsets
-from django.shortcuts import get_object_or_404
 from flashsale.pay.models import Customer, SaleTrade
-from shopback import paramconfig as pacg
 from shopback.logistics.models import LogisticsCompany
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+from rest_framework.response import Response
+from shopback.trades.models import TradeWuliu
+from flashsale.restpro import wuliu_choice
 import logging
 logger = logging.getLogger('lacked_wuliu_company_name')
 class ReturnWuliuViewSet(viewsets.ModelViewSet):
@@ -132,40 +130,58 @@ class ReturnWuliuViewSet(viewsets.ModelViewSet):
         else:
             return Response({'company_name':company_name,'company_id':self.get_company_code(company_name)})
 
+    # @list_route(methods=['get'])
+    # def get_wuliu_by_packetid(self, request):
+    #     content = request.REQUEST
+    #     packetid = content.get("packetid", None)
+    #     packetid = ''.join(str(packetid).split())
+    #     company_name = content.get("company_name",None)
+    #     rid = content.get("rid",None)
+    #     if company_name:
+    #         company_code = self.get_company_code(company_name)
+    #     # company_code = content.get("company_code", None)
+    #     if not packetid or not company_code or not rid:
+    #         return Response({"errorinfo":"物流编号,物流公司编号或者退货单编号不存在"})
+    #     queryset = ReturnWuLiu.objects.filter(out_sid=packetid).order_by("-time")
+    #     if queryset.exists():
+    #         last_wuliu = queryset[0]
+    #         last_time = last_wuliu.created
+    #         now = datetime.datetime.now()
+    #         gap_time = (now - last_time).seconds
+    #         if gap_time <= self.gap_time or (last_wuliu.status in (pacg.RP_ALREADY_SIGN_STATUS,
+    #                                                                pacg.RP_REFUSE_SIGN_STATUS,
+    #                                                                pacg.RP_CANNOT_SEND_STATUS,
+    #                                                                pacg.RP_INVALID__STATUS,
+    #                                                                pacg.RP_OVER_TIME_STATUS,
+    #                                                                pacg.RP_FAILED_SIGN_STATUS)):
+    #             res = self.packet_data(queryset)
+    #             return Response(res)
+    #         else:  #更新物流
+    #             get_third_apidata_by_packetid_return(rid, packetid, company_code)
+    #             res = self.packet_data(queryset)
+    #             return Response(res)
+    #     else:
+    #         get_third_apidata_by_packetid_return(rid, packetid, company_code)
+    #         res = self.packet_data(queryset)
+    #         return Response(res)
+
     @list_route(methods=['get'])
     def get_wuliu_by_packetid(self, request):
         content = request.REQUEST
-        packetid = content.get("packetid", None)
+        packetid = content.get("packetid",None)
         packetid = ''.join(str(packetid).split())
         company_name = content.get("company_name",None)
-        rid = content.get("rid",None)
-        if company_name:
-            company_code = self.get_company_code(company_name)
-        # company_code = content.get("company_code", None)
-        if not packetid or not company_code or not rid:
+        if not packetid or not company_name:
             return Response({"errorinfo":"物流编号,物流公司编号或者退货单编号不存在"})
-        queryset = ReturnWuLiu.objects.filter(out_sid=packetid).order_by("-time")
-        if queryset.exists():
-            last_wuliu = queryset[0]
-            last_time = last_wuliu.created
-            now = datetime.datetime.now()
-            gap_time = (now - last_time).seconds
-            if gap_time <= self.gap_time or (last_wuliu.status in (pacg.RP_ALREADY_SIGN_STATUS,
-                                                                   pacg.RP_REFUSE_SIGN_STATUS,
-                                                                   pacg.RP_CANNOT_SEND_STATUS,
-                                                                   pacg.RP_INVALID__STATUS,
-                                                                   pacg.RP_OVER_TIME_STATUS,
-                                                                   pacg.RP_FAILED_SIGN_STATUS)):
-                res = self.packet_data(queryset)
-                return Response(res)
-            else:  #更新物流
-                get_third_apidata_by_packetid_return(rid, packetid, company_code)
-                res = self.packet_data(queryset)
-                return Response(res)
-        else:
-            get_third_apidata_by_packetid_return(rid, packetid, company_code)
-            res = self.packet_data(queryset)
-            return Response(res)
+        logistics_company = company_name
+        out_sid = packetid
+        assert logistics_company is not None,'物流公司不能为空'
+        assert out_sid is not None, '物流单号不能为空'
+        tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
+        result = wuliu_choice.result_choice[len(tradewuliu)](logistics_company,
+                                                             out_sid,
+                                                             tradewuliu.first())
+        return Response(result)
 
     def create(self, request, *args, **kwargs):
         """创建本地物流存储"""
