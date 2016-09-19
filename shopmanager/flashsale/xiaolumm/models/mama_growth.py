@@ -173,6 +173,7 @@ class MamaMission(BaseModel):
 def gen_mama_mission_record_unikey(mission_id, year_week, mama_id):
     return '%d-%s-%d'%(int(mission_id), year_week, int(mama_id))
 
+
 class MamaMissionRecord(BaseModel):
 
     STAGING  = 'staging'
@@ -283,10 +284,17 @@ class MamaMissionRecord(BaseModel):
         else:
             self.save(update_fields=['finish_value'])
 
+    @classmethod
+    def mama_mission(cls, mama_id, year_week=None):
+        queryset = cls.objects.filter(mama_id=mama_id)
+        if year_week:
+            queryset = queryset.filter(year_week=year_week)
+        return queryset
 
 
 from flashsale.xiaolumm.signals import signal_xiaolumama_register_success
 from flashsale.pay.signals import signal_saletrade_pay_confirm, signal_saletrade_refund_confirm
+
 
 def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwargs):
     """ 妈妈注册成功更新推荐妈妈激励状态 """

@@ -202,7 +202,26 @@ class MamaFortune(BaseModel):
             self._xiaolumm_xlmm_ = XiaoluMama.objects.filter(id=self.mama_id).first()
         return self._xiaolumm_xlmm_
 
-#
+    @property
+    def week_mama_carry(self):
+        """
+        WeekMamaCarryTotal instance
+        """
+        if not hasattr(self, '_week_mama_carry_'):
+            from flashsale.xiaolumm.models import WeekMamaCarryTotal
+
+            self._week_mama_carry_ = WeekMamaCarryTotal.objects.filter(mama_id=self.mama_id).first()
+        return self._week_mama_carry_
+
+    @property
+    def week_mama_team_carry(self):
+        if not hasattr(self, '_week_mama_team_carry_'):
+            from flashsale.xiaolumm.models import WeekMamaTeamCarryTotal
+
+            self._week_mama_team_carry_ = WeekMamaTeamCarryTotal.objects.filter(mama_id=self.mama_id).first()
+        return self._week_mama_team_carry_
+
+
 # The task_send_activate_award() should not be triggered here, because MamaFortune gets
 # updated several times a day. The task should be triggered only trail_num gets changed.
 #

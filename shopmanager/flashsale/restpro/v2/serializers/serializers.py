@@ -2,9 +2,9 @@
 import collections
 import datetime
 import random
-
+import time
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 from rest_framework import serializers
 
@@ -54,7 +54,7 @@ from supplychain.supplier.models import SaleProduct, HotProduct
 from shopback.refunds.models_refund_rate import ProRefunRcord
 
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, MamaCarryTotal, XlmmFans
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, MamaCarryTotal, XlmmFans, MamaMissionRecord
 from flashsale.xiaolumm.models.models_advertis import XlmmAdvertis, NinePicAdver
 from flashsale.xiaolumm.models.models_fortune import MAMA_FORTUNE_HISTORY_LAST_DAY
 
@@ -72,6 +72,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
     carry_value = serializers.FloatField(source='cash_total_display', read_only=True)
     # carry_value = serializers.SerializerMethodField('carry_num_display_new', read_only=True)
     extra_info = serializers.SerializerMethodField(read_only=True)
+    extra_figures = serializers.SerializerMethodField()
 
     class Meta:
         model = MamaFortune
@@ -79,7 +80,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
                   'fans_num', 'invite_num', 'order_num', 'carry_value', 'active_value_num',
                   'carry_pending_display', 'carry_confirmed_display', 'carry_cashout_display',
                   'mama_event_link', 'history_last_day', 'today_visitor_num', 'modified', 'created',
-                  "extra_info")
+                  "extra_info", 'extra_figures')
 
     def carry_num_display_new(self, obj):
         """ 累计收益数 """
@@ -128,6 +129,35 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
             "cashout_reason": cashout_reason,
             "his_confirmed_cash_out": his_confirmed_cash_out
         }
+
+    def get_extra_figures(self, obj):
+        """
+        本周累计收益、本周排名、任务完成百分比、个人总体排名、团队总体排名
+        """
+        default = collections.defaultdict(week_duration_total=0.0, week_duration_rank=0,
+                                          personal_total_rank=0, team_total_rank=0,
+                                          task_percentage=0.0)
+        week_mama_carry = obj.week_mama_carry
+        week_mama_team_carry = obj.week_mama_team_carry
+        default.update({'week_duration_total': week_mama_carry.duration_total,
+                        'week_duration_rank': week_mama_carry.duration_rank,
+                        'personal_total_rank': week_mama_carry.total_rank,
+                        'team_total_rank': week_mama_team_carry.total_rank})
+        year_week = time.strftime("%Y-%W")
+        missions_counts = MamaMissionRecord.mama_mission(obj.mama_id,
+                                                         year_week=year_week).values('status').annotate(
+            status_count=Count('id'))
+        task_percentage = 0
+        if missions_counts:
+            total_count = 0
+            finished = 0
+            for missions_count in missions_counts:
+                total_count += missions_count['status_count']
+                if missions_count['status'] == MamaMissionRecord.FINISHED:  # 已完成的
+                    finished += missions_count['status_count']
+            task_percentage = round(finished/float(total_count), 3) if total_count else 0
+        default.update({'task_percentage': task_percentage})
+        return default
 
 
 class CarryRecordSerializer(serializers.ModelSerializer):
