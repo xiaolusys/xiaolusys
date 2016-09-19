@@ -29,7 +29,7 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     click_time:点击时间
     """
     mama_id = int(xlmmid)
-    mama = XiaoluMama.objects.filter(id=mamaid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).first()
+    mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED).first()
     
     if not mama:
         return
