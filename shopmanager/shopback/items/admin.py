@@ -1473,16 +1473,10 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
         '%(product_title)s</a>')
 
     def supplier(self, obj):
-        product = obj.sku
-        outer_id = list(product.outer_id)
-        outer_id.pop()
-        outer_id = "".join(outer_id)
-        orderdetail = OrderDetail.objects.filter(outer_id=outer_id).first()
-        if orderdetail:
-            supplier_name = orderdetail.orderlist.supplier.supplier_name
-            return ('%s') % supplier_name
-
-    supplier.allow_tags = True
+        supplier = obj.product.get_supplier()
+        if supplier:
+            return supplier.supplier_name
+        return ''
     supplier.short_description = u'供应商'
 
     def product_id_link(self, obj):
@@ -1598,7 +1592,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     def _wait_order_num(self, obj):
         return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
-            'url': '/admin/dinghuo/orderdetail/?chichu_id=1&sku_id=%s' % obj.sku_id,
+            'url': '/admin/dinghuo/orderdetail/?chichu_id=%s' % obj.sku_id,
             'num': obj.wait_order_num
         }
 

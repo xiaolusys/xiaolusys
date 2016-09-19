@@ -1018,7 +1018,7 @@ def task_assign_stock_to_package_sku_item(stat):
     if available_num > 0:
         package_sku_items = PackageSkuItem.objects.filter(sku_id=stat.sku_id,
                                                           assign_status=PackageSkuItem.NOT_ASSIGNED,
-                                                          num__lte=available_num).order_by('pay_time')
+                                                          num__lte=available_num).order_by('purchase_order_unikey','pay_time')
         if package_sku_items.count() > 0:
             package_sku_item = package_sku_items.first()
             package_sku_item.assign_status = PackageSkuItem.ASSIGNED
