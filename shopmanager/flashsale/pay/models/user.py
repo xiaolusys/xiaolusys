@@ -429,7 +429,7 @@ class UserBudget(PayBaseModel):
         MIN_AMOUNT = 200
         NO_AUDIT_AMOUNT = 600
 
-        moible = self.user.moible
+        mobile = self.user.mobile
         if not (mobile and mobile.isdigit() and len(mobile) == 11):
             return 8, '提现请先至个人中心绑定手机号，以便接收验证码！'
             
