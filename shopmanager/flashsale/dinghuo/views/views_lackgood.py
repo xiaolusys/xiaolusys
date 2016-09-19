@@ -1,4 +1,5 @@
 # coding:utf-8
+import itertools
 import datetime
 from django.core.urlresolvers import reverse
 from django.db import transaction
@@ -87,15 +88,22 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
         logger.warning('debug-refund-time3:%s'% datetime.datetime.now())
         normal_lackdict = dict(normal_lackvalues)
         normal_skuids   = normal_lackdict.keys()
-        saleorders = SaleOrder.objects.filter(Q(sku_id__in=normal_skuids, status=SaleOrder.WAIT_SELLER_SEND_GOODS)
-                                              |Q(id__in=refund_order_ids))\
+
+        saleorders_values = SaleOrder.objects.filter(
+            sku_id__in=normal_skuids, status=SaleOrder.WAIT_SELLER_SEND_GOODS)\
             .values(
                 'id', 'oid', 'item_id', 'title', 'pic_path', 'sku_name', 'sku_id', 'pay_time',
                 'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id'
             )
+        refundorder_values = SaleOrder.objects.filter(id__in=refund_order_ids)\
+            .values(
+                'id', 'oid', 'item_id', 'title', 'pic_path', 'sku_name', 'sku_id', 'pay_time',
+                'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id'
+            )
+        saleorders_values = itertools.chain(saleorders_values, refundorder_values)
         logger.warning('debug-refund-time4:%s'% datetime.datetime.now())
         saleorder_list = []
-        for order in saleorders:
+        for order in saleorders_values:
             saletrade = SaleTrade.objects.get(id=order['sale_trade_id'])
             order['lackorder_id']  = normal_lackdict.get(int(order['sku_id']))
             order['buyer_nick']    = saletrade.buyer_nick
