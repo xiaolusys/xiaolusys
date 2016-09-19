@@ -488,6 +488,9 @@ class UserBudget(PayBaseModel):
             referal_id=budgetlog.id
         )
 
+        if XiaoluSwitch.is_switch_open(4):
+            return 0, '提交成功，请等待审核!'            
+
         # 通过微信公众号小额提现，直接发红包，无需审核，一天限制2次
         if cash_out_amount <= NO_AUDIT_AMOUNT and cash_out_amount >= MIN_AMOUNT:
             envelop.send_envelop()
