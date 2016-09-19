@@ -488,30 +488,28 @@ from django.contrib.admin.models import CHANGE
 
 def make_refund_message(refund):
     """ 根据短信模板生成要发送或者推送的文本信息 """
-    sms_activitys = SMSActivity.objects.none()
     refund_status = refund.status
     active_sms = SMSActivity.objects.filter(id__gte=5, id__lte=8)
-    if refund_status == SaleRefund.REFUND_WAIT_RETURN_GOODS:  # 同意申请退货
-        sms_activitys = active_sms.filter(id=5, status=True)
+    status_tpl_map = {
+        SaleRefund.REFUND_WAIT_RETURN_GOODS: 5,  # 同意申请退货
+        SaleRefund.REFUND_REFUSE_BUYER: 6,  # 拒绝申请退款
+        SaleRefund.REFUND_APPROVE: 7,  # 等待返款
+        SaleRefund.REFUND_SUCCESS: 8  # 退款成功
+    }
+    try:
+        tpl_id = status_tpl_map[refund_status]
+    except KeyError as e:
+        return
+    sms_activity = active_sms.filter(id=tpl_id, status=True).first()
 
-    if refund_status == SaleRefund.REFUND_REFUSE_BUYER:  # 拒绝申请退款
-        sms_activitys = active_sms.filter(id=6, status=True)
-
-    if refund_status == SaleRefund.REFUND_APPROVE:  # 等待返款
-        sms_activitys = active_sms.filter(id=7, status=True)
-
-    if refund_status == SaleRefund.REFUND_SUCCESS:  # 退款成功
-        sms_activitys = active_sms.filter(id=8, status=True)
-
-    if sms_activitys.exists():
-        sms_activity = sms_activitys[0]
-        message = sms_activity.text_tmpl.format(
-            refund.title,  # 标题
-            refund.refund_fee,  # 退款费用
-            refund.get_status_display())  # 退款状态
-        return message
-    else:
-        return None
+    status_display = refund.get_status_display()
+    if tpl_id == 5:  # 同意退货的时候添加地址信息
+        address = refund.get_return_address()
+        status_display = ' '.join([status_display, u'退回地址:', address])
+    message = sms_activity.text_tmpl.format(refund.title,  # 标题
+                                            refund.refund_fee,  # 退款费用
+                                            status_display)  # 退款状态
+    return message
 
 
 def send_refund_msg(refund):
