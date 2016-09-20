@@ -529,7 +529,7 @@ def sync_sale_refund_status(sender, instance, created, **kwargs):
     if not order.refund_id:
         order.refund_id = instance.id
         order.refund_fee = instance.refund_fee
-        order_update_fields.append('refund_id', 'refund_fee')
+        order_update_fields.extend(['refund_id', 'refund_fee'])
 
     order.save(update_fields=order_update_fields)  # 保存同步的状态
 
