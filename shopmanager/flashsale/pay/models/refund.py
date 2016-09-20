@@ -482,7 +482,7 @@ def sync_sale_refund_status(sender, instance, created, **kwargs):
     order = SaleOrder.objects.get(id=instance.order_id)
     trade = SaleTrade.objects.get(id=instance.trade_id)
     # 退款成功  如果是退款关闭要不要考虑？？？
-    order_update_fields = []
+    order_update_fields = ['modified']
     if instance.status == SaleRefund.REFUND_SUCCESS:
         # 如果是退款成功状态
         # 找到订单
@@ -528,7 +528,9 @@ def sync_sale_refund_status(sender, instance, created, **kwargs):
     order_update_fields.append('refund_status')
     if not order.refund_id:
         order.refund_id = instance.id
-        order_update_fields.append('refund_id')
+        order.refund_fee = instance.refund_fee
+        order_update_fields.append('refund_id', 'refund_fee')
+
     order.save(update_fields=order_update_fields)  # 保存同步的状态
 
 
