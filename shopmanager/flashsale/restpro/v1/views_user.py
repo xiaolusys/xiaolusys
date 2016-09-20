@@ -865,6 +865,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         cashout_amount = content.get('cashout_amount', None)
         channel = content.get('channel', None)
+        verify_code = content.get('verify_code', None)
         default_return = collections.defaultdict(code=0, message='', qrcode='')
 
         if not cashout_amount:
@@ -877,7 +878,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             default_return.update({"code": 6, "message": "提现不能超过200"})
             return Response(default_return)
 
-        code, message = budget.action_budget_cashout(amount)
+        code, message = budget.action_budget_cashout(amount, verify_code=verify_code)
         qrcode = ''
         return Response({'code': code, "message": message, "qrcode": qrcode})
 

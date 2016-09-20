@@ -421,7 +421,7 @@ class UserBudget(PayBaseModel):
         """ 设置普通用户钱包是否可以提现控制字段 """
         return constants.IS_USERBUDGET_COULD_CASHOUT
 
-    def action_budget_cashout(self, cash_out_amount):
+    def action_budget_cashout(self, cash_out_amount, verify_code=None):
         """
         用户钱包提现
         cash_out_amount　整型　以分为单位
@@ -432,7 +432,12 @@ class UserBudget(PayBaseModel):
         mobile = self.user.mobile
         if not (mobile and mobile.isdigit() and len(mobile) == 11):
             return 8, '提现请先至个人中心绑定手机号，以便接收验证码！'
-            
+
+        from flashsale.restpro.v2.views.verifycode_login import validate_code
+        if not validate_code(mobile, verify_code):
+            #return 9, '验证码不对或已过期，请重新发送验证码！'
+            return 9, '提现功能休整中，请等待粉丝活动开始！'
+        
         from shopapp.weixin.models import WeixinUnionID
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
@@ -488,6 +493,7 @@ class UserBudget(PayBaseModel):
             referal_id=budgetlog.id
         )
 
+        from shopback.monitor.models import XiaoluSwitch
         if XiaoluSwitch.is_switch_open(4):
             return 0, '提交成功，请等待审核!'            
 
