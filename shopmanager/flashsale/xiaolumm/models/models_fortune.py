@@ -208,17 +208,19 @@ class MamaFortune(BaseModel):
         WeekMamaCarryTotal instance
         """
         if not hasattr(self, '_week_mama_carry_'):
-            from flashsale.xiaolumm.models import WeekMamaCarryTotal
+            from flashsale.xiaolumm.models import WeekMamaCarryTotal, WeekRank
 
-            self._week_mama_carry_ = WeekMamaCarryTotal.objects.filter(mama_id=self.mama_id).first()
+            self._week_mama_carry_ = WeekMamaCarryTotal.objects.filter(mama_id=self.mama_id,
+                                                                       stat_time=WeekRank.this_week_time()).first()
         return self._week_mama_carry_
 
     @property
     def week_mama_team_carry(self):
         if not hasattr(self, '_week_mama_team_carry_'):
-            from flashsale.xiaolumm.models import WeekMamaTeamCarryTotal
+            from flashsale.xiaolumm.models import WeekMamaTeamCarryTotal, WeekRank
 
-            self._week_mama_team_carry_ = WeekMamaTeamCarryTotal.objects.filter(mama_id=self.mama_id).first()
+            self._week_mama_team_carry_ = WeekMamaTeamCarryTotal.objects.filter(mama_id=self.mama_id,
+                                                                                stat_time=WeekRank.this_week_time()).first()
         return self._week_mama_team_carry_
 
 
