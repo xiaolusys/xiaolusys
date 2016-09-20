@@ -1,38 +1,29 @@
 # coding: utf8
-import re
-import time
-import datetime
-import base64
 import hashlib
 import urllib2
 import random
 from django.conf import settings
 from django.core.cache import cache
 import cStringIO as StringIO
+import requests
+from PIL import (
+    Image,
+    ImageColor,
+    ImageDraw,
+    ImageFont
+)
+import simplejson
 
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.weixin_apis import WeiXinAPI
-from core.upload import push_qrcode_to_remote
+from shopapp.weixin.models_base import WeixinQRcodeTemplate
 from core.logger import log_consume_time
-
-from shopapp.weixin.constants import MAMA_MANAGERS_QRCODE_MAP
 
 import logging
 logger = logging.getLogger(__name__)
 
 
 DEFAULT_MAMA_THUMBNAIL = 'http://img.xiaolumeimei.com/undefined1472268058597lADOa301H8zIzMg_200_200.jpg_620x10000q90g.jpg?imageMogr2/thumbnail/80/crop/80x80/format/jpg'
-BASE_MAMA_QRCODE_IMG_URL = [
-    'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base11.jpg',
-    'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base12.jpg',
-    #'http://7xkyoy.com1.z0.glb.clouddn.com/mama_referal_base13.jpg',
-]
-BASE_MAMA_QRCODE_TEMPLATE_URL = """
-    {base_url}?watermark/3/text/{message1}/fontsize/480/gravity/North/dy/170
-    /image/{thumbnail}/dissolve/100/gravity/North/dx/0/dy/30/ws/0.2
-    /image/{qrcode}/dissolve/100/gravity/Center/dy/110/ws/0.75/
-    |imageMogr2/thumbnail/!60p/format/jpg/size-limit/400k
-""".replace('\n', '').replace(' ', '')
 
 
 def get_mama_customer(mama_id):
@@ -44,28 +35,17 @@ def get_mama_customer(mama_id):
 
 
 @log_consume_time
-def gen_mama_custom_qrcode_url(mama_id, thumbnail, message1='', message2=''):
+def gen_mama_custom_qrcode_url(mama_id):
     wx_api = WeiXinAPI()
     wx_api.setAccountId(appKey=settings.WXPAY_APPID)
     resp = wx_api.createQRcode('QR_SCENE', mama_id)
 
     qrcode_link = ''
     if 'ticket' in resp:
-        #qrcode_link = push_qrcode_to_remote('xiaolumm/referal/%s'% mama_id, resp['url'], box_size=4)
-        #qrcode_link += '?imageMogr2/strip/format/jpg/quality/100/interlace/1/thumbnail/80/'
         qrcode_link = wx_api.genQRcodeAccesssUrl(resp['ticket'])
-    if not qrcode_link:
-        return ''
+    content = resp.get('url', '')
+    return qrcode_link, content
 
-    thumbnail = re.sub('/0$', '/132', thumbnail)
-    params = {
-        'base_url': random.choice(BASE_MAMA_QRCODE_IMG_URL),
-        'message1': base64.urlsafe_b64encode(str(message1)),
-        'message2': base64.urlsafe_b64encode(str(message2)),
-        'thumbnail': base64.urlsafe_b64encode(str(thumbnail)),
-        'qrcode': base64.urlsafe_b64encode(str(qrcode_link))
-    }
-    return BASE_MAMA_QRCODE_TEMPLATE_URL.format(**params)
 
 @log_consume_time
 def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
@@ -74,22 +54,27 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
     if not cache_value:
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache miss: %s' % mama_id)
         thumbnail = userinfo['headimgurl'] or DEFAULT_MAMA_THUMBNAIL
-        message1 = u'我是 %s' % userinfo['nickname']
-        message2 = u'长按图片, 识别图中二维码\n有效期截止日期: %s'%\
-                   (datetime.datetime.now()+datetime.timedelta(days=30)).strftime('%Y-%m-%d')
-        media_url = gen_mama_custom_qrcode_url(mama_id, thumbnail, message1, message2)
 
-        media_body = urllib2.urlopen(media_url).read()
-        media_stream = StringIO.StringIO(media_body)
+        qrcode_tpls = WeixinQRcodeTemplate.objects.filter(status=True)
+        qrcode_tpl = random.choice(qrcode_tpls)
+        params = simplejson.loads(qrcode_tpl.params)
+        if params.get('avatar'):
+            params['avatar']['url'] = thumbnail
+        if params.get('qrcode'):
+            _, params['qrcode']['text'] = gen_mama_custom_qrcode_url(mama_id)
+        if params.get('text'):
+            params['text']['content'] = params['text']['content'].format(**{'nickname': userinfo['nickname']})
+        media_stream = generate_colorful_qrcode(params)
 
         wx_api = WeiXinAPI()
         wx_api.setAccountId(wxpubId=wxpubId)
         response = wx_api.upload_media(media_stream)
         cache_value = response['media_id']
-        cache.set(cache_key, cache_value, 2 * 24 *3600)
+        cache.set(cache_key, cache_value, 2 * 24 * 3600)
     else:
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache hit: %s' % mama_id)
     return cache_value
+
 
 @log_consume_time
 def fetch_wxpub_mama_manager_qrcode_media_id(mama_id, wxpubId):
@@ -111,16 +96,133 @@ def fetch_wxpub_mama_manager_qrcode_media_id(mama_id, wxpubId):
         wx_api.setAccountId(wxpubId=wxpubId)
         response = wx_api.upload_media(media_stream)
         cache_value = response['media_id']
-        cache.set(cache_key, cache_value, 2 * 24 *3600)
+        cache.set(cache_key, cache_value, 2 * 24 * 3600)
     else:
         logger.info('fetch_wxpub_mama_manager_qrcode_media_id cache hit: %s' % mama_id)
     return cache_value
 
 
+def generate_qrcode(words, picture=None):
+    from MyQR import myqr
+
+    path = '/tmp/'
+    version, level, qr_name = myqr.run(
+        words,
+        version=10,
+        level='H',
+        picture=picture,
+        colorized=True,
+        contrast=1.0,
+        brightness=1.0,
+        save_name=None,
+        save_dir=path
+    )
+    return qr_name
 
 
+def md5(str):
+    m = hashlib.md5()
+    m.update(str)
+    return m.hexdigest()
 
 
+def generate_colorful_qrcode(params):
+    """
+    params:
+    {
+        'background_url': '',
+        'text': {
+            'content': u'',
+            'font': '/home/aladdin/download/fonts/方正兰亭黑.TTF',  # 选填
+            'font_size': 24,  # 选填
+            'y': 174,  # Y坐标
+            'color': '#f1c40f'
+        },
+        'avatar': {
+            'url': '',
+            'size': 120,
+            'x': 240,
+            'y': 30
+        },
+        'qrcode': {
+            'url': '',
+            'size': 430,
+            'x': 85,
+            'y': 409,
+        }
+    }
+    """
+    background_url = params.get('background_url')
 
+    cache_key = 'wxpub_mama_referal_qrcode_background_%s' % md5(background_url)
+    cache_value = cache.get(cache_key)
 
+    if not cache_value:
+        resp = requests.get(background_url, verify=False)
+        bg_img = Image.open(StringIO.StringIO(resp.content))
+        cache.set(cache_key, resp.content, 2*3600)
+    else:
+        bg_img = Image.open(StringIO.StringIO(cache_value))
+    bg_width, bg_height = bg_img.size
 
+    avatar_size = params.get('avatar', {}).get('size', 120)
+    size = (avatar_size, avatar_size)
+
+    avatar_url = params.get('avatar', {}).get('url')
+    avatar_x = params.get('avatar', {}).get('x') or 240
+    avatar_y = params.get('avatar', {}).get('y') or 30
+    if avatar_url:
+        resp = requests.get(avatar_url, verify=False)
+        avatar = Image.open(StringIO.StringIO(resp.content)).resize(size)
+    else:
+        avatar = None
+
+    text = params.get('text', {}).get('content', '')
+    text_y = params.get('text', {}).get('y', 174)
+    text_color = params.get('text', {}).get('color', '#f1c40f')
+    font_path = params.get('text', {}).get('font', settings.FANGZHENG_LANTINGHEI_FONT_PATH)
+    font_size = params.get('text', {}).get('font_size', 24)
+    font = ImageFont.truetype(font_path, font_size)
+
+    qrcode_url = params.get('qrcode', {}).get('url', '')
+    qrcode_text = params.get('qrcode', {}).get('text', '')
+    qrcode_img = params.get('qrcode', {}).get('img', '')
+    qrcode_size = params.get('qrcode', {}).get('size', 430)
+    qrcode_x = params.get('qrcode', {}).get('x', 85)
+    qrcode_y = params.get('qrcode', {}).get('y', 409)
+    if qrcode_url:
+        resp = requests.get(qrcode_url, verify=False)
+        qrcode = Image.open(StringIO.StringIO(resp.content)).resize((qrcode_size, qrcode_size))
+    elif qrcode_text:
+        if qrcode_img:
+            resp = requests.get(qrcode_img, verify=False)
+            picture = Image.open(StringIO.StringIO(resp.content))
+            path = '/tmp/%s.jpg' % md5(qrcode_img)
+            picture.save(path)
+            qr_path = generate_qrcode(qrcode_text, picture=path)
+        else:
+            qr_path = generate_qrcode(qrcode_text)
+        qrcode = Image.open(qr_path).resize((qrcode_size, qrcode_size))
+    else:
+        qrcode = None
+
+    mask = Image.new('L', size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0) + size, fill=255)
+
+    if text:
+        draw = ImageDraw.Draw(bg_img)
+        text_size = draw.textsize(text, font)
+        text_width, text_height = text_size
+        text_x = bg_width / 2 - text_width / 2
+        draw.multiline_text((text_x, text_y), text, fill=ImageColor.getrgb(text_color), font=font, align='center')
+
+    if avatar:
+        bg_img.paste(avatar, box=(avatar_x, avatar_y, avatar_x+avatar_size, avatar_y+avatar_size), mask=mask)
+    if qrcode:
+        bg_img.paste(qrcode, box=(qrcode_x, qrcode_y, qrcode_x+qrcode_size, qrcode_y+qrcode_size))
+
+    bg_img.show()
+    result = StringIO.StringIO()
+    bg_img.save(result, 'JPEG')
+    return StringIO.StringIO(result.getvalue())

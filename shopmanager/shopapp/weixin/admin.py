@@ -18,6 +18,7 @@ from .models_base import (
     WeixinUserInfo,
     WeixinTplMsg,
     WeixinFans,
+    WeixinQRcodeTemplate,
 )
 from shopapp.weixin.models import (WeiXinAccount,
                                    WeixinUnionID,
@@ -628,4 +629,15 @@ class WeixinFansAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WeixinFans, WeixinFansAdmin)
-    
+
+
+class WeixinQRcodeTempalteAdmin(admin.ModelAdmin):
+    list_display = ('params', 'preview_display', 'status')
+
+    def preview_display(self, obj):
+        html = u'<a href="%s"><img src="%s" style="width:120px;"></a>' % (obj.preview_url, obj.preview_url)
+        return html
+
+    preview_display.allow_tags = True
+
+admin.site.register(WeixinQRcodeTemplate, WeixinQRcodeTempalteAdmin)

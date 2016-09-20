@@ -224,3 +224,32 @@ class WeixinUserInfo(BaseModel):
         return u'<%s>' % self.nick
 
 
+class WeixinQRcodeTemplate(BaseModel):
+    """
+    """
+    params = models.TextField(verbose_name=u'模板参数')
+    preview_url = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'图片预览链接')
+    status = models.BooleanField(default=True, verbose_name=u"使用")
+
+    class Meta:
+        db_table = 'shop_weixin_qrcode_templates'
+        app_label = 'weixin'
+        verbose_name = u'微信二维码模板'
+        verbose_name_plural = u'微信二维码模板列表'
+
+    def save(self, *args, **kwargs):
+        import hashlib
+        from shopapp.weixin.utils import generate_colorful_qrcode
+        from core.upload.upload import upload_public_to_remote, generate_public_url
+        import simplejson
+
+        params = simplejson.loads(self.params)
+        img = generate_colorful_qrcode(params)
+        m = hashlib.md5()
+        m.update(self.params)
+        filepath = 'qrcode/%s.jpg' % m.hexdigest()
+
+        print upload_public_to_remote(filepath, img)
+        self.preview_url = generate_public_url(filepath)
+
+        super(WeixinQRcodeTemplate, self).save(*args, **kwargs)
