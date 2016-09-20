@@ -840,6 +840,22 @@ class CustomerViewSet(viewsets.ModelViewSet):
         serializer = serializers.BudgetLogSerialize(budget_logs, many=True)
         return Response(serializer.data)
 
+    @list_route(methods=['get, post'])
+    def cash_out_once(self, request):
+        """
+        第一次从web界面提现，只允许一次，建立客户信任。
+        POST /rest/v1/users/cash_out_once
+        """
+        customer = get_object_or_404(Customer, user=request.user)
+        customer_id = customer.id
+
+        count = BudgetLog.objects.filter(customer_id=customer_id, budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_CASHOUT).exclude(status=BudgetLog.CANCELED).count()
+        if count > 0:
+            return Response({"code": 1, "message": u"由于微信的提现请求繁忙，网页提现限首次使用，下载APP登录即可多次提现！"})
+
+        return self.budget_cash_out(request)
+        
+    
     @list_route(methods=['post'])
     def budget_cash_out(self, request):
         """
