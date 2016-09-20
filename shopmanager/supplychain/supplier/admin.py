@@ -407,6 +407,7 @@ class SaleProductAdmin(ApproxAdmin):
                    , ('platform', 'hot_value','status','is_changed')
                    , ('sale_time', 'reserve_time', 'contactor')
                    , ('memo',), ('voting','orderlist_show_memo')
+                   , ('sku_extras',)
                    )}),)
 
     # def sale_info(self, obj):

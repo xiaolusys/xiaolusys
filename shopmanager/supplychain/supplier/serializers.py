@@ -294,7 +294,12 @@ class ModifySaleProductSerializer(serializers.ModelSerializer):
 
     def validate_title(self, value):
         if value is None or not value.strip():
-            raise serializers.ValidationError("选品标题不能为空!")
+            raise serializers.ValidationError(u"选品标题不能为空!")
+        return value
+
+    def validate_product_link(self, value):
+        if value and str(value).strip() and self.Meta.model.objects.filter(product_link=value):
+            raise serializers.ValidationError(u'该款已经录入了!')
         return value
 
 
