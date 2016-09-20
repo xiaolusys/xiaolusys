@@ -879,6 +879,7 @@ class SaleOrder(PayBaseModel):
             good_status=SaleRefund.SELLER_OUT_STOCK,
             status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
         s.save()
+        return s
 
     def is_finishable(self):
         """
