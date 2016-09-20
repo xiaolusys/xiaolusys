@@ -873,8 +873,8 @@ class CashOutPolicyView(APIView):
     GET /rest/v2/mama/cashout_policy
     """
 
-    #authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    #permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
 
 
     def get(self, request, *args, **kwargs):
