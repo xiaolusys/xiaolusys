@@ -435,8 +435,9 @@ class UserBudget(PayBaseModel):
 
         from flashsale.restpro.v2.views.verifycode_login import validate_code
         if not validate_code(mobile, verify_code):
-            return 9, '验证码不对或已过期，请重新发送验证码！'
-            
+            #return 9, '验证码不对或已过期，请重新发送验证码！'
+            return 9, '提现功能休整中，请等待粉丝活动开始！'
+        
         from shopapp.weixin.models import WeixinUnionID
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
