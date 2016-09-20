@@ -868,3 +868,22 @@ class ActivateMamaView(APIView):
         return redirect(redirect_link)
 
         
+class CashOutPolicyView(APIView):
+    """
+    GET /rest/v2/mama/cashout_policy
+    """
+
+    #authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    #permission_classes = (permissions.IsAuthenticated,)
+
+
+    def get(self, request, *args, **kwargs):
+        MIN_CASHOUT_AMOUNT = 2   #元
+        MAX_CASHOUT_AMOUNT = 200 #元
+        AUDIT_CASHOUT_AMOUNT = 6 #元
+        DAILY_CASHOUT_TRIES = 2    #次
+        message = u'最低提现额度%s元，最高提现额度%s元。小额提现不超过%s元无需审核，每日可提%s次。超过%s元提现须经财务审核，一般审核期为工作日内24小时-48小时。' % (MIN_CASHOUT_AMOUNT,MAX_CASHOUT_AMOUNT,AUDIT_CASHOUT_AMOUNT, DAILY_CASHOUT_TRIES, AUDIT_CASHOUT_AMOUNT)
+
+        data = {"min_cashout_amount": MIN_CASHOUT_AMOUNT, "max_cashout_amount": MAX_CASHOUT_AMOUNT, "audit_cashout_amount": AUDIT_CASHOUT_AMOUNT, "daily_cashout_tries": DAILY_CASHOUT_TRIES, "message": message}
+
+        return Response(data)
