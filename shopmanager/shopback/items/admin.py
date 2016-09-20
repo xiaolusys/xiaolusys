@@ -120,8 +120,6 @@ from flashsale.dinghuo.models import OrderDetail
 
 
 class ProductAdmin(ApproxAdmin):
-    category_list = []
-    ware_list = []
     #     storage_chargers = []
 
     form = ProductModelForm
@@ -156,7 +154,7 @@ class ProductAdmin(ApproxAdmin):
                    CategoryFilter,
                    GroupNameFilter)
 
-    search_fields = ['=id', '^outer_id', 'name', '=barcode', '=sale_charger',
+    search_fields = ['=id', '^outer_id', '^name', '=barcode', '=sale_charger',
                      '=storage_charger']
 
     def outer_id_link(self, obj):
@@ -236,18 +234,24 @@ class ProductAdmin(ApproxAdmin):
     modelproduct_link.allow_tags = True
     modelproduct_link.short_description = u"款式ID"
 
+    def get_category_list(self):
+        if not hasattr(self, '_category_list_'):
+            categorys = ProductCategory.objects.filter()
+            self._category_list_ = [(cat.cid, str(cat)) for cat in categorys]
+        return self._category_list_
+
     def category_select(self, obj):
-        categorys = self.category_list
+        categorys = self.get_category_list()
         cat_list = ["<select class='category_select' pid='%s'>" % obj.id]
         cat_list.append("<option value=''>-------------</option>")
 
-        for cat in categorys:
-            if obj.category and obj.category.cid == cat.cid:
+        for cat_cid, cat_name in categorys:
+            if obj.category and obj.category.cid == cat_cid:
                 cat_list.append("<option value='%s' selected>%s</option>" %
-                                (cat.cid, cat))
+                                (cat_cid, cat_name))
                 continue
 
-            cat_list.append("<option value='%s'>%s</option>" % (cat.cid, cat))
+            cat_list.append("<option value='%s'>%s</option>" % (cat_cid, cat_name))
         cat_list.append("</select>")
 
         return "".join(cat_list)
@@ -256,9 +260,7 @@ class ProductAdmin(ApproxAdmin):
     category_select.short_description = u"所属类目"
 
     def ware_select(self, obj):
-
         wares = WARE_CHOICES
-
         cat_list = ["<select class='ware_select' pid='%s'>" % obj.id]
         cat_list.append("<option value=''>-------------</option>")
 
@@ -309,27 +311,28 @@ class ProductAdmin(ApproxAdmin):
     sale_time_select.allow_tags = True
     sale_time_select.short_description = u"上架时间"
 
+    def get_storage_chargers(self):
+        if not hasattr(self, '_storage_chargers_list_'):
+            self._storage_chargers_list_ = list(User.objects.filter(is_staff=True,
+                    groups__name=u'仓管员').values_list('username',flat=True))
+        return self._storage_chargers_list_
+
     def charger_select(self, obj):
-        categorys = self.storage_chargers
-        if len(categorys) > 0:
+        username_list = self.get_storage_chargers()
+        if len(username_list) > 0:
             cat_list = ["<select class='charger_select' cid='%s'>" % obj.id]
             cat_list.append("<option value=''>---------------</option>")
-            for cat in categorys:
-
-                if obj and obj.storage_charger == cat.username:
+            for username in username_list:
+                if obj and obj.storage_charger == username:
                     cat_list.append("<option value='%s' selected>%s</option>" %
-                                    (cat.username, cat.username))
+                                    (username, username))
                     continue
-
                 cat_list.append("<option value='%s'>%s</option>" %
-                                (cat.username, cat.username))
-
+                                (username, username))
             cat_list.append("</select>")
-
             return "".join(cat_list)
         else:
-            return obj.storage_charger and '[%s]' % [obj.storage_charger
-                                                     ] or '[-]'
+            return obj.storage_charger and '[%s]' % [obj.storage_charger] or '[-]'
 
     charger_select.allow_tags = True
     charger_select.short_description = u"所属仓管员"
@@ -451,8 +454,6 @@ class ProductAdmin(ApproxAdmin):
         #             groups = Group.objects.filter(name=u'仓管员')
         #             if groups.count() > 0:
         #                 self.storage_chargers = groups[0].user_set.filter(is_staff=True)
-
-        self.category_list = ProductCategory.objects.filter()
 
         return super(ProductAdmin, self).get_changelist(request, **kwargs)
 

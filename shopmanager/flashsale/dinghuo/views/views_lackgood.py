@@ -84,23 +84,24 @@ class LackGoodOrderViewSet(viewsets.ModelViewSet):
         lackorder_data = serializers.LackGoodOrderSerializer(lackorder_qs, many=True).data
         lackorder_ids = [lo[1] for lo in normal_lackvalues]
         logger.warning('debug-refund-time2:%s'% datetime.datetime.now())
-        refund_order_ids = SaleRefund.objects.filter(lackorder_id__in=lackorder_ids).values_list('order_id', flat=True)
+        refund_order_ids = list(SaleRefund.objects.filter(lackorder_id__in=lackorder_ids)
+                                .values_list('order_id', flat=True))
         logger.warning('debug-refund-time3:%s'% datetime.datetime.now())
         normal_lackdict = dict(normal_lackvalues)
         normal_skuids   = normal_lackdict.keys()
 
         saleorders_values = SaleOrder.objects.filter(
-            sku_id__in=normal_skuids, status=SaleOrder.WAIT_SELLER_SEND_GOODS)\
+            Q(sku_id__in=normal_skuids, status=SaleOrder.WAIT_SELLER_SEND_GOODS)|Q(id__in=refund_order_ids))\
             .values(
                 'id', 'oid', 'item_id', 'title', 'pic_path', 'sku_name', 'sku_id', 'pay_time',
                 'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id'
             )
-        refundorder_values = SaleOrder.objects.filter(id__in=refund_order_ids)\
-            .values(
-                'id', 'oid', 'item_id', 'title', 'pic_path', 'sku_name', 'sku_id', 'pay_time',
-                'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id'
-            )
-        saleorders_values = itertools.chain(saleorders_values, refundorder_values)
+        # refundorder_values = SaleOrder.objects.filter()\
+        #     .values(
+        #         'id', 'oid', 'item_id', 'title', 'pic_path', 'sku_name', 'sku_id', 'pay_time',
+        #         'num', 'payment', 'refund_id' , 'refund_fee', 'refund_status', 'status', 'sale_trade_id'
+        #     )
+        # saleorders_values = itertools.chain(saleorders_values, refundorder_values)
         logger.warning('debug-refund-time4:%s'% datetime.datetime.now())
         saleorder_list = []
         for order in saleorders_values:
