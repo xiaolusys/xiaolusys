@@ -2097,3 +2097,17 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         if errors:
             return Response(make_response(info=str(len(errors)) + '个导入错误。错误信息：'+','.join([str(e) for e in errors])))
         return Response(SUCCESS_RESPONSE)
+
+    @detail_route(methods=['POST'])
+    def reduce_sku_num(self, request, pk):
+        order_list = get_object_or_404(OrderList, id=pk)
+        try:
+            sku_id = int(request.get('sku_id', 0))
+            num = int(request.get('num', 0))
+        except Exception, e0:
+            raise exceptions.ValidationError(e0.message)
+        try:
+            order_list.reduce_sku_num(sku_id, num)
+        except Exception, e0:
+            raise exceptions.ValidationError(e0.message)
+        return Response(SUCCESS_RESPONSE)
