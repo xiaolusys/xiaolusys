@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 @task(max_retries=3, default_retry_delay=60)
 def task_push_mission_state_msg_to_weixin_user(mission_record_id):
     try:
-
         from shopapp.weixin.weixin_push import WeixinPush
         mama_mission = MamaMissionRecord.objects.filter(id=mission_record_id).first()
         if not settings.MAMA_MISSION_PUSH_SWITCH and  mama_mission.mama_id > 135:
@@ -49,7 +48,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id):
                 'description': base_mission.desc,
             }
             wxpush.push_mission_state_task(mama_mission.mama_id, header=params.get('header'),
-                                      footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
+                footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
     except Exception, exc:
         raise task_push_mission_state_msg_to_weixin_user.retry(exc=exc)
 

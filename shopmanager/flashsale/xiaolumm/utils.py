@@ -46,3 +46,19 @@ def get_group_carry_num(num):
             break
         idx += 1
     return group_carry_array[idx - 1][1]
+
+
+def get_mama_target_stage(value):
+    # 根据目标值获取妈妈目标等级
+    if value < 30:
+        return 0
+    if value <= 500:
+        return (value - 30) / 100 + 1
+    return (value - 500) / 120 + 6
+
+def get_mama_stage_target(stage):
+    if stage < 1:
+        return 100
+    if stage < 6:
+        return stage * 100
+    return 500 + (stage - 5) * 120

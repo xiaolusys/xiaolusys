@@ -6,7 +6,7 @@ from django.db.models import Sum, Count
 from core.models import BaseModel
 from core.utils import week_range
 
-from flashsale.xiaolumm.utils import get_award_carry_num
+from flashsale.xiaolumm import utils
 from flashsale.xiaolumm import constants
 
 import logging
@@ -115,57 +115,49 @@ class MamaMission(BaseModel):
         """
         from flashsale.xiaolumm.models import GroupRelationship, ReferalRelationship, XiaoluMama
 
-        def _find_target_value(target_stages, finish_value, target=1): # target: 1个人, 2团队
-            if target == 1 and finish_value <= 500:
-                return ((finish_value + 70) / 100 + 1) * 10000
-            if target == 1 and finish_value >= 500:
-                return (finish_value / 100 + 1) * 10000 * 1.2
-            if target == 2 :
-                return (finish_value / 800 + 1) * 1000 * 100
-            return 10000
-
         last_week_daytime = day_datetime - datetime.timedelta(days=7)
         week_start , week_end = week_range(last_week_daytime)
-        if self.kpi_type == self.KPI_AMOUNT:
-            if self.target == self.TARGET_PERSONAL:
-                mama_ids = [xiaolumama.id]
-                target_stages = constants.PERSONAL_TARGET_STAGE
-                award_rate = 15 * 100
-                target = 1
-            else :
-                group_mamas = GroupRelationship.objects.filter(leader_mama_id=xiaolumama.id)
-                mama_ids = group_mamas.values_list('member_mama_id', flat=True)
-                target_stages = constants.GROUP_TARGET_STAGE
-                award_rate = 50 * 100
-                target = 2
+        if self.kpi_type == self.KPI_AMOUNT and self.target == self.TARGET_PERSONAL:
+            # 如果上周任务完成或上周没有任务, 下周目标等级 = 完成值等级 + 1
+            # 如果上周任务未完成， 下周目标等级 = max(上周目标等级 - 1 , 完成值等级 + 1, 1)
 
             last_1st_week = last_week_daytime.strftime('%Y-%m-%d')
+
+            mama_ids = [xiaolumama.id]
+            award_rate = 15 * 100
             mama_1st_record = MamaMissionRecord.objects.filter(
                 mission=self,
                 year_week=last_1st_week,
                 mama_id=xiaolumama.id
             ).first()
 
+            last_week_target_value = mama_1st_record and (mama_1st_record.target_value / 100.0) or 0
             last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start, week_end) / 100
-            if mama_1st_record and not mama_1st_record.is_finished():
-                last_2th_week = (last_week_daytime -  datetime.timedelta(days=7)).strftime('%Y-%m-%d')
-                mama_2th_record = MamaMissionRecord.objects.filter(
-                    mission=self,
-                    year_week=last_2th_week,
-                    mama_id=xiaolumama.id
-                ).first()
-                # 若两周连续不达标, 则调整妈妈目标数
-                if mama_2th_record and not mama_2th_record.is_finished():
-                    target_value = _find_target_value(target_stages, last_week_finish_value,target=target)
-                    return min(target_value, mama_1st_record.target_value), award_rate
-                return mama_1st_record.target_value, award_rate
+            finish_stage = utils.get_mama_target_stage(last_week_finish_value)
+            last_target_stage = mama_1st_record and utils.get_mama_target_stage(last_week_target_value) or 0
 
-            return _find_target_value(target_stages, last_week_finish_value,target=target), award_rate
+            if mama_1st_record and mama_1st_record.is_finished():
+                target_stage = max(finish_stage + 1, last_target_stage + 1)
+            elif mama_1st_record and not mama_1st_record.is_finished():
+                target_stage = max(last_target_stage - 1, finish_stage + 1, 1)
+            else:
+                target_stage = finish_stage + 1
+
+            return utils.get_mama_stage_target(target_stage) * 100 , award_rate
+
+        elif self.kpi_type == self.KPI_AMOUNT:
+
+            # group_mamas = GroupRelationship.objects.filter(leader_mama_id=xiaolumama.id)
+            # mama_ids = list(group_mamas.values_list('member_mama_id', flat=True))
+            # target_stages = constants.GROUP_TARGET_STAGE
+            # award_rate = 50 * 100
+
+            return self.target_value * 10, self.award_amount
 
         if self.cat_type == MamaMission.CAT_REFER_MAMA:
             last_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=xiaolumama.id,
                                                                   status=ReferalRelationship.VALID).count()
-            return self.target_value, get_award_carry_num(last_referal_num, XiaoluMama.FULL)
+            return self.target_value, utils.get_award_carry_num(last_referal_num, XiaoluMama.FULL)
 
         return self.target_value, self.award_amount
 
