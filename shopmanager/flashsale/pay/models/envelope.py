@@ -92,6 +92,9 @@ class Envelop(PayBaseModel):
     get_amount_display.short_description = u"红包金额"
 
     def handle_envelop(self, envelopd):
+        from flashsale.pay.models import BudgetLog
+        modified = datetime.datetime.now()
+
         status = envelopd['status']
         self.envelop_id = envelopd['id']
         self.livemode = envelopd['livemode']
@@ -100,12 +103,11 @@ class Envelop(PayBaseModel):
             self.send_time = self.send_time or datetime.datetime.now()
             self.status = Envelop.CONFIRM_SEND
             if self.subject == Envelop.XLAPP_CASHOUT:
-                from flashsale.pay.models import BudgetLog
-                modified = datetime.datetime.now()
                 BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CONFIRMED,modified=modified)
 
         elif status in (self.SEND_FAILED, self.REFUND) and self.status == self.WAIT_SEND:
             self.status = Envelop.FAIL
+            BudgetLog.objects.filter(id=self.referal_id).update(status=BudgetLog.CANCELED,modified=modified)
             logger.warn('envelop warn:%s' % envelopd)
         self.save()
 
