@@ -121,8 +121,7 @@ class MamaMission(BaseModel):
             # 如果上周任务完成或上周没有任务, 下周目标等级 = 完成值等级 + 1
             # 如果上周任务未完成， 下周目标等级 = max(上周目标等级 - 1 , 完成值等级 + 1, 1)
 
-            last_1st_week = last_week_daytime.strftime('%Y-%m-%d')
-
+            last_1st_week = last_week_daytime.strftime('%Y-%W')
             mama_ids = [xiaolumama.id]
             award_rate = 15 * 100
             mama_1st_record = MamaMissionRecord.objects.filter(
