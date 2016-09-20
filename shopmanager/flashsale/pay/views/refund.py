@@ -130,7 +130,8 @@ class RefundPopPageView(APIView):
         refund_dict['refundd_message'] = ""
         if sale_refund.is_fastrefund():  # 如果是极速退款
             refund_dict['refundd_message'] = "[1]退回小鹿钱包 %.2f 元 实付余额%.2f"%(
-                sale_refund.refund_fee, (sale_refund.refund_fee / strade.payment) * (strade.payment - strade.pay_cash))
+                sale_refund.refund_fee,
+                strade.payment > 0 and (sale_refund.refund_fee / strade.payment) * (strade.payment - strade.pay_cash) or 0)
         else:
             refund_dict['refundd_message'] = "[2]退回%s %.2f元"%(strade.get_channel_display(), sale_refund.refund_fee)
 
