@@ -14,22 +14,27 @@ from flashsale.daystats.lib.util import (
     groupby,
     process,
     format_datetime,
+    get_date_from_req,
 )
 from shopback.items.models import Product
 from flashsale.pay.models.product import ModelProduct
 from supplychain.supplier.models.category import SaleCategory
 
 
+def get_children_cids(cid=None):
+    cids = []
+    categories = SaleCategory.objects.filter(parent_cid=cid)
+    for item in categories:
+        scids = get_children_cids(cid=item.cid)
+        if scids:
+            cids += scids
+        cids.append(item.cid)
+    return cids
+
+
 def index(req):
-    now = datetime.now()
-    last = now - timedelta(days=7)
-    p_start_date = req.GET.get('start_date', '%s-%s-%s' % (last.year, last.month, last.day))
-    p_end_date = req.GET.get('end_date', '%s-%s-%s' % (now.year, now.month, now.day+1))
-
-    start_date = datetime.strptime(p_start_date, '%Y-%m-%d')
-    end_date = datetime.strptime(p_end_date, '%Y-%m-%d')
-
-    cursor = get_cursor()
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
+    cid = req.GET.get('category') or None
 
     sql = """
         select item_id, title, count(*) as count
@@ -39,7 +44,42 @@ def index(req):
         order by count desc
         limit 1000
     """
-    products = execute_sql(cursor, sql, [format_datetime(start_date), format_datetime(end_date)])
+    sql = """
+        SELECT
+            flashsale_order.item_id as item_id,
+            flashsale_order.total_fee,
+            flashsale_order.title as title,
+            flashsale_order.pay_time,
+            supplychain_sale_category.cid as cid,
+            supplychain_sale_category.name as category_name,
+            count(*) as count
+        FROM xiaoludb.flashsale_order
+        join xiaoludb.shop_items_product on shop_items_product.id=flashsale_order.item_id
+        join xiaoludb.flashsale_modelproduct on shop_items_product.model_id=flashsale_modelproduct.id
+        join xiaoludb.supplychain_sale_category on flashsale_modelproduct.salecategory_id=supplychain_sale_category.id
+        where flashsale_order.pay_time >= %s
+            and flashsale_order.pay_time < %s
+    """
+    if cid:
+        cid = get_children_cids(cid=cid)
+        cid = ', '.join(map(lambda x: '"%s"' % x, cid))
+        print cid
+        sql += 'and supplychain_sale_category.cid in (%s)' % cid
+
+    sql += """
+        group by flashsale_order.item_id
+        order by count desc
+        limit 1000
+    """
+    products = execute_sql(get_cursor(), sql, [format_datetime(start_date), format_datetime(end_date)])
+
+    # def byfunc(item):
+    #     category = get_root_category(item['cid'])
+    #     item['category_name'] = category.name
+    #     return category.name
+
+    # products = map(byfunc, products)
+    categories = SaleCategory.objects.filter(is_parent=True)
 
     return render(req, 'yunying/product/index.html', locals())
 
@@ -51,7 +91,7 @@ def get_root_category(cid):
     if category_cache.get(cid):
         category = category_cache.get(cid)
     else:
-        category = SaleCategory.objects.using('product').filter(cid=cid).first()
+        category = SaleCategory.objects.filter(cid=cid).first()
         if category:
             category_cache[cid] = category
         else:
@@ -64,13 +104,7 @@ def get_root_category(cid):
 
 
 def salecategory(req):
-    now = datetime.now()
-    last = now - timedelta(days=7)
-    p_start_date = req.GET.get('start_date', '%s-%s-%s' % (last.year, last.month, last.day))
-    p_end_date = req.GET.get('end_date', '%s-%s-%s' % (now.year, now.month, now.day+1))
-
-    start_date = datetime.strptime(p_start_date, '%Y-%m-%d')
-    end_date = datetime.strptime(p_end_date, '%Y-%m-%d')
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 
     cursor = get_cursor()
 
@@ -110,16 +144,13 @@ def salecategory(req):
 
 
 def show(req, id):
-    now = datetime.now()
-    p_start_date = req.GET.get('start_date', '2015-01-01')
-    p_end_date = req.GET.get('end_date', '%s-%s-%s' % (now.year, now.month, now.day+1))
+    p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 
-    start_date = datetime.strptime(p_start_date, '%Y-%m-%d')
-    end_date = datetime.strptime(p_end_date, '%Y-%m-%d')
+    product = Product.objects.get(id=id)
+    modelproduct = product.get_product_model()
+    if modelproduct:
+        saleproduct = modelproduct.saleproduct
 
-    product = Product.objects.using('product').get(id=id)
-
-    cursor = get_cursor()
     sql = """
         SELECT pay_time, count(DATE(pay_time)) as count
         FROM xiaoludb.flashsale_order
