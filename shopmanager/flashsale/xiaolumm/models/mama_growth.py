@@ -130,7 +130,7 @@ class MamaMission(BaseModel):
                 mama_id=xiaolumama.id
             ).first()
 
-            last_week_target_value = mama_1st_record and (mama_1st_record.target_value / 100.0) or 0
+            last_week_target_value = mama_1st_record and (mama_1st_record.target_value / 100) or 0
             last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start, week_end) / 100
             finish_stage = utils.get_mama_target_stage(last_week_finish_value)
             last_target_stage = mama_1st_record and utils.get_mama_target_stage(last_week_target_value) or 0

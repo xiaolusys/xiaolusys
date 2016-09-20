@@ -285,6 +285,7 @@ JD_API_ENDPOINT = 'http://%s/routerjson' % JD_API_HOSTNAME
 
 #################### PRINT CONFIG ###################
 BASE_FONT_PATH = '/data/fonts/'
+FANGZHENG_LANTINGHEI_FONT_PATH = '/data/fonts/方正兰亭黑.TTF'
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT, "site_media", "asyncfile")
 
