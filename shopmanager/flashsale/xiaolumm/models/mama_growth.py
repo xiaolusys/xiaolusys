@@ -131,21 +131,21 @@ class MamaMission(BaseModel):
                 mama_id=xiaolumama.id
             ).first()
 
-            last_week_target_value = mama_1st_record.target_value / 100.0
+            last_week_target_value = mama_1st_record and (mama_1st_record.target_value / 100.0) or 0
             last_week_finish_value = get_mama_week_sale_amount(mama_ids, week_start, week_end) / 100
             finish_stage = utils.get_mama_target_stage(last_week_finish_value)
             last_target_stage = mama_1st_record and utils.get_mama_target_stage(last_week_target_value) or 0
-            if mama_1st_record and mama_1st_record.is_finished():
-                target_value = utils.get_mama_stage_target(max(finish_stage + 1, last_target_stage + 1))
-            elif mama_1st_record and not mama_1st_record.is_finished():
-                target_value = utils.get_mama_stage_target(max(last_target_stage - 1, finish_stage + 1, 1))
-            else:
-                target_value = utils.get_mama_stage_target(finish_stage + 1)
 
-            return target_value * 100 , award_rate
+            if mama_1st_record and mama_1st_record.is_finished():
+                target_stage = max(finish_stage + 1, last_target_stage + 1)
+            elif mama_1st_record and not mama_1st_record.is_finished():
+                target_stage = max(last_target_stage - 1, finish_stage + 1, 1)
+            else:
+                target_stage = finish_stage + 1
+
+            return utils.get_mama_stage_target(target_stage) * 100 , award_rate
 
         elif self.kpi_type == self.KPI_AMOUNT:
-
 
             # group_mamas = GroupRelationship.objects.filter(leader_mama_id=xiaolumama.id)
             # mama_ids = list(group_mamas.values_list('member_mama_id', flat=True))
