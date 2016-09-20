@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 import random
 import logging
 import datetime
@@ -58,7 +58,7 @@ def gen_package_post_sms_content(package_order, package_sku_item, delay_days):
                         u'logistics_company not found, package_order id is %s' % package_order.id)
     if delay_days <= 3:
         sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_POST, status=True)
-        # 报！女王大人，前方{{logistics_company_name}}快递护卫队发来捷报，说已成功发出您的{{title}}衣，物流单号{{out_sid}}，
+        # 报！女王大人，前方{{logistics_company_name}}快递护卫队发来捷报，说已成功发出您的{{title}}，物流单号{{out_sid}}，
         # 现正火速送往您处，相信不日便可抵达。女王大人，请一定要保持电话通畅哦~【小鹿美美】
     else:
         sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_DELAY_POST, status=True)
@@ -328,9 +328,12 @@ def task_register_code(mobile, send_type="1"):
         if send_type == "1":
             content = u"验证码：" + register_v.verify_code + "，请在注册页面输入完成验证。如非本人操作请忽略。【小鹿美美】"
         elif send_type == "2":
-            content = u"验证码：" + register_v.verify_code + "，请即时输入并重置密码，为保证您的账户安全，请勿外泄。如有疑问请致电021-50939326【小鹿美美】"
+            content = u"验证码：" + register_v.verify_code + "，请即时输入并重置密码，为保证您的账户安全，请勿外泄。如有疑问请致电400-823-5355【小鹿美美】"
         elif send_type == "3":
             content = u"验证码：" + register_v.verify_code + "，请在手机验证页面输入校验。如非本人操作请忽略。【小鹿美美】"
+        elif send_type == "4":
+            content = u"验证码：" + register_v.verify_code + "，请在提现页面输入校验。如非本人操作请忽略。【小鹿美美】"
+
         if not content:
             return
         params = {

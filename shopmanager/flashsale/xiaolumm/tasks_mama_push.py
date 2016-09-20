@@ -209,3 +209,11 @@ def task_sms_push_mama(xlmm):
     customer = xlmm.get_customer()
     sms = SMSPush()
     sms.push_mama_subscribe_weixin(customer)
+
+
+@task
+def task_weixin_push_invite_fans_limit(today_invites, max_daily_fans_invites):
+    """
+    通知每日邀请上限，超过不发奖金。
+    """
+    pass

@@ -265,13 +265,30 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
         raise task_weixinfans_create_subscribe_awardcarry.retry(exc=exc)
     
 
+def get_max_today_fans_invites(mama_id):
+    # 每日最多邀请20名
+    return 20
+
+
 @task(max_retries=3, default_retry_delay=5)
 def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unionid):
     carry_num = 30
     carry_type = AwardCarry.AWARD_INVITE_FANS # 邀请关注成为粉丝
-    
     mama_id = referal_from_mama_id
-        
+
+    max_today_fans_invites = get_max_today_fans_invites(mama_id)
+    
+    date_field = datetime.date.today()
+    today_invites = AwardCarry.objects.filter(mama_id=mama_id,carry_type=carry_type,date_field=date_field).count()
+    if today_invites * 0.75 > max_today_fans_invites:
+        # 应该发送微信推送，告知当日最大邀请数:
+        # 亲爱的xxx，你的每日二维码推广只能新增x名好友，超过将不能再得奖励，请知悉哦！详情请联系app客服MM咨询。
+        # 注意，发过一次就不能再发了（需要uni_key)
+        pass
+    
+    if today_invites > max_today_fans_invites:
+        return
+    
     try:
         # We get here too fast that WeixinUserInfo or referal XiaoluMama objects have not
         # been created yet, and when we try to access , error comes.        
@@ -284,7 +301,6 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
         if ac:
             return
 
-        date_field = datetime.date.today()
         carry_description = u'恭喜，又增加一名粉丝！'
         carry_plan_name = u'小鹿千万粉丝计划'
         contributor_mama_id = referal_to_mama.id
