@@ -11,6 +11,7 @@ from django.db import models
 from django.db.models import Sum, Avg, F
 from django.conf import settings
 from django.db.models.signals import pre_save, post_save
+from django.db import transaction
 from django.forms.models import model_to_dict
 from django.core.cache import cache
 
@@ -677,6 +678,139 @@ class Product(models.Model):
         if self.name != name and name.strip():
             self.name = name
             self.save(update_fields=['name'])
+
+    @classmethod
+    def get_inner_outer_id(cls, supplier, item_category):
+        """
+        功能: 根据规则生成产品编码
+        supplier: 选品供应商
+        item_category: 产品类别
+        """
+        category_maps = {
+            3: '3',
+            39: '3',
+            6: '6',
+            5: '9',
+            52: '5',
+            44: '7',
+            8: '8',
+            49: '4',
+        }
+        if category_maps.has_key(item_category.parent_cid):
+            outer_id = category_maps.get(item_category.parent_cid) + str(item_category.cid) + "%05d" % supplier.id
+        elif item_category.cid == 9:
+            outer_id = "100" + "%05d" % supplier.id
+        else:
+            return None
+        count = cls.objects.filter(outer_id__startswith=outer_id).count() or 1
+        inner_outer_id = outer_id + "%03d" % count
+        while True:
+            product_ins = cls.objects.filter(outer_id__startswith=inner_outer_id).count()
+            if not product_ins or count > 998:
+                break
+            count += 1
+            inner_outer_id = outer_id + "%03d" % count
+        if len(inner_outer_id) > 12:
+            raise Exception(u"编码位数不能超出12位")
+        return inner_outer_id
+
+    @classmethod
+    def update_or_create_product_and_skus(cls, model_pro, *args, **kwargs):
+        """
+        # 找到则更新 没有找到 则创建
+        model_pro: 对应款式 instance
+        color: 表示颜色这一级 product_skus 表示尺码这一级(list)
+        # kwargs = {"name": "红色",
+        #      'pic_path': '',
+        #      'outer_id': '',
+        #      'model_id': '',
+        #      'sale_charger': '',
+        #      'category': '',
+        #      'ware_by': '',
+        #      'sale_product': '',
+        #      "product_skus_list": [
+        #  {'outer_id':"",'remain_num':0,'cost':0,'std_sale_price':0,'agent_price':0,'properties_name':0,'properties_alias':0,'barcode':0},
+        #  {'outer_id':"",'remain_num':0,'cost':0,'std_sale_price':0,'agent_price':0,'properties_name':0,'properties_alias':0,'barcode':0},
+        #  {'outer_id':"",'remain_num':0,'cost':0,'std_sale_price':0,'agent_price':0,'properties_name':0,'properties_alias':0,'barcode':0},
+        #  ]}
+        """
+        from flashsale.pay.models import Productdetail
+        product = model_pro.products.filter(name=kwargs['name']).first()
+        if not product:  # 没有则创建 product
+            product = Product()
+        for k, v in kwargs.iteritems():  # 有变化则更新
+            if hasattr(product, k) and getattr(product, k) != v:
+                setattr(product, k, v)
+        product.save()
+        Productdetail(product=product).save()  # 创建detail
+
+        product_skus = kwargs['product_skus_list']
+        for sku in product_skus:
+            product_sku = ProductSku()
+            sku.update({'product': product})
+            for sku_k, sku_v in sku.iteritems():
+                if hasattr(product_sku, sku_k) and getattr(product_sku, sku_k) != sku_v:
+                    setattr(product_sku, sku_k, sku_v)
+            product_sku.save()
+            product.set_remain_num()  # 有效sku预留数之和
+            product.set_price()  # 有效sku 设置 成品 售价 吊牌价 的平均价格
+        return
+
+    @classmethod
+    @transaction.atomic()
+    def create_skus(cls, model_pro, creator):
+        """
+        skus_list: sku 的列表信息
+        inner_outer_id: 生成的内部编码
+        model_pro: 产品款式
+        """
+        saleproduct = model_pro.saleproduct
+        skus_list = saleproduct.sku_extras
+        colors = [x['color'] for x in skus_list]
+        colors = set(colors)    # 防止颜色重复
+        pro_count = 1
+
+        supplier = saleproduct.sale_supplier
+        sale_category = saleproduct.sale_category
+        product_category = sale_category.get_product_category()  # 获取选品类别对应的产品类别
+        inner_outer_id = cls.get_inner_outer_id(supplier, product_category)
+        if not inner_outer_id:
+            raise Exception(u'编码出错!!')
+        for color in colors:
+            if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
+                pro_count += 1
+            outer_id = inner_outer_id + str(pro_count)
+            kwargs = {"name": color.strip(),
+                      'pic_path': model_pro.head_img_url,
+                      'outer_id': outer_id,
+                      'model_id': model_pro.id,
+                      'sale_charger': creator.username,
+                      'category': product_category,
+                      'ware_by': supplier.ware_by,
+                      'sale_product': saleproduct.id,
+                      "product_skus_list": []}
+            pro_count += 1
+            color_skus = []
+            for sku in skus_list:
+                if sku['color'] == color:
+                    color_skus.append(sku)
+            count = 1
+            product_skus_list = []
+            for color_sku in color_skus:
+                barcode = '%s%d' % (outer_id, count)
+                product_skus_list.append(
+                    {'outer_id': barcode,
+                     'remain_num': color_sku['remain_num'],
+                     'cost': color_sku['cost'],
+                     'std_sale_price': color_sku['std_sale_price'],
+                     'agent_price': color_sku['agent_price'],
+                     'properties_name': color_sku['properties_name'],
+                     'properties_alias': color_sku['properties_alias'],
+                     'barcode': barcode})
+                count += 1
+            kwargs.update({'product_skus_list': product_skus_list})
+
+            cls.update_or_create_product_and_skus(model_pro, **kwargs)
 
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):

@@ -319,12 +319,6 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                             ]
         * method: GET 款式列表
     -------
-    - [/apis/items/v2/product/**model_id**/create_model_product](/apis/items/v2/product/11872/create_model_product)
-        * method: POST  给款式添加sku产品
-            1. args:
-                `cid`: 产品所属类别cid
-
-    -------
     - [/apis/items/v2/product/19922](/apis/items/v2/product/19922)
         * method: PATCH  修改指定款式id的款式
         * args:
@@ -368,38 +362,6 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-    def get_inner_outer_id(self, supplier, category_item):
-        category_maps = {
-            3: '3',
-            39: '3',
-            6: '6',
-            5: '9',
-            52: '5',
-            44: '7',
-            8: '8',
-            49: '4',
-        }
-
-        if category_maps.has_key(category_item.parent_cid):
-            outer_id = category_maps.get(category_item.parent_cid) + str(category_item.cid) + "%05d" % supplier.id
-        elif category_item.cid == 9:
-            outer_id = "100" + "%05d" % supplier.id
-        else:
-            raise exceptions.APIException(u"请选择正确分类")
-        count = Product.objects.filter(outer_id__startswith=outer_id).count() or 1
-        inner_outer_id = outer_id + "%03d" % count
-
-        while True:
-            product_ins = Product.objects.filter(outer_id__startswith=inner_outer_id).count()
-            if not product_ins or count > 998:
-                break
-            count += 1
-            inner_outer_id = outer_id + "%03d" % count
-
-        if len(inner_outer_id) > 12:
-            raise exceptions.APIException(u"编码位数不能超出12位")
-        return inner_outer_id
 
     def destroy(self, request, *args, **kwargs):
         raise exceptions.APIException(u'Method Not Allowed!')
@@ -446,72 +408,11 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         model_pro = get_object_or_404(ModelProduct, id=serializer.data.get('id'))
         log_action(request.user.id, model_pro, ADDITION, u'新建特卖款式')
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    def create_model_product(self, request, model_id, *args, **kwargs):
-        content = request.data
+        # 生成sku信息
         creator = request.user
-        model_pro = get_object_or_404(ModelProduct, id=model_id)
-        saleproduct = model_pro.saleproduct
-        if not saleproduct:
-            raise exceptions.APIException(u"选品错误!")
-        sale_category = saleproduct.sale_category
-        if not sale_category:
-            raise exceptions.APIException(u"类目错误!")
-        supplier = saleproduct.sale_supplier
-        product_category = sale_category.get_product_category()  # 获取选品类别对应的产品类别
-        inner_outer_id = self.get_inner_outer_id(supplier, product_category)
-        skus = content['skus']
-        colors = [x['color'] for x in skus]
-        colors = set(colors)
-
-        product_instances = []
-        pro_count = 1
-        with transaction.atomic():
-            for color in colors:
-                if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
-                    pro_count += 1
-                request.data.update({'name': color.strip()})
-                request.data.update({'pic_path': content['pic_path']})
-
-                request.data.update({'outer_id': inner_outer_id + str(pro_count)})
-                request.data.update({'model_id': model_pro.id})
-                request.data.update({'sale_charger': creator.username})
-                request.data.update({'category': product_category.cid})
-                request.data.update({'ware_by': supplier.ware_by})
-                request.data.update({'sale_product': saleproduct.id})
-
-                serializer = serializers.ProductUpdateSerializer(data=request.data, partial=True)
-                serializer.is_valid(raise_exception=True)
-                self.perform_create(serializer)
-                pro_count += 1
-                product_instance = Product.objects.filter(id=serializer.data.get('id')).first()
-                Productdetail(product=product_instance).save()  # 创建detail
-                product_instances.append(product_instance)
-                log_action(creator.id, product_instance, ADDITION, u'创建一个产品')
-
-                color_skus = []
-                for sku in skus:
-                    if sku['color'] == color:
-                        color_skus.append(sku)
-                count = 1
-                for color_sku in color_skus:
-                    barcode = '%s%d' % (product_instance.outer_id, count)
-                    ProductSku(outer_id=barcode,
-                               product=product_instance,
-                               remain_num=color_sku['remain_num'],
-                               cost=color_sku['cost'],
-                               std_sale_price=color_sku['std_sale_price'],
-                               agent_price=color_sku['agent_price'],
-                               properties_name=color_sku['properties_name'],
-                               properties_alias=color_sku['properties_alias'],
-                               barcode=barcode).save()
-                    count += 1
-                    product_instance.set_remain_num()  # 有效sku预留数之和
-                    product_instance.set_price()  # 有效sku 设置 成品 售价 吊牌价 的平均价格
-            self.set_model_pro(model_pro)
-        serializer = serializers.ProductUpdateSerializer(product_instances, many=True)
-        return Response(serializer.data)
+        Product.create_skus(model_pro, creator)
+        self.set_model_pro(model_pro)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
