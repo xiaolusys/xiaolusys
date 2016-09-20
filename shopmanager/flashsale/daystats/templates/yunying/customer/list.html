@@ -1,0 +1,90 @@
+{% extends 'layout.html' %}
+{% load mytags %}
+
+{% block main %}
+
+<div class="row">
+  <div class="col-md-6">
+    <form action="{% url 'yy-customer-list' %}" method="GET">
+      <label>用户</label>
+      <select name="customer">
+        <option value="has_buy" {% if q_customer == 'has_buy' %}selected="selected"{% endif %}>购买过</option>
+        <option value="no_buy" {% if q_customer == 'no_buy' %}selected="selected"{% endif %}>没买过</option>
+        <option value="all" {% if q_customer == 'all' %}selected="selected"{% endif %}>所有</option>
+      </select>
+      <label>小鹿妈妈</label>
+      <select name="xlmm">
+        <option value="all" {% if q_xlmm == 'all' %}selected="selected"{% endif %}>---</option>
+        <option value="3" {% if q_xlmm == '3' %}selected="selected"{% endif %}>试用3天</option>
+        <option value="15" {% if q_xlmm == '15' %}selected="selected"{% endif %}>试用15天</option>
+        <option value="183" {% if q_xlmm == '183' %}selected="selected"{% endif %}>99元</option>
+        <option value="365" {% if q_xlmm == '365' %}selected="selected"{% endif %}>188元</option>
+        <option value="not" {% if q_xlmm == 'not' %}selected="selected"{% endif %}>不是小鹿妈妈</option>
+        <option value="yes" {% if q_xlmm == 'yes' %}selected="selected"{% endif %}>是小鹿妈妈</option>
+      </select>
+      <input type="submit" name="查询">
+    </form>
+  </div>
+</div>
+
+<div class="row">
+<!--   <div class="alert alert-success" role="alert">
+    <button type="button" class="close" data-dismiss="alert">
+      <span aria-hidden="true">&times;</span>
+      <span class="sr-only">Close</span>
+    </button>
+ -->    <pre>{{ sql }}</pre>
+  <!-- </div> -->
+</div>
+
+<div class="row">
+  <div class="col-xs-12">
+    <table class="table table-bordered">
+      <tr>
+        <th>用户创建时间</th>
+        <th>用户昵称</th>
+        <th>手机号</th>
+        <th>妈妈ID</th>
+        <th>订单收益(预计收益＋确定收益)</th>
+        <th>7天登录次数</th>
+        <th>14天</th>
+        <th>30天</th>
+      </tr>
+      {% for item in queryset %}
+      <tr>
+        <td>{{ item.created }}</td>
+        <td>{{ item.nick }}</td>
+        <td>{{ item.mobile }}</td>
+        <td>
+          <a href="{% url 'yy-mama-show' %}?mama_id={{ item.mama_id }}" target="_blank">{{ item.mama_id }}</a>
+        </td>
+        <td>{{ item.order_carry }}</td>
+        <td>{{ item.visit.7 }}</td>
+        <td>{{ item.visit.14 }}</td>
+        <td>{{ item.visit.30 }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+<div class="row">
+  <nav>
+    <ul class="pagination">
+      {% if cur_page.has_previous %}
+      <li><a href="?{% replace_url_params 'page' cur_page.previous_page_number %}">上一页</a></li>
+      {% endif %}
+      {% for i in p.show_page_range %}
+      {% if i == cur_page.number %}
+      <li class="active"><a href="?{% replace_url_params 'page' i %}">{{ i }}</a></li>
+      {% else %}
+      <li><a href="?{% replace_url_params 'page' i %}">{{ i }}</a></li>
+      {% endif %}
+      {% endfor %}
+      {% if cur_page.has_next %}
+      <li><a href="?{% replace_url_params 'page' cur_page.next_page_number %}">下一页</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endblock %}

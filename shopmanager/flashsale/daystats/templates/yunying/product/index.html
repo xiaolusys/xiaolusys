@@ -4,15 +4,23 @@
 
 <div class="row">
   <h3>{{ start_date }} - {{ end_date }}</h3>
-    <form action="{{ req.path }}" method="GET">
+  <form action="{{ req.path }}" method="GET">
     <div class="col-xs-2">
       <input size="16" type="text" class="form-control datepicker" value="{{ p_start_date }}" name="start_date">
     </div>
     <div class="col-xs-2">
       <input size="16" type="text" class="form-control datepicker" value="{{ p_end_date }}" name="end_date">
     </div>
+    <div class="col-xs-2">
+      <select name="category" class="form-control">
+        {% for item in categories %}
+        <option value="{{ item.cid }}">{{ item.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
     <button type="submit" class="btn btn-default">QUERY</button>
   </form>
+
   <table class="table table-bordered ">
     <tr>
       <th></th>
@@ -25,8 +33,8 @@
     <tr>
       <td>{{ forloop.counter }}</td>
       <td>{{ product.item_id }}</td>
-      <td>{{ product.category.name }}</td>
-      <td><a href="{% url 'yy-product-show' product.item_id %}?start_date={{ p_start_date }}&end_date={{ p_end_date　}}">{{ product.title }}</a></td>
+      <td>{{ product.category_name }}</td>
+      <td><a href="{% url 'yy-product-show' product.item_id %}?start_date={{ p_start_date }}&end_date={{ p_end_date　}}" target="_blank">{{ product.title }}</a></td>
       <td>{{ product.count }}</td>
     </tr>
     {% endfor %}

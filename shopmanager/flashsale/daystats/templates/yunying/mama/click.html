@@ -4,7 +4,7 @@
 {% block main %}
 
 
-{% include 'yunying/_datepicker.html' %}
+{% include 'yunying/datepicker.html' %}
 
 <div class="row">
 {% for chart in charts %}
@@ -57,7 +57,7 @@
             ],
             series: [
                 {
-                    name:'UV',
+                    name:'点击量',
                     type:'bar',
                     data: {{ items.click }}
                 },

@@ -45,36 +45,41 @@
   </div>
 
   <div class="col-xs-4">
-  <div class="panel panel-default">
-    <div class="panel-heading">小鹿妈妈</div>
-    <table class="table">
-      <tr>
-        <td>mama_id</td>
-        <td>{{ mama.id }}</td>
-      </tr>
-      <tr>
-        <td>创建时间</td>
-        <td>{{ mama.created }}</td>
-      </tr>
-      <tr>
-        <td>续费类型</td>
-        <td>{{ mama.last_renew_type }}</td>
-      </tr>
-      <tr>
-        <td>推荐人</td>
-        <td>{{ referal_mama.referal_from_mama_id }}{{ referal_mama.referal_mama }}</td>
-      </tr>
-      <tr>
-        <td>最后访问时间</td>
-        <td>{{ visit_record.0.created }}</td>
-      </tr>
-      <tr>
-        <td>累计收益</td>
-        <td>{{ carry_total.0.money }}</td>
-      </tr>
-    </table>
-  </div>
-
+    <div class="panel panel-default">
+      <div class="panel-heading">小鹿妈妈</div>
+      <table class="table">
+        <tr>
+          <td>mama_id</td>
+          <td>{{ mama.id }}</td>
+        </tr>
+        <tr>
+          <td>创建时间</td>
+          <td>{{ mama.created }}</td>
+        </tr>
+        <tr>
+          <td>续费类型</td>
+          <td>{{ mama.last_renew_type }}</td>
+        </tr>
+        <tr>
+          <td>推荐人</td>
+          <td>{{ referal_mama.referal_from_mama_id }}{{ referal_mama.referal_mama }}</td>
+        </tr>
+        <tr>
+          <td>最后访问时间</td>
+          <td>{{ visit_record.0.created }}</td>
+        </tr>
+        <tr>
+          <td>累计收益(预计收益/确定收益)</td>
+          <td>{{ carry_total }} / {{ carry_total_confirm }}</td>
+        </tr>
+      </table>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">能力图</div>
+      <div class="panel-body">
+          {% include 'yunying/charts/radar.html' %}
+      </div>
+    </div>
   </div>
 
 
@@ -93,6 +98,17 @@
           </td>
           <td>{{ wx.subscribe }}</td>
           <td>{{ wx.subscribe_time }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">妈妈主页访问时间(只显示最近１０天)</div>
+      <table class="table">
+        {% for item in visit_record %}
+        <tr>
+          <td>{{ item.modified }}</td>
+          <td>{{ item.device_type }}</td>
         </tr>
         {% endfor %}
       </table>
@@ -172,6 +188,7 @@
             <td>{{ order.total_fee }}</td>
             <td>{{ order.pay_time }}</td>
             <td>{{ order.status }}</td>
+            <td>{{ order.payment }}</td>
           </tr>
           {% endfor %}
         </table>
@@ -182,16 +199,7 @@
     <div class="panel panel-default">
       <div class="panel-heading">推荐妈妈</div>
         <table class="table">
-          {% for mama in one_mamas %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ mama.potential_mama }}</td>
-            <td>{{ mama.nick }}</td>
-            <td>{{ mama.created }}</td>
-            <td>{{ mama.is_full_member }}</td>
-          </tr>
-          {% endfor %}
-          {% for mama in relations %}
+          {% for mama in fans %}
           <tr>
             <td>{{ forloop.counter }}</td>
             <td>{{ mama.referal_to_mama_id }}</td>
