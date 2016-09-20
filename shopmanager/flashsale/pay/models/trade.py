@@ -879,10 +879,6 @@ class SaleOrder(PayBaseModel):
             good_status=SaleRefund.SELLER_OUT_STOCK,
             status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
         s.save()
-        self.refund_id = s.id
-        self.refund_fee = self.payment
-        self.save(update_fields=['refund_id', 'refund_fee'])
-        return s
 
     def is_finishable(self):
         """
