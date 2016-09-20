@@ -9,6 +9,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User as DjangoUser
 from rest_framework import views
 from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+
 
 from core.weixin.options import gen_wxlogin_sha1_sign
 from core.utils.regex import REGEX_MOBILE
@@ -72,12 +75,15 @@ def validate_code(mobile, verify_code):
     if not reg.verify_code:
         return False
     
-    reg.submit_count += 1     #提交次数加一    
-    reg.save()
 
     if reg.code_time > earliest_send_time and reg.verify_code == verify_code:
+        reg.submit_count = 0
+        reg.save(update_fields=['submit_count', 'modified'])
         return True
 
+    reg.submit_count += 1     #提交次数加一    
+    reg.save(update_fields=['submit_count', 'modified'])
+    
     return False
 
 
@@ -191,7 +197,40 @@ class SendCodeView(views.APIView):
         reg.save()
         task_register_code.delay(mobile, "3")
         return Response({"rcode": 0, "msg": u"验证码已发送！"})
+
+
+class RequestCashoutVerifyCode(views.APIView):
+    """
+    Reqest cashout verify_code.
+
+    /rest/v2/request_cashout_verify_code
+    """
     
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+    
+    def post(self, request):
+        user = request.user
+        customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
+        mobile = customer.mobile
+        if not validate_mobile(mobile):
+            return Response({"rcode":1, "msg": "帐户未绑定手机号或手机号错误！"})
+
+        reg, created = get_register(mobile)
+        if not created:
+            # if reg is not just created, we have to check 
+            # day limit and resend condition.
+            if check_day_limit(reg):
+                return Response({"rcode": 4, "msg": u"当日验证次数超过限制!"})
+            if not should_resend_code(reg):
+                return Response({"rcode": 5, "msg": u"验证码刚发过咯，请等待下哦！"})
+        
+        reg.verify_code = reg.genValidCode()
+        reg.code_time = datetime.datetime.now()
+        reg.save()
+        task_register_code.delay(mobile, "4")
+        return Response({"rcode": 0, "msg": u"验证码已发送！"})
+
 
 class VerifyCodeView(views.APIView):    
     """
@@ -251,8 +290,8 @@ class VerifyCodeView(views.APIView):
 
             login(request, user)
 
-            if is_from_app(content):
-                login_activate_appdownloadrecord(user)
+            #if is_from_app(content):
+            #    login_activate_appdownloadrecord(user)
                 
             return Response({"rcode": 0, "msg": u"登录成功！"})  
         
