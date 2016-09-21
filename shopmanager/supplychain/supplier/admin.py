@@ -37,7 +37,7 @@ from supplychain.supplier.models import SaleProduct, SaleProductManage, SaleProd
 
 from shopback.items.models import Product
 from django.contrib.auth.models import User
-
+from flashsale.pay.models import ModelProduct
 import logging
 logger = logging.getLogger(__name__)
 
@@ -943,13 +943,31 @@ class SaleProductManageAdmin(admin.ModelAdmin):
 admin.site.register(SaleProductManage, SaleProductManageAdmin)
 
 
+class SaleProductManageDetailChangeList(ChangeList):
+    def get_queryset(self, request):
+        search_q = request.GET.get('q', '').strip()
+        if search_q:
+            md = ModelProduct.objects.filter(id=search_q).first()
+            if md and md.saleproduct:
+                details = SaleProductManageDetail.objects.filter(models.Q(sale_product_id=md.saleproduct.id) |
+                                                                 models.Q(id=search_q) |
+                                                                 models.Q(sale_product_id=search_q))
+            else:
+                return super(SaleProductManageDetailChangeList, self).get_queryset(request)
+            return details
+        return super(SaleProductManageDetailChangeList, self).get_queryset(request)
+
+
 class SaleProductManageDetailAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'sale_product_id',
+        'schedule_manage_link',
         'pic_path_show',
-        'order_weight'
+        'order_weight',
+        'model_id_show'
     )
+    search_fields = ['id', 'sale_product_id']
     list_filter = ('sale_category', 'schedule_manage')
     ordering = ('order_weight', )
 
@@ -958,6 +976,22 @@ class SaleProductManageDetailAdmin(admin.ModelAdmin):
 
     pic_path_show.allow_tags = True
     pic_path_show.short_description = "图片"
+
+    def schedule_manage_link(self, obj):
+        return u'<a target="_blank" href="/admin/supplier/saleproductmanage/{0}">{0}</a>'.format(obj.schedule_manage.id)
+
+    schedule_manage_link.allow_tags = True
+    schedule_manage_link.short_description = u'排期管理id'
+
+    def model_id_show(self, obj):
+        md = ModelProduct.objects.filter(saleproduct__id=obj.sale_product_id).first()
+        return u'<a target="_blank" href="/admin/pay/modelproduct/{0}">{0}</a>'.format(md.id if md else '')
+
+    model_id_show.allow_tags = True
+    model_id_show.short_description = u'款式id'
+
+    def get_changelist(self, request, **kwargs):
+        return SaleProductManageDetailChangeList
 
 admin.site.register(SaleProductManageDetail, SaleProductManageDetailAdmin)
 
