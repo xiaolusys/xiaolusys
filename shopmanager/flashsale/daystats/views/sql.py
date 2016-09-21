@@ -1,7 +1,7 @@
 # encoding=utf8
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from flashsale.daystats.lib.db import mongo
+from flashsale.daystats.mylib.db import mongo
 from bson.objectid import ObjectId
 
 

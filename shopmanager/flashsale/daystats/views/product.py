@@ -3,13 +3,13 @@ from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.db import connections
 
-from flashsale.daystats.lib.db import execute_sql, get_cursor
-from flashsale.daystats.lib.chart import (
+from flashsale.daystats.mylib.db import execute_sql, get_cursor
+from flashsale.daystats.mylib.chart import (
     generate_chart,
     generate_date,
     generate_chart_data,
 )
-from flashsale.daystats.lib.util import (
+from flashsale.daystats.mylib.util import (
     process_data,
     groupby,
     process,
