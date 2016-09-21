@@ -397,6 +397,8 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
         if not saleproduct:
             raise exceptions.APIException(u"选品ID错误!")
+        if ModelProduct.objects.filter(saleproduct=saleproduct).exists():
+            raise exceptions.APIException(u'商品信息添加出错!')
         extras = self.get_request_extras(request)
         request.data.update({'extras': extras})
         request.data.update({'saleproduct': saleproduct.id})
