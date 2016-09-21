@@ -770,7 +770,6 @@ class Product(models.Model):
         skus_list = saleproduct.sku_extras
         colors = [x['color'] for x in skus_list]
         colors = set(colors)    # 防止颜色重复
-        print "colors: ", colors
         pro_count = 1
 
         supplier = saleproduct.sale_supplier
