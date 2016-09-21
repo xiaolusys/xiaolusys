@@ -36,7 +36,7 @@ from flashsale.pay.forms import ProductdetailForm
 from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
 from shopback.items.models import InferiorSkuStats
 from shopback.items.filters import ProductSkuStatsSupplierIdFilter, ProductSkuStatsSupplierNameFilter, \
-    ProductSkuStatsUnusedStockFilter
+    ProductSkuStatsUnusedStockFilter, ProductWareByFilter
 from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from django.contrib.auth.models import User as DjangoUser
@@ -1241,7 +1241,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
                        'waitingpay_num', 'created', 'modified', 'status']
     list_select_related = True
     list_per_page = 50
-    list_filter = ['status', ProductSkuStatsUnusedStockFilter, ProductVirtualFilter, ProductStatusFilter, ProductCategoryFilter]
+    list_filter = ['status', ProductSkuStatsUnusedStockFilter, ProductWareByFilter, ProductVirtualFilter, ProductStatusFilter, ProductCategoryFilter]
 
     SKU_PREVIEW_TPL = (
         '<a href="%(sku_url)s" target="_blank">'
