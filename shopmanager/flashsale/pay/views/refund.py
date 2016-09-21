@@ -3,10 +3,7 @@ import datetime
 from django.forms import model_to_dict
 from django.db.models import Sum
 from django.shortcuts import redirect, get_object_or_404
-
-from rest_framework import generics
 from rest_framework.response import Response
-from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.views import APIView
@@ -14,11 +11,11 @@ from rest_framework.views import APIView
 from flashsale.pay.models import SaleTrade, SaleOrder, Customer, SaleRefund
 from shopback.items.models import Product, ProductDaySale
 from core.options import log_action, CHANGE
-from shopback.trades.models import MergeOrder, MergeTrade
-from flashsale.pay.tasks import task_send_msg_for_refund, task_update_orderlist
+from flashsale.pay.tasks import task_send_msg_for_refund
 
 import logging
 logger = logging.getLogger(__name__)
+
 
 class RefundReason(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
@@ -170,8 +167,6 @@ class RefundPopPageView(APIView):
             # 将状态修改成卖家同意退款(退货)
             obj.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
             obj.save()
-
-            # task_update_orderlist.delay(str(obj.sku_id)) #2016-09-21
             log_action(request.user.id, obj, CHANGE, '保存状态信息到－退货状态')
 
         if method == "agree":  # 同意退款
