@@ -2,6 +2,7 @@
 import json
 from django.conf import settings
 from django.db import IntegrityError, models
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.generic import View
 
@@ -16,13 +17,18 @@ class PINGPPCallbackView(View):
     def post(self, request, *args, **kwargs):
 
         content = request.body
-        logger.debug('pingpp callback:%s' % content)
+        logger.info('pingpp callback:%s' % content)
         try:
             # 读取异步通知数据
-            notify = json.loads(content)
+            content = json.loads(content)
         except:
             return HttpResponse('no params')
 
+        data = content.get('data')
+        if not data:
+            return HttpResponse('no data')
+
+        notify = data['object']
         response = ''
         # 对异步通知做处理
         if 'object' not in notify:
