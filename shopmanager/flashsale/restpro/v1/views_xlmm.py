@@ -893,7 +893,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         budget_type = BudgetLog.BUDGET_IN
         budget_log_type = BudgetLog.BG_MAMA_CASH
-        uni_key = BudgetLog.gen_uni_key(customer_id, budget_type, budget_log_type)
+        uni_key = BudgetLog.gen_uni_key(customer.id, budget_type, budget_log_type)
         BudgetLog.objects.create(customer_id=customer.id,
                                  flow_amount=value,
                                  budget_type=budget_type,
@@ -901,7 +901,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                                  budget_log_type=budget_log_type,
                                  status=BudgetLog.CONFIRMED,
                                  uni_key=uni_key)
-        return Response({"code": 0, 'msg': '提交成功'})
+        info = '提交成功'
+        return Response({"code": 0, 'msg': info, 'info': info})
 
     def update(self, request, *args, **kwargs):
         raise exceptions.APIException('method not allowed')
