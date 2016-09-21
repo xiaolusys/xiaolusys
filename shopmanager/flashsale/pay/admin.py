@@ -198,7 +198,7 @@ class TradeChargeAdmin(BaseModelAdmin):
     list_display_links = ('order_no', 'charge',)
 
     list_filter = (('time_paid', DateFieldListFilter), 'paid', 'refunded')
-    search_fields = ['order_no', 'charge']
+    search_fields = ['=order_no', '=charge']
 
 
 admin.site.register(TradeCharge, TradeChargeAdmin)
@@ -210,7 +210,7 @@ class RegisterAdmin(ApproxAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (('code_time', DateFieldListFilter), ('created', DateFieldListFilter), 'initialize_pwd')
-    search_fields = ['id', 'cus_uid', 'vmobile', 'vemail']
+    search_fields = ['=id', '=cus_uid', '=vmobile', '=vemail']
 
 
 admin.site.register(Register, RegisterAdmin)
@@ -291,7 +291,7 @@ admin.site.register(DistrictVersion, DistrictVersionAdmin)
 class UserAddressAdmin(admin.ModelAdmin):
     list_display = ('id', 'cus_uid', 'receiver_name', 'receiver_state',
                     'receiver_city', 'receiver_mobile', 'default', 'status')
-    search_fields = ['cus_uid', 'receiver_mobile']
+    search_fields = ['=cus_uid', '^receiver_mobile']
 
     list_filter = ('default', 'status')
 
@@ -839,7 +839,7 @@ class CuShopProsAdmin(admin.ModelAdmin):
                     'model', 'pro_status', 'position', 'created')
     list_display_links = ('shop',)
     list_filter = ('created', 'pro_status', CushopProCategoryFiler)
-    search_fields = ['=id', 'model', 'shop', 'product', '=customer']
+    search_fields = ['=id', '=model', '=shop', '=product', '=customer']
 
     def pro_category_dec(self, obj):
         """
