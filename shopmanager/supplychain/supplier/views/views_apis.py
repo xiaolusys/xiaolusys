@@ -27,6 +27,7 @@ from django_filters.fields import Lookup
 from core.options import get_systemoa_user, log_action
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+from shopback.items.models import Product
 from supplychain.supplier.models import (
     SaleSupplier,
     SaleProduct,
@@ -390,9 +391,12 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = serializers.ModifySaleProductSerializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        model_product = instance.model_product
+        if model_product:  # 有款式
+            Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
         return Response(serializer.data)
 
 

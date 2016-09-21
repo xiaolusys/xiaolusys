@@ -746,7 +746,7 @@ class Product(models.Model):
 
         product_skus = kwargs['product_skus_list']
         for sku in product_skus:
-            product_sku = product.normal_skus.filter(outer_id=sku['outer_id']).first()
+            product_sku = product.normal_skus.filter(properties_name=sku['properties_name']).first()
             if not product_sku:
                 product_sku = ProductSku()
             sku.update({'product': product})
@@ -760,7 +760,7 @@ class Product(models.Model):
 
     @classmethod
     @transaction.atomic()
-    def create_skus(cls, model_pro, creator):
+    def create_or_update_skus(cls, model_pro, creator):
         """
         skus_list: sku 的列表信息
         inner_outer_id: 生成的内部编码
@@ -770,6 +770,7 @@ class Product(models.Model):
         skus_list = saleproduct.sku_extras
         colors = [x['color'] for x in skus_list]
         colors = set(colors)    # 防止颜色重复
+        print "colors: ", colors
         pro_count = 1
 
         supplier = saleproduct.sale_supplier
@@ -811,8 +812,10 @@ class Product(models.Model):
                      'barcode': barcode})
                 count += 1
             kwargs.update({'product_skus_list': product_skus_list})
-
             cls.update_or_create_product_and_skus(model_pro, **kwargs)
+        model_pro.set_is_flatten()  # 设置平铺字段
+        model_pro.set_lowest_price()  # 设置款式最低价格
+        model_pro.set_choose_colors()  # 设置可选颜色
 
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):

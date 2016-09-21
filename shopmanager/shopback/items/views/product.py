@@ -412,8 +412,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, model_pro, ADDITION, u'新建特卖款式')
         # 生成sku信息
         creator = request.user
-        Product.create_skus(model_pro, creator)
-        self.set_model_pro(model_pro)
+        Product.create_or_update_skus(model_pro, creator)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
