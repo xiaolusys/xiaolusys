@@ -171,7 +171,7 @@ class RefundPopPageView(APIView):
             obj.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
             obj.save()
 
-            task_update_orderlist.delay(str(obj.sku_id))
+            # task_update_orderlist.delay(str(obj.sku_id)) #2016-09-21
             log_action(request.user.id, obj, CHANGE, '保存状态信息到－退货状态')
 
         if method == "agree":  # 同意退款
