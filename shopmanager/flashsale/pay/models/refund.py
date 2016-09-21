@@ -394,17 +394,40 @@ class SaleRefund(PayBaseModel):
             data.append({"status_display": self.get_status_display(), "time": self.modified})
         return data
 
-    def approve_return_goods(self):
+    def update_sale_order_refund_status(self):
+        """ 更新订单的退款状态等于退款单的状态 """
+        sale_order = self.sale_order()
+        sale_order.refund_status = self.status
+        sale_order.save(update_fields=['refund_status', 'modified'])
+        return
+
+    @property
+    def is_returngoodsable(self):
+        """ 是否可以退货: 退款单在申请状态 并且 用户已经收到包裹 """
+        return self.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and self.good_status == SaleRefund.BUYER_RECEIVED
+
+    def agree_return_goods(self):
+        """ 同意退货 """
+        if self.is_returngoodsable:
+            self.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
+            self.save(update_fields=['status', 'modified'])
+            self.update_sale_order_refund_status()  # 更新sale_order refund_status
+            return True
+        return False
+
+    def auto_approve_return_goods(self):
         """
-        同意退货: 用户提交退款单　如果是退货申请　并且是非质量原因退货　则修改该退款单状态到　同意申请状态　REFUND_WAIT_RETURN_GOODS
+        自动同意退货:
+        1. 用户提交退款单　
+        if 如果是退货申请　& 是非质量原因退货　
+        then : 修改该退款单状态到　同意申请状态　REFUND_WAIT_RETURN_GOODS
         """
         # 退款待审核状态 买家收到货　
-        if self.status == SaleRefund.REFUND_WAIT_SELLER_AGREE and self.good_status == SaleRefund.BUYER_RECEIVED:
-            from shopback.refunds.models import REFUND_REASON
-
-            if self.reason in [REFUND_REASON[3][1], REFUND_REASON[4][1], REFUND_REASON[10][1]]:  # 质量原因/错发/漏发/七天无理由
-                self.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
-                self.save(update_fields=['status'])
+        from shopback.refunds.models import REFUND_REASON
+        if self.reason in [REFUND_REASON[3][1],
+                           REFUND_REASON[4][1],
+                           REFUND_REASON[10][1]]:  # 质量原因/错发/漏发/七天无理由
+            self.agree_return_goods()
             return True
         return False
 

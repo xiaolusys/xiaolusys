@@ -35,25 +35,10 @@ def create_refund(user=None, order=None, reason=None, num=None,
         , refund_channel=refund_channel
         , proof_pic=proof_pic
     )
-    refund.approve_return_goods()  # 处理　同意申请
+    refund.auto_approve_return_goods()  # 处理　同意申请
 
     if state:
         log_action(user, refund, ADDITION, u'用户售后增加退货款单信息！')
-    order_params = {
-        "refund_id": refund.id,
-        "refund_fee": refund_fee,
-        "refund_status": SaleRefund.REFUND_WAIT_SELLER_AGREE
-    }
-    order_update_fields = []
-    # 如果state 为真　则是第一次创建 保存退款退款单信息到SaleOrder中
-    for k, v in order_params.iteritems():
-        if hasattr(order, k) and getattr(order, k) != v:
-            setattr(order, k, v)
-            order_update_fields.append(k)
-    if order_update_fields:
-        order.save(update_fields=order_update_fields)
-        log_action(user, order, CHANGE, u'用户售后提交申请时修改order信息！')
-
     tasks.pushTradeRefundTask.delay(refund.id)
 
 
