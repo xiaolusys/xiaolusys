@@ -813,10 +813,12 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(msg)
 
         # 满足提现请求　创建提现记录
-        cashout = CashOut(xlmm=xlmm.id,
-                          value=value,
-                          cash_out_type=CashOut.RED_PACKET,
-                          approve_time=datetime.datetime.now())
+        cash_out_type = CashOut.RED_PACKET
+        uni_key = CashOut.gen_uni_key(mama.id, cash_out_type)
+        date_field = datetime.date.today()
+
+        cashout = CashOut(xlmm=xlmm.id,value=value,cash_out_type=cash_out_type,
+                          approve_time=datetime.datetime.now(),date_field=date_field,uni_key=uni_key)
         cashout.save()
 
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
@@ -856,14 +858,23 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             info = u'您的帐户不满足快速提现条件!'
             return Response({"code": 4, "info": info})
 
-        mf = MamaFortune.objects.filter(mama_id=mama.id).first()
+        mama_id = mama.id
+        mf = MamaFortune.objects.filter(mama_id=mama_id).first()
         if mf.cash_num_display() * 100 < amount:
             info = u'提现额不能超过帐户余额！'
             return Response({"code": 5, "info": info})
 
+        if CashOut.is_cashout_limited(mama_id):
+            info = u'今日提现次数已达上限，请明天再来哦！'
+            return Response({"code": 6, "info": info})
+        
         cash_out_type = CashOut.RED_PACKET
         cash_out_time = datetime.datetime.now()
-        cashout = CashOut(xlmm=mama.id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time)
+        uni_key = CashOut.gen_uni_key(mama_id, cash_out_type)
+        date_field = datetime.date.today()
+        
+        cashout = CashOut(xlmm=mama_id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time,
+                          date_field=date_field, uni_key=uni_key)
         cashout.save()
                           
         return Response({"code": 0, "info": u'提交成功！'})
@@ -883,11 +894,17 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(msg)
 
         # 创建Cashout
+        cash_out_type = CashOut.USER_BUDGET
+        uni_key = CashOut.gen_uni_key(mama.id, cash_out_type)
+        date_field = datetime.date.today()
+
         cashout = CashOut(xlmm=xlmm.id,
                           value=value,
                           cash_out_type=CashOut.USER_BUDGET,
                           approve_time=datetime.datetime.now(),
-                          status=CashOut.APPROVED)
+                          status=CashOut.APPROVED,
+                          date_field=date_field,
+                          uni_key=uni_key)
         cashout.save()
         log_action(request.user.id, cashout, ADDITION, '代理提现到余额')
 
@@ -953,11 +970,17 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(default_return)
 
         def exchange_one_coupon():
+            cash_out_type = CashOut.EXCHANGE_COUPON
+            uni_key = CashOut.gen_uni_key(mama.id, cash_out_type)
+            date_field = datetime.date.today()
+
             cash = CashOut(xlmm=xlmm.id,
                            value=tpl.value * 100,
-                           cash_out_type=CashOut.EXCHANGE_COUPON,
+                           cash_out_type=cash_out_type,
                            approve_time=datetime.datetime.now(),
-                           status=CashOut.APPROVED)
+                           status=CashOut.APPROVED,
+                           date_field=date_field,
+                           uni_key=uni_key)
             cash.save()
             log_action(request.user, cash, ADDITION, u'用户现金兑换优惠券添加提现记录')
             cou, co, ms = UserCoupon.objects.create_cashout_exchange_coupon(customer.id, tpl.id,

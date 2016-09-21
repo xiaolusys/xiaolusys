@@ -1005,7 +1005,9 @@ class CashOut(models.Model):
     approve_time = models.DateTimeField(blank=True, null=True, verbose_name=u'审核时间')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     cash_out_type = models.CharField(max_length=8, choices=TYPE_CHOICES, default=RED_PACKET, verbose_name=u'提现类型')
-
+    date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    
     class Meta:
         db_table = 'xiaolumm_cashout'
         app_label = 'xiaolumm'
@@ -1023,6 +1025,23 @@ class CashOut(models.Model):
     get_value_display.admin_order_field = 'value'
     get_value_display.short_description = u"提现金额"
 
+    @classmethod
+    def is_cashout_limited(cls, mama_id):
+        from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
+        CASHOUT_NUM_LIMIT = CashOutPolicyView.DAILY_CASHOUT_TRIES
+        date_field = datetime.date.today()
+        cnt = cls.objects.filter(xlmm=mama_id, cash_out_type=cls.RED_PACKET, date_field=date_field).\
+              exclude(status=cls.CANCEL).exclude(status=cls.REJECTED).count()
+        if cnt < CASHOUT_NUM_LIMIT and cnt >= 0:
+            return False
+        return True
+
+    @classmethod
+    def gen_uni_key(cls, mama_id, cash_out_type):
+        date_field = datetime.date.today()
+        count = cls.objects.filter(xlmm=mama_id, cash_out_type=cash_out_type, date_field=date_field).count()
+        return '%s-%d-%d|%s' % (cash_out_type, mama_id, count+1, date_field)
+                    
     @property
     def value_money(self):
         return self.get_value_display()
