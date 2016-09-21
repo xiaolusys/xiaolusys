@@ -826,6 +826,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
     def noaudit_cashout(self, request):
         """
         /rest/v1/pmt/cashout/noaudit_cashout
+        amount=1.5 #金额1.5元
+        verify_code=123456 #验证码123456
         """
         content = request.POST or request.GET
 
