@@ -141,7 +141,8 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         week_mama_team_carry = obj.week_mama_team_carry
         if not (week_mama_carry and week_mama_team_carry):
             return default
-        default.update({'week_duration_total': week_mama_carry.duration_total,
+        week_duration_total = week_mama_carry.duration_total /100.0 if week_mama_carry.duration_total else 0.0
+        default.update({'week_duration_total': week_duration_total,
                         'week_duration_rank': week_mama_carry.duration_rank,
                         'personal_total_rank': week_mama_carry.total_rank,
                         'team_total_rank': week_mama_team_carry.total_rank})
