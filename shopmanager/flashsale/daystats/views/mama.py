@@ -8,16 +8,16 @@ from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 
-from flashsale.daystats.lib.chart import (
+from flashsale.daystats.mylib.chart import (
     generate_chart,
     generate_date,
     generate_chart_data,
 )
-from flashsale.daystats.lib.db import (
+from flashsale.daystats.mylib.db import (
     get_cursor,
     execute_sql,
 )
-from flashsale.daystats.lib.util import (
+from flashsale.daystats.mylib.util import (
     process_data,
     groupby,
     process,

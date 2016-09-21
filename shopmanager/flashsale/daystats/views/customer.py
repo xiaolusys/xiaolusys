@@ -7,16 +7,16 @@ from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade
-from flashsale.daystats.lib.db import (
+from flashsale.daystats.mylib.db import (
     get_cursor,
     execute_sql,
 )
-from flashsale.daystats.lib.util import (
+from flashsale.daystats.mylib.util import (
     groupby,
     process,
 )
 
-from flashsale.daystats.lib.chart import generate_chart, generate_date
+from flashsale.daystats.mylib.chart import generate_chart, generate_date
 
 
 def process_data(data):

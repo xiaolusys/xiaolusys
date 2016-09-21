@@ -1,6 +1,6 @@
 # encoding=utf8
 from django.shortcuts import render
-from flashsale.daystats.lib.db import get_cursor, execute_sql
+from flashsale.daystats.mylib.db import get_cursor, execute_sql
 
 
 def index(req):
