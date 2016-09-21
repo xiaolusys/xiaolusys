@@ -333,6 +333,13 @@ def push_SaleTrade_To_MergeTrade():
 
 from flashsale.pay.models import Envelop
 
+@task(max_retries=3, default_retry_delay=10)
+def task_handle_envelope_notify(notify):
+    try:
+        envelop = Envelop.objects.get(id=notify['order_no'])
+        envelop.handle_envelop(notify)
+    except Exception, exc:
+        raise task_handle_envelope_notify.retry(exc=exc)
 
 @task
 def task_Pull_Red_Envelope(pre_day=7):
@@ -378,8 +385,7 @@ def task_Pull_Red_Envelope(pre_day=7):
                                                    'lte': today})
         e = None
         for e in resp['data']:
-            envelop = Envelop.objects.get(id=e['order_no'])
-            envelop.handle_envelop(e)
+            task_handle_envelope_notify(e)
         if e:
             starting_after = e['id']
 
