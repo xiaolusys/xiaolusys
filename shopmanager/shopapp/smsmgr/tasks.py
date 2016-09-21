@@ -62,7 +62,7 @@ def gen_package_post_sms_content(package_order, package_sku_item, delay_days):
         # 现正火速送往您处，相信不日便可抵达。女王大人，请一定要保持电话通畅哦~【小鹿美美】
     else:
         sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_DELAY_POST, status=True)
-        # 公主大人，小鹿子有事禀报：您订的{{title}}衣，因外贸厂热销，供货紧缺，耽搁了{{later_days}}天。
+        # 公主大人，小鹿子有事禀报：您订的{{title}}衣，因厂家热销，供货紧缺，耽搁了{{later_days}}天。
         # 小鹿子现已责令{{logistics_company_name}}快递小哥快马加鞭送货。因此事造成的延误，恳请公主大人原谅！【小鹿美美】
     text_tmpls = [tpl.text_tmpl for tpl in sms_tpls]
     if not text_tmpls:
@@ -144,7 +144,7 @@ def gen_lack_refund_sms_content(sale_order):
     """
     # 查找短信模板
     sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_LACK_REFUND, status=True)
-        # 公主大人，小鹿子有事禀报：您订的{{title}}衣，因外贸厂热销，供货紧缺，耽搁了{{later_days}}天。
+        # 公主大人，小鹿子有事禀报：您订的{{title}}衣，因厂家热销，供货紧缺，耽搁了{{later_days}}天。
         # 小鹿子现已责令{{logistics_company_name}}快递小哥快马加鞭送货。因此事造成的延误，恳请公主大人原谅！【小鹿美美】
     text_tmpls = [tpl.text_tmpl for tpl in sms_tpls]
     if not text_tmpls:

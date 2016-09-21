@@ -2081,19 +2081,24 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
     def import_package(self, request, pk):
         data = request.DATA.get('data')
         print data
+        order_list = get_object_or_404(OrderList, pk=pk)
         errors = []
         for item in data:
             try:
                 out_sid = item.get(u'物流单号')
-                logistics_complany_id = item.get(u'物流公司id')
+                logistics_company_id = item.get(u'物流公司id')
                 pid = item.get(u'包裹单号')
                 package_order = PackageOrder.objects.get(pid=pid)
+                if not package_order.package_sku_items.filter(purchase_order_unikey=order_list.purchase_order_unikey):
+                    errors.append(u'订货单中%d不存在这个包裹:%s-%s' % (order_list.id, pid, out_sid))
+                    continue
                 if package_order.sys_status not in [PackageOrder.WAIT_CUSTOMER_RECEIVE, PackageOrder.FINISHED_STATUS]:
                     package_order.out_sid = out_sid
-                    package_order.logistics_company = LogisticsCompany.objects.get(id=logistics_complany_id)
-                    package_order.finish_scan_weight()
+                    logistics_company = LogisticsCompany.objects.get(id=logistics_company_id)
+                    package_order.finish_third_package(out_sid, logistics_company)
             except Exception, e0:
                 errors.append(e0.message)
+        order_list.set_by_package_sku_item()
         if errors:
             return Response(make_response(info=str(len(errors)) + '个导入错误。错误信息：'+','.join([str(e) for e in errors])))
         return Response(SUCCESS_RESPONSE)
