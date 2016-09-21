@@ -451,13 +451,15 @@ from django.db.models import Sum
 @task(max_retries=3, default_retry_delay=6)
 def task_budgetlog_update_userbudget(budget_log):
     customer_id = budget_log.customer_id
-    bglogs = BudgetLog.objects.filter(customer_id=customer_id,status=BudgetLog.CONFIRMED)
-    records = bglogs.values('budget_type').annotate(total=Sum('flow_amount'))
+    bglogs = BudgetLog.objects.filter(customer_id=customer_id).exclude(status=BudgetLog.CANCELED)
+    records = bglogs.values('budget_type', 'status').annotate(total=Sum('flow_amount'))
     in_amount, out_amount = 0, 0
     for entry in records:
-        if entry["budget_type"] == BudgetLog.BUDGET_IN:
+        if entry["budget_type"] == BudgetLog.BUDGET_IN and entry["status"] == BudgetLog.CONFIRMED:
+            # 收入只计算confirmed
             in_amount += entry["total"]
         if entry["budget_type"] == BudgetLog.BUDGET_OUT:
+            # 只出计算confirmed+pending
             out_amount += entry["total"]
     cash = in_amount - out_amount
     customers = Customer.objects.normal_customer.filter(id=customer_id)
