@@ -1006,7 +1006,7 @@ class CashOut(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     cash_out_type = models.CharField(max_length=8, choices=TYPE_CHOICES, default=RED_PACKET, verbose_name=u'提现类型')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    uni_key = models.CharField(max_length=128, blank=True, null=True, unique=True, verbose_name=u'唯一ID')
     
     class Meta:
         db_table = 'xiaolumm_cashout'
