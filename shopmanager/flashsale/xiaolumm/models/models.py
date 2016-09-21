@@ -501,15 +501,23 @@ class XiaoluMama(models.Model):
             return True
         return False
 
+    def is_noaudit_cashoutable(self):
+        """
+        无需审核，小额提现
+        """
+        return self.agencylevel >= self.VIP_LEVEL and \
+            self.charge_status == self.CHARGED and self.status == self.EFFECT
+
     def is_relationshipable(self):
         return self.agencylevel >= self.VIP_LEVEL and \
                self.charge_status == self.CHARGED and self.status == self.EFFECT
 
     def is_click_countable(self):
-        if self.agencylevel >= self.VIP_LEVEL and \
-                        self.charge_status == self.CHARGED and self.status == self.EFFECT:
-            return True
-        return False
+        today = datetime.date.today()
+        today_time = datetime.datetime(today.year, today.month, today.day)
+        return self.agencylevel >= self.VIP_LEVEL and self.charge_status == self.CHARGED and \
+            self.status == self.EFFECT and self.renew_time > today_time
+           
 
     def get_cash_iters(self):
         if not self.is_cashoutable():
