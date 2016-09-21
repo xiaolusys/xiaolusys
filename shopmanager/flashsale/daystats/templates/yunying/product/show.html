@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+  {% include 'yunying/datepicker.html' %}
+  {% include 'yunying/chart.html' %}
+
+  <div class="row">
+    <table class="table table-bordered ">
+      <tr>
+        <th>商品</th>
+        <th>SKU</th>
+        <th>单价</th>
+        <th>销量</th>
+        <th>交易额</th>
+      </tr>
+      {% for item in order_items %}
+      <tr>
+        <td>{{ item.0 }}</td>
+        <td>{{ item.3 }}</td>
+        <td>{{ item.1 }}</td>
+        <td>{{ item.2 }}</td>
+        <td>{{ item.4 }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="row">
+    <table class="table table-bordered ">
+      <tr>
+        <td>saleproduct_id</td>
+        <td>modelproduct_id</td>
+        <th>平台</th>
+        <th>采购价</th>
+        <th>售价</th>
+        <th>吊牌价</th>
+        <th>买手</th>
+      </tr>
+      <tr>
+        <td>{{ saleproduct.sale_supplier }}</td>
+        <td><a href="http://m.xiaolumeimei.com/mall/product/details/{{ modelproduct.id }}" target="_blank">{{ modelproduct.id }}</a></td>
+        <td><a href="{{ saleproduct.product_link }}" target="_blank"><img src="{{ saleproduct.pic_url }}" width="100"></a></td>
+        <td>{{ saleproduct.sale_price }}</td>
+        <td>{{ saleproduct.on_sale_price }}</td>
+        <td>{{ saleproduct.std_sale_price }}</td>
+        <td>{{ saleproduct.contactor }} / {{ saleproduct.buyer }} / {{ saleproduct.librarian }}</td>
+      </tr>
+    </table>
+  </div>
+
+{% endblock %}

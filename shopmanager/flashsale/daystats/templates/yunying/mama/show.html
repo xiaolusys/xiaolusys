@@ -1,0 +1,214 @@
+{% extends 'layout.html' %}
+
+{% block main %}
+
+<div class="row">
+    <form action="{{ req.path }}" method="GET" name="query_form">
+      <div class="col-xs-6">
+        <input type="text" class="form-control" name="mama_id" value="{{ mama_id }}" placeholder="输入妈妈ID">
+      </div>
+      <button type="submit" class="btn btn-default">QUERY</button>
+    </form>
+</div>
+
+<div class="row">
+  <div class="col-xs-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">用户(Customer)</div>
+    <table class="table">
+      <tr>
+        <td>ID</td>
+        <td>{{ customer.id }}</td>
+      </tr>
+      <tr>
+        <td>注册时间</td>
+        <td>{{ customer.created }}</td>
+      </tr>
+      <tr>
+        <td>昵称</td>
+        <td>{{ customer.nick }}</td>
+      </tr>
+      <tr>
+        <td>手机号</td>
+        <td>{{ customer.mobile }}</td>
+      </tr>
+      <tr>
+        <td>UNIONID</td>
+        <td>{{ customer.unionid }}</td>
+      </tr>
+      <tr>
+        <td>第一次付款时间</td>
+        <td>{{ customer.first_paytime }}</td>
+      </tr>
+    </table>
+  </div>
+  </div>
+
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">小鹿妈妈</div>
+      <table class="table">
+        <tr>
+          <td>mama_id</td>
+          <td>{{ mama.id }}</td>
+        </tr>
+        <tr>
+          <td>创建时间</td>
+          <td>{{ mama.created }}</td>
+        </tr>
+        <tr>
+          <td>续费类型</td>
+          <td>{{ mama.last_renew_type }}</td>
+        </tr>
+        <tr>
+          <td>推荐人</td>
+          <td>{{ referal_mama.referal_from_mama_id }}{{ referal_mama.referal_mama }}</td>
+        </tr>
+        <tr>
+          <td>最后访问时间</td>
+          <td>{{ visit_record.0.created }}</td>
+        </tr>
+        <tr>
+          <td>累计收益(预计收益/确定收益)</td>
+          <td>{{ carry_total }} / {{ carry_total_confirm }}</td>
+        </tr>
+      </table>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">能力图</div>
+      <div class="panel-body">
+          {% include 'yunying/charts/radar.html' %}
+      </div>
+    </div>
+  </div>
+
+
+  <div class="col-xs-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">微信公众号</div>
+      <table class="table">
+        {% for wx in wx_fans %}
+        <tr>
+          <td>
+          {% if wx.app_key == 'wx3f91056a2928ad2d' %}
+          小鹿美美
+          {% else %}
+          小鹿美美特卖
+          {% endif %}
+          </td>
+          <td>{{ wx.subscribe }}</td>
+          <td>{{ wx.subscribe_time }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">妈妈主页访问时间(只显示最近１０天)</div>
+      <table class="table">
+        {% for item in visit_record %}
+        <tr>
+          <td>{{ item.modified }}</td>
+          <td>{{ item.device_type }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+  </div>
+
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading" data-toggle="collapse" href="#coll1">奖金收益</div>
+      <table class="table collapse in" id="coll1">
+<!--       {% for item in carry_record %}
+      <tr>
+        <td>{{ item.created }}</td>
+        <td>{{ item.carry_type_name }}</td>
+        <td>{{ item.carry_num }}</td>
+        <td>{{ item.carry_description }}</td>
+      </tr>
+      {% endfor %}
+ -->
+      {% for item in award_carry %}
+      <tr title="{{ item.carry_description }}">
+        <td>{{ item.created }}</td>
+        <td>{{ item.status_display }}</td>
+        <td>{{ item.carry_type_name }}</td>
+        <td>{{ item.carry_num }}</td>
+      </tr>
+      {% endfor %}
+      </table>
+    </div>
+  </div>
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading" data-toggle="collapse" href="#coll2">订单收益</div>
+      <table class="table collapse in" id="coll2">
+      {% for item in order_carry %}
+      <tr>
+        <td>{{ item.created }}</td>
+        <td>{{ item.status_display }}</td>
+        <td>{{ item.carry_num }}</td>
+        <td>{{ item.carry_type_name }}</td>
+      </tr>
+      {% endfor %}
+      </table>
+    </div>
+  </div>
+  <div class="col-xs-4">
+    <div class="panel panel-default">
+      <div class="panel-heading" data-toggle="collapse" href="#coll3">点击收益</div>
+      <table class="table collapse in" id="coll3">
+      {% for item in click_carry %}
+      <tr>
+        <td>{{ item.created }}</td>
+        <td>{{ item.status_display }}</td>
+        <td>{{ item.total_value }}</td>
+        <td>{{ item.carry_description }}</td>
+      </tr>
+      {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xs-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">订单(付款/全部)</div>
+        <table class="table">
+          {% for order in orders %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ order.title }}</td>
+            <td>{{ order.sku_name }}</td>
+            <td>{{ order.num }}</td>
+            <td>{{ order.total_fee }}</td>
+            <td>{{ order.pay_time }}</td>
+            <td>{{ order.status }}</td>
+            <td>{{ order.payment }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+    </div>
+  </div>
+
+  <div class="col-xs-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">推荐妈妈</div>
+        <table class="table">
+          {% for mama in fans %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ mama.referal_to_mama_id }}</td>
+            <td>{{ mama.referal_to_mama_nick }}</td>
+            <td>{{ mama.created }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

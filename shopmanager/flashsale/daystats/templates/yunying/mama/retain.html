@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block main %}
+
+<div class="row">
+  <h3>{{ start_date }} - {{ end_date }}</h3>
+  <form action="{{ req.path }}" method="GET">
+    <div class="col-xs-2">
+      <input size="16" type="text" class="form-control datepicker" value="{{ p_start_date }}" name="start_date">
+    </div>
+    <div class="col-xs-2">
+      <input size="16" type="text" class="form-control datepicker" value="{{ p_end_date }}" name="end_date">
+    </div>
+    <button type="submit" class="btn btn-default">QUERY</button>
+  </form>
+</div>
+
+<div class="row">
+  <table class="table table-bordered">
+  <tr>
+    <td>注册日期\登陆日期</td>
+    {% for date in col_date %}
+    <td>{{ date }}</td>
+    {% endfor %}
+  </tr>
+  {% for date, row in result %}
+  <tr>
+    <td>{{ date }}</td>
+    {% for col in row %}
+    {% if col.0 == 0 %}
+    <td></td>
+    {% else %}
+    <td>{{ col.0 }}({{ col.2 }})</td>
+    {% endif %}
+    {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+</div>
+
+{% endblock %}

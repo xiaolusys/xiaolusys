@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block main %}
+
+<div class="row">
+  <h3>{{ start_date }} - {{ end_date }}</h3>
+  <form action="{{ req.path }}" method="GET">
+    <div class="col-xs-2">
+      <input size="16" type="text" class="form-control datepicker" value="{{ p_start_date }}" name="start_date">
+    </div>
+    <div class="col-xs-2">
+      <input size="16" type="text" class="form-control datepicker" value="{{ p_end_date }}" name="end_date">
+    </div>
+    <button type="submit" class="btn btn-default">QUERY</button>
+  </form>
+</div>
+
+{% include 'yunying/chart.html' %}
+{% include 'yunying/pie_chart.html' %}
+{% endblock %}
+
+{% block scripts %}
+
+{% endblock %}
