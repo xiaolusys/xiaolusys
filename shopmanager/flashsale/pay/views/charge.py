@@ -20,11 +20,12 @@ class PINGPPCallbackView(View):
         logger.info('pingpp callback:%s' % content)
         try:
             # 读取异步通知数据
-            content = json.loads(content)
-        except:
+            message = json.loads(content)
+        except Exception, exc:
+            logger.error('pingpp callback loaddata: %s, %s'%(content, exc), exc_info=True)
             return HttpResponse('no params')
 
-        data = content.get('data')
+        data = message.get('data')
         if not data:
             return HttpResponse('no data')
 
@@ -52,7 +53,8 @@ class PINGPPCallbackView(View):
                 response = 'success'
             else:
                 response = 'fail'
-
+        if response != 'success':
+            logger.error('pingpp callback response fail: %s'% content)
         return HttpResponse(response)
 
     get = post
