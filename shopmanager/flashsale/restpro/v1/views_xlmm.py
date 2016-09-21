@@ -863,7 +863,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         cash_out_type = CashOut.RED_PACKET
         cash_out_time = datetime.datetime.now()
-        cashout = CashOut(xlmm=mama_id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time)
+        cashout = CashOut(xlmm=mama.id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time)
         cashout.save()
                           
         return Response({"code": 0, "info": u'提交成功！'})
