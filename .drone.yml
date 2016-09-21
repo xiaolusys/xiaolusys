@@ -1,5 +1,5 @@
 build:
-  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:547b67eb25d3f9c16cd3cc2b1d4a522ea617d022
+  image: registry.aliyuncs.com/xiaolu-img/xiaolusys-base:6b3f8b8bf402415adefa194674e709f03bab40f3
   environment:
     - TARGET=staging
     - REDIS_AUTH=$$REDIS_AUTH
