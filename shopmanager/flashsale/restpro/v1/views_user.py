@@ -878,25 +878,23 @@ class CustomerViewSet(viewsets.ModelViewSet):
             6 提现不能超过200
            11　已经提现过一次无审核２元
         """
-        content = request.REQUEST
+        content = request.POST
         cashout_amount = content.get('cashout_amount', None)
         channel = content.get('channel', None)
         verify_code = content.get('verify_code', None)
         default_return = collections.defaultdict(code=0, message='', qrcode='')
 
+        
         if not cashout_amount:
             return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
 
         customer = get_object_or_404(Customer, user=request.user)
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
-        if amount > 200 * 100:
-            default_return.update({"code": 6, "message": "提现不能超过200"})
-            return Response(default_return)
 
-        code, message = budget.action_budget_cashout(amount, verify_code=verify_code)
+        code, info = budget.action_budget_cashout(amount, verify_code=verify_code)
         qrcode = ''
-        return Response({'code': code, "message": message, "qrcode": qrcode})
+        return Response({'code': code, "message": info, "info": info, "qrcode": qrcode})
 
     @list_route(methods=['get'])
     def get_wxpub_authinfo(self, request):
