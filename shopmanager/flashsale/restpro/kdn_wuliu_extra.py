@@ -269,12 +269,17 @@ def get_logistics_name(company_code):
     try:
         company_code = int(company_code)
         lc = LogisticsCompany.objects.filter(id=int(company_code)).first()
-        assert lc is not None, "物流公司名不存在"
-        return lc.name
+        if lc is None:
+            return lc
+        else:
+            return lc.name
     except:
         lc = LogisticsCompany.objects.filter(code=company_code).first()
-        assert lc is not None,"提供的物流公司编码有问题 么么哒~~ 物流公司名不存在"
-        return lc.name
+        if lc is None:
+            return lc
+        else:
+            return lc.name
+        # assert lc is not None,"提供的物流公司编码有问题 么么哒~~ 物流公司名不存在"
 
 
 @get_reverse_code                                #获得物流公司的中文名

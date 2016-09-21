@@ -128,18 +128,18 @@ class WuliuViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         packetid = content.get("packetid", None)
         company_code = content.get("company_code", None)
+        if packetid is None:  # 参数缺失
+            return Response({"info":"物流运单号为空了"})
         if not company_code:
-            return Response("物流公司code未获得")
+            return Response({"info":"物流公司code未获得"})
         company_name = exp_map.reverse_map().get(company_code, None)
         if not company_name:
             company_name = kdn_wuliu_extra.get_logistics_name(company_code)
-        if packetid is None:  # 参数缺失
-            return Response([])
         out_sid = packetid
         if company_name:
             logistics_company = company_name
-        assert logistics_company is not None,'物流公司不能为空'
-        assert out_sid is not None, '物流单号不能为空'
+        else:
+            return Response({"info":"尚且还不支持"+company_code+"的物流公司查询"})
         tradewuliu = TradeWuliu.objects.filter(out_sid=out_sid).order_by("-id")
         if tradewuliu.first():
             result = wuliu_choice.result_choice[1](logistics_company,
