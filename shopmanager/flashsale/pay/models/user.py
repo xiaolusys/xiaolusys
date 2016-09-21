@@ -426,8 +426,10 @@ class UserBudget(PayBaseModel):
         用户钱包提现
         cash_out_amount　整型　以分为单位
         """
-        MIN_AMOUNT = 200
-        NO_AUDIT_AMOUNT = 600
+        from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
+        min_cashout_amount = CashOutPolicyView.MIN_CASHOUT_AMOUNT
+        max_cashout_amount = CashOutPolicyView.MAX_CASHOUT_AMOUNT        
+        audit_cashout_amount = CashOutPolicyView.AUDIT_CASHOUT_AMOUNT
 
         mobile = self.user.mobile
         if not (mobile and mobile.isdigit() and len(mobile) == 11):
@@ -438,21 +440,23 @@ class UserBudget(PayBaseModel):
             #return 9, '验证码不对或已过期，请重新发送验证码！'
             return 9, '提现功能休整中，请等待粉丝活动开始！'
         
-        from shopapp.weixin.models import WeixinUnionID
+
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
             return 3, '参数错误'
 
-        if cash_out_amount < MIN_AMOUNT:
-            return 1, '提现金额小于2元'
-        # 如果提现金额大于当前用户钱包的金额 code 2
+        if cash_out_amount < min_cashout_amount:
+            info = u'最小提现额%s元' % int(min_cashout_amount * 0.01)
+            return 1, info
+        elif cash_out_amount > max_cashout_amount:
+            info = u'一次提现不能超过%s元' % int(max_cashout_amount*0.01)
+            return 5, info
         elif cash_out_amount > self.amount:
-            return 2, '提现金额大于账户金额'
-        # 提现操作
+            return 2, '提现金额大于账户余额'
 
-        # 提现前金额
         try:
             if not self.user.unionid:
                 return 5, '提现请先关注公众号［小鹿美美］'
+            from shopapp.weixin.models import WeixinUnionID
             wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
         except WeixinUnionID.DoesNotExist:
             return 4, '提现请先关注公众号［小鹿美美］'  # 用户没有公众号提现账户
@@ -498,7 +502,7 @@ class UserBudget(PayBaseModel):
             return 0, '提交成功，请等待审核!'            
 
         # 通过微信公众号小额提现，直接发红包，无需审核，一天限制2次
-        if cash_out_amount <= NO_AUDIT_AMOUNT and cash_out_amount >= MIN_AMOUNT:
+        if cash_out_amount <= audit_cashout_amount and cash_out_amount >= min_cashout_amount:
             envelop.send_envelop()
                 
         return 0, '提交成功'
@@ -570,7 +574,8 @@ class BudgetLog(PayBaseModel):
 
     @classmethod
     def is_cashout_limited(cls, customer_id):
-        CASHOUT_NUM_LIMIT = 2 #每日最大可提现次数
+        from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
+        CASHOUT_NUM_LIMIT = CashOutPolicyView.DAILY_CASHOUT_TRIES
         budget_date = datetime.date.today()
         cnt = cls.objects.filter(customer_id=customer_id, budget_type=cls.BUDGET_OUT, budget_date=budget_date).exclude(status=cls.CANCELED).count()
         if cnt < CASHOUT_NUM_LIMIT and cnt >= 0:

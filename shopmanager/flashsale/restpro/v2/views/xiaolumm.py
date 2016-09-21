@@ -876,14 +876,14 @@ class CashOutPolicyView(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
+    MIN_CASHOUT_AMOUNT = 200   #分
+    MAX_CASHOUT_AMOUNT = 20000 #元
+    AUDIT_CASHOUT_AMOUNT = 600 #分
+    DAILY_CASHOUT_TRIES = 2    #次
 
     def get(self, request, *args, **kwargs):
-        MIN_CASHOUT_AMOUNT = 2   #元
-        MAX_CASHOUT_AMOUNT = 200 #元
-        AUDIT_CASHOUT_AMOUNT = 6 #元
-        DAILY_CASHOUT_TRIES = 2    #次
-        message = u'最低提现额度%s元，最高提现额度%s元。小额提现不超过%s元无需审核，每日可提%s次。超过%s元提现须经财务审核，一般审核期为工作日内24小时-48小时。' % (MIN_CASHOUT_AMOUNT,MAX_CASHOUT_AMOUNT,AUDIT_CASHOUT_AMOUNT, DAILY_CASHOUT_TRIES, AUDIT_CASHOUT_AMOUNT)
+        message = u'最低提现额度%s元，最高提现额度%s元。快速提现不超过%s元无需审核，每日可提%s次。超过%s元提现须经财务审核，一般审核期为工作日内24小时-48小时。' % (int(self.MIN_CASHOUT_AMOUNT*0.01), int(self.MAX_CASHOUT_AMOUNT*0.01), int(self.AUDIT_CASHOUT_AMOUNT*0.01), self.DAILY_CASHOUT_TRIES, int(self.AUDIT_CASHOUT_AMOUNT*0.01))
 
-        data = {"min_cashout_amount": MIN_CASHOUT_AMOUNT, "max_cashout_amount": MAX_CASHOUT_AMOUNT, "audit_cashout_amount": AUDIT_CASHOUT_AMOUNT, "daily_cashout_tries": DAILY_CASHOUT_TRIES, "message": message}
+        data = {"min_cashout_amount": int(self.MIN_CASHOUT_AMOUNT*0.01), "max_cashout_amount": int(self.MAX_CASHOUT_AMOUNT*0.01), "audit_cashout_amount": int(self.AUDIT_CASHOUT_AMOUNT*0.01), "daily_cashout_tries": self.DAILY_CASHOUT_TRIES, "message": message}
 
         return Response(data)
