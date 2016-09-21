@@ -61,7 +61,7 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
         if params.get('avatar'):
             params['avatar']['url'] = thumbnail
         if params.get('qrcode'):
-            _, params['qrcode']['text'] = gen_mama_custom_qrcode_url(mama_id)
+            params['qrcode']['url'], _ = gen_mama_custom_qrcode_url(mama_id)
         if params.get('text'):
             params['text']['content'] = params['text']['content'].format(**{'nickname': userinfo['nickname']})
         media_stream = generate_colorful_qrcode(params)
@@ -107,7 +107,7 @@ def generate_qrcode(words, picture=None):
 
     path = '/tmp/'
     version, level, qr_name = myqr.run(
-        words,
+        words.encode('utf8'),
         version=10,
         level='H',
         picture=picture,
@@ -222,7 +222,7 @@ def generate_colorful_qrcode(params):
     if qrcode:
         bg_img.paste(qrcode, box=(qrcode_x, qrcode_y, qrcode_x+qrcode_size, qrcode_y+qrcode_size))
 
-    bg_img.show()
+    # bg_img.show()
     result = StringIO.StringIO()
     bg_img.save(result, 'JPEG')
     return StringIO.StringIO(result.getvalue())
