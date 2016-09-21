@@ -822,6 +822,53 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
         return Response(msg)
 
+    @list_route(methods=['post', 'get'])
+    def noaudit_cashout(self, request):
+        """
+        /rest/v1/pmt/cashout/noaudit_cashout
+        amount=1.5 #金额1.5元
+        verify_code=123456 #验证码123456
+        """
+        content = request.POST or request.GET
+
+        amount = content.get('amount', None) # 以元为单位
+        verify_code = content.get('verify_code', None)
+
+        if not (amount and verify_code):
+            info = u'金额或验证码错误!'
+            return Response({"code": 1, "info": info})
+
+        from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
+        min_cashout_amount = CashOutPolicyView.MIN_CASHOUT_AMOUNT
+        audit_cashout_amount = CashOutPolicyView.AUDIT_CASHOUT_AMOUNT
+
+        amount = int(decimal.Decimal(amount) * 100)  # 以分为单位(提现金额乘以100取整)
+        if amount > audit_cashout_amount:
+            info = u'快速提现金额不得超过%d元!' % int(audit_cashout_amount * 0.01)
+            return Response({"code": 2, "info": info})
+
+        if amount < min_cashout_amount:
+            info = u'提现金额不得低于%d元!' % int(min_cashout_amount * 0.01)
+            return Response({"code": 3, "info": info})
+        
+        customer, mama = self.get_customer_and_xlmm(request)
+        if not mama.is_noaudit_cashoutable():
+            info = u'您的帐户不满足快速提现条件!'
+            return Response({"code": 4, "info": info})
+
+        mf = MamaFortune.objects.filter(mama_id=mama.id).first()
+        if mf.cash_num_display() < amount:
+            info = u'提现额不能超过帐户余额！'
+            return Response({"code": 5, "info": info})
+
+        cash_out_type = CashOut.RED_PACKET
+        cash_out_time = datetime.datetime.now()
+        cashout = CashOut(xlmm=mama_id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time)
+        cashout.save()
+                          
+        return Response({"code": 0, "info": u'提交成功！'})
+    
+        
     @list_route(methods=['post'])
     def cashout_to_budget(self, request):
         """ 代理提现到用户余额 """
@@ -844,13 +891,18 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         cashout.save()
         log_action(request.user.id, cashout, ADDITION, '代理提现到余额')
 
+        budget_type = BudgetLog.BUDGET_IN
+        budget_log_type = BudgetLog.BG_MAMA_CASH
+        uni_key = BudgetLog.gen_uni_key(customer.id, budget_type, budget_log_type)
         BudgetLog.objects.create(customer_id=customer.id,
                                  flow_amount=value,
-                                 budget_type=BudgetLog.BUDGET_IN,
+                                 budget_type=budget_type,
                                  referal_id=cashout.id,
-                                 budget_log_type=BudgetLog.BG_MAMA_CASH,
-                                 status=BudgetLog.CONFIRMED)
-        return Response({"code": 0, 'msg': '提交成功'})
+                                 budget_log_type=budget_log_type,
+                                 status=BudgetLog.CONFIRMED,
+                                 uni_key=uni_key)
+        info = '提交成功'
+        return Response({"code": 0, 'msg': info, 'info': info})
 
     def update(self, request, *args, **kwargs):
         raise exceptions.APIException('method not allowed')
