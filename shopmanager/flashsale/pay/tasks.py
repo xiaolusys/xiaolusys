@@ -167,7 +167,6 @@ def confirmTradeChargeTask(sale_trade_id, charge_time=None, charge=None):
 
 
 @task(max_retries=3, default_retry_delay=60)
-@transaction.atomic
 def notifyTradePayTask(notify):
     """ 订单确认支付通知消息，如果订单分阶段支付，则在原单ID后追加:[tid]-[数字] """
     try:
@@ -206,7 +205,6 @@ def notifyTradePayTask(notify):
         confirmTradeChargeTask(strade.id, charge_time=charge_time, charge=tcharge.charge)
 
     except Exception, exc:
-        logger.error('notifyTradePayTask:%s' % exc.message, exc_info=True)
         raise notifyTradePayTask.retry(exc=exc)
 
 
@@ -243,7 +241,6 @@ def notifyTradeRefundTask(notify):
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
     except Exception, exc:
-        logger.error('notifyTradeRefundTask：%s' % exc.message, exc_info=True)
         raise notifyTradeRefundTask.retry(exc=exc)
 
 
@@ -282,7 +279,6 @@ def pushTradeRefundTask(refund_id):
             else:
                 sale_refund.refund_charge_approve()
     except Exception, exc:
-        logger.error('pushTradeRefundTask：%s'%exc.message, exc_info=True)
         raise pushTradeRefundTask.retry(exc=exc)
 
 
