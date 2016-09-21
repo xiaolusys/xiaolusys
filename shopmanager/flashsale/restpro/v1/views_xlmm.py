@@ -818,7 +818,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         # 满足提现请求　创建提现记录
         cash_out_type = CashOut.RED_PACKET
-        uni_key = CashOut.gen_uni_key(mama.id, cash_out_type)
+        uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
         date_field = datetime.date.today()
 
         cashout = CashOut(xlmm=xlmm.id,value=value,cash_out_type=cash_out_type,
@@ -922,7 +922,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         # 创建Cashout
         cash_out_type = CashOut.USER_BUDGET
-        uni_key = CashOut.gen_uni_key(mama.id, cash_out_type)
+        uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
         date_field = datetime.date.today()
 
         cashout = CashOut(xlmm=xlmm.id,
@@ -998,7 +998,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         def exchange_one_coupon():
             cash_out_type = CashOut.EXCHANGE_COUPON
-            uni_key = CashOut.gen_uni_key(mama.id, cash_out_type)
+            uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
             date_field = datetime.date.today()
 
             cash = CashOut(xlmm=xlmm.id,
