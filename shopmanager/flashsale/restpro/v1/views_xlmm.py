@@ -31,6 +31,10 @@ from flashsale.pay.models import SaleTrade
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, PotentialMama, ReferalRelationship
 from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
+from flashsale.pay.models import Envelop
+from shopapp.weixin.models import WeixinUnionID
+
+        
 from shopback.items.models import Product, ProductSku
 from . import serializers
 
@@ -840,6 +844,18 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             info = u'金额或验证码错误!'
             return Response({"code": 1, "info": info})
 
+        customer, mama = self.get_customer_and_xlmm(request)
+        mobile = customer.mobile
+        if not (mobile and mobile.isdigit() and len(mobile) == 11):
+            info = u'提现请先至个人中心绑定手机号，以便接收验证码！'
+            return Response({"code": 8, "info": info}) 
+
+        from flashsale.restpro.v2.views.verifycode_login import validate_code
+        if not validate_code(mobile, verify_code):
+            info = u'快速提现功能内部测试中，请等待粉丝活动开始！'
+            #return 9, '验证码不对或已过期，请重新发送验证码！'
+            return Response({"code": 9, "info": info})
+
         from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
         min_cashout_amount = CashOutPolicyView.MIN_CASHOUT_AMOUNT
         audit_cashout_amount = CashOutPolicyView.AUDIT_CASHOUT_AMOUNT
@@ -853,14 +869,15 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             info = u'提现金额不得低于%d元!' % int(min_cashout_amount * 0.01)
             return Response({"code": 3, "info": info})
         
-        customer, mama = self.get_customer_and_xlmm(request)
+
         if not mama.is_noaudit_cashoutable():
             info = u'您的帐户不满足快速提现条件!'
             return Response({"code": 4, "info": info})
 
         mama_id = mama.id
         mf = MamaFortune.objects.filter(mama_id=mama_id).first()
-        if mf.cash_num_display() * 100 < amount:
+        pre_cash = mf.cash_num_display() * 100
+        if pre_cash < amount:
             info = u'提现额不能超过帐户余额！'
             return Response({"code": 5, "info": info})
 
@@ -876,6 +893,16 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         cashout = CashOut(xlmm=mama_id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time,
                           date_field=date_field, uni_key=uni_key)
         cashout.save()
+
+        wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=mama.openid)
+
+        mama_memo = u"小鹿妈妈编号:{mama_id},提现前:{pre_cash}".format(mama_id=mama_id,pre_cash=pre_cash)
+        body = u'一份耕耘，一份收获，谢谢你的努力！'
+        en = Envelop(referal_id=cashout.id,amount=amount,recipient=wx_union.openid,
+                     platform=Envelop.WXPUB,subject=Envelop.CASHOUT,status=Envelop.WAIT_SEND,
+                     receiver=mama_id, body=body,description=mama_memo)
+        en.save()
+        en.send_envelop()
                           
         return Response({"code": 0, "info": u'提交成功！'})
     
