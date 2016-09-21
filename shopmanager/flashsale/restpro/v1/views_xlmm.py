@@ -31,6 +31,10 @@ from flashsale.pay.models import SaleTrade
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, PotentialMama, ReferalRelationship
 from flashsale.xiaolumm.models.models_fans import XlmmFans, FansNumberRecord
 from flashsale.xiaolumm.models.models_fortune import MamaFortune
+from flashsale.pay.models import Envelop
+from shopapp.weixin.models import WeixinUnionID
+
+        
 from shopback.items.models import Product, ProductSku
 from . import serializers
 
@@ -813,10 +817,12 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(msg)
 
         # 满足提现请求　创建提现记录
-        cashout = CashOut(xlmm=xlmm.id,
-                          value=value,
-                          cash_out_type=CashOut.RED_PACKET,
-                          approve_time=datetime.datetime.now())
+        cash_out_type = CashOut.RED_PACKET
+        uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
+        date_field = datetime.date.today()
+
+        cashout = CashOut(xlmm=xlmm.id,value=value,cash_out_type=cash_out_type,
+                          approve_time=datetime.datetime.now(),date_field=date_field,uni_key=uni_key)
         cashout.save()
 
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
@@ -838,6 +844,18 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             info = u'金额或验证码错误!'
             return Response({"code": 1, "info": info})
 
+        customer, mama = self.get_customer_and_xlmm(request)
+        mobile = customer.mobile
+        if not (mobile and mobile.isdigit() and len(mobile) == 11):
+            info = u'提现请先至个人中心绑定手机号，以便接收验证码！'
+            return Response({"code": 8, "info": info}) 
+
+        from flashsale.restpro.v2.views.verifycode_login import validate_code
+        if not validate_code(mobile, verify_code):
+            info = u'快速提现功能内部测试中，请等待粉丝活动开始！'
+            #return 9, '验证码不对或已过期，请重新发送验证码！'
+            return Response({"code": 9, "info": info})
+
         from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
         min_cashout_amount = CashOutPolicyView.MIN_CASHOUT_AMOUNT
         audit_cashout_amount = CashOutPolicyView.AUDIT_CASHOUT_AMOUNT
@@ -851,20 +869,40 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             info = u'提现金额不得低于%d元!' % int(min_cashout_amount * 0.01)
             return Response({"code": 3, "info": info})
         
-        customer, mama = self.get_customer_and_xlmm(request)
+
         if not mama.is_noaudit_cashoutable():
             info = u'您的帐户不满足快速提现条件!'
             return Response({"code": 4, "info": info})
 
-        mf = MamaFortune.objects.filter(mama_id=mama.id).first()
-        if mf.cash_num_display() * 100 < amount:
+        mama_id = mama.id
+        mf = MamaFortune.objects.filter(mama_id=mama_id).first()
+        pre_cash = mf.cash_num_display() * 100
+        if pre_cash < amount:
             info = u'提现额不能超过帐户余额！'
             return Response({"code": 5, "info": info})
 
+        if CashOut.is_cashout_limited(mama_id):
+            info = u'今日提现次数已达上限，请明天再来哦！'
+            return Response({"code": 6, "info": info})
+        
         cash_out_type = CashOut.RED_PACKET
         cash_out_time = datetime.datetime.now()
-        cashout = CashOut(xlmm=mama.id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time)
+        uni_key = CashOut.gen_uni_key(mama_id, cash_out_type)
+        date_field = datetime.date.today()
+        
+        cashout = CashOut(xlmm=mama_id, value=amount, cash_out_type=cash_out_type, approve_time=cash_out_time,
+                          date_field=date_field, uni_key=uni_key)
         cashout.save()
+
+        wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=mama.openid)
+
+        mama_memo = u"小鹿妈妈编号:{mama_id},提现前:{pre_cash}".format(mama_id=mama_id,pre_cash=pre_cash)
+        body = u'一份耕耘，一份收获，谢谢你的努力！'
+        en = Envelop(referal_id=cashout.id,amount=amount,recipient=wx_union.openid,
+                     platform=Envelop.WXPUB,subject=Envelop.CASHOUT,status=Envelop.WAIT_SEND,
+                     receiver=mama_id, body=body,description=mama_memo)
+        en.save()
+        en.send_envelop()
                           
         return Response({"code": 0, "info": u'提交成功！'})
     
@@ -883,11 +921,17 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(msg)
 
         # 创建Cashout
+        cash_out_type = CashOut.USER_BUDGET
+        uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
+        date_field = datetime.date.today()
+
         cashout = CashOut(xlmm=xlmm.id,
                           value=value,
                           cash_out_type=CashOut.USER_BUDGET,
                           approve_time=datetime.datetime.now(),
-                          status=CashOut.APPROVED)
+                          status=CashOut.APPROVED,
+                          date_field=date_field,
+                          uni_key=uni_key)
         cashout.save()
         log_action(request.user.id, cashout, ADDITION, '代理提现到余额')
 
@@ -953,11 +997,17 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response(default_return)
 
         def exchange_one_coupon():
+            cash_out_type = CashOut.EXCHANGE_COUPON
+            uni_key = CashOut.gen_uni_key(xlmm.id, cash_out_type)
+            date_field = datetime.date.today()
+
             cash = CashOut(xlmm=xlmm.id,
                            value=tpl.value * 100,
-                           cash_out_type=CashOut.EXCHANGE_COUPON,
+                           cash_out_type=cash_out_type,
                            approve_time=datetime.datetime.now(),
-                           status=CashOut.APPROVED)
+                           status=CashOut.APPROVED,
+                           date_field=date_field,
+                           uni_key=uni_key)
             cash.save()
             log_action(request.user, cash, ADDITION, u'用户现金兑换优惠券添加提现记录')
             cou, co, ms = UserCoupon.objects.create_cashout_exchange_coupon(customer.id, tpl.id,
