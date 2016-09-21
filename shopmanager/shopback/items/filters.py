@@ -260,6 +260,25 @@ class ProductVirtualFilter(SimpleListFilter):
                 return queryset.exclude(product__outer_id__startswith='RMB')
 
 
+class ProductWareByFilter(SimpleListFilter):
+    """按是否虚拟商品过滤"""
+    title = u'发货仓'
+    parameter_name = 'ware_by'
+
+    def lookups(self, request, model_admin):
+        condition = (("1", u'上海仓'),
+                     ("2", u'广州仓'),
+                     ("9", u'第三方仓'))
+        return condition
+
+    def queryset(self, request, queryset):
+        status_id = self.value()
+        if not status_id:
+            return queryset
+        else:
+            return queryset.filter(product__ware_by=int(status_id))
+
+
 class ProductStatusFilter(SimpleListFilter):
     """按商品状态过滤"""
     title = u'商品状态'
