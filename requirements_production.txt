@@ -56,6 +56,8 @@ Markdown==2.6.6
 django-oauth-toolkit==0.10.0
 poster==0.8.1
 myqr==2.0.1
+pymongo==3.3.0
+sqlparse==0.1.19
 
 ##################### Debug Requirement #########################
 django_debug_toolbar==1.4
