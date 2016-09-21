@@ -30,7 +30,7 @@ class PINGPPCallbackView(View):
             return HttpResponse('no data')
 
         notify = data['object']
-        response = ''
+        response = 'success'
         # 对异步通知做处理
         if 'object' not in notify:
             response = 'fail'
@@ -42,7 +42,6 @@ class PINGPPCallbackView(View):
                 else:
                     tasks.notifyTradePayTask.delay(notify)
 
-                response = 'success'
             elif notify['object'] == 'refund':
                 # 开发者在此处加入对退款异步通知的处理代码
                 if settings.DEBUG:
@@ -50,7 +49,8 @@ class PINGPPCallbackView(View):
                 else:
                     tasks.notifyTradeRefundTask.delay(notify)
 
-                response = 'success'
+            elif notify['object'] == 'red_envelope':
+                tasks.task_handle_envelope_notify.delay(notify)
             else:
                 response = 'fail'
         if response != 'success':

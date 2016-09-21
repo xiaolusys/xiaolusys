@@ -112,6 +112,17 @@ class SaleProduct(BaseTagModel):
             self._item_products_ = Product.objects.filter(sale_product=self.id, status=Product.NORMAL)
         return self._item_products_
 
+    @property
+    def model_product(self):
+        """ 对应特卖款式 """
+        if not hasattr(self, '_pay_model_product_'):
+            from flashsale.pay.models import ModelProduct
+            try:
+                self._pay_model_product_ = ModelProduct.objects.get(saleproduct_id=self.id)
+            except ModelProduct.DoesNotExist:
+                self._pay_model_product_ = None
+        return self._pay_model_product_
+
     def sale_product_figures(self):
         """ 选品排期数据 """
         if not hasattr(self, '_product_figures_'):
