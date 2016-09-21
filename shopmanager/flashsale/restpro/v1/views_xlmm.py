@@ -857,7 +857,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return Response({"code": 4, "info": info})
 
         mf = MamaFortune.objects.filter(mama_id=mama.id).first()
-        if mf.cash_num_display() < amount:
+        if mf.cash_num_display() * 100 < amount:
             info = u'提现额不能超过帐户余额！'
             return Response({"code": 5, "info": info})
 
