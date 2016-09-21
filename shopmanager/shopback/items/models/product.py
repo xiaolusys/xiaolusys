@@ -746,7 +746,9 @@ class Product(models.Model):
 
         product_skus = kwargs['product_skus_list']
         for sku in product_skus:
-            product_sku = ProductSku()
+            product_sku = product.normal_skus.filter(outer_id=sku['outer_id']).first()
+            if not product_sku:
+                product_sku = ProductSku()
             sku.update({'product': product})
             for sku_k, sku_v in sku.iteritems():
                 if hasattr(product_sku, sku_k) and getattr(product_sku, sku_k) != sku_v:
@@ -780,7 +782,7 @@ class Product(models.Model):
             if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                 pro_count += 1
             outer_id = inner_outer_id + str(pro_count)
-            kwargs = {"name": color.strip(),
+            kwargs = {'name': color.strip(),
                       'pic_path': model_pro.head_img_url,
                       'outer_id': outer_id,
                       'model_id': model_pro.id,
