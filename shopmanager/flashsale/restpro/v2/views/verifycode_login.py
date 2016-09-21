@@ -214,22 +214,22 @@ class RequestCashoutVerifyCode(views.APIView):
         customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
         mobile = customer.mobile
         if not validate_mobile(mobile):
-            return Response({"rcode":1, "msg": "帐户未绑定手机号或手机号错误！"})
+            return Response({"code":1, "info": u"帐户未绑定手机号或手机号错误！"})
 
         reg, created = get_register(mobile)
         if not created:
             # if reg is not just created, we have to check 
             # day limit and resend condition.
             if check_day_limit(reg):
-                return Response({"rcode": 4, "msg": u"当日验证次数超过限制!"})
+                return Response({"code": 4, "info": u"当日验证次数超过限制！"})
             if not should_resend_code(reg):
-                return Response({"rcode": 5, "msg": u"验证码刚发过咯，请等待下哦！"})
+                return Response({"code": 5, "info": u"验证码刚发过咯，请等待下哦！"})
         
         reg.verify_code = reg.genValidCode()
         reg.code_time = datetime.datetime.now()
         reg.save()
         task_register_code.delay(mobile, "4")
-        return Response({"rcode": 0, "msg": u"验证码已发送！"})
+        return Response({"code": 0, "info": u"验证码已发送！"})
 
 
 class VerifyCodeView(views.APIView):    
