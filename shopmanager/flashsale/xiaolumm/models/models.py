@@ -971,7 +971,7 @@ class AgencyLevel(models.Model):
         return (self.basic_rate / 100.0) / 2
 
 
-class CashOut(models.Model):
+class CashOut(BaseModel):
     PENDING = 'pending'
     APPROVED = 'approved'
     REJECTED = 'rejected'
@@ -1003,7 +1003,7 @@ class CashOut(models.Model):
     value = models.IntegerField(default=0, verbose_name=u"金额(分)")
     status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES, default=PENDING, verbose_name=u'状态')
     approve_time = models.DateTimeField(blank=True, null=True, verbose_name=u'审核时间')
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
+    # created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     cash_out_type = models.CharField(max_length=8, choices=TYPE_CHOICES, default=RED_PACKET, verbose_name=u'提现类型')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     uni_key = models.CharField(max_length=128, blank=True, null=True, unique=True, verbose_name=u'唯一ID')
