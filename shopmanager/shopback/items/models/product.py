@@ -695,6 +695,7 @@ class Product(models.Model):
             44: '7',
             8: '8',
             49: '4',
+            10: '1'
         }
         if category_maps.has_key(item_category.parent_cid):
             outer_id = category_maps.get(item_category.parent_cid) + str(item_category.cid) + "%05d" % supplier.id

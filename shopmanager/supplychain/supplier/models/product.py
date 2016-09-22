@@ -145,7 +145,7 @@ class SaleProduct(BaseTagModel):
             self._product_total_figures_ = {'total_pay_num': p_n, 'total_rg_rate': rat, 'total_payment': payment}
         return self._product_total_figures_
 
-    def set_price_info_by_skuextras(self):
+    def set_special_fields_by_skuextras(self):
         """
         根据sku_extras字段　价格信息设置　instance 一些价格信息 agent_price std_sale_price cost
         # agent_price std_sale_price cost
@@ -156,11 +156,17 @@ class SaleProduct(BaseTagModel):
         agent_prices = []
         std_sale_prices = []
         costs = []
+        remain_num = 0
         for sku in self.sku_extras:
             agent_prices.append(sku['agent_price'])
             std_sale_prices .append(sku['std_sale_price'])
             costs.append(sku['cost'])
+            remain_num_str = str(sku['remain_num']).strip()
+            remain_num += int(remain_num_str) if remain_num_str.isdigit() else 0
         update_fields = []
+        if self.remain_num != remain_num:
+            self.remain_num = remain_num
+            update_fields.append('remain_num')
         if self.price != min(agent_prices):
             self.price = min(agent_prices)
             self.on_sale_price = min(agent_prices)

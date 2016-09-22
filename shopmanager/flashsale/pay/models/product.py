@@ -582,9 +582,7 @@ class ModelProduct(BaseTagModel):
 
     def set_lowest_price(self):
         """ 设置款式最低价格 """
-        print self.id, self.products
         prices = self.products.values('agent_price', 'std_purchase_price')
-        print "debug prices :", prices
         agent_prices = [i['agent_price'] for i in prices]
         std_purchase_price = [i['std_purchase_price'] for i in prices]
         lowest_agent_price = sorted(agent_prices, reverse=False)[0]  # 递增

@@ -377,9 +377,9 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-    def set_price(self, serializer):
+    def set_instance_special_fields(self, serializer):
         instance = self.queryset.filter(id=serializer.data.get('id')).first()
-        instance.set_price_info_by_skuextras()
+        instance.set_special_fields_by_skuextras()
 
     def create(self, request, *args, **kwargs):
         request.data.update({
@@ -393,7 +393,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        self.set_price(serializer)
+        self.set_instance_special_fields(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
@@ -402,7 +402,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         serializer = serializers.ModifySaleProductSerializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        self.set_price(serializer)  # 设置价格
+        self.set_instance_special_fields(serializer)  # 设置价格等信息
         model_product = instance.model_product
         if model_product:  # 有款式
             Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
