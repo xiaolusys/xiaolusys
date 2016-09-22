@@ -57,7 +57,7 @@ class MamaMissionRecordViewset(viewsets.ModelViewSet):
         personal_missions = queryset.filter(mission__target=MamaMission.TARGET_PERSONAL)
         group_missions    = queryset.filter(mission__target=MamaMission.TARGET_GROUP)
         staging_awards_list = queryset.filter(status=MamaMissionRecord.STAGING)\
-            .values_list('mission__award_amount', flat=True)
+            .values_list('award_amount', flat=True)
 
         response_data = {
             'staging_award_count': len(staging_awards_list),
