@@ -1414,12 +1414,12 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
             sku_dict[
                 stat.sku_id] = stat.history_quantity + stat.adjust_quantity + stat.inbound_quantity + stat.return_quantity \
                                - stat.rg_quantity - stat.sold_num
-        returns = ReturnGoods.generate(sku_dict, request.user.username,days=5)
+        returns = ReturnGoods.generate(sku_dict, request.user.username,days=0)
         self.message_user(request, '本次对%d个SKU执行了退货, 生成了%d个退货单' % (sku_num, len(returns)))
         return HttpResponseRedirect('/admin/dinghuo/returngoods/?status__exact=0')
 
     gen_return_goods_by_five.allow_tags = True
-    gen_return_goods_by_five.short_description = u'从上架起5天后生成退货单'
+    gen_return_goods_by_five.short_description = u'从上架起0天后生成退货单'
 
 
     def mark_unreturn(self, request, queryset):
