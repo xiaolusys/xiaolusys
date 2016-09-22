@@ -835,12 +835,12 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         amount=1.5 #金额1.5元
         verify_code=123456 #验证码123456
         """
-        customer, mama = self.get_customer_and_xlmm(request)
-        
+        #customer, mama = self.get_customer_and_xlmm(request)
+        mama = XiaoluMama.objects.filter(id=1).first()
         mama_id = mama.id
         cash_out_type = CashOut.RED_PACKET
 
-        count = CashOut(xlmm=mama_id, cash_out_type=cash_out_type).exclude(status=CashOut.REJECTED).exclude(status=CashOut.CANCEL).count()
+        count = CashOut.objects.filter(xlmm=mama_id, cash_out_type=cash_out_type).exclude(status=CashOut.REJECTED).exclude(status=CashOut.CANCEL).count()
         if count > 0:
             return Response({"code": 1, "message": u"由于微信提现请求繁忙，网页提现限首次使用，下载APP登录即可多次提现！"})
 
