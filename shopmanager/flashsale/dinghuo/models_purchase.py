@@ -24,7 +24,7 @@ class PurchaseOrder(BaseModel):
     need_num = models.IntegerField(default=0, verbose_name=u'Need数量')
     # extra_num = models.IntegerField(default=0, verbose_name=u'Extra数量')
     arrival_num = models.IntegerField(default=0, verbose_name=u'Arrival数量')
-    inferior_num = models.IntegerField(default=0, verbose_name=u'次品数量')
+    # inferior_num = models.IntegerField(default=0, verbose_name=u'次品数量')
 
     total_price = models.IntegerField(default=0, verbose_name=u'总价')
 
@@ -45,7 +45,8 @@ class PurchaseOrder(BaseModel):
         pas = PurchaseArrangement.objects.filter(purchase_order_unikey=self.uni_key, status=PurchaseArrangement.EFFECT)
         oids = [p.oid for p in pas]
         pas.update(purchase_order_status=self.status, initial_book=True)
-        PackageSkuItem.objects.filter(oid__in=oids).update(purchase_order_unikey=self.uni_key, assign_status=1, book_time=datetime.datetime.now())
+        PackageSkuItem.objects.filter(oid__in=oids).update(purchase_order_unikey=self.uni_key,
+                                                           assign_status=PackageSkuItem.VIRTUAL_ASSIGNED, book_time=datetime.datetime.now())
 
     @staticmethod
     def gen_purchase_order_unikey(psi):
@@ -82,9 +83,9 @@ class PurchaseDetail(BaseModel):
 
     book_num = models.IntegerField(default=0, verbose_name=u'Book数量')
     need_num = models.IntegerField(default=0, verbose_name=u'Need数量')
-    extra_num = models.IntegerField(default=0, verbose_name=u'Extra数量')
+    # extra_num = models.IntegerField(default=0, verbose_name=u'Extra数量')
     arrival_num = models.IntegerField(default=0, verbose_name=u'Arrival数量')
-    inferior_num = models.IntegerField(default=0, verbose_name=u'次品数量')
+    # inferior_num = models.IntegerField(default=0, verbose_name=u'次品数量')
 
     status = models.IntegerField(choices=PurchaseOrder.STATUS, default=PurchaseOrder.OPEN, db_index=True,
                                  verbose_name=u'状态')
