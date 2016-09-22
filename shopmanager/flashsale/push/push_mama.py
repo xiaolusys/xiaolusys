@@ -26,7 +26,7 @@ def push_msg_to_mama(message):
         if message:
             msg = message
         else:
-            mstpls = PushMsgTpl.objects.filter(id=5, is_valid=True)
+            mstpls = PushMsgTpl.objects.filter(id=6, is_valid=True)
             if mstpls.exists():
                 mstpl = mstpls[0]
                 msg = mstpl.get_emoji_content()

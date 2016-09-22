@@ -145,6 +145,36 @@ class SaleProduct(BaseTagModel):
             self._product_total_figures_ = {'total_pay_num': p_n, 'total_rg_rate': rat, 'total_payment': payment}
         return self._product_total_figures_
 
+    def set_price_info_by_skuextras(self):
+        """
+        根据sku_extras字段　价格信息设置　instance 一些价格信息 agent_price std_sale_price cost
+        # agent_price std_sale_price cost
+        # 计算最小值
+        """
+        if not (isinstance(self.sku_extras, list) and self.sku_extras):
+            return
+        agent_prices = []
+        std_sale_prices = []
+        costs = []
+        for sku in self.sku_extras:
+            agent_prices.append(sku['agent_price'])
+            std_sale_prices .append(sku['std_sale_price'])
+            costs.append(sku['cost'])
+        update_fields = []
+        if self.price != min(agent_prices):
+            self.price = min(agent_prices)
+            self.on_sale_price = min(agent_prices)
+            update_fields.extend(['price', 'on_sale_price'])
+        if self.std_sale_price != min(std_sale_prices):
+            self.std_sale_price = min(std_sale_prices)
+            update_fields.append('std_sale_price')
+        if self.sale_price != min(costs):
+            self.sale_price = min(costs)
+            update_fields.append('sale_price')
+        if update_fields:
+            self.save(update_fields=update_fields)
+        return
+
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
     try:
@@ -160,38 +190,6 @@ def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
 
 pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct,
                  dispatch_uid=u'pre_save_change_saleprodut_by_pre_save')
-
-
-def set_sale_product_info_by_sku_extras(sender, instance, *args, **kwargs):
-    """
-    根据sku的价格信息设置instance 一些价格信息 agent_price std_sale_price cost
-    """
-    if not instance.sku_extras:
-        return
-    if not isinstance(instance.sku_extras, list):
-        return
-    # agent_price std_sale_price cost
-    if not instance.sku_extras:
-        return
-    agent_prices = []
-    std_sale_prices = []
-    costs = []
-    for sku in instance.sku_extras:
-        agent_prices.append(sku['agent_price'])
-        std_sale_prices .append(sku['std_sale_price'])
-        costs.append(sku['cost'])
-    # 计算最小值
-    agent_price = min(agent_prices)
-    std_sale_price = min(std_sale_prices)
-    cost = min(costs)
-    # 更新对应价格信息
-    SaleProduct.objects.filter(id=instance.id).update(price=agent_price,
-                                                      sale_price=cost,  # 采购价
-                                                      on_sale_price=agent_price,  # 售价
-                                                      std_sale_price=std_sale_price)  # 吊牌价
-
-post_save.connect(set_sale_product_info_by_sku_extras, sender=SaleProduct,
-                  dispatch_uid=u'post_save_set_sale_product_info_by_sku_extras')
 
 
 class HotProduct(models.Model):

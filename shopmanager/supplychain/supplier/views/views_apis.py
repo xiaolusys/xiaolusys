@@ -323,7 +323,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         * args:
             1. `fetch_url`: 抓取的网址链接(urlquote)例如: 'https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fspm%3Da310p.7395725.1998460392.1.IxL35J%26id%3D531297154104'
     """
-    queryset = SaleProduct.objects.all()
+    queryset = SaleProduct.objects.all().order_by('-created')
     serializer_class = serializers.SimpleSaleProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, permissions.DjangoModelPermissions)
@@ -377,6 +377,10 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
+    def set_price(self, serializer):
+        instance = self.queryset.filter(id=serializer.data.get('id')).first()
+        instance.set_price_info_by_skuextras()
+
     def create(self, request, *args, **kwargs):
         request.data.update({
             'outer_id': 'OO%d' % time.time(),
@@ -386,6 +390,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
+        self.set_price(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
@@ -394,6 +399,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         serializer = serializers.ModifySaleProductSerializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        self.set_price(serializer)  # 设置价格
         model_product = instance.model_product
         if model_product:  # 有款式
             Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
