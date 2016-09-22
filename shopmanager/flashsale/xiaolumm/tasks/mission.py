@@ -75,7 +75,7 @@ def func_push_award_mission_to_mama(xiaolumama, mission, year_week):
     mama_mission.save()
 
     # TODO@meron 消息通知妈妈新任务产生
-    task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
+    # task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
 
 
 
@@ -198,7 +198,6 @@ def task_update_all_mama_mission_state():
     xiaolumama_ids = xiaolumms.values_list('id', flat=True)
     for mama_id in xiaolumama_ids:
        task_create_or_update_mama_mission_state.delay(mama_id)
-
 
 
 @task
