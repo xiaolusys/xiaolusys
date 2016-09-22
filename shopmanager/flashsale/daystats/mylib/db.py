@@ -26,7 +26,7 @@ def execute_sql(cursor, sql, params=None):
 
 
 def get_cursor():
-    cursor = connections['product'].cursor()
+    cursor = connections['default'].cursor()
     return cursor
 
 
