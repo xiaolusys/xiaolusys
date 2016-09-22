@@ -1993,7 +1993,7 @@ class PackageSkuItem(BaseModel):
                                                              logistics_company_name=logistics_company.name,
                                                              logistics_company_code=logistics_company.code,
                                                              finish_time=datetime.datetime.now())
-            ProductSkuStats.objects.update(post_num=F('post_num') + self.num)
+            ProductSkuStats.objects.filter(sku_id=self.sku_id).update(post_num=F('post_num') + self.num)
 
     def gen_package(self):
         sale_trade = self.sale_trade
