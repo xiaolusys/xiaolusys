@@ -33,6 +33,9 @@ gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
 # 添加xiaolusys对应的drone Public Key 到本地ssh authorizen_keys
 # 修改.drone.yml 添加当前主机host
 
+#　释放server disk cache: http://www.linuxatemyram.com/
+sync && echo 3 | sudo tee /proc/sys/vm/drop_caches
+
 #################### 服务器确认启动之后添加 ####################
 # 配置 nginx site.conf 添加当前域名 repo:ssh://git@git.xiaolumm.com:10022/xiaolumm/nginx.git
 # 配置监控 xiaolusys oneapm-ci-agent repo:ssh://git@git.xiaolumm.com:10022/xiaolumm/xiaolusys-oneapm.git
