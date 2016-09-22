@@ -2047,10 +2047,6 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         if PackageSkuItem.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey,
                                          assign_status=0).exists():
             raise exceptions.ValidationError(make_response(u'此订货单下存在未分配的包裹'))
-        from shopback.trades.tasks import task_update_package_order
-        for p in PackageSkuItem.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey,
-                                         assign_status__in=[1,3,4], package_order_pid=None):
-            task_update_package_order(p)
         items = [columns]
         export_condition = {
             'id__in': need_send_ids
