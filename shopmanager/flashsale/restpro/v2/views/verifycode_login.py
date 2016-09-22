@@ -39,6 +39,7 @@ def check_day_limit(reg):
                 return True
         else:
             reg.verify_count = 0
+            reg.submit_count = 0
             reg.save()
     return False
 
@@ -77,8 +78,10 @@ def validate_code(mobile, verify_code):
     
 
     if reg.code_time > earliest_send_time and reg.verify_code == verify_code:
+        reg.verify_count = 0
         reg.submit_count = 0
-        reg.save(update_fields=['submit_count', 'modified'])
+        reg.verify_code = ''
+        reg.save(update_fields=['submit_count', 'verify_count', 'verify_code', 'modified'])
         return True
 
     reg.submit_count += 1     #提交次数加一    
@@ -140,7 +143,7 @@ def should_resend_code(reg):
 
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=RESEND_TIME_LIMIT)
-    if reg.code_time and reg.code_time > earliest_send_time:
+    if reg.code and reg.code_time and reg.code_time > earliest_send_time:
         return False
     return True
 
