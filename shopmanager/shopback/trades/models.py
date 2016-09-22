@@ -1995,6 +1995,24 @@ class PackageSkuItem(BaseModel):
                                                              finish_time=datetime.datetime.now())
             ProductSkuStats.objects.update(post_num=F('post_num') + self.num)
 
+    def gen_package(self):
+        sale_trade = self.sale_trade
+        if not (sale_trade.buyer_id and sale_trade.user_address_id and self.product_sku.ware_by):
+            raise Exception('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
+        package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
+                                                           self.product_sku.ware_by)
+        package_order = PackageOrder.objects.filter(id=package_order_id).first()
+        if not package_order:
+            PackageOrder.create(package_order_id, sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS, self)
+        else:
+            PackageSkuItem.objects.filter(id=self.id).update(package_order_id=package_order_id,
+                                                                 package_order_pid=package_order.pid)
+            package_order.set_redo_sign(save_data=False)
+            package_order.reset_package_address()
+            package_order.reset_sku_item_num()
+            package_order.save()
+
+
     def get_purchase_uni_key(self):
         """为了和历史上的purchase_record unikey保持一致"""
         return self.oid + '-1'
