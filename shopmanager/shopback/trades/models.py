@@ -2,8 +2,8 @@
 import time
 import json
 import datetime
-from django.db import models
-from django.db.models import Q, Sum
+from django.db import models, transaction
+from django.db.models import Q, Sum, F
 from django.db.models.signals import post_save
 from bitfield import BitField
 
@@ -1411,7 +1411,7 @@ class PackageOrder(models.Model):
     def finish_scan_weight(self):
         from flashsale.pay.models import SaleOrder
         self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
-        self.weight_time=datetime.datetime.now()
+        self.weight_time = datetime.datetime.now()
         self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
         self.save()
         package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
@@ -1432,6 +1432,26 @@ class PackageOrder(models.Model):
             psku.update_wait_post_num(sku_item.num, dec_update=True)
         from shopback.trades.tasks import task_packageorder_send_check_packageorder
         task_packageorder_send_check_packageorder.delay()
+
+    def finish_third_package(self, out_sid, logistics_company):
+        self.out_sid = out_sid
+        self.logistics_company_id = logistics_company.id
+        self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
+        self.weight_time = datetime.datetime.now()
+        self.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
+        self.save()
+        # 为了承接过去的package_sku_item的数据, assign_status__in还要考虑 PackageSkuItem.ASSIGNED的情况
+        package_sku_items = PackageSkuItem.objects.filter(package_order_id=self.id,
+                                          assign_status__in=[PackageSkuItem.ASSIGNED, PackageSkuItem.VIRTUAL_ASSIGNED])
+        for sku_item in package_sku_items:
+            sku_item.finish_third_send(self.out_sid, self.logistics_company)
+            sale_order = sku_item.sale_order
+            sale_order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+            sale_order.consign_time = datetime.datetime.now()
+            sale_order.save()
+            psku = ProductSku.objects.get(id=sku_item.sku_id)
+            psku.update_quantity(sku_item.num, dec_update=True)
+            psku.update_wait_post_num(sku_item.num, dec_update=True)
 
     def is_ready_completion(self):
         if self.sku_num == self.order_sku_num:
@@ -1792,6 +1812,7 @@ class PackageSkuItem(BaseModel):
     ASSIGNED = 1
     FINISHED = 2
     CANCELED = 3
+    VIRTUAL_ASSIGNED = 4
     ASSIGN_STATUS = (
         (NOT_ASSIGNED, u'未备货'),
         (ASSIGNED, u'已备货'),
@@ -1867,6 +1888,13 @@ class PackageSkuItem(BaseModel):
         return self._sale_trade_
 
     @property
+    def order_list(self):
+        from flashsale.dinghuo.models import OrderList
+        if not hasattr(self, '_order_list_'):
+            self._order_list_ = OrderList.objects.filter(purchase_order_unikey=self.purchase_order_unikey).first()
+        return self._order_list_
+
+    @property
     def product_sku(self):
         if not hasattr(self, '_product_sku_'):
             self._product_sku_ = ProductSku.objects.get(id=self.sku_id)
@@ -1917,7 +1945,10 @@ class PackageSkuItem(BaseModel):
             return '已取消'
         if self.assign_status == PackageSkuItem.NOT_ASSIGNED:
             if self.purchase_order_unikey:
-                return '订单已送达外贸厂订货'
+                return '订单已送达工厂订货'
+        if self.assign_status == PackageSkuItem.NOT_ASSIGNED:
+            if self.purchase_order_unikey:
+                return '订单已送达工厂订货'
         return '订单已确认'
 
     @property
@@ -1932,8 +1963,10 @@ class PackageSkuItem(BaseModel):
 
     @property
     def note(self):
+        if self.assign_status == PackageSkuItem.VIRTUAL_ASSIGNED and self.purchase_order_unikey:
+            return '亲，订单信息已送达厂家，厂家正发货，暂时不可取消。若要退款，请收货后选择七天无理由退货。客服电话400-823-5355。'
         if self.assign_status == PackageSkuItem.NOT_ASSIGNED and self.purchase_order_unikey:
-            return '亲，订单信息已送达外贸厂，厂家正发货，暂时不可取消。若要退款，请收货后选择七天无理由退货。客服电话400-823-5355。'
+            return '亲，订单信息已送达厂家，厂家正发货，暂时不可取消。若要退款，请收货后选择七天无理由退货。客服电话400-823-5355。'
         if self.assign_status == PackageSkuItem.FINISHED or self.assign_status == PackageSkuItem.CANCELED:
             return '亲，申请退货后请注意退货流程，记得填写快递单号哦～'
         return ''
@@ -1947,6 +1980,20 @@ class PackageSkuItem(BaseModel):
                                                                                    PackageSkuItem.FINISHED]).count()
         payed_counts -= unuse_cnt
         return payed_counts
+
+    @transaction.atomic
+    def finish_third_send(self, out_sid, logistics_company):
+        """
+            执行完此方法后应该执行OrderList的set_by_package_sku_item方法。以确保订货数准确。
+        """
+        from shopback.items.models import ProductSkuStats
+        if self.assign_status in [PackageSkuItem.VIRTUAL_ASSIGNED, PackageSkuItem.ASSIGNED]:
+            PackageSkuItem.objects.filter(id=self.id).update(assign_status=PackageSkuItem.FINISHED,
+                                                             out_sid=out_sid,
+                                                             logistics_company_name=logistics_company.name,
+                                                             logistics_company_code=logistics_company.code,
+                                                             finish_time=datetime.datetime.now())
+            ProductSkuStats.objects.update(post_num=F('post_num') + self.num)
 
     def get_purchase_uni_key(self):
         """为了和历史上的purchase_record unikey保持一致"""

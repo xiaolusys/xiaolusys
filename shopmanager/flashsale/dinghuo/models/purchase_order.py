@@ -289,6 +289,11 @@ class OrderList(models.Model):
                                  self.last_pay_date and self.last_pay_date.strftime('%Y-%m-%d') or '------------',
                                  self.buyer_name)
 
+    def add_note(self, msg):
+        now = datetime.datetime.now()
+        self.note += '\n-->%s: %s' % (now.strftime('%m月%d %H:%M'), msg)
+        self.save()
+
     @property
     def normal_details(self):
         return self.order_list.all()
@@ -351,10 +356,10 @@ class OrderList(models.Model):
         self.is_postpay = True
         self.purchase_order.book()
         self.set_stage_state()
-        for od in self.order_list.all():
-            od.arrival_quantity = od.buy_quantity
-            od.arrival_time = datetime.datetime.now()
-            od.save()
+        # for od in self.order_list.all():
+        #     od.arrival_quantity = od.buy_quantity
+        #     od.arrival_time = datetime.datetime.now()
+        #     od.save()
 
     def get_related_inbounds_out_stock_cnt(self):
         return sum([d.out_stock_num for d in self.related_out_stock_inbound_details])
@@ -525,6 +530,24 @@ class OrderList(models.Model):
         extra_ods = self.order_list.filter(buy_quantity__gt=0).exclude(chichu_id__in=[str(k) for k in sku_nums])
         err_skus.extend([int(od.chichu_id) for od in extra_ods])
         return err_skus
+
+    def set_by_package_sku_item(self):
+        from shopback.trades.models import PackageSkuItem
+        psis = PackageSkuItem.objects.filter(purchase_order_unikey=self.purchase_order_unikey)
+        sku_nums = {i['sku_id']: i['total'] for i in psis.values('sku_id').annotate(total=Sum('num'))}
+        for sku_id in sku_nums:
+            od = self.order_list.filter(chichu_id=str(sku_id)).first()
+            od.arrival_quantity = sku_nums.get(sku_id, 0)
+            od.save()
+
+    def reduce_sku_num(self, sku_id, num=1):
+        od = self.order_list.filter(chichu_id=str(sku_id)).first()
+        if num <= od.arrival_quantity:
+            od.arrival_quantity = od.arrival_quantity - num
+            od.save()
+            self.add_note(u'SKU' + (sku_id) + u'缺了' + num + u'个，已将其扣除')
+        else:
+            raise Exception(u'调整数不可能大于已入库数')
 
     @classmethod
     def gen_group_key(cls, orderids):
