@@ -19,6 +19,8 @@ import requests
 import datetime
 from exp_map import exp_map,reverse_map
 from shopback.logistics.models import LogisticsCompany
+from flashsale.pay.models import SaleTrade,SaleOrder
+from shopback.trades.models import PackageSkuItem
 import logging
 
 logger = logging.getLogger(__name__)
@@ -193,6 +195,12 @@ def add_DataSign(f):
         return f(*args,**kwargs)
     return wrapper
 
+def comfirm_get(out_sid,status):
+    packageskuitem = PackageSkuItem.objects.filter(out_sid = out_sid).values("oid")
+    if packageskuitem and status == 4:
+        packageskuitem = [i['oid'] for i in packageskuitem]
+        SaleOrder.objects.filter(oid__in = packageskuitem).update(status=SaleOrder.TRADE_BUYER_SIGNED)
+
 def write_traces(kwargs):
     kwargs = json.loads(kwargs)
     write_info = {
@@ -207,8 +215,11 @@ def write_traces(kwargs):
     logger.warn("准备写入数据库了")
     if tradewuliu.first() is None:
         TradeWuliu.objects.create(**write_info)
+        comfirm_get(write_info["out_sid"],write_info["status"])
+
     elif write_info["content"] != tradewuliu.first().content:
         tradewuliu.update(**write_info)
+        comfirm_get(write_info["out_sid"], write_info["status"])
 
 def format_content(**kwargs):
     content = kwargs["content"]
