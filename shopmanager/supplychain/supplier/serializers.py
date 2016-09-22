@@ -297,11 +297,6 @@ class ModifySaleProductSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(u"选品标题不能为空!")
         return value
 
-    # def validate_product_link(self, value):
-    #     if value and str(value).strip() and self.Meta.model.objects.filter(product_link=value):
-    #         raise serializers.ValidationError(u'该款已经录入了!')
-    #     return value
-
 
 class SimpleSaleProductManageSerializer(serializers.ModelSerializer):
     # category = SaleCategorySerializer()

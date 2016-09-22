@@ -386,6 +386,9 @@ class SaleProductViewSet(viewsets.ModelViewSet):
             'outer_id': 'OO%d' % time.time(),
             'contactor': request.user.id
         })
+        product_link = request.data.get('product_link')
+        if product_link and str(product_link).strip() and self.queryset.filter(product_link=product_link).exists():
+            raise exceptions.APIException(u'该款已经录入了!')
         serializer = serializers.ModifySaleProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
