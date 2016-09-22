@@ -829,6 +829,25 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         return Response(msg)
 
     @list_route(methods=['post', 'get'])
+    def cashout_once(self, request):
+        """
+        /rest/v1/pmt/cashout/cashout_once
+        amount=1.5 #金额1.5元
+        verify_code=123456 #验证码123456
+        """
+        customer, mama = self.get_customer_and_xlmm(request)
+        
+        mama_id = mama.id
+        cash_out_type = CashOut.RED_PACKET
+
+        count = CashOut(xlmm=mama_id, cash_out_type=cash_out_type).exclude(status=CashOut.REJECTED).exclude(status=CashOut.CANCEL).count()
+        if count > 0:
+            return Response({"code": 1, "message": u"由于微信提现请求繁忙，网页提现限首次使用，下载APP登录即可多次提现！"})
+
+        return self.no_audit_cashout(request)
+        
+                
+    @list_route(methods=['post', 'get'])
     def noaudit_cashout(self, request):
         """
         /rest/v1/pmt/cashout/noaudit_cashout
