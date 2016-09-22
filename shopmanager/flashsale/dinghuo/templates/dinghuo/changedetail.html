@@ -218,7 +218,7 @@ function initActions(){
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(data),
-                url: '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/import_package',
+                url: '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/import_package',
                 success: function(response){
                     if(response.code == 0){
                         alert('全部导入成功');
@@ -258,7 +258,7 @@ function initActions(){
         }
 
         function set_status_receive(orderlist_id) {
-            var url = '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/set_stage_receive';
+            var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/set_stage_receive';
             $.ajax({url: url,
                 type: "post",
                 dateType: "json",
@@ -270,7 +270,7 @@ function initActions(){
         }
 
         function set_status_complete(orderlist_id) {
-            var url = '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/set_stage_complete';
+            var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/set_stage_complete';
             $.ajax({url: url,
                 type: "post",
                 dateType: "json",
@@ -281,7 +281,7 @@ function initActions(){
             });
         }
         function set_status_delete(orderlist_id) {
-            var url = '/sale/dinghuo/dinghuo_orderlist/'+ orderlist_id +'/set_stage_delete';
+            var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/set_stage_delete';
             $.ajax({url: url,
                 type: "post",
                 dateType: "json",
