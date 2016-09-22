@@ -838,7 +838,10 @@ class SaleOrder(PayBaseModel):
         return self.get_refundable()
 
     def need_send(self):
-        return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status in [0, 1, 2]
+        if self.is_teambuy():
+            return self.teambuy_can_send()
+        else:
+            return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status in [0, 1, 2]
 
     def is_teambuy(self):
         return self.sale_trade.order_type == SaleTrade.TEAMBUY_ORDER
