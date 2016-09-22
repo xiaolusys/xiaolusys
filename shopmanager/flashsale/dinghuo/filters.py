@@ -233,3 +233,35 @@ class BuyerNameFilter(SimpleListFilter):
             return queryset
         buyer_id = int(self.value())
         return queryset.filter(buyer_id=buyer_id)
+
+class CreaterFilter(SimpleListFilter):
+    title = u'负责人'
+    parameter_name = 'buyer_id'
+
+    def lookups(self, request, model_admin):
+        buyer_role = Group.objects.get(name=u"小鹿订货员")
+        options = []
+        for user in buyer_role.user_set.all():
+            name = '%s%s' % (user.last_name, user.first_name) or user.username
+            options.append((user.id, name))
+        options.append((0, u'空缺'))
+        return options
+        # buyer_ids = []
+        #
+        # for row in OrderList.objects.only('buyer').values('buyer').annotate(Count('id')):
+        #     if not row.get('buyer'):
+        #         continue
+        #     buyer_ids.append(row['buyer'])
+        # options = []
+        #
+        # for user in User.objects.filter(id__in=buyer_ids).order_by('id'):
+        #     name = '%s%s' % (user.last_name, user.first_name) or user.username
+        #     options.append((user.id, name))
+        # options.append((0, '空缺'))
+        # return options
+
+    def queryset(self, request, queryset):
+        if self.value() == None:
+            return queryset
+        buyer_id = int(self.value())
+        return queryset.filter(creater=buyer_id)
