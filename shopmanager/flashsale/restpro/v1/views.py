@@ -250,8 +250,11 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             if referal_trade_id:
                 strade = SaleTrade.objects.filter(id=referal_trade_id, status=SaleTrade.WAIT_SELLER_SEND_GOODS).first()
                 if strade:
-                    user_address_change = UserAddressChange.add(strade, new_address)
-                    user_address_change.excute()
+                    if strade.can_change_address():
+                        user_address_change = UserAddressChange.add(strade, new_address)
+                        user_address_change.excute()
+                    else:
+                        return Response({'ret': False, 'code': 3, 'info': '更新失败', "msg": '包裹已安排厂家发货无法更换地址'})
                 else:
                     logger.error(u'包裹已经发送', exc_info=True)
                     return Response({'ret': False, 'code': 3, 'info': '更新失败', "msg": '包裹已经发送'})

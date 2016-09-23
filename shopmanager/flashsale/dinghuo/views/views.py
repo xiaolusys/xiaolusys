@@ -2037,10 +2037,10 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
     @detail_route(methods=['get'])
     def export_package(self, request, pk):
         orderlist = get_object_or_404(OrderList, pk=pk)
-        columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'买家昵称', u'商品名称', u'产品规格', u'商品单价', u'商品数量',
+        columns = [u'订单号', u'产品条码', u'订单状态', u'买家id', u'子订单编号', u'供应商编码', u'买家昵称', u'商品名称', u'产品规格', u'商品单价', u'商品数量',
                    u'商品总价', u'运费', u'购买优惠信息', u'总金额', u'买家购买附言', u'收货人姓名', u'收货地址', u'邮编',
                    u'收货人手机', u'收货人电话', u'买家选择运送方式', u'卖家备忘内容', u'订单创建时间', u'付款时间', u'物流公司', u'物流单号', u'发货附言',
-                   u'发票抬头', u'电子邮件']
+                   u'发票抬头', u'电子邮件', u'商品链接']
 
         need_send = PackageSkuItem.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey)
         need_send_ids = [n.id for n in need_send]

@@ -24,7 +24,7 @@ from core.utils.modelutils import update_model_fields
 from .address import UserAddress
 from .refund import SaleRefund
 from .user import Customer, UserBudget
-from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
+from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES, WARE_THIRD
 import logging
 logger = logging.getLogger(__name__)
 
@@ -257,6 +257,17 @@ class SaleTrade(BaseModel):
 
     def can_refund(self):
         return self.order_type == 0 and self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]
+
+    def can_change_address(self):
+        """
+            如果包含第三方发货的包裹，一订货就不容许退货
+        """
+        if self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]:
+            for so in self.sale_orders:
+                if so.product.ware_by == WARE_THIRD and so.package_sku_item.purchase_order_unikey:
+                    return False
+            return True
+        return False
 
     def get_cash_payment(self):
         """ 实际需支付现金 """
@@ -838,7 +849,10 @@ class SaleOrder(PayBaseModel):
         return self.get_refundable()
 
     def need_send(self):
-        return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status in [0, 1, 2]
+        if self.is_teambuy():
+            return self.teambuy_can_send()
+        else:
+            return self.status == SaleOrder.WAIT_SELLER_SEND_GOODS and self.refund_status in [0, 1, 2]
 
     def is_teambuy(self):
         return self.sale_trade.order_type == SaleTrade.TEAMBUY_ORDER
@@ -1053,9 +1067,10 @@ class SaleOrder(PayBaseModel):
             self._package_sku_ = PackageSkuItem.objects.filter(sale_order_id=self.id).first()
         return self._package_sku_
 
+    product_sku = package_sku
+
     @property
     def product(self):
-
         if not hasattr(self, '_package_sku_'):
             from shopback.trades.models import PackageSkuItem
             self._package_sku_ = PackageSkuItem.objects.filter(sale_order_id=self.id).first()
