@@ -384,7 +384,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         request.data.update({
             'outer_id': 'OO%d' % time.time(),
-            'contactor': request.user.id
+            'contactor': request.user.id,
+            'status': SaleProduct.PASSED
         })
         product_link = request.data.get('product_link')
         if product_link and str(product_link).strip() and self.queryset.filter(product_link=product_link).exists():
