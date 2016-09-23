@@ -843,7 +843,8 @@ class SaleTradeDetailSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                   'post_fee', 'total_fee', 'discount_fee', 'status', 'status_display',
                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
-                  'logistics_company', 'user_adress', 'package_orders', 'extras', 'order_type', 'can_refund')
+                  'logistics_company', 'user_adress', 'package_orders', 'extras', 'order_type', 'can_refund',
+                  'can_change_address')
 
     def gen_sale_orders(self, obj):
         order_data_list = SaleOrderSerializer(obj.sale_orders, many=True).data
