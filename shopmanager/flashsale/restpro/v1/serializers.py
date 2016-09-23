@@ -900,7 +900,7 @@ class BudgetLogSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = BudgetLog
-        fields = ('desc', 'budget_type', 'budget_log_type', 'budget_date', 'get_status_display', 'status', 'budeget_detail_cash')
+        fields = ('desc', 'budget_type', 'budget_log_type', 'budget_date', 'get_status_display', 'status', 'budeget_detail_cash', 'modified')
 
 
 class XlmmFansCustomerInfoSerialize(serializers.ModelSerializer):

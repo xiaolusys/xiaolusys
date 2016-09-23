@@ -35,7 +35,7 @@ def check_day_limit(reg):
         date1 = datetime.datetime.now().date()
         date2 = reg.code_time.date()
         if date1 == date2:
-            if reg.verify_count > MAX_DAY_LIMIT:
+            if reg.verify_count > MAX_DAY_LIMIT or reg.submit_count > MAX_DAY_LIMIT:
                 return True
         else:
             # everyday we restore verify_count/submit_count
@@ -143,7 +143,7 @@ def should_resend_code(reg):
 
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=RESEND_TIME_LIMIT)
-    if reg.code and reg.code_time and reg.code_time > earliest_send_time:
+    if reg.verify_code and reg.code_time and reg.code_time > earliest_send_time:
         return False
     return True
 
