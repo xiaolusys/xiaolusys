@@ -199,7 +199,7 @@ class SendCodeView(views.APIView):
         reg.code_time = datetime.datetime.now()
         reg.save()
         task_register_code.delay(mobile, "3")
-        return Response({"rcode": 0, "msg": u"验证码已发送！"})
+        return Response({"rcode": 0, "code": 0, "msg": u"验证码已发送！", "info": u"验证码已发送！"})
 
 
 class RequestCashoutVerifyCode(views.APIView):

@@ -67,6 +67,14 @@ from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample,
 from flashsale.apprelease.models import AppRelease
 from flashsale.restpro import constants
 
+class MamaFortuneBriefSerializer(serializers.ModelSerializer):
+    cash_value = serializers.FloatField(source='cash_num_display', read_only=True)
+    carry_value = serializers.FloatField(source='cash_total_display', read_only=True)
+    class Meta:
+        model = MamaFortune
+        fields = ('mama_id', 'cash_value', 'carry_value')
+        
+        
 class MamaFortuneSerializer(serializers.ModelSerializer):
     cash_value = serializers.FloatField(source='cash_num_display', read_only=True)
     carry_value = serializers.FloatField(source='cash_total_display', read_only=True)

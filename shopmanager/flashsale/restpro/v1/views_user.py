@@ -884,11 +884,14 @@ class CustomerViewSet(viewsets.ModelViewSet):
         verify_code = content.get('verify_code', None)
         default_return = collections.defaultdict(code=0, message='', qrcode='')
 
-        
         if not cashout_amount:
             return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
 
         customer = get_object_or_404(Customer, user=request.user)
+        if not customer.status == Customer.NORMAL:
+            info = u'你的帐号已被冻结，请联系管理员！'
+            return Response({"code": 10, "info": info}) 
+
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
 
