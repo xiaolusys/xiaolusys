@@ -1240,7 +1240,7 @@ def create_stock_not_assign_check_log(time_from, uni_key):
     for p in PackageOrder.objects.filter(
             sys_status__in=[PackageOrder.WAIT_PREPARE_SEND_STATUS, PackageOrder.WAIT_CHECK_BARCODE_STATUS,
                             PackageOrder.WAIT_SCAN_WEIGHT_STATUS]):
-        if p.package_sku_items.filter(assign_status=PackageSkuItem.ASSIGNED).count() == 0:
+        if p.package_sku_items.filter(assign_status__in=[PackageSkuItem.ASSIGNED,PackageSkuItem.VIRTUAL_ASSIGNED]).count() == 0:
             empty_package_count += 1
     # actual_num = ProductSkuStats.objects.filter(assign_num__gt=0,
     #                                             post_num__lt=F('history_quantity') + F('inbound_quantity') + F(
