@@ -154,8 +154,11 @@ class MamaMission(BaseModel):
             return self.target_value * 10, self.award_amount
 
         if self.cat_type == MamaMission.CAT_REFER_MAMA:
-            last_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=xiaolumama.id,
-                                                                  status=ReferalRelationship.VALID).count()
+            last_referal_num = ReferalRelationship.objects.filter(
+                referal_from_mama_id=xiaolumama.id,
+                status=ReferalRelationship.VALID,
+                referal_type__in=(XiaoluMama.HALF, XiaoluMama.FULL)
+            ).count()
             return self.target_value, utils.get_award_carry_num(last_referal_num, XiaoluMama.FULL)
 
         return self.target_value, self.award_amount
