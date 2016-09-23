@@ -117,10 +117,8 @@ class SaleProduct(BaseTagModel):
         """ 对应特卖款式 """
         if not hasattr(self, '_pay_model_product_'):
             from flashsale.pay.models import ModelProduct
-            try:
-                self._pay_model_product_ = ModelProduct.objects.get(saleproduct_id=self.id)
-            except ModelProduct.DoesNotExist:
-                self._pay_model_product_ = None
+            self._pay_model_product_ = ModelProduct.objects.filter(saleproduct_id=self.id,
+                                                                   status=ModelProduct.NORMAL).first()
         return self._pay_model_product_
 
     def sale_product_figures(self):
