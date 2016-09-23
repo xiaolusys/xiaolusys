@@ -3,8 +3,9 @@ from .models import Product, ProductSku, Item, ProductLocation
 from shopback.archives.models import DepositeDistrict
 from shopback.categorys.models import Category
 from shopback.users.models import User
-from flashsale.pay.models import ModelProduct
+from flashsale.pay.models import ModelProduct, ModelProductSkuContrast
 from supplychain.supplier.serializers import SaleProductSerializer
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -204,3 +205,8 @@ class ProductSkuUpdateSerializer(serializers.ModelSerializer):
             'properties_alias',
             'barcode'
         )
+
+
+class ModelProductSkuContrastSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelProductSkuContrast

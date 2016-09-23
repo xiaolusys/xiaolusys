@@ -695,6 +695,7 @@ class Product(models.Model):
             44: '7',
             8: '8',
             49: '4',
+            10: '1'
         }
         if category_maps.has_key(item_category.parent_cid):
             outer_id = category_maps.get(item_category.parent_cid) + str(item_category.cid) + "%05d" % supplier.id
@@ -759,6 +760,34 @@ class Product(models.Model):
         return
 
     @classmethod
+    def handle_delete_sku(cls, model_pro, skus_list):
+        """
+        处理删除的ｓｋｕ方法
+        # 如果　已经当前已经存在的sku　不在变更后 skus_list 中则 设置　product_sku instance 预留为0
+        """
+        products = model_pro.products.values('id', 'name')
+        product_ids = [p['id'] for p in products]
+        skus_info = ProductSku.objects.filter(product_id__in=product_ids,
+                                              status=pcfg.NORMAL).values('product', 'properties_name')
+        sss = {}
+        for p in products:
+            sss.update({p['id']: p['name']})
+        for sku_info in skus_info:
+            sku_info.update({'color': sss[sku_info['product']]})
+        # 如果　已经存在的sku不在skus_list中则 设置　product_sku instance 预留为0
+        current_skus_list = skus_info
+        current_tmp = {item['color'] + '|' + item['properties_name']: item for item in current_skus_list}
+        tmp = {i['color'] + '|' + i['properties_name']: i for i in skus_list}
+        for t in current_tmp.keys():
+            if t not in tmp:
+                name = t.split('|')[0]
+                product = model_pro.products.filter(name=name).first()
+                if product:
+                    properties_name = t.split('|')[1] if len(t.split('|')) > 1 else ''
+                    product.normal_skus.filter(properties_name=properties_name).update(remain_num=0)
+                    product.set_remain_num()  # 有效sku预留数之和
+
+    @classmethod
     @transaction.atomic()
     def create_or_update_skus(cls, model_pro, creator):
         """
@@ -768,6 +797,7 @@ class Product(models.Model):
         """
         saleproduct = model_pro.saleproduct
         skus_list = saleproduct.sku_extras
+        cls.handle_delete_sku(model_pro, skus_list)  # 处理删除的sku
         colors = [x['color'] for x in skus_list]
         colors = set(colors)    # 防止颜色重复
         pro_count = 1
