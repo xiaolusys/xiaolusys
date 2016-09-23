@@ -87,7 +87,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         if type_ == 1:
             from shopback.trades.models import PackageSkuItem
             q = PackageSkuItem.objects.filter(
-                assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]
+                assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED, PackageSkuItem.VIRTUAL_ASSIGNED]
             )
             n_total = q.only('id').count()
             n_delay = q.filter(pay_time__lte=threshold).only('id').count()
