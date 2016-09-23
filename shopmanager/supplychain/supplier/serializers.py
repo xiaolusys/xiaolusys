@@ -269,11 +269,12 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
     latest_figures = ModelStatsSimpleSerializer(source='sale_product_figures', read_only=True)
     total_figures = JSONParseField(source='total_sale_product_figures', read_only=True)
     in_schedule = serializers.SerializerMethodField()
+    model_id = serializers.IntegerField(source='model_product.id')
 
     class Meta:
         model = SaleProduct
         fields = (
-            'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'status', 'sale_supplier', 'contactor',
+            'id', 'model_id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'status', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo',
             'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num', 'latest_figures', 'total_figures',
             'in_schedule', 'sku_extras')
@@ -296,11 +297,6 @@ class ModifySaleProductSerializer(serializers.ModelSerializer):
         if value is None or not value.strip():
             raise serializers.ValidationError(u"选品标题不能为空!")
         return value
-
-    # def validate_product_link(self, value):
-    #     if value and str(value).strip() and self.Meta.model.objects.filter(product_link=value):
-    #         raise serializers.ValidationError(u'该款已经录入了!')
-    #     return value
 
 
 class SimpleSaleProductManageSerializer(serializers.ModelSerializer):

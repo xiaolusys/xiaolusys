@@ -452,3 +452,43 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         self.set_model_pro(model_pro)
         return Response(serializer.data)
 
+    def create_skucontrast(self, request):
+        """
+        添加尺码参照
+        """
+        content = request.data
+        saleproduct_id = content.get("saleproduct_id") or 0
+        saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
+        if not saleproduct:
+            raise exceptions.APIException(u"选品ID错误!")
+        md = saleproduct.model_product
+        if not md:
+            raise exceptions.APIException(u'款式没有找到呢!')
+
+        request.data.update({'modelproduct': md.id})
+        serializer = serializers.ModelProductSkuContrastSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        instance = serializers.ModelProductSkuContrastSerializer.Meta.model.objects.get(id=serializer.data.get('id'))
+        log_action(request.user, instance, CHANGE, u'添加尺码表信息')
+        return Response(serializer.data)
+
+    def update_skucontrast(self, request):
+        """
+        修改尺码参照
+        """
+        content = request.data
+        saleproduct_id = content.get("saleproduct_id") or 0
+        saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
+        if not saleproduct:
+            raise exceptions.APIException(u"选品ID错误!")
+        md = saleproduct.model_product
+        if not md:
+            raise exceptions.APIException(u'没有找到款式,无法修改!')
+
+        instance = serializers.ModelProductSkuContrastSerializer.Meta.model.objects.get(modelproduct=md)
+        serializer = serializers.ModelProductSkuContrastSerializer(instance=md, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        log_action(request.user, instance, CHANGE, u'修改尺码表信息')
+        return Response(serializer.data)
