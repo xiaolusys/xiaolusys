@@ -257,7 +257,7 @@ def task_referal_update_awardcarry(relationship):
     #uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
     uni_key = AwardCarry.gen_uni_key(to_mama_id, carry_type)
 
-    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
+    rr_cnt = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).exclude(referal_to_mama_id=to_mama_id).count()
     rr_cnt += 1
     
     carry_num = utils.get_award_carry_num(rr_cnt, relationship.referal_type)
@@ -322,8 +322,8 @@ def task_update_group_awardcarry(relationship):
         status = 2  # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
 
-    direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
-    group_referal_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
+    direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).exclude(referal_to_mama_id=to_mama_id).count()
+    group_referal_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).count()
     group_num = direct_referal_num + group_referal_num + 1
     carry_num = utils.get_group_carry_num(group_num)
 
