@@ -5,6 +5,8 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.db.models import F
 from django.db import transaction
+from django.core.cache import cache
+
 from shopback.warehouse import WARE_SH, WARE_CHOICES
 
 import logging
@@ -49,12 +51,14 @@ class ProductDaySale(models.Model):
 
 
 class ProductSkuStats(models.Model):
+
     class Meta:
         db_table = 'shop_items_productskustats'
         app_label = 'items'
         verbose_name = u'SKU库存'
         verbose_name_plural = u'SKU库存列表'
 
+    API_CACHE_KEY_TPL = 'api_productskustat_{0}'
     STATUS = ((0, 'EFFECT'), (1, 'DISCARD'))
     PRODUCT_SKU_STATS_COMMIT_TIME = datetime.datetime(2016, 4, 20, 01, 00, 00)
 
@@ -217,6 +221,22 @@ class ProductSkuStats(models.Model):
                                 - F('history_quantity') - F('adjust_quantity') - F(
                 'inbound_quantity')).exclude(product__category_id=pid).exclude(product__outer_id__startswith='RMB')
 
+    def to_apimodel(self):
+        from apis.v1.products import Skustat as APIModel, SkuCtl
+        data = self.__dict__
+        sku_obj = SkuCtl.retrieve(self.sku_id)
+        data.update({
+            'id': self.sku_id,
+            'remain_num': sku_obj and sku_obj.remain_num or 0
+        })
+        return APIModel(**data)
+
+def invalid_apiskustat_cache(sender, instance, raw, *args, **kwargs):
+    if hasattr(sender, 'API_CACHE_KEY_TPL'):
+        logger.debug('invalid_apiskustat_cache: %s'%instance.sku_id)
+        cache.delete(ProductSkuStats.API_CACHE_KEY_TPL.format(instance.sku_id))
+
+post_save.connect(invalid_apiskustat_cache, sender=ProductSkuStats, dispatch_uid='post_save_invalid_apiskustat_cache')
 
 def assign_stock_to_package_sku_item(sender, instance, created, **kwargs):
     if instance.realtime_quantity > instance.assign_num:

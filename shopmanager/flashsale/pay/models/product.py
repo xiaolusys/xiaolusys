@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import F
 from django.conf import settings
 from django.db.models.signals import post_save
+from django.core.cache import cache
 
 from tagging.fields import TagField
 from common.utils import update_model_fields
@@ -133,6 +134,8 @@ def default_modelproduct_extras_tpl():
 
 
 class ModelProduct(BaseTagModel):
+
+    API_CACHE_KEY_TPL = 'api_modelproduct_{0}'
 
     NORMAL = 'normal'
     DELETE = 'delete'
@@ -419,13 +422,15 @@ class ModelProduct(BaseTagModel):
             'is_newsales': self.is_newsales,
             'lowest_agent_price': self.lowest_agent_price,
             'lowest_std_sale_price': self.lowest_std_sale_price,
-            'category': self.category,
-            'sale_time': self.sale_time,
+            'category': {'id': self.salecategory_id},
+            'sale_time': self.onshelf_time,
+            'onshelf_time': self.onshelf_time,
             'offshelf_time': self.offshelf_time,
             'sale_state': self.sale_state,
             'properties':self.properties,
             'watermark_op': '',
             'item_marks': [u'包邮'],
+            'web_url': self.get_web_url()
         }
 
     @property
@@ -460,8 +465,11 @@ class ModelProduct(BaseTagModel):
         p_tables = []
         uni_set = set()
         try:
-            for p in self.productobj_list:
-                contrast_origin = p.contrast.contrast_detail
+            product_ids = list(self.products.values_list('id', flat=True))
+            skucontrasts = ProductSkuContrast.objects.filter(product__in=product_ids)\
+                .values_list('contrast_detail',flat=True)
+            for constrast_detail in skucontrasts:
+                contrast_origin = json.loads(constrast_detail)
                 uni_key = ''.join(sorted(contrast_origin.keys()))
                 if uni_key not in uni_set:
                     uni_set.add(uni_key)
@@ -648,6 +656,24 @@ class ModelProduct(BaseTagModel):
         self.offshelf_time = None
         self.save()
 
+    def to_apimodel(self):
+        from apis.v1.products import ModelProduct as APIModel
+        data = self.__dict__
+        data.update({
+            'product_ids': self.products.values_list('id',flat=True),
+            'sku_info': self.sku_info,
+            'comparison': self.comparison,
+            'detail_content': self.detail_content,
+        })
+        return APIModel(**data)
+
+def invalid_apimodelproduct_cache(sender, instance, raw, *args, **kwargs):
+    if hasattr(sender, 'API_CACHE_KEY_TPL'):
+        logger.debug('invalid_apimodelproduct_cache: %s' % instance.id)
+        cache.delete(ModelProduct.API_CACHE_KEY_TPL.format(instance.id))
+
+post_save.connect(invalid_apimodelproduct_cache, sender=ModelProduct,
+                  dispatch_uid='post_save_invalid_apimodelproduct_cache')
 
 def update_product_details_info(sender, instance, created, **kwargs):
     """

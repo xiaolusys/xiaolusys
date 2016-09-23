@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 def recursive_append_child_salecategorys(node, node_maps):
     copy_node = node.copy()
     child_nodes = node_maps.get(copy_node['cid'])
+    copy_node.setdefault('childs', [])
     if not child_nodes:
         return copy_node
 
-    copy_node.setdefault('childs', [])
     for child_node in child_nodes:
         child_node = recursive_append_child_salecategorys(child_node, node_maps)
         copy_node['childs'].append(child_node)

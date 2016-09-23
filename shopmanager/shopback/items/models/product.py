@@ -70,6 +70,7 @@ class Product(models.Model):
             ("invalid_product_info", u"作废库存商品信息")
         ]
 
+    API_CACHE_KEY_TPL = 'api_product_{0}'
     objects = managers.ProductManager()
     cache_enabled = True
 
@@ -845,6 +846,30 @@ class Product(models.Model):
         model_pro.set_is_flatten()  # 设置平铺字段
         model_pro.set_lowest_price()  # 设置款式最低价格
 
+    def to_apimodel(self):
+        from apis.v1.products import Product as APIModel
+        data = self.__dict__
+        data.update({
+            'type': 'color',
+            'name': self.property_name,
+            'product_img': self.pic_path,
+            'outer_id': self.outer_id,
+            'is_saleout': self.is_sale_out(),
+            'std_sale_price': self.std_sale_price,
+            'agent_price': self.agent_price,
+            'lowest_price': self.lowest_price(),
+            'sku_ids': self.normal_skus.values_list('id', flat=True)
+        })
+        return APIModel(**data)
+
+
+def invalid_apiproduct_cache(sender, instance, raw, *args, **kwargs):
+    if hasattr(sender, 'API_CACHE_KEY_TPL'):
+        logger.debug('invalid_apiproduct_cache: %s' % instance.id)
+        cache.delete(Product.API_CACHE_KEY_TPL.format(instance.id))
+
+post_save.connect(invalid_apiproduct_cache, sender=Product, dispatch_uid='post_save_invalid_apiproduct_cache')
+
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):
     """ 当作废产品的时候　检查　同款是否 全部  作废　如果是　则　将对应供应商的选款数量减去１
@@ -921,6 +946,7 @@ class ProductSku(models.Model):
         verbose_name = u'库存商品规格'
         verbose_name_plural = u'库存商品规格列表'
 
+    API_CACHE_KEY_TPL = 'api_productsku_{0}'
     cache_enabled = True
     objects = managers.CacheManager()
 
@@ -1273,6 +1299,30 @@ class ProductSku(models.Model):
 
     def is_deposite(self):
         return self.product.outer_id.startswith(Product.DIPOSITE_CODE_PREFIX)
+
+    def to_apimodel(self):
+        from apis.v1.products import SKU as APIModel
+        data = self.__dict__
+        data.update({
+            'type': 'size',
+            'id': self.id,
+            'name': self.name,
+            'free_num': self.free_num,
+            'is_saleout': self.free_num <= 0,
+            'std_sale_price': self.std_sale_price,
+            'agent_price': self.agent_price,
+        })
+        return APIModel(**data)
+
+
+def invalid_apiproductsku_cache(sender, instance, raw, *args, **kwargs):
+    if hasattr(sender, 'API_CACHE_KEY_TPL'):
+        logger.debug('invalid_apiproductsku_cache: %s' % instance.id)
+        from .stats import ProductSkuStats
+        cache.delete(ProductSku.API_CACHE_KEY_TPL.format(instance.id))
+        cache.delete(ProductSkuStats.API_CACHE_KEY_TPL.format(instance.id))
+
+post_save.connect(invalid_apiproductsku_cache, sender=ProductSku, dispatch_uid='post_save_invalid_apiproductsku_cache')
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
