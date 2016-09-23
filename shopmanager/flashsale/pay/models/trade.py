@@ -264,7 +264,7 @@ class SaleTrade(BaseModel):
         """
         if self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]:
             for so in self.sale_orders.all():
-                if so.product.ware_by == WARE_THIRD and so.package_sku_item.purchase_order_unikey:
+                if so.product.ware_by == WARE_THIRD and so.package_sku.purchase_order_unikey:
                     return False
             return True
         return False
@@ -1067,15 +1067,16 @@ class SaleOrder(PayBaseModel):
             self._package_sku_ = PackageSkuItem.objects.filter(sale_order_id=self.id).first()
         return self._package_sku_
 
-    product_sku = package_sku
+    @property
+    def product_sku(self):
+        if not hasattr(self, '_product_sku_'):
+            from shopback.items.models import ProductSku
+            self._product_sku_ = ProductSku.objects.filter(id=self.sku_id).first()
+        return self._product_sku_
 
     @property
     def product(self):
-        if not hasattr(self, '_package_sku_'):
-            from shopback.trades.models import PackageSkuItem
-            self._package_sku_ = PackageSkuItem.objects.filter(sale_order_id=self.id).first()
-        return self._package_sku_
-
+        return self.product_sku.product
 
 def order_trigger(sender, instance, created, raw, **kwargs):
     """
