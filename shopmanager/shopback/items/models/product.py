@@ -844,7 +844,6 @@ class Product(models.Model):
             cls.update_or_create_product_and_skus(model_pro, **kwargs)
         model_pro.set_is_flatten()  # 设置平铺字段
         model_pro.set_lowest_price()  # 设置款式最低价格
-        model_pro.set_choose_colors()  # 设置可选颜色
 
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):
