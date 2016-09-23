@@ -38,6 +38,7 @@ def check_day_limit(reg):
             if reg.verify_count > MAX_DAY_LIMIT:
                 return True
         else:
+            # everyday we restore verify_count/submit_count
             reg.verify_count = 0
             reg.submit_count = 0
             reg.save()
@@ -78,10 +79,9 @@ def validate_code(mobile, verify_code):
     
 
     if reg.code_time > earliest_send_time and reg.verify_code == verify_code:
-        reg.verify_count = 0
         reg.submit_count = 0
         reg.verify_code = ''
-        reg.save(update_fields=['submit_count', 'verify_count', 'verify_code', 'modified'])
+        reg.save(update_fields=['submit_count', 'verify_code', 'modified'])
         return True
 
     reg.submit_count += 1     #提交次数加一    
