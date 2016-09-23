@@ -74,7 +74,7 @@ class UserAddressTestCase(TestCase):
             "receiver_name": "林杰",
             "receiver_mobile": "13739234188",
             # "logistic_company_code": "YUNDA_QR",
-            "referal_trade_id": 333231
+            "referal_trade_id": ''
         }
 
         response = self.client.post('/rest/v1/address/111452/update', address, ACCEPT='application/json;')

@@ -11,6 +11,8 @@ from core.filters import DateFieldListFilter
 from flashsale.finance.models import Bill, BillRelation
 import xlsxwriter
 from cStringIO import StringIO
+from flashsale.dinghuo.filters import CreaterFilter
+
 
 
 class BillAdmin(admin.ModelAdmin):
@@ -18,7 +20,7 @@ class BillAdmin(admin.ModelAdmin):
         'show_id', 'supplier', 'type', 'show_relation_objects', 'plan_amount', 'amount', 'show_creater', 'pay_method',
         'created', 'modified', 'status', 'note')
     search_fields = ['id', "transcation_no", "supplier__id", "supplier__supplier_name", "billrelation__object_id"]
-    list_filter = ["type", "status", "pay_method", ('created', DateFieldListFilter)]
+    list_filter = ["type", "status", "pay_method", ('created', DateFieldListFilter),CreaterFilter]
     readonly_fields = ('creater', 'supplier')
     list_select_related = True
     list_per_page = 25
