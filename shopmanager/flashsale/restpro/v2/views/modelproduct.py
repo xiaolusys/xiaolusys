@@ -6,7 +6,7 @@ import hashlib
 import urlparse
 import random
 from django.conf import settings
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, Http404
 from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
@@ -20,9 +20,11 @@ from rest_framework.response import Response
 from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
+from core import pagination
 from flashsale.pay.models import ModelProduct, Customer, CuShopPros
 
 from flashsale.restpro.v2 import serializers as serializers_v2
+from apis.v1.products import ModelProductCtl, SkustatCtl
 
 import logging
 logger = logging.getLogger('service.restpro')
@@ -53,14 +55,25 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         ## [今日特卖: /rest/v2/modelproducts/today](/rest/v2/modelproducts/today)
         ## [昨日特卖: /rest/v2/modelproducts/yesterday](/rest/v2/modelproducts/yesterday)
         ## [即将上新: /rest/v2/modelproducts/tomorrow](/rest/v2/modelproducts/tomorrow)
+        ## [获取商品头图: /rest/v2/modelproducts/get_headimg](/rest/v2/modelproducts/get_headimg)
+        ## [妈妈选品佣金: /rest/v2/modelproducts/product_choice](/rest/v2/modelproducts/product_choice)
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers_v2.SimpleModelProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    pagination_class = pagination.PageNumberPkPagination
 
     paginate_by = 10
     page_query_param = 'page'
+
+    def paginate_pks(self, queryset, pk_alias='id'):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_pks(queryset, self.request, view=self, pk_alias=pk_alias)
 
     def calc_items_cache_key(self, view_instance, view_method,
                              request, args, kwargs):
@@ -79,8 +92,19 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     # @cache_response(timeout=10, key_func='calc_items_cache_key')
     def retrieve(self, request, *args, **kwargs):
         """ 获取用户订单及订单明细列表, 因为包含用户定制信息，该接口 """
-        instance = self.get_object()
-        data = serializers_v2.ModelProductSerializer(instance, context={'request': request}).data
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        assert lookup_url_kwarg in self.kwargs, (
+            'Expected view %s to be called with a URL keyword argument '
+            'named "%s". Fix your URL conf, or set the `.lookup_field` '
+            'attribute on the view correctly.' %
+            (self.__class__.__name__, lookup_url_kwarg)
+        )
+
+        from apis.v1.products import ModelProductCtl
+        obj = ModelProductCtl.retrieve(self.kwargs[lookup_url_kwarg])
+        data = serializers_v2.APIModelProductSerializer(obj, context={'request': request}).data
+        #data = serializers_v2.ModelProductSerializer(instance, context={'request': request}).data
         return Response(data)
 
     def order_queryset(self, queryset, order_by=None):
@@ -98,20 +122,22 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     def get_normal_qs(self, queryset):
         return queryset.filter(status=ModelProduct.NORMAL, is_topic=False)
 
-    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    # @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     def list(self, request, *args, **kwargs):
-        cids  = request.GET.get('cid','').split(',')
+        cid_str  = request.GET.get('cid','')
         order_by = request.GET.get('order_by')
         queryset = self.filter_queryset(self.get_queryset())
         queryset = self.order_queryset(queryset, order_by=order_by)
         onshelf_qs = queryset.filter(shelf_status=ModelProduct.ON_SHELF)
         q_filter = Q()
+        cids = [c for c in cid_str.split(',') if c]
         for cid in cids:
             q_filter = q_filter | Q(salecategory__cid__startswith=cid)
 
         onshelf_qs = onshelf_qs.filter(q_filter)
-        page = self.paginate_queryset(onshelf_qs)
-        serializer = self.get_serializer(page, many=True)
+        page_ids = self.paginate_pks(onshelf_qs)
+        modelproducts = ModelProductCtl.multiple(ids=page_ids)
+        serializer = serializers_v2.APIModelProductListSerializer(modelproducts, many=True)
         return self.get_paginated_response(serializer.data)
 
     def get_pagination_response_by_date(self, request, cur_date, only_onshelf=False):
@@ -132,8 +158,9 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
             )
         # queryset = self.order_queryset(request, tal_queryset, order_by=self.INDEX_ORDER_BY)
 
-        pagin_query = self.paginate_queryset(queryset)
-        object_list = self.get_serializer(pagin_query, many=True).data
+        page_ids = self.paginate_pks(queryset)
+        modelproducts = ModelProductCtl.multiple(ids=page_ids)
+        object_list = serializers_v2.APIModelProductListSerializer(modelproducts, many=True).data
         response    = self.get_paginated_response(object_list)
         onshelf_time    = object_list and max([obj['offshelf_time'] for obj in object_list]) or datetime.datetime.now()
         offshelf_time   = object_list and min([obj['onshelf_time'] for obj in object_list])
@@ -186,41 +213,57 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     def get_headimg(self, request, *args, **kwargs):
         """ 查询头图接口 """
         modelId = request.GET.get('modelId', '')
-        queryset = self.filter_queryset(self.get_queryset())
-        qs = queryset.filter(id=modelId)
-
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
+        if not modelId.isdigit():
+            raise Http404
+        from apis.v1.products import ModelProductCtl
+        obj = ModelProductCtl.retrieve(modelId)
+        data = serializers_v2.APIModelProductListSerializer(obj).data
+        return Response([data])
 
     @list_route(methods=['get'])
     def product_choice(self, request, *args, **kwargs):
-        customer = get_object_or_404(Customer, user=request.user)
-        mama = customer.get_charged_mama()
+        if not request.user.is_authenticated():
+            raise Http404
+
         sort_field = request.GET.get('sort_field') or 'id'  # 排序字段
         parent_cid = request.GET.get('cid') or 0
         reverse = request.GET.get('reverse') or 0
+        customer = get_object_or_404(Customer, user=request.user)
+        mama = customer.get_charged_mama()
+
         reverse = int(reverse) if str(reverse).isdigit() else 0
-        model_ids = CuShopPros.objects.filter(customer=customer.id,
-                                              pro_status=CuShopPros.UP_SHELF).values_list("model", flat=True)
+        # model_ids = list(CuShopPros.objects.filter(
+        #     customer=customer.id,
+        #     pro_status=CuShopPros.UP_SHELF).values_list("model", flat=True))
         queryset = self.queryset.filter(shelf_status=ModelProduct.ON_SHELF,
                                         status=ModelProduct.NORMAL)
         if parent_cid:
             queryset = queryset.filter(salecategory__parent_cid=parent_cid)
-        next_mama_level_info = mama.next_agencylevel_info()
-        for md in queryset:
-            rebate_scheme = md.get_rebate_scheme()
-            rebet_amount = rebate_scheme.calculate_carry(mama.agencylevel, md.lowest_agent_price)
-            sale_num = sum([i['remain_num'] for i in md.products.values('remain_num')]) * 19 + random.choice(xrange(19))
 
-            next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], md.lowest_agent_price) or 0.0
+        product_ids = list(queryset.values_list('id', flat=True))
+        model_products = ModelProductCtl.multiple(ids=product_ids)
+
+        next_mama_level_info = mama.next_agencylevel_info()
+        for md in model_products:
+            rebate_scheme = md.get_rebetaschema()
+            lowest_agent_price = md.detail_content['lowest_agent_price']
+            rebet_amount = rebate_scheme.calculate_carry(mama.agencylevel, lowest_agent_price)
+
+            total_remain_num = sum([len(p.sku_ids) for p in md.get_products()]) * 30
+            sale_num = total_remain_num * 19 + random.randint(1,19)
+
+            next_rebet_amount = rebate_scheme.calculate_carry(next_mama_level_info[0], lowest_agent_price) or 0.0
             md.sale_num = sale_num
             md.rebet_amount = rebet_amount
             md.next_rebet_amount = next_rebet_amount
+
         if sort_field in ['id', 'sale_num', 'rebet_amount', 'lowest_std_sale_price', 'lowest_agent_price']:
-            queryset = sorted(queryset, key=lambda k: getattr(k, sort_field), reverse=reverse)
-        queryset = self.paginate_queryset(queryset)
-        serializer = serializers_v2.MamaChoiceProductSerializer(queryset, many=True,
-                                                                context={'request': request,
-                                                                         'mama': mama,
-                                                                         "shop_product_num": len(model_ids)})
+            model_products = sorted(model_products, key=lambda k: getattr(k, sort_field), reverse=reverse)
+
+        object_list = self.paginate_queryset(model_products)
+        serializer = serializers_v2.APIMamaProductListSerializer(
+            object_list, many=True,
+            context={'request': request,
+                     'mama': mama,
+                     "shop_product_num": len(object_list)})
         return self.get_paginated_response(serializer.data)

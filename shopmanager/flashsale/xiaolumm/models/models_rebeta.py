@@ -52,8 +52,11 @@ class AgencyOrderRebetaScheme(models.Model):
 
     @classmethod
     def get_default_scheme(cls):
-        default = cls.objects.filter(status=cls.NORMAL, is_default=True).first()
-        return default
+        scheme_maps = cls.get_active_scheme_keymap()
+        for scheme in scheme_maps.values():
+            if scheme.is_default:
+                return scheme
+        return None
 
     @classmethod
     def get_active_scheme_keymap(cls):

@@ -513,7 +513,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         user_info = cache.get(profile_key)
         if not user_info:
             user_info = self.get_serializer(customer).data
-            cache.set(profile_key, user_info, 60 * 5)
+            cache.set(profile_key, user_info, 10)
 
         return Response(user_info)
 

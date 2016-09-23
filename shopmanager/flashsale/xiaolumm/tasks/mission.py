@@ -25,7 +25,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id):
         wxpush = WeixinPush()
         if mama_mission.is_finished():
             params  = {
-                'header': u'女王大人吉祥，本周有一任务已完成，深得阿玛喜欢，重重有赏！',
+                'header': u'女王，本周有一任务已完成，奖励已到账请到app任务列表查看！',
                 'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高).',
                 'task_name': u'%s, 赏￥%.2f元' % (base_mission.name, mama_mission.get_award_amount()),
                 'task_type': base_mission.get_cat_type_display(),
@@ -37,7 +37,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id):
             week_end_time = datetime.datetime.strptime('%s-0' % mama_mission.year_week, '%Y-%W-%w')
             mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
             params = {
-                'header': u'女王大人吉祥，本周有封密诏请阅目，按诏中所言行事定有重赏!',
+                'header': u'女王，您还有一个奖励任务未完成，快到到小鹿美美app看看吧！',
                 'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高).',
                 'task_name': base_mission.name,
                 'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
