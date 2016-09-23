@@ -263,7 +263,7 @@ class SaleTrade(BaseModel):
             如果包含第三方发货的包裹，一订货就不容许退货
         """
         if self.status in [SaleTrade.WAIT_SELLER_SEND_GOODS]:
-            for so in self.sale_orders:
+            for so in self.sale_orders.all():
                 if so.product.ware_by == WARE_THIRD and so.package_sku_item.purchase_order_unikey:
                     return False
             return True
