@@ -2055,12 +2055,13 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             [p.package_order_pid for p in PackageSkuItem.objects.filter(**export_condition)]))
         for o in PackageOrder.objects.filter(pid__in=package_order_ids):
             for p in o.package_sku_items.filter(**export_condition):
-                items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id), str(o.buyer_nick),
+                saleproduct = p.product_sku.product.get_sale_product()
+                items.append([str(o.pid), '', o.sys_status, str(o.buyer_id), str(p.id), saleproduct.supplier_sku if saleproduct else '', str(o.buyer_nick),
                             str(p.product_sku.product.name), str(p.product_sku.properties_name),
                             '0', str(p.num), '0', '0', '0', '0', '', str(o.receiver_name),
                             str(o.receiver_address_detail), '', o.receiver_mobile, '', '', '', '',
                             p.sale_trade.created.strftime('%Y-%m-%D %H:%M:%S'), p.sale_trade.pay_time.strftime('%Y-%m-%D %H:%M:%S'),
-                            p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽', '', ''])
+                            p.sale_trade.logistics_company.name if p.sale_trade.logistics_company else '', '', u'小鹿美美，时尚健康美丽', '', '',saleproduct.product_link if saleproduct else ''])
         buff = StringIO()
         is_windows = request.META['HTTP_USER_AGENT'].lower().find(
             'windows') > -1
