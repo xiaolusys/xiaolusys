@@ -372,22 +372,21 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         extras = default_modelproduct_extras_tpl()  # 可选颜色 材质 备注 洗涤说明
         if model_product:
             extras = model_product.extras
-        extras.setdefault('properties', [])
-        properties = extras.get('properties')
-        model_properties = content.get('properties') or None
+        extras.setdefault('new_properties', [])
+        properties = extras.get('new_properties')
+        model_properties = content.get('new_properties') or None
         if isinstance(model_properties, list):
             model_properties_d = dict([(tt['name'], tt['value']) for tt in model_properties])
             old_properties_d = dict(
                 [(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
             old_properties_d.update(model_properties_d)
             properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
-        extras.update({'properties': properties})
+        extras.update({'new_properties': properties})
         return extras
 
     def set_model_pro(self, model_pro):
         model_pro.set_is_flatten()  # 设置平铺字段
         model_pro.set_lowest_price()  # 设置款式最低价格
-        model_pro.set_choose_colors()  # 设置可选颜色
         return
 
     def create(self, request, *args, **kwargs):
@@ -418,6 +417,8 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         partial = kwargs.pop('partial', False)
+        extras = self.get_request_extras(request)
+        request.data.update({'extras': extras})
         request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）
         request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
         request.data.update({'lowest_std_sale_price': instance.lowest_std_sale_price})  # 最低吊牌价（价格由sku决定）
