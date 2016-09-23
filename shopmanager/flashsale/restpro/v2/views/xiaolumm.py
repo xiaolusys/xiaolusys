@@ -143,6 +143,43 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
     @list_route(methods=['get'])
+    def get_brief_info(self, request):
+        """
+        /rest/v2/mama/fortune/get_brief_info
+
+        Only return very brief info of mamafortune.
+        """
+
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        if not customer:
+            return Response({})
+        
+        mama = customer.get_xiaolumm()
+        if not mama:
+            return Response({})
+        
+        mama_id = mama.id
+        
+        fortune = self.queryset.filter(mama_id=mama_id).first()
+        serializer = serializers.MamaFortuneBriefSerializer(fortune)
+        data = serializer.data
+
+        thumbnail = customer.thumbnail
+        left_days = 0
+        
+        today = datetime.date.today()
+        today_time = datetime.datetime(today.year, today.month, today.day)
+        
+        if mama.renew_time > today_time:
+            diff = mama.renew_time - today_time
+            left_days = diff.days
+            if diff.seconds > 0:
+                left_days += 1
+        
+        data.update({"thumbnail": customer.thumbnail, "left_days": left_days})
+        return Response(data)
+
+    @list_route(methods=['get'])
     def get_mama_app_download_link(self, request):
         """ 妈妈的app下载链接 """
         from core.upload.xqrcode import push_qrcode_to_remote
