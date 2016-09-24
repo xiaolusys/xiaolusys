@@ -201,6 +201,29 @@ class SaleProduct(BaseTagModel):
         self.sku_extras = sku_list
         self.save(update_fields=['sku_extras', 'modified'])
 
+    @property
+    def sku_extras_info(self):
+        """ 更新数据库　sku 信息　到　sku_extras 字段"""
+        try:
+            md = self.model_product
+        except Exception as e:
+            print self.id, e
+            return
+        sku_list = []
+        if not md:
+            return
+        for pro in md.products:
+            for psku in pro.normal_skus:
+                sku_list.append({'color': pro.name,
+                                 'pic_path': pro.pic_path,
+                                 'agent_price': psku.agent_price,
+                                 'remain_num': psku.remain_num,
+                                 'std_sale_price': psku.std_sale_price,
+                                 'cost': psku.cost,
+                                 'properties_alias': psku.properties_alias,
+                                 'properties_name': psku.properties_name})
+        return sku_list
+
 
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
     try:
