@@ -11,7 +11,10 @@ def get_modelproduct_by_id(id):
 def get_modelproduct_by_ids(ids):
     # ids: array of id
     from flashsale.pay.models import ModelProduct
-    return get_multi_model_by_ids({'id': ids}, ModelProduct)
+    modelproducts = get_multi_model_by_ids({'id': ids}, ModelProduct)
+    id_index_map = dict([(i, index) for index, i in enumerate(ids)])
+    modelproducts.sort(key=lambda o: id_index_map.get(o.id))
+    return modelproducts
 
 class ModelProduct(object):
     def __init__(self, **kwargs):
