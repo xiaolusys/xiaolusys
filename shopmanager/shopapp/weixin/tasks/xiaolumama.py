@@ -271,7 +271,7 @@ def get_max_today_fans_invites(mama_id):
     return 20
 
 
-def create_push_event_invite_fans(mama_id, date_field):
+def create_push_event_invite_fans(mama_id, contributor_nick, date_field, today_invites):
     mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT).first()
     if not mama:
         return
@@ -282,20 +282,28 @@ def create_push_event_invite_fans(mama_id, date_field):
     
     customer_id = customer.id 
     
-    event_type = WeixinPushEvent.INVITE_LIMIT_WARN
-    uni_key = WeixinPushEvent.gen_invite_limit_warn_unikey(event_type, customer_id, date_field)
+    event_type = WeixinPushEvent.INVITE_FANS_NOTIFY
+    uni_key = WeixinPushEvent.gen_invite_limit_warn_unikey(event_type, customer_id, today_invites, date_field)
     event = WeixinPushEvent.objects.filter(uni_key=uni_key).first()
     if event:
         return
 
+    footer = u"你的团队又壮大啦！粉丝过千，日赚千元！"
+    footer_color = '#394359'
+    
+    max_today_fans_invites = get_max_today_fans_invites(mama_id)
+    if today_invites > max_today_fans_invites * 0.6:
+        footer = u"美美亲，你的每日二维码推广只能新增%d名好友，超过将不能再得奖励，请知悉哦！详情请联系App客服MM咨询。" % max_today_fans_invites
+        footer_color = "red"
+        
     now = datetime.datetime.now()
     tid = WeixinPushEvent.TEMPLATE_INVITE_FANS_ID
-    header = u"Great! 又一位好友扫描二维码成为你的粉丝！"
-    footer = u"加油哦！粉丝很快就过千啦！"
+    header = u"Great! 好友[%s]扫描二维码成为你的粉丝！" % contributor_nick
+
     params = {'first': {'value':header, 'color':"#394359"},
               'keyword1': {'value':customer_id, 'color':'#394359'},
               'keyword2': {'value':now.strftime('%Y-%m-%d %H:%M:%S'), 'color':'#394359'},
-              'remark': {'value':footer, 'color':'#394359'}}
+              'remark': {'value':footer, 'color':footer_color}}
     
     to_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html'
     event = WeixinPushEvent(customer_id=customer_id,mama_id=mama_id,uni_key=uni_key,tid=tid,
@@ -310,15 +318,8 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
     carry_type = AwardCarry.AWARD_INVITE_FANS # 邀请关注成为粉丝
     mama_id = referal_from_mama_id
 
-    max_today_fans_invites = get_max_today_fans_invites(mama_id)
-    
     date_field = datetime.date.today()
-    today_invites = AwardCarry.objects.filter(mama_id=mama_id,carry_type=carry_type,date_field=date_field).count()
-    if today_invites * 0.6 > max_today_fans_invites:
-        # 应该发送微信推送，告知当日最大邀请数:
-        # 亲爱的xxx，你的每日二维码推广只能新增x名好友，超过将不能再得奖励，请知悉哦！详情请联系app客服MM咨询。
-        # 注意，发过一次就不能再发了（需要uni_key)
-        create_push_event_invite_fans(mama_id, date_field)
+    today_invites = AwardCarry.objects.filter(mama_id=mama_id,carry_type=carry_type,date_field=date_field).count() + 1        
     
     if today_invites > max_today_fans_invites:
         return
@@ -340,12 +341,18 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
         contributor_mama_id = referal_to_mama.id
         contributor_nick = userinfo.nick
         contributor_img = userinfo.thumbnail
-    
+
+        # send weixin push
+        create_push_event_invite_fans(mama_id, contributor_nick, date_field, today_invites)
+        
         ac = AwardCarry(mama_id=mama_id,carry_num=carry_num, carry_type=carry_type, carry_description=carry_description,
                         contributor_nick=contributor_nick, contributor_img=contributor_img,
                         contributor_mama_id=contributor_mama_id, carry_plan_name=carry_plan_name,
                         date_field=date_field, uni_key=uni_key, status=AwardCarry.CONFIRMED)
         ac.save()
+
+        
+
     except Exception,exc:
         #logger.error(str(exc), exc_info=True)
         raise task_weixinfans_create_fans_awardcarry.retry(exc=exc)
