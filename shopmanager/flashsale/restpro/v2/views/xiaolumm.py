@@ -170,7 +170,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         today = datetime.date.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
         
-        if mama.renew_time > today_time:
+        if mama.renew_time and mama.renew_time > today_time:
             diff = mama.renew_time - today_time
             left_days = diff.days
             if diff.seconds > 0:
