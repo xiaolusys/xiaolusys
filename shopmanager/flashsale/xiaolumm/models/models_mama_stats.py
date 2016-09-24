@@ -165,7 +165,7 @@ class WeixinPushEvent(BaseModel):
         return "%s-%s|%s" % (event_type, customer_id, date_field)
 
 def send_weixin_push(sender, instance, created, **kwargs):
-    if not create:
+    if not created:
         return
     from shopapp.weixin.weixin_push import WeixinPush
     wxpush = WeixinPush()
