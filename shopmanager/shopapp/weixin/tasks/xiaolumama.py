@@ -271,7 +271,7 @@ def get_max_today_fans_invites(mama_id):
     return 20
 
 
-def create_push_event_invite_fans(mama_id, contributor_nick, date_field, today_invites):
+def create_push_event_invite_fans(mama_id, contributor_nick, contributor_mama_id, date_field, today_invites):
     mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT).first()
     if not mama:
         return
@@ -288,20 +288,20 @@ def create_push_event_invite_fans(mama_id, contributor_nick, date_field, today_i
     if event:
         return
 
-    footer = u"你的团队又壮大啦！粉丝过千，日赚千元！"
+    footer = u'你的团队又壮大啦！粉丝过千，日赚千元！'
     footer_color = '#394359'
     
     max_today_fans_invites = get_max_today_fans_invites(mama_id)
     if today_invites > max_today_fans_invites * 0.6:
-        footer = u"美美亲，你的每日二维码推广只能新增%d名好友，超过将不能再得奖励，请知悉哦！详情请联系App客服MM咨询。" % max_today_fans_invites
-        footer_color = "red"
+        footer = u'你的二维码推广每日只能新增%d名好友，超过将不能再得奖励，请知悉哦！详情请联系App客服MM咨询。' % max_today_fans_invites
+        footer_color = '#FA5858'
         
     now = datetime.datetime.now()
     tid = WeixinPushEvent.TEMPLATE_INVITE_FANS_ID
     header = u"Great! 好友[%s]扫描二维码成为你的粉丝！" % contributor_nick
 
     params = {'first': {'value':header, 'color':"#394359"},
-              'keyword1': {'value':customer_id, 'color':'#394359'},
+              'keyword1': {'value':contributor_mama_id, 'color':'#394359'},
               'keyword2': {'value':now.strftime('%Y-%m-%d %H:%M:%S'), 'color':'#394359'},
               'remark': {'value':footer, 'color':footer_color}}
     
@@ -343,7 +343,7 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
         contributor_img = userinfo.thumbnail
 
         # send weixin push
-        create_push_event_invite_fans(mama_id, contributor_nick, date_field, today_invites)
+        create_push_event_invite_fans(mama_id, contributor_nick, contributor_mama_id, date_field, today_invites)
         
         ac = AwardCarry(mama_id=mama_id,carry_num=carry_num, carry_type=carry_type, carry_description=carry_description,
                         contributor_nick=contributor_nick, contributor_img=contributor_img,
