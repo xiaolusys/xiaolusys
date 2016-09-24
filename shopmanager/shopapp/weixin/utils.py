@@ -50,7 +50,7 @@ def gen_mama_custom_qrcode_url(mama_id):
 @log_consume_time
 def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
     cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s' % mama_id
-    cache_value = cache.get(cache_key) and None
+    cache_value = cache.get(cache_key)
     if not cache_value:
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache miss: %s' % mama_id)
         thumbnail = userinfo['headimgurl'] or DEFAULT_MAMA_THUMBNAIL
@@ -70,7 +70,7 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
         wx_api.setAccountId(wxpubId=wxpubId)
         response = wx_api.upload_media(media_stream)
         cache_value = response['media_id']
-        cache.set(cache_key, cache_value, 2 * 24 * 3600)
+        cache.set(cache_key, cache_value, 1 * 24 * 3600)
     else:
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache hit: %s' % mama_id)
     return cache_value
@@ -160,7 +160,7 @@ def generate_colorful_qrcode(params):
     if not cache_value:
         resp = requests.get(background_url, verify=False)
         bg_img = Image.open(StringIO.StringIO(resp.content))
-        cache.set(cache_key, resp.content, 2*3600)
+        cache.set(cache_key, resp.content, 24*3600)
     else:
         bg_img = Image.open(StringIO.StringIO(cache_value))
     bg_width, bg_height = bg_img.size
@@ -178,8 +178,11 @@ def generate_colorful_qrcode(params):
         avatar = None
 
     text = params.get('text', {}).get('content', '')
+    text_x = params.get('text', {}).get('x', None)
     text_y = params.get('text', {}).get('y', 174)
+    text_align = params.get('text', {}).get('align', 'center')
     text_color = params.get('text', {}).get('color', '#f1c40f')
+    text_spacing = params.get('text', {}).get('spacing', 4)
     font_path = params.get('text', {}).get('font', settings.FANGZHENG_LANTINGHEI_FONT_PATH)
     font_size = params.get('text', {}).get('font_size', 24)
     font = ImageFont.truetype(font_path, font_size)
@@ -214,8 +217,15 @@ def generate_colorful_qrcode(params):
         draw = ImageDraw.Draw(bg_img)
         text_size = draw.textsize(text, font)
         text_width, text_height = text_size
-        text_x = bg_width / 2 - text_width / 2
-        draw.multiline_text((text_x, text_y), text, fill=ImageColor.getrgb(text_color), font=font, align='center')
+        text_x = (bg_width / 2 - text_width / 2) if not text_x else text_x
+        draw.multiline_text(
+            (text_x, text_y),
+            text,
+            fill=ImageColor.getrgb(text_color),
+            font=font,
+            align=text_align,
+            spacing=text_spacing
+        )
 
     if avatar:
         bg_img.paste(avatar, box=(avatar_x, avatar_y, avatar_x+avatar_size, avatar_y+avatar_size), mask=mask)

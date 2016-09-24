@@ -122,7 +122,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
     def get_normal_qs(self, queryset):
         return queryset.filter(status=ModelProduct.NORMAL, is_topic=False)
 
-    # @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
+    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     def list(self, request, *args, **kwargs):
         cid_str  = request.GET.get('cid','')
         order_by = request.GET.get('order_by')
