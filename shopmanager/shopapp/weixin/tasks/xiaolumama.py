@@ -235,10 +235,11 @@ def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
 def task_weixinfans_create_subscribe_awardcarry(unionid):
     carry_num = 100
     carry_type = AwardCarry.AWARD_SUBSCRIBE # 关注公众号
-    mama = XiaoluMama.objects.filter(openid=unionid).first()
-    mama_id = mama.id
     
     try:
+        mama = XiaoluMama.objects.filter(openid=unionid).first()
+        mama_id = mama.id
+
         # We get here too fast that WeixinUserInfo objects have not been created yet,
         # and when we try to access, error comes.        
         userinfo = WeixinUserInfo.objects.filter(unionid=unionid).first()
