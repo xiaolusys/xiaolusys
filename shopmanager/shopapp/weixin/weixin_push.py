@@ -512,3 +512,22 @@ class WeixinPush(object):
             },
         }
         return self.push(customer, template_ids, template_data, to_url)
+
+    
+    def push_event(self, event_instance):
+        customer = event_instance.get_effect_customer()
+        if not customer:
+            return
+
+        tid = event_instance.tid
+        template = WeixinTplMsg.objects.filter(id=tid, status=True).first()
+        if not template:
+            return
+
+        template_ids = template.template_ids
+        template_data = event_instance.params
+        to_url = event_instance.to_url
+        
+        return self.push(referal_customer, template_ids, template_data, to_url)
+
+    
