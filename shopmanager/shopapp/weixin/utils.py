@@ -178,8 +178,11 @@ def generate_colorful_qrcode(params):
         avatar = None
 
     text = params.get('text', {}).get('content', '')
+    text_x = params.get('text', {}).get('x', None)
     text_y = params.get('text', {}).get('y', 174)
+    text_align = params.get('text', {}).get('align', 'center')
     text_color = params.get('text', {}).get('color', '#f1c40f')
+    text_spacing = params.get('text', {}).get('spacing', 4)
     font_path = params.get('text', {}).get('font', settings.FANGZHENG_LANTINGHEI_FONT_PATH)
     font_size = params.get('text', {}).get('font_size', 24)
     font = ImageFont.truetype(font_path, font_size)
@@ -214,8 +217,15 @@ def generate_colorful_qrcode(params):
         draw = ImageDraw.Draw(bg_img)
         text_size = draw.textsize(text, font)
         text_width, text_height = text_size
-        text_x = bg_width / 2 - text_width / 2
-        draw.multiline_text((text_x, text_y), text, fill=ImageColor.getrgb(text_color), font=font, align='center')
+        text_x = (bg_width / 2 - text_width / 2) if not text_x else text_x
+        draw.multiline_text(
+            (text_x, text_y),
+            text,
+            fill=ImageColor.getrgb(text_color),
+            font=font,
+            align=text_align,
+            spacing=text_spacing
+        )
 
     if avatar:
         bg_img.paste(avatar, box=(avatar_x, avatar_y, avatar_x+avatar_size, avatar_y+avatar_size), mask=mask)

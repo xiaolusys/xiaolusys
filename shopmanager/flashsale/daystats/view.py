@@ -2,6 +2,7 @@
 # __author__ = 'linjie'
 import datetime
 import re
+import random
 
 from django.db.models import Sum
 from django.http import HttpResponse, Http404
@@ -79,6 +80,19 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         if not type_:
             return Response({'error': '类型错误'})
 
+        color = [
+            '#1abc9c',
+            '#3498db,',
+            '#34495e',
+            '#9b59b6',
+            '#34495e',
+            '#f1c40f',
+            '#e67e22',
+            '#e74c3c',
+            '#ecf0f1',
+            '#95a5a6'
+        ]
+
         data = None
         now = datetime.datetime.now()
         threshold = now - datetime.timedelta(days=3)
@@ -124,6 +138,8 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_s_delay = q.filter(pay_time__lte=threshold2).only('id').count()
             n_ss_delay = q.filter(pay_time__lte=threshold3).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
+        elif type_ == 6:
+            data = {'n_total': '', 'n_delay': '', 'n_s_delay': 'xxx', 'n_ss_delay': 'kkk', 'bgcolor': random.choice(color)}
         if data:
             return Response(data)
         return Response({'error': '参数错误'})

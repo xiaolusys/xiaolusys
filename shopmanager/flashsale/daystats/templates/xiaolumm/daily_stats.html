@@ -38,11 +38,15 @@
 	     background-color: #9999cc;
 	 }
 
-         tr:nth-child(3) {
-             background-color: #99ffcc;
-         }
+     tr:nth-child(3) {
+         background-color: #99ffcc;
+     }
 
-	 tr:last-child {
+     #sellout {
+         background-color: #f1c40f;
+     }
+
+	 #dinghuo {
 	     background-color: #bc8f8f;
 
 	 }
@@ -180,6 +184,19 @@
                     <p>总计</p>
                 </td>
             </tr>
+            <tr id="sellout">
+                <td>
+                    <h2>已抢光</h2>
+                </td>
+                <td>
+                    <p><em class="n-ss-delay"></em></p>
+                    <p>已抢光数量</p>
+                </td>
+                <td colspan="3">
+                    <p><em class="n-s-delay"></em></p>
+                    <p>已抢光前５个商品</p>
+                </td>
+            </tr>
         </table>
         <div class="full-screen">
             <button class="btn btn-default btn-block" id="full-screen-btn">全屏</button>
@@ -226,6 +243,9 @@
                      var elSDelay = $(targetId+' em.n-s-delay').first();
                      var elDelay = $(targetId+' em.n-delay').first();
                      var elTotal = $(targetId+' em.n-total').first();
+
+                     $(targetId).css('background-color', result.bgcolor)
+
                      elSDelay.html(result.n_s_delay);
                      elSSDelay.html(result.n_ss_delay);
                      if(result.n_delay != elDelay.html() - 0){
@@ -240,7 +260,7 @@
                              elTotal.animate({fontSize: '-=6px'}, 500);
                          });
                      }
-                     _.delay(reload, 30000, statsType, targetId);
+                     _.delay(reload, 5000, statsType, targetId);
                  }
              })
          }
@@ -250,6 +270,7 @@
              _.delay(reload, 10, 2, '#refund');
              _.delay(reload, 10, 3, '#return');
              _.delay(reload, 10, 4, '#dinghuo');
+             _.delay(reload, 10, 6, '#sellout');
              $('#full-screen-btn').click(function(){
                  toggleFullScreen();
              });
