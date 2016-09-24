@@ -26,8 +26,6 @@ def get_cur_info():
 
 
 def create_dailystats_with_integrity(mama_id, date_field, uni_key, **kwargs):
-    if len(uni_key) > 16:
-        logger.error("create dailystats error: uni_key wrong %s" % uni_key)
     stats = DailyStats(mama_id=mama_id, date_field=date_field, uni_key=uni_key, **kwargs)
     stats.save()
 
