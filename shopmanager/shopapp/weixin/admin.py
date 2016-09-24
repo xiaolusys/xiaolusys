@@ -143,6 +143,13 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
                 from .weixin_apis import WeiXinAPI
                 wx_api = WeiXinAPI()
                 wx_api.setAccountId(wxpubId=obj.account_id)
+
+                if obj.isExpired():
+                    wx_api.refresh_token()
+
+                if obj.isJSTicketExpired():
+                    wx_api.refreshJSTicket()
+
                 wx_api.createMenu(jmenu)
             except Exception, exc:
                 self.message_user(request, u"微信菜单创建失败：%s" % (exc.message or u'请求错误'))
