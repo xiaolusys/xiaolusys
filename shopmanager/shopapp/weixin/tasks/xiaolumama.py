@@ -4,7 +4,7 @@ from celery.task import task
 
 from django.contrib.auth.models import User
 from flashsale.pay.models import Customer
-from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans, AwardCarry
+from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, XlmmFans, AwardCarry, WeixinPushEvent
 from flashsale.pay.models import BudgetLog
 from shopback.monitor.models import XiaoluSwitch
 
