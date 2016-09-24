@@ -283,7 +283,7 @@ def create_push_event_invite_fans(mama_id, contributor_nick, date_field, today_i
     customer_id = customer.id 
     
     event_type = WeixinPushEvent.INVITE_FANS_NOTIFY
-    uni_key = WeixinPushEvent.gen_invite_limit_warn_unikey(event_type, customer_id, today_invites, date_field)
+    uni_key = WeixinPushEvent.gen_invite_fans_notify_unikey(event_type, customer_id, today_invites, date_field)
     event = WeixinPushEvent.objects.filter(uni_key=uni_key).first()
     if event:
         return
