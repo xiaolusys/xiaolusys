@@ -191,9 +191,10 @@ class APIModelProductListSerializer(serializers.Serializer):
         return obj.detail_content['sale_state']
 
     def get_head_img(self, obj):
-        if obj.detail_content['head_imgs']:
-            return obj.detail_content['head_imgs'][0]
-        return ''
+        head_img = obj.detail_content.get('head_img')
+        if not head_img:
+            head_img = obj.detail_content['head_imgs'] and obj.detail_content['head_imgs'][0] or ''
+        return head_img
 
     def get_web_url(self, obj):
         return obj.detail_content['web_url']
@@ -251,9 +252,10 @@ class APIMamaProductListSerializer(serializers.Serializer):
         return obj.detail_content['lowest_std_sale_price']
 
     def get_pic_path(self, obj):
-        if obj.detail_content['head_imgs']:
-            return obj.detail_content['head_imgs'][0]
-        return ''
+        head_img = obj.detail_content.get('head_img')
+        if not head_img:
+            head_img = obj.detail_content['head_imgs'] and obj.detail_content['head_imgs'][0] or ''
+        return head_img
 
     def get_sale_num(self, obj):
         return obj.sale_num

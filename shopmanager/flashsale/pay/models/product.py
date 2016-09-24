@@ -410,9 +410,11 @@ class ModelProduct(BaseTagModel):
 
     @property
     def detail_content(self):
+        head_imgs = [i for i in self.head_imgs.split() if i.strip()]
         return {
             'name': self.name,
             'model_code': self.model_code,
+            'head_img': len(head_imgs) > 0 and head_imgs[0] or '',
             'head_imgs': self.head_images,
             'content_imgs': self.content_images,
             'is_sale_out': self.is_sale_out,
