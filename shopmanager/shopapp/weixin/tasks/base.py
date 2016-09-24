@@ -366,7 +366,7 @@ def task_snsauth_update_weixin_userinfo(userinfo, app_key):
 
 @task(max_retries=3, default_retry_delay=60)
 def task_refresh_weixin_access_token():
-    appkeys = WeiXinAccount.objects.filter(is_active=True).values_list('appkey', flat=True)
+    appkeys = WeiXinAccount.objects.filter(is_active=True).values_list('app_id', flat=True)
     wx_api = WeiXinAPI()
     for appkey in appkeys:
         try:

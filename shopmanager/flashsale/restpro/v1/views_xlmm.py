@@ -894,6 +894,10 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             info = u'金额或验证码错误!'
             return Response({"code": 1, "info": info})
 
+        from shopback.monitor.models import XiaoluSwitch
+        if XiaoluSwitch.is_switch_open(5):
+            return Response({"code":11, "info":'系统维护，提现功能暂时关闭!'})
+
         customer, mama = self.get_customer_and_xlmm(request)
         if not (mama and customer):
             info = u'你的帐号异常，请联系管理员！'
@@ -955,11 +959,6 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
                      platform=Envelop.WXPUB,subject=Envelop.CASHOUT,status=Envelop.WAIT_SEND,
                      receiver=mama_id, body=body,description=mama_memo)
         en.save()
-
-        from shopback.monitor.models import XiaoluSwitch
-        if XiaoluSwitch.is_switch_open(4):
-            return 0, '提交成功，请等待审核!'            
-
         en.send_envelop()
                           
         return Response({"code": 0, "info": u'提交成功！'})
