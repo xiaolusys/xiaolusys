@@ -44,24 +44,29 @@ class WeixinPush(object):
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
 
+        resp = None
         if mm_openid:
             template_id = template_ids.get('meimei')
-            resp = self.mm_api.sendTemplate(mm_openid, template_id, to_url, template_data)
-        elif temai_openid:
+            if template_id:
+                resp = self.mm_api.sendTemplate(mm_openid, template_id, to_url, template_data)
+                
+        if temai_openid and not resp:
             template_id = template_ids.get('temai')
-            resp = self.temai_api.sendTemplate(temai_openid, template_id, to_url, template_data)
-        else:
-            resp = None
+            if template_id:
+                resp = self.temai_api.sendTemplate(temai_openid, template_id, to_url, template_data)
 
-        logger.info({
-            'action': 'push.weixinpush',
-            'customer': customer.id,
-            'openid': mm_openid or temai_openid,
-            'template_id': json.dumps(template_ids),
-            'to_url': to_url,
-        })
+        if resp:
+            logger.info({
+                'action': 'push.weixinpush',
+                'customer': customer.id,
+                'openid': mm_openid or temai_openid,
+                'template_id': json.dumps(template_ids),
+                'to_url': to_url,
+            })
+            
         return resp
 
+    
     def push_trade_pay_notify(self, saletrade):
         """
         {{first.DATA}}
