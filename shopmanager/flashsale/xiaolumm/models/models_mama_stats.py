@@ -160,9 +160,6 @@ class WeixinPushEvent(BaseModel):
     def gen_invite_fans_notify_unikey(event_type, customer_id, today_invites, date_field):
         return "%s-%s-%s|%s" % (event_type, customer_id, today_invites, date_field)
 
-    @staticmethod
-    def gen_invite_limit_warn_unikey(event_type, customer_id, date_field):
-        return "%s-%s|%s" % (event_type, customer_id, date_field)
 
 def send_weixin_push(sender, instance, created, **kwargs):
     if not created:
