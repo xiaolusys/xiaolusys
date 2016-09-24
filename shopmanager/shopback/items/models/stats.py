@@ -231,7 +231,7 @@ class ProductSkuStats(models.Model):
         })
         return APIModel(**data)
 
-def invalid_apiskustat_cache(sender, instance, raw, *args, **kwargs):
+def invalid_apiskustat_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apiskustat_cache: %s'%instance.sku_id)
         cache.delete(ProductSkuStats.API_CACHE_KEY_TPL.format(instance.sku_id))

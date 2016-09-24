@@ -863,7 +863,7 @@ class Product(models.Model):
         return APIModel(**data)
 
 
-def invalid_apiproduct_cache(sender, instance, raw, *args, **kwargs):
+def invalid_apiproduct_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apiproduct_cache: %s' % instance.id)
         cache.delete(Product.API_CACHE_KEY_TPL.format(instance.id))
@@ -1172,7 +1172,7 @@ class ProductSku(models.Model):
         psku = self.__class__.objects.get(id=self.id)
         self.quantity = psku.quantity
 
-        post_save.send(sender=self.__class__, instance=self, created=False)
+        post_save.send_robust(sender=self.__class__, instance=self, created=False)
 
     def update_wait_post_num(self, num, full_update=False, dec_update=False):
         """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
@@ -1187,7 +1187,7 @@ class ProductSku(models.Model):
         psku = self.__class__.objects.get(id=self.id)
         self.wait_post_num = psku.wait_post_num
 
-        post_save.send(sender=self.__class__, instance=self, created=False)
+        post_save.send_robust(sender=self.__class__, instance=self, created=False)
 
     def update_lock_num(self, num, full_update=False, dec_update=False):
         """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
@@ -1315,7 +1315,7 @@ class ProductSku(models.Model):
         return APIModel(**data)
 
 
-def invalid_apiproductsku_cache(sender, instance, raw, *args, **kwargs):
+def invalid_apiproductsku_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apiproductsku_cache: %s' % instance.id)
         from .stats import ProductSkuStats
