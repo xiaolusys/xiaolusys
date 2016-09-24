@@ -289,7 +289,7 @@ def create_push_event_invite_fans(mama_id, date_field):
         return
 
     now = datetime.datetime.now()
-    tid = WeixinPushEvent.TEMPLAET_INVITE_FANS_ID
+    tid = WeixinPushEvent.TEMPLATE_INVITE_FANS_ID
     header = u"Great! 又一位好友扫描二维码成为你的粉丝！"
     footer = u"加油哦！粉丝很快就过千啦！"
     params = {'first': {'value':header, 'color':"#394359"},
