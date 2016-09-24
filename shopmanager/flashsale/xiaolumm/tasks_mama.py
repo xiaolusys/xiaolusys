@@ -378,7 +378,7 @@ def get_self_mama(unionid, created_time):
                                            status=XiaoluMama.EFFECT,
                                            charge_status=XiaoluMama.CHARGED,
                                            charge_time__lte=created_time).first()
-        if record and isinstance(record.renew_time, datetime.datetime) and record.renew_time > datetime.datetime.now():
+        if record and isinstance(record.renew_time, datetime.datetime) and record.renew_time < datetime.datetime.now():
             return None  # 过期了返回None
         return record
     return None
