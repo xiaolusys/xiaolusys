@@ -326,13 +326,13 @@ def task_register_code(mobile, send_type="1"):
     try:
         register_v = Register.objects.filter(vmobile=mobile).order_by('-modified')[0]
         if send_type == "1":
-            content = u"验证码：" + register_v.verify_code + "，请在注册页面输入完成验证。如非本人操作请忽略。【小鹿美美】"
+            content = u"验证码：" + register_v.verify_code + "，请在注册页面输入完成验证。如非本人操作请忽略。"
         elif send_type == "2":
-            content = u"验证码：" + register_v.verify_code + "，请即时输入并重置密码，为保证您的账户安全，请勿外泄。如有疑问请致电400-823-5355【小鹿美美】"
+            content = u"验证码：" + register_v.verify_code + "，请即时输入并重置密码，为保证您的账户安全，请勿外泄。如有疑问请致电400-823-5355"
         elif send_type == "3":
-            content = u"验证码：" + register_v.verify_code + "，请在手机验证页面输入校验。如非本人操作请忽略。【小鹿美美】"
+            content = u"验证码：" + register_v.verify_code + "，请在手机验证页面输入校验。如非本人操作请忽略。"
         elif send_type == "4":
-            content = u"验证码：" + register_v.verify_code + "，请在提现页面输入校验。如非本人操作请忽略。【小鹿美美】"
+            content = u"验证码：" + register_v.verify_code + "，请在提现页面输入校验。如非本人操作请忽略。"
 
         if not content:
             return
