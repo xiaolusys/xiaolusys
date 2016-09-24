@@ -372,12 +372,14 @@ def task_update_group_awardcarry(relationship):
     award_carry.save()
 
 
-
-
-
 def get_self_mama(unionid, created_time):
     if created_time:
-        record = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, charge_time__lte=created_time).first()
+        record = XiaoluMama.objects.filter(openid=unionid,
+                                           status=XiaoluMama.EFFECT,
+                                           charge_status=XiaoluMama.CHARGED,
+                                           charge_time__lte=created_time).first()
+        if record and isinstance(record.renew_time, datetime.datetime) and record.renew_time > datetime.datetime.now():
+            return None  # 过期了返回None
         return record
     return None
 
@@ -399,16 +401,6 @@ def task_order_trigger(sale_order):
     via_app = sale_order.sale_trade.is_paid_via_app()
     if self_mama:
         mm_linkid_mama = self_mama
-        if isinstance(mm_linkid_mama.renew_time,
-                      datetime.datetime) and mm_linkid_mama.renew_time < datetime.datetime.now():
-            # 如果订单是代理自己购买的　并且这个代理已经过期　则计算为代理的推荐人提成
-            referal_ship = ReferalRelationship.objects.filter(referal_to_mama_id=mm_linkid_mama.id,
-                                                              status=ReferalRelationship.VALID).first()
-            if referal_ship:
-                mm_linkid_mama = XiaoluMama.objects.filter(id=referal_ship.referal_from_mama_id,
-                                                           status=XiaoluMama.EFFECT,
-                                                           charge_status=XiaoluMama.CHARGED,
-                                                           charge_time__lte=sale_order.created).first()
     else:
         # customer itself is not a xiaolumama, then check
         # 1) if customer is a fan of a mama and the order is paid via app; or
