@@ -360,6 +360,11 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         }
         return Response(data)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = serializers.RetrieveSaleProductSerializer(instance)
+        return Response(serializer.data)
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.exclude(status=SaleProduct.REJECTED)  # 排除淘汰的产品

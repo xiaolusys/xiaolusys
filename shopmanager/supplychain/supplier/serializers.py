@@ -13,6 +13,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 from django.db.models import Count
+from flashsale.pay.models import ModelProduct
 
 
 class JSONParseField(serializers.Field):
@@ -287,6 +288,39 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
             return False
         schedule = SaleProductManage.objects.get(id=schedule_id)
         return obj.id in schedule.get_sale_product_ids()
+
+
+class ModelProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelProduct
+        fields = (
+            'id',
+            'is_onsale',
+            'is_teambuy',
+            'is_recommend',
+            'is_topic',
+            'teambuy_price',
+            'teambuy_person_num',
+            'status',
+            'extras',
+            "onshelf_time",
+            "offshelf_time"
+        )
+
+
+class RetrieveSaleProductSerializer(serializers.ModelSerializer):
+    sale_supplier = SaleSupplierSimpleSerializer(read_only=True)
+    sale_category = SaleCategorySerializer(read_only=True)
+    status = StatusField()
+    contactor = serializers.CharField(source='contactor.username', read_only=True)
+    model = ModelProductSerializer(source='model_product', read_only=True)
+
+    class Meta:
+        model = SaleProduct
+        fields = (
+            'id', 'title', 'product_link', 'price', 'pic_url', 'sale_price', 'on_sale_price',
+            'std_sale_price', 'status', 'sale_category', 'sale_supplier', 'contactor', 'platform', 'status',
+            'supplier_sku', 'remain_num', 'sku_extras', 'model', 'memo', 'created', 'modified')
 
 
 class ModifySaleProductSerializer(serializers.ModelSerializer):
