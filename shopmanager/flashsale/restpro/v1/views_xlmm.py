@@ -875,7 +875,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         if count > 0:
             return Response({"code": 1, "info": u"由于微信提现请求繁忙，网页提现仅限首次使用，下载APP登录即可多次提现！"})
 
-        return self.no_audit_cashout(request)
+        return self.noaudit_cashout(request)
         
                 
     @list_route(methods=['post', 'get'])

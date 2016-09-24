@@ -270,6 +270,39 @@ def get_max_today_fans_invites(mama_id):
     return 20
 
 
+def create_push_event_invite_fans(mama_id, date_field):
+    mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT).first()
+    if not mama:
+        return
+    
+    customer = Customer.objects.filter(unionid=mama.unionid, status=Customer.NORMAL).first()
+    if not customer:
+        return
+    
+    customer_id = customer.id 
+    
+    event_type = WeixinPushEvent.INVITE_LIMIT_WARN
+    uni_key = WeixinPushEvent.gen_invite_limit_warn_unikey(event_type, customer_id, date_field)
+    event = WeixinPushEvent.objects.filter(uni_key=uni_key).first()
+    if event:
+        return
+
+    now = datetime.datetime.now()
+    tid = WeixinPushEvent.TEMPLAET_INVITE_FANS_ID
+    header = u"Great! 又一位好友扫描二维码成为你的粉丝！"
+    footer = u"加油哦！粉丝很快就过千啦！"
+    params = {'first': {'value':header, 'color':"#394359"},
+              'keyword1': {'value':customer_id, 'color':'#394359'},
+              'keyword2': {'value':now.strftime('%Y-%m-%d %H:%M:%S'), 'color':'#394359'},
+              'remark': {'value':footer, 'color':'#394359'}}
+    
+    to_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html'
+    event = WeixinPushEvent(customer_id=customer_id,mama_id=mama_id,uni_key=uni_key,tid=tid,
+                            event_type=event_type,date_field=date_field,params=params,to_url=to_url)
+    event.save()
+    
+
+    
 @task(max_retries=3, default_retry_delay=5)
 def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unionid):
     carry_num = 30
@@ -280,11 +313,11 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
     
     date_field = datetime.date.today()
     today_invites = AwardCarry.objects.filter(mama_id=mama_id,carry_type=carry_type,date_field=date_field).count()
-    if today_invites * 0.75 > max_today_fans_invites:
+    if today_invites * 0.6 > max_today_fans_invites:
         # 应该发送微信推送，告知当日最大邀请数:
         # 亲爱的xxx，你的每日二维码推广只能新增x名好友，超过将不能再得奖励，请知悉哦！详情请联系app客服MM咨询。
         # 注意，发过一次就不能再发了（需要uni_key)
-        pass
+        create_push_event_invite_fans(mama_id, date_field)
     
     if today_invites > max_today_fans_invites:
         return
