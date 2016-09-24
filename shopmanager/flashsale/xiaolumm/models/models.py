@@ -571,6 +571,10 @@ class XiaoluMama(models.Model):
         return self._mama_customer_
 
     @property
+    def unionid(self):
+        return self.openid
+    
+    @property
     def customer_id(self):
         from flashsale.pay.models import Customer
         c = Customer.objects.filter(unionid=self.openid).first()

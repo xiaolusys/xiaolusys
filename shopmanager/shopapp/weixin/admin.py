@@ -72,7 +72,7 @@ admin.site.register(WeixinUserInfo, WeixinUserInfoAdmin)
 
 
 class WeixinTemplateMsg(admin.ModelAdmin):
-    list_display = ('wx_template_id', 'header', 'footer', 'content', 'status')
+    list_display = ('wx_template_id', 'template_ids', 'header', 'footer', 'content', 'status', 'modified', 'created')
 
 admin.site.register(WeixinTplMsg, WeixinTemplateMsg)
 

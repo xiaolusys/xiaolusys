@@ -2,6 +2,9 @@
 from core.models import BaseModel
 from flashsale.xiaolumm.models import MamaDailyAppVisit
 from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.pay.models import Customer
+
+from core.fields import JSONCharMyField
 
 from django.db import models
 from django.db.models import Sum
@@ -112,3 +115,61 @@ def mama_daily_tab_visit_stats(sender, instance, created, **kwargs):
 
 post_save.connect(mama_daily_tab_visit_stats,
                   sender=MamaDailyTabVisit, dispatch_uid='post_save_mama_daily_tab_visit_stats')
+
+
+class WeixinPushEvent(BaseModel):
+    INVITE_LIMIT_WARN = 0
+    INVITE_FANS_NOTIFY = 1
+    INVITE_AWARD_INIT = 2
+    INVITE_AWARD_FINAL = 3
+    ORDER_CARRY_INIT = 4
+    EVENT_TYPES = ((INVITE_LIMIT_WARN, u'邀请上限通知'), (INVITE_AWARD_INIT, u'邀请奖励生成'), (INVITE_AWARD_FINAL, u'邀请奖励确定'),)
+
+    TEMPLATE_INVITE_FANS_ID = 7
+    TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),)
+    
+    customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者用户id')
+    mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者妈妈id')
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    tid = models.IntegerField(default=0, choices=TEMPLATE_IDS, verbose_name=u'消息模版ID')
+    event_type = models.IntegerField(default=0, choices=EVENT_TYPES, db_index=True, verbose_name=u'事件类型')
+    date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
+    params = JSONCharMyField(max_length=512, default={}, blank=True, null=True, verbose_name=u"参数信息")
+    to_url = models.CharField(max_length=128, blank=True, verbose_name=u'跳转链接')
+    
+    class Meta:
+        db_table = 'flashsale_xlmm_weixinpushevent'
+        app_label = 'xiaolumm'
+        verbose_name = u'V2/微信推送事件'
+        verbose_name_plural = u'V2/微信推送事件列表'
+
+        
+    @staticmethod
+    def gen_uni_key(customer_id, event_type, date_field):
+        return '%s-%s|%s' % (customer_id, event_type, date_field)
+
+    @classmethod
+    def send_push(cls, customer_id, template_id, ):
+        pass
+
+    def get_effect_customer(self):
+        c = Customer.objects.filter(id=self.customer_id, status=Customer.NORMAL).first()
+        return c
+
+    @staticmethod
+    def gen_invite_fans_notify_unikey(event_type, customer_id, today_invites, date_field):
+        return "%s-%s-%s|%s" % (event_type, customer_id, today_invites, date_field)
+
+    @staticmethod
+    def gen_invite_limit_warn_unikey(event_type, customer_id, date_field):
+        return "%s-%s|%s" % (event_type, customer_id, date_field)
+
+def send_weixin_push(sender, instance, created, **kwargs):
+    if not create:
+        return
+    from shopapp.weixin.weixin_push import WeixinPush
+    wxpush = WeixinPush()
+    wxpush.push_event(instance)
+        
+post_save.connect(send_weixin_push, sender=WeixinPushEvent, dispatch_uid='post_save_weixinpushevent_send_weixin_push')
+
