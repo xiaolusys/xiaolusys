@@ -871,7 +871,7 @@ admin.site.register(MamaAdministrator, MamaAdministratorAdmin)
 
 
 class WeixinPushEventAdmin(admin.ModelAdmin):
-    list_display = ('customer_id', 'mama_id', 'uni_key', 'tid', 'event_type', 'date_field', 'params', 'to_url')
+    list_display = ('customer_id', 'mama_id', 'uni_key', 'tid', 'event_type', 'date_field', 'params', 'to_url', 'modified', 'created')
     list_filter = ('event_type', 'tid', ('created', DateFieldListFilter))
     search_fields = ('customer_id', )
 
