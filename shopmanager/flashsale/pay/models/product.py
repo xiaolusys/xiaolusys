@@ -667,7 +667,7 @@ class ModelProduct(BaseTagModel):
         })
         return APIModel(**data)
 
-def invalid_apimodelproduct_cache(sender, instance, raw, *args, **kwargs):
+def invalid_apimodelproduct_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apimodelproduct_cache: %s' % instance.id)
         cache.delete(ModelProduct.API_CACHE_KEY_TPL.format(instance.id))

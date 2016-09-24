@@ -9,7 +9,7 @@ from django.conf import settings
 from common.utils import update_model_fields, replace_utf8mb4
 from core.weixin import options
 from shopapp.weixin.models import WeiXinUser, WXOrder, WXProduct, WXProductSku, WXLogistic, WeixinUnionID
-from shopapp.weixin.weixin_apis import WeiXinAPI, WeiXinRequestException
+from shopapp.weixin.weixin_apis import WeiXinAPI, WeiXinRequestException, WeiXinAccount
 from shopback.items.models import Product, ItemNumTaskLog
 
 import logging
@@ -366,11 +366,7 @@ def task_snsauth_update_weixin_userinfo(userinfo, app_key):
 
 @task(max_retries=3, default_retry_delay=60)
 def task_refresh_weixin_access_token():
-    appkeys = [
-       settings.WXPAY_APPID,
-       settings.WEIXIN_APPID,
-    ]
-
+    appkeys = WeiXinAccount.objects.filter(is_active=True).values_list('appkey', flat=True)
     wx_api = WeiXinAPI()
     for appkey in appkeys:
         try:
