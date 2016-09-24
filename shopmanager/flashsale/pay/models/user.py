@@ -453,6 +453,10 @@ class UserBudget(PayBaseModel):
         elif cash_out_amount > self.amount:
             return 2, '提现金额大于账户余额'
 
+        from shopback.monitor.models import XiaoluSwitch
+        if XiaoluSwitch.is_switch_open(4):
+            return 11, '系统维护中，提现功能暂时关闭!'            
+
         try:
             if not self.user.unionid:
                 return 5, '提现请先关注公众号［小鹿美美］'
@@ -496,10 +500,6 @@ class UserBudget(PayBaseModel):
             description=description,
             referal_id=budgetlog.id
         )
-
-        from shopback.monitor.models import XiaoluSwitch
-        if XiaoluSwitch.is_switch_open(4):
-            return 0, '提交成功，请等待审核!'            
 
         # 通过微信公众号小额提现，直接发红包，无需审核，一天限制2次
         if cash_out_amount <= audit_cashout_amount and cash_out_amount >= min_cashout_amount:
