@@ -473,7 +473,9 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
         if not saleproduct:
             raise exceptions.APIException(u"选品ID错误!")
-
+        content_imgs = content.get('content_imgs') or ''
+        if isinstance(content_imgs, list):
+            request.data.update({'content_imgs': '\n'.join(content_imgs)})
         instance = saleproduct.model_product
         partial = kwargs.pop('partial', False)
         extras = self.get_request_extras(request, instance)
