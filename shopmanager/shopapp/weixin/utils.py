@@ -50,7 +50,7 @@ def gen_mama_custom_qrcode_url(mama_id):
 @log_consume_time
 def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
     cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s' % mama_id
-    cache_value = cache.get(cache_key) and None
+    cache_value = cache.get(cache_key)
     if not cache_value:
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache miss: %s' % mama_id)
         thumbnail = userinfo['headimgurl'] or DEFAULT_MAMA_THUMBNAIL
@@ -70,7 +70,7 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
         wx_api.setAccountId(wxpubId=wxpubId)
         response = wx_api.upload_media(media_stream)
         cache_value = response['media_id']
-        cache.set(cache_key, cache_value, 2 * 24 * 3600)
+        cache.set(cache_key, cache_value, 1 * 24 * 3600)
     else:
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache hit: %s' % mama_id)
     return cache_value
@@ -160,7 +160,7 @@ def generate_colorful_qrcode(params):
     if not cache_value:
         resp = requests.get(background_url, verify=False)
         bg_img = Image.open(StringIO.StringIO(resp.content))
-        cache.set(cache_key, resp.content, 2*3600)
+        cache.set(cache_key, resp.content, 24*3600)
     else:
         bg_img = Image.open(StringIO.StringIO(cache_value))
     bg_width, bg_height = bg_img.size
