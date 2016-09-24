@@ -8,6 +8,7 @@ from django.db.models import Sum
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
+from django.core.cache import cache
 
 from rest_framework import permissions, viewsets
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -71,6 +72,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         from flashsale.dinghuo.models import OrderList
         from flashsale.pay.models import SaleOrder, SaleTrade
         from flashsale.pay.models import SaleRefund
+        from flashsale.pay.models.product import ModelProduct
         from shopback.trades.models import MergeOrder
         from shopback import paramconfig as pcfg
 
@@ -79,19 +81,6 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         type_ = int(request.GET.get('type') or 0)
         if not type_:
             return Response({'error': '类型错误'})
-
-        color = [
-            '#1abc9c',
-            '#3498db,',
-            '#34495e',
-            '#9b59b6',
-            '#34495e',
-            '#f1c40f',
-            '#e67e22',
-            '#e74c3c',
-            '#ecf0f1',
-            '#95a5a6'
-        ]
 
         data = None
         now = datetime.datetime.now()
@@ -139,7 +128,22 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_ss_delay = q.filter(pay_time__lte=threshold3).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         elif type_ == 6:
-            data = {'n_total': '', 'n_delay': '', 'n_s_delay': 'xxx', 'n_ss_delay': 'kkk', 'bgcolor': random.choice(color)}
+            cache_key = 'tongji_product_sellout'
+            cache_value = cache.get(cache_key)
+            if not cache_value:
+                modelproducts = ModelProduct.objects.filter(shelf_status=ModelProduct.ON_SHELF)
+                model_ids = []
+                for item in modelproducts:
+                    if item.is_sale_out:
+                        model_ids.append(item.id)
+
+                data = {
+                    'n_total': '', 'n_delay': '',
+                    'n_s_delay': ','.join(map(str, model_ids[:5])), 'n_ss_delay': len(model_ids)
+                }
+                cache.set(cache_key, data, 3600)
+            else:
+                data = cache_value
         if data:
             return Response(data)
         return Response({'error': '参数错误'})
