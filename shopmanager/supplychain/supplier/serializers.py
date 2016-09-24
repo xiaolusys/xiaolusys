@@ -295,6 +295,8 @@ class ModelProductSerializer(serializers.ModelSerializer):
         model = ModelProduct
         fields = (
             'id',
+            'head_imgs',
+            'content_imgs',
             'is_onsale',
             'is_teambuy',
             'is_recommend',
@@ -314,6 +316,7 @@ class RetrieveSaleProductSerializer(serializers.ModelSerializer):
     status = StatusField()
     contactor = serializers.CharField(source='contactor.username', read_only=True)
     model = ModelProductSerializer(source='model_product', read_only=True)
+    sku_extras = serializers.SerializerMethodField()
 
     class Meta:
         model = SaleProduct
@@ -321,6 +324,9 @@ class RetrieveSaleProductSerializer(serializers.ModelSerializer):
             'id', 'title', 'product_link', 'price', 'pic_url', 'sale_price', 'on_sale_price',
             'std_sale_price', 'status', 'sale_category', 'sale_supplier', 'contactor', 'platform', 'status',
             'supplier_sku', 'remain_num', 'sku_extras', 'model', 'memo', 'created', 'modified')
+
+    def get_sku_extras(self, obj):
+        return obj.sku_extras_info
 
 
 class ModifySaleProductSerializer(serializers.ModelSerializer):

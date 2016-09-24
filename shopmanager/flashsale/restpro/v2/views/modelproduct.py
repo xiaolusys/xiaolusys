@@ -77,7 +77,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
 
     def calc_items_cache_key(self, view_instance, view_method,
                              request, args, kwargs):
-        key_vals = ['order_by', 'id', 'pk', 'model_id', 'cid', 'days', 'page', 'page_size']
+        key_vals = ['order_by', 'id', 'pk', 'model_id', 'cid', 'days', 'page', 'page_size', 'modelId']
         key_maps = kwargs or {}
         for k, v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
@@ -209,6 +209,7 @@ class ModelProductV2ViewSet(viewsets.ReadOnlyModelViewSet):
         tomorrow_dt = self.get_lastest_date(datetime.date.today() + datetime.timedelta(days=1), predict=True)
         return self.get_pagination_response_by_date(request, tomorrow_dt, only_onshelf=False)
 
+    @cache_response(timeout=CACHE_VIEW_TIMEOUT, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def get_headimg(self, request, *args, **kwargs):
         """ 查询头图接口 """

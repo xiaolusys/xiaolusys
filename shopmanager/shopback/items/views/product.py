@@ -479,7 +479,6 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         extras = self.get_request_extras(request, instance)
 
         request.data.update({'name': saleproduct.title})
-        request.data.update({'head_imgs': saleproduct.pic_url})
 
         request.data.update({'extras': extras})
         request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）

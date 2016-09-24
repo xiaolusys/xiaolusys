@@ -160,6 +160,7 @@ class ModelProductUpdateSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'head_imgs',
+            'content_imgs',
             'salecategory',
             'saleproduct',
             'extras',
