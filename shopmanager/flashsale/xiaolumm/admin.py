@@ -24,7 +24,8 @@ from flashsale.xiaolumm.models import (
     MamaMission,
     MamaMissionRecord,
     RankActivity,
-    MamaAdministrator
+    MamaAdministrator,
+    WeixinPushEvent
 )
 from flashsale.xiaolumm.models.message import XlmmMessage, XlmmMessageRel
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
@@ -869,3 +870,9 @@ class MamaAdministratorAdmin(ApproxAdmin):
 admin.site.register(MamaAdministrator, MamaAdministratorAdmin)
 
 
+class WeixinPushEventAdmin(admin.ModelAdmin):
+    list_display = ('customer_id', 'mama_id', 'uni_key', 'tid', 'event_type', 'date_field', 'params', 'to_url')
+    list_filter = ('event_type', 'tid', ('created', DateFieldListFilter))
+    search_fields = ('customer_id', )
+
+admin.site.register(WeixinPushEvent, WeixinPushEventAdmin)
