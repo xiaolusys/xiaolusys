@@ -533,6 +533,6 @@ class WeixinPush(object):
         template_data = event_instance.params
         to_url = event_instance.to_url
         
-        return self.push(referal_customer, template_ids, template_data, to_url)
+        return self.push(customer, template_ids, template_data, to_url)
 
     
