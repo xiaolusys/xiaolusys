@@ -799,8 +799,14 @@ class Product(models.Model):
         saleproduct = model_pro.saleproduct
         skus_list = saleproduct.sku_extras
         cls.handle_delete_sku(model_pro, skus_list)  # 处理删除的sku
-        colors = [x['color'] for x in skus_list]
-        colors = set(colors)    # 防止颜色重复
+        colors = set()    # 防止颜色重复
+        products_list = []
+        for x in skus_list:
+            if x['color'] in colors:
+                continue
+            products_list.append({'name': x['color'], 'pic_path': x.get('pic_path')})
+            colors.add(x['color'])
+
         pro_count = 1
 
         supplier = saleproduct.sale_supplier
@@ -809,12 +815,12 @@ class Product(models.Model):
         inner_outer_id = cls.get_inner_outer_id(supplier, product_category)
         if not inner_outer_id:
             raise Exception(u'编码出错!!')
-        for color in colors:
+        for pro in products_list:
             if (pro_count % 10) == 1 and pro_count > 1:  # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
                 pro_count += 1
             outer_id = inner_outer_id + str(pro_count)
-            kwargs = {'name': color.strip(),
-                      'pic_path': model_pro.head_img_url,
+            kwargs = {'name': pro['name'],
+                      'pic_path': pro['pic_path'],
                       'outer_id': outer_id,
                       'model_id': model_pro.id,
                       'sale_charger': creator.username,
@@ -825,7 +831,7 @@ class Product(models.Model):
             pro_count += 1
             color_skus = []
             for sku in skus_list:
-                if sku['color'] == color:
+                if sku['color'] == pro['name']:
                     color_skus.append(sku)
             count = 1
             product_skus_list = []
