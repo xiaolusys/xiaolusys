@@ -191,8 +191,8 @@ def task_update_mamafortune_mama_level(relationship):
     from flashsale.xiaolumm.models import XiaoluMama
     from_mama_id = relationship.referal_from_grandma_id
     
-    invite_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count() + 1
-    group_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF, created__lt=relationship.created).count()
+    invite_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).count()
+    group_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).exclude(referal_to_mama_id=relationship.referal_to_mama_id).count()
     total = invite_num + group_num + 1
 
     level = 0

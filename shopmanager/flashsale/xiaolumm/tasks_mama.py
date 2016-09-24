@@ -322,8 +322,8 @@ def task_update_group_awardcarry(relationship):
         status = 2  # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
 
-    direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).exclude(referal_to_mama_id=to_mama_id).count()
-    group_referal_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).count()
+    direct_referal_num = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).count()
+    group_referal_num = ReferalRelationship.objects.filter(referal_from_grandma_id=from_mama_id, referal_type__gte=XiaoluMama.HALF).exclude(referal_to_mama_id=to_mama_id).count()
     group_num = direct_referal_num + group_referal_num + 1
     carry_num = utils.get_group_carry_num(group_num)
 
