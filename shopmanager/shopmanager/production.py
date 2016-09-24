@@ -13,8 +13,8 @@ ORMCACHE_ENABLE = True # ORMCACHE SWITCH
 INGORE_SIGNAL_EXCEPTION = True # signal异常捕获而且不再抛出
 APP_PUSH_SWITCH = True  # APP推送开关
 SMS_PUSH_SWITCH = True  # 短信推送开关
-WEIXIN_PUSH_SWITCH = False  # 微信推送开关
-MAMA_MISSION_PUSH_SWITCH = False  # 妈妈周激励推送开关
+WEIXIN_PUSH_SWITCH = True  # 微信推送开关
+MAMA_MISSION_PUSH_SWITCH = True  # 妈妈周激励推送开关
 
 
 STATICFILES_DIRS = (
