@@ -1,5 +1,6 @@
 # coding:utf-8
 import logging
+from collections import OrderedDict
 
 from django.core.urlresolvers import reverse
 from django.db import transaction
@@ -40,7 +41,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
         firstgrade_cat = saleproduct and saleproduct.sale_category.get_firstgrade_category()
         # if firstgrade_cat and (str(firstgrade_cat.cid)).startswith(constants.CATEGORY_HEALTH):
-        #     return redirect(reverse('items_v1:modelproduct-health') + '?supplier_id=%s&saleproduct=%s' %(supplier_id, saleproduct_id))
+        # return redirect(reverse('items_v1:modelproduct-health') + '?supplier_id=%s&saleproduct=%s' %(supplier_id, saleproduct_id))
         # elif saleproduct.sale_category and saleproduct.sale_category.cid.startswith(constants.CATEGORY_TRUNK):
         #     return redirect(reverse('items_v1:modelproduct-cloth') + '?supplier_id=%s&saleproduct=%s' %(supplier_id, saleproduct_id))
         # elif firstgrade_cat and (str(firstgrade_cat.cid)).startswith((constants.CATEGORY_BAGS, constants.CATEGORY_MEIZUANG)):
@@ -70,7 +71,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-            },
+        },
             template_name='items/add_item_cloth.html'
         )
 
@@ -83,7 +84,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-            },
+        },
             template_name='items/add_item_health.html'
         )
 
@@ -96,7 +97,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-            },
+        },
             template_name='items/add_item_bags.html'
         )
 
@@ -109,7 +110,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-            },
+        },
             template_name='items/add_item_muying.html'
         )
 
@@ -122,7 +123,7 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         return Response({
             "supplier": SaleSupplier.objects.filter(id=supplier_id).first(),
             "saleproduct": SaleProduct.objects.filter(id=saleproduct_id).first()
-            },
+        },
             template_name='items/add_item_homehold.html'
         )
 
@@ -375,12 +376,36 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         extras.setdefault('new_properties', [])
         properties = extras.get('new_properties')
         model_properties = content.get('new_properties') or None
+
+        s, contrast = [], []  # 尺码对照参数  尺码表
+        for xx in model_properties:
+            if xx.get('name') == '尺码对照参数':
+                s = xx['value']
+            if xx.get('name') == '尺码表':
+                contrast = xx['value']  # 尺码参照表list
+
+        def f_sort_contrast(dic, s):
+            """ 按照　尺码对照参数　的列表排序 """
+            tmp = []
+            for x in s:
+                tmp.append((x, dic[x]))
+            return tmp
+
+        order_contrast = []
+        for i in contrast:
+            tmp = f_sort_contrast(i, s)
+            order_contrast.append(OrderedDict(tmp))  # 转成有序字典
+
         if isinstance(model_properties, list):
             model_properties_d = dict([(tt['name'], tt['value']) for tt in model_properties])
             old_properties_d = dict(
                 [(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
             old_properties_d.update(model_properties_d)
             properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
+
+        for xxx in properties:
+            if xxx.get('name') == '尺码表':
+                xxx['value'] = order_contrast   # 保存尺码表有序字典
         extras.update({'new_properties': properties})
         return extras
 
@@ -417,7 +442,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         partial = kwargs.pop('partial', False)
-        extras = self.get_request_extras(request)
+        extras = self.get_request_extras(request, instance)
         request.data.update({'extras': extras})
         request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）
         request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
