@@ -306,46 +306,70 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
     - [/apis/items/v2/product](/apis/items/v2/product)
         * method: POST  新增款式
         * args:
-            1. `name` : 款式名称   例如： "这是件羊毛衫"
-            2. `head_imgs` : 款式头图  例如： "https://cbu01.alicdn.com/img/ibank/2016/741/035/2956530147_1742364862.400x400.jpg"
-            3. `saleproduct_id` : 选品id 例如： 537161
-            4. `is_teambuy` : 是否团购 例如： true
-            5. `teambuy_price` : 团购价格  例如： 23.3
-            6. `teambuy_person_num` : 团购人数 默认为3
-            7. `status` : 使用状态 (正常: "normal" /作废: "delete")
-            8. `properties`:[
-                            {"name": "材质", "value": "牛皮"},
-                                {"name": "洗涤说明", "value": "温水擦拭"},
-                                {"name": "产品备注", "value": "10岁以上穿着"}
-                            ]
-        * method: GET 款式列表
+            1. `saleproduct_id`: 选品id
+            2. `is_onsale: 是否秒杀
+            3. `is_teambuy` : 是否团购 例如： true
+            4. `teambuy_price` : 团购价格  例如： 23.3
+            5. `teambuy_person_num` : 团购人数 默认为3
+            6. `status` : 使用状态 (正常: "normal" /作废: "delete")
+            7. `is_recommend` : 是否是推荐商品
+            7. `new_properties`:"new_properties": [
+                                                    {
+                                                        "name": "材质",
+                                                        "value": "牛皮"
+                                                    },
+                                                    {
+                                                        "name": "产品备注",
+                                                        "value": "10岁以上穿着"
+                                                    },
+                                                    {
+                                                        "name": "可选颜色",
+                                                        "value": "黑色,绿色,红色,蓝色"
+                                                    },
+                                                    {
+                                                        "name": "洗涤说明",
+                                                        "value": "温水擦拭"
+                                                    },
+                                                    {
+                                                        "name": "尺码表",
+                                                        "value": [
+                                                            {
+                                                                "尺码": "L",
+                                                                "衣长": "35",
+                                                                "肩宽": "36",
+                                                                "胸围": "37",
+                                                                "袖长": "38",
+                                                                "建议体重": "39",
+                                                                "建议身高": "40"
+                                                            },
+                                                            {
+                                                                "尺码": "M",
+                                                                "衣长": "41",
+                                                                "肩宽": "42",
+                                                                "胸围": "43",
+                                                                "袖长": "44",
+                                                                "建议体重": "45",
+                                                                "建议身高": "46"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "name": "尺码对照参数",
+                                                        "value": [
+                                                           "尺码",
+                                                            "衣长",
+                                                            "肩宽",
+                                                            "胸围",
+                                                            "袖长",
+                                                            "建议体重",
+                                                            "建议身高"
+                                                        ]
+                                                    }
+                                                ]
     -------
-    - [/apis/items/v2/product/19922](/apis/items/v2/product/19922)
+    - [/apis/items/v2/product/update_product_details]()
         * method: PATCH  修改指定款式id的款式
-        * args:
-            1. `name` :  款式名称
-            2. `head_imgs` :  头图
-            3. `properties`:[
-                {"name": "材质", "value": "牛皮"},
-                {"name": "洗涤说明", "value": "温水擦拭"},
-                {"name": "产品备注", "value": "10岁以上穿着"}]` : 额外字段
-            4. `is_teambuy` : 是否团购
-            5. `teambuy_price` : 团购价格
-            6. `teambuy_person_num` : 团购人数
-            7. `status` : 状态
-    ------
-    - [/apis/items/v2/product/19922/update_sku](/apis/items/v2/product/19922/update_sku)
-        * method: POST 修改指定款式的sku信息
-        * args:
-            1. `color_id`:55612, 颜色级id
-            2. `sku_id`:222404, sku id
-            3. `color`: "茶色",  颜色级
-            4. `remain_num`: 3  预留数量
-            5. `cost`: 15, 成本价格
-            6. `std_sale_price`: 150  吊牌价
-            7. `agent_price`: 10  售价
-            8. `properties_name`: "XLL"  线上规格名称
-            9. `properties_alias`: "XLL"  系统规格名称
+        * args:　同 POST 方法
     """
     queryset = ModelProduct.objects.all()
     serializer_class = serializers.ModelProductSerializer
@@ -424,6 +448,9 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         if ModelProduct.objects.filter(saleproduct=saleproduct).exists():
             raise exceptions.APIException(u'商品信息添加出错!')
         extras = self.get_request_extras(request)
+        request.data.update({'name': saleproduct.title})
+        request.data.update({'head_imgs': saleproduct.pic_url})
+
         request.data.update({'extras': extras})
         request.data.update({'saleproduct': saleproduct.id})
         request.data.update({'salecategory': saleproduct.sale_category.id})
@@ -439,10 +466,21 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         Product.create_or_update_skus(model_pro, creator)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
+    @list_route(methods=['patch'])
+    def update_product_details(self, request, *args, **kwargs):
+        content = request.data
+        saleproduct_id = content.get("saleproduct_id") or 0
+        saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
+        if not saleproduct:
+            raise exceptions.APIException(u"选品ID错误!")
+
+        instance = saleproduct.model_product
         partial = kwargs.pop('partial', False)
         extras = self.get_request_extras(request, instance)
+
+        request.data.update({'name': saleproduct.title})
+        request.data.update({'head_imgs': saleproduct.pic_url})
+
         request.data.update({'extras': extras})
         request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）
         request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
@@ -451,70 +489,4 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         log_action(request.user, instance, CHANGE, u'修改款式信息')
-        return Response(serializer.data)
-
-    def update_sku(self, request, pk, *args, **kwargs):
-        """ 修改sku信息 """
-        model_pro = self.get_object()
-        product_id = request.data.get('color_id') or 0
-        product_sku_id = request.data.get('sku_id') or 0
-        product = model_pro.products.filter(id=product_id).first()
-        if not product:
-            raise exceptions.APIException(u'产品没有找到哦!')
-        product_sku = product.pskus.filter(id=product_sku_id).first()
-        if not product_sku:
-            raise exceptions.APIException(u'sku没有找到！')
-        color = request.data.get('color') or None
-        if color:
-            product.update_name(color)
-        partial = kwargs.pop('partial', False)
-        request.data.update({'product': product.id})
-        request.data.update({'outer_id': product_sku.outer_id})
-        serializer = serializers.ProductSkuUpdateSerializer(product_sku, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        serializer = self.get_serializer(model_pro)
-        log_action(request.user, model_pro, CHANGE, u'修改sku信息')
-        self.set_model_pro(model_pro)
-        return Response(serializer.data)
-
-    def create_skucontrast(self, request):
-        """
-        添加尺码参照
-        """
-        content = request.data
-        saleproduct_id = content.get("saleproduct_id") or 0
-        saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
-        if not saleproduct:
-            raise exceptions.APIException(u"选品ID错误!")
-        md = saleproduct.model_product
-        if not md:
-            raise exceptions.APIException(u'款式没有找到呢!')
-
-        request.data.update({'modelproduct': md.id})
-        serializer = serializers.ModelProductSkuContrastSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        instance = serializers.ModelProductSkuContrastSerializer.Meta.model.objects.get(id=serializer.data.get('id'))
-        log_action(request.user, instance, CHANGE, u'添加尺码表信息')
-        return Response(serializer.data)
-
-    def update_skucontrast(self, request):
-        """
-        修改尺码参照
-        """
-        content = request.data
-        saleproduct_id = content.get("saleproduct_id") or 0
-        saleproduct = SaleProduct.objects.filter(id=saleproduct_id).first()
-        if not saleproduct:
-            raise exceptions.APIException(u"选品ID错误!")
-        md = saleproduct.model_product
-        if not md:
-            raise exceptions.APIException(u'没有找到款式,无法修改!')
-
-        instance = serializers.ModelProductSkuContrastSerializer.Meta.model.objects.get(modelproduct=md)
-        serializer = serializers.ModelProductSkuContrastSerializer(instance=md, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        log_action(request.user, instance, CHANGE, u'修改尺码表信息')
         return Response(serializer.data)
