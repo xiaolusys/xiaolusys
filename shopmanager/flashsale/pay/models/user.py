@@ -577,7 +577,7 @@ class BudgetLog(PayBaseModel):
         from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
         CASHOUT_NUM_LIMIT = CashOutPolicyView.DAILY_CASHOUT_TRIES
         budget_date = datetime.date.today()
-        cnt = cls.objects.filter(customer_id=customer_id, budget_type=cls.BUDGET_OUT, budget_date=budget_date).exclude(status=cls.CANCELED).count()
+        cnt = cls.objects.filter(customer_id=customer_id, budget_type=cls.BUDGET_OUT, budget_log_type=cls.BG_CASHOUT, budget_date=budget_date).exclude(status=cls.CANCELED).count()
         if cnt < CASHOUT_NUM_LIMIT and cnt >= 0:
             return False
         return True
