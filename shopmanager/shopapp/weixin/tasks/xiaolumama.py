@@ -321,6 +321,7 @@ def task_weixinfans_create_fans_awardcarry(referal_from_mama_id, referal_to_unio
     date_field = datetime.date.today()
     today_invites = AwardCarry.objects.filter(mama_id=mama_id,carry_type=carry_type,date_field=date_field).count() + 1        
     
+    max_today_fans_invites = get_max_today_fans_invites(mama_id)
     if today_invites > max_today_fans_invites:
         return
     
