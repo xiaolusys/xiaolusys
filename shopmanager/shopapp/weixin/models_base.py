@@ -26,6 +26,20 @@ class WeixinUnionID(BaseModel):
     def __unicode__(self):
         return u'<%s>' % self.openid
 
+    @classmethod
+    def get_unionid_by_openid(cls, openid, appkey):
+        wxunoinids = cls.objects.filter(openid=openid, app_key=appkey)
+        if wxunoinids.exists():
+            return wxunoinids[0].unionid
+        return ''
+
+    @classmethod
+    def get_openid_by_unionid(cls, unionid, appkey):
+        wxunoinids = cls.objects.filter(unionid=unionid, app_key=appkey)
+        if wxunoinids.exists():
+            return wxunoinids[0].openid
+        return ''
+
 
 class WeixinFans(BaseModel):
     openid = models.CharField(max_length=32, verbose_name=u'OPENID')

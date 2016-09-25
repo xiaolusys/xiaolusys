@@ -100,8 +100,8 @@ REST_FRAMEWORK.update({
 
 ######################## WEIXIN CONFIG ########################
 # 小鹿美美特卖
-WEIXIN_APPID = 'wxc2848fa1e1aa94b5'
 WEIXIN_SECRET = 'bc41b3a535b095afc55cd40d2e808d9c'
+WEIXIN_APPID = 'wxc2848fa1e1aa94b5'
 
 # 小鹿美美
 WXPAY_APPID = "wx3f91056a2928ad2d"

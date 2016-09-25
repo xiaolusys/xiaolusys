@@ -22,6 +22,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.models import WeixinUnionID
 from shopapp.weixin.models_base import WeixinFans
 from .weixin_apis import WeiXinAPI
+from .utils import fetch_wxpub_mama_manager_qrcode_media_id
 from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
 from shopback.logistics.models import LogisticsCompany
@@ -142,18 +143,43 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
         if eventKey == 'MAMA_REFERAL_QRCODE' or \
            event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
            event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
+            wx_api = WeiXinAPI(wxpubId=wxpubId)
+            unionid = WeixinUnionID.get_unionid_by_openid(openid, wx_api.getAppKey())
+            xiaolumama = XiaoluMama.objects.filter(openid=unionid).first()
+            if xiaolumama:
+                cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s_%s' % (wxpubId, xiaolumama.id)
+                cache_value = cache.get(cache_key)
+                if cache_value:
+                    return ret_params.update({
+                        'MsgType': WeiXinAutoResponse.WX_IMAGE,
+                        'Image': {
+                            'MediaId': cache_value
+                        }
+                    })
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u"么么哒\n个人店主招募活动即将开始，敬请关注！\n点击直达商城: m.xiaolumeimei.com/mall/ \n##小鹿美美##\n-- 最专业的分享电商平台!\n"
+                'Content': u"么么哒\n欢迎申请加入小鹿妈妈，您的开店二维码正在创建中，请5秒后再次查看菜单[开店二维码]获取，谢谢配合！"
                 #u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
             })
 
         if eventKey == 'MAMA_MANAGER_QRCODE':
+            wx_api = WeiXinAPI(wxpubId=wxpubId)
+            unionid = WeixinUnionID.get_unionid_by_openid(openid, wx_api.getAppKey())
+            xiaolumama = XiaoluMama.objects.filter(openid=unionid).first()
+            if xiaolumama:
+                cache_value = fetch_wxpub_mama_manager_qrcode_media_id(xiaolumama.id, wxpubId)
+                if cache_value:
+                    return ret_params.update({
+                        'MsgType': WeiXinAutoResponse.WX_IMAGE,
+                        'Image': {
+                            'MediaId': cache_value
+                        }
+                    })
             tasks.task_create_mama_and_response_manager_qrcode.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u'[爱心]亲，请长按识别图中二维码, 添加您的专属管理员微信:'
+                'Content': u'[爱心]亲，请长按识别图中二维码, 添加您的专属管理员微信 (若5秒内未返回请重试):'
             })
 
     except Exception, exc:

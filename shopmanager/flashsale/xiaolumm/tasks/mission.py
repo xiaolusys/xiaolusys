@@ -215,8 +215,8 @@ def task_notify_all_mama_staging_mission():
     cnt = 0
     logger.info('task_notify_all_mama_staging_mission start: date=%s, count=%s'%(
         datetime.datetime.now(), mama_missions.count()))
-    for mama_mission in mama_missions:
-        task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
+    for mama_mission_id in mama_missions.values_list('id', flat=True):
+        task_push_mission_state_msg_to_weixin_user.delay(mama_mission_id)
         cnt += 1
         if cnt % 5000 == 0:
             logger.info('task_notify_all_mama_staging_mission post: date=%s, post_num=%s' % (datetime.datetime.now(), cnt))
