@@ -150,12 +150,13 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                 cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s_%s' % (wxpubId, xiaolumama.id)
                 cache_value = cache.get(cache_key)
                 if cache_value:
-                    return ret_params.update({
+                    ret_params.update({
                         'MsgType': WeiXinAutoResponse.WX_IMAGE,
                         'Image': {
                             'MediaId': cache_value
                         }
                     })
+                    return ret_params
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
@@ -170,12 +171,13 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
             if xiaolumama:
                 cache_value = fetch_wxpub_mama_manager_qrcode_media_id(xiaolumama.id, wxpubId)
                 if cache_value:
-                    return ret_params.update({
+                    ret_params.update({
                         'MsgType': WeiXinAutoResponse.WX_IMAGE,
                         'Image': {
                             'MediaId': cache_value
                         }
                     })
+                    return ret_params
             tasks.task_create_mama_and_response_manager_qrcode.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
