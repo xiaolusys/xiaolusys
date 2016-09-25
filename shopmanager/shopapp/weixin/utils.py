@@ -49,10 +49,10 @@ def gen_mama_custom_qrcode_url(mama_id):
 
 @log_consume_time
 def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
-    cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s' % mama_id
+    cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s_%s' % (wxpubId, mama_id)
     cache_value = cache.get(cache_key)
     if not cache_value:
-        logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache miss: %s' % mama_id)
+        logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache miss: %s, %s' % (wxpubId, mama_id))
         thumbnail = userinfo['headimgurl'] or DEFAULT_MAMA_THUMBNAIL
 
         qrcode_tpls = WeixinQRcodeTemplate.objects.filter(status=True)
@@ -72,7 +72,7 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
         cache_value = response['media_id']
         cache.set(cache_key, cache_value, 1 * 24 * 3600)
     else:
-        logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache hit: %s' % mama_id)
+        logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache hit:  %s, %s' % (wxpubId, mama_id))
     return cache_value
 
 
@@ -82,13 +82,13 @@ def fetch_wxpub_mama_manager_qrcode_media_id(mama_id, wxpubId):
     from flashsale.xiaolumm.models import MamaAdministrator
     mama_administrator = MamaAdministrator.get_mama_administrator(mama_id)
     if not mama_administrator:
-        logger.warn('fetch_wxpub_mama_manager_qrcode_media_id administrator loss: %s' % mama_id)
+        logger.warn('fetch_wxpub_mama_manager_qrcode_media_id administrator loss:  %s, %s' % (wxpubId, mama_id))
         return
     mama_manager_qrcode = mama_administrator.weixin_qr_img
-    cache_key = hashlib.sha1(mama_manager_qrcode).hexdigest()
+    cache_key = hashlib.sha1('%s-%s'%(mama_manager_qrcode, wxpubId)).hexdigest()
     cache_value = cache.get(cache_key)
     if not cache_value:
-        logger.info('fetch_wxpub_mama_manager_qrcode_media_id cache miss: %s' % mama_id)
+        logger.info('fetch_wxpub_mama_manager_qrcode_media_id cache miss:  %s, %s' % (wxpubId, mama_id))
         media_body = urllib2.urlopen(mama_manager_qrcode).read()
         media_stream = StringIO.StringIO(media_body)
 
@@ -98,7 +98,7 @@ def fetch_wxpub_mama_manager_qrcode_media_id(mama_id, wxpubId):
         cache_value = response['media_id']
         cache.set(cache_key, cache_value, 2 * 24 * 3600)
     else:
-        logger.info('fetch_wxpub_mama_manager_qrcode_media_id cache hit: %s' % mama_id)
+        logger.info('fetch_wxpub_mama_manager_qrcode_media_id cache hit:  %s, %s' % (wxpubId, mama_id))
     return cache_value
 
 

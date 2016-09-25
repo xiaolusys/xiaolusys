@@ -454,8 +454,7 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
         # 获取创建用户小鹿妈妈信息,
         media_id = fetch_wxpub_mama_custom_qrcode_media_id(mama.id, userinfo, wxpubId)
 
-        wx_api = WeiXinAPI()
-        wx_api.setAccountId(wxpubId=wxpubId)
+        wx_api = WeiXinAPI(wxpubId=wxpubId)
         # 调用客服回复接口返回二维码图片消息
         wx_api.send_custom_message({
             "touser": openid,

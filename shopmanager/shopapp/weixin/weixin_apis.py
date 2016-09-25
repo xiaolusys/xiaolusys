@@ -72,8 +72,11 @@ class WeiXinAPI(object):
     # 客服消息接口
     _send_custom_message_uri = '/cgi-bin/message/custom/send'
 
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        wxpubId = kwargs.get('wxpubId')
+        appKey  = kwargs.get('appKey')
+        if wxpubId or appKey:
+            self.setAccountId(wxpubId=wxpubId, appKey=appKey)
 
     def setAccountId(self, wxpubId=None, appKey=None):
         assert wxpubId or appKey, 'wxpub_id or appKey need one'
@@ -92,9 +95,14 @@ class WeiXinAPI(object):
         self._wxpub_id = self._account_data.get('account_id')
 
     def getAccountId(self):
-        if self._wx_account.isNone():
+        if not self._account_data:
             return None
-        return self._wx_account.account_id
+        return self._account_data['account_id']
+
+    def getAppKey(self):
+        if not self._account_data:
+            return None
+        return self._account_data['app_id']
 
     def getAccount(self):
         if not self._wxpub_id:
