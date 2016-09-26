@@ -123,10 +123,12 @@ class WeixinPushEvent(BaseModel):
     INVITE_AWARD_INIT = 2
     INVITE_AWARD_FINAL = 3
     ORDER_CARRY_INIT = 4
-    EVENT_TYPES = ((INVITE_LIMIT_WARN, u'邀请上限通知'), (INVITE_AWARD_INIT, u'邀请奖励生成'), (INVITE_AWARD_FINAL, u'邀请奖励确定'),)
+    FANS_SUBSCRIBE_NOTIFY = 5
+    EVENT_TYPES = ((INVITE_LIMIT_WARN, u'邀请上限通知'), (INVITE_AWARD_INIT, u'邀请奖励生成'), (INVITE_AWARD_FINAL, u'邀请奖励确定'), (FANS_SUBSCRIBE_NOTIFY, u'关注通知'))
 
     TEMPLATE_INVITE_FANS_ID = 7
-    TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),)
+    TEMPLATE_SUBSCRIBE_ID = 8
+    TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),(TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),)
     
     customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者用户id')
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者妈妈id')
@@ -160,6 +162,9 @@ class WeixinPushEvent(BaseModel):
     def gen_invite_fans_notify_unikey(event_type, customer_id, today_invites, date_field):
         return "%s-%s-%s|%s" % (event_type, customer_id, today_invites, date_field)
 
+    @staticmethod
+    def gen_subscribe_notify_unikey(event_type, customer_id):
+        return "%s-%s" % (event_type, customer_id)
 
 def send_weixin_push(sender, instance, created, **kwargs):
     if not created:
