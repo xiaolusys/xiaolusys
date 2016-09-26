@@ -917,7 +917,7 @@ class CashOutToAppView(APIView):
         mama = customer.get_xiaolumm()
         
         if mama:
-            task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_APP_DOWNLOAD)
+            task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_CASHOUT_APP_DOWNLOAD)
             
         download_url = "/sale/promotion/appdownload/"
         return redirect(download_url)

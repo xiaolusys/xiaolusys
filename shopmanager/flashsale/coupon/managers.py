@@ -294,7 +294,6 @@ class UserCouponManager(BaseManager):
                                         title=tpl.title,
                                         coupon_type=tpl.coupon_type,
                                         customer_id=int(buyer_id),
-                                        trade_tid=trade.tid,
                                         value=value,
                                         start_use_time=start_use_time,
                                         expires_time=expires_time,
