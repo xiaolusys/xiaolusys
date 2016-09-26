@@ -36,14 +36,23 @@ def get_mama_customer(mama_id):
 
 @log_consume_time
 def gen_mama_custom_qrcode_url(mama_id):
-    wx_api = WeiXinAPI()
-    wx_api.setAccountId(appKey=settings.WXPAY_APPID)
-    resp = wx_api.createQRcode('QR_SCENE', mama_id)
+    cache_key = 'wxpub_qrcode_link_by_mama_id_%s' % (mama_id)
+    cache_value = cache.get(cache_key)
 
-    qrcode_link = ''
-    if 'ticket' in resp:
-        qrcode_link = wx_api.genQRcodeAccesssUrl(resp['ticket'])
-    content = resp.get('url', '')
+    if cache_value:
+        qrcode_link, content = cache_value.get('qrcode_link', ''), cache_value.get('content', '')
+    else:
+        wx_api = WeiXinAPI()
+        wx_api.setAccountId(appKey=settings.WXPAY_APPID)
+        resp = wx_api.createQRcode('QR_SCENE', mama_id)
+
+        qrcode_link = ''
+        if 'ticket' in resp:
+            qrcode_link = wx_api.genQRcodeAccesssUrl(resp['ticket'])
+        content = resp.get('url', '')
+
+        cache_value = {'qrcode_link': qrcode_link, 'content': content}
+        cache.set(cache_key, cache_value, 24 * 3600)
     return qrcode_link, content
 
 
