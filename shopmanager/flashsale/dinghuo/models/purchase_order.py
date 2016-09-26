@@ -192,7 +192,7 @@ class OrderList(models.Model):
     # 冗余字段 避免过多查询
     lack = models.NullBooleanField(default=None, verbose_name=u'缺货')
     inferior = models.BooleanField(default=False, verbose_name=u'次品')
-    press_num = models.IntegerField(default=0, verbose_name=u'催促次数')
+    press_num = models.IntegerField(default=0, db_index=True, verbose_name=u'催促次数')
     ARRIVAL_NOT = 0
     ARRIVAL_NEED_PROCESS = 1
     ARRIVAL_PRESSED = 2

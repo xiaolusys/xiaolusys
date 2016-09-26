@@ -438,6 +438,7 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         model_pro.set_lowest_price()  # 设置款式最低价格
         return
 
+    @transaction.atomic()
     def create(self, request, *args, **kwargs):
         """ 创建特卖款式 """
         content = request.data

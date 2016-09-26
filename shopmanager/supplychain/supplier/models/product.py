@@ -211,7 +211,7 @@ class SaleProduct(BaseTagModel):
             return
         sku_list = []
         if not md:
-            return
+            return self.sku_extras
         for pro in md.products:
             for psku in pro.normal_skus:
                 sku_list.append({'color': pro.name,
