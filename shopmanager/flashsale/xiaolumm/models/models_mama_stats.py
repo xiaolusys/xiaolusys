@@ -34,6 +34,7 @@ class MamaTabVisitStats(BaseModel):
     TAB_WX_MANAGER_QRCODE = 17
     TAB_WX_KEFU = 18
     TAB_WX_PERSONAL = 19
+    TAB_WX_CASHOUT_APP_DOWNLOAD = 20
     
     STATS_TABS = ((TAB_UNKNOWN, 'Unknown'), (TAB_MAMA_FORTUNE, u'妈妈主页'), (TAB_DAILY_NINEPIC, u'每日推送'),
                   (TAB_NOTIFICATION, u'消息通知'), (TAB_MAMA_SHOP, u'店铺精选'), (TAB_INVITE_MAMA, u'邀请妈妈'),
@@ -41,7 +42,7 @@ class MamaTabVisitStats(BaseModel):
                   (TAB_INCOME_RANK, u'收益排名'), (TAB_ORDER_CARRY, u'订单记录'), (TAB_CARRY_RECORD, u'收益记录'),
                   (TAB_FANS_LIST, u'粉丝列表'), (TAB_VISITOR_LIST, u'访客列表'), (TAB_WX_MAMA_ACTIVATE, u'WX/店铺激活'),
                   (TAB_WX_APP_DOWNLOAD, u'WX/APP下载'), (TAB_WX_REFERAL_QRCODE, u'WX/开店二维码'), (TAB_WX_MANAGER_QRCODE, u'WX/管理员二维码'),
-                  (TAB_WX_KEFU, u'WX/客服菜单'), (TAB_WX_PERSONAL, u'WX/个人帐户'))
+                  (TAB_WX_KEFU, u'WX/客服菜单'), (TAB_WX_PERSONAL, u'WX/个人帐户'), (TAB_WX_CASHOUT_APP_DOWNLOAD, u'WX/提现页APP下载'))
 
     stats_tab = models.IntegerField(default=0, choices=STATS_TABS, db_index=True, verbose_name=u'功能TAB')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # stats_tab+date
@@ -131,8 +132,10 @@ class WeixinPushEvent(BaseModel):
     INVITE_AWARD_FINAL = 3
     ORDER_CARRY_INIT = 4
     FANS_SUBSCRIBE_NOTIFY = 5
-    EVENT_TYPES = ((INVITE_FANS_NOTIFY, u'粉丝增加'), (INVITE_AWARD_INIT, u'邀请奖励生成'), (INVITE_AWARD_FINAL, u'邀请奖励确定'), (FANS_SUBSCRIBE_NOTIFY, u'关注公众号'))
+    EVENT_TYPES = ((INVITE_FANS_NOTIFY, u'粉丝增加'), (INVITE_AWARD_INIT, u'邀请奖励生成'), (INVITE_AWARD_FINAL, u'邀请奖励确定'),
+                   (FANS_SUBSCRIBE_NOTIFY, u'关注公众号'), (ORDER_CARRY_INIT, u'订单佣金生成'))
 
+    TEMPLATE_ORDER_CARRY_ID = 2
     TEMPLATE_INVITE_FANS_ID = 7
     TEMPLATE_SUBSCRIBE_ID = 8
     TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),(TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),)
@@ -173,9 +176,14 @@ class WeixinPushEvent(BaseModel):
     def gen_subscribe_notify_unikey(event_type, customer_id):
         return "%s-%s" % (event_type, customer_id)
 
+    @staticmethod
+    def gen_ordercarry_unikey(event_type, sale_trade_id):
+        return "%s-%s" % (event_type, sale_trade_id)
+    
 def send_weixin_push(sender, instance, created, **kwargs):
     if not created:
         return
+
     from shopapp.weixin.weixin_push import WeixinPush
     wxpush = WeixinPush()
     wxpush.push_event(instance)
