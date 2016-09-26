@@ -127,6 +127,7 @@ def formatParam2XML(params):
 
 DOWNLOAD_APP_LINK = 'http://m.xiaolumeimei.com/sale/promotion/appdownload/'
 PERSONAL_PAGE_LINK = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html'
+from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
 
 def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
     """ 2016-4-3 微信公众号常见问题请求处理 """
