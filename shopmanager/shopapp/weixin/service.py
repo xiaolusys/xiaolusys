@@ -125,6 +125,9 @@ def formatParam2XML(params):
     return x[len(initStr):]
 
 
+DOWNLOAD_APP_LINK = 'http://m.xiaolumeimei.com/sale/promotion/appdownload/'
+PERSONAL_PAGE_LINK = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html'
+
 def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
     """ 2016-4-3 微信公众号常见问题请求处理 """
     from_username = openid
@@ -133,6 +136,23 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                   'FromUserName': to_username,
                   'CreateTime': int(time.time())}
     try:
+        wx_api = WeiXinAPI(wxpubId=wxpubId)
+        unionid = WeixinUnionID.get_unionid_by_openid(openid, wx_api.getAppKey())
+        mama = XiaoluMama.objects.filter(openid=unionid).first()
+        if mama:
+            # Statistics for weixin tab
+            mama_id = mama.id
+            if eventKey == 'faqs':
+                task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_WX_KEFU)
+            elif eventKey == 'MAMA_REFERAL_QRCODE':
+                task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_WX_REFERAL_QRCODE)
+            elif eventKey == 'MAMA_MANAGER_QRCODE':
+                task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_WX_MANAGER_QRCODE)
+            elif eventKey.strip() == DOWNLOAD_APP_LINK:
+                task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_WX_APP_DOWNLOAD)
+            elif eventKey.strip() == PERSONAL_PAGE_LINK:
+                task_mama_daily_tab_visit_stats.delay(mama_id, MamaTabVisitStats.TAB_WX_PERSONAL)
+
         eventKey = eventKey.upper()
         if eventKey == 'FAQS':
             faq = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message=eventKey).get()
@@ -143,11 +163,8 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
         if eventKey == 'MAMA_REFERAL_QRCODE' or \
            event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
            event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
-            wx_api = WeiXinAPI(wxpubId=wxpubId)
-            unionid = WeixinUnionID.get_unionid_by_openid(openid, wx_api.getAppKey())
-            xiaolumama = XiaoluMama.objects.filter(openid=unionid).first()
-            if xiaolumama:
-                cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s_%s' % (wxpubId, xiaolumama.id)
+            if mama:
+                cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s_%s' % (wxpubId, mama.id)
                 cache_value = cache.get(cache_key)
                 if cache_value:
                     ret_params.update({
@@ -160,16 +177,13 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u"么么哒\n欢迎加入小鹿妈妈\n您的开店二维码正在创建中，请5秒后再次查看菜单\n[我的收入]->[开店二维码]获取\n谢谢![微笑]"
+                'Content': u"么么哒!\n终于等到你！\n专属二维码正在创建中，若无回复，请5秒后查看菜单\n[我的收入]->[开店二维码]获取![微笑]"
                 #u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
             })
 
         if eventKey == 'MAMA_MANAGER_QRCODE':
-            wx_api = WeiXinAPI(wxpubId=wxpubId)
-            unionid = WeixinUnionID.get_unionid_by_openid(openid, wx_api.getAppKey())
-            xiaolumama = XiaoluMama.objects.filter(openid=unionid).first()
-            if xiaolumama:
-                cache_value = fetch_wxpub_mama_manager_qrcode_media_id(xiaolumama.id, wxpubId)
+            if mama:
+                cache_value = fetch_wxpub_mama_manager_qrcode_media_id(mama.id, wxpubId)
                 if cache_value:
                     ret_params.update({
                         'MsgType': WeiXinAutoResponse.WX_IMAGE,
