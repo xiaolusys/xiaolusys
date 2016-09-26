@@ -18,7 +18,7 @@ from shopapp.weixin.models import (
     WXLogistic,
     VipCode
 )
-from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama, MamaTabVisitStats
 from shopapp.weixin.models import WeixinUnionID
 from shopapp.weixin.models_base import WeixinFans
 from .weixin_apis import WeiXinAPI
