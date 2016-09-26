@@ -231,6 +231,34 @@ def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
                    fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
     fan.save()
 
+
+def create_push_event_subscribe(mama_id, unionid, carry_num):
+    customer = Customer.objects.filter(unionid=unionid, status=Customer.NORMAL).first()
+    if not customer:
+        return
+    
+    customer_id = customer.id 
+    
+    event_type = WeixinPushEvent.FANS_SUBSCRIBE_NOTIFY
+    uni_key = WeixinPushEvent.gen_subscribe_notify_unikey(event_type, customer_id)
+    event = WeixinPushEvent.objects.filter(uni_key=uni_key).first()
+    if event:
+        return
+
+    now = datetime.datetime.now()
+    tid = WeixinPushEvent.TEMPLATE_SUBSCRIBE_ID
+
+    params = {'keyword1': {'value': u'%.2f元' % (carry_num * 0.01), 'color':'#FA5858'},
+              'keyword2': {'value': u'关注小鹿美美系列公众号', 'color': '#394359'},
+              'keyword3': {'value':now.strftime('%Y-%m-%d %H:%M:%S'), 'color':'#394359'}}
+    
+    to_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html'
+    event = WeixinPushEvent(customer_id=customer_id,mama_id=mama_id,uni_key=uni_key,tid=tid,
+                            event_type=event_type,date_field=date_field,params=params,to_url=to_url)
+    event.save()
+    
+
+    
 @task(max_retries=3, default_retry_delay=5)
 def task_weixinfans_create_subscribe_awardcarry(unionid):
     carry_num = 100
@@ -261,6 +289,8 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
                         contributor_mama_id=contributor_mama_id, carry_plan_name=carry_plan_name,
                         date_field=date_field, uni_key=uni_key, status=AwardCarry.CONFIRMED)
         ac.save()
+        create_push_event_subscribe(mama_id, unionid, carry_num)
+        
     except Exception,exc:
         #logger.error(str(exc), exc_info=True)
         raise task_weixinfans_create_subscribe_awardcarry.retry(exc=exc)
