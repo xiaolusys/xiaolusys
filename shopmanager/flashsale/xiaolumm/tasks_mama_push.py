@@ -95,7 +95,7 @@ def task_weixin_push_ordercarry(ordercarry):
     sku_num, total_carry = 0,0
     for so in sos:
         sku_num += so.num
-        oc = OrderCarry.objects.filter(order_id=so.oid).first()
+        oc = OrderCarry.objects.filter(order_id=so.oid, carry_type=ordercarry.carry_type).first()
         if oc:
             total_carry += oc.carry_num
 
