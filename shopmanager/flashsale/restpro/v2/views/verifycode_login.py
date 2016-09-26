@@ -79,6 +79,7 @@ def validate_code(mobile, verify_code):
         return False
 
 
+    verify_code = verify_code.strip()
     if reg.code_time > earliest_send_time and reg.verify_code == verify_code:
         reg.submit_count = 0
         reg.verify_code = ''
