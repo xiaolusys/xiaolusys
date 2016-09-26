@@ -206,7 +206,7 @@ class SendCodeView(views.APIView):
             if action == 'register':
                 return Response({"rcode": 2, "msg": u"该用户已经存在啦！"})
         else:
-            if action == 'find_pwd' or action == 'change_pwd' or action == 'bind':
+            if action in ['find_pwd', 'change_pwd', 'bind', 'sms_login']:
                 return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
 
         reg, created = get_register(mobile)
