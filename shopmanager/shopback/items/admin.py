@@ -1320,7 +1320,9 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
                         'unused_stock': (F('sold_num') + F('rg_quantity')
                                          - F('history_quantity') - F('adjust_quantity') - F('inbound_quantity') - F('return_quantity'),
                                          F('history_quantity') + F('adjust_quantity') + F('inbound_quantity') + F('return_quantity') - F(
-                                             'sold_num') - F('rg_quantity'))
+                                             'sold_num') - F('rg_quantity')),
+                        'wait_assign_num':(F('post_num') + F('assign_num') - F('sold_num'),
+                                         F('sold_num') - F('post_num') - F('assign_num'))
                         }
         from django.contrib.admin.views.main import ChangeList, ORDER_VAR, SuspiciousOperation, ImproperlyConfigured,\
             IncorrectLookupParameters
@@ -1590,7 +1592,7 @@ class ProductSkuStatsAdmin(admin.ModelAdmin):
 
     _wait_assign_num.allow_tags = True
     _wait_assign_num.short_description = u'待分配数'
-
+    _wait_assign_num.admin_order_field = 'wait_assign_num'
     def _wait_order_num(self, obj):
         return ('<a href="%(url)s" target="_blank">%(num)s</a>') % {
             'url': '/admin/dinghuo/orderdetail/?chichu_id=%s' % obj.sku_id,
