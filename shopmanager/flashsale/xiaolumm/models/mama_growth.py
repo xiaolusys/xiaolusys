@@ -2,6 +2,7 @@
 import datetime
 from django.db import models
 from django.db.models import Sum, Count
+from django.db.models.signals import post_save, pre_save
 
 from core.models import BaseModel
 from core.utils import week_range
@@ -419,6 +420,31 @@ def refund_confirm_update_mission_record(sender, obj, *args, **kwargs):
 signal_saletrade_refund_confirm.connect(refund_confirm_update_mission_record,
                                            dispatch_uid='post_save_refund_confirm_update_mission_record')
 
+from .models_fortune import AwardCarry
+def awardrecord_update_mission_record(sender, instance, *args, **kwargs):
+    """ 订单退款成功更新妈妈销售激励状态 """
+    try:
+        logger.info('awardrecord_update_mission_record start: awardrecord= %s' % instance.id)
+
+        year_week = datetime.datetime.now().strftime('%Y-%W')
+        if instance.carry_type == AwardCarry.AWARD_OPEN_COURSE:
+            mama_mission = MamaMissionRecord(
+                mission__cat_type=MamaMission.CAT_OPEN_COURSE,
+                mama_id=instance.mama_id,
+                year_week=year_week
+            ).first()
+
+            if mama_mission:
+                mama_mission.update_mission_value(1)
+
+        logger.info('awardrecord_update_mission_record end: awardrecord= %s' % instance.id)
+    except Exception, exc:
+        logger.error('awardrecord_update_mission_record error: awardrecord=%s, %s' % (instance.id, exc), exc_info=True)
+
+# 妈妈奖励列表更新更新妈妈任务状态
+post_save.connect(awardrecord_update_mission_record,
+                  sender=AwardCarry,
+                  dispatch_uid='post_save_awardrecord_update_mission_record')
 
 # TODO@meron　团队妈妈邀请更新
 

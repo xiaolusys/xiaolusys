@@ -44,11 +44,11 @@ deploy:
       - docker run --name=gunicorn --restart=always
         -e TARGET=production -e INSTANCE=admin -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini
-        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
+        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest gunicorn -k gevent -c taobao_gunicorn_conf.py -w 4 shopmanager.wsgi
       - docker rm -f celery 
       - docker run --name=celery --restart=always -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        blueware-admin run-program celery worker -c 4 -A shopmanager --loglevel=ERROR -Q apis,default,peroid,async,notify,logistics,dinghuo
+        blueware-admin run-program celery worker -c 3 -A shopmanager --loglevel=ERROR -Q apis,default,peroid,async,notify,logistics,dinghuo
       - docker rm -f celery-flower
       - docker run --name=celery-flower --restart=always -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:5555:5555 -e C_FORCE_ROOT=1
