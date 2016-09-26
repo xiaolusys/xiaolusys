@@ -81,8 +81,12 @@ def task_weixin_push_ordercarry(ordercarry):
     event_type = WeixinPushEvent.ORDER_CARRY_INIT
     sale_order = SaleOrder.objects.filter(oid=ordercarry.order_id).first()
     sale_trade_id = sale_order.sale_trade.tid
-    
-    uni_key = WeixinPushEvent.gen_ordercarry_unikey(event_type, sale_trade_id)
+
+    carry_type = 1
+    if ordercarry.carry_type == OrderCarry.REFERAL_ORDER:
+        carry_type = 3
+        
+    uni_key = WeixinPushEvent.gen_ordercarry_unikey(event_type, carry_type, sale_trade_id)
     event = WeixinPushEvent.objects.filter(uni_key=uni_key)
     if event:
         return
