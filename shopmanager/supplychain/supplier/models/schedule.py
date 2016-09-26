@@ -71,6 +71,22 @@ class SaleProductManage(models.Model):
             self._sale_product_ids_ = [i['sale_product_id'] for i in self.manage_schedule.values('sale_product_id')]
         return self._sale_product_ids_
 
+    def clean_deleted_supplier_manager_details(self):
+        """
+        功能：　清理删除了的供应商的排期明细
+        """
+        current_sale_product_ids = [c['sale_product_id'] for c in self.manage_schedule.values('sale_product_id')]
+        sale_supplier_ids = [supplier.id for supplier in self.sale_suppliers.all()]
+        target_sale_product_ids = [x['id'] for x in
+                                   SaleProduct.objects.filter(id__in=current_sale_product_ids,
+                                                              sale_supplier_id__in=sale_supplier_ids).values('id')]
+        will_delete_sale_product_ids = [i for i in current_sale_product_ids if i not in target_sale_product_ids]
+        if will_delete_sale_product_ids:
+            self.manage_schedule.filter(sale_product_id__in=will_delete_sale_product_ids).delete()
+            self.save()  # 同步产品数量
+            return True
+        return False
+
 
 def update_model_product_shelf_time(sender, instance, raw, *args, **kwargs):
     from flashsale.pay.models import ModelProduct

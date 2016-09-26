@@ -680,6 +680,14 @@ class Product(models.Model):
             self.name = name
             self.save(update_fields=['name'])
 
+    def set_to_delete(self):
+        """ 设置到删除状态(非上架状态) """
+        if self.shelf_status == Product.UP_SHELF:
+            return False
+        self.status = Product.DELETE
+        self.save(update_fields=['status', 'modified'])
+        return True
+
     @classmethod
     def get_inner_outer_id(cls, supplier, item_category):
         """
@@ -779,14 +787,21 @@ class Product(models.Model):
         current_skus_list = skus_info
         current_tmp = {item['color'] + '|' + item['properties_name']: item for item in current_skus_list}
         tmp = {i['color'] + '|' + i['properties_name']: i for i in skus_list}
+        is_inschedule = model_pro.saleproduct.is_inschedule  # 是否在排期里面（用来取决删除状态,如果是在排期里面则不能删除,否则可以改变成删除状态）
         for t in current_tmp.keys():
             if t not in tmp:
                 name = t.split('|')[0]
                 product = model_pro.products.filter(name=name).first()
-                if product:
-                    properties_name = t.split('|')[1] if len(t.split('|')) > 1 else ''
-                    product.normal_skus.filter(properties_name=properties_name).update(remain_num=0)
-                    product.set_remain_num()  # 有效sku预留数之和
+                if not product:
+                    continue
+                properties_name = t.split('|')[1] if len(t.split('|')) > 1 else ''
+                normal_skus = product.normal_skus.filter(properties_name=properties_name)
+                normal_skus.update(remain_num=0)
+                product.set_remain_num()  # 有效sku预留数之和
+                if not is_inschedule:  # 如果不在排期里面
+                    normal_skus.update(status=ProductSku.DELETE)
+                if not product.normal_skus:  # 没有正常sku则修改该product为删除状态
+                    product.set_to_delete()
 
     @classmethod
     @transaction.atomic()
@@ -804,7 +819,7 @@ class Product(models.Model):
         for x in skus_list:
             if x['color'] in colors:
                 continue
-            products_list.append({'name': x['color'], 'pic_path': x.get('pic_path')})
+            products_list.append({'name': x['color'], 'pic_path': x.get('pic_path') or ''})
             colors.add(x['color'])
 
         pro_count = 1
