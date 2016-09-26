@@ -14,3 +14,4 @@ from .verifycode_login import *
 from .misssion import MamaMissionRecordViewset
 from .kdn_wuliu import *
 from .checkin import CheckinViewSet
+from .qrcode import QRcodeViewSet
