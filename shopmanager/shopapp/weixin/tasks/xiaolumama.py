@@ -232,7 +232,7 @@ def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
     fan.save()
 
 
-def create_push_event_subscribe(mama_id, unionid, carry_num):
+def create_push_event_subscribe(mama_id, unionid, carry_num, date_field):
     customer = Customer.objects.filter(unionid=unionid, status=Customer.NORMAL).first()
     if not customer:
         return
@@ -289,7 +289,7 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
                         contributor_mama_id=contributor_mama_id, carry_plan_name=carry_plan_name,
                         date_field=date_field, uni_key=uni_key, status=AwardCarry.CONFIRMED)
         ac.save()
-        create_push_event_subscribe(mama_id, unionid, carry_num)
+        create_push_event_subscribe(mama_id, unionid, carry_num, date_field)
         
     except Exception,exc:
         #logger.error(str(exc), exc_info=True)
