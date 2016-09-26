@@ -179,6 +179,11 @@ class SaleProduct(BaseTagModel):
             self.save(update_fields=update_fields)
         return
 
+    @property
+    def is_inschedule(self):
+        from supplychain.supplier.models import SaleProductManageDetail
+        return SaleProductManageDetail.objects.filter(sale_product_id=self.id).exists()
+
     def update_sku_extras(self):
         """ 更新数据库　sku 信息　到　sku_extras 字段"""
         try:
