@@ -179,8 +179,8 @@ class WeixinPushEvent(BaseModel):
         return "%s-%s" % (event_type, customer_id)
 
     @staticmethod
-    def gen_ordercarry_unikey(event_type, carry_type, sale_trade_id):
-        return "%s-%s-%s" % (event_type, carry_type, sale_trade_id)
+    def gen_ordercarry_unikey(event_type, sale_trade_id):
+        return "%s-%s" % (event_type, sale_trade_id)
     
 def send_weixin_push(sender, instance, created, **kwargs):
     if not created:
