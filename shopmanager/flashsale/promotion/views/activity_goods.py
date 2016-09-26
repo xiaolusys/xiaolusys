@@ -62,12 +62,14 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
             product_name = da['product_name']
             pic_path = da['pic_path']
             location_id = int(da['location_id'])
+            jump_url = da['jump_url']
             pics = ActivityProduct.objects.create(activity=activity,
-                                               model_id=model_id,
-                                               product_name=product_name,
-                                               product_img=pic_path,
-                                               location_id=location_id,
-                                               pic_type=pic_type)
+                                                  model_id=model_id,
+                                                  product_name=product_name,
+                                                  product_img=pic_path,
+                                                  location_id=location_id,
+                                                  pic_type=pic_type,
+                                                  jump_url=jump_url)
 
             pics.save()
 
@@ -121,14 +123,15 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
                 else:
                     isReceived = True
             coupon_dict = {"couponId": coupon.model_id, "isReceived":isReceived, "getBeforePic": coupon.product_img,
-                           "getAfterPic": coupon_getafter_pic.filter(model_id=coupon.model_id).first().product_img}
+                           "getAfterPic": coupon_getafter_pic.filter(model_id=coupon.model_id).first().product_img,
+                           "jumpUrl": coupon.jump_url}
             coupons.append(coupon_dict)
 
         topics = []
         topics_pic = desc_pics.filter(pic_type=ActivityProduct.TOPIC_PIC_TYPE)
         for topic in topics_pic:
             if (topic.product_img) and (len(topic.product_img) != 0):
-                topic_dict = {"pic": topic.product_img}
+                topic_dict = {"pic": topic.product_img, "jumpUrl": topic.jump_url}
                 topics.append(topic_dict)
 
         category = desc_pics.filter(pic_type=ActivityProduct.CATEGORY_PIC_TYPE).first()

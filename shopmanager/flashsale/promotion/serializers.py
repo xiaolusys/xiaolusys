@@ -22,7 +22,7 @@ class AwardWinnerSerializer(serializers.ModelSerializer):
 class ActivityProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityProduct
-        fields = ('id', 'model_id', 'product_name', 'product_img', 'location_id', 'pic_type')
+        fields = ('id', 'model_id', 'product_name', 'product_img', 'location_id', 'pic_type', 'jump_url')
 
 
 class StockSaleSerializers(serializers.ModelSerializer):
