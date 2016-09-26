@@ -123,19 +123,12 @@ def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
         # qrscene has content (not digital), we simply return
         return
 
-    if referal_from_mama_id < 1:
-        return
-
-    referal_to_unionid = instance.unionid
-
-
-    mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
-    referal_from_unionid = mama.openid
-
     from shopapp.weixin.tasks import task_weixinfans_create_subscribe_awardcarry, task_weixinfans_create_fans_awardcarry
 
+    referal_to_unionid = instance.unionid
     task_weixinfans_create_subscribe_awardcarry.delay(referal_to_unionid)
-    task_weixinfans_create_fans_awardcarry.delay(referal_from_mama_id, referal_to_unionid)
+    if referal_from_mama_id >= 1:
+        task_weixinfans_create_fans_awardcarry.delay(referal_from_mama_id, referal_to_unionid)
 
 post_save.connect(weixinfans_create_awardcarry,
                   sender=WeixinFans, dispatch_uid='post_save_weixinfans_create_awardcarry')
