@@ -19,6 +19,14 @@ class BaseModel(models.Model):
     def __unicode__(self):
         return str(self.id)
 
+    def save(self, update_fields=[], *args, **kwargs):
+        # 设置商品下架时间，默认时两天后下架
+        print 'save 1', update_fields
+        if update_fields and 'modified' not in update_fields:
+            update_fields.append('modified')
+        print 'save 2', update_fields
+        return super(BaseModel, self).save(*args, **kwargs)
+
 
 class AdminModel(BaseModel):
     creator = models.CharField(max_length=30,
