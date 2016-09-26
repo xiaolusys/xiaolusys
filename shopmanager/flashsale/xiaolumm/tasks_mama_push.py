@@ -4,12 +4,13 @@
 """
 import datetime
 from celery.task import task
-from flashsale.xiaolumm.models import XiaoluMama, NinePicAdver
+from flashsale.xiaolumm.models import XiaoluMama, NinePicAdver, WeixinPushEvent
 from flashsale.push import push_mama
 from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 from shopapp.weixin.models import WeixinUnionID
 from django.db.models import Count, Sum
-
+from django.db import IntegrityError
+    
 @task
 def task_push_ninpic_remind(ninpic):
     """
@@ -74,12 +75,57 @@ def task_weixin_push_awardcarry(awardcarry):
 
 @task
 def task_weixin_push_ordercarry(ordercarry):
-    from shopapp.weixin.weixin_push import WeixinPush
-    wp = WeixinPush()
+    from flashsale.pay.models import SaleOrder
+    from flashsale.xiaolumm.models import OrderCarry
+    
+    event_type = WeixinPushEvent.ORDER_CARRY_INIT
+    sale_order = SaleOrder.objects.filter(oid=ordercarry.order_id).first()
+    sale_trade_id = sale_order.sale_trade.tid
+    
+    uni_key = WeixinPushEvent.gen_ordercarry_unikey(event_type, sale_trade_id)
+    event = WeixinPushEvent.objects.filter(uni_key=uni_key)
+    if event:
+        return
 
-    to_url = "http://m.xiaolumeimei.com/sale/promotion/appdownload/"
+    sos = sale_order.sale_trade.sale_orders.all()
+    sku_num, total_carry = 0,0
+    for so in sos:
+        sku_num += so.num
+        oc = OrderCarry.objects.filter(order_id=so.oid).first()
+        total_carry += oc.carry_num
 
-    wp.push_mama_ordercarry(ordercarry, to_url)
+    order_type = ""
+    if ordercarry.carry_type == 1:
+        order_type = u'微商城订单'
+    elif ordercarry.carry_type == 2:
+        order_type = u'App订单（佣金更高哦！）'
+    elif ordercarry.carry_type == 3:
+        order_type = u'下属订单'
+
+    params = {'first':{'value':u'女王大人, 小鹿美美App报告：您的店铺又有一笔新订单啦！', 'color':'#F87217'},
+              'tradeDateTime':{'value':ordercarry.created.strftime('%Y-%m-%d %H:%M:%S'),'color':'#000000'},
+              'orderType':{'value':order_type,'color':'#000000'},
+              'customerInfo':{'value':ordercarry.contributor_nick,'color':'#000000'},
+              'orderItemName':{'value':u'订单佣金','color':'#ff0000'},
+              'orderItemData':{'value':u'%.2f' % (total_carry * 0.01),'color':'#ff0000'},
+              'remark':{'value':u'共%d件商品，快去看看吧～' % sku_num, 'color':'#F87217'}}
+    
+    mama_id = ordercarry.mama_id
+    date_field = ordercarry.date_field
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
+    customer = mama.get_customer()
+    customer_id = customer.id
+    template_id = WeixinPushEvent.TEMPLATE_ORDER_CARRY_ID
+    to_url = 'http://m.xiaolumeimei.com'
+    
+
+    try:
+        event = WeixinPushEvent(customer_id=customer_id,mama_id=mama_id,uni_key=uni_key,tid=template_id,
+                                event_type=event_type,date_field=date_field,params=params,to_url=to_url)
+
+        event.save()
+    except IntegrityError as exc:
+        pass
 
 
 @task
