@@ -109,8 +109,8 @@ def create_or_update_once_mission(xiaolumama, mission):
             mama_mission.status = MamaMissionRecord.STAGING
             mama_mission.save()
 
-            # 消息通知妈妈一次性任务还未完成
-            task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
+            # # 消息通知妈妈一次性任务还未完成
+            # task_push_mission_state_msg_to_weixin_user.delay(mama_mission.id)
     elif not mission.is_receivable() and not mama_mission.is_finished():
         mama_mission.status = MamaMissionRecord.CLOSE
         mama_mission.save()

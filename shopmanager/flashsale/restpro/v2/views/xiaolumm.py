@@ -904,6 +904,24 @@ class ActivateMamaView(APIView):
 
         return redirect(redirect_link)
 
+
+class CashOutToAppView(APIView):
+    """
+    GET /rest/v2/mama/cashout_to_app
+    """
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+    
+    def get(self, request, *args, **kwargs):
+        customer = Customer.objects.normal_customer.filter(user=request.user).first()
+        mama = customer.get_xiaolumm()
+        
+        if mama:
+            task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_APP_DOWNLOAD)
+            
+        download_url = "/sale/promotion/appdownload/"
+        return redirect(download_url)
+
         
 class CashOutPolicyView(APIView):
     """
