@@ -288,7 +288,7 @@ def create_push_event_invite_fans(mama_id, contributor_nick, contributor_mama_id
     if event:
         return
 
-    footer = u'你的团队又壮大啦！粉丝过千，日赚千元！'
+    footer = u'马上就成超级大咖啦！粉丝过千，日赚千元！'
     footer_color = '#394359'
     
     max_today_fans_invites = get_max_today_fans_invites(mama_id)
