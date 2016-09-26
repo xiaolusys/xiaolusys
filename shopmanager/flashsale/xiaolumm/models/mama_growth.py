@@ -320,7 +320,7 @@ def mama_register_update_mission_record(sender, xiaolumama, renew, *args, **kwar
         else:
             # 正式妈妈邀请数
             total_mama_count = ReferalRelationship.objects.filter(
-                created__range=(week_start, week_end),
+                modified__range=(week_start, week_end),
                 status=ReferalRelationship.VALID,
                 referal_from_mama_id=parent_mama_id)\
                 .aggregate(mama_count=Count('referal_to_mama_id')).get('mama_count')
@@ -383,7 +383,6 @@ def _update_mama_salepayment_mission_record(sale_trade):
 
     from flashsale.xiaolumm.tasks import task_create_or_update_mama_mission_state
     task_create_or_update_mama_mission_state.delay(mama_id)
-
 
 
 def order_payment_update_mission_record(sender, obj, *args, **kwargs):
