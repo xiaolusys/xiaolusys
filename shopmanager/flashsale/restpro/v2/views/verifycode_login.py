@@ -20,6 +20,7 @@ from flashsale.xiaolumm.models.models_fans import login_activate_appdownloadreco
 from shopapp.smsmgr.tasks import task_register_code
 
 logger = logging.getLogger('django.request')
+klog = logging.getLogger('service')
 
 PHONE_NUM_RE = re.compile(REGEX_MOBILE, re.IGNORECASE)
 TIME_LIMIT = 360
@@ -67,16 +68,16 @@ def validate_code(mobile, verify_code):
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
     regs = Register.objects.filter(vmobile=mobile)
-    
+
     if regs.count() <= 0:
         return False
-    
+
     reg = regs[0]
     if not reg.code_time:
         return False
     if not reg.verify_code:
         return False
-    
+
 
     if reg.code_time > earliest_send_time and reg.verify_code == verify_code:
         reg.submit_count = 0
@@ -84,9 +85,9 @@ def validate_code(mobile, verify_code):
         reg.save(update_fields=['submit_count', 'verify_code', 'modified'])
         return True
 
-    reg.submit_count += 1     #提交次数加一    
+    reg.submit_count += 1     #提交次数加一
     reg.save(update_fields=['submit_count', 'modified'])
-    
+
     return False
 
 
@@ -155,46 +156,68 @@ def is_from_app(params):
         return True
     return False
 
-    
+
+def filter_spam_sms_request(request):
+    http_referer = request.META.get('HTTP_REFERER', '')
+    if http_referer.find('98.cn') > 0:
+        return Response('ok')
+    return None
+
+
 class SendCodeView(views.APIView):
     """
     处理所有和验证码相关的请求，暂有5类：
     register，sms_login, find_pwd, change_pwd, bind.
-    
+
     /send_code
     mobile: mobile number
     action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
     """
-    
-    def post(self, request): 
+
+    def post(self, request):
         content = request.REQUEST
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
-    
+
+        is_spam = filter_spam_sms_request(request)
+        if is_spam:
+            return is_spam
+
+        klog.info({
+            'action': 'api.v2.send_code',
+            'ip': request.META.get('REMOTE_ADDR', ''),
+            'http_user_agent': request.META.get('HTTP_USER_AGENT', ''),
+            'cookie': request.META.get('HTTP_COOKIE', ''),
+            'http_origin': request.META.get('HTTP_ORIGIN', ''),
+            'http_referer': request.META.get('HTTP_REFERER', ''),
+            'mobile': mobile,
+            'param_action': action,
+        })
+
         if not validate_mobile(mobile):
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
-        
+
         if not validate_action(action):
             return Response({"rcode": 1, "msg": u"亲，操作错误！"})
-        
+
         customer = get_customer(request, mobile)
-        
+
         if customer:
             if action == 'register':
                 return Response({"rcode": 2, "msg": u"该用户已经存在啦！"})
         else:
             if action == 'find_pwd' or action == 'change_pwd' or action == 'bind':
                 return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
-        
+
         reg, created = get_register(mobile)
         if not created:
-            # if reg is not just created, we have to check 
+            # if reg is not just created, we have to check
             # day limit and resend condition.
             if check_day_limit(reg):
                 return Response({"rcode": 4, "msg": u"当日验证次数超过限制!"})
             if not should_resend_code(reg):
                 return Response({"rcode": 5, "msg": u"验证码刚发过咯，请等待下哦！"})
-        
+
         reg.verify_code = reg.genValidCode()
         reg.code_time = datetime.datetime.now()
         reg.save()
@@ -208,10 +231,10 @@ class RequestCashoutVerifyCode(views.APIView):
 
     /rest/v2/request_cashout_verify_code
     """
-    
+
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
-    
+
     def post(self, request):
         user = request.user
         customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
@@ -221,13 +244,13 @@ class RequestCashoutVerifyCode(views.APIView):
 
         reg, created = get_register(mobile)
         if not created:
-            # if reg is not just created, we have to check 
+            # if reg is not just created, we have to check
             # day limit and resend condition.
             if check_day_limit(reg):
                 return Response({"code": 4, "info": u"当日验证次数超过限制！"})
             if not should_resend_code(reg):
                 return Response({"code": 5, "info": u"验证码刚发过咯，请等待下哦！"})
-        
+
         reg.verify_code = reg.genValidCode()
         reg.code_time = datetime.datetime.now()
         reg.save()
@@ -235,11 +258,11 @@ class RequestCashoutVerifyCode(views.APIView):
         return Response({"code": 0, "info": u"验证码已发送！"})
 
 
-class VerifyCodeView(views.APIView):    
+class VerifyCodeView(views.APIView):
     """
     verify code under 5 action cases:
     register, find_pwd, change_pwd, bind, sms_login
-    
+
     /verify_code
     mobile: mobile number
     action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
@@ -257,7 +280,7 @@ class VerifyCodeView(views.APIView):
 
         if not validate_action(action):
             return Response({"rcode": 1, "msg": u"亲，操作错误！"})
-    
+
         customer = get_customer(request, mobile)
 
         if not validate_code(mobile, verify_code):
@@ -277,7 +300,7 @@ class VerifyCodeView(views.APIView):
         if not customer:
             django_user,state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
             customer,state = Customer.objects.get_or_create(user=django_user)
-    
+
         customer.mobile = mobile
         customer.save()
         if action == 'register' or action == 'sms_login':
@@ -295,16 +318,16 @@ class VerifyCodeView(views.APIView):
 
             #if is_from_app(content):
             #    login_activate_appdownloadrecord(user)
-                
-            return Response({"rcode": 0, "msg": u"登录成功！"})  
-        
-        return Response({"rcode": 0, "msg": u"验证码校验通过！"}) 
-    
 
-class ResetPasswordView(views.APIView):    
+            return Response({"rcode": 0, "msg": u"登录成功！"})
+
+        return Response({"rcode": 0, "msg": u"验证码校验通过！"})
+
+
+class ResetPasswordView(views.APIView):
     """
     Reset password:
-    
+
     /reset_password?mobile=xxx&password1=xxx&password2=xxx&verify_code=xxx
     """
     def post(self, request):
@@ -316,34 +339,34 @@ class ResetPasswordView(views.APIView):
         pwd1 = content.get("password1", "")
         pwd2 = content.get("password2", "")
         verify_code = content.get("verify_code", "")
-        
+
         if not validate_mobile(mobile):
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
-    
+
         if not mobile or not pwd1 or not pwd2 or not verify_code or pwd1 != pwd2:
             return Response({"rcode": 2, "msg": "提交的参数有误呀！"})
-    
+
         if len(pwd1) < 6:
             return Response({"rcode": 2, "msg": "密码长度不得少于6位！"})
-        
+
         customer = get_customer(request, mobile)
         if not customer:
             return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
-    
+
         if not validate_code(mobile, verify_code):
             return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})  # 验证码过期或者不对
-        
+
         django_user = customer.user
         django_user.set_password(pwd1)
         django_user.save()
-        
+
         return Response({"rcode": 0, "msg": u"密码设置成功啦！"})
-    
+
 
 class PasswordLoginView(views.APIView):
     """
     User login with username and password. She can login either via APP or H5 Web.
-    
+
     """
     def post(self, request):
         content = request.POST
@@ -411,14 +434,14 @@ def check_sign(request):
 class WeixinAppLoginView(views.APIView):
     """
     User login with Weixin authorization via APP.
-    
+
     """
     def post(self, request):
         """
         app客户端微信授权登陆
         """
         content = request.POST
-        
+
         if not check_sign(request):
             return Response({"rcode": 1, "msg": u'登录失败'})
 
@@ -430,5 +453,5 @@ class WeixinAppLoginView(views.APIView):
         login(request, user)
         if is_from_app(content):
             login_activate_appdownloadrecord(user)
-        
+
         return Response({"rcode": 0, "msg": u'登录成功'})
