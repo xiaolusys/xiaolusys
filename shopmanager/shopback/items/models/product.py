@@ -804,7 +804,7 @@ class Product(models.Model):
         for x in skus_list:
             if x['color'] in colors:
                 continue
-            products_list.append({'name': x['color'], 'pic_path': x.get('pic_path')})
+            products_list.append({'name': x['color'], 'pic_path': x.get('pic_path') or ''})
             colors.add(x['color'])
 
         pro_count = 1
