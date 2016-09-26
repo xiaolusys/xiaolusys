@@ -112,11 +112,15 @@ def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
 
+    if XiaoluSwitch.is_switch_open(2):
+        return
+
     referal_from_mama_id = None
     qrscene = instance.get_qrscene()
     if qrscene and qrscene.isdigit():
         referal_from_mama_id = int(qrscene)
-    else:
+    elif qrscene:
+        # qrscene has content (not digital), we simply return
         return
 
     if referal_from_mama_id < 1:
@@ -124,8 +128,6 @@ def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
 
     referal_to_unionid = instance.unionid
 
-    if XiaoluSwitch.is_switch_open(2):
-        return
 
     mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
     referal_from_unionid = mama.openid
