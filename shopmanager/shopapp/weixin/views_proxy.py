@@ -97,13 +97,13 @@ class WXMessageHttpProxy(HttpProxy):
             ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventkey)
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
-        
-        ret_params = {'ToUserName': params['FromUserName'],
-                      'FromUserName': params['ToUserName'],
-                      'CreateTime': int(time.time())}
-        ret_params.update(WeiXinAutoResponse.respEmptyString())
-        response = service.formatParam2XML(ret_params)
-        return HttpResponse(response, content_type="text/xml")
+
+        # ret_params = {'ToUserName': params['FromUserName'],
+        #               'FromUserName': params['ToUserName'],
+        #               'CreateTime': int(time.time())}
+        # ret_params.update(WeiXinAutoResponse.respEmptyString())
+        # response = service.formatParam2XML(ret_params)
+        return HttpResponse('success')
         #　如果公众号由多客服处理，直接转发
         # if wx_api._account.isResponseToDRF():
         #     ret_params = {'ToUserName': params['FromUserName'],
