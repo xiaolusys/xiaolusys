@@ -38,7 +38,7 @@ class orderdetailInline(admin.TabularInline):
         return self.readonly_fields
 
 
-class OrderListAdmin(admin.ModelAdmin):
+class OrderListAdmin(BaseModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
         'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district', 'stage',
@@ -356,7 +356,7 @@ class OrderListChangeList(ChangeList):
         return super(OrderListChangeList, self).get_queryset(request)
 
 
-class orderdetailAdmin(admin.ModelAdmin):
+class orderdetailAdmin(BaseModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
         'fields': (
@@ -401,7 +401,7 @@ admin.site.register(orderdraft)
 from django.contrib.auth.models import User
 
 
-class myuserAdmin(admin.ModelAdmin):
+class myuserAdmin(BaseModelAdmin):
     fieldsets = ((u'用户信息:', {
         'classes': ('expand',),
         'fields': ('user', 'group')
@@ -433,7 +433,7 @@ class PayToPackStatsAdmin(admin.ModelAdmin):
 admin.site.register(PayToPackStats, PayToPackStatsAdmin)
 
 
-class SupplyChainDataStatsAdmin(admin.ModelAdmin):
+class SupplyChainDataStatsAdmin(BaseModelAdmin):
     list_display = ('sale_quantity', 'cost_amount', 'turnover',
                     'order_goods_quantity', 'order_goods_amount',
                     'stats_time', 'group',
@@ -456,7 +456,7 @@ class DailyStatsPreviewAdmin(admin.ModelAdmin):
 admin.site.register(DailyStatsPreview, DailyStatsPreviewAdmin)
 
 
-class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
+class SupplyChainStatsOrderAdmin(BaseModelAdmin):
     list_display = ('product_id', 'outer_sku_id', 'sale_time', 'shelve_time', 'sale_num', 'trade_general_time_name',
                     'ding_huo_num', 'order_deal_time_name',
                     'arrival_num', 'goods_arrival_time_name',
@@ -707,13 +707,11 @@ class ReturnGoodsAdmin(BaseModelAdmin):
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
 
 
-class UnReturnSkuAdmin(admin.ModelAdmin):
+class UnReturnSkuAdmin(BaseModelAdmin):
     list_display = (
         'id', 'product_outer_id', "product_name", "sku_properties_name", "supplier_sku", "supplier_name", "reason",
-        "creater_name",
-        "created", "modified", "status")
-    search_fields = ['product__name', "supplier__id", "supplier__supplier_name", "product__id",
-                     "sku__id"]
+        "creater_name", "created", "modified", "status")
+    search_fields = ['^product__name', "=supplier__id", "^supplier__supplier_name", "=product__id", "=sku__id"]
     list_filter = ["status", "reason"]
     readonly_fields = ('product', 'sale_product', 'sku', 'supplier', 'creater')
     # inlines = [RGDetailInline, ]
@@ -788,7 +786,7 @@ admin.site.register(SaleInventoryStat, SaleInventoryStatAdmin)
 from .models import InBound, InBoundDetail, OrderDetailInBoundDetail
 
 
-class InBoundAdmin(admin.ModelAdmin):
+class InBoundAdmin(BaseModelAdmin):
     fieldsets = ((
                      u'详情', {
                          'classes': ('expand',),
@@ -801,7 +799,7 @@ class InBoundAdmin(admin.ModelAdmin):
 
     list_filter = ('status', 'created', 'checked', 'wrong', 'out_stock', InBoundCreatorFilter)
 
-    search_fields = ('id', 'ori_orderlist_id', 'supplier__id', 'supplier__supplier_name', 'express_no')
+    search_fields = ('=id', '=ori_orderlist_id', '=supplier__id', '=supplier__supplier_name', '=express_no')
     list_per_page = 20
 
     def show_creator(self, obj):
@@ -899,38 +897,38 @@ admin.site.register(OrderDetailInBoundDetail, OrderDetailInBoundDetailAdmin)
 from flashsale.dinghuo.models_purchase import PurchaseArrangement, PurchaseDetail, PurchaseOrder
 
 
-class PurchaseArrangementAdmin(admin.ModelAdmin):
+class PurchaseArrangementAdmin(BaseModelAdmin):
     list_display = (
         'id', 'package_sku_item_id', 'oid', 'purchase_order_unikey', 'outer_id', 'outer_sku_id', 'sku_id', 'title',
         'sku_properties_name', 'num', 'status', 'purchase_order_status', 'initial_book', 'modified', 'created')
 
-    search_fields = ('package_sku_item_id', 'oid', 'outer_id', 'title', 'sku_id', 'purchase_order_unikey')
+    search_fields = ('=package_sku_item_id', '=oid', '=outer_id', '=title', '=sku_id', '=purchase_order_unikey')
 
 
 admin.site.register(PurchaseArrangement, PurchaseArrangementAdmin)
 
 
-class PurchaseDetailAdmin(admin.ModelAdmin):
+class PurchaseDetailAdmin(BaseModelAdmin):
     list_display = (
         'id', 'outer_id', 'purchase_order_unikey', 'outer_sku_id', 'sku_id', 'title', 'sku_properties_name', 'book_num',
         'need_num', 'status', 'unit_price_display', 'modified', 'created')
 
-    search_fields = ('outer_id', 'title', 'sku_id', 'purchase_order_unikey')
+    search_fields = ('=outer_id', '^title', '=sku_id', '=purchase_order_unikey')
 
 
 admin.site.register(PurchaseDetail, PurchaseDetailAdmin)
 
 
-class PurchaseOrderAdmin(admin.ModelAdmin):
+class PurchaseOrderAdmin(BaseModelAdmin):
     list_display = ('id', 'uni_key', 'supplier_id', 'supplier_name', 'book_num', 'need_num', 'arrival_num', 'status',
                     'modified', 'created')
-    search_fields = ('supplier_id', 'supplier_name', 'uni_key')
+    search_fields = ('=supplier_id', '=supplier_name', '=uni_key')
 
 
 admin.site.register(PurchaseOrder, PurchaseOrderAdmin)
 
 
-class LackGoodOrderAdmin(admin.ModelAdmin):
+class LackGoodOrderAdmin(BaseModelAdmin):
     list_display = ('id', 'supplier', 'product_id', 'sku_id', 'lack_num', 'refund_num', 'is_refund',
                     'refund_time', 'order_group_key', 'status', 'created')
     search_fields = ('=product_id', '=sku_id', 'order_group_key')
@@ -967,10 +965,10 @@ class LackGoodOrderAdmin(admin.ModelAdmin):
 admin.site.register(LackGoodOrder, LackGoodOrderAdmin)
 
 
-class PackageBackOrderStatsAdmin(admin.ModelAdmin):
+class PackageBackOrderStatsAdmin(BaseModelAdmin):
     list_display = (
     'id', 'day_date', 'purchaser', 'three_backorder_num', 'five_backorder_num', 'fifteen_backorder_num', 'created')
-    search_fields = ('=id', 'purchaser__username')
+    search_fields = ('=id', '^purchaser__username')
     list_filter = [("created", DateFieldListFilter)]
 
     def get_form(self, request, obj=None, **kwargs):

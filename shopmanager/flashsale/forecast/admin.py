@@ -9,6 +9,7 @@ from supplychain.supplier.models import SaleSupplier
 from flashsale.dinghuo.models import OrderList
 
 from core.widgets import AdminTextThumbnailWidget
+from core.admin import BaseAdmin
 from .services import strip_forecast_inbound
 
 from core.options import log_action, ADDITION, CHANGE
@@ -55,7 +56,7 @@ STATUS_LABEL_DICT = dict((
     (ForecastInbound.ST_FINISHED, 'label')
 ))
 
-class ForecastInboundAdmin(admin.ModelAdmin):
+class ForecastInboundAdmin(BaseAdmin):
 
     list_display = (
         'id', 'forecast_no', 'supplier', 'ware_house', 'express_no', 'forecast_arrive_time','total_forecast_num',
@@ -284,7 +285,7 @@ class ForecastInboundDetailAdmin(admin.ModelAdmin):
 admin.site.register(ForecastInboundDetail, ForecastInboundDetailAdmin)
 
 
-class RealInboundAdmin(admin.ModelAdmin):
+class RealInboundAdmin(BaseAdmin):
     # fieldsets = ((u'用户信息:', {
     #     'classes': ('expand',),
     #     'fields': ('user', 'group')
@@ -339,7 +340,7 @@ class RealInboundAdmin(admin.ModelAdmin):
 admin.site.register(RealInbound, RealInboundAdmin)
 
 
-class RealInboundDetailAdmin(admin.ModelAdmin):
+class RealInboundDetailAdmin(BaseAdmin):
     # fieldsets = ((u'用户信息:', {
     #     'classes': ('expand',),
     #     'fields': ('user', 'group')
@@ -354,7 +355,7 @@ class RealInboundDetailAdmin(admin.ModelAdmin):
 
 admin.site.register(RealInboundDetail, RealInboundDetailAdmin)
 
-class ForecastStatsAdmin(admin.ModelAdmin):
+class ForecastStatsAdmin(BaseAdmin):
 
     list_display = (
         'forecast_inbound', 'buyer_name', 'purchaser', 'purchase_num', 'inferior_num', 'lack_num',
