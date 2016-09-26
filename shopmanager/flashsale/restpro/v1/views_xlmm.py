@@ -909,8 +909,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         from flashsale.restpro.v2.views.verifycode_login import validate_code
         if not validate_code(mobile, verify_code):
-            info = u'快速提现功能内部测试中，请等待粉丝活动开始！'
-            #return 9, '验证码不对或已过期，请重新发送验证码！'
+            #info = u'快速提现功能内部测试中，请等待粉丝活动开始！'
+            info = u'验证码不对或已过期，请重新发送验证码！'
             return Response({"code": 9, "info": info})
 
         from flashsale.restpro.v2.views.xiaolumm import CashOutPolicyView
