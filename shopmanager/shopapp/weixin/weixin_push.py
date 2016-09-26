@@ -49,7 +49,7 @@ class WeixinPush(object):
             template_id = template_ids.get('meimei')
             if template_id:
                 resp = self.mm_api.sendTemplate(mm_openid, template_id, to_url, template_data)
-                
+
         if temai_openid and not resp:
             template_id = template_ids.get('temai')
             if template_id:
@@ -63,10 +63,10 @@ class WeixinPush(object):
                 'template_id': json.dumps(template_ids),
                 'to_url': to_url,
             })
-            
+
         return resp
 
-    
+
     def push_trade_pay_notify(self, saletrade):
         """
         {{first.DATA}}
@@ -518,7 +518,7 @@ class WeixinPush(object):
         }
         return self.push(customer, template_ids, template_data, to_url)
 
-    
+
     def push_event(self, event_instance):
         customer = event_instance.get_effect_customer()
         if not customer:
@@ -532,7 +532,7 @@ class WeixinPush(object):
         template_ids = template.template_ids
         template_data = event_instance.params
         to_url = event_instance.to_url
-        
+
         return self.push(customer, template_ids, template_data, to_url)
 
-    
+

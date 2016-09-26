@@ -160,7 +160,7 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u"么么哒\n欢迎申请加入小鹿妈妈，您的开店二维码正在创建中，请5秒后再次查看菜单[开店二维码]获取，谢谢配合！"
+                'Content': u"么么哒\n欢迎加入小鹿妈妈\n您的开店二维码正在创建中，请5秒后再次查看菜单\n[我的收入]->[开店二维码]获取，谢谢！"
                 #u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
             })
 

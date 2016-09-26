@@ -1471,7 +1471,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'妈妈及团队未完成任务每日提醒': {
         'task': 'flashsale.xiaolumm.tasks.mission.task_notify_all_mama_staging_mission',
-        'schedule': crontab(minute="30", hour="7", day_of_week='mon,wed,fri,sat'),
+        'schedule': crontab(minute="30", hour="19", day_of_week='mon,wed,fri,sat'),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task_notify_all_mama_staging_mission'}
     },
@@ -1480,7 +1480,6 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="30", hour="23"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-
     },
     u'每30分钟刷新微信公众号accesstoken&jsticket': {
         'task': 'shopapp.weixin.tasks.base.task_refresh_weixin_access_token',
