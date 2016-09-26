@@ -12,7 +12,7 @@ class MamaMissionSerializer(serializers.ModelSerializer):
 
     def get_target_value(self, obj):
         if obj.kpi_type == MamaMission.KPI_AMOUNT:
-            return obj.target_value / 100.0
+            return round(obj.target_value * 0.01, 2)
         return obj.target_value
 
 
@@ -31,23 +31,23 @@ class MamaMissionRecordSerializer(serializers.ModelSerializer):
 
     def get_finish_value(self, obj):
         if obj.mission.kpi_type == MamaMission.KPI_AMOUNT:
-            return obj.finish_value / 100.0
+            return round(obj.finish_value * 0.01, 2)
         return obj.finish_value
 
     def get_target_value(self, obj):
         if obj.mission.kpi_type == MamaMission.KPI_AMOUNT:
-            return obj.target_value / 100.0
+            return round(obj.target_value * 0.01, 2)
         return obj.target_value
 
     def get_award_amount(self, obj):
-        return obj.award_amount / 100.0
+        return round(obj.award_amount * 0.01, 2)
 
     def get_mission(self, obj):
         mission = obj.mission
         target_value = obj.target_value
         award_amount = obj.award_amount
         if mission.kpi_type == MamaMission.KPI_AMOUNT:
-            target_value = target_value / 100.0
+            target_value = round(target_value * 0.01, 2)
 
         return {
             'id': mission.id,

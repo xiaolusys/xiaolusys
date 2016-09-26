@@ -21,11 +21,14 @@ class ModelProduct(object):
         self.sku_info = kwargs['sku_info']
         self.comparison = kwargs['comparison']
         self.extras = kwargs['extras']
-        self.is_teambuy = kwargs['is_teambuy']
         self.head_imgs = kwargs['head_imgs']
         self.product_ids = kwargs['product_ids']
         self.detail_content = kwargs['detail_content']
         self.rebeta_scheme_id = kwargs['rebeta_scheme_id']
+
+        self.is_teambuy = kwargs['is_teambuy']
+        self.teambuy_price = kwargs['teambuy_price']
+        self.teambuy_person_num = kwargs['teambuy_person_num']
         # TODO: Add all fields
 
     def get_products(self):
