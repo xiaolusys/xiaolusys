@@ -142,4 +142,4 @@ class ModelProductSerializer(serializers.ModelSerializer):
 class BrandProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = BrandProduct
-        fields = ('id', 'model_id', 'product_name', 'product_img', 'location_id', 'pic_type')
+        fields = ('id', 'model_id', 'product_name', 'product_img', 'location_id', 'pic_type', 'jump_url')
