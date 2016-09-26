@@ -27,7 +27,11 @@ STAT_END_TIME = datetime.datetime(2016, 9, 10)
 # if datetime.datetime.now() < datetime.datetime(2016, 7, 28) \
 # else datetime.datetime(2016, 7, 28)
 class RankRedis(object):
-    redis_cache = cache.get_master_client()
+    @staticmethod
+    def redis_cache():
+        if not hasattr(RankRedis, '__redis_cache__'):
+            RankRedis.__redis_cache__ = cache.get_master_client()
+        return RankRedis.__redis_cache__
 
     def __init__(self, stat_time):
         self.stat_time = stat_time
@@ -41,34 +45,34 @@ class RankRedis(object):
 
     def update_cache(self, instance, targets=['duration_total', 'total'], func=getattr):
         for target in targets:
-            RankRedis.redis_cache.zadd(self.get_cache_key(type(instance), target), instance.mama_id,
+            RankRedis.redis_cache().zadd(self.get_cache_key(type(instance), target), instance.mama_id,
                                        func(instance, target))
 
     def batch_update_cache(self, res, modelclass, target='total'):
-        RankRedis.redis_cache.zadd(self.get_cache_key(modelclass, target), **res)
+        RankRedis.redis_cache().zadd(self.get_cache_key(modelclass, target), **res)
 
     def clear_cache(self, model_class, target):
-        RankRedis.redis_cache.delete(self.get_cache_key(model_class, target))
+        RankRedis.redis_cache().delete(self.get_cache_key(model_class, target))
 
     def get_rank_count(self, model_class, target):
-        return RankRedis.redis_cache.zcard(self.get_cache_key(model_class, target))
+        return RankRedis.redis_cache().zcard(self.get_cache_key(model_class, target))
 
     def get_rank_list(self, model_class, target, start, stop):
-        return RankRedis.redis_cache.zrevrange(self.get_cache_key(model_class, target), start, stop)
+        return RankRedis.redis_cache().zrevrange(self.get_cache_key(model_class, target), start, stop)
 
     def get_rank_dict(self, model_class, target, start, stop):
-        return dict(zip(RankRedis.redis_cache.zrevrange(self.get_cache_key(model_class, target), start, stop),
+        return dict(zip(RankRedis.redis_cache().zrevrange(self.get_cache_key(model_class, target), start, stop),
                         range(start + 1, stop + 1)))
 
     def get_rank(self, model_class, target, mama_id):
-        rank = RankRedis.redis_cache.zrevrank(self.get_cache_key(model_class, target), mama_id) or 0
+        rank = RankRedis.redis_cache().zrevrank(self.get_cache_key(model_class, target), mama_id) or 0
         return rank + 1
 
     def is_locked(self, lock_key):
-        return bool(RankRedis.redis_cache.get(lock_key))
+        return bool(RankRedis.redis_cache().get(lock_key))
 
     def lock(self, lock_key):
-        return RankRedis.redis_cache.set(lock_key, 1, 5)
+        return RankRedis.redis_cache().set(lock_key, 1, 5)
 
 
 def get_stat_rank_redis():

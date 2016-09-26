@@ -145,10 +145,10 @@ class WeekRank(object):
         return cls.objects.filter(mama_id=mama_id, stat_time=week_begin_time).first()
 
     def is_locked(self, lock_key):
-        return bool(RankRedis.redis_cache.get(lock_key))
+        return bool(RankRedis.redis_cache().get(lock_key))
 
     def lock(self, lock_key):
-        return RankRedis.redis_cache.set(lock_key, 1, 5)
+        return RankRedis.redis_cache().set(lock_key, 1, 5)
 
 
 def get_week_rank_redis():
