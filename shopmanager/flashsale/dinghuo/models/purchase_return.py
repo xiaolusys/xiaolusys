@@ -250,7 +250,7 @@ class ReturnGoods(models.Model):
         return rg
 
     @staticmethod
-    def can_return(supplier_id=None, sku=None, days=10):
+    def can_return(supplier_id=None, sku=None, days=0):
         """
             近七天内没有有效退货单
             且    RG_STATUS = ((CREATE_RG, u"新建"), (VERIFY_RG, u"已审核"), (OBSOLETE_RG, u"已作废"),
