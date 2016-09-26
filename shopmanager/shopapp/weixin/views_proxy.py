@@ -18,7 +18,6 @@ from shopback.monitor.models import XiaoluSwitch
 ACTIVATE_MAMA_LINK = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/rest/v2/mama/activate'
 
 
-
 class WXMessageHttpProxy(HttpProxy):
     def get_wx_api(self, pub_id):
         wx_api = service.WeiXinAPI()
@@ -90,10 +89,11 @@ class WXMessageHttpProxy(HttpProxy):
         # 点击链接，激活妈妈帐户
         if event == WeiXinAutoResponse.WX_EVENT_VIEW.lower() and eventkey.strip() == ACTIVATE_MAMA_LINK:
             tasks.task_activate_xiaolumama.delay(openid, wx_pubid)
-        
+         
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or\
            event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
-           event == WeiXinAutoResponse.WX_EVENT_CLICK.lower(): 
+           event == WeiXinAutoResponse.WX_EVENT_CLICK.lower() or\
+           event == WeiXinAutoResponse.WX_EVENT_VIEW.lower(): 
             ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventkey)
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")

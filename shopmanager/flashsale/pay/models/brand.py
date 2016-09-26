@@ -106,6 +106,7 @@ class BrandProduct(BaseModel):
     location_id = models.IntegerField(default=0, verbose_name=u'位置')
     pic_type = models.IntegerField(choices=PIC_TYPE_CHOICES, default=GOODS_VERTICAL_PIC_TYPE,
                                    db_index=True, verbose_name=u'图片类型')
+    jump_url = models.CharField(max_length=256, blank=True, verbose_name=u'跳转链接')
 
     class Meta:
         db_table = 'flashsale_brand_product'
