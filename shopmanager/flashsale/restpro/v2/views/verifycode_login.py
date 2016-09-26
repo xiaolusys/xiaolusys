@@ -86,6 +86,9 @@ def validate_code(mobile, verify_code):
         reg.save(update_fields=['submit_count', 'verify_code', 'modified'])
         return True
 
+    if reg.code_time <= earliest_send_time:
+        reg.verify_code = ''
+        
     reg.submit_count += 1     #提交次数加一
     reg.save(update_fields=['submit_count', 'modified'])
 
@@ -219,9 +222,11 @@ class SendCodeView(views.APIView):
             if not should_resend_code(reg):
                 return Response({"rcode": 5, "msg": u"验证码刚发过咯，请等待下哦！"})
 
-        reg.verify_code = reg.genValidCode()
-        reg.code_time = datetime.datetime.now()
-        reg.save()
+        if not reg.verify_code:
+            reg.verify_code = reg.genValidCode()
+            reg.code_time = datetime.datetime.now()
+            reg.save()
+            
         task_register_code.delay(mobile, "3")
         return Response({"rcode": 0, "code": 0, "msg": u"验证码已发送！", "info": u"验证码已发送！"})
 
