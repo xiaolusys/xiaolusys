@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class BrandEntry(BaseModel):
-    """ 专题活动入口 """
+    """ 专题活动入口 这个结构不再使用了"""
 
     PROMOTION_TOP10 = 1
     PROMOTION_TOPIC = 2
@@ -71,7 +71,7 @@ class BrandEntry(BaseModel):
 
 
 class BrandProduct(BaseModel):
-    """ 品牌商品信息 """
+    """ 品牌商品信息 这个结构不再使用了"""
 
     BANNER_PIC_TYPE = 0  # Banner picture
     COUPON_GETBEFORE_PIC_TYPE = 1
