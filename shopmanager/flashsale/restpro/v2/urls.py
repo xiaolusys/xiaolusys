@@ -64,6 +64,7 @@ v2_router_urls += format_suffix_patterns([
     url(r'^administrator', views.xiaolumm.MamaAdministratorViewSet.as_view()),
     url(r'^kdn', KdnView.as_view()),
     url(r'^activate', views.xiaolumm.ActivateMamaView.as_view()),
+    url(r'^cashout_to_app', views.xiaolumm.CashOutToAppView.as_view()),
     url(r'^cashout_policy', views.xiaolumm.CashOutPolicyView.as_view()),
 ])
 
