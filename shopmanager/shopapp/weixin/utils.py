@@ -79,7 +79,7 @@ def fetch_wxpub_mama_custom_qrcode_media_id(mama_id, userinfo, wxpubId):
         wx_api.setAccountId(wxpubId=wxpubId)
         response = wx_api.upload_media(media_stream)
         cache_value = response['media_id']
-        cache.set(cache_key, cache_value, 1 * 24 * 3600)
+        cache.set(cache_key, cache_value, 3600)
     else:
         logger.info('fetch_wxpub_mama_custom_qrcode_media_id cache hit:  %s, %s' % (wxpubId, mama_id))
     return cache_value
