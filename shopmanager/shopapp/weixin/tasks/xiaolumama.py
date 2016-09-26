@@ -489,13 +489,16 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
 
         wx_api = WeiXinAPI(wxpubId=wxpubId)
         # 调用客服回复接口返回二维码图片消息
-        wx_api.send_custom_message({
-            "touser": openid,
-            "msgtype":"image",
-            "image":{
-              "media_id":media_id
-            }
-        })
+        try:
+            wx_api.send_custom_message({
+                "touser": openid,
+                "msgtype":"image",
+                "image":{
+                  "media_id":media_id
+                }
+            })
+        except Exception, exc:
+            pass
     except Exception,exc:
         raise task_create_mama_referal_qrcode_and_response_weixin.retry(exc=exc)
 
@@ -525,13 +528,15 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
             return
 
         # 调用客服回复接口返回二维码图片消息
-        wx_api.send_custom_message({
-            "touser": openid,
-            "msgtype": "image",
-            "image": {
-                "media_id": media_id
-            }
-        })
-
+        try:
+            wx_api.send_custom_message({
+                "touser": openid,
+                "msgtype": "image",
+                "image": {
+                    "media_id": media_id
+                }
+            })
+        except Exception, exc:
+            pass
     except Exception, exc:
         raise task_create_mama_and_response_manager_qrcode.retry(exc=exc)
