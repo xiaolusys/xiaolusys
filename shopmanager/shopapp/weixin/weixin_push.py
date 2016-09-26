@@ -531,6 +531,14 @@ class WeixinPush(object):
 
         template_ids = template.template_ids
         template_data = event_instance.params
+
+        header = template_data.get('first')
+        if not header:
+            template_data.update({'first': {'value': header, 'color':'#394359'}})
+        footer = template_data.get('remark')
+        if not footer:
+            template_data.update({'remark': {'value': footer, 'color':'#394359'}})
+        
         to_url = event_instance.to_url
 
         return self.push(customer, template_ids, template_data, to_url)
