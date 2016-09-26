@@ -144,10 +144,11 @@ class ReturnGoods(models.Model):
                     num=sku_dict[sku_id],
                     price=sku.cost,
                 )
-                supplier_id = sku.product.sale_product_item.sale_supplier_id
-                if supplier_id not in supplier:
-                    supplier[supplier_id] = []
-                supplier[supplier_id].append(detail)
+                if sku.product.sale_product_item:
+                    supplier_id = sku.product.sale_product_item.sale_supplier_id
+                    if supplier_id not in supplier:
+                        supplier[supplier_id] = []
+                    supplier[supplier_id].append(detail)
         res = []
         for supplier_id in supplier:
             if ReturnGoods.can_return(supplier_id=supplier_id,days=days):
@@ -251,6 +252,7 @@ class ReturnGoods(models.Model):
 
     @staticmethod
     def can_return(supplier_id=None, sku=None, days=0):
+
         """
             近七天内没有有效退货单
             且    RG_STATUS = ((CREATE_RG, u"新建"), (VERIFY_RG, u"已审核"), (OBSOLETE_RG, u"已作废"),
@@ -261,35 +263,34 @@ class ReturnGoods(models.Model):
         :return:
         """
         # if supplier_id:
-        #     return not ReturnGoods.objects.filter(created__gt=datetime.datetime.now() - datetime.timedelta(days=7),
-        #                                           supplier_id=supplier_id,
+        #     return not ReturnGoods.objects.filter(supplier_id=supplier_id,
         #                                           status__in=[ReturnGoods.CREATE_RG, ReturnGoods.VERIFY_RG,
         #                                                       ReturnGoods.DELIVER_RG, ReturnGoods.REFUND_RG,
         #                                                       ReturnGoods.SUCCEED_RG]).exists()
 
-        if supplier_id:
-            supplier = SaleSupplier.objects.get(id=supplier_id)
-            if ReturnGoods.objects.filter(supplier_id=supplier_id, status__in=[ReturnGoods.CREATE_RG,
-                                                                               ReturnGoods.VERIFY_RG]).exists():
-                return False
-            sale_product_ids = [i["id"] for i in supplier.supplier_products.values("id")]
-            product_ids = [p["id"] for p in Product.objects.filter(sale_product__in=sale_product_ids).values("id")]
-            unreturn_sku_ids = [i["sku_id"] for i in supplier.unreturnsku_set.values("sku_id")]
-            return ProductSkuStats.objects.filter(product__id__in=product_ids,
-                                                  product__offshelf_time__lt=datetime.datetime.now() - datetime.timedelta(
-                                                      days),
-                                                  sold_num__lt=F('history_quantity') + F('adjust_quantity') + F(
-                                                      'inbound_quantity') + F(
-                                                      'return_quantity') \
-                                                               - F('rg_quantity')).exclude(
-                sku__id__in=unreturn_sku_ids).exists()
-
-        if sku:
-            not_in_unreturn = not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
-            onshelf = datetime.datetime.now() < ProductSku.objects.get(
-                id=sku).product.offshelf_time < datetime.datetime.now() + datetime.timedelta(days=7)
-            return not_in_unreturn and not onshelf
-
+        # if supplier_id:
+        #     supplier = SaleSupplier.objects.get(id=supplier_id)
+        #     if ReturnGoods.objects.filter(supplier_id=supplier_id, status__in=[ReturnGoods.CREATE_RG,
+        #                                                                        ReturnGoods.VERIFY_RG]).exists():
+        #         return False
+        #     sale_product_ids = [i["id"] for i in supplier.supplier_products.values("id")]
+        #     product_ids = [p["id"] for p in Product.objects.filter(sale_product__in=sale_product_ids).values("id")]
+        #     unreturn_sku_ids = [i["sku_id"] for i in supplier.unreturnsku_set.values("sku_id")]
+        #     return ProductSkuStats.objects.filter(product__id__in=product_ids,
+        #                                           product__offshelf_time__lt=datetime.datetime.now() - datetime.timedelta(
+        #                                               days),
+        #                                           sold_num__lt=F('history_quantity') + F('adjust_quantity') + F(
+        #                                               'inbound_quantity') + F(
+        #                                               'return_quantity') \
+        #                                                        - F('rg_quantity')).exclude(
+        #         sku__id__in=unreturn_sku_ids).exists()
+        #
+        # if sku:
+        #     not_in_unreturn = not UnReturnSku.objects.filter(sku_id=sku, status=UnReturnSku.EFFECT).exists()
+        #     onshelf = datetime.datetime.now() < ProductSku.objects.get(
+        #         id=sku).product.offshelf_time < datetime.datetime.now() + datetime.timedelta(days=7)
+        #     return not_in_unreturn and not onshelf
+        pass
     @staticmethod
     def get_user_by_supplier(supplier_id):
         from django.contrib.auth.models import Group
