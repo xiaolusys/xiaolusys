@@ -132,13 +132,15 @@ class WeixinPushEvent(BaseModel):
     INVITE_AWARD_FINAL = 3
     ORDER_CARRY_INIT = 4
     FANS_SUBSCRIBE_NOTIFY = 5
+    SUB_ORDER_CARRY_INIT = 6
+    
     EVENT_TYPES = ((INVITE_FANS_NOTIFY, u'粉丝增加'), (INVITE_AWARD_INIT, u'邀请奖励生成'), (INVITE_AWARD_FINAL, u'邀请奖励确定'),
-                   (FANS_SUBSCRIBE_NOTIFY, u'关注公众号'), (ORDER_CARRY_INIT, u'订单佣金生成'))
+                   (FANS_SUBSCRIBE_NOTIFY, u'关注公众号'), (ORDER_CARRY_INIT, u'订单佣金生成'), (SUB_ORDER_CARRY_INIT, u'下属订单佣金生成'))
 
     TEMPLATE_ORDER_CARRY_ID = 2
     TEMPLATE_INVITE_FANS_ID = 7
     TEMPLATE_SUBSCRIBE_ID = 8
-    TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),(TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),)
+    TEMPLATE_IDS = ((TEMPLATE_INVITE_FANS_ID, '模版/粉丝增加'),(TEMPLATE_SUBSCRIBE_ID, '模版/关注公众号'),(TEMPLATE_ORDER_CARRY_ID, '模版/订单佣金'))
     
     customer_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者用户id')
     mama_id = models.IntegerField(default=0, db_index=True, verbose_name=u'接收者妈妈id')
@@ -177,8 +179,8 @@ class WeixinPushEvent(BaseModel):
         return "%s-%s" % (event_type, customer_id)
 
     @staticmethod
-    def gen_ordercarry_unikey(event_type, carry_type, sale_trade_id):
-        return "%s-%s-%s" % (event_type, carry_type, sale_trade_id)
+    def gen_ordercarry_unikey(event_type, sale_trade_id):
+        return "%s-%s" % (event_type, sale_trade_id)
     
 def send_weixin_push(sender, instance, created, **kwargs):
     if not created:
