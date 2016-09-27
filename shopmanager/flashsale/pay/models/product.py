@@ -568,6 +568,18 @@ class ModelProduct(BaseTagModel):
             return True
         return False
 
+    def update_title_and_category(self, name=None, salecategory=None):
+        update_fields = []
+        if name and self.name != name:
+            self.name = name
+            update_fields.append('name')
+        if salecategory and self.salecategory != salecategory:
+            self.salecategory = salecategory
+            update_fields.append('salecategory')
+        if not update_fields:
+            return
+        self.save(update_fields=update_fields)
+
     def update_lowest_price(self, lowest_agent_price, lowest_std_sale_price):
         """ 更新最低价格 """
         update_fields = []
