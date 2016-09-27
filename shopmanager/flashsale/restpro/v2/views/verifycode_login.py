@@ -65,6 +65,9 @@ def validate_code(mobile, verify_code):
     """
     Only indicate whether or not verify_code is valid.
     """
+    if not verify_code:
+        return False
+    
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
     regs = Register.objects.filter(vmobile=mobile)
