@@ -145,9 +145,14 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         """
         default = collections.defaultdict(week_duration_total=0.0, week_duration_rank=0,
                                           personal_total_rank=0, team_total_rank=0,
-                                          task_percentage=0.0)
+                                          task_percentage=0.0, today_carry_record=0.0)
         week_mama_carry = obj.week_mama_carry
         week_mama_team_carry = obj.week_mama_team_carry
+        mama_carry_records = CarryRecord.objects.filter(mama_id=obj.mama_id).exclude(status=CarryRecord.CANCEL)
+        today_mama_carry_records = mama_carry_records.filter(date_field=datetime.date.today())
+        today_carry_record_num = today_mama_carry_records.aggregate(t=Sum('carry_num')).get('t') or 0.0
+        today_carry_record = round(today_carry_record_num / 100.0, 2) if today_carry_record_num > 0 else 0
+        default.update({'today_carry_record': today_carry_record})
         if not (week_mama_carry and week_mama_team_carry):
             return default
         week_duration_total = week_mama_carry.duration_total /100.0 if week_mama_carry.duration_total else 0.0
