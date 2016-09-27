@@ -517,18 +517,18 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
 
         wx_api = WeiXinAPI()
         wx_api.setAccountId(wxpubId=wxpubId)
-        if not media_id:
-            wx_api.send_custom_message({
-                "touser": openid,
-                'msgtype': WeiXinAutoResponse.WX_TEXT,
-                'text': {
-                     "content":u'[委屈]二维码生成出错了， 请稍后重试或联系客服，谢谢！'
-                }
-            })
-            return
-
-        # 调用客服回复接口返回二维码图片消息
         try:
+            if not media_id:
+                wx_api.send_custom_message({
+                    "touser": openid,
+                    'msgtype': WeiXinAutoResponse.WX_TEXT,
+                    'text': {
+                         "content":u'[委屈]二维码生成出错了， 请稍后重试或联系客服，谢谢！'
+                    }
+                })
+                return
+
+            # 调用客服回复接口返回二维码图片消息
             wx_api.send_custom_message({
                 "touser": openid,
                 "msgtype": "image",
