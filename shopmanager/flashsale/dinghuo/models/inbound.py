@@ -538,11 +538,15 @@ class InBound(models.Model):
             完成质检
         :return:
         """
-        self.status = InBound.COMPLETED
-        self.checked = True
-        self.check_time = datetime.datetime.now()
-        self.set_stat()
-        self.save()
+        for inbound_detail_id in data:
+            inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
+            if inbound_detail.checked:
+                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
+                                            data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
+            else:
+                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
+                                            data[inbound_detail_id]["inferiorQuantity"])
+                inbound_detail.finish_check2()
         self.status = InBound.COMPLETED
         self.checked = True
         self.check_time = datetime.datetime.now()
