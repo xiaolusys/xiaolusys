@@ -401,35 +401,12 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         properties = extras.get('new_properties')
         model_properties = content.get('new_properties') or None
 
-        s, contrast = [], []  # 尺码对照参数  尺码表
-        for xx in model_properties:
-            if xx.get('name') == '尺码对照参数':
-                s = xx['value']
-            if xx.get('name') == '尺码表':
-                contrast = xx['value']  # 尺码参照表list
-
-        def f_sort_contrast(dic, s):
-            """ 按照　尺码对照参数　的列表排序 """
-            tmp = []
-            for x in s:
-                tmp.append((x, dic[x]))
-            return tmp
-
-        order_contrast = []
-        for i in contrast:
-            tmp = f_sort_contrast(i, s)
-            order_contrast.append(OrderedDict(tmp))  # 转成有序字典
-
         if isinstance(model_properties, list):
             model_properties_d = dict([(tt['name'], tt['value']) for tt in model_properties])
             old_properties_d = dict(
                 [(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
             old_properties_d.update(model_properties_d)
             properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
-
-        for xxx in properties:
-            if xxx.get('name') == '尺码表':
-                xxx['value'] = order_contrast   # 保存尺码表有序字典
         extras.update({'new_properties': properties})
         return extras
 
