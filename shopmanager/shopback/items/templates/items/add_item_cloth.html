@@ -146,14 +146,18 @@
                     <input type="text" id="fashion" class="form-control"/>
                     <input type="hidden" id="wash_instroduce" class="form-control"/>
                 </div>
-                {% endif %}
-                {% if saleproduct.sale_category.parent_cid == "1" or saleproduct.sale_category.parent_cid == "2" %}
+                {% elif saleproduct.sale_category.parent_cid == "1" or saleproduct.sale_category.parent_cid == "2" %}
                 <div class="col-md-1">
                     <input type="button" class="btn" value="洗涤说明:"/>
                 </div>
                 <div class="col-md-8">
                     <input type="hidden" id="fashion" class="form-control"/>
                     <input type="text" id="wash_instroduce" class="form-control"/>
+                </div>
+                {% else %}
+                <div class="col-md-8">
+                    <input type="hidden" id="fashion" class="form-control"/>
+                    <input type="hidden" id="wash_instroduce" class="form-control"/>
                 </div>
                 {% endif %}
                 <div class="col-md-1">
