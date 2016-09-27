@@ -7,6 +7,7 @@ import simplejson
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
+from django.contrib.auth.decorators import login_required
 
 from flashsale.daystats.mylib.chart import (
     generate_chart,
@@ -52,6 +53,7 @@ def insert_where_clause(tokens, pos, sql):
     return tokens
 
 
+@login_required
 def index(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     key = req.GET.get('key', 'created')
@@ -77,6 +79,7 @@ def index(req):
 
 
 # @cache_page(60 * 15)
+@login_required
 def show(req):
     mama_id = req.GET.get('mama_id') or None
     customer = None
@@ -186,6 +189,7 @@ def show(req):
     return render(req, 'yunying/mama/show.html', locals())
 
 
+@login_required
 def carry(req):
     # sql = """
     # SELECT mama_id, sum(carry_num) as money FROM xiaoludb.flashsale_xlmm_carry_record
@@ -234,6 +238,7 @@ def carry(req):
     return render(req, 'yunying/mama/carry.html', locals())
 
 
+@login_required
 def retain(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 
@@ -271,6 +276,7 @@ def retain(req):
     return render(req, 'yunying/mama/retain.html', locals())
 
 
+@login_required
 def home(req):
     pass
 
@@ -320,6 +326,7 @@ def fenzu(items, x=None, key=None, y=None, func_groupby=None):
 mama_cache = {}
 
 
+@login_required
 def new_mama(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 
@@ -414,6 +421,7 @@ def new_mama(req):
     return render(req, 'yunying/mama/new_mama.html', locals())
 
 
+@login_required
 def tab(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     query = req.GET.get('sql', '')
@@ -528,6 +536,7 @@ def get_mama_new_task(mama_id):
     return mama_task
 
 
+@login_required
 def new_task(req):
     mama_id = req.GET.get('mama_id', '')
     if mama_id:
@@ -535,6 +544,7 @@ def new_task(req):
     return render(req, 'yunying/mama/new_task.html', locals())
 
 
+@login_required
 def click(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     sql = """

@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.db import connections
+from django.contrib.auth.decorators import login_required
 
 from flashsale.daystats.mylib.db import execute_sql, get_cursor
 from flashsale.daystats.mylib.chart import (
@@ -21,6 +22,7 @@ from flashsale.pay.models.product import ModelProduct
 from supplychain.supplier.models.category import SaleCategory
 
 
+@login_required
 def get_children_cids(cid=None):
     cids = []
     categories = SaleCategory.objects.filter(parent_cid=cid)
@@ -32,6 +34,7 @@ def get_children_cids(cid=None):
     return cids
 
 
+@login_required
 def index(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
     cid = req.GET.get('category') or None
@@ -103,6 +106,7 @@ def get_root_category(cid):
         return get_root_category(category.parent_cid)
 
 
+@login_required
 def salecategory(req):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 
@@ -143,6 +147,7 @@ def salecategory(req):
     return render(req, 'yunying/product/category.html', locals())
 
 
+@login_required
 def show(req, id):
     p_start_date, p_end_date, start_date, end_date = get_date_from_req(req)
 

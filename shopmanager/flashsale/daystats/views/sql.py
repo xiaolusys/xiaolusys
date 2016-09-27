@@ -1,10 +1,12 @@
 # encoding=utf8
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 from flashsale.daystats.mylib.db import mongo
 from bson.objectid import ObjectId
 
 
+@login_required
 def index(req):
     items = mongo.query.find()
     items = list(items)
@@ -13,6 +15,7 @@ def index(req):
     return render(req, 'yunying/sql/index.html', {'items': items})
 
 
+@login_required
 def create(req):
     sql = req.POST.get('sql', '')
     name = req.POST.get('name', '')
@@ -27,6 +30,7 @@ def create(req):
     return HttpResponse('ok')
 
 
+@login_required
 def destroy(req, id):
     mongo.query.remove({'_id': ObjectId(id)})
     return redirect('yy-sql-index')

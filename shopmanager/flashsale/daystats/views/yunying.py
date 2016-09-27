@@ -3,12 +3,14 @@ from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.db.models import Sum
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 from flashsale.pay.models.user import Customer
 from flashsale.xiaolumm.models.models import XiaoluMama
 from flashsale.pay.models.trade import SaleTrade
 
 
+@login_required
 def index(req):
     if not (req.GET.get('json') == ''):
         return render(req, 'yunying/index.html', locals())
