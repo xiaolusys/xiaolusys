@@ -411,6 +411,7 @@ class SaleProductViewSet(viewsets.ModelViewSet):
         self.set_instance_special_fields(serializer)  # 设置价格等信息
         model_product = instance.model_product
         if model_product:  # 有款式
+            model_product.update_title_and_category(instance.title, instance.sale_category)
             Product.create_or_update_skus(model_product, request.user)  # 保存saleproduct 之后才做更新
         return Response(serializer.data)
 
