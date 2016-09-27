@@ -71,6 +71,18 @@ class SaleProductManage(models.Model):
             self._sale_product_ids_ = [i['sale_product_id'] for i in self.manage_schedule.values('sale_product_id')]
         return self._sale_product_ids_
 
+    def resort_schedule(self):
+        """
+        功能: 重新按照　排期明细的　权重字段排序
+        """
+        details = self.manage_schedule.all().order_by('order_weight')
+        count = 1
+        for detail in details:
+            detail.order_weight = count
+            detail.save(update_fields=['order_weight'])
+            count += 1
+        return
+
     def clean_deleted_supplier_manager_details(self):
         """
         功能：　清理删除了的供应商的排期明细
@@ -84,6 +96,7 @@ class SaleProductManage(models.Model):
         if will_delete_sale_product_ids:
             self.manage_schedule.filter(sale_product_id__in=will_delete_sale_product_ids).delete()
             self.save()  # 同步产品数量
+            self.resort_schedule()  # 重新排序
             return True
         return False
 
