@@ -1,4 +1,4 @@
-# -*- encoding:utf8 -*-
+# -*- encoding:utf-8 -*-
 
 from django.db import models
 from django.conf import settings
@@ -214,7 +214,7 @@ class SMSLoginBackend(object):
 
         try:
             register = Register.objects.get(vmobile=mobile)
-            if not register.is_submitable() or not register.check_code(sms_code):
+            if not register.is_submitable():
                 return AnonymousUser()
 
             try:
