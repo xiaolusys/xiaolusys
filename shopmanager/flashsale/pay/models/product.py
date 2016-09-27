@@ -462,6 +462,41 @@ class ModelProduct(BaseTagModel):
         tmp_result.sort(key=lambda x:SM.find(x[0][0:2]) if SM.find(x[0][0:2])>-1 else SM.find(x[0][0:1]))
         return result_data + tmp_result
 
+    def reset_new_propeties_table_by_comparison(self):
+        """
+        功能：　设置　extras　的　new_properties 键　的尺码表内容　从　以前的尺码表中读取数据来填充
+        """
+        old_table = self.comparison['tables']
+        if not old_table:
+            return
+        tt = old_table[0]
+        table = tt['table']
+        t_head = table[0]
+        t_bodys = table[1::]
+        values = []
+        for t_body in t_bodys:
+            c = 0
+            dic = {}
+            for x in t_body:
+                dic.update({t_head[c]: x})
+                c += 1
+            values.append(dic)
+        current_new_properties = self.extras.get('new_properties') or None
+        table_head = {"name": "尺码对照参数", "value": t_head}
+        table_body = {"name": "尺码表", "value": values}
+        if not current_new_properties:
+            new_properties = [table_head, table_body]
+        else:
+            for x in current_new_properties:
+                if x.get('name') == '尺码对照参数':
+                    x['value'] = t_head
+                if x.get('name') == '尺码表':
+                    x['value'] = values
+            new_properties = current_new_properties
+        self.extras.update({'new_properties': new_properties})
+        self.save(update_fields=['extras'])
+        return
+
     @property
     def comparison(self):
         p_tables = []
