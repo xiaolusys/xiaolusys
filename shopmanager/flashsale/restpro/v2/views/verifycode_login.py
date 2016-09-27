@@ -1,3 +1,4 @@
+
 # -*- coding:utf-8 -*-
 import datetime
 import logging
@@ -263,9 +264,10 @@ class RequestCashoutVerifyCode(views.APIView):
             if not should_resend_code(reg):
                 return Response({"code": 5, "info": u"验证码刚发过咯，请等待下哦！"})
 
-        reg.verify_code = reg.genValidCode()
-        reg.code_time = datetime.datetime.now()
-        reg.save()
+        if not reg.verify_code:
+            reg.verify_code = reg.genValidCode()
+            reg.code_time = datetime.datetime.now()
+            reg.save()
         task_register_code.delay(mobile, "4")
         return Response({"code": 0, "info": u"验证码已发送！"})
 

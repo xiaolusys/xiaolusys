@@ -131,6 +131,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not product.is_onshelf():
             return Response({"code": 3, "info": u'商品已下架'})
 
+        sku = ProductSku.objects.filter(id=sku_id, product_id=product_id).first()
+        if not sku:
+            logger.error(u'购物车商品id不一致: (%s, %s)'%(product_id, sku_id))
+            return Response({"code": 8, "info": u'商品信息不一致'})
+
         cart_id = data.get("cart_id", None)
         if cart_id and cart_id.isdigit():
             s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id,
@@ -140,11 +145,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         try:
             type = int(type)
         except:
-            return Response({"code": 1, "info": u"参数错误"})
+            return Response({"code": 1, "info": u"type 参数错误"})
         if type not in dict(ShoppingCart.TYPE_CHOICES):
-            return Response({"code": 1, "info": u"参数错误"})
+            return Response({"code": 1, "info": u"type 参数错误"})
         sku_num = int(sku_num)
-        sku = ProductSku.objects.filter(id=sku_id).first()
+
         # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, sku_num)
         if not lockable:
