@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
@@ -27,7 +27,7 @@ admin.site.register(SMSPlatform, SMSPlatformAdmin)
 
 class SMSRecordAdmin(BaseAdmin):
     list_display = (
-    'id', 'task_name', 'task_type', 'platform', 'task_id', 'countnums', 'succnums', 'created', 'modified', 'status')
+        'id', 'task_name', 'task_type', 'platform', 'task_id', 'countnums', 'succnums', 'mobiles', 'content', 'created', 'modified', 'status')
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_display_links = ('task_name',)
