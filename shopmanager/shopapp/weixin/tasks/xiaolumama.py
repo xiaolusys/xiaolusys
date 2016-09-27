@@ -278,7 +278,7 @@ def task_weixinfans_create_subscribe_awardcarry(unionid):
             return
 
         date_field = datetime.date.today()
-        carry_description = u'谢谢关注！每天分享，赚佣么么哒！'
+        carry_description = u'谢谢关注！每天分享好东西，赚佣么么哒！'
         carry_plan_name = u'小鹿千万粉丝计划'
         contributor_mama_id = mama_id
         contributor_nick = userinfo.nick
@@ -323,7 +323,7 @@ def create_push_event_invite_fans(mama_id, contributor_nick, contributor_mama_id
     
     max_today_fans_invites = get_max_today_fans_invites(mama_id)
     if today_invites > max_today_fans_invites * 0.6:
-        footer = u'你的二维码推广每日只能新增%d名好友，超过将不能再得奖励，请知悉哦！详情请联系App客服MM咨询。' % max_today_fans_invites
+        footer = u'你的二维码推广每日只能新增%d名好友，超过将不能再得奖励，请知悉哦！你今日已增加%d名好友。详情请联系App客服MM咨询。' % (max_today_fans_invites, today_invites)
         footer_color = '#FA5858'
         
     now = datetime.datetime.now()

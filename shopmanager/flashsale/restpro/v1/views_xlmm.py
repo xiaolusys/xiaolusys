@@ -928,7 +928,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         
 
         if not mama.is_noaudit_cashoutable():
-            info = u'您的帐户不满足快速提现条件!'
+            info = u'您的店铺尚未激活，不满足快速提现条件!请点击公众号菜单［我的店铺］激活！'
             return Response({"code": 4, "info": info})
 
         mama_id = mama.id
