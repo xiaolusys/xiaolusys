@@ -10,7 +10,7 @@ from . import tasks
 import logging
 from . import service
 
-logger = logging.getLogger('weixin.proxy')
+logger = logging.getLogger('django.request')
 
 from shopback.monitor.models import XiaoluSwitch
 
