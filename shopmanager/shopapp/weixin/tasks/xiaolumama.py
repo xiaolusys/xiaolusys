@@ -170,7 +170,7 @@ def task_activate_xiaolumama(openid, wx_pubid):
         return
 
     unionid = fan.unionid
-    mama = XiaoluMama.objects.filter(openid=unionid,charge_status=XiaoluMama.UNCHARGE,status=XiaoluMama.EFFECT,last_renew_type=XiaoluMama.SCAN).first()
+    mama = XiaoluMama.objects.filter(openid=unionid,charge_status=XiaoluMama.UNCHARGE,status=XiaoluMama.EFFECT).first()
     if not mama:
         return
 
