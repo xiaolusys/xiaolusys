@@ -87,8 +87,12 @@ class WXMessageHttpProxy(HttpProxy):
             tasks.task_update_weixinfans_upon_unsubscribe.delay(openid, wx_pubid)
 
         # 点击链接，激活妈妈帐户
-        if event == WeiXinAutoResponse.WX_EVENT_VIEW.lower() and eventkey.strip() == ACTIVATE_MAMA_LINK:
-            tasks.task_activate_xiaolumama.delay(openid, wx_pubid)
+        if event == WeiXinAutoResponse.WX_EVENT_VIEW.lower():
+            from shopapp.weixin.service import DOWNLOAD_APP_LINK, PERSONAL_PAGE_LINK
+            if eventkey.strip() == ACTIVATE_MAMA_LINK or \
+               eventkey.strip() == DOWNLOAD_APP_LINK or \
+               eventkey.strip() == PERSONAL_PAGE_LINK:
+                tasks.task_activate_xiaolumama.delay(openid, wx_pubid)
          
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or\
            event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
