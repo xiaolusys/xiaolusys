@@ -290,7 +290,7 @@ class ReturnGoods(models.Model):
         #     onshelf = datetime.datetime.now() < ProductSku.objects.get(
         #         id=sku).product.offshelf_time < datetime.datetime.now() + datetime.timedelta(days=7)
         #     return not_in_unreturn and not onshelf
-        pass
+        return True
     @staticmethod
     def get_user_by_supplier(supplier_id):
         from django.contrib.auth.models import Group

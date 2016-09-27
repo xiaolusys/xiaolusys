@@ -1390,6 +1390,14 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+
+    u'删除数据库中三个月前的物流数据' :{
+        'task': 'shopback.trades.tasks.delete_logistics_three_month_ago',
+        'schedule': crontab(minute="0", hour="12"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+
+    },
     u'实时统计当前待发货准备的packageskuitem的数据':{
         'task': 'shopback.trades.tasks.task_schedule_check_packageskuitem_cnt',
         'schedule': crontab(minute="0"),

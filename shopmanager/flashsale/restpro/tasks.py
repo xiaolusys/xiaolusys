@@ -8,12 +8,14 @@ from django.contrib.auth.models import User as DjangoUser
 from django.db.models import F
 from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.models import ShoppingCart, SaleTrade, CustomerShops, CuShopPros
+from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product, ProductSkuStats
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info
 from flashsale.restpro.kdn_wuliu_extra import kdn_subscription
 import logging
+import datetime
 logger = logging.getLogger(__name__)
 
 
@@ -366,6 +368,12 @@ def update_all_return_logistics_bykdn():
                 kdn_sub(i.id,i.company_name,i.sid)
                 logging.warn("物流公司%s,物流单号%s" % (i.company_name,i.sid))
     logger.warn('update_all_return_logistics')
+
+@task()
+def delete_logistics_three_month_ago():
+    delete_time = datetime.datetime.now() - datetime.timedelta(days=90)
+    TradeWuliu.objects.filter(time__lte=delete_time).delete()
+    logger.warn('删除数据库中3个月前的物流数据')
 
 @task()
 def prods_position_handler():
