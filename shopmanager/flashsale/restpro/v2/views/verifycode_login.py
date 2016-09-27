@@ -96,6 +96,8 @@ def validate_code(mobile, verify_code):
     reg.submit_count += 1     #提交次数加一
     reg.save(update_fields=['submit_count', 'modified'])
 
+    logger.error(u'validate_code false, reg.verify_code=%s,verify_code=%s' % (reg.verify_code, verify_code))
+
     return False
 
 
