@@ -19,6 +19,7 @@ from core.utils.regex import REGEX_MOBILE
 from flashsale.pay.models import Register, Customer
 from flashsale.xiaolumm.models.models_fans import login_activate_appdownloadrecord
 from shopapp.smsmgr.tasks import task_register_code
+from shopback.monitor.models import XiaoluSwitch
 
 logger = logging.getLogger('django.request')
 klog = logging.getLogger('service')
@@ -98,7 +99,8 @@ def validate_code(mobile, verify_code):
     reg.submit_count += 1     #提交次数加一
     reg.save(update_fields=['submit_count', 'modified'])
 
-    logger.error(u'validate_code false, reg.verify_code=%s,verify_code=%s' % (reg.verify_code, verify_code))
+    if XiaoluSwitch.is_switch_open(6):
+        logger.error(u'validate_code false, reg.verify_code=%s,verify_code=%s' % (reg.verify_code, verify_code))
 
     return False
 
