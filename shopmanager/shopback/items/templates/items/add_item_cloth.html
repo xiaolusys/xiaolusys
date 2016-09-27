@@ -146,7 +146,8 @@
                     <input type="text" id="fashion" class="form-control"/>
                     <input type="hidden" id="wash_instroduce" class="form-control"/>
                 </div>
-                {% else %}
+                {% endif %}
+                {% if saleproduct.sale_category.parent_cid == "1" or saleproduct.sale_category.parent_cid == "2" %}
                 <div class="col-md-1">
                     <input type="button" class="btn" value="洗涤说明:"/>
                 </div>
