@@ -51,6 +51,9 @@ class Register(PayBaseModel):
         return '<%s>' % (self.id)
 
     def genValidCode(self):
+        dt = datetime.datetime.now()
+        if self.code_time and (dt - self.code_time).days < 1:
+            return self.verify_code
         return ''.join(random.sample(list('0123456789'), 6))
 
     def genMailCode(self):
@@ -58,7 +61,7 @@ class Register(PayBaseModel):
 
     def verifyable(self):
         dt = datetime.datetime.now()
-        if self.code_time and (dt - self.code_time).days > 1:
+        if self.code_time and (dt - self.code_time).days > 0:
             self.verify_count = 1
             self.save()
             return True
