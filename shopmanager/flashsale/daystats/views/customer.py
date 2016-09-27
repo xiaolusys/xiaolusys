@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.db import connections
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
+from django.contrib.auth.decorators import login_required
 from flashsale.pay.models.user import Customer
 from flashsale.pay.models.trade import SaleTrade
 from flashsale.daystats.mylib.db import (
@@ -31,6 +32,7 @@ def process_data(data):
     return [x[1] for x in data]
 
 
+@login_required
 @cache_page(60 * 15)
 def list(req):
     q_customer = req.GET.get('customer')
@@ -127,6 +129,7 @@ def list(req):
     return render(req, 'yunying/customer/list.html', locals())
 
 
+@login_required
 def index(req):
     now = datetime.now()
     p_start_date = req.GET.get('start_date', '2016-07-01')
