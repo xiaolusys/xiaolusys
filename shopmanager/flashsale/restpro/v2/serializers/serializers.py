@@ -5,6 +5,7 @@ import random
 import time
 from django.conf import settings
 from django.db.models import Sum, Count
+from shopback.trades.models import PackageSkuItem
 
 from rest_framework import serializers
 
@@ -201,16 +202,16 @@ class OrderCarrySerializer(serializers.ModelSerializer):
                   'packetid', 'company_code')
 
     def get_packetid(self, obj):
-        order = SaleOrder.objects.filter(oid=obj.order_id).first()
+        order = PackageSkuItem.objects.filter(oid=obj.order_id).first()
         if not order:
             return ''
-        return order.sale_trade.out_sid
+        return order.out_sid
 
     def get_company_code(self, obj):
-        order = SaleOrder.objects.filter(oid=obj.order_id).first()
+        order = PackageSkuItem.objects.filter(oid=obj.order_id).first()
         if not order:
             return ''
-        return order.sale_trade.logistics_company.code if order.sale_trade.logistics_company else ''
+        return order.logistics_company_code
 
 
 class AwardCarrySerializer(serializers.ModelSerializer):

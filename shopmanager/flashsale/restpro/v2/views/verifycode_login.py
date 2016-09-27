@@ -69,7 +69,8 @@ def validate_code(mobile, verify_code):
         return False
     
     current_time = datetime.datetime.now()
-    earliest_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
+    # earliest_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
+    earliest_send_time = current_time - datetime.timedelta(seconds=7200)
     regs = Register.objects.filter(vmobile=mobile)
 
     if regs.count() <= 0:
