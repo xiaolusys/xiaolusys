@@ -1011,7 +1011,7 @@ post_save.connect(update_inferiorsku_inbound_quantity,
 
 def update_stock(sender, instance, created, **kwargs):
     if instance.checked:
-        # instance.sync_order_detail()
+        instance.sync_order_detail()
         instance.reset_out_stock()
         if instance.inbound.set_stat():
             instance.inbound.save()
