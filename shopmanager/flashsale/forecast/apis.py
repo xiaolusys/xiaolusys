@@ -124,7 +124,7 @@ def api_create_or_update_realinbound_by_inbound(inbound_id):
         real_inbound.express_no = inbound.express_no
         real_inbound.creator = inbound.creator.username
         real_inbound.memo = inbound.memo
-        if inbound.is_invalid_status():
+        if inbound.is_invalid():
             real_inbound.status = RealInbound.CANCELED
         else:
             real_inbound.status = RealInbound.COMPLETED

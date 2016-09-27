@@ -155,7 +155,7 @@
                     <td>{{sale_order.refund_fee}}&nbsp;&nbsp;&nbsp;</td>
                     <td>{{sale_order.get_refund_status_display}}</td>
                     <td>{{sale_order.get_status_display}}</td>
-                    <td><a href="/admin/trades/package_sku_item?id={{sale_order.package_sku.id}}">{{sale_order.package_sku.get_assign_status_display}}</a></td>
+                    <td><a href="/admin/trades/packageskuitem?id={{sale_order.package_sku.id}}">{{sale_order.package_sku.get_assign_status_display}}</a></td>
                     <td>{{sale_order.package_sku.package_order_id|default:''}}</td>
                     <td>{%if sale_order.can_change_sku%}
                         <button type="button" data-toggle="modal"id="change_sku_{{sale_order.id}}"

@@ -14,6 +14,7 @@ from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 from .purchase_order import OrderList, OrderDetail
 from shopback.warehouse import WARE_SH, WARE_CHOICES
+from core.options import log_action, ADDITION, CHANGE
 import logging
 
 logger = logging.getLogger(__name__)
@@ -91,74 +92,11 @@ class InBound(models.Model):
     def __unicode__(self):
         return str(self.id)
 
-    def assign_to_order_detail(self, orderlist_id, orderlist_ids):
-        return {}
-        orderlist_ids = [x for x in orderlist_ids if x != orderlist_id]
-        inbound_skus = dict([(inbound_detail.sku_id,
-                              inbound_detail.arrival_quantity)
-                             for inbound_detail in self.details.all()])
-        order_details_first = OrderDetail.objects.filter(
-            orderlist_id=orderlist_id,
-            chichu_id__in=inbound_skus.keys()).order_by('created')
-        order_details = OrderDetail.objects.filter(
-            orderlist_id__in=list(orderlist_ids),
-            chichu_id__in=inbound_skus.keys()).order_by('created')
-        order_details = list(order_details)
-        order_details = list(order_details_first) + order_details
-        assign_dict = {}
-        for order_detail in order_details:
-            if order_detail.not_arrival_quantity < inbound_skus.get(
-                    order_detail.chichu_id, 0):
-                order_detail.arrival_quantity += order_detail.not_arrival_quantity
-                inbound_skus[
-                    order_detail.chichu_id] -= order_detail.not_arrival_quantity
-                assign_dict[order_detail.id] = order_detail.not_arrival_quantity
-                # order_detail.save()
-            else:
-                order_detail.arrival_quantity += inbound_skus.get(
-                    order_detail.chichu_id, 0)
-                inbound_skus[order_detail.chichu_id] = 0
-                assign_dict[order_detail.id] = inbound_skus.get(
-                    order_detail.chichu_id, 0)
-        return assign_dict
-
-    def allocate(self, data):
-        request_all_sku = {}
-        for orderdetail_id in data:
-            orderdetail = OrderDetail.objects.get(id=orderdetail_id)
-            request_all_sku[int(orderdetail.chichu_id)] = request_all_sku.get(int(orderdetail.chichu_id), 0) + data[
-                orderdetail_id]
-        sku_data = self.sku_data
-        for sku_id in request_all_sku:
-            if request_all_sku.get(sku_id, 0) > sku_data[sku_id]:
-                raise Exception(u'分配数不能超出总数')
-        for orderdetail_id in data:
-            orderdetail = OrderDetail.objects.get(id=orderdetail_id)
-            OrderDetailInBoundDetail.create(orderdetail, self, data[orderdetail_id])
-        self.status = InBound.WAIT_CHECK
-        self.set_stat()
-        self.save()
-
-    def record_orderlist_ids(self):
-        self.orderlist_ids = self.order_list_ids
-        self.save()
-
-    def update_orderlist_inbound(self):
-        for orderlist_id in self.order_list_ids:
-            OrderList.objects.get(id=orderlist_id).set_arrival_process_status()
-
-    def notify_forecast_save_or_update_inbound(self):
-        from flashsale.forecast.apis import api_create_or_update_realinbound_by_inbound
-        api_create_or_update_realinbound_by_inbound.delay(self.id)
-
     @property
     def sku_ids(self):
         if not hasattr(self, '_sku_ids_'):
             self._sku_ids_ = [i['sku_id'] for i in self.details.values('sku_id')]
         return self._sku_ids_
-
-    def is_invalid_status(self):
-        return self.status == self.INVALID
 
     @property
     def product_ids(self):
@@ -206,6 +144,16 @@ class InBound(models.Model):
 
     @property
     def order_list_items(self):
+        """
+            order_list列表，挂上字典以携带额外信息。如od上的product_id
+            [
+                ol
+                    ol.inbound_products [
+                        product
+                            inbound_orderdetails[orderdetail]
+                    ]
+            ]
+        """
         cache_orderlist = {}
         cache_product = {}
         res = []
@@ -228,14 +176,132 @@ class InBound(models.Model):
             ol.rows = sum([len(p.inbound_orderdetails) for p in ol.inbound_products])
         return res
 
-    def get_order_list_items_dict(self):
-        order_list_items = self.order_list_items
-        return order_list_items
-
     @property
     def sku_data(self):
         return {item['sku_id']: item['arrival_quantity'] + item['inferior_quantity']
                 for item in self.details.values('sku_id', 'arrival_quantity', 'inferior_quantity')}
+
+    @staticmethod
+    def get_optimize_forecast_id(inbound_skus):
+        from collections import defaultdict
+        from flashsale.dinghuo import services
+        forecast_group = defaultdict(list)
+        for id, sku in inbound_skus.iteritems():
+            forecast_group[int(sku['forecastId'])].append(int(sku['arrival_quantity']))
+        forecast_group_sum = dict([(k, sum(v)) for k, v in forecast_group.items()])
+        optimize_groups = {}
+        for forecast_id, arrival_num in forecast_group_sum.items():
+            forecast_data = services.get_forecastinbound_data(forecast_id)
+            delta_num = forecast_data['total_forecast_num'] - forecast_data['total_arrival_num']
+            if delta_num >= arrival_num:
+                optimize_groups[forecast_id] = arrival_num
+        if not optimize_groups:
+            optimize_groups = forecast_group_sum
+        optimize_forecast_id = max(optimize_groups, key=lambda x: optimize_groups.get(x))
+        return optimize_forecast_id
+
+    @staticmethod
+    def create(self, inbound_skus, orderlist_id, express_no, relate_orderids, supplier_id, user, memo=''):
+        inbound_skus_dict = {int(k): v for k, v in inbound_skus.iteritems()}
+        for sku in ProductSku.objects.filter(id__in=inbound_skus_dict.keys()):
+            inbound_skus_dict[sku.id]['product_id'] = sku.product_id
+        optimize_forecast_id = self.get_optimize_forecast_id(inbound_skus)
+        now = datetime.datetime.now()
+        tmp = ['-->%s %s: 创建入仓单' % (now.strftime('%m月%d %H:%M'), user.username)]
+        if memo:
+            tmp.append(memo)
+
+        inbound = InBound(supplier_id=supplier_id,
+                          creator_id=user.id,
+                          express_no=express_no,
+                          forecast_inbound_id=optimize_forecast_id,
+                          ori_orderlist_id=orderlist_id,
+                          memo='\n'.join(tmp))
+        if relate_orderids:
+            inbound.orderlist_ids = relate_orderids
+        inbound.save()
+
+        inbounddetails_dict = {}
+        wrong_sku_id = 222222
+        for sku in ProductSku.objects.select_related('product').filter(
+                id__in=inbound_skus_dict.keys()):
+            sku_dict = inbound_skus_dict[sku.id]
+            arrival_quantity = sku_dict.get('arrival_quantity') or 0
+            inferior_quantity = sku_dict.get('inferior_quantity') or 0
+            memo = sku_dict.get('memo', '')
+            inbounddetail = InBoundDetail(inbound=inbound,
+                                          product=sku.product,
+                                          sku=sku,
+                                          product_name=sku.product.name,
+                                          outer_id=sku.product.outer_id,
+                                          properties_name=sku.properties_name,
+                                          arrival_quantity=arrival_quantity,
+                                          inferior_quantity=inferior_quantity,
+                                          memo=memo)
+            if inbounddetail.sku_id == wrong_sku_id:
+                inbounddetail.wrong = True
+            inbounddetail.save()
+            inbounddetails_dict[sku.id] = {
+                'id': inbounddetail.id,
+                'arrival_quantity': arrival_quantity,
+                'inferior_quantity': inferior_quantity
+            }
+        if 0 in inbound_skus_dict:
+            problem_sku_dict = inbound_skus_dict[0]
+            InBoundDetail(inbound=inbound,
+                          product_name=problem_sku_dict['name'],
+                          arrival_quantity=problem_sku_dict['arrival_quantity'],
+                          status=InBoundDetail.PROBLEM).save()
+        return inbound
+
+    def allocate(self, data):
+        request_all_sku = {}
+        for orderdetail_id in data:
+            orderdetail = OrderDetail.objects.get(id=orderdetail_id)
+            request_all_sku[int(orderdetail.chichu_id)] = request_all_sku.get(int(orderdetail.chichu_id), 0) + data[
+                orderdetail_id]
+        sku_data = self.sku_data
+        for sku_id in request_all_sku:
+            if request_all_sku.get(sku_id, 0) > sku_data[sku_id]:
+                raise Exception(u'分配数不能超出总数')
+        for orderdetail_id in data:
+            orderdetail = OrderDetail.objects.get(id=orderdetail_id)
+            OrderDetailInBoundDetail.create(orderdetail, self, data[orderdetail_id])
+        self.status = InBound.WAIT_CHECK
+        self.set_stat()
+        self.save()
+
+    def finish_check(self, data):
+        """
+            完成质检
+        :return:
+        """
+        for inbound_detail_id in data:
+            inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
+            if inbound_detail.checked:
+                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
+                                            data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
+            else:
+                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
+                                            data[inbound_detail_id]["inferiorQuantity"])
+                inbound_detail.finish_check2()
+        self.status = InBound.COMPLETED
+        self.checked = True
+        self.check_time = datetime.datetime.now()
+        self.set_stat()
+        self.save()
+        self.update_orderlist_arrival_process()
+
+    def update_orderlist_arrival_process(self):
+        """
+            更新订货单到货状态
+        """
+        for orderlist_id in self.order_list_ids:
+            OrderList.objects.get(id=orderlist_id).set_arrival_process_status()
+
+    def notify_forecast_save_or_update_inbound(self):
+        from flashsale.forecast.apis import api_create_or_update_realinbound_by_inbound
+        api_create_or_update_realinbound_by_inbound.delay(self.id)
 
     def get_allocate_orderlist_dict(self):
         res = {}
@@ -251,15 +317,6 @@ class InBound(models.Model):
         orderlist_ids = self.get_may_allocate_order_list_ids()
         query = OrderDetail.objects.filter(orderlist_id__in=orderlist_ids).values('chichu_id').distinct()
         return [int(item['chichu_id']) for item in query]
-
-    def get_set_status_info(self):
-        # if self.set_stat():
-        #     self.save()
-        wrong_str = u'错货%d件' % (self.error_cnt,) if self.wrong else ''
-        more = self.all_arrival_quantity - self.all_allocate_quantity
-        more_str = u'多货%d件' %(more,) if more>0 else ''
-        return u"共%d件SKU（%d正品%d次品%s%s），分配了%d件进订货单" % (self.all_quantity, self.all_arrival_quantity,
-                                                    self.all_inferior_quantity, wrong_str, more_str, self.all_allocate_quantity)
 
     def get_may_allocate_order_list_ids(self):
         query = OrderDetail.objects.filter(orderlist__supplier_id=self.supplier_id, chichu_id__in=self.sku_ids,
@@ -420,98 +477,6 @@ class InBound(models.Model):
             orderlist_dict['len_of_sku'] = sum([len(i['skus']) for i in orderlist_dict['products']])
         return orderlists_dict
 
-    def _build_orderlists(self, orderlist_ids):
-        status_mapping = dict(OrderList.ORDER_PRODUCT_STATUS)
-        product_ids = set()
-        sku_ids = set()
-        orderlists_dict = {}
-
-        for orderlist in OrderList.objects.filter(id__in=orderlist_ids):
-            buyer_name = '未知'
-            if orderlist.buyer_id:
-                buyer_name = '%s%s' % (orderlist.buyer.last_name,
-                                       orderlist.buyer.first_name)
-                buyer_name = buyer_name or orderlist.buyer.username
-
-            orderlists_dict[orderlist.id] = {
-                'id': orderlist.id,
-                'buyer_name': buyer_name,
-                'created': orderlist.created.strftime('%y年%m月%d'),
-                'status': status_mapping.get(orderlist.status) or '未知',
-                'products': {}
-            }
-
-        for orderdetail in OrderDetail.objects.filter(
-                orderlist_id__in=orderlist_ids).order_by('id'):
-            orderlist_dict = orderlists_dict[orderdetail.orderlist_id]
-            product_id = int(orderdetail.product_id)
-            sku_id = int(orderdetail.chichu_id)
-            product_ids.add(product_id)
-            sku_ids.add(sku_id)
-
-            products_dict = orderlist_dict['products']
-            skus_dict = products_dict.setdefault(product_id, {})
-
-            skus_dict[sku_id] = {
-                'buy_quantity': orderdetail.buy_quantity,
-                'plan_quantity': orderdetail.buy_quantity - min(
-                    orderdetail.arrival_quantity, orderdetail.buy_quantity),
-                'orderdetail_id': orderdetail.id
-            }
-
-        saleproduct_ids = set()
-        products_dict = {}
-        for product in Product.objects.filter(id__in=list(product_ids)):
-            products_dict[product.id] = {
-                'id': product.id,
-                'name': product.name,
-                'saleproduct_id': product.sale_product,
-                'outer_id': product.outer_id,
-                'pic_path': product.pic_path,
-                'ware_by': product.ware_by
-            }
-            saleproduct_ids.add(product.sale_product)
-
-        skus_dict = {}
-        for sku in ProductSku.objects.filter(id__in=list(sku_ids)):
-            skus_dict[sku.id] = {
-                'id': sku.id,
-                'properties_name': sku.properties_name or sku.properties_alias,
-                'barcode': sku.barcode,
-                'is_inbound': 1
-            }
-
-        saleproducts_dict = {}
-        for saleproduct in SaleProduct.objects.filter(
-                id__in=list(saleproduct_ids)):
-            saleproducts_dict[saleproduct.id] = {
-                'product_link': saleproduct.product_link
-            }
-
-        orderlists = []
-        for orderlist_id in sorted(orderlists_dict.keys()):
-            orderlist_dict = orderlists_dict[orderlist_id]
-            orderlist_products_dict = orderlist_dict['products']
-
-            orderlist_products = []
-            len_of_skus = 0
-            for product_id in sorted(orderlist_products_dict.keys()):
-                product_dict = copy.copy(products_dict[product_id])
-                product_dict.update(saleproducts_dict.get(product_dict[
-                                                              'saleproduct_id']) or {})
-                orderlist_skus_dict = orderlist_products_dict[product_id]
-                for sku_id in sorted(orderlist_skus_dict.keys()):
-                    len_of_skus += 1
-                    sku_dict = orderlist_skus_dict[sku_id]
-                    sku_dict.update(skus_dict[sku_id])
-                    product_dict.setdefault('skus', []).append(sku_dict)
-                orderlist_products.append(product_dict)
-            orderlist_dict['orderlist_id'] = orderlist_id
-            orderlist_dict['products'] = orderlist_products
-            orderlist_dict['len_of_skus'] = len_of_skus
-            orderlists.append(orderlist_dict)
-        return orderlists
-
     def products_item_sku(self):
         products = self.products
         for sku in self.product_skus:
@@ -532,33 +497,6 @@ class InBound(models.Model):
                         product.detail_items = []
                     product.detail_items.append(detail)
         return products
-
-    def finish_check(self, data):
-        """
-            完成质检
-        :return:
-        """
-        for inbound_detail_id in data:
-            inbound_detail = InBoundDetail.objects.get(id=inbound_detail_id)
-            if inbound_detail.checked:
-                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
-                                            data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
-            else:
-                inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
-                                            data[inbound_detail_id]["inferiorQuantity"])
-                inbound_detail.finish_check2()
-        self.status = InBound.COMPLETED
-        self.checked = True
-        self.check_time = datetime.datetime.now()
-        self.set_stat()
-        self.save()
-        self.update_orderlist_inbound()
-
-    def need_return(self):
-        if self.status != InBound.COMPLETE_RETURN:
-            return self.wrong or self.out_stock
-        else:
-            return False
 
     def generate_return_goods(self, noter):
         from flashsale.dinghuo.models import ReturnGoods
@@ -604,86 +542,18 @@ class InBound(models.Model):
                     sku_data[orderdetail.sku_id] -= allocate_dict[orderdetail.id]
         return allocate_dict
 
-    def get_optimized_allocate_dict_bak(inbound):
-        EXPRESS_NO_SPLIT_PATTERN = re.compile(r'\s+|,|，')
-        express_no = inbound.express_no
-        orderlist_id = inbound.ori_orderlist_id
-        inbound_skus_dict = inbound.sku_data
-        orderlist_ids = inbound.get_may_allocate_order_list_ids()
-        boxes = []
-        orderlists = []
-        orderlist_ids_with_express_no = []
-        for orderlist in OrderList.objects.filter(
-                id__in=orderlist_ids).order_by('id'):
-            orderlists.append(orderlist)
-            orderlist_express_nos = [
-                x.strip()
-                for x in EXPRESS_NO_SPLIT_PATTERN.split(
-                    orderlist.express_no.strip())
-                ]
-            if express_no and orderlist.express_no and express_no.strip(
-            ) in orderlist_express_nos:
-                orderlist_ids_with_express_no.append(orderlist_id)
-            orderlist_skus_dict = {}
-            for orderdetail in orderlist.order_list.all():
-                orderlist_skus_dict[int(orderdetail.chichu_id)] = max(
-                    orderdetail.buy_quantity - orderdetail.arrival_quantity, 0)
-            row = []
-            for sku_id in sorted(inbound_skus_dict.keys()):
-                row.append(orderlist_skus_dict.get(sku_id) or 0)
-            boxes.append(row)
-        boxes = np.matrix(boxes)
-        package = np.matrix([inbound_skus_dict[k]
-                             for k in sorted(inbound_skus_dict.keys())])
-        orderlist_ids = sorted(orderlist_ids)
-        n = len(orderlist_ids)
-        z = sys.maxint
-        solution = 0
-        for i in range(1, 1 << n):
-            x = np.matrix([int(j) for j in ('{0:0%db}' % n).format(i)])
-            tmp = np.dot(boxes.T, x.T) - package.T
-            tmp = np.abs(tmp).sum()
-            if z > tmp:
-                z = tmp
-                solution = i
-        matched_orderlist_ids = []
-        for i, j in enumerate(('{0:0%db}' % n).format(solution)):
-            if int(j) > 0:
-                matched_orderlist_ids.append(orderlist_ids[i])
-        if orderlist_id and orderlist_id not in matched_orderlist_ids:
-            matched_orderlist_ids.append(orderlist_id)
-        tail_orderlist_ids = []
-        for orderlist in orderlists:
-            if orderlist.id in matched_orderlist_ids:
-                continue
-            if orderlist.id in orderlist_ids_with_express_no:
-                matched_orderlist_ids.append(orderlist.id)
-            else:
-                tail_orderlist_ids.append(orderlist.id)
-        orderlists = sorted(
-            orderlists,
-            key=
-            lambda x: (matched_orderlist_ids + tail_orderlist_ids).index(x.id))
-        allocate_dict = {}
-        for orderlist in orderlists:
-            for orderdetail in orderlist.order_list.all():
-                sku_id = int(orderdetail.chichu_id)
-                inbound_sku_num = inbound_skus_dict.get(sku_id)
-                if not inbound_sku_num:
-                    continue
-                delta = min(
-                    max(orderdetail.buy_quantity - orderdetail.arrival_quantity,
-                        0), inbound_sku_num)
-                if delta > 0:
-                    allocate_dict[orderdetail.id] = delta
-                    inbound_sku_num -= delta
-                    if inbound_sku_num <= 0:
-                        inbound_skus_dict.pop(sku_id, False)
-        return allocate_dict
-
     def get_relation(self, order_detail):
         return OrderDetailInBoundDetail.objects.filter(inbounddetail__inbound__id=self.id,
                                                        orderdetail__id=order_detail.id).first()
+
+    def get_set_status_info(self):
+        # if self.set_stat():
+        #     self.save()
+        wrong_str = u'错货%d件' % (self.error_cnt,) if self.wrong else ''
+        more = self.all_arrival_quantity - self.all_allocate_quantity
+        more_str = u'多货%d件' %(more,) if more>0 else ''
+        return u"共%d件SKU（%d正品%d次品%s%s），分配了%d件进订货单" % (self.all_quantity, self.all_arrival_quantity,
+                                                    self.all_inferior_quantity, wrong_str, more_str, self.all_allocate_quantity)
 
     @property
     def all_quantity(self):
@@ -716,11 +586,20 @@ class InBound(models.Model):
             self._err_detail_ = self.details.filter(wrong=True).first()
         return self._err_detail_
 
+    def is_invalid(self):
+        return self.status == self.INVALID
+
     def is_allocated(self):
         return self.status > InBound.PENDING
 
     def is_finished(self):
         return self.status >= InBound.COMPLETED
+
+    def need_return(self):
+        if self.status != InBound.COMPLETE_RETURN:
+            return self.wrong or self.out_stock
+        else:
+            return False
 
     def set_stat(self):
         ori_out_stock = self.out_stock
@@ -826,10 +705,28 @@ class InBoundDetail(models.Model):
         verbose_name = u'入仓单明细'
         verbose_name_plural = u'入仓单明细列表'
 
-    def check_sync_quantity(inbounddetail):
-        return inbounddetail.arrival_quantity == inbounddetail.records.aggregate(
-            n=Sum('arrival_quantity')).get('n') and inbounddetail.inferior_quantity == inbounddetail.records.aggregate(
-            n=Sum('inferior_quantity')).get('n')
+    @property
+    def out_stock_num(self):
+        all_allocate_quantity = self.all_allocate_quantity
+        self.out_stock = self.arrival_quantity > all_allocate_quantity
+        return self.arrival_quantity - all_allocate_quantity
+
+    @property
+    def all_allocate_quantity(self):
+        total = self.records.aggregate(n=Sum("arrival_quantity")).get('n', 0)
+        total = total if total else 0
+        return total
+
+    def get_status_info(self):
+        if self.out_stock:
+            return u'多货'
+        else:
+            return u'完全分配'
+
+    def get_allocate_info(self):
+        if self.out_stock_num > 0:
+            return u'多货'
+        return u'完全分配'
 
     def sync_order_detail(self):
         for oi in self.records.all():
@@ -839,8 +736,6 @@ class InBoundDetail(models.Model):
         """
             数量变化，不改变次品数
             如果总数大于分配数，则不改变分配数，如果总数小于分配数，则调整分配数使它重新等于总数
-        :param num:
-        :return:
         """
         self.arrival_quantity += num
         if self.arrival_quantity < 0:
@@ -871,29 +766,6 @@ class InBoundDetail(models.Model):
         if change_stock:
             ProductSku.objects.filter(id=self.sku_id).update(quantity=F('quantity') - quantity_add)
 
-    @property
-    def out_stock_num(self):
-        all_allocate_quantity = self.all_allocate_quantity
-        self.out_stock = self.arrival_quantity > all_allocate_quantity
-        return self.arrival_quantity - all_allocate_quantity
-
-    @property
-    def all_allocate_quantity(self):
-        total = self.records.aggregate(n=Sum("arrival_quantity")).get('n', 0)
-        total = total if total else 0
-        return total
-
-    def get_status_info(self):
-        if self.out_stock:
-            return u'多货'
-        else:
-            return u'完全分配'
-
-    def get_allocate_info(self):
-        if self.out_stock_num > 0:
-            return u'多货'
-        return u'完全分配'
-
     def reset_out_stock(self):
         ori_out_stock = self.out_stock
         self.out_stock = self.out_stock_num > 0
@@ -901,6 +773,9 @@ class InBoundDetail(models.Model):
             InBoundDetail.objects.filter(id=self.id).update(out_stock=self.out_stock)
 
     def reset_to_unchecked(self):
+        """
+            # TODO@hy 有bug 非checked更新库存事件不会触发
+        """
         if self.checked:
             self.checked = False
             self.save()
@@ -986,8 +861,7 @@ class InBoundDetail(models.Model):
     def out_stock_cnt(self):
         if self.wrong:
             return 0
-        total = self.records.aggregate(n=Sum("arrival_quantity")).get('n', None)
-        total = 0 if total is None else total
+        total = self.records.aggregate(n=Sum("arrival_quantity")).get('n') or 0
         return self.arrival_quantity - total
 
     @staticmethod
@@ -1078,19 +952,19 @@ class OrderDetailInBoundDetail(models.Model):
         orderdetail.save()
 
 
-def update_inbound_record(sender, instance, created, **kwargs):
-    instance.inbounddetail.reset_out_stock()
-
-
-post_save.connect(update_inbound_record,
-                  sender=OrderDetailInBoundDetail,
-                  dispatch_uid='post_save_orderdetail_inbounddetail_update_inbound_record')
-
-
-def update_orderdetail_record(sender, instance, created, **kwargs):
-    instance.update_orderdetail()
-
-
-post_save.connect(update_orderdetail_record,
-                  sender=OrderDetailInBoundDetail,
-                  dispatch_uid='post_save_orderdetail_inbounddetail_update_orderdetail_record')
+# def update_inbound_record(sender, instance, created, **kwargs):
+#     instance.inbounddetail.reset_out_stock()
+#
+#
+# post_save.connect(update_inbound_record,
+#                   sender=OrderDetailInBoundDetail,
+#                   dispatch_uid='post_save_orderdetail_inbounddetail_update_inbound_record')
+#
+#
+# def update_orderdetail_record(sender, instance, created, **kwargs):
+#     instance.update_orderdetail()
+#
+#
+# post_save.connect(update_orderdetail_record,
+#                   sender=OrderDetailInBoundDetail,
+#                   dispatch_uid='post_save_orderdetail_inbounddetail_update_orderdetail_record')
