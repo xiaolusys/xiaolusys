@@ -411,7 +411,7 @@ class SaleRefund(PayBaseModel):
         if self.is_returngoodsable:
             self.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
             self.save(update_fields=['status', 'modified'])
-            self.update_sale_order_refund_status()  # 更新sale_order refund_status
+            # self.update_sale_order_refund_status()  # 更新sale_order refund_status
             return True
         return False
 
