@@ -43,6 +43,7 @@ def check_day_limit(reg):
             # everyday we restore verify_count/submit_count
             reg.verify_count = 0
             reg.submit_count = 0
+            reg.verify_code = ''
             reg.save()
     return False
 

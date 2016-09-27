@@ -181,7 +181,7 @@ def task_activate_xiaolumama(openid, wx_pubid):
     mama_id = mama.id
     renew_date = datetime.date.today() + datetime.timedelta(days=3)
     renew_time = datetime.datetime(renew_date.year, renew_date.month, renew_date.day)
-    XiaoluMama.objects.filter(id=mama_id).update(charge_status=XiaoluMama.CHARGED, renew_time=renew_time)
+    XiaoluMama.objects.filter(id=mama_id).update(charge_status=XiaoluMama.CHARGED, renew_time=renew_time, agencylevel=XiaoluMama.A_LEVEL)
 
     referal_from_mama_id = None
     qrscene = fan.get_qrscene()
