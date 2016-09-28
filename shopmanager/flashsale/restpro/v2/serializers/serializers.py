@@ -154,6 +154,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         today_carry_record = round(today_carry_record_num / 100.0, 2) if today_carry_record_num > 0 else 0
         default.update({'today_carry_record': today_carry_record})
         if not (week_mama_carry and week_mama_team_carry):
+            default.update({'today_carry_record': 0.0})
             return default
         week_duration_total = week_mama_carry.duration_total /100.0 if week_mama_carry.duration_total else 0.0
         default.update({'week_duration_total': week_duration_total,
