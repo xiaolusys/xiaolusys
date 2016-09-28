@@ -13,7 +13,7 @@ from shopback.items.models import Product, ProductSkuStats
 from flashsale.pay.models import SaleRefund
 from shopback.trades.models import TradeWuliu, PackageSkuItem,ReturnWuLiu
 from flashsale.restpro.utils import save_pro_info
-from flashsale.restpro.kdn_wuliu_extra import kdn_subscription
+from flashsale.restpro.kdn_wuliu_extra import kdn_subscription,get_reverse_code
 import logging
 import datetime
 logger = logging.getLogger(__name__)
@@ -224,6 +224,18 @@ def kdn_sub(rid, expName, expNo):
     logging.warn("开始订阅了")
     exp_info = {"expName": expName, "expNo": expNo}
     kdn_subscription(**exp_info)
+
+@task()
+def kdn_get_push(*args, **kwargs):
+    logger.warn("开始接受推送物流信息了")
+    tradewuliu = TradeWuliu.objects.filter(logistics_company=kwargs['logistics_company'],
+                                           out_sid=kwargs['out_sid'])
+    if tradewuliu.first() is None:
+        TradeWuliu.objects.create(**kwargs)
+        print "写入成功"
+    else:
+        tradewuliu.update(**kwargs)
+        print "更新成功"
 
 
 @task(max_retries=3, default_retry_delay=5)
