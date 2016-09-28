@@ -505,12 +505,15 @@ class SaleScheduleViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         is_locked = instance.lock_status
+        sale_supplier_ids = [supplier.id for supplier in instance.sale_suppliers.all()]  # 修改前供应商id
+        sale_suppliers_id = request.data.get('sale_suppliers')
+        is_deleted_sale_suppliers = set(sale_suppliers_id) < set(sale_supplier_ids)
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         log_action(request.user, instance, CHANGE, u'修改字段:%s' % ''.join(request.data.keys()))
         self.perform_update(serializer)
         # 清理供应商下的产品
-        if not is_locked:  # 非锁定状态　予以清理排期明细
+        if not is_locked and is_deleted_sale_suppliers:  # 非锁定状态　并且删除过供应商　予以清理排期明细
             if instance.clean_deleted_supplier_manager_details():
                 log_action(request.user, instance, CHANGE, u'清理删除了的供应商的排期明细')
         return Response(serializer.data)

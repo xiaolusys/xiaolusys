@@ -291,6 +291,7 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
 
 
 class ModelProductSerializer(serializers.ModelSerializer):
+    content_imgs = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = ModelProduct
         fields = (
@@ -308,6 +309,11 @@ class ModelProductSerializer(serializers.ModelSerializer):
             "onshelf_time",
             "offshelf_time"
         )
+
+    def get_content_imgs(self, obj):
+        if not obj.content_imgs:
+            return []
+        return obj.content_imgs.split('\n')
 
 
 class RetrieveSaleProductSerializer(serializers.ModelSerializer):
