@@ -17,6 +17,7 @@ _______________________
 - [TestCase](#testcase)
 - [Statsd](#statsd)
 - [ApiRule](#apirule)
+- [Celery](#celery)
 - [Migrate](#migrate)
 - [Logger](#logger)
 
@@ -98,11 +99,16 @@ post请求: 请求参数接受参数为json格式
 - [tutorial: http://docs-ci.oneapm.com/api/python.html](http://docs-ci.oneapm.com/api/python.html)
 ``` code
 现在日志分debug日志，跟业务统计日志两类，
-debug日志的记录方法未变，业务日志的记录方法是logger name 已 service开头：
+debug日志的记录规则 需要分词地方使用逗号分隔, 如:
+> logger.info('[func_name],[action],[id],[extra]')
+> logger.error('[func_name],[action],[id],[exc_desc]', exc_info=True)
+
+业务日志的记录方法是logger name 已 service开头：
 import logging
 json_logger = logging.getLogger('service.[业务名称]')
-# type  记录类型必须要加上根据内部规划取名
-json_logger.info({'type':'click', 'name':'meron', 'age':'20', 'ip':'192.0.0.1'})
+# action  记录类型必须要加上根据内部规划取名
+json_logger.info({'action':'click', 'name':'meron', 'age':'20', 'ip':'192.0.0.1'})
+(如果业务字段差异比较大，需要分不同日志logger)
 ```
 
 ## Merge
