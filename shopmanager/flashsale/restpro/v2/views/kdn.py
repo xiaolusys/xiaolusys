@@ -23,6 +23,8 @@ from shopback.trades.models import TradeWuliu
 from flashsale.restpro import exp_map
 from ...tasks import kdn_sub
 from flashsale.restpro import wuliu_choice
+from flashsale.restpro.tasks import kdn_get_push
+# from flashsale.restpro.kdn_wuliu_extra import kdn_get_push
 
 logger = logging.getLogger(__name__)
 
@@ -91,10 +93,20 @@ class KdnView(APIView):
             "DataSign": DataSign,
             "State": State
                     }
+        print ShipperCode
+        write_info = {
+            "out_sid": write_info['LogisticCode'],
+            "logistics_company": exp_map.reverse_map().get(write_info['ShipperCode'], None),
+            "status": write_info['State'],
+            "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "content": write_info['Traces']
+        }
+        print write_info['logistics_company']
         logger.info(write_info)
         try:
-            kdn_wuliu_extra.kdn_get_push(**write_info)
-        except:
+            kdn_get_push.delay(**write_info)
+        except Exception, e:
+            print Exception,e
             return Response({"Success": False, "EBusinessID": str(1264368),
                              "UpdateTime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Reason": "数据库写入失败"})
 
