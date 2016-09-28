@@ -865,7 +865,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         verify_code=123456 #验证码123456
         """
         if True:
-            return Response({"code": 2, "info": u"系统维护中，请明天再试!"})
+            return Response({"code": 2, "info": u"系统维护中，请稍后再试!"})
         customer, mama = self.get_customer_and_xlmm(request)
         if not (mama and customer):
             info = u'你的帐号异常，请联系管理员！'
