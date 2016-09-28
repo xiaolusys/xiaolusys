@@ -317,11 +317,11 @@ class ProductManager(CacheManager):
 
     def lockQuantity(self, sku, num):
         # 锁定库存
-        urows = (sku.__class__.objects.filter(id=sku.id,
-                                              remain_num__gte=models.F('lock_num') + num)
-                 .update(lock_num=models.F('lock_num') + num))
-
-        return urows > 0
+        # urows = (sku.__class__.objects.filter(id=sku.id,
+        #                                       remain_num__gte=models.F('lock_num') + num)
+        #          .update(lock_num=models.F('lock_num') + num))
+        # return urows > 0
+        return True
 
     def releaseLockQuantity(self, sku, num):
         # 释放锁定库存
