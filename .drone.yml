@@ -94,6 +94,8 @@ deploy:
       - sale.xiaolumm.com
       - sale3.xiaolumm.com
       - sale4.xiaolumm.com
+      - sale6.xiaolumm.com
+      - sale8.xiaolumm.com
     user: root
     when:
       branch: master
@@ -124,6 +126,8 @@ deploy:
     host:
       - sale2.xiaolumm.com
       - sale5.xiaolumm.com
+      - sale7.xiaolumm.com
+      - sale9.xiaolumm.com
     user: root
     when:
       branch: [master, celery]
@@ -157,6 +161,21 @@ deploy:
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
         celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300
         -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,qrcode
+  ssh:
+    host:
+      - sale9.xiaolumm.com
+    user: root
+    when:
+      branch: [master, celery]
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+      - docker rm -f celery
+      - docker run --name=celery --restart=always -d
+        -e -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
+        --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
+        registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
+        celery worker -A shopmanager --loglevel=ERROR -c 16 --time-limit=300
+        -Q notify,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo
 
 
 

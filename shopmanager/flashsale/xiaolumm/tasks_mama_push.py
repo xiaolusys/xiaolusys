@@ -10,7 +10,7 @@ from flashsale.xiaolumm.util_emoji import gen_emoji, match_emoji
 from shopapp.weixin.models import WeixinUnionID
 from django.db.models import Count, Sum
 from django.db import IntegrityError
-    
+
 @task
 def task_push_ninpic_remind(ninpic):
     """
@@ -77,14 +77,14 @@ def task_weixin_push_awardcarry(awardcarry):
 def task_weixin_push_ordercarry(ordercarry):
     from flashsale.pay.models import SaleOrder
     from flashsale.xiaolumm.models import OrderCarry
-    
+
     event_type = WeixinPushEvent.ORDER_CARRY_INIT
     sale_order = SaleOrder.objects.filter(oid=ordercarry.order_id).first()
     sale_trade_id = sale_order.sale_trade.tid
 
     if ordercarry.carry_type == OrderCarry.REFERAL_ORDER:
         event_type = WeixinPushEvent.SUB_ORDER_CARRY_INIT
-    
+
     uni_key = WeixinPushEvent.gen_ordercarry_unikey(event_type, sale_trade_id)
     event = WeixinPushEvent.objects.filter(uni_key=uni_key)
     if event:
@@ -113,7 +113,7 @@ def task_weixin_push_ordercarry(ordercarry):
               'orderItemName':{'value':u'订单佣金','color':'#ff0000'},
               'orderItemData':{'value':u'%.2f' % (total_carry * 0.01),'color':'#ff0000'},
               'remark':{'value':u'共%d件商品，快去看看吧～' % sku_num, 'color':'#F87217'}}
-    
+
     mama_id = ordercarry.mama_id
     date_field = ordercarry.date_field
     mama = XiaoluMama.objects.filter(id=mama_id).first()
@@ -121,7 +121,7 @@ def task_weixin_push_ordercarry(ordercarry):
     customer_id = customer.id
     template_id = WeixinPushEvent.TEMPLATE_ORDER_CARRY_ID
     to_url = 'http://m.xiaolumeimei.com'
-    
+
 
     try:
         event = WeixinPushEvent(customer_id=customer_id,mama_id=mama_id,uni_key=uni_key,tid=template_id,
@@ -145,7 +145,7 @@ def task_weixin_push_update_app(app_visit):
     elif device_type == app_visit.DEVICE_IOS:
         device = 'IOS'
 
-    
+
     user_version = app_visit.get_user_version()
     latest_version = app_visit.get_latest_version()
 
@@ -226,6 +226,8 @@ def task_push_new_mama_task(xlmm, current_task, params=None):
     """
     通知完成某新手任务，同时提醒下一个任务
     """
+    return  # 暂时关闭新手任务推送
+
     from shopapp.weixin.weixin_push import WeixinPush
     from flashsale.xiaolumm.models.new_mama_task import NewMamaTask
 
