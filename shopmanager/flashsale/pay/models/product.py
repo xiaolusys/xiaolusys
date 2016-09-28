@@ -497,6 +497,17 @@ class ModelProduct(BaseTagModel):
         self.save(update_fields=['extras'])
         return
 
+    def set_tables_into_extras(self):
+        """
+        功能: 将　self.comparison　中 的尺码表保存到extras 中
+        """
+        old_tables = self.comparison['tables']
+        if not old_tables:
+            return
+        self.extras.update({'tables': old_tables})
+        self.save(update_fields=['extras'])
+        return
+
     @property
     def comparison(self):
         p_tables = []

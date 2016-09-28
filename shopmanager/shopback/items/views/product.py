@@ -407,7 +407,25 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
                 [(tt['name'], tt['value']) for tt in properties]) if properties else model_properties_d
             old_properties_d.update(model_properties_d)
             properties = [{'name': k, "value": v} for k, v in old_properties_d.iteritems()]
-        extras.update({'new_properties': properties})
+
+        properties_copy = []
+        thead = []
+        tbody = []
+        for propto in properties:
+            if propto['name'] == '尺码对照参数':
+                thead = propto['value']
+            elif propto['name'] == '尺码表':
+                tbody = propto['value']
+            else:
+                properties_copy.append(propto)
+        values = [thead]
+        for body in tbody:
+            line = []
+            for x in thead:
+                line.append(body[x])
+            values.append(line)
+        extras.update({'tables': [{'table': values}]})
+        extras.update({'new_properties': properties_copy})
         return extras
 
     def set_model_pro(self, model_pro):

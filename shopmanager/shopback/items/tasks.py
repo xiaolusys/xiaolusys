@@ -1030,7 +1030,7 @@ def task_assign_stock_to_package_sku_item(stat):
 def task_relase_package_sku_item(stat):
     sku_id = stat.sku_id
     from shopback.trades.models import PackageSkuItem
-    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by('-id').first()
+    pki = PackageSkuItem.objects.filter(sku_id=sku_id, assign_status=PackageSkuItem.ASSIGNED).order_by('-pay_time').first()
     if pki:
         pki.reset_assign_status()
 
