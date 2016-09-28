@@ -98,8 +98,8 @@ class PromotionGoodsViewSet(viewsets.ModelViewSet):
         if banner:
             banner_pic = banner.product_img
 
-        coupon_getbefore_pic = desc_pics.filter(pic_type=BrandProduct.COUPON_GETBEFORE_PIC_TYPE).order_by('model_id')
-        coupon_getafter_pic = desc_pics.filter(pic_type=BrandProduct.COUPON_GETAFTER_PIC_TYPE).order_by('model_id')
+        coupon_getbefore_pic = desc_pics.filter(pic_type=BrandProduct.COUPON_GETBEFORE_PIC_TYPE).order_by('location_id')
+        coupon_getafter_pic = desc_pics.filter(pic_type=BrandProduct.COUPON_GETAFTER_PIC_TYPE).order_by('location_id')
         if coupon_getafter_pic.count() != coupon_getbefore_pic.count():
             return Response({"code": 2, "info": "优惠券领前,领后数目不一致"})
         coupons = []

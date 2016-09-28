@@ -263,6 +263,14 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                 usable_set.append(coupon)
             except AssertionError:
                 disable_set.append(coupon)
+        from flashsale.pay.models import ModelProduct
+        # 检查款式　是否限制使用优惠券　如果是则设置usable_set 为空
+        mds = ModelProduct.objects.filter(id__in=[i['model_id'] for i in
+                                                  Product.objects.filter(id__in=product_ids).values('model_id')])
+        for md in mds:
+            if md.is_coupon_deny:
+                usable_set = []
+                break
         usable_serialier = self.get_serializer(usable_set, many=True)
         disable_serialier = self.get_serializer(disable_set, many=True)
         default_return.update({'usable_coupon': usable_serialier.data, 'disable_coupon': disable_serialier.data})

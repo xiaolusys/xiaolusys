@@ -1396,8 +1396,8 @@ SHOP_APP_SCHEDULE = {
     },
 
     u'删除数据库中三个月前的物流数据' :{
-        'task': 'shopback.trades.tasks.delete_logistics_three_month_ago',
-        'schedule': crontab(minute="0", hour="12"),
+        'task': 'flashsale.restpro.tasks.delete_logistics_three_month_ago',
+        'schedule': crontab(minute="0", hour="2"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
 
