@@ -292,6 +292,8 @@ class SimpleSaleProductSerializer(serializers.ModelSerializer):
 
 class ModelProductSerializer(serializers.ModelSerializer):
     content_imgs = serializers.SerializerMethodField(read_only=True)
+    extras = serializers.SerializerMethodField()
+
     class Meta:
         model = ModelProduct
         fields = (
@@ -314,6 +316,27 @@ class ModelProductSerializer(serializers.ModelSerializer):
         if not obj.content_imgs:
             return []
         return obj.content_imgs.split('\n')
+
+    def get_extras(self, obj):
+        try:
+            thead = obj.extras['tables'][0]['table'][0]
+            tbody = obj.extras['tables'][0]['table'][1::]
+            values = []
+            for body in tbody:
+                dic = {}
+                c = 0
+                for x in body:
+                    dic.update({thead[c]: x})
+                    c += 1
+                values.append(dic)
+            if isinstance(obj.extras['new_properties'], list):
+                obj.extras['new_properties'].extend([
+                    {'name': '尺码对照参数', 'value': thead},
+                    {'name': '尺码表', 'value': values},
+                ])
+            return obj.extras
+        except:
+            return obj.extras
 
 
 class RetrieveSaleProductSerializer(serializers.ModelSerializer):
