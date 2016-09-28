@@ -126,7 +126,7 @@ def formatParam2XML(params):
     return x[len(initStr):]
 
 
-DOWNLOAD_APP_LINK = 'http://m.xiaolumeimei.com/sale/promotion/appdownload/'
+DOWNLOAD_APP_LINK = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'
 PERSONAL_PAGE_LINK = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html'
 from flashsale.xiaolumm.tasks_mama_fortune import task_mama_daily_tab_visit_stats
 

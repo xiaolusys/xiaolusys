@@ -918,8 +918,9 @@ class CashOutToAppView(APIView):
         
         if mama:
             task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_CASHOUT_APP_DOWNLOAD)
-            
-        download_url = "/sale/promotion/appdownload/"
+
+        from shopapp.weixin.service import DOWNLOAD_APP_LINK
+        download_url = DOWNLOAD_APP_LINK
         return redirect(download_url)
 
         
