@@ -218,10 +218,10 @@ class ModelProduct(BaseTagModel):
 
     @property
     def head_images(self):
-        head_imgs = []
-        for product in self.productobj_list:
-            head_imgs.append(product.PIC_PATH)
-        return head_imgs
+        # head_imgs = []
+        # for product in self.productobj_list:
+        #     head_imgs.append(product.PIC_PATH)
+        return list(self.products.values_list('pic_path', flat=True))
 
     @property
     def is_single_spec(self):
@@ -417,7 +417,7 @@ class ModelProduct(BaseTagModel):
             'head_img': len(head_imgs) > 0 and head_imgs[0] or '',
             'head_imgs': self.head_images,
             'content_imgs': self.content_images,
-            'is_sale_out': self.is_sale_out,
+            'is_sale_out': False, #self.is_sale_out,
             'is_recommend':self.is_recommend,
             'is_saleopen': self.is_saleopen,
             'is_flatten': self.is_flatten,

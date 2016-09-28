@@ -236,7 +236,6 @@ var NTKF_PARAM = {
       for (var i=0; i<results.length; ++i) {
         var entry = results[i];
         var carry_date = entry["carry_date"];
-        
         var td_money = '<span class="text-success" >'+entry['value_money']+'</span>';
         if (entry['carry_type'] == 'out'){
         	td_money = '<span class="text-danger" >-'+entry['value_money']+'</span>';

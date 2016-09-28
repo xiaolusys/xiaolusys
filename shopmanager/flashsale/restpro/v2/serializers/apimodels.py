@@ -76,8 +76,8 @@ class APIProductSerializer(serializers.Serializer):
 
 class APIModelProductSerializer(serializers.Serializer):
     id = serializers.SerializerMethodField()
-    detail_content = serializers.SerializerMethodField()
     sku_info = serializers.SerializerMethodField()
+    detail_content = serializers.SerializerMethodField()
     comparison = serializers.SerializerMethodField()
     extras = serializers.SerializerMethodField()
     custom_info = serializers.SerializerMethodField()
@@ -101,6 +101,7 @@ class APIModelProductSerializer(serializers.Serializer):
         from apis.v1.products import SkustatCtl
         stats = SkustatCtl.multiple(sku_ids)
         stat_map = {stat.id: stat for stat in stats}
+        model_saleout = True
         for product in data:
             product['is_saleout'] = True
             for sku in product['sku_items']:
@@ -108,6 +109,9 @@ class APIModelProductSerializer(serializers.Serializer):
                 sku['free_num'] = stat.get_free_num()
                 sku['is_saleout'] = stat.get_free_num() <= 0
                 product['is_saleout'] &= sku['is_saleout']
+            model_saleout &= product['is_saleout']
+
+        obj.detail_content['is_sale_out'] = model_saleout
         return data
 
     def get_custom_info(self, obj):
