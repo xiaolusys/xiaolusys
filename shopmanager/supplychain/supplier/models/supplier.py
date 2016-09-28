@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.core.cache import cache
 from django.db import models
-
+from django.db.models.signals import post_save
 from supplychain.supplier.managers import SaleSupplierManager
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 
@@ -180,6 +180,18 @@ class SaleSupplier(models.Model):
         from shopback.items.models import Product
         sale_products = [sp.id for sp in self.supplier_products.all()]
         return Product.objects.filter(sale_product__in=sale_products)
+
+
+def update_product_ware_by(sender, instance, created, **kwargs):
+    """
+    update the warehouse receipt status to opened!
+    """
+    from shopback.items.tasks import task_supplier_update_product_ware_by
+    task_supplier_update_product_ware_by.delay(instance)
+
+post_save.connect(update_product_ware_by, sender=SaleSupplier,
+                  dispatch_uid='post_save_update_warehouse_receipt_status')
+
 
 
 class SupplierCharge(models.Model):

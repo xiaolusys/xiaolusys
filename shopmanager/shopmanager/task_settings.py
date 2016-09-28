@@ -624,6 +624,10 @@ FLASHSALE_INTEGRAL_ROUTES = {
 }
 
 STATISTICS_ROUTES = {
+    'shopback.items.tasks.task_supplier_update_product_ware_by': {
+        'queue': 'statistics',
+        'routing_key': 'statistics.task_supplier_update_product_ware_by',
+    },
     'statistics.tasks.task_statistics_product_sale_num': {
         'queue': 'statistics',
         'routing_key': 'statistics.task_statistics_product_sale_num',
