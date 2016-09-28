@@ -1172,3 +1172,10 @@ def task_productskustats_update_productsku(stats):
     if psku.lock_num != stats.lock_num:
         psku.lock_num = stats.lock_num
         psku.save(update_fields=['lock_num'])
+
+
+@task()
+def task_supplier_update_product_ware_by(supplier):
+    from shopback.items.models import Product
+    spids = [i.id for i in supplier.supplier_products.all()]
+    Product.objects.filter(sale_product__in=spids).update(ware_by=supplier.ware_by)

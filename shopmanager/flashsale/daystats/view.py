@@ -15,7 +15,7 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 
 from flashsale.xiaolumm.models import CarryLog
-
+from shopback.trades.models import PackageSkuItem
 from .models import DailyStat, PopularizeCost
 
 
@@ -73,8 +73,6 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         from flashsale.pay.models import SaleOrder, SaleTrade
         from flashsale.pay.models import SaleRefund
         from flashsale.pay.models.product import ModelProduct
-        from shopback.trades.models import MergeOrder
-        from shopback import paramconfig as pcfg
 
         if not re.search(r'application/json', request.META['HTTP_ACCEPT']):
             return Response()
@@ -88,7 +86,6 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
         threshold2 = now - datetime.timedelta(days=5)
         threshold3 = now - datetime.timedelta(days=15)
         if type_ == 1:
-            from shopback.trades.models import PackageSkuItem
             q = PackageSkuItem.objects.filter(
                 assign_status__in=[PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED, PackageSkuItem.VIRTUAL_ASSIGNED]
             )
@@ -144,6 +141,14 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
                 cache.set(cache_key, data, 3600)
             else:
                 data = cache_value
+        elif type_ == 7:
+            q = PackageSkuItem.objects.filter(assign_status=0, purchase_order_unikey='')
+            q.filter(pay_time__lt=now - datetime.timedelta(days=1))
+            n_total = q.count()
+            n_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=1)).only('id').count()
+            n_s_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=2)).only('id').count()
+            n_ss_delay = q.filter(pay_time__lt=now - datetime.timedelta(days=3)).only('id').count()
+            data = {'n_total': n_total, 'n_delay': n_delay, 'n_s_delay': n_s_delay, 'n_ss_delay': n_ss_delay}
         if data:
             return Response(data)
         return Response({'error': '参数错误'})
