@@ -716,6 +716,18 @@ class ModelProduct(BaseTagModel):
         })
         return APIModel(**data)
 
+    @property
+    def is_coupon_deny(self):
+        """
+        功能：　判断是否阻止使用优惠券　True 表示不能使用优惠券　
+        """
+        saleinfos = self.extras.get('saleinfos') or None
+        if saleinfos:
+            is_coupon_deny = saleinfos.get('is_coupon_deny') or False
+            return is_coupon_deny
+        return False
+
+
 def invalid_apimodelproduct_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):
         logger.debug('invalid_apimodelproduct_cache: %s' % instance.id)
