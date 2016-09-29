@@ -57,11 +57,22 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
             return Response({"code": 1, "info": "需要先建立这些商品的推广专题-Pay › 特卖/推广专题入口 "})
 
         for da in data:
-            pic_type = int(da['pic_type'])
-            model_id = int(da['model_id'])
+            try:
+                pic_type = int(da['pic_type'])
+            except ValueError:
+                pic_type = 0
+                
+            try:
+                model_id = int(da['model_id'])
+            except ValueError:
+                model_id = 0
+
             product_name = da['product_name']
             pic_path = da['pic_path']
-            location_id = int(da['location_id'])
+            try:
+                location_id = int(da['location_id'])
+            except ValueError:
+                location_id = 0
             jump_url = da['jump_url']
             pics = ActivityProduct.objects.create(activity=activity,
                                                   model_id=model_id,
