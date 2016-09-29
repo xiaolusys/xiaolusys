@@ -160,7 +160,7 @@ class MamaMission(BaseModel):
                 status=ReferalRelationship.VALID,
                 referal_type__in=(XiaoluMama.HALF, XiaoluMama.FULL)
             ).count()
-            last_referal_num = min(last_referal_num, 1)
+            last_referal_num = max(last_referal_num, 1)
             return self.target_value, utils.get_award_carry_num(last_referal_num, XiaoluMama.FULL)
 
         return self.target_value, self.award_amount

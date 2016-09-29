@@ -269,7 +269,7 @@ DAILY_STATS_ROUTES = {
     'flashsale.xiaolumm.tasks_mama_dailystats.task_ordercarry_increment_dailystats': {
         'queue': 'activevalue',
         'routing_key': 'activevalue.task_ordercarry_increment_dailystats',
-    }
+    },
 }
 
 ACTIVE_VALUE_ROUTES = {
@@ -1149,6 +1149,12 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="30", hour='4'),
         'args': (),
         #         'kwargs':{'pre_day':1},
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'定时统计昨日小鹿妈妈真实性评分': {
+        'task': 'flashsale.xiaolumm.tasks_mama_dailystats.task_xlmm_score',
+        'schedule': crontab(minute="00", hour='2'),
+        'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
     u'定时统计昨日代理的订单': {

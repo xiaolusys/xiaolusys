@@ -34,7 +34,7 @@ from .filters import UserNameFilter
 from .models.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm.models.carry_total import MamaCarryTotal, MamaTeamCarryTotal, TeamCarryTotalRecord, \
     CarryTotalRecord
-
+from flashsale.xiaolumm.models.score import XlmmEffectScore, XlmmTeamEffScore
 
 class XiaoluMamaAdmin(ApproxAdmin):
     user_groups = []
@@ -876,3 +876,19 @@ class WeixinPushEventAdmin(admin.ModelAdmin):
     search_fields = ('customer_id', )
 
 admin.site.register(WeixinPushEvent, WeixinPushEventAdmin)
+
+
+class XlmmEffectScoreAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'score', 'stat_time', 'created', 'modified')
+    list_filter = (('created', DateFieldListFilter),)
+    search_fields = ('mama_id', )
+
+admin.site.register(XlmmEffectScore, XlmmEffectScoreAdmin)
+
+
+class XlmmTeamEffScoreAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'score', 'stat_time', 'created', 'modified', 'member_ids')
+    list_filter = (('created', DateFieldListFilter),)
+    search_fields = ('mama_id', )
+
+admin.site.register(XlmmTeamEffScore, XlmmTeamEffScoreAdmin)
