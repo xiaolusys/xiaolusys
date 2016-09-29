@@ -1012,6 +1012,7 @@ def task_Auto_Download_Shelf():
 
 
 @task()
+@transaction.atomic
 def task_assign_stock_to_package_sku_item(stat):
     from shopback.trades.models import PackageSkuItem
     available_num = stat.realtime_quantity - stat.assign_num
