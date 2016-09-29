@@ -8,7 +8,7 @@
 import sys
 import os
 
-exts = ['py','.html','.js','.css','.config']
+exts = ['.py']#,'.html','.js','.css','.config']
 def read_line_count(fname):
     count = 0
     for file_line in open(fname).xreadlines():
@@ -23,6 +23,8 @@ if __name__ == '__main__':
         for f in files:
             # Check the sub directorys
             fname = (root + '/'+ f).lower()
+            if f.find('.') == -1:
+                continue
             ext = f[f.rindex('.'):]
             try:
                 if(exts.index(ext) >= 0):
