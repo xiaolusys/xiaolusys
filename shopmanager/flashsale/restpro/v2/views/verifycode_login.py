@@ -376,8 +376,9 @@ class ResetPasswordView(views.APIView):
         if not customer:
             return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
 
-        if not validate_code(mobile, verify_code):
-            return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})  # 验证码过期或者不对
+        #wulei 20160929 重置密码前已经验证过手机号了,那么不需要再验证码检查
+        #if not validate_code(mobile, verify_code):
+        #    return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})  # 验证码过期或者不对
 
         django_user = customer.user
         django_user.set_password(pwd1)
