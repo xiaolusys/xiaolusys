@@ -883,6 +883,26 @@ class Product(models.Model):
         })
         return APIModel(**data)
 
+    def reset_shelf_info(self):
+        """
+        功能： 重置产品的上下架时间和状态
+        """
+        update_fields = []
+        if self.offshelf_time is not None:
+            self.offshelf_time = None
+            self.sale_time = None
+            update_fields.append('offshelf_time')
+            update_fields.append('sale_time')
+        if self.upshelf_time is not None:
+            self.upshelf_time = None
+            update_fields.append('upshelf_time')
+        if self.shelf_status != Product.DOWN_SHELF:
+            self.shelf_status = Product.DOWN_SHELF
+            update_fields.append('shelf_status')
+        if update_fields:
+            self.save(update_fields=update_fields)
+        return
+
 
 def invalid_apiproduct_cache(sender, instance, *args, **kwargs):
     if hasattr(sender, 'API_CACHE_KEY_TPL'):

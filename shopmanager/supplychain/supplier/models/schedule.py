@@ -7,6 +7,7 @@ from core.options import get_systemoa_user, log_action, CHANGE
 from core.utils import update_model_fields
 from .. import constants
 from .product import SaleProduct
+from django.db.models import Sum
 
 
 class SaleProductManage(models.Model):
@@ -290,6 +291,21 @@ class SaleProductManageDetail(models.Model):
     @property
     def modeproduct(self):
         return self.nomal_modelproducts.first()
+
+    def get_status_salenum_in_schedule(self):
+        """
+        功能：　计算排期内该产品订单各个状态　数量
+        """
+        from flashsale.pay.models import SaleOrder
+        from shopback.items.models import Product
+
+        item_product_ids = Product.objects.filter(sale_product=self.sale_product_id,
+                                                  status=Product.NORMAL).values_list('id', flat=True)
+        res = SaleOrder.objects.filter(item_id__in=item_product_ids,
+                                       pay_time__gte=self.schedule_manage.upshelf_time,
+                                       pay_time__lt=self.schedule_manage.offshelf_time).values('status').annotate(
+            t_num=Sum('num'))
+        return res
 
 
 def sync_md_weight(sender, instance, raw, *args, **kwargs):
