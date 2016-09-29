@@ -142,6 +142,17 @@ class ProductSkuContrast(models.Model):
     def __unicode__(self):
         return '<%s,%s>' % (self.product_id, self.contrast_detail)
 
+
+def invalid_productsku_contrast_cache(sender, instance, created, **kwargs):
+    from flashsale.pay.models import ModelProduct
+    if hasattr(ModelProduct, 'API_CACHE_KEY_TPL'):
+        logger.info('invalid_productsku_contrast_cache invalid: %s'% instance.product.model_id)
+        cache.delete(ModelProduct.API_CACHE_KEY_TPL.format(instance.product.model_id))
+
+post_save.connect(invalid_productsku_contrast_cache,
+                  sender=ProductSkuContrast,
+                  dispatch_uid='post_save_invalid_productsku_contrast_cache')
+
 def default_contrast_cid():
     max_constrast = ContrastContent.objects.order_by('-id').first()
     if max_constrast:

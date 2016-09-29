@@ -485,7 +485,7 @@ function initActions(){
         <input class="btn btn-warning" type="button" onclick="showwuliu({{ orderlist.id }})" value="物流明细">
     </div>
     <div class="col-lg-9">
-        <button type="button" class="btn-info" data-toggle="modal" data-target="#payModal" id="pay_one">付款</button>
+        <button type="button" class="btn-info" data-toggle="modal" data-target="#payModal" id="pay_one" data-billid="{{orderlist.bill.id}}">付款</button>
         <!-- 开始结算<input class="btn btn-info" type="button" onclick="set_status_receive({{ orderlist.id }})" value="设置收货"> -->
         <!-- <input class="btn btn-info" type="button" onclick="set_status_complete({{ orderlist.id }})" value="设置完成"> -->
         <input class="btn btn-info" type="button" onclick="set_status_delete({{ orderlist.id }})" value="作废">
@@ -745,17 +745,17 @@ function initActions(){
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">付款方式</h4>
+                    <h4 class="modal-title">付款{%if orderlist.bill%}《账单记录 <a href="/sale/finance/bill_list/{{orderlist.bill.id}}/bill_detail">{{orderlist.bill.id}}</a>》{%endif%}</h4>
                 </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-lg-4">
-                                <label>金额:</label>
-                            </div>
-                             <div class="col-lg-8">
+                            <label>金额:</label>
+                        </div>
+                        <div class="col-lg-8">
                              <!-- <input id="express_no" size=30 type="text" value={{orderlist.express_no}}/> -->
                             <input  class="form-control" size=30 type="text" type="text" id = "ol_mon" value={{ orderlist.order_amount }}>
-                            </div>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-lg-4">
@@ -763,8 +763,8 @@ function initActions(){
                         </div>
                         <div class="col-lg-8">
                             <select class="form-control" id="pay_ways" >
-                                <option value=11>货到付款</option>
-                                <option value=13 selected="selected">付款提货</option>
+                                <option value=11 {%if orderlist.bill_method == 11%}selected="selected"{%endif%}>货到付款</option>
+                                <option value=13 {%if orderlist.bill_method == 13%}selected="selected"{%endif%}>付款提货</option>
                             </select>
                         </div>
                     </div>
@@ -774,33 +774,34 @@ function initActions(){
                         </div>
                         <div class="col-lg-8">
                             <select class="form-control" id="pay_chioces">
-                                <option value=0  selected="selected"> 请选择</option>
-                                <option value=1>支付宝</option>
-                                <option value=2>银行卡</option>
-                                <option value=3>自付</option>
-                                <option value=6>支付宝代付</option>
+                                <option value=0 {%if not orderlist.bill %} selected="selected"{%endif%}> 请选择</option>
+                                <option value=1 {%if orderlist.bill.pay_method == 1 %}selected="selected"{%endif%}>支付宝</option>
+                                <option value=2 {%if orderlist.bill.pay_method == 2 %}selected="selected"{%endif%}>银行卡</option>
+                                <option value=3 {%if orderlist.bill.pay_method == 3 %}selected="selected"{%endif%}>自付</option>
+                                <option value=6 {%if orderlist.bill.pay_method == 6 %}selected="selected"{%endif%}>支付宝代付</option>
                             </select>
                         </div>
                     </div>
-                    <div id="pay_information">
+                    <div id="pay_information" {%if not orderlist.bill %}style="display:none"{%endif%}>
                     </div>
-                    <div id="pay_information1" style="display:none">
+                    <div id="pay_information1" {%if not orderlist.bill.pay_method == 1%}style="display:none"{%endif%}>
                         <label>支付宝账号</label>
-                        <input id="zhi_account" placeholder="请输入供应商支付宝账号" class="form-control">
+                        <input id="zhi_account" placeholder="请输入供应商支付宝账号" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.receive_account}}"{%endif%}>
                     </div>
-                    <div id="pay_information2" style="display:none">
-                        <label>账号</label><input placeholder="请输入供应商银行账号" id="ying_account" class="form-control">
+                    <div id="pay_information2" {%if not orderlist.bill.pay_method == 2%}style="display:none"{%endif%}>
+                        <label>账号</label><input placeholder="请输入供应商银行账号" id="ying_account" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.receive_account}}"{%endif%}>
                         <label>姓名</label>
-                        <input placeholder="请输入供应商姓名" id="ying_name" class="form-control">
+                        <input placeholder="请输入供应商姓名" id="ying_name" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.receive_name}}"{%endif%}>
                     </div>
-                    <div id="self_pay" style="display:none">
-                         <label>自付账号</label><input placeholder="请输入自付账号" id="zi_account" class="form-control">
-                        <label>交易流水号</label><input placeholder="请输入交易流水号" id="transcation_no" class="form-control">
+                    <div id="self_pay" {%if not orderlist.bill.pay_method == 3%}style="display:none"{%endif%}>
+                        <label>自付账号</label><input placeholder="请输入自付账号" id="zi_account" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.receive_account}}"{%endif%}>
+                        <label>交易流水号</label><input placeholder="请输入交易流水号" id="transcation_no" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.transcation_no}}"{%endif%}>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="sent_pay_info">保存</button>
+                    {%if not orderlist.bill%}<button type="button" class="btn btn-primary" id="sent_pay_info">保存</button>{%endif%}
+                    {%if orderlist.bill%}<button type="button" class="btn btn-primary" id="edit_pay_info">修改</button>{%endif%}
                 </div>
             </div>
         </div>
@@ -876,117 +877,6 @@ function initActions(){
                 }
             });
         })
-
-
-        /*function get_pay_chioce(input){
-            var pay_information = document.getElementById("pay_information");
-            $("#pay_information").children().remove();
-            var label1 = document.createElement("label");
-            var zhang_hao = document.createTextNode("账号");
-            var input1 = document.createElement("input");
-            input1.setAttribute("placeholder", "请输入供应商银行账号");
-            input1.setAttribute("class", "form-control");
-            label1.appendChild(zhang_hao);
-            var label2 = document.createElement("label");
-            var name = document.createTextNode("姓名");
-            var input2 = document.createElement("input");
-            input2.setAttribute("placeholder", "请输入供应商姓名");
-            input2.setAttribute("class", "form-control");
-            label2.appendChild(name);
-            var label3 = document.createElement("label");
-            label3.innerHTML = "支付宝账号";
-            var input3 = document.createElement("input");
-            input3.setAttribute("placeholder", "请输入供应商支付宝账号");
-            input3.setAttribute("class", "form-control");
-            var bt1 = document.createElement("button");
-            bt1.setAttribute("class", "btn btn-default");
-            bt1.setAttribute("id", "sent_pay_info");
-            bt1.innerHTML = "确认";
-            // bt1.setAttribute("data-toggle", "modal");
-            // bt1.setAttribute("href", "#con_pay");
-            bt1.onclick = function(){
-                var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/create_bill';
-                var data = {};
-                con = false;
-                if(input == 1||input == 3){
-                    var zhi_acount = input3.value;
-                    con = confirm("供应商账户信息  "+zhi_acount);
-                    var orderlist_id = $ ('#orderlist_id').text();
-                    var pay_way = $('#pay_ways').val();
-                    var pay_tool = $("#pay_chioces").val();
-                    var money = $("#ol_mon").val();
-                    // $("#con_pay").modal();
-                    data = {"receive_account":zhi_acount,"orderlist_id":orderlist_id,"pay_way":pay_way,"pay_tool":pay_tool,"money":money};
-                    console.log(data);
-                }
-                else if(input == 2){
-                    var acount_num = input1.value;
-                    var acount_name = input2.value;
-                    con = confirm("供应商账户信息  "+acount_num+"   "+acount_name);
-                    var orderlist_id = $ ('#orderlist_id').text();
-                    var pay_way = $('#pay_ways').val();
-                    var pay_tool = $("#pay_chioces").val();
-                    var money = $("#ol_mon").val();
-                    data = {"receive_account":acount_num,"receive_name":acount_name,"orderlist_id":orderlist_id,"pay_way":pay_way,"pay_tool":pay_tool,"money":money};
-                    console.log(data);
-                }
-                else if(input == 6){
-                    con = true;
-                    var pay_way = $('#pay_ways').val();
-                    var pay_tool = $("#pay_chioces").val();
-                    var money = $("#ol_mon").val();
-                    data = {"orderlist_id":orderlist_id,"pay_way":pay_way,"pay_tool":pay_tool,"money":money};
-                    console.log(data);
-                }
-                if(con == true){
-                    $.ajax({
-                        url: url,
-                        data: data,
-                        "type": "post",
-                        dateType: "json",
-                        // "dataType":"json",
-                        success: function(res){
-                            if (res.res == true) {
-                                alert("付款记录创建成功 等待财务处理");
-                                window.location.reload();
-                                $("#pay_one").hide();
-                            }
-                            if (res.res == false) {
-                            }
-                        },
-                        error: function(){
-                        }
-                    });
-                   }
-             }
-            var br1 = document.createElement("br");
-
-            if(input == 1){
-             pay_information.appendChild(label3);
-             pay_information.appendChild(input3);
-             pay_information.appendChild(br1);
-             pay_information.appendChild(bt1);
-            }
-            else if(input == 2){
-            pay_information.appendChild(label1);
-            pay_information.appendChild(input1);
-            pay_information.appendChild(label2);
-            pay_information.appendChild(input2);
-            pay_information.appendChild(br1);
-            pay_information.appendChild(bt1);
-            }
-            else if(input == 3){
-             pay_information.appendChild(label3);
-             pay_information.appendChild(input3);
-             pay_information.appendChild(br1);
-             pay_information.appendChild(bt1);
-            }
-            else if(input == 6){
-             pay_information.appendChild(br1);
-             pay_information.appendChild(bt1);
-            }
-        };*/
-
         $('#files').uploader({
             fileButton: 'pickfiles',
             domain: 'http://img.xiaolumeimei.com/',
@@ -1225,6 +1115,54 @@ $(function () {
         else{
             $("#pay_information").show();
         }
+	});
+	$("#edit_pay_info").click(function(){
+	    var bill_id = $("#pay_one").data('billid');
+	    var url = '/sale/dinghuo/dinghuo_orderlist/'+ bill_id +'/edit_bill';
+        var orderlist_id = $ ('#orderlist_id').text();
+        var pay_way = $('#pay_ways').val();
+        var pay_tool = $("#pay_chioces").val();
+        var money = $("#ol_mon").val();
+        var receive_account = null;
+        var receive_name = null;
+        var transcation_no = null;
+        if(pay_tool==1){
+            receive_account = $("#zhi_account").val();
+        }
+        if(pay_tool==2){
+             receive_account = $("#ying_account").val();
+            receive_name = $("#ying_name").val();
+        }
+        if(pay_tool==3){
+            receive_account = $("#zi_account").val();
+            transcation_no = $("#transcation_no").val();
+        }
+        console.log(receive_account);
+        console.log(receive_name);
+        console.log(transcation_no);
+        var data = {"orderlist_id":orderlist_id,
+                "pay_way":pay_way,
+                "pay_tool":pay_tool,
+                "money":money,
+                "receive_account":receive_account,
+                "receive_name":receive_name,
+                "transcation_no": transcation_no
+                };
+                console.log(data);
+        $.ajax({
+                url: url,
+                data: data,
+                method: "post",
+                dateType: "json",
+                success: function(res){
+                    if (res.res == true) {
+                        alert("付款记录修改成功 等待财务处理");
+                        window.location.reload();
+                    }
+                },
+                error: function(){
+                }
+            });
 	});
 	$("#sent_pay_info").click(function(){
         var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/create_bill';
