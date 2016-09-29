@@ -1673,6 +1673,7 @@ class PackageOrder(models.Model):
                 self.reset_to_new_create()
 
     @staticmethod
+    @transaction.atomic
     def create(id, sale_trade, sys_status=None, psi=None):
         package_order = PackageOrder(id=id)
         buyer_id, address_id, ware_by_id, order = id.split('-')
