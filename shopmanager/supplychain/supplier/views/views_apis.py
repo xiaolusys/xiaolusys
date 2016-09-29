@@ -524,7 +524,7 @@ class SaleScheduleDetailFilter(filters.FilterSet):
 
     class Meta:
         model = SaleProductManageDetail
-        fields = ['order_weight', "id", 'material_status', 'design_take_over', 'design_complete']
+        fields = ['order_weight', "id", 'material_status', 'design_take_over', 'design_complete', 'is_promotion']
 
 
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
