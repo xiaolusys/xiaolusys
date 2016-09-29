@@ -939,7 +939,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         mama_id = mama.id
         mf = MamaFortune.objects.filter(mama_id=mama_id).first()
-        pre_cash = mf.cash_num_display() * 100
+        pre_cash = mf.cash_num_cents()
         if pre_cash < amount:
             info = u'提现额不能超过帐户余额！'
             return Response({"code": 5, "info": info})
