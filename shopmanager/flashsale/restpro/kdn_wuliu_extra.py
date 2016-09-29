@@ -247,6 +247,9 @@ def format_content(**kwargs):
 def kdn_subscription(*args,**kwargs):
     logging.warn(kwargs)
     result = requests.post("http://api.kdniao.cc/api/dist",data=kwargs).text
+    if result.find("502 Bad Gateway") != -1:
+        logging.warn("物流查询失败返回"+"502 Bad Gateway"+"快递鸟那边繁忙")
+        return result
     result = json.loads(result.encode('UTF-8'))
     if result["Success"] == True:
         logging.warn("订阅成功")
