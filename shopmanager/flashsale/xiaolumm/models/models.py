@@ -570,6 +570,27 @@ class XiaoluMama(models.Model):
             self._mama_customer_ = Customer.objects.filter(unionid=self.openid, status=Customer.NORMAL).first()
         return self._mama_customer_
 
+    @staticmethod
+    def get_customer_dict(condition):
+        if type(condition) == list:
+            condition = {'id__in': condition}
+        from flashsale.pay.models import Customer
+        unionids_ids = XiaoluMama.objects.filter(**condition).values_list('id', 'openid')
+        unionids_dict = dict(unionids_ids)
+        mid_unionids_dict = dict([(u[1], u[0]) for u in unionids_ids])
+        unionids = unionids_dict.values()
+        unionid_cusids = Customer.objects.filter(unionid__in=unionids).values_list('unionid', 'id')
+        cusid_unionid_dict = dict([(u[1], u[0]) for u in unionid_cusids])
+        mama_dict = {mid_unionids_dict[cusid_unionid_dict[cusid]]:cusid for cusid in cusid_unionid_dict}
+        return mama_dict
+        # if len(unionids) != len(mama_ids):
+        #     raise Exception(u"这些妈妈没有unionid:" + str(list(set(mama_ids) - set(mama_ids))))
+        # if len(unionids2) != len(unionids):
+        #     err_unionids = list(set(unionids) - set(unionids2))
+        #     raise Exception(u'这些妈妈没有对应的cusid:' + str([cusid_unionid_dict[id] for id in err_unionids]))
+        # mama_dict = {mama_id: unionid_cusid_dict[unionids_dict[mama_id]] for mama_id in mama_ids}
+        # return mama_dict
+
     @property
     def unionid(self):
         return self.openid

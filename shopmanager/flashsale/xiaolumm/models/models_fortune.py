@@ -1027,6 +1027,14 @@ class ReferalRelationship(BaseModel):
             return True
         return False
 
+    @staticmethod
+    def get_referal_dict(mama_ids):
+        rr = ReferalRelationship.objects.filter(referal_from_mama_id__in=mama_ids).values_list('referal_from_mama_id', 'referal_to_mama_id')
+        res = {}
+        for line in rr:
+            res[line[0]] = res.get(line[0], []) + [line[1]]
+        return res
+
     @classmethod
     def create_relationship_by_potential(cls, potential_record):
         """ 通过潜在妈妈列表中的记录创建推荐关系 """

@@ -136,3 +136,9 @@ def task_ordercarry_increment_dailystats(mama_id, date_field):
             raise task_ordercarry_increment_dailystats.retry(exc=exc)
     else:
         records.update(today_order_num=F('today_order_num') + 1)
+
+
+@task()
+def task_xlmm_score():
+    from flashsale.xiaolumm.models.score import XlmmEffectScore
+    XlmmEffectScore.batch_generate()
