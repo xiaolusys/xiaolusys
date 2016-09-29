@@ -864,7 +864,10 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
         amount=1.5 #金额1.5元
         verify_code=123456 #验证码123456
         """
-        if True:
+        from shopback.monitor.models import XiaoluSwitch
+
+        switch = XiaoluSwitch.objects.filter(id=7).first()
+        if switch and switch.status == 1:
             return Response({"code": 2, "info": u"系统维护中，请稍后再试!"})
         customer, mama = self.get_customer_and_xlmm(request)
         if not (mama and customer):
