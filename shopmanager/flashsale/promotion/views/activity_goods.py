@@ -130,7 +130,7 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
                 isReceived = False
             else:
                 from flashsale.coupon.models import UserCoupon
-                coupon_queryset=UserCoupon.objects.all().filter(customer_id=customer.id, template_id=coupon.model_id).order_by('-created')
+                coupon_queryset=UserCoupon.objects.filter(customer_id=customer.id, template_id=coupon.model_id).order_by('-created')
                 if coupon_queryset.count() == 0:
                     isReceived = False
                 else:
