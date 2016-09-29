@@ -1121,30 +1121,43 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             orderlist.set_stage_pay(pay_way)
         else:
             orderlist.set_stage_receive(pay_way)
-        if int(pay_tool) == Bill.SELF_PAY:
-            br = BillRelation.objects.filter(bill_id=bill.id, object_id=pk).first()
-            br.set_orderlist_stage()
         return Response({"res": True, "data": [], "desc": ""})
 
-    # @detail_route(methods=['post'])
-    # def create_selfbill(self, request,pk):
-    #     pay_tool = request.REQUEST.get("pay_tool", None)
-    #     orderlist = get_object_or_404(OrderList, id=pk)
-    #     pay_way = request.REQUEST.get("pay_way", None)
-    #     money = request.REQUEST.get("money", None)
-    #     receive_account = request.REQUEST.get("receive_account",None)
-    #     transcation_no = request.REQUEST.get("transcation_no",None)
-    #     from flashsale.finance.models import Bill
-    #     if int(pay_way) == OrderList.PC_POD_TYPE:
-    #         status = Bill.STATUS_PENDING
-    #     else:
-    #         # 判断如果pay_way是货到付款，那么bill状态是延期付款，否则是待付款状态
-    #         status = Bill.STATUS_DELAY
-    #     pay_method = pay_tool
-    #     Bill.objects.create(type=Bill.PAY,status=status,pay_method=pay_method,plan_amount=money,
-    #                         amount=money,supplier=orderlist.supplier,creater_id=request.user.id,receive_account=receive_account,
-    #                         transcation_no=transcation_no)
-    #     bill.relate_to([orderlist])
+    @detail_route(methods=['post'])
+    def edit_bill(self, request, pk):
+        pay_tool = request.REQUEST.get("pay_tool", None)
+        orderlist = get_object_or_404(OrderList, id=pk)
+        pay_way = request.REQUEST.get("pay_way", None)
+        plan_amount = request.REQUEST.get("money", None)
+        transcation_no = request.REQUEST.get("transcation_no", None)
+        receive_account = request.REQUEST.get("receive_account", None)
+        receive_name = request.REQUEST.get("receive_name", None)
+        pay_taobao_link = request.REQUEST.get("pay_taobao_link", None)
+        from flashsale.finance.models import Bill, BillRelation
+        bill = get_object_or_404(Bill, id=pk)
+        if bill.status in [Bill.STATUS_DEALED, Bill.STATUS_COMPLETED]:
+            return Response({"res": False, "data": [], "desc": u"计划金额不能为0"})
+        if pay_way == Bill.SELF_PAY:
+            return Response({"res": False, "data": [], "desc": u"无法选择自付"})
+        if float(plan_amount) == 0:
+            return Response({"res": False, "data": [], "desc": u"计划金额不能为0"})
+        pay_method = pay_tool
+        if pay_method == '0':
+            return Response({"res": False, "data": [], "desc": u"请选择支付方式"})
+        try:
+            bill.pay_method = pay_method
+            bill.status = Bill.STATUS_PENDING
+            bill.amount = plan_amount
+            bill.supplier = orderlist.supplier
+            bill.receive_account = receive_account
+            bill.receive_name = receive_name
+            bill.pay_taobao_link = pay_taobao_link
+            bill.transcation_no = transcation_no
+            bill.save()
+        except:
+            return Response({"res": False, "data": [], "desc": "无法写入财务记录"})
+        return Response({"res": True, "data": [], "desc": ""})
+
     @detail_route(methods=['post'])
     def set_stage_state(self, request, pk):
         from flashsale.finance.models import Bill, BillRelation

@@ -488,6 +488,8 @@ class OrderList(models.Model):
         if br:
             return br.bill
 
+    bill = property(get_bill)
+
     def get_bills(self):
         from flashsale.finance.models import BillRelation
         br = BillRelation.objects.filter(object_id=self.id, type__in=[1, 2])
