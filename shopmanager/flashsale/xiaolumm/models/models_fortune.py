@@ -133,6 +133,11 @@ class MamaFortune(BaseModel):
     carry_num_display.short_description = u"累计收益"
     carry_num_display.admin_order_field = 'carry_num'
 
+    def cash_num_cents(self):
+        """ 余额 """
+        total = self.carry_confirmed + self.history_confirmed - self.carry_cashout
+        return total
+
     def cash_num_display(self):
         """ 余额 """
         total = self.carry_confirmed + self.history_confirmed - self.carry_cashout
