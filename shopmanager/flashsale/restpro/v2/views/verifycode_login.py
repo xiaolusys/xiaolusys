@@ -255,8 +255,11 @@ class RequestCashoutVerifyCode(views.APIView):
         user = request.user
         customer = Customer.objects.filter(user=user).exclude(status=Customer.DELETE).first()
         mobile = customer.mobile
-        if True:
-            return Response({"code":6, "info": u"系统维护中，请稍后再试！"})
+        from shopback.monitor.models import XiaoluSwitch
+
+        switch = XiaoluSwitch.objects.filter(id=7).first()
+        if switch and switch.status == 1:
+            return Response({"code": 2, "info": u"系统维护中，请稍后再试!"})
 
         if not validate_mobile(mobile):
             return Response({"code":1, "info": u"帐户未绑定手机号或手机号错误！"})
