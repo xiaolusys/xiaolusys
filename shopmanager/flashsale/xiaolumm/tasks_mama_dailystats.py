@@ -140,5 +140,6 @@ def task_ordercarry_increment_dailystats(mama_id, date_field):
 
 @task()
 def task_xlmm_score():
-    from flashsale.xiaolumm.models.score import XlmmEffectScore
+    from flashsale.xiaolumm.models.score import XlmmEffectScore, XlmmTeamEffScore
     XlmmEffectScore.batch_generate()
+    XlmmTeamEffScore.batch_generate()
