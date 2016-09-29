@@ -996,21 +996,21 @@ def task_set_sale_order(instance):
 
 @task()
 @transaction.atomic
-def task_update_package_order(instance):
+def task_update_package_order(skuitem_id):
+    instance = PackageSkuItem.objects.get(id=skuitem_id)
+    sale_trade = instance.sale_trade
+    if not (sale_trade.buyer_id and sale_trade.user_address_id and instance.product_sku.ware_by):
+        logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
+        return
+    package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
+                                                       instance.product_sku.ware_by)
     if instance.assign_status == PackageSkuItem.ASSIGNED:
         if not instance.package_order_id:
-            sale_trade = instance.sale_trade
-            if not (sale_trade.buyer_id and sale_trade.user_address_id and instance.product_sku.ware_by):
-                logger.error('packagize_sku_item error: sale_trade loss some info:' + str(sale_trade.id))
-                return
-            package_order_id = PackageOrder.gen_new_package_id(sale_trade.buyer_id, sale_trade.user_address_id,
-                                                               instance.product_sku.ware_by)
             package_order = PackageOrder.objects.filter(id=package_order_id).first()
             if not package_order:
                 PackageOrder.create(package_order_id, sale_trade, PackageOrder.WAIT_PREPARE_SEND_STATUS,
                                     instance)
             else:
-
                 PackageSkuItem.objects.filter(id=instance.id).update(package_order_id=package_order_id,
                                                                      package_order_pid=package_order.pid)
                 package_order.set_redo_sign(save_data=False)

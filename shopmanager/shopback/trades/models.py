@@ -2107,8 +2107,8 @@ post_save.connect(update_productsku_salestats_num, sender=PackageSkuItem,
 
 def update_package_order(sender, instance, created, **kwargs):
     from shopback.trades.tasks import task_update_package_order
-    task_update_package_order.delay(instance)
-
+    # task_update_package_order.delay(instance)
+    task_update_package_order.apply_async(args=[instance.id], countdown=3)
 
 post_save.connect(update_package_order, sender=PackageSkuItem,
                   dispatch_uid='post_save_update_package_order')
