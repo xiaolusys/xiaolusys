@@ -1,5 +1,5 @@
 # coding=utf-8
-
+import re
 from rest_framework import renderers
 from rest_framework import viewsets
 from rest_framework.decorators import list_route
@@ -90,9 +90,9 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_promotion_topic_pics(self, request):
+        from flashsale.coupon.models import UserCoupon
         from flashsale.promotion.views import get_customer
         customer = get_customer(request)
-
         content = request.REQUEST
         act_id = content.get("promotion_id", None)
 
@@ -100,12 +100,10 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
             #some customer visit http://m.xiaolumeimei.com/mall/activity/topTen/model/2?ufrom=wx&id=87%3F10000skip%3Dtrue&mm_linkid=23952
             #id is wrong,so must avoid it
             if not (str(act_id).isdigit()):
-                import re
                 act_arr = re.findall(r'\d+', str(act_id))
                 if not act_arr:
                     return Response({})
                 act_id = act_arr[0]
-
             act = ActivityEntry.objects.filter(id=act_id).order_by('-start_time').first()
         else:
             act = ActivityEntry.objects.filter(is_active=True).order_by('-start_time').first()
@@ -113,15 +111,13 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
         if not act:
             return Response({"code": 1, "info": "推广活动不存在,请先创建"})
 
-        desc_pics = act.activity_products.all()
+        desc_pics = act.activity_products
 
         banner = desc_pics.filter(pic_type=ActivityProduct.BANNER_PIC_TYPE).first()
-        banner_pic = ''
-        if banner:
-            banner_pic = banner.product_img
+        banner_pic = banner.product_img if banner else ''
 
         coupon_getbefore_pic = desc_pics.filter(pic_type=ActivityProduct.COUPON_GETBEFORE_PIC_TYPE).order_by('location_id')
-        coupon_getafter_pic = desc_pics.filter(pic_type=ActivityProduct.COUPON_GETAFTER_PIC_TYPE).order_by('location_id')
+        coupon_getafter_pic = desc_pics.filter(pic_type=ActivityProduct.COUPON_GETAFTER_PIC_TYPE)
         if coupon_getafter_pic.count() != coupon_getbefore_pic.count():
             return Response({"code": 2, "info": "优惠券领前,领后数目不一致"})
         coupons = []
@@ -129,12 +125,14 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
             if not customer:
                 isReceived = False
             else:
-                from flashsale.coupon.models import UserCoupon
-
                 isReceived = UserCoupon.objects.filter(customer_id=customer.id, template_id=coupon.model_id).exists()
-            coupon_dict = {"couponId": coupon.model_id, "isReceived": isReceived, "getBeforePic": coupon.product_img,
-                           "getAfterPic": coupon_getafter_pic.filter(model_id=coupon.model_id).first().product_img,
-                           "jumpUrl": coupon.jump_url}
+            coupon_dict = {
+                "couponId": coupon.model_id,
+                "getBeforePic": coupon.product_img,
+                "getAfterPic": coupon_getafter_pic.filter(model_id=coupon.model_id).first().product_img,
+                "jumpUrl": coupon.jump_url,
+                "isReceived": isReceived
+            }
             coupons.append(coupon_dict)
 
         topics = []
