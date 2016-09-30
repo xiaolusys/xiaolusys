@@ -9,7 +9,15 @@ from django.contrib.sessions.middleware import SessionMiddleware
 logger = getLogger(__name__)
 
 from django.conf import settings
-   
+
+class XForwardedForMiddleware():
+    def process_request(self, request):
+        if request.META.has_key("HTTP_X_FORWARDED_FOR"):
+            request.META["HTTP_X_PROXY_REMOTE_ADDR"] = request.META["REMOTE_ADDR"]
+            parts = request.META["HTTP_X_FORWARDED_FOR"].split(",", 1)
+            request.META["REMOTE_ADDR"] = parts[0]
+
+
 class SecureRequiredMiddleware(object):
     def __init__(self):
         self.paths = getattr(settings, 'SECURE_REQUIRED_PATHS')
@@ -24,14 +32,14 @@ class SecureRequiredMiddleware(object):
                     return HttpResponsePermanentRedirect(secure_url)
         return None
 
+
 class DisableDRFCSRFCheck(object):
     def process_request(self, request):
         setattr(request, '_dont_enforce_csrf_checks', True)
 
 
 class XSessionMiddleware(SessionMiddleware):
-    
-    
+
     def process_request(self, request):
         engine = import_module(settings.SESSION_ENGINE)
         session_key = request.COOKIES.get(settings.SESSION_COOKIE_NAME, None)
