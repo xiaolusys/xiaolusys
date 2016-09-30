@@ -145,7 +145,10 @@ class IPYYSMSManager(SMSManager):
         params = {}
         for f in fields:
             if kwargs.has_key(f):
-                params[f] = kwargs[f]
+                v = kwargs[f]
+                if f == 'content':
+                    v = u'【小鹿美美】'+ v.replace(u'【小鹿美美】', u'')
+                params[f] = v
 
         params['action'] = 'send'
         response = ''
