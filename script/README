@@ -1,42 +1,52 @@
-部署新服务器流程：
-- 安装脚本
+# 部署新服务器流程
+
+### Replace Ubuntu Update Sources
+
+1. Get source file from net  
+wget http://7xogkj.com1.z0.glb.clouddn.com/file/sources.list.trusty
+2. Backup the sys sources list file and replace if by new source list  
 cp /etc/apt/sources.list /etc/apt/sources.list.bk; cp ./sources.list.trusty /etc/apt/sources.list
 
-sudo apt-get update
-sudo apt-get install curl -y
+### Update System And Install Curl
+
+1. sudo apt-get update  
+2. sudo apt-get install curl -y
+
+### Install aliyun Docker 
+
 curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -
 echo "DOCKER_OPTS=\"--registry-mirror=https://n5fb0zgg.mirror.aliyuncs.com\"" | sudo tee -a /etc/default/docker
 service docker restart
-docker login --username=己美网络 registry.aliyuncs.com -p kztcqb72
-docker run --name static -v /data busybox /bin/sh
 
-docker run --name=gunicorn --restart=always -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=xiaolu_2016jm \
--e REDIS_AUTH=55a32ec47c8d41f7:Huyiinc12345  --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 \
+### Login aliyun Docker
+
+docker login --username=username registry.aliyuncs.com -p ******  
+docker run --name static -v /data busybox /bin/sh 
+
+### Deploy Shopmanager
+
+docker run --name=gunicorn --restart=always -e INSTANCE=mall -e TARGET=production -e MYSQL_AUTH=****** \
+-e REDIS_AUTH=55a32ec47c8d41f7:******  --volumes-from=static -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 \
 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program \
 gunicorn -k gevent -c taobao_gunicorn_conf.py -w 4 shopmanager.wsgi
+
 
 docker run --name=celery --restart=always -e TARGET=production -e INSTANCE=celery-gevent -e MYSQL_AUTH=xiaolu_2016jm -e REDIS_AUTH=55a32ec47c8d41f7:Huyiinc12345 --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program celery worker -A shopmanager --loglevel=ERROR -c 64 --time-limit=300 -Q notify,frency,mama,coupon,activevalue,mamafortune,relationship,carryrecord,logistics,weixin,qrcode
 
 docker run --name=celery3 --restart=always -e TARGET=production -e INSTANCE=celery-gevent -e MYSQL_AUTH=xiaolu_2016jm -e REDIS_AUTH=55a32ec47c8d41f7:Huyiinc12345 --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program celery worker -P gevent -A shopmanager --loglevel=ERROR -c 300 --time-limit=300 -Q qrcode
 
+----
 
-#problem fouce:
-#1, docker logs --tail 50 gunicorn
-#2, docker exec -it celery /bin/bash
+## Problem fouce:
 
-
-# docker run --rm --volumes-from=static -e TARGET=production registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py collectstatic --noinput
-#.drone.sec 设置
-#environment:
-#  DOCKER_USERNAME: 己美网络
-#  DOCKER_PASSWORD: ***
-#  DOCKER_EMAIL: ***@xiaolu.so
-
-# 添加数据访问白名单
-# 添加xiaolusys对应的drone Public Key 到本地ssh authorizen_keys
-# 修改.drone.yml 添加当前主机host
-
-#　释放server disk cache: http://www.linuxatemyram.com/
+1. docker logs --tail 50 gunicorn  
+2. docker exec -it celery /bin/bash  
+# docker run --rm --volumes-from=static -e TARGET=production registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py collectstatic --noinput  
+# .drone.sec 设置  
+# 添加数据访问白名单  
+# 添加xiaolusys对应的drone Public Key 到本地ssh authorizen_keys  
+# 修改.drone.yml 添加当前主机host  
+# 释放server disk cache: http://www.linuxatemyram.com/
 sync && echo 3 | sudo tee /proc/sys/vm/drop_caches
 
 #################### 服务器确认启动之后添加 ####################

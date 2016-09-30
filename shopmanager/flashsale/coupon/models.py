@@ -597,17 +597,17 @@ class UserCoupon(BaseModel):
         tasks.task_update_tpl_released_coupon_nums.delay(tpl)
         return cou
 
-
-def update_unionid_download_record(sender, instance, created, **kwargs):
-    if instance.coupon_type != UserCoupon.TYPE_ORDER_SHARE:  # 非的呢订单分享类型
-        return
-    from flashsale.coupon.tasks import task_update_unionid_download_record
-
-    task_update_unionid_download_record.delay(instance)
-
-
-post_save.connect(update_unionid_download_record, sender=UserCoupon,
-                  dispatch_uid='post_save_update_unionid_download_record')
+# 注释代码:  2016-9-30
+# def update_unionid_download_record(sender, instance, created, **kwargs):
+#     if instance.coupon_type != UserCoupon.TYPE_ORDER_SHARE:  # 非的呢订单分享类型
+#         return
+#     from flashsale.coupon.tasks import task_update_unionid_download_record
+#
+#     task_update_unionid_download_record.delay(instance)
+#
+#
+# post_save.connect(update_unionid_download_record, sender=UserCoupon,
+#                   dispatch_uid='post_save_update_unionid_download_record')
 
 
 class TmpShareCoupon(BaseModel):
