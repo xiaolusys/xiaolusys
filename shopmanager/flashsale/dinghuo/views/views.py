@@ -1087,6 +1087,8 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
     def create_bill(self, request, pk):
         pay_tool = request.REQUEST.get("pay_tool", None)
         orderlist = get_object_or_404(OrderList, id=pk)
+        if orderlist.bill:
+            return Response({"res": False, "data": [], "desc": u"此订货单已经创建过账单了。"})
         pay_way = request.REQUEST.get("pay_way", None)
         plan_amount = request.REQUEST.get("money", None)
         transcation_no = request.REQUEST.get("transcation_no", None)
@@ -1103,19 +1105,19 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             orderlist.set_stage_receive(pay_way)
             return Response({"res": True, "data": [], "desc": ""})
         if float(plan_amount) == 0:
-            return Response({"res": False, "data": [], "desc": "计划金额不能为0"})
+            return Response({"res": False, "data": [], "desc": u"计划金额不能为0"})
         if int(pay_tool) == Bill.SELF_PAY:
             status = Bill.STATUS_COMPLETED
             amount = plan_amount
         pay_method = pay_tool
         if pay_method == '0':
-            return Response({"res": False, "data": [], "desc": "请选择支付方式"})
+            return Response({"res": False, "data": [], "desc": u"请选择支付方式"})
         try:
             bill = Bill.create([orderlist], Bill.PAY, status, pay_method, plan_amount, amount, orderlist.supplier,
                                user_id=request.user.id, receive_account=receive_account, receive_name=receive_name,
                                pay_taobao_link=pay_taobao_link, transcation_no=transcation_no)
         except:
-            return Response({"res": False, "data": [], "desc": "无法写入财务记录"})
+            return Response({"res": False, "data": [], "desc": u"无法写入财务记录"})
 
         if int(pay_way) == OrderList.PC_POD_TYPE:
             orderlist.set_stage_pay(pay_way)
@@ -1155,7 +1157,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             bill.transcation_no = transcation_no
             bill.save()
         except:
-            return Response({"res": False, "data": [], "desc": "无法写入财务记录"})
+            return Response({"res": False, "data": [], "desc": u"无法写入财务记录"})
         return Response({"res": True, "data": [], "desc": ""})
 
     @detail_route(methods=['post'])
