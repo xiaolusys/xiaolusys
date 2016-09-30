@@ -216,6 +216,7 @@ def write_traces(kwargs):
     if tradewuliu.first() is None:
         TradeWuliu.objects.create(**write_info)
         comfirm_get(write_info["out_sid"],write_info["status"])
+        PackageSkuItem.objects.filter(out_sid=write_info["out_sid"]).cancel_failed_time()
 
     elif write_info["content"] != tradewuliu.first().content:
         tradewuliu.update(**write_info)
@@ -246,8 +247,9 @@ def format_content(**kwargs):
 @add_DataSign                                     #把请求数据加入API_key进行数字签名
 def kdn_subscription(*args,**kwargs):
     logging.warn(kwargs)
-    result = requests.post("http://api.kdniao.cc/api/dist",data=kwargs).text
-    if result.find("502 Bad Gateway") != -1:
+    res = requests.post("http://api.kdniao.cc/api/dist",data=kwargs)
+    result = res.text
+    if res.status_code == 502:
         logging.warn("物流查询失败返回"+"502 Bad Gateway"+"快递鸟那边繁忙")
         return result
     result = json.loads(result.encode('UTF-8'))
@@ -258,6 +260,7 @@ def kdn_subscription(*args,**kwargs):
             write_traces(json.dumps(result))
     else:
         result.update({"info":"订阅失败"})
+        PackageSkuItem.objects.filter(out_sid = kwargs['LogisticCode']).set_failed_time()
         logging.warn("订阅失败")
         logging.warn(result['Reason'])
     return result
