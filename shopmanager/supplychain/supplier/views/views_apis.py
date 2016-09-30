@@ -62,11 +62,12 @@ class SaleSupplierFilter(filters.FilterSet):
     created_start = django_filters.DateFilter(name="created", lookup_type='gte')
     created_end = django_filters.DateFilter(name="created", lookup_type='lte')
     supplier_name = django_filters.CharFilter(name="supplier_name", lookup_type='contains')
+    supplier_code = django_filters.CharFilter(name="supplier_code", lookup_type='contains')
 
     class Meta:
         model = SaleSupplier
-        fields = ['id', 'category', 'supplier_name', 'supplier_type', 'supplier_zone', 'progress', "mobile",
-                  'created_start', 'created_end']
+        fields = ['id', 'category', 'supplier_name', 'supplier_code', 'supplier_type', 'supplier_zone', 'progress',
+                  "mobile", 'created_start', 'created_end']
 
 
 class SaleSupplierViewSet(viewsets.ModelViewSet):
@@ -141,6 +142,7 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
             'supplier_zone': SupplierZone.objects.values_list('id', 'name'),
             'platform': SaleSupplier.PLATFORM_CHOICE,
             'ware_by': WARE_CHOICES,
+            'return_ware_by': WARE_CHOICES,
             'status': SaleSupplier.STATUS_CHOICES,
         })
 
@@ -378,6 +380,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if request.user.has_perm('supplier.delete_sale_product'):
             instance = self.get_object()
+            if instance.model_product:
+                raise exceptions.APIException(u'已有资料禁止删除!')
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
