@@ -141,6 +141,7 @@ class SaleSupplierViewSet(viewsets.ModelViewSet):
             'supplier_zone': SupplierZone.objects.values_list('id', 'name'),
             'platform': SaleSupplier.PLATFORM_CHOICE,
             'ware_by': WARE_CHOICES,
+            'return_ware_by': WARE_CHOICES,
             'status': SaleSupplier.STATUS_CHOICES,
         })
 

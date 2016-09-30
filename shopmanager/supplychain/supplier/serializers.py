@@ -172,7 +172,8 @@ class SaleSupplierFormSerializer(serializers.ModelSerializer):
                   "supplier_type",
                   "supplier_zone",
                   "buyer",
-                  "ware_by")
+                  "ware_by",
+                  'return_ware_by')
 
     def validate(self, data):
         """
