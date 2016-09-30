@@ -153,8 +153,6 @@ def should_resend_code(reg):
     """
     whether or not the system should resend code
     """
-    if reg.verify_count <= 0:
-        return True
 
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=RESEND_TIME_LIMIT)
