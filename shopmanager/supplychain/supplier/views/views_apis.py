@@ -378,6 +378,8 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if request.user.has_perm('supplier.delete_sale_product'):
             instance = self.get_object()
+            if instance.model_product:
+                raise exceptions.APIException(u'已有资料禁止删除!')
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
