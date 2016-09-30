@@ -144,7 +144,6 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
 
         customer = get_customer(request, mobile)
-
         if customer:
             if action == 'register':
                 return Response({"rcode": 2, "msg": u"该用户已经存在啦！"})
@@ -226,7 +225,7 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
 
         if not mobile or not pwd1 or not pwd2 or not verify_code or pwd1 != pwd2:
-            return Response({"rcode": 2, "msg": "提交的参数有误呀！"})
+            return Response({"rcode": 2, "msg": u"提交的参数有误呀！"})
 
         customer = get_customer(request, mobile)
         if not customer:
