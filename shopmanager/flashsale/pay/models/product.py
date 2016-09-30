@@ -640,6 +640,33 @@ class ModelProduct(BaseTagModel):
             return True
         return False
 
+    def reset_product_shelf_info(self):
+        """
+        功能：　重置 items product 的上下架信息
+        """
+        for pro in self.products:
+            pro.reset_shelf_info()
+        return
+
+    def reset_shelf_info(self):
+        """
+        功能：　重置上下架时间　和上架状态
+        """
+        update_fields = []
+        if self.shelf_status != ModelProduct.OFF_SHELF:
+            self.shelf_status = ModelProduct.OFF_SHELF
+            update_fields.append('shelf_status')
+        if self.offshelf_time is not None:
+            self.offshelf_time = None
+            update_fields.append('offshelf_time')
+        if self.onshelf_time is not None:
+            self.onshelf_time = None
+            update_fields.append('onshelf_time')
+        if update_fields:
+            self.save(update_fields=update_fields)
+        self.reset_product_shelf_info()  # 重置产品
+        return
+
     def update_extras(self, extras):
         """ 更新扩展字段 """
         if self.extras != extras:

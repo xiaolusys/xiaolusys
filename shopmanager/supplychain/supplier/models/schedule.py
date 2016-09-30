@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+import datetime
 from django.core.cache import cache
 from django.db import models
 from django.db.models.signals import pre_save, post_save, post_delete
@@ -6,6 +7,7 @@ from core.options import get_systemoa_user, log_action, CHANGE
 from core.utils import update_model_fields
 from .. import constants
 from .product import SaleProduct
+from django.db.models import Sum
 
 
 class SaleProductManage(models.Model):
@@ -99,6 +101,29 @@ class SaleProductManage(models.Model):
             self.resort_schedule()  # 重新排序
             return True
         return False
+
+    def extend_offshelf_time(self, offshelf_time):
+        """
+        功能：　延长该排期产品下架时间
+        实现：
+            1. 修改排期管理下架时间到设置时间
+            2. 修改该排期下产品的下架时间到设置时间
+        """
+        from flashsale.pay.models import ModelProduct
+
+        if offshelf_time < self.upshelf_time:
+            raise Exception(u'设置时间出错')
+        if self.offshelf_time < datetime.datetime.now():
+            raise Exception(u'以前的排期请重新新建排期,不予重新设置')
+        self.offshelf_time = offshelf_time
+        self.save()
+        saleproduct_ids = self.manage_schedule.values_list('sale_product_id', flat=True)
+        modelproducts = ModelProduct.objects.filter(saleproduct_id__in=saleproduct_ids, status=ModelProduct.NORMAL)
+        for md in modelproducts:
+            md.offshelf_time = offshelf_time
+            md.save(update_fields=['offshelf_time'])
+            md.products.update(offshelf_time=offshelf_time)
+        return
 
 
 def update_model_product_shelf_time(sender, instance, raw, *args, **kwargs):
@@ -266,6 +291,21 @@ class SaleProductManageDetail(models.Model):
     @property
     def modeproduct(self):
         return self.nomal_modelproducts.first()
+
+    def get_status_salenum_in_schedule(self):
+        """
+        功能：　计算排期内该产品订单各个状态　数量
+        """
+        from flashsale.pay.models import SaleOrder
+        from shopback.items.models import Product
+
+        item_product_ids = Product.objects.filter(sale_product=self.sale_product_id,
+                                                  status=Product.NORMAL).values_list('id', flat=True)
+        res = SaleOrder.objects.filter(item_id__in=item_product_ids,
+                                       pay_time__gte=self.schedule_manage.upshelf_time,
+                                       pay_time__lt=self.schedule_manage.offshelf_time).values('status').annotate(
+            t_num=Sum('num'))
+        return res
 
 
 def sync_md_weight(sender, instance, raw, *args, **kwargs):
