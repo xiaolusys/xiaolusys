@@ -221,7 +221,8 @@ class BillRelation(BaseModel):
         if self.type == BillRelation.TYPE_DINGHUO_RECEIVE:   #退货回款 订货单状态直接完成
             ol.set_stage_complete()
         elif self.type == BillRelation.TYPE_DINGHUO_PAY and ol.bill_method == OrderList.PC_COD_TYPE: #在货到付款情况下，订单状态完成
-            ol.set_stage_complete()
+            if not ol.third_package:
+                ol.set_stage_complete()
         elif self.type == BillRelation.TYPE_DINGHUO_PAY and ol.bill_method == OrderList.PC_POD_TYPE: #在付款提货状态下，订单状态为收货
             ol.set_stage_receive(OrderList.PC_POD_TYPE)
         ol.save()
