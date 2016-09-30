@@ -130,12 +130,9 @@ class ActivityGoodsViewSet(viewsets.ModelViewSet):
                 isReceived = False
             else:
                 from flashsale.coupon.models import UserCoupon
-                coupon_queryset=UserCoupon.objects.filter(customer_id=customer.id, template_id=coupon.model_id).order_by('-created')
-                if coupon_queryset.count() == 0:
-                    isReceived = False
-                else:
-                    isReceived = True
-            coupon_dict = {"couponId": coupon.model_id, "isReceived":isReceived, "getBeforePic": coupon.product_img,
+
+                isReceived = UserCoupon.objects.filter(customer_id=customer.id, template_id=coupon.model_id).exists()
+            coupon_dict = {"couponId": coupon.model_id, "isReceived": isReceived, "getBeforePic": coupon.product_img,
                            "getAfterPic": coupon_getafter_pic.filter(model_id=coupon.model_id).first().product_img,
                            "jumpUrl": coupon.jump_url}
             coupons.append(coupon_dict)
