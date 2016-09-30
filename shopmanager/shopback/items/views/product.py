@@ -474,11 +474,12 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
             request.data.update({'content_imgs': '\n'.join(content_imgs)})
         instance = saleproduct.model_product
         partial = kwargs.pop('partial', False)
-        extras = self.get_request_extras(request, instance)
+        request_extras = request.data.get('extras') or None
+        if request_extras is not None:
+            extras = self.get_request_extras(request, instance)
+            request.data.update({'extras': extras})
 
         request.data.update({'name': saleproduct.title})
-
-        request.data.update({'extras': extras})
         request.data.update({'salecategory': instance.salecategory.id})  # 类别不予更新（使用原来的类别）
         request.data.update({'lowest_agent_price': instance.lowest_agent_price})  # 最低售价（价格由sku决定）
         request.data.update({'lowest_std_sale_price': instance.lowest_std_sale_price})  # 最低吊牌价（价格由sku决定）

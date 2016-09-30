@@ -524,7 +524,7 @@ class SaleScheduleDetailFilter(filters.FilterSet):
 
     class Meta:
         model = SaleProductManageDetail
-        fields = ['order_weight', "id", 'material_status', 'design_take_over', 'design_complete']
+        fields = ['order_weight', "id", 'material_status', 'design_take_over', 'design_complete', 'is_promotion']
 
 
 class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
@@ -611,9 +611,15 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if request.user.has_perm('supplier.delete_schedule_detail'):
             instance = self.get_object()
+            res = instance.get_status_salenum_in_schedule()  # 排期内有订单
+            if res:
+                raise exceptions.APIException(u'排期内有销量禁止删除!')
             delete_order_weight = instance.order_weight
+            model_pro = instance.modelproducts.first()
             manager = instance.schedule_manage
             self.perform_destroy(instance)
+            if model_pro and model_pro.onshelf_time == instance.schedule_manage.upshelf_time:
+                model_pro.set_shelft_time_none()  # 删除明细后需要设置款式下架，　上下架时间设置为none
             manager.save(update_fields=['product_num'])
             # 删除之后　要给　大于delete_order_weight 减去1　方便后面排序接口
             schedule_details = manager.manage_schedule.filter(order_weight__gt=delete_order_weight)
