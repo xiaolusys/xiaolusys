@@ -1,5 +1,6 @@
 # encoding=utf8
 import json
+import random
 import logging
 from datetime import datetime
 from django.conf import settings
@@ -519,6 +520,7 @@ class WeixinPush(object):
         return self.push(customer, template_ids, template_data, to_url)
 
 
+    from flashsale.promotion.models import ActivityEntry
     def push_event(self, event_instance):
         customer = event_instance.get_effect_customer()
         if not customer:
@@ -534,13 +536,20 @@ class WeixinPush(object):
 
         header = template_data.get('first')
         if not header:
-            template_data.update({'first': {'value': header, 'color':'#394359'}})
+            template_data.update({'first': {'value': template.header, 'color':'#394359'}})
         footer = template_data.get('remark')
         if not footer:
-            template_data.update({'remark': {'value': footer, 'color':'#394359'}})
+            template_data.update({'remark': {'value': template.footer, 'color':'#394359'}})
         
         to_url = event_instance.to_url
+        if not to_url:
+            active_time = datetime.datetime.now() - datetime.timedelta(hours=6)
+            activity_entries = ActivityEntry.get_effect_activitys(active_time)
+            entry = random.choice(activity_entries)
+            login_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next='
+            redirect_url = '/rest/v2/mama/redirect_activity_entry?activity_id=%s' % entry.id
+            to_url = login_url + redirect_url
+            desc = u'\n今日热门:［%s］%s' % (entry.title, entry.act_desc)
+            template_data.update({'remark': {'value': desc, 'color':'#ff6633'}})
 
         return self.push(customer, template_ids, template_data, to_url)
-
-

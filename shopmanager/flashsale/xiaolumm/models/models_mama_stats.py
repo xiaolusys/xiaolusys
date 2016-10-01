@@ -35,6 +35,7 @@ class MamaTabVisitStats(BaseModel):
     TAB_WX_KEFU = 18
     TAB_WX_PERSONAL = 19
     TAB_WX_CASHOUT_APP_DOWNLOAD = 20
+    TAB_WX_PUSH_REDIRECT_LINK = 21
     
     STATS_TABS = ((TAB_UNKNOWN, 'Unknown'), (TAB_MAMA_FORTUNE, u'妈妈主页'), (TAB_DAILY_NINEPIC, u'每日推送'),
                   (TAB_NOTIFICATION, u'消息通知'), (TAB_MAMA_SHOP, u'店铺精选'), (TAB_INVITE_MAMA, u'邀请妈妈'),
@@ -42,7 +43,8 @@ class MamaTabVisitStats(BaseModel):
                   (TAB_INCOME_RANK, u'收益排名'), (TAB_ORDER_CARRY, u'订单记录'), (TAB_CARRY_RECORD, u'收益记录'),
                   (TAB_FANS_LIST, u'粉丝列表'), (TAB_VISITOR_LIST, u'访客列表'), (TAB_WX_MAMA_ACTIVATE, u'WX/店铺激活'),
                   (TAB_WX_APP_DOWNLOAD, u'WX/APP下载'), (TAB_WX_REFERAL_QRCODE, u'WX/开店二维码'), (TAB_WX_MANAGER_QRCODE, u'WX/管理员二维码'),
-                  (TAB_WX_KEFU, u'WX/客服菜单'), (TAB_WX_PERSONAL, u'WX/个人帐户'), (TAB_WX_CASHOUT_APP_DOWNLOAD, u'WX/提现页APP下载'))
+                  (TAB_WX_KEFU, u'WX/客服菜单'), (TAB_WX_PERSONAL, u'WX/个人帐户'), (TAB_WX_CASHOUT_APP_DOWNLOAD, u'WX/提现页APP下载'),
+                  (TAB_WX_PUSH_REDIRECT_LINK, u'WX/跳转链接'))
 
     stats_tab = models.IntegerField(default=0, choices=STATS_TABS, db_index=True, verbose_name=u'功能TAB')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # stats_tab+date
