@@ -25,20 +25,21 @@ logger = logging.getLogger('django.request')
 klog = logging.getLogger('service')
 
 PHONE_NUM_RE = re.compile(REGEX_MOBILE, re.IGNORECASE)
-TIME_LIMIT = 360
+CODE_TIME_LIMIT = 1800
 RESEND_TIME_LIMIT = 180
 SYSTEMOA_ID = 641
-MAX_DAY_LIMIT = 5
+MAX_DAY_LIMIT = 6
 
 def check_day_limit(reg):
     """
     whether or not the day_limit is reached.
     """
+    print "reg.submit_count=", reg.submit_count
     if reg.code_time:
-        date1 = datetime.datetime.now().date()
+        date1 = datetime.date.today()
         date2 = reg.code_time.date()
         if date1 == date2:
-            if reg.verify_count > MAX_DAY_LIMIT or reg.submit_count > MAX_DAY_LIMIT:
+            if reg.verify_count >= MAX_DAY_LIMIT or reg.submit_count >= MAX_DAY_LIMIT:
                 return True
         else:
             # everyday we restore verify_count/submit_count
@@ -72,32 +73,19 @@ def validate_code(mobile, verify_code):
         return False
     
     current_time = datetime.datetime.now()
-    # earliest_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
-    earliest_send_time = current_time - datetime.timedelta(seconds=7200)
-    regs = Register.objects.filter(vmobile=mobile)
+    earliest_send_time = current_time - datetime.timedelta(seconds=CODE_TIME_LIMIT)
+    reg = Register.objects.filter(vmobile=mobile).first()
 
-    if regs.count() <= 0:
+    if not (reg and reg.code_time and reg.verify_code):
         return False
-
-    reg = regs[0]
-    if not reg.code_time:
-        return False
-    if not reg.verify_code:
-        return False
-
 
     verify_code = verify_code.strip()
     if reg.code_time > earliest_send_time and reg.verify_code == verify_code:
         reg.submit_count = 0
+        reg.verify_count += 1
         reg.verify_code = ''
-        reg.save(update_fields=['submit_count', 'verify_code', 'modified'])
+        reg.save(update_fields=['submit_count', 'verify_count', 'verify_code'])
         return True
-
-    if reg.code_time <= earliest_send_time:
-        reg.verify_code = ''
-        
-    reg.submit_count += 1     #提交次数加一
-    reg.save(update_fields=['submit_count', 'modified'])
 
     if XiaoluSwitch.is_switch_open(6):
         logger.error(u'validate_code false, reg.verify_code=%s,verify_code=%s' % (reg.verify_code, verify_code))
@@ -151,15 +139,26 @@ def customer_exists(mobile):
 
 def should_resend_code(reg):
     """
-    whether or not the system should resend code
+    Only check whether or not mail_time is within RESEND_TIME_LIMIT.
     """
-
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=RESEND_TIME_LIMIT)
-    if reg.verify_code and reg.code_time and reg.code_time > earliest_send_time:
+    if reg.verify_code and reg.mail_time and reg.mail_time > earliest_send_time:
         return False
     return True
 
+def should_generate_new_code(reg):
+    """
+    Only check whether or not code_time is within (CODE_TIME_LIMIT - RESEND_TIME_LIMIT).
+    """
+    current_time = datetime.datetime.now()
+    regenerate_time_limit = CODE_TIME_LIMIT - RESEND_TIME_LIMIT
+    earliest_code_time = current_time - datetime.timedelta(seconds=regenerate_time_limit)
+    if reg.verify_code and reg.code_time and reg.code_time > earliest_code_time:
+        # we dont generate new code, only if this code still have enough time before expire.
+        return False
+    return True
+    
 def is_from_app(params):
     devtype = params.get("devtype")
     if devtype:
@@ -187,7 +186,7 @@ class SendCodeView(views.APIView):
     """
 
     def post(self, request):
-        content = request.REQUEST
+        content = request.POST
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
 
@@ -207,34 +206,43 @@ class SendCodeView(views.APIView):
         })
 
         if not validate_mobile(mobile):
-            return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
+            info = u"亲，手机号码错啦！"
+            return Response({"rcode": 1, "code": 1, "msg": info, "info": info})
 
         if not validate_action(action):
-            return Response({"rcode": 1, "msg": u"亲，操作错误！"})
+            info = u"亲，操作错误！"
+            return Response({"rcode": 1, "code": 1, "msg": info, "info": info})
 
         customer = get_customer(request, mobile)
 
         if customer:
             if action == 'register':
-                return Response({"rcode": 2, "msg": u"该用户已经存在啦！"})
+                info = u"该用户已经存在啦！"
+                return Response({"rcode": 2, "code": 2, "msg": info, "info": info})
         else:
             if action in ['find_pwd', 'change_pwd', 'bind', 'sms_login']:
-                return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
+                info = u"该用户还不存在呢！"
+                return Response({"rcode": 3, "code": 3, "msg": info, "info": info})
 
         reg, created = get_register(mobile)
         if not created:
             # if reg is not just created, we have to check
             # day limit and resend condition.
             if check_day_limit(reg):
-                return Response({"rcode": 4, "msg": u"当日验证次数超过限制!"})
+                info = u"当日验证次数超过限制!"
+                return Response({"rcode": 4, "code": 4, "msg": info, "info": info})
             if not should_resend_code(reg):
-                return Response({"rcode": 5, "msg": u"验证码刚发过咯，请等待下哦！"})
+                info = u"验证码刚发过咯，请等待下哦！"
+                return Response({"rcode": 5, "code": 5, "msg": info, "info": info})
 
-        if not reg.verify_code:
+        if should_generate_new_code(reg):
             reg.verify_code = reg.genValidCode()
             reg.code_time = datetime.datetime.now()
-            reg.save()
-            
+
+        reg.mail_time = datetime.datetime.now()
+        reg.submit_count += 1
+        reg.save()
+        
         task_register_code.delay(mobile, "3")
         return Response({"rcode": 0, "code": 0, "msg": u"验证码已发送！", "info": u"验证码已发送！"})
 
@@ -271,10 +279,14 @@ class RequestCashoutVerifyCode(views.APIView):
             if not should_resend_code(reg):
                 return Response({"code": 5, "info": u"验证码刚发过咯，请等待下哦！"})
 
-        if not reg.verify_code:
+        if should_generate_new_code(reg):
             reg.verify_code = reg.genValidCode()
             reg.code_time = datetime.datetime.now()
-            reg.save()
+            
+        reg.mail_time = datetime.datetime.now()
+        reg.submit_count += 1
+        reg.save()
+        
         task_register_code.delay(mobile, "4")
         return Response({"code": 0, "info": u"验证码已发送！"})
 

@@ -36,8 +36,8 @@ class Register(PayBaseModel):
     mobile_pass = models.BooleanField(default=False, db_index=True, verbose_name=u"手机验证通过")
     mail_pass = models.BooleanField(default=False, db_index=True, verbose_name=u"邮箱验证通过")
 
-    code_time = models.DateTimeField(blank=True, null=True, verbose_name=u'短信发送时间')
-    mail_time = models.DateTimeField(blank=True, null=True, verbose_name=u'邮件发送时间')
+    code_time = models.DateTimeField(blank=True, null=True, verbose_name=u'验证码生成时间')
+    mail_time = models.DateTimeField(blank=True, null=True, verbose_name=u'验证码发送时间')
 
     initialize_pwd = models.BooleanField(default=False, verbose_name=u"初始化密码")
 
