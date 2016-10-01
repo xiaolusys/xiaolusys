@@ -543,7 +543,7 @@ class WeixinPush(object):
         
         to_url = event_instance.to_url
         if not to_url:
-            active_time = datetime.datetime.now() - datetime.timedelta(hours=6)
+            active_time = datetime.now() - timedelta(hours=6)
             activity_entries = ActivityEntry.get_effect_activitys(active_time)
             entry = random.choice(activity_entries)
             login_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next='
