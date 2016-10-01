@@ -523,7 +523,7 @@ class WeixinPush(object):
         return self.push(customer, template_ids, template_data, to_url)
 
 
-    from flashsale.promotion.models import ActivityEntry
+    
     def push_event(self, event_instance):
         customer = event_instance.get_effect_customer()
         if not customer:
@@ -545,6 +545,7 @@ class WeixinPush(object):
             template_data.update({'remark': {'value': template.footer, 'color':'#394359'}})        
         to_url = event_instance.to_url
         if not to_url:
+            from flashsale.promotion.models import ActivityEntry
             active_time = datetime.datetime.now() - datetime.timedelta(hours=6)
             activity_entries = ActivityEntry.get_effect_activitys(active_time)
             entry = random.choice(activity_entries)
