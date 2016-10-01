@@ -73,14 +73,18 @@ def task_weixin_push_awardcarry(awardcarry):
     wp.push_mama_award(awardcarry, courage_remarks, to_url)
 
 
-@task
+@task(max_retries=3, default_retry_delay=6)
 def task_weixin_push_ordercarry(ordercarry):
     from flashsale.pay.models import SaleOrder
     from flashsale.xiaolumm.models import OrderCarry
 
     event_type = WeixinPushEvent.ORDER_CARRY_INIT
     sale_order = SaleOrder.objects.filter(oid=ordercarry.order_id).first()
-    sale_trade_id = sale_order.sale_trade.tid
+    sale_trade_id = None
+    try:
+        sale_trade_id = sale_order.sale_trade.tid
+    except Exception as exc:
+        raise task_weixin_push_ordercarry.retry(exc=exc)
 
     if ordercarry.carry_type == OrderCarry.REFERAL_ORDER:
         event_type = WeixinPushEvent.SUB_ORDER_CARRY_INIT
