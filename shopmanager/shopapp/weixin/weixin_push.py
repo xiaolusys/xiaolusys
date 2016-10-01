@@ -238,7 +238,7 @@ class WeixinPush(object):
                 'color': '#ff0000',
             },
             'keyword3': {
-                'value': u'%s' % awardcarry.created,
+                'value': u'%s' % awardcarry.created.strftime('%Y-%m-%d %H:%M:%S'),
                 'color': '#000000',
             },
             'remark': {

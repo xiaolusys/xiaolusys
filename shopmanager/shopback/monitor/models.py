@@ -102,7 +102,10 @@ class XiaoluSwitch(BaseModel):
 
     @classmethod
     def is_switch_open(cls, id):
-        switch = cls.objects.get(id=id)
+        switch = cls.objects.filter(id=id).first()
+        if not switch:
+            return False
+        
         now = datetime.datetime.now()
         if switch.status == 1:
             if now >= switch.start_time and now <= switch.end_time:
