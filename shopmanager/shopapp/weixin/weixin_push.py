@@ -2,7 +2,7 @@
 import json
 import random
 import logging
-from datetime import datetime
+import datetime
 from django.conf import settings
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.models_base import (
@@ -29,6 +29,9 @@ class WeixinPush(object):
         """
         如果两个公众账号（小鹿美美，小鹿美美特卖）都没关注，需要发短信
         """
+        if not (customer and customer.mobile):
+            return False
+        
         temai_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WEIXIN_APPID)
         mm_openid = WeixinFans.get_openid_by_unionid(customer.unionid, settings.WXPAY_APPID)
 
@@ -455,7 +458,7 @@ class WeixinPush(object):
                 'color': '#4CC417',
             },
             'keyword3': {
-                'value': (params.get('finish_time') or datetime.now()).strftime('%Y-%m-%d'),
+                'value': (params.get('finish_time') or datetime.datetime.now()).strftime('%Y-%m-%d'),
                 'color': '#4CC417',
             },
             'remark': {
@@ -543,7 +546,7 @@ class WeixinPush(object):
         
         to_url = event_instance.to_url
         if not to_url:
-            active_time = datetime.now() - timedelta(hours=6)
+            active_time = datetime.datetime.now() - datetime.timedelta(hours=6)
             activity_entries = ActivityEntry.get_effect_activitys(active_time)
             entry = random.choice(activity_entries)
             login_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next='
