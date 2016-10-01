@@ -202,35 +202,35 @@ def task_activate_xiaolumama(openid, wx_pubid):
     #    task_weixinfans_create_budgetlog.delay(referal_mama.openid, potential_mama_unionid, BudgetLog.BG_REFERAL_FANS)
     
 
-@task
+@task(max_retries=3, default_retry_delay=6)
 def task_weixinfans_update_xlmmfans(referal_from_mama_id, referal_to_unionid):
-    customer = Customer.objects.filter(unionid=referal_to_unionid).first()
-    if not customer:
-        return
-    fans_cusid = customer.id
-    fans_nick = customer.nick
-    fans_thumbnail = customer.thumbnail
+    try:
+        customer = Customer.objects.filter(unionid=referal_to_unionid).first()
+        fans_cusid = customer.id
+        fans_nick = customer.nick
+        fans_thumbnail = customer.thumbnail
     
-    fan = XlmmFans.objects.filter(fans_cusid=fans_cusid).first()
-    if fan:
-        return
+        fan = XlmmFans.objects.filter(fans_cusid=fans_cusid).first()
+        if fan:
+            return
     
-    from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
-    if not from_mama:
-        return
+        from_mama = XiaoluMama.objects.filter(id=referal_from_mama_id).first()
+        if not from_mama:
+            return
 
-    from_customer = from_mama.get_mama_customer()
-    if not from_customer:
-        return
+        from_customer = from_mama.get_mama_customer()
+        if not from_customer:
+            return
     
-    xlmm_cusid = from_customer.id
-    if xlmm_cusid == fans_cusid:
-        return
+        xlmm_cusid = from_customer.id
+        if xlmm_cusid == fans_cusid:
+            return
     
-    fan = XlmmFans(xlmm=referal_from_mama_id, xlmm_cusid=xlmm_cusid, refreal_cusid=xlmm_cusid, fans_cusid=fans_cusid,
-                   fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
-    fan.save()
-
+        fan = XlmmFans(xlmm=referal_from_mama_id, xlmm_cusid=xlmm_cusid, refreal_cusid=xlmm_cusid, fans_cusid=fans_cusid,
+                       fans_nick=fans_nick, fans_thumbnail=fans_thumbnail)
+        fan.save()
+    except Exception as exc:
+        raise task_weixinfans_update_xlmmfans.retry(exc=exc)
 
 def create_push_event_subscribe(mama_id, unionid, carry_num, date_field):
     customer = Customer.objects.filter(unionid=unionid, status=Customer.NORMAL).first()
