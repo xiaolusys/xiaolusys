@@ -207,6 +207,9 @@ class CouponTemplate(BaseModel):
 
     def check_bind_pros(self, product_ids=None):
         """ 检查绑定的产品 """
+        if len(product_ids) == 1 and str(product_ids[0]) == '72281':
+            raise AssertionError(u'该产品不支持使用优惠券')
+
         tpl_product_ids = self.bind_product_ids  # 设置的绑定的产品
         tpl_bind_pros = tpl_product_ids.strip().split(',') if tpl_product_ids else []  # 绑定的产品list
         if not tpl_bind_pros != []:  # 如果优惠券没有绑定产品
