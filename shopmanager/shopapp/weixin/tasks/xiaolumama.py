@@ -85,6 +85,9 @@ def task_get_unserinfo_and_create_accounts(openid, wx_pubid):
         from shopapp.weixin.tasks.base import task_snsauth_update_weixin_userinfo
         task_snsauth_update_weixin_userinfo.delay(userinfo, app_key)
     
+    if not userinfo or not userinfo.get('headimgurl').strip():
+        return
+    
     task_create_scan_customer.delay(userinfo)
     task_create_scan_xiaolumama.delay(userinfo)
     
@@ -126,6 +129,10 @@ def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, ev
     userinfo = get_userinfo_from_database(openid, app_key)
     if not userinfo:
         userinfo = wx_api.getCustomerInfo(openid)
+    
+    # if not set headimg return
+    if not userinfo or not userinfo.get('headimgurl').strip():
+        return
 
     fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
     if fan:
