@@ -106,7 +106,7 @@ def task_weixin_push_ordercarry(ordercarry):
     elif ordercarry.carry_type == 3:
         order_type = u'下属订单'
 
-    params = {'first':{'value':u'女王大人, 小鹿美美App报告：您的店铺又有一笔新订单啦！', 'color':'#F87217'},
+    params = {'first':{'value':u'女王大人, 小鹿美美App报告：您的店铺有人下单啦！', 'color':'#F87217'},
               'tradeDateTime':{'value':ordercarry.created.strftime('%Y-%m-%d %H:%M:%S'),'color':'#000000'},
               'orderType':{'value':order_type,'color':'#000000'},
               'customerInfo':{'value':ordercarry.contributor_nick,'color':'#000000'},
@@ -120,12 +120,10 @@ def task_weixin_push_ordercarry(ordercarry):
     customer = mama.get_customer()
     customer_id = customer.id
     template_id = WeixinPushEvent.TEMPLATE_ORDER_CARRY_ID
-    to_url = 'http://m.xiaolumeimei.com'
-
 
     try:
         event = WeixinPushEvent(customer_id=customer_id,mama_id=mama_id,uni_key=uni_key,tid=template_id,
-                                event_type=event_type,date_field=date_field,params=params,to_url=to_url)
+                                event_type=event_type,date_field=date_field,params=params)
 
         event.save()
     except IntegrityError as exc:
