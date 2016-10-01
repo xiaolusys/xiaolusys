@@ -33,3 +33,15 @@ def get_all_sku_need_repair():
         repair_sku(sku_id)
     return
 
+
+def repair_package_delete():
+    for p in PackageOrder.objects.filter(sys_status=PackageOrder.PKG_NEW_CREATED, ware_by=9):
+        cnt = int(p.id.split('-')[-1:])
+        num = PackageStat.get_package_num(p.stat_id)
+        if cnt < num:
+            p.sys_status=PackageOrder.DELETE
+            print p.id, num
+            # p.save()
+
+
+
