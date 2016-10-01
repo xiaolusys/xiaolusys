@@ -316,7 +316,7 @@ REGULAR_DAYS = 10
 
 ############################# TASK SETTINGS ##############################
 from .task_settings import *  # celery config
-# from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle
 ############################## RESTFRAMEWORK CONFIG #########################
 REST_FRAMEWORK = {
     #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
@@ -342,8 +342,8 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '150/day',
-        'user': '1000/day'
+        'anon': '60/min',
+        'user': '60/min'
     }
 }
 
