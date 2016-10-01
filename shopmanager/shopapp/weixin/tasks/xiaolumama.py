@@ -520,7 +520,7 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
 
         userinfo = get_or_fetch_userinfo(openid, wxpubId)
         unionid = userinfo['unionid']
-        if not userinfo or not userinfo.get('headimgurl').strip()
+        if not userinfo or not userinfo.get('headimgurl').strip():
             return
         mama = XiaoluMama.objects.filter(openid=unionid).first()
         # 获取创建用户小鹿妈妈信息,
