@@ -489,7 +489,7 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
         
         userinfo = get_or_fetch_userinfo(openid, wxpubId)
         unionid = userinfo['unionid']
-        if not userinfo or not userinfo.get('headimgurl').strip()
+        if not userinfo or not userinfo.get('headimgurl').strip():
             return
 
         mama = XiaoluMama.objects.filter(openid=unionid).first()
