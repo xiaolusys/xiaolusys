@@ -539,11 +539,10 @@ class WeixinPush(object):
 
         header = template_data.get('first')
         if not header:
-            template_data.update({'first': {'value': template.header, 'color':'#394359'}})
+            template_data.update({'first': {'value': template.header.decode('string_escape'), 'color':'#F87217'}})
         footer = template_data.get('remark')
         if not footer:
-            template_data.update({'remark': {'value': template.footer, 'color':'#394359'}})
-        
+            template_data.update({'remark': {'value': template.footer, 'color':'#394359'}})        
         to_url = event_instance.to_url
         if not to_url:
             active_time = datetime.datetime.now() - datetime.timedelta(hours=6)
