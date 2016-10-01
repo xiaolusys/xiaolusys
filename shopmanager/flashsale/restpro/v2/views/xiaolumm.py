@@ -687,7 +687,7 @@ class OrderCarryVisitorView(APIView):
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get(self, request):
-        content = request.REQUEST
+        content = request.GET
         days_from = int(content.get("from", 0))
         days_length = int(content.get("days", 1))
 
@@ -923,7 +923,38 @@ class CashOutToAppView(APIView):
         download_url = DOWNLOAD_APP_LINK
         return redirect(download_url)
 
-        
+    
+from flashsale.promotion.models import ActivityEntry
+
+class RedirectActivityEntryView(APIView):
+    """
+    GET /rest/v2/mama/redirect_activity_entry?activity_id=xx
+    """
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        content = request.GET
+        activity_id = content.get("activity_id", "")
+        redirect_link = settings.M_SITE_URL
+
+        if activity_id:
+            ae = ActivityEntry.objects.filter(id=activity_id).first()
+            if ae:
+                redirect_link = ae.act_link
+        mama = None
+        try:
+            customer = Customer.objects.normal_customer.filter(user=request.user).first()
+            mama = customer.get_xiaolumm()
+        except Exception:
+            pass
+
+        if mama:
+            task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_PUSH_REDIRECT_LINK)
+
+        return redirect(redirect_link)
+
+    
 class CashOutPolicyView(APIView):
     """
     GET /rest/v2/mama/cashout_policy
