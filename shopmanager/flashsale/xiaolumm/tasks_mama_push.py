@@ -80,6 +80,8 @@ def task_weixin_push_ordercarry(ordercarry):
 
     event_type = WeixinPushEvent.ORDER_CARRY_INIT
     sale_order = SaleOrder.objects.filter(oid=ordercarry.order_id).first()
+    if not sale_order:
+        return 
     sale_trade_id = None
     try:
         sale_trade_id = sale_order.sale_trade.tid
