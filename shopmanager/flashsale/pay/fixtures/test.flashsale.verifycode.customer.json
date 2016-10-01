@@ -1,0 +1,37 @@
+[
+{
+  "fields": {
+    "username": "test_user",
+    "first_name": "Test",
+    "last_name": "User",
+    "is_active": true,
+    "is_superuser": true,
+    "is_staff": false,
+    "last_login": "2016-04-26T15:06:11",
+    "groups": [],
+    "user_permissions": [],
+    "password": "pbkdf2_sha256$20000$agkhgYSPE93h$DbzdKuI2FHE+Ya0macEsKOqxRaioQrEb/gdSmQXl0ks=",
+    "email": "",
+    "date_joined": "2016-04-24T21:55:14"
+  },
+  "model": "auth.user",
+  "pk": 1
+},
+{
+  "fields": {
+    "status": 1,
+    "openid": "our5huIOSuFF5FdojFMFNP5HNOmA",
+    "created": "2015-04-09T11:08:12",
+    "mobile": "18801806068",
+    "unionid": "o29cQs4zgDoYxmSO3pH-x4A7O8Sk",
+    "modified": "2016-04-20T11:49:55",
+    "phone": "",
+    "email": "",
+    "nick": "Test UserName",
+    "user": 1,
+    "thumbnail": "http://wx.qlogo.cn/mmopen/n24ek7Oc1iaXyxqzHobN7BicG5W1ljszSRWSdzaFeRkGGVwqjmQKTmicTylm8IkclpgDiaamWqZtiaTlcvLJ5z6x35wCKMWVbcYPU/0"
+  },
+  "model": "pay.customer",
+  "pk": 1
+}
+]
