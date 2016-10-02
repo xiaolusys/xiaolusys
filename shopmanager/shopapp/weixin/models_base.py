@@ -112,6 +112,9 @@ def weixinfans_create_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
 
+    if instance.app_key != settings.WXPAY_APPID: # 关注小鹿美美有奖励，否则没有
+        return
+    
     if XiaoluSwitch.is_switch_open(2):
         return
 
