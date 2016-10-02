@@ -131,7 +131,7 @@ def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, ev
         userinfo = wx_api.getCustomerInfo(openid)
     
     # if not set headimg return
-    if not userinfo or not userinfo.get('headimgurl').strip():
+    if not (userinfo and userinfo.get('headimgurl') and userinfo.get('headimgurl').strip()):
         return
 
     fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
@@ -259,7 +259,7 @@ def create_push_event_subscribe(mama_id, unionid, carry_num, date_field):
               'keyword2': {'value': u'关注小鹿美美系列公众号', 'color': '#394359'},
               'keyword3': {'value':now.strftime('%Y-%m-%d %H:%M:%S'), 'color':'#394359'}}
     
-    to_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next=/mama_shop/html/personal.html'
+    to_url = 'http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect'
     event = WeixinPushEvent(customer_id=customer_id,mama_id=mama_id,uni_key=uni_key,tid=tid,
                             event_type=event_type,date_field=date_field,params=params,to_url=to_url)
     event.save()
