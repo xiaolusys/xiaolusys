@@ -542,7 +542,7 @@ class WeixinPush(object):
             template_data.update({'first': {'value': template.header.decode('string_escape'), 'color':'#F87217'}})
         footer = template_data.get('remark')
         if not footer:
-            template_data.update({'remark': {'value': template.footer, 'color':'#394359'}})        
+            template_data.update({'remark': {'value': template.footer, 'color':'#F87217'}})        
         to_url = event_instance.to_url
         if not to_url:
             from flashsale.promotion.models import ActivityEntry
@@ -552,7 +552,7 @@ class WeixinPush(object):
             login_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next='
             redirect_url = '/rest/v2/mama/redirect_activity_entry?activity_id=%s' % entry.id
             to_url = login_url + redirect_url
-            desc = u'\n今日热门:［%s］%s' % (entry.title, entry.act_desc)
+            desc = u'\n今日热门:\n［%s］%s' % (entry.title, entry.act_desc)
             template_data.update({'remark': {'value': desc, 'color':'#ff6633'}})
 
         return self.push(customer, template_ids, template_data, to_url)
