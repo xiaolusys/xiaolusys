@@ -542,7 +542,7 @@ class WeixinPush(object):
             template_data.update({'first': {'value': template.header.decode('string_escape'), 'color':'#F87217'}})
         footer = template_data.get('remark')
         if not footer:
-            template_data.update({'remark': {'value': template.footer, 'color':'#F87217'}})        
+            template_data.update({'remark': {'value': template.footer.decode('string_escape'), 'color':'#F87217'}})        
         to_url = event_instance.to_url
         if not to_url:
             from flashsale.promotion.models import ActivityEntry
