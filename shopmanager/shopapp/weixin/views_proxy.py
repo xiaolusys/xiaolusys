@@ -102,12 +102,16 @@ class WXMessageHttpProxy(HttpProxy):
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
 
-        # ret_params = {'ToUserName': params['FromUserName'],
-        #               'FromUserName': params['ToUserName'],
-        #               'CreateTime': int(time.time())}
-        # ret_params.update(WeiXinAutoResponse.respEmptyString())
-        # response = service.formatParam2XML(ret_params)
-        return HttpResponse('success')
+        ret_params = {
+            'ToUserName': params['FromUserName'],
+            'FromUserName': params['ToUserName'],
+            'CreateTime': int(time.time()),
+            'MsgType': WeiXinAutoResponse.WX_TEXT,
+            'Content': u"亲，该公众号暂不支持客服接待功能，\n如有问题请点击下方菜单[下载APP]\n,申请并登录妈妈帐号留言或在线咨询人工客服,谢谢合作！"
+        }}
+        response = service.formatParam2XML(ret_params)
+        return HttpResponse(response, content_type="text/xml")
+        # return HttpResponse('success')
         #　如果公众号由多客服处理，直接转发
         # if wx_api._account.isResponseToDRF():
         #     ret_params = {'ToUserName': params['FromUserName'],

@@ -162,9 +162,15 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                 ret_params.update(faq.respNews())
                 return ret_params
 
-        if eventKey == 'MAMA_REFERAL_QRCODE' or \
-           event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
-           event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
+        if event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
+            event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower():
+            ret_params.update({
+                'MsgType': WeiXinAutoResponse.WX_TEXT,
+                'Content': u"么么哒！终于等到你！\n小鹿妈妈现在可以免费开店啦!\n请点击下方菜单[我的收入][开店二维码]，\n获取您的专属开店二维码！"
+                #u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
+            })
+
+        if eventKey == 'MAMA_REFERAL_QRCODE':
             if mama:
                 cache_key = 'wxpub_mama_referal_qrcode_mama_id_%s_%s' % (wxpubId, mama.id)
                 cache_value = cache.get(cache_key)
@@ -176,10 +182,11 @@ def handleWeiXinMenuRequest(openid, wxpubId, event, eventKey):
                         }
                     })
                     return ret_params
+
             tasks.task_create_mama_referal_qrcode_and_response_weixin.delay(to_username, from_username, event, eventKey)
             ret_params.update({
                 'MsgType': WeiXinAutoResponse.WX_TEXT,
-                'Content': u"么么哒！终于等到你！\n专属二维码正在创建中，若无回复，请5秒后查看菜单\n[我的收入]->[开店二维码]获取![可爱]"
+                'Content': u"想你了! 您的专属二维码正在创建中\n，请5秒后重新点击菜单[我的收入][开店二维码]获取，健康美丽尽在小鹿美美！"
                 #u'[玫瑰]亲，这是您的专属二维码，快告诉好友来开店赚佣金吧！'
             })
 
