@@ -62,7 +62,7 @@ def task_weixin_push_awardcarry(awardcarry):
     from flashsale.xiaolumm import util_description
     courage_remarks = util_description.get_awardcarry_courage_remarks(awardcarry.carry_type)
 
-    urls = ["http://m.xiaolumeimei.com", "http://m.xiaolumeimei.com/sale/promotion/appdownload/"]
+    urls = 'http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect'
     import random
     idx = int(random.random() * 2)
 
