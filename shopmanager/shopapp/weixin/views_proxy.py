@@ -107,7 +107,7 @@ class WXMessageHttpProxy(HttpProxy):
             'FromUserName': params['ToUserName'],
             'CreateTime': int(time.time()),
             'MsgType': WeiXinAutoResponse.WX_TEXT,
-            'Content': u"亲，该公众号暂不支持客服接待功能，\n如有问题请点击下方菜单[下载APP]\n,申请并登录妈妈帐号留言或在线咨询人工客服,谢谢合作！"
+            'Content': u"亲，该公众号暂不支持客服接待功能，如有问题请点击下方菜单 [下载APP], 申请并登录妈妈帐号留言或在线咨询人工客服,谢谢合作！"
         }
         response = service.formatParam2XML(ret_params)
         return HttpResponse(response, content_type="text/xml")
