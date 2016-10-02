@@ -131,7 +131,7 @@ def task_create_or_update_weixinfans_upon_subscribe_or_scan(openid, wx_pubid, ev
         userinfo = wx_api.getCustomerInfo(openid)
     
     # if not set headimg return
-    if not userinfo or not userinfo.get('headimgurl').strip():
+    if not (userinfo and userinfo.get('headimgurl') and userinfo.get('headimgurl').strip()):
         return
 
     fan = WeixinFans.objects.filter(app_key=app_key, openid=openid).first()
