@@ -62,14 +62,10 @@ def task_weixin_push_awardcarry(awardcarry):
     from flashsale.xiaolumm import util_description
     courage_remarks = util_description.get_awardcarry_courage_remarks(awardcarry.carry_type)
 
-    urls = 'http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect'
-    import random
-    idx = int(random.random() * 2)
-
-    if idx == 1:
-        courage_remarks += u"更新最新版App查看奖金 >>"
-    to_url = urls[idx]
-
+    to_url = 'http://m.xiaolumeimei.com'
+    if awardcarry.carry_type == 1 or awardcarry.carry_type == 2:
+        to_url = 'http://m.xiaolumeimei.com/rest/v2/mama/redirect_stats_link?link_id=1'
+        
     wp.push_mama_award(awardcarry, courage_remarks, to_url)
 
 
