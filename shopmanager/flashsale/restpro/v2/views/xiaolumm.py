@@ -954,7 +954,37 @@ class RedirectActivityEntryView(APIView):
 
         return redirect(redirect_link)
 
-    
+
+
+class RedirectStatsLinkView(APIView):
+    """
+    GET /rest/v2/mama/redirect_stats_link?link_id=xx
+    """
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        content = request.GET
+        link_id = content.get("link_id", "")
+        redirect_link = settings.M_SITE_URL
+
+        if link_id:
+            # get redirect_link from link_id
+            redirect_link = 'http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect'
+
+        mama = None
+        try:
+            customer = Customer.objects.normal_customer.filter(user=request.user).first()
+            mama = customer.get_xiaolumm()
+        except Exception:
+            pass
+
+        if mama:
+            task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_ARTICLE_LINK)
+
+        return redirect(redirect_link)
+
+
 class CashOutPolicyView(APIView):
     """
     GET /rest/v2/mama/cashout_policy
