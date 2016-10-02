@@ -979,8 +979,12 @@ class RedirectStatsLinkView(APIView):
         except Exception:
             pass
 
+        tab_id = MamaTabVisitStats.TAB_WX_ARTICLE_LINK
+        if int(link_id) == 2:
+            tab_id = MamaTabVisitStats.TAB_WX_TUTORIAL
+            
         if mama:
-            task_mama_daily_tab_visit_stats.delay(mama.id, MamaTabVisitStats.TAB_WX_ARTICLE_LINK)
+            task_mama_daily_tab_visit_stats.delay(mama.id, tab_id)
 
         return redirect(redirect_link)
 
