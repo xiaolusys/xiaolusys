@@ -489,6 +489,9 @@ def task_create_mama_referal_qrcode_and_response_weixin(wxpubId, openid, event, 
         
         userinfo = get_or_fetch_userinfo(openid, wxpubId)
         unionid = userinfo['unionid']
+        if not userinfo or not userinfo.get('headimgurl').strip():
+            return
+
         mama = XiaoluMama.objects.filter(openid=unionid).first()
 
         # 获取创建用户小鹿妈妈信息,
@@ -517,8 +520,9 @@ def task_create_mama_and_response_manager_qrcode(wxpubId, openid, event, eventKe
 
         userinfo = get_or_fetch_userinfo(openid, wxpubId)
         unionid = userinfo['unionid']
+        if not userinfo or not userinfo.get('headimgurl').strip():
+            return
         mama = XiaoluMama.objects.filter(openid=unionid).first()
-
         # 获取创建用户小鹿妈妈信息,
         media_id = fetch_wxpub_mama_manager_qrcode_media_id(mama.id, wxpubId)
 
