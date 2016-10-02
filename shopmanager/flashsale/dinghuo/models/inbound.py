@@ -767,10 +767,7 @@ class InBoundDetail(models.Model):
             ProductSku.objects.filter(id=self.sku_id).update(quantity=F('quantity') - quantity_add)
 
     def reset_out_stock(self):
-        ori_out_stock = self.out_stock
         self.out_stock = self.out_stock_num > 0
-        if ori_out_stock != self.out_stock:
-            InBoundDetail.objects.filter(id=self.id).update(out_stock=self.out_stock)
 
     def reset_to_unchecked(self):
         """
@@ -835,6 +832,7 @@ class InBoundDetail(models.Model):
             # 已经分配到订货单的必须同步修正订货单
             change = self.all_allocate_quantity - self.arrival_quantity
             self.set_records_quantity(change, update_stock)
+        self.reset_out_stock()
         self.save()
 
     def set_records_quantity(self, change_total, update_stock):
@@ -886,7 +884,7 @@ post_save.connect(update_inferiorsku_inbound_quantity,
 def update_stock(sender, instance, created, **kwargs):
     if instance.checked:
         instance.sync_order_detail()
-        instance.reset_out_stock()
+        # instance.reset_out_stock()
         if instance.inbound.set_stat():
             instance.inbound.save()
         from shopback.items.tasks import task_update_productskustats_inferior_num
