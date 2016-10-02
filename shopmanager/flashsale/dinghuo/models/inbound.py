@@ -823,6 +823,7 @@ class InBoundDetail(models.Model):
         :return:
         """
         if self.arrival_quantity == arrival_quantity and self.inferior_quantity == inferior_quantity:
+            self.reset_out_stock()
             return
         if arrival_quantity + inferior_quantity != self.arrival_quantity + self.inferior_quantity:
             raise Exception(u'改变次品时总数量不能发生变化')
