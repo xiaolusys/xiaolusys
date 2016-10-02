@@ -1535,6 +1535,7 @@ def task_orderdetail_update_orderlist(od):
 
 
 @task(max_retries=3, default_retry_delay=6)
+@transaction.atomic
 def task_purchasearrangement_update_purchasedetail(pa):
     # print "debug: %s" % utils.get_cur_info()
 
