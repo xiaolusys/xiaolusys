@@ -3,6 +3,8 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.db.models import Sum
+
+from flashale.pay.models import ModelProduct
 from shopback import paramconfig as pcfg
 from core.ormcache.managers import CacheManager
 
@@ -306,10 +308,14 @@ class ProductManager(CacheManager):
 
 
     def isQuantityLockable(self, sku, num):
-
+        from flashale.pay.models import SaleOrder
         try:
-            product_detail = sku.product.details
-            if product_detail.buy_limit and num > product_detail.per_limit:
+            model_id = sku.product.model_id
+            model_product = ModelProduct.objects.get(id=model_id)
+            saleinfo = model_product.extras.get('saleinfos', None)
+            if not saleinfo or not saleinfo.get('is_product_buy_limit'):
+                return True
+            if saleinfo.get('per_limit_buy_num', 1) < num:
                 return False
         except ObjectDoesNotExist:
             pass
