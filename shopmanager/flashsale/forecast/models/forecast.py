@@ -115,8 +115,8 @@ class ForecastInbound(BaseModel):
     @property
     def real_arrive_num(self):
         from .inbound import RealInbound, RealInboundDetail
-        relate_inbounds = RealInbound.objects.filter(forecast_inbound=self)
-        arrival_quantitys = RealInboundDetail.objects.filter(inbound__in=relate_inbounds,
+        relate_inbound_ids = list(RealInbound.objects.filter(forecast_inbound=self).values_list('id', flat=True))
+        arrival_quantitys = RealInboundDetail.objects.filter(inbound_id__in=relate_inbounds,
                                                              status=RealInboundDetail.NORMAL)\
                                                             .values_list('arrival_quantity', flat=True)
         return arrival_quantitys and sum(arrival_quantitys) or 0
@@ -206,7 +206,7 @@ def modify_forecastinbound_data(sender, instance, created, *args, **kwargs):
     tasks.task_forecast_update_stats_data.delay(instance.id)
 
     # 更新orderlist order_group_key
-    inbound_order_set = instance.relate_order_set.values_list('id', flat=True)
+    inbound_order_set = list(instance.relate_order_set.values_list('id', flat=True))
     from flashsale.dinghuo.tasks import task_update_order_group_key
     task_update_order_group_key.delay(inbound_order_set)
 

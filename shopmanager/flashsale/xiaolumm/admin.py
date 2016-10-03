@@ -773,7 +773,7 @@ class XlmmMessageRelAdmin(admin.ModelAdmin):
 admin.site.register(XlmmMessageRel, XlmmMessageRelAdmin)
 
 
-class MamaDailyAppVisitAdmin(admin.ModelAdmin):
+class MamaDailyAppVisitAdmin(ApproxAdmin):
     list_display = ('id', 'mama_id', 'date_field', 'device_type', 'version', 'user_agent', 'renew_type', 'num_visits', 'modified', 'created')
     list_filter = ('device_type', 'renew_type', ('created', DateFieldListFilter))
     search_fields = ('mama_id', 'version', 'user_agent')
@@ -782,7 +782,7 @@ class MamaDailyAppVisitAdmin(admin.ModelAdmin):
 admin.site.register(MamaDailyAppVisit, MamaDailyAppVisitAdmin)
 
 
-class MamaTabVisitStatsAdmin(admin.ModelAdmin):
+class MamaTabVisitStatsAdmin(ApproxAdmin):
     list_display = ('id', 'stats_tab', 'date_field', 'visit_total', 'modified', 'created')
     list_filter = ('stats_tab', ('created', DateFieldListFilter))
     search_fields = ('stats_tab', 'date_field')
@@ -791,7 +791,7 @@ class MamaTabVisitStatsAdmin(admin.ModelAdmin):
 admin.site.register(MamaTabVisitStats, MamaTabVisitStatsAdmin)
 
 
-class MamaDailyTabVisitAdmin(admin.ModelAdmin):
+class MamaDailyTabVisitAdmin(ApproxAdmin):
     list_display = ('id', 'mama_id', 'stats_tab', 'date_field', 'modified', 'created')
     list_filter = ('stats_tab',('created', DateFieldListFilter))
     search_fields = ('mama_id', 'stats_tab', 'date_field')
@@ -800,7 +800,7 @@ class MamaDailyTabVisitAdmin(admin.ModelAdmin):
 admin.site.register(MamaDailyTabVisit, MamaDailyTabVisitAdmin)
 
 
-class MamaDeviceStatsAdmin(admin.ModelAdmin):
+class MamaDeviceStatsAdmin(ApproxAdmin):
     list_display = (
         'id', 'device_type', 'date_field', 'num_latest', 'num_outdated', 'outdated_percentage', 'total_visitor',
         'renew_type', 'num_visits', 'total_device_visitor', 'modified', 'created')
@@ -870,7 +870,7 @@ class MamaAdministratorAdmin(ApproxAdmin):
 admin.site.register(MamaAdministrator, MamaAdministratorAdmin)
 
 
-class WeixinPushEventAdmin(admin.ModelAdmin):
+class WeixinPushEventAdmin(ApproxAdmin):
     list_display = ('customer_id', 'mama_id', 'uni_key', 'tid', 'event_type', 'date_field', 'params', 'to_url', 'modified', 'created')
     list_filter = ('event_type', 'tid', ('created', DateFieldListFilter))
     search_fields = ('customer_id', )
