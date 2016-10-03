@@ -1286,18 +1286,18 @@ class MamaDailyAppVisit(BaseModel):
         version = AppRelease.get_latest_version(self.device_type)
         return version
 
-def mama_daily_app_visit_stats(sender, instance, created, **kwargs):
-    if not created:
-        return
-
-    from django_statsd.clients import statsd
-    today_date = datetime.date.today()
-    visit_count = MamaDailyAppVisit.objects.filter(date_field=today_date).count()
-    key = "mama.daily_app_visit"
-    statsd.timing(key, visit_count)
-
-post_save.connect(mama_daily_app_visit_stats,
-                  sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_daily_app_visit_stats')
+#def mama_daily_app_visit_stats(sender, instance, created, **kwargs):
+#    if not created:
+#        return
+#
+#    from django_statsd.clients import statsd
+#    today_date = datetime.date.today()
+#    visit_count = MamaDailyAppVisit.objects.filter(date_field=today_date).count()
+#    key = "mama.daily_app_visit"
+#    statsd.timing(key, visit_count)
+#
+#post_save.connect(mama_daily_app_visit_stats,
+#                  sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_daily_app_visit_stats')
 
 
 def mama_app_version_check(sender, instance, created, **kwargs):
@@ -1312,6 +1312,9 @@ post_save.connect(mama_app_version_check,
 
 
 def mama_update_device_stats(sender, instance, created, **kwargs):
+    if not created:
+        return
+    
     from flashsale.xiaolumm.models import MamaDeviceStats
     from flashsale.apprelease.models import AppRelease
 
@@ -1330,18 +1333,24 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
         md = MamaDeviceStats(device_type=device_type, uni_key=uni_key, date_field=date_field, renew_type=renew_type)
         md.save()
 
-    visits = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type)
-    num_latest = visits.filter(version=latest_version).count()
-    num_outdated = visits.filter(version__lt=latest_version).count()
-    num_visits = visits.aggregate(n=Sum('num_visits')).get('n') or 0
-
-    num_latest = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version=latest_version).count()
-    num_outdated = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version__lt=latest_version).count()
-
-    md.num_latest = num_latest
-    md.num_outdated = num_outdated
-    md.num_visits = num_visits
-    md.save(update_fields=['num_latest', 'num_outdated', 'num_visits', 'modified'])
+    if (md.num_latest + md.num_outdated) % 100 == 0:
+        # Every 100 creation, we do this counting.
+        md.num_latest = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version=latest_version).count()
+        md.num_outdated = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version__lt=latest_version).count()
+        visits_sum = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type).aggregate(n=Sum('num_visits')).get('n') or 0
+        md.num_visits = visits_sum.get('n') or 0
+        md.save(update_fields=['num_latest', 'num_outdated', 'num_visits'])
+    else:
+        update_fields = []
+        if latest_version == instance.version:
+            md.num_latest = md.num_latest + 1
+            update_fields.append('num_latest')
+        else:
+            md.num_outdated = md.num_outdated + 1
+            update_fields.append('num_outdated')
+        md.num_visits = m. num_visits + 1
+        update_fields.append('num_visits')
+        md.save(update_fields=update_fields)
 
 post_save.connect(mama_update_device_stats,
                   sender=MamaDailyAppVisit, dispatch_uid='post_save_mama_update_device_stats')
