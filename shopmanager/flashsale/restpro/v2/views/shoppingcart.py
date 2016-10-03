@@ -239,19 +239,21 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id, status=ShoppingCart.NORMAL)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
-        # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
-        lockable = Product.objects.isQuantityLockable(sku, 1)
+        cart = get_object_or_404(ShoppingCart, pk=pk)
+        user_skunum = getUserSkuNumByLast24Hours(customer, sku)
+        lockable = Product.objects.isQuantityLockable(sku, cart.num + user_skunum + 1)
         if not lockable:
             return Response({"code": 1, "info": u'商品数量限购'})
+            
         lock_success = Product.objects.lockQuantity(sku, 1)
         if sku.free_num <= 0 or not lock_success:
             return Response({"code": 2, "info": u'商品库存不足'})
-        cart = ShoppingCart.objects.filter(id=pk).first()
+
         cart.num = models.F('num') + 1
         cart.total_fee = models.F('num') * cart_item.price
         cart.save(update_fields=['num','total_fee'])
 
-        return Response({"code":0, "info": ""})
+        return Response({"code":0, "info": u"修改成功"})
 
     @detail_route(methods=['post'])
     @transaction.atomic
