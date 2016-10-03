@@ -28,6 +28,7 @@ from flashsale.pay.models import (
     UserAddress,
     gen_uuid_trade_tid,
 )
+from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from flashsale.coupon.models import UserCoupon
 from flashsale.restpro import permissions as perms
 from .. import serializers
