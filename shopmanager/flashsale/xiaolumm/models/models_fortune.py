@@ -1265,6 +1265,7 @@ class MamaDailyAppVisit(BaseModel):
     class Meta:
         db_table = 'flashsale_xlmm_mamadailyappvisit'
         app_label = 'xiaolumm'
+        index_together = ['date_field', 'version', 'renew_type']
         verbose_name = u'V2/妈妈app访问'
         verbose_name_plural = u'V2/妈妈app访问列表'
 

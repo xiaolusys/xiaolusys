@@ -462,6 +462,7 @@ class UserCoupon(BaseModel):
     class Meta:
         db_table = "flashsale_user_coupon"
         app_label = 'coupon'
+        index_together = ['status', 'template_id']
         verbose_name = u"特卖/优惠券/用户优惠券表"
         verbose_name_plural = u"特卖/优惠券/用户优惠券列表"
 
