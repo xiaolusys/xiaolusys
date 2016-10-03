@@ -1337,7 +1337,7 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
         # Every 100 creation, we do this counting.
         md.num_latest = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version=latest_version).count()
         md.num_outdated = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type,version__lt=latest_version).count()
-        visits_sum = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type).aggregate(n=Sum('num_visits')).get('n') or 0
+        visits_sum = MamaDailyAppVisit.objects.filter(date_field=date_field,device_type=device_type,renew_type=renew_type).aggregate(n=Sum('num_visits'))
         md.num_visits = visits_sum.get('n') or 0
         md.save(update_fields=['num_latest', 'num_outdated', 'num_visits'])
     else:
