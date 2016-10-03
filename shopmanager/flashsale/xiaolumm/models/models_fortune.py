@@ -1348,7 +1348,7 @@ def mama_update_device_stats(sender, instance, created, **kwargs):
         else:
             md.num_outdated = md.num_outdated + 1
             update_fields.append('num_outdated')
-        md.num_visits = m. num_visits + 1
+        md.num_visits = md.num_visits + 1
         update_fields.append('num_visits')
         md.save(update_fields=update_fields)
 
