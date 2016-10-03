@@ -28,6 +28,7 @@ from flashsale.pay.models import (
     UserAddress,
     gen_uuid_trade_tid,
 )
+from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from flashsale.coupon.models import UserCoupon
 from flashsale.restpro import permissions as perms
 from .. import serializers
@@ -150,8 +151,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             return Response({"code": 1, "info": u"type 参数错误"})
         sku_num = int(sku_num)
 
-        # user_skunum = getUserSkuNumByLast24Hours(customer, sku)
-        lockable = Product.objects.isQuantityLockable(sku, sku_num)
+        user_skunum = getUserSkuNumByLast24Hours(customer, sku)
+        lockable = Product.objects.isQuantityLockable(sku, sku_num + user_skunum)
         if not lockable:
             return Response({"code": 4, "info": u'该商品已限购'})
         if type == 0:

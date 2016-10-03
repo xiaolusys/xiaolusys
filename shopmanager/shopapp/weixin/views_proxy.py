@@ -104,6 +104,15 @@ class WXMessageHttpProxy(HttpProxy):
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
 
+        # 如果公众号由多客服处理，直接转发
+        if wx_api._account.isResponseToDRF():
+            ret_params = {'ToUserName': params['FromUserName'],
+                          'FromUserName': params['ToUserName'],
+                          'CreateTime': int(time.time())}
+            ret_params.update(WeiXinAutoResponse.respDKF())
+            resp_drfxml = service.formatParam2XML(ret_params)
+            return  HttpResponse(resp_drfxml, content_type="text/xml")
+
         ret_params = {
             'ToUserName': params['FromUserName'],
             'FromUserName': params['ToUserName'],
@@ -114,14 +123,6 @@ class WXMessageHttpProxy(HttpProxy):
         response = service.formatParam2XML(ret_params)
         return HttpResponse(response, content_type="text/xml")
         # return HttpResponse('success')
-        #　如果公众号由多客服处理，直接转发
-        # if wx_api._account.isResponseToDRF():
-        #     ret_params = {'ToUserName': params['FromUserName'],
-        #                   'FromUserName': params['ToUserName'],
-        #                   'CreateTime': int(time.time())}
-        #     ret_params.update(WeiXinAutoResponse.respDKF())
-        #     resp_drfxml = service.formatParam2XML(ret_params)
-        #     return  HttpResponse(resp_drfxml, content_type="text/xml")
 
         # request_url = self.get_full_url(self.url)
         # request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
