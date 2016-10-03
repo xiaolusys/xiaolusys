@@ -85,6 +85,7 @@ class WXMessageHttpProxy(HttpProxy):
         # 取消关注
         if event == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE.lower():
             tasks.task_update_weixinfans_upon_unsubscribe.delay(openid, wx_pubid)
+            return HttpResponse('success')
 
         # 点击链接，激活妈妈帐户
         if event == WeiXinAutoResponse.WX_EVENT_VIEW.lower():
@@ -93,6 +94,7 @@ class WXMessageHttpProxy(HttpProxy):
                eventkey.strip() == DOWNLOAD_APP_LINK or \
                eventkey.strip() == PERSONAL_PAGE_LINK:
                 tasks.task_activate_xiaolumama.delay(openid, wx_pubid)
+            return HttpResponse('success')
          
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or\
            event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
