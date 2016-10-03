@@ -432,10 +432,6 @@ def task_mama_daily_app_visit_stats(mama_id, user_agent):
     date_field = datetime.date.today()
     uni_key = MamaDailyAppVisit.gen_uni_key(mama_id, date_field, device_type)
     #uni_key = '%s-%s' % (mama_id, date_field)
-        
-    date_field = datetime.date.today()
-    uni_key = MamaDailyAppVisit.gen_uni_key(mama_id, date_field, device_type)
-    #uni_key = '%s-%s' % (mama_id, date_field)
 
     md = MamaDailyAppVisit.objects.filter(uni_key=uni_key).first()
     if not md:
