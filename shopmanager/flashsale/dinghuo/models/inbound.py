@@ -281,6 +281,7 @@ class InBound(models.Model):
             if inbound_detail.checked:
                 inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
                                             data[inbound_detail_id]["inferiorQuantity"], update_stock=True)
+                inbound_detail.save()
             else:
                 inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
                                             data[inbound_detail_id]["inferiorQuantity"])
@@ -835,7 +836,6 @@ class InBoundDetail(models.Model):
             change = self.all_allocate_quantity - self.arrival_quantity
             self.set_records_quantity(change, update_stock)
         self.reset_out_stock()
-        self.save()
 
     def set_records_quantity(self, change_total, update_stock):
         """
