@@ -285,6 +285,7 @@ class InBound(models.Model):
                 inbound_detail.set_quantity(data[inbound_detail_id]["arrivalQuantity"],
                                             data[inbound_detail_id]["inferiorQuantity"])
                 inbound_detail.finish_check2()
+                inbound_detail.save()
         self.status = InBound.COMPLETED
         self.checked = True
         self.check_time = datetime.datetime.now()
@@ -788,6 +789,7 @@ class InBoundDetail(models.Model):
         """
         self.set_quantity(arrival_quantity, inferior_quantity)
         self.finish_check2()
+        self.save()
 
     def finish_check(self):
         """
@@ -812,7 +814,6 @@ class InBoundDetail(models.Model):
         self.check_time = datetime.datetime.now()
         self.status = InBoundDetail.NORMAL
         ProductSku.objects.filter(id=self.sku_id).update(quantity=F('quantity') + self.all_allocate_quantity)
-        self.save()
 
     def set_quantity(self, arrival_quantity, inferior_quantity, update_stock=False):
         """
