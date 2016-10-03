@@ -308,7 +308,7 @@ class ProductManager(CacheManager):
 
 
     def isQuantityLockable(self, sku, num):
-        from flashale.pay.models import SaleOrder
+        from flashsale.pay.models import SaleOrder
         try:
             model_id = sku.product.model_id
             model_product = ModelProduct.objects.get(id=model_id)
