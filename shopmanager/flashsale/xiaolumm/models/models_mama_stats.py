@@ -46,7 +46,7 @@ class MamaTabVisitStats(BaseModel):
                   (TAB_FANS_LIST, u'粉丝列表'), (TAB_VISITOR_LIST, u'访客列表'), (TAB_WX_MAMA_ACTIVATE, u'WX/店铺激活'),
                   (TAB_WX_APP_DOWNLOAD, u'WX/APP下载'), (TAB_WX_REFERAL_QRCODE, u'WX/开店二维码'), (TAB_WX_MANAGER_QRCODE, u'WX/管理员二维码'),
                   (TAB_WX_KEFU, u'WX/客服菜单'), (TAB_WX_PERSONAL, u'WX/个人帐户'), (TAB_WX_CASHOUT_APP_DOWNLOAD, u'WX/提现页APP下载'),
-                  (TAB_WX_PUSH_REDIRECT_LINK, u'WX/跳转链接'), (TAB_WX_ARTICLE_LINK, u'WX/微信文章'), (TAB_WX_TUTORIAL, u'WX/新手教程'))
+                  (TAB_WX_PUSH_REDIRECT_LINK, u'WX/跳转专题链接'), (TAB_WX_ARTICLE_LINK, u'WX/跳转微信文章'), (TAB_WX_TUTORIAL, u'WX/新手教程'))
 
     stats_tab = models.IntegerField(default=0, choices=STATS_TABS, db_index=True, verbose_name=u'功能TAB')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')  # stats_tab+date
