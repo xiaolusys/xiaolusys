@@ -1,11 +1,15 @@
 # encoding:utf-8
 import time
 import urllib2
+import urlparse
+from django.conf import settings
+from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from httpproxy.views import HttpProxy
 
 from shopapp.weixin.models import  WeiXinAutoResponse
 from . import tasks
+from shopback.items.models import Product
 
 import logging
 from . import service
@@ -105,7 +109,7 @@ class WXMessageHttpProxy(HttpProxy):
             return HttpResponse(response, content_type="text/xml")
 
         # 如果公众号由多客服处理，直接转发
-        if wx_api._account.isResponseToDRF():
+        if wx_api.getAppKey() == settings.WXPAY_APPID:
             ret_params = {'ToUserName': params['FromUserName'],
                           'FromUserName': params['ToUserName'],
                           'CreateTime': int(time.time())}
@@ -218,12 +222,6 @@ class WXTokenProxy(View):
         resp = {"access_token": access_token, "expires_in": 5 * 60}
         logger.debug('refresh token:[%s]%s' % (datetime.datetime.now(), resp))
         return HttpResponse(json.dumps(resp), content_type='application/json')
-
-
-import urlparse
-from django.conf import settings
-from django.shortcuts import get_object_or_404
-from shopback.items.models import Product
 
 
 class SaleProductSearch(View):
