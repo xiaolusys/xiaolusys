@@ -116,7 +116,7 @@ class ForecastInbound(BaseModel):
     def real_arrive_num(self):
         from .inbound import RealInbound, RealInboundDetail
         relate_inbound_ids = list(RealInbound.objects.filter(forecast_inbound=self).values_list('id', flat=True))
-        arrival_quantitys = RealInboundDetail.objects.filter(inbound_id__in=relate_inbounds,
+        arrival_quantitys = RealInboundDetail.objects.filter(inbound_id__in=relate_inbound_ids,
                                                              status=RealInboundDetail.NORMAL)\
                                                             .values_list('arrival_quantity', flat=True)
         return arrival_quantitys and sum(arrival_quantitys) or 0
