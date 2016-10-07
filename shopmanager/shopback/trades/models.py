@@ -2069,6 +2069,7 @@ class PackageSkuItem(BaseModel):
 
     def reset_assign_package(self):
         if self.assign_status in [PackageSkuItem.NOT_ASSIGNED, PackageSkuItem.ASSIGNED]:
+            self.receiver_mobile = self.sale_trade.receiver_phone
             self.clear_order_info()
 
     @staticmethod
