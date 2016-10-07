@@ -14,7 +14,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 @task(max_retries=3, default_retry_delay=60)
-def task_push_mission_state_msg_to_weixin_user(mission_record_id):
+def task_push_mission_state_msg_to_weixin_user(mission_record_id, state):
+    """state: staging,任务未完成状态通知; finished,任务完成奖励通知； confirm,任务奖励确认通知; cancel,任务奖励取消通知;"""
     try:
         from shopapp.weixin.weixin_push import WeixinPush
         mama_mission = MamaMissionRecord.objects.filter(id=mission_record_id).first()
@@ -23,17 +24,7 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id):
 
         base_mission = mama_mission.mission
         wxpush = WeixinPush()
-        if mama_mission.is_finished():
-            params  = {
-                'header': u'女王，本周有一任务已完成，奖励已到账，请到小鹿美美app任务列表查看吧！',
-                'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高).',
-                'task_name': u'%s, 赏￥%.2f元' % (base_mission.name, mama_mission.get_award_amount()),
-                'task_type': base_mission.get_cat_type_display(),
-                'finish_time': mama_mission.finish_time
-            }
-            wxpush.push_new_mama_task(mama_mission.mama_id, header=params.get('header'),
-                                      footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
-        else:
+        if state == MamaMissionRecord.STAGING:
             week_end_time = datetime.datetime.strptime('%s-0' % mama_mission.year_week, '%Y-%W-%w')
             mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
             params = {
@@ -48,7 +39,49 @@ def task_push_mission_state_msg_to_weixin_user(mission_record_id):
                 'description': base_mission.desc,
             }
             wxpush.push_mission_state_task(mama_mission.mama_id, header=params.get('header'),
-                footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
+                                           footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL,
+                                           params=params)
+
+        elif state == MamaMissionRecord.FINISHED:
+            params  = {
+                'header': u'女王，本周有一任务已完成，奖励已生成，请到小鹿美美app任务列表查看吧！',
+                'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (妈妈销售奖励预计收益，需７天后变成确认收益，退款会影响收益到账哦).',
+                'task_name': u'%s, 赏￥%.2f元' % (base_mission.name, mama_mission.get_award_amount()),
+                'task_type': base_mission.get_cat_type_display(),
+                'finish_time': mama_mission.finish_time
+            }
+            wxpush.push_new_mama_task(mama_mission.mama_id, header=params.get('header'),
+                                      footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
+
+        elif state == MamaMissionRecord.CONFIRM:
+            params = {
+                'header': u'女王，(%s)周任务奖励已到账，请到小鹿美美app任务列表查看吧！' %mama_mission.year_week,
+                'footer': u'小鹿妈妈在截止日期前完成任务可获取额外奖励 (本周业绩越好，下周可获取额外奖励越高).',
+                'task_name': u'%s, 赏￥%.2f元' % (base_mission.name, mama_mission.get_award_amount()),
+                'task_type': base_mission.get_cat_type_display(),
+                'finish_time': mama_mission.finish_time
+            }
+            wxpush.push_new_mama_task(mama_mission.mama_id, header=params.get('header'),
+                                      footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL, params=params)
+
+        elif state == MamaMissionRecord.CANCEL:
+            week_end_time = datetime.datetime.strptime('%s-0' % mama_mission.year_week, '%Y-%W-%w')
+            mission_kpi_unit = base_mission.kpi_type == MamaMission.KPI_COUNT and u'个' or u'元'
+            params = {
+                'header': u'女王，您有笔交易退款，导致(%s)周销售任务未达预期奖励取消，请到小鹿美美app任务列表查看吧！',
+                'footer': u'妈妈销售奖励预计收益，需７天后变成确认收益，退款会影响收益到账哦( 如有疑问请咨询客服热线: 400-823-5355 )',
+                'task_name': base_mission.name,
+                'award_amount': u'￥%.2f' % mama_mission.get_award_amount(),
+                'deadline': u'%s' % week_end_time.strftime('%Y-%m-%d'),
+                'target_state': u'已完成 %s %s/(目标数 %s %s)' % (
+                    mama_mission.get_finish_value(), mission_kpi_unit,
+                    mama_mission.get_target_value(), mission_kpi_unit),
+                'description': base_mission.desc,
+            }
+            wxpush.push_mission_state_task(mama_mission.mama_id, header=params.get('header'),
+                                           footer=params.get('footer'), to_url=constants.APP_DOWNLOAD_URL,
+                                           params=params)
+
     except Exception, exc:
         raise task_push_mission_state_msg_to_weixin_user.retry(exc=exc)
 
@@ -204,22 +237,22 @@ def task_update_all_mama_mission_state():
 def task_notify_all_mama_staging_mission():
     """ 消息通知妈妈还有哪些未完成任务 """
     year_week = datetime.datetime.now().strftime('%Y-%W')
-    twenty_hours_ago = datetime.datetime.now() - datetime.timedelta(seconds=12 * 60 * 60)
+    # twelve_hours_ago = datetime.datetime.now() - datetime.timedelta(seconds=12 * 60 * 60)
     # 12小时内产生的任务不重复发送消息
     mama_missions = MamaMissionRecord.objects.filter(
         year_week = year_week,
         mission__date_type=MamaMission.TYPE_WEEKLY,
         status = MamaMissionRecord.STAGING,
-        created__lte=twenty_hours_ago
-    )
+        # created__lte=twelve_hours_ago
+    ).order_by('-cat_type')
     cnt = 0
     logger.info('task_notify_all_mama_staging_mission start: date=%s, count=%s'%(
         datetime.datetime.now(), mama_missions.count()))
     for mama_mission_id in mama_missions.values_list('id', flat=True):
-        task_push_mission_state_msg_to_weixin_user.delay(mama_mission_id)
+        task_push_mission_state_msg_to_weixin_user.delay(mama_mission_id, MamaMissionRecord.STAGING)
         cnt += 1
         if cnt % 5000 == 0:
-            logger.info('task_notify_all_mama_staging_mission post: date=%s, post_num=%s' % (datetime.datetime.now(), cnt))
+            logger.info('task_notify_all_mama_staging_mission post: date=%s, post_num=%s' %(datetime.datetime.now(), cnt))
 
     logger.info('task_notify_all_mama_staging_mission end: date=%s' % (
         datetime.datetime.now()))
@@ -243,7 +276,7 @@ def task_send_mama_weekly_award(mama_id, mission_record_id):
                               uni_key, AwardCarry.STAGING,
                               AwardCarry.AWARD_MAMA_SALE)
         # 通知妈妈任务完成，奖励发放
-        task_push_mission_state_msg_to_weixin_user.delay(mission_record_id)
+        task_push_mission_state_msg_to_weixin_user.delay(mission_record_id, MamaMissionRecord.FINISHED)
 
     except Exception, exc:
         raise task_send_mama_weekly_award.retry(exc=exc)
@@ -265,6 +298,9 @@ def task_cancel_or_finish_mama_mission_award(mission_record_id):
             uni_key = mama_mission.gen_uni_key()
             award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
             award_carry.confirm_award()
+
+            # 通知妈妈奖励到账
+            task_push_mission_state_msg_to_weixin_user.delay(mission_record_id, MamaMissionRecord.CONFIRM)
 
     except Exception, exc:
         raise task_cancel_or_finish_mama_mission_award.retry(exc=exc)
