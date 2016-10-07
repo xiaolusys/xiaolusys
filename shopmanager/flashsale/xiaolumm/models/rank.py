@@ -467,8 +467,12 @@ class WeekMamaTeamCarryTotal(BaseMamaTeamCarryTotal, WeekRank):
             self.member_ids = mmids
         self.save()
 
+
 def update_week_team_mama_carry_total_cache(sender, instance, created, **kwargs):
-    WEEK_RANK_REDIS.update_cache(instance, ['total', 'duration_total'])
+    for target in ['total', 'duration_total']:
+        condtion = copy(WeekMamaTeamCarryTotal.filters()[target])
+        if WeekMamaTeamCarryTotal.objects.filter(**condtion).exists():
+            WEEK_RANK_REDIS.update_cache(instance, [target])
 
 post_save.connect(update_week_team_mama_carry_total_cache,
                   sender=WeekMamaTeamCarryTotal, dispatch_uid='post_save_update_week_mama_team_carry_total_cache')
