@@ -393,7 +393,7 @@ def task_order_trigger(sale_order):
     customer = Customer.objects.get(id=customer_id)
     self_mama = None
     if customer.unionid:
-        self_mama = XiaoluMama.objects.filter(openid=unionid).first()
+        self_mama = XiaoluMama.objects.filter(openid=customer.unionid).first()
 
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
     if self_mama and mm_linkid_mama and self_mama.id == mm_linkid_mama.id:
