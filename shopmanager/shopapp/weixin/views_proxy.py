@@ -69,9 +69,9 @@ class WXMessageHttpProxy(HttpProxy):
         event    = params.get('Event') or ''
         msgtype  = params.get('MsgType') or ''
         eventkey = params.get('EventKey') or ''
-
-        if XiaoluSwitch.is_switch_open(1):
-            logger.error('DEBUG: WX|%s, %s, %s, %s, %s' % (openid, wx_pubid, event, msgtype, eventkey))
+        #
+        # if XiaoluSwitch.is_switch_open(1):
+        #     logger.error('DEBUG: WX|%s, %s, %s, %s, %s' % (openid, wx_pubid, event, msgtype, eventkey))
 
         event = event.lower()
         
@@ -98,15 +98,18 @@ class WXMessageHttpProxy(HttpProxy):
                eventkey.strip() == DOWNLOAD_APP_LINK or \
                eventkey.strip() == PERSONAL_PAGE_LINK:
                 tasks.task_activate_xiaolumama.delay(openid, wx_pubid)
-            return HttpResponse('success')
          
         if event == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE.lower() or\
            event == WeiXinAutoResponse.WX_EVENT_SCAN.lower() or \
-           event == WeiXinAutoResponse.WX_EVENT_CLICK.lower() or\
-           event == WeiXinAutoResponse.WX_EVENT_VIEW.lower(): 
+           event == WeiXinAutoResponse.WX_EVENT_CLICK.lower():
             ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventkey)
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response, content_type="text/xml")
+
+        if event == WeiXinAutoResponse.WX_EVENT_VIEW.lower():
+            ret_params = service.handleWeiXinMenuRequest(openid, wx_pubid, event, eventkey)
+            # response = service.formatParam2XML(ret_params)
+            return HttpResponse('success')
 
         # 如果公众号由多客服处理，直接转发
         if wx_api.getAppKey() == settings.WXPAY_APPID:
