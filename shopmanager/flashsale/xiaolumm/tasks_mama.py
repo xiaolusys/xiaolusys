@@ -372,17 +372,16 @@ def task_update_group_awardcarry(relationship):
     award_carry.save()
 
 
-def get_self_mama(unionid, created_time):
-    if created_time:
-        record = XiaoluMama.objects.filter(openid=unionid,
-                                           status=XiaoluMama.EFFECT,
-                                           charge_status=XiaoluMama.CHARGED,
-                                           charge_time__lte=created_time).first()
-        if record and isinstance(record.renew_time, datetime.datetime) and record.renew_time < datetime.datetime.now():
-            return None  # 过期了返回None
-        return record
-    return None
-
+def validate_self_mama(mama, created_time):
+    if not mama:
+        return False
+    if not (mama.status == XiaoluMama.EFFECT and mama.charge_status == XiaoluMama.CHARGED):
+        return False
+    if mama.charge_time and mama.charge_time > created_time:
+        return False
+    if mama.renew_time and mama.renew_time < created_time:
+        return False
+    return True
 
 
 @task()
@@ -394,10 +393,15 @@ def task_order_trigger(sale_order):
     customer = Customer.objects.get(id=customer_id)
     self_mama = None
     if customer.unionid:
-        self_mama = get_self_mama(customer.unionid, sale_order.created)
+        self_mama = XiaoluMama.objects.filter(openid=unionid).first()
 
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
+    if self_mama and mm_linkid_mama and self_mama.id == mm_linkid_mama.id:
+        mm_linkid_mama = None
 
+    if self_mama and not validate_self_mama(self_mama, sale_order.created):
+        self_mama = None
+    
     via_app = sale_order.sale_trade.is_paid_via_app()
     if self_mama:
         mm_linkid_mama = self_mama
