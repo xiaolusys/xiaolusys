@@ -473,7 +473,9 @@ class XiaoluMama(models.Model):
 
     def is_direct_pay(self):
         """ 直接付费接管的状态 """
-        if self.charge_status == XiaoluMama.CHARGED and self.last_renew_type in (XiaoluMama.HALF, XiaoluMama.FULL):
+        if self.charge_status == XiaoluMama.CHARGED and \
+                        self.last_renew_type in (XiaoluMama.HALF, XiaoluMama.FULL) \
+                and self.progress in [XiaoluMama.PAY, XiaoluMama.PASS]:
             return False
         return True
 
@@ -491,6 +493,8 @@ class XiaoluMama(models.Model):
         if self.charge_status != XiaoluMama.CHARGED:
             return False
         if self.last_renew_type in [XiaoluMama.TRIAL, XiaoluMama.SCAN]:
+            return False
+        if self.progress not in [XiaoluMama.PAY, XiaoluMama.PASS]:
             return False
         return True
 
