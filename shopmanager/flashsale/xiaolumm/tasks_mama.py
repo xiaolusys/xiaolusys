@@ -396,7 +396,7 @@ def task_order_trigger(sale_order):
         self_mama = XiaoluMama.objects.filter(openid=unionid).first()
 
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
-    if self_mama and self_mama.id == mm_linkid_mama.id:
+    if self_mama and mm_linkid_mama and self_mama.id == mm_linkid_mama.id:
         mm_linkid_mama = None
 
     if self_mama and not validate_self_mama(self_mama, sale_order.created):
