@@ -32,6 +32,7 @@ class SaleProductManage(models.Model):
     responsible_people_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'负责人ID')
     responsible_person_name = models.CharField(max_length=64, verbose_name=u'负责人名字')
     lock_status = models.BooleanField(default=False, verbose_name=u'锁定')
+    is_sale_show = models.BooleanField(default=False, verbose_name=u'特卖显示')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
@@ -134,6 +135,7 @@ def update_model_product_shelf_time(sender, instance, raw, *args, **kwargs):
     action_user = get_systemoa_user()
     sale_product_ids = instance.manage_schedule.values('sale_product_id')
     is_topic = False if instance.schedule_type == SaleProductManage.SP_SALE else True
+    is_topic = False if instance.is_sale_show else is_topic
     ModelProduct.update_schedule_manager_info(action_user,
                                               sale_product_ids,
                                               instance.upshelf_time,
