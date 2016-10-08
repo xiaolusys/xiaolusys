@@ -301,12 +301,12 @@ def task_push_msg_pasting_coupon():
                                         expires_time__lt=t_right)
     customers = coupons.values('customer_id')
     for customer in customers:
-        coupons.filter(is_pushed=False, customer_id=customer['customer_id'])
-        if coupons.exists():
-            coupon = coupons.first()
+        user_coupons = coupons.filter(is_pushed=False, customer_id=customer['customer_id'])
+        if user_coupons.exists():
+            coupon = user_coupons.first()
             extra_content = '价值%s' % coupon.value
             user_coupon_release_push(coupon.customer_id, push_tpl_id=10, extra_content=extra_content)
-            coupons.update(is_pushed=True)
+        user_coupons.update(is_pushed=True)
 
 
 def get_deposit_money(buyer_id):
