@@ -851,7 +851,7 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
 
         count = CashOut.objects.filter(xlmm=mama_id, cash_out_type=cash_out_type).exclude(status=CashOut.REJECTED).exclude(status=CashOut.CANCEL).count()
         if count > 0:
-            res = Response({"code": 1, "info": u"由于微信提现请求繁忙，网页提现限首次使用，下载APP登录即可多次提现！"})
+            res = Response({"code": 1, "info": u"您的首次网页提现已使用，下载APP登录可多次提现！"})
         else:
             res = Response({"code": 0, "info": u"可以提现"})
 
