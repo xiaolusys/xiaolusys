@@ -76,13 +76,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
             link = urlparse.urljoin(settings.M_SITE_URL, next_link)
 
             preview_link = urlparse.urljoin(settings.M_SITE_URL, preview_link)
-            cushoppros = CuShopPros.objects.filter(customer=customer.id,
-                                                   pro_status=CuShopPros.UP_SHELF).order_by("-position")
-            if cushoppros.exists():
-                cushoppro = cushoppros[0]
-                first_pro_pic = cushoppro.pic_path
-            else:
-                first_pro_pic = customer.thumbnail
+            first_pro_pic = customer.thumbnail
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = first_pro_pic  # customer.thumbnail  # 提供用户头像
             shop_info['desc'] = '{0}の精品店铺'.format(customer.nick) + random.choice(decs)
