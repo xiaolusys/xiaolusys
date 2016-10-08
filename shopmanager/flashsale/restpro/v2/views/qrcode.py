@@ -8,19 +8,25 @@ from rest_framework import (
     permissions,
     exceptions,
 )
+from django.core.cache import cache
+from celery.result import AsyncResult
 
 from flashsale.pay.models.user import Customer
-from shopapp.weixin.utils import gen_mama_custom_qrcode_url
+from shopapp.weixin.utils import fetch_wxpub_mama_custom_qrcode_url
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class QRcodeViewSet(viewsets.ModelViewSet):
     """
     ## GET /rest/v2/qrcode/get_wxpub_qrcode　　根据小鹿妈妈 id 创建小鹿美美公众号临时二维码
-    return
+
+    return:
     {
-        'code': 0,
-        'info': '',
-        'qrcode_link': 'http://xxxx'
+        "info": "",
+        "code": 0,
+        "qrcode_link": "http://7xrst8.com2.z0.glb.qiniucdn.com/qrcode/*.jpg"
     }
     """
 
@@ -47,9 +53,46 @@ class QRcodeViewSet(viewsets.ModelViewSet):
         else:
             return Response({"code": 1, "info": u"不是小鹿妈妈"})
 
-        qrcode_link, _ = gen_mama_custom_qrcode_url(mama_id)
+        resp = {
+            'code': 0,
+            'info': u'',
+            'qrcode_link': ''
+        }
+        cache_key = 'wxpub_xiaolumm_mama_referal_qrcode_mama_id_%s' % mama_id
+        cache_value = cache.get(cache_key)
 
-        return Response({'code': 0, 'info': u'', 'qrcode_link': qrcode_link})
+        qrcode_url = cache_value.get('qrcode_url', '') if cache_value else ''
+        task_id = cache_value.get('task_id', '') if cache_value else ''
+
+        if qrcode_url:
+            resp['qrcode_link'] = qrcode_url
+            resp['task_id'] = task_id
+        elif task_id:
+            task = AsyncResult(task_id)
+            if task.status == 'FAILURE':
+                task = fetch_wxpub_mama_custom_qrcode_url.apply_async(
+                    args=[mama_id], queue='qrcode',
+                    routing_key='weixin.task_create_mama_referal_qrcode_and_response_url')
+                resp['task_id'] = task.id
+                cache.set(cache_key, {'qrcode_url': task.result, 'task_id': task.id}, 3600)
+            else:
+                resp['qrcode_link'] = task.result or ''
+                resp['task_id'] = task_id
+                cache.set(cache_key, {'qrcode_url': task.result, 'task_id': task_id}, 3600)
+        else:
+            task = fetch_wxpub_mama_custom_qrcode_url.apply_async(
+                args=[mama_id], queue='qrcode',
+                routing_key='weixin.task_create_mama_referal_qrcode_and_response_url')
+            resp['task_id'] = task.id
+            cache.set(cache_key, {'qrcode_url': task.result, 'task_id': task.id}, 3600)
+
+        logger.info({
+            'action': 'api.v2.qrcode.get_wxpub_qrcode',
+            'mama_id': mama_id,
+            'qrcode_link': qrcode_url,
+            'task_id': task_id
+        })
+        return Response(resp)
 
     def retrieve(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')

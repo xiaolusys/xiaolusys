@@ -13,11 +13,13 @@ from PIL import (
     ImageFont
 )
 import simplejson
+from celery.task import task
 
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from shopapp.weixin.models_base import WeixinQRcodeTemplate
 from core.logger import log_consume_time
+from core.upload.upload import upload_public_to_remote, generate_public_url
 
 import logging
 logger = logging.getLogger(__name__)
@@ -54,6 +56,37 @@ def gen_mama_custom_qrcode_url(mama_id):
         cache_value = {'qrcode_link': qrcode_link, 'content': content}
         cache.set(cache_key, cache_value, 24 * 3600)
     return qrcode_link, content
+
+
+@task
+def fetch_wxpub_mama_custom_qrcode_url(mama_id):
+    """
+    为小鹿妈妈创建带背景图的开店二维码，并上传七牛，返回七牛链接
+    """
+    mama = XiaoluMama.objects.filter(id=mama_id).first()
+    if not mama:
+        return
+
+    customer = mama.get_customer()
+
+    thumbnail = customer.thumbnail or DEFAULT_MAMA_THUMBNAIL
+
+    qrcode_tpls = WeixinQRcodeTemplate.objects.filter(status=True)
+    qrcode_tpl = random.choice(qrcode_tpls)
+    params = simplejson.loads(qrcode_tpl.params)
+    if params.get('avatar'):
+        params['avatar']['url'] = thumbnail
+    if params.get('qrcode'):
+        params['qrcode']['url'], _ = gen_mama_custom_qrcode_url(mama_id)
+    if params.get('text'):
+        params['text']['content'] = params['text']['content'].format(**{'nickname': customer.nick})
+    media_stream = generate_colorful_qrcode(params)
+
+    # 上传七牛
+    filepath = 'qrcode/%s.jpg' % md5(simplejson.dumps(qrcode_tpl.params))
+    upload_public_to_remote(filepath, media_stream)
+
+    return generate_public_url(filepath)
 
 
 @log_consume_time
