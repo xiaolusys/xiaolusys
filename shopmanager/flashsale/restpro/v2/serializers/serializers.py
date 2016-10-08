@@ -112,9 +112,9 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         if obj.cash_num_display() < 100.0:
             tmp_des.append(u'余额不足')
             could_cash_out = 0
-        if obj.active_value_num < 100:
-            tmp_des.append(u'活跃度不足')
-            could_cash_out = 0
+        # if obj.active_value_num < 100:
+        #     tmp_des.append(u'活跃度不足')
+        #     could_cash_out = 0
         if xlmm.status != XiaoluMama.EFFECT:
             could_cash_out = 0
         cashout_reason = u' '.join(tmp_des) + u'不能提现'
