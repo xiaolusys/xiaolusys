@@ -124,7 +124,6 @@ deploy:
   ssh:
     host:
       - sale2.xiaolumm.com
-      - sale5.xiaolumm.com
       - sale9.xiaolumm.com
     user: root
     when:

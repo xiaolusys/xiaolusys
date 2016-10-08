@@ -244,7 +244,7 @@ def task_notify_all_mama_staging_mission():
         mission__date_type=MamaMission.TYPE_WEEKLY,
         status = MamaMissionRecord.STAGING,
         # created__lte=twelve_hours_ago
-    ).order_by('-cat_type')
+    ).order_by('-mission__cat_type')
     cnt = 0
     logger.info('task_notify_all_mama_staging_mission start: date=%s, count=%s'%(
         datetime.datetime.now(), mama_missions.count()))
