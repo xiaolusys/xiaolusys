@@ -851,7 +851,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
         count = BudgetLog.objects.filter(customer_id=customer_id, budget_type=BudgetLog.BUDGET_OUT, budget_log_type=BudgetLog.BG_CASHOUT).exclude(status=BudgetLog.CANCELED).count()
         if count > 0:
-            return Response({"code": 1, "message": u"您的首次网页提现已使用，下载APP登录可多次提现！"})
+            return Response({"code": 1, "info": u"您的首次网页提现已使用，下载APP登录可多次提现！"})
 
         return self.budget_cash_out(request)
         
