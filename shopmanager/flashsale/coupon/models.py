@@ -211,7 +211,7 @@ class CouponTemplate(BaseModel):
         from flashsale.pay.models import ModelProduct
         model_ids = list(Product.objects.filter(id__in=product_ids).values_list('model_id', flat=True))
         model_products = ModelProduct.objects.filter(id__in=model_ids).only('extras')
-        is_coupon_allow = reduce(lambda x,y: x|y, [not mp.is_coupon_deny() for mp in model_products])
+        is_coupon_allow = reduce(lambda x,y: x|y, [not mp.is_coupon_deny for mp in model_products])
         if not is_coupon_allow:
             raise AssertionError(u'该产品不支持使用优惠券')
 
