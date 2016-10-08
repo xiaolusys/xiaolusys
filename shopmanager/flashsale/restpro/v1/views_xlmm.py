@@ -799,8 +799,8 @@ class CashOutViewSet(viewsets.ModelViewSet, PayInfoMethodMixin):
             return 0, {"code": 1, "msg": '提现金额不能为0'}
 
         could_cash_out, active_value_num = get_mamafortune(xlmm.id)
-        if active_value_num < 100:
-            return 0, {"code": 4, 'msg': '活跃值不足'}  # 活跃值不够
+        # if active_value_num < 100:
+        #     return 0, {"code": 4, 'msg': '活跃值不足'}  # 活跃值不够
         if self.queryset.filter(status=CashOut.PENDING, xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
             return 0, {"code": 3, 'msg': '提现审核中'}
         if could_cash_out < value * 0.01:  # 如果可以提现金额不足
