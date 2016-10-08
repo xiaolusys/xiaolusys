@@ -62,7 +62,8 @@ deploy:
       - docker rm -f celery
       - docker run --name=celery --restart=always -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        blueware-admin run-program celery worker -c 2 -A shopmanager --loglevel=ERROR -Q apis,default,peroid,async,notify,logistics,dinghuo
+        blueware-admin run-program celery worker -c 2 -A shopmanager --time-limit=5400
+        --loglevel=ERROR -Q apis,default,peroid,async,notify,logistics,dinghuo
   ssh:
     host: staging.xiaolumm.com
     user: root
@@ -117,7 +118,7 @@ deploy:
       - docker rm -f celery
       - docker run --name=celery --restart=always -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1 registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
-        blueware-admin run-program celery worker -c 4 -A shopmanager --loglevel=ERROR
+        blueware-admin run-program celery worker -c 4 -A shopmanager --loglevel=ERROR --time-limit=5400
         -Q notify,default,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo
   ssh:
     host:
@@ -169,7 +170,7 @@ deploy:
         -e TARGET=production -e MYSQL_AUTH=$$MYSQL_AUTH -e REDIS_AUTH=$$REDIS_AUTH
         --volumes-from=static -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini -e C_FORCE_ROOT=1
         registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program
-        celery worker -A shopmanager --loglevel=ERROR -c 48 --time-limit=300
+        celery worker -A shopmanager --loglevel=ERROR -c 48 --time-limit=5400
         -Q notify,default,peroid,frency,coupon,activevalue,mama,mamafortune,relationship,carryrecord,skustats,statistics,logistics,carrytotal,integral,dinghuo
 
 
