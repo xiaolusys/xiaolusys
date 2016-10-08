@@ -92,7 +92,6 @@ deploy:
   ssh:
     host:
       - sale.xiaolumm.com
-      - sale3.xiaolumm.com
       - sale4.xiaolumm.com
       - sale8.xiaolumm.com
     user: root
@@ -109,7 +108,6 @@ deploy:
   ssh:
     host:
       - sale.xiaolumm.com
-      - sale3.xiaolumm.com
       - sale4.xiaolumm.com
     user: root
     when:
