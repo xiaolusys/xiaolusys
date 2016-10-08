@@ -552,7 +552,12 @@ class WeixinPush(object):
             login_url = 'http://m.xiaolumeimei.com/rest/v1/users/weixin_login/?next='
             redirect_url = '/rest/v2/mama/redirect_activity_entry?activity_id=%s' % entry.id
             to_url = login_url + redirect_url
-            desc = u'\n今日热门:\n［%s］%s' % (entry.title, entry.act_desc)
+            remark = template_data.get('remark')
+            desc = ''
+            if remark:
+                desc = remark.get('value')
+                
+            desc += u'\n\n今日热门:\n［%s］%s' % (entry.title, entry.act_desc)
             template_data.update({'remark': {'value': desc, 'color':'#ff6633'}})
 
         return self.push(customer, template_ids, template_data, to_url)
