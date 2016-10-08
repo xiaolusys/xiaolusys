@@ -963,15 +963,19 @@ class RedirectStatsLinkView(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
 
+    links = [['',''],
+             ['http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_ARTICLE_LINK],
+             ['http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect', MamaTabVisitStats.TAB_WX_TUTORIAL],
+             ['/mall/user/profile', MamaTabVisitStats.TAB_WX_BIND_MOBILE],
+    ]
+    
     def get(self, request, *args, **kwargs):
         content = request.GET
         link_id = content.get("link_id", "")
-        redirect_link = settings.M_SITE_URL
 
-        if link_id:
-            # get redirect_link from link_id
-            redirect_link = 'http://mp.weixin.qq.com/s?__biz=MzA5MzQxMzU2Mg==&mid=2650808162&idx=2&sn=b1d6bbeaa3c02546bb8e6bb021f74e64&chksm=8baaf6b7bcdd7fa1e90c2763a7467abc27f8e94ce6a3f93d58803586c8f2fef1ab747d881b25&scene=0#wechat_redirect'
-
+        redirect_link = self.links[int(link_id)][0]
+        tab_id = self.links[int(link_id)][1]
+        
         mama = None
         try:
             customer = Customer.objects.normal_customer.filter(user=request.user).first()
@@ -979,10 +983,6 @@ class RedirectStatsLinkView(APIView):
         except Exception:
             pass
 
-        tab_id = MamaTabVisitStats.TAB_WX_ARTICLE_LINK
-        if int(link_id) == 2:
-            tab_id = MamaTabVisitStats.TAB_WX_TUTORIAL
-            
         if mama:
             task_mama_daily_tab_visit_stats.delay(mama.id, tab_id)
 
