@@ -1,6 +1,6 @@
 # coding:utf-8
 from django.shortcuts import render_to_response
-from flashsale.dinghuo.models import orderdraft, OrderDetail, OrderList
+from flashsale.dinghuo.models import OrderDraft, OrderDetail, OrderList
 from django.views.decorators.csrf import csrf_exempt
 from django.template import RequestContext
 from shopback.logistics import getLogisticTrace

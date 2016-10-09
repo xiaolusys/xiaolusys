@@ -176,9 +176,35 @@ class Bill(BaseModel):
             objects[bill_relation.get_type_display()].append(bill_relation)
         return objects
 
+    def get_orderlist(self):
+        return self.billrelation_set.first().get_based_object()
+
+    def is_merged(self):
+        return self.billrelation_set.count() > 1
+
     def is_finished(self):
         return self.status == Bill.STATUS_COMPLETED
 
+    def set_orderlist_stage(self):
+        for relation in self.billrelation_set.all():
+            orderlist = relation.get_based_object()
+            # if
+
+    def finish(self):
+        """
+            货到付款:结算时生成新账单计算金额，账单完成时将订货单设置为完成。
+            其它：更新OrderList状态ReturnGoods状态。
+        """
+        from flashsale.dinghuo.models import OrderList, ReturnGoods
+        self.status = Bill.STATUS_COMPLETED
+        self.save()
+        brs = self.billrelation_set.filter(bill_id=self.id)
+        for br in brs:
+            obj = br.get_based_object()
+            if type(obj) == OrderList:
+                obj.update_stage()
+            elif type(obj) == ReturnGoods:
+                obj.confirm()
 
 class BillRelation(BaseModel):
     TYPE_DINGHUO_PAY = 1

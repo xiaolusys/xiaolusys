@@ -282,14 +282,24 @@ function initActions(){
         }
         function set_status_delete(orderlist_id) {
             var url = '/sale/dinghuo/dinghuo_orderlist/'+ ORDERLIST_ID +'/set_stage_delete';
-            $.ajax({url: url,
-                type: "post",
-                dateType: "json",
-                success: function(){
-                    swal("Tips", "设置作废", "warning");
-                    window.location.reload();
-                }
-            });
+            swal({
+                 title: '警告',
+                 text: '确认作废吗?',
+                 type: 'warning',
+                 showCancelButton: true,
+                 confirmButtonText: '确认',
+                 cancelButtonText: '取消'
+               },
+                function(){
+                    $.ajax({url: url,
+                        type: "post",
+                        dateType: "json",
+                        success: function(){
+                            swal("Tips", "设置作废", "warning");
+                            window.location.reload();
+                        }
+                    });
+                });
         }
         function doKey() {
             if (event.keyCode == 116) {//屏蔽 F5 刷新键
@@ -335,19 +345,21 @@ function initActions(){
 {% block container %}
 <div class="row" style="margin-top: 20px">
     <div class="col-lg-2">
-        <span class="label label-info" style="font-size: 15px">当前进度：</span>
-        <label id="order_stage" class="label label-success"
-               style="font-size: large">{{ orderlist.get_stage_display }}/{{ orderlist.get_receive_status }}</label>
-    </div>
-    <div class="col-lg-2">
         <a href="/admin/dinghuo/orderlist" style="text-align: right">
-            <span class="label label-warning" style="font-size: 15px">去订货单页面</span>
+            <span class="label label-warning" style="font-size: 15px">订货单列表</span>
         </a>
     </div>
     <div class="col-lg-2">
         <a href="/admin/items/product" style="text-align: right">
-            <span class="label label-info" style="font-size: 15px">去商品页面</span>
+            <span class="label label-info" style="font-size: 15px">商品列表</span>
         </a>
+    </div>
+</div>
+<div class="row" style="margin-top: 20px">
+    <div class="col-lg-4">
+        <span class="label label-info" style="font-size: 15px">当前进度：</span>
+        <label id="order_stage" class="label label-success"
+               style="font-size: large">{{ orderlist.get_stage_display }}/{{ orderlist.get_receive_status }}</label>
     </div>
     <div class="col-lg-2">
         <a href="/sale/dinghuo/changedetail/{{ orderlist.id }}/export" target="_blank">
@@ -370,10 +382,13 @@ function initActions(){
 <div class="row" style="margin-top: 20px">
     <input id="ordelist_id" type="text" hidden="hidden" value="{{ orderlist.id }}">
     <div class="col-lg-4">
-        <span class="label label-info" style="font-size: 20px">订货单ID</span>
-        <span class="label label-info" id=orderlist_id style="font-size: 20px">{{ orderlist.id }}</span>
+        <div>
+            <span class="label label-info" style="font-size: 20px">订货单ID</span>
+            <span class="label label-info" id=orderlist_id style="font-size: 20px">{{ orderlist.id }}</span>
+            <input class="btn btn-warning" type="button" onclick="showlayer({{ orderlist.id }})" value="修改">
+        </div>
         <div class="alert alert-success" role="alert">
-            <strong>订货地址:</strong>
+            <strong>订货仓:{{orderlist.get_ware_by_display}}</strong>
             {% if orderlist.third_package %}
                 <p>商家代发</p>
                 <p>小鹿美美{{ orderlist.id }}号工作人员</p>
@@ -389,6 +404,10 @@ function initActions(){
                 <p>021-37698479, 15026869609</p>
                 {% endifequal %}
             {%endif%}
+        </div>
+        <div class="alert alert-success" role="alert">
+            <p>我方负责人: {{ buyer_name }}</p>
+            <p>对方负责人: 手机:QQ:</p>
         </div>
     </div>
     <div class="col-lg-8">
@@ -413,46 +432,36 @@ function initActions(){
     <div class="col-lg-4">
         <div class="alert alert-success row" role="alert">
             <strong>快递公司:</strong>
-            <select class="form-control" style="width:60%;float:right" id="express_company_id">
-                <option value="{{ orderlist.express_company }}">{{ orderlist.get_express_company_display }}</option>
-                <option value="YUNDA">韵达速递</option>
-                <option value="STO">申通快递</option>
-                <option value="ZTO">中通快递</option>
-                <option value="EMS">邮政</option>
-                <option value="ZJS">宅急送</option>
-                <option value="SF">顺丰速运</option>
-                <option value="YTO">圆通</option>
-                <option value="HTKY">汇通快递</option>
-                <option value="TTKDEX">天天快递</option>
-                <option value="QFKD">全峰快递</option>
-                <option value="DBKD">德邦快递</option>
-            </select>
+            {{ orderlist.get_express_company_display }}
         </div>
         <div class="alert alert-success row" role="alert" style="margin-top: -15px">
             <strong>快递单号:</strong>
-            <input id="express_no" size=30 type="text" value="{{orderlist.express_no}}"/>
+            <span onclick="showwuliu({{ orderlist.id }})">{{orderlist.express_no}}</span>
         </div>
         <div class="alert alert-success row" role="alert" style="margin-top: -15px">
-            <strong>金额:</strong> {{ orderlist.order_amount }}
+            <strong>预计金额:</strong> {{ orderlist.order_amount }}
         </div>
         <div class="alert alert-success row" role="alert" style="margin-top: -15px">
             <strong>供应商汇款帐号:</strong> {{ orderlist.supplier.account_no }}
         </div>
         <div class="alert alert-success row" role="alert" style="margin-top: -15px">
             <strong>付款方式:</strong>
-            <select class="form-control" style="width:60%;float:right" id="pay_way" disabled=True>
-                <option value={{ orderlist.bill_method }}>{{ orderlist.get_bill_method_display }}</option>
-                <option value=11>货到付款</option>
-                <option value=12>预付款</option>
-                <option value=13>付款提货</option>
-                <option value=14>其它</option>
-            </select>
+            {{ orderlist.get_bill_method_display }}
         </div>
         <div class="alert alert-success row" role="alert" style="margin-top: -15px">
             <strong>订货时间:</strong> {{ orderlist.created }}
         </div>
         <div class="alert alert-success row" role="alert" style="margin-top: -15px">
-            <strong>负责人:{{ buyer_name }}</strong>
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#payModal" id="pay_one" data-billid="{{orderlist.bill.id}}">{%if orderlist.bill%}付款单{%else%}付款{%endif%}</button>
+            <!-- 开始结算<input class="btn btn-info" type="button" onclick="set_status_receive({{ orderlist.id }})" value="设置收货"> -->
+            <!-- <input class="btn btn-info" type="button" onclick="set_status_complete({{ orderlist.id }})" value="设置完成"> -->
+            {%if orderlist.stage == 3 %}
+            <input class="btn btn-info" type="button" onclick="set_status_state({{ orderlist.id }})" value="结算">
+            {%endif%}
+            {%if orderlist.return_bill%}
+            <input class="btn btn-info" id = "cg_bill_money" type="button" data-toggle="modal" data-target="#billback-modal" data-billid="{{orderlist.return_bill.id}}" value="回款单">
+            {%endif%}
+            <input class="btn btn-info" type="button" onclick="set_status_delete({{ orderlist.id }})" value="作废">
         </div>
     </div>
     <div class="col-lg-8">
@@ -475,31 +484,9 @@ function initActions(){
 </div>
 {% endfor %}
 <div class="row">
-    <div class="col-lg-1">
-        <input class="btn btn-info" type="button" onclick="showlayer({{ orderlist.id }})" value="改备注">
-    </div>
-    <div class="col-lg-1">
-        <input class="btn btn-info" style="float:right" id="confirm" type="button" onclick="" value="修改">
-    </div>
-    <div class="col-lg-1">
-        <input class="btn btn-warning" type="button" onclick="showwuliu({{ orderlist.id }})" value="物流明细">
-    </div>
-    <div class="col-lg-9">
-        <button type="button" class="btn-info" data-toggle="modal" data-target="#payModal" id="pay_one" data-billid="{{orderlist.bill.id}}">付款</button>
-        <!-- 开始结算<input class="btn btn-info" type="button" onclick="set_status_receive({{ orderlist.id }})" value="设置收货"> -->
-        <!-- <input class="btn btn-info" type="button" onclick="set_status_complete({{ orderlist.id }})" value="设置完成"> -->
-        <input class="btn btn-info" type="button" onclick="set_status_delete({{ orderlist.id }})" value="作废">
-        {%if orderlist.stage == 3 %}
-        <input class="btn btn-info" type="button" onclick="set_status_state({{ orderlist.id }})" value="开始结算">
-        {%endif%}
-        {%if orderlist.stage == 4 %}
-        <input class="btn btn-info" id = "cg_bill_money" type="button" data-toggle="modal" data-target="#billback-modal" value="结算信息">
-        {%endif%}     
-    </div>
-    <hr>
     <div class="row">
         <div class="col-lg-2">
-            到货状态
+            <span class="label label-info" style="font-size: 15px">到货状态</span>
         </div>
         <div class="col-lg-2">
             <strong>{{orderlist.get_receive_status}}</strong>
@@ -637,32 +624,32 @@ function initActions(){
             </tfoot>
         </table>
     </div>
-    <br>
-    <div class="row" id="searchfield">
-        <legend>
-            <h2 class="head-title">搜索物品
-            </h2>
-        </legend>
-    </div>
-    <div class="row">
-        <div class="input-group col-xs-4">
-            <input type="text" class="form-control" id="searchtext"/>
-            <label id="searchbutton" type="button" class="input-group-addon" for="searchtext">搜索</label>
-        </div>
-    </div>
-    <div class="row">
-        <table id="searchtable" border="1" class="table table-striped table-bordered table-hover">
-            <thead>
-            <th width="100px">商品编码</th>
-            <th width="100px">商品名称</th>
-            <th width="80px">图片</th>
-            <th width="100px">规格</th>
-            <th width="100px">买入单价</th>
-            <th width="100px">数量</th>
-            <th width="80px">操作</th>
-            </thead>
-        </table>
-    </div>
+    <!--<br>-->
+    <!--<div class="row" id="searchfield">-->
+        <!--<legend>-->
+            <!--<h2 class="head-title">搜索物品-->
+            <!--</h2>-->
+        <!--</legend>-->
+    <!--</div>-->
+    <!--<div class="row">-->
+        <!--<div class="input-group col-xs-4">-->
+            <!--<input type="text" class="form-control" id="searchtext"/>-->
+            <!--<label id="searchbutton" type="button" class="input-group-addon" for="searchtext">搜索</label>-->
+        <!--</div>-->
+    <!--</div>-->
+    <!--<div class="row">-->
+        <!--<table id="searchtable" border="1" class="table table-striped table-bordered table-hover">-->
+            <!--<thead>-->
+            <!--<th width="100px">商品编码</th>-->
+            <!--<th width="100px">商品名称</th>-->
+            <!--<th width="80px">图片</th>-->
+            <!--<th width="100px">规格</th>-->
+            <!--<th width="100px">买入单价</th>-->
+            <!--<th width="100px">数量</th>-->
+            <!--<th width="80px">操作</th>-->
+            <!--</thead>-->
+        <!--</table>-->
+    <!--</div>-->
     <div class="modal press" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -753,7 +740,6 @@ function initActions(){
                             <label>金额:</label>
                         </div>
                         <div class="col-lg-8">
-                             <!-- <input id="express_no" size=30 type="text" value={{orderlist.express_no}}/> -->
                             <input  class="form-control" size=30 type="text" type="text" id = "ol_mon" value={{ orderlist.order_amount }}>
                         </div>
                     </div>
@@ -763,8 +749,8 @@ function initActions(){
                         </div>
                         <div class="col-lg-8">
                             <select class="form-control" id="pay_ways" >
-                                <option value=11 {%if orderlist.bill_method == 11%}selected="selected"{%endif%}>货到付款</option>
-                                <option value=13 {%if orderlist.bill_method == 13%}selected="selected"{%endif%}>付款提货</option>
+                                <option value=11 {%if orderlist.bill_method == 11%}selected="selected"{%endif%}>立即付款</option>
+                                <option value=13 {%if orderlist.bill_method == 13%}selected="selected"{%endif%}>延迟付款</option>
                             </select>
                         </div>
                     </div>
@@ -797,11 +783,29 @@ function initActions(){
                         <label>自付账号</label><input placeholder="请输入自付账号" id="zi_account" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.receive_account}}"{%endif%}>
                         <label>交易流水号</label><input placeholder="请输入交易流水号" id="transcation_no" class="form-control" {%if orderlist.bill%}value="{{orderlist.bill.transcation_no}}"{%endif%}>
                     </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label>当前状态:</label>
+                        </div>
+                        <div class="col-lg-8">
+                            {%if orderlist.bill%}{%if orderlist.bill.status == 0 %}财务即将支付{%endif%}
+                            {%if orderlist.bill.status == -1 %}财务后续支付{%endif%}
+                            {%if orderlist.bill.status > 0 %}财务已支付{%endif%}{%endif%}
+                            <!--<select class="form-control" id="pay_status">-->
+                                <!--<option value=1 {%if orderlist.bill.status == 0 %}selected="selected"{%endif%}>立即支付</option>-->
+                                <!--<option value=2 {%if orderlist.bill.status == -1 %}selected="selected"{%endif%}>延迟支付</option>-->
+                            <!--</select>-->
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                    {%if not orderlist.bill%}<button type="button" class="btn btn-primary" id="sent_pay_info">保存</button>{%endif%}
-                    {%if orderlist.bill%}<button type="button" class="btn btn-primary" id="edit_pay_info">修改</button>{%endif%}
+                    {%if not orderlist.bill%}<button type="button" class="btn btn-primary" id="sent_pay_info">创建账单</button>{%endif%}
+                    {%if orderlist.bill%}
+                    {%if orderlist.bill.status > 0%}<span>已支付的账单无法修改</span>{%endif%}
+                    {%if orderlist.bill.is_merged%}<span>已合并的账单无法修改</span>{%endif%}
+                    {%if orderlist.bill.status <= 0 and not orderlist.bill.is_merged%}<button type="button" class="btn btn-primary" id="edit_pay_info">修改账单</button>{%endif%}
+                    {%endif%}
                 </div>
             </div>
         </div>
@@ -857,8 +861,11 @@ function initActions(){
         var bill_id = 0;
         $('#confirm').click(function(){
             var url = "/sale/dinghuo/update_dinghuo/";
-            var data = {"dinghuo_id":$ ('#orderlist_id').text(),"express_company_id": $ ('#express_company_id').val(),"express_no":$ ('#express_no').val(),
-            "pay_way":$ ('#pay_way').val(),"supplier_name":$ ('#supplier_name').val()};
+            var data = {"dinghuo_id":$ ('#orderlist_id').text(),
+                        "express_company_id": $ ('#express_company_id').val(),
+                        "express_no":$ ('#express_no').val(),
+                        "pay_way":$ ('#pay_way').val(),"supplier_name":$ ('#supplier_name').val()
+                    };
             $.ajax({
                 url: url,
                 data: data,

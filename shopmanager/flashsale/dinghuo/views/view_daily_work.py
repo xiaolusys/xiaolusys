@@ -304,7 +304,7 @@ def get_product_dict(shelve_from, time_to, groupname, search_text, target_date,
 
 
 from flashsale.dinghuo import functions2view
-from flashsale.dinghuo.models import OrderDetail, orderdraft
+from flashsale.dinghuo.models import OrderDetail, OrderDraft
 from shopback.items.models import Product, ProductSku
 from django.core import serializers
 
@@ -393,7 +393,7 @@ class AddDingHuoView(generics.ListCreateAPIView):
                                                                'sale_product']) or ''
 
         return Response({'productRestult': productres,
-                         'drafts': orderdraft.objects.all().filter(
+                         'drafts': OrderDraft.objects.all().filter(
                              buyer_name=request.user)})
 
 

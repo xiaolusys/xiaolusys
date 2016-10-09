@@ -14,7 +14,7 @@ from core.options import log_action, CHANGE
 from core.utils import CSVUnicodeWriter
 from flashsale.dinghuo import permissions as perms
 from flashsale.dinghuo.filters import DateFieldListFilter
-from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail, \
+from flashsale.dinghuo.models import OrderList, OrderDetail, ProductSkuDetail, ReturnGoods, RGDetail, \
     UnReturnSku, LackGoodOrder, SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, \
     PayToPackStats, PackageBackOrderStats
 from flashsale.dinghuo.models_user import MyUser, MyGroup
@@ -275,6 +275,9 @@ class OrderListAdmin(BaseModelAdmin):
             ods_res = OrderDetail.objects.filter(purchase_order_unikey=orderlist.purchase_order_unikey).aggregate(
                 total=Sum('buy_quantity'))
             ods_total = ods_res['total'] or 0
+            if psis_total == 0:
+                log_action(request.user.id, orderlist, CHANGE, u'至少要有一个待订货skuitem')
+                break
             if psis_total != ods_total:
                 log_action(request.user.id, orderlist, CHANGE, u'数量不对，审核失败')
                 break
@@ -282,7 +285,7 @@ class OrderListAdmin(BaseModelAdmin):
                 from flashsale.finance.models import Bill
                 psi_oids = [p.oid for p in psis]
                 orderlist.begin_third_package(psi_oids)
-                Bill.create([orderlist], Bill.PAY, Bill.STATUS_PENDING, Bill.TRANSFER_PAY, 0, 0, orderlist.supplier,
+                Bill.create([orderlist], Bill.PAY, Bill.STATUS_DELAY, Bill.TRANSFER_PAY, 0, 0, orderlist.supplier,
                             user_id=request.user.id, receive_account='', receive_name='',
                             pay_taobao_link='', transcation_no='')
                 self.message_user(request, str(orderlist.id) + u'订货单已成功进入结算!')
@@ -396,7 +399,6 @@ class orderdetailAdmin(BaseModelAdmin):
 
 admin.site.register(OrderList, OrderListAdmin)
 admin.site.register(OrderDetail, orderdetailAdmin)
-admin.site.register(orderdraft)
 
 from django.contrib.auth.models import User
 

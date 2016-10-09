@@ -6,7 +6,7 @@ from shopback.trades.models import MergeOrder
 from flashsale.dinghuo import paramconfig as pcfg
 from django.db.models import Q
 from shopback.items.models import Product
-from flashsale.dinghuo.models import orderdraft, OrderDetail
+from flashsale.dinghuo.models import OrderDraft, OrderDetail
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 import simplejson
 import urllib2
@@ -50,7 +50,7 @@ def get_product_dict_from_product(product_result):
 
 def cal_amount(u, express_cost):
     amount = 0
-    drafts = orderdraft.objects.all().filter(buyer_name=u)
+    drafts = OrderDraft.objects.all().filter(buyer_name=u)
     for draft in drafts:
         amount += draft.buy_unitprice * draft.buy_quantity
     amount = amount + express_cost
@@ -89,11 +89,11 @@ def save_draft_from_detail_id(order_list_id, user):
     all_details = OrderDetail.objects.filter(orderlist_id=order_list_id)
     for order_detail in all_details:
         buy_quantity = order_detail.non_arrival_quantity
-        draft_query = orderdraft.objects.filter(buyer_name=user, product_id=order_detail.product_id,
+        draft_query = OrderDraft.objects.filter(buyer_name=user, product_id=order_detail.product_id,
                                                 chichu_id=order_detail.chichu_id)
         if draft_query.count() == 0 and buy_quantity > 0:
             current_time = datetime.datetime.now()
-            t_draft = orderdraft(buyer_name=user, product_id=order_detail.product_id, outer_id=order_detail.outer_id,
+            t_draft = OrderDraft(buyer_name=user, product_id=order_detail.product_id, outer_id=order_detail.outer_id,
                                  buy_quantity=buy_quantity, product_name=order_detail.product_name,
                                  buy_unitprice=order_detail.buy_unitprice,
                                  chichu_id=order_detail.chichu_id, product_chicun=order_detail.product_chicun,
