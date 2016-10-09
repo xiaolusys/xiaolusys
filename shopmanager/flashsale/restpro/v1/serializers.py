@@ -1,5 +1,9 @@
 # coding=utf-8
 import datetime
+import os
+import random
+from django.conf import settings
+from django.template import Context, Template
 
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
 from rest_framework import serializers
@@ -31,6 +35,7 @@ from flashsale.xiaolumm.models import XiaoluMama, PotentialMama, ReferalRelation
 from rest_framework import serializers
 from flashsale.restpro import constants
 from flashsale.xiaolumm.models.models_advertis import MamaVebViewConf
+from flashsale.xiaolumm import util_emoji
 from flashsale.coupon.models import OrderShareCoupon
 
 from flashsale.xiaolumm.models.models_lesson import (
@@ -831,14 +836,47 @@ class XlmmAdvertisSerialize(serializers.ModelSerializer):
         fields = ("title", "cntnt")
 
 
+def get_mama_link(mama_id, jump_str):
+    """
+    获取代理专属链接
+    """
+    if not mama_id:
+        return settings.M_SITE_URL
+    if not jump_str:
+        return os.path.join(settings.M_SITE_URL, "m/{0}/".format(mama_id))  # 专属链接
+
+    preffix = 'm/{{mm_linkid}}/'
+    detail_l = ''
+    if (',' in jump_str and '/' not in jump_str) or str(jump_str).isdigit():  # 详情页
+        model_ids = jump_str.split(',')
+        model_id = random.choice(model_ids)
+        c = Context({'mm_linkid': mama_id, 'model_id': model_id})
+        detail_suffix = Template(''.join([preffix, '?next=mall/product/details/{{model_id}}']))  # 详情跳转页面
+        detail_l = detail_suffix.render(c)
+    if '/' in jump_str:
+        next_suffix = Template(''.join([preffix, '?next=', jump_str]) if jump_str else '')
+        c = Context({'mm_linkid': mama_id})
+        detail_l = next_suffix.render(c)
+    return os.path.join(settings.M_SITE_URL, detail_l)  # 专属链接
+
+
 class NinePicAdverSerialize(serializers.ModelSerializer):
     pic_arry = JSONParseField()
     could_share = serializers.IntegerField(source='is_share', read_only=True)
     title = serializers.CharField(source='description_title', read_only=True)
+    description = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = NinePicAdver
-        fields = ('id', "title", "start_time", "turns_num", "pic_arry", 'could_share', 'description')
+        fields = ('id', "title", "start_time", 'sale_category', "turns_num", "pic_arry", 'could_share', 'description')
+
+    def get_description(self, obj):
+        """
+        功能：重写描述字段
+        """
+        mama_id = self.context.get('request').data.get('mama_id')
+        mama_link = get_mama_link(mama_id, obj.detail_modelids)
+        return util_emoji.match_emoji(obj.description) + mama_link
 
 
 class MamaVebViewConfSerialize(serializers.ModelSerializer):
