@@ -23,7 +23,7 @@ from flashsale.pay.signals import signal_record_supplier_models
 from shopback.categorys.models import ProductCategory
 from shopback.items import constants
 from shopback.items.models import (Product, ProductSku, ProductSkuStats)
-from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory
+from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleCategory, SaleProductManageDetail
 from shopback.items import serializers
 
 logger = logging.getLogger(__name__)
@@ -290,6 +290,9 @@ class ProductManageViewSet(viewsets.ModelViewSet):
         except Exception, exc:
             logger.error('%s' % exc or u'创建商品model异常', exc_info=True)
             raise exceptions.APIException(u'创建商品model异常:%s' % exc)
+
+        SaleProductManageDetail.objects.set_material_complete_by_saleproduct(saleproduct)
+
         logger.info('modelproduct-create: inner_outer_id= %s, model_id= %s' % (inner_outer_id, model_pro.id))
         return Response({'code': 0, 'info': u'创建成功', 'modelproduct_id': model_pro.id})
 
@@ -460,6 +463,9 @@ class ProductManageV2ViewSet(viewsets.ModelViewSet):
         # 生成sku信息
         creator = request.user
         Product.create_or_update_skus(model_pro, creator)
+
+        SaleProductManageDetail.objects.set_material_complete_by_saleproduct(saleproduct)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @list_route(methods=['patch'])

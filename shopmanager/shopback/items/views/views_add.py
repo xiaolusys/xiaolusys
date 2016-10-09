@@ -26,7 +26,7 @@ from shopback.items import constants, forms, local_cache
 from shopback.items.models import (Product, ProductSku, ProductSchedule,
                                    ProductSkuContrast, ContrastContent,
                                    ProductSkuStats)
-from supplychain.supplier.models import SaleSupplier, SaleProduct
+from supplychain.supplier.models import SaleSupplier, SaleProduct, SaleProductManageDetail
 from shopback.warehouse import WARE_NONE, WARE_GZ, WARE_SH, WARE_CHOICES
 logger = logging.getLogger(__name__)
 
@@ -175,6 +175,8 @@ class AddItemView(generics.ListCreateAPIView):
         except Exception, exc:
             logger.error(exc.message or u'创建商品model异常', exc_info=True)
             raise exceptions.APIException(u'创建商品model异常:%s' % exc.message)
+
+        SaleProductManageDetail.objects.set_material_complete_by_saleproduct(saleproduct)
 
         logger.info('modelproduct-create: inner_outer_id= %s, model_id= %s' % (inner_outer_id, model_pro.id))
         return Response({"result": "OK", "outer_id": inner_outer_id})

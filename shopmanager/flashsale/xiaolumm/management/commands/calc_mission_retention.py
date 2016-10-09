@@ -22,7 +22,6 @@ class Command(BaseCommand):
             start_date += datetime.timedelta(days=7)
             start_week = start_date.strftime('%Y-%W')
 
-
         return week_list
 
     def handle(self, *args, **options):

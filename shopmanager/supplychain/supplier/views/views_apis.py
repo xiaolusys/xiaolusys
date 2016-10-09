@@ -642,6 +642,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
                                                          today_use_status=SaleProductManageDetail.NORMAL)
         for sale_product in sale_products:
             order_weight = details.count() + 1
+            modelproduct = sale_product.model_product
             request.data.update({
                 "schedule_manage": schedule_id,
                 "sale_product_id": sale_product.id,
@@ -650,7 +651,9 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
                 "pic_path": sale_product.pic_url,
                 "product_link": sale_product.product_link,
                 "sale_category": sale_product.sale_category.full_name,
-                "order_weight": order_weight
+                "order_weight": order_weight,
+                "design_complete":modelproduct and (modelproduct.head_imgs and modelproduct.content_imgs) or False,
+                "material_status": modelproduct and True or False,
             })
             serializer = serializers.SaleProductManageDetailSimpleSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
