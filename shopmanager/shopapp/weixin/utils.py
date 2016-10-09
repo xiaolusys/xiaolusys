@@ -83,7 +83,7 @@ def fetch_wxpub_mama_custom_qrcode_url(mama_id):
     media_stream = generate_colorful_qrcode(params)
 
     # 上传七牛
-    filepath = 'qrcode/%s.jpg' % md5(simplejson.dumps(qrcode_tpl.params))
+    filepath = 'qrcode/%s.jpg' % md5(simplejson.dumps(params))
     upload_public_to_remote(filepath, media_stream)
 
     return generate_public_url(filepath)
