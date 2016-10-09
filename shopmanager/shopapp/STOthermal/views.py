@@ -1,15 +1,16 @@
 # -*- coding:utf-8 -*-
 
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+import json
+
 from rest_framework import viewsets,authentication,permissions
-from rest_framework.response import Response
-from rest_framework.response import Response
 from rest_framework.decorators import detail_route,list_route
+from rest_framework.response import Response
+
 import STOthermal_extra
 import constant_extra
-import json
 from models import STOThermal
+
+
 class STOThermalSet(viewsets.ViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
@@ -24,7 +25,7 @@ class STOThermalSet(viewsets.ViewSet):
     def cancel_exp_number(self, request, pk):
         cp_code = request.POST.get('cp_code', None)
         waybill_code = request.POST.get('waybill_code', None)
-        cancel_exp_number = STOthermal_extra.cancel_exp_number(cp_code=cp_code,waybill_code=waybill_code)
+        cancel_exp_number = STOthermal_extra.cancel_exp_number(cp_code=cp_code, waybill_code=waybill_code)
         if cancel_exp_number:
             STOThermal.objects.filter(waybill_code = waybill_code).delete()
             return Response("运单号取消成功")
@@ -33,7 +34,16 @@ class STOThermalSet(viewsets.ViewSet):
 
     @list_route(methods=['get'])
     def get_exp_number(self,request):
-        a = {'param_waybill_cloud_print_apply_new_request': json.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)}
+        detail = request.GET.get('detail')
+        province = request.GET.get('province')
+        name = request.GET.get('name')
+        mobile = request.GET.get('mobile')
+        print_info = json.dumps(constant_extra.param_waybill_cloud_print_apply_new_request)
+        print_info.replace("wojia",detail)
+        print_info.replace("shanghai",province)
+        print_info.replace("denghui",name)
+        print_info.replace("15800972458",mobile)
+        a = {'param_waybill_cloud_print_apply_new_request': print_info}
         thermal_info = STOthermal_extra.get_exp_template(**a)
         if thermal_info:
             STOThermal.objects.create(print_data=thermal_info['print_data'],waybill_code=thermal_info['waybill_code'],operation_user=request.user)

@@ -190,6 +190,7 @@ INSTALLED_APPS =(
     'shopapp.weixin_score',
     'shopapp.weixin_examination',
     'shopapp.sampleproduct',
+    'shopapp.STOthermal',
 
     'supplychain.wavepick',
     'supplychain.supplier',
@@ -208,7 +209,6 @@ INSTALLED_APPS =(
     'flashsale.xiaolumm',
     'flashsale.dinghuo',
     'flashsale.workorder',
-    'flashsale.STOthermal',
     'flashsale.luntan',
     'flashsale.clickcount',
     'flashsale.clickrebeta',
