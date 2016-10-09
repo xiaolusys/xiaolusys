@@ -863,7 +863,7 @@ def get_mama_link(mama_id, jump_str):
 class NinePicAdverSerialize(serializers.ModelSerializer):
     pic_arry = JSONParseField()
     could_share = serializers.IntegerField(source='is_share', read_only=True)
-    title = serializers.CharField(source='description_title', read_only=True)
+    title = serializers.SerializerMethodField('get_description', read_only=True)  # serializers.CharField(source='description_title', read_only=True)
     description = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
