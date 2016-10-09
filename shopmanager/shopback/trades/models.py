@@ -1334,6 +1334,7 @@ class PackageOrder(models.Model):
     sys_memo = models.TextField(max_length=1000, blank=True, verbose_name=u'系统备注')
     seller_flag = models.IntegerField(null=True, default=0, verbose_name=u'淘宝旗帜')
 
+
     GIFT_TYPE = (
         (pcfg.REAL_ORDER_GIT_TYPE, u'实付'),
         (pcfg.CS_PERMI_GIT_TYPE, u'赠送'),
@@ -1868,6 +1869,7 @@ class PackageSkuItem(BaseModel):
     out_sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流编号')
     logistics_company_name = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司')
     logistics_company_code = models.CharField(max_length=16, blank=True, verbose_name=u'物流公司代码')
+    failed_retrieve_time = models.DateTimeField(null=True, default=None, verbose_name=u'快递查询失败时间')
 
     purchase_order_unikey = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'订货单唯一ID')
 
@@ -1876,6 +1878,24 @@ class PackageSkuItem(BaseModel):
         app_label = 'trades'
         verbose_name = u'包裹sku项'
         verbose_name_plural = u'包裹sku项列表'
+
+    def set_failed_time(self):
+        now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        PackageSkuItem.objects.filter(out_sid = self.out_sid).update(failed_retrieve_time = now_time)
+
+    def cancel_failed_time(self):
+        if self.failed_retrieve_time:
+            PackageSkuItem.objects.filter(out_sid=self.out_sid).update(failed_retrieve_time=None)
+
+    @staticmethod
+    def get_failed_express():
+        ps = PackageSkuItem.objects.exclude(failed_retrieve_time = None)
+        return ps
+
+    @staticmethod
+    def get_failed_oneday():
+        expire_time = datetime.datetime.now() - datetime.timedelta(days=1)
+        return [i for i in PackageSkuItem.get_failed_express() if i.failed_retrieve_time < expire_time]
 
     @property
     def sale_order(self):

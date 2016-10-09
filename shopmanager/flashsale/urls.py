@@ -18,6 +18,6 @@ urlpatterns = patterns(
     (r'^apprelease/', include('flashsale.apprelease.urls')),
     (r'^finance/', include('flashsale.finance.urls')),
     (r'^weixingroup/',include('games.weixingroup.urls')),
-    (r'^workorder/', include('flashsale.workorder.urls')),
+    (r'^workorder/', include('flashsale.workorder.urls'))
 )
 
