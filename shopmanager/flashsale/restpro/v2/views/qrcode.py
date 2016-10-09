@@ -12,6 +12,7 @@ from django.core.cache import cache
 from celery.result import AsyncResult
 
 from flashsale.pay.models.user import Customer
+from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.utils import fetch_wxpub_mama_custom_qrcode_url
 
 import logging
@@ -31,8 +32,8 @@ class QRcodeViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Customer.objects.all()
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated,)
+    # authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    # permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -42,15 +43,13 @@ class QRcodeViewSet(viewsets.ModelViewSet):
 
     @list_route()
     def get_wxpub_qrcode(self, request, *args, **kwargs):
-        customer = Customer.getCustomerByUser(user=request.user)
+        mama_id = request.GET.get('mama_id', '')
 
-        if not customer:
-            return Response({"code": 7, "info": u"用户未找到"})
+        if not mama_id:
+            return Response({"code": 2, "info": u"参数不正确"})
 
-        mama = customer.get_xiaolumm()
-        if mama:
-            mama_id = mama.id
-        else:
+        mama = XiaoluMama.objects.filter(id=mama_id).first()
+        if not mama:
             return Response({"code": 1, "info": u"不是小鹿妈妈"})
 
         resp = {
