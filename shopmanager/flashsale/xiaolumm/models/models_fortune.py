@@ -199,7 +199,7 @@ class MamaFortune(BaseModel):
     @property
     def customer_id(self):
         return self.xlmm.customer_id
-    
+
     @property
     def xlmm(self):
         if not hasattr(self, '_xiaolumm_xlmm_'):
@@ -540,7 +540,7 @@ def ordercarry_weixin_push(sender, instance, created, **kwargs):
     if not created:
         return
     if instance.mama_id < 1:
-        return 
+        return
     from flashsale.xiaolumm import tasks_mama_push
     tasks_mama_push.task_weixin_push_ordercarry.delay(instance)
 
@@ -564,10 +564,10 @@ post_save.connect(ordercarry_app_push,
 def ordercarry_send_first_award(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     from flashsale.xiaolumm.models.models import XiaoluMama
-    
+
     if not instance.mama:
         return
-    
+
     if instance.mama.last_renew_type == XiaoluMama.TRIAL:
         tasks_mama_fortune.task_first_order_send_award.delay(instance.mama)
     tasks_mama_fortune.task_update_mamafortune_hasale_num.delay(instance.mama_id)
@@ -1314,7 +1314,7 @@ post_save.connect(mama_app_version_check,
 def mama_update_device_stats(sender, instance, created, **kwargs):
     if not created:
         return
-    
+
     from flashsale.xiaolumm.models import MamaDeviceStats
     from flashsale.apprelease.models import AppRelease
 
