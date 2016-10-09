@@ -95,7 +95,6 @@ class NinePicAdver(models.Model):
 
     def is_share(self):
         """ 是否可以分享 """
-        print "debug id:", self.id
         now = datetime.datetime.now()  # 现在时间
         end_clock = datetime.datetime(now.year, now.month, now.day, 14, 0, 0, 0)  # 下架时间
         yestoday = datetime.date.today() - datetime.timedelta(days=1)  # 昨天

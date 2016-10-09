@@ -874,9 +874,7 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
         """
         功能：重写描述字段
         """
-        print "debug context", self.context
         mama_id = self.context.get('request').data.get('mama_id')
-        print 'debug xlmm', mama_id
         mama_link = get_mama_link(mama_id, obj.detail_modelids)
         return util_emoji.match_emoji(obj.description) + mama_link
 
