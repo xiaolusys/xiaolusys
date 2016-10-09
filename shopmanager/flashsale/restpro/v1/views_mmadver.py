@@ -44,6 +44,12 @@ class XlmmAdvertisViewSet(viewsets.ModelViewSet):
         return Response({})
 
 
+class NinePicAdverFilter(filters.FilterSet):
+    class Meta:
+        model = NinePicAdver
+        fields = ['id', 'sale_category']
+
+
 class NinePicAdverViewSet(viewsets.ModelViewSet):
     """
     ### 特卖平台－九张图API:
@@ -55,11 +61,15 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     # renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_class = NinePicAdverFilter
 
     def get_today_queryset(self, queryset):
         yesetoday = datetime.date.today() - datetime.timedelta(days=1)
+        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
         now = datetime.datetime.now()
-        queryset = queryset.filter(start_time__gte=yesetoday, start_time__lte=now)
+        queryset = queryset.filter(start_time__gte=yesetoday,
+                                   start_time__lt=tomorrow).filter(start_time__lt=now)
         return queryset
 
     def list(self, request, *args, **kwargs):
