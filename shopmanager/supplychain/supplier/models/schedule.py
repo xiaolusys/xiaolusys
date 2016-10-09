@@ -2,12 +2,14 @@
 import datetime
 from django.core.cache import cache
 from django.db import models
+from django.db.models import Sum
 from django.db.models.signals import pre_save, post_save, post_delete
+
 from core.options import get_systemoa_user, log_action, CHANGE
 from core.utils import update_model_fields
 from .. import constants
 from .product import SaleProduct
-from django.db.models import Sum
+from .. import objects
 
 
 class SaleProductManage(models.Model):
@@ -206,6 +208,7 @@ class SaleProductManageDetail(models.Model):
     photo_user = models.BigIntegerField(default=0, db_index=True, verbose_name=u"平面制作人")
     order_weight = models.IntegerField(db_index=True, default=8, choices=WEIGHT_CHOICE, verbose_name=u'权值')
 
+    objects = objects.ScheduleDetailManager()
     class Meta:
         db_table = 'supplychain_supply_schedule_manage_detail'
         unique_together = ("schedule_manage", "sale_product_id")
@@ -308,6 +311,12 @@ class SaleProductManageDetail(models.Model):
                                        pay_time__lt=self.schedule_manage.offshelf_time).values('status').annotate(
             t_num=Sum('num'))
         return res
+
+    def set_design_complete(self):
+        self.design_complete = True
+
+    def set_material_status_complete(self):
+        self.material_status = self.COMPLETE
 
 
 def sync_md_weight(sender, instance, raw, *args, **kwargs):

@@ -190,6 +190,7 @@ INSTALLED_APPS =(
     'shopapp.weixin_score',
     'shopapp.weixin_examination',
     'shopapp.sampleproduct',
+    'shopapp.STOthermal',
 
     'supplychain.wavepick',
     'supplychain.supplier',

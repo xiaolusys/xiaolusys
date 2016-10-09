@@ -13,6 +13,7 @@ from rest_framework.response import Response
 
 from flashsale.pay.models import ModelProduct, Productdetail, ModelProduct
 from shopback.items.models import Product
+from supplychain.supplier.models import SaleProductManageDetail
 
 from core.options import log_action, ADDITION, CHANGE
 
@@ -204,6 +205,10 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
         else:
             logger.error('不在参数范围', exc_info=True)
             return Response({"result": u"error"})
+
+        if model_product.head_imgs.strip() and model_product.content_imgs.strip():
+            SaleProductManageDetail.objects.set_design_complete_by_saleproduct(model_product.saleproduct)
+
         return Response({"result": u"success"})
 
 
