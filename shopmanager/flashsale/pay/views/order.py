@@ -551,7 +551,7 @@ def refund_fee(request):
 
     if sale_order.is_teambuy():
         return HttpResponse(u"团购到超时失败以后才可退款")
-    if sale_order.status != SaleOrder.WAIT_SELLER_SEND_GOODS:  # 状态为已付款
+    if not (SaleOrder.WAIT_SELLER_SEND_GOODS <= sale_order.status < SaleOrder.TRADE_FINISHED):  # 状态为已付款
         logger.error(u"交易状态不是已付款状态")
         return HttpResponse(u"交易状态不是已付款状态")
 

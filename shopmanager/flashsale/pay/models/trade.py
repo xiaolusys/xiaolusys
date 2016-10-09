@@ -872,6 +872,10 @@ class SaleOrder(PayBaseModel):
     def do_refund(self, reason=' '):
         sale_trader = self.sale_trade  # 退款sale_trade对象
         # 在saleorder订单状态为已经付款情况下，生成退款单salerefund，把退款单id 退款和退款状态赋值给sale_order中的三个字段
+        good_status = SaleRefund.SELLER_OUT_STOCK  # 默认为缺货　
+        # 如果是发货或者确认签收状态则为　买家收到货
+        good_status = SaleRefund.BUYER_RECEIVED if self.status in(SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                                                                  SaleOrder.TRADE_BUYER_SIGNED) else good_status
         s = SaleRefund(
             trade_id=self.sale_trade.id,
             order_id=self.id,
@@ -890,7 +894,7 @@ class SaleOrder(PayBaseModel):
             refund_fee=self.payment,
             title=self.title,
             reason=reason,
-            good_status=SaleRefund.SELLER_OUT_STOCK,
+            good_status=good_status,
             status=SaleRefund.REFUND_WAIT_SELLER_AGREE)
         s.save()
         return s
