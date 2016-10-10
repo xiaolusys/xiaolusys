@@ -391,6 +391,8 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
         res = self.queryset.filter(mama_id=mama_id).exclude(status=3).aggregate(carry_num=Sum('total_value'),visitor_num=Sum('click_num'))
         if not res.get("carry_num"):
             res["carry_num"] = 0
+        else:
+            res["carry_num"] = float('%.2f' % (res["carry_num"] * 0.01))
         if not res.get("visitor_num"):
             res["visitor_num"] = 0
         res.update({"mama_id":mama_id})
