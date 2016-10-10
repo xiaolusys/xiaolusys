@@ -176,7 +176,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
             if diff.seconds > 0:
                 left_days += 1
         
-        data.update({"thumbnail": customer.thumbnail, "left_days": left_days})
+        data.update({"thumbnail": customer.thumbnail, "left_days": left_days, "last_renew_type": mama.last_renew_type})
         return Response(data)
 
     @list_route(methods=['get'])
@@ -385,6 +385,17 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
+    @list_route(methods=['GET'])
+    def get_total(self, request):
+        mama_id = get_mama_id(request.user)
+        res = self.queryset.filter(mama_id=mama_id).exclude(status=3).aggregate(carry_num=Sum('total_value'),visitor_num=Sum('click_num'))
+        if not res.get("carry_num"):
+            res["carry_num"] = 0
+        if not res.get("visitor_num"):
+            res["visitor_num"] = 0
+        res.update({"mama_id":mama_id})
+        return Response(res)
+        
 
 class AwardCarryViewSet(viewsets.ModelViewSet):
     """
