@@ -645,7 +645,7 @@ class AwardCarry(BaseModel):
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     carry_num = models.IntegerField(default=0, verbose_name=u'奖励金额')
-    carry_type = models.IntegerField(default=0, choices=AWARD_TYPES, verbose_name=u'奖励类型')  # 直接推荐奖励/团队成员奖励
+    carry_type = models.IntegerField(default=0, db_index=True, choices=AWARD_TYPES, verbose_name=u'奖励类型')  # 直接推荐奖励/团队成员奖励
     carry_description = models.CharField(max_length=64, blank=True, verbose_name=u'描述')
     contributor_nick = models.CharField(max_length=64, blank=True, null=True, verbose_name=u'贡献者昵称')
     contributor_img = models.CharField(max_length=256, blank=True, null=True, verbose_name=u'贡献者头像')
@@ -669,6 +669,9 @@ class AwardCarry(BaseModel):
 
     def is_confirmed(self):
         return self.status == 2
+
+    def is_cancel(self):
+        return self.status == 3
 
     def carry_type_name(self):
         return get_choice_name(self.AWARD_TYPES, self.carry_type)

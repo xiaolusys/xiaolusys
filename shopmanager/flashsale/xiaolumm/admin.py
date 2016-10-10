@@ -497,7 +497,7 @@ class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'carry_description', 'contributor_nick',
                     'contributor_img_html', 'contributor_mama_id', 'status', 'date_field', 'is_full_member', 'modified', 'created')
     list_filter = ('status', 'carry_type', ('created', DateFieldListFilter))
-    search_fields = ('=mama_id', '=contributor_nick', 'contributor_mama_id')
+    search_fields = ('=mama_id', '=contributor_nick', '^uni_key')
 
     def contributor_img_html(self, obj):
         return '<img src="%s" style="width:50px;height:50px">' % (obj.contributor_img,)

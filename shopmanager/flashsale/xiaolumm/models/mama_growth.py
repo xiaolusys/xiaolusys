@@ -257,20 +257,24 @@ class MamaMissionRecord(BaseModel):
         self.finish_value = int(finish_value)
         cur_year_week = datetime.datetime.now().strftime('%Y-%W')
         # 任务奖励确认
-        if self.finish_value >= self.target_value and self.is_staging():
-            self.status = self.FINISHED
-            self.finish_time = datetime.datetime.now()
-            self.save(update_fields=['finish_value', 'status', 'finish_time'])
+        if self.finish_value >= self.target_value:
+            if self.is_staging():
+                self.status = self.FINISHED
+                self.finish_time = datetime.datetime.now()
+                self.save(update_fields=['finish_value', 'status', 'finish_time'])
+
             # 妈妈邀请任务奖励已经单独发放, 该处值发放团队奖励, 妈妈销售奖励, 团队销售奖励
             if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
                     or self.mission.target == MamaMission.TARGET_GROUP:
                 from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
                 task_send_mama_weekly_award.delay(self.mama_id, self.id)
         # 任务奖励取消
-        elif self.finish_value < self.target_value and self.is_finished():
-            self.status = self.STAGING
-            self.finish_time = datetime.datetime.now()
-            self.save(update_fields=['finish_value', 'status', 'finish_time'])
+        elif self.finish_value < self.target_value:
+            if self.is_finished():
+                self.status = self.STAGING
+                self.finish_time = datetime.datetime.now()
+                self.save(update_fields=['finish_value', 'status', 'finish_time'])
+
             if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
                     or self.mission.target == MamaMission.TARGET_GROUP:
                 from flashsale.xiaolumm.tasks import task_cancel_mama_weekly_award, \
