@@ -20,7 +20,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
-
+from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,
@@ -648,6 +648,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         bn_totalfee     = round(product_sku.agent_price * sku_num * 100)
 
         xlmm            = self.get_xlmm(request)
+
+        user_skunum = getUserSkuNumByLast24Hours(customer, product_sku)
+        lockable = Product.objects.isQuantityLockable(product_sku, sku_num + user_skunum)
+        if not lockable:
+            return exceptions.ParseError(u'该商品已限购')
+
         bn_discount     = product_sku.calc_discount_fee(xlmm) * sku_num
         if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
             raise exceptions.ParseError(u'商品已被抢光啦！')
