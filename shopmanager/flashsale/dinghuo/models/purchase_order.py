@@ -357,6 +357,7 @@ class OrderList(models.Model):
         self.bill_method = OrderList.PC_COD_TYPE
         self.is_postpay = True
         self.purchase_order.book()
+        self.ware_by = self.supplier.ware_by
         self.set_stage_state()
         # for od in self.order_list.all():
         #     od.arrival_quantity = od.buy_quantity
