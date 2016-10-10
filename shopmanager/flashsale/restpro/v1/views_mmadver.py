@@ -92,6 +92,11 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         """
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        save_times = request.data.get('save_times') or 0
+        share_times = request.data.get('share_times') or 0
+
+        request.data.update({'save_times': instance.save_times + save_times})
+        request.data.update({'share_times': instance.share_times + share_times})
         serializer = serializers.ModifyTimesNinePicAdverSerialize(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
