@@ -571,7 +571,7 @@ class XiaoluMama(models.Model):
         """ 获取妈妈的特卖用户对象 """
         if not hasattr(self, '_mama_customer_'):
             from flashsale.pay.models import Customer
-            self._mama_customer_ = Customer.objects.filter(unionid=self.openid, status=Customer.NORMAL).first()
+            self._mama_customer_ = Customer.objects.filter(unionid=self.openid).order_by('status').first()
         return self._mama_customer_
 
     @staticmethod

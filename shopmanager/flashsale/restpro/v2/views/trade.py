@@ -269,6 +269,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
         order_success_url = CONS.MALL_PAY_SUCCESS_URL.format(order_id=sale_trade.id, order_tid=sale_trade.tid)
+        if sale_trade.order_type == SaleTrade.TEAMBUY_ORDER:
+            order_success_url = CONS.TEAMBUY_SUCCESS_URL.format(order_tid=sale_trade.tid) + '?from_page=order_commit'
         payback_url = urlparse.urljoin(settings.M_SITE_URL, order_success_url)
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL, CONS.MALL_PAY_CANCEL_URL)
         if sale_trade.has_budget_paid:

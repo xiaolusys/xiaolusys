@@ -296,8 +296,7 @@ def task_cancel_or_finish_mama_mission_award(mission_record_id):
         week_start, week_end = week_range(datetime.datetime.strptime('%s-1'%mama_mission.year_week, '%Y-%W-%w'))
         some_week_finish_value = get_mama_week_sale_amount([mama_mission.mama_id], week_start, week_end)
 
-        if mama_mission.finish_value != some_week_finish_value:
-            mama_mission.update_mission_value(some_week_finish_value)
+        mama_mission.update_mission_value(some_week_finish_value)
 
         if some_week_finish_value >= mama_mission.target_value:
             uni_key = mama_mission.gen_uni_key()
