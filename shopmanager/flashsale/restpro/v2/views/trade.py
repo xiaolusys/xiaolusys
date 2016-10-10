@@ -20,7 +20,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
-from flashsale.pay.saledao import getUserSkuNumByLast24Hours
+from flashsale.pay.saledao import get_user_skunum_by_last24hours
 from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,
@@ -649,7 +649,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         xlmm            = self.get_xlmm(request)
 
-        user_skunum = getUserSkuNumByLast24Hours(customer, product_sku)
+        user_skunum = get_user_skunum_by_last24hours(customer, product_sku)
         lockable = Product.objects.isQuantityLockable(product_sku, sku_num + user_skunum)
         if not lockable:
             return exceptions.ParseError(u'该商品已限购')
