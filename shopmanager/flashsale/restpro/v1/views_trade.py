@@ -32,7 +32,7 @@ from flashsale.coupon import serializers as coupon_serializers
 from flashsale.restpro import permissions as perms
 from . import serializers
 from flashsale.restpro.exceptions import rest_exception
-from flashsale.pay.saledao import getUserSkuNumByLast24Hours
+from flashsale.pay.saledao import get_user_skunum_by_last24hours
 from shopback.items.models import Product, ProductSku
 from core.options import log_action, ADDITION, CHANGE
 from shopapp.weixin import options
@@ -123,7 +123,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             s_temp.delete()
         sku_num = 1
         sku = get_object_or_404(ProductSku, pk=sku_id)
-        user_skunum = getUserSkuNumByLast24Hours(customer, sku)
+        user_skunum = get_user_skunum_by_last24hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
         if not lockable:
             raise exceptions.APIException(u'该商品已限购')
@@ -221,7 +221,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id, status=ShoppingCart.NORMAL)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
-        user_skunum = getUserSkuNumByLast24Hours(customer, sku)
+        user_skunum = get_user_skunum_by_last24hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + 1)
         if not lockable:
             raise exceptions.APIException(u'商品数量限购')
@@ -254,7 +254,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         sku_num = int(sku_num)
         customer = get_object_or_404(Customer, user=request.user)
         sku = get_object_or_404(ProductSku, pk=sku_id)
-        user_skunum = getUserSkuNumByLast24Hours(customer, sku)
+        user_skunum = get_user_skunum_by_last24hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
         if not lockable:
             raise exceptions.APIException(u'商品数量限购')
@@ -385,7 +385,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         wallet_cash = 0
 
         customer = get_object_or_404(Customer, user=request.user)
-        user_skunum = getUserSkuNumByLast24Hours(customer, product_sku)
+        user_skunum = get_user_skunum_by_last24hours(customer, product_sku)
         lockable = Product.objects.isQuantityLockable(product_sku, user_skunum + 1)
         if not lockable:
             raise exceptions.APIException(u'商品数量限购')
