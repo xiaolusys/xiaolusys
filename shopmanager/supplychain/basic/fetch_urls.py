@@ -65,7 +65,7 @@ def get_link_img_src(link):
 def getItemPic(fetch_url, soup):
     pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
     container = soup.findAll(attrs={'class': re.compile(
-        '^(deteilpic|zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
+        '^(deteilpic|zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid|cloud-zoom)')
                                     })
 
     for c in container:
