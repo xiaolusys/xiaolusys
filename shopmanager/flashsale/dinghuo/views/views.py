@@ -1108,7 +1108,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
             return Response({"res": False, "data": [], "desc": u"计划金额不能为0"})
         if int(pay_tool) == Bill.SELF_PAY:
             status = Bill.STATUS_COMPLETED
-            amount = plan_amount
+            plan_amount = plan_amount
         pay_method = pay_tool
         if pay_method == '0':
             return Response({"res": False, "data": [], "desc": u"请选择支付方式"})
@@ -1150,7 +1150,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         try:
             bill.pay_method = pay_method
             bill.status = Bill.STATUS_PENDING
-            bill.amount = plan_amount
+            bill.plan_amount = plan_amount
             bill.supplier = orderlist.supplier
             bill.receive_account = receive_account
             bill.receive_name = receive_name
