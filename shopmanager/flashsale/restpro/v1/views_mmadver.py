@@ -86,6 +86,18 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         task_mama_daily_tab_visit_stats.delay(xlmm.id, MamaTabVisitStats.TAB_DAILY_NINEPIC)
         return Response(serializer.data)
 
+    def update(self, request, *args, **kwargs):
+        """
+        功能: 用户更新分享次数和保存次数
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = serializers.ModifyTimesNinePicAdverSerialize(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException("方法不允许")
 
@@ -119,4 +131,3 @@ class MamaVebViewConfViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED!')
-

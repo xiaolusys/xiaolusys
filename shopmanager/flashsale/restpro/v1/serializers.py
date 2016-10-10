@@ -879,6 +879,14 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
         return util_emoji.match_emoji(obj.description) + mama_link
 
 
+class ModifyTimesNinePicAdverSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = NinePicAdver
+        fields = ('id',
+                  'save_times',
+                  'share_times')
+
+
 class MamaVebViewConfSerialize(serializers.ModelSerializer):
     extra = JSONParseField()
     mama_activities = serializers.SerializerMethodField()
