@@ -21,7 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 import common.utils
 from common.utils import CSVUnicodeWriter
 from core.options import log_action, CHANGE, ADDITION
-from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft, OrderDetailInBoundDetail, InBoundDetail, \
+from flashsale.dinghuo.models import OrderDetail, OrderList, OrderDraft, OrderDetailInBoundDetail, InBoundDetail, \
     InBound, ReturnGoods
 from .. import functions
 from shopback.items.models import Product, ProductSku, ProductStock
@@ -235,9 +235,9 @@ class AutoNewOrder(View):
     def get(request, order_list_id):
         user = request.user
         functions.save_draft_from_detail_id(order_list_id, user)
-        all_drafts = orderdraft.objects.all().filter(buyer_name=user)
+        all_drafts = OrderDraft.objects.all().filter(buyer_name=user)
         return render_to_response("dinghuo/shengchengorder.html",
-                                  {"orderdraft": all_drafts},
+                                  {"OrderDraft": all_drafts},
                                   context_instance=RequestContext(request))
 
 

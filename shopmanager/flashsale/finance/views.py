@@ -113,12 +113,8 @@ class BillViewSet(viewsets.GenericViewSet):
 
     @detail_route(methods=['post'])
     def finish_bill(self, request, pk):
-        Bill.objects.filter(id=pk).update(status=Bill.STATUS_COMPLETED)
-        ctype = ContentType.objects.get(app_label='dinghuo', model='orderlist')
-        brs = BillRelation.objects.filter(bill_id=pk, content_type_id=ctype.id)
-        if brs.count():
-            for br in brs:
-                br.set_orderlist_stage()
+        bill = get_object_or_404(Bill, id=pk)
+        bill.finish()
         return Response({'bill_id': pk})
 
     @detail_route(methods=['POST'])

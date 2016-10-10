@@ -1981,7 +1981,7 @@ class PackageSkuItem(BaseModel):
     @property
     def return_ware_by(self):
         if self.ware_by == WARE_THIRD:
-            return self.product_sku.product.get_sale_product().return_ware_by
+            return self.product_sku.product.get_supplier().return_ware_by
         return self.ware_by
 
     @property

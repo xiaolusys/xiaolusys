@@ -37,7 +37,7 @@ from shopback.items.models import ProductSkuStats, ProductSkuSaleStats
 from shopback.items.models import InferiorSkuStats
 from shopback.items.filters import ProductSkuStatsSupplierIdFilter, ProductSkuStatsSupplierNameFilter, \
     ProductSkuStatsUnusedStockFilter, ProductWareByFilter
-from flashsale.dinghuo.models import orderdraft
+from flashsale.dinghuo.models import OrderDraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from django.contrib.auth.models import User as DjangoUser
 from django.forms.models import model_to_dict
@@ -650,7 +650,7 @@ class ProductAdmin(ApproxAdmin):
     def create_saleproduct_order(self, request, queryset):
 
         user = request.user
-        orderDrAll = orderdraft.objects.all().filter(buyer_name=user)
+        orderDrAll = OrderDraft.objects.all().filter(buyer_name=user)
         productres = []
         for p in queryset:
             product_dict = model_to_dict(p)
