@@ -867,6 +867,8 @@ class SaleOrder(PayBaseModel):
             return False
         if self.is_deposit() and self.sale_trade.status not in SaleTrade.REFUNDABLE_STATUS:
             return False
+        if self.sale_trade.order_type == SaleTrade.TEAMBUY_ORDER and self.status in (SaleOrder.WAIT_SELLER_SEND_GOODS,):
+            return False  # 团购订单　在付款状态不能退款
         return True
 
     def do_refund(self, reason=' '):
