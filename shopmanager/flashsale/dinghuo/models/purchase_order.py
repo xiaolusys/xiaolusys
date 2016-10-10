@@ -8,6 +8,7 @@ from django.db import transaction
 from core.utils.modelutils import update_model_fields
 from core.models import BaseModel
 from shopback.items.models import ProductSku, Product
+from shopback.warehouse.constants import WARE_CHOICES, WARE_NONE
 from supplychain.supplier.models import SaleSupplier
 import logging
 
@@ -126,7 +127,7 @@ class OrderList(models.Model):
                                  blank=True,
                                  related_name='dinghuo_orderlist',
                                  verbose_name=u'供应商')
-
+    # supplier_executor_phone =  models.CharField(choices=EXPRESS_CONPANYS, blank=True, max_length=32, verbose_name=u'快递公司')
     express_company = models.CharField(choices=EXPRESS_CONPANYS,
                                        blank=True,
                                        max_length=32,
@@ -203,6 +204,7 @@ class OrderList(models.Model):
     purchase_total_num = models.IntegerField(default=0, verbose_name=u'订购总件数')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
 
+    ware_by = models.IntegerField(choices=WARE_CHOICES, default=WARE_NONE, verbose_name=u'收货仓')
     third_package = models.BooleanField(default=False, verbose_name=u'第三方发货')
     purchase_order_unikey = models.CharField(max_length=32, unique=True, null=True, verbose_name=u'订货单生成标识')
     order_group_key = models.CharField(max_length=128, db_index=True, blank=True, verbose_name=u'订货单分组键')
@@ -427,6 +429,7 @@ class OrderList(models.Model):
         self.purchase_total_num = self.order_list.aggregate(
             total_num=Sum('buy_quantity')).get('total_num') or 0
         self.checked_time = datetime.datetime.now()
+        self.ware_by = self.supplier.ware_by
         if is_postpay:
             self.is_postpay = True
         self.save(update_fields=['stage', 'status', 'is_postpay', 'checked_time'])
@@ -448,7 +451,7 @@ class OrderList(models.Model):
         self.status = OrderList.QUESTION_OF_QUANTITY
         if not self.receive_time:
             self.receive_time = datetime.datetime.now()
-        self.is_postpay = pay_way == 11
+        self.is_postpay = pay_way == OrderList.PC_COD_TYPE
         self.save()
 
     def set_stage_state(self):
@@ -483,12 +486,25 @@ class OrderList(models.Model):
         return info
 
     def get_bill(self):
+        """
+            暂不支持订货单多账单
+        """
         from flashsale.finance.models import BillRelation
         br = BillRelation.objects.filter(object_id=self.id, type=1).first()
         if br:
             return br.bill
 
     bill = property(get_bill)
+
+    def get_return_bill(self):
+        from flashsale.finance.models import BillRelation
+        if self.bill_method != OrderList.PC_POD_TYPE:
+            return None
+        br = BillRelation.objects.filter(object_id=self.id, type=BillRelation.TYPE_DINGHUO_RECEIVE).first()
+        if br:
+            return br.bill
+
+    return_bill = property(get_return_bill)
 
     def get_bills(self):
         from flashsale.finance.models import BillRelation
@@ -777,7 +793,7 @@ class OrderGuarantee(BaseModel):
     desc = models.CharField(max_length=100, default='')
 
 
-class orderdraft(models.Model):
+class OrderDraft(models.Model):
     buyer_name = models.CharField(default="None",
                                   max_length=32,
                                   verbose_name=u'买手')

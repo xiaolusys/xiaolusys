@@ -25,7 +25,7 @@ from core.utils.csvutils import CSVUnicodeWriter
 from core.xlmm_response import make_response, SUCCESS_RESPONSE
 from core import xlmm_rest_exceptions
 from flashsale.dinghuo import paramconfig as pcfg
-from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
+from flashsale.dinghuo.models import (OrderDraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
                                       OrderDetailInBoundDetail,
                                       RGDetail,
@@ -77,7 +77,7 @@ def init_draft(request):
                     sku_quantity = int(sku_quantity)
                     mai_ru_jia_ge = float(mai_ru_jia_ge)
                     p1 = Product.objects.get(id=product_id)
-                    draft_query = orderdraft.objects.filter(
+                    draft_query = OrderDraft.objects.filter(
                         buyer_name=user,
                         product_id=product_id,
                         chichu_id=pro_sku.id)
@@ -87,7 +87,7 @@ def init_draft(request):
                         draft_query[0].save()
                     else:
                         current_time = datetime.datetime.now()
-                        t_draft = orderdraft(buyer_name=user,
+                        t_draft = OrderDraft(buyer_name=user,
                                              product_id=product_id,
                                              outer_id=p1.outer_id,
                                              buy_quantity=sku_quantity,
@@ -109,7 +109,7 @@ def new_order(request):
 
     buyer_name = '%s%s' % (request.user.last_name, request.user.first_name)
     buyer_name = buyer_name or request.user.username
-    all_drafts = orderdraft.objects.all().filter(buyer_name=username)
+    all_drafts = OrderDraft.objects.all().filter(buyer_name=username)
     express = OrderList.EXPRESS_CONPANYS
     if request.method == 'POST':
         post = request.POST
@@ -160,7 +160,7 @@ def new_order(request):
         orderlist.order_amount = amount
         orderlist.save()
 
-        drafts = orderdraft.objects.filter(buyer_name=username)
+        drafts = OrderDraft.objects.filter(buyer_name=username)
         for draft in drafts:
             total_price = draft.buy_quantity * draft.buy_unitprice
             orderdetail1 = OrderDetail()
@@ -209,7 +209,7 @@ def new_order(request):
         return HttpResponseRedirect("/sale/dinghuo/changedetail/" + str(
             orderlist.id))
     else:
-        drafts = orderdraft.objects.filter(buyer_name=username)
+        drafts = OrderDraft.objects.filter(buyer_name=username)
         supplier_name = ''
         products_dict = {}
         for draft in drafts:
@@ -233,7 +233,7 @@ def new_order(request):
                 supplier_name = sale_supplier.supplier_name
 
     return render_to_response('dinghuo/shengchengorder.html',
-                              {"orderdraft": all_drafts,
+                              {"OrderDraft": all_drafts,
                                "express": express,
                                'buyer_name': buyer_name,
                                'supplier_name': supplier_name},
@@ -242,14 +242,14 @@ def new_order(request):
 
 def del_draft(request):
     username = request.user
-    drafts = orderdraft.objects.filter(buyer_name=username)
+    drafts = OrderDraft.objects.filter(buyer_name=username)
     drafts.delete()
     return HttpResponse("")
 
 
 def add_purchase(request, outer_id):
     user = request.user
-    order_dr_all = orderdraft.objects.all().filter(buyer_name=user)
+    order_dr_all = OrderDraft.objects.all().filter(buyer_name=user)
     product_res = []
     queryset = Product.objects.filter(status=Product.NORMAL,
                                       outer_id__icontains=outer_id)
@@ -314,7 +314,7 @@ def data_chart(req):
 def plus_quantity(req):
     post = req.POST
     draft_id = post["draftid"]
-    draft = orderdraft.objects.get(id=draft_id)
+    draft = OrderDraft.objects.get(id=draft_id)
     draft.buy_quantity = draft.buy_quantity + 1
     draft.save()
     return HttpResponse("OK")
@@ -342,7 +342,7 @@ def plusordertail(req):
 def minusquantity(req):
     post = req.POST
     draft_id = post["draftid"]
-    draft = orderdraft.objects.get(id=draft_id)
+    draft = OrderDraft.objects.get(id=draft_id)
     draft.buy_quantity = draft.buy_quantity - 1
     draft.save()
     return HttpResponse("OK")
@@ -400,7 +400,7 @@ def minusarrived(req):
 def removedraft(req):
     post = req.POST
     draftid = post["draftid"]
-    draft = orderdraft.objects.get(id=draftid)
+    draft = OrderDraft.objects.get(id=draftid)
     draft.delete()
     return HttpResponse("OK")
 
@@ -1128,7 +1128,7 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
     @detail_route(methods=['post'])
     def edit_bill(self, request, pk):
         pay_tool = request.REQUEST.get("pay_tool", None)
-        orderlist = get_object_or_404(OrderList, id=pk)
+        # orderlist = get_object_or_404(OrderList, id=pk)
         pay_way = request.REQUEST.get("pay_way", None)
         plan_amount = request.REQUEST.get("money", None)
         transcation_no = request.REQUEST.get("transcation_no", None)
@@ -1137,8 +1137,9 @@ class DingHuoOrderListViewSet(viewsets.GenericViewSet):
         pay_taobao_link = request.REQUEST.get("pay_taobao_link", None)
         from flashsale.finance.models import Bill, BillRelation
         bill = get_object_or_404(Bill, id=pk)
+        orderlist = bill.get_orderlist()
         if bill.status in [Bill.STATUS_DEALED, Bill.STATUS_COMPLETED]:
-            return Response({"res": False, "data": [], "desc": u"计划金额不能为0"})
+            return Response({"res": False, "data": [], "desc": u"订单已支付不能编辑"})
         if pay_way == Bill.SELF_PAY:
             return Response({"res": False, "data": [], "desc": u"无法选择自付"})
         if float(plan_amount) == 0:

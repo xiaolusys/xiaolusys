@@ -70,7 +70,7 @@
         <span class="input-group-addon"><strong>大货负责人:</strong></span>
         <input id="orderlistid" value="{{ orderlist.id }}" hidden="hidden">
         <input type="text" id="receiver_id" class="form-control"
-               value="{{ orderlist.receiver }}">
+               value="{{ orderlist.buyer_id }}">
     </div>
     <div class="input-group span9" style="margin-top: 20px">
         <span class="input-group-addon"><strong>商品链接:</strong></span>
@@ -96,7 +96,7 @@
                value="{{ orderlist.order_amount }}">
     </div>
     <div class="input-group span9" style="margin-top: 20px">
-        <span class="input-group-addon"><strong>备注:</strong></span>
+        <span class="input-group-addon"><strong>添加备注:</strong></span>
         <textarea class="form-control" id="note_id" rows="3"></textarea>
     </div>
 

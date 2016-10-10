@@ -11,7 +11,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework import exceptions
 from core.options import log_action, ADDITION, CHANGE
-from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
+from flashsale.dinghuo.models import (OrderDraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail,
                                       OrderDetailInBoundDetail)
 from shopback.items.models import Product,ProductSku
