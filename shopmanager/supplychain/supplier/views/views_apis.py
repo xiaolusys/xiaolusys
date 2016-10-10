@@ -653,7 +653,7 @@ class SaleScheduleDetailViewSet(viewsets.ModelViewSet):
                 "sale_category": sale_product.sale_category.full_name,
                 "order_weight": order_weight,
                 "design_complete": True if modelproduct and modelproduct.head_imgs and modelproduct.content_imgs else False,
-                "material_status": True if modelproduct else False,
+                "material_status": SaleProductManageDetail.COMPLETE if modelproduct else SaleProductManageDetail.WORKING,
             })
             serializer = serializers.SaleProductManageDetailSimpleSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
