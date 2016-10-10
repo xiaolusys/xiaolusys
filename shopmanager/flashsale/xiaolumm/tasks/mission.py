@@ -271,10 +271,15 @@ def task_send_mama_weekly_award(mama_id, mission_record_id):
 
         award_amount = mama_mission.award_amount * 0.01
         uni_key = mama_mission.gen_uni_key()
-        AwardCarry.send_award(xiaolumm, award_amount,
-                              xiaolumm.weikefu, award_name,
-                              uni_key, AwardCarry.STAGING,
-                              AwardCarry.AWARD_MAMA_SALE)
+        award_carry = AwardCarry.objects.filter(uni_key=uni_key).first()
+        if award_carry and award_carry.is_cancel():
+            award_carry.status  = AwardCarry.STAGING
+            award_carry.save()
+        else:
+            AwardCarry.send_award(xiaolumm, award_amount,
+                                  xiaolumm.weikefu, award_name,
+                                  uni_key, AwardCarry.STAGING,
+                                  AwardCarry.AWARD_MAMA_SALE)
         # 通知妈妈任务完成，奖励发放
         task_push_mission_state_msg_to_weixin_user.delay(mission_record_id, MamaMissionRecord.FINISHED)
 
