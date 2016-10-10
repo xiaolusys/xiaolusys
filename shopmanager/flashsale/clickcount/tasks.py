@@ -34,11 +34,11 @@ def task_Create_Click_Record(xlmmid, openid, unionid, click_time, app_key):
     if not mama:
         return
 
-    now = datetime.datetime.now()
-    isvalid = True
-    if mama.renew_time < now:
-        #如果妈妈的续费时间已过，不计点击记录.
-        return
+    #now = datetime.datetime.now()
+    #isvalid = True
+    #if mama.renew_time < now:
+    #    #如果妈妈的续费时间已过，不计点击记录.
+    #    return
     
     #tf = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
     #tt = datetime.datetime(now.year, now.month, now.day, 23, 59, 59)

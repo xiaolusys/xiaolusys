@@ -132,7 +132,7 @@ def create_clickcarry_upon_click(mama_id, date_field):
         status=3).exclude(carry_type=3).values('contributor_id').distinct().count()
     click_num = 1
     status = 1  # pending
-    click_plan = get_active_click_plan()
+    click_plan = get_active_click_plan(mama_id)
     price, limit, name = plan_for_price_limit_name(order_num, click_plan.pk)
     uni_key = util_unikey.gen_clickcarry_unikey(mama_id, date_field)
     carry_description = util_description.get_clickcarry_description()
@@ -168,13 +168,21 @@ def update_clickcarry_upon_order(click_carry, mama_id, date_field):
         click_carry.save()
 
 
-def get_active_click_plan():
+def get_active_click_plan(mama_id=None):
     """
     Get the first active click plan, and use it. Thus,
     we have to make sure only 1 active plan exists.
     """
 
     from flashsale.xiaolumm.models.models_fortune import ClickPlan
+    from flashsale.xiaolumm.models import XiaoluMama
+    
+    if mama_id:
+        now = datetime.datetime.now()
+        mama = XiaoluMama.objects.filter(id=mama_id, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED, renew_time__lt=now).first()
+        if mama:
+            #如果妈妈已经过期，则试用体验0元妈妈点击计划
+            return ClickPlan.objects.filter(id=26).first()
 
     return ClickPlan.get_active_clickplan()
 
