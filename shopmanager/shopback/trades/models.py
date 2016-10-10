@@ -1820,7 +1820,7 @@ class PackageSkuItem(BaseModel):
         (NOT_ASSIGNED, u'未备货'),
         (ASSIGNED, u'已备货'),
         (FINISHED, u'已出货'),
-        (VIRTUAL_ASSIGNED, u'虚拟备货'),
+        (VIRTUAL_ASSIGNED, u'厂家备货中'),
         (CANCELED, u'已取消')
     )
     sale_order_id = models.IntegerField(unique=True, verbose_name=u'SKU订单编码')
