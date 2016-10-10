@@ -266,14 +266,15 @@ class MamaMissionRecord(BaseModel):
                 self.finish_time = datetime.datetime.now()
                 self.save(update_fields=['finish_value', 'status', 'finish_time'])
 
-            # 妈妈邀请任务奖励已经单独发放, 该处值发放团队奖励, 妈妈销售奖励, 团队销售奖励
+            # 通知妈妈邀请任务奖励已发放, 该处值发放团队奖励, 妈妈销售奖励, 团队销售奖励
             if self.mission.kpi_type == MamaMission.KPI_AMOUNT \
                     or self.mission.target == MamaMission.TARGET_GROUP:
                 from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
                 task_send_mama_weekly_award.delay(self.mama_id, self.id)
-        # 任务奖励取消
+
         else:
-            if self.is_finished():
+            has_old_finished = self.is_finished()
+            if has_old_finished:
                 self.status = self.STAGING
                 self.finish_value = finish_value
                 self.finish_time = datetime.datetime.now()
@@ -286,13 +287,13 @@ class MamaMissionRecord(BaseModel):
                 task_cancel_mama_weekly_award.delay(self.mama_id, self.id)
 
                 # 通知妈妈奖励取消
-                task_push_mission_state_msg_to_weixin_user.delay(self.id, MamaMissionRecord.CANCEL)
+                if has_old_finished:
+                    task_push_mission_state_msg_to_weixin_user.delay(self.id, MamaMissionRecord.CANCEL)
 
         if cur_year_week > self.year_week and self.is_staging():
             self.status = self.CLOSE
-            self.finish_time = None
             self.finish_value = finish_value
-            self.save(update_fields=['finish_value', 'status', 'finish_time'])
+            self.save(update_fields=['finish_value', 'status'])
 
         if self.finish_value != finish_value:
             self.finish_value = finish_value
