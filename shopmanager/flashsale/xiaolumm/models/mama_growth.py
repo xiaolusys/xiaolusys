@@ -226,6 +226,9 @@ class MamaMissionRecord(BaseModel):
     def is_staging(self):
         return self.status == self.STAGING
 
+    def is_close(self):
+        return self.status == self.CLOSE
+
     def get_finish_value(self):
         if self.mission.kpi_type == MamaMission.KPI_AMOUNT:
             return self.finish_value / 100.0
@@ -254,12 +257,12 @@ class MamaMissionRecord(BaseModel):
 
     def update_mission_value(self, finish_value):
         # TODO@meron 如果任务中订单金额退款，任务完成状态需要变更？
-        self.finish_value = int(finish_value)
         cur_year_week = datetime.datetime.now().strftime('%Y-%W')
         # 任务奖励确认
-        if self.finish_value >= self.target_value:
-            if self.is_staging():
+        if finish_value >= self.target_value:
+            if not self.is_finished():
                 self.status = self.FINISHED
+                self.finish_value = finish_value
                 self.finish_time = datetime.datetime.now()
                 self.save(update_fields=['finish_value', 'status', 'finish_time'])
 
@@ -269,9 +272,10 @@ class MamaMissionRecord(BaseModel):
                 from flashsale.xiaolumm.tasks import task_send_mama_weekly_award
                 task_send_mama_weekly_award.delay(self.mama_id, self.id)
         # 任务奖励取消
-        elif self.finish_value < self.target_value:
+        else:
             if self.is_finished():
                 self.status = self.STAGING
+                self.finish_value = finish_value
                 self.finish_time = datetime.datetime.now()
                 self.save(update_fields=['finish_value', 'status', 'finish_time'])
 
@@ -284,11 +288,14 @@ class MamaMissionRecord(BaseModel):
                 # 通知妈妈奖励取消
                 task_push_mission_state_msg_to_weixin_user.delay(self.id, MamaMissionRecord.CANCEL)
 
-        elif cur_year_week > self.year_week and self.is_staging():
+        if cur_year_week > self.year_week and self.is_staging():
             self.status = self.CLOSE
             self.finish_time = None
+            self.finish_value = finish_value
             self.save(update_fields=['finish_value', 'status', 'finish_time'])
-        else:
+
+        if self.finish_value != finish_value:
+            self.finish_value = finish_value
             self.save(update_fields=['finish_value'])
 
     @classmethod
@@ -297,6 +304,7 @@ class MamaMissionRecord(BaseModel):
         if year_week:
             queryset = queryset.filter(year_week=year_week)
         return queryset
+
 
 
 from flashsale.xiaolumm.signals import signal_xiaolumama_register_success
