@@ -486,17 +486,17 @@ class ChangeDetailExportView(View):
             worksheet.write(row, 2, memo, text_wrap)
             worksheet.write(row, 3, color)
             worksheet.write(row, 4, order_detail.product_chicun)
-            worksheet.write(row, 5, pic_path)
+            # worksheet.write(row, 5, pic_path)
 
-            # if pic_path:
-            #     opt = {'image_data':
-            #                io.BytesIO(urllib.urlopen(pic_path).read()),
-            #            'x_scale': 0.25,
-            #            'y_scale': 0.25}
-            #     if product_link:
-            #         opt['url'] = product_link
-            #     worksheet.set_row(row, image_height)
-            #     worksheet.insert_image(row, 5, pic_path, opt)
+            if pic_path:
+                opt = {'image_data':
+                           io.BytesIO(urllib.urlopen(pic_path).read()),
+                       'x_scale': 0.25,
+                       'y_scale': 0.25}
+                if product_link:
+                    opt['url'] = product_link
+                worksheet.set_row(row, image_height)
+                worksheet.insert_image(row, 5, pic_path, opt)
 
             worksheet.write(row, 6, order_detail.buy_quantity)
             worksheet.write(row, 7, order_detail.arrival_quantity)
